@@ -14,16 +14,12 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.AnalysisErrorInfo;
-import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
-import com.google.dart.engine.source.DirectoryBasedSourceContainer;
-import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
@@ -38,31 +34,25 @@ import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.builder.BuildEvent;
+import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
+import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
-import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 
-import static com.google.dart.tools.core.DartCore.isDartLikeFileName;
-import static com.google.dart.tools.core.DartCore.isHtmlLikeFileName;
-
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.IResourceProxy;
-import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -72,6 +62,8 @@ import java.util.List;
  * @coverage dart.tools.core.model
  */
 public class ProjectManagerImpl extends ContextManagerImpl implements ProjectManager {
+
+  private static final PubFolder[] NO_PUB_FOLDERS = new PubFolder[] {};
 
   private final IWorkspaceRoot resource;
   private final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
@@ -102,20 +94,12 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
    */
   private IResourceChangeListener resourceChangeListener = new WorkspaceDeltaProcessor(this);
 
-  private DartIgnoreListener ignoreListener = new DartIgnoreListener() {
-
-    @Override
-    public void ignoresChanged(DartIgnoreEvent event) {
-      String[] ignoresAdded = event.getAdded();
-      String[] ignoresRemoved = event.getRemoved();
-      if (ignoresAdded.length > 0) {
-        processIgnoresAdded(ignoresAdded);
-      }
-      if (ignoresRemoved.length > 0) {
-        processIgnoresRemoved(ignoresRemoved);
-      }
-    }
-  };
+  private DartIgnoreListener ignoreListener = new ProjectManagerIgnoreListener(
+      this,
+      ResourcesPlugin.getWorkspace().getRoot(),
+      AnalysisManager.getInstance(),
+      AnalysisMarkerManager.getInstance(),
+      index);
 
   public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, DartIgnoreManager ignoreManager) {
     super(sdk);
@@ -130,6 +114,15 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         listeners.add(listener);
       }
     }
+  }
+
+  @Override
+  public PubFolder[] getContainedPubFolders(IContainer container) {
+    Project project = getProject(container.getProject());
+    if (project != null) {
+      return project.getContainedPubFolders(container);
+    }
+    return NO_PUB_FOLDERS;
   }
 
   @Override
@@ -164,24 +157,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   @Override
   public Index getIndex() {
     return index;
-  }
-
-  @Override
-  public Source[] getLaunchableClientLibrarySources() {
-    List<Source> sources = new ArrayList<Source>();
-    for (Project project : getProjects()) {
-      sources.addAll(Arrays.asList(project.getLaunchableClientLibrarySources()));
-    }
-    return sources.toArray(new Source[sources.size()]);
-  }
-
-  @Override
-  public Source[] getLaunchableServerLibrarySources() {
-    List<Source> sources = new ArrayList<Source>();
-    for (Project project : getProjects()) {
-      sources.addAll(Arrays.asList(project.getLaunchableServerLibrarySources()));
-    }
-    return sources.toArray(new Source[sources.size()]);
   }
 
   @Override
@@ -426,6 +401,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         index.run();
       }
     }.start();
+    InstrumentationLogger.ensureLoggerStarted();
     new AnalysisWorker(this, getSdkContext()).performAnalysisInBackground();
     analyzeAllProjects();
   }
@@ -449,102 +425,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         participant.build(event, new NullProgressMonitor());
       } catch (CoreException e) {
         DartCore.logError(e);
-      }
-    }
-  }
-
-  private IResource getResourceFromPath(String path) {
-    IResource resource = null;
-    File file = new File(path);
-    if (file.isFile()) {
-      resource = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(new Path(path));
-    } else {
-      resource = ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(new Path(path));
-    }
-    return resource;
-  }
-
-  private List<Source> getSourcesIn(IResource resource) {
-
-    final List<Source> sources = new ArrayList<Source>();
-    final AnalysisContext context = getContext(resource);
-    try {
-      resource.accept(new IResourceProxyVisitor() {
-        @Override
-        public boolean visit(IResourceProxy proxy) throws CoreException {
-          if (proxy.getType() == IResource.FILE) {
-            String name = proxy.getName();
-            if (isDartLikeFileName(name) || isHtmlLikeFileName(name)) {
-              if (proxy.requestResource().getLocation() != null) {
-                Source source = new FileBasedSource(
-                    context.getSourceFactory().getContentCache(),
-                    proxy.requestResource().getLocation().toFile());
-                sources.add(source);
-              }
-            }
-          } else if (proxy.getType() == IResource.FOLDER && proxy.getName().startsWith(".")) {
-            return false;
-          }
-          return true;
-        }
-      }, 0);
-    } catch (CoreException e) {
-      DartCore.logError(e);
-    }
-    return sources;
-  }
-
-  private void processIgnoresAdded(String[] paths) {
-    for (String path : paths) {
-      ChangeSet changeSet = new ChangeSet();
-      IResource resource = getResourceFromPath(path);
-      if (resource != null) {
-        AnalysisContext context = getContext(resource);
-        if (resource instanceof IFile) {
-          changeSet.removed(getSource((IFile) resource));
-        } else {
-          changeSet.removedContainer(new DirectoryBasedSourceContainer(new File(path)));
-        }
-        context.applyChanges(changeSet);
-        AnalysisMarkerManager.getInstance().clearMarkers(resource);
-      }
-    }
-  }
-
-  private void processIgnoresRemoved(String[] paths) {
-    for (String path : paths) {
-      ChangeSet changeSet = new ChangeSet();
-      List<Source> sources = new ArrayList<Source>();
-      IResource resource = getResourceFromPath(path);
-
-      if (resource != null && resource.isAccessible()) {
-        AnalysisContext context = getContext(resource);
-        if (resource instanceof IFile) {
-          Source source = getSource((IFile) resource);
-          sources.add(source);
-          changeSet.added(source);
-        } else {
-          sources = getSourcesIn(resource);
-          for (Source source : sources) {
-            changeSet.added(source);
-          }
-        }
-
-        context.applyChanges(changeSet);
-        for (Source source : sources) {
-          AnalysisErrorInfo errorInfo = context.getErrors(source);
-          if (errorInfo.getErrors().length > 0) {
-            AnalysisMarkerManager.getInstance().queueErrors(
-                getResource(source),
-                errorInfo.getLineInfo(),
-                errorInfo.getErrors());
-          }
-          Project project = getProject(resource.getProject());
-          if (project == null) {
-            continue;
-          }
-          new AnalysisWorker(project, context).performAnalysisInBackground();
-        }
       }
     }
   }

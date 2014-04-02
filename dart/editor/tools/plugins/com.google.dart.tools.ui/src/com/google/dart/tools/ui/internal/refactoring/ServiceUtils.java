@@ -198,7 +198,7 @@ public class ServiceUtils {
     if (context == null) {
       return null;
     }
-    return new DartStatusContext(context.getSource(), context.getRange());
+    return new DartStatusContext(context.getContext(), context.getSource(), context.getRange());
   }
 
   /**
@@ -261,6 +261,9 @@ public class ServiceUtils {
     if (serviceProposal instanceof ChangeCorrectionProposal) {
       ChangeCorrectionProposal changeProposal = (ChangeCorrectionProposal) serviceProposal;
       org.eclipse.ltk.core.refactoring.Change ltkChange = toLTK(changeProposal.getChange());
+      if (ltkChange == null) {
+        return null;
+      }
       return new com.google.dart.tools.ui.internal.text.correction.proposals.ChangeCorrectionProposal(
           changeProposal.getName(),
           ltkChange,
@@ -297,10 +300,15 @@ public class ServiceUtils {
    * @return the {@link LinkedCorrectionProposal} for the given {@link SourceCorrectionProposal}.
    */
   public static LinkedCorrectionProposal toUI(SourceCorrectionProposal sourceProposal) {
-    CorrectionKind kind = sourceProposal.getKind();
-    Image image = ServiceUtils.toLTK(kind.getImage());
+    // prepare TextChange
     SourceChange sourceChange = sourceProposal.getChange();
     TextChange textChange = ServiceUtils.toLTK(sourceChange);
+    if (textChange == null) {
+      return null;
+    }
+    // prepare UI proposal
+    CorrectionKind kind = sourceProposal.getKind();
+    Image image = ServiceUtils.toLTK(kind.getImage());
     LinkedCorrectionProposal uiProposal = new LinkedCorrectionProposal(
         sourceProposal.getName(),
         sourceChange.getSource(),
@@ -319,6 +327,13 @@ public class ServiceUtils {
       String group = entry.getKey();
       for (LinkedPositionProposal proposal : entry.getValue()) {
         uiProposal.addLinkedPositionProposal(group, proposal.getText(), toLTK(proposal.getIcon()));
+      }
+    }
+    // set end position
+    {
+      SourceRange endRange = sourceProposal.getEndRange();
+      if (endRange != null) {
+        uiProposal.setEndPosition(TrackedPositions.forRange(endRange));
       }
     }
     // done
@@ -403,6 +418,7 @@ public class ServiceUtils {
   }
 
   private static TextEdit[] toLTK(List<Edit> edits) {
+    // NB(scheglov) It is a bad idea to ensure uniqueness of Edit(s) here.
     List<TextEdit> ltkEdits = Lists.newArrayList();
     for (Edit edit : edits) {
       TextEdit ltkEdit = toLTK(edit);

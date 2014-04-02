@@ -166,6 +166,21 @@ public class Token {
   }
 
   /**
+   * Return {@code true} if this token has any one of the given types.
+   * 
+   * @param types the types of token that are being tested for
+   * @return {@code true} if this token has any of the given types
+   */
+  public boolean matchesAny(TokenType... types) {
+    for (TokenType type : types) {
+      if (this.type == type) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Set the next token in the token stream to the given token. This has the side-effect of setting
    * this token to be the previous token for the given token.
    * 

@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -122,17 +122,18 @@ abstract public class AngularTest extends EngineTestCase {
   }
 
   protected final AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-  protected AnalysisContext context;
 
+  protected AnalysisContext context;
   protected String mainContent;
   protected Source mainSource;
   protected CompilationUnit mainUnit;
-  protected CompilationUnitElement mainUnitElement;
 
+  protected CompilationUnitElement mainUnitElement;
   protected String indexContent;
   protected Source indexSource;
   protected HtmlUnit indexUnit;
   protected HtmlElement indexHtmlUnit;
+
   protected CompilationUnitElement indexDartUnitElement;
 
   /**
@@ -197,7 +198,7 @@ abstract public class AngularTest extends EngineTestCase {
     for (AnalysisError error : errorsInfo.getErrors()) {
       errorListener.onError(error);
     }
-    errorListener.assertErrors(expectedErrorCodes);
+    errorListener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
   protected final void assertMainErrors(ErrorCode... expectedErrorCodes) throws AnalysisException {
@@ -246,9 +247,9 @@ abstract public class AngularTest extends EngineTestCase {
   }
 
   /**
-   * @return {@link ASTNode} which has required offset and type.
+   * @return {@link AstNode} which has required offset and type.
    */
-  protected final <E extends ASTNode> E findExpression(int offset, Class<E> clazz) {
+  protected final <E extends AstNode> E findExpression(int offset, Class<E> clazz) {
     Expression expression = HtmlUnitUtils.getExpression(indexUnit, offset);
     return expression != null ? expression.getAncestor(clazz) : null;
   }
@@ -338,6 +339,14 @@ abstract public class AngularTest extends EngineTestCase {
     mainUnitElement = mainUnit.getElement();
   }
 
+  /**
+   * Resolves {@link #mainSource}.
+   */
+  protected final void resolveMainNoErrors() throws Exception {
+    resolveMain();
+    assertNoErrors(mainSource);
+  }
+
   protected final void resolveMainSource(String content) throws Exception {
     addMainSource(content);
     resolveMain();
@@ -383,7 +392,7 @@ abstract public class AngularTest extends EngineTestCase {
             "library angular;",
             "",
             "class Scope {",
-            "  operator []=(String name, value) {}",
+            "  Map context;",
             "}",
             "",
             "class NgFilter {",
@@ -501,6 +510,10 @@ abstract public class AngularTest extends EngineTestCase {
             "",
             "@NgFilter(name: 'uppercase')",
             "class UppercaseFilter {}",
+            "",
+            "class ViewFactory {",
+            "  call(String templateUrl) => null;",
+            "}",
             "",
             "class Module {",
             "  install(Module m) {}",

@@ -15,7 +15,6 @@ package com.google.dart.tools.debug.core;
 
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
-import com.google.dart.tools.debug.core.pubserve.PubServeLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.pubserve.PubServeManager;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 import com.google.dart.tools.debug.core.util.ResourceChangeManager;
@@ -100,6 +99,10 @@ public class DartDebugCorePlugin extends Plugin {
   public static final String PREFS_BROWSER_ARGS = "browserArgs";
 
   public static final String PREFS_BREAK_ON_EXCEPTIONS = "breakOnExceptions";
+
+  public static final String PREFS_BREAK_ON_JS_EXCEPTIONS = "breakOnJSExceptions";
+
+  public static final String PREFS_INVOKE_TOSTRING = "invokeToString";
 
   public static final String PREFS_SHOW_RUN_RESUME_DIALOG = "showRunResumeDialog";
 
@@ -244,6 +247,10 @@ public class DartDebugCorePlugin extends Plugin {
     }
   }
 
+  public boolean getBreakOnJSException() {
+    return getPrefs().getBoolean(PREFS_BREAK_ON_JS_EXCEPTIONS, true);
+  }
+
   public String getBrowserArgs() {
     return getPrefs().get(PREFS_BROWSER_ARGS, "");
   }
@@ -264,6 +271,10 @@ public class DartDebugCorePlugin extends Plugin {
    */
   public String getDartVmExecutablePath() {
     return getPrefs().get(PREFS_DART_VM_PATH, "");
+  }
+
+  public boolean getInvokeToString() {
+    return getPrefs().getBoolean(PREFS_INVOKE_TOSTRING, true);
   }
 
   public boolean getIsDefaultBrowser() {
@@ -299,6 +310,10 @@ public class DartDebugCorePlugin extends Plugin {
     }
   }
 
+  public void setBreakOnJSException(boolean value) {
+    getPrefs().putBoolean(PREFS_BREAK_ON_JS_EXCEPTIONS, value);
+  }
+
   public void setBrowserPreferences(boolean useDefault, String name, String args) {
 
     IEclipsePreferences prefs = getPrefs();
@@ -329,9 +344,12 @@ public class DartDebugCorePlugin extends Plugin {
     }
   }
 
+  public void setInvokeToString(boolean value) {
+    getPrefs().putBoolean(PREFS_INVOKE_TOSTRING, value);
+  }
+
   public void setShowRunResumeDialogPref(boolean value) {
     getPrefs().putBoolean(PREFS_SHOW_RUN_RESUME_DIALOG, value);
-
   }
 
   public void setUserAgentManager(IUserAgentManager userAgentManager) {
@@ -374,7 +392,6 @@ public class DartDebugCorePlugin extends Plugin {
 
     BrowserManager.getManager().dispose();
     PubServeManager.getManager().dispose();
-    PubServeLaunchConfigurationDelegate.dispose();
 
     if (debugEventListener != null) {
       DebugPlugin.getDefault().removeDebugEventListener(debugEventListener);

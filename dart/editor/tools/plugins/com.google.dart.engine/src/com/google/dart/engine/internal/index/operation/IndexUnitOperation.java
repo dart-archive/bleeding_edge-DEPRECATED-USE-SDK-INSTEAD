@@ -95,7 +95,7 @@ public class IndexUnitOperation implements IndexOperation {
   public void performOperation() {
     synchronized (indexStore) {
       try {
-        boolean mayIndex = indexStore.aboutToIndex(context, unitElement);
+        boolean mayIndex = indexStore.aboutToIndexDart(context, unitElement);
         if (!mayIndex) {
           return;
         }

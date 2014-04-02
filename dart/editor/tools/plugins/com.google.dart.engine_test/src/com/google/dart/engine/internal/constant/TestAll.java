@@ -24,7 +24,6 @@ public class TestAll {
     suite.addTestSuite(ConstantFinderTest.class);
     suite.addTestSuite(ConstantValueComputerTest.class);
     suite.addTestSuite(ConstantVisitorTest.class);
-    suite.addTestSuite(DirectedGraphTest.class);
     suite.addTestSuite(ReferenceFinderTest.class);
     return suite;
   }

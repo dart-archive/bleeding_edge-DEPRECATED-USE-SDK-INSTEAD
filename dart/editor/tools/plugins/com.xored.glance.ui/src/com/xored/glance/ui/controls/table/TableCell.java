@@ -6,14 +6,14 @@
  ******************************************************************************/
 package com.xored.glance.ui.controls.table;
 
+import com.xored.glance.ui.controls.decor.StructCell;
+
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.TableItem;
-
-import com.xored.glance.ui.controls.decor.StructCell;
 
 public class TableCell extends StructCell {
 
@@ -22,20 +22,6 @@ public class TableCell extends StructCell {
   public TableCell(TableItem item, int column) {
     super(column);
     this.item = item;
-  }
-
-  @Override
-  public boolean isSelected() {
-    TableItem[] items = item.getParent().getSelection();
-    for (TableItem treeItem : items) {
-      if (treeItem == item)
-        return true;
-    }
-    return false;
-  }
-
-  public TableItem getTableItem() {
-    return item;
   }
 
   @Override
@@ -68,8 +54,7 @@ public class TableCell extends StructCell {
     return item.getImageBounds(getColumn());
   }
 
-  @Override
-  protected Item getItem() {
+  public TableItem getTableItem() {
     return item;
   }
 
@@ -81,6 +66,22 @@ public class TableCell extends StructCell {
   @Override
   public Rectangle getTextBounds() {
     return item.getTextBounds(getColumn());
+  }
+
+  @Override
+  public boolean isSelected() {
+    TableItem[] items = item.getParent().getSelection();
+    for (TableItem treeItem : items) {
+      if (treeItem == item) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  protected Item getItem() {
+    return item;
   }
 
 }

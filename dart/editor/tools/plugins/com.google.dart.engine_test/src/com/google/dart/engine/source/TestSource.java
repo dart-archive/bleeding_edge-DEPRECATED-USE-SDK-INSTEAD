@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.source;
 
+import com.google.dart.engine.internal.context.TimestampedData;
+
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import java.io.File;
@@ -31,19 +33,18 @@ public class TestSource extends FileBasedSource {
    * Initialize a newly created source object.
    */
   public TestSource() {
-    this(null, createFile("/test.dart"), "");
+    this(createFile("/test.dart"), "");
   }
 
   /**
    * Initialize a newly created source object. The source object is assumed to not be in a system
    * library.
    * 
-   * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
    * @param contents the contents of the file represented by this source
    */
-  public TestSource(ContentCache contentCache, File file, String contents) {
-    super(contentCache == null ? new ContentCache() : contentCache, file);
+  public TestSource(File file, String contents) {
+    super(file);
     this.contents = contents;
   }
 
@@ -53,11 +54,16 @@ public class TestSource extends FileBasedSource {
    * @param contents the contents of the file represented by this source
    */
   public TestSource(String contents) {
-    this(null, createFile("/test.dart"), contents);
+    this(createFile("/test.dart"), contents);
   }
 
   @Override
-  protected void getContentsFromFile(ContentReceiver receiver) throws Exception {
+  protected TimestampedData<CharSequence> getContentsFromFile() throws Exception {
+    return new TimestampedData<CharSequence>(0L, contents);
+  }
+
+  @Override
+  protected void getContentsFromFileToReceiver(ContentReceiver receiver) throws Exception {
     receiver.accept(contents, 0L);
   }
 }

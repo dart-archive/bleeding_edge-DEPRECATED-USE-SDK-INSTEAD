@@ -5,6 +5,7 @@
 #include "vm/stub_code.h"
 
 #include "platform/assert.h"
+#include "platform/globals.h"
 #include "vm/assembler.h"
 #include "vm/disassembler.h"
 #include "vm/flags.h"
@@ -50,9 +51,12 @@ StubCode::~StubCode() {
 
 
 void StubCode::InitOnce() {
+  // TODO(zra): ifndef to be removed when ARM64 port is ready.
+#if !defined(TARGET_ARCH_ARM64)
   // Generate all the stubs.
   Code& code = Code::Handle();
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
+#endif
 }
 
 
@@ -66,9 +70,12 @@ void StubCode::GenerateFor(Isolate* init) {
 
 
 void StubCode::Init(Isolate* isolate) {
+  // TODO(zra): ifndef to be removed when ARM64 port is ready.
+#if !defined(TARGET_ARCH_ARM64)
   StubCode* stubs = new StubCode();
   isolate->set_stub_code(stubs);
   stubs->GenerateFor(isolate);
+#endif
 }
 
 
@@ -105,28 +112,10 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     const char* name = cls.ToCString();
     StubCode::GenerateAllocationStubForClass(&assembler, cls);
     stub ^= Code::FinalizeCode(name, &assembler);
+    stub.set_owner(cls);
     cls.set_allocation_stub(stub);
     if (FLAG_disassemble_stubs) {
       OS::Print("Code for allocation stub '%s': {\n", name);
-      Disassembler::Disassemble(stub.EntryPoint(),
-                                stub.EntryPoint() + assembler.CodeSize());
-      OS::Print("}\n");
-    }
-  }
-  return stub.raw();
-}
-
-
-RawCode* StubCode::GetAllocationStubForClosure(const Function& func) {
-  Code& stub = Code::Handle(func.closure_allocation_stub());
-  if (stub.IsNull()) {
-    Assembler assembler;
-    const char* name = func.ToCString();
-    StubCode::GenerateAllocationStubForClosure(&assembler, func);
-    stub ^= Code::FinalizeCode(name, &assembler);
-    func.set_closure_allocation_stub(stub);
-    if (FLAG_disassemble_stubs) {
-      OS::Print("Code for closure allocation stub '%s': {\n", name);
       Disassembler::Disassemble(stub.EntryPoint(),
                                 stub.EntryPoint() + assembler.CodeSize());
       OS::Print("}\n");

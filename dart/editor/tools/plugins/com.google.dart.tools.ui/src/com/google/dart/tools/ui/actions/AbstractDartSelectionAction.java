@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
@@ -103,9 +103,9 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
   }
 
   /**
-   * @return the {@link ASTNode} covered by the given {@link DartSelection}, may be {@code null}.
+   * @return the {@link AstNode} covered by the given {@link DartSelection}, may be {@code null}.
    */
-  protected static ASTNode getSelectionNode(DartSelection selection) {
+  protected static AstNode getSelectionNode(DartSelection selection) {
     AssistContext context = selection.getContext();
     if (context != null) {
       return context.getCoveredNode();
@@ -114,10 +114,10 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
   }
 
   /**
-   * @return {@code true} if given {@link ASTNode} and {@link Element} are interesting in broad
+   * @return {@code true} if given {@link AstNode} and {@link Element} are interesting in broad
    *         meaning, i.e. we can do something with it - open, find, etc.
    */
-  protected static boolean isInterestingElement(ASTNode node, Element element) {
+  protected static boolean isInterestingElement(AstNode node, Element element) {
     // no node - probably impossible
     if (node == null) {
       return false;
@@ -152,7 +152,7 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
    *         interesting in broad meaning, i.e. we can do something with it - open, find, etc.
    */
   protected static boolean isInterestingElementSelected(DartSelection selection) {
-    ASTNode node = getSelectionNode(selection);
+    AstNode node = getSelectionNode(selection);
     Element element = getSelectionElement(selection);
     return isInterestingElement(node, element);
   }

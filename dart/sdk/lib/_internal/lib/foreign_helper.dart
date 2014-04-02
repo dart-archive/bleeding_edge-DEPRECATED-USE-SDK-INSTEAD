@@ -246,6 +246,10 @@ String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG() {}
  */
 String JS_GET_NAME(String name) {}
 
+/// Returns the state of a flag that is determined by the state of the compiler
+/// when the program has been analyzed.
+bool JS_GET_FLAG(String name) {}
+
 /**
  * Pretend [code] is executed.  Generates no executable code.  This is used to
  * model effects at some other point in external code.  For example, the
@@ -274,4 +278,13 @@ void JS_EFFECT(Function code) { code(null); }
 class JS_CONST {
   final String code;
   const JS_CONST(this.code);
+}
+
+/**
+ * JavaScript string concatenation. Inputs must be Strings.  Corresponds to the
+ * HStringConcat SSA instruction and may be constant-folded.
+ */
+String JS_STRING_CONCAT(String a, String b) {
+  // This body is unused, only here for type analysis.
+  return JS('String', '# + #', a, b);
 }

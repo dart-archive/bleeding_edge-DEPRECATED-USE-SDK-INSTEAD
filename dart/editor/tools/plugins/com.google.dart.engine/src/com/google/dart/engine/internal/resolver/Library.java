@@ -321,7 +321,7 @@ public class Library {
     try {
       new URI(uriContent);
       Source source = analysisContext.getSourceFactory().resolveUri(librarySource, uriContent);
-      if (source == null || !source.exists()) {
+      if (!analysisContext.exists(source)) {
         errorListener.onError(new AnalysisError(
             librarySource,
             uriLiteral.getOffset(),

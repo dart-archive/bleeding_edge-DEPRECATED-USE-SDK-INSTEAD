@@ -71,7 +71,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     // process "libSource"
     {
       ChangeSet changeSet = new ChangeSet();
-      changeSet.added(libSource);
+      changeSet.addedSource(libSource);
       analysisContext.applyChanges(changeSet);
     }
     // process unit
@@ -248,6 +248,183 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         resultProposal.getLinkedPositions());
   }
 
+  public void test_createConstructor_hasNotSyntheticDefault() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {}",
+        "}",
+        "main() {",
+        "  new A(1, 2.0);",
+        "}",
+        "");
+    assertNoFix(CorrectionKind.QF_CREATE_CONSTRUCTOR);
+  }
+
+  public void test_createConstructor_insteadOfSyntheticDefault() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int field;",
+        "",
+        "  method() {}",
+        "}",
+        "main() {",
+        "  new A(1, 2.0);",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  int field;",
+            "",
+            "  A(int i, double d) {",
+            "  }",
+            "",
+            "  method() {}",
+            "}",
+            "main() {",
+            "  new A(1, 2.0);",
+            "}",
+            ""));
+    // linked positions
+    {
+      Map<String, List<SourceRange>> expected = Maps.newHashMap();
+      expected.put("TYPE0", getResultRanges("int i"));
+      expected.put("ARG0", getResultRanges("i,"));
+      expected.put("TYPE1", getResultRanges("double d"));
+      expected.put("ARG1", getResultRanges("d) {"));
+      assertEquals(expected, resultProposal.getLinkedPositions());
+    }
+  }
+
+  public void test_createConstructor_named() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  method() {}",
+        "}",
+        "main() {",
+        "  new A.named(1, 2.0);",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A.named(int i, double d) {",
+            "  }",
+            "",
+            "  method() {}",
+            "}",
+            "main() {",
+            "  new A.named(1, 2.0);",
+            "}",
+            ""));
+    // linked positions
+    {
+      Map<String, List<SourceRange>> expected = Maps.newHashMap();
+      expected.put("NAME", getResultRanges("named(1, 2.0);", "named(int i"));
+      expected.put("TYPE0", getResultRanges("int i"));
+      expected.put("ARG0", getResultRanges("i,"));
+      expected.put("TYPE1", getResultRanges("double d"));
+      expected.put("ARG1", getResultRanges("d) {"));
+      assertEquals(expected, resultProposal.getLinkedPositions());
+    }
+  }
+
+  public void test_createConstructor_named_afterLeadingFields() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int fieldA;",
+        "  int fieldB;",
+        "",
+        "  method() {}",
+        "",
+        "  int fieldC;",
+        "}",
+        "main() {",
+        "  new A.named(1, 2.0);",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  int fieldA;",
+            "  int fieldB;",
+            "",
+            "  A.named(int i, double d) {",
+            "  }",
+            "",
+            "  method() {}",
+            "",
+            "  int fieldC;",
+            "}",
+            "main() {",
+            "  new A.named(1, 2.0);",
+            "}",
+            ""));
+  }
+
+  public void test_createConstructor_named_afterOtherConstructors() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {}",
+        "",
+        "  method() {}",
+        "}",
+        "main() {",
+        "  new A.named(1, 2.0);",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A() {}",
+            "",
+            "  A.named(int i, double d) {",
+            "  }",
+            "",
+            "  method() {}",
+            "}",
+            "main() {",
+            "  new A.named(1, 2.0);",
+            "}",
+            ""));
+  }
+
+  public void test_createConstructor_named_noOtherMembers() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  new A.named(1, 2.0);",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A.named(int i, double d) {",
+            "  }",
+            "}",
+            "main() {",
+            "  new A.named(1, 2.0);",
+            "}",
+            ""));
+  }
+
   public void test_createConstructorSuperExplicit() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -332,7 +509,9 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "  A(p1, int p2, List<String> p3, [int p4]);",
         "}",
         "class B extends A {",
-        "  int existingMember;",
+        "  int existingField;",
+        "",
+        "  int existingMethod() {}",
         "}");
     assert_runProcessor(
         CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER,
@@ -342,9 +521,11 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  A(p1, int p2, List<String> p3, [int p4]);",
             "}",
             "class B extends A {",
+            "  int existingField;",
+            "",
             "  B(p1, int p2, List<String> p3) : super(p1, p2, p3);",
             "",
-            "  int existingMember;",
+            "  int existingMethod() {}",
             "}"));
   }
 
@@ -356,6 +537,9 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "  A(this._field);",
         "}",
         "class B extends A {",
+        "  int existingField;",
+        "",
+        "  int existingMethod() {}",
         "}");
     assert_runProcessor(
         CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER,
@@ -366,7 +550,11 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  A(this._field);",
             "}",
             "class B extends A {",
+            "  int existingField;",
+            "",
             "  B(int field) : super(field);",
+            "",
+            "  int existingMethod() {}",
             "}"));
   }
 
@@ -377,6 +565,9 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "  A.named(p1, int p2);",
         "}",
         "class B extends A {",
+        "  int existingField;",
+        "",
+        "  int existingMethod() {}",
         "}");
     assert_runProcessor(
         CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER,
@@ -386,7 +577,11 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  A.named(p1, int p2);",
             "}",
             "class B extends A {",
+            "  int existingField;",
+            "",
             "  B.named(p1, int p2) : super.named(p1, p2);",
+            "",
+            "  int existingMethod() {}",
             "}"));
   }
 
@@ -515,50 +710,62 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "",
         "class B extends A {",
         "}");
-    assert_runProcessor(
-        CorrectionKind.QF_CREATE_MISSING_OVERRIDES,
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "abstract class A {",
-            "  m1();",
-            "  int m2();",
-            "  String m3(int p1, double p2, Map<int, List<String>> p3);",
-            "  String m4(p1, p2);",
-            "  String m5(p1, [int p2 = 2, int p3, p4 = 4]);",
-            "  String m6(p1, {int p2: 2, int p3, p4: 4});",
-            "}",
-            "",
-            "class B extends A {",
-            "  @override",
-            "  m1() {",
-            "    // TODO: implement m1",
-            "  }",
-            "",
-            "  @override",
-            "  int m2() {",
-            "    // TODO: implement m2",
-            "  }",
-            "",
-            "  @override",
-            "  String m3(int p1, double p2, Map<int, List<String>> p3) {",
-            "    // TODO: implement m3",
-            "  }",
-            "",
-            "  @override",
-            "  String m4(p1, p2) {",
-            "    // TODO: implement m4",
-            "  }",
-            "",
-            "  @override",
-            "  String m5(p1, [int p2 = 2, int p3, p4 = 4]) {",
-            "    // TODO: implement m5",
-            "  }",
-            "",
-            "  @override",
-            "  String m6(p1, {int p2: 2, int p3, p4: 4}) {",
-            "    // TODO: implement m6",
-            "  }",
-            "}"));
+    String expectedSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  m1();",
+        "  int m2();",
+        "  String m3(int p1, double p2, Map<int, List<String>> p3);",
+        "  String m4(p1, p2);",
+        "  String m5(p1, [int p2 = 2, int p3, p4 = 4]);",
+        "  String m6(p1, {int p2: 2, int p3, p4: 4});",
+        "}",
+        "",
+        "class B extends A {",
+        "  @override",
+        "  m1() {",
+        "    // TODO: implement m1",
+        "  }",
+        "",
+        "  @override",
+        "  int m2() {",
+        "    // TODO: implement m2",
+        "  }",
+        "",
+        "  @override",
+        "  String m3(int p1, double p2, Map<int, List<String>> p3) {",
+        "    // TODO: implement m3",
+        "  }",
+        "",
+        "  @override",
+        "  String m4(p1, p2) {",
+        "    // TODO: implement m4",
+        "  }",
+        "",
+        "  @override",
+        "  String m5(p1, [int p2 = 2, int p3, p4 = 4]) {",
+        "    // TODO: implement m5",
+        "  }",
+        "",
+        "  @override",
+        "  String m6(p1, {int p2: 2, int p3, p4: 4}) {",
+        "    // TODO: implement m6",
+        "  }",
+        "}");
+    assert_runProcessor(CorrectionKind.QF_CREATE_MISSING_OVERRIDES, expectedSource);
+    // end position should be on "m1", not on "m2", "m3", etc
+    {
+      SourceRange endRange = resultProposal.getEndRange();
+      assertNotNull(endRange);
+      int endOffset = endRange.getOffset();
+      String endString = expectedSource.substring(endOffset, endOffset + 25);
+      assertTrue(endString.contains("m1"));
+      assertFalse(endString.contains("m2"));
+      assertFalse(endString.contains("m3"));
+      assertFalse(endString.contains("m4"));
+      assertFalse(endString.contains("m5"));
+      assertFalse(endString.contains("m6"));
+    }
   }
 
   public void test_createMissingOverrides_operator() throws Exception {
@@ -629,6 +836,33 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  void set s3(String x) {",
             "    // TODO: implement s3",
             "  }",
+            "}"));
+  }
+
+  public void test_createNoSuchMethod() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  m1();",
+        "  int m2();",
+        "}",
+        "",
+        "class B extends A {",
+        "  existing() {}",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_NO_SUCH_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "abstract class A {",
+            "  m1();",
+            "  int m2();",
+            "}",
+            "",
+            "class B extends A {",
+            "  existing() {}",
+            "",
+            "  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);",
             "}"));
   }
 
@@ -870,7 +1104,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     // process "libSource"
     {
       ChangeSet changeSet = new ChangeSet();
-      changeSet.added(libSource);
+      changeSet.addedSource(libSource);
       analysisContext.applyChanges(changeSet);
     }
     // process unit
@@ -912,8 +1146,8 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     ensureAnalysisContext();
     {
       ChangeSet changeSet = new ChangeSet();
-      changeSet.added(libSource);
-      changeSet.added(testSource);
+      changeSet.addedSource(libSource);
+      changeSet.addedSource(testSource);
       analysisContext.applyChanges(changeSet);
     }
     // fill "test*" fields
@@ -929,6 +1163,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     SourceChange appChange = proposal.getChange();
     assertSame(testSource, appChange.getSource());
     assertChangeResult(
+        analysisContext,
         appChange,
         testSource,
         makeSource(
@@ -972,9 +1207,9 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     ensureAnalysisContext();
     {
       ChangeSet changeSet = new ChangeSet();
-      changeSet.added(libSource);
-      changeSet.added(appSource);
-      changeSet.added(partSource);
+      changeSet.addedSource(libSource);
+      changeSet.addedSource(appSource);
+      changeSet.addedSource(partSource);
       analysisContext.applyChanges(changeSet);
     }
     // fill "test*" fields
@@ -990,6 +1225,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     SourceChange appChange = proposal.getChange();
     assertSame(appSource, appChange.getSource());
     assertChangeResult(
+        analysisContext,
         appChange,
         appSource,
         makeSource(
@@ -1276,6 +1512,61 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             ""));
   }
 
+  public void test_removeUnusedImport() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math';",
+        "",
+        "main() {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_REMOVE_UNUSED_IMPORT,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "",
+            "main() {",
+            "}"));
+  }
+
+  public void test_removeUnusedImport_anotherImportOnLine() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math'; import 'dart:async';",
+        "",
+        "main() {",
+        "  Future f;",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_REMOVE_UNUSED_IMPORT,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'dart:async';",
+            "",
+            "main() {",
+            "  Future f;",
+            "}"));
+  }
+
+  public void test_removeUnusedImport_severalLines() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import ",
+        "  'dart:math';",
+        "",
+        "main() {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_REMOVE_UNUSED_IMPORT,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "",
+            "main() {",
+            "}"));
+  }
+
   public void test_undefinedClass_useSimilar_fromThisLibrary() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1352,6 +1643,152 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             ""));
   }
 
+  public void test_undefinedFunction_create_returnType_fromAssignment_eq() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v;",
+        "  v = myUndefinedFunction();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  int v;",
+            "  v = myUndefinedFunction();",
+            "}",
+            "",
+            "int myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_returnType_fromAssignment_plusEq() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v;",
+        "  v += myUndefinedFunction();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  int v;",
+            "  v += myUndefinedFunction();",
+            "}",
+            "",
+            "num myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_returnType_fromBinary_right() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  0 + myUndefinedFunction();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  0 + myUndefinedFunction();",
+            "}",
+            "",
+            "num myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_returnType_fromInitializer() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = myUndefinedFunction();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  int v = myUndefinedFunction();",
+            "}",
+            "",
+            "int myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_returnType_fromInvocationArgument() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(int p) {}",
+        "main() {",
+        "  foo( myUndefinedFunction() );",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "foo(int p) {}",
+            "main() {",
+            "  foo( myUndefinedFunction() );",
+            "}",
+            "",
+            "int myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_returnType_fromReturn() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int main() {",
+        "  return myUndefinedFunction();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "int main() {",
+            "  return myUndefinedFunction();",
+            "}",
+            "",
+            "int myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_returnType_void() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  myUndefinedFunction();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  myUndefinedFunction();",
+            "}",
+            "",
+            "void myUndefinedFunction() {",
+            "}",
+            ""));
+  }
+
   public void test_undefinedFunction_useSimilar_fromImport() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1398,7 +1835,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
-            "  static myUndefinedMethod() {",
+            "  static void myUndefinedMethod() {",
             "  }",
             "}",
             "main() {",
@@ -1424,7 +1861,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "class A {",
             "  foo() {}",
             "  ",
-            "  static myUndefinedMethod() {",
+            "  static void myUndefinedMethod() {",
             "  }",
             "}",
             "main() {",
@@ -1458,7 +1895,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
-            "  myUndefinedMethod() {",
+            "  void myUndefinedMethod() {",
             "  }",
             "}",
             "main() {",
@@ -1470,6 +1907,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     {
       Map<String, List<SourceRange>> expected = Maps.newHashMap();
       expected.put("NAME", getResultRanges("myUndefinedMethod();", "myUndefinedMethod() {"));
+      expected.put("RETURN_TYPE", getResultRanges("void myUndefinedMethod()"));
       assertEquals(expected, resultProposal.getLinkedPositions());
     }
   }
@@ -1502,13 +1940,14 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "    myUndefinedMethod(0, 1.0, '3');",
             "  }",
             "  ",
-            "  myUndefinedMethod(int i, double d, String s) {",
+            "  void myUndefinedMethod(int i, double d, String s) {",
             "  }",
             "}"));
     // linked positions
     {
       Map<String, List<SourceRange>> expected = Maps.newHashMap();
       expected.put("NAME", getResultRanges("myUndefinedMethod(0", "myUndefinedMethod(int"));
+      expected.put("RETURN_TYPE", getResultRanges("void myUndefinedMethod("));
       expected.put("TYPE0", getResultRanges("int i"));
       expected.put("TYPE1", getResultRanges("double d"));
       expected.put("TYPE2", getResultRanges("String s"));
@@ -1587,7 +2026,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "    myUndefinedMethod();",
             "  }",
             "  ",
-            "  static myUndefinedMethod() {",
+            "  static void myUndefinedMethod() {",
             "  }",
             "}"));
   }

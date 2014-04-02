@@ -33,32 +33,33 @@ public abstract class UriResolver {
   /**
    * If this resolver should be used for URI's of the given kind, resolve the given absolute URI.
    * The URI does not need to have the scheme handled by this resolver if the kind matches. Return a
-   * {@link Source source} representing the file to which it was resolved, or {@code null} if it
-   * could not be resolved.
+   * {@link Source source} representing the file to which it was resolved, whether or not the
+   * resulting source exists, or {@code null} if it could not be resolved because the URI is
+   * invalid.
    * 
-   * @param contentCache the content cache used to access the contents of the returned source
    * @param kind the kind of URI that was originally resolved in order to produce an encoding with
    *          the given URI
    * @param uri the URI to be resolved
    * @return a {@link Source source} representing the file to which given URI was resolved
    */
-  public abstract Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri);
+  public abstract Source fromEncoding(UriKind kind, URI uri);
 
   /**
    * Resolve the given absolute URI. Return a {@link Source source} representing the file to which
-   * it was resolved, or {@code null} if it could not be resolved.
+   * it was resolved, whether or not the resulting source exists, or {@code null} if it could not be
+   * resolved because the URI is invalid.
    * 
-   * @param contentCache the content cache used to access the contents of the returned source
    * @param uri the URI to be resolved
    * @return a {@link Source source} representing the file to which given URI was resolved
    */
-  public abstract Source resolveAbsolute(ContentCache contentCache, URI uri);
+  public abstract Source resolveAbsolute(URI uri);
 
   /**
-   * Return an absolute URI that represents the given source.
+   * Return an absolute URI that represents the given source, or {@code null} if a valid URI cannot
+   * be computed.
    * 
    * @param source the source to get URI for
-   * @return the absolute URI representing the given source, may be {@code null}
+   * @return the absolute URI representing the given source
    */
   public URI restoreAbsolute(Source source) {
     return null;

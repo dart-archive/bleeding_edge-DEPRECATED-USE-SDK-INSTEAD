@@ -13,7 +13,7 @@
      # When changing the jar files that we depend on please change the list
      # below.
      'dependent_jar_files': [
-       '../third_party/commons-lang/3.1/commons-lang3-3.1.jar',
+       '../third_party/commons-lang/3.2.1/commons-lang3-3.2.1.jar',
        '../third_party/json/r2_20080312/json.jar',
        '../third_party/guava/r13/guava-13.0.1.jar',
        '../third_party/args4j/2.0.12/args4j-2.0.12.jar'

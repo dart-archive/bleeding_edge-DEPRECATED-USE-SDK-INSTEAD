@@ -99,7 +99,7 @@ public class ErrorFormatterTest extends TestCase {
   public void test_format_withError() throws UnsupportedEncodingException {
     AnalyzerOptions options = new AnalyzerOptions();
 
-    Source source = new TestSource(null, createFile("/test.dart"), "import 'foo.dart");
+    Source source = new TestSource(createFile("/test.dart"), "import 'foo.dart");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     Map<Source, LineInfo> lineInfoMap = new HashMap<Source, LineInfo>();
     lineInfoMap.put(source, new LineInfo(new int[] {0}));

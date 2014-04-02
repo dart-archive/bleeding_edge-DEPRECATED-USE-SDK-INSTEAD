@@ -39,6 +39,7 @@ _cpp_callback_map = {
   ('DOMWindow', 'clearTimeout'): 'DOMWindowTimers',
   ('DOMWindow', 'clearInterval'): 'DOMWindowTimers',
   ('DOMWindow', 'createImageBitmap'): 'ImageBitmapFactories',
+  ('Element', 'animate'): 'ElementAnimation',
   ('HTMLInputElement', 'webkitEntries'): 'HTMLInputElementFileSystem',
   ('HTMLVideoElement', 'getVideoPlaybackQuality'): 'HTMLVideoElementMediaSource',
   ('Navigator', 'doNotTrack'): 'NavigatorDoNotTrack',
@@ -75,10 +76,56 @@ _cpp_callback_map = {
   ('WorkerGlobalScope', 'btoa'): 'DOMWindowBase64',
   ('WorkerGlobalScope', 'clearTimeout'): 'DOMWindowTimers',
   ('WorkerGlobalScope', 'clearInterval'): 'DOMWindowTimers',
-  }
+  ('Document', 'rootElement'): 'SVGDocument',
+  ('Document', 'childElementCount'): 'ParentNode',
+  ('Document', 'firstElementChild'): 'ParentNode',
+  ('Document', 'lastElementChild'): 'ParentNode',
+  ('DocumentFragment', 'childElementCount'): 'ParentNode',
+  ('DocumentFragment', 'firstElementChild'): 'ParentNode',
+  ('DocumentFragment', 'lastElementChild'): 'ParentNode',
+  ('CharacterData', 'nextElementSibling'): 'ChildNode',
+  ('CharacterData', 'previousElementSibling'): 'ChildNode',
+  ('Element', 'childElementCount'): 'ParentNode',
+  ('Element', 'firstElementChild'): 'ParentNode',
+  ('Element', 'lastElementChild'): 'ParentNode',
+  ('Element', 'nextElementSibling'): 'ChildNode',
+  ('Element', 'previousElementSibling'): 'ChildNode',
+  ('SVGAnimationElement', 'requiredExtensions'): 'SVGTests',
+  ('SVGAnimationElement', 'requiredFeatures'): 'SVGTests',
+  ('SVGAnimationElement', 'systemLanguage'): 'SVGTests',
+  ('SVGAnimationElement', 'hasExtension'): 'SVGTests',
+  ('SVGGraphicsElement', 'requiredExtensions'): 'SVGTests',
+  ('SVGGraphicsElement', 'requiredFeatures'): 'SVGTests',
+  ('SVGGraphicsElement', 'systemLanguage'): 'SVGTests',
+  ('SVGGraphicsElement', 'hasExtension'): 'SVGTests',
+  ('SVGPatternElement', 'requiredExtensions'): 'SVGTests',
+  ('SVGPatternElement', 'requiredFeatures'): 'SVGTests',
+  ('SVGPatternElement', 'systemLanguage'): 'SVGTests',
+  ('SVGPatternElement', 'hasExtension'): 'SVGTests',
+  ('SVGUseElement', 'requiredExtensions'): 'SVGTests',
+  ('SVGUseElement', 'requiredFeatures'): 'SVGTests',
+  ('SVGUseElement', 'systemLanguage'): 'SVGTests',
+  ('SVGUseElement', 'hasExtension'): 'SVGTests',
+  ('SVGMaskElement', 'requiredExtensions'): 'SVGTests',
+  ('SVGMaskElement', 'requiredFeatures'): 'SVGTests',
+  ('SVGMaskElement', 'systemLanguage'): 'SVGTests',
+  ('SVGMaskElement', 'hasExtension'): 'SVGTests',
+  ('SVGViewSpec', 'zoomAndPan'): 'SVGZoomAndPan',
+  ('SVGViewSpec', 'setZoomAndPan'): 'SVGZoomAndPan',
+  ('SVGViewElement', 'setZoomAndPan'): 'SVGZoomAndPan',
+  ('SVGSVGElement', 'setZoomAndPan'): 'SVGZoomAndPan',
+  ('Screen', 'orientation'): 'ScreenOrientation',
+  ('Screen', 'lockOrientation'): 'ScreenOrientation',
+  ('Screen', 'unlockOrientation'): 'ScreenOrientation',
+  ('Navigator', 'serviceWorker'): 'NavigatorServiceWorker',
+  ('Navigator', 'storageQuota'): 'NavigatorStorageQuota',
+  ('Navigator', 'isProtocolHandlerRegistered'): 'NavigatorContentUtils',
+  ('SharedWorker', 'workerStart'): 'SharedWorkerPerformance',
+}
 
 _cpp_import_map = {
-  'ImageBitmapFactories' : 'modules/imagebitmap/ImageBitmapFactories'
+  'ImageBitmapFactories' : 'modules/imagebitmap/ImageBitmapFactories',
+  'ScreenOrientation' : 'modules/screen_orientation/ScreenOrientation'
 }
 
 _cpp_overloaded_callback_map = {
@@ -199,6 +246,7 @@ class DartiumBackend(HtmlDartGenerator):
     class_name = 'Dart%s' % self._interface.id
     for operation in self._interface.operations:
       function_name = operation.id
+      return_type = self.SecureOutputType(operation.type.id)
       parameters = []
       arguments = []
       if operation.ext_attrs.get('CallWith') == 'ThisValue':
@@ -212,20 +260,28 @@ class DartiumBackend(HtmlDartGenerator):
         conversion_includes.extend(argument_type_info.conversion_includes())
 
       # FIXME(vsm): Handle ThisValue attribute.
+      if (return_type == 'void'):
+        ret = ''
+      else:
+        ret = '        return 0;\n'
+
       if operation.ext_attrs.get('CallWith') == 'ThisValue':
         cpp_header_handlers_emitter.Emit(
             '\n'
-            '    virtual bool $FUNCTION($PARAMETERS) {\n'
+            '    virtual $RETURN_TYPE $FUNCTION($PARAMETERS) {\n'
             '        DART_UNIMPLEMENTED();\n'
-            '        return false;\n'
+            '$RET'
             '    }\n',
+            RETURN_TYPE=return_type,
+            RET=ret,
             FUNCTION=function_name,
             PARAMETERS=', '.join(parameters))
         continue
 
       cpp_header_handlers_emitter.Emit(
           '\n'
-          '    virtual bool $FUNCTION($PARAMETERS);\n',
+          '    virtual $RETURN_TYPE $FUNCTION($PARAMETERS);\n',
+          RETURN_TYPE=return_type,
           FUNCTION=function_name,
           PARAMETERS=', '.join(parameters))
 
@@ -236,17 +292,26 @@ class DartiumBackend(HtmlDartGenerator):
       arguments_declaration = 'Dart_Handle arguments[] = { %s }' % ', '.join(arguments)
       if not len(arguments):
         arguments_declaration = 'Dart_Handle* arguments = 0'
+      if (return_type == 'void'):
+        ret1 = 'return'
+        ret2 = ''
+      else:
+        ret1 = 'return 0'
+        ret2 = ' return'
       cpp_impl_handlers_emitter.Emit(
           '\n'
-          'bool $CLASS_NAME::$FUNCTION($PARAMETERS)\n'
+          '$RETURN_TYPE $CLASS_NAME::$FUNCTION($PARAMETERS)\n'
           '{\n'
           '    if (!m_callback.isIsolateAlive())\n'
-          '        return false;\n'
+          '        $RET1;\n'
           '    DartIsolateScope scope(m_callback.isolate());\n'
           '    DartApiScope apiScope;\n'
           '    $ARGUMENTS_DECLARATION;\n'
-          '    return m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
+          '   $RET2 m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
           '}\n',
+          RETURN_TYPE=return_type,
+          RET1=ret1,
+          RET2=ret2,
           CLASS_NAME=class_name,
           FUNCTION=function_name,
           PARAMETERS=', '.join(parameters),
@@ -299,8 +364,15 @@ class DartiumBackend(HtmlDartGenerator):
     self._interface_type_info = self._TypeInfo(self._interface.id)
     self._members_emitter = members_emitter
     self._cpp_declarations_emitter = emitter.Emitter()
+
     self._cpp_impl_includes = set(['"' + partial + '.h"'
                                    for partial in _GetCPPPartialNames(self._interface)])
+
+    # This is a hack to work around a strange C++ compile error that we weren't
+    # able to track down the true cause of.
+    if self._interface.id == 'Timing':
+      self._cpp_impl_includes.add('"core/animation/TimedItem.h"')
+
     self._cpp_definitions_emitter = emitter.Emitter()
     self._cpp_resolver_emitter = emitter.Emitter()
 
@@ -508,6 +580,8 @@ class DartiumBackend(HtmlDartGenerator):
         'PureInterface' in ext_attrs or
         'CPPPureInterface' in ext_attrs or
         'SpecialWrapFor' in ext_attrs or
+        ('Custom' in ext_attrs and ext_attrs['Custom'] == 'Wrap') or
+        ('Custom' in ext_attrs and ext_attrs['Custom'] == 'ToV8') or
         self._interface_type_info.custom_to_dart()):
       to_dart_emitter.Emit(
           '    static Dart_Handle createWrapper(DartDOMData* domData, NativeType* value);\n')
@@ -515,7 +589,7 @@ class DartiumBackend(HtmlDartGenerator):
       to_dart_emitter.Emit(
           '    static Dart_Handle createWrapper(DartDOMData* domData, NativeType* value)\n'
           '    {\n'
-          '        return DartDOMWrapper::createWrapper<Dart$(INTERFACE)>(domData, value);\n'
+          '        return DartDOMWrapper::createWrapper<Dart$(INTERFACE)>(domData, value, Dart$(INTERFACE)::dartClassId);\n'
           '    }\n',
           INTERFACE=self._interface.id)
 
@@ -528,10 +602,17 @@ class DartiumBackend(HtmlDartGenerator):
     def TypeCheckHelper(test):
       return 'true' if any(map(test, self._database.Hierarchy(self._interface))) else 'false'
 
+    v8_interface_include = ''
+    # V8AbstractWorker.h does not exist so we have to hard code this case.
+    if self._interface.id != 'AbstractWorker':
+      # FIXME: We need this to access the WrapperTypeInfo.
+      v8_interface_include = '#include "V8%s.h"' % (self._interface.id)
+
     self._cpp_header_emitter.Emit(
         self._template_loader.Load('cpp_header.template'),
         INTERFACE=self._interface.id,
         WEBCORE_INCLUDES=webcore_includes,
+        V8_INTERFACE_INCLUDE=v8_interface_include,
         WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
         WEBCORE_CLASS_NAME_ESCAPED=
         self._interface_type_info.native_type().replace('<', '_').replace('>', '_'),
@@ -558,7 +639,12 @@ class DartiumBackend(HtmlDartGenerator):
     type_info = self._TypeInfo(attr.type.id)
     dart_declaration = '%s get %s' % (
         self.SecureOutputType(attr.type.id, False, read_only), html_name)
-    is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
+    is_custom = ('Custom' in attr.ext_attrs and
+                 (attr.ext_attrs['Custom'] == None or
+                  attr.ext_attrs['Custom'] == 'Getter'))
+    # This seems to have been replaced with Custom=Getter (see above), but
+    # check to be sure we don't see the old syntax
+    assert(not ('CustomGetter' in attr.ext_attrs))
     native_suffix = 'Getter'
     auto_scope_setup = self._GenerateAutoSetupScope(attr.id, native_suffix)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
@@ -586,6 +672,8 @@ class DartiumBackend(HtmlDartGenerator):
         webcore_function_name = self._ToWebKitName(attr.id)
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
+    raises = ('RaisesException' in attr.ext_attrs and
+              attr.ext_attrs['RaisesException'] != 'Setter')
     self._GenerateNativeCallback(
         cpp_callback_name,
         True,
@@ -594,13 +682,19 @@ class DartiumBackend(HtmlDartGenerator):
         [],
         attr.type.id,
         attr.type.nullable,
-        'GetterRaisesException' in attr.ext_attrs or 'RaisesException' in attr.ext_attrs,
+        raises,
         auto_scope_setup)
 
   def _AddSetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
     dart_declaration = 'void set %s(%s value)' % (html_name, self._DartType(attr.type.id))
-    is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
+    is_custom = ('Custom' in attr.ext_attrs and
+                 (attr.ext_attrs['Custom'] == None or
+                  attr.ext_attrs['Custom'] == 'Setter'))
+    # This seems to have been replaced with Custom=Setter (see above), but
+    # check to be sure we don't see the old syntax
+    assert(not ('CustomSetter' in attr.ext_attrs))
+    assert(not ('V8CustomSetter' in attr.ext_attrs))
     native_suffix = 'Setter'
     auto_scope_setup = self._GenerateAutoSetupScope(attr.id, native_suffix)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
@@ -611,12 +705,18 @@ class DartiumBackend(HtmlDartGenerator):
     if 'Reflect' in attr.ext_attrs:
       webcore_function_name = self._TypeInfo(attr.type.id).webcore_setter_name()
     else:
+      if 'ImplementedAs' in attr.ext_attrs:
+        attr_name = attr.ext_attrs['ImplementedAs']
+      else:
+        attr_name = attr.id
       webcore_function_name = re.sub(r'^(xml|css|(?=[A-Z])|\w)',
                                      lambda s: s.group(1).upper(),
-                                     attr.id)
+                                     attr_name)
       webcore_function_name = 'set%s' % webcore_function_name
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
+    raises = ('RaisesException' in attr.ext_attrs and
+              attr.ext_attrs['RaisesException'] != 'Getter')
     self._GenerateNativeCallback(
         cpp_callback_name,
         True,
@@ -625,7 +725,7 @@ class DartiumBackend(HtmlDartGenerator):
         [attr],
         'void',
         False,
-        'SetterRaisesException' in attr.ext_attrs,
+        raises,
         auto_scope_setup,
         generate_custom_element_scope_if_needed=True)
 
@@ -793,6 +893,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _GenerateOperationNativeCallback(self, operation, arguments, cpp_callback_name, auto_scope_setup=True):
     webcore_function_name = operation.ext_attrs.get('ImplementedAs', operation.id)
+
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, operation, cpp_callback_name)
     self._GenerateNativeCallback(
         cpp_callback_name,
@@ -819,6 +920,7 @@ class DartiumBackend(HtmlDartGenerator):
       generate_custom_element_scope_if_needed=False):
 
     ext_attrs = node.ext_attrs
+
     if self._IsStatic(node.id):
       needs_receiver = True
 
@@ -851,6 +953,14 @@ class DartiumBackend(HtmlDartGenerator):
 
     requires_script_execution_context = (ext_attrs.get('CallWith') == 'ExecutionContext' or
                                          ext_attrs.get('ConstructorCallWith') == 'ExecutionContext')
+
+    # Hack because our parser misses that these IDL members require an execution
+    # context.
+
+    if (self._interface.id == 'FontFace'
+        and callback_name in ['familySetter', 'featureSettingsSetter', 'stretchSetter',
+                              'styleSetter', 'unicodeRangeSetter', 'variantSetter', 'weightSetter']):
+      requires_script_execution_context = True
 
     requires_document = ext_attrs.get('ConstructorCallWith') == 'Document'
 
@@ -956,6 +1066,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     if requires_dom_window or requires_document:
       self._cpp_impl_includes.add('"DOMWindow.h"')
+
       body_emitter.Emit(
           '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
           '        if (!domWindow) {\n'
@@ -1005,7 +1116,7 @@ class DartiumBackend(HtmlDartGenerator):
       type_info = self._TypeInfo(argument.type.id)
       self._cpp_impl_includes |= set(type_info.conversion_includes())
       argument_expression_template, type, cls, function = \
-          type_info.to_native_info(argument, self._interface.id)
+          type_info.to_native_info(argument, self._interface.id, callback_name)
 
       def AllowsNull():
         # TODO(vsm): HTMLSelectElement's indexed setter treats a null as a remove.
@@ -1076,18 +1187,31 @@ class DartiumBackend(HtmlDartGenerator):
         '        }\n')
 
 
+    interface_name = self._interface_type_info.native_type()
+
     if needs_receiver:
-      interface_name = self._interface_type_info.native_type()
       # Hack to determine if this came from the _cpp_callback_map.
       # In this case, the getter is mapped to a static method.
-      if (not function_expression.startswith('receiver->') and
+      if function_expression.startswith('SVGTests::'):
+          cpp_arguments.insert(0, 'receiver')
+      elif (not function_expression.startswith('receiver->') and
           not function_expression.startswith(interface_name + '::')):
-        if interface_name == 'DOMWindow' or interface_name == 'Navigator' or interface_name == 'WorkerGlobalScope':
+        if (interface_name in ['DOMWindow', 'Element', 'Navigator', 'WorkerGlobalScope']
+            or (interface_name in ['SVGViewSpec', 'SVGViewElement', 'SVGSVGElement']
+              and callback_name in ['setZoomAndPan', 'zoomAndPanSetter', 'zoomAndPan'])
+            or (interface_name == 'Screen'
+              and callback_name in ['_lockOrientation_1Callback', '_lockOrientation_2Callback', 'unlockOrientation', 'orientation'])):
           cpp_arguments.insert(0, 'receiver')
         else:
           cpp_arguments.append('receiver')
       elif self._IsStatic(node.id):
         cpp_arguments.insert(0, 'receiver')
+
+    if interface_name in ['SVGPropertyTearOff<SVGTransform>', 'SVGPropertyTearOff<SVGAngle>', 'SVGMatrixTearOff'] and function_expression.startswith('receiver->'):
+      # This is a horrible hack. I don't know why this one case has to be
+      # special cased.
+      if not (self._interface.id == 'SVGTransformList' and callback_name == 'createSVGTransformFromMatrixCallback'):
+        function_expression = 'receiver->propertyReference().%s' % (function_expression[len('receiver->'):])
 
     function_call = '%s(%s)' % (function_expression, ', '.join(cpp_arguments))
     if return_type == 'void':
@@ -1104,7 +1228,7 @@ class DartiumBackend(HtmlDartGenerator):
           '        $NATIVE_TYPE result = $FUNCTION_CALL;\n'
           '        if (isNull)\n'
           '            return;\n',
-          NATIVE_TYPE=return_type_info.native_type(),
+          NATIVE_TYPE=return_type_info.parameter_type(),
           FUNCTION_CALL=function_call)
         value_expression = 'result'
       else:

@@ -15,6 +15,9 @@ class ContainerBuilder extends CodeEmitterHelper {
   /// instance methods.
   final Map<String, Element> methodClosures = <String, Element>{};
 
+  bool needsSuperGetter(FunctionElement element) =>
+    compiler.codegenWorld.methodsNeedingSuperGetter.contains(element);
+
   /**
    * Generate stubs to handle invocation of methods with optional
    * arguments.
@@ -27,7 +30,7 @@ class ContainerBuilder extends CodeEmitterHelper {
                         Selector selector,
                         AddStubFunction addStub,
                         Set<String> alreadyGenerated) {
-    FunctionSignature parameters = member.computeSignature(compiler);
+    FunctionSignature parameters = member.functionSignature;
     int positionalArgumentCount = selector.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
       assert(selector.namedArgumentCount == 0);
@@ -100,7 +103,7 @@ class ContainerBuilder extends CodeEmitterHelper {
           if (value == null) {
             argumentsBuffer[count] = task.constantReference(new NullConstant());
           } else {
-            if (!value.isNull()) {
+            if (!value.isNull) {
               // If the value is the null constant, we should not pass it
               // down to the native method.
               indexOfLastOptionalArgumentInParameters = count;
@@ -119,8 +122,21 @@ class ContainerBuilder extends CodeEmitterHelper {
           parametersBuffer, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
     } else if (member.isInstanceMember()) {
-      body = [js.return_(
-          js('this')[namer.getNameOfInstanceMember(member)](argumentsBuffer))];
+      if (needsSuperGetter(member)) {
+        ClassElement superClass = member.getEnclosingClass();
+        String methodName = namer.getNameOfInstanceMember(member);
+        // When redirecting, we must ensure that we don't end up in a subclass.
+        // We thus can't just invoke `this.foo$1.call(filledInArguments)`.
+        // Instead we need to call the statically resolved target.
+        //   `<class>.prototype.bar$1.call(this, argument0, ...)`.
+        body = [js.return_(
+            backend.namer.elementAccess(superClass)['prototype'][methodName]
+            ["call"](["this"]..addAll(argumentsBuffer)))];
+      } else {
+        body = [js.return_(
+            js('this')
+            [namer.getNameOfInstanceMember(member)](argumentsBuffer))];
+      }
     } else {
       body = [js.return_(namer.elementAccess(member)(argumentsBuffer))];
     }
@@ -135,10 +151,10 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (member.enclosingElement.isClosure()) {
       ClosureClassElement cls = member.enclosingElement;
       if (cls.supertype.element == compiler.boundClosureClass) {
-        compiler.internalErrorOnElement(cls.methodElement, 'Bound closure1.');
+        compiler.internalError(cls.methodElement, 'Bound closure1.');
       }
       if (cls.methodElement.isInstanceMember()) {
-        compiler.internalErrorOnElement(cls.methodElement, 'Bound closure2.');
+        compiler.internalError(cls.methodElement, 'Bound closure2.');
       }
     }
 
@@ -166,6 +182,13 @@ class ContainerBuilder extends CodeEmitterHelper {
     // (3) foo$3$d(a, b, d) => foo$4$c$d(a, b, null, d);
     // (4) No stub generated, call is direct.
     // (5) No stub generated, call is direct.
+    //
+    // We need to pay attention if this stub is for a function that has been
+    // invoked from a subclass. Then we cannot just redirect, since that
+    // would invoke the methods of the subclass. We have to compile to:
+    // (1) foo$2(a, b) => MyClass.foo$4$c$d.call(this, a, b, null, null)
+    // (2) foo$3$c(a, b, c) => MyClass.foo$4$c$d(this, a, b, c, null);
+    // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
 
     Set<Selector> selectors = member.isInstanceMember()
         ? compiler.codegenWorld.invokedNames[member.name]
@@ -314,8 +337,8 @@ class ContainerBuilder extends CodeEmitterHelper {
                member.isAccessor()) {
       addMemberMethod(member, builder);
     } else {
-      compiler.internalErrorOnElement(
-          member, 'unexpected kind: "${member.kind}"');
+      compiler.internalError(member,
+          'Unexpected kind: "${member.kind}".');
     }
     if (member.isInstanceMember()) emitExtraAccessors(member, builder);
   }
@@ -326,15 +349,15 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (code == null) return;
     String name = namer.getNameOfMember(member);
     task.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
-    FunctionSignature parameters = member.computeSignature(compiler);
+    FunctionSignature parameters = member.functionSignature;
     bool needsStubs = !parameters.optionalParameters.isEmpty;
     bool canTearOff = false;
     bool isClosure = false;
-    bool canBeApplied = compiler.enabledFunctionApply;
+    bool isNotApplyTarget =
+        !member.isFunction() || member.isConstructor() || member.isAccessor();
     String tearOffName;
-    if (!member.isFunction() || member.isConstructor() || member.isAccessor()) {
+    if (isNotApplyTarget) {
       canTearOff = false;
-      canBeApplied = false;
     } else if (member.isInstanceMember()) {
       if (member.getEnclosingClass().isClosure()) {
         canTearOff = false;
@@ -342,6 +365,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       } else {
         // Careful with operators.
         canTearOff = compiler.codegenWorld.hasInvokedGetter(member, compiler);
+        assert(!needsSuperGetter(member) || canTearOff);
         tearOffName = namer.getterName(member);
       }
     } else {
@@ -349,9 +373,11 @@ class ContainerBuilder extends CodeEmitterHelper {
           compiler.codegenWorld.staticFunctionsNeedingGetter.contains(member);
       tearOffName = namer.getStaticClosureName(member);
     }
-
-    bool canBeReflected = backend.isAccessibleByReflection(member);
-    bool needStructuredInfo =
+    final bool canBeApplied = !isNotApplyTarget &&
+        compiler.enabledFunctionApply &&
+        (canTearOff || member.name == 'call' || !member.isInstanceMember());
+    final bool canBeReflected = backend.isAccessibleByReflection(member);
+    final bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied;
     if (!needStructuredInfo) {
       builder.addProperty(name, code);
@@ -425,18 +451,8 @@ class ContainerBuilder extends CodeEmitterHelper {
         if (member.isInstanceMember()) {
           Set invokedSelectors =
               compiler.codegenWorld.invokedNames[member.name];
-          //if (invokedSelectors != null && invokedSelectors.contains(selector)) {
             expressions.add(js.string(namer.invocationName(selector)));
-          //} else {
-          //  // Don't add a stub for calling this as a regular instance method,
-          //  // we only need the "call" stub for implicit closures of this
-          //  // method.
-          //  expressions.add("null");
-          //}
         } else {
-          // Static methods don't need "named" stubs as the default arguments
-          // are inlined at call sites. But static methods might need "call"
-          // stubs for implicit closures.
           expressions.add("null");
           // TOOD(ahe): Since we know when reading static data versus instance
           // data, we can eliminate this element.
@@ -458,9 +474,9 @@ class ContainerBuilder extends CodeEmitterHelper {
       DartType memberType;
       if (member.isGenerativeConstructorBody()) {
         var body = member;
-        memberType = body.constructor.computeType(compiler);
+        memberType = body.constructor.type;
       } else {
-        memberType = member.computeType(compiler);
+        memberType = member.type;
       }
       if (memberType.containsTypeVariables) {
         jsAst.Expression thisAccess = js(r'this.$receiver');
@@ -484,8 +500,18 @@ class ContainerBuilder extends CodeEmitterHelper {
         ..addAll(task.metadataEmitter.reifyDefaultArguments(member));
 
     if (canBeReflected || canBeApplied) {
-      parameters.orderedForEachParameter((Element parameter) {
+      parameters.forEachParameter((Element parameter) {
         expressions.add(task.metadataEmitter.reifyName(parameter.name));
+        if (backend.mustRetainMetadata) {
+          List<MetadataAnnotation> annotations = parameter.metadata.toList();
+          Iterable<int> metadataIndices =
+              annotations.map((MetadataAnnotation a) {
+            compiler.constantHandler.addCompileTimeConstantForEmission(a.value);
+            return task.metadataEmitter.reifyMetadata(a);
+          });
+          expressions.add(metadataIndices.isNotEmpty ? metadataIndices.toList()
+                                                     : js('[]'));
+        }
       });
     }
     if (canBeReflected) {
@@ -494,8 +520,7 @@ class ContainerBuilder extends CodeEmitterHelper {
         String reflectionNameString = task.getReflectionName(member, name);
         reflectionName =
             new jsAst.LiteralString(
-                '"new ${Elements.reconstructConstructorName(member)}"'
-                ' /* $reflectionNameString */');
+                '"new ${Elements.reconstructConstructorName(member)}"');
       } else {
         reflectionName = js.string(member.name);
       }

@@ -16,7 +16,7 @@ package com.google.dart.engine.internal.context;
 
 /**
  * The enumerated type {@code Priority} defines the priority levels used to return sources in an
- * optimal order.
+ * optimal order. A smaller ordinal value equates to a higher priority.
  */
 public enum SourcePriority {
   /**
@@ -32,15 +32,14 @@ public enum SourcePriority {
   LIBRARY,
 
   /**
-   * Used for a Dart source that is known to be a part but whose library has not yet been
-   * resolved.
-   */
-  NORMAL_PART,
-
-  /**
    * Used for a Dart source whose kind is unknown.
    */
   UNKNOWN,
+
+  /**
+   * Used for a Dart source that is known to be a part but whose library has not yet been resolved.
+   */
+  NORMAL_PART,
 
   /**
    * Used for an HTML source.

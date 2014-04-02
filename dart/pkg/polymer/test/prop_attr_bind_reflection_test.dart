@@ -12,6 +12,9 @@ class MyChildElement extends PolymerElement {
   @published int camelCase;
   @published int lowercase;
 
+  // TODO(sigmund): remove once codegen in polymer is turned on.
+  @reflectable get attributes => super.attributes;
+
   MyChildElement.created() : super.created();
 
   // Make this a no-op, so we can verify the initial
@@ -33,7 +36,8 @@ main() {
   setUp(() => Polymer.onReady);
 
   test('attribute reflected to property name', () {
-    var child = query('my-element').shadowRoot.query('my-child-element');
+    var child = querySelector('my-element')
+        .shadowRoot.querySelector('my-child-element');
     expect(child.lowercase, 11);
     expect(child.camelCase, 11);
 

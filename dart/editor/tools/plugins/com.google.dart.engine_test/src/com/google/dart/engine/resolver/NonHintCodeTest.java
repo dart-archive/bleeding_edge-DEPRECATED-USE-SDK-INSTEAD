@@ -69,7 +69,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "f() {",
         "  if(A.DEBUG) {}",
         "}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class A {",
         "  static const bool DEBUG = false;",
@@ -86,7 +86,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "f() {",
         "  if(LIB.A.DEBUG) {}",
         "}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class A {",
         "  static const bool DEBUG = false;",
@@ -192,7 +192,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "import 'lib1.dart' as one;",
         "A a;",
         "one.A a2;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
@@ -207,7 +207,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "import 'lib1.dart' hide A;",
         "A a;",
         "B b;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}",
         "class B {}"));
@@ -223,7 +223,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "import 'lib1.dart' show A;",
         "A a;",
         "B b;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}",
         "class B {}"));
@@ -284,6 +284,102 @@ public class NonHintCodeTest extends ResolverTestCase {
         "class A {",
         "  bool operator ==(x) { return x; }",
         "  get hashCode => 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingGetter_inInterface() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  int get m => 0;",
+        "}",
+        "class B implements A {",
+        "  @override",
+        "  int get m => 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingGetter_inSuperclass() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  int get m => 0;",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  int get m => 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingMethod_inInterface() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  int m() => 0;",
+        "}",
+        "class B implements A {",
+        "  @override",
+        "  int m() => 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingMethod_inSuperclass() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  int m() => 0;",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  int m() => 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingSetter_inInterface() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  set m(int x) {}",
+        "}",
+        "class B implements A {",
+        "  @override",
+        "  set m(int x) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingSetter_inSuperclass() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "  set m(int x) {}",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  set m(int x) {}",
         "}"));
     resolve(source);
     assertNoErrors(source);
@@ -539,7 +635,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "library L;",
         "@A()",
         "import 'lib1.dart';"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {",
         "  const A() {}",
@@ -563,11 +659,11 @@ public class NonHintCodeTest extends ResolverTestCase {
         "library L;",
         "import 'lib1.dart';",
         "Two two;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "export 'lib2.dart';",
         "class One {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class Two {}"));
     resolve(source);
@@ -580,15 +676,15 @@ public class NonHintCodeTest extends ResolverTestCase {
         "library L;",
         "import 'lib1.dart';",
         "Two two;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "export 'lib2.dart';",
         "class One {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "export 'lib3.dart';",
         "class Two {}"));
-    addSource("/lib3.dart", createSource(//
+    addNamedSource("/lib3.dart", createSource(//
         "library lib3;",
         "export 'lib2.dart';",
         "class Three {}"));
@@ -602,17 +698,34 @@ public class NonHintCodeTest extends ResolverTestCase {
         "library L;",
         "import 'lib1.dart';",
         "Three three;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "export 'lib2.dart';",
         "class One {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "export 'lib3.dart';",
         "class Two {}"));
-    addSource("/lib3.dart", createSource(//
+    addNamedSource("/lib3.dart", createSource(//
         "library lib3;",
         "class Three {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_unusedImport_metadata() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "@A(x)",
+        "import 'lib1.dart';",
+        "class A {",
+        "  final int value;",
+        "  const A(this.value);",
+        "}"));
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const x = 0;"));
     resolve(source);
     assertNoErrors(source);
     verify(source);
@@ -629,7 +742,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "    one.topLevelFunction();",
         "  }",
         "}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class One {}",
         "topLevelFunction() {}"));

@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.wst.ui.hyperlink;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
@@ -66,7 +66,7 @@ public class DartHyperlinkDetector extends AbstractHyperlinkDetector {
     @Override
     public void run(IStructuredSelection selection) {
       try {
-        if (element.getSource().exists()) {
+        if (element.getContext().exists(element.getSource())) {
           DartUI.openInEditor(element);
         } else {
           // If the source is undefined we assume it is part of the script currently in the viewer.
@@ -104,7 +104,7 @@ public class DartHyperlinkDetector extends AbstractHyperlinkDetector {
 
     int offset = region.getOffset() - partition.getStartOffset();
 
-    ASTNode node = new NodeLocator(offset, offset + region.getLength()).searchWithin(cu);
+    AstNode node = new NodeLocator(offset, offset + region.getLength()).searchWithin(cu);
     if (node == null || node instanceof com.google.dart.engine.ast.CompilationUnit
         || node instanceof Directive || node instanceof Declaration
         || node instanceof InstanceCreationExpression || node instanceof PrefixExpression
@@ -112,7 +112,7 @@ public class DartHyperlinkDetector extends AbstractHyperlinkDetector {
       return null;
     }
 
-    Element element = ElementLocator.locate(node, offset);
+    Element element = ElementLocator.locateWithOffset(node, offset);
     if (element != null) {
       IRegion wordRegion = getWordRegion(node);
       return new IHyperlink[] {new DartElementHyperlink(element, wordRegion, new Opener(
@@ -148,7 +148,7 @@ public class DartHyperlinkDetector extends AbstractHyperlinkDetector {
     return null;
   }
 
-  private Region getWordRegion(ASTNode node) {
+  private Region getWordRegion(AstNode node) {
     // Adapted from DartElementHyperlinkDetector.getWordRegion()
     if (node instanceof BinaryExpression) {
       Token operator = ((BinaryExpression) node).getOperator();

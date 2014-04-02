@@ -58,35 +58,69 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
  */
 const JsonCodec JSON = const JsonCodec();
 
+typedef _Reviver(var key, var value);
+typedef _ToEncodable(var o);
+
+
 /**
  * A [JsonCodec] encodes JSON objects to strings and decodes strings to
  * JSON objects.
  */
 class JsonCodec extends Codec<Object, String> {
-  const JsonCodec();
+  final _Reviver _reviver;
+  final _ToEncodable _toEncodable;
+
+  /**
+   * Creates a `JsonCodec` with the given reviver and encoding function.
+   *
+   * The [reviver] function is called during decoding. It is invoked
+   * once for each object or list property that has been parsed.
+   * The `key` argument is either the
+   * integer list index for a list property, the string map key for object
+   * properties, or `null` for the final result.
+   *
+   * If [reviver] is omitted, it defaults to returning the value argument.
+   *
+   * The [toEncodable] function is used during encoding. It is invoked for
+   * values that are not directly encodable to a JSON1toE
+   * string (a value that is not a number, boolean, string, null, list or a map
+   * with string keys). The function must return an object that is directly
+   * encodable. The elements of a returned list and values of a returned map
+   * do not need be directly encodable, and if they aren't, `toEncodable` will
+   * be used on them as well.
+   * Please notice that it is possible to cause an infinite recursive
+   * regress in this way, by effectively creating an infinite data structure
+   * through repeated call to `toEncodable`.
+   *
+   * If [toEncodable] is omitted, it defaults to a function that returns the
+   * result of calling `.toJson()` on the unencodable object.
+   */
+  const JsonCodec({reviver(var key, var value), toEncodable(var object)})
+      : _reviver = reviver,
+        _toEncodable = toEncodable;
 
   /**
    * Creates a `JsonCodec` with the given reviver.
    *
    * The [reviver] function is called once for each object or list property
    * that has been parsed during decoding. The `key` argument is either the
-   * integer list index for a list property, the map string for object
+   * integer list index for a list property, the string map key for object
    * properties, or `null` for the final result.
    */
-  factory JsonCodec.withReviver(reviver(var key, var value)) =
-      _ReviverJsonCodec;
+  JsonCodec.withReviver(reviver(var key, var value)) : this(reviver: reviver);
 
   /**
    * Parses the string and returns the resulting Json object.
    *
    * The optional [reviver] function is called once for each object or list
    * property that has been parsed during decoding. The `key` argument is either
-   * the integer list index for a list property, the map string for object
+   * the integer list index for a list property, the string map key for object
    * properties, or `null` for the final result.
    *
    * The default [reviver] (when not provided) is the identity function.
    */
   dynamic decode(String source, {reviver(var key, var value)}) {
+    if (reviver == null) reviver = _reviver;
     if (reviver == null) return decoder.convert(source);
     return new JsonDecoder(reviver).convert(source);
   }
@@ -99,30 +133,24 @@ class JsonCodec extends Codec<Object, String> {
    * with string keys), the [toEncodable] function is used to convert it to an
    * object that must be directly encodable.
    *
-   * If [toEncodable] is omitted, it defaults to calling `.toJson()` on the
-   * unencodable object.
+   * If [toEncodable] is omitted, it defaults to a function that returns the
+   * result of calling `.toJson()` on the unencodable object.
    */
   String encode(Object value, {toEncodable(var object)}) {
+    if (toEncodable == null) toEncodable = _toEncodable;
     if (toEncodable == null) return encoder.convert(value);
     return new JsonEncoder(toEncodable).convert(value);
   }
 
-  JsonEncoder get encoder => const JsonEncoder();
-  JsonDecoder get decoder => const JsonDecoder(null);
-}
-
-typedef _Reviver(var key, var value);
-
-class _ReviverJsonCodec extends JsonCodec {
-  final _Reviver _reviver;
-  _ReviverJsonCodec(this._reviver);
-
-  dynamic decode(String source, {reviver(var key, var value)}) {
-    if (reviver == null) reviver = _reviver;
-    return new JsonDecoder(reviver).convert(source);
+  JsonEncoder get encoder {
+    if (_toEncodable == null) return const JsonEncoder();
+    return new JsonEncoder(_toEncodable);
   }
 
-  JsonDecoder get decoder => new JsonDecoder(_reviver);
+  JsonDecoder get decoder {
+    if (_reviver == null) return const JsonDecoder();
+    return new JsonDecoder(_reviver);
+  }
 }
 
 /**
@@ -185,8 +213,7 @@ class JsonEncoder extends Converter<Object, String> {
    * Returns a chunked-conversion sink that accepts at most one object. It is
    * an error to invoke `add` more than once on the returned sink.
    */
-  ChunkedConversionSink<Object> startChunkedConversion(
-      ChunkedConversionSink<String> sink) {
+  ChunkedConversionSink<Object> startChunkedConversion(Sink<String> sink) {
     if (sink is! StringConversionSink) {
       sink = new StringConversionSink.from(sink);
     }
@@ -239,7 +266,7 @@ class JsonDecoder extends Converter<String, Object> {
    *
    * The [reviver] may be `null`.
    */
-  const JsonDecoder(reviver(var key, var value)) : this._reviver = reviver;
+  const JsonDecoder([reviver(var key, var value)]) : this._reviver = reviver;
 
   /**
    * Converts the given JSON-string [input] to its corresponding object.
@@ -264,8 +291,7 @@ class JsonDecoder extends Converter<String, Object> {
    *
    * The output [sink] receives exactly one decoded element through `add`.
    */
-  StringConversionSink startChunkedConversion(
-      ChunkedConversionSink<Object> sink) {
+  StringConversionSink startChunkedConversion(Sink<Object> sink) {
     return new _JsonDecoderSink(_reviver, sink);
   }
 
@@ -282,9 +308,9 @@ class JsonDecoder extends Converter<String, Object> {
 // TODO(floitsch): don't accumulate everything before starting to decode.
 class _JsonDecoderSink extends _StringSinkConversionSink {
   final _Reviver _reviver;
-  final ChunkedConversionSink<Object> _chunkedSink;
+  final Sink<Object> _sink;
 
-  _JsonDecoderSink(this._reviver, this._chunkedSink)
+  _JsonDecoderSink(this._reviver, this._sink)
       : super(new StringBuffer());
 
   void close() {
@@ -293,8 +319,8 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
     String accumulated = buffer.toString();
     buffer.clear();
     Object decoded = _parseJson(accumulated, _reviver);
-    _chunkedSink.add(decoded);
-    _chunkedSink.close();
+    _sink.add(decoded);
+    _sink.close();
   }
 }
 
@@ -314,6 +340,7 @@ class _JsonStringifier {
   static const int CARRIAGE_RETURN = 0x0d;
   static const int FORM_FEED       = 0x0c;
   static const int QUOTE           = 0x22;
+  static const int CHAR_0          = 0x30;
   static const int BACKSLASH       = 0x5c;
   static const int CHAR_b          = 0x62;
   static const int CHAR_f          = 0x66;
@@ -322,22 +349,21 @@ class _JsonStringifier {
   static const int CHAR_t          = 0x74;
   static const int CHAR_u          = 0x75;
 
-  final Function toEncodable;
-  final StringSink sink;
-  final Set<Object> seen;
+  final Function _toEncodable;
+  final StringSink _sink;
+  final List _seen;
 
-  _JsonStringifier(this.sink, this.toEncodable)
-      : this.seen = new HashSet.identity();
+  _JsonStringifier(this._sink, this._toEncodable)
+      : this._seen = new List();
 
-  static String stringify(final object, toEncodable(object)) {
+  static String stringify(object, toEncodable(object)) {
     if (toEncodable == null) toEncodable = _defaultToEncodable;
     StringBuffer output = new StringBuffer();
-    _JsonStringifier stringifier = new _JsonStringifier(output, toEncodable);
-    stringifier.stringifyValue(object);
+    printOn(object, output, toEncodable);
     return output.toString();
   }
 
-  static void printOn(final object, StringSink output, toEncodable(object)) {
+  static void printOn(object, StringSink output, toEncodable(object)) {
     _JsonStringifier stringifier = new _JsonStringifier(output, toEncodable);
     stringifier.stringifyValue(object);
   }
@@ -349,69 +375,75 @@ class _JsonStringifier {
   // ('0' + x) or ('a' + x - 10)
   static int hexDigit(int x) => x < 10 ? 48 + x : 87 + x;
 
-  static void escape(StringSink sb, String s) {
+  void escape(String s) {
+    int offset = 0;
     final int length = s.length;
-    bool needsEscape = false;
-    final charCodes = new List<int>();
     for (int i = 0; i < length; i++) {
       int charCode = s.codeUnitAt(i);
+      if (charCode > BACKSLASH) continue;
       if (charCode < 32) {
-        needsEscape = true;
-        charCodes.add(BACKSLASH);
+        if (i > offset) _sink.write(s.substring(offset, i));
+        offset = i + 1;
+        _sink.writeCharCode(BACKSLASH);
         switch (charCode) {
         case BACKSPACE:
-          charCodes.add(CHAR_b);
+          _sink.writeCharCode(CHAR_b);
           break;
         case TAB:
-          charCodes.add(CHAR_t);
+          _sink.writeCharCode(CHAR_t);
           break;
         case NEWLINE:
-          charCodes.add(CHAR_n);
+          _sink.writeCharCode(CHAR_n);
           break;
         case FORM_FEED:
-          charCodes.add(CHAR_f);
+          _sink.writeCharCode(CHAR_f);
           break;
         case CARRIAGE_RETURN:
-          charCodes.add(CHAR_r);
+          _sink.writeCharCode(CHAR_r);
           break;
         default:
-          charCodes.add(CHAR_u);
-          charCodes.add(hexDigit((charCode >> 12) & 0xf));
-          charCodes.add(hexDigit((charCode >> 8) & 0xf));
-          charCodes.add(hexDigit((charCode >> 4) & 0xf));
-          charCodes.add(hexDigit(charCode & 0xf));
+          _sink.writeCharCode(CHAR_u);
+          _sink.writeCharCode(CHAR_0);
+          _sink.writeCharCode(CHAR_0);
+          _sink.writeCharCode(hexDigit((charCode >> 4) & 0xf));
+          _sink.writeCharCode(hexDigit(charCode & 0xf));
           break;
         }
       } else if (charCode == QUOTE || charCode == BACKSLASH) {
-        needsEscape = true;
-        charCodes.add(BACKSLASH);
-        charCodes.add(charCode);
-      } else {
-        charCodes.add(charCode);
+        if (i > offset) _sink.write(s.substring(offset, i));
+        offset = i + 1;
+        _sink.writeCharCode(BACKSLASH);
+        _sink.writeCharCode(charCode);
       }
     }
-    sb.write(needsEscape ? new String.fromCharCodes(charCodes) : s);
-  }
-
-  void checkCycle(final object) {
-    if (seen.contains(object)) {
-      throw new JsonCyclicError(object);
+    if (offset == 0) {
+      _sink.write(s);
+    } else if (offset < length) {
+      _sink.write(s.substring(offset, length));
     }
-    seen.add(object);
   }
 
-  void stringifyValue(final object) {
+  void checkCycle(object) {
+    for (int i = 0; i < _seen.length; i++) {
+      if (identical(object, _seen[i])) {
+        throw new JsonCyclicError(object);
+      }
+    }
+    _seen.add(object);
+  }
+
+  void stringifyValue(object) {
     // Tries stringifying object directly. If it's not a simple value, List or
     // Map, call toJson() to get a custom representation and try serializing
     // that.
     if (!stringifyJsonValue(object)) {
       checkCycle(object);
       try {
-        var customJson = toEncodable(object);
+        var customJson = _toEncodable(object);
         if (!stringifyJsonValue(customJson)) {
           throw new JsonUnsupportedObjectError(object);
         }
-        seen.remove(object);
+        _removeSeen(object);
       } catch (e) {
         throw new JsonUnsupportedObjectError(object, cause: e);
       }
@@ -424,60 +456,62 @@ class _JsonStringifier {
    * Returns true if the value is one of these types, and false if not.
    * If a value is both a [List] and a [Map], it's serialized as a [List].
    */
-  bool stringifyJsonValue(final object) {
+  bool stringifyJsonValue(object) {
     if (object is num) {
       if (!object.isFinite) return false;
-      sink.write(numberToString(object));
+      _sink.write(numberToString(object));
       return true;
     } else if (identical(object, true)) {
-      sink.write('true');
+      _sink.write('true');
       return true;
     } else if (identical(object, false)) {
-      sink.write('false');
+      _sink.write('false');
        return true;
     } else if (object == null) {
-      sink.write('null');
+      _sink.write('null');
       return true;
     } else if (object is String) {
-      sink.write('"');
-      escape(sink, object);
-      sink.write('"');
+      _sink.write('"');
+      escape(object);
+      _sink.write('"');
       return true;
     } else if (object is List) {
       checkCycle(object);
       List a = object;
-      sink.write('[');
+      _sink.write('[');
       if (a.length > 0) {
         stringifyValue(a[0]);
         for (int i = 1; i < a.length; i++) {
-          sink.write(',');
+          _sink.write(',');
           stringifyValue(a[i]);
         }
       }
-      sink.write(']');
-      seen.remove(object);
+      _sink.write(']');
+      _removeSeen(object);
       return true;
     } else if (object is Map) {
       checkCycle(object);
       Map<String, Object> m = object;
-      sink.write('{');
-      bool first = true;
-      m.forEach((String key, Object value) {
-        if (!first) {
-          sink.write(',"');
-        } else {
-          sink.write('"');
-        }
-        escape(sink, key);
-        sink.write('":');
-        stringifyValue(value);
-        first = false;
-      });
-      sink.write('}');
-      seen.remove(object);
+      _sink.write('{');
+      String separator = '"';
+      for (String key in m.keys) {
+        _sink.write(separator);
+        separator = ',"';
+        escape(key);
+        _sink.write('":');
+        stringifyValue(m[key]);
+      }
+      _sink.write('}');
+      _removeSeen(object);
       return true;
     } else {
       return false;
     }
+  }
+
+  void _removeSeen(object) {
+    assert(!_seen.isEmpty);
+    assert(identical(_seen.last, object));
+    _seen.removeLast();
   }
 }

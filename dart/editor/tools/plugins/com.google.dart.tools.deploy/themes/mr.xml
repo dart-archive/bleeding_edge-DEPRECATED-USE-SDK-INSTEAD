@@ -15,6 +15,7 @@
     <filteredSearchResultIndication color="#D8D8D8" />
     <foreground color="#333333" />
     <function color="#000099" />
+    <functionTypeAlias color="#006600" />
     <importPrefix color="#333333" />
     <inheritedMethod color="#000099" />
     <interface color="#666666" />

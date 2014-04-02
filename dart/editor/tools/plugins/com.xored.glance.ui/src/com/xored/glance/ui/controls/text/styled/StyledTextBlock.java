@@ -3,19 +3,23 @@
  */
 package com.xored.glance.ui.controls.text.styled;
 
+import com.xored.glance.ui.sources.ITextBlock;
+import com.xored.glance.ui.sources.ITextBlockListener;
+import com.xored.glance.ui.sources.TextChangedEvent;
+
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.swt.custom.ExtendedModifyEvent;
 import org.eclipse.swt.custom.ExtendedModifyListener;
 import org.eclipse.swt.custom.StyledText;
 
-import com.xored.glance.ui.sources.ITextBlock;
-import com.xored.glance.ui.sources.ITextBlockListener;
-import com.xored.glance.ui.sources.TextChangedEvent;
-
 /**
  * @author Yuri Strot
  */
 public class StyledTextBlock implements ITextBlock, ExtendedModifyListener {
+
+  private StyledText text;
+
+  private ListenerList listeners;
 
   public StyledTextBlock(StyledText text) {
     this.text = text;
@@ -24,18 +28,19 @@ public class StyledTextBlock implements ITextBlock, ExtendedModifyListener {
   }
 
   @Override
-  public String getText() {
-    return text.getText();
-  }
-
-  @Override
   public void addTextBlockListener(ITextBlockListener listener) {
     listeners.add(listener);
   }
 
   @Override
-  public void removeTextBlockListener(ITextBlockListener listener) {
-    listeners.remove(listener);
+  public int compareTo(ITextBlock o) {
+    //style text support only one text block
+    return 0;
+  }
+
+  @Override
+  public String getText() {
+    return text.getText();
   }
 
   @Override
@@ -49,12 +54,8 @@ public class StyledTextBlock implements ITextBlock, ExtendedModifyListener {
   }
 
   @Override
-  public int compareTo(ITextBlock o) {
-    //style text support only one text block
-    return 0;
+  public void removeTextBlockListener(ITextBlockListener listener) {
+    listeners.remove(listener);
   }
-
-  private StyledText text;
-  private ListenerList listeners;
 
 }

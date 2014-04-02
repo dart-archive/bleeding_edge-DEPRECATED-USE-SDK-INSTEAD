@@ -16,44 +16,46 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.parser.ParserTestCase;
 import com.google.dart.engine.scanner.Token;
 
-import static com.google.dart.engine.scanner.TokenFactory.token;
+import static com.google.dart.engine.scanner.TokenFactory.tokenFromString;
 
 public class SimpleStringLiteralTest extends ParserTestCase {
   public void test_getValueOffset() throws Exception {
-    assertEquals(1, new SimpleStringLiteral(token("'X'"), "X").getValueOffset());
-    assertEquals(1, new SimpleStringLiteral(token("\"X\""), "X").getValueOffset());
-    assertEquals(3, new SimpleStringLiteral(token("\"\"\"X\"\"\""), "X").getValueOffset());
-    assertEquals(3, new SimpleStringLiteral(token("'''X'''"), "X").getValueOffset());
-    assertEquals(2, new SimpleStringLiteral(token("r'X'"), "X").getValueOffset());
-    assertEquals(2, new SimpleStringLiteral(token("r\"X\""), "X").getValueOffset());
-    assertEquals(4, new SimpleStringLiteral(token("r\"\"\"X\"\"\""), "X").getValueOffset());
-    assertEquals(4, new SimpleStringLiteral(token("r'''X'''"), "X").getValueOffset());
+    assertEquals(1, new SimpleStringLiteral(tokenFromString("'X'"), "X").getValueOffset());
+    assertEquals(1, new SimpleStringLiteral(tokenFromString("\"X\""), "X").getValueOffset());
+    assertEquals(3, new SimpleStringLiteral(tokenFromString("\"\"\"X\"\"\""), "X").getValueOffset());
+    assertEquals(3, new SimpleStringLiteral(tokenFromString("'''X'''"), "X").getValueOffset());
+    assertEquals(2, new SimpleStringLiteral(tokenFromString("r'X'"), "X").getValueOffset());
+    assertEquals(2, new SimpleStringLiteral(tokenFromString("r\"X\""), "X").getValueOffset());
+    assertEquals(
+        4,
+        new SimpleStringLiteral(tokenFromString("r\"\"\"X\"\"\""), "X").getValueOffset());
+    assertEquals(4, new SimpleStringLiteral(tokenFromString("r'''X'''"), "X").getValueOffset());
   }
 
   public void test_isMultiline() throws Exception {
-    assertFalse(new SimpleStringLiteral(token("'X'"), "X").isMultiline());
-    assertFalse(new SimpleStringLiteral(token("r'X'"), "X").isMultiline());
-    assertFalse(new SimpleStringLiteral(token("\"X\""), "X").isMultiline());
-    assertFalse(new SimpleStringLiteral(token("r\"X\""), "X").isMultiline());
-    assertTrue(new SimpleStringLiteral(token("'''X'''"), "X").isMultiline());
-    assertTrue(new SimpleStringLiteral(token("r'''X'''"), "X").isMultiline());
-    assertTrue(new SimpleStringLiteral(token("\"\"\"X\"\"\""), "X").isMultiline());
-    assertTrue(new SimpleStringLiteral(token("r\"\"\"X\"\"\""), "X").isMultiline());
+    assertFalse(new SimpleStringLiteral(tokenFromString("'X'"), "X").isMultiline());
+    assertFalse(new SimpleStringLiteral(tokenFromString("r'X'"), "X").isMultiline());
+    assertFalse(new SimpleStringLiteral(tokenFromString("\"X\""), "X").isMultiline());
+    assertFalse(new SimpleStringLiteral(tokenFromString("r\"X\""), "X").isMultiline());
+    assertTrue(new SimpleStringLiteral(tokenFromString("'''X'''"), "X").isMultiline());
+    assertTrue(new SimpleStringLiteral(tokenFromString("r'''X'''"), "X").isMultiline());
+    assertTrue(new SimpleStringLiteral(tokenFromString("\"\"\"X\"\"\""), "X").isMultiline());
+    assertTrue(new SimpleStringLiteral(tokenFromString("r\"\"\"X\"\"\""), "X").isMultiline());
   }
 
   public void test_isRaw() throws Exception {
-    assertFalse(new SimpleStringLiteral(token("'X'"), "X").isRaw());
-    assertFalse(new SimpleStringLiteral(token("\"X\""), "X").isRaw());
-    assertFalse(new SimpleStringLiteral(token("\"\"\"X\"\"\""), "X").isRaw());
-    assertFalse(new SimpleStringLiteral(token("'''X'''"), "X").isRaw());
-    assertTrue(new SimpleStringLiteral(token("r'X'"), "X").isRaw());
-    assertTrue(new SimpleStringLiteral(token("r\"X\""), "X").isRaw());
-    assertTrue(new SimpleStringLiteral(token("r\"\"\"X\"\"\""), "X").isRaw());
-    assertTrue(new SimpleStringLiteral(token("r'''X'''"), "X").isRaw());
+    assertFalse(new SimpleStringLiteral(tokenFromString("'X'"), "X").isRaw());
+    assertFalse(new SimpleStringLiteral(tokenFromString("\"X\""), "X").isRaw());
+    assertFalse(new SimpleStringLiteral(tokenFromString("\"\"\"X\"\"\""), "X").isRaw());
+    assertFalse(new SimpleStringLiteral(tokenFromString("'''X'''"), "X").isRaw());
+    assertTrue(new SimpleStringLiteral(tokenFromString("r'X'"), "X").isRaw());
+    assertTrue(new SimpleStringLiteral(tokenFromString("r\"X\""), "X").isRaw());
+    assertTrue(new SimpleStringLiteral(tokenFromString("r\"\"\"X\"\"\""), "X").isRaw());
+    assertTrue(new SimpleStringLiteral(tokenFromString("r'''X'''"), "X").isRaw());
   }
 
   public void test_simple() throws Exception {
-    Token token = token("'value'");
+    Token token = tokenFromString("'value'");
     SimpleStringLiteral stringLiteral = new SimpleStringLiteral(token, "value");
     assertSame(token, stringLiteral.getLiteral());
     assertSame(token, stringLiteral.getBeginToken());

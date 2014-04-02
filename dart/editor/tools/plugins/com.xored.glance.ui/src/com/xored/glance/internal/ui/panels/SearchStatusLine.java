@@ -124,6 +124,7 @@ public class SearchStatusLine extends SearchPanel {
   private int matchCount;
   private String matchText = DEFAULT_MATCH_LABEL;
   private CLabel matchLabel;
+  private int matchIndex;
   private SearchItem item;
   private final IWorkbenchWindow window;
 
@@ -136,6 +137,12 @@ public class SearchStatusLine extends SearchPanel {
   public void allFound(final Match[] matches) {
     super.allFound(matches);
     matchCount = matches.length;
+    updateInfo();
+  }
+
+  @Override
+  public void clearStatus() {
+    matchCount = matchIndex = 0;
     updateInfo();
   }
 
@@ -169,6 +176,12 @@ public class SearchStatusLine extends SearchPanel {
   @Override
   public boolean isApplicable(Control control) {
     return window.equals(getWindow(control));
+  }
+
+  @Override
+  public void setMatchIndex(int index) {
+    matchIndex = index;
+    updateInfo();
   }
 
   @Override
@@ -246,6 +259,10 @@ public class SearchStatusLine extends SearchPanel {
     if (matchCount == 0) {
       buffer.append(DEFAULT_MATCH_LABEL);
     } else {
+      if (matchIndex > 0) {
+        buffer.append(matchIndex);
+        buffer.append(" / ");
+      }
       buffer.append(matchCount);
     }
 

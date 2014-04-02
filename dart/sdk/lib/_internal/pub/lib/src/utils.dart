@@ -10,6 +10,7 @@ import "dart:collection";
 import "dart:convert";
 import 'dart:io';
 import 'dart:isolate';
+@MirrorsUsed(targets: 'pub.io')
 import 'dart:mirrors';
 
 import "package:analyzer/analyzer.dart";
@@ -17,7 +18,9 @@ import "package:crypto/crypto.dart";
 import 'package:path/path.dart' as path;
 import "package:stack_trace/stack_trace.dart";
 
-import 'dart.dart';
+import '../../asset/dart/serialize.dart';
+
+export '../../asset/dart/utils.dart';
 
 /// A pair of values.
 class Pair<E, F> {
@@ -75,53 +78,6 @@ class FutureGroup<T> {
   }
 
   Future<List> get future => _completer.future;
-}
-
-/// Returns a buffered stream that will emit the same values as the stream
-/// returned by [future] once [future] completes.
-///
-/// If [future] completes to an error, the return value will emit that error and
-/// then close.
-///
-/// If [broadcast] is true, a broadcast stream is returned. This assumes that
-/// the stream returned by [future] will be a broadcast stream as well.
-/// [broadcast] defaults to false.
-Stream futureStream(Future<Stream> future, {bool broadcast: false}) {
-  var subscription;
-  var controller;
-
-  future = future.catchError((e, stackTrace) {
-    // Since [controller] is synchronous, it's likely that emitting an error
-    // will cause it to be cancelled before we call close.
-    if (controller != null) controller.addError(e, stackTrace);
-    if (controller != null) controller.close();
-    controller = null;
-  });
-
-  onListen() {
-    future.then((stream) {
-      if (controller == null) return;
-      subscription = stream.listen(
-          controller.add,
-          onError: controller.addError,
-          onDone: controller.close);
-    });
-  }
-
-  onCancel() {
-    if (subscription != null) subscription.cancel();
-    subscription = null;
-    controller = null;
-  }
-
-  if (broadcast) {
-    controller = new StreamController.broadcast(
-        sync: true, onListen: onListen, onCancel: onCancel);
-  } else {
-    controller = new StreamController(
-        sync: true, onListen: onListen, onCancel: onCancel);
-  }
-  return controller.stream;
 }
 
 /// Like [new Future], but avoids around issue 11911 by using [new Future.value]
@@ -232,14 +188,14 @@ String quoteRegExp(String string) {
 /// Creates a URL string for [address]:[port].
 ///
 /// Handles properly formatting IPv6 addresses.
-String baseUrlForAddress(InternetAddress address, int port) {
+Uri baseUrlForAddress(InternetAddress address, int port) {
   // IPv6 addresses in URLs need to be enclosed in square brackets to avoid
   // URL ambiguity with the ":" in the address.
   if (address.type == InternetAddressType.IP_V6) {
-    return "http://[${address.address}]:$port";
+    return new Uri(scheme: "http", host: "[${address.address}]", port: port);
   }
 
-  return "http://${address.address}:$port";
+  return new Uri(scheme: "http", host: address.address, port: port);
 }
 
 /// Flattens nested lists inside an iterable into a single list containing only
@@ -328,9 +284,9 @@ Map mapMapValues(Map map, fn(key, value)) => mapMap(map, (key, _) => key, fn);
 
 /// Returns the shortest path from [start] to [end] in [graph].
 ///
-/// The graph is represented by a map whose keys are vertices and whose values
-/// are vertices reachable from the keys. [start] and [end] must be vertices in
-/// this graph.
+/// The graph is represented by a map where each key is a vertex and the value
+/// is the set of other vertices directly reachable from the key. [start] and
+/// [end] must be vertices in this graph.
 List shortestPath(Map<dynamic, Iterable> graph, start, end) {
   assert(graph.containsKey(start));
   assert(graph.containsKey(end));
@@ -374,6 +330,20 @@ List shortestPath(Map<dynamic, Iterable> graph, start, end) {
   }
 
   return path.toList();
+}
+
+/// Returns a copy of [graph] with all the edges reversed.
+///
+/// The graph is represented by a map where each key is a vertex and the value
+/// is the set of other vertices directly reachable from the key.
+Map<dynamic, Set> reverseGraph(Map<dynamic, Set> graph) {
+  var reversed = new Map.fromIterable(graph.keys, value: (_) => new Set());
+  graph.forEach((vertex, edges) {
+    for (var edge in edges) {
+      reversed[edge].add(vertex);
+    }
+  });
+  return reversed;
 }
 
 /// Replace each instance of [matcher] in [source] with the return value of
@@ -519,25 +489,6 @@ Stream mergeStreams(Stream stream1, Stream stream2) {
     });
   }
 
-  return controller.stream;
-}
-
-/// Returns a [Stream] that will emit the same values as the stream returned by
-/// [callback].
-///
-/// [callback] will only be called when the returned [Stream] gets a subscriber.
-Stream callbackStream(Stream callback()) {
-  var subscription;
-  var controller;
-  controller = new StreamController(onListen: () {
-    subscription = callback().listen(controller.add,
-        onError: controller.addError,
-        onDone: controller.close);
-  },
-      onCancel: () => subscription.cancel(),
-      onPause: () => subscription.pause(),
-      onResume: () => subscription.resume(),
-      sync: true);
   return controller.stream;
 }
 
@@ -698,8 +649,11 @@ Future awaitObject(object) {
   });
 }
 
-/// Returns the path to the library named [libraryName]. The library name must
-/// be globally unique, or the wrong library path may be returned.
+/// Returns the path to the library named [libraryName].
+///
+/// The library name must be globally unique, or the wrong library path may be
+/// returned. Any libraries accessed must be added to the [MirrorsUsed]
+/// declaration in the import above.
 String libraryPath(String libraryName) {
   var lib = currentMirrorSystem().findLibrary(new Symbol(libraryName));
   return path.fromUri(lib.uri);
@@ -733,9 +687,9 @@ String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
   return lines.join('\n');
 }
 
-/// Whether pub is running as a subprocess in an integration test.
-bool get runningAsTest =>
-  Platform.environment.containsKey('_PUB_TESTING');
+/// Whether pub is running as a subprocess in an integration test or in a unit
+/// test that has explicitly set this.
+bool runningAsTest = Platform.environment.containsKey('_PUB_TESTING');
 
 /// Wraps [fn] to guard against several different kinds of stack overflow
 /// exceptions:
@@ -824,17 +778,6 @@ String yamlToString(data) {
   return buffer.toString();
 }
 
-/// A regular expression to match the exception prefix that some exceptions'
-/// [Object.toString] values contain.
-final _exceptionPrefix = new RegExp(r'^([A-Z][a-zA-Z]*)?(Exception|Error): ');
-
-/// Get a string description of an exception.
-///
-/// Many exceptions include the exception class name at the beginning of their
-/// [toString], so we remove that if it exists.
-String getErrorMessage(error) =>
-  error.toString().replaceFirst(_exceptionPrefix, '');
-
 /// An exception class for exceptions that are intended to be seen by the user.
 /// These exceptions won't have any debugging information printed when they're
 /// thrown.
@@ -855,7 +798,20 @@ class ApplicationException implements Exception {
 
 /// A class for command usage exceptions.
 class UsageException extends ApplicationException {
-  UsageException(String message)
+  /// The command usage information.
+  final String usage;
+
+  UsageException(String message, this.usage)
+      : super(message);
+
+  String toString() => "$message\n\n$usage";
+}
+
+/// A class for errors in a command's input data.
+///
+/// This corresponds to the [exit_codes.DATA] exit code.
+class DataException extends ApplicationException {
+  DataException(String message)
       : super(message);
 }
 

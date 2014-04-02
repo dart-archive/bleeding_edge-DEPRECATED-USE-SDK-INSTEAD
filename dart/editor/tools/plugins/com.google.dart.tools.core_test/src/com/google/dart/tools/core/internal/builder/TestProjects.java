@@ -89,7 +89,7 @@ public class TestProjects {
    */
   public static MockProject newPubProject2(MockWorkspaceRoot rootContainer) {
     MockProject project = newEmptyProject(rootContainer);
-    project.addFile(PUBSPEC_FILE_NAME);
+    project.addFile(PUBSPEC_FILE_NAME, "name:  myapp");
     project.addFile(BUILD_DART_FILE_NAME);
     project.addFile("some.dart");
     project.addFile("some1.dart");
@@ -183,6 +183,17 @@ public class TestProjects {
     return project;
   }
 
+  /**
+   * Answer a new simple non-pub project, but with "packages" folder.
+   * 
+   * @return a project (not {@code null})
+   */
+  public static MockProject newSimpleProjectWithPackages() {
+    MockProject project = newSimpleProject();
+    addPackages(project);
+    return project;
+  }
+
   private static void addPackages(MockContainer container) {
     MockFolder packages = container.addFolder(PACKAGES_DIRECTORY_NAME);
 
@@ -194,6 +205,7 @@ public class TestProjects {
     MockFolder pkg1Folder = pkg1.addFolder("some_folder");
     pkg1Folder.addFile(BUILD_DART_FILE_NAME);
     pkg1Folder.addFile("bar.dart");
+
   }
 
   // no instances

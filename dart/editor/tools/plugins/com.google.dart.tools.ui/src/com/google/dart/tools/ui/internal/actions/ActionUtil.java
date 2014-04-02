@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -95,7 +95,9 @@ public class ActionUtil {
         }
       }
       // show name or element kind
-      if (name.length() > MAX_NAME_LENGTH) {
+      if (name == null) {
+        text.append(STRING_SELECTION);
+      } else if (name.length() > MAX_NAME_LENGTH) {
         text.append(element.getKind().getDisplayName());
       } else {
         text.append('\"');
@@ -155,7 +157,7 @@ public class ActionUtil {
 
   /**
    * @return the {@link Element} to perform action on, may be {@code null}. In the most cases as
-   *         simple as just {@link Element} of covered {@link ASTNode}, but sometimes we want to be
+   *         simple as just {@link Element} of covered {@link AstNode}, but sometimes we want to be
    *         smarter.
    */
   public static Element getActionElement(DartSelection selection) {

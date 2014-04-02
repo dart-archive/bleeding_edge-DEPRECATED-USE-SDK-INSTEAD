@@ -1,35 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>CaptureDate</key>
-	<date>2013-12-30T21:39:40Z</date>
-	<key>CaptureHost</key>
-	<string>kyodai.pdx.corp.google.com:0.0</string>
-	<key>CaptureScreenSize</key>
-	<array>
-		<integer>1920</integer>
-		<integer>1200</integer>
-	</array>
-	<key>HasAlpha</key>
-	<true/>
-	<key>HonorAlpha</key>
-	<true/>
-	<key>HotSpotX</key>
-	<real>16</real>
-	<key>HotSpotY</key>
-	<real>6</real>
-	<key>LastKnownLocationX</key>
-	<integer>0</integer>
-	<key>LastKnownLocationY</key>
-	<integer>0</integer>
-	<key>OriginalLocationX</key>
-	<integer>239</integer>
-	<key>OriginalLocationY</key>
-	<integer>242</integer>
-	<key>Pulsing</key>
-	<false/>
-	<key>Scale</key>
-	<real>1</real>
-</dict>
-</plist>
+﻿{
+    CaptureDate = "2014-04-02 15:17:37 +0000";
+    CaptureHost = kyodai;
+    CaptureScreenSize =     (
+        1920,
+        1200
+    );
+    HasAlpha = 1;
+    HonorAlpha = 1;
+    HotSpotX = 14;
+    HotSpotY = 6;
+    LastKnownLocationX = 0;
+    LastKnownLocationY = 0;
+    OriginalLocationX = 226;
+    OriginalLocationY = 170;
+    Pulsing = 0;
+    Scale = 1;
+}

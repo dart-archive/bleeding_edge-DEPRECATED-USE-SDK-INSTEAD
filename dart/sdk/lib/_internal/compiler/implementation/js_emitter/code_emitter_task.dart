@@ -331,12 +331,13 @@ class CodeEmitterTask extends CompilerTask {
            * string encoding fields, constructor and superclass.  Get
            * the superclass and the fields in the format
            *   '[name/]Super;field1,field2'
-           * from the null-string property on the descriptor.
+           * from the CLASS_DESCRIPTOR_PROPERTY property on the descriptor.
            * The 'name/' is optional and contains the name that should be used
            * when printing the runtime type string.  It is used, for example, to
            * print the runtime type JSInt as 'int'.
            */
-          js('var classData = desc[""], supr, name = cls, fields = classData'),
+           js('var classData = desc["${namer.classDescriptorProperty}"], '
+              'supr, name = cls, fields = classData'),
           optional(
               backend.hasRetainedMetadata,
               js.if_('typeof classData == "object" && '
@@ -678,6 +679,12 @@ class CodeEmitterTask extends CompilerTask {
       // marking the function as invokable by reflection.
       return '$name=';
     }
+    if (elementOrSelector is Element && elementOrSelector.isClosure()) {
+      // Closures are synthesized and their name might conflict with existing
+      // globals. Assign an illegal name, and make sure they don't clash
+      // with each other.
+      return " $mangledName";
+    }
     if (elementOrSelector is Selector
         || elementOrSelector.isFunction()
         || elementOrSelector.isConstructor()) {
@@ -696,9 +703,9 @@ class CodeEmitterTask extends CompilerTask {
           isConstructor = true;
           name = Elements.reconstructConstructorName(function);
         }
-        requiredParameterCount = function.requiredParameterCount(compiler);
-        optionalParameterCount = function.optionalParameterCount(compiler);
-        FunctionSignature signature = function.computeSignature(compiler);
+        FunctionSignature signature = function.functionSignature;
+        requiredParameterCount = signature.requiredParameterCount;
+        optionalParameterCount = signature.optionalParameterCount;
         if (signature.optionalParametersAreNamed) {
           var names = [];
           for (Element e in signature.optionalParameters) {
@@ -735,8 +742,8 @@ class CodeEmitterTask extends CompilerTask {
       if (cls.isUnnamedMixinApplication) return null;
       return cls.name;
     }
-    throw compiler.internalErrorOnElement(
-        element, 'Do not know how to reflect on this $element');
+    throw compiler.internalError(element,
+        'Do not know how to reflect on this $element.');
   }
 
   String namedParametersAsReflectionNames(Selector selector) {
@@ -828,7 +835,7 @@ class CodeEmitterTask extends CompilerTask {
         backend.generatedCode.keys.where(isStaticFunction);
 
     for (Element element in Elements.sortedByPosition(elements)) {
-      ClassBuilder builder = new ClassBuilder();
+      ClassBuilder builder = new ClassBuilder(namer);
       containerBuilder.addMember(element, builder);
       getElementDecriptor(element).properties.addAll(builder.properties);
     }
@@ -915,7 +922,7 @@ class CodeEmitterTask extends CompilerTask {
       }
 
       String name = namer.constantName(constant);
-      if (constant.isList()) emitMakeConstantListIfNotEmitted(buffer);
+      if (constant.isList) emitMakeConstantListIfNotEmitted(buffer);
       jsAst.Expression init = js(
           '${namer.globalObjectForConstant(constant)}.$name = #',
           constantInitializerExpression(constant));
@@ -925,9 +932,9 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   bool isConstantInlinedOrAlreadyEmitted(Constant constant) {
-    if (constant.isFunction()) return true;       // Already emitted.
-    if (constant.isPrimitive()) return true;      // Inlined.
-    if (constant.isDummyReceiver()) return true;  // Inlined.
+    if (constant.isFunction) return true;    // Already emitted.
+    if (constant.isPrimitive) return true;   // Inlined.
+    if (constant.isDummy) return true;       // Inlined.
     // The name is null when the constant is already a JS constant.
     // TODO(floitsch): every constant should be registered, so that we can
     // share the ones that take up too much space (like some strings).
@@ -963,48 +970,90 @@ class CodeEmitterTask extends CompilerTask {
 ''');
   }
 
-  String buildIsolateSetup(CodeBuffer buffer,
-                           Element appMain,
-                           Element isolateMain) {
+  /// Returns the code equivalent to:
+  ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
+  String buildIsolateSetupClosure(CodeBuffer buffer,
+                                  Element appMain,
+                                  Element isolateMain) {
     String mainAccess = "${namer.isolateStaticClosureAccess(appMain)}";
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
-    return "${namer.isolateAccess(isolateMain)}($mainAccess)";
+    return "(function(a){${namer.isolateAccess(isolateMain)}($mainAccess,a)})";
   }
 
-  jsAst.Expression generateDispatchPropertyInitialization() {
+  /**
+   * Emits code that sets `init.isolateTag` to a unique string.
+   */
+  jsAst.Expression generateIsolateAffinityTagInitialization() {
     return js('!#', js.fun([], [
-        js('var objectProto = Object.prototype'),
+
+        // On V8, the 'intern' function converts a string to a symbol, which
+        // makes property access much faster.
+        new jsAst.FunctionDeclaration(new jsAst.VariableDeclaration('intern'),
+            js.fun(['s'], [
+                js('var o = {}'),
+                js('o[s] = 1'),
+                js.return_(js('Object.keys(convertToFastObject(o))[0]'))])),
+
+
+        js('init.getIsolateTag = #',
+            js.fun(['name'],
+                js.return_('intern("___dart_" + name + init.isolateTag)'))),
+
+        // To ensure that different programs loaded into the same context (page)
+        // use distinct dispatch properies, we place an object on `Object` to
+        // contain the names already in use.
+        js('var tableProperty = "___dart_isolate_tags_"'),
+        js('var usedProperties = Object[tableProperty] ||'
+            '(Object[tableProperty] = Object.create(null))'),
+
+        js('var rootProperty = "_${generateIsolateTagRoot()}"'),
         js.for_('var i = 0', null, 'i++', [
-            js('var property = "${generateDispatchPropertyName(0)}"'),
-            js.if_('i > 0', js('property = rootProperty + "_" + i')),
-            js.if_('!(property in  objectProto)',
-                   js.return_(
-                       js('init.dispatchPropertyName = property')))])])());
+            js('var property = intern(rootProperty + "_" + i + "_")'),
+            js.if_('!(property in usedProperties)', [
+                js('usedProperties[property] = 1'),
+                js('init.isolateTag = property'),
+                new jsAst.Break(null)])])])
+        ());
+
   }
 
-  String generateDispatchPropertyName(int seed) {
+  jsAst.Expression generateDispatchPropertyNameInitialization() {
+    return js(
+        'init.dispatchPropertyName = init.getIsolateTag("dispatch_record")');
+  }
+
+  String generateIsolateTagRoot() {
     // TODO(sra): MD5 of contributing source code or URIs?
-    return '___dart_dispatch_record_ZxYxX_${seed}_';
+    return 'ZxYxX';
   }
 
   emitMain(CodeBuffer buffer) {
     if (compiler.isMockCompilation) return;
     Element main = compiler.mainFunction;
-    String mainCall = null;
+    String mainCallClosure = null;
     if (compiler.hasIsolateSupport()) {
       Element isolateMain =
         compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE);
-      mainCall = buildIsolateSetup(buffer, main, isolateMain);
+      mainCallClosure = buildIsolateSetupClosure(buffer, main, isolateMain);
     } else {
-      mainCall = '${namer.isolateAccess(main)}()';
+      mainCallClosure = '${namer.isolateAccess(main)}';
     }
-    if (backend.needToInitializeDispatchProperty) {
+
+    if (backend.needToInitializeIsolateAffinityTag) {
       buffer.write(
-          jsAst.prettyPrint(generateDispatchPropertyInitialization(),
+          jsAst.prettyPrint(generateIsolateAffinityTagInitialization(),
                             compiler));
       buffer.write(N);
     }
+    if (backend.needToInitializeDispatchProperty) {
+      assert(backend.needToInitializeIsolateAffinityTag);
+      buffer.write(
+          jsAst.prettyPrint(generateDispatchPropertyNameInitialization(),
+              compiler));
+      buffer.write(N);
+    }
+
     addComment('BEGIN invoke [main].', buffer);
     // This code finds the currently executing script by listening to the
     // onload event of all script tags and getting the first script which
@@ -1035,9 +1084,9 @@ class CodeEmitterTask extends CompilerTask {
   init.currentScript = currentScript;
 
   if (typeof dartMainRunner === "function") {
-    dartMainRunner(function() { ${mainCall}; });
+    dartMainRunner(${mainCallClosure}, []);
   } else {
-    ${mainCall};
+    ${mainCallClosure}([]);
   }
 })$N''');
     addComment('END invoke [main].', buffer);
@@ -1189,8 +1238,7 @@ mainBuffer.add(r'''
 
     for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
       ClassBuilder descriptor =
-          descriptors.putIfAbsent(outputUnit, ()
-              => new ClassBuilder());
+          descriptors.putIfAbsent(outputUnit, () => new ClassBuilder(namer));
       if (descriptor.properties.isEmpty) continue;
       bool isDeferred =
           outputUnit != compiler.deferredLoadTask.mainOutputUnit;
@@ -1205,7 +1253,6 @@ mainBuffer.add(r'''
           ..write('["${library.getLibraryName()}",$_')
           ..write('"${uri}",$_')
           ..write(metadata == null ? "" : jsAst.prettyPrint(metadata, compiler))
-          ..write(isDeferred ? '[]' : '')
           ..write(',$_')
           ..write(namer.globalObjectFor(library))
           ..write(',$_')
@@ -1235,7 +1282,7 @@ mainBuffer.add(r'''
 
       // Using a named function here produces easier to read stack traces in
       // Chrome/V8.
-      mainBuffer.add('function dart() {}');
+      mainBuffer.add('function dart(){${_}this.x$_=${_}0$_}');
       for (String globalObject in Namer.reservedGlobalObjectNames) {
         // The global objects start as so-called "slow objects". For V8, this
         // means that it won't try to make map transitions as we add properties
@@ -1308,7 +1355,7 @@ mainBuffer.add(r'''
           // not see libraries that only have fields.
           if (element.isLibrary()) {
             LibraryElement library = element;
-            ClassBuilder builder = new ClassBuilder();
+            ClassBuilder builder = new ClassBuilder(namer);
             if (classEmitter.emitFields(
                     library, builder, null, emitStatics: true)) {
               OutputUnit mainUnit = compiler.deferredLoadTask.mainOutputUnit;
@@ -1374,7 +1421,8 @@ mainBuffer.add(r'''
           elementDescriptors[library] = const {};
         }
         if (!pendingStatics.isEmpty) {
-          compiler.internalError('Pending statics (see above).');
+          compiler.internalError(pendingStatics.first,
+              'Pending statics (see above).');
         }
         mainBuffer.write('])$N');
 
@@ -1401,7 +1449,7 @@ mainBuffer.add(r'''
         mainBuffer.write('"$constant":[');
         for (OutputUnit outputUnit in
             compiler.deferredLoadTask.hunksToLoad[constant]) {
-          mainBuffer.write('"${outputUnit.name}.js", ');
+          mainBuffer.write('"${outputUnit.partFileName(compiler)}.part.js", ');
         }
         mainBuffer.write("],\n");
       }
@@ -1482,22 +1530,76 @@ if (typeof $printHelperName === "function") {
       } else {
         mainBuffer.add('\n');
       }
-      compiler.assembledCode = mainBuffer.getText();
-      outputSourceMap(compiler.assembledCode, '');
 
-      mainBuffer.write(
-          jsAst.prettyPrint(
-              precompiledFunctionAst, compiler,
-              allowVariableMinification: false).getText());
+      if (compiler.useContentSecurityPolicy) {
+        mainBuffer.write(
+            jsAst.prettyPrint(
+                precompiledFunctionAst, compiler,
+                allowVariableMinification: false).getText());
+      }
 
-      compiler.outputProvider('', 'precompiled.js')
-          ..add(mainBuffer.getText())
+      String assembledCode = mainBuffer.getText();
+      String sourceMapTags = "";
+      if (generateSourceMap) {
+        outputSourceMap(assembledCode, mainBuffer, '',
+            compiler.sourceMapUri, compiler.outputUri);
+        sourceMapTags =
+            generateSourceMapTag(compiler.sourceMapUri, compiler.outputUri);
+      }
+      compiler.outputProvider('', 'js')
+          ..add(assembledCode)
+          ..add(sourceMapTags)
           ..close();
+      compiler.assembledCode = assembledCode;
 
+      if (!compiler.useContentSecurityPolicy) {
+        mainBuffer.write("""
+{
+  var message = 
+      'Deprecation: Automatic generation of output for Content Security\\n' +
+      'Policy is deprecated and will be removed with the next development\\n' +
+      'release. Use the --csp option to generate CSP restricted output.';
+  if (typeof dartPrint == "function") {
+    dartPrint(message);
+  } else if (typeof console == "object" && typeof console.log == "function") {
+    console.log(message);
+  } else if (typeof print == "function") {
+    print(message);
+  }
+}\n""");
+
+        mainBuffer.write(
+            jsAst.prettyPrint(
+                precompiledFunctionAst, compiler,
+                allowVariableMinification: false).getText());
+
+        compiler.outputProvider('', 'precompiled.js')
+            ..add(mainBuffer.getText())
+            ..close();
+      }
       emitDeferredCode();
 
     });
     return compiler.assembledCode;
+  }
+
+  String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
+    if (sourceMapUri != null && fileUri != null) {
+      // Using # is the new proposed standard. @ caused problems in Internet
+      // Explorer due to "Conditional Compilation Statements" in JScript,
+      // see:
+      // http://msdn.microsoft.com/en-us/library/7kx09ct1(v=vs.80).aspx
+      // About source maps, see:
+      // https://docs.google.com/a/google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit
+      // TODO(http://dartbug.com/11914): Remove @ line.
+      String sourceMapFileName = relativize(fileUri, sourceMapUri, false);
+      return '''
+
+//# sourceMappingURL=$sourceMapFileName
+//@ sourceMappingURL=$sourceMapFileName
+''';
+    }
+    return '';
   }
 
   ClassBuilder getElementDescriptorForOutputUnit(Element element,
@@ -1506,7 +1608,7 @@ if (typeof $printHelperName === "function") {
         elementDescriptors.putIfAbsent(
             element, () => new Map<OutputUnit, ClassBuilder>());
     return descriptors.putIfAbsent(outputUnit,
-        () => new ClassBuilder());
+        () => new ClassBuilder(namer));
   }
 
   ClassBuilder getElementDecriptor(Element element) {
@@ -1523,7 +1625,7 @@ if (typeof $printHelperName === "function") {
       }
     }
     if (owner == null) {
-      compiler.internalErrorOnElement(element, 'Owner is null');
+      compiler.internalError(element, 'Owner is null.');
     }
     return getElementDescriptorForOutputUnit(owner,
         compiler.deferredLoadTask.outputUnitForElement(element));
@@ -1573,10 +1675,11 @@ if (typeof $printHelperName === "function") {
       emitCompileTimeConstants(buffer, outputUnit);
 
       String code = buffer.getText();
-      compiler.outputProvider(outputUnit.name, 'js')
+      compiler.outputProvider(outputUnit.partFileName(compiler), 'part.js')
         ..add(code)
         ..close();
-      outputSourceMap(compiler.assembledCode, outputUnit.name);
+
+      // TODO(johnniwinther): Support source maps for deferred code.
     }
   }
 
@@ -1586,20 +1689,16 @@ if (typeof $printHelperName === "function") {
     return '// Generated by dart2js, the Dart to JavaScript compiler$suffix.\n';
   }
 
-  String buildSourceMap(CodeBuffer buffer, SourceFile compiledFile) {
-    SourceMapBuilder sourceMapBuilder =
-        new SourceMapBuilder(compiler.sourceMapUri);
-    buffer.forEachSourceLocation(sourceMapBuilder.addMapping);
-    return sourceMapBuilder.build(compiledFile);
-  }
-
-  void outputSourceMap(String code, String name) {
+  void outputSourceMap(String code, CodeBuffer buffer, String name,
+                       [Uri sourceMapUri, Uri fileUri]) {
     if (!generateSourceMap) return;
     // Create a source file for the compilation output. This allows using
     // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
-    SourceFile compiledFile =
-        new StringSourceFile(null, compiler.assembledCode);
-    String sourceMap = buildSourceMap(mainBuffer, compiledFile);
+    SourceFile compiledFile = new StringSourceFile(null, code);
+    SourceMapBuilder sourceMapBuilder =
+            new SourceMapBuilder(sourceMapUri, fileUri);
+    buffer.forEachSourceLocation(sourceMapBuilder.addMapping);
+    String sourceMap = sourceMapBuilder.build(compiledFile);
     compiler.outputProvider(name, 'js.map')
         ..add(sourceMap)
         ..close();

@@ -15,20 +15,14 @@
 package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.tools.core.completion.CompletionProposal;
-import com.google.dart.tools.core.dom.rewrite.TrackedNodePosition;
-import com.google.dart.tools.internal.corext.fix.LinkedProposalModel;
-import com.google.dart.tools.internal.corext.fix.LinkedProposalPositionGroup;
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedPositions;
-import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
-import com.google.dart.tools.ui.internal.viewsupport.LinkedProposalModelPresenter;
 
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.swt.widgets.Display;
 
 public class NamedArgumentCompletionProposal extends AbstractDartCompletionProposal {
   private final String name;
@@ -65,31 +59,20 @@ public class NamedArgumentCompletionProposal extends AbstractDartCompletionPropo
 
   @Override
   public boolean validate(IDocument document, int offset, DocumentEvent event) {
-    return true;
+    return super.validate(document, offset, event);
   }
 
-  private void showValueProposals(ITextViewer viewer) {
-    // only "bool" right now
-    if (!"bool".equals(type)) {
-      return;
-    }
-    try {
-      DartEditor activeEditor = EditorUtility.getActiveEditor();
-      LinkedProposalModel linkedProposalModel = new LinkedProposalModel();
-      LinkedProposalPositionGroup group = linkedProposalModel.getPositionGroup("values", true);
-      int valuePosition = getReplacementOffset() + getCursorPosition();
-      TrackedNodePosition trackedPosition = TrackedPositions.forStartLength(valuePosition, 0);
-      group.addPosition(trackedPosition, true);
-      group.addProposal("true", null, 0);
-      group.addProposal("false", null, 0);
-      linkedProposalModel.setEndPosition(trackedPosition);
-      new LinkedProposalModelPresenter().enterLinkedMode(
-          viewer,
-          activeEditor,
-          true,
-          linkedProposalModel);
-    } catch (Throwable e) {
-      DartToolsPlugin.log(e);
-    }
+  @Override
+  protected boolean isValidPrefix(String prefix) {
+    return isPrefix(prefix, name);
+  }
+
+  private void showValueProposals(final ITextViewer viewer) {
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        ((SourceViewer) viewer).doOperation(SourceViewer.CONTENTASSIST_PROPOSALS);
+      }
+    });
   }
 }

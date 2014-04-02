@@ -15,17 +15,21 @@ package com.google.dart.engine.internal.html.angular;
 
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.ToolkitObjectElement;
+import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AngularCode;
-import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnitUtils;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
@@ -33,6 +37,7 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularControllerElementImpl;
+import com.google.dart.engine.source.Source;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.compilationUnit;
@@ -40,6 +45,127 @@ import static com.google.dart.engine.element.ElementFactory.functionElement;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 public class AngularHtmlUnitResolverTest extends AngularTest {
+  public void test_analysisContext_changeDart_invalidateApplication() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "}"));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{ctrl.noMethod()}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    // there are some errors in my_template.html
+    {
+      AnalysisError[] errors = context.getErrors(indexSource).getErrors();
+      assertTrue(errors.length != 0);
+    }
+    // change main.dart, there are no MyComponent anymore
+    context.setContents(mainSource, "");
+    // ...errors in my_template.html should be removed
+    {
+      AnalysisError[] errors = context.getErrors(indexSource).getErrors();
+      assertTrue(errors.length == 0);
+    }
+  }
+
+  public void test_analysisContext_changeEntryPoint_clearAngularErrors_inDart() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "}"));
+    Source entrySource = contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    // there are some errors in MyComponent
+    {
+      AnalysisError[] errors = context.getErrors(mainSource).getErrors();
+      assertTrue(errors.length != 0);
+    }
+    // make entry-point.html non-Angular
+    context.setContents(entrySource, "<html/>");
+    // ...errors in MyComponent should be removed
+    {
+      AnalysisError[] errors = context.getErrors(mainSource).getErrors();
+      assertTrue(errors.length == 0);
+    }
+  }
+
+  public void test_analysisContext_changeEntryPoint_clearAngularErrors_inTemplate()
+      throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "}"));
+    Source entrySource = contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{ctrl.noMethod()}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    // there are some errors in my_template.html
+    {
+      AnalysisError[] errors = context.getErrors(indexSource).getErrors();
+      assertTrue(errors.length != 0);
+    }
+    // make entry-point.html non-Angular
+    context.setContents(entrySource, "<html/>");
+    // ...errors in my_template.html should be removed
+    {
+      AnalysisError[] errors = context.getErrors(indexSource).getErrors();
+      assertTrue(errors.length == 0);
+    }
+  }
+
+  public void test_analysisContext_removeEntryPoint_clearAngularErrors_inDart() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "}"));
+    Source entrySource = contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    // there are some errors in MyComponent
+    {
+      AnalysisError[] errors = context.getErrors(mainSource).getErrors();
+      assertTrue(errors.length != 0);
+    }
+    // remove entry-point.html
+    {
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.removedSource(entrySource);
+      context.applyChanges(changeSet);
+    }
+    // ...errors in MyComponent should be removed
+    {
+      AnalysisError[] errors = context.getErrors(mainSource).getErrors();
+      assertTrue(errors.length == 0);
+    }
+  }
+
   public void test_contextProperties() throws Exception {
     addMyController();
     resolveIndexNoErrors(createHtmlWithAngular(//
@@ -55,7 +181,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
 
   public void test_getAngularElement_isAngular() throws Exception {
     // prepare local variable "name" in compilation unit
-    CompilationUnitElementImpl unit = compilationUnit(context, "test.dart");
+    CompilationUnitElementImpl unit = compilationUnit("test.dart");
     FunctionElementImpl function = functionElement("main");
     unit.setFunctions(new FunctionElement[] {function});
     LocalVariableElementImpl local = localVariableElement("name");
@@ -155,60 +281,88 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     }
   }
 
-  public void test_NgComponent_useScopeProperties() throws Exception {
+  public void test_NgDirective_noAttribute() throws Exception {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
-        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-        "    publishAs: 'ctrl',",
-        "    selector: 'myComponent')",
-        "class MyComponent {",
-        "  String field;",
-        "  MyComponent(Scope scope) {",
-        "    scope['scopeProperty'] = 'abc';",
-        "  }",
+        "@NgDirective(selector: '[my-directive]', map: const {'foo': '=>input'})",
+        "class MyDirective {",
+        "  set input(value) {}",
         "}"));
-    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
-    addIndexSource("/my_template.html", createSource(//
-        "    <div>",
-        "      {{scopeProperty}}",
-        "    </div>"));
-    contextHelper.addSource("/my_styles.css", "");
-    contextHelper.runTasks();
-    resolveIndex();
-    assertNoErrors();
-    // "scopeProperty" is resolved
-    Element element = assertResolvedIdentifier("scopeProperty}}", "String");
-    assertInstanceOf(
-        AngularScopePropertyElement.class,
-        AngularHtmlUnitResolver.getAngularElement(element));
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<div my-directive>",
+        "</div>"));
+    // no "foo" attribute, but it is OK
+  }
+
+  public void test_NgDirective_noExpression() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgDirective(selector: '[my-directive]', map: const {'.': '=>input'})",
+        "class MyDirective {",
+        "  set input(value) {}",
+        "}"));
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<div my-directive>",
+        "</div>"));
+  }
+
+  public void test_NgDirective_resolvedExpression() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgDirective(selector: '[my-directive]')",
+        "class MyDirective {",
+        "  @NgOneWay('my-property')",
+        "  String condition;",
+        "}"));
+    resolveIndexNoErrors(createHtmlWithMyController(//
+        "<input type='text' ng-model='name'>",
+        "<div my-directive my-property='name != null'>",
+        "</div>"));
+    resolveMainNoErrors();
+    // "my-directive" attribute was resolved
+    {
+      AngularSelectorElement selector = findMainElement(
+          ElementKind.ANGULAR_SELECTOR,
+          "my-directive");
+      XmlAttributeNode attrNodeSelector = HtmlUnitUtils.getAttributeNode(
+          indexUnit,
+          findOffset("my-directive"));
+      assertNotNull(attrNodeSelector);
+      assertSame(selector, attrNodeSelector.getElement());
+    }
+    // "my-property" attribute was resolved
+    {
+      XmlAttributeNode attrNodeProperty = HtmlUnitUtils.getAttributeNode(
+          indexUnit,
+          findOffset("my-property='"));
+      AngularPropertyElement propertyElement = (AngularPropertyElement) attrNodeProperty.getElement();
+      assertNotNull(propertyElement);
+      assertSame(AngularPropertyKind.ONE_WAY, propertyElement.getPropertyKind());
+      assertEquals("condition", propertyElement.getField().getName());
+    }
+    // "name" expression was resolved
+    assertNotNull(findIdentifier("name != null"));
   }
 
   public void test_NgDirective_resolvedExpression_attrString() throws Exception {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgDirective(",
-        "    selector: '[my-directive]',",
-        "    map: const {'my-directive' : '@condition'})",
+        "@NgDirective(selector: '[my-directive])",
         "class MyDirective {",
-        "  set condition(value) {}",
+        "  @NgAttr('my-property')",
+        "  String property;",
         "}"));
     resolveIndexNoErrors(createHtmlWithMyController(//
         "<input type='text' ng-model='name'>",
-        "<div my-directive='name != null'>",
+        "<div my-directive my-property='name != null'>",
         "</div>"));
-    // @condition means "string attribute", which we don't parse
+    resolveMain();
+    // @NgAttr means "string attribute", which we don't parse
     assertNull(findIdentifierMaybe("name != null"));
-    // "my-directive" attribute was resolved
-    XmlAttributeNode attrNode = HtmlUnitUtils.getAttributeNode(
-        indexUnit,
-        findOffset("my-directive='"));
-    assertNotNull(attrNode);
-    AngularPropertyElement propertyElement = (AngularPropertyElement) attrNode.getElement();
-    assertNotNull(propertyElement);
-    assertSame(AngularPropertyKind.ATTR, propertyElement.getPropertyKind());
   }
 
   public void test_NgDirective_resolvedExpression_dotAsName() throws Exception {
@@ -227,33 +381,6 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "</div>"));
     // "name" attribute was resolved
     assertNotNull(findIdentifier("name != null"));
-  }
-
-  public void test_NgDirective_resolvedExpression_oneWay() throws Exception {
-    addMainSource(createSource("",//
-        "import 'angular.dart';",
-        "",
-        "@NgDirective(",
-        "    selector: '[my-directive]',",
-        "    map: const {'my-directive' : '=>condition'})",
-        "class MyDirective {",
-        "  set condition(value) {}",
-        "}"));
-    resolveIndexNoErrors(createHtmlWithMyController(//
-        "<input type='text' ng-model='name'>",
-        "<div my-directive='name != null'>",
-        "</div>"));
-    // "name" expression was resolved
-    assertNotNull(findIdentifier("name != null"));
-    // "my-directive" attribute was resolved
-    XmlAttributeNode attrNode = HtmlUnitUtils.getAttributeNode(
-        indexUnit,
-        findOffset("my-directive='"));
-    assertNotNull(attrNode);
-    AngularPropertyElement propertyElement = (AngularPropertyElement) attrNode.getElement();
-    assertNotNull(propertyElement);
-    assertSame(AngularPropertyKind.ONE_WAY, propertyElement.getPropertyKind());
-    assertEquals("condition", propertyElement.getField().getName());
   }
 
   /**
@@ -499,7 +626,8 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "</html>"));
     contextHelper.runTasks();
     resolveIndex();
-    assertErrors(indexSource, StaticWarningCode.UNDEFINED_IDENTIFIER);
+    // no errors, because we decided to ignore them at the moment
+    assertNoErrors();
     // "ctrl" is not resolved
     SimpleIdentifier identifier = findIdentifier("ctrl");
     assertNull(identifier.getBestElement());
@@ -527,6 +655,39 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertResolvedIdentifier("ctrl.", "MyController");
   }
 
+  public void test_resolveExpression_ignoreUnresolved() throws Exception {
+    resolveMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgController(",
+        "    selector: '[my-controller]',",
+        "    publishAs: 'ctrl')",
+        "class MyController {",
+        "  Map map;",
+        "  Object obj;",
+        "}"));
+    resolveIndex(createSource(//
+        "<html ng-app>",
+        "  <body>",
+        "    <div my-controller>",
+        "      {{ctrl.map.property}}",
+        "      {{ctrl.obj.property}}",
+        "      {{invisibleScopeProperty}}",
+        "    </div>",
+        "    <script type='application/dart' src='main.dart'></script>",
+        "  </body>",
+        "</html>"));
+    assertNoErrors();
+    // "ctrl.map" and "ctrl.obj" are resolved
+    assertResolvedIdentifier("map", "Map<dynamic, dynamic>");
+    assertResolvedIdentifier("obj", "Object");
+    // ...but not "invisibleScopeProperty"
+    {
+      SimpleIdentifier identifier = findIdentifier("invisibleScopeProperty");
+      assertNull(identifier.getBestElement());
+    }
+  }
+
   public void test_resolveExpression_inAttribute() throws Exception {
     addMyController();
     resolveIndexNoErrors(createHtmlWithMyController("<button title='{{ctrl.field}}'></button>"));
@@ -552,6 +713,96 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     resolveIndexNoErrors(createHtmlWithMyController("{{ctrl.field | uppercase}}"));
     assertResolvedIdentifier("ctrl", "MyController");
     assertResolvedIdentifier("uppercase");
+  }
+
+  public void test_scopeProperties() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "  String field;",
+        "  MyComponent(Scope scope) {",
+        "    scope.context['scopeProperty'] = 'abc';",
+        "  }",
+        "}",
+        ""));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{scopeProperty}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    resolveIndex();
+    assertNoErrors();
+    // "scopeProperty" is resolved
+    Element element = assertResolvedIdentifier("scopeProperty}}", "String");
+    assertInstanceOf(
+        AngularScopePropertyElement.class,
+        AngularHtmlUnitResolver.getAngularElement(element));
+  }
+
+  public void test_scopeProperties_hideWithComponent() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgComponent(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent')",
+        "class MyComponent {",
+        "}",
+        "",
+        "void setScopeProperties(Scope scope) {",
+        "  scope.context['ctrl'] = 1;",
+        "}",
+        ""));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{ctrl}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    resolveIndex();
+    assertNoErrors();
+    // "ctrl" is resolved
+    LocalVariableElement element = (LocalVariableElement) assertResolvedIdentifier("ctrl}}");
+    ToolkitObjectElement[] toolkitObjects = element.getToolkitObjects();
+    assertInstanceOf(AngularComponentElement.class, toolkitObjects[0]);
+  }
+
+  public void test_view_resolveTemplateFile() throws Exception {
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgController(",
+        "    selector: '[my-controller]',",
+        "    publishAs: 'ctrl')",
+        "class MyController {",
+        "  String field;",
+        "}",
+        "",
+        "class MyRouteInitializer {",
+        "  init(ViewFactory view) {",
+        "    view('my_template.html');",
+        "  }",
+        "}"));
+    contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
+    addIndexSource("/my_template.html", createSource(//
+        "    <div my-controller>",
+        "      {{ctrl.field}}",
+        "    </div>"));
+    contextHelper.addSource("/my_styles.css", "");
+    contextHelper.runTasks();
+    resolveIndex();
+    assertNoErrors();
+    assertResolvedIdentifier("ctrl.", "MyController");
+    assertResolvedIdentifier("field}}", "String");
   }
 
   private void resolveIndexNoErrors(String content) throws Exception {

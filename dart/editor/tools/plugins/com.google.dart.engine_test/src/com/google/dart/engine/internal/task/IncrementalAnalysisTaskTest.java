@@ -28,7 +28,6 @@ import com.google.dart.engine.internal.cache.DartEntry;
 import com.google.dart.engine.internal.cache.DartEntryImpl;
 import com.google.dart.engine.internal.context.IncrementalAnalysisCache;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
 
@@ -80,13 +79,12 @@ public class IncrementalAnalysisTaskTest extends EngineTestCase {
 
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
 
-    ContentCache contentCache = context.getSourceFactory().getContentCache();
-    Source source = new TestSource(contentCache, new File("/test.dart"), oldCode);
+    Source source = new TestSource(new File("/test.dart"), oldCode);
 
     DartEntryImpl entry = new DartEntryImpl();
     CompilationUnit oldUnit = context.resolveCompilationUnit(source, source);
     assertNotNull(oldUnit);
-    entry.setValue(DartEntry.RESOLVED_UNIT, source, oldUnit);
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source, oldUnit);
 
     IncrementalAnalysisCache cache = update(
         null,

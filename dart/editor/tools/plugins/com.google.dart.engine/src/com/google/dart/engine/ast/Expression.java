@@ -30,7 +30,7 @@ import com.google.dart.engine.type.Type;
  * 
  * @coverage dart.engine.ast
  */
-public abstract class Expression extends ASTNode {
+public abstract class Expression extends AstNode {
   /**
    * An empty array of expressions.
    */
@@ -104,7 +104,7 @@ public abstract class Expression extends ASTNode {
    *         will be bound
    */
   public ParameterElement getPropagatedParameterElement() {
-    ASTNode parent = getParent();
+    AstNode parent = getParent();
     if (parent instanceof ArgumentList) {
       return ((ArgumentList) parent).getPropagatedParameterElementFor(this);
     } else if (parent instanceof IndexExpression) {
@@ -151,7 +151,7 @@ public abstract class Expression extends ASTNode {
    *         will be bound
    */
   public ParameterElement getStaticParameterElement() {
-    ASTNode parent = getParent();
+    AstNode parent = getParent();
     if (parent instanceof ArgumentList) {
       return ((ArgumentList) parent).getStaticParameterElementFor(this);
     } else if (parent instanceof IndexExpression) {

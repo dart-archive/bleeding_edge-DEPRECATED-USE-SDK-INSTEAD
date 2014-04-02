@@ -9,6 +9,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
@@ -16,15 +17,19 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.cache.SourceEntry;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.Source.ContentReceiver;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.LineInfo;
+import com.google.dart.engine.utilities.translation.DartBlockBody;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.util.List;
 import java.util.Map;
@@ -42,6 +47,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
    * The UI thread or {@code null} if not set. Any calls made for analysis information on this
    * thread are tracked in an effort to keep the UI performant.
    */
+  @DartOmit
   private static Thread uiThread;
 
   /**
@@ -50,6 +56,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
    * 
    * @param thread the thread to be monitored or {@code null} if no monitoring.
    */
+  @DartOmit
   public static void setUIThread(Thread thread) {
     uiThread = thread;
   }
@@ -60,6 +67,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
    * 
    * @param instrumentation the instrumentation, not {@code null}
    */
+  @DartBlockBody({})
   private static void checkThread(InstrumentationBuilder instrumentation) {
     if (Thread.currentThread() == uiThread) {
       instrumentation.metric("isUIThread", true);
@@ -152,14 +160,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
 
   @Override
   public Source[] computeExportedLibraries(Source source) throws AnalysisException {
-    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeExportedLibraries");
-    checkThread(instrumentation);
-    try {
-      instrumentation.metric("contextId", contextId);
-      return basis.computeExportedLibraries(source);
-    } finally {
-      instrumentation.log();
-    }
+    return basis.computeExportedLibraries(source);
   }
 
   @Override
@@ -180,14 +181,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
 
   @Override
   public Source[] computeImportedLibraries(Source source) throws AnalysisException {
-    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeImportedLibraries");
-    checkThread(instrumentation);
-    try {
-      instrumentation.metric("contextId", contextId);
-      return basis.computeImportedLibraries(source);
-    } finally {
-      instrumentation.log();
-    }
+    return basis.computeImportedLibraries(source);
   }
 
   @Override
@@ -215,7 +209,6 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
     } finally {
       instrumentation.log();
     }
-
   }
 
   @Override
@@ -234,20 +227,33 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public ResolvableHtmlUnit computeResolvableAngularComponentHtmlUnit(Source source)
-      throws AnalysisException {
-    return basis.computeResolvableAngularComponentHtmlUnit(source);
-  }
-
-  @Override
   public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
       throws AnalysisException {
     return basis.computeResolvableCompilationUnit(source);
   }
 
   @Override
-  public ResolvableHtmlUnit computeResolvableHtmlUnit(Source source) throws AnalysisException {
-    return basis.computeResolvableHtmlUnit(source);
+  public void dispose() {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-dispose");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      basis.dispose();
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
+  public boolean exists(Source source) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-exists");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.exists(source);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
@@ -283,11 +289,47 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
     }
   }
 
+  @Override
+  public AngularApplication getAngularApplicationWithHtml(Source htmlSource) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getAngularApplication");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getAngularApplicationWithHtml(htmlSource);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
   /**
    * @return the underlying {@link AnalysisContext}.
    */
   public AnalysisContext getBasis() {
     return basis;
+  }
+
+  @Override
+  public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getCompilationUnitElement");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getCompilationUnitElement(unitSource, librarySource);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
+  public TimestampedData<CharSequence> getContents(Source source) throws Exception {
+    return basis.getContents(source);
+  }
+
+  @Override
+  @SuppressWarnings("deprecation")
+  @DartOmit
+  public void getContentsToReceiver(Source source, ContentReceiver receiver) throws Exception {
+    basis.getContentsToReceiver(source, receiver);
   }
 
   @Override
@@ -439,6 +481,18 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public Source[] getLibrariesReferencedFromHtml(Source htmlSource) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getLibrariesReferencedFromHtml");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getLibrariesReferencedFromHtml(htmlSource);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getLibraryElement");
     checkThread(instrumentation);
@@ -479,18 +533,32 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public long getModificationStamp(Source source) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getModificationStamp");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getModificationStamp(source);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
   public Namespace getPublicNamespace(LibraryElement library) {
     return basis.getPublicNamespace(library);
   }
 
   @Override
-  public Namespace getPublicNamespace(Source source) throws AnalysisException {
-    return basis.getPublicNamespace(source);
-  }
-
-  @Override
   public Source[] getRefactoringUnsafeSources() {
-    return basis.getRefactoringUnsafeSources();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getRefactoringUnsafeSources");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getRefactoringUnsafeSources();
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
@@ -532,7 +600,6 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   @Override
   public SourceFactory getSourceFactory() {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getSourceFactory");
-    checkThread(instrumentation);
     try {
       instrumentation.metric("contextId", contextId);
       return basis.getSourceFactory();
@@ -552,18 +619,24 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public TimestampedData<CompilationUnit> internalResolveCompilationUnit(Source unitSource,
-      LibraryElement libraryElement) throws AnalysisException {
-    return basis.internalResolveCompilationUnit(unitSource, libraryElement);
-  }
-
-  @Override
   public boolean isClientLibrary(Source librarySource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-isClientLibrary");
     checkThread(instrumentation);
     try {
       instrumentation.metric("contextId", contextId);
       return basis.isClientLibrary(librarySource);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
+  public boolean isDisposed() {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-isDisposed");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.isDisposed();
     } finally {
       instrumentation.log();
     }

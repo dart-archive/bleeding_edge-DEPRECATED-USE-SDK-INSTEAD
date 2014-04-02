@@ -179,7 +179,6 @@ public class PubServeMainTab extends AbstractLaunchConfigurationTab {
       control.dispose();
       setControl(null);
     }
-    italicFont.dispose();
   }
 
   @Override

@@ -169,6 +169,27 @@ testPhiForwarding4() {
                      0.1, 0.0, -0.1], result);
 }
 
+
+class C {
+  C(this.box, this.parent);
+  final box;
+  final C parent;
+}
+
+testPhiForwarding5(C c) {
+  var s = 0;
+  var tmp = c;
+  var a = c.parent;
+  if (a.box + tmp.box != 1) throw "failed";
+  do {
+    s += tmp.box + a.box;
+    tmp = a;
+    a = a.parent;
+  } while (a != null);
+  return s;
+}
+
+
 class U {
   var x, y;
   U() : x = 0, y = 0;
@@ -245,7 +266,42 @@ testIndexedAliasedStore2(a, b, i) {
   }
   return a[0] + a[1];
 }
+
+
+testIndexedAliasedStore3(i) {
+  var a = new List(2);
+  a[0] = 1;
+  a[i] = 3;
+  return a[0];
+}
+
+
+testIndexedAliasedStore4(b) {
+  var a = new List(2);
+  a[0] = 1;
+  b[0] = 3;
+  return a[0];
+}
+
+
 var indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+class Z {
+  var x = 42;
+}
+
+var global_array = new List<Z>(1);
+
+side_effect() {
+  global_array[0].x++;
+}
+
+testAliasingStoreIndexed(array) {
+  var z = new Z();
+  array[0] = z;
+  side_effect();
+  return z.x;
+}
 
 main() {
   final fixed = new List(10);
@@ -260,6 +316,8 @@ main() {
 
   final obj = new X(new X(new X(null)));
 
+  final cs = new C(0, new C(1, new C(2, null))); 
+
   for (var i = 0; i < 20; i++) {
     Expect.listEquals([0x02010000, 0x03020100], foo(new A(0, 0)));
     Expect.listEquals([0x02010000, 0x03020100], bar(new A(0, 0), false));
@@ -270,6 +328,7 @@ main() {
     testPhiForwarding2(obj);
     testPhiForwarding3();
     testPhiForwarding4();
+    Expect.equals(4, testPhiForwarding5(cs));
     testEqualPhisElimination();
   }
 
@@ -307,5 +366,20 @@ main() {
   }
   for (var i = 0; i < 20; i++) {
     Expect.equals(4, testIndexedAliasedStore2(array, array, indices[1]));
+  }
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(3, testIndexedAliasedStore3(indices[0]));
+  }
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(1, testIndexedAliasedStore3(indices[1]));
+  }
+
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(1, testIndexedAliasedStore4(array));
+  }
+
+  var test_array = new List(1);
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(43, testAliasingStoreIndexed(global_array));
   }
 }

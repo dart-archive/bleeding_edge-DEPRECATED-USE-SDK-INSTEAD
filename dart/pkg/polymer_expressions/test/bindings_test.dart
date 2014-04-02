@@ -7,8 +7,8 @@ library bindings_test;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:logging/logging.dart';
 import 'package:observe/observe.dart';
+import 'package:observe/mirrors_used.dart'; // make test smaller.
 import 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
 import 'package:polymer_expressions/polymer_expressions.dart';
 import 'package:template_binding/template_binding.dart' show templateBind;
@@ -20,19 +20,14 @@ main() => dirtyCheckZone().run(() {
 
   group('bindings', () {
     var stop = null;
-    var messages = [];
     var testDiv;
     setUp(() {
-      stop = Logger.root.onRecord.listen((r) => messages.add(r));
       document.body.append(testDiv = new DivElement());
     });
 
     tearDown(() {
       testDiv.remove();
       testDiv = null;
-      stop.cancel();
-      stop = null;
-      messages = [];
     });
 
     test('should update binding when data changes', () {
@@ -43,7 +38,6 @@ main() => dirtyCheckZone().run(() {
       model.x = "hi";
       return new Future(() {
         expect(binding.value, 'hi');
-        expect(messages.length, 0);
       });
     });
 
@@ -53,30 +47,33 @@ main() => dirtyCheckZone().run(() {
           '<template><span>{{x}}</span></template>'));
       testDiv.append(template.createInstance(model, new PolymerExpressions()));
 
+      var el;
       return new Future(() {
-        var el = testDiv.query("span");
+        el = testDiv.query("span");
         expect(el.text, 'abcde');
         expect(model.x, 'abcde');
         model.x = '___';
-
-        return new Future(() {
-          expect(model.x, '___');
-          expect(el.text, '___');
-        });
+      }).then(_nextMicrotask).then((_) {
+        expect(model.x, '___');
+        expect(el.text, '___');
       });
     });
 
     test('should log eval exceptions', () {
       var model = new NotifyModel('abcde');
-      var template = templateBind(new Element.html(
-          '<template><span>{{foo}}</span></template>'));
-      testDiv.append(template.createInstance(model, new PolymerExpressions()));
+      var completer = new Completer();
+      runZoned(() {
+        var template = templateBind(new Element.html(
+            '<template><span>{{foo}}</span></template>'));
+        testDiv.append(template.createInstance(model,
+            new PolymerExpressions()));
 
-      return new Future(() {
-        expect(messages.length, 1);
-        expect(messages[0].message,
-            "Error evaluating expression 'foo': variable 'foo' not found");
+        return _nextMicrotask(null);
+      }, onError: (e) {
+        expect('$e', startsWith("Error evaluating expression 'foo':"));
+        completer.complete(true);
       });
+      return completer.future;
     });
 
     test('should preserve the cursor position', () {
@@ -120,8 +117,31 @@ main() => dirtyCheckZone().run(() {
         subscription.cancel();
       });
     });
+
+
+    test('detects changes to ObservableMap keys/values', () {
+      var map = new ObservableMap.from({'a': 1, 'b': 2});
+      var template = templateBind(new Element.html('<template>'
+          '<template repeat="{{k in x.keys}}">{{k}}:{{x[k]}},</template>'
+          '</template>'));
+      var model = new NotifyModel(map);
+      testDiv.append(template.createInstance(model, new PolymerExpressions()));
+
+      return new Future(() {
+        expect(testDiv.text, 'a:1,b:2,');
+        map.remove('b');
+        map['c'] = 3;
+      }).then(_nextMicrotask).then((_) {
+        expect(testDiv.text, 'a:1,c:3,');
+        map['a'] = 4;
+      }).then(_nextMicrotask).then((_) {
+        expect(testDiv.text, 'a:4,c:3,');
+      });
+    });
   });
 });
+
+_nextMicrotask(_) => new Future(() {});
 
 @reflectable
 class NotifyModel extends ChangeNotifier {

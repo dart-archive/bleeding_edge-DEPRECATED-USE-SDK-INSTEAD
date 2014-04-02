@@ -32,15 +32,15 @@ public class LocationWithData<D> extends Location {
     this.data = data;
   }
 
-  @Override
-  public Location clone() {
-    return new LocationWithData<D>(getElement(), getOffset(), getLength(), data);
-  }
-
   /**
    * @return the attached data.
    */
   public D getData() {
     return data;
+  }
+
+  @Override
+  public Location newClone() {
+    return new LocationWithData<D>(getElement(), getOffset(), getLength(), data);
   }
 }

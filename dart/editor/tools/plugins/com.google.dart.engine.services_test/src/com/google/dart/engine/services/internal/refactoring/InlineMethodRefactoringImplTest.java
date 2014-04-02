@@ -400,6 +400,37 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "}");
   }
 
+  public void test_function_multilineString() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "    test();",
+        "  }",
+        "}",
+        "test() {",
+        "  print('''",
+        "first line",
+        "second line",
+        "    ''');",
+        "}",
+        "");
+    selection = findOffset("test() {");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "    print('''",
+        "first line",
+        "second line",
+        "    ''');",
+        "  }",
+        "}",
+        "");
+  }
+
   public void test_function_noReturn_hasVars_hasConflict_fieldSuperClass() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -739,7 +770,7 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "Cannot inline method without body.");
   }
 
-  public void test_method_qualifiedInvocation_instanceField() throws Exception {
+  public void test_method_fieldInstance() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -780,7 +811,7 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
-  public void test_method_qualifiedInvocation_staticField() throws Exception {
+  public void test_method_fieldStatic() throws Exception {
     verifyNoTestUnitErrors = false;
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -792,6 +823,8 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "  test() {",
         "    print(FA);",
         "    print(FB);",
+        "    print(A.FA);",
+        "    print(B.FB);",
         "  }",
         "}",
         "main() {",
@@ -814,6 +847,36 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "  B b = new B();",
         "  print(A.FA);",
         "  print(B.FB);",
+        "  print(A.FA);",
+        "  print(B.FB);",
+        "}",
+        "");
+  }
+
+  public void test_method_fieldStatic_sameClass() throws Exception {
+    verifyNoTestUnitErrors = false;
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static var F = 1;",
+        "  foo() {",
+        "    test();",
+        "  }",
+        "  test() {",
+        "    print(A.F);",
+        "  }",
+        "}",
+        "");
+    selection = findOffset("test() {");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static var F = 1;",
+        "  foo() {",
+        "    print(A.F);",
+        "  }",
         "}",
         "");
   }
@@ -1312,6 +1375,6 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
    */
   @SuppressWarnings("unused")
   private void printRefactoringResultSource() throws Exception {
-    printRefactoringTestSourceResult(refactoring);
+    printRefactoringTestSourceResult(getAnalysisContext(), refactoring);
   }
 }

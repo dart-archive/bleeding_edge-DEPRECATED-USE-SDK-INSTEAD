@@ -40,6 +40,15 @@ public interface AnalysisTaskVisitor<E> {
   public E visitGenerateDartHintsTask(GenerateDartHintsTask task) throws AnalysisException;
 
   /**
+   * Visit a {@link GetContentTask}.
+   * 
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  public E visitGetContentTask(GetContentTask task) throws AnalysisException;
+
+  /**
    * Visit an {@link IncrementalAnalysisTask}.
    * 
    * @param task the task to be visited
@@ -88,13 +97,13 @@ public interface AnalysisTaskVisitor<E> {
       throws AnalysisException;
 
   /**
-   * Visit a {@link ResolveDartDependenciesTask}.
+   * Visit a {@link ResolveDartLibraryCycleTask}.
    * 
    * @param task the task to be visited
    * @return the result of visiting the task
    * @throws AnalysisException if the visitor throws an exception for some reason
    */
-  public E visitResolveDartDependenciesTask(ResolveDartDependenciesTask task)
+  public E visitResolveDartLibraryCycleTask(ResolveDartLibraryCycleTask task)
       throws AnalysisException;
 
   /**
@@ -123,4 +132,13 @@ public interface AnalysisTaskVisitor<E> {
    * @throws AnalysisException if the visitor throws an exception for some reason
    */
   public E visitResolveHtmlTask(ResolveHtmlTask task) throws AnalysisException;
+
+  /**
+   * Visit a {@link ScanDartTask}.
+   * 
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  public E visitScanDartTask(ScanDartTask task) throws AnalysisException;
 }

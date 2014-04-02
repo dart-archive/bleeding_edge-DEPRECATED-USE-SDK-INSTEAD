@@ -14,8 +14,8 @@
 package com.google.dart.engine.services.util;
 
 import com.google.common.base.Joiner;
-import com.google.dart.engine.ast.ASTFactory;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstFactory;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.NodeLocator;
@@ -53,13 +53,13 @@ public class NameOccurrencesFinderTest extends ResolverTestCase {
   }
 
   public void test_findIn_nullElement() throws Exception {
-    SimpleIdentifier ident = ASTFactory.identifier("test");
-    Collection<ASTNode> matches = NameOccurrencesFinder.findIn(ident, null);
+    SimpleIdentifier ident = AstFactory.identifier("test");
+    Collection<AstNode> matches = NameOccurrencesFinder.findIn(ident, null);
     assertThat(matches).isEmpty();
   }
 
   public void test_findIn_nullIdentifier() throws Exception {
-    Collection<ASTNode> matches = NameOccurrencesFinder.findIn(null, null);
+    Collection<AstNode> matches = NameOccurrencesFinder.findIn(null, null);
     assertThat(matches).isEmpty();
   }
 
@@ -368,8 +368,8 @@ public class NameOccurrencesFinderTest extends ResolverTestCase {
     CompilationUnit compilationUnit = resolve(sources);
     for (LocationSpec test : completionTests) {
       NodeLocator locator = new NodeLocator(test.testLocation);
-      ASTNode selectedNode = locator.searchWithin(compilationUnit);
-      Collection<ASTNode> matches = null;
+      AstNode selectedNode = locator.searchWithin(compilationUnit);
+      Collection<AstNode> matches = null;
       if (selectedNode instanceof SimpleIdentifier) {
         SimpleIdentifier ident = (SimpleIdentifier) selectedNode;
         matches = NameOccurrencesFinder.findIn(ident, compilationUnit);
@@ -389,12 +389,12 @@ public class NameOccurrencesFinderTest extends ResolverTestCase {
     return Joiner.on("\n").join(lines);
   }
 
-  private void verifyLocations(LocationSpec test, Collection<ASTNode> matches) {
+  private void verifyLocations(LocationSpec test, Collection<AstNode> matches) {
     for (String result : test.positiveResults) {
       // verify that result is present in matches
       int start = test.source.indexOf(result);
       boolean found = false;
-      for (ASTNode match : matches) {
+      for (AstNode match : matches) {
         if (start == match.getOffset()) {
           found = true;
           break;
@@ -411,7 +411,7 @@ public class NameOccurrencesFinderTest extends ResolverTestCase {
         fail("Bad test result: " + result);
       }
       boolean found = false;
-      for (ASTNode match : matches) {
+      for (AstNode match : matches) {
         if (start == match.getOffset()) {
           found = true;
           break;

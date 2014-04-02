@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.source;
 
+import com.google.dart.engine.context.AnalysisContext;
+
 import java.util.HashMap;
 
 /**
@@ -46,7 +48,7 @@ public class ContentCache {
    * contents of the source.
    * <p>
    * <b>Note:</b> This method is not intended to be used except by
-   * {@link SourceFactory#getContents(com.google.dart.engine.source.Source.ContentReceiver)}.
+   * {@link AnalysisContext#getContents(Source, Source.ContentReceiver))}.
    * 
    * @param source the source whose content is to be returned
    * @return the contents of the given source
@@ -60,7 +62,7 @@ public class ContentCache {
    * override the contents of the source.
    * <p>
    * <b>Note:</b> This method is not intended to be used except by
-   * {@link SourceFactory#getModificationStamp(com.google.dart.engine.source.Source)}.
+   * {@link AnalysisContext#getModificationStamp(Source)}.
    * 
    * @param source the source whose modification stamp is to be returned
    * @return the modification stamp of the given source

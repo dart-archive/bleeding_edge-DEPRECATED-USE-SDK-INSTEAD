@@ -135,7 +135,7 @@ class IntValue extends Value {
     ConstantSystem constantSystem = info.constantSystem;
     var constant = constantSystem.add.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
-    if (!constant.isInt()) return const UnknownValue();
+    if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.value);
   }
 
@@ -145,7 +145,7 @@ class IntValue extends Value {
     ConstantSystem constantSystem = info.constantSystem;
     var constant = constantSystem.subtract.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
-    if (!constant.isInt()) return const UnknownValue();
+    if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.value);
   }
 
@@ -154,7 +154,7 @@ class IntValue extends Value {
     ConstantSystem constantSystem = info.constantSystem;
     var constant = constantSystem.negate.fold(
         constantSystem.createInt(value));
-    if (!constant.isInt()) return const UnknownValue();
+    if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.value);
   }
 
@@ -610,6 +610,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     // that the graph does not get polluted with these instructions
     // only necessary for this phase.
     removeRangeConversion();
+    JavaScriptBackend backend = compiler.backend;
+    // TODO(herhut): Find a cleaner way to pass around ranges.
+    backend.optimizer.ranges = ranges;
   }
 
   void removeRangeConversion() {
@@ -669,8 +672,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   Range visitConstant(HConstant constant) {
     if (!constant.isInteger(compiler)) return info.newUnboundRange();
-    IntConstant constantInt = constant.constant;
-    Value value = info.newIntValue(constantInt.value);
+    NumConstant constantNum = constant.constant;
+    if (constantNum.isMinusZero) constantNum = new IntConstant(0);
+    Value value = info.newIntValue(constantNum.value);
     return info.newNormalizedRange(value, value);
   }
 
@@ -780,6 +784,39 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
           node, graph.addConstantBool(true, compiler));
       node.block.remove(node);
     }
+  }
+
+  Range handleInvokeModulo(HInvokeDynamicMethod invoke) {
+    HInstruction left = invoke.inputs[1];
+    HInstruction right = invoke.inputs[2];
+    Range divisor = ranges[right];
+    if (divisor != null) {
+      // For Integer values we can be precise in the upper bound,
+      // so special case those.
+      if (left.isInteger(compiler) && right.isInteger(compiler)) {
+        if (divisor.isPositive) {
+          return info.newNormalizedRange(info.intZero, divisor.upper -
+              info.intOne);
+        } else if (divisor.isNegative) {
+          return info.newNormalizedRange(info.intZero, info.newNegateValue(
+              divisor.lower) - info.intOne);
+        }
+      } else if (left.isNumber(compiler) && right.isNumber(compiler)) {
+        if (divisor.isPositive) {
+          return info.newNormalizedRange(info.intZero, divisor.upper);
+        } else if (divisor.isNegative) {
+          return info.newNormalizedRange(info.intZero, info.newNegateValue(
+              divisor.lower));
+        }
+      }
+    }
+    return info.newUnboundRange();
+  }
+
+  Range visitInvokeDynamicMethod(HInvokeDynamicMethod invoke) {
+    if ((invoke.inputs.length == 3) && (invoke.selector.name == "%"))
+      return handleInvokeModulo(invoke);
+    return super.visitInvokeDynamicMethod(invoke);
   }
 
   Range handleBinaryOperation(HBinaryArithmetic instruction) {

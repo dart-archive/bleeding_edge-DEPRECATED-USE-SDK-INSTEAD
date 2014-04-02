@@ -15,7 +15,6 @@
 package com.google.dart.tools.debug.core.pubserve;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
-import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -26,16 +25,19 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.model.IProcess;
+import org.eclipse.debug.core.model.RuntimeProcess;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -47,13 +49,7 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
 
   private static Semaphore launchSemaphore = new Semaphore(1);
 
-  private static ProcessRunner runner;
-
-  public static void dispose() {
-    if (runner != null) {
-      runner.dispose();
-    }
-  }
+  private static RuntimeProcess eclipseProcess;
 
   @Override
   public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch launch,
@@ -73,6 +69,17 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
       } finally {
         launchSemaphore.release();
       }
+    }
+  }
+
+  private void dispose() {
+    if (eclipseProcess != null) {
+      try {
+        eclipseProcess.terminate();
+      } catch (DebugException e) {
+
+      }
+      eclipseProcess = null;
     }
   }
 
@@ -104,24 +111,20 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
 
     String url = "http://localhost:" + PubServeManager.PORT_NUMBER;
 
-    launchInDartium(url + "/" + resource.getName(), launchConfig);
-
-    DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
+    launchInDartium(url + "/" + resource.getName(), launch, launchConfig, monitor);
 
   }
 
-  private void launchInDartium(final String url, DartLaunchConfigWrapper launchConfig)
-      throws CoreException {
+  private void launchInDartium(final String url, ILaunch launch,
+      DartLaunchConfigWrapper launchConfig, IProgressMonitor monitor) throws CoreException {
 
     // close a running instance of Dartium, if any
     dispose();
 
-    List<String> cmd = new ArrayList<String>();
-
     File dartium = DartSdkManager.getManager().getSdk().getDartiumExecutable();
 
+    List<String> cmd = new ArrayList<String>();
     cmd.add(dartium.getAbsolutePath());
-
     // In order to start up multiple Chrome processes, we need to specify a different user dir.
     cmd.add("--user-data-dir=" + BrowserManager.getCreateUserDataDirectoryPath("pubserve"));
 
@@ -129,46 +132,58 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
       cmd.add("--enable-experimental-web-platform-features");
       cmd.add("--enable-html-imports");
     }
-
     // Disables the default browser check.
     cmd.add("--no-default-browser-check");
-
     // Bypass the error dialog when the profile lock couldn't be attained.
     cmd.add("--no-process-singleton-dialog");
-
     for (String arg : launchConfig.getArgumentsAsArray()) {
       cmd.add(arg);
     }
     cmd.add(url);
 
+    ProcessBuilder processBuilder = new ProcessBuilder(cmd);
+    Map<String, String> env = processBuilder.environment();
+    // Due to differences in 32bit and 64 bit environments, dartium 32bit launch does not work on
+    // linux with this property.
+    env.remove("LD_LIBRARY_PATH");
+    if (launchConfig.getCheckedMode()) {
+      env.put("DART_FLAGS", "--enable-checked-mode");
+    }
+
+    Process javaProcess = null;
+
     try {
-      ProcessBuilder builder = new ProcessBuilder(cmd);
-      Map<String, String> env = builder.environment();
-      // Due to differences in 32bit and 64 bit environments, dartium 32bit launch does not work on
-      // linux with this property.
-      env.remove("LD_LIBRARY_PATH");
-
-      if (launchConfig.getCheckedMode()) {
-        env.put("DART_FLAGS", "--enable-checked-mode");
-      }
-
-      runner = new ProcessRunner(builder);
-      runner.runAsync();
-      runner.await(new NullProgressMonitor(), 500);
-
-      if (runner.getExitCode() != 0) {
-
-        throw new CoreException(new Status(
-            IStatus.ERROR,
-            DartDebugCorePlugin.PLUGIN_ID,
-            "Could not launch dartium : \n\n" + runner.getStdErr()));
-      }
-    } catch (IOException e) {
+      javaProcess = processBuilder.start();
+    } catch (IOException ioe) {
       throw new CoreException(new Status(
           IStatus.ERROR,
           DartDebugCorePlugin.PLUGIN_ID,
-          "Dartium not found",
-          e));
+          ioe.getMessage(),
+          ioe));
     }
+
+    eclipseProcess = null;
+
+    Map<String, String> processAttributes = new HashMap<String, String>();
+    String programName = "dartium";
+    processAttributes.put(IProcess.ATTR_PROCESS_TYPE, programName);
+
+    if (javaProcess != null) {
+      monitor.beginTask("Dartium", IProgressMonitor.UNKNOWN);
+
+      eclipseProcess = new RuntimeProcess(launch, javaProcess, launchConfig.getApplicationName()
+          + " (" + new Date() + ")", processAttributes);
+
+    }
+
+    if (javaProcess == null || eclipseProcess == null) {
+      if (javaProcess != null) {
+        javaProcess.destroy();
+      }
+
+      throw new CoreException(
+          DartDebugCorePlugin.createErrorStatus("Error starting Dartium browser"));
+    }
+
   }
 }

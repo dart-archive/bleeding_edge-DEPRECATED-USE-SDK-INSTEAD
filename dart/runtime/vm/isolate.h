@@ -10,11 +10,11 @@
 #include "platform/thread.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
-#include "vm/gc_callbacks.h"
 #include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/random.h"
 #include "vm/store_buffer.h"
+#include "vm/tags.h"
 #include "vm/timer.h"
 
 namespace dart {
@@ -27,6 +27,7 @@ class Class;
 class CodeIndexTable;
 class Debugger;
 class DeoptContext;
+class Error;
 class Field;
 class Function;
 class HandleScope;
@@ -60,21 +61,7 @@ class StackZone;
 class StubCode;
 class TypeArguments;
 class TypeParameter;
-class ObjectHistogram;
 class ObjectIdRing;
-
-
-#define REUSABLE_HANDLE_LIST(V)                                                \
-  V(Object)                                                                    \
-  V(Array)                                                                     \
-  V(String)                                                                    \
-  V(Instance)                                                                  \
-  V(Function)                                                                  \
-  V(Field)                                                                     \
-  V(Class)                                                                     \
-  V(AbstractType)                                                              \
-  V(TypeParameter)                                                             \
-  V(TypeArguments)                                                             \
 
 
 class IsolateVisitor {
@@ -88,6 +75,18 @@ class IsolateVisitor {
   DISALLOW_COPY_AND_ASSIGN(IsolateVisitor);
 };
 
+#define REUSABLE_HANDLE_LIST(V)                                                \
+  V(Array)                                                                     \
+  V(Class)                                                                     \
+  V(Error)                                                                     \
+  V(Field)                                                                     \
+  V(Function)                                                                  \
+  V(Instance)                                                                  \
+  V(Object)                                                                    \
+  V(String)                                                                    \
+  V(TypeArguments)                                                             \
+  V(AbstractType)                                                              \
+  V(TypeParameter)                                                             \
 
 class Isolate : public BaseIsolate {
  public:
@@ -105,6 +104,8 @@ class Isolate : public BaseIsolate {
 
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);
+  void RegisterClassAt(intptr_t index, const Class& cls);
+  void ValidateClassTable();
 
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
@@ -125,8 +126,6 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, class_table_);
   }
 
-  ObjectHistogram* object_histogram() { return object_histogram_; }
-
   bool cha_used() const { return cha_used_; }
   void set_cha_used(bool value) { cha_used_ = value; }
 
@@ -145,7 +144,7 @@ class Isolate : public BaseIsolate {
 
   int64_t start_time() const { return start_time_; }
 
-  Dart_Port main_port() { return main_port_; }
+  Dart_Port main_port() const { return main_port_; }
   void set_main_port(Dart_Port port) {
     ASSERT(main_port_ == 0);  // Only set main port once.
     main_port_ = port;
@@ -171,6 +170,10 @@ class Isolate : public BaseIsolate {
   void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
   static intptr_t top_exit_frame_info_offset() {
     return OFFSET_OF(Isolate, top_exit_frame_info_);
+  }
+
+  static intptr_t vm_tag_offset() {
+    return OFFSET_OF(Isolate, vm_tag_);
   }
 
   ApiState* api_state() const { return api_state_; }
@@ -224,7 +227,7 @@ class Isolate : public BaseIsolate {
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
   // Retrieve the stack address bounds.
-  bool GetStackBounds(uintptr_t* lower, uintptr_t* upper);
+  bool GetStackBounds(uword* lower, uword* upper);
 
   static uword GetSpecifiedStackSize();
 
@@ -302,12 +305,20 @@ class Isolate : public BaseIsolate {
   Simulator* simulator() const { return simulator_; }
   void set_simulator(Simulator* value) { simulator_ = value; }
 
-  GcPrologueCallbacks& gc_prologue_callbacks() {
-    return gc_prologue_callbacks_;
+  Dart_GcPrologueCallback gc_prologue_callback() const {
+    return gc_prologue_callback_;
   }
 
-  GcEpilogueCallbacks& gc_epilogue_callbacks() {
-    return gc_epilogue_callbacks_;
+  void set_gc_prologue_callback(Dart_GcPrologueCallback callback) {
+    gc_prologue_callback_ = callback;
+  }
+
+  Dart_GcEpilogueCallback gc_epilogue_callback() const {
+    return gc_epilogue_callback_;
+  }
+
+  void set_gc_epilogue_callback(Dart_GcEpilogueCallback callback) {
+    gc_epilogue_callback_ = callback;
   }
 
   static void SetCreateCallback(Dart_IsolateCreateCallback cb) {
@@ -423,7 +434,7 @@ class Isolate : public BaseIsolate {
     return profiler_data_;
   }
 
-  void PrintToJSONStream(JSONStream* stream);
+  void PrintToJSONStream(JSONStream* stream, bool ref = true);
 
   void set_thread_state(InterruptableThreadState* state) {
     ASSERT((thread_state_ == NULL) || (state == NULL));
@@ -434,6 +445,31 @@ class Isolate : public BaseIsolate {
     return thread_state_;
   }
 
+  void ProfileInterrupt();
+
+  VMTagCounters* vm_tag_counters() {
+    return &vm_tag_counters_;
+  }
+
+#if defined(DEBUG)
+#define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
+  void set_reusable_##object##_handle_scope_active(bool value) {               \
+    reusable_##object##_handle_scope_active_ = value;                          \
+  }                                                                            \
+  bool reusable_##object##_handle_scope_active() const {                       \
+    return reusable_##object##_handle_scope_active_;                           \
+  }
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_ACCESSORS)
+#undef REUSABLE_HANDLE_SCOPE_ACCESSORS
+#endif  // defined(DEBUG)
+
+#define REUSABLE_HANDLE(object)                                                \
+  object& object##Handle() const {                                             \
+    return *object##_handle_;                                                  \
+  }
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE)
+#undef REUSABLE_HANDLE
+
   static void VisitIsolates(IsolateVisitor* visitor);
 
  private:
@@ -441,6 +477,8 @@ class Isolate : public BaseIsolate {
 
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
+
+  void ProfileIdle();
 
   template<class T> T* AllocateReusableHandle();
 
@@ -475,15 +513,14 @@ class Isolate : public BaseIsolate {
   MessageHandler* message_handler_;
   IsolateSpawnState* spawn_state_;
   bool is_runnable_;
-  GcPrologueCallbacks gc_prologue_callbacks_;
-  GcEpilogueCallbacks gc_epilogue_callbacks_;
+  Dart_GcPrologueCallback gc_prologue_callback_;
+  Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
 
   // Status support.
   char* stacktrace_;
   intptr_t stack_frame_index_;
-  ObjectHistogram* object_histogram_;
 
   bool cha_used_;
 
@@ -494,15 +531,24 @@ class Isolate : public BaseIsolate {
   Mutex profiler_data_mutex_;
   InterruptableThreadState* thread_state_;
 
+  VMTagCounters vm_tag_counters_;
+
   // Isolate list next pointer.
   Isolate* next_;
 
   // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object)                                         \
-  object* object##_handle_;                                                    \
-
+  object* object##_handle_;
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_FIELDS)
 #undef REUSABLE_HANDLE_FIELDS
+
+#if defined(DEBUG)
+#define REUSABLE_HANDLE_SCOPE_VARIABLE(object)                                 \
+  bool reusable_##object##_handle_scope_active_;
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_VARIABLE);
+#undef REUSABLE_HANDLE_SCOPE_VARIABLE
+#endif  // defined(DEBUG)
+
   VMHandles reusable_handles_;
 
   static Dart_IsolateCreateCallback create_callback_;
@@ -524,8 +570,10 @@ class Isolate : public BaseIsolate {
   static Monitor* isolates_list_monitor_;
   static Isolate* isolates_list_head_;
 
-  friend class ReusableHandleScope;
-  friend class ReusableObjectHandleScope;
+#define REUSABLE_FRIEND_DECLARATION(name)                                      \
+  friend class Reusable##name##HandleScope;
+REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
+#undef REUSABLE_FRIEND_DECLARATION
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

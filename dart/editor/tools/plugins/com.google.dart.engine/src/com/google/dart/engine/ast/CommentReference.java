@@ -26,7 +26,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * @coverage dart.engine.ast
  */
-public class CommentReference extends ASTNode {
+public class CommentReference extends AstNode {
   /**
    * The token representing the 'new' keyword, or {@code null} if there was no 'new' keyword.
    */
@@ -49,7 +49,7 @@ public class CommentReference extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitCommentReference(this);
   }
 
@@ -100,7 +100,7 @@ public class CommentReference extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(identifier, visitor);
   }
 }

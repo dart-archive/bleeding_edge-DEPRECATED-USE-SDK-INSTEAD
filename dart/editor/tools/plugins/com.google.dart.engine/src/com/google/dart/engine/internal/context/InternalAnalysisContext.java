@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.context;
 
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
@@ -63,19 +62,10 @@ public interface InternalAnalysisContext extends AnalysisContext {
 
   /**
    * Return an AST structure corresponding to the given source, but ensure that the structure has
-   * not already been resolved and will not be resolved by any other threads.
-   * 
-   * @param source the compilation unit for which an AST structure should be returned
-   * @return the AST structure representing the content of the source
-   * @throws AnalysisException if the analysis could not be performed
-   */
-  public ResolvableHtmlUnit computeResolvableAngularComponentHtmlUnit(Source source)
-      throws AnalysisException;
-
-  /**
-   * Return an AST structure corresponding to the given source, but ensure that the structure has
    * not already been resolved and will not be resolved by any other threads or in any other
    * library.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment
    * 
    * @param source the compilation unit for which an AST structure should be returned
    * @return the AST structure representing the content of the source
@@ -83,16 +73,6 @@ public interface InternalAnalysisContext extends AnalysisContext {
    */
   public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
       throws AnalysisException;
-
-  /**
-   * Return an AST structure corresponding to the given source, but ensure that the structure has
-   * not already been resolved and will not be resolved by any other threads.
-   * 
-   * @param source the compilation unit for which an AST structure should be returned
-   * @return the AST structure representing the content of the source
-   * @throws AnalysisException if the analysis could not be performed
-   */
-  public ResolvableHtmlUnit computeResolvableHtmlUnit(Source source) throws AnalysisException;
 
   /**
    * Initialize the specified context by removing the specified sources from the receiver and adding
@@ -116,16 +96,6 @@ public interface InternalAnalysisContext extends AnalysisContext {
   public Namespace getPublicNamespace(LibraryElement library);
 
   /**
-   * Return a namespace containing mappings for all of the public names defined by the library
-   * defined by the given source.
-   * 
-   * @param source the source defining the library whose public namespace is to be returned
-   * @return the public namespace corresponding to the library defined by the given source
-   * @throws AnalysisException if the public namespace could not be computed
-   */
-  public Namespace getPublicNamespace(Source source) throws AnalysisException;
-
-  /**
    * Returns a statistics about this context.
    */
   public AnalysisContentStatistics getStatistics();
@@ -138,20 +108,6 @@ public interface InternalAnalysisContext extends AnalysisContext {
    * @throws AnalysisException if dart:core cannot be resolved
    */
   public TypeProvider getTypeProvider() throws AnalysisException;
-
-  /**
-   * Return a time-stamped fully-resolved compilation unit for the given source in the given
-   * library.
-   * 
-   * @param unitSource the source of the compilation unit for which a resolved AST structure is to
-   *          be returned
-   * @param libraryElement the element representing the library in which the compilation unit is to
-   *          be resolved
-   * @return a time-stamped fully-resolved compilation unit for the source
-   * @throws AnalysisException if the resolved compilation unit could not be computed
-   */
-  public TimestampedData<CompilationUnit> internalResolveCompilationUnit(Source unitSource,
-      LibraryElement libraryElement) throws AnalysisException;
 
   /**
    * Given a table mapping the source for the libraries represented by the corresponding elements to

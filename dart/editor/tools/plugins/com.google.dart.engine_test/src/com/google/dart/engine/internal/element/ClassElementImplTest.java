@@ -167,6 +167,53 @@ public class ClassElementImplTest extends EngineTestCase {
     assertTrue(classB.hasNonFinalField());
   }
 
+  public void test_hasStaticMember_false_empty() {
+    ClassElementImpl classA = classElement("A");
+    // no members
+    assertFalse(classA.hasStaticMember());
+  }
+
+  public void test_hasStaticMember_false_instanceMethod() {
+    ClassElementImpl classA = classElement("A");
+    MethodElement method = methodElement("foo", null);
+    classA.setMethods(new MethodElement[] {method});
+    assertFalse(classA.hasStaticMember());
+  }
+
+  public void test_hasStaticMember_instanceGetter() {
+    ClassElementImpl classA = classElement("A");
+    PropertyAccessorElement getter = getterElement("foo", false, null);
+    classA.setAccessors(new PropertyAccessorElement[] {getter});
+    assertFalse(classA.hasStaticMember());
+  }
+
+  public void test_hasStaticMember_true_getter() {
+    ClassElementImpl classA = classElement("A");
+    PropertyAccessorElementImpl getter = getterElement("foo", false, null);
+    classA.setAccessors(new PropertyAccessorElement[] {getter});
+    // "foo" is static
+    getter.setStatic(true);
+    assertTrue(classA.hasStaticMember());
+  }
+
+  public void test_hasStaticMember_true_method() {
+    ClassElementImpl classA = classElement("A");
+    MethodElementImpl method = methodElement("foo", null);
+    classA.setMethods(new MethodElement[] {method});
+    // "foo" is static
+    method.setStatic(true);
+    assertTrue(classA.hasStaticMember());
+  }
+
+  public void test_hasStaticMember_true_setter() {
+    ClassElementImpl classA = classElement("A");
+    PropertyAccessorElementImpl setter = setterElement("foo", false, null);
+    classA.setAccessors(new PropertyAccessorElement[] {setter});
+    // "foo" is static
+    setter.setStatic(true);
+    assertTrue(classA.hasStaticMember());
+  }
+
   public void test_lookUpGetter_declared() {
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");

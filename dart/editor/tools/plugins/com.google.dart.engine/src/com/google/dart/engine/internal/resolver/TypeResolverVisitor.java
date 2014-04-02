@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AsExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -46,8 +46,9 @@ import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
-import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
+import com.google.dart.engine.ast.visitor.UnifyingAstVisitor;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FieldFormalParameterElement;
@@ -66,6 +67,7 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
 import com.google.dart.engine.internal.element.FunctionTypeAliasElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
@@ -79,6 +81,7 @@ import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeImpl;
+import com.google.dart.engine.internal.type.TypeParameterTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.Token;
@@ -119,7 +122,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @return {@code true} if given {@link TypeName} is used as a type annotation.
    */
   private static boolean isTypeAnnotation(TypeName node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof VariableDeclarationList) {
       return ((VariableDeclarationList) parent).getType() == node;
     }
@@ -183,6 +186,18 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public TypeResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, Scope nameScope, AnalysisErrorListener errorListener) {
     super(definingLibrary, source, typeProvider, nameScope, errorListener);
+    dynamicType = typeProvider.getDynamicType();
+  }
+
+  /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * 
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  public TypeResolverVisitor(ResolvableLibrary library, Source source, TypeProvider typeProvider) {
+    super(library, source, typeProvider);
     dynamicType = typeProvider.getDynamicType();
   }
 
@@ -256,6 +271,31 @@ public class TypeResolverVisitor extends ScopedVisitor {
     }
     if (classElement != null && superclassType != null) {
       classElement.setSupertype(superclassType);
+      ClassElement superclassElement = superclassType.getElement();
+      if (superclassElement != null) {
+        ConstructorElement[] constructors = superclassElement.getConstructors();
+        int count = constructors.length;
+        if (count > 0) {
+          Type[] parameterTypes = TypeParameterTypeImpl.getTypes(superclassType.getTypeParameters());
+          Type[] argumentTypes = getArgumentTypes(
+              node.getSuperclass().getTypeArguments(),
+              parameterTypes);
+          InterfaceType classType = classElement.getType();
+          ArrayList<ConstructorElement> implicitConstructors = new ArrayList<ConstructorElement>(
+              count);
+          for (int i = 0; i < count; i++) {
+            ConstructorElement explicitConstructor = constructors[i];
+            if (!explicitConstructor.isFactory()) {
+              implicitConstructors.add(createImplicitContructor(
+                  classType,
+                  explicitConstructor,
+                  parameterTypes,
+                  argumentTypes));
+            }
+          }
+          classElement.setConstructors(implicitConstructors.toArray(new ConstructorElement[implicitConstructors.size()]));
+        }
+      }
     }
     resolve(classElement, node.getWithClause(), node.getImplementsClause());
     return null;
@@ -265,11 +305,14 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
-    ClassElement definingClass = (ClassElement) element.getEnclosingElement();
-    element.setReturnType(definingClass.getType());
-    FunctionTypeImpl type = new FunctionTypeImpl(element);
-    type.setTypeArguments(definingClass.getType().getTypeArguments());
-    element.setType(type);
+    if (element != null) {
+      // TODO(brianwilkerson) Figure out how the element could ever be null.
+      ClassElement definingClass = (ClassElement) element.getEnclosingElement();
+      element.setReturnType(definingClass.getType());
+      FunctionTypeImpl type = new FunctionTypeImpl(element);
+      type.setTypeArguments(definingClass.getType().getTypeArguments());
+      element.setType(type);
+    }
     return null;
   }
 
@@ -444,7 +487,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       // If not, the look to see whether we might have created the wrong AST structure for a
       // constructor name. If so, fix the AST structure and then proceed.
       //
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       if (typeName instanceof PrefixedIdentifier && parent instanceof ConstructorName
           && argumentList == null) {
         ConstructorName name = (ConstructorName) parent;
@@ -457,13 +500,13 @@ public class TypeResolverVisitor extends ScopedVisitor {
                 && ((InstanceCreationExpression) parent.getParent()).isConst()) {
               // If, if this is a const expression, then generate a
               // CompileTimeErrorCode.CONST_WITH_NON_TYPE error.
-              reportError(
+              reportErrorForNode(
                   CompileTimeErrorCode.CONST_WITH_NON_TYPE,
                   prefixedIdentifier.getIdentifier(),
                   prefixedIdentifier.getIdentifier().getName());
             } else {
               // Else, if this expression is a new expression, report a NEW_WITH_NON_TYPE warning.
-              reportError(
+              reportErrorForNode(
                   StaticWarningCode.NEW_WITH_NON_TYPE,
                   prefixedIdentifier.getIdentifier(),
                   prefixedIdentifier.getIdentifier().getName());
@@ -493,14 +536,14 @@ public class TypeResolverVisitor extends ScopedVisitor {
       InstanceCreationExpression creation = (InstanceCreationExpression) node.getParent().getParent();
       if (creation.isConst()) {
         if (element == null) {
-          reportError(CompileTimeErrorCode.UNDEFINED_CLASS, typeNameSimple, typeName);
+          reportErrorForNode(CompileTimeErrorCode.UNDEFINED_CLASS, typeNameSimple, typeName);
         } else {
-          reportError(CompileTimeErrorCode.CONST_WITH_NON_TYPE, typeNameSimple, typeName);
+          reportErrorForNode(CompileTimeErrorCode.CONST_WITH_NON_TYPE, typeNameSimple, typeName);
         }
         elementValid = false;
       } else {
         if (element != null) {
-          reportError(StaticWarningCode.NEW_WITH_NON_TYPE, typeNameSimple, typeName);
+          reportErrorForNode(StaticWarningCode.NEW_WITH_NON_TYPE, typeNameSimple, typeName);
           elementValid = false;
         }
       }
@@ -513,23 +556,29 @@ public class TypeResolverVisitor extends ScopedVisitor {
       SimpleIdentifier typeNameSimple = getTypeSimpleIdentifier(typeName);
       RedirectingConstructorKind redirectingConstructorKind;
       if (isBuiltInIdentifier(node) && isTypeAnnotation(node)) {
-        reportError(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, typeName, typeName.getName());
+        reportErrorForNode(
+            CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+            typeName,
+            typeName.getName());
       } else if (typeNameSimple.getName().equals("boolean")) {
-        reportError(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple);
+        reportErrorForNode(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple);
       } else if (isTypeNameInCatchClause(node)) {
-        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());
       } else if (isTypeNameInAsExpression(node)) {
-        reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
       } else if (isTypeNameInIsExpression(node)) {
-        reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
       } else if ((redirectingConstructorKind = getRedirectingConstructorKind(node)) != null) {
         ErrorCode errorCode = redirectingConstructorKind == RedirectingConstructorKind.CONST
             ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS;
-        reportError(errorCode, typeName, typeName.getName());
+        reportErrorForNode(errorCode, typeName, typeName.getName());
       } else if (isTypeNameInTypeArgumentList(node)) {
-        reportError(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, typeName.getName());
+        reportErrorForNode(
+            StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+            typeName,
+            typeName.getName());
       } else {
-        reportError(StaticWarningCode.UNDEFINED_CLASS, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.UNDEFINED_CLASS, typeName, typeName.getName());
       }
       elementValid = false;
     }
@@ -560,7 +609,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       }
     } else if (element instanceof MultiplyDefinedElement) {
       Element[] elements = ((MultiplyDefinedElement) element).getConflictingElements();
-      type = getType(elements);
+      type = getTypeWhenMultiplyDefined(elements);
       if (type != null) {
         node.setType(type);
       }
@@ -568,19 +617,22 @@ public class TypeResolverVisitor extends ScopedVisitor {
       // The name does not represent a type.
       RedirectingConstructorKind redirectingConstructorKind;
       if (isTypeNameInCatchClause(node)) {
-        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());
       } else if (isTypeNameInAsExpression(node)) {
-        reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
       } else if (isTypeNameInIsExpression(node)) {
-        reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
+        reportErrorForNode(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
       } else if ((redirectingConstructorKind = getRedirectingConstructorKind(node)) != null) {
         ErrorCode errorCode = redirectingConstructorKind == RedirectingConstructorKind.CONST
             ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS : StaticWarningCode.REDIRECT_TO_NON_CLASS;
-        reportError(errorCode, typeName, typeName.getName());
+        reportErrorForNode(errorCode, typeName, typeName.getName());
       } else if (isTypeNameInTypeArgumentList(node)) {
-        reportError(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, typeName.getName());
+        reportErrorForNode(
+            StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+            typeName,
+            typeName.getName());
       } else {
-        ASTNode parent = typeName.getParent();
+        AstNode parent = typeName.getParent();
         while (parent instanceof TypeName) {
           parent = parent.getParent();
         }
@@ -588,7 +640,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
             || parent instanceof WithClause || parent instanceof ClassTypeAlias) {
           // Ignored. The error will be reported elsewhere.
         } else {
-          reportError(StaticWarningCode.NOT_A_TYPE, typeName, typeName.getName());
+          reportErrorForNode(StaticWarningCode.NOT_A_TYPE, typeName, typeName.getName());
         }
       }
       setElement(typeName, dynamicType.getElement());
@@ -601,39 +653,33 @@ public class TypeResolverVisitor extends ScopedVisitor {
       int argumentCount = arguments.size();
       Type[] parameters = getTypeArguments(type);
       int parameterCount = parameters.length;
-      int count = Math.min(argumentCount, parameterCount);
-      ArrayList<Type> typeArguments = new ArrayList<Type>(count);
-      for (int i = 0; i < count; i++) {
-        Type argumentType = getType(arguments.get(i));
-        if (argumentType != null) {
-          typeArguments.add(argumentType);
+      Type[] typeArguments = new Type[parameterCount];
+      if (argumentCount == parameterCount) {
+        for (int i = 0; i < parameterCount; i++) {
+          TypeName argumentTypeName = arguments.get(i);
+          Type argumentType = getType(argumentTypeName);
+          if (argumentType == null) {
+            argumentType = dynamicType;
+          }
+          typeArguments[i] = argumentType;
         }
-      }
-      if (argumentCount != parameterCount) {
-        reportError(
+      } else {
+        reportErrorForNode(
             getInvalidTypeParametersErrorCode(node),
             node,
             typeName.getName(),
             parameterCount,
             argumentCount);
-      }
-      argumentCount = typeArguments.size();
-      if (argumentCount < parameterCount) {
-        //
-        // If there were too many arguments, we already handled it by not adding the values of the
-        // extra arguments to the list. If there are too few, we handle it by adding 'dynamic'
-        // enough times to make the count equal.
-        //
-        for (int i = argumentCount; i < parameterCount; i++) {
-          typeArguments.add(dynamicType);
+        for (int i = 0; i < parameterCount; i++) {
+          typeArguments[i] = dynamicType;
         }
       }
       if (type instanceof InterfaceTypeImpl) {
         InterfaceTypeImpl interfaceType = (InterfaceTypeImpl) type;
-        type = interfaceType.substitute(typeArguments.toArray(new Type[typeArguments.size()]));
+        type = interfaceType.substitute(typeArguments);
       } else if (type instanceof FunctionTypeImpl) {
         FunctionTypeImpl functionType = (FunctionTypeImpl) type;
-        type = functionType.substitute(typeArguments.toArray(new Type[typeArguments.size()]));
+        type = functionType.substitute(typeArguments);
       } else {
         // TODO(brianwilkerson) Report this internal error.
       }
@@ -721,7 +767,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     // parameters can be correctly resolved.
     //
     final ArrayList<ClassMember> nonFields = new ArrayList<ClassMember>();
-    node.visitChildren(new UnifyingASTVisitor<Void>() {
+    node.visitChildren(new UnifyingAstVisitor<Void>() {
       @Override
       public Void visitConstructorDeclaration(ConstructorDeclaration node) {
         nonFields.add(node);
@@ -735,7 +781,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       }
 
       @Override
-      public Void visitNode(ASTNode node) {
+      public Void visitNode(AstNode node) {
         return node.accept(TypeResolverVisitor.this);
       }
     });
@@ -758,6 +804,80 @@ public class TypeResolverVisitor extends ScopedVisitor {
     } else {
       return returnType.getType();
     }
+  }
+
+  /**
+   * Create an implicit constructor that is copied from the given constructor, but that is in the
+   * given class.
+   * 
+   * @param classType the class in which the implicit constructor is defined
+   * @param explicitConstructor the constructor on which the implicit constructor is modeled
+   * @param parameterTypes the types to be replaced when creating parameters
+   * @param argumentTypes the types with which the parameters are to be replaced
+   * @return the implicit constructor that was created
+   */
+  private ConstructorElement createImplicitContructor(InterfaceType classType,
+      ConstructorElement explicitConstructor, Type[] parameterTypes, Type[] argumentTypes) {
+    ConstructorElementImpl implicitConstructor = new ConstructorElementImpl(
+        explicitConstructor.getName(),
+        -1);
+    implicitConstructor.setSynthetic(true);
+    implicitConstructor.setRedirectedConstructor(explicitConstructor);
+    implicitConstructor.setConst(explicitConstructor.isConst());
+    implicitConstructor.setReturnType(classType);
+    ParameterElement[] explicitParameters = explicitConstructor.getParameters();
+    int count = explicitParameters.length;
+    if (count > 0) {
+      ParameterElement[] implicitParameters = new ParameterElement[count];
+      for (int i = 0; i < count; i++) {
+        ParameterElement explicitParameter = explicitParameters[i];
+        ParameterElementImpl implicitParameter = new ParameterElementImpl(
+            explicitParameter.getName(),
+            -1);
+        implicitParameter.setConst(explicitParameter.isConst());
+        implicitParameter.setFinal(explicitParameter.isFinal());
+        implicitParameter.setParameterKind(explicitParameter.getParameterKind());
+        implicitParameter.setSynthetic(true);
+        implicitParameter.setType(explicitParameter.getType().substitute(
+            argumentTypes,
+            parameterTypes));
+        implicitParameters[i] = implicitParameter;
+      }
+      implicitConstructor.setParameters(implicitParameters);
+    }
+    FunctionTypeImpl type = new FunctionTypeImpl(implicitConstructor);
+    type.setTypeArguments(classType.getTypeArguments());
+    implicitConstructor.setType(type);
+    return implicitConstructor;
+  }
+
+  /**
+   * Return an array of argument types that corresponds to the array of parameter types and that are
+   * derived from the given list of type arguments.
+   * 
+   * @param typeArguments the type arguments from which the types will be taken
+   * @param parameterTypes the parameter types that must be matched by the type arguments
+   * @return the argument types that correspond to the parameter types
+   */
+  private Type[] getArgumentTypes(TypeArgumentList typeArguments, Type[] parameterTypes) {
+    DynamicTypeImpl dynamic = DynamicTypeImpl.getInstance();
+    int parameterCount = parameterTypes.length;
+    Type[] types = new Type[parameterCount];
+    if (typeArguments == null) {
+      for (int i = 0; i < parameterCount; i++) {
+        types[i] = dynamic;
+      }
+    } else {
+      NodeList<TypeName> arguments = typeArguments.getArguments();
+      int argumentCount = Math.min(arguments.size(), parameterCount);
+      for (int i = 0; i < argumentCount; i++) {
+        types[i] = arguments.get(i).getType();
+      }
+      for (int i = argumentCount; i < parameterCount; i++) {
+        types[i] = dynamic;
+      }
+    }
+    return types;
   }
 
   /**
@@ -811,7 +931,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    *         were provided
    */
   private ErrorCode getInvalidTypeParametersErrorCode(TypeName node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof ConstructorName) {
       parent = parent.getParent();
       if (parent instanceof InstanceCreationExpression) {
@@ -833,7 +953,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    *         redirected constructor, or {@code null} otherwise
    */
   private RedirectingConstructorKind getRedirectingConstructorKind(TypeName typeName) {
-    ASTNode parent = typeName.getParent();
+    AstNode parent = typeName.getParent();
     if (parent instanceof ConstructorName) {
       ConstructorName constructorName = (ConstructorName) parent;
       parent = constructorName.getParent();
@@ -848,26 +968,6 @@ public class TypeResolverVisitor extends ScopedVisitor {
       }
     }
     return null;
-  }
-
-  /**
-   * Given the multiple elements to which a single name could potentially be resolved, return the
-   * single interface type that should be used, or {@code null} if there is no clear choice.
-   * 
-   * @param elements the elements to which a single name could potentially be resolved
-   * @return the single interface type that should be used for the type name
-   */
-  private InterfaceType getType(Element[] elements) {
-    InterfaceType type = null;
-    for (Element element : elements) {
-      if (element instanceof ClassElement) {
-        if (type != null) {
-          return null;
-        }
-        type = ((ClassElement) element).getType();
-      }
-    }
-    return type;
   }
 
   /**
@@ -914,13 +1014,33 @@ public class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * Given the multiple elements to which a single name could potentially be resolved, return the
+   * single interface type that should be used, or {@code null} if there is no clear choice.
+   * 
+   * @param elements the elements to which a single name could potentially be resolved
+   * @return the single interface type that should be used for the type name
+   */
+  private InterfaceType getTypeWhenMultiplyDefined(Element[] elements) {
+    InterfaceType type = null;
+    for (Element element : elements) {
+      if (element instanceof ClassElement) {
+        if (type != null) {
+          return null;
+        }
+        type = ((ClassElement) element).getType();
+      }
+    }
+    return type;
+  }
+
+  /**
    * Checks if the given type name is used as the type in an as expression.
    * 
    * @param typeName the type name to analyzer
    * @return {@code true} if the given type name is used as the type in an as expression
    */
   private boolean isTypeNameInAsExpression(TypeName typeName) {
-    ASTNode parent = typeName.getParent();
+    AstNode parent = typeName.getParent();
     if (parent instanceof AsExpression) {
       AsExpression asExpression = (AsExpression) parent;
       return asExpression.getType() == typeName;
@@ -935,7 +1055,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @return {@code true} if the given type name is used as the exception type in a catch clause
    */
   private boolean isTypeNameInCatchClause(TypeName typeName) {
-    ASTNode parent = typeName.getParent();
+    AstNode parent = typeName.getParent();
     if (parent instanceof CatchClause) {
       CatchClause catchClause = (CatchClause) parent;
       return catchClause.getExceptionType() == typeName;
@@ -951,7 +1071,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    *         expression
    */
   private boolean isTypeNameInInstanceCreationExpression(TypeName typeName) {
-    ASTNode parent = typeName.getParent();
+    AstNode parent = typeName.getParent();
     if (parent instanceof ConstructorName
         && parent.getParent() instanceof InstanceCreationExpression) {
       ConstructorName constructorName = (ConstructorName) parent;
@@ -967,7 +1087,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @return {@code true} if the given type name is used as the type in an is expression
    */
   private boolean isTypeNameInIsExpression(TypeName typeName) {
-    ASTNode parent = typeName.getParent();
+    AstNode parent = typeName.getParent();
     if (parent instanceof IsExpression) {
       IsExpression isExpression = (IsExpression) parent;
       return isExpression.getType() == typeName;
@@ -1046,7 +1166,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
             Element element2 = identifier2.getStaticElement();
             if (element != null && element.equals(element2)) {
               detectedRepeatOnIndex[j] = true;
-              reportError(CompileTimeErrorCode.IMPLEMENTS_REPEATED, typeName2, name2);
+              reportErrorForNode(CompileTimeErrorCode.IMPLEMENTS_REPEATED, typeName2, name2);
             }
           }
         }
@@ -1072,9 +1192,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
     // If the type is not an InterfaceType, then visitTypeName() sets the type to be a DynamicTypeImpl
     Identifier name = typeName.getName();
     if (name.getName().equals(Keyword.DYNAMIC.getSyntax())) {
-      reportError(dynamicTypeError, name, name.getName());
+      reportErrorForNode(dynamicTypeError, name, name.getName());
     } else {
-      reportError(nonTypeError, name, name.getName());
+      reportErrorForNode(nonTypeError, name, name.getName());
     }
     return null;
   }

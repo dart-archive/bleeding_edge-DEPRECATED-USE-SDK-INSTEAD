@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
 
@@ -107,6 +108,18 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
     Assert.isTrue(replacementLength >= 0);
     Assert.isTrue(replacementLengthIdentifier >= 0);
 
+    // put cursor at the marker position
+    int cursorPos = replacementString.length();
+    {
+      int exclamationPos = replacementString.indexOf(CompletionProposal.CURSOR_MARKER);
+      if (exclamationPos != -1) {
+        cursorPos = exclamationPos;
+        replacementString = replacementString.substring(0, exclamationPos)
+            + replacementString.substring(exclamationPos + 1);
+        triggerCompletionAfterApply = true;
+      }
+    }
+
     setReplacementString(replacementString);
     setReplacementOffset(replacementOffset);
     setReplacementLength(replacementLength);
@@ -115,7 +128,7 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
     setStyledDisplayString(displayString == null ? new StyledString(replacementString)
         : displayString);
     setRelevance(relevance);
-    setCursorPosition(replacementString.length());
+    setCursorPosition(cursorPos);
     setInDartDoc(inJavadoc);
     setSortString(displayString == null ? replacementString : displayString.getString());
     setElement(element);

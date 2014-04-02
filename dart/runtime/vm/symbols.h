@@ -66,6 +66,8 @@ class ObjectPointerVisitor;
   V(ClosureFunctionField, ":function")                                         \
   V(ClosureContextField, ":context")                                           \
   V(Library, "library")                                                        \
+  V(LoadLibrary, "loadLibrary")                                                \
+  V(_LibraryPrefix, "_LibraryPrefix")                                          \
   V(Native, "native")                                                          \
   V(Import, "import")                                                          \
   V(Source, "source")                                                          \
@@ -241,7 +243,7 @@ class ObjectPointerVisitor;
   V(DotCreate, "._create")                                                     \
   V(DotWithType, "._withType")                                                 \
   V(_id, "_id")                                                                \
-  V(_get_or_create, "_get_or_create")                                          \
+  V(_get, "_get")                                                              \
   V(RangeError, "RangeError")                                                  \
   V(ArgumentError, "ArgumentError")                                            \
   V(FormatException, "FormatException")                                        \
@@ -296,6 +298,8 @@ class ObjectPointerVisitor;
   V(_LocalClassMirror, "_LocalClassMirror")                                    \
   V(_LocalFunctionTypeMirror, "_LocalFunctionTypeMirror")                      \
   V(_LocalLibraryMirror, "_LocalLibraryMirror")                                \
+  V(_LocalLibraryDependencyMirror, "_LocalLibraryDependencyMirror")            \
+  V(_LocalCombinatorMirror, "_LocalCombinatorMirror")                          \
   V(_LocalMethodMirror, "_LocalMethodMirror")                                  \
   V(_LocalVariableMirror, "_LocalVariableMirror")                              \
   V(_LocalParameterMirror, "_LocalParameterMirror")                            \
@@ -303,11 +307,14 @@ class ObjectPointerVisitor;
   V(_LocalMirrorSystem, "_LocalMirrorSystem")                                  \
   V(_LocalTypedefMirror, "_LocalTypedefMirror")                                \
   V(_LocalTypeVariableMirror, "_LocalTypeVariableMirror")                      \
+  V(_SourceLocation, "_SourceLocation")                                        \
   V(hashCode, "get:hashCode")                                                  \
   V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
   V(OptimizedOut, "<optimized out>")                                           \
   V(NotInitialized, "<not initialized>")                                       \
   V(ClassId, "get:_classId")                                                   \
+  V(AllocationStubFor, "Allocation stub for ")                                 \
+  V(TempParam, ":temp_param")                                                  \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

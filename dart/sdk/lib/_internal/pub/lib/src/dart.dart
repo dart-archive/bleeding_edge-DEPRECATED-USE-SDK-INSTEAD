@@ -11,12 +11,13 @@ import 'dart:isolate';
 import 'package:analyzer/analyzer.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
+
 import '../../../compiler/compiler.dart' as compiler;
 import '../../../compiler/implementation/filenames.dart'
     show appendSlash;
 
+import '../../asset/dart/serialize.dart';
 import 'io.dart';
-import 'sdk.dart' as sdk;
 import 'utils.dart';
 
 /// Interface to communicate with dart2js.
@@ -26,6 +27,12 @@ import 'utils.dart';
 /// [compiler.DiagnosticHandler] function types so that we can provide them
 /// as a single unit.
 abstract class CompilerProvider {
+  /// The URI to the root directory where "dart:" libraries can be found.
+  ///
+  /// This is used as the base URL to generate library URLs that are then sent
+  /// back to [provideInput].
+  Uri get libraryRoot;
+
   /// Given [uri], responds with a future that completes to the contents of
   /// the input file at that URI.
   ///
@@ -59,18 +66,28 @@ Future compile(String entrypoint, CompilerProvider provider, {
     bool analyzeAll: false,
     bool suppressWarnings: false,
     bool suppressHints: false,
+    bool suppressPackageWarnings: true,
     bool terse: false,
+    bool includeSourceMapUrls: false,
     bool toDart: false}) {
   return syncFuture(() {
     var options = <String>['--categories=Client,Server'];
-    if (checked) options.add('--checked');
+    if (checked) options.add('--enable-checked-mode');
     if (minify) options.add('--minify');
     if (verbose) options.add('--verbose');
     if (analyzeAll) options.add('--analyze-all');
     if (suppressWarnings) options.add('--suppress-warnings');
     if (suppressHints) options.add('--suppress-hints');
+    if (!suppressPackageWarnings) options.add('--show-package-warnings');
     if (terse) options.add('--terse');
     if (toDart) options.add('--output-type=dart');
+
+    // Add the source map URLs.
+    if (includeSourceMapUrls) {
+      var sourceUrl = path.toUri(entrypoint);
+      options.add("--out=$sourceUrl.js");
+      options.add("--source-map=$sourceUrl.js.map");
+    }
 
     if (environment == null) environment = {};
     if (commandLineOptions != null) options.addAll(commandLineOptions);
@@ -81,7 +98,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
 
     return Chain.track(compiler.compile(
         path.toUri(entrypoint),
-        path.toUri(appendSlash(_libPath)),
+        provider.libraryRoot,
         path.toUri(appendSlash(packageRoot)),
         provider.provideInput,
         provider.handleDiagnostic,
@@ -89,15 +106,6 @@ Future compile(String entrypoint, CompilerProvider provider, {
         provider.provideOutput,
         environment));
   });
-}
-
-/// Returns the path to the directory containing the Dart core libraries.
-///
-/// This corresponds to the "sdk" directory in the repo and to the root of the
-/// compiled SDK.
-String get _libPath {
-  if (runningFromSdk) return sdk.rootDirectory;
-  return path.join(repoRoot, 'sdk');
 }
 
 /// Returns whether [dart] looks like an entrypoint file.
@@ -158,45 +166,4 @@ void _isolateBuffer(message) {
       'error': CrossIsolateException.serialize(e, stack)
     });
   });
-}
-
-/// An exception that was originally raised in another isolate.
-///
-/// Exception objects can't cross isolate boundaries in general, so this class
-/// wraps as much information as can be consistently serialized.
-class CrossIsolateException implements Exception {
-  /// The name of the type of exception thrown.
-  ///
-  /// This is the return value of [error.runtimeType.toString()]. Keep in mind
-  /// that objects in different libraries may have the same type name.
-  final String type;
-
-  /// The exception's message, or its [toString] if it didn't expose a `message`
-  /// property.
-  final String message;
-
-  /// The exception's stack chain, or `null` if no stack chain was available.
-  final Chain stackTrace;
-
-  /// Loads a [CrossIsolateException] from a serialized representation.
-  ///
-  /// [error] should be the result of [CrossIsolateException.serialize].
-  CrossIsolateException.deserialize(Map error)
-      : type = error['type'],
-        message = error['message'],
-        stackTrace = error['stack'] == null ? null :
-            new Chain.parse(error['stack']);
-
-  /// Serializes [error] to an object that can safely be passed across isolate
-  /// boundaries.
-  static Map serialize(error, [StackTrace stack]) {
-    if (stack == null && error is Error) stack = error.stackTrace;
-    return {
-      'type': error.runtimeType.toString(),
-      'message': getErrorMessage(error),
-      'stack': stack == null ? null : new Chain.forTrace(stack).toString()
-    };
-  }
-
-  String toString() => "$message\n$stackTrace";
 }

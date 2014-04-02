@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_ARM)
 
 #include "vm/assembler.h"
+#include "vm/cpu.h"
 #include "vm/os.h"
 #include "vm/unit_test.h"
 #include "vm/virtual_memory.h"
@@ -58,9 +59,18 @@ ASSEMBLER_TEST_RUN(MoveRotImm, test) {
 
 
 ASSEMBLER_TEST_GENERATE(MovImm16, assembler) {
-  __ movw(R0, 0x5678);
-  __ movt(R0, 0x1234);
+#if defined(USING_SIMULATOR)
+  // ARMv7 is the default.
+  HostCPUFeatures::set_arm_version(ARMv6);
+  __ LoadDecodableImmediate(R0, 0x12345678 << 1);
+  HostCPUFeatures::set_arm_version(ARMv7);
+  __ LoadDecodableImmediate(R1, 0x12345678);
+  __ sub(R0, R0, ShifterOperand(R1));
   __ bx(LR);
+#else
+  __ LoadDecodableImmediate(R0, 0x12345678);
+  __ bx(LR);
+#endif
 }
 
 
@@ -1457,7 +1467,7 @@ ASSEMBLER_TEST_RUN(VstmsVldms_off, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
-  if (CPUFeatures::integer_division_supported()) {
+  if (TargetCPUFeatures::integer_division_supported()) {
     __ mov(R0, ShifterOperand(27));
     __ mov(R1, ShifterOperand(9));
     __ udiv(R2, R0, R1);
@@ -1477,7 +1487,7 @@ ASSEMBLER_TEST_RUN(Udiv, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
-  if (CPUFeatures::integer_division_supported()) {
+  if (TargetCPUFeatures::integer_division_supported()) {
     __ mov(R0, ShifterOperand(27));
     __ LoadImmediate(R1, -9);
     __ sdiv(R2, R0, R1);
@@ -1497,7 +1507,7 @@ ASSEMBLER_TEST_RUN(Sdiv, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
-  if (CPUFeatures::integer_division_supported()) {
+  if (TargetCPUFeatures::integer_division_supported()) {
     __ mov(R0, ShifterOperand(27));
     __ mov(R1, ShifterOperand(0));
     __ udiv(R2, R0, R1);
@@ -1517,7 +1527,7 @@ ASSEMBLER_TEST_RUN(Udiv_zero, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
-  if (CPUFeatures::integer_division_supported()) {
+  if (TargetCPUFeatures::integer_division_supported()) {
     __ mov(R0, ShifterOperand(27));
     __ mov(R1, ShifterOperand(0));
     __ udiv(R2, R0, R1);
@@ -1537,7 +1547,7 @@ ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
-  if (CPUFeatures::integer_division_supported()) {
+  if (TargetCPUFeatures::integer_division_supported()) {
     __ LoadImmediate(R0, 0x80000000);
     __ LoadImmediate(R1, 0xffffffff);
     __ udiv(R2, R0, R1);
@@ -1557,7 +1567,7 @@ ASSEMBLER_TEST_RUN(Udiv_corner, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
-  if (CPUFeatures::integer_division_supported()) {
+  if (TargetCPUFeatures::integer_division_supported()) {
     __ LoadImmediate(R0, 0x80000000);
     __ LoadImmediate(R1, 0xffffffff);
     __ sdiv(R2, R0, R1);
@@ -1579,12 +1589,12 @@ ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
 
 ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
 #if defined(USING_SIMULATOR)
-  bool orig = CPUFeatures::integer_division_supported();
-  CPUFeatures::set_integer_division_supported(true);
+  bool orig = TargetCPUFeatures::integer_division_supported();
+  HostCPUFeatures::set_integer_division_supported(true);
   __ mov(R0, ShifterOperand(27));
   __ mov(R1, ShifterOperand(9));
   __ IntegerDivide(R0, R0, R1, D0, D1);
-  CPUFeatures::set_integer_division_supported(orig);
+  HostCPUFeatures::set_integer_division_supported(orig);
   __ bx(LR);
 #else
   __ mov(R0, ShifterOperand(27));
@@ -1604,12 +1614,12 @@ ASSEMBLER_TEST_RUN(IntDiv_supported, test) {
 
 ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
 #if defined(USING_SIMULATOR)
-  bool orig = CPUFeatures::integer_division_supported();
-  CPUFeatures::set_integer_division_supported(false);
+  bool orig = TargetCPUFeatures::integer_division_supported();
+  HostCPUFeatures::set_integer_division_supported(false);
   __ mov(R0, ShifterOperand(27));
   __ mov(R1, ShifterOperand(9));
   __ IntegerDivide(R0, R0, R1, D0, D1);
-  CPUFeatures::set_integer_division_supported(orig);
+  HostCPUFeatures::set_integer_division_supported(orig);
   __ bx(LR);
 #else
   __ mov(R0, ShifterOperand(27));
@@ -1644,7 +1654,7 @@ ASSEMBLER_TEST_RUN(Muls, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vaddqi8, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -1688,7 +1698,7 @@ ASSEMBLER_TEST_RUN(Vaddqi8, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -1732,7 +1742,7 @@ ASSEMBLER_TEST_RUN(Vaddqi16, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -1776,7 +1786,7 @@ ASSEMBLER_TEST_RUN(Vaddqi32, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vaddqi64, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -1807,8 +1817,190 @@ ASSEMBLER_TEST_RUN(Vaddqi64, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Vshlqu64, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    Label fail;
+    __ LoadImmediate(R1, 21);
+    __ LoadImmediate(R0, 1);
+    __ vmovsr(S0, R1);
+    __ vmovsr(S2, R1);
+    __ vmovsr(S4, R0);
+    __ vmovsr(S6, R0);
+
+    __ vshlqu(kWordPair, Q2, Q0, Q1);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S10);
+    __ CompareImmediate(R0, 42);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ CompareImmediate(R1, 42);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+
+    __ LoadImmediate(R0, 1);
+    __ Bind(&fail);
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 1);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vshlqu64, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vshlqi64, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    Label fail;
+    __ LoadImmediate(R1, -84);
+    __ LoadImmediate(R0, -1);
+    __ vmovdrr(D0, R1, R0);
+    __ vmovdrr(D1, R1, R0);
+    __ vmovsr(S4, R0);
+    __ vmovsr(S6, R0);
+
+    __ vshlqi(kWordPair, Q2, Q0, Q1);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S10);
+    __ CompareImmediate(R0, -42);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ CompareImmediate(R1, -42);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+
+    __ LoadImmediate(R0, 1);
+    __ Bind(&fail);
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 1);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vshlqi64, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Mint_shl_ok, assembler) {
+  const QRegister value = Q0;
+  const QRegister temp = Q1;
+  const QRegister out = Q2;
+  const Register shift = R1;
+  const DRegister dtemp0 = EvenDRegisterOf(temp);
+  const SRegister stemp0 = EvenSRegisterOf(dtemp0);
+  const DRegister dout0 = EvenDRegisterOf(out);
+  const SRegister sout0 = EvenSRegisterOf(dout0);
+  const SRegister sout1 = OddSRegisterOf(dout0);
+  Label fail;
+
+  // Initialize.
+  __ veorq(value, value, value);
+  __ veorq(temp, temp, temp);
+  __ veorq(out, out, out);
+  __ LoadImmediate(shift, 32);
+  __ LoadImmediate(R2, 1 << 7);
+  __ vmovsr(S0, R2);
+
+  __ vmovsr(stemp0, shift);  // Move the shift into the low S register.
+  __ vshlqu(kWordPair, out, value, temp);
+
+  // check for overflow by shifting back and comparing.
+  __ rsb(shift, shift, ShifterOperand(0));
+  __ vmovsr(stemp0, shift);
+  __ vshlqi(kWordPair, temp, out, temp);
+  __ vceqqi(kWord, out, temp, value);
+  // Low 64 bits of temp should be all 1's, otherwise temp != value and
+  // we deopt.
+  __ vmovrs(shift, sout0);
+  __ CompareImmediate(shift, -1);
+  __ b(&fail, NE);
+  __ vmovrs(shift, sout1);
+  __ CompareImmediate(shift, -1);
+  __ b(&fail, NE);
+
+  __ LoadImmediate(R0, 1);
+  __ bx(LR);
+
+  __ Bind(&fail);
+  __ LoadImmediate(R0, 0);
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(Mint_shl_ok, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Mint_shl_overflow, assembler) {
+  const QRegister value = Q0;
+  const QRegister temp = Q1;
+  const QRegister out = Q2;
+  const Register shift = R1;
+  const DRegister dtemp0 = EvenDRegisterOf(temp);
+  const SRegister stemp0 = EvenSRegisterOf(dtemp0);
+  const DRegister dout0 = EvenDRegisterOf(out);
+  const SRegister sout0 = EvenSRegisterOf(dout0);
+  const SRegister sout1 = OddSRegisterOf(dout0);
+  Label fail;
+
+  // Initialize.
+  __ veorq(value, value, value);
+  __ veorq(temp, temp, temp);
+  __ veorq(out, out, out);
+  __ LoadImmediate(shift, 60);
+  __ LoadImmediate(R2, 1 << 7);
+  __ vmovsr(S0, R2);
+
+  __ vmovsr(stemp0, shift);  // Move the shift into the low S register.
+  __ vshlqu(kWordPair, out, value, temp);
+
+  // check for overflow by shifting back and comparing.
+  __ rsb(shift, shift, ShifterOperand(0));
+  __ vmovsr(stemp0, shift);
+  __ vshlqi(kWordPair, temp, out, temp);
+  __ vceqqi(kWord, out, temp, value);
+  // Low 64 bits of temp should be all 1's, otherwise temp != value and
+  // we deopt.
+  __ vmovrs(shift, sout0);
+  __ CompareImmediate(shift, -1);
+  __ b(&fail, NE);
+  __ vmovrs(shift, sout1);
+  __ CompareImmediate(shift, -1);
+  __ b(&fail, NE);
+
+  __ LoadImmediate(R0, 0);
+  __ bx(LR);
+
+  __ Bind(&fail);
+  __ LoadImmediate(R0, 1);
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(Mint_shl_overflow, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Vsubqi8, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -1852,7 +2044,7 @@ ASSEMBLER_TEST_RUN(Vsubqi8, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vsubqi16, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -1896,7 +2088,7 @@ ASSEMBLER_TEST_RUN(Vsubqi16, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vsubqi32, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -1940,7 +2132,7 @@ ASSEMBLER_TEST_RUN(Vsubqi32, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vsubqi64, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -1972,7 +2164,7 @@ ASSEMBLER_TEST_RUN(Vsubqi64, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vmulqi8, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -2016,7 +2208,7 @@ ASSEMBLER_TEST_RUN(Vmulqi8, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vmulqi16, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -2060,7 +2252,7 @@ ASSEMBLER_TEST_RUN(Vmulqi16, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vmulqi32, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -2104,7 +2296,7 @@ ASSEMBLER_TEST_RUN(Vmulqi32, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vaddqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S0, 1.0);
     __ LoadSImmediate(S1, 2.0);
     __ LoadSImmediate(S2, 3.0);
@@ -2139,7 +2331,7 @@ ASSEMBLER_TEST_RUN(Vaddqs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vsubqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S0, 1.0);
     __ LoadSImmediate(S1, 2.0);
     __ LoadSImmediate(S2, 3.0);
@@ -2174,7 +2366,7 @@ ASSEMBLER_TEST_RUN(Vsubqs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vmulqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S0, 1.0);
     __ LoadSImmediate(S1, 2.0);
     __ LoadSImmediate(S2, 3.0);
@@ -2209,7 +2401,7 @@ ASSEMBLER_TEST_RUN(Vmulqs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(VtblX, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     // Index.
     __ LoadImmediate(R0, 0x03020100);
     __ vmovsr(S0, R0);
@@ -2252,7 +2444,7 @@ ASSEMBLER_TEST_RUN(VtblX, test) {
 
 
 ASSEMBLER_TEST_GENERATE(VtblY, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     // Index.
     __ LoadImmediate(R0, 0x07060504);
     __ vmovsr(S0, R0);
@@ -2295,7 +2487,7 @@ ASSEMBLER_TEST_RUN(VtblY, test) {
 
 
 ASSEMBLER_TEST_GENERATE(VtblZ, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     // Index.
     __ LoadImmediate(R0, 0x0b0a0908);
     __ vmovsr(S0, R0);
@@ -2338,7 +2530,7 @@ ASSEMBLER_TEST_RUN(VtblZ, test) {
 
 
 ASSEMBLER_TEST_GENERATE(VtblW, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     // Index.
     __ LoadImmediate(R0, 0x0f0e0d0c);
     __ vmovsr(S0, R0);
@@ -2381,7 +2573,7 @@ ASSEMBLER_TEST_RUN(VtblW, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Veorq, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     // Q0
     __ LoadImmediate(R0, 0xaaaaaaab);
     __ vmovsr(S0, R0);
@@ -2423,7 +2615,7 @@ ASSEMBLER_TEST_RUN(Veorq, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vornq, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     // Q0
     __ LoadImmediate(R0, 0xfffffff0);
     __ vmovsr(S0, R0);
@@ -2465,7 +2657,7 @@ ASSEMBLER_TEST_RUN(Vornq, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vorrq, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     // Q0
     __ LoadImmediate(R0, 0xaaaaaaaa);
     __ vmovsr(S0, R0);
@@ -2507,7 +2699,7 @@ ASSEMBLER_TEST_RUN(Vorrq, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vandq, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     // Q0
     __ LoadImmediate(R0, 0xaaaaaaab);
     __ vmovsr(S0, R0);
@@ -2549,7 +2741,7 @@ ASSEMBLER_TEST_RUN(Vandq, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vmovq, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     // Q0
     __ LoadSImmediate(S0, 1.0);
     __ vmovs(S1, S0);
@@ -2586,8 +2778,30 @@ ASSEMBLER_TEST_RUN(Vmovq, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Vmvnq, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    __ LoadImmediate(R1, 42);  // R1 <- 42.
+    __ vmovsr(S2, R1);  // S2 <- R1.
+    __ vmvnq(Q1, Q0);  // Q1 <- ~Q0.
+    __ vmvnq(Q2, Q1);  // Q2 <- ~Q1.
+    __ vmovrs(R0, S10);  // Now R0 should be 42 again.
+    __ bx(LR);
+  } else {
+    __ LoadImmediate(R0, 42);
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Vmvnq, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Vdupb, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadImmediate(R0, 0x00000000);
     __ LoadImmediate(R1, 0x00ff0000);
     __ vmovsr(S4, R0);
@@ -2620,7 +2834,7 @@ ASSEMBLER_TEST_RUN(Vdupb, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vduph, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadImmediate(R0, 0xffff0000);
     __ LoadImmediate(R1, 0x00000000);
     __ vmovsr(S4, R0);
@@ -2653,7 +2867,7 @@ ASSEMBLER_TEST_RUN(Vduph, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vdupw, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadImmediate(R0, 0x00000000);
     __ LoadImmediate(R1, 0xffffffff);
     __ vmovsr(S4, R0);
@@ -2686,7 +2900,7 @@ ASSEMBLER_TEST_RUN(Vdupw, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vzipqw, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S0, 0.0);
     __ LoadSImmediate(S1, 1.0);
     __ LoadSImmediate(S2, 2.0);
@@ -2720,7 +2934,7 @@ ASSEMBLER_TEST_RUN(Vzipqw, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vceqqi32, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -2764,7 +2978,7 @@ ASSEMBLER_TEST_RUN(Vceqqi32, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vceqqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S0, 1.0);
     __ LoadSImmediate(S1, 2.0);
     __ LoadSImmediate(S2, 3.0);
@@ -2800,7 +3014,7 @@ ASSEMBLER_TEST_RUN(Vceqqs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vcgeqi32, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -2844,7 +3058,7 @@ ASSEMBLER_TEST_RUN(Vcgeqi32, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vcugeqi32, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -2888,7 +3102,7 @@ ASSEMBLER_TEST_RUN(Vcugeqi32, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vcgeqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S0, 1.0);
     __ LoadSImmediate(S1, 2.0);
     __ LoadSImmediate(S2, 3.0);
@@ -2924,7 +3138,7 @@ ASSEMBLER_TEST_RUN(Vcgeqs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vcgtqi32, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -2968,7 +3182,7 @@ ASSEMBLER_TEST_RUN(Vcgtqi32, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vcugtqi32, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ mov(R0, ShifterOperand(1));
     __ vmovsr(S0, R0);
     __ mov(R0, ShifterOperand(2));
@@ -3012,7 +3226,7 @@ ASSEMBLER_TEST_RUN(Vcugtqi32, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vcgtqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S0, 1.0);
     __ LoadSImmediate(S1, 2.0);
     __ LoadSImmediate(S2, 3.0);
@@ -3048,7 +3262,7 @@ ASSEMBLER_TEST_RUN(Vcgtqs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vminqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S0, 1.0);
     __ LoadSImmediate(S1, 2.0);
     __ LoadSImmediate(S2, 3.0);
@@ -3083,7 +3297,7 @@ ASSEMBLER_TEST_RUN(Vminqs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vmaxqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S0, 1.0);
     __ LoadSImmediate(S1, 2.0);
     __ LoadSImmediate(S2, 3.0);
@@ -3153,7 +3367,7 @@ static float arm_recip_estimate(float a) {
 
 
 ASSEMBLER_TEST_GENERATE(Vrecpeqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 147.0);
     __ vmovs(S5, S4);
     __ vmovs(S6, S4);
@@ -3178,7 +3392,7 @@ ASSEMBLER_TEST_RUN(Vrecpeqs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vrecpsqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 5.0);
     __ LoadSImmediate(S5, 2.0);
     __ LoadSImmediate(S6, 3.0);
@@ -3208,7 +3422,7 @@ ASSEMBLER_TEST_RUN(Vrecpsqs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Reciprocal, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 147000.0);
     __ vmovs(S5, S4);
     __ vmovs(S6, S4);
@@ -3290,7 +3504,7 @@ static float arm_reciprocal_sqrt_estimate(float a) {
 
 
 ASSEMBLER_TEST_GENERATE(Vrsqrteqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 147.0);
     __ vmovs(S5, S4);
     __ vmovs(S6, S4);
@@ -3315,7 +3529,7 @@ ASSEMBLER_TEST_RUN(Vrsqrteqs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vrsqrtsqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 5.0);
     __ LoadSImmediate(S5, 2.0);
     __ LoadSImmediate(S6, 3.0);
@@ -3345,7 +3559,7 @@ ASSEMBLER_TEST_RUN(Vrsqrtsqs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(ReciprocalSqrt, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 147000.0);
     __ vmovs(S5, S4);
     __ vmovs(S6, S4);
@@ -3380,7 +3594,7 @@ ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
 
 
 ASSEMBLER_TEST_GENERATE(SIMDSqrt, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 147000.0);
     __ vmovs(S5, S4);
     __ vmovs(S6, S4);
@@ -3425,7 +3639,7 @@ ASSEMBLER_TEST_RUN(SIMDSqrt, test) {
 
 
 ASSEMBLER_TEST_GENERATE(SIMDSqrt2, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 1.0);
     __ LoadSImmediate(S5, 4.0);
     __ LoadSImmediate(S6, 9.0);
@@ -3474,7 +3688,7 @@ ASSEMBLER_TEST_RUN(SIMDSqrt2, test) {
 
 
 ASSEMBLER_TEST_GENERATE(SIMDDiv, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 1.0);
     __ LoadSImmediate(S5, 4.0);
     __ LoadSImmediate(S6, 9.0);
@@ -3515,7 +3729,7 @@ ASSEMBLER_TEST_RUN(SIMDDiv, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vabsqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 1.0);
     __ LoadSImmediate(S5, -1.0);
     __ LoadSImmediate(S6, 1.0);
@@ -3544,7 +3758,7 @@ ASSEMBLER_TEST_RUN(Vabsqs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vnegqs, assembler) {
-  if (CPUFeatures::neon_supported()) {
+  if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 1.0);
     __ LoadSImmediate(S5, -2.0);
     __ LoadSImmediate(S6, 1.0);

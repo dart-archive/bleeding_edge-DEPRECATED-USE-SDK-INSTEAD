@@ -165,7 +165,7 @@ public class OperationProcessorTest extends EngineTestCase {
     // stop processor
     OperationProcessor processor = new OperationProcessor(queue);
     Source[] sources = processor.stop(false);
-    assertExactElements(sources, new Object[] {source});
+    assertExactElementsInArray(sources, new Object[] {source});
   }
 
   public void test_stop_returnsNotIndexed_wasRunning() throws Exception {
@@ -179,7 +179,7 @@ public class OperationProcessorTest extends EngineTestCase {
     Source[] sources = runOperationProcessor(new IndexOperation[] {}, true, new IndexOperation[] {
         operation1, operation2});
     Set<Source> sourceSet = ImmutableSet.copyOf(sources);
-    assertExactElements(sourceSet, new Object[] {source1, source2});
+    assertExactElementsInSet(sourceSet, new Object[] {source1, source2});
   }
 
   public void test_stop_returnsNotIndexed_wasStopped() throws Exception {
@@ -192,7 +192,7 @@ public class OperationProcessorTest extends EngineTestCase {
     OperationProcessor processor = new OperationProcessor(queue);
     processor.stop(false);
     Source[] sources = processor.stop(false);
-    assertExactElements(sources, new Object[] {source});
+    assertExactElementsInArray(sources, new Object[] {source});
   }
 
   public void test_waitForRunning() throws Exception {

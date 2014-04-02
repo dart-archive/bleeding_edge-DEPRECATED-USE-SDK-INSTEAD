@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.DoStatement;
@@ -23,7 +23,7 @@ import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.NodeLocator;
-import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
+import com.google.dart.engine.ast.visitor.SimpleAstVisitor;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
@@ -81,7 +81,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
   }
 
-  private class NodeBracketer extends SimpleASTVisitor<Void> {
+  private class NodeBracketer extends SimpleAstVisitor<Void> {
     private boolean result = true;
     private CompilationUnitInfo info;
     private IDocument document;
@@ -178,94 +178,97 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   /** The line comment introducer. Value is "{@value} " */
   private static final String LINE_COMMENT = "//"; //$NON-NLS-1$
 
-  /**
-   * Computes an insert position for an opening brace if <code>offset</code> maps to a position in
-   * <code>document</code> with a expression in parenthesis that will take a block after the closing
-   * parenthesis.
-   * 
-   * @param document the document being modified
-   * @param offset the offset of the caret position, relative to the line start.
-   * @param partitioning the document partitioning
-   * @param max the max position
-   * @return an insert position relative to the line start if <code>line</code> contains a
-   *         parenthesized expression that can be followed by a block, -1 otherwise
-   */
-  private static int computeAnonymousPosition(IDocument document, int offset, String partitioning,
-      int max) {
-    // find the opening parenthesis for every closing parenthesis on the current
-    // line after offset
-    // return the position behind the closing parenthesis if it looks like a
-    // method declaration
-    // or an expression for an if, while, for, catch statement
-    DartHeuristicScanner scanner = new DartHeuristicScanner(document);
-    int pos = offset;
-    int length = max;
-    int scanTo = scanner.scanForward(pos, length, '}');
-    if (scanTo == -1) {
-      scanTo = length;
-    }
+//  /**
+//   * Computes an insert position for an opening brace if <code>offset</code> maps to a position in
+//   * <code>document</code> with a expression in parenthesis that will take a block after the closing
+//   * parenthesis.
+//   * 
+//   * @param document the document being modified
+//   * @param offset the offset of the caret position, relative to the line start.
+//   * @param partitioning the document partitioning
+//   * @param max the max position
+//   * @return an insert position relative to the line start if <code>line</code> contains a
+//   *         parenthesized expression that can be followed by a block, -1 otherwise
+//   */
+//  private static int computeAnonymousPosition(IDocument document, int offset, String partitioning,
+//      int max) {
+//    if (true) {
+//      return -1;
+//    }
+//    // find the opening parenthesis for every closing parenthesis on the current
+//    // line after offset
+//    // return the position behind the closing parenthesis if it looks like a
+//    // method declaration
+//    // or an expression for an if, while, for, catch statement
+//    DartHeuristicScanner scanner = new DartHeuristicScanner(document);
+//    int pos = offset;
+//    int length = max;
+//    int scanTo = scanner.scanForward(pos, length, '}');
+//    if (scanTo == -1) {
+//      scanTo = length;
+//    }
+//
+//    int closingParen = findClosingParenToLeft(scanner, pos) - 1; // loc before rparen
+//    boolean hasNewToken = looksLikeAnonymousClassDef(document, partitioning, scanner, pos);
+//    int openingParen = -1;
+//    while (true) {
+//      int startScan = closingParen + 1;
+//      closingParen = scanner.scanForward(startScan, scanTo, ')');
+//      if (closingParen == -1) {
+//        if (hasNewToken && openingParen != -1) {
+//          return openingParen + 1;
+//        }
+//        break;
+//      }
+//
+//      openingParen = scanner.findOpeningPeer(closingParen - 1, '(', ')');
+//
+//      // no way an expression at the beginning of the document can mean anything
+//      if (openingParen < 1) {
+//        break;
+//      }
+//
+//      // only select insert positions for parenthesis currently embracing the
+//      // caret
+//      if (openingParen > pos) {
+//        continue;
+//      }
+//
+//      if (looksLikeAnonymousClassDef(document, partitioning, scanner, openingParen - 1)) {
+//        return closingParen + 1;
+//      }
+//      if (looksLikeArgument(scanner, openingParen - 1, max)) {
+//        return closingParen + 1;
+//      }
+//    }
+//
+//    return -1;
+//  }
 
-    int closingParen = findClosingParenToLeft(scanner, pos) - 1; // loc before rparen
-    boolean hasNewToken = looksLikeAnonymousClassDef(document, partitioning, scanner, pos);
-    int openingParen = -1;
-    while (true) {
-      int startScan = closingParen + 1;
-      closingParen = scanner.scanForward(startScan, scanTo, ')');
-      if (closingParen == -1) {
-        if (hasNewToken && openingParen != -1) {
-          return openingParen + 1;
-        }
-        break;
-      }
-
-      openingParen = scanner.findOpeningPeer(closingParen - 1, '(', ')');
-
-      // no way an expression at the beginning of the document can mean anything
-      if (openingParen < 1) {
-        break;
-      }
-
-      // only select insert positions for parenthesis currently embracing the
-      // caret
-      if (openingParen > pos) {
-        continue;
-      }
-
-      if (looksLikeAnonymousClassDef(document, partitioning, scanner, openingParen - 1)) {
-        return closingParen + 1;
-      }
-      if (looksLikeArgument(scanner, openingParen - 1, max)) {
-        return closingParen + 1;
-      }
-    }
-
-    return -1;
-  }
-
-  private static IRegion createRegion(ASTNode node, int delta) {
+  private static IRegion createRegion(AstNode node, int delta) {
     return node == null ? null : new Region(node.getOffset() + delta, node.getLength());
   }
 
-  /**
-   * Finds a closing parenthesis to the left of <code>position</code> in document, where that
-   * parenthesis is only separated by whitespace from <code>position</code>. If no such parenthesis
-   * can be found, <code>position</code> is returned.
-   * 
-   * @param scanner the heuristic scanner set up on the document
-   * @param position the first character position in <code>document</code> to be considered
-   * @return the position of a closing parenthesis left to <code>position</code> separated only by
-   *         whitespace, or <code>position</code> if no parenthesis can be found
-   */
-  private static int findClosingParenToLeft(DartHeuristicScanner scanner, int position) {
-    if (position < 1) {
-      return position;
-    }
-
-    if (scanner.previousToken(position - 1, DartHeuristicScanner.UNBOUND) == Symbols.TokenRPAREN) {
-      return scanner.getPosition() + 1;
-    }
-    return position;
-  }
+//  /**
+//   * Finds a closing parenthesis to the left of <code>position</code> in document, where that
+//   * parenthesis is only separated by whitespace from <code>position</code>. If no such parenthesis
+//   * can be found, <code>position</code> is returned.
+//   * 
+//   * @param scanner the heuristic scanner set up on the document
+//   * @param position the first character position in <code>document</code> to be considered
+//   * @return the position of a closing parenthesis left to <code>position</code> separated only by
+//   *         whitespace, or <code>position</code> if no parenthesis can be found
+//   */
+//  private static int findClosingParenToLeft(DartHeuristicScanner scanner, int position) {
+//    if (position < 1) {
+//      return position;
+//    }
+//
+//    if (scanner.previousToken(position - 1, DartHeuristicScanner.UNBOUND) == Symbols.TokenRPAREN) {
+//      return scanner.getPosition() + 1;
+//    }
+//    return position;
+//  }
 
   /**
    * Returns the block balance, i.e. zero if the blocks are balanced at <code>offset</code>, a
@@ -454,112 +457,112 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     return scanner.tokenize();
   }
 
-  /**
-   * Checks whether <code>position</code> resides in a default (Dart) partition of
-   * <code>document</code>.
-   * 
-   * @param document the document being modified
-   * @param position the position to be checked
-   * @param partitioning the document partitioning
-   * @return <code>true</code> if <code>position</code> is in the default partition of
-   *         <code>document</code>, <code>false</code> otherwise
-   */
-  private static boolean isDefaultPartition(IDocument document, int position, String partitioning) {
-    Assert.isTrue(position >= 0);
-    Assert.isTrue(position <= document.getLength());
+//  /**
+//   * Checks whether <code>position</code> resides in a default (Dart) partition of
+//   * <code>document</code>.
+//   * 
+//   * @param document the document being modified
+//   * @param position the position to be checked
+//   * @param partitioning the document partitioning
+//   * @return <code>true</code> if <code>position</code> is in the default partition of
+//   *         <code>document</code>, <code>false</code> otherwise
+//   */
+//  private static boolean isDefaultPartition(IDocument document, int position, String partitioning) {
+//    Assert.isTrue(position >= 0);
+//    Assert.isTrue(position <= document.getLength());
+//
+//    try {
+//      ITypedRegion region = TextUtilities.getPartition(document, partitioning, position, false);
+//      return region.getType().equals(IDocument.DEFAULT_CONTENT_TYPE);
+//
+//    } catch (BadLocationException e) {
+//    }
+//
+//    return false;
+//  }
 
-    try {
-      ITypedRegion region = TextUtilities.getPartition(document, partitioning, position, false);
-      return region.getType().equals(IDocument.DEFAULT_CONTENT_TYPE);
+//  /**
+//   * Checks whether the content of <code>document</code> in the range ( <code>offset</code>,
+//   * <code>length</code>) contains the <code>new</code> keyword.
+//   * 
+//   * @param document the document being modified
+//   * @param offset the first character position in <code>document</code> to be considered
+//   * @param length the length of the character range to be considered
+//   * @param partitioning the document partitioning
+//   * @return <code>true</code> if the specified character range contains a <code>new</code> keyword,
+//   *         <code>false</code> otherwise.
+//   */
+//  private static boolean isNewMatch(IDocument document, int offset, int length, String partitioning) {
+//    Assert.isTrue(length >= 0);
+//    Assert.isTrue(offset >= 0);
+//    Assert.isTrue(offset + length < document.getLength() + 1);
+//
+//    try {
+//      String text = document.get(offset, length);
+//      int pos = text.indexOf("new"); //$NON-NLS-1$
+//
+//      while (pos != -1 && !isDefaultPartition(document, pos + offset, partitioning)) {
+//        pos = text.indexOf("new", pos + 2); //$NON-NLS-1$
+//      }
+//
+//      if (pos < 0) {
+//        return false;
+//      }
+//
+//      if (pos != 0 && Character.isJavaIdentifierPart(text.charAt(pos - 1))) {
+//        return false;
+//      }
+//
+//      if (pos + 3 < length && Character.isJavaIdentifierPart(text.charAt(pos + 3))) {
+//        return false;
+//      }
+//
+//      return true;
+//
+//    } catch (BadLocationException e) {
+//    }
+//    return false;
+//  }
 
-    } catch (BadLocationException e) {
-    }
+//  /**
+//   * Checks whether the content of <code>document</code> at <code>position</code> looks like an
+//   * anonymous class definition. <code>position</code> must be to the left of the opening
+//   * parenthesis of the definition's parameter list.
+//   * 
+//   * @param document the document being modified
+//   * @param partitioning the document partitioning
+//   * @param scanner the scanner
+//   * @param position the first character position in <code>document</code> to be considered
+//   * @return <code>true</code> if the content of <code>document</code> looks like an anonymous class
+//   *         definition, <code>false</code> otherwise
+//   */
+//  private static boolean looksLikeAnonymousClassDef(IDocument document, String partitioning,
+//      DartHeuristicScanner scanner, int position) {
+//    int previousCommaParenEqual = scanner.scanBackward(
+//        position - 1,
+//        DartHeuristicScanner.UNBOUND,
+//        new char[] {',', '(', '='});
+//    if (previousCommaParenEqual == -1 || position < previousCommaParenEqual + 5) {
+//      // 2 for borders, 3 for "new"
+//      return false;
+//    }
+//
+//    if (isNewMatch(
+//        document,
+//        previousCommaParenEqual + 1,
+//        position - previousCommaParenEqual - 2,
+//        partitioning)) {
+//      return true;
+//    }
+//
+//    return false;
+//  }
 
-    return false;
-  }
-
-  /**
-   * Checks whether the content of <code>document</code> in the range ( <code>offset</code>,
-   * <code>length</code>) contains the <code>new</code> keyword.
-   * 
-   * @param document the document being modified
-   * @param offset the first character position in <code>document</code> to be considered
-   * @param length the length of the character range to be considered
-   * @param partitioning the document partitioning
-   * @return <code>true</code> if the specified character range contains a <code>new</code> keyword,
-   *         <code>false</code> otherwise.
-   */
-  private static boolean isNewMatch(IDocument document, int offset, int length, String partitioning) {
-    Assert.isTrue(length >= 0);
-    Assert.isTrue(offset >= 0);
-    Assert.isTrue(offset + length < document.getLength() + 1);
-
-    try {
-      String text = document.get(offset, length);
-      int pos = text.indexOf("new"); //$NON-NLS-1$
-
-      while (pos != -1 && !isDefaultPartition(document, pos + offset, partitioning)) {
-        pos = text.indexOf("new", pos + 2); //$NON-NLS-1$
-      }
-
-      if (pos < 0) {
-        return false;
-      }
-
-      if (pos != 0 && Character.isJavaIdentifierPart(text.charAt(pos - 1))) {
-        return false;
-      }
-
-      if (pos + 3 < length && Character.isJavaIdentifierPart(text.charAt(pos + 3))) {
-        return false;
-      }
-
-      return true;
-
-    } catch (BadLocationException e) {
-    }
-    return false;
-  }
-
-  /**
-   * Checks whether the content of <code>document</code> at <code>position</code> looks like an
-   * anonymous class definition. <code>position</code> must be to the left of the opening
-   * parenthesis of the definition's parameter list.
-   * 
-   * @param document the document being modified
-   * @param partitioning the document partitioning
-   * @param scanner the scanner
-   * @param position the first character position in <code>document</code> to be considered
-   * @return <code>true</code> if the content of <code>document</code> looks like an anonymous class
-   *         definition, <code>false</code> otherwise
-   */
-  private static boolean looksLikeAnonymousClassDef(IDocument document, String partitioning,
-      DartHeuristicScanner scanner, int position) {
-    int previousCommaParenEqual = scanner.scanBackward(
-        position - 1,
-        DartHeuristicScanner.UNBOUND,
-        new char[] {',', '(', '='});
-    if (previousCommaParenEqual == -1 || position < previousCommaParenEqual + 5) {
-      // 2 for borders, 3 for "new"
-      return false;
-    }
-
-    if (isNewMatch(
-        document,
-        previousCommaParenEqual + 1,
-        position - previousCommaParenEqual - 2,
-        partitioning)) {
-      return true;
-    }
-
-    return false;
-  }
-
-  private static boolean looksLikeArgument(DartHeuristicScanner scanner, int position, int max) {
-    int rpLoc = scanner.findOpeningPeer(position, '(', ')');
-    int lpLoc = scanner.findClosingPeer(rpLoc + 1, max, '(', ')');
-    return lpLoc != DartHeuristicScanner.NOT_FOUND;
-  }
+//  private static boolean looksLikeArgument(DartHeuristicScanner scanner, int position, int max) {
+//    int rpLoc = scanner.findOpeningPeer(position, '(', ')');
+//    int lpLoc = scanner.findClosingPeer(rpLoc + 1, max, '(', ')');
+//    return lpLoc != DartHeuristicScanner.NOT_FOUND;
+//  }
 
   /**
    * Installs a Dart partitioner with <code>document</code>.
@@ -786,19 +789,23 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
    * @return the visual length of <code>seq</code>
    */
   private int computeVisualLength(CharSequence seq, int tabLength) {
+
     int size = 0;
 
-    for (int i = 0; i < seq.length(); i++) {
-      char ch = seq.charAt(i);
-      if (ch == '\t') {
-        if (tabLength != 0) {
-          size += tabLength - size % tabLength;
-          // else: size stays the same
+    if (seq != null) {
+      for (int i = 0; i < seq.length(); i++) {
+        char ch = seq.charAt(i);
+        if (ch == '\t') {
+          if (tabLength != 0) {
+            size += tabLength - size % tabLength;
+            // else: size stays the same
+          }
+        } else {
+          size++;
         }
-      } else {
-        size++;
       }
     }
+
     return size;
   }
 
@@ -1045,6 +1052,12 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     return CodeFormatterUtil.getTabWidth(null);
   }
 
+//  private boolean isAfterClassPrologue(IDocument d, int p) {
+//    DartHeuristicScanner scanner = new DartHeuristicScanner(d);
+//    DartIndenter indenter = new DartIndenter(d, scanner, null);
+//    return indenter.isAfterClassPrologue(p);
+//  }
+
   private boolean isClosed(IDocument document, int offset, int length) {
     CompilationUnitInfo info = getCompilationUnitForMethod(document, offset);
     if (info == null) {
@@ -1068,7 +1081,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     final int relativeOffset = offset - info.delta;
-    ASTNode node = new NodeLocator(relativeOffset).searchWithin(compilationUnit);
+    AstNode node = new NodeLocator(relativeOffset).searchWithin(compilationUnit);
 
     if (length == 0) {
       while (node != null
@@ -1132,6 +1145,30 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
   }
 
+//  /**
+//   * If "p" is right after "{" and the next token is "," or ")" - i.e. tokens that we expect to
+//   * follow a closure in an argument list.
+//   */
+//  private boolean looksLikeAfterLBraceForClosure(IDocument d, int p) {
+//    DartHeuristicScanner scanner = new DartHeuristicScanner(d);
+//    int len = d.getLength();
+//    int token = scanner.nextToken(p, len);
+//    if (token == Symbols.TokenCOMMA || token == Symbols.TokenRPAREN) {
+//      return true;
+//    }
+//    return false;
+//  }
+
+  private boolean shouldCloseUnbalancedBrace(IDocument d, int p, int lineEnd) {
+    DartHeuristicScanner scanner = new DartHeuristicScanner(d);
+    if (scanner.findNonWhitespaceForward(p, lineEnd) == -1) {
+      return true;
+    }
+    int token = scanner.nextToken(p, lineEnd);
+    return token == Symbols.TokenCOMMA || token == Symbols.TokenRPAREN
+        || token == Symbols.TokenRBRACKET;
+  }
+
   private void smartIndentAfterClosingBracket(IDocument d, DocumentCommand c) {
     if (c.offset == -1 || d.getLength() == 0) {
       return;
@@ -1185,7 +1222,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     try {
-      int p = c.offset == docLength ? c.offset - 1 : c.offset;
+      int p = c.offset;
       int line = d.getLineOfOffset(p);
 
       StringBuffer buf = new StringBuffer(c.text + indent);
@@ -1208,32 +1245,31 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         c.caretOffset = c.offset + buf.length();
         c.shiftsCaret = false;
 
-        // copy old content of line behind insertion point to new line
-        // unless we think we are inserting an unnamed function argument
-        int anonPos = -1;
-        boolean isInBlock = getBracketCount(d, region.getOffset(), c.offset, false) > 1;
-        if (isInBlock) {
-          if (c.offset == 0
-              || (anonPos = computeAnonymousPosition(d, c.offset - 1, fPartitioning, lineEnd)) == -1) {
-            if (lineEnd - contentStart > 0) {
-              c.length = lineEnd - c.offset;
-              buf.append(d.get(contentStart, lineEnd - contentStart).toCharArray());
-            }
-          }
-        }
+//        // copy old content of line behind insertion point to new line
+//        // unless we think we are inserting an unnamed function argument
+//        if (!isAfterClassPrologue(d, p)) {
+//          if (!looksLikeAfterLBraceForClosure(d, p)) {
+//            if (lineEnd - contentStart > 0) {
+//              c.length = lineEnd - c.offset;
+//              buf.append(d.get(contentStart, lineEnd - contentStart).toCharArray());
+//            }
+//          }
+//        }
 
-        buf.append(TextUtilities.getDefaultLineDelimiter(d));
-        StringBuffer reference = null;
-        int nonWS = findEndOfWhiteSpace(d, start, lineEnd);
-        if (nonWS < c.offset && d.getChar(nonWS) == '{') {
-          reference = new StringBuffer(d.get(start, nonWS - start));
-        } else {
-          reference = indenter.getReferenceIndentation(c.offset, anonPos >= 0);
+        if (shouldCloseUnbalancedBrace(d, p, lineEnd)) {
+          buf.append(TextUtilities.getDefaultLineDelimiter(d));
+          StringBuffer reference = null;
+          int nonWS = findEndOfWhiteSpace(d, start, lineEnd);
+          if (nonWS < c.offset && d.getChar(nonWS) == '{') {
+            reference = new StringBuffer(d.get(start, nonWS - start));
+          } else {
+            reference = indenter.getReferenceIndentation(c.offset, false);
+          }
+          if (reference != null) {
+            buf.append(reference);
+          }
+          buf.append('}');
         }
-        if (reference != null) {
-          buf.append(reference);
-        }
-        buf.append('}');
       }
       // insert extra line upon new line between two braces
       else if (c.offset > start && contentStart < lineEnd && d.getChar(contentStart) == '}') {
@@ -1559,7 +1595,9 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           correct = new StringBuffer();
           int secondIndent = firstLineIndent + computeVisualLength(current, tabLength)
               - firstLineOriginalIndent;
-          correct.append(StringUtils.repeat(' ', secondIndent));
+          if (secondIndent > 0) {
+            correct.append(StringUtils.repeat(' ', secondIndent));
+          }
         }
         if (correct == null) {
           return; // bail out

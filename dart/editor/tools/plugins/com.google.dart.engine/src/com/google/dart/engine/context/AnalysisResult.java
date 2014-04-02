@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.context;
 
-
 /**
  * Instances of the class {@code AnalysisResult}
  */
@@ -91,5 +90,14 @@ public class AnalysisResult {
    */
   public String getTaskClassName() {
     return taskClassName;
+  }
+
+  /**
+   * Return {@code true} if there is more to be performed after the task that was performed.
+   * 
+   * @return {@code true} if there is more to be performed after the task that was performed
+   */
+  public boolean hasMoreWork() {
+    return notices != null;
   }
 }

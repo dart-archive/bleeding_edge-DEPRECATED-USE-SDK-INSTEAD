@@ -20,6 +20,8 @@ import com.google.dart.engine.source.Source;
 
 import org.eclipse.core.resources.IContainer;
 
+import java.io.File;
+
 /**
  * Implementation of {@link LocalSourcePredicate} for Eclipse {@link IContainer}.
  */
@@ -27,7 +29,7 @@ public class WorkspaceLocalSourcePredicate implements LocalSourcePredicate {
   private final String containerPath;
 
   public WorkspaceLocalSourcePredicate(IContainer container) {
-    containerPath = container.getLocation().toFile().getAbsolutePath() + "/";
+    containerPath = container.getLocation().toFile().getAbsolutePath() + File.separator;
   }
 
   @Override

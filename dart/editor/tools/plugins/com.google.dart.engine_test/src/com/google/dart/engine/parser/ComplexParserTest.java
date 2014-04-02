@@ -85,7 +85,7 @@ public class ComplexParserTest extends ParserTestCase {
     assertEquals("d", invocation2.getMethodName().getName());
     ArgumentList argumentList2 = invocation2.getArgumentList();
     assertNotNull(argumentList2);
-    assertSize(1, argumentList2.getArguments());
+    assertSizeOfList(1, argumentList2.getArguments());
     //
     // a(b)(c)
     //
@@ -94,7 +94,7 @@ public class ComplexParserTest extends ParserTestCase {
         invocation2.getTarget());
     ArgumentList argumentList3 = invocation3.getArgumentList();
     assertNotNull(argumentList3);
-    assertSize(1, argumentList3.getArguments());
+    assertSizeOfList(1, argumentList3.getArguments());
     //
     // a(b)
     //
@@ -104,7 +104,7 @@ public class ComplexParserTest extends ParserTestCase {
     assertEquals("a", invocation4.getMethodName().getName());
     ArgumentList argumentList4 = invocation4.getArgumentList();
     assertNotNull(argumentList4);
-    assertSize(1, argumentList4.getArguments());
+    assertSizeOfList(1, argumentList4.getArguments());
   }
 
   public void test_assignmentExpression_compound() throws Exception {
@@ -217,7 +217,7 @@ public class ComplexParserTest extends ParserTestCase {
         "  }",
         "}"));
     NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
-    assertSize(1, declarations);
+    assertSizeOfList(1, declarations);
   }
 
   public void test_equalityExpression_normal() throws Exception {
@@ -276,7 +276,7 @@ public class ComplexParserTest extends ParserTestCase {
 
   public void test_multipleLabels_statement() throws Exception {
     LabeledStatement statement = parseStatement("a: b: c: return x;");
-    assertSize(3, statement.getLabels());
+    assertSizeOfList(3, statement.getLabels());
     assertInstanceOf(ReturnStatement.class, statement.getStatement());
   }
 

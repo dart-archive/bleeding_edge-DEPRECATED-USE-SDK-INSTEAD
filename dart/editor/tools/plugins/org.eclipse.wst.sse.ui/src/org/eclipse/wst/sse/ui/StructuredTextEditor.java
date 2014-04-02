@@ -876,10 +876,8 @@ public class StructuredTextEditor extends TextEditor {
               IRegion[] regions = blockSelection.getRegions();
               Set blockObjects = new LinkedHashSet();
               for (int i = 0; i < regions.length; i++) {
-                Object[] objects = selectionConvertor.getElements(
-                    structuredModel,
-                    regions[i].getOffset(),
-                    regions[i].getLength());
+                Object[] objects = selectionConvertor.getElements(structuredModel,
+                    regions[i].getOffset(), regions[i].getLength());
                 for (int j = 0; j < objects.length; j++) {
                   blockObjects.add(objects[j]);
                 }
@@ -1025,9 +1023,7 @@ public class StructuredTextEditor extends TextEditor {
             int end = start + ((ITextSelection) selection).getLength();
             selection = new StructuredTextSelection(getDocument(),
                 (ITextSelection) event.getSelection(), selectionConvertor.getElements(
-                    structuredModel,
-                    start,
-                    end));
+                    structuredModel, start, end));
           }
         }
         if (selection == null) {
@@ -1258,7 +1254,6 @@ public class StructuredTextEditor extends TextEditor {
     }
 
     super.createPartControl(parent);
-    com.google.dart.tools.ui.internal.text.editor.EditorUtility.addGTKPasteHack(getSourceViewer());
 
     // instead of calling setInput twice, use initializeSourceViewer() to
     // handle source viewer initialization previously handled by setInput
@@ -1290,8 +1285,7 @@ public class StructuredTextEditor extends TextEditor {
     getSite().getWorkbenchWindow().getPartService().addPartListener(fPartListener);
     installSemanticHighlighting();
     if (fOutlineHandler != null) {
-      IInformationPresenter presenter = configureOutlinePresenter(
-          getSourceViewer(),
+      IInformationPresenter presenter = configureOutlinePresenter(getSourceViewer(),
           getSourceViewerConfiguration());
       if (presenter != null) {
         presenter.install(getSourceViewer());
@@ -1651,8 +1645,7 @@ public class StructuredTextEditor extends TextEditor {
 
     if (documentProvider == null) {
       // this indicated an error in startup sequence
-      Logger.trace(
-          getClass().getName(),
+      Logger.trace(getClass().getName(),
           "Program Info Only: document provider was null when model requested"); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
@@ -2000,8 +1993,7 @@ public class StructuredTextEditor extends TextEditor {
   @Override
   protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
     support.setCharacterPairMatcher(createCharacterPairMatcher());
-    support.setMatchingCharacterPainterPreferenceKeys(
-        EditorPreferenceNames.MATCHING_BRACKETS,
+    support.setMatchingCharacterPainterPreferenceKeys(EditorPreferenceNames.MATCHING_BRACKETS,
         EditorPreferenceNames.MATCHING_BRACKETS_COLOR);
 
     super.configureSourceViewerDecorationSupport(support);
@@ -2055,8 +2047,7 @@ public class StructuredTextEditor extends TextEditor {
     action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
     setAction(StructuredTextEditorActionConstants.ACTION_NAME_CONTENTASSIST_PROPOSALS, action);
     markAsStateDependentAction(
-        StructuredTextEditorActionConstants.ACTION_NAME_CONTENTASSIST_PROPOSALS,
-        true);
+        StructuredTextEditorActionConstants.ACTION_NAME_CONTENTASSIST_PROPOSALS, true);
     // SourceView Action - requesting content assist to
     // show the content
     // information for the current insert position
@@ -2064,12 +2055,10 @@ public class StructuredTextEditor extends TextEditor {
         StructuredTextEditorActionConstants.ACTION_NAME_CONTENTASSIST_CONTEXT_INFORMATION
             + UNDERSCORE, this, ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
     action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
-    setAction(
-        StructuredTextEditorActionConstants.ACTION_NAME_CONTENTASSIST_CONTEXT_INFORMATION,
+    setAction(StructuredTextEditorActionConstants.ACTION_NAME_CONTENTASSIST_CONTEXT_INFORMATION,
         action);
     markAsStateDependentAction(
-        StructuredTextEditorActionConstants.ACTION_NAME_CONTENTASSIST_CONTEXT_INFORMATION,
-        true);
+        StructuredTextEditorActionConstants.ACTION_NAME_CONTENTASSIST_CONTEXT_INFORMATION, true);
     // StructuredTextViewer Action - requesting format
     // of the whole
     // document
@@ -2079,11 +2068,9 @@ public class StructuredTextEditor extends TextEditor {
     helpSystem.setHelp(action, IHelpContextIds.CONTMNU_FORMAT_DOC_HELPID);
     action.setActionDefinitionId(ActionDefinitionIds.FORMAT_DOCUMENT);
     setAction(StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_DOCUMENT, action);
-    markAsStateDependentAction(
-        StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_DOCUMENT,
+    markAsStateDependentAction(StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_DOCUMENT,
         true);
-    markAsSelectionDependentAction(
-        StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_DOCUMENT,
+    markAsSelectionDependentAction(StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_DOCUMENT,
         true);
     // StructuredTextViewer Action - requesting format
     // of the active
@@ -2095,11 +2082,9 @@ public class StructuredTextEditor extends TextEditor {
     action.setActionDefinitionId(ActionDefinitionIds.FORMAT_ACTIVE_ELEMENTS);
     setAction(StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_ACTIVE_ELEMENTS, action);
     markAsStateDependentAction(
-        StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_ACTIVE_ELEMENTS,
-        true);
+        StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_ACTIVE_ELEMENTS, true);
     markAsSelectionDependentAction(
-        StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_ACTIVE_ELEMENTS,
-        true);
+        StructuredTextEditorActionConstants.ACTION_NAME_FORMAT_ACTIVE_ELEMENTS, true);
 
     // StructuredTextEditor Action - add breakpoints (falling back to the
     // current double-click if they can't be added)
@@ -2137,8 +2122,7 @@ public class StructuredTextEditor extends TextEditor {
       handlerService.activateHandler(ActionDefinitionIds.ADD_BLOCK_COMMENT, addCommentBlockHandler);
 
       IHandler removeCommentBlockHandler = new RemoveBlockCommentHandler();
-      handlerService.activateHandler(
-          ActionDefinitionIds.REMOVE_BLOCK_COMMENT,
+      handlerService.activateHandler(ActionDefinitionIds.REMOVE_BLOCK_COMMENT,
           removeCommentBlockHandler);
     }
 
@@ -2157,8 +2141,7 @@ public class StructuredTextEditor extends TextEditor {
     ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
     String[] ids = getConfigurationPoints();
     for (int i = 0; matcher == null && i < ids.length; i++) {
-      matcher = (ICharacterPairMatcher) builder.getConfiguration(
-          DocumentRegionEdgeMatcher.ID,
+      matcher = (ICharacterPairMatcher) builder.getConfiguration(DocumentRegionEdgeMatcher.ID,
           ids[i]);
     }
     if (matcher == null) {
@@ -2185,8 +2168,7 @@ public class StructuredTextEditor extends TextEditor {
     String[] ids = getConfigurationPoints();
     for (int i = 0; cfg == null && i < ids.length; i++) {
       cfg = (PropertySheetConfiguration) builder.getConfiguration(
-          ExtendedConfigurationBuilder.PROPERTYSHEETCONFIGURATION,
-          ids[i]);
+          ExtendedConfigurationBuilder.PROPERTYSHEETCONFIGURATION, ids[i]);
     }
     return cfg;
   }
@@ -2201,6 +2183,7 @@ public class StructuredTextEditor extends TextEditor {
     fOverviewRuler = createOverviewRuler(getSharedColors());
     StructuredTextViewer sourceViewer = createStructedTextViewer(parent, verticalRuler, styles);
     initSourceViewer(sourceViewer);
+    com.google.dart.tools.ui.internal.text.editor.EditorUtility.addGTKPasteHack(sourceViewer);
     return sourceViewer;
   }
 
@@ -2313,9 +2296,7 @@ public class StructuredTextEditor extends TextEditor {
 
     if (isEditable()) {
       addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.UNDO);
-      addAction(
-          menu,
-          ITextEditorActionConstants.GROUP_RESTORE,
+      addAction(menu, ITextEditorActionConstants.GROUP_RESTORE,
           ITextEditorActionConstants.REVERT_TO_SAVED);
       addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.CUT);
       addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.COPY);
@@ -2471,8 +2452,7 @@ public class StructuredTextEditor extends TextEditor {
           IContentAssistant contentAssistant = configuration.getContentAssistant(sourceViewer);
           if (contentAssistant instanceof ContentAssistant) {
             ContentAssistant assistant = (ContentAssistant) contentAssistant;
-            RGB rgb = PreferenceConverter.getColor(
-                getPreferenceStore(),
+            RGB rgb = PreferenceConverter.getColor(getPreferenceStore(),
                 EditorPreferenceNames.CODEASSIST_PROPOSALS_BACKGROUND);
             Color color = EditorUtility.getColor(rgb);
             assistant.setProposalSelectorBackground(color);
@@ -2490,8 +2470,7 @@ public class StructuredTextEditor extends TextEditor {
           IContentAssistant contentAssistant = configuration.getContentAssistant(sourceViewer);
           if (contentAssistant instanceof ContentAssistant) {
             ContentAssistant assistant = (ContentAssistant) contentAssistant;
-            RGB rgb = PreferenceConverter.getColor(
-                getPreferenceStore(),
+            RGB rgb = PreferenceConverter.getColor(getPreferenceStore(),
                 EditorPreferenceNames.CODEASSIST_PROPOSALS_FOREGROUND);
             Color color = EditorUtility.getColor(rgb);
             assistant.setProposalSelectorForeground(color);
@@ -2509,8 +2488,7 @@ public class StructuredTextEditor extends TextEditor {
           IContentAssistant contentAssistant = configuration.getContentAssistant(sourceViewer);
           if (contentAssistant instanceof ContentAssistant) {
             ContentAssistant assistant = (ContentAssistant) contentAssistant;
-            RGB rgb = PreferenceConverter.getColor(
-                getPreferenceStore(),
+            RGB rgb = PreferenceConverter.getColor(getPreferenceStore(),
                 EditorPreferenceNames.CODEASSIST_PARAMETERS_BACKGROUND);
             Color color = EditorUtility.getColor(rgb);
             assistant.setContextInformationPopupBackground(color);
@@ -2529,8 +2507,7 @@ public class StructuredTextEditor extends TextEditor {
           IContentAssistant contentAssistant = configuration.getContentAssistant(sourceViewer);
           if (contentAssistant instanceof ContentAssistant) {
             ContentAssistant assistant = (ContentAssistant) contentAssistant;
-            RGB rgb = PreferenceConverter.getColor(
-                getPreferenceStore(),
+            RGB rgb = PreferenceConverter.getColor(getPreferenceStore(),
                 EditorPreferenceNames.CODEASSIST_PARAMETERS_FOREGROUND);
             Color color = EditorUtility.getColor(rgb);
             assistant.setContextInformationPopupForeground(color);
@@ -3090,10 +3067,8 @@ public class StructuredTextEditor extends TextEditor {
     }
     if (!rangeUpdated && getSourceViewer() != null) {
       if (selection instanceof ITextSelection) {
-        getSourceViewer().setRangeIndication(
-            ((ITextSelection) selection).getOffset(),
-            ((ITextSelection) selection).getLength(),
-            false);
+        getSourceViewer().setRangeIndication(((ITextSelection) selection).getOffset(),
+            ((ITextSelection) selection).getLength(), false);
       } else {
         getSourceViewer().removeRangeIndication();
       }
@@ -3177,8 +3152,7 @@ public class StructuredTextEditor extends TextEditor {
       }
       fReconcilingListeners = (ISourceReconcilingListener[]) reconcilingListeners.toArray(new ISourceReconcilingListener[reconcilingListeners.size()]);
     } catch (ClassCastException e) {
-      Logger.log(
-          Logger.ERROR,
+      Logger.log(Logger.ERROR,
           "Configuration has a reconciling listener that does not implement ISourceReconcilingListener."); //$NON-NLS-1$
     }
 
@@ -3245,8 +3219,7 @@ public class StructuredTextEditor extends TextEditor {
     String[] ids = getConfigurationPoints();
     for (int i = 0; cfg == null && i < ids.length; i++) {
       cfg = (AbstractQuickOutlineConfiguration) builder.getConfiguration(
-          ExtendedConfigurationBuilder.QUICKOUTLINECONFIGURATION,
-          ids[i]);
+          ExtendedConfigurationBuilder.QUICKOUTLINECONFIGURATION, ids[i]);
     }
 
     if (cfg != null) {
@@ -3281,8 +3254,7 @@ public class StructuredTextEditor extends TextEditor {
     String[] ids = getConfigurationPoints();
     for (int i = 0; cfg == null && i < ids.length; i++) {
       cfg = (ContentOutlineConfiguration) builder.getConfiguration(
-          ExtendedConfigurationBuilder.CONTENTOUTLINECONFIGURATION,
-          ids[i]);
+          ExtendedConfigurationBuilder.CONTENTOUTLINECONFIGURATION, ids[i]);
     }
     return cfg;
   }
@@ -3333,8 +3305,7 @@ public class StructuredTextEditor extends TextEditor {
     ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
     String[] ids = getConfigurationPoints();
     for (int i = 0; tools == null && i < ids.length; i++) {
-      tools = (ISourceEditingTextTools) builder.getConfiguration(
-          NullSourceEditingTextTools.ID,
+      tools = (ISourceEditingTextTools) builder.getConfiguration(NullSourceEditingTextTools.ID,
           ids[i]);
     }
     if (tools == null) {
@@ -3379,8 +3350,7 @@ public class StructuredTextEditor extends TextEditor {
     String[] ids = getConfigurationPoints();
     for (int i = 0; cfg == null && i < ids.length; i++) {
       cfg = (StructuredTextViewerConfiguration) builder.getConfiguration(
-          ExtendedConfigurationBuilder.SOURCEVIEWERCONFIGURATION,
-          ids[i]);
+          ExtendedConfigurationBuilder.SOURCEVIEWERCONFIGURATION, ids[i]);
       cat = new ConfigurationAndTarget(ids[i], cfg);
     }
     if (cfg == null) {
@@ -3438,11 +3408,8 @@ public class StructuredTextEditor extends TextEditor {
     if (getInternalModel() != null) {
       contentTypeIdentifierID = getInternalModel().getContentTypeIdentifier();
     }
-    return ConfigurationPointCalculator.getConfigurationPoints(
-        this,
-        contentTypeIdentifierID,
-        ConfigurationPointCalculator.SOURCE,
-        StructuredTextEditor.class);
+    return ConfigurationPointCalculator.getConfigurationPoints(this, contentTypeIdentifierID,
+        ConfigurationPointCalculator.SOURCE, StructuredTextEditor.class);
   }
 
   private String[] getDefinitions(String[] ids) {
@@ -3522,8 +3489,7 @@ public class StructuredTextEditor extends TextEditor {
     IStructuredModel model = getInternalModel();
     if (model != null) {
       IConfigurationElement[] elements = Platform.getExtensionRegistry().getConfigurationElementsFor(
-          SSEUIPlugin.ID,
-          "characterPairing"); //$NON-NLS-1$
+          SSEUIPlugin.ID, "characterPairing"); //$NON-NLS-1$
       IContentTypeManager mgr = Platform.getContentTypeManager();
       IContentType type = mgr.getContentType(model.getContentTypeIdentifier());
       if (type != null) {
@@ -3605,11 +3571,8 @@ public class StructuredTextEditor extends TextEditor {
     IStructuredModel model = getInternalModel();
     if (fSemanticManager == null && model != null) {
       fSemanticManager = new SemanticHighlightingManager();
-      fSemanticManager.install(
-          getSourceViewer(),
-          getPreferenceStore(),
-          getSourceViewerConfiguration(),
-          model.getContentTypeIdentifier());
+      fSemanticManager.install(getSourceViewer(), getPreferenceStore(),
+          getSourceViewerConfiguration(), model.getContentTypeIdentifier());
     }
   }
 
@@ -3805,23 +3768,17 @@ public class StructuredTextEditor extends TextEditor {
           fTextContextMenu = fTextContextMenuManager.createContextMenu(styledText);
           styledText.setMenu(fTextContextMenu);
 
-          getSite().registerContextMenu(
-              getEditorContextMenuId(),
-              fTextContextMenuManager,
+          getSite().registerContextMenu(getEditorContextMenuId(), fTextContextMenuManager,
               getSelectionProvider());
 
           // also register this menu for source page part and
           // structured text editor ids
           String partId = getSite().getId();
           if (partId != null) {
-            getSite().registerContextMenu(
-                partId + EDITOR_CONTEXT_MENU_SUFFIX,
-                fTextContextMenuManager,
-                getSelectionProvider());
+            getSite().registerContextMenu(partId + EDITOR_CONTEXT_MENU_SUFFIX,
+                fTextContextMenuManager, getSelectionProvider());
           }
-          getSite().registerContextMenu(
-              EDITOR_CONTEXT_MENU_ID,
-              fTextContextMenuManager,
+          getSite().registerContextMenu(EDITOR_CONTEXT_MENU_ID, fTextContextMenuManager,
               getSelectionProvider());
         }
       }
@@ -3926,9 +3883,7 @@ public class StructuredTextEditor extends TextEditor {
           }
         } else {
           ITextHover textHover = configuration.getTextHover(sourceViewer, t);
-          ((ITextViewerExtension2) sourceViewer).setTextHover(
-              textHover,
-              t,
+          ((ITextViewerExtension2) sourceViewer).setTextHover(textHover, t,
               ITextViewerExtension2.DEFAULT_HOVER_STATE_MASK);
         }
       } else {
@@ -4059,23 +4014,17 @@ public class StructuredTextEditor extends TextEditor {
         fRulerContextMenu = fRulerContextMenuManager.createContextMenu(rulerControl);
         rulerControl.setMenu(fRulerContextMenu);
 
-        getSite().registerContextMenu(
-            getRulerContextMenuId(),
-            fRulerContextMenuManager,
+        getSite().registerContextMenu(getRulerContextMenuId(), fRulerContextMenuManager,
             getSelectionProvider());
 
         // also register this menu for source page part and structured
         // text editor ids
         String partId = getSite().getId();
         if (partId != null) {
-          getSite().registerContextMenu(
-              partId + RULER_CONTEXT_MENU_SUFFIX,
-              fRulerContextMenuManager,
-              getSelectionProvider());
+          getSite().registerContextMenu(partId + RULER_CONTEXT_MENU_SUFFIX,
+              fRulerContextMenuManager, getSelectionProvider());
         }
-        getSite().registerContextMenu(
-            RULER_CONTEXT_MENU_ID,
-            fRulerContextMenuManager,
+        getSite().registerContextMenu(RULER_CONTEXT_MENU_ID, fRulerContextMenuManager,
             getSelectionProvider());
       }
     }

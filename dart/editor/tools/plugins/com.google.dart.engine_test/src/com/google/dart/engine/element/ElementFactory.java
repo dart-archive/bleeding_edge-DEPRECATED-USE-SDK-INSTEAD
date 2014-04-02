@@ -41,8 +41,8 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 /**
@@ -85,10 +85,8 @@ public final class ElementFactory {
     return classElement(typeName, getObject().getType(), parameterNames);
   }
 
-  public static CompilationUnitElementImpl compilationUnit(AnalysisContext context, String fileName) {
-    FileBasedSource source = new FileBasedSource(
-        context.getSourceFactory().getContentCache(),
-        createFile(fileName));
+  public static CompilationUnitElementImpl compilationUnit(String fileName) {
+    FileBasedSource source = new FileBasedSource(createFile(fileName));
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
     unit.setSource(source);
     return unit;
@@ -291,9 +289,7 @@ public final class ElementFactory {
   }
 
   public static HtmlElementImpl htmlUnit(AnalysisContext context, String fileName) {
-    FileBasedSource source = new FileBasedSource(
-        context.getSourceFactory().getContentCache(),
-        createFile(fileName));
+    FileBasedSource source = new FileBasedSource(createFile(fileName));
     HtmlElementImpl unit = new HtmlElementImpl(context, fileName);
     unit.setSource(source);
     return unit;
@@ -310,7 +306,7 @@ public final class ElementFactory {
 
   public static LibraryElementImpl library(AnalysisContext context, String libraryName) {
     String fileName = "/" + libraryName + ".dart";
-    CompilationUnitElementImpl unit = compilationUnit(context, fileName);
+    CompilationUnitElementImpl unit = compilationUnit(fileName);
     LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));
     library.setDefiningCompilationUnit(unit);
     return library;

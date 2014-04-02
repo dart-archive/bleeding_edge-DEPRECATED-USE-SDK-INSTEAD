@@ -17,8 +17,12 @@ class _HttpHeaders implements HttpHeaders {
   String _host;
   int _port;
 
-  _HttpHeaders(this.protocolVersion)
-      : _headers = new HashMap<String, List<String>>() {
+  final int _defaultPortForScheme;
+
+  _HttpHeaders(this.protocolVersion,
+               {int defaultPortForScheme: HttpClient.DEFAULT_HTTP_PORT})
+      : _headers = new HashMap<String, List<String>>(),
+        _defaultPortForScheme = defaultPortForScheme {
     if (protocolVersion == "1.0") {
       _persistentConnection = false;
     }
@@ -368,7 +372,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   _updateHostHeader() {
-    bool defaultPort = _port == null || _port == HttpClient.DEFAULT_HTTP_PORT;
+    bool defaultPort = _port == null || _port == _defaultPortForScheme;
     String portPart = defaultPort ? "" : ":$_port";
     _set("host", "$host$portPart");
   }
@@ -396,25 +400,31 @@ class _HttpHeaders implements HttpHeaders {
     }
 
     // Format headers.
-    _headers.forEach((String name, List<String> values) {
+    for (String name in _headers.keys) {
+      List<String> values = _headers[name];
       bool fold = _foldHeader(name);
       var nameData = name.codeUnits;
       write(nameData);
-      write(const [_CharCode.COLON, _CharCode.SP]);
+      buffer[offset++] = _CharCode.COLON;
+      buffer[offset++] = _CharCode.SP;
       for (int i = 0; i < values.length; i++) {
         if (i > 0) {
           if (fold) {
-            write(const [_CharCode.COMMA, _CharCode.SP]);
+            buffer[offset++] = _CharCode.COMMA;
+            buffer[offset++] = _CharCode.SP;
           } else {
-            write(const [_CharCode.CR, _CharCode.LF]);
+            buffer[offset++] = _CharCode.CR;
+            buffer[offset++] = _CharCode.LF;
             write(nameData);
-            write(const [_CharCode.COLON, _CharCode.SP]);
+            buffer[offset++] = _CharCode.COLON;
+            buffer[offset++] = _CharCode.SP;
           }
         }
         write(values[i].codeUnits);
       }
-      write(const [_CharCode.CR, _CharCode.LF]);
-    });
+      buffer[offset++] = _CharCode.CR;
+      buffer[offset++] = _CharCode.LF;
+    }
     return offset;
   }
 
@@ -489,7 +499,11 @@ class _HttpHeaders implements HttpHeaders {
         }
         skipWS();
         String value = parseValue();
-        cookies.add(new _Cookie(name, value));
+        try {
+          cookies.add(new _Cookie(name, value));
+        } catch (_) {
+          // Skip it, invalid cookie data.
+        }
         skipWS();
         if (done()) return;
         if (!expect(";")) {
@@ -712,7 +726,9 @@ class _Cookie implements Cookie {
   bool httpOnly = false;
   bool secure = false;
 
-  _Cookie([this.name, this.value]);
+  _Cookie([this.name, this.value]) {
+    _validate();
+  }
 
   _Cookie.fromSetCookieValue(String value) {
     // Parse the 'set-cookie' header value.
@@ -800,6 +816,7 @@ class _Cookie implements Cookie {
     }
     index++;  // Skip the = character.
     value = parseValue();
+    _validate();
     if (done()) return;
     index++;  // Skip the ; character.
     parseAttributes();
@@ -823,6 +840,32 @@ class _Cookie implements Cookie {
     if (secure) sb.write("; Secure");
     if (httpOnly) sb.write("; HttpOnly");
     return sb.toString();
+  }
+
+  void _validate() {
+    const SEPERATORS = const [
+        "(", ")", "<", ">", "@", ",", ";", ":", "\\",
+        '"', "/", "[", "]", "?", "=", "{", "}"];
+    for (int i = 0; i < name.length; i++) {
+      int codeUnit = name.codeUnits[i];
+      if (codeUnit <= 32 ||
+          codeUnit >= 127 ||
+          SEPERATORS.indexOf(name[i]) >= 0) {
+        throw new FormatException(
+            "Invalid character in cookie name, code unit: '$codeUnit'");
+      }
+    }
+    for (int i = 0; i < value.length; i++) {
+      int codeUnit = value.codeUnits[i];
+      if (!(codeUnit == 0x21 ||
+            (codeUnit >= 0x23 && codeUnit <= 0x2B) ||
+            (codeUnit >= 0x2D && codeUnit <= 0x3A) ||
+            (codeUnit >= 0x3C && codeUnit <= 0x5B) ||
+            (codeUnit >= 0x5D && codeUnit <= 0x7E))) {
+        throw new FormatException(
+            "Invalid character in cookie value, code unit: '$codeUnit'");
+      }
+    }
   }
 }
 

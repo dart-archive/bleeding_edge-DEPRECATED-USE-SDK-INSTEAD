@@ -34,6 +34,19 @@ verifyResult(ignored) {
   verify('Is zero plural?');
   verify('This is singular.');
   verify('This is plural (2).');
+  verify('This is plural (3).');
+  verify('This is plural (4).');
+  verify('This is plural (5).');
+  verify('This is plural (6).');
+  verify('This is plural (7).');
+  verify('This is plural (8).');
+  verify('This is plural (9).');
+  verify('This is plural (10).');
+  verify('This is plural (11).');
+  verify('This is plural (20).');
+  verify('This is plural (100).');
+  verify('This is plural (101).');
+  verify('This is plural (100000).');
   verify('Alice went to her house');
   verify('Bob went to his house');
   verify('cat went to its litter box');
@@ -51,6 +64,12 @@ verifyResult(ignored) {
   verify('5 some currency or other.');
   verify('1 Canadian dollar');
   verify('2 Canadian dollars');
+  verify('1 thing:');
+  verify('2 things:');
+  verify('Hello World');
+  verify('Hello World');
+  verify('rent');
+  verify('rent');
 
   var fr_lines = expanded.skip(1).skipWhile(
       (line) => !line.contains('----')).toList();
@@ -81,6 +100,19 @@ verifyResult(ignored) {
   verify('Est-ce que nulle est pluriel?');
   verify('C\'est singulier');
   verify('C\'est pluriel (2).');
+  verify('C\'est pluriel (3).');
+  verify('C\'est pluriel (4).');
+  verify('C\'est pluriel (5).');
+  verify('C\'est pluriel (6).');
+  verify('C\'est pluriel (7).');
+  verify('C\'est pluriel (8).');
+  verify('C\'est pluriel (9).');
+  verify('C\'est pluriel (10).');
+  verify('C\'est pluriel (11).');
+  verify('C\'est pluriel (20).');
+  verify('C\'est pluriel (100).');
+  verify('C\'est pluriel (101).');
+  verify('C\'est pluriel (100000).');
   verify('Alice est allée à sa house');
   verify('Bob est allé à sa house');
   verify('cat est allé à sa litter box');
@@ -98,6 +130,12 @@ verifyResult(ignored) {
   verify('5 certaine devise ou autre.');
   verify('1 dollar Canadien');
   verify('2 dollars Canadiens');
+  verify('1 chose:');
+  verify('2 choses:');
+  verify('Bonjour tout le monde');
+  verify('Bonjour tout le monde');
+  verify('louer');
+  verify('loyer');
 
   var de_lines = fr_lines.skip(1).skipWhile(
       (line) => !line.contains('----')).toList();
@@ -128,6 +166,19 @@ verifyResult(ignored) {
   verify('Ist Null Plural?');
   verify('Dies ist einmalig');
   verify('Dies ist Plural (2).');
+  verify('Dies ist Plural (3).');
+  verify('Dies ist Plural (4).');
+  verify('Dies ist Plural (5).');
+  verify('Dies ist Plural (6).');
+  verify('Dies ist Plural (7).');
+  verify('Dies ist Plural (8).');
+  verify('Dies ist Plural (9).');
+  verify('Dies ist Plural (10).');
+  verify('Dies ist Plural (11).');
+  verify('Dies ist Plural (20).');
+  verify('Dies ist Plural (100).');
+  verify('Dies ist Plural (101).');
+  verify('Dies ist Plural (100000).');
   verify('Alice ging zu ihrem house');
   verify('Bob ging zu seinem house');
   verify('cat ging zu seinem litter box');
@@ -145,4 +196,10 @@ verifyResult(ignored) {
   verify('5 einige Währung oder anderen.');
   verify('1 Kanadischer dollar');
   verify('2 Kanadischen dollar');
+  verify('eins:');
+  verify('2 Dinge:');
+  verify('Hallo Welt');
+  verify('Hallo Welt');
+  verify('mieten');
+  verify('Miete');
 }

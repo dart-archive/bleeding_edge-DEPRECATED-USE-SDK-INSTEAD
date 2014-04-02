@@ -26,7 +26,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * @coverage dart.engine.ast
  */
-public class NativeClause extends ASTNode {
+public class NativeClause extends AstNode {
   /**
    * The token representing the 'native' keyword.
    */
@@ -49,7 +49,7 @@ public class NativeClause extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitNativeClause(this);
   }
 
@@ -100,7 +100,7 @@ public class NativeClause extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(name, visitor);
   }
 }

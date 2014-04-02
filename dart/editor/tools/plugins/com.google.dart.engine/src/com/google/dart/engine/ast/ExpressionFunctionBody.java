@@ -57,7 +57,7 @@ public class ExpressionFunctionBody extends FunctionBody {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitExpressionFunctionBody(this);
   }
 
@@ -130,7 +130,7 @@ public class ExpressionFunctionBody extends FunctionBody {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(expression, visitor);
   }
 }

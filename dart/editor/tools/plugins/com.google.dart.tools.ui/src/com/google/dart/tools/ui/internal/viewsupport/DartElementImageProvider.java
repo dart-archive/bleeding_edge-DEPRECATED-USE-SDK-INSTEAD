@@ -17,23 +17,16 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
-import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.DecorationOverlayIcon;
-import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.ISharedImages;
@@ -61,14 +54,7 @@ public class DartElementImageProvider {
   private static ImageDescriptor DESC_OBJ_PROJECT_CLOSED;
   private static ImageDescriptor DESC_OBJ_PROJECT;
 
-  private static ImageDescriptor DESC_READ_ONLY;
-
   private static final NewDartElementImageProvider newImageProvider = new NewDartElementImageProvider();
-
-  public static Image getDecoratedImage(ImageDescriptor baseImage, int adornments, Point size) {
-    return DartToolsPlugin.getImageDescriptorRegistry().get(
-        new DartElementImageDescriptor(baseImage, adornments, size));
-  }
 
   public static ImageDescriptor getFieldImageDescriptor(boolean isInInterfaceOrAnnotation,
       boolean isPrivate) {
@@ -104,21 +90,6 @@ public class DartElementImageProvider {
     }
   }
 
-  private static boolean confirmAbstract(TypeMember element) throws DartModelException {
-    // never show the abstract symbol on interfaces or members in interfaces
-    if (element.getElementType() == DartElement.TYPE) {
-      return true;
-    }
-    return true;
-  }
-
-  private static ImageDescriptor decorate(ImageDescriptor main, ImageDescriptor badge) {
-    return new DecorationOverlayIcon(
-        DartToolsPlugin.getImageDescriptorRegistry().get(main),
-        badge,
-        IDecoration.BOTTOM_RIGHT);
-  }
-
   private static ImageDescriptor getClassImageDescriptor(boolean isPrivate) {
     if (isPrivate) {
       return DartPluginImages.DESC_DART_CLASS_PRIVATE;
@@ -143,25 +114,13 @@ public class DartElementImageProvider {
     }
   }
 
-  private static boolean showOverlayIcons(int flags) {
-    return (flags & OVERLAY_ICONS) != 0;
-  }
-
-  private static boolean useSmallSize(int flags) {
-    return (flags & SMALL_ICONS) != 0;
-  }
-
   {
     ISharedImages images = DartToolsPlugin.getDefault().getWorkbench().getSharedImages();
     DESC_OBJ_PROJECT_CLOSED = images.getImageDescriptor(IDE.SharedImages.IMG_OBJ_PROJECT_CLOSED);
     DESC_OBJ_PROJECT = images.getImageDescriptor(IDE.SharedImages.IMG_OBJ_PROJECT);
-    DESC_READ_ONLY = DartToolsPlugin.getImageDescriptor("icons/full/ovr16/lock_ovr.png");
   }
 
-  private ImageDescriptorRegistry fRegistry;
-
   public DartElementImageProvider() {
-    fRegistry = null; // lazy initialization
   }
 
   public void dispose() {
@@ -248,37 +207,6 @@ public class DartElementImageProvider {
   }
 
   /**
-   * Returns an image descriptor for a compilation unit not on the class path. The descriptor
-   * includes overlays, if specified.
-   */
-  public ImageDescriptor getCUResourceImageDescriptor(IFile file, int flags) {
-    Point size = useSmallSize(flags) ? SMALL_SIZE : BIG_SIZE;
-    return new DartElementImageDescriptor(DartPluginImages.DESC_OBJS_CUNIT_RESOURCE, 0, size);
-  }
-
-  /**
-   * Returns an image descriptor for a Dart element. The descriptor includes overlays, if specified.
-   */
-  public ImageDescriptor getDartImageDescriptor(DartElement element, int flags) {
-    Point size = useSmallSize(flags) ? SMALL_SIZE : BIG_SIZE;
-    ImageDescriptor baseDesc = getBaseImageDescriptor(element, flags);
-    if (baseDesc != null) {
-      if (element instanceof CompilationUnit) {
-        CompilationUnit cu = (CompilationUnit) element;
-
-        if (cu.isReadOnly()) {
-          baseDesc = decorateReadOnly(baseDesc);
-        }
-      }
-
-      int adornmentFlags = computeJavaAdornmentFlags(element, flags);
-      return new DartElementImageDescriptor(baseDesc, adornmentFlags, size);
-    }
-
-    return new DartElementImageDescriptor(DartPluginImages.DESC_OBJS_GHOST, 0, size);
-  }
-
-  /**
    * Returns the icon for a given element. The icon depends on the element type and element
    * properties. If configured, overlay icons are constructed for <code>SourceReference</code>s.
    * 
@@ -290,102 +218,7 @@ public class DartElementImageProvider {
 
   }
 
-  /**
-   * Returns an image descriptor for a IAdaptable. The descriptor includes overlays, if specified
-   * (only error ticks apply). Returns <code>null</code> if no image could be found.
-   */
-  public ImageDescriptor getWorkbenchImageDescriptor(IAdaptable adaptable, int flags) {
-    IWorkbenchAdapter wbAdapter = (IWorkbenchAdapter) adaptable.getAdapter(IWorkbenchAdapter.class);
-    if (wbAdapter == null) {
-      return null;
-    }
-    ImageDescriptor descriptor = wbAdapter.getImageDescriptor(adaptable);
-    if (descriptor == null) {
-      return null;
-    }
-
-    Point size = useSmallSize(flags) ? SMALL_SIZE : BIG_SIZE;
-    return new DartElementImageDescriptor(descriptor, 0, size);
-  }
-
-  // private static boolean isDefaultFlag(int flags) {
-  // return !Flags.isPublic(flags) && !Flags.isProtected(flags) &&
-  // !Flags.isPrivate(flags);
-  // }
-  //
-  protected ImageDescriptor getPackageFragmentIcon(DartElement element, int renderFlags)
-      throws DartModelException {
-    // IPackageFragment fragment= (IPackageFragment)element;
-    // boolean containsJavaElements= false;
-    // try {
-    // containsJavaElements= fragment.hasChildren();
-    // } catch(DartModelException e) {
-    // // assuming no children;
-    // }
-    // if(!containsJavaElements && (fragment.getNonJavaResources().length > 0))
-    // return JavaPluginImages.DESC_OBJS_EMPTY_PACKAGE_RESOURCES;
-    // else if (!containsJavaElements)
-    // return JavaPluginImages.DESC_OBJS_EMPTY_PACKAGE;
-    return DartPluginImages.DESC_OBJS_PACKAGE;
-  }
-
-  private int computeJavaAdornmentFlags(DartElement element, int renderFlags) {
-    int flags = 0;
-    if (showOverlayIcons(renderFlags) && element instanceof TypeMember) {
-      try {
-        TypeMember member = (TypeMember) element;
-
-        if (element.getElementType() == DartElement.METHOD && ((Method) element).isConstructor()) {
-          flags |= DartElementImageDescriptor.CONSTRUCTOR;
-        }
-
-        if (element.getElementType() == DartElement.METHOD && ((Method) element).isGetter()) {
-          flags |= DartElementImageDescriptor.GETTER;
-        }
-
-        if (element.getElementType() == DartElement.METHOD && ((Method) element).isSetter()) {
-          flags |= DartElementImageDescriptor.SETTER;
-        }
-
-        if (element.getElementType() == DartElement.METHOD && ((Method) member).isAbstract()
-            && confirmAbstract(member)) {
-          flags |= DartElementImageDescriptor.ABSTRACT;
-        }
-
-        if (member.isStatic()) {
-          flags |= DartElementImageDescriptor.STATIC;
-        }
-
-        if (element.getElementType() == DartElement.FIELD && ((Field) member).isConstant()) {
-          flags |= DartElementImageDescriptor.CONST;
-        }
-      } catch (DartModelException e) {
-        // do nothing. Can't compute runnable adornment or get flags
-      }
-    }
-    return flags;
-  }
-
-  private ImageDescriptor decorateReadOnly(ImageDescriptor imageDescriptor) {
-    return decorate(imageDescriptor, DESC_READ_ONLY);
-  }
-
   private ImageDescriptor getCompilationUnitDescriptor(CompilationUnit element) {
     return DartPluginImages.DESC_DART_COMP_UNIT;
   }
-
-  private Image getImageLabel(ImageDescriptor descriptor) {
-    if (descriptor == null) {
-      return null;
-    }
-    return getRegistry().get(descriptor);
-  }
-
-  private ImageDescriptorRegistry getRegistry() {
-    if (fRegistry == null) {
-      fRegistry = DartToolsPlugin.getImageDescriptorRegistry();
-    }
-    return fRegistry;
-  }
-
 }

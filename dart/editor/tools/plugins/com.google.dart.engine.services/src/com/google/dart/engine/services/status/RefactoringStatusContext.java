@@ -15,7 +15,7 @@ package com.google.dart.engine.services.status;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -33,9 +33,9 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNo
  */
 public class RefactoringStatusContext {
   /**
-   * @return the {@link RefactoringStatusContext} which corresponds to the given {@link ASTNode}.
+   * @return the {@link RefactoringStatusContext} which corresponds to the given {@link AstNode}.
    */
-  public static RefactoringStatusContext create(ASTNode node) {
+  public static RefactoringStatusContext create(AstNode node) {
     Preconditions.checkNotNull(node);
     SourceRange range = rangeNode(node);
     CompilationUnit unit = node.getAncestor(CompilationUnit.class);

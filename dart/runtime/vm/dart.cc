@@ -5,6 +5,7 @@
 #include "vm/dart.h"
 
 #include "vm/code_observers.h"
+#include "vm/cpu.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
@@ -117,20 +118,21 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
     HandleScope handle_scope(vm_isolate_);
     Heap::Init(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
+    TargetCPUFeatures::InitOnce();
     Object::InitOnce();
     ArgumentsDescriptor::InitOnce();
     StubCode::InitOnce();
     Symbols::InitOnce(vm_isolate_);
     Scanner::InitOnce();
     Object::CreateInternalMetaData();
-    CPUFeatures::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
-    if (!CPUFeatures::sse2_supported()) {
+    if (!TargetCPUFeatures::sse2_supported()) {
       return "SSE2 is required.";
     }
 #endif
     PremarkingVisitor premarker(vm_isolate_);
+    vm_isolate_->heap()->WriteProtect(false);
     vm_isolate_->heap()->IterateOldObjects(&premarker);
     vm_isolate_->heap()->WriteProtect(true);
   }
@@ -173,6 +175,8 @@ const char* Dart::Cleanup() {
 
   ShutdownIsolate();
   vm_isolate_ = NULL;
+
+  TargetCPUFeatures::Cleanup();
 #endif
 
   Profiler::Shutdown();
@@ -192,8 +196,8 @@ Isolate* Dart::CreateIsolate(const char* name_prefix) {
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
-  TIMERSCOPE(time_isolate_initialization);
   Isolate* isolate = Isolate::Current();
+  TIMERSCOPE(isolate, time_isolate_initialization);
   ASSERT(isolate != NULL);
   StackZone zone(isolate);
   HandleScope handle_scope(isolate);
@@ -215,7 +219,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     ASSERT(snapshot->kind() == Snapshot::kFull);
     if (FLAG_trace_isolates) {
-      OS::Print("Size of isolate snapshot = %d\n", snapshot->length());
+      OS::Print("Size of isolate snapshot = %" Pd64 "\n", snapshot->length());
     }
     SnapshotReader reader(snapshot->content(), snapshot->length(),
                           Snapshot::kFull, isolate);
@@ -229,12 +233,15 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   Object::VerifyBuiltinVtables();
 
   StubCode::Init(isolate);
+  // TODO(zra): ifndef to be removed when ARM64 port is ready.
+#if !defined(TARGET_ARCH_ARM64)
   if (snapshot_buffer == NULL) {
     if (!isolate->object_store()->PreallocateObjects()) {
       return isolate->object_store()->sticky_error();
     }
   }
   isolate->megamorphic_cache_table()->InitMissHandler();
+#endif
 
   isolate->heap()->EnableGrowthControl();
   isolate->set_init_callback_data(data);

@@ -31,7 +31,8 @@ import java.util.List;
 class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListener {
   private final static String FAILED_TO_LOAD = "Failed to load resource";
   private final static String CHROME_THUMB = "chrome://thumb/";
-  //private final static String CHROME_NEW_TAB = "chrome://newtab/";
+  private final static String CHROME_SEARCH_PAGE = "chrome-search://";
+  private final static String NEWTAB_MESSAGE = "_/chrome/newtab?";
 
   private List<IStreamListener> listeners = new ArrayList<IStreamListener>();
 
@@ -76,18 +77,20 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
         }
       }
 
-      text += "\n";
+      // Rodent.toString (file:///Users/foo.../debuggertest/pets.dart:79:7)
+      if (stackTrace != null && stackTrace.size() > 0) {
+        // If we're not printing out a blank line.
+        if (text.trim().length() > 0) {
+          CallFrame topFrame = stackTrace.get(0);
 
-      // TODO(devoncarew): add a test to ensure that when an application throws an exception,
-      // we get that back as a payload in a log message.
-      if (stackTrace != null) {
-        //   Rodent.toString (file:///Users/foo.../debuggertest/pets.dart:79:7)
-
-        for (CallFrame frame : stackTrace) {
-          text += "  " + frame.functionName + " (" + frame.url + ":" + frame.lineNumber + ":"
-              + frame.columnNumber + ")\n";
+          // dartbug.com/16805
+          if (!"undefined".equals(topFrame.url)) {
+            text += " (" + topFrame.url + ":" + topFrame.lineNumber + ")";
+          }
         }
       }
+
+      text += "\n";
 
       buffer.append(text);
 
@@ -135,16 +138,22 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
       return false;
     }
 
-    // Ignore all "failed to load" messages from chrome://thumb/... urls.
-    if (message.startsWith(FAILED_TO_LOAD) && url.startsWith(CHROME_THUMB)) {
+    // Ignore messages from chrome://thumb/... urls.
+    if (url.startsWith(CHROME_THUMB)) {
+      return true;
+    }
+
+    // Ignore messages from the chrome-search: page.
+    if (url.startsWith(CHROME_SEARCH_PAGE)) {
+      return true;
+    }
+
+    // Ignore "Application Cache Checking event" messages.
+    if (url.contains(NEWTAB_MESSAGE)) {
       return true;
     }
 
     // Ignore invalid -webkit property messages.
-    // {"method":"Console.messageAdded","params":{"message":{"timestamp":1.382876131132117E9,
-    //   "text":"Invalid CSS property name: -webkit-touch-callout","level":"warning","source":"css",
-    //   "column":1,"line":1886,"repeatCount":1,"type":"log","url":"chrome://newtab/"}}}
-    // && url.startsWith(CHROME_NEW_TAB)) {
     if (message.indexOf("Invalid CSS property name: -webkit") != -1
         || message.indexOf("Invalid CSS property value: -webkit") != -1) {
       return true;
@@ -152,5 +161,4 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
 
     return false;
   }
-
 }

@@ -23,5 +23,9 @@ $DART_SDK/bin/dart \
     test/type_factories_gen.dart \
     packages/
 
+# Use tput to set console to red & go back to black.
+echo "$(tput setaf 1)di/test/type_factories_gen.dart regenerated, \
+requires manual fixup of imports.$(tput sgr0)"
+
 echo "*** Cleaning up packages"
 rm -rf packages

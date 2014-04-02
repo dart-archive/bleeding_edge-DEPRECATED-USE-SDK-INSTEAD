@@ -21,18 +21,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AsExpression;
-import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.FieldDeclaration;
-import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.Statement;
@@ -41,7 +37,7 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.NodeLocator;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisResult;
@@ -49,9 +45,7 @@ import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.scanner.Keyword;
-import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
@@ -67,29 +61,18 @@ import com.google.dart.java2dart.processor.IOSemanticProcessor;
 import com.google.dart.java2dart.processor.JUnitSemanticProcessor;
 import com.google.dart.java2dart.processor.ObjectSemanticProcessor;
 import com.google.dart.java2dart.processor.PropertySemanticProcessor;
+import com.google.dart.java2dart.processor.RenameConstructorsSemanticProcessor;
 import com.google.dart.java2dart.processor.SemanticProcessor;
 import com.google.dart.java2dart.processor.TypeSemanticProcessor;
+import com.google.dart.java2dart.processor.UniqueMemberNamesSemanticProcessor;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
-import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
-import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
-import static com.google.dart.java2dart.util.ASTFactory.blockFunctionBody;
-import static com.google.dart.java2dart.util.ASTFactory.booleanLiteral;
-import static com.google.dart.java2dart.util.ASTFactory.exportDirective;
-import static com.google.dart.java2dart.util.ASTFactory.expressionFunctionBody;
-import static com.google.dart.java2dart.util.ASTFactory.expressionStatement;
-import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
-import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.importDirective;
-import static com.google.dart.java2dart.util.ASTFactory.importShowCombinator;
-import static com.google.dart.java2dart.util.ASTFactory.indexExpression;
-import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
-import static com.google.dart.java2dart.util.ASTFactory.libraryDirective;
-import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
-import static com.google.dart.java2dart.util.ASTFactory.nullLiteral;
-import static com.google.dart.java2dart.util.ASTFactory.simpleFormalParameter;
-import static com.google.dart.java2dart.util.ASTFactory.typeName;
+import static com.google.dart.java2dart.util.AstFactory.exportDirective;
+import static com.google.dart.java2dart.util.AstFactory.importDirective;
+import static com.google.dart.java2dart.util.AstFactory.importShowCombinator;
+import static com.google.dart.java2dart.util.AstFactory.instanceCreationExpression;
+import static com.google.dart.java2dart.util.AstFactory.libraryDirective;
+import static com.google.dart.java2dart.util.AstFactory.typeName;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -137,7 +120,6 @@ public class MainEngine {
   private static final Context context = new Context();
   private static File engineFolder;
   private static File engineTestFolder;
-  private static File engineFolder2;
 
   private static CompilationUnit dartUnit;
 
@@ -164,7 +146,6 @@ public class MainEngine {
     //
     engineFolder = new File("../../../tools/plugins/com.google.dart.engine/src");
     engineTestFolder = new File("../../../tools/plugins/com.google.dart.engine_test/src");
-    engineFolder2 = new File("src");
     engineFolder = engineFolder.getCanonicalFile();
     // configure Context
     context.addClasspathFile(new File("../../../../third_party/guava/r13/guava-13.0.1.jar"));
@@ -226,9 +207,6 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/task"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/type"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/verifier"));
-    context.addSourceFile(new File(
-        engineFolder2,
-        "com/google/dart/java2dart/util/ToFormattedSourceVisitor.java"));
     context.addSourceFile(new File(engineFolder, "com/google/dart/engine/AnalysisEngine.java"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/utilities/logging"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/context"));
@@ -241,6 +219,9 @@ public class MainEngine {
     context.addSourceFile(new File(
         engineFolder,
         "com/google/dart/engine/utilities/collection/BooleanArray.java"));
+    context.addSourceFile(new File(
+        engineFolder,
+        "com/google/dart/engine/utilities/collection/DirectedGraph.java"));
     context.addSourceFile(new File(
         engineFolder,
         "com/google/dart/engine/utilities/collection/ListUtilities.java"));
@@ -265,24 +246,8 @@ public class MainEngine {
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/internal/resolver"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/internal/scope"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/context"));
+    context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/source"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/internal/context"));
-    // configure renames
-    context.addRename(
-        "Lcom/google/dart/engine/ast/IndexExpression;.(Lcom/google/dart/engine/ast/Expression;"
-            + "Lcom/google/dart/engine/scanner/Token;Lcom/google/dart/engine/ast/Expression;"
-            + "Lcom/google/dart/engine/scanner/Token;)",
-        "forTarget");
-    context.addRename(
-        "Lcom/google/dart/engine/ast/IndexExpression;.(Lcom/google/dart/engine/scanner/Token;"
-            + "Lcom/google/dart/engine/scanner/Token;Lcom/google/dart/engine/ast/Expression;"
-            + "Lcom/google/dart/engine/scanner/Token;)",
-        "forCascade");
-    context.addRename(
-        "Lcom/google/dart/engine/sdk/DirectoryBasedDartSdk;.(Ljava/io/File;)",
-        "<empty>");
-    context.addRename(
-        "Lcom/google/dart/engine/html/ast/XmlTagNode;.becomeParentOf<T:Lcom/google/dart/engine/html/ast/XmlNode;>(Ljava/util/List<TT;>;Ljava/util/List<TT;>;)",
-        "becomeParentOfEmpty");
     // configure properties
     context.addNotProperty("Lcom/google/dart/engine/parser/Parser;.isFunctionDeclaration()");
     context.addNotProperty("Lcom/google/dart/engine/parser/Parser;.isInitializedVariableDeclaration()");
@@ -299,16 +264,19 @@ public class MainEngine {
           new PropertySemanticProcessor(context),
           new GuavaSemanticProcessor(context),
           new JUnitSemanticProcessor(context),
+          new EngineAnnotationProcessor(context),
+          new UniqueMemberNamesSemanticProcessor(context),
+          new RenameConstructorsSemanticProcessor(context),
           new EngineSemanticProcessor(context),
+          new EngineInstanceOfProcessor(context),
           new BeautifySemanticProcessor(context));
       for (SemanticProcessor processor : PROCESSORS) {
         processor.process(dartUnit);
       }
     }
     // run this again, because we may introduce conflicts when convert methods to getters/setters
-    context.ensureUniqueClassMemberNames(dartUnit);
+    context.ensureUniqueClassMemberNames();
     context.applyLocalVariableSemanticChanges(dartUnit);
-    // handle reflection
     EngineSemanticProcessor.rewriteReflectionFieldsWithDirect(context, dartUnit);
     // dump as several libraries
     Files.copy(new File("resources/java_core.dart"), new File(targetFolder + "/java_core.dart"));
@@ -415,8 +383,18 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildParserLibrary();
-      String source = getFormattedSource(library);
-      Files.write(source, new File(targetFolder + "/parser.dart"), Charsets.UTF_8);
+      // generate "methodTable_Parser"
+      StringWriter methodWriter = new StringWriter();
+      EngineSemanticProcessor.replaceReflection_generateParserTable(context, new PrintWriter(
+          methodWriter), dartUnit);
+      // write
+      File libraryFile = new File(targetFolder + "/parser.dart");
+      Files.write(getFormattedSource(library), libraryFile, Charsets.UTF_8);
+      Files.append(methodWriter.toString(), libraryFile, Charsets.UTF_8);
+      Files.append(
+          Files.toString(new File("resources/parser_include.dart"), Charsets.UTF_8),
+          libraryFile,
+          Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildSdkLibrary();
@@ -432,24 +410,6 @@ public class MainEngine {
     {
       CompilationUnit library = buildConstantLibrary();
       String source = getFormattedSource(library);
-      source = replaceSourceFragment(
-          source,
-          makeSource(
-              "  N findSink() {",
-              "    for (MapEntry<N, Set<N>> entry in getMapEntrySet(_edges)) {",
-              "      if (entry.getValue().isEmpty) {",
-              "        return entry.getKey();",
-              "      }",
-              "    }",
-              "    return null;",
-              "  }"),
-          makeSource(
-              "  N findSink() {",
-              "    for (N key in _edges.keys) {",
-              "      if (_edges[key].isEmpty) return key;",
-              "    }",
-              "    return null;",
-              "  }"));
       Files.write(source, new File(targetFolder + "/constant.dart"), Charsets.UTF_8);
     }
     {
@@ -508,16 +468,9 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildParserTestLibrary();
-      // replace reflection methods
-      StringWriter methodWriter = new StringWriter();
-      EngineSemanticProcessor.replaceReflectionMethods(
-          context,
-          new PrintWriter(methodWriter),
-          dartUnit);
-      // write to file
+      EngineSemanticProcessor.replaceReflection_invokeParserMethodImpl(library);
       File libraryFile = new File(targetTestFolder + "/parser_test.dart");
       Files.write(getFormattedSource(library), libraryFile, Charsets.UTF_8);
-      Files.append(methodWriter.toString(), libraryFile, Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildAstTestLibrary();
@@ -581,7 +534,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
-    unit.getDirectives().add(importDirective("source.dart", null, importShowCombinator("LineInfo")));
+    unit.getDirectives().add(
+        importDirective("source.dart", null, importShowCombinator("LineInfo", "Source")));
     unit.getDirectives().add(importDirective("scanner.dart", null));
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
@@ -602,7 +556,10 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "ast_test"));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
+    unit.getDirectives().add(
+        importDirective(src_package + "java_engine.dart", null, importShowCombinator("Predicate")));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
     unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
     unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
@@ -666,6 +623,8 @@ public class MainEngine {
         importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
     unit.getDirectives().add(
         importDirective("utilities_dart.dart", null, importShowCombinator("ParameterKind")));
+    unit.getDirectives().add(
+        importDirective("utilities_collection.dart", null, importShowCombinator("DirectedGraph")));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "constant/") || isEnginePath(file, "internal/constant/")
@@ -687,7 +646,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("scanner.dart", null, importShowCombinator("Keyword")));
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
-    unit.getDirectives().add(importDirective("html.dart", null, importShowCombinator("XmlTagNode")));
+    unit.getDirectives().add(
+        importDirective("html.dart", null, importShowCombinator("XmlAttributeNode", "XmlTagNode")));
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisContext")));
     unit.getDirectives().add(
@@ -724,7 +684,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(importDirective("test_support.dart", null));
     unit.getDirectives().add(
-        importDirective("ast_test.dart", null, importShowCombinator("ASTFactory")));
+        importDirective("ast_test.dart", null, importShowCombinator("AstFactory")));
     unit.getDirectives().add(
         importDirective(
             "resolver_test.dart",
@@ -799,7 +759,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", null, importShowCombinator("Token")));
-    unit.getDirectives().add(importDirective("ast.dart", null, importShowCombinator("ASTNode")));
+    unit.getDirectives().add(importDirective("ast.dart", null, importShowCombinator("AstNode")));
     unit.getDirectives().add(importDirective("element.dart", null, importShowCombinator("Element")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -883,7 +843,7 @@ public class MainEngine {
         unit,
         "ht",
         new String[] {"com.google.dart.engine.html."});
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitCatchClause(CatchClause node) {
         TypeName exceptionType = node.getExceptionType();
@@ -906,56 +866,6 @@ public class MainEngine {
           }
         }
         return null;
-      }
-
-      @Override
-      public Void visitMethodDeclaration(MethodDeclaration node) {
-        String name = node.getName().getName();
-        if (name.equals("createLocationIdentitySet")) {
-          node.setBody(expressionFunctionBody(instanceCreationExpression(
-              Keyword.NEW,
-              typeName("Set", typeName("Location")),
-              "identity")));
-          return null;
-        }
-        if (name.equals("isRemovedContext")) {
-          node.setBody(expressionFunctionBody(binaryExpression(
-              indexExpression(identifier("_removedContexts"), identifier("context")),
-              TokenType.BANG_EQ,
-              nullLiteral())));
-          return null;
-        }
-        if (name.equals("markRemovedContext")) {
-          AssignmentExpression expr = assignmentExpression(
-              indexExpression(identifier("_removedContexts"), identifier("context")),
-              TokenType.EQ,
-              booleanLiteral(true));
-          node.setBody(blockFunctionBody(expressionStatement(expr)));
-          return null;
-        }
-        if (name.equals("notifyOperationAvailable") || name.equals("waitForOperationAvailable")
-            || name.equals("threadYield") || name.equals("waitOneMs")) {
-          node.setBody(blockFunctionBody());
-          return null;
-        }
-        if (name.equals("removeForSource")) {
-          ExpressionFunctionBody closureBody = expressionFunctionBody(methodInvocation(
-              identifier("_"),
-              "removeWhenSourceRemoved",
-              identifier("source")));
-          closureBody.setSemicolon(null);
-          MethodInvocation expr = methodInvocation(
-              identifier("operations"),
-              "removeWhere",
-              functionExpression(formalParameterList(simpleFormalParameter("_")), closureBody));
-          node.setBody(blockFunctionBody(expressionStatement(expr)));
-          return null;
-        }
-        if (name.equals("readIndex") || name.equals("writeIndex")) {
-          ((ClassDeclaration) node.getParent()).getMembers().remove(node);
-          return null;
-        }
-        return super.visitMethodDeclaration(node);
       }
     });
     return unit;
@@ -1017,7 +927,7 @@ public class MainEngine {
     unit.getDirectives().add(
         importDirective("scanner_test.dart", null, importShowCombinator("TokenFactory")));
     unit.getDirectives().add(
-        importDirective("ast_test.dart", null, importShowCombinator("ASTFactory")));
+        importDirective("ast_test.dart", null, importShowCombinator("AstFactory")));
     unit.getDirectives().add(
         importDirective("element_test.dart", null, importShowCombinator("ElementFactory")));
     List<Statement> mainStatements = Lists.newArrayList();
@@ -1085,6 +995,8 @@ public class MainEngine {
     unit.getDirectives().add(libraryDirective("engine", "resolver_test"));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_engine_io.dart", null));
     unit.getDirectives().add(importDirective(src_package + "source_io.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
@@ -1094,7 +1006,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "element.dart", null));
     unit.getDirectives().add(importDirective(src_package + "resolver.dart", null));
     unit.getDirectives().add(importDirective(src_package + "engine.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "java_engine_io.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
     unit.getDirectives().add(
         importDirective(src_package + "sdk.dart", null, importShowCombinator("DartSdk")));
     unit.getDirectives().add(
@@ -1105,7 +1017,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(importDirective("test_support.dart", null));
     unit.getDirectives().add(
-        importDirective("ast_test.dart", null, importShowCombinator("ASTFactory")));
+        importDirective("ast_test.dart", null, importShowCombinator("AstFactory")));
     unit.getDirectives().add(
         importDirective("element_test.dart", null, importShowCombinator("ElementFactory")));
     List<Statement> mainStatements = Lists.newArrayList();
@@ -1250,11 +1162,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_io.dart", null));
-    unit.getDirectives().add(
-        importDirective(
-            "engine.dart",
-            null,
-            importShowCombinator("AnalysisContext", "AnalysisEngine")));
+    unit.getDirectives().add(importDirective("utilities_general.dart", null));
+    unit.getDirectives().add(importDirective("engine.dart", null));
     unit.getDirectives().add(exportDirective("source.dart"));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -1285,7 +1194,10 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
     unit.getDirectives().add(
-        importDirective("engine.dart", null, importShowCombinator("AnalysisContext")));
+        importDirective(
+            "engine.dart",
+            null,
+            importShowCombinator("AnalysisContext", "TimestampedData")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "source/Source.java")
@@ -1309,6 +1221,7 @@ public class MainEngine {
     unit.getDirectives().add(libraryDirective("engine", "test_support"));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "source.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
@@ -1316,17 +1229,13 @@ public class MainEngine {
         importDirective(
             src_package + "ast.dart",
             null,
-            importShowCombinator("ASTNode", "NodeLocator")));
+            importShowCombinator("AstNode", "NodeLocator")));
     unit.getDirectives().add(
         importDirective(
             src_package + "element.dart",
             null,
             importShowCombinator("InterfaceType", "MethodElement", "PropertyAccessorElement")));
-    unit.getDirectives().add(
-        importDirective(
-            src_package + "engine.dart",
-            null,
-            importShowCombinator("AnalysisContext", "AnalysisContextImpl", "RecordingErrorListener")));
+    unit.getDirectives().add(importDirective(src_package + "engine.dart", null));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
@@ -1388,7 +1297,6 @@ public class MainEngine {
         new FileUriResolver(),
         new PackageUriResolver(new File(projectPath + "/packages")));
     context.setSourceFactory(sourceFactory);
-    ContentCache contentCache = sourceFactory.getContentCache();
     // prepare sources
     List<Source> sources = Lists.newArrayList();
     Map<Source, File> sourceToFile = Maps.newHashMap();
@@ -1399,7 +1307,7 @@ public class MainEngine {
       if (file.getAbsolutePath().contains("/packages/")) {
         continue;
       }
-      FileBasedSource source = new FileBasedSource(contentCache, file);
+      FileBasedSource source = new FileBasedSource(file);
       sources.add(source);
       sourceToFile.put(source, file);
     }
@@ -1410,7 +1318,7 @@ public class MainEngine {
       if (file.getAbsolutePath().contains("/packages/")) {
         continue;
       }
-      FileBasedSource source = new FileBasedSource(contentCache, file);
+      FileBasedSource source = new FileBasedSource(file);
       sources.add(source);
       sourceToFile.put(source, file);
     }
@@ -1418,7 +1326,7 @@ public class MainEngine {
     {
       ChangeSet changeSet = new ChangeSet();
       for (Source source : sources) {
-        changeSet.added(source);
+        changeSet.addedSource(source);
       }
       context.applyChanges(changeSet);
     }
@@ -1439,11 +1347,11 @@ public class MainEngine {
       AnalysisError[] errors = errorInfo.getErrors();
       for (AnalysisError error : errors) {
         if (error.getErrorCode() == HintCode.UNNECESSARY_CAST) {
-          ASTNode node = new NodeLocator(error.getOffset()).searchWithin(unit);
+          AstNode node = new NodeLocator(error.getOffset()).searchWithin(unit);
           AsExpression asExpression = node.getAncestor(AsExpression.class);
           if (asExpression != null) {
             // remove "as" and its enclosing ()
-            ASTNode enclosing = asExpression;
+            AstNode enclosing = asExpression;
             if (enclosing.getParent() instanceof ParenthesizedExpression) {
               enclosing = enclosing.getParent();
             }
@@ -1465,9 +1373,9 @@ public class MainEngine {
   }
 
   /**
-   * @return the formatted Dart source dump of the given {@link ASTNode}.
+   * @return the formatted Dart source dump of the given {@link AstNode}.
    */
-  private static String getFormattedSource(ASTNode node) {
+  private static String getFormattedSource(AstNode node) {
     PrintStringWriter writer = new PrintStringWriter();
     writer.append(HEADER);
     node.accept(new ToFormattedSourceVisitor(writer));

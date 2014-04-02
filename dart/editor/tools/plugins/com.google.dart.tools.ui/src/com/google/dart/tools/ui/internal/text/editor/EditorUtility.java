@@ -25,7 +25,6 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -103,7 +102,7 @@ import java.util.Set;
  */
 public class EditorUtility {
 
-  private static final String ID_ORG_ECLIPSE_UI_DEFAULT_TEXT_EDITOR = "org.eclipse.ui.DefaultTextEditor"; //$NON-NLS-1$
+  public static final String ID_ORG_ECLIPSE_UI_DEFAULT_TEXT_EDITOR = "org.eclipse.ui.DefaultTextEditor"; //$NON-NLS-1$
 
   /**
    * Workaround a bug in 64 bit GTK linux that causes the active editor to steal paste insertions
@@ -491,9 +490,6 @@ public class EditorUtility {
 
     if (inputElement instanceof IFile) {
       return openInEditor((IFile) inputElement, activate);
-    }
-    if (inputElement instanceof HTMLFile) {
-      return openInEditor(((HTMLFile) inputElement).getCorrespondingResource(), activate);
     }
     DartX.todo();
 //    if (inputElement instanceof DartElement
@@ -985,11 +981,13 @@ public class EditorUtility {
 
       IEditorDescriptor desc = IDE.getEditorDescriptor(file, true);
 
-      IEditorPart editorPart = IDE.openEditor(
-          p,
-          file,
-          maybeSwapDefaultEditorDescriptor(desc.getId()),
-          activate);
+      String editorId = desc.getId();
+      editorId = maybeSwapDefaultEditorDescriptor(editorId);
+      if (DartUI.isTooComplexDartFile(file)) {
+        editorId = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
+      }
+
+      IEditorPart editorPart = IDE.openEditor(p, file, editorId, activate);
       initializeHighlightRange(editorPart);
       return editorPart;
     } catch (RuntimeException e) {

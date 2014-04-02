@@ -137,11 +137,11 @@
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+SHIFT+M">
       </key>
-      <key
+      <!--key
             commandId="org.eclipse.ui.file.refresh"
             sequence="F5"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration">
-      </key>      
+      </key-->
       <key
             commandId="org.eclipse.ui.window.activateEditor"
             sequence="F12"
@@ -376,6 +376,17 @@
       </file-association>      
    </extension>
    
+   <extension point="org.eclipse.core.contenttype.contentTypes">
+		<content-type
+			file-extensions="dart"
+			priority="high"
+			name="Dart"
+			id="com.google.dart.tools.dartsource"
+			base-type="org.eclipse.core.runtime.text">
+		</content-type>
+	</extension>
+   
+   
    <extension
          point="org.eclipse.ui.perspectives">
       <perspective
@@ -525,6 +536,19 @@
             name="Welcome">
       </editor>
    </extension>
+   
+   <extension point="org.eclipse.core.contenttype.contentTypes"> 
+      <file-association
+            content-type="org.eclipse.core.runtime.text"
+            file-names="BUILD"/>
+   </extension> 
+   
+   <extension point="org.eclipse.core.contenttype.contentTypes"> 
+      <file-association
+            content-type="org.eclipse.wst.css.core.csssource"
+            file-extensions="ess"/>
+   </extension> 
+   
 
    <extension-point id="com.google.dart.tools.ui.theme.mapper" name="Editor Mapping" schema="schema/com.google.dart.tools.ui.theme.mapper.exsd"/>
    <extension-point id="com.google.dart.tools.ui.theme.theme" name="Color Theme" schema="schema/com.google.dart.tools.ui.theme.theme.exsd"/>
@@ -680,6 +704,9 @@
       <theme
             file="themes/debugging.xml">
       </theme>
+      <theme
+            file="themes/rainbow.xml">
+      </theme>
    </extension>
 
    <extension point="org.eclipse.ui.perspectiveExtensions">
@@ -782,6 +809,13 @@
     </validator>
   </extension>
   
+  <extension point="org.eclipse.wst.sse.core.formatProcessors">
+		<processor
+        class="com.google.dart.tools.wst.ui.format.DartFormatProcessorImpl"
+        contentTypeId="com.google.dart.tools.dartsource">
+		</processor>
+	</extension>
+  
   <extension point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectorTargets">
     <target
       id="org.eclipse.wst.html.SCRIPT.type.APPLICATION/DART"
@@ -805,5 +839,33 @@
       targetId="org.eclipse.wst.html.core.htmlsource">
     </hyperlinkDetector>
    </extension>
+  <extension
+        point="org.eclipse.core.runtime.adapters">
+     <factory
+           adaptableType="org.eclipse.wst.sse.ui.StructuredTextEditor"
+           class="com.google.dart.tools.wst.ui.StructuredTextEditorToPrioritySourceAdapterFactory">
+        <adapter
+              type="com.google.dart.tools.ui.internal.text.dart.DartPrioritySourceEditor">
+        </adapter>
+     </factory>
+  </extension>
+
+  <extension point="org.eclipse.wst.sse.ui.completionProposal">
+     <proposalCategory
+           icon="icons/full/dart16/angular_16_blue.png"
+           id="com.google.dart.tools.wst.ui.proposalCategory.angular"
+           name="Angular">
+     </proposalCategory>
+     <proposalComputer
+           activate="false"
+           categoryId="com.google.dart.tools.wst.ui.proposalCategory.angular"
+           class="com.google.dart.tools.wst.ui.contentassist.AngularCompletionProposalComputer"
+           id="com.google.dart.tools.wst.ui.proposalComputer.angular">
+        <contentType id="org.eclipse.wst.html.core.htmlsource">
+           <partitionType id="org.eclipse.wst.html.HTML_DEFAULT"/>
+        </contentType>
+     </proposalComputer>
+  </extension>
+
 
 </plugin>

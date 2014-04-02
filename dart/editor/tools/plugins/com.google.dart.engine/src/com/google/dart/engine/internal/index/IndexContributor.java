@@ -19,11 +19,12 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
+import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
@@ -56,7 +57,7 @@ import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -100,7 +101,7 @@ import java.util.Set;
  * 
  * @coverage dart.engine.index
  */
-public class IndexContributor extends GeneralizingASTVisitor<Void> {
+public class IndexContributor extends GeneralizingAstVisitor<Void> {
   /**
    * Information about {@link ImportElement} and place where it is referenced using
    * {@link PrefixElement}.
@@ -139,20 +140,24 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   public static ImportElementInfo getImportElementInfo(SimpleIdentifier prefixNode) {
     ImportElementInfo info = new ImportElementInfo();
     // prepare environment
-    ASTNode parent = prefixNode.getParent();
+    AstNode parent = prefixNode.getParent();
     CompilationUnit unit = prefixNode.getAncestor(CompilationUnit.class);
     LibraryElement libraryElement = unit.getElement().getLibrary();
     // prepare used element
     Element usedElement = null;
     if (parent instanceof PrefixedIdentifier) {
       PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
-      usedElement = prefixed.getStaticElement();
-      info.periodEnd = prefixed.getPeriod().getEnd();
+      if (prefixed.getPrefix() == prefixNode) {
+        usedElement = prefixed.getStaticElement();
+        info.periodEnd = prefixed.getPeriod().getEnd();
+      }
     }
     if (parent instanceof MethodInvocation) {
       MethodInvocation invocation = (MethodInvocation) parent;
-      usedElement = invocation.getMethodName().getStaticElement();
-      info.periodEnd = invocation.getPeriod().getEnd();
+      if (invocation.getTarget() == prefixNode) {
+        usedElement = invocation.getMethodName().getStaticElement();
+        info.periodEnd = invocation.getPeriod().getEnd();
+      }
     }
     // we need used Element
     if (usedElement == null) {
@@ -161,83 +166,11 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     // find ImportElement
     String prefix = prefixNode.getName();
     Map<ImportElement, Set<Element>> importElementsMap = Maps.newHashMap();
-    info.element = getImportElement(libraryElement, prefix, usedElement, importElementsMap);
+    info.element = internalGetImportElement(libraryElement, prefix, usedElement, importElementsMap);
     if (info.element == null) {
       return null;
     }
     return info;
-  }
-
-  /**
-   * @return the {@link ImportElement} that declares given {@link PrefixElement} and imports library
-   *         with given "usedElement".
-   */
-  private static ImportElement getImportElement(LibraryElement libraryElement, String prefix,
-      Element usedElement, Map<ImportElement, Set<Element>> importElementsMap) {
-    // validate Element
-    if (usedElement == null) {
-      return null;
-    }
-    if (!(usedElement.getEnclosingElement() instanceof CompilationUnitElement)) {
-      return null;
-    }
-    LibraryElement usedLibrary = usedElement.getLibrary();
-    // find ImportElement that imports used library with used prefix
-    List<ImportElement> candidates = null;
-    for (ImportElement importElement : libraryElement.getImports()) {
-      // required library
-      if (!Objects.equal(importElement.getImportedLibrary(), usedLibrary)) {
-        continue;
-      }
-      // required prefix
-      PrefixElement prefixElement = importElement.getPrefix();
-      if (prefix == null) {
-        if (prefixElement != null) {
-          continue;
-        }
-      } else {
-        if (prefixElement == null) {
-          continue;
-        }
-        if (!prefix.equals(prefixElement.getName())) {
-          continue;
-        }
-      }
-      // no combinators => only possible candidate
-      if (importElement.getCombinators().length == 0) {
-        return importElement;
-      }
-      // OK, we have candidate
-      if (candidates == null) {
-        candidates = Lists.newArrayList();
-      }
-      candidates.add(importElement);
-    }
-    // no candidates, probably element is defined in this library
-    if (candidates == null) {
-      return null;
-    }
-    // one candidate
-    if (candidates.size() == 1) {
-      return candidates.get(0);
-    }
-    // ensure that each ImportElement has set of elements
-    for (ImportElement importElement : candidates) {
-      if (importElementsMap.containsKey(importElement)) {
-        continue;
-      }
-      Namespace namespace = new NamespaceBuilder().createImportNamespace(importElement);
-      Set<Element> elements = Sets.newHashSet(namespace.getDefinedNames().values());
-      importElementsMap.put(importElement, elements);
-    }
-    // use import namespace to choose correct one
-    for (Entry<ImportElement, Set<Element>> entry : importElementsMap.entrySet()) {
-      if (entry.getValue().contains(usedElement)) {
-        return entry.getKey();
-      }
-    }
-    // not found
-    return null;
   }
 
   /**
@@ -293,9 +226,9 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       return location;
     }
     // should be LHS of assignment
-    ASTNode parent;
+    AstNode parent;
     {
-      ASTNode node = identifier;
+      AstNode node = identifier;
       parent = node.getParent();
       // new T().field = x;
       if (parent instanceof PropertyAccess) {
@@ -325,10 +258,90 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
+   * @return the {@link ImportElement} that declares given {@link PrefixElement} and imports library
+   *         with given "usedElement".
+   */
+  private static ImportElement internalGetImportElement(LibraryElement libraryElement,
+      String prefix, Element usedElement, Map<ImportElement, Set<Element>> importElementsMap) {
+    // validate Element
+    if (usedElement == null) {
+      return null;
+    }
+    if (!(usedElement.getEnclosingElement() instanceof CompilationUnitElement)) {
+      return null;
+    }
+    LibraryElement usedLibrary = usedElement.getLibrary();
+    // find ImportElement that imports used library with used prefix
+    List<ImportElement> candidates = null;
+    for (ImportElement importElement : libraryElement.getImports()) {
+      // required library
+      if (!Objects.equal(importElement.getImportedLibrary(), usedLibrary)) {
+        continue;
+      }
+      // required prefix
+      PrefixElement prefixElement = importElement.getPrefix();
+      if (prefix == null) {
+        if (prefixElement != null) {
+          continue;
+        }
+      } else {
+        if (prefixElement == null) {
+          continue;
+        }
+        if (!prefix.equals(prefixElement.getName())) {
+          continue;
+        }
+      }
+      // no combinators => only possible candidate
+      if (importElement.getCombinators().length == 0) {
+        return importElement;
+      }
+      // OK, we have candidate
+      if (candidates == null) {
+        candidates = Lists.newArrayList();
+      }
+      candidates.add(importElement);
+    }
+    // no candidates, probably element is defined in this library
+    if (candidates == null) {
+      return null;
+    }
+    // one candidate
+    if (candidates.size() == 1) {
+      return candidates.get(0);
+    }
+    // ensure that each ImportElement has set of elements
+    for (ImportElement importElement : candidates) {
+      if (importElementsMap.containsKey(importElement)) {
+        continue;
+      }
+      Namespace namespace = new NamespaceBuilder().createImportNamespaceForDirective(importElement);
+      Set<Element> elements = Sets.newHashSet(namespace.getDefinedNames().values());
+      importElementsMap.put(importElement, elements);
+    }
+    // use import namespace to choose correct one
+    for (Entry<ImportElement, Set<Element>> entry : importElementsMap.entrySet()) {
+      if (entry.getValue().contains(usedElement)) {
+        return entry.getKey();
+      }
+    }
+    // not found
+    return null;
+  }
+
+  /**
+   * @return {@code true} if given "node" is part of an import {@link Combinator}.
+   */
+  private static boolean isIdentifierInImportCombinator(SimpleIdentifier node) {
+    AstNode parent = node.getParent();
+    return parent instanceof Combinator;
+  }
+
+  /**
    * @return {@code true} if given "node" is part of {@link PrefixedIdentifier} "prefix.node".
    */
   private static boolean isIdentifierInPrefixedIdentifier(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     return parent instanceof PrefixedIdentifier
         && ((PrefixedIdentifier) parent).getIdentifier() == node;
   }
@@ -338,7 +351,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    *         method invocation.
    */
   private static boolean isQualified(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof PrefixedIdentifier) {
       return ((PrefixedIdentifier) parent).getIdentifier() == node;
     }
@@ -418,7 +431,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
             recordRelationship(
                 objectElement,
                 IndexConstants.IS_EXTENDED_BY,
-                createLocation(node.getName().getOffset(), 0));
+                createLocationFromOffset(node.getName().getOffset(), 0));
           }
         }
       }
@@ -500,10 +513,10 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       if (node.getName() != null) {
         int start = node.getPeriod().getOffset();
         int end = node.getName().getEnd();
-        location = createLocation(start, end - start);
+        location = createLocationFromOffset(start, end - start);
       } else {
         int start = node.getReturnType().getEnd();
-        location = createLocation(start, 0);
+        location = createLocationFromOffset(start, 0);
       }
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
@@ -519,22 +532,28 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.getStaticElement();
+    // in 'class B = A;' actually A constructors are invoked
+    if (element != null && element.isSynthetic() && element.getRedirectedConstructor() != null) {
+      element = element.getRedirectedConstructor();
+    }
+    // prepare location
     Location location;
     if (node.getName() != null) {
       int start = node.getPeriod().getOffset();
       int end = node.getName().getEnd();
-      location = createLocation(start, end - start);
+      location = createLocationFromOffset(start, end - start);
     } else {
       int start = node.getType().getEnd();
-      location = createLocation(start, 0);
+      location = createLocationFromOffset(start, 0);
     }
+    // record relationship
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitConstructorName(node);
   }
 
   @Override
   public Void visitExportDirective(ExportDirective node) {
-    ExportElement element = (ExportElement) node.getElement();
+    ExportElement element = node.getElement();
     if (element != null) {
       LibraryElement expLibrary = element.getExportedLibrary();
       recordLibraryReference(node, expLibrary);
@@ -587,7 +606,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     MethodElement element = node.getBestElement();
     if (element instanceof MethodElement) {
       Token operator = node.getLeftBracket();
-      Location location = createLocation(operator);
+      Location location = createLocationFromToken(operator);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
     }
     return super.visitIndexExpression(node);
@@ -609,7 +628,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     SimpleIdentifier name = node.getMethodName();
     Element element = name.getBestElement();
     if (element instanceof MethodElement) {
-      Location location = createLocation(name);
+      Location location = createLocationFromNode(name);
       Relationship relationship;
       if (node.getTarget() != null) {
         relationship = IndexConstants.IS_INVOKED_BY_QUALIFIED;
@@ -619,7 +638,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       recordRelationship(element, relationship, location);
     }
     if (element instanceof FunctionElement) {
-      Location location = createLocation(name);
+      Location location = createLocationFromNode(name);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY, location);
     }
     recordImportElementReferenceWithoutPrefix(name);
@@ -629,14 +648,14 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitPartDirective(PartDirective node) {
     Element element = node.getElement();
-    Location location = createLocation(node.getUri());
+    Location location = createLocationFromNode(node.getUri());
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitPartDirective(node);
   }
 
   @Override
   public Void visitPartOfDirective(PartOfDirective node) {
-    Location location = createLocation(node.getLibraryName());
+    Location location = createLocationFromNode(node.getLibraryName());
     recordRelationship(node.getElement(), IndexConstants.IS_REFERENCED_BY, location);
     return null;
   }
@@ -656,7 +675,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     Element nameElement = new NameElementImpl(node.getName());
-    Location location = createLocation(node);
+    Location location = createLocationFromNode(node);
     // name in declaration
     if (node.inDeclarationContext()) {
       recordRelationship(nameElement, IndexConstants.IS_DEFINED_BY, location);
@@ -715,10 +734,10 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     if (node.getConstructorName() != null) {
       int start = node.getPeriod().getOffset();
       int end = node.getConstructorName().getEnd();
-      location = createLocation(start, end - start);
+      location = createLocationFromOffset(start, end - start);
     } else {
       int start = node.getKeyword().getEnd();
-      location = createLocation(start, 0);
+      location = createLocationFromOffset(start, 0);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitSuperConstructorInvocation(node);
@@ -751,7 +770,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     // record declaration
     {
       SimpleIdentifier name = node.getName();
-      Location location = createLocation(name);
+      Location location = createLocationFromNode(name);
       location = getLocationWithExpressionType(location, node.getInitializer());
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
@@ -800,10 +819,10 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return the {@link Location} representing location of the {@link ASTNode}.
+   * @return the {@link Location} representing location of the {@link AstNode}.
    */
-  private Location createLocation(ASTNode node) {
-    return createLocation(node.getOffset(), node.getLength());
+  private Location createLocationFromNode(AstNode node) {
+    return createLocationFromOffset(node.getOffset(), node.getLength());
   }
 
   /**
@@ -812,7 +831,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    * @return the {@link Location} representing the given offset and length within the inner-most
    *         {@link Element}.
    */
-  private Location createLocation(int offset, int length) {
+  private Location createLocationFromOffset(int offset, int length) {
     Element element = peekElement();
     return new Location(element, offset, length);
   }
@@ -820,8 +839,8 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   /**
    * @return the {@link Location} representing location of the {@link Token}.
    */
-  private Location createLocation(Token token) {
-    return createLocation(token.getOffset(), token.getLength());
+  private Location createLocationFromToken(Token token) {
+    return createLocationFromOffset(token.getOffset(), token.getLength());
   }
 
   /**
@@ -836,7 +855,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    *         not be indexed again.
    */
   private boolean isAlreadyHandledName(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof MethodInvocation) {
       Element element = node.getStaticElement();
       if (element instanceof MethodElement || element instanceof FunctionElement) {
@@ -860,13 +879,20 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    * top-level element and not qualified with import prefix.
    */
   private void recordImportElementReferenceWithoutPrefix(SimpleIdentifier node) {
+    if (isIdentifierInImportCombinator(node)) {
+      return;
+    }
     if (isIdentifierInPrefixedIdentifier(node)) {
       return;
     }
     Element element = node.getStaticElement();
-    ImportElement importElement = getImportElement(libraryElement, null, element, importElementsMap);
+    ImportElement importElement = internalGetImportElement(
+        libraryElement,
+        null,
+        element,
+        importElementsMap);
     if (importElement != null) {
-      Location location = createLocation(node.getOffset(), 0);
+      Location location = createLocationFromOffset(node.getOffset(), 0);
       recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -880,7 +906,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     if (info != null) {
       int offset = prefixNode.getOffset();
       int length = info.periodEnd - offset;
-      Location location = createLocation(offset, length);
+      Location location = createLocationFromOffset(offset, length);
       recordRelationship(info.element, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -891,7 +917,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    */
   private void recordLibraryReference(UriBasedDirective node, LibraryElement library) {
     if (library != null) {
-      Location location = createLocation(node.getUri());
+      Location location = createLocationFromNode(node.getUri());
       recordRelationship(
           library.getDefiningCompilationUnit(),
           IndexConstants.IS_REFERENCED_BY,
@@ -904,7 +930,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    */
   private void recordOperatorReference(Token operator, Element element) {
     // prepare location
-    Location location = createLocation(operator);
+    Location location = createLocationFromToken(operator);
     // record name reference
     {
       String name = operator.getLexeme();
@@ -952,7 +978,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       Identifier superName = superNode.getName();
       if (superName != null) {
         Element superElement = superName.getStaticElement();
-        recordRelationship(superElement, relationship, createLocation(superNode));
+        recordRelationship(superElement, relationship, createLocationFromNode(superNode));
       }
     }
   }

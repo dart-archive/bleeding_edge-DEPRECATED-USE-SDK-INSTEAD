@@ -15,7 +15,7 @@ package com.google.dart.engine.internal.constant;
 
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.VariableElement;
 
 import java.util.HashMap;
@@ -25,7 +25,7 @@ import java.util.HashMap;
  * the compilation units being resolved and build a table mapping constant variable elements to the
  * declarations of those variables.
  */
-public class ConstantFinder extends RecursiveASTVisitor<Void> {
+public class ConstantFinder extends RecursiveAstVisitor<Void> {
   /**
    * A table mapping constant variable elements to the declarations of those variables.
    */

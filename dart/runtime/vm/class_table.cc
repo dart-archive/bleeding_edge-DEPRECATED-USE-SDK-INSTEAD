@@ -96,9 +96,60 @@ void ClassTable::Register(const Class& cls) {
 }
 
 
+void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
+  ASSERT(index != kIllegalCid);
+  ASSERT(index >= kNumPredefinedCids);
+  if (index >= capacity_) {
+    // Grow the capacity of the class table.
+    intptr_t new_capacity = index + capacity_increment_;
+    if (new_capacity < capacity_) {
+      FATAL1("Fatal error in ClassTable::Register: invalid index %" Pd "\n",
+             index);
+    }
+    RawClass** new_table = reinterpret_cast<RawClass**>(
+        realloc(table_, new_capacity * sizeof(RawClass*)));  // NOLINT
+    ClassHeapStats* new_stats_table = reinterpret_cast<ClassHeapStats*>(
+        realloc(class_heap_stats_table_,
+                new_capacity * sizeof(ClassHeapStats)));  // NOLINT
+    for (intptr_t i = capacity_; i < new_capacity; i++) {
+      new_table[i] = NULL;
+      new_stats_table[i].Initialize();
+    }
+    capacity_ = new_capacity;
+    table_ = new_table;
+    class_heap_stats_table_ = new_stats_table;
+    ASSERT(capacity_increment_ >= 1);
+  }
+  ASSERT(table_[index] == 0);
+  cls.set_id(index);
+  table_[index] = cls.raw();
+  if (index >= top_) {
+    top_ = index + 1;
+  }
+}
+
+
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   visitor->VisitPointers(reinterpret_cast<RawObject**>(&table_[0]), top_);
+}
+
+
+void ClassTable::Validate() {
+  Class& cls = Class::Handle();
+  for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
+    // Some of the class table entries maybe NULL as we create some
+    // top level classes but do not add them to the list of anonymous
+    // classes in a library if there are no top level fields or functions.
+    // Since there are no references to these top level classes they are
+    // not written into a full snapshot and will not be recreated when
+    // we read back the full snapshot. These class slots end up with NULL
+    // entries.
+    if (HasValidClassAt(i)) {
+      cls = At(i);
+      ASSERT(cls.IsClass());
+    }
+  }
 }
 
 
@@ -116,12 +167,12 @@ void ClassTable::Print() {
 }
 
 
-void ClassTable::PrintToJSONStream(JSONStream* stream) {
+void ClassTable::PrintToJSONObject(JSONObject* object) {
   Class& cls = Class::Handle();
-  JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "ClassList");
+  object->AddProperty("type", "ClassList");
+  object->AddProperty("id", "classes");
   {
-    JSONArray members(&jsobj, "members");
+    JSONArray members(object, "members");
     for (intptr_t i = 1; i < top_; i++) {
       if (HasValidClassAt(i)) {
         cls = At(i);
@@ -133,42 +184,35 @@ void ClassTable::PrintToJSONStream(JSONStream* stream) {
 
 
 void ClassHeapStats::Initialize() {
-  allocated_before_gc_old_space = 0;
-  allocated_before_gc_new_space = 0;
-  allocated_size_before_gc_old_space = 0;
-  allocated_size_before_gc_new_space = 0;
-  live_after_gc_old_space = 0;
-  live_after_gc_new_space = 0;
-  live_size_after_gc_old_space = 0;
-  live_size_after_gc_new_space = 0;
-  allocated_since_gc_new_space = 0;
-  allocated_since_gc_old_space = 0;
-  allocated_size_since_gc_new_space = 0;
-  allocated_size_since_gc_old_space = 0;
+  pre_gc.Reset();
+  post_gc.Reset();
+  recent.Reset();
+  accumulated.Reset();
+  last_reset.Reset();
 }
 
 
 void ClassHeapStats::ResetAtNewGC() {
-  allocated_before_gc_new_space = live_after_gc_new_space +
-                                  allocated_since_gc_new_space;
-  allocated_size_before_gc_new_space = live_size_after_gc_new_space +
-                                       allocated_size_since_gc_new_space;
-  live_after_gc_new_space = 0;
-  live_size_after_gc_new_space = 0;
-  allocated_since_gc_new_space = 0;
-  allocated_size_since_gc_new_space = 0;
+  pre_gc.new_count = post_gc.new_count + recent.new_count;
+  pre_gc.new_size = post_gc.new_size + recent.new_size;
+  // Accumulate allocations.
+  accumulated.new_count += recent.new_count - last_reset.new_count;
+  accumulated.new_size += recent.new_size - last_reset.new_size;
+  last_reset.ResetNew();
+  post_gc.ResetNew();
+  recent.ResetNew();
 }
 
 
 void ClassHeapStats::ResetAtOldGC() {
-  allocated_before_gc_old_space = live_after_gc_old_space +
-                                  allocated_since_gc_old_space;
-  allocated_size_before_gc_old_space = live_size_after_gc_old_space +
-                                       allocated_size_since_gc_old_space;
-  live_after_gc_old_space = 0;
-  live_size_after_gc_old_space = 0;
-  allocated_since_gc_old_space = 0;
-  allocated_size_since_gc_old_space = 0;
+  pre_gc.old_count = post_gc.old_count + recent.old_count;
+  pre_gc.old_size = post_gc.old_size + recent.old_size;
+  // Accumulate allocations.
+  accumulated.old_count += recent.old_count - last_reset.old_count;
+  accumulated.old_size += recent.old_size - last_reset.old_size;
+  last_reset.ResetOld();
+  post_gc.ResetOld();
+  recent.ResetOld();
 }
 
 
@@ -176,42 +220,56 @@ void ClassHeapStats::UpdateSize(intptr_t instance_size) {
   ASSERT(instance_size > 0);
   // For classes with fixed instance size we do not emit code to update
   // the size statistics. Update them here.
-  allocated_size_before_gc_old_space =
-      allocated_before_gc_old_space * instance_size;
-  allocated_size_before_gc_new_space =
-      allocated_before_gc_new_space * instance_size;
-  live_size_after_gc_old_space =
-      live_after_gc_old_space * instance_size;
-  live_size_after_gc_new_space =
-      live_after_gc_new_space * instance_size;
-  allocated_size_since_gc_new_space =
-      allocated_since_gc_new_space * instance_size;
-  allocated_size_since_gc_old_space =
-      allocated_since_gc_old_space * instance_size;
+  pre_gc.old_size = pre_gc.old_count * instance_size;
+  pre_gc.new_size = pre_gc.new_count * instance_size;
+  post_gc.old_size = post_gc.old_count * instance_size;
+  post_gc.new_size = post_gc.new_count * instance_size;
+  recent.new_size = recent.new_count * instance_size;
+  recent.old_size = recent.old_count * instance_size;
+}
+
+
+void ClassHeapStats::ResetAccumulator() {
+  // Remember how much was allocated so we can subtract this from the result
+  // when printing.
+  last_reset.new_count = recent.new_count;
+  last_reset.new_size = recent.new_size;
+  last_reset.old_count = recent.old_count;
+  last_reset.old_size = recent.old_size;
+  accumulated.Reset();
 }
 
 
 void ClassHeapStats::PrintTOJSONArray(const Class& cls, JSONArray* array) {
   JSONObject obj(array);
   obj.AddProperty("type", "ClassHeapStats");
+  obj.AddPropertyF("id", "allocationprofile/%" Pd "", cls.id());
   obj.AddProperty("class", cls);
   {
     JSONArray new_stats(&obj, "new");
-    new_stats.AddValue(allocated_before_gc_new_space);
-    new_stats.AddValue(allocated_size_before_gc_new_space);
-    new_stats.AddValue(live_after_gc_new_space);
-    new_stats.AddValue(live_size_after_gc_new_space);
-    new_stats.AddValue(allocated_since_gc_new_space);
-    new_stats.AddValue(allocated_size_since_gc_new_space);
+    new_stats.AddValue(pre_gc.new_count);
+    new_stats.AddValue(pre_gc.new_size);
+    new_stats.AddValue(post_gc.new_count);
+    new_stats.AddValue(post_gc.new_size);
+    new_stats.AddValue(recent.new_count);
+    new_stats.AddValue(recent.new_size);
+    new_stats.AddValue64(accumulated.new_count + recent.new_count -
+                         last_reset.new_count);
+    new_stats.AddValue64(accumulated.new_size + recent.new_size -
+                         last_reset.new_size);
   }
   {
     JSONArray old_stats(&obj, "old");
-    old_stats.AddValue(allocated_before_gc_old_space);
-    old_stats.AddValue(allocated_size_before_gc_old_space);
-    old_stats.AddValue(live_after_gc_old_space);
-    old_stats.AddValue(live_size_after_gc_old_space);
-    old_stats.AddValue(allocated_since_gc_old_space);
-    old_stats.AddValue(allocated_size_since_gc_old_space);
+    old_stats.AddValue(pre_gc.old_count);
+    old_stats.AddValue(pre_gc.old_size);
+    old_stats.AddValue(post_gc.old_count);
+    old_stats.AddValue(post_gc.old_size);
+    old_stats.AddValue(recent.old_count);
+    old_stats.AddValue(recent.old_size);
+    old_stats.AddValue64(accumulated.old_count + recent.old_count -
+                         last_reset.old_count);
+    old_stats.AddValue64(accumulated.old_size + recent.old_size -
+                         last_reset.old_size);
   }
 }
 
@@ -220,8 +278,7 @@ void ClassTable::UpdateAllocatedNew(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = StatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size != 0);
-  stats->allocated_since_gc_new_space++;
-  stats->allocated_size_since_gc_new_space += size;
+  stats->recent.AddNew(size);
 }
 
 
@@ -229,8 +286,7 @@ void ClassTable::UpdateAllocatedOld(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = StatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size != 0);
-  stats->allocated_since_gc_old_space++;
-  stats->allocated_size_since_gc_old_space += size;
+  stats->recent.AddOld(size);
 }
 
 
@@ -276,6 +332,7 @@ void ClassTable::AllocationProfilePrintToJSONStream(JSONStream* stream) {
   ASSERT(heap != NULL);
   JSONObject obj(stream);
   obj.AddProperty("type", "AllocationProfile");
+  obj.AddProperty("id", "allocationprofile");
   {
     JSONObject heaps(&obj, "heaps");
     {
@@ -322,12 +379,48 @@ void ClassTable::AllocationProfilePrintToJSONStream(JSONStream* stream) {
 }
 
 
+void ClassTable::ResetAllocationAccumulators() {
+  Class& cls = Class::Handle();
+  for (intptr_t i = 1; i < kNumPredefinedCids; i++) {
+    if (!HasValidClassAt(i) || (i == kFreeListElement) || (i == kSmiCid)) {
+      continue;
+    }
+    cls = At(i);
+    if (!(cls.is_finalized() || cls.is_prefinalized())) {
+      // Not finalized.
+      continue;
+    }
+    // Update size before resetting accumulator.
+    if (ShouldUpdateSizeForClassId(i)) {
+      intptr_t instance_size = cls.instance_size();
+      predefined_class_heap_stats_table_[i].UpdateSize(instance_size);
+    }
+    predefined_class_heap_stats_table_[i].ResetAccumulator();
+  }
+  for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
+    if (!HasValidClassAt(i)) {
+      continue;
+    }
+    cls = At(i);
+    if (!(cls.is_finalized() || cls.is_prefinalized())) {
+      // Not finalized.
+      continue;
+    }
+    // Update size before resetting accumulator.
+    if (ShouldUpdateSizeForClassId(i)) {
+      intptr_t instance_size = cls.instance_size();
+      class_heap_stats_table_[i].UpdateSize(instance_size);
+    }
+    class_heap_stats_table_[i].ResetAccumulator();
+  }
+}
+
+
 void ClassTable::UpdateLiveOld(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = StatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size >= 0);
-  stats->live_after_gc_old_space++;
-  stats->live_size_after_gc_old_space += size;
+  stats->post_gc.AddOld(size);
 }
 
 
@@ -335,8 +428,7 @@ void ClassTable::UpdateLiveNew(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = StatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size >= 0);
-  stats->live_after_gc_new_space++;
-  stats->live_size_after_gc_new_space += size;
+  stats->post_gc.AddNew(size);
 }
 
 

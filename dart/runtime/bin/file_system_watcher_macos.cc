@@ -18,6 +18,8 @@
 #include "bin/socket.h"
 #include "bin/thread.h"
 
+#include "platform/signal_blocker.h"
+
 
 #ifndef MAC_OS_X_VERSION_10_7
 enum {
@@ -71,7 +73,7 @@ class FSEventsWatcher {
 
     ~Node() {
       Stop();
-      close(write_fd_);
+      VOID_TEMP_FAILURE_RETRY(close(write_fd_));
       CFRelease(path_ref_);
     }
 
@@ -97,7 +99,8 @@ class FSEventsWatcher {
 
     static void StartCallback(CFRunLoopTimerRef timer, void* info) {
       Node* node = reinterpret_cast<Node*>(info);
-      ASSERT(node->watcher_->threadId_ == Thread::GetCurrentThreadId());
+      ASSERT(Thread::Compare(node->watcher_->threadId_,
+                             Thread::GetCurrentThreadId()));
       FSEventStreamContext context;
       memset(&context, 0, sizeof(context));
       context.info = reinterpret_cast<void*>(node);
@@ -148,7 +151,8 @@ class FSEventsWatcher {
 
     static void StopCallback(CFRunLoopTimerRef timer, void* info) {
       Node* node = reinterpret_cast<Node*>(info);
-      ASSERT(node->watcher_->threadId_ == Thread::GetCurrentThreadId());
+      ASSERT(Thread::Compare(node->watcher_->threadId_,
+                             Thread::GetCurrentThreadId()));
       FSEventStreamStop(node->ref_);
       FSEventStreamInvalidate(node->ref_);
       FSEventStreamRelease(node->ref_);
@@ -240,7 +244,8 @@ class FSEventsWatcher {
 
   static void StopCallback(CFRunLoopTimerRef timer, void* info) {
     FSEventsWatcher* watcher = reinterpret_cast<FSEventsWatcher*>(info);
-    ASSERT(watcher->threadId_ == Thread::GetCurrentThreadId());
+    ASSERT(Thread::Compare(watcher->threadId_,
+                           Thread::GetCurrentThreadId()));
     CFRunLoopStop(watcher->run_loop_);
   }
 
@@ -258,7 +263,7 @@ class FSEventsWatcher {
 
   Node* AddPath(const char* path, int events, bool recursive) {
     int fds[2];
-    VOID_TEMP_FAILURE_RETRY(pipe(fds));
+    VOID_NO_RETRY_EXPECTED(pipe(fds));
     Socket::SetNonBlocking(fds[0]);
     Socket::SetBlocking(fds[1]);
 
@@ -276,7 +281,8 @@ class FSEventsWatcher {
                        const FSEventStreamEventFlags event_flags[],
                        const FSEventStreamEventId event_ids[]) {
     Node* node = reinterpret_cast<Node*>(client);
-    ASSERT(node->watcher()->threadId_ == Thread::GetCurrentThreadId());
+    ASSERT(Thread::Compare(node->watcher()->threadId_,
+                           Thread::GetCurrentThreadId()));
     // `ready` is set on same thread as this callback is invoked, so we don't
     // need to lock here.
     if (!node->ready()) return;

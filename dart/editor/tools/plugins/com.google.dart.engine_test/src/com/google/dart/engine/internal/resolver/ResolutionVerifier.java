@@ -13,7 +13,8 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Annotation;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -33,9 +34,10 @@ import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -53,22 +55,22 @@ import java.util.Set;
  * Instances of the class {@code ResolutionVerifier} verify that all of the nodes in an AST
  * structure that should have been resolved were resolved.
  */
-public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
+public class ResolutionVerifier extends RecursiveAstVisitor<Void> {
   /**
    * A set containing nodes that are known to not be resolvable and should therefore not cause the
    * test to fail.
    */
-  private Set<ASTNode> knownExceptions;
+  private Set<AstNode> knownExceptions;
 
   /**
    * A list containing all of the AST nodes that were not resolved.
    */
-  private ArrayList<ASTNode> unresolvedNodes = new ArrayList<ASTNode>();
+  private ArrayList<AstNode> unresolvedNodes = new ArrayList<AstNode>();
 
   /**
    * A list containing all of the AST nodes that were resolved to an element of the wrong type.
    */
-  private ArrayList<ASTNode> wrongTypedNodes = new ArrayList<ASTNode>();
+  private ArrayList<AstNode> wrongTypedNodes = new ArrayList<AstNode>();
 
   /**
    * Initialize a newly created verifier to verify that all of the nodes in the visited AST
@@ -87,7 +89,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
    * @param knownExceptions a set containing nodes that are known to not be resolvable and should
    *          therefore not cause the test to fail
    **/
-  public ResolutionVerifier(Set<ASTNode> knownExceptions) {
+  public ResolutionVerifier(Set<AstNode> knownExceptions) {
     this.knownExceptions = knownExceptions;
   }
 
@@ -111,6 +113,20 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
       }
       Assert.fail(writer.toString());
     }
+  }
+
+  @Override
+  public Void visitAnnotation(Annotation node) {
+    node.visitChildren(this);
+    ElementAnnotation elementAnnotation = node.getElementAnnotation();
+    if (elementAnnotation == null) {
+      if (knownExceptions == null || !knownExceptions.contains(node)) {
+        unresolvedNodes.add(node);
+      }
+    } else if (!(elementAnnotation instanceof ElementAnnotation)) {
+      wrongTypedNodes.add(node);
+    }
+    return null;
   }
 
   @Override
@@ -224,7 +240,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (prefixType == null || prefixType.isDynamic()) {
       return null;
     }
-    return checkResolved(node, node.getStaticElement());
+    return checkResolved(node, node.getStaticElement(), null);
   }
 
   @Override
@@ -256,7 +272,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (node.getName().equals("void")) {
       return null;
     }
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof MethodInvocation) {
       MethodInvocation invocation = ((MethodInvocation) parent);
       if (invocation.getMethodName() == node) {
@@ -267,14 +283,10 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
         }
       }
     }
-    return checkResolved(node, node.getStaticElement());
+    return checkResolved(node, node.getStaticElement(), null);
   }
 
-  private Void checkResolved(ASTNode node, Element element) {
-    return checkResolved(node, element, null);
-  }
-
-  private Void checkResolved(ASTNode node, Element element, Class<? extends Element> expectedClass) {
+  private Void checkResolved(AstNode node, Element element, Class<? extends Element> expectedClass) {
     if (element == null) {
       if (knownExceptions == null || !knownExceptions.contains(node)) {
         unresolvedNodes.add(node);
@@ -287,11 +299,11 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     return null;
   }
 
-  private String getFileName(ASTNode node) {
+  private String getFileName(AstNode node) {
     // TODO (jwren) there are two copies of this method, one here and one in StaticTypeVerifier,
     // they should be resolved into a single method
     if (node != null) {
-      ASTNode root = node.getRoot();
+      AstNode root = node.getRoot();
       if (root instanceof CompilationUnit) {
         CompilationUnit rootCU = ((CompilationUnit) root);
         if (rootCU.getElement() != null) {
@@ -306,8 +318,8 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     return "<unknown file- ASTNode is null>";
   }
 
-  private void printNodes(PrintStringWriter writer, ArrayList<ASTNode> nodes) {
-    for (ASTNode identifier : nodes) {
+  private void printNodes(PrintStringWriter writer, ArrayList<AstNode> nodes) {
+    for (AstNode identifier : nodes) {
       writer.print("  ");
       writer.print(identifier.toString());
       writer.print(" (");

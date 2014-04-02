@@ -5,6 +5,7 @@
 library base_request;
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'byte_stream.dart';
 import 'client.dart';
@@ -26,12 +27,17 @@ abstract class BaseRequest {
   /// The URL to which the request will be sent.
   final Uri url;
 
-  /// The size of the request body, in bytes. This defaults to -1, which
-  /// indicates that the size of the request is not known in advance.
+  /// The size of the request body, in bytes.
+  ///
+  /// This defaults to `null`, which indicates that the size of the request is
+  /// not known in advance.
   int get contentLength => _contentLength;
-  int _contentLength = -1;
+  int _contentLength;
 
   set contentLength(int value) {
+    if (value != null && value < 0) {
+      throw new ArgumentError("Invalid content length $value.");
+    }
     _checkFinalized();
     _contentLength = value;
   }
@@ -79,7 +85,9 @@ abstract class BaseRequest {
 
   /// Creates a new HTTP request.
   BaseRequest(this.method, this.url)
-    : headers = <String, String>{};
+    : headers = new LinkedHashMap(
+        equals: (key1, key2) => key1.toLowerCase() == key2.toLowerCase(),
+        hashCode: (key) => key.toLowerCase().hashCode);
 
   /// Finalizes the HTTP request in preparation for it being sent. This freezes
   /// all mutable fields and returns a single-subscription [ByteStream] that
@@ -110,7 +118,7 @@ abstract class BaseRequest {
       return new StreamedResponse(
           new ByteStream(stream),
           response.statusCode,
-          response.contentLength,
+          contentLength: response.contentLength,
           request: response.request,
           headers: response.headers,
           isRedirect: response.isRedirect,

@@ -13,10 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.callhierarchy;
 
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.model.CompilationUnitElement;
-import com.google.dart.tools.core.model.DartElement;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import java.util.Arrays;
@@ -77,20 +73,6 @@ class CalleeMethodWrapper extends MethodWrapper {
    */
   @Override
   protected Map<String, MethodCall> findChildren(IProgressMonitor progressMonitor) {
-    DartElement member = getMember();
-    if (member.exists()) {
-      DartUnit cu = CallHierarchy.getCompilationUnitNode((CompilationUnitElement) member, true);
-      if (progressMonitor != null) {
-        progressMonitor.worked(5);
-      }
-
-      if (cu != null) {
-        CalleeAnalyzerVisitor visitor = new CalleeAnalyzerVisitor(member, progressMonitor);
-
-        cu.accept(visitor);
-        return visitor.getCallees();
-      }
-    }
     return new HashMap<String, MethodCall>(0);
   }
 

@@ -19,6 +19,13 @@ package com.google.dart.engine.context;
  */
 public interface AnalysisOptions {
   /**
+   * Return {@code true} if analysis is to analyze Angular.
+   * 
+   * @return {@code true} if analysis is to analyze Angular
+   */
+  public boolean getAnalyzeAngular();
+
+  /**
    * Return {@code true} if analysis is to parse and analyze function bodies.
    * 
    * @return {@code true} if analysis is to parse and analyzer function bodies

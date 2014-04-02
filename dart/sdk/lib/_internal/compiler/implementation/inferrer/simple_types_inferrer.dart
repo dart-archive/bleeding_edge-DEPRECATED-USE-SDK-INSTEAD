@@ -9,12 +9,12 @@ import '../dart_types.dart'
     show DartType, InterfaceType, FunctionType, TypeKind;
 import '../elements/elements.dart';
 import '../native_handler.dart' as native;
-import '../tree/tree.dart';
-import '../ir/ir_nodes.dart' show IrNode;
+import '../tree/tree.dart' as ast;
+import '../ir/ir_nodes.dart' as ir show Node;
 import '../util/util.dart' show Link, Spannable, Setlet;
 import '../types/types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
-         ElementTypeMask, TypeSystem, MinimalInferrerEngine;
+         ElementTypeMask, ValueTypeMask, TypeSystem, MinimalInferrerEngine;
 import 'inferrer_visitor.dart';
 
 // BUG(8802): There's a bug in the analyzer that makes the re-export
@@ -92,6 +92,8 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask get typeType => compiler.typesTask.typeType;
   bool isNull(TypeMask mask) => mask.isEmpty && mask.isNullable;
 
+  TypeMask stringLiteralType(ast.DartString value) => stringType;
+
   TypeMask nonNullSubtype(ClassElement type)
       => new TypeMask.nonNullSubtype(type.declaration);
   TypeMask nonNullSubclass(ClassElement type)
@@ -101,18 +103,18 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
 
   TypeMask allocateList(TypeMask type,
-                        Node node,
+                        ast.Node node,
                         Element enclosing,
                         [TypeMask elementType, int length]) {
     return new ContainerTypeMask(type, node, enclosing, elementType, length);
   }
 
-  TypeMask allocateMap(TypeMask type, Node node, Element element,
-                       [TypeMask keys, TypeMask values]) {
+  TypeMask allocateMap(TypeMask type, ast.Node node, Element element,
+                       [List<TypeMask> keys, List<TypeMask> values]) {
     return type;
   }
 
-  TypeMask allocateClosure(Node node, Element element) {
+  TypeMask allocateClosure(ast.Node node, Element element) {
     return functionType;
   }
 
@@ -124,11 +126,11 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return computeLUB(phiType, newType);
   }
 
-  TypeMask allocatePhi(Node node, Element element, TypeMask inputType) {
+  TypeMask allocatePhi(ast.Node node, Element element, TypeMask inputType) {
     return inputType;
   }
 
-  TypeMask simplifyPhi(Node node, Element element, TypeMask phiType) {
+  TypeMask simplifyPhi(ast.Node node, Element element, TypeMask phiType) {
     return phiType;
   }
 
@@ -149,7 +151,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     implements MinimalInferrerEngine<T> {
   final Compiler compiler;
   final V types;
-  final Map<Node, T> concreteTypes = new Map<Node, T>();
+  final Map<ast.Node, T> concreteTypes = new Map<ast.Node, T>();
   final Set<Element> generativeConstructorsExposingThis = new Set<Element>();
 
   InferrerEngine(this.compiler, this.types);
@@ -174,7 +176,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
    *
    * [nodeHolder] is the element holder of [node].
    */
-  void recordTypeOfFinalField(Node node,
+  void recordTypeOfFinalField(ast.Node node,
                               Element nodeHolder,
                               Element field,
                               T type);
@@ -186,10 +188,9 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   void recordTypeOfNonFinalField(Spannable node, Element field, T type);
 
   /**
-   * Records that [element] is of type [type]. Returns whether the
-   * type is useful for the inferrer.
+   * Records that [element] is of type [type].
    */
-  bool recordType(Element element, T type);
+  void recordType(Element element, T type);
 
   /**
    * Records that the return type [element] is of type [type].
@@ -223,7 +224,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
    *
    * [inLoop] tells whether the call happens in a loop.
    */
-  T registerCalledSelector(Node node,
+  T registerCalledSelector(ast.Node node,
                            Selector selector,
                            T receiverType,
                            Element caller,
@@ -239,7 +240,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
    *
    * [inLoop] tells whether the call happens in a loop.
    */
-  T registerCalledClosure(Node node,
+  T registerCalledClosure(ast.Node node,
                           Selector selector,
                           T closure,
                           Element caller,
@@ -353,11 +354,11 @@ abstract class InferrerEngine<T, V extends TypeSystem>
 
   void updateSelectorInTree(
       Element owner, Spannable node, Selector selector) {
-    if (node is IrNode) {
+    if (node is ir.Node) {
       // TODO(lry): update selector for IrInvokeDynamic.
       throw "updateSelector for IR node $node";
     }
-    Node astNode = node;
+    ast.Node astNode = node;
     var elements = compiler.enqueuer.resolution.getCachedElements(owner);
     if (astNode.asSendSet() != null) {
       if (selector.isSetter() || selector.isIndexSet()) {
@@ -390,7 +391,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
         && element.isField();
   }
 
-  void analyze(Element element);
+  void analyze(Element element, ArgumentsTypes arguments);
 
   bool checkIfExposesThis(Element element) {
     element = element.implementation;
@@ -422,30 +423,34 @@ class SimpleTypeInferrerVisitor<T>
                                      compiler,
                                      locals)
     : super(analyzedElement, inferrer, inferrer.types, compiler, locals),
-      this.inferrer = inferrer;
-
-  factory SimpleTypeInferrerVisitor(Element element,
-                                    Compiler compiler,
-                                    InferrerEngine<T, TypeSystem<T>> inferrer,
-                                    [LocalsHandler<T> handler]) {
-    Element outermostElement =
-        element.getOutermostEnclosingMemberOrTopLevel().implementation;
+      this.inferrer = inferrer {
     assert(outermostElement != null);
-    return new SimpleTypeInferrerVisitor<T>.internal(
-        element, outermostElement, inferrer, compiler, handler);
   }
 
-  void analyzeSuperConstructorCall(Element target) {
-    inferrer.analyze(target);
+  SimpleTypeInferrerVisitor(Element element,
+                            Compiler compiler,
+                            InferrerEngine<T, TypeSystem<T>> inferrer,
+                            [LocalsHandler<T> handler])
+    : this.internal(element,
+        element.getOutermostEnclosingMemberOrTopLevel().implementation,
+        inferrer, compiler, handler);
+
+  void analyzeSuperConstructorCall(Element target, ArgumentsTypes arguments) {
+    inferrer.analyze(target, arguments);
     isThisExposed = isThisExposed || inferrer.checkIfExposesThis(target);
   }
 
   T run() {
     var node = analyzedElement.parseNode(compiler);
-    if (analyzedElement.isField() && node.asSendSet() == null) {
-      // Eagerly bailout, because computing the closure data only
-      // works for functions and field assignments.
-      return types.nullType;
+    ast.Expression initializer;
+    if (analyzedElement.isField()) {
+      VariableElement fieldElement = analyzedElement;
+      initializer = fieldElement.initializer;
+      if (initializer == null) {
+        // Eagerly bailout, because computing the closure data only
+        // works for functions and field assignments.
+        return types.nullType;
+      }
     }
     // Update the locals that are boxed in [locals]. These locals will
     // be handled specially, in that we are computing their LUB at
@@ -454,19 +459,21 @@ class SimpleTypeInferrerVisitor<T>
     ClosureClassMap closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
             analyzedElement, node, elements);
+    closureData.forEachCapturedVariable((variable, field) {
+      locals.setCaptured(variable, field);
+    });
     closureData.forEachBoxedVariable((variable, field) {
       locals.setCapturedAndBoxed(variable, field);
     });
     if (analyzedElement.isField()) {
-      return visit(node.asSendSet().arguments.head);
+      return visit(initializer);
     }
 
     FunctionElement function = analyzedElement;
-    FunctionSignature signature = function.computeSignature(compiler);
+    FunctionSignature signature = function.functionSignature;
     signature.forEachOptionalParameter((element) {
-      Node node = element.parseNode(compiler);
-      Send send = node.asSendSet();
-      T type = (send == null) ? types.nullType : visit(send.arguments.head);
+      ast.Expression defaultValue = element.initializer;
+      T type = (defaultValue == null) ? types.nullType : visit(defaultValue);
       inferrer.setDefaultTypeOfParameter(element, type);
     });
 
@@ -515,7 +522,7 @@ class SimpleTypeInferrerVisitor<T>
           Selector selector =
               new Selector.callDefaultConstructor(analyzedElement.getLibrary());
           FunctionElement target = cls.superclass.lookupConstructor(selector);
-          analyzeSuperConstructorCall(target);
+          analyzeSuperConstructorCall(target, new ArgumentsTypes([], {}));
           synthesizeForwardingCall(analyzedElement, target);
         }
         visit(node.body);
@@ -527,7 +534,7 @@ class SimpleTypeInferrerVisitor<T>
         cls.forEachInstanceField((_, field) {
           if (field.modifiers.isFinal()) return;
           T type = locals.fieldScope.readField(field);
-          if (type == null && field.parseNode(compiler).asSendSet() == null) {
+          if (type == null && field.initializer == null) {
             inferrer.recordTypeOfNonFinalField(node, field, types.nullType);
           }
         });
@@ -557,7 +564,7 @@ class SimpleTypeInferrerVisitor<T>
     return returnType;
   }
 
-  T visitFunctionExpression(FunctionExpression node) {
+  T visitFunctionExpression(ast.FunctionExpression node) {
     Element element = elements[node];
     // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
@@ -591,7 +598,7 @@ class SimpleTypeInferrerVisitor<T>
     });
   }
 
-  T visitFunctionDeclaration(FunctionDeclaration node) {
+  T visitFunctionDeclaration(ast.FunctionDeclaration node) {
     Element element = elements[node];
     T type = inferrer.concreteTypes.putIfAbsent(node.function, () {
       return types.allocateClosure(node.function, element);
@@ -601,13 +608,26 @@ class SimpleTypeInferrerVisitor<T>
     return type;
   }
 
-  T visitLiteralList(LiteralList node) {
+  T visitStringInterpolation(ast.StringInterpolation node) {
+    // Interpolation could have any effects since it could call any toString()
+    // method.
+    // TODO(sra): This could be modelled by a call to toString() but with a
+    // guaranteed String return type.  Interpolation of known types would get
+    // specialized effects.  This would not currently be effective since the JS
+    // code in the toString methods for intercepted primitive types is assumed
+    // to have all effects.  Effect annotations on JS code would be needed to
+    // get the benefit.
+    sideEffects.setAllSideEffects();
+    return super.visitStringInterpolation(node);
+  }
+
+  T visitLiteralList(ast.LiteralList node) {
     // We only set the type once. We don't need to re-visit the children
     // when re-analyzing the node.
     return inferrer.concreteTypes.putIfAbsent(node, () {
       T elementType;
       int length = 0;
-      for (Node element in node.elements.nodes) {
+      for (ast.Node element in node.elements.nodes) {
         T type = visit(element);
         elementType = elementType == null
             ? types.allocatePhi(null, null, type)
@@ -629,39 +649,27 @@ class SimpleTypeInferrerVisitor<T>
     });
   }
 
-  T visitLiteralMap(LiteralMap node) {
+  T visitLiteralMap(ast.LiteralMap node) {
     return inferrer.concreteTypes.putIfAbsent(node, () {
-      NodeList entries = node.entries;
-      T keyType;
-      T valueType;
-      if (entries.isEmpty) {
-        keyType = types.nonNullEmpty();
-        valueType = types.nonNullEmpty();
-      } else {
-        for (LiteralMapEntry entry in entries) {
-          T key = visit(entry.key);
-          keyType = keyType == null
-              ? types.allocatePhi(null, null, key)
-              : types.addPhiInput(null, keyType, key);
+      ast.NodeList entries = node.entries;
+      List<T> keyTypes = [];
+      List<T> valueTypes = [];
 
-          T value = visit(entry.value);
-          valueType = valueType == null
-              ? types.allocatePhi(null, null, value)
-              : types.addPhiInput(null, valueType, value);
-        }
-        keyType = types.simplifyPhi(null, null, keyType);
-        valueType = types.simplifyPhi(null, null, valueType);
+      for (ast.LiteralMapEntry entry in entries) {
+        keyTypes.add(visit(entry.key));
+        valueTypes.add(visit(entry.value));
       }
+
       T type = node.isConst() ? types.constMapType : types.mapType;
       return types.allocateMap(type,
                                node,
                                outermostElement,
-                               keyType,
-                               valueType);
+                               keyTypes,
+                               valueTypes);
     });
   }
 
-  bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();
+  bool isThisOrSuper(ast.Node node) => node.isThis() || node.isSuper();
 
   bool isInClassOrSubclass(Element element) {
     ClassElement cls = outermostElement.getEnclosingClass();
@@ -677,7 +685,7 @@ class SimpleTypeInferrerVisitor<T>
             && isInClassOrSubclass(element)
             && !element.modifiers.isFinal()
             && locals.fieldScope.readField(element) == null
-            && element.parseNode(compiler).asSendSet() == null) {
+            && element.initializer == null) {
           // If the field is being used before this constructor
           // actually had a chance to initialize it, say it can be
           // null.
@@ -705,7 +713,7 @@ class SimpleTypeInferrerVisitor<T>
         || (element != null && element.isInstanceMember());
   }
 
-  T visitSendSet(SendSet node) {
+  T visitSendSet(ast.SendSet node) {
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType()) {
       node.visitChildren(this);
@@ -747,7 +755,7 @@ class SimpleTypeInferrerVisitor<T>
     }
 
     if (!visitingInitializers && !isThisExposed) {
-      for (Node node in node.arguments) {
+      for (ast.Node node in node.arguments) {
         if (isThisOrSuper(node)) {
           isThisExposed = true;
           break;
@@ -846,12 +854,12 @@ class SimpleTypeInferrerVisitor<T>
     }
   }
 
-  T handlePlainAssignment(Node node,
+  T handlePlainAssignment(ast.Node node,
                           Element element,
                           Selector setterSelector,
                           T receiverType,
                           T rhsType,
-                          Node rhs) {
+                          ast.Node rhs) {
     ArgumentsTypes arguments = new ArgumentsTypes<T>([rhsType], null);
     if (Elements.isErroneousElement(element)) {
       // Code will always throw.
@@ -897,19 +905,19 @@ class SimpleTypeInferrerVisitor<T>
     return rhsType;
   }
 
-  T visitSuperSend(Send node) {
+  T visitSuperSend(ast.Send node) {
     Element element = elements[node];
+    ArgumentsTypes arguments = node.isPropertyAccess
+        ? null
+        : analyzeArguments(node.arguments);
     if (visitingInitializers) {
       seenSuperConstructorCall = true;
-      analyzeSuperConstructorCall(element);
+      analyzeSuperConstructorCall(element, arguments);
     }
     Selector selector = elements.getSelector(node);
     // TODO(ngeoffray): We could do better here if we knew what we
     // are calling does not expose this.
     isThisExposed = true;
-    ArgumentsTypes arguments = node.isPropertyAccess
-        ? null
-        : analyzeArguments(node.arguments);
     if (Elements.isUnresolved(element)
         || !selector.applies(element, compiler)) {
       // Ensure we create a node, to make explicit the call to the
@@ -927,10 +935,10 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   // Try to find the length given to a fixed array constructor call.
-  int findLength(Send node) {
-    Node firstArgument = node.arguments.head;
+  int findLength(ast.Send node) {
+    ast.Node firstArgument = node.arguments.head;
     Element element = elements[firstArgument];
-    LiteralInt length = firstArgument.asLiteralInt();
+    ast.LiteralInt length = firstArgument.asLiteralInt();
     if (length != null) {
       return length.value;
     } else if (element != null
@@ -939,30 +947,31 @@ class SimpleTypeInferrerVisitor<T>
                && compiler.world.fieldNeverChanges(element)) {
       var constant =
           compiler.constantHandler.getConstantForVariable(element);
-      if (constant != null && constant.isInt()) {
+      if (constant != null && constant.isInt) {
         return constant.value;
       }
     }
     return null;
   }
 
-  T visitStaticSend(Send node) {
+  T visitStaticSend(ast.Send node) {
     Element element = elements[node];
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (visitingInitializers) {
-      if (Initializers.isConstructorRedirect(node)) {
+      if (ast.Initializers.isConstructorRedirect(node)) {
         isConstructorRedirect = true;
-      } else if (Initializers.isSuperConstructorCall(node)) {
+      } else if (ast.Initializers.isSuperConstructorCall(node)) {
         seenSuperConstructorCall = true;
-        analyzeSuperConstructorCall(element);
+        analyzeSuperConstructorCall(element, arguments);
       }
     }
     if (element.isForeign(compiler)) {
       return handleForeignSend(node);
     }
     Selector selector = elements.getSelector(node);
-    ArgumentsTypes arguments = analyzeArguments(node.arguments);
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
+    // TODO(polux): return nonNullEmpty and check it doesn't break anything
     if (!selector.applies(element, compiler)) return types.dynamicType;
 
     T returnType = handleStaticSend(node, selector, element, arguments);
@@ -1004,7 +1013,7 @@ class SimpleTypeInferrerVisitor<T>
     }
   }
 
-  T handleForeignSend(Send node) {
+  T handleForeignSend(ast.Send node) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
     String name = selector.name;
@@ -1014,10 +1023,12 @@ class SimpleTypeInferrerVisitor<T>
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == 'JS_OPERATOR_IS_PREFIX'
-               || name == 'JS_OPERATOR_AS_PREFIX'
+    } else if (name == 'JS_GET_NAME'
+               || name == 'JS_NULL_CLASS_NAME'
                || name == 'JS_OBJECT_CLASS_NAME'
-               || name == 'JS_NULL_CLASS_NAME') {
+               || name == 'JS_OPERATOR_IS_PREFIX'
+               || name == 'JS_OPERATOR_AS_PREFIX'
+               || name == 'JS_STRING_CONCAT') {
       return types.stringType;
     } else {
       sideEffects.setAllSideEffects();
@@ -1025,11 +1036,11 @@ class SimpleTypeInferrerVisitor<T>
     }
   }
 
-  ArgumentsTypes analyzeArguments(Link<Node> arguments) {
+  ArgumentsTypes analyzeArguments(Link<ast.Node> arguments) {
     List<T> positional = [];
     Map<String, T> named;
     for (var argument in arguments) {
-      NamedArgument namedArgument = argument.asNamedArgument();
+      ast.NamedArgument namedArgument = argument.asNamedArgument();
       if (namedArgument != null) {
         argument = namedArgument.expression;
         if (named == null) named = new Map<String, T>();
@@ -1044,7 +1055,7 @@ class SimpleTypeInferrerVisitor<T>
     return new ArgumentsTypes<T>(positional, named);
   }
 
-  T visitGetterSend(Send node) {
+  T visitGetterSend(ast.Send node) {
     Element element = elements[node];
     Selector selector = elements.getSelector(node);
     if (Elements.isStaticOrTopLevelField(element)) {
@@ -1064,7 +1075,7 @@ class SimpleTypeInferrerVisitor<T>
     }
   }
 
-  T visitClosureSend(Send node) {
+  T visitClosureSend(ast.Send node) {
     assert(node.receiver == null);
     T closure = node.selector.accept(this);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
@@ -1085,7 +1096,7 @@ class SimpleTypeInferrerVisitor<T>
     }
   }
 
-  T handleStaticSend(Node node,
+  T handleStaticSend(ast.Node node,
                      Selector selector,
                      Element element,
                      ArgumentsTypes arguments) {
@@ -1096,7 +1107,7 @@ class SimpleTypeInferrerVisitor<T>
         sideEffects, inLoop);
   }
 
-  T handleDynamicSend(Node node,
+  T handleDynamicSend(ast.Node node,
                       Selector selector,
                       T receiverType,
                       ArgumentsTypes arguments) {
@@ -1112,7 +1123,7 @@ class SimpleTypeInferrerVisitor<T>
     // its type by refining it with the potential targets of the
     // calls.
     if (node.asSend() != null) {
-      Node receiver = node.asSend().receiver;
+      ast.Node receiver = node.asSend().receiver;
       if (receiver != null) {
         Element element = elements[receiver];
         if (Elements.isLocal(element) && !capturedVariables.contains(element)) {
@@ -1127,7 +1138,7 @@ class SimpleTypeInferrerVisitor<T>
         sideEffects, inLoop);
   }
 
-  T visitDynamicSend(Send node) {
+  T visitDynamicSend(ast.Send node) {
     Element element = elements[node];
     T receiverType;
     bool isCallOnThis = false;
@@ -1137,7 +1148,7 @@ class SimpleTypeInferrerVisitor<T>
         receiverType = thisType;
       }
     } else {
-      Node receiver = node.receiver;
+      ast.Node receiver = node.receiver;
       isCallOnThis = isThisOrSuper(receiver);
       receiverType = visit(receiver);
     }
@@ -1170,8 +1181,8 @@ class SimpleTypeInferrerVisitor<T>
   T synthesizeForwardingCall(Spannable node, FunctionElement element) {
     element = element.implementation;
     FunctionElement function = analyzedElement;
-    FunctionSignature signature = function.computeSignature(compiler);
-    FunctionSignature calleeSignature = element.computeSignature(compiler);
+    FunctionSignature signature = function.functionSignature;
+    FunctionSignature calleeSignature = element.functionSignature;
     if (!calleeSignature.isCompatibleWith(signature)) {
       return types.nonNullEmpty();
     }
@@ -1204,7 +1215,7 @@ class SimpleTypeInferrerVisitor<T>
                                           inLoop);
   }
 
-  T visitReturn(Return node) {
+  T visitReturn(ast.Return node) {
     if (node.isRedirectingFactoryBody) {
       Element element = elements[node.expression];
       if (Elements.isErroneousElement(element)) {
@@ -1218,15 +1229,16 @@ class SimpleTypeInferrerVisitor<T>
         recordReturnType(mask);
       }
     } else {
-      Node expression = node.expression;
+      ast.Node expression = node.expression;
       recordReturnType(expression == null
           ? types.nullType
           : expression.accept(this));
     }
     locals.seenReturnOrThrow = true;
+    return null;
   }
 
-  T visitForIn(ForIn node) {
+  T visitForIn(ast.ForIn node) {
     T expressionType = visit(node.expression);
     Selector iteratorSelector = elements.getIteratorSelector(node);
     Selector currentSelector = elements.getCurrentSelector(node);
@@ -1245,7 +1257,7 @@ class SimpleTypeInferrerVisitor<T>
       isThisExposed = true;
     }
 
-    Node identifier = node.declaredIdentifier;
+    ast.Node identifier = node.declaredIdentifier;
     Element element = elements[identifier];
     Selector selector = elements.getSelector(identifier);
 

@@ -6,9 +6,9 @@
  ******************************************************************************/
 package com.xored.glance.internal.ui.search;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-
 import com.xored.glance.ui.panels.ISearchPanel;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 
 public class SearchProgressMonitor implements IProgressMonitor {
 

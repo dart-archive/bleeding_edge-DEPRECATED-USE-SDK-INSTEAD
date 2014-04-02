@@ -147,7 +147,7 @@ public class WorkspaceDeltaProcessorTest extends TestCase {
     processor.resourceChanged(new MockResourceChangeEvent(delta));
 
     ChangeSet expected = new ChangeSet();
-    expected.changed(new FileBasedSource(null, file.getLocation().toFile()));
+    expected.changedSource(new FileBasedSource(file.getLocation().toFile()));
     MockContext context = (MockContext) project.getDefaultContext();
     context.assertChanged(expected);
     context.assertNoCalls();

@@ -23,79 +23,6 @@ class JavaSystem {
   }
 }
 
-Stopwatch instanceOfTimer = new Stopwatch();
-
-/**
- * Limited implementation of "o is instanceOfType", see
- * http://code.google.com/p/dart/issues/detail?id=8184
- */
-bool isInstanceOf(o, Type t) {
-  instanceOfTimer.start();
-  try {
-    if (o == null) {
-      return false;
-    }
-    if (o.runtimeType == t) {
-      return true;
-    }
-    String oTypeName = o.runtimeType.toString();
-    String tTypeName = t.toString();
-    if (oTypeName == tTypeName) {
-      return true;
-    }
-    if (oTypeName.startsWith("List") && tTypeName == "List") {
-      return true;
-    }
-    if (tTypeName == "Map" && o is Map) {
-      return true;
-    }
-    // Dart Analysis Engine specific
-    if (oTypeName == "${tTypeName}Impl") {
-      return true;
-    }
-    if (tTypeName == "FormalParameter") {
-      return
-          oTypeName == "DefaultFormalParameter" ||
-          oTypeName == "FieldNormalParameter" ||
-          oTypeName == "FunctionTypedFormalParameter" ||
-          oTypeName == "SimpleFormalParameter";
-    }
-    if (tTypeName == "MethodElement") {
-      if (oTypeName == "MethodMember") {
-        return true;
-      }
-    }
-    if (tTypeName == "ExecutableElement") {
-      if (oTypeName == "MethodElementImpl" ||
-          oTypeName == "FunctionElementImpl" ||
-          oTypeName == "PropertyAccessorElementImpl") {
-        return true;
-      }
-    }
-    if (tTypeName == "ParameterElement") {
-      if (oTypeName == "FieldFormalParameterElementImpl" ||
-          oTypeName == "DefaultFieldFormalParameterElementImpl" ||
-          oTypeName == "DefaultParameterElementImpl") {
-        return true;
-      }
-    }
-    if (tTypeName == "VariableElement") {
-      if (oTypeName == "LocalVariableElementImpl" ||
-          oTypeName == "ConstLocalVariableElementImpl" ||
-          oTypeName == "FieldElementImpl" ||
-          oTypeName == "ConstFieldElementImpl" ||
-          oTypeName == "TopLevelVariableElementImpl" ||
-          oTypeName == "ConstTopLevelVariableElementImpl") {
-        return true;
-      }
-    }
-    // no
-    return false;
-  } finally {
-    instanceOfTimer.stop();
-  }
-}
-
 class JavaArrays {
   static bool equals(List a, List b) {
     if (identical(a, b)) {
@@ -284,7 +211,7 @@ class PrintStringWriter extends PrintWriter {
 }
 
 class StringUtils {
-  static List<String> split(String s, String pattern) => s.split(pattern);
+  static List<String> split(String s, [String pattern = '']) => s.split(pattern);
   static String replace(String s, String from, String to) => s.replaceAll(from, to);
   static String repeat(String s, int n) {
     StringBuffer sb = new StringBuffer();
@@ -331,6 +258,10 @@ class IllegalStateException extends JavaException {
 
 class UnsupportedOperationException extends JavaException {
   String toString() => "UnsupportedOperationException";
+}
+
+class NoSuchElementException extends JavaException {
+  String toString() => "NoSuchElementException";
 }
 
 class NumberFormatException extends JavaException {
@@ -455,6 +386,10 @@ bool javaBooleanAnd(bool a, bool b) {
   return a && b;
 }
 
+int javaByte(Object o) {
+  return (o as int) & 0xFF;
+}
+
 class JavaStringBuilder {
   StringBuffer sb = new StringBuffer();
   String toString() => sb.toString();
@@ -490,7 +425,7 @@ abstract class Enum<E extends Enum> implements Comparable<E> {
   final String name;
   /// The position in the enum declaration.
   final int ordinal;
-  Enum(this.name, this.ordinal);
+  const Enum(this.name, this.ordinal);
   int get hashCode => ordinal;
   String toString() => name;
   int compareTo(E other) => ordinal - other.ordinal;

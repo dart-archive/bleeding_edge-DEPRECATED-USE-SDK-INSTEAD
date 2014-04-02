@@ -13,21 +13,13 @@
  */
 package com.google.dart.engine.internal.html;
 
-import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.error.GatheringErrorListener;
-import com.google.dart.engine.html.parser.HtmlParseResult;
-import com.google.dart.engine.html.parser.HtmlParser;
-import com.google.dart.engine.html.scanner.HtmlScanResult;
-import com.google.dart.engine.html.scanner.HtmlScanner;
-import com.google.dart.engine.source.SourceFactory;
-import com.google.dart.engine.source.TestSource;
+import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.html.parser.HtmlParserTest;
 
-import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
-
-public class HtmlTagInfoBuilderTest extends EngineTestCase {
+public class HtmlTagInfoBuilderTest extends HtmlParserTest {
   public void test_buider() throws Exception {
     HtmlTagInfoBuilder builder = new HtmlTagInfoBuilder();
-    HtmlParseResult result = parse(createSource(//
+    HtmlUnit unit = parse(createSource(//
         "<html>",
         "  <body>",
         "    <div id=\"x\"></div>",
@@ -35,7 +27,7 @@ public class HtmlTagInfoBuilderTest extends EngineTestCase {
         "    <div class='c'></div>",
         "  </body>",
         "</html>"));
-    result.getHtmlUnit().accept(builder);
+    unit.accept(builder);
     HtmlTagInfo info = builder.getTagInfo();
     assertNotNull(info);
     String[] allTags = info.getAllTags();
@@ -43,20 +35,5 @@ public class HtmlTagInfoBuilderTest extends EngineTestCase {
     assertEquals("div", info.getTagWithId("x"));
     String[] tagsWithClass = info.getTagsWithClass("c");
     assertLength(2, tagsWithClass);
-  }
-
-  private HtmlParseResult parse(String contents) throws Exception {
-    SourceFactory factory = new SourceFactory();
-    TestSource source = new TestSource(
-        factory.getContentCache(),
-        createFile("/test.dart"),
-        contents);
-    HtmlScanner scanner = new HtmlScanner(source);
-    source.getContents(scanner);
-    HtmlScanResult scanResult = scanner.getResult();
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    HtmlParseResult result = new HtmlParser(source, errorListener).parse(scanResult);
-    errorListener.assertNoErrors();
-    return result;
   }
 }

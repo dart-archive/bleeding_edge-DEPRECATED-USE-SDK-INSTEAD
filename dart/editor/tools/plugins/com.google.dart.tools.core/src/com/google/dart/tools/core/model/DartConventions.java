@@ -17,8 +17,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelStatusImpl;
 import com.google.dart.tools.core.internal.util.Messages;
 
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
@@ -224,82 +222,6 @@ public final class DartConventions {
   }
 
   /**
-   * Validate the given function type alias name. Return a status object indicating the validity of
-   * the name. The status will have the code {@link IStatus.OK} if the name is valid as a function
-   * type alias name, the code {@link IStatus.WARNING} if the name is discouraged, or the code
-   * {@link IStatus.ERROR} if the name is illegal. If the identifier is not valid then the status
-   * will have a message indicating why.
-   * 
-   * @param name the function name being validated
-   * @return a status object indicating the validity of the name
-   */
-  public static IStatus validateClassTypeAliasName(String name) {
-    return validateUpperCamelCase(name, MessageHolder.forClassTypeAlias());
-  }
-
-  /**
-   * Validate the given compilation unit name. Return a status object indicating the validity of the
-   * name. The status will have the code {@link IStatus.OK} if the name is valid as a compilation
-   * unit name, the code {@link IStatus.WARNING} if the name is discouraged, or the code
-   * {@link IStatus.ERROR} if the name is illegal. If the identifier is not valid then the status
-   * will have a message indicating why.
-   * <p>
-   * A compilation unit name must obey the following rules:
-   * <ul>
-   * <li>it must not be null,
-   * <li>it must be suffixed by a dot ('.') followed by one of the
-   * {@link DartCore#getDartLikeExtensions() Dart-like extensions},
-   * <li>its prefix must be a valid identifier,
-   * <li>it must not contain any characters or substrings that are not valid on the file system on
-   * which workspace root is located.
-   * </ul>
-   * 
-   * @param name the compilation unit name being validated
-   * @return a status object indicating the validity of the name
-   */
-  public static IStatus validateCompilationUnitName(String name) {
-    if (name == null) {
-      return new Status(
-          IStatus.ERROR,
-          DartCore.PLUGIN_ID,
-          -1,
-          Messages.convention_unitName_null,
-          null);
-    }
-    String trimmed = name.trim();
-    if (!name.equals(trimmed)) {
-      return new Status(
-          IStatus.ERROR,
-          DartCore.PLUGIN_ID,
-          -1,
-          Messages.convention_unitName_leadingOrTrailingBlanks,
-          null);
-    }
-    if (!DartCore.isDartLikeFileName(name)) {
-      return new Status(
-          IStatus.ERROR,
-          DartCore.PLUGIN_ID,
-          -1,
-          Messages.convention_unitName_notDartName,
-          null);
-    }
-    int index = name.lastIndexOf('.');
-    if (index < 0) {
-      return new Status(
-          IStatus.ERROR,
-          DartCore.PLUGIN_ID,
-          -1,
-          Messages.convention_unitName_notDartName,
-          null);
-    }
-    IStatus status = ResourcesPlugin.getWorkspace().validateName(name, IResource.FILE);
-    if (!status.isOK()) {
-      return status;
-    }
-    return DartModelStatusImpl.VERIFIED_OK;
-  }
-
-  /**
    * Validate the given field name. Return a status object indicating the validity of the name. The
    * status will have the code {@link IStatus.OK} if the name is valid as a field name, the code
    * {@link IStatus.WARNING} if the name is discouraged, or the code {@link IStatus.ERROR} if the
@@ -436,20 +358,6 @@ public final class DartConventions {
    */
   public static IStatus validateTypeParameterName(String name) {
     return validateUpperCamelCase(name, MessageHolder.forTypeParameter());
-  }
-
-  /**
-   * Validate the given variable name. Return a status object indicating the validity of the name.
-   * The status will have the code {@link IStatus.OK} if the name is valid as a variable name, the
-   * code {@link IStatus.WARNING} if the name is discouraged, or the code {@link IStatus.ERROR} if
-   * the name is illegal. If the name is not valid then the status will have a message indicating
-   * why.
-   * 
-   * @param name the variable name being validated
-   * @return a status object indicating the validity of the name
-   */
-  public static IStatus validateVariableName(String name) {
-    return validateLowerCamelCase(name, MessageHolder.forVariable());
   }
 
   private static IStatus validateIdentifier(String identifier, MessageHolder messageHolder) {

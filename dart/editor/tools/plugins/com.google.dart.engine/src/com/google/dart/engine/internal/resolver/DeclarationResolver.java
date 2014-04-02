@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
@@ -45,7 +45,7 @@ import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -73,7 +73,7 @@ import com.google.dart.engine.utilities.io.PrintStringWriter;
  * Instances of the class {@code DeclarationResolver} are used to resolve declarations in an AST
  * structure to already built elements.
  */
-public class DeclarationResolver extends RecursiveASTVisitor<Void> {
+public class DeclarationResolver extends RecursiveAstVisitor<Void> {
   /**
    * The compilation unit containing the AST nodes being visited.
    */
@@ -128,11 +128,11 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
     SimpleIdentifier exceptionParameter = node.getExceptionParameter();
     if (exceptionParameter != null) {
       LocalVariableElement[] localVariables = enclosingExecutable.getLocalVariables();
-      find(localVariables, exceptionParameter);
+      findIdentifier(localVariables, exceptionParameter);
 
       SimpleIdentifier stackTraceParameter = node.getStackTraceParameter();
       if (stackTraceParameter != null) {
-        find(localVariables, stackTraceParameter);
+        findIdentifier(localVariables, stackTraceParameter);
       }
     }
     return super.visitCatchClause(node);
@@ -143,7 +143,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
     ClassElement outerClass = enclosingClass;
     try {
       SimpleIdentifier className = node.getName();
-      enclosingClass = find(enclosingUnit.getTypes(), className);
+      enclosingClass = findIdentifier(enclosingUnit.getTypes(), className);
       return super.visitClassDeclaration(node);
     } finally {
       enclosingClass = outerClass;
@@ -155,7 +155,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
     ClassElement outerClass = enclosingClass;
     try {
       SimpleIdentifier className = node.getName();
-      enclosingClass = find(enclosingUnit.getTypes(), className);
+      enclosingClass = findIdentifier(enclosingUnit.getTypes(), className);
       return super.visitClassTypeAlias(node);
     } finally {
       enclosingClass = outerClass;
@@ -183,7 +183,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitDeclaredIdentifier(DeclaredIdentifier node) {
     SimpleIdentifier variableName = node.getIdentifier();
-    find(enclosingExecutable.getLocalVariables(), variableName);
+    findIdentifier(enclosingExecutable.getLocalVariables(), variableName);
     return super.visitDeclaredIdentifier(node);
   }
 
@@ -219,7 +219,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
     String uri = getStringValue(node.getUri());
     if (uri != null) {
       LibraryElement library = enclosingUnit.getLibrary();
-      ExportElement exportElement = find(
+      ExportElement exportElement = findExport(
           library.getExports(),
           enclosingUnit.getContext().getSourceFactory().resolveUri(enclosingUnit.getSource(), uri));
       node.setElement(exportElement);
@@ -252,12 +252,14 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
       Token property = node.getPropertyKeyword();
       if (property == null) {
         if (enclosingExecutable != null) {
-          enclosingExecutable = find(enclosingExecutable.getFunctions(), functionName);
+          enclosingExecutable = findIdentifier(enclosingExecutable.getFunctions(), functionName);
         } else {
-          enclosingExecutable = find(enclosingUnit.getFunctions(), functionName);
+          enclosingExecutable = findIdentifier(enclosingUnit.getFunctions(), functionName);
         }
       } else {
-        PropertyAccessorElement accessor = find(enclosingUnit.getAccessors(), functionName);
+        PropertyAccessorElement accessor = findIdentifier(
+            enclosingUnit.getAccessors(),
+            functionName);
         if (((KeywordToken) property).getKeyword() == Keyword.SET) {
           accessor = accessor.getVariable().getSetter();
           functionName.setStaticElement(accessor);
@@ -274,7 +276,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitFunctionExpression(FunctionExpression node) {
     if (!(node.getParent() instanceof FunctionDeclaration)) {
-      FunctionElement element = find(
+      FunctionElement element = findAtOffset(
           enclosingExecutable.getFunctions(),
           node.getBeginToken().getOffset());
       node.setElement(element);
@@ -293,7 +295,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
     FunctionTypeAliasElement outerAlias = enclosingAlias;
     try {
       SimpleIdentifier aliasName = node.getName();
-      enclosingAlias = find(enclosingUnit.getFunctionTypeAliases(), aliasName);
+      enclosingAlias = findIdentifier(enclosingUnit.getFunctionTypeAliases(), aliasName);
       return super.visitFunctionTypeAlias(node);
     } finally {
       enclosingAlias = outerAlias;
@@ -322,7 +324,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
     String uri = getStringValue(node.getUri());
     if (uri != null) {
       LibraryElement library = enclosingUnit.getLibrary();
-      ImportElement importElement = find(
+      ImportElement importElement = findImport(
           library.getImports(),
           enclosingUnit.getContext().getSourceFactory().resolveUri(enclosingUnit.getSource(), uri),
           node.getPrefix());
@@ -335,7 +337,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   public Void visitLabeledStatement(LabeledStatement node) {
     for (Label label : node.getLabels()) {
       SimpleIdentifier labelName = label.getLabel();
-      find(enclosingExecutable.getLabels(), labelName);
+      findIdentifier(enclosingExecutable.getLabels(), labelName);
     }
     return super.visitLabeledStatement(node);
   }
@@ -358,13 +360,13 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
         nameOfMethod = "unary-";
       }
       if (property == null) {
-        enclosingExecutable = find(
+        enclosingExecutable = findWithNameAndOffset(
             enclosingClass.getMethods(),
             nameOfMethod,
             methodName.getOffset());
         methodName.setStaticElement(enclosingExecutable);
       } else {
-        PropertyAccessorElement accessor = find(enclosingClass.getAccessors(), methodName);
+        PropertyAccessorElement accessor = findIdentifier(enclosingClass.getAccessors(), methodName);
         if (((KeywordToken) property).getKeyword() == Keyword.SET) {
           accessor = accessor.getVariable().getSetter();
           methodName.setStaticElement(accessor);
@@ -384,7 +386,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
       Source partSource = enclosingUnit.getContext().getSourceFactory().resolveUri(
           enclosingUnit.getSource(),
           uri);
-      node.setElement(find(enclosingUnit.getLibrary().getParts(), partSource));
+      node.setElement(findPart(enclosingUnit.getLibrary().getParts(), partSource));
     }
     return super.visitPartDirective(node);
   }
@@ -416,7 +418,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   public Void visitSwitchCase(SwitchCase node) {
     for (Label label : node.getLabels()) {
       SimpleIdentifier labelName = label.getLabel();
-      find(enclosingExecutable.getLabels(), labelName);
+      findIdentifier(enclosingExecutable.getLabels(), labelName);
     }
     return super.visitSwitchCase(node);
   }
@@ -425,7 +427,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   public Void visitSwitchDefault(SwitchDefault node) {
     for (Label label : node.getLabels()) {
       SimpleIdentifier labelName = label.getLabel();
-      find(enclosingExecutable.getLabels(), labelName);
+      findIdentifier(enclosingExecutable.getLabels(), labelName);
     }
     return super.visitSwitchDefault(node);
   }
@@ -434,9 +436,9 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   public Void visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.getName();
     if (enclosingClass != null) {
-      find(enclosingClass.getTypeParameters(), parameterName);
+      findIdentifier(enclosingClass.getTypeParameters(), parameterName);
     } else if (enclosingAlias != null) {
-      find(enclosingAlias.getTypeParameters(), parameterName);
+      findIdentifier(enclosingAlias.getTypeParameters(), parameterName);
     }
     return super.visitTypeParameter(node);
   }
@@ -446,13 +448,13 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
     VariableElement element = null;
     SimpleIdentifier variableName = node.getName();
     if (enclosingExecutable != null) {
-      element = find(enclosingExecutable.getLocalVariables(), variableName);
+      element = findIdentifier(enclosingExecutable.getLocalVariables(), variableName);
     }
     if (element == null && enclosingClass != null) {
-      element = find(enclosingClass.getFields(), variableName);
+      element = findIdentifier(enclosingClass.getFields(), variableName);
     }
     if (element == null && enclosingUnit != null) {
-      element = find(enclosingUnit.getTopLevelVariables(), variableName);
+      element = findIdentifier(enclosingUnit.getTopLevelVariables(), variableName);
     }
     Expression initializer = node.getInitializer();
     if (initializer != null) {
@@ -472,23 +474,6 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Return the element for the part with the given source, or {@code null} if there is no element
-   * for the given source.
-   * 
-   * @param parts the elements for the parts
-   * @param partSource the source for the part whose element is to be returned
-   * @return the element for the part with the given source
-   */
-  private CompilationUnitElement find(CompilationUnitElement[] parts, Source partSource) {
-    for (CompilationUnitElement part : parts) {
-      if (part.getSource().equals(partSource)) {
-        return part;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Return the element in the given array of elements that was created for the declaration at the
    * given offset. This method should only be used when there is no name
    * 
@@ -496,40 +481,8 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
    * @param offset the offset of the name of the element to be returned
    * @return the element at the given offset
    */
-  private <E extends Element> E find(E[] elements, int offset) {
-    return find(elements, "", offset);
-  }
-
-  /**
-   * Return the element in the given array of elements that was created for the declaration with the
-   * given name.
-   * 
-   * @param elements the elements of the appropriate kind that exist in the current context
-   * @param identifier the name node in the declaration of the element to be returned
-   * @return the element created for the declaration with the given name
-   */
-  private <E extends Element> E find(E[] elements, SimpleIdentifier identifier) {
-    E element = find(elements, identifier.getName(), identifier.getOffset());
-    identifier.setStaticElement(element);
-    return element;
-  }
-
-  /**
-   * Return the element in the given array of elements that was created for the declaration with the
-   * given name at the given offset.
-   * 
-   * @param elements the elements of the appropriate kind that exist in the current context
-   * @param name the name of the element to be returned
-   * @param offset the offset of the name of the element to be returned
-   * @return the element with the given name and offset
-   */
-  private <E extends Element> E find(E[] elements, String name, int offset) {
-    for (E element : elements) {
-      if (element.getDisplayName().equals(name) && element.getNameOffset() == offset) {
-        return element;
-      }
-    }
-    return null;
+  private <E extends Element> E findAtOffset(E[] elements, int offset) {
+    return findWithNameAndOffset(elements, "", offset);
   }
 
   /**
@@ -541,13 +494,27 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
    *          for
    * @return the export element whose library has the given source
    */
-  private ExportElement find(ExportElement[] exports, Source source) {
+  private ExportElement findExport(ExportElement[] exports, Source source) {
     for (ExportElement export : exports) {
       if (export.getExportedLibrary().getSource().equals(source)) {
         return export;
       }
     }
     return null;
+  }
+
+  /**
+   * Return the element in the given array of elements that was created for the declaration with the
+   * given name.
+   * 
+   * @param elements the elements of the appropriate kind that exist in the current context
+   * @param identifier the name node in the declaration of the element to be returned
+   * @return the element created for the declaration with the given name
+   */
+  private <E extends Element> E findIdentifier(E[] elements, SimpleIdentifier identifier) {
+    E element = findWithNameAndOffset(elements, identifier.getName(), identifier.getOffset());
+    identifier.setStaticElement(element);
+    return element;
   }
 
   /**
@@ -560,7 +527,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
    * @param prefix the prefix with which the library was imported
    * @return the import element whose library has the given source and prefix
    */
-  private ImportElement find(ImportElement[] imports, Source source, SimpleIdentifier prefix) {
+  private ImportElement findImport(ImportElement[] imports, Source source, SimpleIdentifier prefix) {
     for (ImportElement element : imports) {
       if (element.getImportedLibrary().getSource().equals(source)) {
         PrefixElement prefixElement = element.getPrefix();
@@ -573,6 +540,41 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
             return element;
           }
         }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the element for the part with the given source, or {@code null} if there is no element
+   * for the given source.
+   * 
+   * @param parts the elements for the parts
+   * @param partSource the source for the part whose element is to be returned
+   * @return the element for the part with the given source
+   */
+  private CompilationUnitElement findPart(CompilationUnitElement[] parts, Source partSource) {
+    for (CompilationUnitElement part : parts) {
+      if (part.getSource().equals(partSource)) {
+        return part;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the element in the given array of elements that was created for the declaration with the
+   * given name at the given offset.
+   * 
+   * @param elements the elements of the appropriate kind that exist in the current context
+   * @param name the name of the element to be returned
+   * @param offset the offset of the name of the element to be returned
+   * @return the element with the given name and offset
+   */
+  private <E extends Element> E findWithNameAndOffset(E[] elements, String name, int offset) {
+    for (E element : elements) {
+      if (element.getDisplayName().equals(name) && element.getNameOffset() == offset) {
+        return element;
       }
     }
     return null;
@@ -597,7 +599,8 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
     if (parameters == null && enclosingAlias != null) {
       parameters = enclosingAlias.getParameters();
     }
-    ParameterElement element = parameters == null ? null : find(parameters, parameterName);
+    ParameterElement element = parameters == null ? null
+        : findIdentifier(parameters, parameterName);
     if (element == null) {
       @SuppressWarnings("resource")
       PrintStringWriter writer = new PrintStringWriter();
@@ -605,7 +608,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
       writer.println("DeclarationResolver.getElementForParameter() is visiting a parameter that "
           + "does not appear to be in a method or function.");
       writer.println("Ancestors:");
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       while (parent != null) {
         writer.println(parent.getClass().getName());
         writer.println("---------");

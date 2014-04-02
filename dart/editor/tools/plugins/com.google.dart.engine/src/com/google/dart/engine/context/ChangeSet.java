@@ -59,7 +59,7 @@ public class ChangeSet {
    * 
    * @param source the source that was added
    */
-  public void added(Source source) {
+  public void addedSource(Source source) {
     added.add(source);
   }
 
@@ -69,7 +69,7 @@ public class ChangeSet {
    * 
    * @param source the source that was changed
    */
-  public void changed(Source source) {
+  public void changedSource(Source source) {
     changed.add(source);
   }
 
@@ -78,7 +78,7 @@ public class ChangeSet {
    * 
    * @return a collection of the sources that have been added
    */
-  public List<Source> getAdded() {
+  public List<Source> getAddedSources() {
     return added;
   }
 
@@ -87,17 +87,8 @@ public class ChangeSet {
    * 
    * @return a collection of sources that have been changed
    */
-  public List<Source> getChanged() {
+  public List<Source> getChangedSources() {
     return changed;
-  }
-
-  /**
-   * Return a list containing the sources that were removed.
-   * 
-   * @return a list containing the sources that were removed
-   */
-  public List<Source> getRemoved() {
-    return removed;
   }
 
   /**
@@ -110,23 +101,21 @@ public class ChangeSet {
   }
 
   /**
+   * Return a list containing the sources that were removed.
+   * 
+   * @return a list containing the sources that were removed
+   */
+  public List<Source> getRemovedSources() {
+    return removed;
+  }
+
+  /**
    * Return {@code true} if this change set does not contain any changes.
    * 
    * @return {@code true} if this change set does not contain any changes
    */
   public boolean isEmpty() {
     return added.isEmpty() && changed.isEmpty() && removed.isEmpty() && removedContainers.isEmpty();
-  }
-
-  /**
-   * Record that the specified source has been removed.
-   * 
-   * @param source the source that was removed
-   */
-  public void removed(Source source) {
-    if (source != null) {
-      removed.add(source);
-    }
   }
 
   /**
@@ -137,6 +126,17 @@ public class ChangeSet {
   public void removedContainer(SourceContainer container) {
     if (container != null) {
       removedContainers.add(container);
+    }
+  }
+
+  /**
+   * Record that the specified source has been removed.
+   * 
+   * @param source the source that was removed
+   */
+  public void removedSource(Source source) {
+    if (source != null) {
+      removed.add(source);
     }
   }
 

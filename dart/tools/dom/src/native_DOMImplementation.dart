@@ -107,6 +107,9 @@ class _Utils {
 
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
+  // TODO(vsm): Make this API compatible with spawnUri.  It should also
+  // return a Future<Isolate>.
+  static spawnDomUri(String uri) native "Utils_spawnDomUri";
 
   // The following methods were added for debugger integration to make working
   // with the Dart C mirrors API simpler.
@@ -146,8 +149,7 @@ class _Utils {
    * that does not expect REPL support.
    */
   static const _CONSOLE_API_SUPPORT_HEADER =
-      'with ((console && console._commandLineAPI) || {}) {\n';
-
+      'with ((console && console._commandLineAPI) || { __proto__: null }) {\n';
   static bool expectsConsoleApi(String expression) {
     return expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0;;
   }
@@ -406,7 +408,7 @@ class _Utils {
     // TODO(vsm): Move these checks into native code.
     ClassMirror cls = reflectClass(type);
     if (_isBuiltinType(cls)) {
-      throw new UnsupportedError("Invalid custom element from ${cls.owner.uri}.");
+      throw new UnsupportedError("Invalid custom element from ${(cls.owner as LibraryMirror).uri}.");
     }
     var className = MirrorSystem.getName(cls.simpleName);
     var createdConstructor = cls.declarations[new Symbol('$className.created')];
@@ -473,6 +475,21 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
 
   // Implementation support.
   String get typeName => "Window";
+
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  Events get on => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.');
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  void addEventListener(String type, EventListener listener, [bool useCapture])
+      => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.');
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  bool dispatchEvent(Event event) => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.');
+  // TODO(efortuna): Remove this method. dartbug.com/16814
+  void removeEventListener(String type, EventListener listener,
+      [bool useCapture]) => throw new UnsupportedError(
+    'You can only attach EventListeners to your own window.');
 }
 
 class _HistoryCrossFrame extends NativeFieldWrapperClass2 implements HistoryBase {

@@ -85,7 +85,8 @@ abstract class Enqueuer {
   EnqueueTask task;
   native.NativeEnqueuer nativeEnqueuer;  // Set by EnqueueTask
 
-  bool hasEnqueuedReflectiveElements = false;
+  bool hasEnqueuedEverything = false;
+  bool hasEnqueuedReflectiveStaticFields = false;
 
   Enqueuer(this.name, this.compiler, this.itemCompilationContextCreator);
 
@@ -359,7 +360,7 @@ abstract class Enqueuer {
   }
 
   void enqueueEverything() {
-    if (hasEnqueuedReflectiveElements) return;
+    if (hasEnqueuedEverything) return;
     compiler.log('Enqueuing everything');
     task.ensureAllElementsByName();
     for (Link link in task.allElementsByName.values) {
@@ -367,14 +368,15 @@ abstract class Enqueuer {
         pretendElementWasUsed(element, compiler.globalDependencies);
       }
     }
-    hasEnqueuedReflectiveElements = true;
+    hasEnqueuedEverything = true;
+    hasEnqueuedReflectiveStaticFields = true;
   }
 
   /// Enqueue the static fields that have been marked as used by reflective
   /// usage through `MirrorsUsed`.
   void enqueueReflectiveStaticFields(Iterable<Element> elements) {
-    if (hasEnqueuedReflectiveElements) return;
-    hasEnqueuedReflectiveElements = true;
+    if (hasEnqueuedReflectiveStaticFields) return;
+    hasEnqueuedReflectiveStaticFields = true;
     for (Element element in elements) {
       pretendElementWasUsed(element, compiler.globalDependencies);
     }
@@ -485,6 +487,10 @@ abstract class Enqueuer {
 
   void registerDynamicSetter(Selector selector) {
     registerInvokedSetter(selector);
+  }
+
+  void registerGetterForSuperMethod(Element element) {
+    universe.methodsNeedingSuperGetter.add(element);
   }
 
   void registerFieldGetter(Element element) {
@@ -627,6 +633,8 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   void internalAddToWorkList(Element element) {
+    assert(invariant(element, element is AnalyzableElement,
+        message: 'Element $element is not analyzable.'));
     if (getCachedElements(element) != null) return;
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,
@@ -637,10 +645,12 @@ class ResolutionEnqueuer extends Enqueuer {
 
     queue.add(new ResolutionWorkItem(element, itemCompilationContextCreator()));
 
-    // Enable isolate support if we start using something from the
-    // isolate library, or timers for the async library.
+    // Enable isolate support if we start using something from the isolate
+    // library, or timers for the async library.  We exclude constant fields,
+    // which are ending here because their initializing expression is compiled.
     LibraryElement library = element.getLibrary();
-    if (!compiler.hasIsolateSupport()) {
+    if (!compiler.hasIsolateSupport() &&
+        (!element.isField() || !element.modifiers.isConst())) {
       String uri = library.canonicalUri.toString();
       if (uri == 'dart:isolate') {
         enableIsolateSupport(library);

@@ -40,7 +40,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public class Comment extends ASTNode {
+public class Comment extends AstNode {
   /**
    * The enumeration {@code CommentType} encodes all the different types of comments that are
    * recognized by the parser.
@@ -89,7 +89,8 @@ public class Comment extends ASTNode {
    * @param references the references embedded within the documentation comment
    * @return the documentation comment that was created
    */
-  public static Comment createDocumentationComment(Token[] tokens, List<CommentReference> references) {
+  public static Comment createDocumentationCommentWithReferences(Token[] tokens,
+      List<CommentReference> references) {
     return new Comment(tokens, CommentType.DOCUMENTATION, references);
   }
 
@@ -133,7 +134,7 @@ public class Comment extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitComment(this);
   }
 
@@ -193,7 +194,7 @@ public class Comment extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     references.accept(visitor);
   }
 }

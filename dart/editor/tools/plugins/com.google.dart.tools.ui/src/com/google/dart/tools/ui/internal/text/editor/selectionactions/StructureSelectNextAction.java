@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.editor.selectionactions;
 
-import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.services.util.SelectionAnalyzer;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -26,16 +26,16 @@ import java.util.List;
 
 public class StructureSelectNextAction extends StructureSelectionAction {
 
-  private static class NextNodeAnalyzer extends GeneralizingASTVisitor<Void> {
+  private static class NextNodeAnalyzer extends GeneralizingAstVisitor<Void> {
 
-    public static ASTNode perform(int offset, ASTNode lastCoveringNode) {
+    public static AstNode perform(int offset, AstNode lastCoveringNode) {
       NextNodeAnalyzer analyzer = new NextNodeAnalyzer(offset);
       lastCoveringNode.accept(analyzer);
       return analyzer.nextNode;
     }
 
     private int offset;
-    private ASTNode nextNode;
+    private AstNode nextNode;
 
     private NextNodeAnalyzer(int offset) {
       super();
@@ -43,7 +43,7 @@ public class StructureSelectNextAction extends StructureSelectionAction {
     }
 
     @Override
-    public Void visitNode(ASTNode node) {
+    public Void visitNode(AstNode node) {
       int start = node.getOffset();
       int end = start + node.getLength();
       if (start == offset) {
@@ -56,8 +56,8 @@ public class StructureSelectNextAction extends StructureSelectionAction {
     }
   }
 
-  private static ASTNode getNextNode(ASTNode parent, ASTNode node) {
-    List<ASTNode> siblingNodes = StructureSelectionAction.getSiblingNodes(node);
+  private static AstNode getNextNode(AstNode parent, AstNode node) {
+    List<AstNode> siblingNodes = StructureSelectionAction.getSiblingNodes(node);
     if (siblingNodes.size() == 0) {
       return parent;
     }
@@ -82,26 +82,26 @@ public class StructureSelectNextAction extends StructureSelectionAction {
   }
 
   @Override
-  SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, ASTNode node,
+  SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, AstNode node,
       SelectionAnalyzer selAnalyzer) {
     if (oldSourceRange.getLength() == 0 && selAnalyzer.getCoveringNode() != null) {
-      ASTNode previousNode = NextNodeAnalyzer.perform(
+      AstNode previousNode = NextNodeAnalyzer.perform(
           oldSourceRange.getOffset(),
           selAnalyzer.getCoveringNode());
       if (previousNode != null) {
         return getSelectedNodeSourceRange(node, previousNode);
       }
     }
-    ASTNode first = selAnalyzer.getFirstSelectedNode();
+    AstNode first = selAnalyzer.getFirstSelectedNode();
     if (first == null) {
       return getLastCoveringNodeRange(oldSourceRange, node, selAnalyzer);
     }
-    ASTNode parent = first.getParent();
+    AstNode parent = first.getParent();
     if (parent == null) {
       return getLastCoveringNodeRange(oldSourceRange, node, selAnalyzer);
     }
-    ASTNode lastSelectedNode = selAnalyzer.getLastSelectedNode();
-    ASTNode nextNode = getNextNode(parent, lastSelectedNode);
+    AstNode lastSelectedNode = selAnalyzer.getLastSelectedNode();
+    AstNode nextNode = getNextNode(parent, lastSelectedNode);
     if (nextNode == parent) {
       return getSelectedNodeSourceRange(node, first.getParent());
     }

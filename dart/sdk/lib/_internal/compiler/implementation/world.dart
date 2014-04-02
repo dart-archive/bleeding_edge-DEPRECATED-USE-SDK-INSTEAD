@@ -58,8 +58,7 @@ class World {
     void addSubtypes(ClassElement cls) {
       assert(cls.isDeclaration);
       if (cls.resolutionState != STATE_DONE) {
-        compiler.internalErrorOnElement(
-            cls, 'Class "${cls.name}" is not resolved.');
+        compiler.internalError(cls, 'Class "${cls.name}" is not resolved.');
       }
 
       for (DartType type in cls.allSupertypes) {
@@ -273,5 +272,10 @@ class World {
 
   bool getCannotThrow(Element element) {
     return elementsThatCannotThrow.contains(element);
+  }
+
+  void registerImplicitSuperCall(TreeElements elements,
+                                 FunctionElement superConstructor) {
+    elements.otherDependencies.add(superConstructor);
   }
 }

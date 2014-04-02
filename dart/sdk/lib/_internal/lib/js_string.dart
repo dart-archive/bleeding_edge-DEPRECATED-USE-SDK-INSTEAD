@@ -175,40 +175,152 @@ class JSString extends Interceptor implements String, JSIndexable {
     }
   }
 
-  // Dart2js can't use JavaScript trim, because JavaScript does not trim
-  // the NEXT LINE character (0x85) and BOMs (0xFEFF).
-  String trim() {
-    const int CARRIAGE_RETURN = 0x0D;
+  /// Finds the index of the first non-whitespace character, or the
+  /// end of the string. Start looking at position [index].
+  static int _skipLeadingWhitespace(String string, int index) {
     const int SPACE = 0x20;
-
-    int startIndex = 0;
-    while (startIndex < this.length) {
-      int codeUnit = this.codeUnitAt(startIndex);
-      if (codeUnit == SPACE ||
-          codeUnit == CARRIAGE_RETURN ||
-          _isWhitespace(codeUnit)) {
-        startIndex++;
-      } else {
+    const int CARRIAGE_RETURN = 0x0D;
+    while (index < string.length) {
+      int codeUnit = string.codeUnitAt(index);
+      if (codeUnit != SPACE &&
+          codeUnit != CARRIAGE_RETURN &&
+          !_isWhitespace(codeUnit)) {
         break;
       }
+      index++;
     }
-    if (startIndex == this.length) return "";
+    return index;
+  }
 
-    int endIndex = this.length;
+  /// Finds the index after the the last non-whitespace character, or 0.
+  /// Start looking at position [index - 1].
+  static int _skipTrailingWhitespace(String string, int index) {
+    const int SPACE = 0x20;
+    const int CARRIAGE_RETURN = 0x0D;
+    while (index > 0) {
+      int codeUnit = string.codeUnitAt(index - 1);
+      if (codeUnit != SPACE &&
+          codeUnit != CARRIAGE_RETURN &&
+          !_isWhitespace(codeUnit)) {
+        break;
+      }
+      index--;
+    }
+    return index;
+  }
+
+  // Dart2js can't use JavaScript trim directly,
+  // because JavaScript does not trim
+  // the NEXT LINE (NEL) character (0x85).
+  String trim() {
+    const int NEL = 0x85;
+
+    // Start by doing JS trim. Then check if it leaves a NEL at
+    // either end of the string.
+    String result = JS('String', '#.trim()', this);
+    if (result.length == 0) return result;
+    int firstCode = result.codeUnitAt(0);
+    int startIndex = 0;
+    if (firstCode == NEL) {
+      startIndex = _skipLeadingWhitespace(result, 1);
+      if (startIndex == result.length) return "";
+    }
+
+    int endIndex = result.length;
     // We know that there is at least one character that is non-whitespace.
     // Therefore we don't need to verify that endIndex > startIndex.
-    while (true) {
-      int codeUnit = this.codeUnitAt(endIndex - 1);
-      if (codeUnit == SPACE ||
-          codeUnit == CARRIAGE_RETURN ||
-          _isWhitespace(codeUnit)) {
-        endIndex--;
-      } else {
-        break;
-      }
+    int lastCode = result.codeUnitAt(endIndex - 1);
+    if (lastCode == NEL) {
+      endIndex = _skipTrailingWhitespace(result, endIndex - 1);
     }
-    if (startIndex == 0 && endIndex == this.length) return this;
-    return JS('String', r'#.substring(#, #)', this, startIndex, endIndex);
+    if (startIndex == 0 && endIndex == result.length) return result;
+    return JS('String', r'#.substring(#, #)', result, startIndex, endIndex);
+  }
+
+  // Dart2js can't use JavaScript trimLeft directly,
+  // because it is not in ES5, so not every browser implements it,
+  // and because those that do will not trim the NEXT LINE character (0x85).
+  String trimLeft() {
+    const int NEL = 0x85;
+
+    // Start by doing JS trim. Then check if it leaves a NEL at
+    // the beginning of the string.
+    String result;
+    int startIndex = 0;
+    if (JS('bool', 'typeof #.trimLeft != "undefined"', this)) {
+      result = JS('String', '#.trimLeft()', this);
+      if (result.length == 0) return result;
+      int firstCode = result.codeUnitAt(0);
+      if (firstCode == NEL) {
+        startIndex = _skipLeadingWhitespace(result, 1);
+      }
+    } else {
+      result = this;
+      startIndex = _skipLeadingWhitespace(this, 0);
+    }
+    if (startIndex == 0) return result;
+    if (startIndex == result.length) return "";
+    return JS('String', r'#.substring(#)', result, startIndex);
+  }
+
+  // Dart2js can't use JavaScript trimRight directly,
+  // because it is not in ES5 and because JavaScript does not trim
+  // the NEXT LINE character (0x85).
+  String trimRight() {
+    const int NEL = 0x85;
+
+    // Start by doing JS trim. Then check if it leaves a NEL or BOM at
+    // the end of the string.
+    String result;
+    int endIndex;
+    // trimRight is implemented by Firefox and Chrome/Blink,
+    // so use it if it is there.
+    if (JS('bool', 'typeof #.trimRight != "undefined"', this)) {
+      result = JS('String', '#.trimRight()', this);
+      endIndex = result.length;
+      if (endIndex == 0) return result;
+      int lastCode = result.codeUnitAt(endIndex - 1);
+      if (lastCode == NEL) {
+        endIndex = _skipTrailingWhitespace(result, endIndex - 1);
+      }
+    } else {
+      result = this;
+      endIndex = _skipTrailingWhitespace(this, this.length);
+    }
+
+    if (endIndex == result.length) return result;
+    if (endIndex == 0) return "";
+    return JS('String', r'#.substring(#, #)', result, 0, endIndex);
+  }
+
+  String operator*(int times) {
+    if (0 >= times) return '';  // Unnecessary but hoists argument type check.
+    if (times == 1 || this.length == 0) return this;
+    if (times != JS('JSUInt32', '# >>> 0', times)) {
+      // times >= 2^32. We can't create a string that big.
+      throw const OutOfMemoryError();
+    }
+    var result = '';
+    var s = this;
+    while (true) {
+      if (times & 1 == 1) result = s + result;
+      times = JS('JSUInt31', '# >>> 1', times);
+      if (times == 0) break;
+      s += s;
+    }
+    return result;
+  }
+
+  String padLeft(int width, [String padding = ' ']) {
+    int delta = width - this.length;
+    if (delta <= 0) return this;
+    return padding * delta + this;
+  }
+
+  String padRight(int width, [String padding = ' ']) {
+    int delta = width - this.length;
+    if (delta <= 0) return this;
+    return this + padding * delta;
   }
 
   List<int> get codeUnits => new _CodeUnits(this);

@@ -11,6 +11,9 @@
 #include <sys/inotify.h>  // NOLINT
 
 #include "bin/fdutils.h"
+#include "bin/socket.h"
+
+#include "platform/signal_blocker.h"
 
 
 namespace dart {
@@ -22,7 +25,7 @@ bool FileSystemWatcher::IsSupported() {
 
 
 intptr_t FileSystemWatcher::Init() {
-  int id = TEMP_FAILURE_RETRY(inotify_init1(IN_CLOEXEC));
+  int id = NO_RETRY_EXPECTED(inotify_init1(IN_CLOEXEC));
   if (id < 0) return -1;
   // Some systems dosn't support setting this as non-blocking. Since watching
   // internals are kept away from the user, we know it's possible to continue,
@@ -46,7 +49,7 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
   if (events & kModifyContent) list_events |= IN_CLOSE_WRITE | IN_ATTRIB;
   if (events & kDelete) list_events |= IN_DELETE;
   if (events & kMove) list_events |= IN_MOVE;
-  int path_id = TEMP_FAILURE_RETRY(inotify_add_watch(id, path, list_events));
+  int path_id = NO_RETRY_EXPECTED(inotify_add_watch(id, path, list_events));
   if (path_id < 0) {
     return -1;
   }
@@ -55,7 +58,7 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
 
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
-  VOID_TEMP_FAILURE_RETRY(inotify_rm_watch(id, path_id));
+  VOID_NO_RETRY_EXPECTED(inotify_rm_watch(id, path_id));
 }
 
 
@@ -70,7 +73,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   const intptr_t kEventSize = sizeof(struct inotify_event);
   const intptr_t kBufferSize = kEventSize + NAME_MAX + 1;
   uint8_t buffer[kBufferSize];
-  intptr_t bytes = TEMP_FAILURE_RETRY(read(id, buffer, kBufferSize));
+  intptr_t bytes = Socket::Read(id, buffer, kBufferSize);
   if (bytes < 0) {
     return DartUtils::NewDartOSError();
   }

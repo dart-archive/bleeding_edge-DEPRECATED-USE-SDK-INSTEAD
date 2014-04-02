@@ -124,7 +124,7 @@ class MemberListener extends NodeListener {
     ElementKind kind = ElementKind.FUNCTION;
     if (isConstructor) {
       if (getOrSet != null) {
-        recoverableError('illegal modifier', token: getOrSet);
+        recoverableError(getOrSet, 'illegal modifier');
       }
       kind = ElementKind.GENERATIVE_CONSTRUCTOR;
     } else if (getOrSet != null) {
@@ -164,9 +164,9 @@ class MemberListener extends NodeListener {
     VariableDefinitions variableDefinitions = popNode();
     Modifiers modifiers = variableDefinitions.modifiers;
     pushNode(null);
-    void buildFieldElement(String name, Element fields) {
+    void buildFieldElement(Identifier name, VariableList fields) {
       Element element =
-          new FieldElementX(name, fields, null);
+          new FieldElementX(name, enclosingElement, fields);
       addMember(element);
     }
     buildFieldElements(modifiers, variableDefinitions.definitions,

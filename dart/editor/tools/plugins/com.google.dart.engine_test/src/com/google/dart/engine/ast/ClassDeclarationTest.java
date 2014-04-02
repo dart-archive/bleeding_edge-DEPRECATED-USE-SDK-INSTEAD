@@ -15,13 +15,13 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.parser.ParserTestCase;
 
-import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.constructorDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.fieldDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.formalParameterList;
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
+import static com.google.dart.engine.ast.AstFactory.classDeclaration;
+import static com.google.dart.engine.ast.AstFactory.constructorDeclaration;
+import static com.google.dart.engine.ast.AstFactory.fieldDeclaration;
+import static com.google.dart.engine.ast.AstFactory.formalParameterList;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.methodDeclaration;
+import static com.google.dart.engine.ast.AstFactory.variableDeclaration;
 
 import java.util.ArrayList;
 

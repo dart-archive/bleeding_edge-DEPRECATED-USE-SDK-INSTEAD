@@ -84,7 +84,7 @@ public class AngularHtmlIndexContributor extends ExpressionVisitor {
         store.recordRelationship(
             element,
             IndexConstants.ANGULAR_REFERENCE,
-            createLocation(identifier));
+            createLocationForIdentifier(identifier));
         return;
       }
     }
@@ -105,7 +105,7 @@ public class AngularHtmlIndexContributor extends ExpressionVisitor {
     Element element = node.getElement();
     if (element != null) {
       Token nameToken = node.getNameToken();
-      Location location = createLocation(nameToken);
+      Location location = createLocationForToken(nameToken);
       store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
     }
     return super.visitXmlAttributeNode(node);
@@ -118,24 +118,24 @@ public class AngularHtmlIndexContributor extends ExpressionVisitor {
       // tag
       {
         Token tagToken = node.getTagToken();
-        Location location = createLocation(tagToken);
+        Location location = createLocationForToken(tagToken);
         store.recordRelationship(element, IndexConstants.ANGULAR_REFERENCE, location);
       }
       // maybe add closing tag range
       Token closingTag = node.getClosingTag();
       if (closingTag != null) {
-        Location location = createLocation(closingTag);
+        Location location = createLocationForToken(closingTag);
         store.recordRelationship(element, IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE, location);
       }
     }
     return super.visitXmlTagNode(node);
   }
 
-  private Location createLocation(SimpleIdentifier identifier) {
+  private Location createLocationForIdentifier(SimpleIdentifier identifier) {
     return new Location(htmlUnitElement, identifier.getOffset(), identifier.getLength());
   }
 
-  private Location createLocation(Token token) {
+  private Location createLocationForToken(Token token) {
     return new Location(htmlUnitElement, token.getOffset(), token.getLength());
   }
 }

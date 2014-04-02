@@ -31,6 +31,7 @@ DEFINE_FLAG(bool, log_code_drop, false,
             "Emit a log message when pointers to unused code are dropped.");
 DEFINE_FLAG(bool, always_drop_code, false,
             "Always try to drop code if the function's usage counter is >= 0");
+DECLARE_FLAG(bool, write_protect_code);
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   ASSERT(memory->size() > VirtualMemory::PageSize());
@@ -109,13 +110,10 @@ void HeapPage::WriteProtect(bool read_only) {
       prot = VirtualMemory::kReadOnly;
     }
   } else {
-    if (executable_) {
-      prot = VirtualMemory::kReadWriteExecute;
-    } else {
-      prot = VirtualMemory::kReadWrite;
-    }
+    prot = VirtualMemory::kReadWrite;
   }
-  memory_->Protect(prot);
+  bool status = memory_->Protect(prot);
+  ASSERT(status);
 }
 
 
@@ -128,6 +126,7 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       max_capacity_in_words_(max_capacity_in_words),
       capacity_in_words_(0),
       used_in_words_(0),
+      external_in_words_(0),
       sweeping_(false),
       page_space_controller_(FLAG_heap_growth_space_ratio,
                              FLAG_heap_growth_rate,
@@ -155,7 +154,15 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   if (pages_ == NULL) {
     pages_ = page;
   } else {
+    const bool is_protected = (pages_tail_->type() == HeapPage::kExecutable)
+        && FLAG_write_protect_code;
+    if (is_protected) {
+      pages_tail_->WriteProtect(false);
+    }
     pages_tail_->set_next(page);
+    if (is_protected) {
+      pages_tail_->WriteProtect(true);
+    }
   }
   pages_tail_ = page;
   capacity_in_words_ += kPageSizeInWords;
@@ -221,7 +228,9 @@ uword PageSpace::TryAllocate(intptr_t size,
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword result = 0;
   if (size < kAllocatablePageSize) {
-    result = freelist_[type].TryAllocate(size);
+    const bool is_protected = (type == HeapPage::kExecutable)
+        && FLAG_write_protect_code;
+    result = freelist_[type].TryAllocate(size, is_protected);
     if ((result == 0) &&
         (page_space_controller_.CanGrowPageSpace(size) ||
          growth_policy == kForceGrowth) &&
@@ -261,6 +270,18 @@ uword PageSpace::TryAllocate(intptr_t size,
   }
   ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
   return result;
+}
+
+
+void PageSpace::AllocateExternal(intptr_t size) {
+  intptr_t size_in_words = size >> kWordSizeLog2;
+  external_in_words_ += size_in_words;
+}
+
+
+void PageSpace::FreeExternal(intptr_t size) {
+  intptr_t size_in_words = size >> kWordSizeLog2;
+  external_in_words_ -= size_in_words;
 }
 
 
@@ -402,7 +423,50 @@ void PageSpace::PrintToJSONObject(JSONObject* object) {
   space.AddProperty("collections", collections());
   space.AddProperty("used", UsedInWords() * kWordSize);
   space.AddProperty("capacity", CapacityInWords() * kWordSize);
-  space.AddProperty("time", RoundMicrosecondsToSeconds(gc_time_micros()));
+  space.AddProperty("external", ExternalInWords() * kWordSize);
+  space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
+}
+
+
+class HeapMapAsJSONVisitor : public ObjectVisitor {
+ public:
+  explicit HeapMapAsJSONVisitor(JSONArray* array)
+      : ObjectVisitor(NULL), array_(array) {}
+  virtual void VisitObject(RawObject* obj) {
+    array_->AddValue(obj->Size() / kObjectAlignment);
+    array_->AddValue(obj->GetClassId());
+  }
+ private:
+  JSONArray* array_;
+};
+
+
+void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
+  JSONObject heap_map(stream);
+  heap_map.AddProperty("type", "HeapMap");
+  heap_map.AddProperty("id", "heapmap");
+  heap_map.AddProperty("free_class_id",
+                       static_cast<intptr_t>(kFreeListElement));
+  heap_map.AddProperty("unit_size_bytes",
+                       static_cast<intptr_t>(kObjectAlignment));
+  heap_map.AddProperty("page_size_bytes", kPageSizeInWords * kWordSize);
+  {
+    JSONObject class_list(&heap_map, "class_list");
+    isolate->class_table()->PrintToJSONObject(&class_list);
+  }
+  {
+    // "pages" is an array [page0, page1, ..., pageN], each page of the form
+    // {"object_start": "0x...", "objects": [size, class id, size, ...]}
+    JSONArray all_pages(&heap_map, "pages");
+    for (HeapPage* page = pages_; page != NULL; page = page->next()) {
+      JSONObject page_container(&all_pages);
+      page_container.AddPropertyF("object_start",
+                                  "0x%" Px "", page->object_start());
+      JSONArray page_map(&page_container, "objects");
+      HeapMapAsJSONVisitor printer(&page_map);
+      page->VisitObjects(&printer);
+    }
+  }
 }
 
 
@@ -446,6 +510,27 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   }
 
   const int64_t start = OS::GetCurrentTimeMicros();
+
+  if (FLAG_write_protect_code) {
+    // Make code pages writable.
+    HeapPage* current_page = pages_;
+    while (current_page != NULL) {
+      if (current_page->type() == HeapPage::kExecutable) {
+        current_page->WriteProtect(false);
+      }
+      current_page = current_page->next();
+    }
+    current_page = large_pages_;
+    while (current_page != NULL) {
+      if (current_page->type() == HeapPage::kExecutable) {
+        current_page->WriteProtect(false);
+      }
+      current_page = current_page->next();
+    }
+  }
+
+  // Save old value before GCMarker visits the weak persistent handles.
+  intptr_t external_before_in_words = external_in_words_;
 
   // Mark all reachable old-gen objects.
   bool collect_code = FLAG_collect_code && ShouldCollectCode();
@@ -496,16 +581,35 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     page = next_page;
   }
 
+  if (FLAG_write_protect_code) {
+    // Make code pages read-only.
+    HeapPage* current_page = pages_;
+    while (current_page != NULL) {
+      if (current_page->type() == HeapPage::kExecutable) {
+        current_page->WriteProtect(true);
+      }
+      current_page = current_page->next();
+    }
+    current_page = large_pages_;
+    while (current_page != NULL) {
+      if (current_page->type() == HeapPage::kExecutable) {
+        current_page->WriteProtect(true);
+      }
+      current_page = current_page->next();
+    }
+  }
+
   // Record data and print if requested.
   intptr_t used_before_in_words = used_in_words_;
   used_in_words_ = used_in_words;
 
   int64_t end = OS::GetCurrentTimeMicros();
 
-  // Record signals for growth control.
-  page_space_controller_.EvaluateGarbageCollection(used_before_in_words,
-                                                   used_in_words,
-                                                   start, end);
+  // Record signals for growth control. Include size of external allocations.
+  page_space_controller_.EvaluateGarbageCollection(
+      used_before_in_words + external_before_in_words,
+      used_in_words + external_in_words_,
+      start, end);
 
   heap_->RecordTime(kMarkObjects, mid1 - start);
   heap_->RecordTime(kResetFreeLists, mid2 - mid1);

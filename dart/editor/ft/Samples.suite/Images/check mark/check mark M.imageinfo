@@ -12,6 +12,7 @@
     ImageDescription = <>;
     LastKnownLocationX = <*I0>;
     LastKnownLocationY = <*I0>;
+    MaxIgnoredPixels = <*R5>;
     OriginalLocationX = <*I315>;
     OriginalLocationY = <*I335>;
     Pulsing = <*BN>;

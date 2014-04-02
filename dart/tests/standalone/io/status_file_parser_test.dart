@@ -7,6 +7,7 @@ library StatusFileParserTest;
 import "package:expect/expect.dart";
 import "dart:io";
 import "../../../tools/testing/dart/status_file_parser.dart";
+import "../../../tools/testing/dart/utils.dart";
 
 
 void main() {
@@ -18,7 +19,6 @@ void main() {
   TestReadStatusFile("tests/dom/dom.status");
   TestReadStatusFile("tests/html/html.status");
   TestReadStatusFile("tests/isolate/isolate.status");
-  TestReadStatusFile("tests/json/json.status");
   TestReadStatusFile("tests/language/language.status");
   TestReadStatusFile("tests/standalone/standalone.status");
 }
@@ -35,7 +35,7 @@ void TestReadStatusFile(String filePath) {
   File file = new File(fixedFilePath(filePath));
   if (file.existsSync()) {
     List<Section> sections = new List<Section>();
-    ReadConfigurationInto(file.path, sections, () {
+    ReadConfigurationInto(new Path(file.path), sections, () {
       Expect.isTrue(sections.length > 0);
     });
   }

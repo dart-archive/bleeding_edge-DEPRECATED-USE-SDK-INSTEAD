@@ -87,6 +87,23 @@ class DeferredFloat32x4 : public DeferredSlot {
 };
 
 
+class DeferredFloat64x2 : public DeferredSlot {
+ public:
+  DeferredFloat64x2(simd128_value_t value, RawInstance** slot,
+                    DeferredSlot* next)
+      : DeferredSlot(slot, next), value_(value) { }
+
+  virtual void Materialize(DeoptContext* deopt_context);
+
+  simd128_value_t value() const { return value_; }
+
+ private:
+  const simd128_value_t value_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeferredFloat64x2);
+};
+
+
 class DeferredInt32x4 : public DeferredSlot {
  public:
   DeferredInt32x4(simd128_value_t value, RawInstance** slot,
@@ -147,7 +164,7 @@ class DeferredObject {
   };
 
   enum {
-    kFieldIndex = 0,
+    kOffsetIndex = 0,
     kValueIndex,
     kFieldEntrySize,
   };
@@ -161,8 +178,8 @@ class DeferredObject {
     return args_[kClassIndex];
   }
 
-  RawObject* GetField(intptr_t index) const {
-    return args_[kFieldsStartIndex + kFieldEntrySize * index + kFieldIndex];
+  RawObject* GetFieldOffset(intptr_t index) const {
+    return args_[kFieldsStartIndex + kFieldEntrySize * index + kOffsetIndex];
   }
 
   RawObject* GetValue(intptr_t index) const {

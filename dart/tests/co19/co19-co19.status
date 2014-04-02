@@ -2,8 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# This file contains the tests that have been identified as broken and have been filed
-# on the co19 issue tracker.
+# This file contains the tests that have been identified as broken and
+# have been filed on the co19 issue tracker at
+#    https://code.google.com/p/co19/issues/list .
+#
 # In order to qualify here these tests need to fail both on the VM and dart2js.
 
 ### GENERAL FAILURES ###
@@ -13,7 +15,7 @@
 
 LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19 issue 668
 
-[ $runtime == vm || $runtime == dartium || $compiler == dart2dart || $compiler == dart2js ]
+[ $compiler != dartanalyzer && $compiler != dart2analyzer ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
 
@@ -31,7 +33,6 @@ LibTest/collection/HashSet/HashSet_class_A01_t01: RuntimeError, OK # co19 issue 
 LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: RuntimeError, OK # co19 issue 663
 LibTest/core/Set/IterableBase_A01_t01: RuntimeError, OK # co19 issue 663
 
-[ $runtime == vm || $runtime == dartium || $compiler == dart2js ]
 LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/asin_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/atan_A01_t01: PASS, FAIL, OK # co19 issue 44
@@ -49,16 +50,6 @@ LibTest/core/double/round_A01_t04: FAIL, OK # co19 issue 389
 LibTest/isolate/SendPort/send_A02_t02: SKIP # co19 issue 493 (not fixed in r672)
 LibTest/isolate/SendPort/send_A02_t03: SKIP # co19 issue 495 (not fixed in r672)
 
-
-[ $runtime == dartium || $compiler == dart2js ]
-LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
-
-[ $runtime == vm || $compiler == dart2js ]
-LibTest/math/exp_A01_t01: PASS, FAIL, OK # co19 issue 44
-LibTest/math/sin_A01_t01: PASS, FAIL, OK # co19 issue 44
-
-
-[ $runtime == vm || $compiler == none || $compiler == dart2js ]
 LibTest/isolate/IsolateStream/any_A01_t01: Fail # Co19 issue 639 (Fixed in r674)
 LibTest/isolate/IsolateStream/asBroadcastStream_A01_t01: Fail # Co19 issue 639
 LibTest/isolate/IsolateStream/contains_A01_t01: Fail # Co19 issue 639
@@ -82,7 +73,6 @@ LibTest/isolate/ReceivePort/toSendPort_A01_t03: Fail # Co19 issue 639
 LibTest/isolate/SendPort/call_A01_t01: Fail # Co19 issue 639
 LibTest/isolate/SendPort/hashCode_A01_t01: Fail # Co19 issue 639
 LibTest/isolate/SendPort/operator_equality_A01_t01: Fail # Co19 issue 639
-LibTest/isolate/SendPort/send_A01_t01: Pass
 LibTest/isolate/SendPort/send_A02_t01: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A02_t04: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A02_t05: Fail # Co19 issue 639
@@ -92,9 +82,11 @@ LibTest/isolate/SendPort/send_A03_t02: Fail # Co19 issue 639
 
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: MissingRuntimeError, OK # co19 issue 638
 
+[ $runtime == dartium || $compiler == dart2js ]
+LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 
 ### CHECKED MODE FAILURES ###
 
-[ ($runtime == vm || $runtime == dartium || $compiler == dart2js) && $checked]
+[ $compiler != dartanalyzer && $compiler != dart2analyzer && $checked ]
 LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/LinkedList_A01_t01: RuntimeError # co19-roll r623: Please triage this failure

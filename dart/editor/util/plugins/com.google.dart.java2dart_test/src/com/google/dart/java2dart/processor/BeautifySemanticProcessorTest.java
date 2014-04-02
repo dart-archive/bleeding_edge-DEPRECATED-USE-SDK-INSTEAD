@@ -21,7 +21,7 @@ public class BeautifySemanticProcessorTest extends SemanticProcessorTest {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "public class A {",
-        "  short main() {",
+        "  public short main() {",
         "    return (short) 0xFFFF;",
         "  }",
         "}");
@@ -36,7 +36,7 @@ public class BeautifySemanticProcessorTest extends SemanticProcessorTest {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "public class A {",
-        "  void main(Object p) {",
+        "  public void main(Object p) {",
         "    print((Integer) p);",
         "    print(-(Integer) p);",
         "    print((Integer) p + 1);",
@@ -48,14 +48,14 @@ public class BeautifySemanticProcessorTest extends SemanticProcessorTest {
         "    v = (Integer) p;",
         "    if((1 != 1)) {}",
         "  }",
-        "  int main2(Object p) {",
+        "  public int main2(Object p) {",
         "    return (Integer) p;",
         "  }",
-        "  int main3(Object p) {",
+        "  public int main3(Object p) {",
         "    print(0);",
         "    return (Integer) p;",
         "  }",
-        "  void print(Object x) {",
+        "  public void print(Object x) {",
         "  }",
         "}");
     runProcessor();
@@ -88,7 +88,7 @@ public class BeautifySemanticProcessorTest extends SemanticProcessorTest {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "public class A {",
-        "  void test(Object p) {",
+        "  public void test(Object p) {",
         "    boolean b1 = p instanceof String;",
         "    boolean b2 = !(p instanceof String);",
         "  }",

@@ -29,6 +29,7 @@ public class SourceCorrectionProposal extends CorrectionProposal {
   private final SourceChange change;
   private Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
   private Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
+  private SourceRange endRange;
 
   public SourceCorrectionProposal(SourceChange change, CorrectionKind kind, Object... arguments) {
     super(kind, arguments);
@@ -43,6 +44,13 @@ public class SourceCorrectionProposal extends CorrectionProposal {
   }
 
   /**
+   * @return the {@link SourceRange} to select after applying this change, maybe {@code null}.
+   */
+  public SourceRange getEndRange() {
+    return endRange;
+  }
+
+  /**
    * @return the {@link Map} or position IDs to their proposals.
    */
   public Map<String, List<LinkedPositionProposal>> getLinkedPositionProposals() {
@@ -54,6 +62,13 @@ public class SourceCorrectionProposal extends CorrectionProposal {
    */
   public Map<String, List<SourceRange>> getLinkedPositions() {
     return linkedPositions;
+  }
+
+  /**
+   * Sets {@link SourceRange} to select after applying this change, maybe {@code null}.
+   */
+  public void setEndRange(SourceRange endRange) {
+    this.endRange = endRange;
   }
 
   /**

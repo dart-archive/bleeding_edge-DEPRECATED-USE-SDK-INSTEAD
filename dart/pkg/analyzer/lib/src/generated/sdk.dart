@@ -83,8 +83,6 @@ abstract class SdkLibrary {
 /**
  * Instances of the class `SdkLibrary` represent the information known about a single library
  * within the SDK.
- *
- * @coverage dart.engine.sdk
  */
 class SdkLibraryImpl implements SdkLibrary {
   /**
@@ -140,19 +138,25 @@ class SdkLibraryImpl implements SdkLibrary {
     this._shortName = name;
   }
 
+  @override
   String get shortName => _shortName;
 
+  @override
   bool get isDart2JsLibrary => (_platforms & DART2JS_PLATFORM) != 0;
 
+  @override
   bool get isDocumented => _documented;
 
+  @override
   bool get isImplementation => _implementation;
 
+  @override
   bool get isInternal => "Internal" == category;
 
   /**
    * Return `true` if library can be used for both client and server
    */
+  @override
   bool get isShared => category == "Shared";
 
   /**
@@ -160,6 +164,7 @@ class SdkLibraryImpl implements SdkLibrary {
    *
    * @return `true` if this library can be run on the VM
    */
+  @override
   bool get isVmLibrary => (_platforms & VM_PLATFORM) != 0;
 
   /**
@@ -195,7 +200,7 @@ class SdkLibraryImpl implements SdkLibrary {
   }
 }
 
-class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
+class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
   /**
    * The prefix added to the name of a library to form the URI used in code to reference the
    * library.
@@ -207,6 +212,11 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
    * library.
    */
   static String _IMPLEMENTATION = "implementation";
+
+  /**
+   * The name of the optional parameter used to specify the path used when compiling for dart2js.
+   */
+  static String _DART2JS_PATH = "dart2jsPath";
 
   /**
    * The name of the optional parameter used to indicate whether the library is documented.
@@ -231,11 +241,33 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
   static String _VM_PLATFORM = "VM_PLATFORM";
 
   /**
+   * A flag indicating whether the dart2js path should be used when it is available.
+   */
+  final bool _useDart2jsPaths;
+
+  /**
    * The library map that is populated by visiting the AST structure parsed from the contents of
    * the libraries file.
    */
-  final LibraryMap librariesMap = new LibraryMap();
+  LibraryMap _librariesMap = new LibraryMap();
 
+  /**
+   * Initialize a newly created library builder to use the dart2js path if the given value is
+   * `true`.
+   *
+   * @param useDart2jsPaths `true` if the dart2js path should be used when it is available
+   */
+  SdkLibrariesReader_LibraryBuilder(this._useDart2jsPaths);
+
+  /**
+   * Return the library map that was populated by visiting the AST structure parsed from the
+   * contents of the libraries file.
+   *
+   * @return the library map describing the contents of the SDK
+   */
+  LibraryMap get librariesMap => _librariesMap;
+
+  @override
   Object visitMapLiteralEntry(MapLiteralEntry node) {
     String libraryName = null;
     Expression key = node.key;
@@ -267,10 +299,14 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
                 library.setDart2JsLibrary();
               }
             }
+          } else if (_useDart2jsPaths && name == _DART2JS_PATH) {
+            if (expression is SimpleStringLiteral) {
+              library.path = expression.value;
+            }
           }
         }
       }
-      librariesMap.setLibrary(libraryName, library);
+      _librariesMap.setLibrary(libraryName, library);
     }
     return null;
   }
@@ -279,8 +315,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
 /**
  * Instances of the class `LibraryMap` map Dart library URI's to the [SdkLibraryImpl
  ].
- *
- * @coverage dart.engine.sdk
  */
 class LibraryMap {
   /**
@@ -330,8 +364,6 @@ class LibraryMap {
 
 /**
  * Instances of the class `DartSdk` represent a Dart SDK installed in a specified location.
- *
- * @coverage dart.engine.sdk
  */
 abstract class DartSdk {
   /**
@@ -352,13 +384,12 @@ abstract class DartSdk {
   /**
    * Return the source representing the file with the given URI.
    *
-   * @param contentCache the content cache used to access the contents of the mapped source
    * @param kind the kind of URI that was originally resolved in order to produce an encoding with
    *          the given URI
    * @param uri the URI of the file to be returned
    * @return the source representing the specified file
    */
-  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri);
+  Source fromEncoding(UriKind kind, Uri uri);
 
   /**
    * Return the [AnalysisContext] used for all of the sources in this [DartSdk].

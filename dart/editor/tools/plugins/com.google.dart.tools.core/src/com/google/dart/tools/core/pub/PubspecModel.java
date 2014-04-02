@@ -20,7 +20,7 @@ import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
 import org.eclipse.core.resources.IFile;
 import org.yaml.snakeyaml.error.Mark;
-import org.yaml.snakeyaml.scanner.ScannerException;
+import org.yaml.snakeyaml.error.MarkedYAMLException;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -260,7 +260,7 @@ public class PubspecModel {
           errorOnParse = false;
           yamlMap = PubYamlUtils.parsePubspecYamlToMap(yamlString);
           setValuesFromMap(yamlMap);
-        } catch (ScannerException exception) {
+        } catch (MarkedYAMLException exception) {
           errorOnParse = true;
           Mark mark = exception.getProblemMark();
           exceptions.add(new PubspecException(

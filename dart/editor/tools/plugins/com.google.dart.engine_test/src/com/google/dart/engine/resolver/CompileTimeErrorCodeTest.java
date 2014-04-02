@@ -105,10 +105,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library L;",
         "export 'lib1.dart';",
         "export 'lib2.dart';"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -121,10 +121,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "g() { return f(); }"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "f() {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "f() {}"));
     resolve(source);
@@ -132,20 +132,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         source,
         StaticWarningCode.AMBIGUOUS_IMPORT,
         CompileTimeErrorCode.UNDEFINED_FUNCTION);
-  }
-
-  public void test_argumentDefinitionTestNonParameter() throws Exception {
-    Source source = addSource(createSource(//
-        "f() {",
-        " var v = 0;",
-        " return ?v;",
-        "}"));
-    resolve(source);
-    assertErrors(
-        source,
-        ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST,
-        CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER);
-    verify(source);
   }
 
   public void test_builtInIdentifierAsMixinName_classTypeAlias() throws Exception {
@@ -727,8 +713,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_constWithNonType_fromLibrary() throws Exception {
-    Source source1 = addSource("lib.dart", "");
-    Source source2 = addSource("lib2.dart", createSource(//
+    Source source1 = addNamedSource("lib.dart", "");
+    Source source2 = addNamedSource("lib2.dart", createSource(//
         "import 'lib.dart' as lib;",
         "void f() {",
         "  const lib.A();",
@@ -871,16 +857,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_duplicateDefinition_acrossLibraries() throws Exception {
-    Source librarySource = addSource("/lib.dart", createSource(//
+    Source librarySource = addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "",
         "part 'a.dart';",
         "part 'b.dart';"));
-    Source sourceA = addSource("/a.dart", createSource(//
+    Source sourceA = addNamedSource("/a.dart", createSource(//
         "part of lib;",
         "",
         "class A {}"));
-    Source sourceB = addSource("/b.dart", createSource(//
+    Source sourceB = addNamedSource("/b.dart", createSource(//
         "part of lib;",
         "",
         "class A {}"));
@@ -1059,14 +1045,14 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library L;",
         "export 'lib1.dart';"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "part of lib;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY);
     verify(source);
   }
 
-  public void test_extendsDisallowedClass_bool() throws Exception {
+  public void test_extendsDisallowedClass_class_bool() throws Exception {
     Source source = addSource(createSource(//
     "class A extends bool {}"));
     resolve(source);
@@ -1077,7 +1063,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_extendsDisallowedClass_double() throws Exception {
+  public void test_extendsDisallowedClass_class_double() throws Exception {
     Source source = addSource(createSource(//
     "class A extends double {}"));
     resolve(source);
@@ -1088,7 +1074,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_extendsDisallowedClass_int() throws Exception {
+  public void test_extendsDisallowedClass_class_int() throws Exception {
     Source source = addSource(createSource(//
     "class A extends int {}"));
     resolve(source);
@@ -1099,7 +1085,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_extendsDisallowedClass_Null() throws Exception {
+  public void test_extendsDisallowedClass_class_Null() throws Exception {
     Source source = addSource(createSource(//
     "class A extends Null {}"));
     resolve(source);
@@ -1110,7 +1096,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_extendsDisallowedClass_num() throws Exception {
+  public void test_extendsDisallowedClass_class_num() throws Exception {
     Source source = addSource(createSource(//
     "class A extends num {}"));
     resolve(source);
@@ -1121,7 +1107,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_extendsDisallowedClass_String() throws Exception {
+  public void test_extendsDisallowedClass_class_String() throws Exception {
     Source source = addSource(createSource(//
     "class A extends String {}"));
     resolve(source);
@@ -1129,6 +1115,54 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         source,
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
+    verify(source);
+  }
+
+  public void test_extendsDisallowedClass_classTypeAlias_bool() throws Exception {
+    Source source = addSource(createSource(//
+    "class C = bool;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsDisallowedClass_classTypeAlias_double() throws Exception {
+    Source source = addSource(createSource(//
+    "class C = double;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsDisallowedClass_classTypeAlias_int() throws Exception {
+    Source source = addSource(createSource(//
+    "class C = int;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsDisallowedClass_classTypeAlias_Null() throws Exception {
+    Source source = addSource(createSource(//
+    "class C = Null;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsDisallowedClass_classTypeAlias_num() throws Exception {
+    Source source = addSource(createSource(//
+    "class C = num;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsDisallowedClass_classTypeAlias_String() throws Exception {
+    Source source = addSource(createSource(//
+    "class C = String;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -1390,7 +1424,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_implementsDisallowedClass_bool() throws Exception {
+  public void test_implementsDisallowedClass_class_bool() throws Exception {
     Source source = addSource(createSource(//
     "class A implements bool {}"));
     resolve(source);
@@ -1398,7 +1432,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_implementsDisallowedClass_double() throws Exception {
+  public void test_implementsDisallowedClass_class_double() throws Exception {
     Source source = addSource(createSource(//
     "class A implements double {}"));
     resolve(source);
@@ -1406,7 +1440,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_implementsDisallowedClass_int() throws Exception {
+  public void test_implementsDisallowedClass_class_int() throws Exception {
     Source source = addSource(createSource(//
     "class A implements int {}"));
     resolve(source);
@@ -1414,7 +1448,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_implementsDisallowedClass_Null() throws Exception {
+  public void test_implementsDisallowedClass_class_Null() throws Exception {
     Source source = addSource(createSource(//
     "class A implements Null {}"));
     resolve(source);
@@ -1422,7 +1456,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_implementsDisallowedClass_num() throws Exception {
+  public void test_implementsDisallowedClass_class_num() throws Exception {
     Source source = addSource(createSource(//
     "class A implements num {}"));
     resolve(source);
@@ -1430,11 +1464,88 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_implementsDisallowedClass_String() throws Exception {
+  public void test_implementsDisallowedClass_class_String() throws Exception {
     Source source = addSource(createSource(//
     "class A implements String {}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsDisallowedClass_class_String_num() throws Exception {
+    Source source = addSource(createSource(//
+    "class A implements String, num {}"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsDisallowedClass_classTypeAlias_bool() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A implements bool;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsDisallowedClass_classTypeAlias_double() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A implements double;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsDisallowedClass_classTypeAlias_int() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A implements int;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsDisallowedClass_classTypeAlias_Null() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A implements Null;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsDisallowedClass_classTypeAlias_num() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A implements num;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsDisallowedClass_classTypeAlias_String() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A implements String;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsDisallowedClass_classTypeAlias_String_num() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A implements String, num;"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -1606,7 +1717,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library lib;",
         "import 'part.dart';",
         "A a;"));
-    addSource("/part.dart", createSource(//
+    addNamedSource("/part.dart", createSource(//
         "part of lib;",
         "class A{}"));
     resolve(source);
@@ -1775,7 +1886,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_invalidAnnotation_importWithPrefix_getter() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "get V => 0;"));
     Source source = addSource(createSource(//
@@ -1789,7 +1900,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_invalidAnnotation_importWithPrefix_notConstantVariable() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "final V = 0;"));
     Source source = addSource(createSource(//
@@ -1804,7 +1915,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation()
       throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "typedef V();"));
     Source source = addSource(createSource(//
@@ -2218,7 +2329,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_mixinOfDisallowedClass_bool() throws Exception {
+  public void test_mixinOfDisallowedClass_class_bool() throws Exception {
     Source source = addSource(createSource(//
     "class A extends Object with bool {}"));
     resolve(source);
@@ -2226,7 +2337,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_mixinOfDisallowedClass_double() throws Exception {
+  public void test_mixinOfDisallowedClass_class_double() throws Exception {
     Source source = addSource(createSource(//
     "class A extends Object with double {}"));
     resolve(source);
@@ -2234,7 +2345,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_mixinOfDisallowedClass_int() throws Exception {
+  public void test_mixinOfDisallowedClass_class_int() throws Exception {
     Source source = addSource(createSource(//
     "class A extends Object with int {}"));
     resolve(source);
@@ -2242,7 +2353,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_mixinOfDisallowedClass_Null() throws Exception {
+  public void test_mixinOfDisallowedClass_class_Null() throws Exception {
     Source source = addSource(createSource(//
     "class A extends Object with Null {}"));
     resolve(source);
@@ -2250,7 +2361,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_mixinOfDisallowedClass_num() throws Exception {
+  public void test_mixinOfDisallowedClass_class_num() throws Exception {
     Source source = addSource(createSource(//
     "class A extends Object with num {}"));
     resolve(source);
@@ -2258,11 +2369,77 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_mixinOfDisallowedClass_String() throws Exception {
+  public void test_mixinOfDisallowedClass_class_String() throws Exception {
     Source source = addSource(createSource(//
     "class A extends Object with String {}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_mixinOfDisallowedClass_classTypeAlias_bool() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A with bool;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_mixinOfDisallowedClass_classTypeAlias_double() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A with double;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_mixinOfDisallowedClass_classTypeAlias_int() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A with int;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_mixinOfDisallowedClass_classTypeAlias_Null() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A with Null;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_mixinOfDisallowedClass_classTypeAlias_num() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A with num;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_mixinOfDisallowedClass_classTypeAlias_String() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A with String;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_mixinOfDisallowedClass_classTypeAlias_String_num() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C = A with String, num;"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -2745,7 +2922,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library l1;",
         "part 'l2.dart';"));
-    addSource("/l2.dart", createSource(//
+    addNamedSource("/l2.dart", createSource(//
         "library l2;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.PART_OF_NON_PART);
@@ -2753,7 +2930,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_prefixCollidesWithTopLevelMembers_functionTypeAlias() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A{}"));
     Source source = addSource(createSource(//
@@ -2766,7 +2943,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_prefixCollidesWithTopLevelMembers_topLevelFunction() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A{}"));
     Source source = addSource(createSource(//
@@ -2779,7 +2956,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_prefixCollidesWithTopLevelMembers_topLevelVariable() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A{}"));
     Source source = addSource(createSource(//
@@ -2792,7 +2969,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_prefixCollidesWithTopLevelMembers_type() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A{}"));
     Source source = addSource(createSource(//
@@ -3499,7 +3676,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "import 'lib.dart' as f;",
         "main() { return f(); }"));
-    addSource("/lib.dart", "library lib;");
+    addNamedSource("/lib.dart", "library lib;");
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.UNDEFINED_FUNCTION);
   }

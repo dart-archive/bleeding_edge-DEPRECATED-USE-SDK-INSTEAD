@@ -23,10 +23,10 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(AnalysisTaskTest.class);
     suite.addTestSuite(GenerateDartHintsTaskTest.class);
+    suite.addTestSuite(GetContentTaskTest.class);
     suite.addTestSuite(IncrementalAnalysisTaskTest.class);
     suite.addTestSuite(ParseDartTaskTest.class);
     suite.addTestSuite(ParseHtmlTaskTest.class);
-    suite.addTestSuite(ResolveDartDependenciesTaskTest.class);
     suite.addTestSuite(ResolveDartLibraryTaskTest.class);
     suite.addTestSuite(ResolveDartUnitTaskTest.class);
     suite.addTestSuite(ResolveHtmlTaskTest.class);

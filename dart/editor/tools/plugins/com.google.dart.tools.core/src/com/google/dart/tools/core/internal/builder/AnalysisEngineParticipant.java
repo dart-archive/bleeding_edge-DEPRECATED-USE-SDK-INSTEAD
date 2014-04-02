@@ -90,8 +90,10 @@ public class AnalysisEngineParticipant implements BuildParticipant {
           project = projectManager.getProject(resource);
         }
         DeltaProcessor processor = createProcessor(project);
-        processor.addDeltaListener(updater);
-        processor.addDeltaListener(indexUpdater);
+        IgnoreResourceFilter filter = new IgnoreResourceFilter();
+        filter.addDeltaListener(updater);
+        filter.addDeltaListener(indexUpdater);
+        processor.addDeltaListener(filter);
         processor.traverse(delta);
         return false;
       }
@@ -103,8 +105,10 @@ public class AnalysisEngineParticipant implements BuildParticipant {
           project = projectManager.getProject(resource);
         }
         DeltaProcessor processor = createProcessor(project);
-        processor.addDeltaListener(updater);
-        processor.addDeltaListener(indexUpdater);
+        IgnoreResourceFilter filter = new IgnoreResourceFilter();
+        filter.addDeltaListener(updater);
+        filter.addDeltaListener(indexUpdater);
+        processor.addDeltaListener(filter);
         processor.traverse(resource);
         return false;
       }
@@ -179,6 +183,11 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    * @param monitor the progress monitor (not {@code null})
    */
   private void analyzeContext(AnalysisContext context, IProgressMonitor monitor) {
-    performAnalysis(new AnalysisWorker(project, context, projectManager, markerManager));
+    performAnalysis(new AnalysisWorker(
+        project,
+        context,
+        projectManager,
+        projectManager.getResourceMap(context),
+        markerManager));
   }
 }

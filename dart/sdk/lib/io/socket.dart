@@ -41,10 +41,14 @@ class InternetAddressType {
 
 
 /**
- * The [InternetAddress] is an object reflecting either a remote or a
- * local address. When combined with a port number, this represents a
- * endpoint that a socket can connect to or a listening socket can
- * bind to.
+ * An internet address.
+ *
+ * This object holds an internet address. If this internet address
+ * is the result of a DNS lookup, the address also holds the hostname
+ * used to make the lookup.
+ * An Internet address combined with a port number represents an
+ * endpoint to which a socket can connect or a listening socket can
+ * bind.
  */
 abstract class InternetAddress {
   /**
@@ -88,6 +92,13 @@ abstract class InternetAddress {
    * associated with the address this returns the numeric address.
    */
   String get host;
+
+  /**
+   * Get the raw address of this [InternetAddress]. The result is either a
+   * 4 or 16 byte long list. The returned list is a copy, making it possible
+   * to change the list without modifying the [InternetAddress].
+   */
+  List<int> get rawAddress;
 
   /**
    * Returns true if the [InternetAddress] is a loopback address.

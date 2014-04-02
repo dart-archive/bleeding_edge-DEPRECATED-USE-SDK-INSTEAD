@@ -8,17 +8,19 @@ package com.xored.glance.ui.sources;
  */
 public class TextChangedEvent {
 
+  /** start offset of the new text */
+  private int start;
+
+  /** length of the new text */
+  private int length;
+
+  /** replaced text or empty string if no text was replaced */
+  private String replacedText;
+
   public TextChangedEvent(int start, int length, String replacedText) {
     this.start = start;
     this.length = length;
     this.replacedText = replacedText;
-  }
-
-  /**
-   * @return the start
-   */
-  public int getStart() {
-    return start;
   }
 
   /**
@@ -35,11 +37,11 @@ public class TextChangedEvent {
     return replacedText;
   }
 
-  /** start offset of the new text */
-  private int start;
-  /** length of the new text */
-  private int length;
-  /** replaced text or empty string if no text was replaced */
-  private String replacedText;
+  /**
+   * @return the start
+   */
+  public int getStart() {
+    return start;
+  }
 
 }

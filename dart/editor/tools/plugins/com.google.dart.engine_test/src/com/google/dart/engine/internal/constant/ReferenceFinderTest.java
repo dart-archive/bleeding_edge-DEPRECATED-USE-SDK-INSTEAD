@@ -17,8 +17,9 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.utilities.collection.DirectedGraph;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 import java.util.Set;
@@ -34,7 +35,7 @@ public class ReferenceFinderTest extends EngineTestCase {
     identifier.setStaticElement(tail);
     identifier.accept(finder);
     Set<VariableElement> tails = referenceGraph.getTails(head);
-    assertSize(1, tails);
+    assertSizeOfSet(1, tails);
     assertSame(tail, tails.iterator().next());
   }
 
@@ -47,6 +48,6 @@ public class ReferenceFinderTest extends EngineTestCase {
     identifier.setStaticElement(tail);
     identifier.accept(finder);
     Set<VariableElement> tails = referenceGraph.getTails(head);
-    assertSize(0, tails);
+    assertSizeOfSet(0, tails);
   }
 }

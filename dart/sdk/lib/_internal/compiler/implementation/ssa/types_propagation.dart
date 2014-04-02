@@ -11,6 +11,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       new Map<HInstruction, Function>();
 
   final Compiler compiler;
+  JavaScriptBackend get backend => compiler.backend;
   String get name => 'type propagator';
 
   SsaTypePropagator(this.compiler);
@@ -99,7 +100,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   TypeMask visitBinaryArithmetic(HBinaryArithmetic instruction) {
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
-    JavaScriptBackend backend = compiler.backend;    
     if (left.isInteger(compiler) && right.isInteger(compiler)) {
       return backend.intType;
     }
@@ -110,7 +110,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   TypeMask checkPositiveInteger(HBinaryArithmetic instruction) {
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
-    JavaScriptBackend backend = compiler.backend;    
     if (left.isPositiveInteger(compiler) && right.isPositiveInteger(compiler)) {
       return backend.positiveIntType;
     }
@@ -126,6 +125,10 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   TypeMask visitNegate(HNegate instruction) {
+    HInstruction operand = instruction.operand;
+    // We have integer subclasses that represent ranges, so widen any int
+    // subclass to full integer.
+    if (operand.isInteger(compiler)) return backend.intType;
     return instruction.operand.instructionType;
   }
 
@@ -135,7 +138,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   TypeMask visitPhi(HPhi phi) {
-    JavaScriptBackend backend = compiler.backend;    
     TypeMask candidateType = backend.emptyType;
     for (int i = 0, length = phi.inputs.length; i < length; i++) {
       TypeMask inputType = phi.inputs[i].instructionType;
@@ -148,7 +150,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     HInstruction input = instruction.checkedInput;
     TypeMask inputType = input.instructionType;
     TypeMask checkedType = instruction.checkedType;
-    JavaScriptBackend backend = compiler.backend;
     if (instruction.isArgumentTypeCheck || instruction.isReceiverTypeCheck) {
       // We must make sure a type conversion for receiver or argument check
       // does not try to do an int check, because an int check is not enough.
@@ -218,6 +219,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   // [noSuchMethod] if the receiver is not of a specific type.
   // Return true if the receiver type check was added.
   bool checkReceiver(HInvokeDynamic instruction) {
+    assert(instruction.isInterceptedCall);
     HInstruction receiver = instruction.inputs[1];
     if (receiver.isNumber(compiler)) return false;
     if (receiver.isNumberOrNull(compiler)) {
@@ -235,7 +237,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         TypeMask type = new TypeMask.nonNullSubclass(cls.declaration);
         // TODO(ngeoffray): We currently only optimize on primitive
         // types.
-        JavaScriptBackend backend = compiler.backend;    
         if (!type.satisfies(backend.jsIndexableClass, compiler)
             && !type.containsOnlyNum(compiler)
             && !type.containsOnlyBool(compiler)) {
@@ -265,7 +266,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     Selector selector = instruction.selector;
     if (selector.isOperator() && left.isNumber(compiler)) {
       if (right.isNumber(compiler)) return false;
-      JavaScriptBackend backend = compiler.backend;    
       TypeMask type = right.isIntegerOrNull(compiler)
           ? right.instructionType.nonNullable()
           : backend.numType;
@@ -343,7 +343,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         // Insert a refinement node after the call and update all
         // users dominated by the call to use that node instead of
         // [receiver].
-        HTypeKnown converted = new HTypeKnown(newType, receiver);
+        HTypeKnown converted =
+            new HTypeKnown.witnessed(newType, receiver, instruction);
         instruction.block.addBefore(instruction.next, converted);
         receiver.replaceAllUsersDominatedBy(converted.next, converted);
         addDependentInstructionsToWorkList(converted);

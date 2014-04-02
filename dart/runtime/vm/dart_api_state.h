@@ -8,6 +8,8 @@
 #include "include/dart_api.h"
 
 #include "platform/thread.h"
+#include "platform/utils.h"
+#include "vm/bitfield.h"
 #include "vm/dart_api_impl.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -151,7 +153,13 @@ class PersistentHandle {
   void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
   void set_raw(const Object& object) { raw_ = object.raw(); }
   RawObject** raw_addr() { return &raw_; }
+  Dart_PersistentHandle apiHandle() {
+    return reinterpret_cast<Dart_PersistentHandle>(this);
+  }
+
   static intptr_t raw_offset() { return OFFSET_OF(PersistentHandle, raw_); }
+
+  static PersistentHandle* Cast(Dart_PersistentHandle handle);
 
  private:
   friend class PersistentHandles;
@@ -197,23 +205,82 @@ class FinalizablePersistentHandle {
   void set_callback(Dart_WeakPersistentHandleFinalizer callback) {
     callback_ = callback;
   }
+  Dart_WeakPersistentHandle apiHandle() {
+    return reinterpret_cast<Dart_WeakPersistentHandle>(this);
+  }
 
-  static void Finalize(FinalizablePersistentHandle* handle) {
-    Dart_WeakPersistentHandleFinalizer callback = handle->callback();
-    if (callback != NULL) {
-      void* peer = handle->peer();
-      handle->Clear();
-      (*callback)(reinterpret_cast<Dart_WeakPersistentHandle>(handle), peer);
-    } else {
-      handle->Clear();
+  void SetExternalSize(intptr_t size, Isolate* isolate) {
+    ASSERT(size >= 0);
+    set_external_size(Utils::RoundUp(size, kObjectAlignment));
+    if (SpaceForExternal() == Heap::kNew) {
+      SetExternalNewSpaceBit();
+    }
+    // TODO(koda): On repeated/large external allocations for existing objects,
+    // without any intervening normal allocation, GC will not trigger.
+    isolate->heap()->AllocateExternal(external_size(), SpaceForExternal());
+  }
+
+  // Called when the referent becomes unreachable.
+  void UpdateUnreachable(Isolate* isolate) {
+    EnsureFreeExternal(isolate);
+    Finalize(isolate, this);
+  }
+
+  // Called when the referent has moved, potentially between generations.
+  void UpdateRelocated(Isolate* isolate) {
+    if (IsSetNewSpaceBit() && (SpaceForExternal() == Heap::kOld)) {
+      isolate->heap()->FreeExternal(external_size(), Heap::kNew);
+      isolate->heap()->AllocateExternal(external_size(), Heap::kOld);
+      ClearExternalNewSpaceBit();
     }
   }
 
+  // Idempotent. Called when the handle is explicitly deleted or the
+  // referent becomes unreachable.
+  void EnsureFreeExternal(Isolate* isolate) {
+    isolate->heap()->FreeExternal(external_size(), SpaceForExternal());
+    set_external_size(0);
+  }
+
+  bool IsPrologueWeakPersistent() {
+    return PrologueWeakBit::decode(external_data_);
+  }
+
+  void SetPrologueWeakPersistent(bool value) {
+    external_data_ = PrologueWeakBit::update(value, external_data_);
+  }
+
+  static FinalizablePersistentHandle* Cast(Dart_WeakPersistentHandle handle);
+
  private:
+  enum {
+    kExternalNewSpaceBit = 0,
+    kPrologueWeakBit = 1,
+    kExternalSizeBits = 2,
+    kExternalSizeBitsSize = (kBitsPerWord - 2),
+  };
+
+  // This part of external_data_ is the number of externally allocated bytes.
+  // TODO(koda): Measure size in words instead.
+  class ExternalSizeBits : public BitField<intptr_t,
+                                           kExternalSizeBits,
+                                           kExternalSizeBitsSize> {};  // NOLINT
+  // This bit of external_data_ is true if the referent was created in new
+  // space and UpdateRelocated has not yet detected any promotion.
+  class ExternalNewSpaceBit : public BitField<bool, kExternalNewSpaceBit, 1> {};
+  // This bit is used to indicate that it is a prologue weak persistent handle.
+  class PrologueWeakBit : public BitField<bool, kPrologueWeakBit, 1> {};
+
   friend class FinalizablePersistentHandles;
 
-  FinalizablePersistentHandle() : raw_(NULL), peer_(NULL), callback_(NULL) { }
+  FinalizablePersistentHandle()
+      : raw_(NULL),
+        peer_(NULL),
+        external_data_(0),
+        callback_(NULL) { }
   ~FinalizablePersistentHandle() { }
+
+  static void Finalize(Isolate* isolate, FinalizablePersistentHandle* handle);
 
   // Overload the raw_ field as a next pointer when adding freed
   // handles to the free list.
@@ -232,11 +299,41 @@ class FinalizablePersistentHandle {
   void Clear() {
     raw_ = Object::null();
     peer_ = NULL;
+    external_data_ = 0;
     callback_ = NULL;
+  }
+
+  intptr_t external_size() const {
+    return ExternalSizeBits::decode(external_data_);
+  }
+
+  void set_external_size(intptr_t size) {
+    ASSERT(ExternalSizeBits::is_valid(size));
+    external_data_ = ExternalSizeBits::update(size, external_data_);
+  }
+
+  bool IsSetNewSpaceBit() const {
+    return ExternalNewSpaceBit::decode(external_data_);
+  }
+
+  void SetExternalNewSpaceBit() {
+    external_data_ = ExternalNewSpaceBit::update(true, external_data_);
+  }
+
+  void ClearExternalNewSpaceBit() {
+    external_data_ = ExternalNewSpaceBit::update(false, external_data_);
+  }
+
+  // Returns the space to charge for the external size.
+  Heap::Space SpaceForExternal() const {
+    // Non-heap and VM-heap objects count as old space here.
+    return (raw_->IsHeapObject() && raw_->IsNewObject()) ?
+           Heap::kNew : Heap::kOld;
   }
 
   RawObject* raw_;
   void* peer_;
+  uword external_data_;
   Dart_WeakPersistentHandleFinalizer callback_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(FinalizablePersistentHandle);
@@ -403,7 +500,7 @@ class FinalizablePersistentHandles
       : Handles<kFinalizablePersistentHandleSizeInWords,
                 kFinalizablePersistentHandlesPerChunk,
                 kOffsetOfRawPtrInFinalizablePersistentHandle>(),
-                                   free_list_(NULL) { }
+        free_list_(NULL) { }
   ~FinalizablePersistentHandles() {
     free_list_ = NULL;
   }
@@ -416,7 +513,8 @@ class FinalizablePersistentHandles
   void VisitHandles(HandleVisitor* visitor) {
     Handles<kFinalizablePersistentHandleSizeInWords,
             kFinalizablePersistentHandlesPerChunk,
-            kOffsetOfRawPtrInFinalizablePersistentHandle>::Visit(visitor);
+            kOffsetOfRawPtrInFinalizablePersistentHandle>::Visit(
+                visitor);
   }
 
   // Visit all object pointers stored in the various handles.
@@ -438,7 +536,7 @@ class FinalizablePersistentHandles
       handle = reinterpret_cast<FinalizablePersistentHandle*>(
           AllocateScopedHandle());
     }
-    handle->set_callback(NULL);
+    handle->Clear();
     return handle;
   }
 
@@ -479,16 +577,18 @@ class WeakReferenceSet {
   RawObject** get_key(intptr_t i) {
     ASSERT(i >= 0);
     ASSERT(i < num_keys_);
-    return (reinterpret_cast<FinalizablePersistentHandle*>(keys_[i]))->
-        raw_addr();
+    FinalizablePersistentHandle* ref =
+        FinalizablePersistentHandle::Cast(keys_[i]);
+    return ref->raw_addr();
   }
 
   intptr_t num_values() const { return num_values_; }
   RawObject** get_value(intptr_t i) {
     ASSERT(i >= 0);
     ASSERT(i < num_values_);
-    return (reinterpret_cast<FinalizablePersistentHandle*>(values_[i]))->
-        raw_addr();
+    FinalizablePersistentHandle* ref =
+        FinalizablePersistentHandle::Cast(values_[i]);
+    return ref->raw_addr();
   }
 
   static WeakReferenceSet* Pop(WeakReferenceSet** queue) {

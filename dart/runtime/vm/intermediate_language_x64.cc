@@ -29,7 +29,7 @@ DECLARE_FLAG(bool, use_osr);
 // on the stack and return the result in a fixed register RAX.
 LocationSummary* Instruction::MakeCallSummary() {
   LocationSummary* result = new LocationSummary(0, 0, LocationSummary::kCall);
-  result->set_out(Location::RegisterLocation(RAX));
+  result->set_out(0, Location::RegisterLocation(RAX));
   return result;
 }
 
@@ -124,13 +124,13 @@ static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
 LocationSummary* IfThenElseInstr::MakeLocationSummary(bool opt) const {
   comparison()->InitializeLocationSummary(opt);
   // TODO(vegorov): support byte register constraints in the register allocator.
-  comparison()->locs()->set_out(Location::RegisterLocation(RDX));
+  comparison()->locs()->set_out(0, Location::RegisterLocation(RDX));
   return comparison()->locs();
 }
 
 
 void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(locs()->out().reg() == RDX);
+  ASSERT(locs()->out(0).reg() == RDX);
 
   // Clear upper part of the out register. We are going to use setcc on it
   // which is a byte move.
@@ -205,7 +205,7 @@ LocationSummary* StoreLocalInstr::MakeLocationSummary(bool opt) const {
 
 void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
   __ movq(Address(RBP, local().index() * kWordSize), value);
 }
@@ -221,8 +221,8 @@ LocationSummary* ConstantInstr::MakeLocationSummary(bool opt) const {
 
 void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
-  if (!locs()->out().IsInvalid()) {
-    Register result = locs()->out().reg();
+  if (!locs()->out(0).IsInvalid()) {
+    Register result = locs()->out(0).reg();
     __ LoadObject(result, value(), PP);
   }
 }
@@ -236,7 +236,7 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(bool opt) const {
   summary->set_in(0, Location::RegisterLocation(RAX));  // Value.
   summary->set_in(1, Location::RegisterLocation(RCX));  // Instantiator.
   summary->set_in(2, Location::RegisterLocation(RDX));  // Type arguments.
-  summary->set_out(Location::RegisterLocation(RAX));
+  summary->set_out(0, Location::RegisterLocation(RAX));
   return summary;
 }
 
@@ -247,7 +247,7 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(RAX));
-  locs->set_out(Location::RegisterLocation(RAX));
+  locs->set_out(0, Location::RegisterLocation(RAX));
   return locs;
 }
 
@@ -280,7 +280,7 @@ static void EmitAssertBoolean(Register reg,
 
 void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register obj = locs()->in(0).reg();
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
 
   EmitAssertBoolean(obj, token_pos(), deopt_id(), locs(), compiler);
   ASSERT(obj == result);
@@ -310,7 +310,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(bool opt) const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     locs->set_in(0, Location::RequiresFpuRegister());
     locs->set_in(1, Location::RequiresFpuRegister());
-    locs->set_out(Location::RequiresRegister());
+    locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
   if (operation_cid() == kSmiCid) {
@@ -324,7 +324,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(bool opt) const {
     locs->set_in(1, locs->in(0).IsConstant()
                         ? Location::RequiresRegister()
                         : Location::RegisterOrConstant(right()));
-    locs->set_out(Location::RequiresRegister());
+    locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
   UNREACHABLE();
@@ -464,7 +464,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Condition true_condition = EmitComparisonCode(compiler, labels);
   EmitBranchOnCondition(compiler,  true_condition, labels);
 
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   Label done;
   __ Bind(&is_false);
   __ LoadObject(result, Bool::False(), PP);
@@ -537,7 +537,7 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(bool opt) const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_in(1, Location::RequiresFpuRegister());
-    summary->set_out(Location::RequiresRegister());
+    summary->set_out(0, Location::RequiresRegister());
     return summary;
   }
   ASSERT(operation_cid() == kSmiCid);
@@ -549,7 +549,7 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(bool opt) const {
   summary->set_in(1, summary->in(0).IsConstant()
                          ? Location::RequiresRegister()
                          : Location::RegisterOrConstant(right()));
-  summary->set_out(Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -571,7 +571,7 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Condition true_condition = EmitComparisonCode(compiler, labels);
   EmitBranchOnCondition(compiler, true_condition, labels);
 
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   Label done;
   __ Bind(&is_false);
   __ LoadObject(result, Bool::False(), PP);
@@ -598,7 +598,7 @@ LocationSummary* NativeCallInstr::MakeLocationSummary(bool opt) const {
   locs->set_temp(0, Location::RegisterLocation(RAX));
   locs->set_temp(1, Location::RegisterLocation(RBX));
   locs->set_temp(2, Location::RegisterLocation(R10));
-  locs->set_out(Location::RegisterLocation(RAX));
+  locs->set_out(0, Location::RegisterLocation(RAX));
   return locs;
 }
 
@@ -607,7 +607,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == RAX);
   ASSERT(locs()->temp(1).reg() == RBX);
   ASSERT(locs()->temp(2).reg() == R10);
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
 
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::ZoneHandle(), PP);
@@ -657,7 +657,7 @@ LocationSummary* StringFromCharCodeInstr::MakeLocationSummary(bool opt) const {
 
 void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register char_code = locs()->in(0).reg();
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   __ LoadImmediate(result,
       Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())), PP);
   __ movq(result, Address(result,
@@ -678,7 +678,7 @@ LocationSummary* StringToCharCodeInstr::MakeLocationSummary(bool opt) const {
 void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(cid_ == kOneByteStringCid);
   Register str = locs()->in(0).reg();
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   Label is_one, done;
   __ movq(result, FieldAddress(str, String::length_offset()));
   __ cmpq(result, Immediate(Smi::RawValue(1)));
@@ -698,7 +698,7 @@ LocationSummary* StringInterpolateInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(RAX));
-  summary->set_out(Location::RegisterLocation(RAX));
+  summary->set_out(0, Location::RegisterLocation(RAX));
   return summary;
 }
 
@@ -714,7 +714,7 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                kNumberOfArguments,
                                kNoArgumentNames,
                                locs());
-  ASSERT(locs()->out().reg() == RAX);
+  ASSERT(locs()->out(0).reg() == RAX);
 }
 
 
@@ -728,7 +728,7 @@ LocationSummary* LoadUntaggedInstr::MakeLocationSummary(bool opt) const {
 
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register object = locs()->in(0).reg();
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   __ movq(result, FieldAddress(object, offset()));
 }
 
@@ -743,7 +743,7 @@ LocationSummary* LoadClassIdInstr::MakeLocationSummary(bool opt) const {
 
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register object = locs()->in(0).reg();
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   Label load, done;
   __ testq(object, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &load, Assembler::kNearJump);
@@ -769,6 +769,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
       return CompileType::FromCid(kFloat32x4Cid);
     case kTypedDataInt32x4ArrayCid:
       return CompileType::FromCid(kInt32x4Cid);
+    case kTypedDataFloat64x2ArrayCid:
+      return CompileType::FromCid(kFloat64x2Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -813,6 +815,8 @@ Representation LoadIndexedInstr::representation() const {
       return kUnboxedInt32x4;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
+    case kTypedDataFloat64x2ArrayCid:
+      return kUnboxedFloat64x2;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -839,12 +843,13 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(bool opt) const {
                           index()->definition()->AsConstant()->value())
                       : Location::RequiresRegister());
   }
-  if ((representation() == kUnboxedDouble) ||
+  if ((representation() == kUnboxedDouble)    ||
       (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedInt32x4)) {
-    locs->set_out(Location::RequiresFpuRegister());
+      (representation() == kUnboxedInt32x4)   ||
+      (representation() == kUnboxedFloat64x2)) {
+    locs->set_out(0, Location::RequiresFpuRegister());
   } else {
-    locs->set_out(Location::RequiresRegister());
+    locs->set_out(0, Location::RequiresRegister());
   }
   return locs;
 }
@@ -874,24 +879,24 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             Smi::Cast(index.constant()).Value());
   }
 
-  if ((representation() == kUnboxedDouble) ||
+  if ((representation() == kUnboxedDouble)    ||
       (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedInt32x4)) {
+      (representation() == kUnboxedInt32x4)   ||
+      (representation() == kUnboxedFloat64x2)) {
     if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
 
-    XmmRegister result = locs()->out().fpu_reg();
+    XmmRegister result = locs()->out(0).fpu_reg();
     if (class_id() == kTypedDataFloat32ArrayCid) {
       // Load single precision float.
       __ movss(result, element_address);
-      // Promote to double.
-      __ cvtss2sd(result, locs()->out().fpu_reg());
     } else if (class_id() == kTypedDataFloat64ArrayCid) {
       __ movsd(result, element_address);
     } else {
-      ASSERT((class_id() == kTypedDataInt32x4ArrayCid) ||
-             (class_id() == kTypedDataFloat32x4ArrayCid));
+      ASSERT((class_id() == kTypedDataInt32x4ArrayCid)   ||
+             (class_id() == kTypedDataFloat32x4ArrayCid) ||
+             (class_id() == kTypedDataFloat64x2ArrayCid));
       __ movups(result, element_address);
     }
     return;
@@ -900,7 +905,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if ((index_scale() == 1) && index.IsRegister()) {
     __ SmiUntag(index.reg());
   }
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kTypedDataInt8ArrayCid:
       __ movsxb(result, element_address);
@@ -964,6 +969,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedFloat32x4;
     case kTypedDataInt32x4ArrayCid:
       return kUnboxedInt32x4;
+    case kTypedDataFloat64x2ArrayCid:
+      return kUnboxedFloat64x2;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1014,14 +1021,12 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(bool opt) const {
       locs->set_in(2, Location::WritableRegister());
       break;
     case kTypedDataFloat32ArrayCid:
-      // Need temp register for float-to-double conversion.
-      locs->AddTemp(Location::RequiresFpuRegister());
-      // Fall through.
     case kTypedDataFloat64ArrayCid:
       // TODO(srdjan): Support Float64 constants.
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
     case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat64x2ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1131,15 +1136,13 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
     }
     case kTypedDataFloat32ArrayCid:
-      // Convert to single precision.
-      __ cvtsd2ss(locs()->temp(0).fpu_reg(), locs()->in(2).fpu_reg());
-      // Store.
-      __ movss(element_address, locs()->temp(0).fpu_reg());
+      __ movss(element_address, locs()->in(2).fpu_reg());
       break;
     case kTypedDataFloat64ArrayCid:
       __ movsd(element_address, locs()->in(2).fpu_reg());
       break;
     case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat64x2ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       __ movups(element_address, locs()->in(2).fpu_reg());
       break;
@@ -1504,7 +1507,7 @@ class StoreInstanceFieldSlowPath : public SlowPathCode {
     const ExternalLabel label(cls_.ToCString(), stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->out());
+    locs->live_registers()->Remove(locs->out(0));
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
@@ -1528,7 +1531,8 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps,
-          (field().guarded_cid() == kIllegalCid) || (is_initialization_)
+          !field().IsNull() &&
+          ((field().guarded_cid() == kIllegalCid) || is_initialization_)
           ? LocationSummary::kCallOnSlowPath
           : LocationSummary::kNoCall);
 
@@ -1574,6 +1578,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         case kFloat32x4Cid:
           cls = &compiler->float32x4_class();
           break;
+        case kFloat64x2Cid:
+          cls = &compiler->float64x2_class();
+          break;
         default:
           UNREACHABLE();
       }
@@ -1590,10 +1597,10 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(slow_path->exit_label());
       __ movq(temp2, temp);
       __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, field().Offset()),
+                         FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
     } else {
-      __ movq(temp, FieldAddress(instance_reg, field().Offset()));
+      __ movq(temp, FieldAddress(instance_reg, offset_in_bytes_));
     }
     switch (cid) {
       case kDoubleCid:
@@ -1604,6 +1611,10 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ Comment("UnboxedFloat32x4StoreInstanceFieldInstr");
         __ movups(FieldAddress(temp, Float32x4::value_offset()), value);
         break;
+      case kFloat64x2Cid:
+        __ Comment("UnboxedFloat64x2StoreInstanceFieldInstr");
+        __ movups(FieldAddress(temp, Float64x2::value_offset()), value);
+      break;
       default:
         UNREACHABLE();
     }
@@ -1619,6 +1630,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label store_pointer;
     Label store_double;
     Label store_float32x4;
+    Label store_float64x2;
 
     __ LoadObject(temp, Field::ZoneHandle(field().raw()), PP);
 
@@ -1638,6 +1650,10 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             Immediate(kFloat32x4Cid));
     __ j(EQUAL, &store_float32x4);
 
+    __ cmpl(FieldAddress(temp, Field::guarded_cid_offset()),
+            Immediate(kFloat64x2Cid));
+    __ j(EQUAL, &store_float64x2);
+
     // Fall through.
     __ jmp(&store_pointer);
 
@@ -1653,7 +1669,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           new StoreInstanceFieldSlowPath(this, compiler->double_class());
       compiler->AddSlowPathCode(slow_path);
 
-      __ movq(temp, FieldAddress(instance_reg, field().Offset()));
+      __ movq(temp, FieldAddress(instance_reg, offset_in_bytes_));
       __ CompareObject(temp, Object::null_object(), PP);
       __ j(NOT_EQUAL, &copy_double);
 
@@ -1665,7 +1681,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(slow_path->exit_label());
       __ movq(temp2, temp);
       __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, field().Offset()),
+                         FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
 
       __ Bind(&copy_double);
@@ -1681,7 +1697,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           new StoreInstanceFieldSlowPath(this, compiler->float32x4_class());
       compiler->AddSlowPathCode(slow_path);
 
-      __ movq(temp, FieldAddress(instance_reg, field().Offset()));
+      __ movq(temp, FieldAddress(instance_reg, offset_in_bytes_));
       __ CompareObject(temp, Object::null_object(), PP);
       __ j(NOT_EQUAL, &copy_float32x4);
 
@@ -1693,12 +1709,41 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(slow_path->exit_label());
       __ movq(temp2, temp);
       __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, field().Offset()),
+                         FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
 
       __ Bind(&copy_float32x4);
       __ movups(fpu_temp, FieldAddress(value_reg, Float32x4::value_offset()));
       __ movups(FieldAddress(temp, Float32x4::value_offset()), fpu_temp);
+      __ jmp(&skip_store);
+    }
+
+    {
+      __ Bind(&store_float64x2);
+      Label copy_float64x2;
+
+      StoreInstanceFieldSlowPath* slow_path =
+          new StoreInstanceFieldSlowPath(this, compiler->float64x2_class());
+      compiler->AddSlowPathCode(slow_path);
+
+      __ movq(temp, FieldAddress(instance_reg, offset_in_bytes_));
+      __ CompareObject(temp, Object::null_object(), PP);
+      __ j(NOT_EQUAL, &copy_float64x2);
+
+      __ TryAllocate(compiler->float64x2_class(),
+                     slow_path->entry_label(),
+                     Assembler::kFarJump,
+                     temp,
+                     temp2);
+      __ Bind(slow_path->exit_label());
+      __ movq(temp2, temp);
+      __ StoreIntoObject(instance_reg,
+                         FieldAddress(instance_reg, offset_in_bytes_),
+                         temp2);
+
+      __ Bind(&copy_float64x2);
+      __ movups(fpu_temp, FieldAddress(value_reg, Float64x2::value_offset()));
+      __ movups(FieldAddress(temp, Float64x2::value_offset()), fpu_temp);
       __ jmp(&skip_store);
     }
 
@@ -1708,17 +1753,17 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (ShouldEmitStoreBarrier()) {
     Register value_reg = locs()->in(1).reg();
     __ StoreIntoObject(instance_reg,
-                       FieldAddress(instance_reg, field().Offset()),
+                       FieldAddress(instance_reg, offset_in_bytes_),
                        value_reg,
                        CanValueBeSmi());
   } else {
     if (locs()->in(1).IsConstant()) {
-      __ StoreObject(FieldAddress(instance_reg, field().Offset()),
+      __ StoreObject(FieldAddress(instance_reg, offset_in_bytes_),
                      locs()->in(1).constant(), PP);
     } else {
       Register value_reg = locs()->in(1).reg();
       __ StoreIntoObjectNoBarrier(instance_reg,
-          FieldAddress(instance_reg, field().Offset()), value_reg);
+          FieldAddress(instance_reg, offset_in_bytes_), value_reg);
     }
   }
   __ Bind(&skip_store);
@@ -1731,7 +1776,7 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -1743,7 +1788,7 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(bool opt) const {
 // This is safe only so long as LoadStaticFieldInstr cannot deoptimize.
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register field = locs()->in(0).reg();
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   __ movq(result, FieldAddress(field, Field::value_offset()));
 }
 
@@ -1780,7 +1825,7 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(bool opt) const {
   summary->set_in(0, Location::RegisterLocation(RAX));
   summary->set_in(1, Location::RegisterLocation(RCX));
   summary->set_in(2, Location::RegisterLocation(RDX));
-  summary->set_out(Location::RegisterLocation(RAX));
+  summary->set_out(0, Location::RegisterLocation(RAX));
   return summary;
 }
 
@@ -1795,7 +1840,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                type(),
                                negate_result(),
                                locs());
-  ASSERT(locs()->out().reg() == RAX);
+  ASSERT(locs()->out(0).reg() == RAX);
 }
 
 
@@ -1806,7 +1851,7 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(RBX));
   locs->set_in(1, Location::RegisterLocation(R10));
-  locs->set_out(Location::RegisterLocation(RAX));
+  locs->set_out(0, Location::RegisterLocation(RAX));
   return locs;
 }
 
@@ -1819,7 +1864,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,
                          locs());
-  ASSERT(locs()->out().reg() == RAX);
+  ASSERT(locs()->out(0).reg() == RAX);
 }
 
 
@@ -1837,14 +1882,14 @@ class BoxDoubleSlowPath : public SlowPathCode {
     const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->out());
+    locs->live_registers()->Remove(locs->out(0));
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
-    __ MoveRegister(locs->out().reg(), RAX);
+    __ MoveRegister(locs->out(0).reg(), RAX);
     compiler->RestoreLiveRegisters(locs);
 
     __ jmp(exit_label());
@@ -1869,14 +1914,46 @@ class BoxFloat32x4SlowPath : public SlowPathCode {
     const ExternalLabel label(float32x4_class.ToCString(), stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->out());
+    locs->live_registers()->Remove(locs->out(0));
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
-    __ MoveRegister(locs->out().reg(), RAX);
+    __ MoveRegister(locs->out(0).reg(), RAX);
+    compiler->RestoreLiveRegisters(locs);
+
+    __ jmp(exit_label());
+  }
+
+ private:
+  Instruction* instruction_;
+};
+
+
+class BoxFloat64x2SlowPath : public SlowPathCode {
+ public:
+  explicit BoxFloat64x2SlowPath(Instruction* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("BoxFloat64x2SlowPath");
+    __ Bind(entry_label());
+    const Class& float64x2_class = compiler->float64x2_class();
+    const Code& stub =
+        Code::Handle(StubCode::GetAllocationStubForClass(float64x2_class));
+    const ExternalLabel label(float64x2_class.ToCString(), stub.EntryPoint());
+
+    LocationSummary* locs = instruction_->locs();
+    locs->live_registers()->Remove(locs->out(0));
+
+    compiler->SaveLiveRegisters(locs);
+    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
+                           &label,
+                           PcDescriptors::kOther,
+                           locs);
+    __ MoveRegister(locs->out(0).reg(), RAX);
     compiler->RestoreLiveRegisters(locs);
 
     __ jmp(exit_label());
@@ -1906,7 +1983,7 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(bool opt) const {
                       : Location::FpuRegisterLocation(XMM1));
     locs->AddTemp(Location::RequiresRegister());
   }
-  locs->set_out(Location::RequiresRegister());
+  locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
 
@@ -1914,7 +1991,7 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(bool opt) const {
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
-    XmmRegister result = locs()->out().fpu_reg();
+    XmmRegister result = locs()->out(0).fpu_reg();
     Register temp = locs()->temp(0).reg();
     __ movq(temp, FieldAddress(instance_reg, offset_in_bytes()));
     intptr_t cid = field()->UnboxedFieldCid();
@@ -1927,6 +2004,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ Comment("UnboxedFloat32x4LoadFieldInstr");
         __ movups(result, FieldAddress(temp, Float32x4::value_offset()));
         break;
+      case kFloat64x2Cid:
+        __ Comment("UnboxedFloat64x2LoadFieldInstr");
+        __ movups(result, FieldAddress(temp, Float64x2::value_offset()));
+        break;
       default:
         UNREACHABLE();
     }
@@ -1934,7 +2015,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   Label done;
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   if (IsPotentialUnboxedLoad()) {
     Register temp = locs()->temp(1).reg();
     XmmRegister value = locs()->temp(0).fpu_reg();
@@ -1942,6 +2023,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label load_pointer;
     Label load_double;
     Label load_float32x4;
+    Label load_float64x2;
 
     __ LoadObject(result, Field::ZoneHandle(field()->raw()), PP);
 
@@ -1956,6 +2038,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cmpq(FieldAddress(result, Field::guarded_cid_offset()),
             Immediate(kFloat32x4Cid));
     __ j(EQUAL, &load_float32x4);
+
+    __ cmpq(FieldAddress(result, Field::guarded_cid_offset()),
+            Immediate(kFloat64x2Cid));
+    __ j(EQUAL, &load_float64x2);
 
     // Fall through.
     __ jmp(&load_pointer);
@@ -1996,6 +2082,23 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movups(FieldAddress(result, Float32x4::value_offset()), value);
       __ jmp(&done);
     }
+    {
+      __ Bind(&load_float64x2);
+
+      BoxFloat64x2SlowPath* slow_path = new BoxFloat64x2SlowPath(this);
+      compiler->AddSlowPathCode(slow_path);
+
+      __ TryAllocate(compiler->float64x2_class(),
+                     slow_path->entry_label(),
+                     Assembler::kFarJump,
+                     result,
+                     temp);
+      __ Bind(slow_path->exit_label());
+      __ movq(temp, FieldAddress(instance_reg, offset_in_bytes()));
+      __ movups(value, FieldAddress(temp, Float64x2::value_offset()));
+      __ movups(FieldAddress(result, Float64x2::value_offset()), value);
+      __ jmp(&done);
+    }
 
     __ Bind(&load_pointer);
   }
@@ -2010,14 +2113,14 @@ LocationSummary* InstantiateTypeInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(RAX));
-  locs->set_out(Location::RegisterLocation(RAX));
+  locs->set_out(0, Location::RegisterLocation(RAX));
   return locs;
 }
 
 
 void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
-  Register result_reg = locs()->out().reg();
+  Register result_reg = locs()->out(0).reg();
 
   // 'instantiator_reg' is the instantiator TypeArguments object (or null).
   // A runtime call to instantiate the type is required.
@@ -2042,7 +2145,7 @@ LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(RAX));
-  locs->set_out(Location::RegisterLocation(RAX));
+  locs->set_out(0, Location::RegisterLocation(RAX));
   return locs;
 }
 
@@ -2050,7 +2153,9 @@ LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
 void InstantiateTypeArgumentsInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
-  Register result_reg = locs()->out().reg();
+  Register result_reg = locs()->out(0).reg();
+  ASSERT(instantiator_reg == RAX);
+  ASSERT(instantiator_reg == result_reg);
 
   // 'instantiator_reg' is the instantiator TypeArguments object (or null).
   ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
@@ -2065,6 +2170,29 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     __ CompareObject(instantiator_reg, Object::null_object(), PP);
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
   }
+
+  // Lookup cache before calling runtime.
+  // TODO(fschneider): Consider moving this into a shared stub to reduce
+  // generated code size.
+  __ LoadObject(RDI, type_arguments(), PP);
+  __ movq(RDI, FieldAddress(RDI, TypeArguments::instantiations_offset()));
+  __ leaq(RDI, FieldAddress(RDI, Array::data_offset()));
+  // The instantiations cache is initialized with Object::zero_array() and is
+  // therefore guaranteed to contain kNoInstantiator. No length check needed.
+  Label loop, found, slow_case;
+  __ Bind(&loop);
+  __ movq(RDX, Address(RDI, 0 * kWordSize));  // Cached instantiator.
+  __ cmpq(RDX, RAX);
+  __ j(EQUAL, &found, Assembler::kNearJump);
+  __ addq(RDI, Immediate(2 * kWordSize));
+  __ cmpq(RDX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  __ jmp(&slow_case, Assembler::kNearJump);
+  __ Bind(&found);
+  __ movq(RAX, Address(RDI, 1 * kWordSize));  // Cached instantiated args.
+  __ jmp(&type_arguments_instantiated, Assembler::kNearJump);
+
+  __ Bind(&slow_case);
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
   __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
@@ -2082,101 +2210,20 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
 }
 
 
-LocationSummary*
-ExtractConstructorTypeArgumentsInstr::MakeLocationSummary(bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
-  return locs;
-}
-
-
-void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-  Register instantiator_reg = locs()->in(0).reg();
-  Register result_reg = locs()->out().reg();
-  ASSERT(instantiator_reg == result_reg);
-
-  // instantiator_reg is the instantiator type argument vector,
-  // i.e. a TypeArguments object (or null).
-  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
-         !type_arguments().CanShareInstantiatorTypeArguments(
-             instantiator_class()));
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments.
-  Label type_arguments_instantiated;
-  ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
-
-  __ CompareObject(instantiator_reg, Object::null_object(), PP);
-  __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-  // Instantiate non-null type arguments.
-  // In the non-factory case, we rely on the allocation stub to
-  // instantiate the type arguments.
-  __ LoadObject(result_reg, type_arguments(), PP);
-  // result_reg: uninstantiated type arguments.
-
-  __ Bind(&type_arguments_instantiated);
-  // result_reg: uninstantiated or instantiated type arguments.
-}
-
-
-LocationSummary*
-ExtractConstructorInstantiatorInstr::MakeLocationSummary(bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
-  return locs;
-}
-
-
-void ExtractConstructorInstantiatorInstr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-  Register instantiator_reg = locs()->in(0).reg();
-  ASSERT(locs()->out().reg() == instantiator_reg);
-
-  // instantiator_reg is the instantiator TypeArguments object (or null).
-  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
-         !type_arguments().CanShareInstantiatorTypeArguments(
-             instantiator_class()));
-
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments and do not pass the instantiator.
-  ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
-
-  Label instantiator_not_null;
-  __ CompareObject(instantiator_reg, Object::null_object(), PP);
-  __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
-  // Null was used in VisitExtractConstructorTypeArguments as the
-  // instantiated type arguments, no proper instantiator needed.
-  __ LoadImmediate(instantiator_reg,
-          Immediate(Smi::RawValue(StubCode::kNoInstantiator)), PP);
-  __ Bind(&instantiator_not_null);
-  // instantiator_reg: instantiator or kNoInstantiator.
-}
-
-
 LocationSummary* AllocateContextInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 1;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_temp(0, Location::RegisterLocation(R10));
-  locs->set_out(Location::RegisterLocation(RAX));
+  locs->set_out(0, Location::RegisterLocation(RAX));
   return locs;
 }
 
 
 void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == R10);
-  ASSERT(locs()->out().reg() == RAX);
+  ASSERT(locs()->out(0).reg() == RAX);
 
   __ LoadImmediate(R10, Immediate(num_context_variables()), PP);
   const ExternalLabel label("alloc_context",
@@ -2194,14 +2241,14 @@ LocationSummary* CloneContextInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(RAX));
-  locs->set_out(Location::RegisterLocation(RAX));
+  locs->set_out(0, Location::RegisterLocation(RAX));
   return locs;
 }
 
 
 void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register context_value = locs()->in(0).reg();
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
 
   __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
   __ pushq(context_value);
@@ -2344,7 +2391,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   const bool is_truncating = shift_left->is_truncating();
   const LocationSummary& locs = *shift_left->locs();
   Register left = locs.in(0).reg();
-  Register result = locs.out().reg();
+  Register result = locs.out(0).reg();
   ASSERT(left == result);
   Label* deopt = shift_left->CanDeoptimize() ?
       compiler->AddDeoptStub(shift_left->deopt_id(), kDeoptBinarySmiOp) : NULL;
@@ -2490,7 +2537,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(bool opt) const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::Constant(right_constant->value()));
-    summary->set_out(Location::SameAsFirstInput());
+    summary->set_out(0, Location::SameAsFirstInput());
     return summary;
   }
 
@@ -2503,12 +2550,12 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(bool opt) const {
       ConstantInstr* right_constant = right()->definition()->AsConstant();
       summary->set_in(1, Location::Constant(right_constant->value()));
       summary->set_temp(0, Location::RequiresRegister());
-      summary->set_out(Location::SameAsFirstInput());
+      summary->set_out(0, Location::SameAsFirstInput());
     } else {
       // Both inputs must be writable because they will be untagged.
       summary->set_in(0, Location::RegisterLocation(RAX));
       summary->set_in(1, Location::WritableRegister());
-      summary->set_out(Location::SameAsFirstInput());
+      summary->set_out(0, Location::SameAsFirstInput());
       // Will be used for sign extension and division.
       summary->set_temp(0, Location::RegisterLocation(RDX));
     }
@@ -2520,7 +2567,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(bool opt) const {
     // Both inputs must be writable because they will be untagged.
     summary->set_in(0, Location::RegisterLocation(RDX));
     summary->set_in(1, Location::WritableRegister());
-    summary->set_out(Location::SameAsFirstInput());
+    summary->set_out(0, Location::SameAsFirstInput());
     // Will be used for sign extension and division.
     summary->set_temp(0, Location::RegisterLocation(RAX));
     return summary;
@@ -2530,7 +2577,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(bool opt) const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), RCX));
-    summary->set_out(Location::SameAsFirstInput());
+    summary->set_out(0, Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
     const intptr_t kNumTemps = 0;
@@ -2541,7 +2588,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(bool opt) const {
     if (!is_truncating()) {
       summary->AddTemp(Location::RequiresRegister());
     }
-    summary->set_out(Location::SameAsFirstInput());
+    summary->set_out(0, Location::SameAsFirstInput());
     return summary;
   } else {
     const intptr_t kNumTemps = 0;
@@ -2554,7 +2601,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(bool opt) const {
     } else {
       summary->set_in(1, Location::PrefersRegister());
     }
-    summary->set_out(Location::SameAsFirstInput());
+    summary->set_out(0, Location::SameAsFirstInput());
     return summary;
   }
 }
@@ -2567,7 +2614,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   ASSERT(!is_truncating());
   Register left = locs()->in(0).reg();
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   ASSERT(left == result);
   Label* deopt = NULL;
   if (CanDeoptimize()) {
@@ -2970,7 +3017,7 @@ LocationSummary* BoxDoubleInstr::MakeLocationSummary(bool opt) const {
                           kNumTemps,
                           LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -2979,7 +3026,7 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BoxDoubleSlowPath* slow_path = new BoxDoubleSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  Register out_reg = locs()->out().reg();
+  Register out_reg = locs()->out(0).reg();
   XmmRegister value = locs()->in(0).fpu_reg();
 
   __ TryAllocate(compiler->double_class(),
@@ -3001,7 +3048,7 @@ LocationSummary* UnboxDoubleInstr::MakeLocationSummary(bool opt) const {
   summary->set_in(0, needs_writable_input
                      ? Location::WritableRegister()
                      : Location::RequiresRegister());
-  summary->set_out(Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
 
@@ -3009,7 +3056,7 @@ LocationSummary* UnboxDoubleInstr::MakeLocationSummary(bool opt) const {
 void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t value_cid = value()->Type()->ToCid();
   const Register value = locs()->in(0).reg();
-  const XmmRegister result = locs()->out().fpu_reg();
+  const XmmRegister result = locs()->out(0).fpu_reg();
 
   if (value_cid == kDoubleCid) {
     __ movsd(result, FieldAddress(value, Double::value_offset()));
@@ -3041,7 +3088,7 @@ LocationSummary* BoxFloat32x4Instr::MakeLocationSummary(bool opt) const {
                           kNumTemps,
                           LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -3050,7 +3097,7 @@ void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BoxFloat32x4SlowPath* slow_path = new BoxFloat32x4SlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  Register out_reg = locs()->out().reg();
+  Register out_reg = locs()->out(0).reg();
   XmmRegister value = locs()->in(0).fpu_reg();
 
   __ TryAllocate(compiler->float32x4_class(),
@@ -3074,7 +3121,7 @@ LocationSummary* UnboxFloat32x4Instr::MakeLocationSummary(bool opt) const {
 void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t value_cid = value()->Type()->ToCid();
   const Register value = locs()->in(0).reg();
-  const XmmRegister result = locs()->out().fpu_reg();
+  const XmmRegister result = locs()->out(0).fpu_reg();
 
   if (value_cid != kFloat32x4Cid) {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptCheckClass);
@@ -3087,6 +3134,64 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* BoxFloat64x2Instr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs,
+                          kNumTemps,
+                          LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void BoxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  BoxFloat64x2SlowPath* slow_path = new BoxFloat64x2SlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+
+  Register out_reg = locs()->out(0).reg();
+  XmmRegister value = locs()->in(0).fpu_reg();
+
+  __ TryAllocate(compiler->float64x2_class(),
+                 slow_path->entry_label(),
+                 Assembler::kFarJump,
+                 out_reg,
+                 kNoRegister);
+  __ Bind(slow_path->exit_label());
+  __ movups(FieldAddress(out_reg, Float64x2::value_offset()), value);
+}
+
+
+LocationSummary* UnboxFloat64x2Instr::MakeLocationSummary(bool opt) const {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = value_cid == kFloat64x2Cid ? 0 : 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void UnboxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const Register value = locs()->in(0).reg();
+  const XmmRegister result = locs()->out(0).fpu_reg();
+
+  if (value_cid != kFloat64x2Cid) {
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptCheckClass);
+    __ testq(value, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);
+    __ CompareClassId(value, kFloat64x2Cid);
+    __ j(NOT_EQUAL, deopt);
+  }
+  __ movups(result, FieldAddress(value, Float64x2::value_offset()));
+}
+
+
 LocationSummary* BoxInt32x4Instr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -3095,7 +3200,7 @@ LocationSummary* BoxInt32x4Instr::MakeLocationSummary(bool opt) const {
                           kNumTemps,
                           LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -3114,14 +3219,14 @@ class BoxInt32x4SlowPath : public SlowPathCode {
     const ExternalLabel label(int32x4_class.ToCString(), stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->out());
+    locs->live_registers()->Remove(locs->out(0));
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
-    __ MoveRegister(locs->out().reg(), RAX);
+    __ MoveRegister(locs->out(0).reg(), RAX);
     compiler->RestoreLiveRegisters(locs);
 
     __ jmp(exit_label());
@@ -3136,7 +3241,7 @@ void BoxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BoxInt32x4SlowPath* slow_path = new BoxInt32x4SlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  Register out_reg = locs()->out().reg();
+  Register out_reg = locs()->out(0).reg();
   XmmRegister value = locs()->in(0).fpu_reg();
 
   __ TryAllocate(compiler->int32x4_class(),
@@ -3155,7 +3260,7 @@ LocationSummary* UnboxInt32x4Instr::MakeLocationSummary(bool opt) const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
 
@@ -3163,7 +3268,7 @@ LocationSummary* UnboxInt32x4Instr::MakeLocationSummary(bool opt) const {
 void UnboxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t value_cid = value()->Type()->ToCid();
   const Register value = locs()->in(0).reg();
-  const XmmRegister result = locs()->out().fpu_reg();
+  const XmmRegister result = locs()->out(0).fpu_reg();
 
   if (value_cid != kInt32x4Cid) {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptCheckClass);
@@ -3183,7 +3288,7 @@ LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary(bool opt) const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3192,7 +3297,7 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).fpu_reg();
   XmmRegister right = locs()->in(1).fpu_reg();
 
-  ASSERT(locs()->out().fpu_reg() == left);
+  ASSERT(locs()->out(0).fpu_reg() == left);
 
   switch (op_kind()) {
     case Token::kADD: __ addsd(left, right); break;
@@ -3211,7 +3316,7 @@ LocationSummary* BinaryFloat32x4OpInstr::MakeLocationSummary(bool opt) const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3220,7 +3325,7 @@ void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).fpu_reg();
   XmmRegister right = locs()->in(1).fpu_reg();
 
-  ASSERT(locs()->out().fpu_reg() == left);
+  ASSERT(locs()->out(0).fpu_reg() == left);
 
   switch (op_kind()) {
     case Token::kADD: __ addps(left, right); break;
@@ -3232,13 +3337,41 @@ void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* BinaryFloat64x2OpInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void BinaryFloat64x2OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).fpu_reg();
+  XmmRegister right = locs()->in(1).fpu_reg();
+
+  ASSERT(locs()->out(0).fpu_reg() == left);
+
+  switch (op_kind()) {
+    case Token::kADD: __ addpd(left, right); break;
+    case Token::kSUB: __ subpd(left, right); break;
+    case Token::kMUL: __ mulpd(left, right); break;
+    case Token::kDIV: __ divpd(left, right); break;
+    default: UNREACHABLE();
+  }
+}
+
+
 LocationSummary* Simd32x4ShuffleInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3246,11 +3379,11 @@ LocationSummary* Simd32x4ShuffleInstr::MakeLocationSummary(bool opt) const {
 void Simd32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
 
-  ASSERT(locs()->out().fpu_reg() == value);
+  ASSERT(locs()->out(0).fpu_reg() == value);
 
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4ShuffleX:
-      __ shufps(value, value, Immediate(0x00));
+      // Shuffle not necessary.
       __ cvtss2sd(value, value);
       break;
     case MethodRecognizer::kFloat32x4ShuffleY:
@@ -3281,7 +3414,7 @@ LocationSummary* Simd32x4ShuffleMixInstr::MakeLocationSummary(bool opt) const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3290,7 +3423,7 @@ void Simd32x4ShuffleMixInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).fpu_reg();
   XmmRegister right = locs()->in(1).fpu_reg();
 
-  ASSERT(locs()->out().fpu_reg() == left);
+  ASSERT(locs()->out(0).fpu_reg() == left);
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4ShuffleMix:
     case MethodRecognizer::kInt32x4ShuffleMix:
@@ -3307,14 +3440,14 @@ LocationSummary* Simd32x4GetSignMaskInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
 
 void Simd32x4GetSignMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
-  Register out = locs()->out().reg();
+  Register out = locs()->out(0).reg();
 
   __ movmskps(out, value);
   __ SmiTag(out);
@@ -3331,7 +3464,7 @@ LocationSummary* Float32x4ConstructorInstr::MakeLocationSummary(
   summary->set_in(1, Location::RequiresFpuRegister());
   summary->set_in(2, Location::RequiresFpuRegister());
   summary->set_in(3, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3341,7 +3474,7 @@ void Float32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister v1 = locs()->in(1).fpu_reg();
   XmmRegister v2 = locs()->in(2).fpu_reg();
   XmmRegister v3 = locs()->in(3).fpu_reg();
-  ASSERT(v0 == locs()->out().fpu_reg());
+  ASSERT(v0 == locs()->out(0).fpu_reg());
   __ AddImmediate(RSP, Immediate(-16), PP);
   __ cvtsd2ss(v0, v0);
   __ movss(Address(RSP, 0), v0);
@@ -3364,13 +3497,13 @@ LocationSummary* Float32x4ZeroInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_out(Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
 
 
 void Float32x4ZeroInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  XmmRegister value = locs()->out().fpu_reg();
+  XmmRegister value = locs()->out(0).fpu_reg();
   __ xorps(value, value);
 }
 
@@ -3381,14 +3514,14 @@ LocationSummary* Float32x4SplatInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
 
 void Float32x4SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  XmmRegister value = locs()->out().fpu_reg();
-  ASSERT(locs()->in(0).fpu_reg() == locs()->out().fpu_reg());
+  XmmRegister value = locs()->out(0).fpu_reg();
+  ASSERT(locs()->in(0).fpu_reg() == locs()->out(0).fpu_reg());
   // Convert to Float32.
   __ cvtsd2ss(value, value);
   // Splat across all lanes.
@@ -3403,7 +3536,7 @@ LocationSummary* Float32x4ComparisonInstr::MakeLocationSummary(bool opt) const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3412,7 +3545,7 @@ void Float32x4ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).fpu_reg();
   XmmRegister right = locs()->in(1).fpu_reg();
 
-  ASSERT(locs()->out().fpu_reg() == left);
+  ASSERT(locs()->out(0).fpu_reg() == left);
 
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4Equal:
@@ -3446,7 +3579,7 @@ LocationSummary* Float32x4MinMaxInstr::MakeLocationSummary(bool opt) const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3455,7 +3588,7 @@ void Float32x4MinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).fpu_reg();
   XmmRegister right = locs()->in(1).fpu_reg();
 
-  ASSERT(locs()->out().fpu_reg() == left);
+  ASSERT(locs()->out(0).fpu_reg() == left);
 
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4Min:
@@ -3476,7 +3609,7 @@ LocationSummary* Float32x4ScaleInstr::MakeLocationSummary(bool opt) const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3485,7 +3618,7 @@ void Float32x4ScaleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).fpu_reg();
   XmmRegister right = locs()->in(1).fpu_reg();
 
-  ASSERT(locs()->out().fpu_reg() == left);
+  ASSERT(locs()->out(0).fpu_reg() == left);
 
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4Scale:
@@ -3504,7 +3637,7 @@ LocationSummary* Float32x4SqrtInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3512,7 +3645,7 @@ LocationSummary* Float32x4SqrtInstr::MakeLocationSummary(bool opt) const {
 void Float32x4SqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).fpu_reg();
 
-  ASSERT(locs()->out().fpu_reg() == left);
+  ASSERT(locs()->out(0).fpu_reg() == left);
 
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4Sqrt:
@@ -3535,7 +3668,7 @@ LocationSummary* Float32x4ZeroArgInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3543,7 +3676,7 @@ LocationSummary* Float32x4ZeroArgInstr::MakeLocationSummary(bool opt) const {
 void Float32x4ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).fpu_reg();
 
-  ASSERT(locs()->out().fpu_reg() == left);
+  ASSERT(locs()->out(0).fpu_reg() == left);
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4Negate:
       __ negateps(left);
@@ -3564,7 +3697,7 @@ LocationSummary* Float32x4ClampInstr::MakeLocationSummary(bool opt) const {
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresFpuRegister());
   summary->set_in(2, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3573,7 +3706,7 @@ void Float32x4ClampInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).fpu_reg();
   XmmRegister lower = locs()->in(1).fpu_reg();
   XmmRegister upper = locs()->in(2).fpu_reg();
-  ASSERT(locs()->out().fpu_reg() == left);
+  ASSERT(locs()->out(0).fpu_reg() == left);
   __ minps(left, upper);
   __ maxps(left, lower);
 }
@@ -3586,7 +3719,7 @@ LocationSummary* Float32x4WithInstr::MakeLocationSummary(bool opt) const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3595,7 +3728,7 @@ void Float32x4WithInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister replacement = locs()->in(0).fpu_reg();
   XmmRegister value = locs()->in(1).fpu_reg();
 
-  ASSERT(locs()->out().fpu_reg() == replacement);
+  ASSERT(locs()->out(0).fpu_reg() == replacement);
 
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4WithX:
@@ -3653,13 +3786,229 @@ LocationSummary* Float32x4ToInt32x4Instr::MakeLocationSummary(bool opt) const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
 
 void Float32x4ToInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // NOP.
+}
+
+
+LocationSummary* Simd64x2ShuffleInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Simd64x2ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->in(0).fpu_reg();
+
+  ASSERT(locs()->out(0).fpu_reg() == value);
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat64x2GetX:
+      // nop.
+      break;
+    case MethodRecognizer::kFloat64x2GetY:
+      __ shufpd(value, value, Immediate(0x33));
+      break;
+    default: UNREACHABLE();
+  }
+}
+
+
+LocationSummary* Float64x2ZeroInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_out(0, Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void Float64x2ZeroInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->out(0).fpu_reg();
+  __ xorpd(value, value);
+}
+
+
+LocationSummary* Float64x2SplatInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float64x2SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->out(0).fpu_reg();
+  __ shufpd(value, value, Immediate(0x0));
+}
+
+
+LocationSummary* Float64x2ConstructorInstr::MakeLocationSummary(
+    bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float64x2ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister v0 = locs()->in(0).fpu_reg();
+  XmmRegister v1 = locs()->in(1).fpu_reg();
+  ASSERT(v0 == locs()->out(0).fpu_reg());
+  __ AddImmediate(RSP, Immediate(-16), PP);
+  __ movsd(Address(RSP, 0), v0);
+  __ movsd(Address(RSP, 8), v1);
+  __ movups(v0, Address(RSP, 0));
+  __ AddImmediate(RSP, Immediate(16), PP);
+}
+
+
+LocationSummary* Float64x2ToFloat32x4Instr::MakeLocationSummary(
+    bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float64x2ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->out(0).fpu_reg();
+  __ cvtpd2ps(value, value);
+}
+
+
+LocationSummary* Float32x4ToFloat64x2Instr::MakeLocationSummary(
+    bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float32x4ToFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->out(0).fpu_reg();
+  __ cvtps2pd(value, value);
+}
+
+
+LocationSummary* Float64x2ZeroArgInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  if (representation() == kTagged) {
+    ASSERT(op_kind() == MethodRecognizer::kFloat64x2GetSignMask);
+    summary->set_out(0, Location::RequiresRegister());
+  } else {
+    ASSERT(representation() == kUnboxedFloat64x2);
+    summary->set_out(0, Location::SameAsFirstInput());
+  }
+  return summary;
+}
+
+
+void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).fpu_reg();
+
+  ASSERT((op_kind() == MethodRecognizer::kFloat64x2GetSignMask) ||
+         (locs()->out(0).fpu_reg() == left));
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat64x2Negate:
+      __ negatepd(left);
+      break;
+    case MethodRecognizer::kFloat64x2Abs:
+      __ abspd(left);
+      break;
+    case MethodRecognizer::kFloat64x2Sqrt:
+      __ sqrtpd(left);
+      break;
+    case MethodRecognizer::kFloat64x2GetSignMask:
+      __ movmskpd(locs()->out(0).reg(), left);
+      __ SmiTag(locs()->out(0).reg());
+      break;
+    default: UNREACHABLE();
+  }
+}
+
+
+LocationSummary* Float64x2OneArgInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float64x2OneArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).fpu_reg();
+  XmmRegister right = locs()->in(1).fpu_reg();
+  ASSERT((locs()->out(0).fpu_reg() == left));
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat64x2Scale:
+      __ shufpd(right, right, Immediate(0x00));
+      __ mulpd(left, right);
+      break;
+    case MethodRecognizer::kFloat64x2WithX:
+      __ subq(RSP, Immediate(16));
+      // Move value to stack.
+      __ movups(Address(RSP, 0), left);
+      // Write over X value.
+      __ movsd(Address(RSP, 0), right);
+      // Move updated value into output register.
+      __ movups(left, Address(RSP, 0));
+      __ addq(RSP, Immediate(16));
+      break;
+    case MethodRecognizer::kFloat64x2WithY:
+      __ subq(RSP, Immediate(16));
+      // Move value to stack.
+      __ movups(Address(RSP, 0), left);
+      // Write over Y value.
+      __ movsd(Address(RSP, 8), right);
+      // Move updated value into output register.
+      __ movups(left, Address(RSP, 0));
+      __ addq(RSP, Immediate(16));
+      break;
+    case MethodRecognizer::kFloat64x2Min:
+      __ minpd(left, right);
+      break;
+    case MethodRecognizer::kFloat64x2Max:
+      __ maxpd(left, right);
+      break;
+    default: UNREACHABLE();
+  }
 }
 
 
@@ -3674,7 +4023,7 @@ LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
   summary->set_in(2, Location::RequiresRegister());
   summary->set_in(3, Location::RequiresRegister());
   summary->set_temp(0, Location::RequiresRegister());
-  summary->set_out(Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
 
@@ -3685,7 +4034,7 @@ void Int32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register v2 = locs()->in(2).reg();
   Register v3 = locs()->in(3).reg();
   Register temp = locs()->temp(0).reg();
-  XmmRegister result = locs()->out().fpu_reg();
+  XmmRegister result = locs()->out(0).fpu_reg();
   Label x_false, x_done;
   Label y_false, y_done;
   Label z_false, z_done;
@@ -3739,14 +4088,14 @@ LocationSummary* Int32x4GetFlagInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
 
 void Int32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   Label done;
   Label non_zero;
   __ AddImmediate(RSP, Immediate(-16), PP);
@@ -3787,7 +4136,7 @@ LocationSummary* Int32x4SelectInstr::MakeLocationSummary(bool opt) const {
   summary->set_in(1, Location::RequiresFpuRegister());
   summary->set_in(2, Location::RequiresFpuRegister());
   summary->set_temp(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3796,7 +4145,7 @@ void Int32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister mask = locs()->in(0).fpu_reg();
   XmmRegister trueValue = locs()->in(1).fpu_reg();
   XmmRegister falseValue = locs()->in(2).fpu_reg();
-  XmmRegister out = locs()->out().fpu_reg();
+  XmmRegister out = locs()->out(0).fpu_reg();
   XmmRegister temp = locs()->temp(0).fpu_reg();
   ASSERT(out == mask);
   // Copy mask.
@@ -3820,7 +4169,7 @@ LocationSummary* Int32x4SetFlagInstr::MakeLocationSummary(bool opt) const {
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresRegister());
   summary->set_temp(0, Location::RequiresRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3829,7 +4178,7 @@ void Int32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister mask = locs()->in(0).fpu_reg();
   Register flag = locs()->in(1).reg();
   Register temp = locs()->temp(0).reg();
-  ASSERT(mask == locs()->out().fpu_reg());
+  ASSERT(mask == locs()->out(0).fpu_reg());
   __ AddImmediate(RSP, Immediate(-16), PP);
   // Copy mask to stack.
   __ movups(Address(RSP, 0), mask);
@@ -3884,7 +4233,7 @@ LocationSummary* Int32x4ToFloat32x4Instr::MakeLocationSummary(bool opt) const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3901,7 +4250,7 @@ LocationSummary* BinaryInt32x4OpInstr::MakeLocationSummary(bool opt) const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -3909,7 +4258,7 @@ LocationSummary* BinaryInt32x4OpInstr::MakeLocationSummary(bool opt) const {
 void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).fpu_reg();
   XmmRegister right = locs()->in(1).fpu_reg();
-  ASSERT(left == locs()->out().fpu_reg());
+  ASSERT(left == locs()->out(0).fpu_reg());
   switch (op_kind()) {
     case Token::kBIT_AND: {
       __ andps(left, right);
@@ -3942,33 +4291,41 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
     // currently we can't specify these registers because ParallelMoveResolver
     // assumes that XMM0 is free at all times.
     // TODO(vegorov): allow XMM0 to be used.
-    const intptr_t kNumTemps = 0;
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
     summary->set_in(0, Location::FpuRegisterLocation(XMM1));
-    summary->set_out(Location::FpuRegisterLocation(XMM1));
+    // R13 is chosen because it is callee saved so we do not need to back it
+    // up before calling into the runtime.
+    summary->set_temp(0, Location::RegisterLocation(R13));
+    summary->set_out(0, Location::FpuRegisterLocation(XMM1));
     return summary;
   }
+  ASSERT(kind() == MethodRecognizer::kMathSqrt);
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
 
 
 void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (kind() == MethodRecognizer::kMathSqrt) {
-    __ sqrtsd(locs()->out().fpu_reg(), locs()->in(0).fpu_reg());
+    __ sqrtsd(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
   } else {
-    __ EnterFrame(0);
+    ASSERT((kind() == MethodRecognizer::kMathSin) ||
+           (kind() == MethodRecognizer::kMathCos));
+    // Save RSP.
+    __ movq(locs()->temp(0).reg(), RSP);
     __ ReserveAlignedFrameSpace(0);
     __ movaps(XMM0, locs()->in(0).fpu_reg());
     __ CallRuntime(TargetFunction(), InputCount());
-    __ movaps(locs()->out().fpu_reg(), XMM0);
-    __ leave();
+    __ movaps(locs()->out(0).fpu_reg(), XMM0);
+    // Restore RSP.
+    __ movq(RSP, locs()->temp(0).reg());
   }
 }
 
@@ -3983,7 +4340,7 @@ LocationSummary* UnarySmiOpInstr::MakeLocationSummary(bool opt) const {
 
 void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
-  ASSERT(value == locs()->out().reg());
+  ASSERT(value == locs()->out(0).reg());
   switch (op_kind()) {
     case Token::kNEGATE: {
       Label* deopt = compiler->AddDeoptStub(deopt_id(),
@@ -4012,14 +4369,14 @@ LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
 
 void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
-  ASSERT(locs()->out().fpu_reg() == value);
+  ASSERT(locs()->out(0).fpu_reg() == value);
   __ DoubleNegate(value);
 }
 
@@ -4033,7 +4390,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary(bool opt) const {
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_in(1, Location::RequiresFpuRegister());
     // Reuse the left register so that code can be made shorter.
-    summary->set_out(Location::SameAsFirstInput());
+    summary->set_out(0, Location::SameAsFirstInput());
     summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
@@ -4045,7 +4402,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary(bool opt) const {
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
   // Reuse the left register so that code can be made shorter.
-  summary->set_out(Location::SameAsFirstInput());
+  summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
@@ -4058,7 +4415,7 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label done, returns_nan, are_equal;
     XmmRegister left = locs()->in(0).fpu_reg();
     XmmRegister right = locs()->in(1).fpu_reg();
-    XmmRegister result = locs()->out().fpu_reg();
+    XmmRegister result = locs()->out(0).fpu_reg();
     Register temp = locs()->temp(0).reg();
     __ comisd(left, right);
     __ j(PARITY_EVEN, &returns_nan, Assembler::kNearJump);
@@ -4102,7 +4459,7 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(result_cid() == kSmiCid);
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   __ cmpq(left, right);
   ASSERT(result == left);
   if (is_min) {
@@ -4119,14 +4476,14 @@ LocationSummary* SmiToDoubleInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* result =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   result->set_in(0, Location::WritableRegister());
-  result->set_out(Location::RequiresFpuRegister());
+  result->set_out(0, Location::RequiresFpuRegister());
   return result;
 }
 
 
 void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
-  FpuRegister result = locs()->out().fpu_reg();
+  FpuRegister result = locs()->out(0).fpu_reg();
   __ SmiUntag(value);
   __ cvtsi2sd(result, value);
 }
@@ -4138,14 +4495,14 @@ LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* result =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   result->set_in(0, Location::RegisterLocation(RCX));
-  result->set_out(Location::RegisterLocation(RAX));
+  result->set_out(0, Location::RegisterLocation(RAX));
   result->set_temp(0, Location::RegisterLocation(RBX));
   return result;
 }
 
 
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   Register value_obj = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
   XmmRegister value_double = XMM0;
@@ -4189,7 +4546,7 @@ LocationSummary* DoubleToSmiInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* result = new LocationSummary(
       kNumInputs, kNumTemps, LocationSummary::kNoCall);
   result->set_in(0, Location::RequiresFpuRegister());
-  result->set_out(Location:: Location::RequiresRegister());
+  result->set_out(0, Location:: Location::RequiresRegister());
   result->set_temp(0, Location::RequiresRegister());
   return result;
 }
@@ -4197,7 +4554,7 @@ LocationSummary* DoubleToSmiInstr::MakeLocationSummary(bool opt) const {
 
 void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptDoubleToSmi);
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   XmmRegister value = locs()->in(0).fpu_reg();
   Register temp = locs()->temp(0).reg();
 
@@ -4221,14 +4578,14 @@ LocationSummary* DoubleToDoubleInstr::MakeLocationSummary(bool opt) const {
   LocationSummary* result =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   result->set_in(0, Location::RequiresFpuRegister());
-  result->set_out(Location::RequiresFpuRegister());
+  result->set_out(0, Location::RequiresFpuRegister());
   return result;
 }
 
 
 void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
-  XmmRegister result = locs()->out().fpu_reg();
+  XmmRegister result = locs()->out(0).fpu_reg();
   switch (recognized_kind()) {
     case MethodRecognizer::kDoubleTruncate:
       __ roundsd(result, value,  Assembler::kRoundToZero);
@@ -4245,6 +4602,38 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* DoubleToFloatInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(0, Location::SameAsFirstInput());
+  return result;
+}
+
+
+void DoubleToFloatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ cvtsd2ss(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
+}
+
+
+LocationSummary* FloatToDoubleInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(0, Location::SameAsFirstInput());
+  return result;
+}
+
+
+void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ cvtss2sd(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
+}
+
+
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
   // Calling convention on x64 uses XMM0 and XMM1 to pass the first two
   // double arguments and XMM0 to return the result. Unfortunately
@@ -4252,24 +4641,28 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
   // assumes that XMM0 is free at all times.
   // TODO(vegorov): allow XMM0 to be used.
   ASSERT((InputCount() == 1) || (InputCount() == 2));
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = 1;
   LocationSummary* result =
       new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
+  result->set_temp(0, Location::RegisterLocation(R13));
   result->set_in(0, Location::FpuRegisterLocation(XMM2));
   if (InputCount() == 2) {
     result->set_in(1, Location::FpuRegisterLocation(XMM1));
   }
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
+    // Temp index 1.
     result->AddTemp(Location::RegisterLocation(RAX));
+    // Temp index 2.
     result->AddTemp(Location::FpuRegisterLocation(XMM4));
   }
-  result->set_out(Location::FpuRegisterLocation(XMM3));
+  result->set_out(0, Location::FpuRegisterLocation(XMM3));
   return result;
 }
 
 
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ EnterFrame(0);
+  // Save RSP.
+  __ movq(locs()->temp(kSavedSpTempIndex).reg(), RSP);
   __ ReserveAlignedFrameSpace(0);
   __ movaps(XMM0, locs()->in(0).fpu_reg());
   if (InputCount() == 2) {
@@ -4286,9 +4679,9 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // }
     XmmRegister base = locs()->in(0).fpu_reg();
     XmmRegister exp = locs()->in(1).fpu_reg();
-    XmmRegister result = locs()->out().fpu_reg();
-    Register temp = locs()->temp(0).reg();
-    XmmRegister zero_temp = locs()->temp(1).fpu_reg();
+    XmmRegister result = locs()->out(0).fpu_reg();
+    Register temp = locs()->temp(kObjectTempIndex).reg();
+    XmmRegister zero_temp = locs()->temp(kDoubleTempIndex).fpu_reg();
 
     // Check if exponent is 0.0 -> return 1.0;
     __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0)), PP);
@@ -4323,9 +4716,10 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ Bind(&do_call);
   __ CallRuntime(TargetFunction(), InputCount());
-  __ movaps(locs()->out().fpu_reg(), XMM0);
+  __ movaps(locs()->out(0).fpu_reg(), XMM0);
   __ Bind(&skip_call);
-  __ leave();
+  // Restore RSP.
+  __ movq(RSP, locs()->temp(kSavedSpTempIndex).reg());
 }
 
 
@@ -4338,18 +4732,21 @@ LocationSummary* MergedMathInstr::MakeLocationSummary(bool opt) const {
     // Both inputs must be writable because they will be untagged.
     summary->set_in(0, Location::RegisterLocation(RAX));
     summary->set_in(1, Location::WritableRegister());
-    summary->set_out(Location::RequiresRegister());
+    summary->set_out(0, Location::RequiresRegister());
     // Will be used for sign extension and division.
     summary->set_temp(0, Location::RegisterLocation(RDX));
     return summary;
   }
   if (kind() == MergedMathInstr::kSinCos) {
     const intptr_t kNumInputs = 1;
-    const intptr_t kNumTemps = 0;
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
     summary->set_in(0, Location::FpuRegisterLocation(XMM1));
-    summary->set_out(Location::RegisterLocation(RAX));
+    // R13 is chosen because it is callee saved so we do not need to back it
+    // up before calling into the runtime.
+    summary->set_temp(0, Location::RegisterLocation(R13));
+    summary->set_out(0, Location::RegisterLocation(RAX));
     return summary;
   }
   UNIMPLEMENTED();
@@ -4373,7 +4770,7 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (kind() == MergedMathInstr::kTruncDivMod) {
     Register left = locs()->in(0).reg();
     Register right = locs()->in(1).reg();
-    Register result = locs()->out().reg();
+    Register result = locs()->out(0).reg();
     Label not_32bit, done;
     Register temp = locs()->temp(0).reg();
     ASSERT(left == RAX);
@@ -4471,7 +4868,8 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
   if (kind() == MergedMathInstr::kSinCos) {
-    __ EnterFrame(0);
+    // Save RSP.
+    __ movq(locs()->temp(0).reg(), RSP);
     // +-------------------------------+
     // | double-argument               |  <- TOS
     // +-------------------------------+
@@ -4494,9 +4892,10 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ CallRuntime(kSinCosRuntimeEntry, InputCount());
     __ movsd(XMM0, Address(RSP, 2 * kWordSize + kDoubleSize * 2));  // sin.
     __ movsd(XMM1, Address(RSP, 2 * kWordSize + kDoubleSize));  // cos.
-    __ leave();
+    // Restore RSP.
+    __ movq(RSP, locs()->temp(0).reg());
 
-    Register result = locs()->out().reg();
+    Register result = locs()->out(0).reg();
     const TypedData& res_array = TypedData::ZoneHandle(
       TypedData::New(kTypedDataFloat64ArrayCid, 2, Heap::kOld));
     __ LoadObject(result, res_array, PP);
@@ -4563,7 +4962,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BranchInstr::MakeLocationSummary(bool opt) const {
   comparison()->InitializeLocationSummary(opt);
   // Branches don't produce a result.
-  comparison()->locs()->set_out(Location::NoLocation());
+  comparison()->locs()->set_out(0, Location::NoLocation());
   return comparison()->locs();
 }
 
@@ -4587,9 +4986,10 @@ LocationSummary* CheckClassInstr::MakeLocationSummary(bool opt) const {
 
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const DeoptReasonId deopt_reason =
+      licm_hoisted_ ? kDeoptHoistedCheckClass : kDeoptCheckClass;
   if (IsNullCheck()) {
-    Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                          kDeoptCheckClass);
+    Label* deopt = compiler->AddDeoptStub(deopt_id(), deopt_reason);
     __ CompareObject(locs()->in(0).reg(),
                      Object::null_object(), PP);
     __ j(EQUAL, deopt);
@@ -4600,8 +5000,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
          (unary_checks().NumberOfChecks() > 1));
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        kDeoptCheckClass);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), deopt_reason);
   Label is_ok;
   intptr_t cix = 0;
   if (unary_checks().GetReceiverClassIdAt(cix) == kSmiCid) {
@@ -4853,7 +5252,7 @@ LocationSummary* CurrentContextInstr::MakeLocationSummary(bool opt) const {
 
 
 void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ MoveRegister(locs()->out().reg(), CTX);
+  __ MoveRegister(locs()->out(0).reg(), CTX);
 }
 
 
@@ -4865,7 +5264,7 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(bool opt) const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
     locs->set_in(0, Location::RegisterLocation(RAX));
     locs->set_in(1, Location::RegisterLocation(RCX));
-    locs->set_out(Location::RegisterLocation(RAX));
+    locs->set_out(0, Location::RegisterLocation(RAX));
     return locs;
   }
   LocationSummary* locs =
@@ -4876,7 +5275,7 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(bool opt) const {
   locs->set_in(1, locs->in(0).IsConstant()
                       ? Location::RequiresRegister()
                       : Location::RegisterOrConstant(right()));
-  locs->set_out(Location::RequiresRegister());
+  locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
 
@@ -4917,7 +5316,7 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Condition true_condition = EmitComparisonCode(compiler, labels);
   EmitBranchOnCondition(compiler, true_condition, labels);
 
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
   Label done;
   __ Bind(&is_false);
   __ LoadObject(result, Bool::False(), PP);
@@ -4943,7 +5342,7 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumTemps = 1;
   LocationSummary* result =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  result->set_out(Location::RegisterLocation(RAX));
+  result->set_out(0, Location::RegisterLocation(RAX));
   result->set_temp(0, Location::RegisterLocation(R10));  // Arg. descriptor.
   return result;
 }
@@ -4977,7 +5376,7 @@ LocationSummary* BooleanNegateInstr::MakeLocationSummary(bool opt) const {
 
 void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
-  Register result = locs()->out().reg();
+  Register result = locs()->out(0).reg();
 
   Label done;
   __ LoadObject(result, Bool::True(), PP);
@@ -4985,32 +5384,6 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ j(NOT_EQUAL, &done, Assembler::kNearJump);
   __ LoadObject(result, Bool::False(), PP);
   __ Bind(&done);
-}
-
-
-LocationSummary* StoreVMFieldInstr::MakeLocationSummary(bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, value()->NeedsStoreBuffer() ? Location::WritableRegister()
-                                              : Location::RequiresRegister());
-  locs->set_in(1, Location::RequiresRegister());
-  return locs;
-}
-
-
-void StoreVMFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value_reg = locs()->in(0).reg();
-  Register dest_reg = locs()->in(1).reg();
-
-  if (value()->NeedsStoreBuffer()) {
-    __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
-                       value_reg);
-  } else {
-    __ StoreIntoObjectNoBarrier(
-        dest_reg, FieldAddress(dest_reg, offset_in_bytes()), value_reg);
-  }
 }
 
 
@@ -5027,25 +5400,6 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          PcDescriptors::kOther,
                          locs());
   __ Drop(ArgumentCount());  // Discard arguments.
-}
-
-
-LocationSummary* CreateClosureInstr::MakeLocationSummary(bool opt) const {
-  return MakeCallSummary();
-}
-
-
-void CreateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Function& closure_function = function();
-  ASSERT(!closure_function.IsImplicitStaticClosureFunction());
-  const Code& stub = Code::Handle(
-      StubCode::GetAllocationStubForClosure(closure_function));
-  const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
-  compiler->GenerateCall(token_pos(),
-                         &label,
-                         PcDescriptors::kOther,
-                         locs());
-  __ Drop(2);  // Discard type arguments and receiver.
 }
 
 }  // namespace dart

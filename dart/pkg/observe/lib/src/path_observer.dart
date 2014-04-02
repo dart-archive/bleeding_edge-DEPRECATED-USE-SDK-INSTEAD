@@ -7,12 +7,10 @@ library observe.src.path_observer;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math' show min;
-@MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
-    override: 'observe.src.path_observer')
-import 'dart:mirrors';
+
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:observe/observe.dart';
-import 'package:observe/src/observable.dart' show objectType;
+import 'package:smoke/smoke.dart' as smoke;
 
 /// A data-bound path starting from a view-model or model object, for example
 /// `foo.bar.baz`.
@@ -41,7 +39,7 @@ class PathObserver extends _Observer implements Bindable {
   bool get _isClosed => _path == null;
 
   /// Sets the value at this path.
-  @reflectable void set value(Object newValue) {
+  void set value(Object newValue) {
     if (_path != null) _path.setValueFrom(_object, newValue);
   }
 
@@ -84,8 +82,12 @@ class PathObserver extends _Observer implements Bindable {
 }
 
 /// A dot-delimieted property path such as "foo.bar" or "foo.10.bar".
+///
 /// The path specifies how to get a particular value from an object graph, where
-/// the graph can include arrays.
+/// the graph can include arrays and maps. Each segment of the path describes
+/// how to take a single step in the object graph. Properties like 'foo' or
+/// 'bar' are read as properties on objects, or as keys if the object is a [Map]
+/// or a [Indexable], while integer values are read as indexes in a [List].
 // TODO(jmesserly): consider specialized subclasses for:
 // * empty path
 // * "value"
@@ -126,7 +128,7 @@ class PropertyPath {
     for (var segment in path.trim().split('.')) {
       if (segment == '') continue;
       var index = int.parse(segment, radix: 10, onError: (_) => null);
-      segments.add(index != null ? index : new Symbol(segment));
+      segments.add(index != null ? index : smoke.nameToSymbol(segment));
     }
 
     // TODO(jmesserly): we could use an UnmodifiableListView here, but that adds
@@ -148,7 +150,7 @@ class PropertyPath {
   String toString() {
     if (!isValid) return '<invalid path>';
     return _segments
-        .map((s) => s is Symbol ? MirrorSystem.getName(s) : s)
+        .map((s) => s is Symbol ? smoke.symbolToName(s) : s)
         .join('.');
   }
 
@@ -182,7 +184,7 @@ class PropertyPath {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 
-  /// Returns the current of the path from the provided [obj]ect.
+  /// Returns the current value of the path from the provided [obj]ect.
   getValueFrom(Object obj) {
     if (!isValid) return null;
     for (var segment in _segments) {
@@ -229,11 +231,17 @@ bool _changeRecordMatches(record, key) {
     return (record as PropertyChangeRecord).name == key;
   }
   if (record is MapChangeRecord) {
-    if (key is Symbol) key = MirrorSystem.getName(key);
+    if (key is Symbol) key = smoke.symbolToName(key);
     return (record as MapChangeRecord).key == key;
   }
   return false;
 }
+
+/// Properties in [Map] that need to be read as properties and not as keys in
+/// the map. We exclude methods ('containsValue', 'containsKey', 'putIfAbsent',
+/// 'addAll', 'remove', 'clear', 'forEach') because there is no use in reading
+/// them as part of path-observer segments.
+const _MAP_PROPERTIES = const [#keys, #values, #length, #isEmpty, #isNotEmpty];
 
 _getObjectProperty(object, property) {
   if (object == null) return null;
@@ -243,22 +251,24 @@ _getObjectProperty(object, property) {
       return object[property];
     }
   } else if (property is Symbol) {
-    var mirror = reflect(object);
-    final type = mirror.type;
+    // Support indexer if available, e.g. Maps or polymer_expressions Scope.
+    // This is the default syntax used by polymer/nodebind and
+    // polymer/observe-js PathObserver.
+    // TODO(sigmund): should we also support using checking dynamically for
+    // whether the type practically implements the indexer API
+    // (smoke.hasInstanceMethod(type, const Symbol('[]')))?
+    if (object is Indexable<String, dynamic> ||
+        object is Map<String, dynamic> && !_MAP_PROPERTIES.contains(property)) {
+      return object[smoke.symbolToName(property)];
+    }
     try {
-      if (_maybeHasGetter(type, property)) {
-        return mirror.getField(property).reflectee;
-      }
-      // Support indexer if available, e.g. Maps or polymer_expressions Scope.
-      // This is the default syntax used by polymer/nodebind and
-      // polymer/observe-js PathObserver.
-      if (_hasMethod(type, const Symbol('[]'))) {
-        return object[MirrorSystem.getName(property)];
-      }
+      return smoke.read(object, property);
     } on NoSuchMethodError catch (e) {
       // Rethrow, unless the type implements noSuchMethod, in which case we
       // interpret the exception as a signal that the method was not found.
-      if (!_hasMethod(type, #noSuchMethod)) rethrow;
+      // Dart note: getting invalid properties is an error, unlike in JS where
+      // it returns undefined.
+      if (!smoke.hasNoSuchMethod(object.runtimeType)) rethrow;
     }
   }
 
@@ -277,20 +287,17 @@ bool _setObjectProperty(object, property, value) {
       return true;
     }
   } else if (property is Symbol) {
-    var mirror = reflect(object);
-    final type = mirror.type;
+    // Support indexer if available, e.g. Maps or polymer_expressions Scope.
+    if (object is Indexable<String, dynamic> ||
+        object is Map<String, dynamic> && !_MAP_PROPERTIES.contains(property)) {
+      object[smoke.symbolToName(property)] = value;
+      return true;
+    }
     try {
-      if (_maybeHasSetter(type, property)) {
-        mirror.setField(property, value);
-        return true;
-      }
-      // Support indexer if available, e.g. Maps or polymer_expressions Scope.
-      if (_hasMethod(type, const Symbol('[]='))) {
-        object[MirrorSystem.getName(property)] = value;
-        return true;
-      }
-    } on NoSuchMethodError catch (e) {
-      if (!_hasMethod(type, #noSuchMethod)) rethrow;
+      smoke.write(object, property, value);
+      return true;
+    } on NoSuchMethodError catch (e, s) {
+      if (!smoke.hasNoSuchMethod(object.runtimeType)) rethrow;
     }
   }
 
@@ -298,57 +305,6 @@ bool _setObjectProperty(object, property, value) {
     _logger.finer("can't set $property in $object");
   }
   return false;
-}
-
-bool _maybeHasGetter(ClassMirror type, Symbol name) {
-  while (type != objectType) {
-    final members = type.declarations;
-    if (members.containsKey(name)) return true;
-    if (members.containsKey(#noSuchMethod)) return true;
-    type = _safeSuperclass(type);
-  }
-  return false;
-}
-
-// TODO(jmesserly): workaround for:
-// https://code.google.com/p/dart/issues/detail?id=10029
-Symbol _setterName(Symbol getter) =>
-    new Symbol('${MirrorSystem.getName(getter)}=');
-
-bool _maybeHasSetter(ClassMirror type, Symbol name) {
-  var setterName = _setterName(name);
-  while (type != objectType) {
-    final members = type.declarations;
-    if (members[name] is VariableMirror) return true;
-    if (members.containsKey(setterName)) return true;
-    if (members.containsKey(#noSuchMethod)) return true;
-    type = _safeSuperclass(type);
-  }
-  return false;
-}
-
-/// True if the type has a method, other than on Object.
-/// Doesn't consider noSuchMethod, unless [name] is `#noSuchMethod`.
-bool _hasMethod(ClassMirror type, Symbol name) {
-  while (type != objectType) {
-    final member = type.declarations[name];
-    if (member is MethodMirror && member.isRegularMethod) return true;
-    type = _safeSuperclass(type);
-  }
-  return false;
-}
-
-ClassMirror _safeSuperclass(ClassMirror type) {
-  try {
-    return type.superclass;
-  } /*on UnsupportedError*/ catch (e) {
-    // Note: dart2js throws UnsupportedError when the type is not
-    // reflectable.
-    // TODO(jmesserly): dart2js also throws a NoSuchMethodError if the `type` is
-    // a bound generic, because they are not fully implemented. See
-    // https://code.google.com/p/dart/issues/detail?id=15573
-    return objectType;
-  }
 }
 
 // From: https://github.com/rafaelw/ChangeSummary/blob/master/change_summary.js
@@ -525,6 +481,13 @@ class CompoundObserver extends _Observer implements Bindable {
   }
 }
 
+/// An object accepted by [PropertyPath] where properties are read and written
+/// as indexing operations, just like a [Map].
+abstract class Indexable<K, V> {
+  V operator [](K key);
+  operator []=(K key, V value);
+}
+
 const _observerSentinel = const _ObserverSentinel();
 class _ObserverSentinel { const _ObserverSentinel(); }
 
@@ -557,20 +520,19 @@ abstract class _Observer extends Bindable {
       throw new StateError('Observer has already been opened.');
     }
 
-    if (_minArgumentCount(callback) > _reportArgumentCount) {
+    if (smoke.minArgs(callback) > _reportArgumentCount) {
       throw new ArgumentError('callback should take $_reportArgumentCount or '
           'fewer arguments');
     }
 
     _notifyCallback = callback;
-    _notifyArgumentCount = min(_reportArgumentCount,
-        _maxArgumentCount(callback));
+    _notifyArgumentCount = min(_reportArgumentCount, smoke.maxArgs(callback));
 
     _connect();
     return _value;
   }
 
-  @reflectable get value {
+  get value {
     _check(skipChanges: true);
     return _value;
   }
@@ -609,27 +571,6 @@ abstract class _Observer extends Bindable {
       new Completer().completeError(e, s);
     }
   }
-}
-
-typedef _Func0();
-typedef _Func1(a);
-typedef _Func2(a, b);
-typedef _Func3(a, b, c);
-
-int _minArgumentCount(fn) {
-  if (fn is _Func0) return 0;
-  if (fn is _Func1) return 1;
-  if (fn is _Func2) return 2;
-  if (fn is _Func3) return 3;
-  return 4; // at least 4 arguments are required.
-}
-
-int _maxArgumentCount(fn) {
-  if (fn is _Func3) return 3;
-  if (fn is _Func2) return 2;
-  if (fn is _Func1) return 1;
-  if (fn is _Func0) return 0;
-  return -1;
 }
 
 class _ObservedSet {

@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -31,7 +31,7 @@ import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.type.Type;
@@ -45,7 +45,7 @@ import java.util.ArrayList;
  * Instances of the class {@code StaticTypeVerifier} verify that all of the nodes in an AST
  * structure that should have a static type associated with them do have a static type.
  */
-public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
+public class StaticTypeVerifier extends GeneralizingAstVisitor<Void> {
   /**
    * A list containing all of the AST Expression nodes that were not resolved.
    */
@@ -229,7 +229,7 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     // In cases where identifiers are being used for something other than an expressions,
     // then they can be ignored.
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof MethodInvocation && node == ((MethodInvocation) parent).getMethodName()) {
       return null;
     } else if (parent instanceof RedirectingConstructorInvocation
@@ -262,11 +262,11 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
     return null;
   }
 
-  private String getFileName(ASTNode node) {
+  private String getFileName(AstNode node) {
     // TODO (jwren) there are two copies of this method, one here and one in ResolutionVerifier,
     // they should be resolved into a single method
     if (node != null) {
-      ASTNode root = node.getRoot();
+      AstNode root = node.getRoot();
       if (root instanceof CompilationUnit) {
         CompilationUnit rootCU = ((CompilationUnit) root);
         if (rootCU.getElement() != null) {

@@ -16,12 +16,12 @@ package com.google.dart.engine.services.completion;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BooleanLiteral;
@@ -30,6 +30,8 @@ import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.Combinator;
+import com.google.dart.engine.ast.Comment;
+import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
@@ -50,6 +52,7 @@ import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
@@ -74,11 +77,13 @@ import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
+import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
@@ -88,7 +93,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.WithClause;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
@@ -98,6 +103,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -114,6 +120,9 @@ import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.SdkLibrary;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchMatch;
@@ -160,10 +169,87 @@ import java.util.regex.Pattern;
  */
 public class CompletionEngine {
 
-  abstract class AstNodeClassifier extends GeneralizingASTVisitor<Void> {
+  abstract class AstNodeClassifier extends GeneralizingAstVisitor<Void> {
     @Override
-    public Void visitNode(ASTNode node) {
+    public Void visitNode(AstNode node) {
       return null;
+    }
+  }
+
+  class CommentReferenceCompleter extends AstNodeClassifier {
+    private final SimpleIdentifier identifier;
+    private final NameCollector names;
+    private final Set<Element> enclosingElements = Sets.newHashSet();
+
+    public CommentReferenceCompleter(SimpleIdentifier identifier) {
+      this.identifier = identifier;
+      filter = new Filter(identifier);
+      names = collectTopLevelElementVisibleAt(identifier);
+    }
+
+    @Override
+    public Void visitClassDeclaration(ClassDeclaration node) {
+      ClassElement classElement = node.getElement();
+      names.addNamesDefinedByHierarchy(classElement, false);
+      enclosingElements.add(classElement);
+      return null;
+    }
+
+    @Override
+    public Void visitComment(Comment node) {
+      node.getParent().accept(this);
+      // propose names
+      for (Element element : names.getUniqueElements()) {
+        CompletionProposal proposal = createProposal(element, identifier);
+        if (proposal != null) {
+          // we don't want to add arguments, just names
+          if (element instanceof MethodElement || element instanceof FunctionElement) {
+            proposal.setKind(ProposalKind.METHOD_NAME);
+          }
+          // elevate priority for local elements
+          if (enclosingElements.contains(element.getEnclosingElement())) {
+            proposal.setRelevance(CompletionProposal.RELEVANCE_HIGH);
+          }
+          // propose
+          requestor.accept(proposal);
+        }
+      }
+      // done
+      return null;
+    }
+
+    @Override
+    public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+      visitExecutableDeclaration(node);
+      // pass through
+      return node.getParent().accept(this);
+    }
+
+    @Override
+    public Void visitFunctionDeclaration(FunctionDeclaration node) {
+      visitExecutableDeclaration(node);
+      return null;
+    }
+
+    @Override
+    public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+      FunctionTypeAliasElement element = node.getElement();
+      names.mergeNames(element.getParameters());
+      enclosingElements.add(element);
+      return null;
+    }
+
+    @Override
+    public Void visitMethodDeclaration(MethodDeclaration node) {
+      visitExecutableDeclaration(node);
+      // pass through
+      return node.getParent().accept(this);
+    }
+
+    private void visitExecutableDeclaration(Declaration node) {
+      ExecutableElement element = (ExecutableElement) node.getElement();
+      names.mergeNames(element.getParameters());
+      enclosingElements.add(element);
     }
   }
 
@@ -195,7 +281,7 @@ public class CompletionEngine {
     }
 
     public void addLocalNames(SimpleIdentifier identifier) {
-      ASTNode node = identifier;
+      AstNode node = identifier;
       Declaration decl;
       while ((decl = node.getAncestor(Declaration.class)) != null) {
         Element declElement = decl.getElement();
@@ -234,6 +320,10 @@ public class CompletionEngine {
       }
     }
 
+    void addNamesDefinedByType(ClassElement classElement) {
+      addNamesDefinedByType(classElement.getType());
+    }
+
     void addNamesDefinedByType(InterfaceType type) {
       if (inPrivateLibrary(type)) {
         return;
@@ -253,14 +343,17 @@ public class CompletionEngine {
       }
     }
 
+    void addTopLevelNames(ImportElement[] imports, TopLevelNamesKind topKind) {
+      for (ImportElement imp : imports) {
+        Collection<Element> elementsCollection = CorrectionUtils.getImportNamespace(imp).values();
+        List<Element> elements = Lists.newArrayList(elementsCollection);
+        addTopLevelNames(elements);
+      }
+    }
+
     void addTopLevelNames(LibraryElement library, TopLevelNamesKind topKind) {
-      if (!state.areLiteralsAllowed) {
-        mergeNames(findAllTypes(library, topKind));
-      }
-      if (!state.areClassesRequired) {
-        mergeNames(findAllNotTypes(library, topKind));
-        mergeNames(findAllPrefixes());
-      }
+      List<Element> elements = findTopLevelElements(library, topKind);
+      addTopLevelNames(elements);
     }
 
     void addTopLevelNames(LibraryElement[] libraries, TopLevelNamesKind topKind) {
@@ -295,6 +388,14 @@ public class CompletionEngine {
       list.remove(element);
       if (list.isEmpty()) {
         uniqueNames.remove(name);
+      }
+    }
+
+    private void addTopLevelNames(List<Element> elements) {
+      mergeNames(findAllTypes(elements));
+      if (!state.areClassesRequired) {
+        mergeNames(findAllNotTypes(elements));
+        mergeNames(findAllPrefixes());
       }
     }
 
@@ -441,16 +542,16 @@ public class CompletionEngine {
   private class Ident extends EphemeralIdentifier {
     private String name;
 
-    Ident(ASTNode parent) {
+    Ident(AstNode parent) {
       super(parent, completionLocation());
     }
 
-    Ident(ASTNode parent, String name, int offset) {
+    Ident(AstNode parent, String name, int offset) {
       super(parent, offset);
       this.name = name;
     }
 
-    Ident(ASTNode parent, Token name) {
+    Ident(AstNode parent, Token name) {
       super(parent, name.getOffset());
       this.name = name.getLexeme();
     }
@@ -494,6 +595,7 @@ public class CompletionEngine {
             node.getLeftParenthesis().getEnd(),
             node.getRightParenthesis().getOffset())) {
           analyzeLocalName(completionNode);
+          analyzePositionalArgument(node, completionNode);
           analyzeNamedParameter(node, completionNode);
         }
       }
@@ -522,6 +624,13 @@ public class CompletionEngine {
     public Void visitCombinator(Combinator node) {
       proposeCombinator(node, completionNode);
       return null;
+    }
+
+    @Override
+    public Void visitCommentReference(CommentReference node) {
+      AstNode comment = node.getParent();
+      CommentReferenceCompleter visitor = new CommentReferenceCompleter(completionNode);
+      return comment.accept(visitor);
     }
 
     @Override
@@ -775,7 +884,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitTypeName(TypeName node) {
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       if (parent != null) {
         TypeNameCompleter visitor = new TypeNameCompleter(completionNode, node);
         return parent.accept(visitor);
@@ -879,6 +988,20 @@ public class CompletionEngine {
               pArgumentList(proposal, offset, len);
             }
           }
+        } else if (node.getParent() instanceof Annotation) {
+          Annotation annotation = (Annotation) node.getParent();
+          Element annotationElement = annotation.getElement();
+          if (annotationElement instanceof ConstructorElement) {
+            ConstructorElement constructorElement = (ConstructorElement) annotationElement;
+            // we don't need any filter
+            filter = new Filter("", -1, 0);
+            // fill parameters for "pArgumentList"
+            CompletionProposal prop = createProposal(constructorElement);
+            setParameterInfo(constructorElement.getType(), prop);
+            prop.setCompletion(constructorElement.getEnclosingElement().getName());
+            // propose the whole parameters list
+            pArgumentList(prop, 0, 0);
+          }
         }
       }
       if (isCompletionBetween(
@@ -886,6 +1009,7 @@ public class CompletionEngine {
           node.getRightParenthesis().getOffset())) {
         Ident ident = new Ident(node);
         analyzeLocalName(ident);
+        analyzePositionalArgument(node, ident);
         analyzeNamedParameter(node, ident);
       }
       return null;
@@ -1231,6 +1355,16 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitNamespaceDirective(NamespaceDirective node) {
+      StringLiteral uri = node.getUri();
+      if (uri != null && uri.isSynthetic()
+          && node.getKeyword().getEnd() <= context.getSelectionOffset()) {
+        uri.accept(this);
+      }
+      return super.visitNamespaceDirective(node);
+    }
+
+    @Override
     public Void visitPartOfDirective(PartOfDirective node) {
       if (isCompletingKeyword(node.getOfToken())) {
         pKeyword(node.getOfToken());
@@ -1257,7 +1391,21 @@ public class CompletionEngine {
       if (node.getTarget() != null && node.getTarget().getLength() == 0) {
         return null; // { . }
       }
-      analyzePrefixedAccess(node.getRealTarget(), node.getPropertyName());
+      Expression target = node.getRealTarget();
+      // The "1 + str.!.length" is parsed as "(1 + str).!.length",
+      // but actually user wants "1 + (str.!).length".
+      // So, if completion inside of period-period ".!." then it is not really a cascade completion.
+      Token operator = node.getOperator();
+      if (operator.getType() == TokenType.PERIOD_PERIOD) {
+        int completionLocation = completionLocation();
+        if (completionLocation > operator.getOffset() && completionLocation < operator.getEnd()) {
+          while (target instanceof BinaryExpression) {
+            target = ((BinaryExpression) target).getRightOperand();
+          }
+        }
+      }
+      // do prefixed completion
+      analyzePrefixedAccess(target, node.getPropertyName());
       return null;
     }
 
@@ -1297,7 +1445,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitSimpleIdentifier(SimpleIdentifier node) {
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       if (parent != null) {
         IdentifierCompleter visitor = new IdentifierCompleter(node);
         return parent.accept(visitor);
@@ -1307,7 +1455,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitSimpleStringLiteral(SimpleStringLiteral node) {
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       if (parent instanceof Directive) {
         StringCompleter visitor = new StringCompleter(node);
         return parent.accept(visitor);
@@ -1597,6 +1745,7 @@ public class CompletionEngine {
   private CompletionRequestor requestor;
   private CompletionFactory factory;
   private AssistContext context;
+
   private Filter filter;
 
   private CompletionState state;
@@ -1618,7 +1767,7 @@ public class CompletionEngine {
   public void complete(AssistContext context) {
     this.context = context;
     requestor.beginReporting();
-    ASTNode completionNode = context.getCoveredNode();
+    AstNode completionNode = context.getCoveredNode();
     if (completionNode != null) {
       state.setContext(completionNode);
       TerminalNodeCompleter visitor = new TerminalNodeCompleter();
@@ -1642,7 +1791,10 @@ public class CompletionEngine {
         proposeName(element, identifier, names);
       }
       if (element instanceof ClassElement) {
-        proposeName(element, identifier, names);
+        ClassElement classElement = (ClassElement) element;
+        for (ConstructorElement constructor : classElement.getConstructors()) {
+          pNamedConstructor(classElement, constructor, identifier);
+        }
       }
     }
   }
@@ -1749,21 +1901,9 @@ public class CompletionEngine {
   void analyzeNamedParameter(ArgumentList args, SimpleIdentifier identifier) {
     // Completion x!
     filter = new Filter(identifier);
-    // prepare executable element
-    ExecutableElement executableElement = null;
-    ASTNode argsParent = args.getParent();
-    if (argsParent instanceof MethodInvocation) {
-      MethodInvocation invocation = (MethodInvocation) argsParent;
-      Element nameElement = invocation.getMethodName().getStaticElement();
-      if (nameElement instanceof ExecutableElement) {
-        executableElement = (ExecutableElement) nameElement;
-      }
-    }
-    if (argsParent instanceof InstanceCreationExpression) {
-      InstanceCreationExpression creation = (InstanceCreationExpression) argsParent;
-      executableElement = creation.getStaticElement();
-    }
-    if (executableElement == null) {
+    // prepare parameters
+    ParameterElement[] parameters = getParameterElements(args);
+    if (parameters == null) {
       return;
     }
     // remember already used names
@@ -1776,7 +1916,6 @@ public class CompletionEngine {
       }
     }
     // propose named parameters
-    ParameterElement[] parameters = executableElement.getParameters();
     for (ParameterElement parameterElement : parameters) {
       // should be named
       if (parameterElement.getParameterKind() != ParameterKind.NAMED) {
@@ -1824,7 +1963,40 @@ public class CompletionEngine {
     }
   }
 
+  void analyzePositionalArgument(ArgumentList args, SimpleIdentifier identifier) {
+    // Show parameter name only if there is nothing to complete, so that if there is only
+    // one match, we won't to force user to choose.
+    if (!StringUtils.isEmpty(identifier.getName())) {
+      return;
+    }
+    // prepare parameters
+    ParameterElement[] parameters = getParameterElements(args);
+    if (parameters == null) {
+      return;
+    }
+    // show current parameter
+    int argIndex = args.getArguments().indexOf(identifier);
+    if (argIndex == -1) {
+      argIndex = 0;
+    }
+    if (argIndex >= 0 && argIndex < parameters.length) {
+      ParameterElement parameter = parameters[argIndex];
+      String parameterName = parameter.getDisplayName();
+      CompletionProposal prop = createProposal(ProposalKind.OPTIONAL_ARGUMENT);
+      prop.setCompletion(parameterName);
+      prop.setParameterName(parameterName);
+      prop.setParameterType(parameter.getType().getDisplayName());
+      prop.setLocation(identifier.getOffset());
+      prop.setReplacementLength(identifier.getLength());
+      prop.setRelevance(CompletionProposal.RELEVANCE_HIGH);
+      requestor.accept(prop);
+    }
+  }
+
   void analyzePrefixedAccess(Expression receiver, SimpleIdentifier completionNode) {
+    if (receiver instanceof ThisExpression && !state.isThisAllowed) {
+      return;
+    }
     Type receiverType = typeOf(receiver);
     boolean forSuper = receiver instanceof SuperExpression;
     analyzePrefixedAccess(receiverType, forSuper, completionNode);
@@ -1932,7 +2104,16 @@ public class CompletionEngine {
   }
 
   void dispatchPrefixAnalysis(InstanceCreationExpression node) {
-    ClassElement classElement = (ClassElement) typeOf(node).getElement();
+    // prepare ClassElement
+    ClassElement classElement;
+    {
+      Element typeElement = typeOf(node).getElement();
+      if (!(typeElement instanceof ClassElement)) {
+        return;
+      }
+      classElement = (ClassElement) typeElement;
+    }
+    // prepare constructor name
     Identifier typeName = node.getConstructorName().getType().getName();
     SimpleIdentifier identifier = null;
     if (typeName instanceof SimpleIdentifier) {
@@ -1943,6 +2124,7 @@ public class CompletionEngine {
     if (identifier == null) {
       identifier = new Ident(node);
     }
+    // analyze constructor name
     analyzeConstructorTypeName(identifier);
     constructorReference(classElement, identifier);
   }
@@ -2017,7 +2199,6 @@ public class CompletionEngine {
     if (filter == null) {
       filter = new Filter(identifier);
     }
-    // TODO(scheglov)
     for (ConstructorElement cons : classElement.getConstructors()) {
       if (!isVisible(cons)) {
         continue;
@@ -2038,7 +2219,7 @@ public class CompletionEngine {
     }
     // if no URI yet, propose package:
     if (prefix.isEmpty()) {
-      pName("package:", ProposalKind.IMPORT);
+      pImportUriWithScheme(node, "package:");
       return;
     }
     // check "packages" folder for package libraries that are not added to AnalysisContext
@@ -2127,14 +2308,23 @@ public class CompletionEngine {
       return;
     }
     if (prefix.isEmpty()) {
-      pName("dart:", ProposalKind.IMPORT);
+      pImportUriWithScheme(node, "dart:");
       return;
     }
-    List<LibraryElement> libs = getSystemLibraries();
-    for (LibraryElement lib : libs) {
-      String name = lib.getDisplayName();
-      // standard libraries name name starting with "dart."
-      name = StringUtils.removeStart(name, "dart.");
+    // add DartSdk libraries
+    DartSdk dartSdk = getAnalysisContext().getSourceFactory().getDartSdk();
+    for (SdkLibrary library : dartSdk.getSdkLibraries()) {
+      String name = library.getShortName();
+      // ignore internal
+      if (library.isInternal()) {
+        continue;
+      }
+      // ignore implementation
+      if (library.isImplementation()) {
+        continue;
+      }
+      // standard libraries name name starting with "dart:"
+      name = StringUtils.removeStart(name, "dart:");
       // ignore private libraries
       if (Identifier.isPrivateName(name)) {
         continue;
@@ -2153,7 +2343,11 @@ public class CompletionEngine {
     // Complete identifier when it refers to field or method in classElement.
     filter = new Filter(identifier);
     NameCollector names = new NameCollector();
-    names.addNamesDefinedByHierarchy(classElement, forSuper);
+    if (state.areInstanceReferencesProhibited) {
+      names.addNamesDefinedByType(classElement);
+    } else {
+      names.addNamesDefinedByHierarchy(classElement, forSuper);
+    }
     proposeNames(names, identifier);
   }
 
@@ -2162,11 +2356,11 @@ public class CompletionEngine {
       filter = new Filter(identifier);
     }
     NameCollector names = new NameCollector();
-    LibraryElement[] prefixLibraries = librariesImportedByName(prefixName);
+    ImportElement[] prefixImports = importsWithName(prefixName);
     // Library prefixes do not have a unique AST representation so we need to fudge state vars.
     boolean litsAllowed = state.areLiteralsAllowed;
     state.areLiteralsAllowed = false;
-    names.addTopLevelNames(prefixLibraries, TopLevelNamesKind.DECLARED_AND_EXPORTS);
+    names.addTopLevelNames(prefixImports, TopLevelNamesKind.DECLARED_AND_EXPORTS);
     state.areLiteralsAllowed = litsAllowed;
     proposeNames(names, identifier);
   }
@@ -2206,7 +2400,7 @@ public class CompletionEngine {
     return subtypes;
   }
 
-  private NameCollector collectIdentifiersVisibleAt(ASTNode ident) {
+  private NameCollector collectIdentifiersVisibleAt(AstNode ident) {
     NameCollector names = new NameCollector();
     ScopedNameFinder finder = new ScopedNameFinder(completionLocation());
     ident.accept(finder);
@@ -2220,7 +2414,7 @@ public class CompletionEngine {
     return names;
   }
 
-  private NameCollector collectTopLevelElementVisibleAt(ASTNode ident) {
+  private NameCollector collectTopLevelElementVisibleAt(AstNode ident) {
     NameCollector names = new NameCollector();
     names.addTopLevelNames(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
     return names;
@@ -2244,12 +2438,12 @@ public class CompletionEngine {
     return SearchScopeFactory.createUniverseScope();
   }
 
-  private <X extends ASTNode> List<FormalParameter> copyWithout(NodeList<X> oldList,
-      final ASTNode deletion) {
+  private <X extends AstNode> List<FormalParameter> copyWithout(NodeList<X> oldList,
+      final AstNode deletion) {
     final List<FormalParameter> newList = new ArrayList<FormalParameter>(oldList.size() - 1);
-    oldList.accept(new GeneralizingASTVisitor<Void>() {
+    oldList.accept(new GeneralizingAstVisitor<Void>() {
       @Override
-      public Void visitNode(ASTNode node) {
+      public Void visitNode(AstNode node) {
         if (node != deletion) {
           newList.add((FormalParameter) node);
         }
@@ -2262,6 +2456,26 @@ public class CompletionEngine {
   private CompletionProposal createProposal(Element element) {
     String completion = element.getDisplayName();
     return createProposal(element, completion);
+  }
+
+  private CompletionProposal createProposal(Element element, SimpleIdentifier identifier) {
+    // Create a completion proposal for the element: variable, field, class, function.
+    if (filterDisallows(element)) {
+      return null;
+    }
+    CompletionProposal prop = createProposal(element);
+    Element container = element.getEnclosingElement();
+    if (container != null) {
+      prop.setDeclaringType(container.getDisplayName());
+    }
+    Type type = typeOf(element);
+    if (type != null) {
+      prop.setReturnType(type.getName());
+    }
+    if (identifier != null) {
+      prop.setReplacementLengthIdentifier(identifier.getLength());
+    }
+    return prop;
   }
 
   private CompletionProposal createProposal(Element element, String completion) {
@@ -2318,8 +2532,8 @@ public class CompletionEngine {
     return !filter.match(name);
   }
 
-  private Element[] findAllNotTypes(LibraryElement library, TopLevelNamesKind topKind) {
-    List<Element> elements = findTopLevelElements(library, topKind);
+  private Element[] findAllNotTypes(List<Element> elements) {
+    elements = Lists.newArrayList(elements);
     for (Iterator<Element> I = elements.iterator(); I.hasNext();) {
       Element element = I.next();
       ElementKind kind = element.getKind();
@@ -2333,12 +2547,17 @@ public class CompletionEngine {
   }
 
   private Element[] findAllPrefixes() {
-    LibraryElement lib = context.getCompilationUnit().getElement().getEnclosingElement();
+    LibraryElement lib = context.getCompilationUnitElement().getEnclosingElement();
     return lib.getPrefixes();
   }
 
   private Element[] findAllTypes(LibraryElement library, TopLevelNamesKind topKind) {
     List<Element> elements = findTopLevelElements(library, topKind);
+    return findAllTypes(elements);
+  }
+
+  private Element[] findAllTypes(List<Element> elements) {
+    elements = Lists.newArrayList(elements);
     for (Iterator<Element> I = elements.iterator(); I.hasNext();) {
       Element element = I.next();
       ElementKind kind = element.getKind();
@@ -2367,32 +2586,62 @@ public class CompletionEngine {
   }
 
   private AnalysisContext getAnalysisContext() {
-    return context.getCompilationUnit().getElement().getContext();
+    return context.getCompilationUnitElement().getContext();
   }
 
   private LibraryElement getCurrentLibrary() {
-    return context.getCompilationUnit().getElement().getEnclosingElement();
+    return context.getCompilationUnitElement().getEnclosingElement();
+  }
+
+  private FunctionType getFunctionType(Element element) {
+    if (element instanceof ExecutableElement) {
+      ExecutableElement executableElement = (ExecutableElement) element;
+      return executableElement.getType();
+    }
+    if (element instanceof VariableElement) {
+      VariableElement variableElement = (VariableElement) element;
+      Type type = variableElement.getType();
+      if (type instanceof FunctionType) {
+        return (FunctionType) type;
+      }
+    }
+    return null;
   }
 
   private ClassElement getObjectClassElement() {
     return getTypeProvider().getObjectType().getElement();
   }
 
-  private List<LibraryElement> getSystemLibraries() {
-    // TODO Get ALL system libraries, not just the ones that have been loaded already.
-    AnalysisContext ac = getAnalysisContext();
-    Source[] ss = ac.getLibrarySources();
-    List<LibraryElement> sl = new ArrayList<LibraryElement>();
-    for (Source s : ss) {
-      if (s.isInSystemLibrary()) {
-        sl.add(ac.getLibraryElement(s));
+  private ParameterElement[] getParameterElements(ArgumentList args) {
+    ParameterElement[] parameters = null;
+    AstNode argsParent = args.getParent();
+    if (argsParent instanceof MethodInvocation) {
+      MethodInvocation invocation = (MethodInvocation) argsParent;
+      Element nameElement = invocation.getMethodName().getStaticElement();
+      FunctionType functionType = getFunctionType(nameElement);
+      if (functionType != null) {
+        parameters = functionType.getParameters();
       }
     }
-    return sl;
+    if (argsParent instanceof InstanceCreationExpression) {
+      InstanceCreationExpression creation = (InstanceCreationExpression) argsParent;
+      ConstructorElement element = creation.getStaticElement();
+      if (element != null) {
+        parameters = ((ExecutableElement) element).getParameters();
+      }
+    }
+    if (argsParent instanceof Annotation) {
+      Annotation annotation = (Annotation) argsParent;
+      Element element = annotation.getElement();
+      if (element instanceof ConstructorElement) {
+        parameters = ((ConstructorElement) element).getParameters();
+      }
+    }
+    return parameters;
   }
 
   private TypeProvider getTypeProvider() {
-    AnalysisContext analysisContext = context.getCompilationUnit().getElement().getContext();
+    AnalysisContext analysisContext = context.getCompilationUnitElement().getContext();
     try {
       return ((InternalAnalysisContext) analysisContext).getTypeProvider();
     } catch (AnalysisException exception) {
@@ -2407,6 +2656,21 @@ public class CompletionEngine {
       return false;
     }
     return errors[0].getOffset() <= completionLocation();
+  }
+
+  private ImportElement[] importsWithName(SimpleIdentifier libName) {
+    String name = libName.getName();
+    List<ImportElement> imports = Lists.newArrayList();
+    for (ImportElement imp : getCurrentLibrary().getImports()) {
+      PrefixElement prefix = imp.getPrefix();
+      if (prefix != null) {
+        String impName = prefix.getDisplayName();
+        if (name.equals(impName)) {
+          imports.add(imp);
+        }
+      }
+    }
+    return imports.toArray(new ImportElement[imports.size()]);
   }
 
   private boolean isCompletingKeyword(Token keyword) {
@@ -2453,22 +2717,6 @@ public class CompletionEngine {
     return !isPrivate(element) || isInCurrentLibrary(element);
   }
 
-  private LibraryElement[] librariesImportedByName(SimpleIdentifier libName) {
-    ImportElement[] imps = getCurrentLibrary().getImports();
-    String name = libName.getName();
-    List<LibraryElement> libs = new ArrayList<LibraryElement>();
-    for (ImportElement imp : imps) {
-      PrefixElement prefix = imp.getPrefix();
-      if (prefix != null) {
-        String impName = prefix.getDisplayName();
-        if (name.equals(impName)) {
-          libs.add(imp.getImportedLibrary());
-        }
-      }
-    }
-    return libs.toArray(new LibraryElement[libs.size()]);
-  }
-
   private String makeNonconflictingName(String candidate, List<String> names) {
     String possibility = candidate;
     int count = 0;
@@ -2509,7 +2757,7 @@ public class CompletionEngine {
     pWord(C_DYNAMIC, ProposalKind.VARIABLE);
   }
 
-  private void pExecutable(ExecutableElement element, SimpleIdentifier identifier,
+  private void pExecutable(Element element, FunctionType functionType, SimpleIdentifier identifier,
       boolean isPotentialMatch) {
     // Create a completion proposal for the element: function, method, getter, setter, constructor.
     String name = element.getDisplayName();
@@ -2527,7 +2775,7 @@ public class CompletionEngine {
     if (state.targetParameter != null) {
       Type parameterType = state.targetParameter.getType();
       if (parameterType instanceof FunctionType) {
-        if (element.getType().isAssignableTo(parameterType)) {
+        if (functionType.isAssignableTo(parameterType)) {
           pName(name, element, CompletionProposal.RELEVANCE_HIGH, ProposalKind.METHOD_NAME);
         }
       }
@@ -2540,8 +2788,8 @@ public class CompletionEngine {
       prop.setRelevance(CompletionProposal.RELEVANCE_LOW);
     }
 
-    setParameterInfo(element, prop);
-    prop.setCompletion(name).setReturnType(element.getType().getReturnType().getDisplayName());
+    setParameterInfo(functionType, prop);
+    prop.setCompletion(name).setReturnType(functionType.getReturnType().getDisplayName());
 
     // If there is already argument list, then update only method name.
     if (identifier.getParent() instanceof MethodInvocation
@@ -2555,6 +2803,11 @@ public class CompletionEngine {
     }
 
     requestor.accept(prop);
+  }
+
+  private void pExecutable(ExecutableElement element, SimpleIdentifier identifier,
+      boolean isPotentialMatch) {
+    pExecutable(element, element.getType(), identifier, isPotentialMatch);
   }
 
   private void pExecutable(VariableElement element, SimpleIdentifier identifier) {
@@ -2592,6 +2845,23 @@ public class CompletionEngine {
     requestor.accept(prop);
   }
 
+  /**
+   * Proposes URI with the given scheme for the given {@link NamespaceDirective}.
+   */
+  private void pImportUriWithScheme(NamespaceDirective node, String uriScheme) {
+    String newUri = uriScheme + CompletionProposal.CURSOR_MARKER;
+    if (node.getUri().isSynthetic()) {
+      newUri = "'" + newUri + "'";
+    }
+    if (context.getSelectionOffset() == node.getKeyword().getEnd()) {
+      newUri = " " + newUri;
+    }
+    if (node.getSemicolon() == null || node.getSemicolon().isSynthetic()) {
+      newUri += ";";
+    }
+    pName(newUri, ProposalKind.IMPORT);
+  }
+
   private void pKeyword(Token keyword) {
     filter = new Filter(keyword.getLexeme(), keyword.getOffset(), completionLocation());
     // This isn't as useful as it might seem. It only works in the case that completion
@@ -2603,23 +2873,10 @@ public class CompletionEngine {
   }
 
   private void pName(Element element, SimpleIdentifier identifier) {
-    // Create a completion proposal for the element: variable, field, class, function.
-    if (filterDisallows(element)) {
-      return;
+    CompletionProposal prop = createProposal(element, identifier);
+    if (prop != null) {
+      requestor.accept(prop);
     }
-    CompletionProposal prop = createProposal(element);
-    Element container = element.getEnclosingElement();
-    if (container != null) {
-      prop.setDeclaringType(container.getDisplayName());
-    }
-    Type type = typeOf(element);
-    if (type != null) {
-      prop.setReturnType(type.getName());
-    }
-    if (identifier != null) {
-      prop.setReplacementLengthIdentifier(identifier.getLength());
-    }
-    requestor.accept(prop);
   }
 
   private void pName(String name, Element element, int relevance, ProposalKind kind) {
@@ -2653,11 +2910,13 @@ public class CompletionEngine {
       return;
     }
     CompletionProposal prop = createProposal(element, name);
-    setParameterInfo(element, prop);
+    setParameterInfo(element.getType(), prop);
     prop.setReturnType(element.getType().getReturnType().getName());
     Element container = element.getEnclosingElement();
     prop.setDeclaringType(container.getDisplayName());
-    prop.setReplacementLengthIdentifier(identifier.getLength());
+    if (identifier != null) {
+      prop.setReplacementLengthIdentifier(identifier.getLength());
+    }
     requestor.accept(prop);
   }
 
@@ -2760,8 +3019,13 @@ public class CompletionEngine {
       case LOCAL_VARIABLE:
       case PARAMETER:
       case TOP_LEVEL_VARIABLE:
-        VariableElement var = (VariableElement) element;
-        pExecutable(var, identifier);
+        FunctionType functionType = getFunctionType(element);
+        if (functionType != null) {
+          pExecutable(element, functionType, identifier, names.isPotentialMatch(element));
+        } else {
+          VariableElement var = (VariableElement) element;
+          pExecutable(var, identifier);
+        }
         break;
       case CLASS:
         pName(element, identifier);
@@ -2806,12 +3070,12 @@ public class CompletionEngine {
     filter.removeNotMatching(elements);
   }
 
-  private void setParameterInfo(ExecutableElement cons, CompletionProposal prop) {
+  private void setParameterInfo(FunctionType functionType, CompletionProposal prop) {
     List<String> params = new ArrayList<String>();
     List<String> types = new ArrayList<String>();
     boolean named = false, positional = false;
     int posCount = 0;
-    for (ParameterElement param : cons.getParameters()) {
+    for (ParameterElement param : functionType.getParameters()) {
       if (!param.isSynthetic()) {
         switch (param.getParameterKind()) {
           case REQUIRED:
@@ -2834,8 +3098,8 @@ public class CompletionEngine {
   }
 
   // Find the parent declaration of the given node and extract the name of the type it is defining.
-  private SimpleIdentifier typeDeclarationName(ASTNode node) {
-    ASTNode parent = node;
+  private SimpleIdentifier typeDeclarationName(AstNode node) {
+    AstNode parent = node;
     while (parent != null) {
       if (parent instanceof ClassDeclaration) {
         return ((ClassDeclaration) parent).getName();
@@ -2866,7 +3130,8 @@ public class CompletionEngine {
         PropertyAccessorElement accessor = (PropertyAccessorElement) receiver;
         if (accessor.isSynthetic()) {
           PropertyInducingElement inducer = accessor.getVariable();
-          if (inducer.getType().isDynamic()) {
+          Type inducerType = inducer.getType();
+          if (inducerType == null || inducerType.isDynamic()) {
             receiverType = typeSearch(inducer);
             if (receiverType != null) {
               break;
@@ -2939,8 +3204,8 @@ public class CompletionEngine {
     return type;
   }
 
-  private Type typeOfContainingClass(ASTNode node) {
-    ASTNode parent = node;
+  private Type typeOfContainingClass(AstNode node) {
+    AstNode parent = node;
     while (parent != null) {
       if (parent instanceof ClassDeclaration) {
         return ((ClassDeclaration) parent).getElement().getType();

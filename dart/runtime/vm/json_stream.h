@@ -12,16 +12,25 @@
 namespace dart {
 
 class Field;
+class GrowableObjectArray;
 class Instance;
 class JSONArray;
 class JSONObject;
 class Object;
 class SourceBreakpoint;
+class Zone;
 
 class JSONStream : ValueObject {
  public:
   explicit JSONStream(intptr_t buf_size = 256);
   ~JSONStream();
+
+  void Setup(Zone* zone,
+             const Instance& reply_port,
+             const GrowableObjectArray& path,
+             const GrowableObjectArray& option_keys,
+             const GrowableObjectArray& option_values);
+  void PostReply();
 
   TextBuffer* buffer() { return &buffer_; }
   const char* ToCString() { return buffer_.buf(); }
@@ -47,6 +56,17 @@ class JSONStream : ValueObject {
 
   const char* LookupOption(const char* key) const;
 
+  bool HasOption(const char* key) const;
+
+  // Returns true if there is an option with key and value, false
+  // otherwise.
+  bool OptionIs(const char* key, const char* value) const;
+
+  const char* command() const { return command_; }
+  const char** arguments() const { return arguments_; }
+  const char** option_keys() const { return option_keys_; }
+  const char** option_values() const { return option_values_; }
+
  private:
   void Clear();
 
@@ -58,15 +78,17 @@ class JSONStream : ValueObject {
 
   void PrintValueBool(bool b);
   void PrintValue(intptr_t i);
+  void PrintValue64(int64_t i);
   void PrintValue(double d);
   void PrintValue(const char* s);
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
-  void PrintValue(const Field& f, const Instance& instance, bool ref = true);
   void PrintValue(SourceBreakpoint* bpt);
+  void PrintValue(Isolate* isolate, bool ref = true);
 
   void PrintPropertyBool(const char* name, bool b);
   void PrintProperty(const char* name, intptr_t i);
+  void PrintProperty64(const char* name, int64_t i);
   void PrintProperty(const char* name, double d);
   void PrintProperty(const char* name, const char* s);
   void PrintfProperty(const char* name, const char* format, ...)
@@ -77,16 +99,20 @@ class JSONStream : ValueObject {
   void PrintCommaIfNeeded();
   bool NeedComma();
 
+  void AddEscapedUTF8String(const char* s);
+
   intptr_t nesting_level() const { return open_objects_; }
 
   intptr_t open_objects_;
   TextBuffer buffer_;
   Dart_Port reply_port_;
+  const char* command_;
   const char** arguments_;
   intptr_t num_arguments_;
   const char** option_keys_;
   const char** option_values_;
   intptr_t num_options_;
+  int64_t setup_time_micros_;
 
   friend class JSONObject;
   friend class JSONArray;
@@ -112,6 +138,9 @@ class JSONObject : public ValueObject {
   }
   void AddProperty(const char* name, intptr_t i) const {
     stream_->PrintProperty(name, i);
+  }
+  void AddProperty64(const char* name, int64_t i) const {
+    stream_->PrintProperty64(name, i);
   }
   void AddProperty(const char* name, double d) const {
     stream_->PrintProperty(name, d);
@@ -152,16 +181,14 @@ class JSONArray : public ValueObject {
 
   void AddValue(bool b) const { stream_->PrintValueBool(b); }
   void AddValue(intptr_t i) const { stream_->PrintValue(i); }
+  void AddValue64(int64_t i) const { stream_->PrintValue64(i); }
   void AddValue(double d) const { stream_->PrintValue(d); }
   void AddValue(const char* s) const { stream_->PrintValue(s); }
   void AddValue(const Object& obj, bool ref = true) const {
     stream_->PrintValue(obj, ref);
   }
-  // Print a field bound to a value.  Value is looked up from 'instance'.
-  void AddValue(const Field& field,
-                const Instance& instance,
-                bool ref = true) const {
-    stream_->PrintValue(field, instance, ref);
+  void AddValue(Isolate* isolate, bool ref = true) const {
+    stream_->PrintValue(isolate, ref);
   }
   void AddValue(SourceBreakpoint* bpt) const {
     stream_->PrintValue(bpt);

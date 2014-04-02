@@ -6,38 +6,54 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
-
-import '../lib/docgen.dart';
 import 'package:path/path.dart' as path;
 
-List<String> excludedLibraries = [];
+import '../lib/docgen.dart';
 
 /**
  * Analyzes Dart files and generates a representation of included libraries,
  * classes, and members.
  */
 void main(List<String> arguments) {
-  var results = _initArgParser().parse(arguments);
-
-  var includeSdk = results['parse-sdk'] || results['include-sdk'];
-  var scriptDir = path.dirname(Platform.script.toFilePath());
-  var introduction = includeSdk ? '' : results['introduction'];
-  var files = results.rest.map(path.normalize).toList();
+  var options = _initArgParser().parse(arguments);
+  var files = options.rest.map(path.normalize).toList();
   if (files.isEmpty) _printHelpAndExit();
+  var startPage = options['start-page'];
+  if (_singlePackage(files) && startPage == null) {
+    startPage = _defaultStartPageFor(files);
+    print("Using default options for documenting a single package: "
+        "--start-page=$startPage");
+  }
+  var includeSdk = options['parse-sdk'] || options['include-sdk'];
+  var scriptDir = path.dirname(Platform.script.toFilePath());
+  var introduction = includeSdk ? '' : options['introduction'];
+
+  var pubScript = options['sdk'] != null ?
+      path.join(options['sdk'], 'bin', 'pub') : 'pub';
+
+  var dartBinary = options['sdk'] != null ?
+      path.join(options['sdk'], 'bin', 'dart') : 'dart';
+
+  var excludedLibraries = options['exclude-lib'];
+  if(excludedLibraries == null) excludedLibraries = [];
+
   docgen(files,
-      packageRoot: results['package-root'],
-      outputToYaml: !results['json'],
-      includePrivate: results['include-private'],
+      packageRoot: options['package-root'],
+      outputToYaml: !options['json'],
+      includePrivate: options['include-private'],
       includeSdk: includeSdk,
-      parseSdk: results['parse-sdk'],
-      append: results['append'] && new Directory(results['out']).existsSync(),
+      parseSdk: options['parse-sdk'],
+      append: options['append'] && new Directory(options['out']).existsSync(),
       introFileName: introduction,
-      out: results['out'],
+      out: options['out'],
       excludeLibraries: excludedLibraries,
-      includeDependentPackages: results['include-dependent-packages'],
-      serve: results['serve'],
-      noDocs: results['no-docs'],
-      startPage: results['startPage']);
+      includeDependentPackages: options['include-dependent-packages'],
+      compile: options['compile'],
+      serve: options['serve'],
+      dartBinary: dartBinary,
+      pubScript: pubScript,
+      noDocs: options['no-docs'],
+      startPage: startPage);
 }
 
 /**
@@ -47,6 +63,27 @@ void _printHelpAndExit() {
   print(_initArgParser().getUsage());
   print('Usage: dart docgen.dart [OPTIONS] fooDir/barFile');
   exit(0);
+}
+
+/**
+ * If the user seems to have given us a single package to document, use some
+ * reasonable arguments for what they probably meant.
+ */
+bool _singlePackage(List files) {
+  if (files.length != 1) return false;
+  var pubspec = new File(path.join(files.first, 'pubspec.yaml'));
+  if (!pubspec.existsSync()) return false;
+  return true;
+}
+
+/**
+ * If we've specified just a package and no other command-line options,
+ * use the single package name as the start page.
+ */
+String _defaultStartPageFor(files) {
+  var pubspec = new File(path.join(files.first, 'pubspec.yaml'));
+  if (!pubspec.existsSync()) return null;
+  return packageNameFor(files.first);
 }
 
 /**
@@ -66,14 +103,16 @@ ArgParser _initArgParser() {
         if (verbose) Logger.root.level = Level.FINEST;
       });
   parser.addFlag('json', abbr: 'j',
-      help: 'Outputs to JSON. Files are outputted to YAML by default. '
+      help: 'Outputs to JSON. If negated, outputs to YAML. '
         'If --append is used, it takes the file-format of the previous '
-        'run stated in library_list.json ignoring the flag.',
-      negatable: true);
+        'run stated in library_list.json, ignoring the flag.',
+      negatable: true, defaultsTo: true);
   parser.addFlag('include-private',
       help: 'Flag to include private declarations.', negatable: false);
   parser.addFlag('include-sdk',
-      help: 'Flag to parse SDK Library files.', negatable: false);
+      help: 'Flag to parse SDK Library files.',
+      defaultsTo: true,
+      negatable: true);
   parser.addFlag('parse-sdk',
       help: 'Parses the SDK libraries only.',
       defaultsTo: false, negatable: false);
@@ -82,9 +121,13 @@ ArgParser _initArgParser() {
   parser.addFlag('append',
       help: 'Append to the docs folder, library_list.json and index.txt',
       defaultsTo: false, negatable: false);
-  parser.addFlag('serve', help: 'Clone the documentation viewer repo locally '
-      '(if not already present) and start a simple server', defaultsTo: false,
+  parser.addFlag('compile', help: 'Clone the documentation viewer repo locally '
+      '(if not already present) and compile with dart2js', defaultsTo: false,
       negatable: false);
+  parser.addFlag('serve', help: 'Clone the documentation viewer repo locally '
+      '(if not already present), compile with dart2js, '
+      'and start a simple server',
+      defaultsTo: false, negatable: false);
   parser.addFlag('no-docs', help: 'Do not generate any new documentation',
       defaultsTo: false, negatable: false);
   parser.addOption('introduction',
@@ -95,17 +138,19 @@ ArgParser _initArgParser() {
       defaultsTo: 'docs');
   parser.addOption('exclude-lib',
       help: 'Exclude the library by this name from the documentation',
-      allowMultiple: true,
-      callback: (libs) => excludedLibraries.addAll(libs));
+      allowMultiple: true);
   parser.addFlag('include-dependent-packages',
       help: 'Assumes we are documenting a single package and are running '
         'in the directory with its pubspec. Includes documentation for all '
         'of its dependent packages.',
-      defaultsTo: false, negatable: false);
-  parser.addOption('startPage',
-      help: 'By default the viewer will start at the SDK introduction page.'
+      defaultsTo: true, negatable: true);
+  parser.addOption('sdk',
+      help: 'SDK directory',
+      defaultsTo: null);
+  parser.addOption('start-page',
+      help: 'By default the viewer will start at the SDK introduction page. '
         'To start at some other page, e.g. for a package, provide the name '
-        'of the package in this argument, e.g. --startPage=intl will make '
+        'of the package in this argument, e.g. --start-page=intl will make '
         'the start page of the viewer be the intl package.',
         defaultsTo: null);
 

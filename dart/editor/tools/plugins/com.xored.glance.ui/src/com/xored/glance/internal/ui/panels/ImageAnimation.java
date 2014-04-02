@@ -6,7 +6,8 @@
  ******************************************************************************/
 package com.xored.glance.internal.ui.panels;
 
-import java.net.URL;
+import com.xored.glance.internal.ui.GlancePlugin;
+import com.xored.glance.ui.utils.UIUtils;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.SWT;
@@ -19,10 +20,15 @@ import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
-import com.xored.glance.internal.ui.GlancePlugin;
-import com.xored.glance.ui.utils.UIUtils;
+import java.net.URL;
 
 public abstract class ImageAnimation extends Thread {
+
+  private final ImageLoader loader = new ImageLoader();
+
+  private ImageData[] imageDataArray;
+
+  private final Color bg;
 
   public ImageAnimation(URL url, Color bg) throws CoreException {
     setDaemon(true);
@@ -131,10 +137,12 @@ public abstract class ImageAnimation extends Thread {
          */
         try {
           int ms = imageData.delayTime * 10;
-          if (ms < 20)
+          if (ms < 20) {
             ms += 30;
-          if (ms < 30)
+          }
+          if (ms < 30) {
             ms += 10;
+          }
           Thread.sleep(ms);
         } catch (InterruptedException e) {
         }
@@ -142,27 +150,27 @@ public abstract class ImageAnimation extends Thread {
         /*
          * If we have just drawn the last image, decrement the repeat count and start again.
          */
-        if (imageDataIndex == imageDataArray.length - 1)
+        if (imageDataIndex == imageDataArray.length - 1) {
           repeatCount--;
+        }
       }
     } catch (SWTException ex) {
       GlancePlugin.log("There was an error animating the GIF", ex);
     } finally {
-      if (offScreenImage != null && !offScreenImage.isDisposed())
+      if (offScreenImage != null && !offScreenImage.isDisposed()) {
         offScreenImage.dispose();
-      if (offScreenImageGC != null && !offScreenImageGC.isDisposed())
+      }
+      if (offScreenImageGC != null && !offScreenImageGC.isDisposed()) {
         offScreenImageGC.dispose();
-      if (image != null && !image.isDisposed())
+      }
+      if (image != null && !image.isDisposed()) {
         image.dispose();
+      }
     }
   }
 
   protected abstract boolean isTerminated();
 
   protected abstract void updateImage(Image image);
-
-  private final ImageLoader loader = new ImageLoader();
-  private ImageData[] imageDataArray;
-  private final Color bg;
 
 }

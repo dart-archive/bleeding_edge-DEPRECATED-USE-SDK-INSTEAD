@@ -27,7 +27,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public class WithClause extends ASTNode {
+public class WithClause extends AstNode {
   /**
    * The token representing the 'with' keyword.
    */
@@ -50,7 +50,7 @@ public class WithClause extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitWithClause(this);
   }
 
@@ -92,7 +92,7 @@ public class WithClause extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     mixinTypes.accept(visitor);
   }
 }

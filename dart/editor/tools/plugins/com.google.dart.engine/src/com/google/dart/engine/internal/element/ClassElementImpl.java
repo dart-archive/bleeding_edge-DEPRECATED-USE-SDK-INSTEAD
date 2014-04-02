@@ -31,6 +31,8 @@ import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -92,7 +94,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   private TypeParameterElement[] typeParameters = TypeParameterElementImpl.EMPTY_ARRAY;
 
   /**
-   * An empty array of type elements.
+   * An empty array of class elements.
    */
   public static final ClassElement[] EMPTY_ARRAY = new ClassElement[0];
 
@@ -108,6 +110,16 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
     return visitor.visitClassElement(this);
+  }
+
+  /**
+   * Set the toolkit specific information objects attached to this class.
+   * 
+   * @param toolkitObjects the toolkit objects attached to this class
+   */
+  public void addToolkitObjects(ToolkitObjectElement toolkitObject) {
+    ((ToolkitObjectElementImpl) toolkitObject).setEnclosingElement(this);
+    toolkitObjects = ArrayUtils.add(toolkitObjects, toolkitObject);
   }
 
   @Override
@@ -229,7 +241,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @Override
   public ClassDeclaration getNode() throws AnalysisException {
-    return getNode(ClassDeclaration.class);
+    return getNodeMatching(ClassDeclaration.class);
   }
 
   @Override
@@ -317,8 +329,28 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public boolean hasStaticMember() {
+    for (MethodElement method : methods) {
+      if (method.isStatic()) {
+        return true;
+      }
+    }
+    for (PropertyAccessorElement accessor : accessors) {
+      if (accessor.isStatic()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public boolean isAbstract() {
     return hasModifier(Modifier.ABSTRACT);
+  }
+
+  @Override
+  public boolean isOrInheritsProxy() {
+    return safeIsOrInheritsProxy(this, new HashSet<ClassElement>());
   }
 
   @Override
@@ -520,18 +552,6 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   /**
-   * Set the toolkit specific information objects attached to this class.
-   * 
-   * @param toolkitObjects the toolkit objects attached to this class
-   */
-  public void setToolkitObjects(ToolkitObjectElement[] toolkitObjects) {
-    for (ToolkitObjectElement toolkitObject : toolkitObjects) {
-      ((ToolkitObjectElementImpl) toolkitObject).setEnclosingElement(this);
-    }
-    this.toolkitObjects = toolkitObjects;
-  }
-
-  /**
    * Set the type defined by the class to the given type.
    * 
    * @param type the type defined by the class
@@ -630,4 +650,32 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
       }
     }
   }
+
+  private boolean safeIsOrInheritsProxy(ClassElement classElt,
+      HashSet<ClassElement> visitedClassElts) {
+    if (visitedClassElts.contains(classElt)) {
+      return false;
+    }
+    visitedClassElts.add(classElt);
+    if (classElt.isProxy()) {
+      return true;
+    } else if (classElt.getSupertype() != null
+        && safeIsOrInheritsProxy(classElt.getSupertype().getElement(), visitedClassElts)) {
+      return true;
+    }
+    InterfaceType[] supertypes = classElt.getInterfaces();
+    for (int i = 0; i < supertypes.length; i++) {
+      if (safeIsOrInheritsProxy(supertypes[i].getElement(), visitedClassElts)) {
+        return true;
+      }
+    }
+    supertypes = classElt.getMixins();
+    for (int i = 0; i < supertypes.length; i++) {
+      if (safeIsOrInheritsProxy(supertypes[i].getElement(), visitedClassElts)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 }

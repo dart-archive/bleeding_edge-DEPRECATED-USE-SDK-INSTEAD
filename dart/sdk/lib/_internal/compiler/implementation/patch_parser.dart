@@ -120,7 +120,10 @@ import "tree/tree.dart" as tree;
 import "dart2jslib.dart" as leg;  // CompilerTask, Compiler.
 import "scanner/scannerlib.dart";  // Scanner, Parsers, Listeners
 import "elements/elements.dart";
-import "elements/modelx.dart" show LibraryElementX, MetadataAnnotationX;
+import "elements/modelx.dart"
+    show LibraryElementX,
+         MetadataAnnotationX,
+         FunctionElementX;
 import 'util/util.dart';
 
 class PatchParserTask extends leg.CompilerTask {
@@ -133,8 +136,9 @@ class PatchParserTask extends leg.CompilerTask {
    * patches.
    */
   Future patchLibrary(leg.LibraryDependencyHandler handler,
-                    Uri patchUri, LibraryElement originLibrary) {
-    return compiler.readScript(patchUri, null).then((leg.Script script) {
+                      Uri patchUri, LibraryElement originLibrary) {
+    return compiler.readScript(originLibrary, patchUri)
+        .then((leg.Script script) {
       var patchLibrary = new LibraryElementX(script, null, originLibrary);
       return compiler.withCurrentElement(patchLibrary, () {
         handler.registerNewLibrary(patchLibrary);
@@ -440,8 +444,8 @@ void patchClass(leg.DiagnosticListener listener,
                  ClassElement origin,
                  ClassElement patch) {
   if (origin.isPatched) {
-    listener.internalErrorOnElement(
-        origin, "Patching the same class more than once.");
+    listener.internalError(origin,
+        "Patching the same class more than once.");
   }
   // TODO(johnniwinther): Change to functions on the ElementX class.
   origin.patch = patch;
@@ -526,8 +530,8 @@ void tryPatchFunction(leg.DiagnosticListener listener,
 }
 
 void patchFunction(leg.DiagnosticListener listener,
-                    FunctionElement origin,
-                    FunctionElement patch) {
+                    FunctionElementX origin,
+                    FunctionElementX patch) {
   if (!origin.modifiers.isExternal()) {
     listener.reportError(origin, leg.MessageKind.PATCH_NON_EXTERNAL);
     listener.reportInfo(
@@ -536,11 +540,11 @@ void patchFunction(leg.DiagnosticListener listener,
     return;
   }
   if (origin.isPatched) {
-    listener.internalErrorOnElement(origin,
+    listener.internalError(origin,
         "Trying to patch a function more than once.");
   }
   if (origin.cachedNode != null) {
-    listener.internalErrorOnElement(origin,
+    listener.internalError(origin,
         "Trying to patch an already compiled function.");
   }
   // Don't just assign the patch field. This also updates the cachedNode.

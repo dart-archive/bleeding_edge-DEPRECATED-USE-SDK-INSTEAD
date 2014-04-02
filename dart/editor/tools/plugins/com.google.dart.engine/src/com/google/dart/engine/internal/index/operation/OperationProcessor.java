@@ -17,6 +17,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +28,7 @@ import java.util.concurrent.TimeUnit;
  * 
  * @coverage dart.engine.index
  */
+@DartOmit
 public class OperationProcessor {
   /**
    * The enumeration <code>ProcessorState</code> represents the possible states of an operation

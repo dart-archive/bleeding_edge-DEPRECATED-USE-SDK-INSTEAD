@@ -15,6 +15,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -96,9 +97,12 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
     if (selectionProvider != null) {
       ISelection selection = selectionProvider.getSelection();
       if (selection.isEmpty()) {
-        IEditorInput input = getSite().getPage().getActiveEditor().getEditorInput();
-        if (input instanceof IFileEditorInput) {
-          return new StructuredSelection(((IFileEditorInput) input).getFile());
+        IEditorPart activeEditor = getSite().getPage().getActiveEditor();
+        if (activeEditor != null) {
+          IEditorInput input = activeEditor.getEditorInput();
+          if (input instanceof IFileEditorInput) {
+            return new StructuredSelection(((IFileEditorInput) input).getFile());
+          }
         }
       }
       return selection;

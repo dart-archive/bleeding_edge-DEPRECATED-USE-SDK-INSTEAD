@@ -13,15 +13,15 @@
  */
 package com.google.dart.engine.ast.visitor;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 
 import java.util.LinkedList;
 
 /**
  * Instances of the class {@code BreadthFirstVisitor} implement an AST visitor that will recursively
- * visit all of the nodes in an AST structure, similar to {@link GeneralizingASTVisitor}. This
+ * visit all of the nodes in an AST structure, similar to {@link GeneralizingAstVisitor}. This
  * visitor uses a breadth-first ordering rather than the depth-first ordering of
- * {@link GeneralizingASTVisitor}.
+ * {@link GeneralizingAstVisitor}.
  * <p>
  * Subclasses that override a visit method must either invoke the overridden visit method or
  * explicitly invoke the more general visit method. Failure to do so will cause the visit methods
@@ -29,25 +29,25 @@ import java.util.LinkedList;
  * not be visited.
  * <p>
  * In addition, subclasses should <b>not</b> explicitly visit the children of a node, but should
- * ensure that the method {@link #visitNode(ASTNode)} is used to visit the children (either directly
+ * ensure that the method {@link #visitNode(AstNode)} is used to visit the children (either directly
  * or indirectly). Failure to do will break the order in which nodes are visited.
  * 
  * @coverage dart.engine.ast
  */
-public class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
+public class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   /**
    * A queue holding the nodes that have not yet been visited in the order in which they ought to be
    * visited.
    */
-  private final LinkedList<ASTNode> queue = new LinkedList<ASTNode>();
+  private final LinkedList<AstNode> queue = new LinkedList<AstNode>();
 
   /**
    * A visitor, used to visit the children of the current node, that will add the nodes it visits to
    * the {@link #queue}.
    */
-  private GeneralizingASTVisitor<Void> childVisitor = new GeneralizingASTVisitor<Void>() {
+  private GeneralizingAstVisitor<Void> childVisitor = new GeneralizingAstVisitor<Void>() {
     @Override
-    public Void visitNode(ASTNode node) {
+    public Void visitNode(AstNode node) {
       queue.add(node);
       return null;
     }
@@ -58,16 +58,16 @@ public class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
    * 
    * @param root the root of the AST structure to be visited
    */
-  public void visitAllNodes(ASTNode root) {
+  public void visitAllNodes(AstNode root) {
     queue.add(root);
     while (!queue.isEmpty()) {
-      ASTNode next = queue.removeFirst();
+      AstNode next = queue.removeFirst();
       next.accept(this);
     }
   }
 
   @Override
-  public R visitNode(ASTNode node) {
+  public R visitNode(AstNode node) {
     node.visitChildren(childVisitor);
     return null;
   }

@@ -858,6 +858,31 @@ public class DartIndenter {
     return getLeadingWhitespace(unit);
   }
 
+//  public boolean isAfterClassPrologue(int offset) {
+//    fPosition = offset;
+//    nextToken();
+//    if (fToken == Symbols.TokenLBRACE) {
+//      while (true) {
+//        nextToken();
+//        if (fToken == Symbols.TokenEOF) {
+//          return false;
+//        }
+//        if (fToken == Symbols.TokenIDENT) {
+//          nextToken();
+//          if (fToken == Symbols.TokenCLASS) {
+//            return true;
+//          }
+//          if (fToken == Symbols.TokenEXTENDS || fToken == Symbols.TokenIMPLEMENTS
+//              || fToken == Symbols.TokenCOMMA) {
+//            continue;
+//          }
+//          return false;
+//        }
+//      }
+//    }
+//    return false;
+//  }
+
   /**
    * Computes the length of a <code>CharacterSequence</code>, counting a tab character as the size
    * until the next tab stop and every other character as one.
@@ -1267,6 +1292,26 @@ public class DartIndenter {
       return fToken == Symbols.TokenNEW;
     }
     return false;
+  }
+
+  private boolean looksLikeArgumentListOpen() {
+    int fPosition_ = fPosition;
+    int fPreviousPos_ = fPreviousPos;
+    try {
+      if (fToken == Symbols.TokenLPAREN) {
+        nextToken();
+        if (fToken == Symbols.TokenIDENT) {
+          // OK, probably closure arguments
+          fPosition_ = fPosition;
+          fPreviousPos_ = fPreviousPos;
+          return true;
+        }
+      }
+      return false;
+    } finally {
+      fPosition = fPosition_;
+      fPreviousPos = fPreviousPos_;
+    }
   }
 
   /**
@@ -1837,6 +1882,9 @@ public class DartIndenter {
         case Symbols.TokenEOF:
           if (isInBlock) {
             fIndent = getBlockIndent(mayBeMethodBody == READ_IDENT, isTypeBody);
+          }
+          if (looksLikeArgumentListOpen()) {
+            break;
           }
           // else: fIndent set by previous calls
           return fPreviousPos;

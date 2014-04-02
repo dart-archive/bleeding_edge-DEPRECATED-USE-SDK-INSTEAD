@@ -606,7 +606,8 @@ static Location::Kind RegisterKindForResult(Instruction* instr) {
   if ((instr->representation() == kUnboxedDouble) ||
       (instr->representation() == kUnboxedMint) ||
       (instr->representation() == kUnboxedFloat32x4) ||
-      (instr->representation() == kUnboxedInt32x4)) {
+      (instr->representation() == kUnboxedInt32x4) ||
+      (instr->representation() == kUnboxedFloat64x2)) {
     return Location::kFpuRegister;
   } else {
     return Location::kRegister;
@@ -857,7 +858,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 
     // Drop definitions of constants that have no uses.
     if ((range == NULL) || (range->first_use() == NULL)) {
-      locs->set_out(Location::NoLocation());
+      locs->set_out(0, Location::NoLocation());
       return;
     }
 
@@ -872,7 +873,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       range->finger()->Initialize(range);
       ConvertAllUses(range);
 
-      locs->set_out(Location::NoLocation());
+      locs->set_out(0, Location::NoLocation());
       return;
     }
   }
@@ -885,15 +886,15 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 
   // Normalize same-as-first-input output if input is specified as
   // fixed register.
-  if (locs->out().IsUnallocated() &&
-      (locs->out().policy() == Location::kSameAsFirstInput) &&
+  if (locs->out(0).IsUnallocated() &&
+      (locs->out(0).policy() == Location::kSameAsFirstInput) &&
       (locs->in(0).IsMachineRegister())) {
-    locs->set_out(locs->in(0));
+    locs->set_out(0, locs->in(0));
   }
 
   const bool output_same_as_first_input =
-      locs->out().IsUnallocated() &&
-      (locs->out().policy() == Location::kSameAsFirstInput);
+      locs->out(0).IsUnallocated() &&
+      (locs->out(0).policy() == Location::kSameAsFirstInput);
 
   // Add uses from the deoptimization environment.
   if (current->env() != NULL) ProcessEnvironmentUses(block, current);
@@ -1016,7 +1017,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       ASSERT(!locs->in(j).IsUnallocated());
     }
 
-    ASSERT(!locs->out().IsUnallocated());
+    ASSERT(!locs->out(0).IsUnallocated());
 #endif
   }
 
@@ -1025,11 +1026,11 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
   }
 
   if (def == NULL) {
-    ASSERT(locs->out().IsInvalid());
+    ASSERT(locs->out(0).IsInvalid());
     return;
   }
 
-  if (locs->out().IsInvalid()) {
+  if (locs->out(0).IsInvalid()) {
     ASSERT(def->ssa_temp_index() < 0);
     return;
   }
@@ -1039,7 +1040,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
   LiveRange* range = (def->ssa_temp_index() >= 0) ?
       GetLiveRange(def->ssa_temp_index()) :
       MakeLiveRangeForTemporary();
-  Location* out = locs->out_slot();
+  Location* out = locs->out_slot(0);
 
   // Process output and finalize its liverange.
   if (out->IsMachineRegister()) {
@@ -1089,7 +1090,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
            locs->in(0).Equals(Location::RequiresFpuRegister()));
 
     // Create move that will copy value between input and output.
-    locs->set_out(Location::RequiresRegister());
+    locs->set_out(0, Location::RequiresRegister());
     MoveOperands* move = AddMoveAt(pos,
                                    Location::RequiresRegister(),
                                    Location::Any());
@@ -1120,8 +1121,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     //                    i  i'
     //    output          [-------
     //
-    ASSERT(locs->out().Equals(Location::RequiresRegister()) ||
-           locs->out().Equals(Location::RequiresFpuRegister()));
+    ASSERT(locs->out(0).Equals(Location::RequiresRegister()) ||
+           locs->out(0).Equals(Location::RequiresFpuRegister()));
 
     // Shorten live range to the point of definition and add use to be filled by
     // allocator.
@@ -1602,7 +1603,8 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
   // parallel move resolution.
   const bool need_quad = (register_kind_ == Location::kFpuRegister) &&
       ((range->representation() == kUnboxedFloat32x4) ||
-       (range->representation() == kUnboxedInt32x4));
+       (range->representation() == kUnboxedInt32x4)   ||
+       (range->representation() == kUnboxedFloat64x2));
 
   // Search for a free spill slot among allocated: the value in it should be
   // dead and its type should match (e.g. it should not be a part of the quad if
@@ -1651,7 +1653,8 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
 
     Location location;
     if ((range->representation() == kUnboxedFloat32x4) ||
-        (range->representation() == kUnboxedInt32x4)) {
+        (range->representation() == kUnboxedInt32x4) ||
+        (range->representation() == kUnboxedFloat64x2)) {
       ASSERT(need_quad);
       location = Location::QuadStackSlot(slot_idx);
     } else {

@@ -6,13 +6,15 @@
 
 #if defined(TARGET_ARCH_MIPS)
 
+#include "vm/cpu.h"
+#include "vm/cpuinfo.h"
+#include "vm/simulator.h"
+
 #if defined(HOST_ARCH_MIPS)
 #include <asm/cachectl.h> /* NOLINT */
 #include <sys/syscall.h>  /* NOLINT */
 #include <unistd.h>  /* NOLINT */
 #endif
-
-#include "vm/cpu.h"
 
 namespace dart {
 
@@ -36,6 +38,70 @@ const char* CPU::Id() {
 #endif  // !defined(HOST_ARCH_MIPS)
   "mips";
 }
+
+
+const char* HostCPUFeatures::hardware_ = NULL;
+MIPSVersion HostCPUFeatures::mips_version_ = MIPSvUnknown;
+#if defined(DEBUG)
+bool HostCPUFeatures::initialized_ = false;
+#endif
+
+
+#if defined(HOST_ARCH_MIPS)
+void HostCPUFeatures::InitOnce() {
+  CpuInfo::InitOnce();
+  hardware_ = CpuInfo::GetCpuModel();
+  // Has a floating point unit.
+  ASSERT(CpuInfo::FieldContains(kCpuInfoModel, "FPU"));
+
+  // We want to know the ISA version, but on MIPS, CpuInfo can't tell us, so
+  // we use the same ISA version that Dart's C++ compiler targeted.
+#if defined(_MIPS_ARCH_MIPS32R2)
+  mips_version_ = MIPS32r2;
+#elif defined(_MIPS_ARCH_MIPS32)
+  mips_version_ = MIPS32;
+#endif
+
+#if defined(DEBUG)
+  initialized_ = true;
+#endif
+}
+
+
+void HostCPUFeatures::Cleanup() {
+  DEBUG_ASSERT(initialized_);
+#if defined(DEBUG)
+  initialized_ = false;
+#endif
+  ASSERT(hardware_ != NULL);
+  free(const_cast<char*>(hardware_));
+  hardware_ = NULL;
+  CpuInfo::Cleanup();
+}
+
+#else
+
+void HostCPUFeatures::InitOnce() {
+  CpuInfo::InitOnce();
+  hardware_ = CpuInfo::GetCpuModel();
+  mips_version_ = MIPS32r2;
+#if defined(DEBUG)
+  initialized_ = true;
+#endif
+}
+
+
+void HostCPUFeatures::Cleanup() {
+  DEBUG_ASSERT(initialized_);
+#if defined(DEBUG)
+  initialized_ = false;
+#endif
+  ASSERT(hardware_ != NULL);
+  free(const_cast<char*>(hardware_));
+  hardware_ = NULL;
+  CpuInfo::Cleanup();
+}
+#endif  // defined(HOST_ARCH_MIPS)
 
 }  // namespace dart
 

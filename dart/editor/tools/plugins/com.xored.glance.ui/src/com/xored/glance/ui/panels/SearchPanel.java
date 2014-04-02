@@ -330,6 +330,18 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
 
   @Override
   public void finished() {
+    UIUtils.asyncExec(title, new Runnable() {
+      @Override
+      public void run() {
+        if (title.getText().length() == 0) {
+          final Object[] objects = listeners.getListeners();
+          for (final Object object : objects) {
+            final ISearchPanelListener listener = (ISearchPanelListener) object;
+            listener.clearStatus();
+          }
+        }
+      }
+    });
   }
 
   @Override
@@ -372,6 +384,12 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
   @Override
   public void removePanelListener(final ISearchPanelListener listener) {
     listeners.remove(listener);
+  }
+
+  @Override
+  public void selectAll() {
+    updateHistory();
+    title.setSelection(new Point(0, title.getText().length()));
   }
 
   @Override

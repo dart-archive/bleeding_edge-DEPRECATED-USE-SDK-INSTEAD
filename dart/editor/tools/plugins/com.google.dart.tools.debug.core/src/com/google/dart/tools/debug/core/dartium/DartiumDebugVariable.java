@@ -32,6 +32,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
   private DartiumDebugValue value;
 
   private boolean isSpecialObject;
+  private boolean isLocal;
   private boolean isStatic;
   private boolean isLibraryObject;
 
@@ -130,6 +131,11 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
     }
   }
 
+  @Override
+  public boolean isLocal() {
+    return isLocal;
+  }
+
   public boolean isPrimitiveValue() {
     try {
       return ((DartiumDebugValue) getValue()).isPrimitive();
@@ -195,6 +201,10 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
 
   protected void setIsLibraryObject(boolean value) {
     this.isLibraryObject = value;
+  }
+
+  protected void setIsLocal(boolean value) {
+    isLocal = value;
   }
 
   protected void setIsStatic(boolean value) {

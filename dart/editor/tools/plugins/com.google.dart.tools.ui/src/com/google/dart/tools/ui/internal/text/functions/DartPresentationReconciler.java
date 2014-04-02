@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
+import com.google.dart.tools.ui.DartUI;
+
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextPresentation;
@@ -44,5 +46,13 @@ public class DartPresentationReconciler extends PresentationReconciler {
       fLastDocument = document;
     }
     return createPresentation(damage, document);
+  }
+
+  @Override
+  protected TextPresentation createPresentation(IRegion damage, IDocument document) {
+    if (DartUI.isTooComplexDartDocument(document)) {
+      return null;
+    }
+    return super.createPresentation(damage, document);
   }
 }

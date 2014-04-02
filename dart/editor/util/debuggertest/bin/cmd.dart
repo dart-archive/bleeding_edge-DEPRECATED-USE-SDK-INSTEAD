@@ -6,6 +6,8 @@ library cmd_test;
 
 import 'dart:async';
 
+import 'package:unittest/unittest.dart';
+
 import '../lib/pets.dart' as pets;
 
 num petCount = 0;
@@ -13,6 +15,8 @@ double fooCount = 10.0;
 
 void main() {
   print("starting debuggertest");
+
+  print(fooCount);
 
   // Spawn some isolates...
   pets.spawnAnimalsIsolate(1);
@@ -43,6 +47,8 @@ void main() {
 
   dog.performAction();
 
+  print(pets.Dog.staticDogCount);
+
   var l = pets.getLotsOfAnimals();
 
   print(l);
@@ -55,4 +61,10 @@ void main() {
   var m = pets.getMapOfAnimals();
 
   print(m);
+
+  group('test-test', () {
+    test('foo', () {
+      expect(false, true);
+    });
+  });
 }

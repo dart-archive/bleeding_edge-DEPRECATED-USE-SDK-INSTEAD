@@ -26,6 +26,12 @@ public class SemanticProcessorTest extends AbstractSemanticTest {
   protected final Context context = new Context();
   protected CompilationUnit unit;
 
+  /**
+   * Applies some {@link SemanticProcessor}s directly after {@link Context#translate()}.
+   */
+  protected void applyPostTranslateProcessors() {
+  }
+
   protected final void assertFormattedSource(String... lines) {
     assertEquals(toString(lines), getFormattedSource(unit));
   }
@@ -35,5 +41,7 @@ public class SemanticProcessorTest extends AbstractSemanticTest {
     context.addSourceFolder(tmpFolder);
     context.addSourceFile(file);
     unit = context.translate();
+    applyPostTranslateProcessors();
+    new RenameConstructorsSemanticProcessor(context).process(unit);
   }
 }

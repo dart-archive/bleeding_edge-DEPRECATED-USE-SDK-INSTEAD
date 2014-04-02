@@ -7,6 +7,7 @@
 import hashlib
 import imp
 import os
+import string
 import subprocess
 import sys
 
@@ -82,13 +83,16 @@ class GCSNamer(object):
          /{index.html,features/,plugins/,artifacts.jar,content.jar}
   """
   def __init__(self, channel=Channel.BLEEDING_EDGE,
-      release_type=ReleaseType.RAW):
+      release_type=ReleaseType.RAW, internal=False):
     assert channel in Channel.ALL_CHANNELS
     assert release_type in ReleaseType.ALL_TYPES
 
     self.channel = channel
     self.release_type = release_type
-    self.bucket = 'gs://dart-archive'
+    if internal:
+      self.bucket = 'gs://dart-archive-internal'
+    else:
+      self.bucket = 'gs://dart-archive'
 
   # Functions for quering complete gs:// filepaths
 
@@ -116,13 +120,27 @@ class GCSNamer(object):
     return '/'.join([self.apidocs_directory(revision),
       self.apidocs_zipfilename()])
 
+  def dartium_android_apk_filepath(self, revision, name, arch, mode):
+    return '/'.join([self.dartium_android_directory(revision),
+      self.dartium_android_apk_filename(name, arch, mode)])
+
   # Functions for querying gs:// directories
 
   def dartium_directory(self, revision):
     return self._variant_directory('dartium', revision)
 
+  def dartium_android_directory(self, revision):
+    return self._variant_directory('dartium_android', revision)
+
   def sdk_directory(self, revision):
     return self._variant_directory('sdk', revision)
+
+  def linux_packages_directory(self, revision, linux_system):
+    return '/'.join([self._variant_directory('linux_packages', revision),
+                     linux_system])
+
+  def src_directory(self, revision):
+    return self._variant_directory('src', revision)
 
   def editor_directory(self, revision):
     return self._variant_directory('editor', revision)
@@ -141,6 +159,9 @@ class GCSNamer(object):
         self.release_type, revision, name)
 
   # Functions for quering filenames
+
+  def dartium_android_apk_filename(self, name, arch, mode):
+    return '%s-%s-%s.apk' % (name, arch, mode)
 
   def apidocs_zipfilename(self):
     return 'dart-api-docs.zip'
@@ -197,23 +218,31 @@ def run(command, env=None, shell=False, throw_on_error=True):
 class GSUtil(object):
   GSUTIL_IS_SHELL_SCRIPT = False
   GSUTIL_PATH = None
+  USE_DART_REPO_VERSION = False
 
   def _layzCalculateGSUtilPath(self):
     if not GSUtil.GSUTIL_PATH:
       buildbot_gsutil = utils.GetBuildbotGSUtilPath()
-      if os.path.isfile(buildbot_gsutil):
+      if os.path.isfile(buildbot_gsutil) and not GSUtil.USE_DART_REPO_VERSION:
         GSUtil.GSUTIL_IS_SHELL_SCRIPT = True
         GSUtil.GSUTIL_PATH = buildbot_gsutil
       else:
         dart_gsutil = os.path.join(DART_DIR, 'third_party', 'gsutil', 'gsutil')
-        possible_locations = (list(os.environ['PATH'].split(os.pathsep))
-            + [dart_gsutil])
-        for directory in possible_locations:
-          location = os.path.join(directory, 'gsutil')
-          if os.path.isfile(location):
-            GSUtil.GSUTIL_IS_SHELL_SCRIPT = False
-            GSUtil.GSUTIL_PATH = location
-            break
+        if os.path.isfile(dart_gsutil):
+          GSUtil.GSUTIL_IS_SHELL_SCRIPT = False
+          GSUtil.GSUTIL_PATH = dart_gsutil
+        elif GSUtil.USE_DART_REPO_VERSION:
+          raise Exception("Dart repository version of gsutil required, "
+                          "but not found.")
+        else:
+          # We did not find gsutil, look in path
+          possible_locations = list(os.environ['PATH'].split(os.pathsep))
+          for directory in possible_locations:
+            location = os.path.join(directory, 'gsutil')
+            if os.path.isfile(location):
+              GSUtil.GSUTIL_IS_SHELL_SCRIPT = False
+              GSUtil.GSUTIL_PATH = location
+              break
       assert GSUtil.GSUTIL_PATH
 
   def execute(self, gsutil_args):
@@ -247,6 +276,14 @@ class GSUtil(object):
     if recursive:
       args += ['-R']
     args += [local_path, remote_path]
+    self.execute(args)
+
+  def setGroupReadACL(self, remote_path, group):
+    args = ['acl', 'ch', '-g', '%s:R' % group, remote_path]
+    self.execute(args)
+
+  def setContentType(self, remote_path, content_type):
+    args = ['setmeta', '-h', 'Content-Type:%s' % content_type, remote_path]
     self.execute(args)
 
   def remove(self, remote_path, recursive=False):
@@ -283,3 +320,11 @@ def CreateChecksumFile(filename, mangled_filename=None):
     f.write('%s *%s' % (checksum, mangled_filename))
 
   return checksum_filename
+
+def GetChannelFromName(name):
+  """Get the channel from the name. Bleeding edge builders don't 
+      have a suffix."""
+  channel_name = string.split(name, '-').pop()
+  if channel_name in Channel.ALL_CHANNELS:
+    return channel_name
+  return Channel.BLEEDING_EDGE

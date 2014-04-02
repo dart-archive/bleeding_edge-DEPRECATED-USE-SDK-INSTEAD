@@ -15,8 +15,11 @@
 package com.google.dart.java2dart.processor;
 
 import com.google.common.base.Objects;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.SyntaxTranslator;
@@ -30,22 +33,51 @@ import org.eclipse.jdt.core.dom.IMethodBinding;
  */
 public abstract class SemanticProcessor {
   /**
-   * @return the {@link ASTNode} of given {@link Class} which is given {@link ASTNode} itself, or
+   * @return the {@link AstNode} of given {@link Class} which is given {@link AstNode} itself, or
    *         one of its parents.
    */
   @SuppressWarnings("unchecked")
-  public static <E extends ASTNode> E getAncestor(ASTNode node, Class<E> enclosingClass) {
+  public static <E extends AstNode> E getAncestor(AstNode node, Class<E> enclosingClass) {
     while (node != null && !enclosingClass.isInstance(node)) {
       node = node.getParent();
     };
     return (E) node;
   }
 
+  public static void removeNode(AstNode node) {
+    AstNode parent = node.getParent();
+    if (parent instanceof Block) {
+      ((Block) parent).getStatements().remove(node);
+      return;
+    }
+    if (parent instanceof ClassDeclaration) {
+      ((ClassDeclaration) parent).getMembers().remove(node);
+      return;
+    }
+    throw new IllegalArgumentException("Unsupported parent type: " + parent.getClass());
+  }
+
   /**
    * Replaces "node" with "replacement" in parent of "node".
    */
-  public static void replaceNode(ASTNode node, ASTNode replacement) {
+  public static void replaceNode(AstNode node, AstNode replacement) {
     SyntaxTranslator.replaceNode(node.getParent(), node, replacement);
+  }
+
+  /**
+   * Replaces "node" with "replacement" in parent of "node".
+   */
+  public static void replaceNode(AstNode parent, AstNode node, AstNode replacement) {
+    SyntaxTranslator.replaceNode(parent, node, replacement);
+  }
+
+  /**
+   * Checks if given {@link IMethodBinding} is method of given class with given name.
+   */
+  protected static boolean isMethodInClass(IMethodBinding binding, String reqName,
+      String reqClassName) {
+    return binding != null && Objects.equal(binding.getName(), reqName)
+        && JavaUtils.isMethodInClass(binding, reqClassName);
   }
 
   protected final Context context;
@@ -57,12 +89,17 @@ public abstract class SemanticProcessor {
   abstract public void process(CompilationUnit unit);
 
   /**
-   * Checks if given {@link IMethodBinding} is method of given class with given name.
+   * Checks if {@link IMethodBinding} of the given {@link MethodDeclaration} is method of given
+   * class with given name.
    */
-  protected final boolean isMethodInClass(IMethodBinding binding, String reqName,
+  protected final boolean isMethodInClass(MethodDeclaration node, String reqName,
       String reqClassName) {
-    return binding != null && Objects.equal(binding.getName(), reqName)
-        && JavaUtils.isMethodInClass(binding, reqClassName);
+    Object nodeBinding = context.getNodeBinding(node);
+    if (nodeBinding instanceof IMethodBinding) {
+      IMethodBinding binding = (IMethodBinding) nodeBinding;
+      return isMethodInClass(binding, reqName, reqClassName);
+    }
+    return false;
   }
 
   /**

@@ -48,7 +48,7 @@ public enum ScannerErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for this error
    */
   private ScannerErrorCode(String message) {
-    this.message = message;
+    this(message, null);
   }
 
   /**

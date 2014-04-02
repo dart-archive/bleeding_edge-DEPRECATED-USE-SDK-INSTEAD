@@ -125,7 +125,7 @@ _testInitializers(String args, String expected) {
   });
 }
 
-/** Helper that applies the transform by creating mock assets. */
+/// Helper that applies the transform by creating mock assets.
 Future<String> _transform(String code) {
   var id = new AssetId('foo', 'a/b/c.dart');
   var asset = new Asset.fromString(id, code);
@@ -142,6 +142,7 @@ Future<String> _transform(String code) {
 }
 
 class _MockTransform implements Transform {
+  bool shouldConsumePrimary = false;
   List<Asset> outs = [];
   Asset _asset;
   TransformLogger logger = new TransformLogger(_mockLogFn);
@@ -157,8 +158,13 @@ class _MockTransform implements Transform {
     outs.add(output);
   }
 
+  void consumePrimary() {
+    shouldConsumePrimary = true;
+  }
+
   readInput(id) => throw new UnimplementedError();
   readInputAsString(id, {encoding}) => throw new UnimplementedError();
+  hasInput(id) => throw new UnimplementedError();
 
   static void _mockLogFn(AssetId asset, LogLevel level, String message,
                          span) {

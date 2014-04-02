@@ -8,6 +8,12 @@ package com.xored.glance.ui.sources;
  */
 public class SourceSelection {
 
+  private ITextBlock block;
+
+  private int offset;
+
+  private int length;
+
   public SourceSelection(ITextBlock block, int offset, int length) {
     this.block = block;
     this.offset = offset;
@@ -39,9 +45,5 @@ public class SourceSelection {
   public String toString() {
     return block + ": (" + offset + ", " + length + ")";
   }
-
-  private ITextBlock block;
-  private int offset;
-  private int length;
 
 }

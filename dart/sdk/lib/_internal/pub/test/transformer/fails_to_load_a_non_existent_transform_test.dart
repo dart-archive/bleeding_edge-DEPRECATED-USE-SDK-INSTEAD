@@ -4,8 +4,6 @@
 
 library pub_tests;
 
-import 'package:scheduled_test/scheduled_test.dart';
-
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import '../serve/utils.dart';
@@ -21,8 +19,8 @@ main() {
     ]).create();
 
     var pub = startPubServe();
-    expect(pub.nextErrLine(), completion(equals(
-        'Transformer library "package:myapp/transform.dart" not found.')));
+    pub.stderr.expect(
+        'Transformer library "package:myapp/transform.dart" not found.');
     pub.shouldExit(1);
   });
 }

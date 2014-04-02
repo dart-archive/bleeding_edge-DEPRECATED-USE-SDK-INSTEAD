@@ -23,16 +23,16 @@ public class RangeGroup {
     this.ranges = ranges;
   }
 
-  public int getStart() {
-    return start;
-  }
-
   public int getEnd() {
     return end;
   }
 
   public StyleRange[] getRanges() {
     return ranges;
+  }
+
+  public int getStart() {
+    return start;
   }
 
 }

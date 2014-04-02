@@ -17,7 +17,7 @@ package com.google.dart.engine.internal.html.angular;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -38,11 +38,14 @@ import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularHasTemplateElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlExpression;
@@ -59,6 +62,7 @@ import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.element.angular.AngularComponentElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularViewElementImpl;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
@@ -81,6 +85,7 @@ import static com.google.dart.engine.internal.html.angular.AngularMoustacheXmlEx
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -88,6 +93,25 @@ import java.util.Set;
  * Instances of the class {@link AngularHtmlUnitResolver} resolve Angular specific expressions.
  */
 public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
+  private static class FilteringAnalysisErrorListener implements AnalysisErrorListener {
+    private final AnalysisErrorListener listener;
+
+    public FilteringAnalysisErrorListener(AnalysisErrorListener listener) {
+      this.listener = listener;
+    }
+
+    @Override
+    public void onError(AnalysisError error) {
+      ErrorCode errorCode = error.getErrorCode();
+      if (errorCode == StaticWarningCode.UNDEFINED_GETTER
+          || errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER
+          || errorCode == StaticTypeWarningCode.UNDEFINED_GETTER) {
+        return;
+      }
+      listener.onError(error);
+    }
+  }
+
   private static class FoundAppError extends Error {
   }
 
@@ -141,7 +165,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param angularElements the list to fill with top-level {@link AngularElement}s
    * @param classElement the {@link ClassElement} to get {@link AngularElement}s from
    */
-  private static void addAngularElements(Set<AngularElement> angularElements,
+  private static void addAngularElementsFromClass(Set<AngularElement> angularElements,
       ClassElement classElement) {
     for (ToolkitObjectElement toolkitObject : classElement.getToolkitObjects()) {
       if (toolkitObject instanceof AngularElement) {
@@ -156,21 +180,25 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param libraryElement the {@link LibraryElement} to analyze
    * @return the array of all top-level Angular elements that could be used in this library
    */
-  private static void addAngularElements(Set<AngularElement> angularElements,
+  private static void addAngularElementsFromLibrary(Set<AngularElement> angularElements,
       LibraryElement library, Set<LibraryElement> visited) {
+    if (library == null) {
+      return;
+    }
     if (!visited.add(library)) {
       return;
     }
     // add Angular elements from current library
     for (CompilationUnitElement unit : library.getUnits()) {
+      Collections.addAll(angularElements, unit.getAngularViews());
       for (ClassElement type : unit.getTypes()) {
-        addAngularElements(angularElements, type);
+        addAngularElementsFromClass(angularElements, type);
       }
     }
     // handle imports
     for (ImportElement importElement : library.getImports()) {
       LibraryElement importedLibrary = importElement.getImportedLibrary();
-      addAngularElements(angularElements, importedLibrary, visited);
+      addAngularElementsFromLibrary(angularElements, importedLibrary, visited);
     }
   }
 
@@ -188,7 +216,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private static AngularElement[] getAngularElements(Set<LibraryElement> libraries,
       LibraryElement libraryElement) {
     Set<AngularElement> angularElements = Sets.newHashSet();
-    addAngularElements(angularElements, libraryElement, libraries);
+    addAngularElementsFromLibrary(angularElements, libraryElement, libraries);
     return angularElements.toArray(new AngularElement[angularElements.size()]);
   }
 
@@ -218,7 +246,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
 
   private final InternalAnalysisContext context;
   private final TypeProvider typeProvider;
-  private final AnalysisErrorListener errorListener;
+  private final FilteringAnalysisErrorListener errorListener;
 
   private final Source source;
   private final LineInfo lineInfo;
@@ -245,7 +273,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       throws AnalysisException {
     this.context = context;
     this.typeProvider = context.getTypeProvider();
-    this.errorListener = errorListener;
+    this.errorListener = new FilteringAnalysisErrorListener(errorListener);
     this.source = source;
     this.lineInfo = lineInfo;
     this.unit = unit;
@@ -271,36 +299,45 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     AngularElement[] angularElements = getAngularElements(libraries, libraryElement);
     // resolve AngularComponentElement template URIs
     // TODO(scheglov) resolve to HtmlElement to allow F3 ?
+    Set<Source> angularElementsSources = Sets.newHashSet();
     for (AngularElement angularElement : angularElements) {
-      if (angularElement instanceof AngularComponentElement) {
-        AngularComponentElement component = (AngularComponentElement) angularElement;
-        String templateUri = component.getTemplateUri();
+      if (angularElement instanceof AngularHasTemplateElement) {
+        AngularHasTemplateElement hasTemplate = (AngularHasTemplateElement) angularElement;
+        angularElementsSources.add(angularElement.getSource());
+        String templateUri = hasTemplate.getTemplateUri();
         if (templateUri == null) {
           continue;
         }
         try {
           Source templateSource = source.resolveRelative(new URI(templateUri));
-          if (templateSource == null || !templateSource.exists()) {
+          if (!context.exists(templateSource)) {
             templateSource = context.getSourceFactory().resolveUri(source, "package:" + templateUri);
-            if (templateSource == null || !templateSource.exists()) {
-              reportError(
-                  component.getTemplateUriOffset(),
+            if (!context.exists(templateSource)) {
+              errorListener.onError(new AnalysisError(
+                  angularElement.getSource(),
+                  hasTemplate.getTemplateUriOffset(),
                   templateUri.length(),
                   AngularCode.URI_DOES_NOT_EXIST,
-                  templateUri);
+                  templateUri));
               continue;
             }
           }
           if (!AnalysisEngine.isHtmlFileName(templateUri)) {
             continue;
           }
-          ((AngularComponentElementImpl) component).setTemplateSource(templateSource);
+          if (hasTemplate instanceof AngularComponentElementImpl) {
+            ((AngularComponentElementImpl) hasTemplate).setTemplateSource(templateSource);
+          }
+          if (hasTemplate instanceof AngularViewElementImpl) {
+            ((AngularViewElementImpl) hasTemplate).setTemplateSource(templateSource);
+          }
         } catch (URISyntaxException exception) {
-          reportError(
-              component.getTemplateUriOffset(),
+          errorListener.onError(new AnalysisError(
+              angularElement.getSource(),
+              hasTemplate.getTemplateUriOffset(),
               templateUri.length(),
               AngularCode.INVALID_URI,
-              templateUri);
+              templateUri));
         }
       }
     }
@@ -308,7 +345,8 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     AngularApplication application = new AngularApplication(
         source,
         getLibrarySources(libraries),
-        angularElements);
+        angularElements,
+        angularElementsSources.toArray(new Source[angularElementsSources.size()]));
     // set AngularApplication for each AngularElement
     for (AngularElement angularElement : angularElements) {
       ((AngularElementImpl) angularElement).setApplication(application);
@@ -338,7 +376,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
 
   @Override
   public Void visitXmlAttributeNode(XmlAttributeNode node) {
-    parseEmbeddedExpressions(node);
+    parseEmbeddedExpressionsInAttribute(node);
     resolveExpressions(node.getExpressions());
     return super.visitXmlAttributeNode(node);
   }
@@ -359,7 +397,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       // process node in separate name scope
       pushNameScope();
       try {
-        parseEmbeddedExpressions(node);
+        parseEmbeddedExpressionsInTag(node);
         // apply processors
         for (NgProcessor processor : processors) {
           if (processor.canApply(node)) {
@@ -385,7 +423,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param identifier the identifier to create variable for
    * @return the new {@link LocalVariableElementImpl}
    */
-  LocalVariableElementImpl createLocalVariable(Type type, SimpleIdentifier identifier) {
+  LocalVariableElementImpl createLocalVariableFromIdentifier(Type type, SimpleIdentifier identifier) {
     LocalVariableElementImpl variable = new LocalVariableElementImpl(identifier);
     definedVariables.add(variable);
     variable.setType(type);
@@ -399,9 +437,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    * @param name the name of the variable
    * @return the new {@link LocalVariableElementImpl}
    */
-  LocalVariableElementImpl createLocalVariable(Type type, String name) {
+  LocalVariableElementImpl createLocalVariableWithName(Type type, String name) {
     SimpleIdentifier identifier = createIdentifier(name, 0);
-    return createLocalVariable(type, identifier);
+    return createLocalVariableFromIdentifier(type, identifier);
   }
 
   /**
@@ -444,18 +482,14 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   /**
    * Parses given {@link String} as an {@link AngularExpression} at the given offset.
    */
-  AngularExpression parseAngularExpression(String contents, int offset) {
-    return parseAngularExpression(contents, 0, contents.length(), offset);
-  }
-
   AngularExpression parseAngularExpression(String contents, int startIndex, int endIndex, int offset) {
     Token token = scanDart(contents, startIndex, endIndex, offset);
-    return parseAngularExpression(token);
+    return parseAngularExpressionInToken(token);
   }
 
-  AngularExpression parseAngularExpression(Token token) {
+  AngularExpression parseAngularExpressionInToken(Token token) {
     List<Token> tokens = splitAtBar(token);
-    Expression mainExpression = parseDartExpression(tokens.get(0));
+    Expression mainExpression = parseDartExpressionInToken(tokens.get(0));
     // parse filters
     List<AngularFilterNode> filters = Lists.newArrayList();
     for (int i = 1; i < tokens.size(); i++) {
@@ -463,7 +497,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       Token barToken = filterToken;
       filterToken = filterToken.getNext();
       // TODO(scheglov) report missing identifier
-      SimpleIdentifier name = (SimpleIdentifier) parseDartExpression(filterToken);
+      SimpleIdentifier name = (SimpleIdentifier) parseDartExpressionInToken(filterToken);
       filterToken = name.getEndToken().getNext();
       // parse arguments
       List<AngularFilterArgument> arguments = Lists.newArrayList();
@@ -473,10 +507,10 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         if (colonToken.getType() == TokenType.COLON) {
           filterToken = filterToken.getNext();
         } else {
-          reportError(colonToken, AngularCode.MISSING_FILTER_COLON);
+          reportErrorForToken(AngularCode.MISSING_FILTER_COLON, colonToken);
         }
         // parse argument
-        Expression argument = parseDartExpression(filterToken);
+        Expression argument = parseDartExpressionInToken(filterToken);
         arguments.add(new AngularFilterArgument(colonToken, argument));
         // next token
         filterToken = argument.getEndToken().getNext();
@@ -490,16 +524,12 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   /**
    * Parses given {@link String} as an {@link Expression} at the given offset.
    */
-  Expression parseDartExpression(String contents, int offset) {
-    return parseDartExpression(contents, 0, contents.length(), offset);
-  }
-
   Expression parseDartExpression(String contents, int startIndex, int endIndex, int offset) {
     Token token = scanDart(contents, startIndex, endIndex, offset);
-    return parseDartExpression(token);
+    return parseDartExpressionInToken(token);
   }
 
-  Expression parseDartExpression(Token token) {
+  Expression parseDartExpressionInToken(Token token) {
     Parser parser = new Parser(source, errorListener);
     return parser.parseExpression(token);
   }
@@ -513,24 +543,24 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Reports given {@link ErrorCode} at the given {@link ASTNode}.
+   * Reports given {@link ErrorCode} at the given {@link AstNode}.
    */
-  void reportError(ASTNode node, ErrorCode errorCode, Object... arguments) {
-    reportError(node.getOffset(), node.getLength(), errorCode, arguments);
+  void reportErrorForNode(ErrorCode errorCode, AstNode node, Object... arguments) {
+    reportErrorForOffset(errorCode, node.getOffset(), node.getLength(), arguments);
   }
 
   /**
    * Reports given {@link ErrorCode} at the given position.
    */
-  void reportError(int offset, int length, ErrorCode errorCode, Object... arguments) {
+  void reportErrorForOffset(ErrorCode errorCode, int offset, int length, Object... arguments) {
     errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
   }
 
   /**
    * Reports given {@link ErrorCode} at the given {@link Token}.
    */
-  void reportError(Token token, ErrorCode errorCode, Object... arguments) {
-    reportError(token.getOffset(), token.getLength(), errorCode, arguments);
+  void reportErrorForToken(ErrorCode errorCode, Token token, Object... arguments) {
+    reportErrorForOffset(errorCode, token.getOffset(), token.getLength(), arguments);
   }
 
   void resolveExpression(AngularExpression angularExpression) {
@@ -541,9 +571,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   }
 
   /**
-   * Resolves given {@link ASTNode} using {@link #resolver}.
+   * Resolves given {@link AstNode} using {@link #resolver}.
    */
-  void resolveNode(ASTNode node) {
+  void resolveNode(AstNode node) {
     node.accept(resolver);
   }
 
@@ -611,9 +641,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     // add Scope variables - no type, no location, just to avoid warnings
     {
       Type type = typeProvider.getDynamicType();
-      topNameScope.define(createLocalVariable(type, "$id"));
-      topNameScope.define(createLocalVariable(type, "$parent"));
-      topNameScope.define(createLocalVariable(type, "$root"));
+      topNameScope.define(createLocalVariableWithName(type, "$id"));
+      topNameScope.define(createLocalVariableWithName(type, "$parent"));
+      topNameScope.define(createLocalVariableWithName(type, "$root"));
     }
   }
 
@@ -624,7 +654,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   private void defineTopVariable_forClassElement(AngularElement element) {
     ClassElement classElement = (ClassElement) element.getEnclosingElement();
     InterfaceType type = classElement.getType();
-    LocalVariableElementImpl variable = createLocalVariable(type, element.getName());
+    LocalVariableElementImpl variable = createLocalVariableWithName(type, element.getName());
     defineTopVariable(variable);
     variable.setToolkitObjects(new AngularElement[] {element});
   }
@@ -634,7 +664,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
    */
   private void defineTopVariable_forScopeProperty(AngularScopePropertyElement element) {
     Type type = element.getType();
-    LocalVariableElementImpl variable = createLocalVariable(type, element.getName());
+    LocalVariableElementImpl variable = createLocalVariableWithName(type, element.getName());
     defineTopVariable(variable);
     variable.setToolkitObjects(new AngularElement[] {element});
   }
@@ -679,7 +709,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     }
   }
 
-  private void parseEmbeddedExpressions(XmlAttributeNode node) {
+  private void parseEmbeddedExpressionsInAttribute(XmlAttributeNode node) {
     List<AngularMoustacheXmlExpression> expressions = Lists.newArrayList();
     parseEmbeddedExpressions(expressions, node.getValueToken());
     if (!expressions.isEmpty()) {
@@ -687,7 +717,7 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     }
   }
 
-  private void parseEmbeddedExpressions(XmlTagNode node) {
+  private void parseEmbeddedExpressionsInTag(XmlTagNode node) {
     List<AngularMoustacheXmlExpression> expressions = Lists.newArrayList();
     com.google.dart.engine.html.scanner.Token token = node.getAttributeEnd();
     com.google.dart.engine.html.scanner.Token endToken = node.getEndToken();
@@ -724,16 +754,11 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     injectedLibraries.add(typeLibrary);
   }
 
-  private void resolveExpression(AngularXmlExpression angularXmlExpression) {
-    AngularExpression angularExpression = angularXmlExpression.getExpression();
-    resolveExpression(angularExpression);
-  }
-
   private void resolveExpressions(XmlExpression[] expressions) {
     for (XmlExpression xmlExpression : expressions) {
       if (xmlExpression instanceof AngularXmlExpression) {
         AngularXmlExpression angularXmlExpression = (AngularXmlExpression) xmlExpression;
-        resolveExpression(angularXmlExpression);
+        resolveXmlExpression(angularXmlExpression);
       }
     }
   }
@@ -797,6 +822,11 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
     for (ProxyConditionalAnalysisError conditionalCode : resolver.getProxyConditionalAnalysisErrors()) {
       resolver.reportError(conditionalCode.getAnalysisError());
     }
+  }
+
+  private void resolveXmlExpression(AngularXmlExpression angularXmlExpression) {
+    AngularExpression angularExpression = angularXmlExpression.getExpression();
+    resolveExpression(angularExpression);
   }
 
   // XXX

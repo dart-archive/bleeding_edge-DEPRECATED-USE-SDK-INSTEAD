@@ -25,7 +25,7 @@ import org.eclipse.swt.graphics.Image;
  * 
  * @coverage dart.editor.ui.correction
  */
-public class RenameRefactoringProposal extends AbstractActionProposal {
+public class RenameRefactoringProposal extends AbstractSelectionActionProposal {
   public RenameRefactoringProposal(RenameDartElementAction action, DartSelection selection) {
     super(action, CorrectionMessages.RenameRefactoringProposal_name, selection);
   }

@@ -6,8 +6,7 @@
  ******************************************************************************/
 package com.xored.glance.ui.controls.tree;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.xored.glance.ui.controls.decor.IPath;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
@@ -18,7 +17,8 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.progress.PendingUpdateAdapter;
 
-import com.xored.glance.ui.controls.decor.IPath;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TreePath implements IPath {
 
@@ -37,14 +37,30 @@ public class TreePath implements IPath {
   }
 
   @Override
+  public void discardSelection() {
+    this.cancel = true;
+  }
+
+  @Override
   public void select(Composite composite) {
     Tree tree = (Tree) composite;
     select(tree.getItems(), 0);
   }
 
-  @Override
-  public void discardSelection() {
-    this.cancel = true;
+  private void expand(TreeItem item) {
+    Event event = new Event();
+    event.item = item;
+    event.type = SWT.Expand;
+    event.widget = item.getParent();
+    event.display = item.getDisplay();
+    event.widget.notifyListeners(SWT.Expand, event);
+    item.setExpanded(true);
+  }
+
+  private TreeNode getNode(TreeItem item) {
+    TreeCell cell = new TreeCell(item, 0);
+    TreeItemContent itemContent = content.getContent(cell);
+    return itemContent != null ? itemContent.getNode() : null;
   }
 
   private void select(final TreeItem[] items, final int index) {
@@ -86,22 +102,6 @@ public class TreePath implements IPath {
         });
       }
     }
-  }
-
-  private TreeNode getNode(TreeItem item) {
-    TreeCell cell = new TreeCell(item, 0);
-    TreeItemContent itemContent = content.getContent(cell);
-    return itemContent != null ? itemContent.getNode() : null;
-  }
-
-  private void expand(TreeItem item) {
-    Event event = new Event();
-    event.item = item;
-    event.type = SWT.Expand;
-    event.widget = item.getParent();
-    event.display = item.getDisplay();
-    event.widget.notifyListeners(SWT.Expand, event);
-    item.setExpanded(true);
   }
 
 }

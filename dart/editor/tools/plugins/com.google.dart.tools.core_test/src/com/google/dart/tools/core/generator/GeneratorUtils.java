@@ -46,9 +46,7 @@ public class GeneratorUtils {
     SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     context.setSourceFactory(sourceFactory);
 
-    Source librarySource = new FileBasedSource(
-        sourceFactory.getContentCache(),
-        file.getLocation().toFile());
+    Source librarySource = new FileBasedSource(file.getLocation().toFile());
     context.computeLibraryElement(librarySource);
 
     AnalysisError[] errors = context.computeErrors(librarySource);

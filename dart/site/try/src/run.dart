@@ -27,8 +27,7 @@ makeOutputFrame(String scriptUrl) {
   return new IFrameElement()
       ..src = Url.createObjectUrl(new Blob([outputHtml], "text/html"))
       ..style.width = '100%'
-      ..style.height = '0px'
-      ..seamless = false;
+      ..style.height = '0px';
 }
 
 final String outputHelper =
@@ -51,10 +50,13 @@ window.onerror = function (message, url, lineNumber) {
 (function () {
 
 function postScrollHeight() {
-  window.parent.postMessage(["scrollHeight", document.documentElement.scrollHeight], "*");
+  window.parent.postMessage(
+      ["scrollHeight", document.documentElement.scrollHeight], "*");
 }
 
-var observer = new (window.MutationObserver||window.WebKitMutationObserver||window.MozMutationObserver)(function(mutations) {
+var observer = new (window.MutationObserver ||
+                    window.WebKitMutationObserver ||
+                    window.MozMutationObserver)(function(mutations) {
   postScrollHeight()
   window.setTimeout(postScrollHeight, 500);
 });

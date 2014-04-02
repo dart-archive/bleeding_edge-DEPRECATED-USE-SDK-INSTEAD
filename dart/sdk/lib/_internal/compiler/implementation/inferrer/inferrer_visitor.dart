@@ -35,6 +35,8 @@ abstract class TypeSystem<T> {
   T get stringType;
   T get typeType;
 
+  T stringLiteralType(DartString value);
+
   T nonNullSubtype(ClassElement type);
   T nonNullSubclass(ClassElement type);
   T nonNullExact(ClassElement type);
@@ -47,7 +49,8 @@ abstract class TypeSystem<T> {
                  Element enclosing,
                  [T elementType, int length]);
 
-  T allocateMap(T type, Node node, Element element, [T keyType, T valueType]);
+  T allocateMap(T type, Node node, Element element, [List<T> keyType,
+                                                     List<T> valueType]);
 
   T allocateClosure(Node node, Element element);
 
@@ -290,6 +293,16 @@ abstract class MinimalInferrerEngine<T> {
    * [type].
    */
   void recordTypeOfNonFinalField(Node node, Element field, T type);
+
+  /**
+   * Records that the captured variable [local] is read.
+   */
+  void recordCapturedLocalRead(Element local);
+
+  /**
+   * Records that the variable [local] is being updated.
+   */
+  void recordLocalUpdate(Element local, T type);
 }
 
 /**
@@ -300,6 +313,7 @@ class LocalsHandler<T> {
   final TypeSystem<T> types;
   final MinimalInferrerEngine<T> inferrer;
   final VariableScope<T> locals;
+  final Map<Element, Element> captured;
   final Map<Element, Element> capturedAndBoxed;
   final FieldInitializationScope<T> fieldScope;
   LocalsHandler<T> tryBlock;
@@ -317,6 +331,7 @@ class LocalsHandler<T> {
                 Node block,
                 [this.fieldScope])
       : locals = new VariableScope<T>(block),
+        captured = new Map<Element, Element>(),
         capturedAndBoxed = new Map<Element, Element>(),
         tryBlock = null;
 
@@ -325,6 +340,7 @@ class LocalsHandler<T> {
                      {bool useOtherTryBlock: true})
       : locals = new VariableScope<T>(block, other.locals),
         fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
+        captured = other.captured,
         capturedAndBoxed = other.capturedAndBoxed,
         types = other.types,
         inferrer = other.inferrer,
@@ -335,6 +351,7 @@ class LocalsHandler<T> {
   LocalsHandler.deepCopyOf(LocalsHandler<T> other)
       : locals = new VariableScope<T>.deepCopyOf(other.locals),
         fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
+        captured = other.captured,
         capturedAndBoxed = other.capturedAndBoxed,
         tryBlock = other.tryBlock,
         types = other.types,
@@ -342,15 +359,27 @@ class LocalsHandler<T> {
         compiler = other.compiler;
 
   T use(Element local) {
-    return capturedAndBoxed.containsKey(local)
-        ? inferrer.typeOfElement(capturedAndBoxed[local])
-        : locals[local];
+    if (capturedAndBoxed.containsKey(local)) {
+      return inferrer.typeOfElement(capturedAndBoxed[local]);
+    } else {
+      if (captured.containsKey(local)) {
+        inferrer.recordCapturedLocalRead(local);
+      }
+      return locals[local];
+    }
   }
 
-  void update(Element local, T type, Node node) {
+  void update(TypedElement local, T type, Node node) {
     assert(type != null);
     if (compiler.trustTypeAnnotations || compiler.enableTypeAssertions) {
-      type = types.narrowType(type, local.computeType(compiler));
+      type = types.narrowType(type, local.type);
+    }
+    updateLocal() {
+      T currentType = locals[local];
+      locals[local] = type;
+      if (currentType != type) {
+        inferrer.recordLocalUpdate(local, type);
+      }
     }
     if (capturedAndBoxed.containsKey(local)) {
       inferrer.recordTypeOfNonFinalField(
@@ -369,10 +398,14 @@ class LocalsHandler<T> {
       }
       // Update the current handler unconditionnally with the new
       // type.
-      locals[local] = type;
+      updateLocal();
     } else {
-      locals[local] = type;
+      updateLocal();
     }
+  }
+
+  void setCaptured(Element local, Element field) {
+    captured[local] = field;
   }
 
   void setCapturedAndBoxed(Element local, Element field) {
@@ -633,7 +666,7 @@ abstract class InferrerVisitor
   }
 
   T visitNode(Node node) {
-    node.visitChildren(this);
+    return node.visitChildren(this);
   }
 
   T visitNewExpression(NewExpression node) {
@@ -650,7 +683,7 @@ abstract class InferrerVisitor
   }
 
   T visitLiteralString(LiteralString node) {
-    return types.stringType;
+    return types.stringLiteralType(node.dartString);
   }
 
   T visitStringInterpolation(StringInterpolation node) {
@@ -745,6 +778,7 @@ abstract class InferrerVisitor
       if (Elements.isLocal(element)) {
         return locals.use(element);
       }
+      return null;
     }
   }
 
@@ -811,14 +845,19 @@ abstract class InferrerVisitor
     } else if ("&&" == op.source) {
       conditionIsSimple = false;
       bool oldAccumulateIsChecks = accumulateIsChecks;
-      accumulateIsChecks = true;
-      if (isChecks == null) isChecks = <Send>[];
+      List<Send> oldIsChecks = isChecks;
+      if (!accumulateIsChecks) {
+        accumulateIsChecks = true;
+        isChecks = <Send>[];
+      }
       visit(node.receiver);
-      accumulateIsChecks = oldAccumulateIsChecks;
-      if (!accumulateIsChecks) isChecks = null;
       LocalsHandler<T> saved = locals;
       locals = new LocalsHandler<T>.from(locals, node);
       updateIsChecks(isChecks, usePositive: true);
+      if (!oldAccumulateIsChecks) {
+        accumulateIsChecks = false;
+        isChecks = oldIsChecks;
+      }
       visit(node.arguments.head);
       saved.mergeDiamondFlow(locals, null);
       locals = saved;
@@ -826,10 +865,10 @@ abstract class InferrerVisitor
     } else if ("||" == op.source) {
       conditionIsSimple = false;
       List<Send> tests = <Send>[];
-      handleCondition(node.receiver, tests);
+      bool isSimple = handleCondition(node.receiver, tests);
       LocalsHandler<T> saved = locals;
       locals = new LocalsHandler<T>.from(locals, node);
-      updateIsChecks(tests, usePositive: false);
+      if (isSimple) updateIsChecks(tests, usePositive: false);
       bool oldAccumulateIsChecks = accumulateIsChecks;
       accumulateIsChecks = false;
       visit(node.arguments.head);
@@ -902,6 +941,7 @@ abstract class InferrerVisitor
         visit(definition);
       }
     }
+    return null;
   }
 
   bool handleCondition(Node node, List<Send> tests) {
@@ -932,6 +972,7 @@ abstract class InferrerVisitor
     visit(node.elsePart);
     saved.mergeDiamondFlow(thenLocals, locals);
     locals = saved;
+    return null;
   }
 
   void setupBreaksAndContinues(TargetElement element) {
@@ -980,6 +1021,7 @@ abstract class InferrerVisitor
         getBreaks(target), keepOwnLocals: keepOwnLocals);
     locals = saved;
     clearBreaksAndContinues(target);
+    return null;
   }
 
   T visitWhile(While node) {
@@ -1026,6 +1068,7 @@ abstract class InferrerVisitor
       locals = saved;
     }
     visit(node.finallyBlock);
+    return null;
   }
 
   T visitThrow(Throw node) {
@@ -1048,6 +1091,7 @@ abstract class InferrerVisitor
       locals.update(elements[trace], types.dynamicType, node);
     }
     visit(node.block);
+    return null;
   }
 
   T visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -1061,6 +1105,7 @@ abstract class InferrerVisitor
         if (locals.aborts) break;
       }
     }
+    return null;
   }
 
   T visitLabeledStatement(LabeledStatement node) {
@@ -1077,6 +1122,7 @@ abstract class InferrerVisitor
       locals.mergeAfterBreaks(getBreaks(targetElement));
       clearBreaksAndContinues(targetElement);
     }
+    return null;
   }
 
   T visitBreakStatement(BreakStatement node) {
@@ -1085,6 +1131,7 @@ abstract class InferrerVisitor
     // Do a deep-copy of the locals, because the code following the
     // break will change them.
     breaksFor[target].add(new LocalsHandler<T>.deepCopyOf(locals));
+    return null;
   }
 
   T visitContinueStatement(ContinueStatement node) {
@@ -1093,10 +1140,11 @@ abstract class InferrerVisitor
     // Do a deep-copy of the locals, because the code following the
     // continue will change them.
     continuesFor[target].add(new LocalsHandler<T>.deepCopyOf(locals));
+    return null;
   }
 
   void internalError(String reason, {Node node}) {
-    compiler.internalError(reason, node: node);
+    compiler.internalError(node, reason);
   }
 
   T visitSwitchStatement(SwitchStatement node) {
@@ -1157,6 +1205,7 @@ abstract class InferrerVisitor
       locals = saved;
     }
     clearBreaksAndContinues(elements[node]);
+    return null;
   }
 
   T visitCascadeReceiver(CascadeReceiver node) {

@@ -77,7 +77,7 @@ public class TryStatement extends Statement {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitTryStatement(this);
   }
 
@@ -182,7 +182,7 @@ public class TryStatement extends Statement {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(body, visitor);
     catchClauses.accept(visitor);
     safelyVisitChild(finallyBlock, visitor);

@@ -1036,7 +1036,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 //    menu.add(actionFactory.getMoveItem());
 //    menu.add(actionFactory.getRenameItem());
 
-    menu.add(actionFactory.getRefreshItem());
+//    menu.add(actionFactory.getRefreshItem());
 
     menu.add(new GroupMarker(IWorkbenchActionConstants.SAVE_EXT));
     //menu.add(new Separator());

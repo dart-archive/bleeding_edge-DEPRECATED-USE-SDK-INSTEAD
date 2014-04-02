@@ -68,7 +68,7 @@ public class PartOfDirective extends Directive {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitPartOfDirective(this);
   }
 
@@ -155,7 +155,7 @@ public class PartOfDirective extends Directive {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(libraryName, visitor);
   }

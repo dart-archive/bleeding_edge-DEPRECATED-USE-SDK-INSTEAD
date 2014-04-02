@@ -51,6 +51,8 @@ public final class CorrectionMessages extends NLS {
   public static String QuickAssistProcessor_surroundWith_tryFinally;
   public static String RenameRefactoringProposal_additionalInfo;
   public static String RenameRefactoringProposal_name;
+  public static String FormatProposal_additionalInfo;
+  public static String FormatProposal_name;
 
   // TODO(scheglov) original strings
 

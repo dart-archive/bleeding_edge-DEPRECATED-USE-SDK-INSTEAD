@@ -57,7 +57,7 @@ public class Heartbeat {
     instrumentation.metric("FB-Stats-numEditors", stats.numEditors);
     instrumentation.metric("FB-Stats-numProjects", stats.numProjects);
     instrumentation.metric("FB-Stats-numThreads", stats.numThreads);
-    instrumentation.metric("FB-Stats-indexStats", stats.indexStats);
+    instrumentation.metric("FB-Stats-indexStats", "index: " + stats.indexStats);
 
   }
 

@@ -38,6 +38,7 @@ import org.eclipse.jface.text.source.ContentAssistantFacade;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.IVerticalRuler;
+import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.SWT;
@@ -60,6 +61,7 @@ import org.eclipse.wst.sse.ui.internal.provisional.style.ReconcilerHighlighter;
 import org.eclipse.wst.sse.ui.internal.reconcile.StructuredRegionProcessor;
 import org.eclipse.wst.sse.ui.internal.util.PlatformStatusLineUtil;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 /**
@@ -223,8 +225,16 @@ public class StructuredTextViewer extends ProjectionViewer implements IDocumentS
       if (fContentAssistant != null) {
         fContentAssistant.install(this);
         if (fContentAssistant instanceof IContentAssistantExtension2
-            && fContentAssistant instanceof IContentAssistantExtension4)
+            && fContentAssistant instanceof IContentAssistantExtension4) {
           fContentAssistantFacade = new ContentAssistantFacade(fContentAssistant);
+          try {
+            Field field = SourceViewer.class.getDeclaredField("fContentAssistantFacade");
+            field.setAccessible(true);
+            field.set(this, fContentAssistantFacade);
+          } catch (Throwable e) {
+            e.printStackTrace();
+          }
+        }
         fContentAssistantInstalled = true;
       } else {
         // 248036

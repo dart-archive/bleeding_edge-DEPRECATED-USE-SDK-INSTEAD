@@ -9,6 +9,7 @@
 
 #include "vm/ast_printer.h"
 #include "vm/compiler.h"
+#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
@@ -22,6 +23,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
+DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -39,12 +41,12 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
-  return false;
+  return TargetCPUFeatures::neon_supported() && FLAG_unbox_mints;
 }
 
 
-bool FlowGraphCompiler::SupportsUnboxedFloat32x4() {
-  return CPUFeatures::neon_supported() && FLAG_enable_simd_inline;
+bool FlowGraphCompiler::SupportsUnboxedSimd128() {
+  return TargetCPUFeatures::neon_supported() && FLAG_enable_simd_inline;
 }
 
 
@@ -504,20 +506,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     // type error. A null value is handled prior to executing this inline code.
     return SubtypeTestCache::null();
   }
-  if (TypeCheckAsClassEquality(type)) {
-    const intptr_t type_cid = Class::Handle(type.type_class()).id();
-    const Register kInstanceReg = R0;
-    __ tst(kInstanceReg, ShifterOperand(kSmiTagMask));
-    if (type_cid == kSmiCid) {
-      __ b(is_instance_lbl, EQ);
-    } else {
-      __ b(is_not_instance_lbl, EQ);
-      __ CompareClassId(kInstanceReg, type_cid, R3);
-      __ b(is_instance_lbl, EQ);
-    }
-    __ b(is_not_instance_lbl);
-    return SubtypeTestCache::null();
-  }
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
     // A class equality check is only applicable with a dst type of a
@@ -718,10 +706,12 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
 
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
-  if (is_optimizing()) return;
+  if (is_optimizing()) {
+    return;
+  }
   Definition* defn = instr->AsDefinition();
   if ((defn != NULL) && defn->is_used()) {
-    __ Push(defn->locs()->out().reg());
+    __ Push(defn->locs()->out(0).reg());
   }
 }
 
@@ -1290,25 +1280,11 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ add(IP, R2, ShifterOperand(R3, LSL, 2));
   __ ldr(R0, FieldAddress(IP, base + kWordSize));
   __ ldr(R1, FieldAddress(R0, Function::code_offset()));
-  if (FLAG_collect_code) {
-    // If we are collecting code, the code object may be null.
-    Label is_compiled;
-    __ CompareImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
-    __ b(&is_compiled, NE);
-    __ BranchLinkPatchable(&StubCode::CompileFunctionRuntimeCallLabel());
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
-    RecordSafepoint(locs);
-    // R0: target function.
-    __ ldr(R1, FieldAddress(R0, Function::code_offset()));
-    __ Bind(&is_compiled);
-  }
-  __ ldr(R0, FieldAddress(R1, Code::instructions_offset()));
+  __ ldr(R1, FieldAddress(R1, Code::instructions_offset()));
   __ LoadObject(R5, ic_data);
   __ LoadObject(R4, arguments_descriptor);
-  __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
-  __ blx(R0);
+  __ AddImmediate(R1, Instructions::HeaderSize() - kHeapObjectTag);
+  __ blx(R1);
   AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
   AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);
@@ -1623,12 +1599,8 @@ void ParallelMoveResolver::EmitMove(int index) {
       } else {
         ASSERT(destination.IsQuadStackSlot());
         const intptr_t dest_offset = destination.ToStackSlotOffset();
-        DRegister dsrc0 = EvenDRegisterOf(source.fpu_reg());
-        DRegister dsrc1 = OddDRegisterOf(source.fpu_reg());
-        // TODO(zra): Write and use {Load,Store}Q{From,To}Offset(), which can
-        // use a single vld1/vst1 instruction.
-        __ StoreDToOffset(dsrc0, FP, dest_offset);
-        __ StoreDToOffset(dsrc1, FP, dest_offset + 2*kWordSize);
+        const DRegister dsrc0 = EvenDRegisterOf(source.fpu_reg());
+        __ StoreMultipleDToOffset(dsrc0, 2, FP, dest_offset);
       }
     }
   } else if (source.IsDoubleStackSlot()) {
@@ -1646,20 +1618,15 @@ void ParallelMoveResolver::EmitMove(int index) {
   } else if (source.IsQuadStackSlot()) {
     if (destination.IsFpuRegister()) {
       const intptr_t dest_offset = source.ToStackSlotOffset();
-      DRegister dst0 = EvenDRegisterOf(destination.fpu_reg());
-      DRegister dst1 = OddDRegisterOf(destination.fpu_reg());
-      __ LoadDFromOffset(dst0, FP, dest_offset);
-      __ LoadDFromOffset(dst1, FP, dest_offset + 2*kWordSize);
+      const DRegister dst0 = EvenDRegisterOf(destination.fpu_reg());
+      __ LoadMultipleDFromOffset(dst0, 2, FP, dest_offset);
     } else {
       ASSERT(destination.IsQuadStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      DRegister dtmp0 = DTMP;
-      DRegister dtmp1 = OddDRegisterOf(QTMP);
-      __ LoadDFromOffset(dtmp0, FP, source_offset);
-      __ LoadDFromOffset(dtmp1, FP, source_offset + 2*kWordSize);
-      __ StoreDToOffset(dtmp0, FP, dest_offset);
-      __ StoreDToOffset(dtmp1, FP, dest_offset + 2*kWordSize);
+      const DRegister dtmp0 = DTMP;
+      __ LoadMultipleDFromOffset(dtmp0, 2, FP, source_offset);
+      __ StoreMultipleDToOffset(dtmp0, 2, FP, dest_offset);
     }
   } else {
     ASSERT(source.IsConstant());

@@ -125,7 +125,7 @@ class FilterFilter {
 
   FilterFilter(this._parser);
 
-  Equals _configureComparator(var comparatorExpression) {
+  void _configureComparator(var comparatorExpression) {
     if (comparatorExpression == null || comparatorExpression == false) {
       _stringComparator = _isSubstringCaseInsensitive;
       _comparator = _defaultComparator;
@@ -199,7 +199,8 @@ class FilterFilter {
     if (expression == null) {
       return items.toList(growable: false); // Missing expression → passthrough.
     } else if (expression is! Map && expression is! Function &&
-               expression is! String && expression is! bool && expression is! num) {
+               expression is! String && expression is! bool &&
+               expression is! num) {
       return const []; // Bad expression → no items for you!
     }
     _configureComparator(comparator);

@@ -30,15 +30,15 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.Context.ConstructorDescription;
 
-import static com.google.dart.java2dart.util.ASTFactory.emptyFunctionBody;
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.redirectingConstructorInvocation;
-import static com.google.dart.java2dart.util.ASTFactory.simpleFormalParameter;
-import static com.google.dart.java2dart.util.ASTFactory.typeName;
+import static com.google.dart.java2dart.util.AstFactory.emptyFunctionBody;
+import static com.google.dart.java2dart.util.AstFactory.identifier;
+import static com.google.dart.java2dart.util.AstFactory.redirectingConstructorInvocation;
+import static com.google.dart.java2dart.util.AstFactory.simpleFormalParameter;
+import static com.google.dart.java2dart.util.AstFactory.typeName;
 
 import org.eclipse.jdt.core.dom.IMethodBinding;
 
@@ -120,7 +120,7 @@ public class ConstructorSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       List<ConstructorDeclaration> allConstructors = Lists.newArrayList();;
 
       @Override

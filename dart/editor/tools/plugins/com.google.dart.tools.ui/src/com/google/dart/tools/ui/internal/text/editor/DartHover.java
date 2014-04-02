@@ -15,15 +15,18 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.visitor.ElementLocator;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.utilities.dartdoc.DartDocUtilities;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
@@ -127,10 +130,11 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       setGridVisible(section.section, visible);
     }
 
-    private HoverInfo hoverInfo;
+    private boolean hasContents;
 
     private Composite container;
     private TextSection elementSection;
+    private TextSection librarySection;
     private AnnotationsSection problemsSection;
     private DocSection docSection;
     private TextSection staticTypeSection;
@@ -161,14 +165,15 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
 
     @Override
     public boolean hasContents() {
-      return hoverInfo != null;
+      return hasContents;
     }
 
     @Override
     public void setInput(Object input) {
-      hoverInfo = null;
+      hasContents = false;
       // Hide all sections.
       setGridVisible(elementSection, false);
+      setGridVisible(librarySection, false);
       setGridVisible(problemsSection, false);
       setGridVisible(docSection, false);
       setGridVisible(staticTypeSection, false);
@@ -178,8 +183,9 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       if (!(input instanceof HoverInfo)) {
         return;
       }
-      hoverInfo = (HoverInfo) input;
-      ASTNode node = hoverInfo.node;
+      hasContents = true;
+      HoverInfo hoverInfo = (HoverInfo) input;
+      AstNode node = hoverInfo.node;
       Element element = hoverInfo.element;
       // Element
       if (element != null) {
@@ -198,6 +204,19 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
           elementSection.setTitle(WordUtils.capitalize(element.getKind().getDisplayName()));
           elementSection.setText(text);
         }
+        // show Library
+        {
+          LibraryElement library = element.getLibrary();
+          CompilationUnitElement unit = element.getAncestor(CompilationUnitElement.class);
+          if (library != null && unit != null) {
+            String unitName = unit.getSource().getFullName();
+            String libraryName = library.getDisplayName();
+            String text = StringUtilities.abbreviateLeft(libraryName, 25) + " | "
+                + StringUtilities.abbreviateLeft(unitName, 35);
+            setGridVisible(librarySection, true);
+            librarySection.setText(text);
+          }
+        }
         // Dart Doc
         try {
           String dartDoc = element.computeDocumentationComment();
@@ -212,17 +231,9 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       // types
       if (node instanceof Expression) {
         Expression expression = (Expression) node;
-        // show node if no Element
-        if (element == null) {
-          String text = node.toSource();
-          text = WordUtils.wrap(text, 100);
-          setGridVisible(elementSection, true);
-          elementSection.setTitle("Node");
-          elementSection.setText(text);
-        }
         // parameter
         {
-          ASTNode n = expression;
+          AstNode n = expression;
           while (n != null) {
             if (n instanceof Expression) {
               ParameterElement parameterElement = ((Expression) n).getBestParameterElement();
@@ -272,6 +283,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       container = toolkit.createComposite(parent);
       GridLayoutFactory.create(container);
       elementSection = new TextSection(container, "Element");
+      librarySection = new TextSection(container, "Library");
       problemsSection = new AnnotationsSection(container, "Problems");
       docSection = new DocSection(container, "Documentation");
       staticTypeSection = new TextSection(container, "Static type");
@@ -328,11 +340,11 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
   }
 
   private static class HoverInfo {
-    ASTNode node;
+    AstNode node;
     Element element;
     List<Annotation> annotations;
 
-    public HoverInfo(ASTNode node, Element element, List<Annotation> annotations) {
+    public HoverInfo(AstNode node, Element element, List<Annotation> annotations) {
       this.node = node;
       this.element = element;
       this.annotations = annotations;
@@ -481,14 +493,14 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       List<Annotation> annotations = getAnnotations(hoverRegion);
       // prepare node
       int offset = hoverRegion.getOffset();
-      ASTNode node = NewSelectionConverter.getNodeAtOffset(editor, offset);
+      AstNode node = NewSelectionConverter.getNodeAtOffset(editor, offset);
       if (node instanceof MethodDeclaration) {
         MethodDeclaration method = (MethodDeclaration) node;
         node = method.getName();
       }
       // show Expression
       if (node instanceof Expression) {
-        Element element = ElementLocator.locate(node, offset);
+        Element element = ElementLocator.locateWithOffset(node, offset);
         return new HoverInfo(node, element, annotations);
       }
       // always show annotations, enen if no node

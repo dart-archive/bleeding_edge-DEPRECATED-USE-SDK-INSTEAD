@@ -26,7 +26,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * @coverage dart.engine.ast
  */
-public class ConstructorName extends ASTNode {
+public class ConstructorName extends AstNode {
   /**
    * The name of the type defining the constructor.
    */
@@ -65,7 +65,7 @@ public class ConstructorName extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitConstructorName(this);
   }
 
@@ -160,7 +160,7 @@ public class ConstructorName extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(type, visitor);
     safelyVisitChild(name, visitor);
   }

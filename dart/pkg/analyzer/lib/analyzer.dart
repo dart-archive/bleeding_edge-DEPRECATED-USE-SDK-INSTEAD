@@ -25,7 +25,7 @@ export 'src/generated/utilities_dart.dart';
 CompilationUnit parseDartFile(String path) {
   String contents = new File(path).readAsStringSync();
   var errorCollector = new _ErrorCollector();
-  var sourceFactory = new SourceFactory.con2([new FileUriResolver()]);
+  var sourceFactory = new SourceFactory([new FileUriResolver()]);
 
   var absolutePath = pathos.absolute(path);
   var source = sourceFactory.forUri(pathos.toUri(absolutePath).toString());
@@ -52,7 +52,8 @@ CompilationUnit parseDartFile(String path) {
 ///
 /// If [name] is passed, it's used in error messages as the name of the code
 /// being parsed.
-CompilationUnit parseCompilationUnit(String contents, {String name}) {
+CompilationUnit parseCompilationUnit(String contents,
+    {String name, bool suppressErrors: false}) {
   if (name == null) name = '<unknown source>';
   var source = new StringSource(contents, name);
   var errorCollector = new _ErrorCollector();
@@ -63,7 +64,7 @@ CompilationUnit parseCompilationUnit(String contents, {String name}) {
   var unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
 
-  if (errorCollector.hasErrors) throw errorCollector.group;
+  if (errorCollector.hasErrors && !suppressErrors) throw errorCollector.group;
 
   return unit;
 }

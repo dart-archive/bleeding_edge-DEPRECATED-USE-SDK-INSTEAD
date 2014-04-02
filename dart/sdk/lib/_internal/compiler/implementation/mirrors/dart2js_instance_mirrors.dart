@@ -21,15 +21,10 @@ abstract class ObjectMirrorMixin implements ObjectMirror {
 }
 
 abstract class InstanceMirrorMixin implements InstanceMirror {
-
   bool get hasReflectee => false;
 
   get reflectee {
     throw new UnsupportedError('InstanceMirror.reflectee unsupported.');
-  }
-
-  Function operator [](Symbol name) {
-    throw new UnsupportedError('InstanceMirror.operator [] unsupported.');
   }
 
   delegate(Invocation invocation) {
@@ -58,7 +53,9 @@ InstanceMirror _convertConstantToInstanceMirror(
   } else if (constant is ConstructedConstant) {
     return new Dart2JsConstructedConstantMirror(mirrorSystem, constant);
   }
-  mirrorSystem.compiler.internalError("Unexpected constant $constant");
+  mirrorSystem.compiler.internalError(NO_LOCATION_SPANNABLE,
+      "Unexpected constant $constant");
+  return null;
 }
 
 
@@ -67,8 +64,7 @@ InstanceMirror _convertConstantToInstanceMirror(
 ////////////////////////////////////////////////////////////////////////////////
 
 class Dart2JsConstantMirror extends Object
-    with ObjectMirrorMixin, InstanceMirrorMixin
-    implements InstanceMirror {
+    with ObjectMirrorMixin, InstanceMirrorMixin {
   final Dart2JsMirrorSystem mirrorSystem;
   final Constant _constant;
 
@@ -280,6 +276,6 @@ class Dart2JsCommentInstanceMirror extends Object
       return new Dart2JsStringConstantMirror.fromString(mirrorSystem,
                                                         trimmedText);
     }
-    super.getField(fieldName);
+    return super.getField(fieldName);
   }
 }

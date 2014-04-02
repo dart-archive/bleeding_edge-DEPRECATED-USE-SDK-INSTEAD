@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.hint;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BooleanLiteral;
@@ -29,7 +29,7 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
@@ -50,7 +50,7 @@ import java.util.ArrayList;
  * 
  * @coverage dart.engine.resolver
  */
-public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
+public class DeadCodeVerifier extends RecursiveAstVisitor<Void> {
 
   /**
    * The error reporter by which errors will be reported.
@@ -78,13 +78,13 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
         if (lhsResult != null) {
           if (lhsResult.isTrue() && isBarBar) {
             // report error on else block: true || !e!
-            errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
+            errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.getRightOperand());
             // only visit the LHS:
             safelyVisit(lhsCondition);
             return null;
           } else if (lhsResult.isFalse() && isAmpAmp) {
             // report error on if block: false && !e!
-            errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
+            errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.getRightOperand());
             // only visit the LHS:
             safelyVisit(lhsCondition);
             return null;
@@ -131,7 +131,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
         Statement lastStatement = statements.get(size - 1);
         int offset = nextStatement.getOffset();
         int length = lastStatement.getEnd() - offset;
-        errorReporter.reportError(HintCode.DEAD_CODE, offset, length);
+        errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
         return null;
       }
     }
@@ -147,12 +147,12 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
       if (result != null) {
         if (result.isTrue()) {
           // report error on else block: true ? 1 : !2!
-          errorReporter.reportError(HintCode.DEAD_CODE, node.getElseExpression());
+          errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.getElseExpression());
           safelyVisit(node.getThenExpression());
           return null;
         } else {
           // report error on if block: false ? !1! : 2
-          errorReporter.reportError(HintCode.DEAD_CODE, node.getThenExpression());
+          errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.getThenExpression());
           safelyVisit(node.getElseExpression());
           return null;
         }
@@ -189,13 +189,13 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
           // report error on else block: if(true) {} else {!}
           Statement elseStatement = node.getElseStatement();
           if (elseStatement != null) {
-            errorReporter.reportError(HintCode.DEAD_CODE, elseStatement);
+            errorReporter.reportErrorForNode(HintCode.DEAD_CODE, elseStatement);
             safelyVisit(node.getThenStatement());
             return null;
           }
         } else {
           // report error on if block: if (false) {!} else {}
-          errorReporter.reportError(HintCode.DEAD_CODE, node.getThenStatement());
+          errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.getThenStatement());
           safelyVisit(node.getElseStatement());
           return null;
         }
@@ -230,7 +230,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
               CatchClause lastCatchClause = catchClauses.get(numOfCatchClauses - 1);
               int offset = nextCatchClause.getOffset();
               int length = lastCatchClause.getEnd() - offset;
-              errorReporter.reportError(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
+              errorReporter.reportErrorForOffset(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
               return null;
             }
           }
@@ -239,7 +239,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
               CatchClause lastCatchClause = catchClauses.get(numOfCatchClauses - 1);
               int offset = catchClause.getOffset();
               int length = lastCatchClause.getEnd() - offset;
-              errorReporter.reportError(
+              errorReporter.reportErrorForOffset(
                   HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
                   offset,
                   length,
@@ -261,7 +261,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
           CatchClause lastCatchClause = catchClauses.get(numOfCatchClauses - 1);
           int offset = nextCatchClause.getOffset();
           int length = lastCatchClause.getEnd() - offset;
-          errorReporter.reportError(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
+          errorReporter.reportErrorForOffset(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
           return null;
         }
       }
@@ -278,7 +278,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
       if (result != null) {
         if (result.isFalse()) {
           // report error on if block: while (false) {!}
-          errorReporter.reportError(HintCode.DEAD_CODE, node.getBody());
+          errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.getBody());
           return null;
         }
       }
@@ -347,7 +347,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param node the node to be visited
    */
-  private void safelyVisit(ASTNode node) {
+  private void safelyVisit(AstNode node) {
     if (node != null) {
       node.accept(this);
     }

@@ -158,7 +158,7 @@ public class ServiceRefactoring extends org.eclipse.ltk.core.refactoring.Refacto
           continue;
         }
         if (firstSource) {
-          sb.append(project.toString() + "=[");
+          sb.append(project.getResource().getName() + "=[");
           firstSource = false;
         }
         sb.append(source.getFullName());
@@ -176,7 +176,7 @@ public class ServiceRefactoring extends org.eclipse.ltk.core.refactoring.Refacto
           + "excluded from the refactoring:\n\n" + sourcesText;
       DartCore.logInformation(sourcesText);
       ltkStatus.addWarning(
-          unsafeSources.size() + " source(s) have been analyzed",
+          unsafeSources.size() + " source(s) have not been analyzed",
           new StringStatusContext("Sources that have not been analyzed:", msg));
     }
   }

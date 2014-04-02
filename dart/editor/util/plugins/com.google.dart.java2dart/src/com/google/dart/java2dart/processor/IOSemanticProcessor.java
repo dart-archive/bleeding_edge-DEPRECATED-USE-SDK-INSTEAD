@@ -22,14 +22,14 @@ import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.JavaUtils;
 
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
-import static com.google.dart.java2dart.util.ASTFactory.namedExpression;
-import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
+import static com.google.dart.java2dart.util.AstFactory.identifier;
+import static com.google.dart.java2dart.util.AstFactory.methodInvocation;
+import static com.google.dart.java2dart.util.AstFactory.namedExpression;
+import static com.google.dart.java2dart.util.AstFactory.propertyAccess;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
 import org.eclipse.jdt.core.dom.IMethodBinding;
@@ -47,7 +47,7 @@ public class IOSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(final CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
 
       @Override
       public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -90,8 +90,25 @@ public class IOSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         super.visitMethodInvocation(node);
+        Expression target = node.getTarget();
         List<Expression> args = node.getArgumentList().getArguments();
         SimpleIdentifier nameNode = node.getMethodName();
+        // System.out.print[ln](x) -> print(x)
+        if (isMethodInClass(node, "print", "java.io.PrintStream")
+            || isMethodInClass(node, "println", "java.io.PrintStream")) {
+          if (target instanceof PropertyAccess) {
+            PropertyAccess propertyAccess = (PropertyAccess) target;
+            SimpleIdentifier propertyName = propertyAccess.getPropertyName();
+            Expression propertyTarget = propertyAccess.getTarget();
+            if (propertyName.getName().equals("out") && propertyTarget instanceof SimpleIdentifier) {
+              if (((SimpleIdentifier) propertyTarget).getName().equals("System")) {
+                replaceNode(node, methodInvocation("print", args));
+                return null;
+              }
+            }
+          }
+        }
+        // java.net.URI
         if (isMethodInClass2(node, "create(java.lang.String)", "java.net.URI")) {
           replaceNode(node, methodInvocation(identifier("parseUriWithException"), args));
           return null;
@@ -113,7 +130,6 @@ public class IOSemanticProcessor extends SemanticProcessor {
           nameNode.setToken(token("resolveUri"));
           return null;
         }
-        // remove URI.normalize()
         if (isMethodInClass2(node, "normalize()", "java.net.URI")) {
           replaceNode(node, node.getTarget());
           return null;

@@ -4,8 +4,6 @@
 
 library pub_tests;
 
-import 'package:scheduled_test/scheduled_test.dart';
-
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import '../serve/utils.dart';
@@ -40,9 +38,9 @@ main() {
 
     var process = startPubServe();
     process.shouldExit(1);
-    expect(process.remainingStderr(), completion(equals(
+    process.stderr.expect(emitsLines(
         "Transformer cycle detected:\n"
         "  foo is transformed by myapp/transformer\n"
-        "  myapp is transformed by foo/transformer")));
+        "  myapp is transformed by foo/transformer"));
   });
 }

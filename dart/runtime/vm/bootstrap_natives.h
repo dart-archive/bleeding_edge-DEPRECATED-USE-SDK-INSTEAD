@@ -120,7 +120,8 @@ namespace dart {
   V(Math_log, 1)                                                               \
   V(Math_doublePow, 2)                                                         \
   V(Random_nextState, 1)                                                       \
-  V(Random_setupSeed, 2)                                                       \
+  V(Random_setupSeed, 1)                                                       \
+  V(Random_initialSeed, 0)                                                     \
   V(DateNatives_currentTimeMillis, 0)                                          \
   V(DateNatives_timeZoneName, 1)                                               \
   V(DateNatives_timeZoneOffsetInSeconds, 1)                                    \
@@ -163,7 +164,7 @@ namespace dart {
   V(ExternalTypedData_Int32x4Array_new, 1)                                     \
   V(ExternalTypedData_Float64x2Array_new, 1)                                   \
   V(TypedData_length, 1)                                                       \
-  V(TypedData_setRange, 5)                                                     \
+  V(TypedData_setRange, 7)                                                     \
   V(TypedData_GetInt8, 2)                                                      \
   V(TypedData_SetInt8, 3)                                                      \
   V(TypedData_GetUint8, 2)                                                     \
@@ -296,7 +297,8 @@ namespace dart {
   V(InstanceMirror_computeType, 1)                                             \
   V(ClosureMirror_find_in_context, 2)                                          \
   V(ClosureMirror_function, 1)                                                 \
-  V(ClosureMirror_apply, 2)                                                    \
+  V(TypeMirror_subtypeTest, 2)                                                 \
+  V(TypeMirror_moreSpecificTest, 2)                                            \
   V(ClassMirror_library, 1)                                                    \
   V(ClassMirror_supertype, 1)                                                  \
   V(ClassMirror_supertype_instantiated, 1)                                     \
@@ -307,6 +309,7 @@ namespace dart {
   V(ClassMirror_members, 2)                                                    \
   V(ClassMirror_constructors, 2)                                               \
   V(LibraryMirror_members, 2)                                                  \
+  V(LibraryMirror_libraryDependencies, 2)                                      \
   V(ClassMirror_invoke, 5)                                                     \
   V(ClassMirror_invokeGetter, 3)                                               \
   V(ClassMirror_invokeSetter, 4)                                               \
@@ -326,6 +329,7 @@ namespace dart {
   V(MethodMirror_parameters, 2)                                                \
   V(MethodMirror_return_type, 2)                                               \
   V(MethodMirror_source, 1)                                                    \
+  V(MethodMirror_location, 1)                                                  \
   V(ParameterMirror_type, 3)                                                   \
   V(TypedefMirror_referent, 1)                                                 \
   V(TypedefMirror_declaration, 1)                                              \
@@ -337,11 +341,14 @@ namespace dart {
   V(GrowableList_getCapacity, 1)                                               \
   V(GrowableList_setLength, 2)                                                 \
   V(GrowableList_setData, 2)                                                   \
+  V(Internal_makeListFixedLength, 1)                                           \
   V(WeakProperty_new, 2)                                                       \
   V(WeakProperty_getKey, 1)                                                    \
   V(WeakProperty_getValue, 1)                                                  \
   V(WeakProperty_setValue, 2)                                                  \
   V(Uri_isWindowsPlatform, 0)                                                  \
+  V(LibraryPrefix_load, 1)                                                     \
+
 
 class BootstrapNatives : public AllStatic {
  public:

@@ -68,6 +68,16 @@ intptr_t MessageParser::GetIntParam(const char* name) const {
 }
 
 
+int64_t MessageParser::GetInt64Param(const char* name) const {
+  const char* params = Params();
+  ASSERT(params != NULL);
+  dart::JSONReader r(params);
+  r.Seek(name);
+  ASSERT(r.Type() == dart::JSONReader::kInteger);
+  return strtoll(r.ValueChars(), NULL, 10);
+}
+
+
 intptr_t MessageParser::GetOptIntParam(const char* name,
                                        intptr_t default_val) const {
   const char* params = Params();
@@ -91,12 +101,11 @@ static const char* GetStringChars(Dart_Handle str) {
 }
 
 
-static int GetIntValue(Dart_Handle int_handle) {
+static int64_t GetIntValue(Dart_Handle int_handle) {
   int64_t int64_val = -1;
   ASSERT(Dart_IsInteger(int_handle));
   Dart_Handle res = Dart_IntegerToInt64(int_handle, &int64_val);
   ASSERT_NOT_ERROR(res);
-  // TODO(hausner): Range check.
   return int64_val;
 }
 
@@ -367,10 +376,10 @@ static const char* FormatLibraryProps(dart::TextBuffer* buf,
   res = Dart_ListLength(import_list, &list_length);
   RETURN_IF_ERROR(res);
   buf->Printf(",\"imports\":[");
-  for (int i = 0; i + 1 < list_length; i += 2) {
+  for (intptr_t i = 0; i + 1 < list_length; i += 2) {
     Dart_Handle lib_id = Dart_ListGetAt(import_list, i + 1);
     ASSERT_NOT_ERROR(lib_id);
-    buf->Printf("%s{\"libraryId\":%d,",
+    buf->Printf("%s{\"libraryId\":%" Pd64 ",",
                 (i > 0) ? ",": "",
                 GetIntValue(lib_id));
 
@@ -580,14 +589,15 @@ bool DbgMessage::HandleGetLibrariesCmd(DbgMessage* in_msg) {
   intptr_t num_libs;
   Dart_Handle res = Dart_ListLength(lib_ids, &num_libs);
   ASSERT_NOT_ERROR(res);
-  for (int i = 0; i < num_libs; i++) {
+  for (intptr_t i = 0; i < num_libs; i++) {
     Dart_Handle lib_id_handle = Dart_ListGetAt(lib_ids, i);
     ASSERT(Dart_IsInteger(lib_id_handle));
-    int lib_id = GetIntValue(lib_id_handle);
-    Dart_Handle lib_url = Dart_GetLibraryURL(lib_id);
+    int64_t lib_id = GetIntValue(lib_id_handle);
+    ASSERT((lib_id >= kIntptrMin) && (lib_id <= kIntptrMax));
+    Dart_Handle lib_url = Dart_GetLibraryURL(static_cast<intptr_t>(lib_id));
     ASSERT_NOT_ERROR(lib_url);
     ASSERT(Dart_IsString(lib_url));
-    msg.Printf("%s{\"id\":%d,\"url\":", (i == 0) ? "" : ", ", lib_id);
+    msg.Printf("%s{\"id\":%" Pd64 ",\"url\":", (i == 0) ? "" : ", ", lib_id);
     FormatEncodedString(&msg, lib_url);
     msg.Printf("}");
   }
@@ -898,11 +908,11 @@ bool DbgMessage::HandleGetLineNumbersCmd(DbgMessage* in_msg) {
       num_elems = 0;
     } else {
       ASSERT(Dart_IsInteger(elem));
-      int value = GetIntValue(elem);
+      int64_t value = GetIntValue(elem);
       if (num_elems == 0) {
-        msg.Printf("%d", value);
+        msg.Printf("%" Pd64 "", value);
       } else {
-        msg.Printf(",%d", value);
+        msg.Printf(",%" Pd64 "", value);
       }
       num_elems++;
     }

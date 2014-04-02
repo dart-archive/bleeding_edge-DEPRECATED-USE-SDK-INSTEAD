@@ -13,26 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.buffer.Buffer;
-import com.google.dart.tools.core.model.SourceFileElement;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 
 /**
  * A WorkingCopyOwner that knows about editor Documents.
  */
 public class DocumentWorkingCopyOwner extends WorkingCopyOwner {
-
-  @Override
-  public Buffer createBuffer(SourceFileElement<?> workingCopy) {
-
-    IResource resource = workingCopy.getResource();
-    if (resource instanceof IFile) {
-      return new DocumentAdapter(workingCopy, (IFile) resource);
-    }
-    return DocumentAdapter.NULL;
-  }
-
 }

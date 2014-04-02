@@ -48,7 +48,7 @@ public class RenameImportRefactoringImplTest extends RenameRefactoringImplTest {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'dart:async';",
-        "import 'dart:math';",
+        "import 'dart:math' show Random, min hide max;",
         "main() {",
         "  Future f;",
         "  Random r;",
@@ -63,7 +63,7 @@ public class RenameImportRefactoringImplTest extends RenameRefactoringImplTest {
     assertSuccessfulRename(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'dart:async';",
-        "import 'dart:math' as newName;",
+        "import 'dart:math' as newName show Random, min hide max;",
         "main() {",
         "  Future f;",
         "  newName.Random r;",
@@ -142,8 +142,7 @@ public class RenameImportRefactoringImplTest extends RenameRefactoringImplTest {
 
   public void test_shouldReportUnsafeRefactoringSource() throws Exception {
     indexTestUnit("import 'dart:async' as test;");
-    Source externalSource = new FileBasedSource(sourceFactory.getContentCache(), new File(
-        "other.dart"));
+    Source externalSource = new FileBasedSource(new File("other.dart"));
     // check public
     createRenameImportRefactoring("import 'dart:async");
     assertTrue(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, testSource));

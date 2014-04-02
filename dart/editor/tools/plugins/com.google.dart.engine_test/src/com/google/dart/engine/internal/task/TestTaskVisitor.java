@@ -36,6 +36,12 @@ public class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
   }
 
   @Override
+  public E visitGetContentTask(GetContentTask task) throws AnalysisException {
+    Assert.fail("Unexpectedly invoked visitGetContentsTask");
+    return null;
+  }
+
+  @Override
   public E visitIncrementalAnalysisTask(IncrementalAnalysisTask incrementalAnalysisTask)
       throws AnalysisException {
     Assert.fail("Unexpectedly invoked visitIncrementalAnalysisTask");
@@ -69,9 +75,9 @@ public class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
   }
 
   @Override
-  public E visitResolveDartDependenciesTask(ResolveDartDependenciesTask task)
+  public E visitResolveDartLibraryCycleTask(ResolveDartLibraryCycleTask task)
       throws AnalysisException {
-    Assert.fail("Unexpectedly invoked visitResolveDartDependenciesTask");
+    Assert.fail("Unexpectedly invoked visitResolveDartLibraryCycleTask");
     return null;
   }
 
@@ -90,6 +96,12 @@ public class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
   @Override
   public E visitResolveHtmlTask(ResolveHtmlTask task) throws AnalysisException {
     Assert.fail("Unexpectedly invoked visitResolveHtmlTask");
+    return null;
+  }
+
+  @Override
+  public E visitScanDartTask(ScanDartTask task) throws AnalysisException {
+    Assert.fail("Unexpectedly invoked visitScanDartTask");
     return null;
   }
 }

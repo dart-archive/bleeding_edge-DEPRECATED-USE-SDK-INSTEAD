@@ -19,7 +19,6 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
-import com.google.dart.engine.internal.context.ResolvableHtmlUnit;
 import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
 import com.google.dart.engine.source.Source;
@@ -38,7 +37,17 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
   /**
    * The time at which the contents of the source were last modified.
    */
-  private long modificationTime = -1L;
+  private long modificationTime;
+
+  /**
+   * The HTML unit to be resolved.
+   */
+  private HtmlUnit unit;
+
+  /**
+   * The listener to record errors.
+   */
+  private final RecordingErrorListener errorListener = new RecordingErrorListener();
 
   /**
    * The {@link HtmlUnit} that was resolved by this task.
@@ -56,19 +65,19 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
   private AngularApplication application;
 
   /**
-   * The resolution errors that were discovered while resolving the source.
-   */
-  private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
-
-  /**
    * Initialize a newly created task to perform analysis within the given context.
    * 
    * @param context the context in which the task is to be performed
    * @param source the source to be resolved
+   * @param modificationTime the time at which the contents of the source were last modified
+   * @param unit the HTML unit to be resolved
    */
-  public ResolveAngularEntryHtmlTask(InternalAnalysisContext context, Source source) {
+  public ResolveAngularEntryHtmlTask(InternalAnalysisContext context, Source source,
+      long modificationTime, HtmlUnit unit) {
     super(context);
     this.source = source;
+    this.modificationTime = modificationTime;
+    this.unit = unit;
   }
 
   @Override
@@ -89,6 +98,20 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
   }
 
   /**
+   * The resolution errors that were discovered while resolving the source.
+   */
+  public AnalysisError[] getEntryErrors() {
+    return errorListener.getErrorsForSource(source);
+  }
+
+  /**
+   * Returns {@link AnalysisError}s recorded for the given {@link Source}.
+   */
+  public AnalysisError[] getErrors(Source source) {
+    return errorListener.getErrorsForSource(source);
+  }
+
+  /**
    * Return the time at which the contents of the source that was parsed were last modified, or a
    * negative value if the task has not yet been performed or if an exception occurred.
    * 
@@ -96,10 +119,6 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
    */
   public long getModificationTime() {
     return modificationTime;
-  }
-
-  public AnalysisError[] getResolutionErrors() {
-    return resolutionErrors;
   }
 
   /**
@@ -130,26 +149,23 @@ public class ResolveAngularEntryHtmlTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    ResolvableHtmlUnit resolvableHtmlUnit = getContext().computeResolvableAngularComponentHtmlUnit(
-        source);
-    HtmlUnit unit = resolvableHtmlUnit.getCompilationUnit();
-    if (unit == null) {
-      throw new AnalysisException(
-          "Internal error: computeResolvableHtmlUnit returned a value without a parsed HTML unit");
-    }
-    modificationTime = resolvableHtmlUnit.getModificationTime();
-    // prepare for resolution
-    RecordingErrorListener errorListener = new RecordingErrorListener();
+    //
+    // Prepare for resolution.
+    //
     LineInfo lineInfo = getContext().getLineInfo(source);
-    // try to resolve as an Angular entry point
+    //
+    // Try to resolve as an Angular entry point.
+    //
     application = new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo, unit).calculateAngularApplication();
-    // do resolve
+    //
+    // Perform resolution.
+    //
     if (application != null) {
       new AngularHtmlUnitResolver(getContext(), errorListener, source, lineInfo, unit).resolveEntryPoint(application);
-      // remember errors
-      resolutionErrors = errorListener.getErrors(source);
     }
-    // remember resolved unit
+    //
+    // Remember the resolved unit.
+    //
     resolvedUnit = unit;
   }
 }

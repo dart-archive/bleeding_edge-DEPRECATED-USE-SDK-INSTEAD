@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(zra): Remove when tests are ready to enable.
+#include "platform/globals.h"
+#if !defined(TARGET_ARCH_ARM64)
+
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
@@ -16,6 +20,8 @@
 #include "vm/unit_test.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, write_protect_code);
 
 static RawLibrary* CreateDummyLibrary(const String& library_name) {
   return Library::New(library_name);
@@ -180,6 +186,40 @@ TEST_CASE(TokenStream) {
   EXPECT_EQ(Token::kPERIOD, iterator.CurrentTokenKind());
   iterator.Advance();  // Advance to end of stream.
   EXPECT_EQ(Token::kEOS, iterator.CurrentTokenKind());
+}
+
+
+TEST_CASE(GenerateExactSource) {
+  // Verify the exact formatting of generated sources.
+  const char* kScriptChars =
+  "\n"
+  "class A {\n"
+  "  static bar() { return 42; }\n"
+  "  static fly() { return 5; }\n"
+  "  void catcher(x) {\n"
+  "    try {\n"
+  "      if (x) {\n"
+  "        fly();\n"
+  "      } else {\n"
+  "        !fly();\n"
+  "      }\n"
+  "    } on Blah catch (a) {\n"
+  "      _print(17);\n"
+  "    } catch (e, s) {\n"
+  "      bar()\n"
+  "    }\n"
+  "  }\n"
+  "}\n";
+
+  String& url = String::Handle(String::New("dart-test:GenerateExactSource"));
+  String& source = String::Handle(String::New(kScriptChars));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kScriptTag));
+  script.Tokenize(String::Handle(String::New("")));
+  const TokenStream& tokens = TokenStream::Handle(script.tokens());
+  const String& gen_source = String::Handle(tokens.GenerateSource());
+  EXPECT_STREQ(source.ToCString(), gen_source.ToCString());
 }
 
 
@@ -1812,6 +1852,10 @@ TEST_CASE(Array) {
 
   EXPECT_EQ(0, Object::empty_array().Length());
 
+  EXPECT_EQ(1, Object::zero_array().Length());
+  element = Object::zero_array().At(0);
+  EXPECT(Smi::Cast(element).IsZero());
+
   array.MakeImmutable();
   Object& obj = Object::Handle(array.raw());
   EXPECT(obj.IsArray());
@@ -2461,6 +2505,36 @@ TEST_CASE(Code) {
 #endif
   EXPECT_EQ(2, retval);
   EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
+}
+
+
+// Test for immutability of generated instructions. The test crashes with a
+// segmentation fault when writing into it.
+TEST_CASE(CodeImmutability) {
+  extern void GenerateIncrement(Assembler* assembler);
+  Assembler _assembler_;
+  GenerateIncrement(&_assembler_);
+  Code& code = Code::Handle(Code::FinalizeCode(
+      *CreateFunction("Test_Code"), &_assembler_));
+  Instructions& instructions = Instructions::Handle(code.instructions());
+  uword entry_point = instructions.EntryPoint();
+  // Try writing into the generated code, expected to crash.
+  *(reinterpret_cast<char*>(entry_point) + 1) = 1;
+  intptr_t retval = 0;
+#if defined(USING_SIMULATOR)
+  retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
+      static_cast<int32_t>(entry_point), 0, 0, 0, 0));
+#else
+  typedef intptr_t (*IncrementCode)();
+  retval = reinterpret_cast<IncrementCode>(entry_point)();
+#endif
+  EXPECT_EQ(3, retval);
+  EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
+  if (!FLAG_write_protect_code) {
+    // Since this test is expected to crash, crash if write protection of code
+    // is switched off.
+    OS::DebugBreak();
+  }
 }
 
 
@@ -3853,55 +3927,40 @@ TEST_CASE(ToUserCString) {
       "var toolong2 = "
       "'0123456789012345678901234567890123\\t567890123456789howdy';\n"
       "var toolong3 = "
-      "'012345678901234567890123456789\\u0001567890123456789howdy';\n"
-      "\n"
-      "class _Cobra { }\n"
-      "var instance = new _Cobra();\n"
-      "\n"
-      "var empty_list = [];\n"
-      "var simple_list = [1,2,'otter'];\n"
-      "var nested_list = [[[[1]]],[2,'otter']];\n"
-      "var deeply_nested_list = [[[[[1]]]],[2,'otter']];\n"
-      "var toolong_list = "
-      "['0123456789','0123456789','0123456789','0123456789'];\n"
-      "var toolong2_list = [toolong];\n"
-      "var justenough_list = [0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0,1,2,99];"
-      "var toolong3_list = [0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0,1,2,3,4];"
-      "\n"
-      "var simple_map = {1: 2, 2: 'otter'};\n";
+      "'012345678901234567890123456789\\u0001567890123456789howdy';\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
-  Instance& obj = Instance::Handle();
+  String& obj = String::Handle();
   Dart_Handle result;
 
   // Simple string.
   result = Dart_GetField(lib, NewString("simple"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"simple\"", obj.ToUserCString());
+  EXPECT_STREQ("\"simple\"", obj.ToUserCString(40));
 
   // Escaped chars.
   result = Dart_GetField(lib, NewString("escapes"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
   EXPECT_STREQ("\"stuff\\n\\r\\f\\b\\t\\v'\\\"\\$stuff\"",
-               obj.ToUserCString());
+               obj.ToUserCString(40));
 
   // U-escaped chars.
   result = Dart_GetField(lib, NewString("uescapes"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"stuff\\u0001\\u0002stuff\"", obj.ToUserCString());
+  EXPECT_STREQ("\"stuff\\u0001\\u0002stuff\"", obj.ToUserCString(40));
 
   // Truncation.
   result = Dart_GetField(lib, NewString("toolong"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
   EXPECT_STREQ("\"01234567890123456789012345678901234\"...",
-               obj.ToUserCString());
+               obj.ToUserCString(40));
 
-  // Truncation.  Custom limit.
+  // Truncation, shorter.
   result = Dart_GetField(lib, NewString("toolong"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
@@ -3912,80 +3971,47 @@ TEST_CASE(ToUserCString) {
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
   EXPECT_STREQ("\"0123456789012345678901234567890123\"...",
-               obj.ToUserCString());
+               obj.ToUserCString(40));
 
   // Truncation, limit is in u-escape
   result = Dart_GetField(lib, NewString("toolong3"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
   EXPECT_STREQ("\"012345678901234567890123456789\"...",
-               obj.ToUserCString());
+               obj.ToUserCString(40));
+}
 
-  // Instance of a class.
-  result = Dart_GetField(lib, NewString("instance"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("Instance of '_Cobra'", obj.ToUserCString());
 
-  // Empty list.
-  result = Dart_GetField(lib, NewString("empty_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[]", obj.ToUserCString());
+class JSONTypeVerifier : public ObjectVisitor {
+ public:
+  JSONTypeVerifier() : ObjectVisitor(Isolate::Current()) {}
+  virtual ~JSONTypeVerifier() { }
+  virtual void VisitObject(RawObject* obj) {
+    // Free-list elements cannot even be wrapped in handles.
+    if (obj->IsFreeListElement()) {
+      return;
+    }
+    Object& handle = Object::Handle(obj);
+    // Skip some common simple objects to run in reasonable time.
+    if (handle.IsString() ||
+        handle.IsArray() ||
+        handle.IsLiteralToken()) {
+      return;
+    }
+    JSONStream js;
+    handle.PrintToJSONStream(&js, false);
+    EXPECT_SUBSTRING("\"type\":", js.ToCString());
+  }
+};
 
-  // Simple list.
-  result = Dart_GetField(lib, NewString("simple_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[1,2,\"otter\"]", obj.ToUserCString());
 
-  // Nested list.
-  result = Dart_GetField(lib, NewString("nested_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[[[[1]]],[2,\"otter\"]]", obj.ToUserCString());
-
-  // Deeply ested list.
-  result = Dart_GetField(lib, NewString("deeply_nested_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[[[[[...]]]],[2,\"otter\"]]", obj.ToUserCString());
-
-  // Truncation.
-  result = Dart_GetField(lib, NewString("toolong_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[\"0123456789\",\"012345\"...,...](length:4)",
-               obj.ToUserCString());
-
-  // More truncation.
-  result = Dart_GetField(lib, NewString("toolong2_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[\"012345678901234567890123456789012\"...]",
-               obj.ToUserCString());
-
-  // Just fits.
-  result = Dart_GetField(lib, NewString("justenough_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0,1,2,99]",
-               obj.ToUserCString());
-
-  // Just too big, small elements.
-  result = Dart_GetField(lib, NewString("toolong3_list"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("[0,1,2,3,4,0,1,2,3,4,0,1,...](length:20)",
-               obj.ToUserCString());
-
-  // Simple map.
-  //
-  // TODO(turnidge): Consider showing something like: {1: 2, 2: 'otter'}
-  result = Dart_GetField(lib, NewString("simple_map"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("Instance of '_LinkedHashMap'", obj.ToUserCString());
+TEST_CASE(PrintToJSONStream) {
+  Heap* heap = Isolate::Current()->heap();
+  heap->CollectAllGarbage();
+  JSONTypeVerifier verifier;
+  heap->IterateObjects(&verifier);
 }
 
 }  // namespace dart
+
+#endif  // !defined(TARGET_ARCH_ARM64)

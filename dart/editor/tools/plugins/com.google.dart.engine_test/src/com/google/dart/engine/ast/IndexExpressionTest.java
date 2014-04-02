@@ -16,12 +16,12 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.scanner.TokenType;
 
-import static com.google.dart.engine.ast.ASTFactory.assignmentExpression;
-import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.indexExpression;
-import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
-import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
+import static com.google.dart.engine.ast.AstFactory.assignmentExpression;
+import static com.google.dart.engine.ast.AstFactory.binaryExpression;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.indexExpression;
+import static com.google.dart.engine.ast.AstFactory.postfixExpression;
+import static com.google.dart.engine.ast.AstFactory.prefixExpression;
 
 public class IndexExpressionTest extends EngineTestCase {
   public void test_inGetterContext_assignment_compound_left() throws Exception {

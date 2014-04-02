@@ -7,6 +7,25 @@ patch class String {
     return _StringBase.createFromCharCodes(charCodes);
   }
 
+  /* patch */ factory String.fromCharCode(int charCode) {
+    if (charCode >= 0) {
+      if (charCode <= 0xff) {
+        return _OneByteString._allocate(1).._setAt(0, charCode);
+      }
+      if (charCode <= 0xffff) {
+        return _StringBase._createFromCodePoints(new _List(1)..[0] = charCode);
+      }
+      if (charCode <= 0x10ffff) {
+        var low = 0xDC00 | (charCode & 0x3ff);
+        int bits = charCode - 0x10000;
+        var high = 0xD800 | (bits >> 10);
+        return  _StringBase._createFromCodePoints(new _List(2)..[0] = high
+                                                              ..[1] = low);
+      }
+    }
+    throw new RangeError.range(charCode, 0, 0x10ffff);
+  }
+
   /* patch */ const factory String.fromEnvironment(String name,
                                                    {String defaultValue})
       native "String_fromEnvironment";
@@ -294,12 +313,81 @@ class _StringBase {
       }
     }
     if ((first == 0) && (last == (len - 1))) {
-      // Returns this string if it does not have leading or trailing
+      // Returns this string since it does not have leading or trailing
       // whitespaces.
       return this;
-    } else {
-      return _substringUnchecked(first, last + 1);
     }
+    return _substringUnchecked(first, last + 1);
+  }
+
+  String trimLeft() {
+    final len = this.length;
+    int first = 0;
+    for (; first < len; first++) {
+      if (!_isWhitespace(this.codeUnitAt(first))) {
+        break;
+      }
+    }
+    if (len == first) {
+      // String contains only whitespaces.
+      return "";
+    }
+    if (first == 0) {
+      // Returns this string since it does not have leading or trailing
+      // whitespaces.
+      return this;
+    }
+    return _substringUnchecked(first, len);
+  }
+
+  String trimRight() {
+    final len = this.length;
+    int last = len - 1;
+    for (; last >= 0; last--) {
+      if (!_isWhitespace(this.codeUnitAt(last))) {
+        break;
+      }
+    }
+    if (last == -1) {
+      // String contains only whitespaces.
+      return "";
+    }
+    if (last == (len - 1)) {
+      // Returns this string since it does not have trailing whitespaces.
+      return this;
+    }
+    return _substringUnchecked(0, last + 1);
+  }
+
+  String operator*(int times) {
+    if (times <= 0) return "";
+    if (times == 1) return this;
+    StringBuffer buffer = new StringBuffer(this);
+    for (int i = 1; i < times; i++) {
+      buffer.write(this);
+    }
+    return buffer.toString();
+  }
+
+  String padLeft(int width, [String padding = ' ']) {
+    int delta = width - this.length;
+    if (delta <= 0) return this;
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < delta; i++) {
+      buffer.write(padding);
+    }
+    buffer.write(this);
+    return buffer.toString();
+  }
+
+  String padRight(int width, [String padding = ' ']) {
+    int delta = width - this.length;
+    if (delta <= 0) return this;
+    StringBuffer buffer = new StringBuffer(this);
+    for (int i = 0; i < delta; i++) {
+      buffer.write(padding);
+    }
+    return buffer.toString();
   }
 
   bool contains(Pattern pattern, [int startIndex = 0]) {
@@ -630,6 +718,138 @@ class _OneByteString extends _StringBase implements String {
       }
     }
     return super.contains(pattern, start);
+  }
+
+  String operator*(int times) {
+    if (times <= 0) return "";
+    if (times == 1) return this;
+    int length = this.length;
+    if (this.isEmpty) return this;  // Don't clone empty string.
+    _OneByteString result = _OneByteString._allocate(length * times);
+    int index = 0;
+    for (int i = 0; i < times; i ++) {
+      for (int j = 0; j < length; j++) {
+        result._setAt(index++, this.codeUnitAt(j));
+      }
+    }
+    return result;
+  }
+
+  String padLeft(int width, [String padding = ' ']) {
+    int padCid = padding._cid;
+    if (padCid != _OneByteString._classId &&
+        padCid != _ExternalOneByteString._classId) {
+      return super.padLeft(width, padding);
+    }
+    int length = this.length;
+    int delta = width - length;
+    if (delta <= 0) return this;
+    int padLength = padding.length;
+    int resultLength = padLength * delta + length;
+    _OneByteString result = _OneByteString._allocate(resultLength);
+    int index = 0;
+    if (padLength == 1) {
+      int padChar = padding.codeUnitAt(0);
+      for (int i = 0; i < delta; i++) {
+        result._setAt(index++, padChar);
+      }
+    } else {
+      for (int i = 0; i < delta; i++) {
+        for (int j = 0; j < padLength; j++) {
+          result._setAt(index++, padding.codeUnitAt(j));
+        }
+      }
+    }
+    for (int i = 0; i < length; i++) {
+      result._setAt(index++, this.codeUnitAt(i));
+    }
+    return result;
+  }
+
+  String padRight(int width, [String padding = ' ']) {
+    int padCid = padding._cid;
+    if (padCid != _OneByteString._classId &&
+        padCid != _ExternalOneByteString._classId) {
+      return super.padRight(width, padding);
+    }
+    int length = this.length;
+    int delta = width - length;
+    if (delta <= 0) return this;
+    int padLength = padding.length;
+    int resultLength = length + padLength * delta;
+    _OneByteString result = _OneByteString._allocate(resultLength);
+    int index = 0;
+    for (int i = 0; i < length; i++) {
+      result._setAt(index++, this.codeUnitAt(i));
+    }
+    if (padLength == 1) {
+      int padChar = padding.codeUnitAt(0);
+      for (int i = 0; i < delta; i++) {
+        result._setAt(index++, padChar);
+      }
+    } else {
+      for (int i = 0; i < delta; i++) {
+        for (int j = 0; j < padLength; j++) {
+          result._setAt(index++, padding.codeUnitAt(j));
+        }
+      }
+    }
+    return result;
+  }
+
+  // Lower-case conversion table for Latin-1.
+  // Upper-case ranges: 0x41-0x5a ('A' - 'Z'), 0xc0-0xd6, 0xd8-0xde.
+  // Conversion to lower case performed by adding 0x20.
+  static const _LC_TABLE = const [
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+    0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
+    0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
+    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
+    0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f,
+    0x40, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67,
+    0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f,
+    0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
+    0x78, 0x79, 0x7a, 0x5b, 0x5c, 0x5d, 0x5e, 0x5f,
+    0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67,
+    0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f,
+    0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
+    0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, 0x7e, 0x7f,
+    0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87,
+    0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f,
+    0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97,
+    0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f,
+    0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7,
+    0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf,
+    0xb0, 0xb1, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7,
+    0xb8, 0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf,
+    0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7,
+    0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef,
+    0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xd7,
+    0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xdf,
+    0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7,
+    0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef,
+    0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7,
+    0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff,
+  ];
+
+  String toLowerCase() {
+    for (int i = 0; i < this.length; i++) {
+      final c = this.codeUnitAt(i);
+      if (c == _LC_TABLE[c]) continue;
+      // Upper-case character found.
+      final result = _allocate(this.length);
+      for (int j = 0; j < i; j++) {
+        result._setAt(j, this.codeUnitAt(j));
+      }
+      for (int j = i; j < this.length; j++) {
+        result._setAt(j, _LC_TABLE[this.codeUnitAt(j)]);
+      }
+      return result;
+    }
+    return this;
   }
 
   // Allocates a string of given length, expecting its content to be

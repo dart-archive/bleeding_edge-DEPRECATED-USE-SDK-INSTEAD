@@ -55,8 +55,16 @@ public class FileElement extends OmniElement {
     }
 
     IContainer container = file.getParent();
+    // add a few levels of info to disambiguate results
     if (container != null) {
       result.append(DartElementLabels.CONCAT_STRING);
+      IContainer parent = container.getParent();
+      if (parent != null) {
+        if (parent.getParent() != null) {
+          result.append(parent.getParent().getName() + "/");
+        }
+        result.append(parent.getName() + "/");
+      }
       result.append(container.getName());
     }
     return result.toString();

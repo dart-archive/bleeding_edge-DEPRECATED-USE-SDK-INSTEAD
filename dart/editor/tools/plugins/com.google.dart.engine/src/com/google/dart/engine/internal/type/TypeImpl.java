@@ -30,8 +30,8 @@ public abstract class TypeImpl implements Type {
   // TODO (jwren) Move this class to "com.google.dart.engine.utilities.collection"
   public class TypePair {
     private Type firstType;
-
     private Type secondType;
+    private int cachedHashCode;
 
     TypePair(Type firstType, Type secondType) {
       this.firstType = firstType;
@@ -56,15 +56,20 @@ public abstract class TypeImpl implements Type {
     // Guava's Objects class?
     @Override
     public int hashCode() {
-      int firstHashCode = 0;
-      if (firstType != null) {
-        firstHashCode = firstType.getElement() == null ? 0 : firstType.getElement().hashCode();
+      if (cachedHashCode == 0) {
+        int firstHashCode = 0;
+        if (firstType != null) {
+          Element firstElement = firstType.getElement();
+          firstHashCode = firstElement == null ? 0 : firstElement.hashCode();
+        }
+        int secondHashCode = 0;
+        if (secondType != null) {
+          Element secondElement = secondType.getElement();
+          secondHashCode = secondElement == null ? 0 : secondElement.hashCode();
+        }
+        cachedHashCode = firstHashCode + secondHashCode;
       }
-      int secondHashCode = 0;
-      if (secondType != null) {
-        secondHashCode = secondType.getElement() == null ? 0 : secondType.getElement().hashCode();
-      }
-      return firstHashCode + secondHashCode;
+      return cachedHashCode;
     }
   }
 

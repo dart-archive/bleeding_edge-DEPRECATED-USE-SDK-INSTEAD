@@ -16,16 +16,17 @@ package com.google.dart.tools.ui.text.dart;
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
+import com.google.dart.tools.mock.ui.SignatureUtil;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.Flags;
 import com.google.dart.tools.ui.Messages;
-import com.google.dart.tools.ui.SignatureUtil;
 import com.google.dart.tools.ui.internal.util.TypeLabelUtil;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.StyledString;
@@ -86,6 +87,7 @@ public class CompletionProposalLabelProvider {
       case CompletionProposal.METHOD_NAME_REFERENCE:
       case CompletionProposal.METHOD_REF:
       case CompletionProposal.ARGUMENT_LIST:
+      case CompletionProposal.OPTIONAL_ARGUMENT:
       case CompletionProposal.NAMED_ARGUMENT:
       case CompletionProposal.POTENTIAL_METHOD_DECLARATION:
         descriptor = DartElementImageProvider.getMethodImageDescriptor(false, proposal.isPrivate());
@@ -461,7 +463,8 @@ public class CompletionProposalLabelProvider {
   }
 
   String createSimpleLabel(CompletionProposal proposal) {
-    return String.valueOf(proposal.getCompletion());
+    String label = String.valueOf(proposal.getCompletion());
+    return StringUtils.remove(label, CompletionProposal.CURSOR_MARKER);
   }
 
   String createSimpleLabelWithType(CompletionProposal proposal) {

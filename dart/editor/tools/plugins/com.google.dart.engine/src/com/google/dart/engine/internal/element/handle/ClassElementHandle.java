@@ -151,8 +151,18 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public boolean hasStaticMember() {
+    return getActualElement().hasStaticMember();
+  }
+
+  @Override
   public boolean isAbstract() {
     return getActualElement().isAbstract();
+  }
+
+  @Override
+  public boolean isOrInheritsProxy() {
+    return getActualElement().isOrInheritsProxy();
   }
 
   @Override

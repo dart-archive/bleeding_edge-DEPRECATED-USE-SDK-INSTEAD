@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.internal.constant;
 
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AdjacentStrings;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.ConditionalExpression;
@@ -41,12 +41,13 @@ import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SymbolLiteral;
-import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
+import com.google.dart.engine.ast.visitor.UnifyingAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
@@ -124,7 +125,7 @@ import java.util.HashMap;
  * </ul>
  * </blockquote>
  */
-public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
+public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
   /**
    * The type provider used to access the known types.
    */
@@ -209,9 +210,10 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
         return leftResult.divide(typeProvider, node, rightResult);
       case TILDE_SLASH:
         return leftResult.integerDivide(typeProvider, node, rightResult);
+      default:
+        // TODO(brianwilkerson) Figure out which error to report.
+        return error(node, null);
     }
-    // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
   }
 
   @Override
@@ -246,7 +248,7 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
     }
     InterfaceType thenType = ((ValidResult) thenResult).getValue().getType();
     InterfaceType elseType = ((ValidResult) elseResult).getValue().getType();
-    return valid((InterfaceType) thenType.getLeastUpperBound(elseType));
+    return validWithUnknownValue((InterfaceType) thenType.getLeastUpperBound(elseType));
   }
 
   @Override
@@ -293,16 +295,19 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       for (int i = 0; i < parameterCount; i++) {
         ParameterElement parameter = parameters[i];
         if (parameter.isInitializingFormal()) {
-          String fieldName = ((FieldFormalParameterElement) parameter).getField().getName();
-          if (parameter.getParameterKind() == ParameterKind.NAMED) {
-            DartObjectImpl argumentValue = namedArgumentValues.get(parameter.getName());
-            if (argumentValue != null) {
-              fieldMap.put(fieldName, argumentValue);
+          FieldElement field = ((FieldFormalParameterElement) parameter).getField();
+          if (field != null) {
+            String fieldName = field.getName();
+            if (parameter.getParameterKind() == ParameterKind.NAMED) {
+              DartObjectImpl argumentValue = namedArgumentValues.get(parameter.getName());
+              if (argumentValue != null) {
+                fieldMap.put(fieldName, argumentValue);
+              }
+            } else if (i < argumentCount) {
+              fieldMap.put(fieldName, argumentValues[i]);
+              // Otherwise, the parameter is assumed to be an optional positional parameter for which
+              // no value was provided.
             }
-          } else if (i < argumentCount) {
-            fieldMap.put(fieldName, argumentValues[i]);
-            // Otherwise, the parameter is assumed to be an optional positional parameter for which
-            // no value was provided.
           }
         }
       }
@@ -408,7 +413,7 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
   }
 
   @Override
-  public EvaluationResultImpl visitNode(ASTNode node) {
+  public EvaluationResultImpl visitNode(AstNode node) {
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
   }
@@ -451,9 +456,10 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
         return operand.bitNot(typeProvider, node);
       case MINUS:
         return operand.negated(typeProvider, node);
+      default:
+        // TODO(brianwilkerson) Figure out which error to report.
+        return error(node, null);
     }
-    // TODO(brianwilkerson) Figure out which error to report.
-    return error(node, null);
   }
 
   @Override
@@ -504,7 +510,7 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
    * @param code the error code indicating the nature of the error
    * @return a result object representing an error associated with the given node
    */
-  private ErrorResult error(ASTNode node, ErrorCode code) {
+  private ErrorResult error(AstNode node, ErrorCode code) {
     return new ErrorResult(node, code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code);
   }
 
@@ -515,7 +521,7 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
    * @param element the element whose value is to be returned
    * @return the constant value of the static constant
    */
-  private EvaluationResultImpl getConstantValue(ASTNode node, Element element) {
+  private EvaluationResultImpl getConstantValue(AstNode node, Element element) {
     if (element instanceof PropertyAccessorElement) {
       element = ((PropertyAccessorElement) element).getVariable();
     }
@@ -569,7 +575,11 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
     return leftResult;
   }
 
-  private ValidResult valid(InterfaceType type) {
+  private ValidResult valid(InterfaceType type, InstanceState state) {
+    return new ValidResult(new DartObjectImpl(type, state));
+  }
+
+  private ValidResult validWithUnknownValue(InterfaceType type) {
     if (type.getElement().getLibrary().isDartCore()) {
       String typeName = type.getName();
       if (typeName.equals("bool")) {
@@ -583,10 +593,6 @@ public class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       }
     }
     return valid(type, GenericState.UNKNOWN_VALUE);
-  }
-
-  private ValidResult valid(InterfaceType type, InstanceState state) {
-    return new ValidResult(new DartObjectImpl(type, state));
   }
 
   /**

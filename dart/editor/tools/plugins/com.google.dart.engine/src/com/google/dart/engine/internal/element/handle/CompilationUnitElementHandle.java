@@ -23,6 +23,7 @@ import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
+import com.google.dart.engine.element.angular.AngularViewElement;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -44,6 +45,11 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   @Override
   public PropertyAccessorElement[] getAccessors() {
     return getActualElement().getAccessors();
+  }
+
+  @Override
+  public AngularViewElement[] getAngularViews() {
+    return getActualElement().getAngularViews();
   }
 
   @Override
@@ -94,6 +100,16 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   @Override
   public String getUri() {
     return getActualElement().getUri();
+  }
+
+  @Override
+  public int getUriEnd() {
+    return getActualElement().getUriEnd();
+  }
+
+  @Override
+  public int getUriOffset() {
+    return getActualElement().getUriOffset();
   }
 
   @Override

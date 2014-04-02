@@ -45,7 +45,7 @@
         <mkdir dir="${dist.dir}" />
 
         <path id="compile.ref">
-            <pathelement location="${third_party}/commons-lang/3.1/commons-lang3-3.1.jar" />
+            <pathelement location="${third_party}/commons-lang/3.2.1/commons-lang3-3.2.1.jar" />
             <pathelement location="${third_party}/json/r2_20080312/json.jar" />
             <pathelement location="${third_party}/guava/r13/guava-13.0.1.jar" />
             <pathelement location="${third_party}/args4j/2.0.12/args4j-2.0.12.jar" />
@@ -87,7 +87,7 @@
                 <attribute name="Implementation-Vendor" value="dartlang.org" />
                 <attribute name="Implementation-Title" value="dartanalyzer" />
             </manifest>
-            <zipfileset src="${third_party}/commons-lang/3.1/commons-lang3-3.1.jar"
+            <zipfileset src="${third_party}/commons-lang/3.2.1/commons-lang3-3.2.1.jar"
                         excludes="META-INF/**" />
             <zipfileset src="${third_party}/json/r2_20080312/json.jar" excludes="META-INF/**" />
             <zipfileset src="${third_party}/guava/r13/guava-13.0.1.jar" excludes="META-INF/**" />
@@ -122,7 +122,7 @@
                 <attribute name="Implementation-Title" value="dartanalyzer" />
             </manifest>
             <zipfileset src="${build.dir}/dartanalyzer.jar" />
-            <zipfileset src="${third_party}/commons-lang/3.1/commons-lang3-3.1.jar"
+            <zipfileset src="${third_party}/commons-lang/3.2.1/commons-lang3-3.2.1.jar"
                         excludes="META-INF/**" />
             <zipfileset src="${third_party}/json/r2_20080312/json.jar" excludes="META-INF/**" />
             <zipfileset src="${third_party}/guava/r13/guava-13.0.1.jar" excludes="META-INF/**" />

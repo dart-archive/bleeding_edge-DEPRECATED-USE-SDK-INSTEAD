@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<colorTheme id="24834" name="Rainbow" modified="2014-03-03 16:12:33" author="Hannes Rammer">
+    <abstractMethod color="#BED6FF" />
+    <annotation color="#53C6EB" />
+    <background color="#272822" />
+    <bracket color="#F9FAF4" />
+    <builtin color="#FF007F" />
+    <class color="#53C6EB" bold="true" />
+    <commentTaskTag color="#CFBFAD" />
+    <constant color="#A082BD" />
+    <constructor color="#FF9451" />
+    <currentLine color="#5B5A4E" />
+    <deletionIndication color="#F90101" />
+    <deprecatedMember color="#F90101" underline="true" />
+    <directive color="#D05080" bold="true" />
+    <dynamicType color="#CFBFAD" />
+    <enum color="#E0E2E4" />
+    <field color="#F2B50F" />
+    <filteredSearchResultIndication color="#D8D8D8" />
+    <findScope color="#FF00FF" />
+    <foreground color="#FFFFFF" />
+    <function color="#FF9451" />
+    <functionTypeAlias color="#53C6EB" bold="true" />
+    <getter color="#E8E2B7" />
+    <importPrefix color="#CFBFAD" />
+    <inheritedMethod color="#BED6FF" />
+    <interface color="#C48CFF" />
+    <javadoc color="#CFBFAD" />
+    <javadocKeyword color="#D9E577" />
+    <javadocLink color="#DDDDDD" />
+    <javadocTag color="#EEEEEE" />
+    <keyword color="#FF007F" />
+    <keywordReturn color="#FF007F" />
+    <lineNumber color="#999999" />
+    <localVariable color="#00DD59" />
+    <localVariableDeclaration color="#00DD59" />
+    <method color="#FF7722" />
+    <methodDeclaration color="#FF7722" bold="true" />
+    <multiLineComment color="#CFBFAD" />
+    <multiLineString color="#53C6EB" />
+    <number color="#FF007F" />
+    <occurrenceIndication color="#777777" />
+    <operator color="#FFFFFF" />
+    <parameterVariable color="#00DD59" underline="true" />
+    <searchResultIndication color="#D8D8D8" />
+    <selectionBackground color="#CC9900" />
+    <selectionForeground color="#404040" />
+    <setter color="#E8E2B7" />
+    <singleLineComment color="#CFBFAD" />
+    <sourceHoverBackground color="#FFFFFF" />
+    <staticField color="#CFBFAD" />
+    <staticFinalField color="#CFBFAD" />
+    <staticMethod color="#FF7722" />
+    <staticMethodDeclaration color="#FF7722" bold="true" />
+    <string color="#53C6EB" />
+    <typeArgument color="#BFA4A4" underline="true" />
+    <typeParameter color="#BFA4A4" underline="true" />
+    <writeOccurrenceIndication color="#00FF00" />
+</colorTheme>

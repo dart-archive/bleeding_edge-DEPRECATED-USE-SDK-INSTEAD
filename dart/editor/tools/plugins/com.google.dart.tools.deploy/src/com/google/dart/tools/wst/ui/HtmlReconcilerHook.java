@@ -15,20 +15,15 @@ package com.google.dart.tools.wst.ui;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.html.ast.HtmlUnit;
-import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.source.Source;
-import com.google.dart.tools.core.DartCore;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
+import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.Project;
-import com.google.dart.tools.core.internal.builder.AnalysisManager;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
-import com.google.dart.tools.deploy.Activator;
+import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
+import com.google.dart.tools.core.internal.builder.AnalysisWorker;
+import com.google.dart.tools.ui.internal.text.dart.DartUpdateSourceHelper;
 
-import org.eclipse.core.filebuffers.FileBuffers;
-import org.eclipse.core.filebuffers.ITextFileBuffer;
-import org.eclipse.core.filebuffers.ITextFileBufferManager;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
@@ -37,8 +32,6 @@ import org.eclipse.wst.sse.ui.internal.reconcile.validator.ISourceValidator;
 import org.eclipse.wst.validation.internal.provisional.core.IReporter;
 import org.eclipse.wst.validation.internal.provisional.core.IValidationContext;
 import org.eclipse.wst.validation.internal.provisional.core.IValidator;
-
-import java.io.File;
 
 /**
  * Bridge between WST HTML document and resolved {@link HtmlUnit}.
@@ -53,14 +46,14 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
     @Override
     public void documentChanged(DocumentEvent event) {
       sourceChanged(document.get());
-      performAnalysisInBackground();
     }
   };
 
   private IDocument document;
-  private File file;
-  private IResource resource;
-  private Project project;
+  private StructuredDocumentDartInfo documentInfo;
+  private HtmlUnit resolvedUnit;
+  private AngularApplication application;
+  private AnalysisListener analysisListener;
 
   public HtmlReconcilerHook() {
   }
@@ -73,60 +66,63 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
   @Override
   public void connect(IDocument document) {
     this.document = document;
-    // prepare File
-    ITextFileBufferManager fileManager = FileBuffers.getTextFileBufferManager();
-    ITextFileBuffer fileBuffer = fileManager.getTextFileBuffer(document);
-    try {
-      file = fileBuffer.getFileStore().toLocalFile(0, null);
-    } catch (CoreException ex) {
-      Activator.logError(ex);
-      return;
-    }
-    // prepare IResource
-    IResource resource = ResourceUtil.getResource(file);
-    if (resource == null) {
-      this.document = null;
-      this.file = null;
-      this.project = null;
-      this.resource = null;
-      return;
-    }
-    this.resource = resource;
-    // prepare model Project
-    IProject resourceProject = resource.getProject();
-    project = DartCore.getProjectManager().getProject(resourceProject);
-    // TODO(scheglov) disabled because of the problems with big Angular project
-    if (true) {
+    this.documentInfo = StructuredDocumentDartInfo.create(document);
+    // we need it
+    if (documentInfo == null) {
       return;
     }
     // track changes
-//    document.addDocumentListener(documentListener);
-//    HtmlReconcilerManager.getInstance().reconcileWith(document, this);
-//    // force reconcile
-//    sourceChanged(document.get());
-//    performAnalysisInBackground();
+    document.addDocumentListener(documentListener);
+    HtmlReconcilerManager.getInstance().reconcileWith(document, this);
+    // remember resolved HtmlUnit
+    analysisListener = new AnalysisListener.Empty() {
+      @Override
+      public void resolvedHtml(ResolvedHtmlEvent event) {
+        StructuredDocumentDartInfo info = documentInfo;
+        if (info != null) {
+          AnalysisContext eventContext = event.getContext();
+          Source eventSource = event.getSource();
+          if (eventContext == info.getContext()
+              && ObjectUtilities.equals(eventSource, info.getSource())) {
+            resolvedUnit = event.getUnit();
+            application = eventContext.getAngularApplicationWithHtml(eventSource);
+          }
+        }
+      }
+    };
+    AnalysisWorker.addListener(analysisListener);
+    // force reconcile
+    sourceChanged(document.get());
   }
 
   @Override
   public void disconnect(IDocument document) {
+    AnalysisWorker.removeListener(analysisListener);
     sourceChanged(null);
-    performAnalysisInBackground();
     // clean up
     document.removeDocumentListener(documentListener);
     DartReconcilerManager.getInstance().reconcileWith(document, null);
     this.document = null;
-    this.file = null;
-    this.project = null;
-    this.resource = null;
+    this.documentInfo = null;
+    this.resolvedUnit = null;
+  }
+
+  public AngularApplication getApplication() {
+    return application;
+  }
+
+  public AnalysisContext getContext() {
+    StructuredDocumentDartInfo info = documentInfo;
+    return info != null ? info.getContext() : null;
   }
 
   public HtmlUnit getResolvedUnit() {
-    AnalysisContext analysisContext = getContext();
-    Source source = getSource();
-    if (analysisContext == null || source == null) {
-      return null;
-    }
-    return analysisContext.getResolvedHtmlUnit(source);
+    return resolvedUnit;
+  }
+
+  public Source getSource() {
+    StructuredDocumentDartInfo info = documentInfo;
+    return info != null ? info.getSource() : null;
   }
 
   @Override
@@ -141,38 +137,23 @@ public class HtmlReconcilerHook implements ISourceValidator, IValidator {
     // Not used, but WST expects IValidator
   }
 
-  private AnalysisContext getContext() {
-    return DartCore.getProjectManager().getContext(resource);
-  }
-
-  private Source getSource() {
-    AnalysisContext analysisContext = getContext();
-    if (analysisContext == null) {
-      return null;
-    }
-    return new FileBasedSource(analysisContext.getSourceFactory().getContentCache(), file);
-  }
-
-  /**
-   * Start background analysis of the context containing the source being edited.
-   */
-  private void performAnalysisInBackground() {
-    AnalysisContext context = getContext();
-    if (context != null) {
-      AnalysisManager.getInstance().performAnalysisInBackground(project, context);
-    }
-  }
-
   /**
    * Notify the context that the source has changed.
+   * <p>
+   * Note, that {@link Source} is updated in {@link AnalysisContext} in the background thread, so
+   * there is a small probability that some operation will be initiated on not-quite-synchronized
+   * content. But it is better than nothing for now...
    * 
    * @param code the new source code or {@code null} if the source should be pulled from disk
    */
   private void sourceChanged(String code) {
-    AnalysisContext context = getContext();
-    Source source = getSource();
-    if (context != null && source != null) {
-      context.setContents(source, code);
+    if (documentInfo != null) {
+      AnalysisContext context = documentInfo.getContext();
+      if (context != null) {
+        Project project = documentInfo.getProject();
+        Source source = documentInfo.getSource();
+        DartUpdateSourceHelper.getInstance().updateWithDelay(project, context, source, code);
+      }
     }
   }
 }

@@ -25,6 +25,7 @@ public class TestAll {
     suite.addTestSuite(HtmlUnitBuilderTest.class);
     suite.addTestSuite(HtmlWarningCodeTest.class);
     suite.addTestSuite(AngularCompilationUnitBuilderTest.class);
+    suite.addTestSuite(PolymerCompilationUnitBuilderTest.class);
     return suite;
   }
 }

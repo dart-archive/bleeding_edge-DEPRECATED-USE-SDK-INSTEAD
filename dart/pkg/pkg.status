@@ -17,11 +17,25 @@ polymer/example/scoped_style/*: Skip
 scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
-polymer/test/event_path_test: Pass, Fail # Issue 15766
+[ $compiler == dart2js && $mode == debug ]
+docgen/test/generate_json_test: Skip # Way too slow
+docgen/test/multi_library_test: Skip # Way too slow
+docgen/test/single_library_test: Skip # Way too slow
+docgen/test/typedef_test: Skip # Way too slow
 
-# Skip test not runnable via test.dart
-third_party/html5lib/test/dom_compat_test: Skip
-third_party/html5lib/test/browser/browser_test: Skip
+[ $runtime == vm && $mode == debug]
+docgen/test/only_lib_content_in_pkg_test: Skip # Slow
+polymer/test/build/all_phases_test: Skip # Slow
+
+[ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
+docgen/test/only_lib_content_in_pkg_test: Skip # slow
+docgen/test/typedef_test: Skip # slow
+barback/test/too_many_open_files_test: Skip # 14220
+third_party/html5lib/test/tokenizer_test: Pass, Slow
+docgen/test/generate_json_test: Skip # Issue 17003
+polymer/test/build/script_compactor_test: Skip # Slow
+polymer/test/build/all_phases_test: Skip # Slow
+code_transformers/test/resolver_test: Skip # Issue 17908
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
@@ -32,6 +46,7 @@ collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
+docgen/test/multi_library_test: Slow, Pass # issue 17060
 
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
@@ -45,11 +60,12 @@ serialization/test/serialization_test: Skip
 analyzer/test/generated/element_test: Pass, Slow # Issue 16473
 
 [ $runtime == d8 || $runtime == jsshell ]
-unittest/test/unittest_nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
-stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
-stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
+scheduled_test/test/unittest_compatibility_test: RuntimeError # Issue 7728
+stack_trace/test/chain_test: Fail # Issues 15171 and 15105
+stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
 unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
+unittest/test/unittest_nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 polymer/example: Skip # Uses dart:html
@@ -64,6 +80,8 @@ polymer/test/event_path_declarative_test: Skip #uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
+polymer/test/js_interop_test: Skip #uses dart:html
+polymer/test/mirror_loader_test: Skip # uses dart:html
 polymer/test/nested_binding_test: Skip # uses dart:html
 polymer/test/noscript_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
@@ -85,7 +103,7 @@ third_party/angular_tests/browser_test: Skip # uses dart:html
 source_maps/test/vlq_test: RuntimeError # A VLQ test checks for large numbers that
                                 # overflow in JS (numbers slightly larger than
                                 # 32 bits where we do bitwise operations).
-[ $runtime == ff && $system != windows ]
+[ ($runtime == ff || $runtime == jsshell) && $system != windows ]
 # Bug in Spidermonkey's Uint8ClampedArray on x64 (non-Win FF is x64, Win is x86)
 # See https://bugzilla.mozilla.org/show_bug.cgi?id=940972
 # Likely to get patched only on some versions of Firefox.
@@ -96,21 +114,24 @@ intl/test/find_default_locale_browser_test: Fail
 intl/test/date_time_format_http_request_test: Skip # Timeout.
 
 [ $runtime == ie9 ]
-intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
 typed_data/test/typed_buffers_test: Fail, Crash # No typed_data on IE9.
 polymer/test/instance_attrs_test: Pass, Fail # Issue 14167
 polymer/test/bind_mdv_test: Slow, Pass
+template_binding/test/custom_element_bindings_test: Fail, Timeout # Issue 16717
+polymer/test/bind_mdv_test: RuntimeError # Issue 14412, 13260
+matcher/test/matchers_test: RuntimeError # Issue 17762
+
+[ $ie ]
+polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
+intl/test/date_time_format_http_request_test: Fail # Issue 8983
+
+[ $runtime == ie10 || $runtime == ie11 ]
+typed_data/test/typed_buffers_test/none: Fail # Issue 17607 (I put this here explicitly, since this is not the same as on ie9)
 
 [ $runtime == safari ]
-fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
-
 # Unexplained errors only occuring on Safari.
 typed_data/test/typed_buffers_test: RuntimeError
-
-[ $runtime == ie9 || $runtime == ie10 ]
-polymer/test/bind_mdv_test: RuntimeError # Issue 14412, 13260
-polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
@@ -121,27 +142,17 @@ intl/test/date_time_format_http_request_test: Skip
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 
-[ $compiler == dartanalyzer ]
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 # These tests are runtime negative but statically positive, so we skip
 # them in the analyzer.
-unittest/test/mock_regexp_negative_test: Skip
-unittest/test/mock_stepwise_negative_test: Skip
+mock/test/mock_regexp_negative_test: Skip
+mock/test/mock_stepwise_negative_test: Skip
 polymer/example/canonicalization: Skip
 polymer/example/canonicalization2: Skip
 polymer/example/canonicalization3: Skip
 
 third_party/angular_tests/browser_test: StaticWarning # Issue 15890
-
-[ $compiler == dart2analyzer ]
-# These tests are runtime negative but statically positive, so we skip
-# them in the analyzer.
-unittest/test/mock_regexp_negative_test: Skip
-unittest/test/mock_stepwise_negative_test: Skip
-polymer/example/canonicalization: Skip
-polymer/example/canonicalization2: Skip
-polymer/example/canonicalization3: Skip
-
-third_party/angular_tests/browser_test: StaticWarning # Issue 15890
+docgen/test/*: StaticWarning # Issue 17896
 
 [ $compiler == dart2js && $runtime == none]
 polymer/example/canonicalization: Skip
@@ -149,7 +160,9 @@ polymer/example/canonicalization2: Skip
 polymer/example/canonicalization3: Skip
 
 [ $compiler == dart2js && $csp ]
-unittest/test/mirror_matchers_test: Skip # Issue 12151
+matcher/test/mirror_matchers_test: Skip # Issue 12151
+polymer/test/noscript_test: Fail # Issue 17326
+polymer/test/js_interop_test: Fail # Issue 17326
 
 # This test cannot run under CSP because it is injecting a JavaScript polyfill
 mutation_observer: Skip
@@ -158,8 +171,8 @@ mutation_observer: Skip
 # The unminified unittest tests test that the real names of Dart types are
 # printed. Minified versions of these tests exist that test the behavior when
 # minified.
-unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
-unittest/test/mirror_matchers_test: Fail # Issue 15405
+matcher/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
+matcher/test/mirror_matchers_test: Fail # Issue 15405
 
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
@@ -172,23 +185,26 @@ polymer/example/canonicalization/test/dev2_test: Fail, OK # tests development on
 polymer/example/canonicalization/test/dev3_test: Fail, OK # tests development only behavior
 polymer/example/canonicalization/test/dir/dev_test: Fail, OK # tests development only behavior
 polymer/example/canonicalization/test/dir/dev2_test: Fail, OK # tests development only behavior
+polymer/test/mirror_loader_test: Fail, OK # tests development only behavior
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
 intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
 
 [ $browser ]
+analysis_server/test/*: Skip # Uses dart:io.
+analyzer/test/error_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/ast_test: Fail, OK # Uses dart:io.
+analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/parser_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/resolver_test: Fail, OK # Uses dart:io.
-analyzer/test/error_test: Fail, OK # Uses dart:io.
-analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/resolver_test: Fail, OK # Uses dart:io.
 analyzer/test/options_test: Fail, OK # Uses dart:io.
-analyzer/test/services/formatter_test: Fail, OK # Uses dart:io.
 analyzer/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
+analyzer/test/services/formatter_test: Fail, OK # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
+code_transformers/test/*: Skip # Uses dart:io.
 http/test/client_test: Fail, OK # Uses dart:io.
 http/test/http_test: Fail, OK # Uses dart:io.
 http/test/mock_client_test: Fail, OK # Uses dart:io.
@@ -200,9 +216,10 @@ http_server/test/*: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
 intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
-intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
-intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
 intl/test/message_extraction/examples_parsing_test: Fail, OK # Users dart:io
+intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
+intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
+intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
 oauth2/test/authorization_code_grant_test: Fail, OK # Uses dart:io.
 oauth2/test/client_test: Fail, OK # Uses dart:io.
 oauth2/test/credentials_test: Fail, OK # Uses dart:io.
@@ -210,8 +227,11 @@ oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
 polymer/test/build/*: Fail, OK # Uses dart:io.
-third_party/angular_tests/vm_test: Skip # Uses dart:io
+shelf/test/shelf_io_test: Fail, OK # Uses dart:io
+smoke/test/codegen/end_to_end_test: Skip # Uses dart:io.
+smoke/test/codegen/recorder_test: Skip # Uses dart:io.
 third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
+third_party/angular_tests/vm_test: Skip # Uses dart:io
 watcher/test/*: Fail, OK # Uses dart:io.
 
 scheduled_test/test/descriptor/*: Fail # http://dartbug.com/8440
@@ -233,7 +253,7 @@ polymer/test/unbind_test: Pass, Fail # Issue 15259
 # The minified unittest tests test that the minified names of Dart types are
 # printed. Unminified versions of these tests exist that test the behavior when
 # not minified.
-unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
+matcher/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
 [ $arch == mips ]
 *: Skip  # Issue 13650
@@ -241,12 +261,11 @@ unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2J
 [ $arch == arm ]
 *: Skip  # Issue 13624
 
-[ $arch == simarm || $arch == simmips ]
-barback/test/too_many_open_files_test: Skip # 14220
-third_party/html5lib/test/tokenizer_test: Pass, Slow
-
 [ $arch == simarm && $checked ]
 watcher/test/directory_watcher/linux_test: Skip # Issue 16118
+
+[ $arch == simarm64 ]
+*: Skip
 
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
@@ -259,6 +278,8 @@ unittest/test/unittest_completion_test: Fail # 13921
 unittest/test/unittest_correct_callback_test: Fail # 13921
 unittest/test/unittest_exception_test: Fail # 13921
 unittest/test/unittest_excess_callback_test: Fail # 13921
+unittest/test/unittest_expect_async_args_test: Fail # 13921
+unittest/test/unittest_expect_async_test: Fail # 13921
 unittest/test/unittest_group_name_test: Fail # 13921
 unittest/test/unittest_invalid_ops_test: Fail # 13921
 unittest/test/unittest_late_exception_test: Fail # 13921
@@ -275,18 +296,18 @@ unittest/test/unittest_teardown_test: Fail # 13921
 unittest/test/unittest_test_returning_future_test: Fail # 13921
 unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
-polymer/test/custom_event_test: Pass, Crash # 14360
-polymer/example/canonicalization/test/deploy_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
-polymer/example/canonicalization/test/dir/deploy_test: Fail, OK # tests deploy only behavior
+polymer/example/canonicalization/test/deploy_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
+polymer/example/canonicalization/test/dir/deploy_test: Fail, OK # tests deploy only behavior
+polymer/test/custom_event_test: Pass, Crash # 14360
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) && $checked ]
 polymer/test/custom_event_test: Skip # http://dartbug.com/15517
 
-# Skip tests on the VM if the package depends on dart:html
 [ $runtime == vm ]
+# Skip tests on the VM if the package depends on dart:html
 custom_element: Skip
 template_binding: Skip
 mutation_observer: Skip
@@ -295,12 +316,12 @@ polymer_expressions/test/globals_test: Skip
 polymer_expressions/test/bindings_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 
-[ $runtime == safari || $runtime == ie9 || $runtime == ie10 ]
+[ $runtime == safari || $ie ]
 polymer_expressions/test/globals_test: Fail # Issue 16568
+polymer_expressions/test/bindings_test: Fail # Issue 16568
 
-[ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
-docgen/test/single_library_test: Skip # Uses dart:io
-docgen/test/multi_library_test: Skip # Uses dart:io
+[ $browser ]
+docgen/test/*: Skip  # Uses dart:io
 scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
 
 [ $browser || $runtime == vm ]
@@ -311,9 +332,7 @@ unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
 source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this failure.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-docgen/test/single_library_test: StaticWarning
-docgen/test/multi_library_test: StaticWarning
-unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
+matcher/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 
 [ $runtime == vm && ($system == windows || $system == macos) ]
 watcher/test/*/linux_test: Skip
@@ -321,7 +340,7 @@ watcher/test/*/linux_test: Skip
 [ $runtime == vm && ($system == windows || $system == linux) ]
 watcher/test/*/mac_os_test: Skip
 
-[ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == ie10 ]
+[ $runtime == safari || $runtime == chrome || $runtime == ff || $ie ]
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
 
@@ -329,31 +348,11 @@ third_party/angular_tests/*: Skip
 third_party/angular_tests/browser_test/angular: Skip # Requires checked mode.
 third_party/angular_tests/browser_test/core/scope: Skip # Requires checked mode.
 third_party/angular_tests/browser_test/core/zone: Skip # Requires checked mode.
+third_party/angular_tests/browser_test/directive/ng_repeat: Skip # Issue 17152
+third_party/angular_tests/browser_test/change_detection/dirty_checking_change_detector: Skip # Issue 17152
 
 [ $use_repository_packages ]
-analyzer/test/error_test: PubGetError
-analyzer/test/generated/ast_test: PubGetError
-analyzer/test/generated/element_test: PubGetError
-analyzer/test/generated/parser_test: PubGetError
-analyzer/test/generated/resolver_test: PubGetError
-analyzer/test/generated/scanner_test: PubGetError
-analyzer/test/options_test: PubGetError
-analyzer/test/parse_compilation_unit_test: PubGetError
-analyzer/test/services/formatter_test: PubGetError
-args/test/args_test: PubGetError
-args/test/command_test: PubGetError
-args/test/parse_all_test: PubGetError
-args/test/parse_test: PubGetError
-args/test/usage_test: PubGetError
-async/test/stream_zip_test: PubGetError
-async/test/stream_zip_zone_test: PubGetError
-collection/test/algorithms_test: PubGetError
-collection/test/iterable_zip_test: PubGetError
-collection/test/priority_queue_test: PubGetError
-collection/test/unmodifiable_collection_test: PubGetError
-collection/test/wrapper_test: PubGetError
-stack_trace/test/chain_test: PubGetError
-stack_trace/test/frame_test: PubGetError
-stack_trace/test/trace_test: PubGetError
-stack_trace/test/vm_test: PubGetError
+analyzer/test/*: PubGetError
 
+[ $runtime == ie9 ]
+polymer: Pass, Fail, Timeout # Issue 16717

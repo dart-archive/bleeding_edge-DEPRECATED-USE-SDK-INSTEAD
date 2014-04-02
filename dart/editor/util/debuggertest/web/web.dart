@@ -85,4 +85,10 @@ void testAnimals() {
   var m = getMapOfAnimals();
 
   print(m);
+
+  group('test-test', () {
+    test('foo', () {
+      expect(false, true);
+    });
+  });
 }

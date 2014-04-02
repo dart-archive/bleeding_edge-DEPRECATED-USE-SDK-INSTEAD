@@ -15,6 +15,7 @@ package com.google.dart.tools.core.utilities.io;
 
 import com.google.common.io.CharStreams;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileInfo;
 import org.eclipse.core.filesystem.IFileStore;
@@ -294,6 +295,29 @@ public class FileUtilities {
       return name.substring(index + 1);
     }
     return "";
+  }
+
+  /**
+   * If the file with given path exists, and its canonical path differs from the given path only in
+   * case, return the path with the same case as the {@link File} in the file system.
+   * <p>
+   * According to specification it is OK to use a different case in URI, as long as embedding allows
+   * this. But Eclipse LTK (refactoring framework) is not happy. We need to convert such URI to
+   * canonical, at least during refactoring.
+   */
+  public static String getFileSystemCase(String path) {
+    File file = new File(path);
+    if (file.exists()) {
+      try {
+        String absolutePath = file.getAbsolutePath();
+        String canonicalPath = file.getCanonicalPath();
+        if (StringUtils.equalsIgnoreCase(absolutePath, canonicalPath)) {
+          return canonicalPath;
+        }
+      } catch (Throwable e) {
+      }
+    }
+    return path;
   }
 
   /**

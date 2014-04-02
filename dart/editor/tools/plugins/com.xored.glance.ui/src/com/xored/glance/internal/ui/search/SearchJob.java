@@ -6,19 +6,54 @@
  *******************************************************************************/
 package com.xored.glance.internal.ui.search;
 
-import java.util.regex.Matcher;
-
 import com.xored.glance.ui.sources.ITextBlock;
 import com.xored.glance.ui.sources.Match;
+
+import java.util.regex.Matcher;
 
 /**
  * @author Yuri Strot
  */
 public class SearchJob extends SearchScopeEntry {
 
+  interface ISearchMonitor extends IMatchListener {
+
+    boolean isCanceled();
+
+  }
+
+  private boolean finished;
+
+  private Matcher matcher;
+
   public SearchJob(ITextBlock block, Matcher matcher, ISearchMonitor monitor) {
     super(block, monitor);
     update(matcher);
+  }
+
+  /**
+   * @return the finished
+   */
+  public boolean isFinished() {
+    return finished;
+  }
+
+  public boolean run() {
+    if (matcher == null) {
+      return false;
+    }
+    matcher.reset(getText());
+    int from = getStart();
+    if (!find(from, getText().length())) {
+      return false;
+    }
+    addMatchToBegin();
+    if (!find(0, from - 1)) {
+      return false;
+    }
+    finished = true;
+    setStart(0);
+    return true;
   }
 
   public void update(Matcher matcher) {
@@ -30,57 +65,6 @@ public class SearchJob extends SearchScopeEntry {
   protected void doClear() {
     super.doClear();
     finished = false;
-  }
-
-  /**
-   * @return the finished
-   */
-  public boolean isFinished() {
-    return finished;
-  }
-
-  public boolean run() {
-    if (matcher == null)
-      return false;
-    matcher.reset(getText());
-    int from = getStart();
-    if (!find(from, getText().length()))
-      return false;
-    addMatchToBegin();
-    if (!find(0, from - 1))
-      return false;
-    finished = true;
-    setStart(0);
-    return true;
-  }
-
-  private boolean find(int from, int to) {
-    int k = 1;
-    int limit = getText().length();
-    if (from >= to || from > limit)
-      return true;
-    Match match = find(from);
-    if (getMonitor().isCanceled())
-      return false;
-    if (match != null) {
-      from = match.getOffset() + 1;
-      if (from > to || from > limit)
-        return true;
-      addMatch(match);
-      match = find(from);
-      while ((match = find(from)) != null) {
-        if (match.getOffset() >= to)
-          return true;
-        addMatch(match);
-        if (k++ == 20) {
-          if (getMonitor().isCanceled())
-            return false;
-          k = 0;
-        }
-        from = match.getOffset() + 1;
-      }
-    }
-    return true;
   }
 
   private Match find(int from) {
@@ -99,17 +83,42 @@ public class SearchJob extends SearchScopeEntry {
     return null;
   }
 
+  private boolean find(int from, int to) {
+    int k = 1;
+    int limit = getText().length();
+    if (from >= to || from > limit) {
+      return true;
+    }
+    Match match = find(from);
+    if (getMonitor().isCanceled()) {
+      return false;
+    }
+    if (match != null) {
+      from = match.getOffset() + 1;
+      if (from > to || from > limit) {
+        return true;
+      }
+      addMatch(match);
+      match = find(from);
+      while ((match = find(from)) != null) {
+        if (match.getOffset() >= to) {
+          return true;
+        }
+        addMatch(match);
+        if (k++ == 20) {
+          if (getMonitor().isCanceled()) {
+            return false;
+          }
+          k = 0;
+        }
+        from = match.getOffset() + 1;
+      }
+    }
+    return true;
+  }
+
   private ISearchMonitor getMonitor() {
     return (ISearchMonitor) getListener();
   }
-
-  interface ISearchMonitor extends IMatchListener {
-
-    boolean isCanceled();
-
-  }
-
-  private boolean finished;
-  private Matcher matcher;
 
 }

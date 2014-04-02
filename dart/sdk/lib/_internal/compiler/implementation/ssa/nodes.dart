@@ -38,6 +38,7 @@ abstract class HVisitor<R> {
   R visitInvokeSuper(HInvokeSuper node);
   R visitInvokeConstructorBody(HInvokeConstructorBody node);
   R visitIs(HIs node);
+  R visitIsViaInterceptor(HIsViaInterceptor node);
   R visitLazyStatic(HLazyStatic node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
@@ -53,6 +54,7 @@ abstract class HVisitor<R> {
   R visitParameterValue(HParameterValue node);
   R visitPhi(HPhi node);
   R visitRangeConversion(HRangeConversion node);
+  R visitReadModifyWrite(HReadModifyWrite node);
   R visitReturn(HReturn node);
   R visitShiftLeft(HShiftLeft node);
   R visitShiftRight(HShiftRight node);
@@ -191,7 +193,7 @@ class HGraph {
         compiler.backend.constantSystem.createDouble(d), compiler);
   }
 
-  HConstant addConstantString(DartString str,
+  HConstant addConstantString(ast.DartString str,
                               Compiler compiler) {
     return addConstant(
         compiler.backend.constantSystem.createString(str),
@@ -320,6 +322,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
   visitParameterValue(HParameterValue node) => visitLocalValue(node);
   visitRangeConversion(HRangeConversion node) => visitCheck(node);
+  visitReadModifyWrite(HReadModifyWrite node) => visitInstruction(node);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
@@ -335,6 +338,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   visitTry(HTry node) => visitControlFlow(node);
   visitIs(HIs node) => visitInstruction(node);
+  visitIsViaInterceptor(HIsViaInterceptor node) => visitInstruction(node);
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
   visitTypeKnown(HTypeKnown node) => visitCheck(node);
   visitReadTypeVariable(HReadTypeVariable node) => visitInstruction(node);
@@ -801,6 +805,7 @@ abstract class HInstruction implements Spannable {
   static const int INTERFACE_TYPE_TYPECODE = 34;
   static const int DYNAMIC_TYPE_TYPECODE = 35;
   static const int TRUNCATING_DIVIDE_TYPECODE = 36;
+  static const int IS_VIA_INTERCEPTOR_TYPECODE = 37;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++, usedBy = <HInstruction>[] {
@@ -812,6 +817,8 @@ abstract class HInstruction implements Spannable {
   bool useGvn() => _useGvn;
   void setUseGvn() { _useGvn = true; }
   void clearUseGvn() { _useGvn = false; }
+
+  bool get isMovable => useGvn();
 
   /**
    * A pure instruction is an instruction that does not have any side
@@ -853,8 +860,13 @@ abstract class HInstruction implements Spannable {
 
   bool canBePrimitiveNumber(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
+    // TODO(sra): It should be possible to test only jsDoubleClass and
+    // jsUInt31Class, since all others are superclasses of these two.
     return instructionType.contains(backend.jsNumberClass, compiler)
         || instructionType.contains(backend.jsIntClass, compiler)
+        || instructionType.contains(backend.jsPositiveIntClass, compiler)
+        || instructionType.contains(backend.jsUInt32Class, compiler)
+        || instructionType.contains(backend.jsUInt31Class, compiler)
         || instructionType.contains(backend.jsDoubleClass, compiler);
   }
 
@@ -968,6 +980,11 @@ abstract class HInstruction implements Spannable {
   }
 
   bool isString(Compiler compiler) {
+    return instructionType.containsOnlyString(compiler)
+        && !instructionType.isNullable;
+  }
+
+  bool isStringOrNull(Compiler compiler) {
     return instructionType.containsOnlyString(compiler);
   }
 
@@ -1170,7 +1187,6 @@ abstract class HInstruction implements Spannable {
   bool isConstantMap() => false;
   bool isConstantFalse() => false;
   bool isConstantTrue() => false;
-  bool isConstantSentinel() => false;
 
   bool isInterceptor(Compiler compiler) => false;
 
@@ -1231,6 +1247,15 @@ abstract class HInstruction implements Spannable {
   bool hasSameLoopHeaderAs(HInstruction other) {
     return block.enclosingLoopHeader == other.block.enclosingLoopHeader;
   }
+}
+
+/**
+ * Late instructions are used after the main optimization phases.  They capture
+ * codegen decisions just prior to generating JavaScript.
+ */
+abstract class HLateInstruction extends HInstruction {
+  HLateInstruction(List<HInstruction> inputs, TypeMask type)
+      : super(inputs, type);
 }
 
 class HBoolify extends HInstruction {
@@ -1537,6 +1562,58 @@ class HFieldSet extends HFieldAccess {
 
   bool isJsStatement() => true;
   String toString() => "FieldSet $element";
+}
+
+/**
+ * HReadModifyWrite is a late stage instruction for a field (property) update
+ * via an assignment operation or pre- or post-increment.
+ */
+class HReadModifyWrite extends HLateInstruction {
+  static const ASSIGN_OP = 0;
+  static const PRE_OP = 1;
+  static const POST_OP = 2;
+  final Element element;
+  final String jsOp;
+  final int opKind;
+
+   HReadModifyWrite._(Element this.element, this.jsOp, this.opKind,
+      List<HInstruction> inputs, TypeMask type)
+      : super(inputs, type) {
+    sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
+    sideEffects.setChangesInstanceProperty();
+    sideEffects.setDependsOnInstancePropertyStore();
+  }
+
+  HReadModifyWrite.assignOp(Element element, String jsOp,
+      HInstruction receiver, HInstruction operand, TypeMask type)
+      : this._(element, jsOp, ASSIGN_OP,
+               <HInstruction>[receiver, operand], type);
+
+  HReadModifyWrite.preOp(Element element, String jsOp,
+      HInstruction receiver, TypeMask type)
+      : this._(element, jsOp, PRE_OP, <HInstruction>[receiver], type);
+
+  HReadModifyWrite.postOp(Element element, String jsOp,
+      HInstruction receiver, TypeMask type)
+      : this._(element, jsOp, POST_OP, <HInstruction>[receiver], type);
+
+  HInstruction get receiver => inputs[0];
+
+  bool get isPreOp => opKind == PRE_OP;
+  bool get isPostOp => opKind == POST_OP;
+  bool get isAssignOp => opKind == ASSIGN_OP;
+
+  bool canThrow() => receiver.canBeNull();
+
+  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  bool onlyThrowsNSM() => true;
+
+  HInstruction get value => inputs[1];
+  accept(HVisitor visitor) => visitor.visitReadModifyWrite(this);
+
+  bool isJsStatement() => isAssignOp;
+  String toString() => "ReadModifyWrite $jsOp $opKind $element";
 }
 
 class HLocalGet extends HFieldAccess {
@@ -1916,18 +1993,17 @@ class HConstant extends HInstruction {
   accept(HVisitor visitor) => visitor.visitConstant(this);
 
   bool isConstant() => true;
-  bool isConstantBoolean() => constant.isBool();
-  bool isConstantNull() => constant.isNull();
-  bool isConstantNumber() => constant.isNum();
-  bool isConstantInteger() => constant.isInt();
-  bool isConstantString() => constant.isString();
-  bool isConstantList() => constant.isList();
-  bool isConstantMap() => constant.isMap();
-  bool isConstantFalse() => constant.isFalse();
-  bool isConstantTrue() => constant.isTrue();
-  bool isConstantSentinel() => constant.isSentinel();
+  bool isConstantBoolean() => constant.isBool;
+  bool isConstantNull() => constant.isNull;
+  bool isConstantNumber() => constant.isNum;
+  bool isConstantInteger() => constant.isInt;
+  bool isConstantString() => constant.isString;
+  bool isConstantList() => constant.isList;
+  bool isConstantMap() => constant.isMap;
+  bool isConstantFalse() => constant.isFalse;
+  bool isConstantTrue() => constant.isTrue;
 
-  bool isInterceptor(Compiler compiler) => constant.isInterceptor();
+  bool isInterceptor(Compiler compiler) => constant.isInterceptor;
 
   // Maybe avoid this if the literal is big?
   bool isCodeMotionInvariant() => true;
@@ -2022,6 +2098,9 @@ abstract class HRelational extends HInvokeBinary {
 }
 
 class HIdentity extends HRelational {
+  // Cached codegen decision.
+  String singleComparisonOp;  // null, '===', '=='
+
   HIdentity(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitIdentity(this);
 
@@ -2339,6 +2418,30 @@ class HIs extends HInstruction {
   }
 }
 
+/**
+ * HIsViaInterceptor is a late-stage instruction for a type test that can be
+ * done entirely on an interceptor.  It is not a HCheck because the checked
+ * input is not one of the inputs.
+ */
+class HIsViaInterceptor extends HLateInstruction {
+  final DartType typeExpression;
+   HIsViaInterceptor(this.typeExpression, HInstruction interceptor,
+                     TypeMask type)
+       : super(<HInstruction>[interceptor], type) {
+    setUseGvn();
+  }
+
+  HInstruction get interceptor => inputs[0];
+
+  accept(HVisitor visitor) => visitor.visitIsViaInterceptor(this);
+  toString() => "$interceptor is $typeExpression";
+  int typeCode() => HInstruction.IS_VIA_INTERCEPTOR_TYPECODE;
+  bool typeEquals(HInstruction other) => other is HIsViaInterceptor;
+  bool dataEquals(HIs other) {
+    return typeExpression == other.typeExpression;
+  }
+}
+
 class HTypeConversion extends HCheck {
   final DartType typeExpression;
   final int kind;
@@ -2422,16 +2525,27 @@ class HTypeConversion extends HCheck {
   bool dataEquals(HTypeConversion other) {
     return kind == other.kind
         && typeExpression == other.typeExpression
-        && checkedType == other.checkedType;
+        && checkedType == other.checkedType
+        && receiverTypeCheckSelector == other.receiverTypeCheckSelector;
   }
 }
 
 /// The [HTypeKnown] instruction marks a value with a refined type.
 class HTypeKnown extends HCheck {
   TypeMask knownType;
-  HTypeKnown(TypeMask knownType, HInstruction input)
+  bool _isMovable;
+
+  HTypeKnown.pinned(TypeMask knownType, HInstruction input)
       : this.knownType = knownType,
+        this._isMovable = false,
         super(<HInstruction>[input], knownType);
+
+  HTypeKnown.witnessed(TypeMask knownType, HInstruction input,
+                       HInstruction witness)
+      : this.knownType = knownType,
+        this._isMovable = true,
+        super(<HInstruction>[input, witness], knownType);
+
   toString() => 'TypeKnown $knownType';
   accept(HVisitor visitor) => visitor.visitTypeKnown(this);
 
@@ -2442,6 +2556,7 @@ class HTypeKnown extends HCheck {
   int typeCode() => HInstruction.TYPE_KNOWN_TYPECODE;
   bool typeEquals(HInstruction other) => other is HTypeKnown;
   bool isCodeMotionInvariant() => true;
+  bool get isMovable => _isMovable && useGvn();
 
   bool dataEquals(HTypeKnown other) {
     return knownType == other.knownType
@@ -2454,11 +2569,14 @@ class HRangeConversion extends HCheck {
       : super(<HInstruction>[input], type) {
     sourceElement = input.sourceElement;
   }
+
+  bool get isMovable => false;
+
   accept(HVisitor visitor) => visitor.visitRangeConversion(this);
 }
 
 class HStringConcat extends HInstruction {
-  final Node node;
+  final ast.Node node;
   HStringConcat(HInstruction left, HInstruction right, this.node, TypeMask type)
       : super(<HInstruction>[left, right], type) {
     // TODO(sra): Until Issue 9293 is fixed, this false dependency keeps the
@@ -2479,7 +2597,7 @@ class HStringConcat extends HInstruction {
  * into a String value.
  */
 class HStringify extends HInstruction {
-  final Node node;
+  final ast.Node node;
   HStringify(HInstruction input, this.node, TypeMask type)
       : super(<HInstruction>[input], type) {
     sideEffects.setAllSideEffects();
@@ -2663,14 +2781,14 @@ class HLabeledBlockInformation implements HStatementInformation {
     visitor.visitLabeledBlockInfo(this);
 }
 
-class LoopTypeVisitor extends Visitor {
+class LoopTypeVisitor extends ast.Visitor {
   const LoopTypeVisitor();
-  int visitNode(Node node) => HLoopBlockInformation.NOT_A_LOOP;
-  int visitWhile(While node) => HLoopBlockInformation.WHILE_LOOP;
-  int visitFor(For node) => HLoopBlockInformation.FOR_LOOP;
-  int visitDoWhile(DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
-  int visitForIn(ForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
-  int visitSwitchStatement(SwitchStatement node) =>
+  int visitNode(ast.Node node) => HLoopBlockInformation.NOT_A_LOOP;
+  int visitWhile(ast.While node) => HLoopBlockInformation.WHILE_LOOP;
+  int visitFor(ast.For node) => HLoopBlockInformation.FOR_LOOP;
+  int visitDoWhile(ast.DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
+  int visitForIn(ast.ForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
+  int visitSwitchStatement(ast.SwitchStatement node) =>
       HLoopBlockInformation.SWITCH_CONTINUE_LOOP;
 }
 
@@ -2725,7 +2843,7 @@ class HLoopBlockInformation implements HStatementInformation {
     return body.end;
   }
 
-  static int loopType(Node node) {
+  static int loopType(ast.Node node) {
     return node.accept(const LoopTypeVisitor());
   }
 

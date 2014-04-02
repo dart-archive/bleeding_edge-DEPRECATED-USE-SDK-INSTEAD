@@ -24,7 +24,7 @@ import com.google.dart.engine.internal.element.angular.AngularApplication;
  */
 public interface AngularElement extends ToolkitObjectElement {
   /**
-   * An empty array of angular elements.
+   * An empty array of Angular elements.
    */
   AngularElement[] EMPTY_ARRAY = new AngularElement[0];
 

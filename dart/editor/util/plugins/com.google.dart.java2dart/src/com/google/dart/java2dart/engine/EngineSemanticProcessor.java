@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -27,12 +27,12 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionStatement;
-import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleFormalParameter;
@@ -43,34 +43,33 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.SemanticProcessor;
 import com.google.dart.java2dart.util.JavaUtils;
 
-import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
-import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
-import static com.google.dart.java2dart.util.ASTFactory.block;
-import static com.google.dart.java2dart.util.ASTFactory.blockFunctionBody;
-import static com.google.dart.java2dart.util.ASTFactory.expressionFunctionBody;
-import static com.google.dart.java2dart.util.ASTFactory.expressionStatement;
-import static com.google.dart.java2dart.util.ASTFactory.fieldDeclaration;
-import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
-import static com.google.dart.java2dart.util.ASTFactory.functionDeclaration;
-import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.integer;
-import static com.google.dart.java2dart.util.ASTFactory.methodDeclaration;
-import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
-import static com.google.dart.java2dart.util.ASTFactory.parenthesizedExpression;
-import static com.google.dart.java2dart.util.ASTFactory.prefixExpression;
-import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
-import static com.google.dart.java2dart.util.ASTFactory.simpleFormalParameter;
-import static com.google.dart.java2dart.util.ASTFactory.typeName;
-import static com.google.dart.java2dart.util.ASTFactory.variableDeclaration;
+import static com.google.dart.java2dart.util.AstFactory.assignmentExpression;
+import static com.google.dart.java2dart.util.AstFactory.binaryExpression;
+import static com.google.dart.java2dart.util.AstFactory.blockFunctionBody;
+import static com.google.dart.java2dart.util.AstFactory.expressionFunctionBody;
+import static com.google.dart.java2dart.util.AstFactory.expressionStatement;
+import static com.google.dart.java2dart.util.AstFactory.fieldDeclaration;
+import static com.google.dart.java2dart.util.AstFactory.formalParameterList;
+import static com.google.dart.java2dart.util.AstFactory.functionDeclaration;
+import static com.google.dart.java2dart.util.AstFactory.functionExpression;
+import static com.google.dart.java2dart.util.AstFactory.identifier;
+import static com.google.dart.java2dart.util.AstFactory.integer;
+import static com.google.dart.java2dart.util.AstFactory.methodDeclaration;
+import static com.google.dart.java2dart.util.AstFactory.methodInvocation;
+import static com.google.dart.java2dart.util.AstFactory.parenthesizedExpression;
+import static com.google.dart.java2dart.util.AstFactory.prefixExpression;
+import static com.google.dart.java2dart.util.AstFactory.propertyAccess;
+import static com.google.dart.java2dart.util.AstFactory.simpleFormalParameter;
+import static com.google.dart.java2dart.util.AstFactory.typeName;
+import static com.google.dart.java2dart.util.AstFactory.variableDeclaration;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -78,7 +77,6 @@ import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
 import java.io.PrintWriter;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -107,7 +105,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
     if (node instanceof ClassDeclaration) {
       ClassDeclaration classDeclaration = (ClassDeclaration) node;
       if (classDeclaration.getName().getName().equals("TestAll")) {
-        node.accept(new RecursiveASTVisitor<Void>() {
+        node.accept(new RecursiveAstVisitor<Void>() {
           @Override
           public Void visitMethodInvocation(MethodInvocation node) {
             if (node.getMethodName().getName().equals("addTestSuite")) {
@@ -127,9 +125,9 @@ public class EngineSemanticProcessor extends SemanticProcessor {
   /**
    * Generates "invokeParserMethodImpl" and supporting Dart code.
    */
-  public static void replaceReflectionMethods(final Context context, final PrintWriter pw,
-      ASTNode node) {
-    node.accept(new RecursiveASTVisitor<Void>() {
+  public static void replaceReflection_generateParserTable(final Context context,
+      final PrintWriter pw, AstNode node) {
+    node.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
         List<ClassMember> members = Lists.newArrayList(node.getMembers());
@@ -141,7 +139,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
         if (node.getName().getName().equals("Parser")) {
           Set<String> usedMethodSignatures = Sets.newHashSet();
           pw.println();
-          pw.print("Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {");
+          pw.print("Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline> {");
           for (ClassMember classMember : members) {
             Object binding = context.getNodeBinding(classMember);
             if (classMember instanceof MethodDeclaration && binding instanceof IMethodBinding) {
@@ -191,7 +189,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         String name = node.getName().getName();
-        if (name.equals("findParserMethod")) {
+        if (name.equals("_findParserMethod")) {
           removeMethod(node);
         }
         if (name.equals("invokeParserMethodImpl")) {
@@ -199,7 +197,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           String source = toSource(
               "Object invokeParserMethodImpl(Parser parser, String methodName, List<Object> objects, Token tokenStream) {",
               "  parser.currentToken = tokenStream;",
-              "  MethodTrampoline method = _methodTable_Parser['${methodName}_${objects.length}'];",
+              "  MethodTrampoline method = methodTable_Parser['${methodName}_${objects.length}'];",
               "  return method.invoke(parser, objects);",
               "}");
           pw.print("\n");
@@ -208,6 +206,18 @@ public class EngineSemanticProcessor extends SemanticProcessor {
         }
         return super.visitMethodDeclaration(node);
       }
+
+      private void removeMethod(MethodDeclaration node) {
+        ((ClassDeclaration) node.getParent()).getMembers().remove(node);
+      }
+    });
+  }
+
+  /**
+   * Rewrites "invokeParserMethodImpl" invocation.
+   */
+  public static void replaceReflection_invokeParserMethodImpl(AstNode node) {
+    node.accept(new RecursiveAstVisitor<Void>() {
 
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
@@ -218,10 +228,6 @@ public class EngineSemanticProcessor extends SemanticProcessor {
         }
         return super.visitMethodInvocation(node);
       }
-
-      private void removeMethod(MethodDeclaration node) {
-        ((ClassDeclaration) node.getParent()).getMembers().remove(node);
-      }
     });
   }
 
@@ -229,10 +235,10 @@ public class EngineSemanticProcessor extends SemanticProcessor {
    * Find code like:
    * 
    * <pre>
-   *   Field scopeField = visitor.getClass().getSuperclass().getDeclaredField("nameScope");
-   *   scopeField.setAccessible(true);
-   *   Scope outerScope = (Scope) scopeField.get(visitor);
-   * </pre>
+     *   Field scopeField = visitor.getClass().getSuperclass().getDeclaredField("nameScope");
+     *   scopeField.setAccessible(true);
+     *   Scope outerScope = (Scope) scopeField.get(visitor);
+     * </pre>
    * 
    * and replaces it with direct calling of generated public accessors.
    */
@@ -241,7 +247,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
     final Map<String, String> varToMethod = Maps.newHashMap();
     final Set<Pair<String, String>> refClassFields = Sets.newHashSet();
     final String accessorSuffix = "_J2DAccessor";
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
 
       @Override
       public Void visitBlock(Block node) {
@@ -369,7 +375,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       }
     });
     // generate private field accessors
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
         String className = node.getName().getName();
@@ -413,9 +419,9 @@ public class EngineSemanticProcessor extends SemanticProcessor {
     });
   }
 
-  static void useImportPrefix(final Context context, final ASTNode rootNode,
+  static void useImportPrefix(final Context context, final AstNode rootNode,
       final String prefixName, final String[] packageNames) {
-    rootNode.accept(new RecursiveASTVisitor<Void>() {
+    rootNode.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         super.visitMethodInvocation(node);
@@ -489,20 +495,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(final CompilationUnit unit) {
-    List<CompilationUnitMember> declarations = unit.getDeclarations();
-    // remove NodeList, it is declared in enginelib.dart
-    for (Iterator<CompilationUnitMember> iter = declarations.iterator(); iter.hasNext();) {
-      CompilationUnitMember member = iter.next();
-      if (member instanceof ClassDeclaration) {
-        ClassDeclaration classDeclaration = (ClassDeclaration) member;
-        String name = classDeclaration.getName().getName();
-        if (name.equals("NodeList")) {
-          iter.remove();
-        }
-      }
-    }
-    // process nodes
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
         // visit copy of members (we modify them)
@@ -527,26 +520,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
                       "hashCode",
                       prefixExpression(TokenType.PLUS_PLUS, identifier("_hashCodeGenerator")))));
         }
-        // "Type" is declared in dart:core, so replace it
-        if (JavaUtils.isTypeNamed(typeBinding, "com.google.dart.engine.type.Type")) {
-          SimpleIdentifier nameNode = node.getName();
-          context.renameIdentifier(nameNode, "Type2");
-        }
         // done
-        return null;
-      }
-
-      @Override
-      public Void visitFieldDeclaration(FieldDeclaration node) {
-        super.visitFieldDeclaration(node);
-        ClassDeclaration parentClass = (ClassDeclaration) node.getParent();
-        if (parentClass.getName().getName().equals("FileBasedSource")) {
-          for (VariableDeclaration field : node.getFields().getVariables()) {
-            if (field.getName().getName().equals("_UTF_8_CHARSET")) {
-              parentClass.getMembers().remove(node);
-            }
-          }
-        }
         return null;
       }
 
@@ -572,37 +546,19 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         super.visitMethodDeclaration(node);
-        IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
         String name = node.getName().getName();
-        if ("accept".equals(name) && node.getParameters().getParameters().size() == 1) {
+        NodeList<FormalParameter> parameters = getParameters(node);
+        if ("accept".equals(name) && parameters.size() == 1) {
           node.setReturnType(null);
-          FormalParameter formalParameter = node.getParameters().getParameters().get(0);
+          FormalParameter formalParameter = parameters.get(0);
           ((SimpleFormalParameter) formalParameter).getType().setTypeArguments(null);
-        }
-        if (isMethodInClass(binding, "ensureVmIsExecutable", "com.google.dart.engine.sdk.DartSdk")) {
-          node.setBody(blockFunctionBody());
-          return null;
-        }
-        if (isMethodInClass(
-            binding,
-            "getContentsFromFile",
-            "com.google.dart.engine.source.FileBasedSource")) {
-          SimpleIdentifier receiverIdent = node.getParameters().getParameters().get(0).getIdentifier();
-          Block tryCacheBlock = block();
-          ExpressionStatement statement = expressionStatement(methodInvocation(
-              receiverIdent,
-              "accept",
-              methodInvocation(identifier("file"), "readAsStringSync"),
-              methodInvocation(identifier("file"), "lastModified")));
-          node.setBody(blockFunctionBody(tryCacheBlock, statement));
-          return null;
         }
         return null;
       }
 
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
-        ASTNode parent = node.getParent();
+        AstNode parent = node.getParent();
         List<Expression> args = node.getArgumentList().getArguments();
         if (isMethodInClass(node, "toArray", "com.google.dart.engine.utilities.collection.IntList")) {
           replaceNode(node, node.getTarget());
@@ -658,6 +614,13 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           }
         }
         return super.visitTypeName(node);
+      }
+
+      private NodeList<FormalParameter> getParameters(MethodDeclaration node) {
+        if (node.getParameters() == null) {
+          return new NodeList<FormalParameter>(null);
+        }
+        return node.getParameters().getParameters();
       }
     });
   }

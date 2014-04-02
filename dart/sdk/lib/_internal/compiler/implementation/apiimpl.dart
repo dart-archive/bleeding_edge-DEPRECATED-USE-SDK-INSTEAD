@@ -14,6 +14,7 @@ import 'ssa/tracer.dart' as ssa;
 import '../../libraries.dart';
 import 'source_file.dart';
 
+
 class Compiler extends leg.Compiler {
   api.CompilerInputProvider provider;
   api.DiagnosticHandler handler;
@@ -56,12 +57,16 @@ class Compiler extends leg.Compiler {
                 hasOption(options, '--disable-type-inference'),
             preserveComments: hasOption(options, '--preserve-comments'),
             verbose: hasOption(options, '--verbose'),
-            sourceMapUri: extractSourceMapUri(options),
+            sourceMapUri: extractUriOption(options, '--source-map='),
+            outputUri: extractUriOption(options, '--out='),
             terseDiagnostics: hasOption(options, '--terse'),
             dumpInfo: hasOption(options, '--dump-info'),
             buildId: extractStringOption(
                 options, '--build-id=',
-                "build number could not be determined")) {
+                "build number could not be determined"),
+            showPackageWarnings:
+                hasOption(options, '--show-package-warnings'),
+            useContentSecurityPolicy: hasOption(options, '--csp')) {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("libraryRoot must end with a /");
     }
@@ -81,8 +86,8 @@ class Compiler extends leg.Compiler {
     return defaultValue;
   }
 
-  static Uri extractSourceMapUri(List<String> options) {
-    var option = extractStringOption(options, '--source-map=', null);
+  static Uri extractUriOption(List<String> options, String prefix) {
+    var option = extractStringOption(options, prefix, null);
     return (option == null) ? null : Uri.parse(option);
   }
 
@@ -155,15 +160,16 @@ class Compiler extends leg.Compiler {
   /**
    * Reads the script designated by [readableUri].
    */
-  Future<leg.Script> readScript(Uri readableUri,
-                                [elements.Element element, tree.Node node]) {
+  Future<leg.Script> readScript(leg.Spannable node, Uri readableUri) {
     if (!readableUri.isAbsolute) {
-      internalError('Relative uri $readableUri provided to readScript(Uri)',
-                    node: node);
+      internalError(node,
+          'Relative uri $readableUri provided to readScript(Uri).');
     }
 
-    // TODO(johnniwinther): Add [:report(..., {Element element}):] to
-    // report methods in Compiler.
+    // We need to store the current element since we are reporting read errors
+    // asynchronously and therefore need to restore the current element for
+    // [node] to be valid.
+    elements.Element element = currentElement;
     void reportReadError(exception) {
       withCurrentElement(element, () {
         reportError(node,
@@ -172,7 +178,7 @@ class Compiler extends leg.Compiler {
       });
     }
 
-    Uri resourceUri = translateUri(readableUri, node);
+    Uri resourceUri = translateUri(node, readableUri);
     // TODO(johnniwinther): Wrap the result from [provider] in a specialized
     // [Future] to ensure that we never execute an asynchronous action without
     // setting up the current element of the compiler.
@@ -192,7 +198,7 @@ class Compiler extends leg.Compiler {
       // the scheme in the script because [Script.uri] is used for resolving
       // relative URIs mentioned in the script. See the comment on
       // [LibraryLoader] for more details.
-      return new leg.Script(readableUri, sourceFile);
+      return new leg.Script(readableUri, resourceUri, sourceFile);
     }).catchError((error) {
       reportReadError(error);
       return null;
@@ -204,9 +210,9 @@ class Compiler extends leg.Compiler {
    *
    * See [LibraryLoader] for terminology on URIs.
    */
-  Uri translateUri(Uri readableUri, tree.Node node) {
+  Uri translateUri(leg.Spannable node, Uri readableUri) {
     switch (readableUri.scheme) {
-      case 'package': return translatePackageUri(readableUri, node);
+      case 'package': return translatePackageUri(node, readableUri);
       default: return readableUri;
     }
   }
@@ -261,7 +267,7 @@ class Compiler extends leg.Compiler {
     return libraryRoot.resolve(patchPath);
   }
 
-  Uri translatePackageUri(Uri uri, tree.Node node) {
+  Uri translatePackageUri(leg.Spannable node, Uri uri) {
     if (packageRoot == null) {
       reportFatalError(
           node, leg.MessageKind.PACKAGE_ROOT_NOT_SET, {'uri': uri});
@@ -284,8 +290,10 @@ class Compiler extends leg.Compiler {
     });
   }
 
-  void reportDiagnostic(leg.SourceSpan span, String message,
+  void reportDiagnostic(leg.Spannable node,
+                        leg.Message message,
                         api.Diagnostic kind) {
+    leg.SourceSpan span = spanFromSpannable(node);
     if (identical(kind, api.Diagnostic.ERROR)
         || identical(kind, api.Diagnostic.CRASH)) {
       compilationFailed = true;
@@ -293,10 +301,10 @@ class Compiler extends leg.Compiler {
     // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
     // instance in the [Types] constructor in typechecker.dart.
     if (span == null || span.uri == null) {
-      callUserHandler(null, null, null, message, kind);
+      callUserHandler(null, null, null, '$message', kind);
     } else {
       callUserHandler(
-          translateUri(span.uri, null), span.begin, span.end, message, kind);
+          translateUri(null, span.uri), span.begin, span.end, '$message', kind);
     }
   }
 

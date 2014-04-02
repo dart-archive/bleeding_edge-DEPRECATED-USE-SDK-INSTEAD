@@ -31,13 +31,6 @@ export 'package:http/http.dart' show ByteStream;
 /// additional throughput.
 final _descriptorPool = new Pool(32);
 
-/// Returns whether or not [entry] is nested somewhere within [dir]. This just
-/// performs a path comparison; it doesn't look at the actual filesystem.
-bool isBeneath(String entry, String dir) {
-  var relative = path.relative(entry, from: dir);
-  return !path.isAbsolute(relative) && path.split(relative)[0] != '..';
-}
-
 /// Determines if a file or directory exists at [path].
 bool entryExists(String path) =>
   dirExists(path) || fileExists(path) || linkExists(path);
@@ -249,44 +242,27 @@ String createSystemTempDir() {
 /// contents (defaults to `false`). If [includeHidden] is `true`, includes files
 /// and directories beginning with `.` (defaults to `false`).
 ///
+/// Note that dart:io handles recursive symlinks in an unfortunate way. You
+/// end up with two copies of every entity that is within the recursive loop.
+/// We originally had our own directory list code that addressed that, but it
+/// had a noticeable performance impact. In the interest of speed, we'll just
+/// live with that annoying behavior.
+///
 /// The returned paths are guaranteed to begin with [dir].
 List<String> listDir(String dir, {bool recursive: false,
     bool includeHidden: false}) {
-  List<String> doList(String dir, Set<String> listedDirectories) {
-    var contents = <String>[];
+  var entities = new Directory(dir).listSync(recursive: recursive);
 
-    // Avoid recursive symlinks.
-    var resolvedPath = canonicalize(dir);
-    if (listedDirectories.contains(resolvedPath)) return [];
+  isHidden(part) => part.startsWith(".") && part != "." && part != "..";
 
-    listedDirectories = new Set<String>.from(listedDirectories);
-    listedDirectories.add(resolvedPath);
-
-    log.io("Listing directory $dir.");
-
-    var children = <String>[];
-    for (var entity in new Directory(dir).listSync()) {
-      if (!includeHidden && path.basename(entity.path).startsWith('.')) {
-        continue;
-      }
-
-      contents.add(entity.path);
-      if (entity is Directory) {
-        // TODO(nweiz): don't manually recurse once issue 4794 is fixed.
-        // Note that once we remove the manual recursion, we'll need to
-        // explicitly filter out files in hidden directories.
-        if (recursive) {
-          children.addAll(doList(entity.path, listedDirectories));
-        }
-      }
-    }
-
-    log.fine("Listed directory $dir:\n${contents.join('\n')}");
-    contents.addAll(children);
-    return contents;
+  if (!includeHidden) {
+    entities = entities.where((entity) {
+      assert(entity.path.startsWith(dir));
+      return !path.split(entity.path.substring(dir.length + 1)).any(isHidden);
+    });
   }
 
-  return doList(dir, new Set<String>());
+  return entities.map((entity) => entity.path).toList();
 }
 
 /// Returns whether [dir] exists on the file system. This will return `true` for
@@ -342,7 +318,7 @@ void deleteEntry(String path) {
 /// new empty directory will be created.
 void cleanDir(String dir) {
   if (entryExists(dir)) deleteEntry(dir);
-  createDir(dir);
+  ensureDir(dir);
 }
 
 /// Renames (i.e. moves) the directory [from] to [to].
@@ -405,13 +381,13 @@ void createPackageSymlink(String name, String target, String symlink,
 bool get runningFromSdk => Platform.script.path.endsWith('.snapshot');
 
 /// Resolves [target] relative to the path to pub's `resource` directory.
-String resourcePath(String target) {
+String assetPath(String target) {
   if (runningFromSdk) {
     return path.join(
-        sdk.rootDirectory, 'lib', '_internal', 'pub', 'resource', target);
+        sdk.rootDirectory, 'lib', '_internal', 'pub', 'asset', target);
   } else {
     return path.join(
-        path.dirname(libraryPath('pub.io')), '..', '..', 'resource', target);
+        path.dirname(libraryPath('pub.io')), '..', '..', 'asset', target);
   }
 }
 
@@ -421,8 +397,8 @@ String get repoRoot {
   if (runningFromSdk) {
     throw new StateError("Can't get the repo root from the SDK.");
   }
-  return path.join(
-      path.dirname(libraryPath('pub.io')), '..', '..', '..', '..', '..', '..');
+  return path.normalize(path.join(
+      path.dirname(libraryPath('pub.io')), '..', '..', '..', '..', '..', '..'));
 }
 
 /// A line-by-line stream of standard input.
@@ -729,7 +705,7 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
 }
 
 String get pathTo7zip {
-  if (runningFromSdk) return resourcePath(path.join('7zip', '7za.exe'));
+  if (runningFromSdk) return assetPath(path.join('7zip', '7za.exe'));
   return path.join(repoRoot, 'third_party', '7zip', '7za.exe');
 }
 
@@ -795,7 +771,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
     baseDir = path.absolute(baseDir);
     contents = contents.map((entry) {
       entry = path.absolute(entry);
-      if (!isBeneath(entry, baseDir)) {
+      if (!path.isWithin(baseDir, entry)) {
         throw new ArgumentError('Entry $entry is not inside $baseDir.');
       }
       return path.relative(entry, from: baseDir);

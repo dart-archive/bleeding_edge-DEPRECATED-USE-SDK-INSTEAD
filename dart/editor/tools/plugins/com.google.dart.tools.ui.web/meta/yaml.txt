@@ -8,8 +8,8 @@ authors
 homepage
 url
 ref
-environment
 path
+environment
 documentation
 dependency_overrides
 transformers

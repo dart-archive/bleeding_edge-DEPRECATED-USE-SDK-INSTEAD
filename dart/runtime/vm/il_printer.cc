@@ -132,7 +132,7 @@ const char* CompileType::ToCString() const {
 }
 
 
-static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
+static void PrintICDataHelper(BufferFormatter* f, const ICData& ic_data) {
   f->Print(" IC[%" Pd ": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
@@ -156,6 +156,14 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
     f->Print(" <%p>", static_cast<void*>(target.raw()));
   }
   f->Print("]");
+}
+
+
+void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintICDataHelper(&f, ic_data);
+  OS::Print("%s\n", buffer);
 }
 
 
@@ -311,6 +319,15 @@ const char* RangeBoundary::ToCString() const {
 }
 
 
+void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%" Pd "", num_temps());
+  if (value() != NULL) {
+    f->Print(", ");
+    value()->PrintTo(f);
+  }
+}
+
+
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(", %s, '%s'",
@@ -345,7 +362,7 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     PushArgumentAt(i)->value()->PrintTo(f);
   }
   if (HasICData()) {
-    PrintICData(f, *ic_data());
+    PrintICDataHelper(f, *ic_data());
   }
 }
 
@@ -356,7 +373,7 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
   }
-  PrintICData(f, ic_data());
+  PrintICDataHelper(f, ic_data());
 }
 
 
@@ -420,9 +437,13 @@ void GuardFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s {%" Pd "}, ",
-           String::Handle(field().name()).ToCString(),
-           field().Offset());
+  if (field().IsNull()) {
+    f->Print("{%" Pd "}, ", offset_in_bytes());
+  } else {
+    f->Print("%s {%" Pd "}, ",
+             String::Handle(field().name()).ToCString(),
+             field().Offset());
+  }
   instance()->PrintTo(f);
   f->Print(", ");
   value()->PrintTo(f);
@@ -483,7 +504,7 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(cls_.Name()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
-    f->Print("%s: ", String::Handle(fields_[i]->name()).ToCString());
+    f->Print("%s: ", slots_[i]->ToCString());
     InputAt(i)->PrintTo(f);
   }
 }
@@ -496,15 +517,6 @@ void CreateArrayInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
   if (ArgumentCount() > 0) f->Print(", ");
   element_type()->PrintTo(f);
-}
-
-
-void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", function().ToCString());
-  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
-    if (i > 0) f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
-  }
 }
 
 
@@ -530,13 +542,6 @@ void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void StoreVMFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  dest()->PrintTo(f);
-  f->Print(", %" Pd ", ", offset_in_bytes());
-  value()->PrintTo(f);
-}
-
-
 void InstantiateTypeInstr::PrintOperandsTo(BufferFormatter* f) const {
   const String& type_name = String::Handle(type().Name());
   f->Print("%s, ", type_name.ToCString());
@@ -545,14 +550,6 @@ void InstantiateTypeInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void InstantiateTypeArgumentsInstr::PrintOperandsTo(BufferFormatter* f) const {
-  const String& type_args = String::Handle(type_arguments().Name());
-  f->Print("%s, ", type_args.ToCString());
-  instantiator()->PrintTo(f);
-}
-
-
-void ExtractConstructorTypeArgumentsInstr::PrintOperandsTo(
-    BufferFormatter* f) const {
   const String& type_args = String::Handle(type_arguments().Name());
   f->Print("%s, ", type_args.ToCString());
   instantiator()->PrintTo(f);
@@ -607,11 +604,20 @@ void BinaryFloat32x4OpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void BinaryFloat64x2OpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
 void Simd32x4ShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
   // TODO(johnmccutchan): Add proper string enumeration of shuffle.
   f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
   value()->PrintTo(f);
 }
+
 
 void Simd32x4ShuffleMixInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
@@ -713,7 +719,58 @@ void Float32x4ToInt32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void Simd64x2ShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
+  // TODO(johnmccutchan): Add proper string enumeration of shuffle.
+  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
+  value()->PrintTo(f);
+}
 
+
+void Float64x2ZeroInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float64x2.zero ");
+}
+
+
+void Float64x2SplatInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float64x2.splat ");
+  value()->PrintTo(f);
+}
+
+
+void Float64x2ConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float64x2(");
+  value0()->PrintTo(f);
+  f->Print(", ");
+  value1()->PrintTo(f);
+  f->Print(")");
+}
+
+
+void Float32x4ToFloat64x2Instr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float64x2.fromFloat32x4 ");
+  left()->PrintTo(f);
+}
+
+
+void Float64x2ToFloat32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float32x4.fromFloat64x2 ");
+  left()->PrintTo(f);
+}
+
+
+void Float64x2ZeroArgInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
+  left()->PrintTo(f);
+}
+
+
+void Float64x2OneArgInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s(", MethodRecognizer::KindToCString(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+  f->Print(")");
+}
 
 
 void Int32x4BoolConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -803,7 +860,7 @@ void UnaryDoubleOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  PrintICData(f, unary_checks());
+  PrintICDataHelper(f, unary_checks());
   if (IsNullCheck()) {
     f->Print(" nullcheck");
   }

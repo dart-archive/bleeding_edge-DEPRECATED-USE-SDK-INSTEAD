@@ -5,28 +5,28 @@
 part of dart2js;
 
 abstract class DiagnosticListener {
-  // TODO(karlklose): replace cancel with better error reporting mechanism.
-  void cancel(String reason, {node, token, instruction, element});
   // TODO(karlklose): rename log to something like reportInfo.
   void log(message);
 
-  void internalErrorOnElement(Element element, String message);
-  void internalError(String message,
-                     {Node node, Token token, HInstruction instruction,
-                      Element element});
+  void internalError(Spannable spannable, message);
 
-  SourceSpan spanFromSpannable(Spannable node, [Uri uri]);
+  SourceSpan spanFromSpannable(Spannable node);
 
-  void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind);
+  /// Reports an error and terminates computation immediately.
+  void reportFatalError(Spannable node, MessageKind errorCode,
+                        [Map arguments = const {}]);
 
-  void reportError(Spannable node, MessageKind errorCode, [Map arguments]);
+  void reportError(Spannable node, MessageKind errorCode,
+                   [Map arguments = const {}]);
 
-  // TODO(johnniwinther): Rename to [reportWarning] when
-  // [Compiler.reportWarning] has been removed.
-  void reportWarningCode(Spannable node, MessageKind errorCode,
-                         [Map arguments = const {}]);
+  void reportWarning(Spannable node, MessageKind errorCode,
+                     [Map arguments = const {}]);
 
-  void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]);
+  void reportHint(Spannable node, MessageKind errorCode,
+                  [Map arguments = const {}]);
+
+  void reportInfo(Spannable node, MessageKind errorCode,
+                  [Map arguments = const {}]);
 
   // TODO(ahe): We should not expose this here.  Perhaps a
   // [SourceSpan] should implement [Spannable], and we should have a

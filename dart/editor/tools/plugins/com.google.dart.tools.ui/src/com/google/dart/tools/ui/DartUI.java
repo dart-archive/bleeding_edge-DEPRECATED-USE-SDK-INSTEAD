@@ -13,12 +13,14 @@
  */
 package com.google.dart.tools.ui;
 
+import com.google.common.base.Charsets;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchScope;
 import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.model.DartElement;
@@ -35,9 +37,12 @@ import com.google.dart.tools.ui.text.IColorManager;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
@@ -51,6 +56,11 @@ import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 
 /**
@@ -234,6 +244,16 @@ public final class DartUI {
    * <code>"com.google.dart.tools.ui.MembersView"</code>).
    */
   public static String ID_MEMBERS_VIEW = "com.google.dart.tools.ui.MembersView"; //$NON-NLS-1$
+
+  /**
+   * The maximal length of a document for which we want to support Dart editing features.
+   */
+  private static final int MAX_DOCUMENT_LENGTH = (int) (1.5 * 1024 * 1024);
+
+  /**
+   * The maximal length of a line in a document for which we want to support Dart editing features.
+   */
+  private static final int MAX_LINE_LENGTH = 1000;
 
   /**
    * Creates a selection dialog that lists all types in the given project. The caller is responsible
@@ -507,12 +527,28 @@ public final class DartUI {
       return null;
     }
     IFile file = map.getResource(elementSource);
-    // TODO(keertip): move this to a check for sources that are referenced by package: only. We cannot
-    // quite figure this out right now, so we do this for all files. Package sources have their canonical
-    // path, so look for a resource with the same path in the workspace.
+
     if (file != null) {
       IResource resource = DartCore.getProjectManager().getResource(elementSource);
       if (resource instanceof IFile) {
+        // on Windows, check if there is an resource in project/lib in workspace that is 
+        // the same as the one in packages. If so, open the local source and not packages
+        if (DartCore.isWindows()
+            && resource.getFullPath().toString().contains(DartCore.PACKAGES_DIRECTORY_PATH)) {
+
+          String path = resource.getFullPath().toString();
+          int index = path.indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
+          String packageUri = DartCore.PACKAGE_SCHEME_SPEC
+              + path.substring(index + DartCore.PACKAGES_DIRECTORY_PATH.length());
+
+          IFileInfo info = DartCore.getProjectManager().resolveUriToFileInfo(
+              map.getResource(),
+              packageUri);
+          if (info != null && info.getResource() != null) {
+            return info.getResource();
+          }
+        }
+
         file = (IFile) resource;
       }
     }
@@ -651,6 +687,65 @@ public final class DartUI {
   }
 
   /**
+   * Eclipse StyledText becomes very slow (practically hangs) when it attempts to render a long line
+   * with many style ranges. We need to check for this and avoid creating styles.
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=17204
+   * <p>
+   * https://bugs.eclipse.org/bugs/show_bug.cgi?id=196731
+   */
+  public static boolean isTooComplexDartDocument(IDocument document) {
+    if (document == null) {
+      return false;
+    }
+    if (document.getLength() > MAX_DOCUMENT_LENGTH) {
+      return true;
+    }
+    int numberOfLines = document.getNumberOfLines();
+    for (int i = 0; i < numberOfLines; i++) {
+      try {
+        if (document.getLineLength(i) > MAX_LINE_LENGTH) {
+          return true;
+        }
+      } catch (BadLocationException e) {
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given Dart file will be too complex for the opening it in the Dart editor.
+   */
+  public static boolean isTooComplexDartFile(IFile resource) {
+    IPath resourceLoc = resource.getLocation();
+    if (resourceLoc == null) {
+      return false;
+    }
+    // should not be too long
+    File file = resourceLoc.toFile();
+    if (file.length() > MAX_DOCUMENT_LENGTH) {
+      return true;
+    }
+    // check line length
+    try {
+      Reader reader = new InputStreamReader(new FileInputStream(file), Charsets.UTF_8);
+      BufferedReader br = new BufferedReader(reader);
+      try {
+        String line = br.readLine();
+        if (line.length() > MAX_LINE_LENGTH) {
+          return true;
+        }
+      } finally {
+        br.close();
+      }
+    } catch (Throwable e) {
+      return true;
+    }
+    // OK
+    return false;
+  }
+
+  /**
    * Opens an editor with {@link Element} in context of the given {@link DartEditor}.
    * 
    * @param contextEditor the {@link DartEditor} to use as context, may be {@code null}.
@@ -731,6 +826,8 @@ public final class DartUI {
       PartInitException {
     element = DartElementUtil.getVariableIfSyntheticAccessor(element);
     element = DartElementUtil.getAccessorIfSyntheticVariable(element);
+    element = DartElementUtil.getExplicitIfSyntheticImplicitConstructor(element);
+    element = DartElementUtil.getClassIfSyntheticDefaultConstructor(element);
     return openInEditor(element, true, true);
   }
 

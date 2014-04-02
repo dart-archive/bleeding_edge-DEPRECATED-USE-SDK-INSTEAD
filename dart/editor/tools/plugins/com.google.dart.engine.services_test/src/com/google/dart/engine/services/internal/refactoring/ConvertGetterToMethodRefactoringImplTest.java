@@ -14,11 +14,13 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.refactoring.ConvertGetterToMethodRefactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
+import com.google.dart.engine.source.Source;
 
 /**
  * Test for {@link ConvertGetterToMethodRefactoringImpl}.
@@ -27,6 +29,7 @@ public class ConvertGetterToMethodRefactoringImplTest extends RefactoringImplTes
   private PropertyAccessorElement selectionElement;
   private ConvertGetterToMethodRefactoringImpl refactoring;
   private RefactoringStatus refactoringStatus;
+  private Change refactoringChange;
 
   public void test_access() throws Exception {
     indexTestUnit(
@@ -155,6 +158,53 @@ public class ConvertGetterToMethodRefactoringImplTest extends RefactoringImplTes
         "}");
   }
 
+  public void test_unitSharedBetweenLibraries() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int get test => 42;");
+    Source sourceShared = addSource(
+        "/shared.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of my_lib;",
+            "foo() {",
+            "  return test;",
+            "}"));
+    Source sourceA = addSource(
+        "/libA.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library my_lib;",
+            "import 'Test.dart';",
+            "part 'shared.dart';"));
+    Source sourceB = addSource(
+        "/libB.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library my_lib;",
+            "import 'Test.dart';",
+            "part 'shared.dart';"));
+    CompilationUnit sharedUnitA = analysisContext.resolveCompilationUnit(sourceShared, sourceA);
+    CompilationUnit sharedUnitB = analysisContext.resolveCompilationUnit(sourceShared, sourceB);
+    indexUnit(sharedUnitA);
+    indexUnit(sharedUnitB);
+    selectionElement = findIdentifierElement("test =>");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int test() => 42;");
+    assertChangeResult(
+        refactoringChange,
+        sourceShared,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of my_lib;",
+            "foo() {",
+            "  return test();",
+            "}"));
+  }
+
   public void test_withReturnType() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -179,8 +229,8 @@ public class ConvertGetterToMethodRefactoringImplTest extends RefactoringImplTes
    */
   protected final void assertSuccessfulRefactoring(String... lines) throws Exception {
     assertRefactoringStatusOK(refactoringStatus);
-    Change change = refactoring.createChange(pm);
-    assertTestChangeResult(change, makeSource(lines));
+    refactoringChange = refactoring.createChange(pm);
+    assertTestChangeResult(refactoringChange, makeSource(lines));
   }
 
   /**

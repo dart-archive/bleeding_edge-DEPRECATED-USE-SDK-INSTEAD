@@ -9,6 +9,7 @@
 
 #include "vm/ast_printer.h"
 #include "vm/compiler.h"
+#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
@@ -43,11 +44,11 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   // Support unboxed mints when SSE 4.1 is available.
-  return FLAG_unbox_mints && CPUFeatures::sse4_1_supported();
+  return FLAG_unbox_mints && TargetCPUFeatures::sse4_1_supported();
 }
 
 
-bool FlowGraphCompiler::SupportsUnboxedFloat32x4() {
+bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return FLAG_enable_simd_inline;
 }
 
@@ -517,20 +518,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     // type error. A null value is handled prior to executing this inline code.
     return SubtypeTestCache::null();
   }
-  if (TypeCheckAsClassEquality(type)) {
-    const intptr_t type_cid = Class::Handle(type.type_class()).id();
-    const Register kInstanceReg = EAX;
-    __ testl(kInstanceReg, Immediate(kSmiTagMask));
-    if (type_cid == kSmiCid) {
-      __ j(ZERO, is_instance_lbl);
-    } else {
-      __ j(ZERO, is_not_instance_lbl);
-      __ CompareClassId(kInstanceReg, type_cid, EDI);
-      __ j(EQUAL, is_instance_lbl);
-    }
-    __ jmp(is_not_instance_lbl);
-    return SubtypeTestCache::null();
-  }
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
     // A class equality check is only applicable with a dst type of a
@@ -747,7 +734,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   }
   Definition* defn = instr->AsDefinition();
   if ((defn != NULL) && defn->is_used()) {
-    Location value = defn->locs()->out();
+    Location value = defn->locs()->out(0);
     if (value.IsRegister()) {
       __ pushl(value.reg());
     } else {
@@ -1343,26 +1330,11 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // be invoked as a normal Dart function.
   __ movl(EAX, FieldAddress(EDI, ECX, TIMES_4, base + kWordSize));
   __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
-  if (FLAG_collect_code) {
-    // If we are collecting code, the code object may be null.
-    Label is_compiled;
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpl(EBX, raw_null);
-    __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
-    __ call(&StubCode::CompileFunctionRuntimeCallLabel());
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
-    RecordSafepoint(locs);
-    __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
-    __ Bind(&is_compiled);
-  }
-  __ movl(EAX, FieldAddress(EBX, Code::instructions_offset()));
+  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, arguments_descriptor);
-  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ call(EAX);
+  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ call(EBX);
   AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
   AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);

@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.feedback;
 
 import com.google.dart.engine.utilities.instrumentation.HealthUtils;
+import com.google.dart.tools.core.DartCoreDebug;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.window.IShellProvider;
@@ -68,29 +69,60 @@ public class OpenFeedbackDialogAction extends Action implements IShellProvider {
   @Override
   public void run() {
     HealthUtils.ReportHealth("FeedbackDialog.ctor");
-
     Image screenshot = captureScreen();
-    new FeedbackDialog(getShell(), productName, screenshot) {
 
-      @Override
-      public void create() {
-        super.create();
-        //cache that the dialog is open
-        dialogShell = getShell();
-      }
+    if (DartCoreDebug.ENABLE_NEW_FEEDBACK) {
+      try {
+        new FeedbackDialog2(null, productName, screenshot) {
 
-      @Override
-      public int open() {
-        int result = SWT.CANCEL;
-        try {
-          result = super.open();
-        } finally {
-          //cache that the dialog is closed
-          dialogShell = null;
+          @Override
+          public void create() {
+            super.create();
+            //cache that the dialog is open
+            dialogShell = getShell();
+          }
+
+          @Override
+          public int open() {
+            int result = SWT.CANCEL;
+            try {
+              result = super.open();
+            } finally {
+              //cache that the dialog is closed
+              dialogShell = null;
+            }
+            return result;
+          }
+        }.open();
+      } finally {
+        if (screenshot != null) {
+          screenshot.dispose();
         }
-        return result;
       }
-    }.open();
+
+    } else {
+      new FeedbackDialog(getShell(), productName, screenshot) {
+
+        @Override
+        public void create() {
+          super.create();
+          //cache that the dialog is open
+          dialogShell = getShell();
+        }
+
+        @Override
+        public int open() {
+          int result = SWT.CANCEL;
+          try {
+            result = super.open();
+          } finally {
+            //cache that the dialog is closed
+            dialogShell = null;
+          }
+          return result;
+        }
+      }.open();
+    }
   }
 
   /**

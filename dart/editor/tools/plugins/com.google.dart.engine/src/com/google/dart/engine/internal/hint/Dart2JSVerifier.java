@@ -15,7 +15,7 @@ package com.google.dart.engine.internal.hint;
 
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.HintCode;
@@ -28,7 +28,7 @@ import com.google.dart.engine.type.Type;
  * 
  * @coverage dart.engine.resolver
  */
-public class Dart2JSVerifier extends RecursiveASTVisitor<Void> {
+public class Dart2JSVerifier extends RecursiveAstVisitor<Void> {
 
   /**
    * The error reporter by which errors will be reported.
@@ -85,9 +85,9 @@ public class Dart2JSVerifier extends RecursiveASTVisitor<Void> {
       if (typeNameStr.equals(DOUBLE_TYPE_NAME) && libraryElement != null
           && libraryElement.isDartCore()) {
         if (node.getNotOperator() == null) {
-          errorReporter.reportError(HintCode.IS_DOUBLE, node);
+          errorReporter.reportErrorForNode(HintCode.IS_DOUBLE, node);
         } else {
-          errorReporter.reportError(HintCode.IS_NOT_DOUBLE, node);
+          errorReporter.reportErrorForNode(HintCode.IS_NOT_DOUBLE, node);
         }
         return true;
       }

@@ -55,7 +55,7 @@ public enum HtmlWarningCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   private HtmlWarningCode(String message) {
-    this.message = message;
+    this(message, null);
   }
 
   /**

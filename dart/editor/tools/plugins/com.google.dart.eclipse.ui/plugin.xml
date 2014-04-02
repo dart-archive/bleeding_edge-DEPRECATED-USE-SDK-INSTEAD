@@ -34,6 +34,19 @@
                Create a new Dart file
             </description>
       </wizard>
+      <wizard
+            canFinishEarly="false"
+            category="com.google.dart.eclipse.wizards.projects"
+            class="com.google.dart.eclipse.wizards.ImportFolderWizard"
+            finalPerspective="com.google.dart.tools.ui.DartPerspective"
+            icon="icons/newprj_wiz.gif"
+            id="com.google.dart.eclipse.ui.wizard.newProjectSource"
+            name="Dart Project from Existing Source"
+            project="true">
+         <description>
+            Create a new Dart project from existing source
+         </description>
+      </wizard>
       
       <!-- TODO(pquitslund): the New Application Wizard needs an update     
       
@@ -73,11 +86,6 @@
             sequence="M1+M2+P"
             contextId="com.google.dart.tools.ui.dartEditorScope"
             commandId="com.google.dart.tools.ui.edit.text.dart.goto.matching.bracket"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-      <key
-            sequence="F3"
-            contextId="com.google.dart.tools.ui.dartViewScope"
-            commandId="com.google.dart.tools.ui.edit.text.dart.open.editor"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key
            sequence="M2+M3+R"
@@ -127,7 +135,17 @@
            sequence="M1+M2+T"
            contextId="com.google.dart.tools.ui.dartEditorScope"
            commandId="com.google.dart.eclipse.openType"
-           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>             
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+           sequence="F3"
+           contextId="com.google.dart.tools.ui.dartEditorScope"
+           commandId="com.google.dart.tools.ui.edit.text.dart.open.editor"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+       <key
+           sequence="F4"
+           contextId="com.google.dart.tools.ui.dartEditorScope"
+           commandId="com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension>
    
    <extension
@@ -143,6 +161,14 @@
       </perspective>    
    </extension>
 
+   <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="org.eclipse.debug.ui.DebugPerspective">
+         <viewShortcut id="com.google.dart.tools.debug.objectInspectorView"/>
+         <view id="com.google.dart.tools.debug.objectInspectorView"
+            relative="org.eclipse.ui.views.ContentOutline"
+            relationship="stack"/>
+      </perspectiveExtension>
+   </extension>
 
    <extension
          point="org.eclipse.ui.preferencePages">
@@ -220,7 +246,13 @@
                   <instanceof value="org.eclipse.core.filesystem.IFileStore"/>
                </or>
             </parentExpression>
-         </commonSorter>        
+         </commonSorter>
+         <commonWizard
+               menuGroupId="com.google.dart.eclipse.wizards.projects"
+               type="new"
+               wizardId="com.google.dart.eclipse.ui.wizard.newProjectSource">
+            <enablement></enablement>
+         </commonWizard>
         
       </navigatorContent>
    </extension>
@@ -406,7 +438,13 @@
             </visibleWhen>
          </command>
       </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:org.eclipse.ui.run?after=emptyLaunchGroup">
+         <command commandId="com.google.dart.tools.debug.ui.remoteConnection" />
+      </menuContribution>
   </extension>
+
   <extension
         point="org.eclipse.ui.ide.projectNatureImages">
      <image
@@ -453,6 +491,18 @@
       </command> 
    </extension>
 
+   <extension point="org.eclipse.ui.console.consolePatternMatchListeners">
+      <consolePatternMatchListener
+            class="com.google.dart.tools.debug.ui.internal.view.DebuggerPatternMatchListener"
+            id="com.google.dart.tools.debug.ui.internal.view.DebuggerPatternMatchListener"
+            regex="(\\(.*\\))|(  \\S*.dart .*)">
+         <enablement>
+            <test property="org.eclipse.ui.console.consoleTypeTest"
+                  value="org.eclipse.debug.ui.ProcessConsoleType"/>
+         </enablement>
+      </consolePatternMatchListener>
+   </extension>
+
    <extension
          point="org.eclipse.ui.actionSets">
       <actionSet
@@ -482,6 +532,36 @@
                style="push">
          </action>
       </actionSet>
+   </extension>
+
+   <extension point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="true"
+            id="com.google.dart.eclipse.popupMenus"
+            nameFilter="*"
+            objectClass="org.eclipse.core.resources.IProject">
+         <action
+               class="com.google.dart.eclipse.ui.internal.actions.ToggleDartNatureAction"
+               enablesFor="+"
+               id="com.google.dart.eclipse.addRemoveNatureAction"
+               label="Convert to Dart Project..."
+               menubarPath="org.eclipse.ui.projectConfigure/additions">
+         </action>
+      </objectContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <category
+            id="com.google.dart.eclipse.ui.wizards.import"
+            name="Dart">
+      </category>
+      <wizard
+            category="com.google.dart.eclipse.ui.wizards.import"
+            class="com.google.dart.eclipse.wizards.ImportFolderWizard"
+            icon="icons/newprj_wiz.gif"
+            id="com.google.dart.eclipse.ui.import.folder"
+            name="Existing Source">
+      </wizard>
    </extension>
 
 </plugin>

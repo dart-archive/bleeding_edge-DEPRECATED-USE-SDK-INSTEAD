@@ -6,7 +6,6 @@ library polymer.test.linter_test;
 
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/linter.dart';
-import 'package:source_maps/span.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 
@@ -257,11 +256,7 @@ void main() {
             <script>foo...</script>
             </polymer-element>
             </html>'''.replaceAll('            ', ''),
-      }, [
-        'warning: script tag in polymer element with no type will '
-        'be treated as JavaScript. Did you forget type="application/dart"?'
-        ' (lib/test.html 2 0)'
-      ]);
+      }, []);
 
     _testLinter('top-level, dart type & .dart url', {
         'a|lib/test.html': '''<html>
@@ -465,6 +460,8 @@ void main() {
 _testLinter(String name, Map inputFiles, List outputMessages) {
   var linter = new Linter(new TransformOptions());
   var outputFiles = {};
-  inputFiles.forEach((k, v) => outputFiles[k] = v);
+  if (outputMessages.every((m) => m.startsWith('warning:'))) {
+    inputFiles.forEach((k, v) => outputFiles[k] = v);
+  }
   testPhases(name, [[linter]], inputFiles, outputFiles, outputMessages);
 }

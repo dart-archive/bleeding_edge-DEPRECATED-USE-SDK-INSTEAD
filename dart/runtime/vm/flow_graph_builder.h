@@ -318,12 +318,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Definition* BuildStoreExprTemp(Value* value);
   Definition* BuildLoadExprTemp();
 
-  Definition* BuildStoreLocal(const LocalVariable& local,
-                              Value* value,
-                              bool result_is_needed);
+  Definition* BuildStoreLocal(const LocalVariable& local, Value* value);
   Definition* BuildLoadLocal(const LocalVariable& local);
-
-  void HandleStoreLocal(StoreLocalNode* node, bool result_is_needed);
 
   // Helpers for translating parts of the AST.
   void BuildPushArguments(const ArgumentListNode& node,
@@ -335,14 +331,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Value* BuildInstantiatedTypeArguments(
       intptr_t token_pos,
       const TypeArguments& type_arguments);
-
-  // Creates a possibly uninstantiated type argument vector and the type
-  // argument vector of the instantiator used in
-  // preparation of a constructor call.
-  // May be called only if allocating an object of a parameterized class.
-  void BuildConstructorTypeArguments(
-      ConstructorCallNode* node,
-      ZoneGrowableArray<PushArgumentInstr*>* call_arguments);
 
   void BuildTypecheckPushArguments(
       intptr_t token_pos,
@@ -478,7 +466,6 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitBinaryOpNode(BinaryOpNode* node);
   virtual void VisitConditionalExprNode(ConditionalExprNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
-  virtual void VisitStoreLocalNode(StoreLocalNode* node);
   virtual void VisitStoreIndexedNode(StoreIndexedNode* node);
   virtual void VisitInstanceSetterNode(InstanceSetterNode* node);
   virtual void VisitThrowNode(ThrowNode* node);

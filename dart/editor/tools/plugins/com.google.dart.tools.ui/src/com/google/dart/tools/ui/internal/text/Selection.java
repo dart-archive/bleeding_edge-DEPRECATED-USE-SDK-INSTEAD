@@ -13,10 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text;
 
-import com.google.dart.compiler.ast.DartNode;
-
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.jface.text.IRegion;
 
 /**
  * Provisional API: This class/interface is part of an interim API that is still under development
@@ -79,44 +76,8 @@ public class Selection {
   protected Selection() {
   }
 
-  public boolean coveredBy(DartNode node) {
-    int nodeStart = node.getSourceInfo().getOffset();
-    int nodeEnd = node.getSourceInfo().getEnd();
-    return nodeStart <= fStart && fExclusiveEnd <= nodeEnd;
-  }
-
-  public boolean coveredBy(IRegion region) {
-    int rangeStart = region.getOffset();
-    int rangeEnd = rangeStart + region.getLength();
-    return rangeStart <= fStart && fExclusiveEnd <= rangeEnd;
-  }
-
-  public boolean covers(DartNode node) {
-    int nodeStart = node.getSourceInfo().getOffset();
-    int nodeEnd = node.getSourceInfo().getEnd();
-    return fStart <= nodeStart && nodeEnd <= fExclusiveEnd;
-  }
-
   public boolean covers(int position) {
     return fStart <= position && position < fStart + fLength;
-  }
-
-  public boolean endsIn(DartNode node) {
-    int nodeStart = node.getSourceInfo().getOffset();
-    int nodeEnd = node.getSourceInfo().getEnd();
-    return nodeStart < fExclusiveEnd && fExclusiveEnd < nodeEnd;
-  }
-
-  public int getEndVisitSelectionMode(DartNode node) {
-    int nodeEnd = node.getSourceInfo().getEnd();
-    if (nodeEnd <= fStart) {
-      return BEFORE;
-    } else if (covers(node)) {
-      return SELECTED;
-    } else if (nodeEnd >= fExclusiveEnd) {
-      return AFTER;
-    }
-    return INTERSECTS;
   }
 
   // cover* methods do a closed interval check.
@@ -135,38 +96,6 @@ public class Selection {
 
   public int getOffset() {
     return fStart;
-  }
-
-  /**
-   * Returns the selection mode of the given AST node regarding this selection. Possible values are
-   * <code>INTERSECTS</code>, <code>BEFORE</code>, <code>SELECTED</code>, and <code>AFTER</code>.
-   * 
-   * @param node the node to return the visit mode for
-   * @return the selection mode of the given AST node regarding this selection
-   * @see #INTERSECTS
-   * @see #BEFORE
-   * @see #SELECTED
-   * @see #AFTER
-   */
-  public int getVisitSelectionMode(DartNode node) {
-    int nodeStart = node.getSourceInfo().getOffset();
-    int nodeEnd = node.getSourceInfo().getEnd();
-    if (nodeEnd <= fStart) {
-      return BEFORE;
-    } else if (covers(node)) {
-      return SELECTED;
-    } else if (fExclusiveEnd <= nodeStart) {
-      return AFTER;
-    }
-    return INTERSECTS;
-  }
-
-  public boolean liesOutside(DartNode node) {
-    int nodeStart = node.getSourceInfo().getOffset();
-    int nodeEnd = node.getSourceInfo().getEnd();
-    boolean nodeBeforeSelection = nodeEnd < fStart;
-    boolean selectionBeforeNode = fExclusiveEnd < nodeStart;
-    return nodeBeforeSelection || selectionBeforeNode;
   }
 
   @Override

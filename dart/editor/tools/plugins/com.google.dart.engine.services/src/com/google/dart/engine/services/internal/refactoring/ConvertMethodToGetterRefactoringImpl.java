@@ -15,7 +15,7 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
@@ -166,7 +166,7 @@ public class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implem
     // prepare parameters
     FormalParameterList parameters;
     {
-      ASTNode node = element.getNode();
+      AstNode node = element.getNode();
       if (node instanceof MethodDeclaration) {
         parameters = ((MethodDeclaration) node).getParameters();
       } else {
@@ -186,21 +186,22 @@ public class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implem
   }
 
   private void updateElementReferences(Element element) throws Exception {
-    List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
-    for (SearchMatch reference : references) {
-      Element refElement = reference.getElement();
-      SourceRange refRange = reference.getSourceRange();
-      SourceChange refChange = changeManager.get(refElement.getSource());
+    List<SearchMatch> matches = searchEngine.searchReferences(element, null, null);
+    List<SourceReference> references = getSourceReferences(matches);
+    for (SourceReference reference : references) {
+      Element refElement = reference.elements.get(0);
+      SourceRange refRange = reference.range;
       // prepare invocation
       MethodInvocation invocation;
       {
         CompilationUnit refUnit = refElement.getUnit();
-        ASTNode refNode = new NodeLocator(refRange.getOffset()).searchWithin(refUnit);
+        AstNode refNode = new NodeLocator(refRange.getOffset()).searchWithin(refUnit);
         invocation = refNode.getAncestor(MethodInvocation.class);
       }
       // we need invocation
       if (invocation != null) {
         SourceRange range = rangeEndEnd(refRange, invocation);
+        SourceChange refChange = changeManager.get(reference.source);
         refChange.addEdit("Replace invocation with field access", new Edit(range, ""));
       }
     }

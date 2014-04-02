@@ -11,23 +11,23 @@ import 'package:polymer/polymer.dart';
 class XFoo extends PolymerElement {
   XFoo.created() : super.created();
 
-  @observable var foo = '';
-  @observable String baz = '';
+  @published var foo = '';
+  @published String baz = '';
 }
 
 class XBar extends XFoo {
   XBar.created() : super.created();
 
-  @observable int zot = 3;
-  @observable bool zim = false;
-  @observable String str = 'str';
-  @observable Object obj;
+  @published int zot = 3;
+  @published bool zim = false;
+  @published String str = 'str';
+  @published Object obj;
 }
 
 class XCompose extends PolymerElement {
   XCompose.created() : super.created();
 
-  @observable bool zim = false;
+  @published bool zim = false;
 }
 
 Future onAttributeChange(Element node) {
@@ -52,9 +52,9 @@ main() {
   Polymer.register('x-compose', XCompose);
 
   test('property attribute reflection', () {
-    var xcompose = query('x-compose');
-    var xfoo = query('x-foo');
-    var xbar = query('x-bar');
+    var xcompose = querySelector('x-compose');
+    var xfoo = querySelector('x-foo');
+    var xbar = querySelector('x-bar');
     xfoo.foo = 5;
     return onAttributeChange(xfoo).then((_) {
       expect(xcompose.$['bar'].attributes.containsKey('zim'), false,

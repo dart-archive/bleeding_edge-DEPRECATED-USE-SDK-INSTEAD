@@ -59,6 +59,12 @@ main() {
           new UrlMatch(r'/foo', '/foo/bar', {}));
     });
 
+    test('should match without leading slashes', () {
+      var tmpl = new UrlTemplate(r'foo');
+      expect(tmpl.match(r'foo'),
+          new UrlMatch(r'foo', '', {}));
+    });
+
     test('should reverse', () {
       var tmpl = new UrlTemplate('/:a/:b/:c');
       expect(tmpl.reverse(), '/null/null/null');

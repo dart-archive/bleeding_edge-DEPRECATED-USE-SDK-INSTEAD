@@ -13,20 +13,20 @@
  */
 package com.google.dart.tools.debug.ui.launch;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.util.ResourceServer;
+import com.google.dart.tools.debug.core.util.ResourceServerManager;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IWorkbenchWindow;
 
 /**
- * Action to launch in default browser
+ * Action to open html files in build dir in default browser
  */
 public class RunInBrowserAction extends DartRunAbstractAction {
 
@@ -54,10 +54,14 @@ public class RunInBrowserAction extends DartRunAbstractAction {
         instrumentation.metric("Resource-Class", resource.getClass().toString());
         instrumentation.data("Resource-Name", resource.getName());
 
-        // new launch config
-        ILaunchShortcut shortcut = LaunchUtils.getBrowserLaunchShortcut();
-        ISelection selection = new StructuredSelection(resource);
-        launch(shortcut, selection, instrumentation);
+        ResourceServer server = ResourceServerManager.getServer();
+        String url = server.getUrlForResource(resource);
+
+        if (DartDebugCorePlugin.getPlugin().getIsDefaultBrowser()) {
+          LaunchUtils.openBrowser(url);
+        } else {
+          LaunchUtils.launchInExternalBrowser(url);
+        }
       }
     } catch (Exception exception) {
       instrumentation.metric("Problem", "Exception launching " + exception.getClass().toString());

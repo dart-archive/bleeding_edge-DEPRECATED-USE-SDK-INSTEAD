@@ -26,7 +26,6 @@ namespace dart {
   V(TokenStream)                                                               \
   V(Script)                                                                    \
   V(Library)                                                                   \
-  V(LibraryPrefix)                                                             \
   V(Namespace)                                                                 \
   V(Code)                                                                      \
   V(Instructions)                                                              \
@@ -46,6 +45,7 @@ namespace dart {
     V(UnhandledException)                                                      \
     V(UnwindError)                                                             \
   V(Instance)                                                                  \
+    V(LibraryPrefix)                                                           \
     V(AbstractType)                                                            \
       V(Type)                                                                  \
       V(TypeRef)                                                               \
@@ -439,14 +439,15 @@ class RawObject {
 
   friend class Api;
   friend class Array;
+  friend class Code;
   friend class FreeListElement;
   friend class GCMarker;
   friend class ExternalTypedData;
   friend class Heap;
+  friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
   friend class MarkingVisitor;
   friend class Object;
-  friend class ObjectHistogram;
   friend class RawExternalTypedData;
   friend class RawInstructions;
   friend class RawInstance;
@@ -639,12 +640,9 @@ class RawClosureData : public RawObject {
   RawContextScope* context_scope_;
   RawFunction* parent_function_;  // Enclosing function of this local function.
   RawClass* signature_class_;
-  union {
-    RawInstance* closure_;  // Closure object for static implicit closures.
-    RawCode* closure_allocation_stub_;  // Stub code for allocation of closures.
-  };
+  RawInstance* closure_;  // Closure object for static implicit closures.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->closure_allocation_stub_);
+    return reinterpret_cast<RawObject**>(&ptr()->closure_);
   }
 };
 
@@ -784,19 +782,6 @@ class RawLibrary : public RawObject {
 };
 
 
-class RawLibraryPrefix : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix);
-
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
-  RawString* name_;               // library prefix name.
-  RawArray* imports_;             // libraries imported with this prefix.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->imports_);
-  }
-  intptr_t num_imports_;          // Number of library entries in libraries_.
-};
-
-
 class RawNamespace : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Namespace);
 
@@ -806,8 +791,10 @@ class RawNamespace : public RawObject {
   RawLibrary* library_;          // library with name dictionary.
   RawArray* show_names_;         // list of names that are exported.
   RawArray* hide_names_;         // blacklist of names that are not exported.
+  RawField* metadata_field_;     // remembers the token pos of metadata if any,
+                                 // and the metadata values if computed.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->hide_names_);
+    return reinterpret_cast<RawObject**>(&ptr()->metadata_field_);
   }
 };
 
@@ -819,7 +806,10 @@ class RawCode : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->instructions_);
   }
   RawInstructions* instructions_;
-  RawFunction* function_;
+  // If owner_ is Function::null() the owner is a regular stub.
+  // If owner_ is a Class the owner is the allocation stub for that class.
+  // Else, owner_ is a regular Dart Function.
+  RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   RawArray* deopt_info_array_;
@@ -832,6 +822,8 @@ class RawCode : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->comments_);
   }
 
+  // Compilation timestamp.
+  int64_t compile_timestamp_;
   intptr_t pointer_offsets_length_;
   // Alive: If true, the embedded object pointers will be visited during GC.
   // This field cannot be shorter because of alignment issues on x64
@@ -875,7 +867,7 @@ class RawInstructions : public RawObject {
 class RawPcDescriptors : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
 
-  RawSmi* length_;  // Number of descriptors.
+  intptr_t length_;  // Number of descriptors.
 
   // Variable length data follows here.
   intptr_t data_[0];
@@ -893,8 +885,6 @@ class RawPcDescriptors : public RawObject {
 // is optimized for dense and small bit maps, without any upper bound.
 class RawStackmap : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Stackmap);
-
-  RawCode* code_;  // Code object corresponding to the frame described.
 
   // TODO(kmillikin): We need a small number of bits to encode the register
   // count.  Consider packing them in with the length.
@@ -1131,10 +1121,28 @@ class RawInstance : public RawObject {
 };
 
 
+class RawLibraryPrefix : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix);
+
+  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
+  RawString* name_;               // Library prefix name.
+  RawArray* imports_;             // Libraries imported with this prefix.
+  RawArray* dependent_code_;      // Code that refers to deferred, unloaded
+                                  // library prefix.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
+  }
+  intptr_t num_imports_;          // Number of library entries in libraries_.
+  bool is_deferred_load_;
+  bool is_loaded_;
+};
+
+
 class RawAbstractType : public RawInstance {
  protected:
   enum TypeState {
     kAllocated,  // Initial state.
+    kResolved,  // Type class and type arguments resolved.
     kBeingFinalized,  // In the process of being finalized.
     kFinalizedInstantiated,  // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
@@ -1382,6 +1390,8 @@ class RawArray : public RawInstance {
   friend class SnapshotReader;
   friend class GrowableObjectArray;
   friend class Object;
+  friend class ICData;  // For high performance access.
+  friend class SubtypeTestCache;  // For high performance access.
 };
 
 

@@ -16,7 +16,6 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/heap.h"
-#include "vm/heap_histogram.h"
 #include "vm/message_handler.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
@@ -29,6 +28,7 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/thread_interrupter.h"
 #include "vm/timer.h"
@@ -41,11 +41,24 @@ DEFINE_FLAG(bool, report_usage_count, false,
             "Track function usage and report.");
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
+DEFINE_FLAG(bool, pause_isolates_on_start, false,
+            "Pause isolates before starting.");
+DEFINE_FLAG(bool, pause_isolates_on_exit, false,
+            "Pause isolates exiting.");
 
 
 void Isolate::RegisterClass(const Class& cls) {
   class_table()->Register(cls);
-  if (object_histogram() != NULL) object_histogram()->RegisterClass(cls);
+}
+
+
+void Isolate::RegisterClassAt(intptr_t index, const Class& cls) {
+  class_table()->RegisterAt(index, cls);
+}
+
+
+void Isolate::ValidateClassTable() {
+  class_table()->Validate();
 }
 
 
@@ -106,7 +119,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   HandleScope handle_scope(isolate_);
   // TODO(turnidge): Rework collection total dart execution.  This can
   // overcount when other things (gc, compilation) are active.
-  TIMERSCOPE(time_dart_execution);
+  TIMERSCOPE(isolate_, time_dart_execution);
 
   // If the message is in band we lookup the receive port to dispatch to.  If
   // the receive port is closed, we drop the message without deserializing it.
@@ -271,8 +284,14 @@ bool IsolateMessageHandler::ProcessUnhandledException(
 void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   ASSERT(isolate == Isolate::Current());
 }
-#endif
+#endif  // defined(DEBUG)
 
+#if defined(DEBUG)
+#define REUSABLE_HANDLE_SCOPE_INIT(object)                                     \
+  reusable_##object##_handle_scope_active_(false),
+#else
+#define REUSABLE_HANDLE_SCOPE_INIT(object)
+#endif  // defined(DEBUG)
 
 #define REUSABLE_HANDLE_INITIALIZERS(object)                                   \
   object##_handle_(NULL),
@@ -305,24 +324,23 @@ Isolate::Isolate()
       message_handler_(NULL),
       spawn_state_(NULL),
       is_runnable_(false),
-      gc_prologue_callbacks_(),
-      gc_epilogue_callbacks_(),
+      gc_prologue_callback_(NULL),
+      gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       deopt_context_(NULL),
       stacktrace_(NULL),
       stack_frame_index_(-1),
-      object_histogram_(NULL),
       cha_used_(false),
       object_id_ring_(NULL),
       profiler_data_(NULL),
       thread_state_(NULL),
       next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
+      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
-  if (FLAG_print_object_histogram && (Dart::vm_isolate() != NULL)) {
-    object_histogram_ = new ObjectHistogram(this);
-  }
+  set_vm_tag(VMTag::kIdleTagId);
 }
+#undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS
 
 
@@ -341,7 +359,6 @@ Isolate::~Isolate() {
   delete message_handler_;
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
-  delete object_histogram_;
   delete spawn_state_;
 }
 
@@ -349,6 +366,7 @@ Isolate::~Isolate() {
 void Isolate::SetCurrent(Isolate* current) {
   Isolate* old_current = Current();
   if (old_current != NULL) {
+    old_current->set_vm_tag(VMTag::kIdleTagId);
     old_current->set_thread_state(NULL);
     Profiler::EndExecution(old_current);
   }
@@ -362,6 +380,7 @@ void Isolate::SetCurrent(Isolate* current) {
 #endif
     Profiler::BeginExecution(current);
     current->set_thread_state(thread_state);
+    current->set_vm_tag(VMTag::kVMTagId);
   }
 }
 
@@ -399,8 +418,7 @@ Isolate* Isolate::Init(const char* name_prefix) {
 
   // Setup the isolate specific resuable handles.
 #define REUSABLE_HANDLE_ALLOCATION(object)                                     \
-  result->object##_handle_ = result->AllocateReusableHandle<object>();         \
-
+  result->object##_handle_ = result->AllocateReusableHandle<object>();
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
 #undef REUSABLE_HANDLE_ALLOCATION
 
@@ -421,6 +439,8 @@ Isolate* Isolate::Init(const char* name_prefix) {
   result->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&result));
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
   result->BuildName(name_prefix);
+  result->message_handler()->set_pause_on_start(FLAG_pause_isolates_on_start);
+  result->message_handler()->set_pause_on_exit(FLAG_pause_isolates_on_exit);
 
   result->debugger_ = new Debugger();
   result->debugger_->Initialize(result);
@@ -479,15 +499,15 @@ void Isolate::SetStackLimit(uword limit) {
 }
 
 
-bool Isolate::GetStackBounds(uintptr_t* lower, uintptr_t* upper) {
-  uintptr_t stack_lower = stack_limit();
-  if (stack_lower == static_cast<uintptr_t>(~0)) {
+bool Isolate::GetStackBounds(uword* lower, uword* upper) {
+  uword stack_lower = stack_limit();
+  if (stack_lower == kUwordMax) {
     stack_lower = saved_stack_limit();
   }
-  if (stack_lower == static_cast<uintptr_t>(~0)) {
+  if (stack_lower == kUwordMax) {
     return false;
   }
-  uintptr_t stack_upper = stack_lower + GetSpecifiedStackSize();
+  uword stack_upper = stack_lower + GetSpecifiedStackSize();
   *lower = stack_lower;
   *upper = stack_upper;
   return true;
@@ -697,13 +717,13 @@ void Isolate::PrintInvokedFunctions() {
 
 class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
  public:
-  FinalizeWeakPersistentHandlesVisitor() {
+  FinalizeWeakPersistentHandlesVisitor() : HandleVisitor(Isolate::Current()) {
   }
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    FinalizablePersistentHandle::Finalize(handle);
+    handle->UpdateUnreachable(isolate());
   }
 
  private:
@@ -721,11 +741,6 @@ void Isolate::Shutdown() {
   {
     StackZone stack_zone(this);
     HandleScope handle_scope(this);
-
-    if (FLAG_print_object_histogram) {
-      heap()->CollectAllGarbage();
-      object_histogram()->Print();
-    }
 
     // Clean up debugger resources.
     debugger()->Shutdown();
@@ -846,14 +861,28 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
 }
 
 
-void Isolate::PrintToJSONStream(JSONStream* stream) {
+void Isolate::PrintToJSONStream(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "Isolate");
+  jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
   jsobj.AddPropertyF("id", "isolates/%" Pd "",
                      static_cast<intptr_t>(main_port()));
-  jsobj.AddPropertyF("name", "%" Pd "",
+  jsobj.AddPropertyF("mainPort", "%" Pd "",
                      static_cast<intptr_t>(main_port()));
+
+  // Assign an isolate name based on the entry function.
   IsolateSpawnState* state = spawn_state();
+  if (state == NULL) {
+    jsobj.AddPropertyF("name", "root");
+  } else if (state->class_name() != NULL) {
+    jsobj.AddPropertyF("name", "%s.%s",
+                       state->class_name(),
+                       state->function_name());
+  } else {
+    jsobj.AddPropertyF("name", "%s", state->function_name());
+  }
+  if (ref) {
+    return;
+  }
   if (state != NULL) {
     const Object& entry = Object::Handle(this, state->ResolveFunction());
     if (!entry.IsNull() && entry.IsFunction()) {
@@ -870,6 +899,8 @@ void Isolate::PrintToJSONStream(JSONStream* stream) {
     jsheap.AddProperty("capacityOld", heap()->CapacityInWords(Heap::kOld));
   }
 
+  // TODO(turnidge): Don't compute a full stack trace every time we
+  // request an isolate's info.
   DebuggerStackTrace* stack = debugger()->StackTrace();
   if (stack->Length() > 0) {
     JSONObject jsframe(&jsobj, "topFrame");
@@ -880,12 +911,54 @@ void Isolate::PrintToJSONStream(JSONStream* stream) {
     // inlined frames.
     jsobj.AddProperty("depth", (intptr_t)0);
   }
-
+  intptr_t live_ports = message_handler()->live_ports();
+  intptr_t control_ports = message_handler()->control_ports();
+  bool paused_on_exit = message_handler()->paused_on_exit();
+  bool pause_on_start = message_handler()->pause_on_start();
+  bool pause_on_exit = message_handler()->pause_on_exit();
+  jsobj.AddProperty("livePorts", live_ports);
+  jsobj.AddProperty("controlPorts", control_ports);
+  jsobj.AddProperty("pausedOnStart", pause_on_start);
+  jsobj.AddProperty("pausedOnExit", paused_on_exit);
+  jsobj.AddProperty("pauseOnExit", pause_on_exit);
   const Library& lib =
       Library::Handle(object_store()->root_library());
   jsobj.AddProperty("rootLib", lib);
 
   timer_list().PrintTimersToJSONProperty(&jsobj);
+  {
+    JSONObject tagCounters(&jsobj, "tagCounters");
+    vm_tag_counters()->PrintToJSONObject(&tagCounters);
+  }
+  if (object_store()->sticky_error() != Object::null()) {
+    Error& error = Error::Handle(this, object_store()->sticky_error());
+    ASSERT(!error.IsNull());
+    jsobj.AddProperty("error", error, false);
+  }
+
+  {
+    JSONObject typeargsRef(&jsobj, "canonicalTypeArguments");
+    typeargsRef.AddProperty("type", "@TypeArgumentsList");
+    typeargsRef.AddProperty("id", "typearguments");
+    typeargsRef.AddProperty("name", "canonical type arguments");
+  }
+}
+
+
+void Isolate::ProfileInterrupt() {
+  InterruptableThreadState* state = thread_state();
+  if (state == NULL) {
+    // Isolate is not scheduled on a thread.
+    ProfileIdle();
+    return;
+  }
+  ASSERT(state->id != Thread::kInvalidThreadId);
+  ThreadInterrupter::InterruptThread(state);
+}
+
+
+void Isolate::ProfileIdle() {
+  vm_tag_counters_.Increment(vm_tag());
 }
 
 

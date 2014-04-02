@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A test configuration that generates a compact 1-line progress bar. The bar is
- * updated in-place before and after each test is executed. If all test pass,
- * you should only see a couple lines in the terminal. If a test fails, the
- * failure is shown and the progress bar continues to be updated below it.
- */
+/// A test configuration that generates a compact 1-line progress bar. The bar
+/// is updated in-place before and after each test is executed. If all tests
+/// pass, only a couple of lines are printed in the terminal. If a test fails,
+/// the failure is shown and the progress bar continues to be updated below it.
 library unittest.compact_vm_config;
 
 import 'dart:async';
@@ -56,13 +54,13 @@ class CompactVMConfiguration extends VMConfiguration {
     } else {
       _fail++;
       _progressLine(_start, _pass, _fail, test.description);
-      print('');
+      _print();
       if (test.message != '') {
-        print(indent(test.message));
+        _print(indent(test.message));
       }
 
       if (test.stackTrace != null) {
-        print(indent(test.stackTrace.toString()));
+        _print(indent(test.stackTrace.toString()));
       }
     }
   }
@@ -71,13 +69,13 @@ class CompactVMConfiguration extends VMConfiguration {
     _pass--;
     _fail++;
     _progressLine(_start, _pass, _fail, test.description);
-    print('');
+    _print();
     if (test.message != '') {
-      print(indent(test.message));
+      _print(indent(test.message));
     }
 
     if (test.stackTrace != null) {
-      print(indent(test.stackTrace.toString()));
+      _print(indent(test.stackTrace.toString()));
     }
   }
 
@@ -94,18 +92,18 @@ class CompactVMConfiguration extends VMConfiguration {
       String uncaughtError) {
     var success = false;
     if (passed == 0 && failed == 0 && errors == 0 && uncaughtError == null) {
-      print('\nNo tests ran.');
+      _print('\nNo tests ran.');
     } else if (failed == 0 && errors == 0 && uncaughtError == null) {
       _progressLine(_start, _pass, _fail, 'All tests passed!', _NONE);
-      print('');
+      _print();
       success = true;
     } else {
       _progressLine(_start, _pass, _fail, 'Some tests failed.', _RED);
-      print('');
+      _print();
       if (uncaughtError != null) {
-        print('Top-level uncaught error: $uncaughtError');
+        _print('Top-level uncaught error: $uncaughtError');
       }
-      print('$passed PASSED, $failed FAILED, $errors ERRORS');
+      _print('$passed PASSED, $failed FAILED, $errors ERRORS');
     }
   }
 
@@ -200,6 +198,9 @@ class CompactVMConfiguration extends VMConfiguration {
     return '...$res';
   }
 }
+
+// TODO(sigmund): delete when dartbug.com/17269 is fixed (use `print` instead).
+_print([value = '']) => stdout.write('$value\n');
 
 void useCompactVMConfiguration() {
   // If the test is running on the Dart buildbots, we don't want to use this

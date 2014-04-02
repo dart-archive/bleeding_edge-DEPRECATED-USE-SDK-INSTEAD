@@ -27,7 +27,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public class TypeParameterList extends ASTNode {
+public class TypeParameterList extends AstNode {
   /**
    * The left angle bracket.
    */
@@ -57,7 +57,7 @@ public class TypeParameterList extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitTypeParameterList(this);
   }
 
@@ -99,7 +99,7 @@ public class TypeParameterList extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     typeParameters.accept(visitor);
   }
 }

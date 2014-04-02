@@ -7,10 +7,7 @@ import 'package:unittest/unittest.dart';
 import 'package:html5lib/dom.dart';
 import 'package:html5lib/parser.dart';
 import 'package:html5lib/parser_console.dart' as parser_console;
-import 'package:html5lib/src/constants.dart';
 import 'package:html5lib/src/inputstream.dart' as inputstream;
-import 'package:html5lib/src/tokenizer.dart';
-import 'package:html5lib/src/utils.dart';
 import 'support.dart';
 
 // Run the parse error checks
@@ -112,7 +109,7 @@ void main() {
   }
 }
 
-/** Extract the name for the test based on the test input data. */
+/// Extract the name for the test based on the test input data.
 _nameFor(String input) {
   // Using JSON.decode to unescape other unicode characters
   var escapeQuote = input

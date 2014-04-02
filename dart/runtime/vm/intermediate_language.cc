@@ -6,6 +6,7 @@
 
 #include "vm/bigint_operations.h"
 #include "vm/bit_vector.h"
+#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
@@ -33,6 +34,7 @@ DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_constant_propagation);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
+DECLARE_FLAG(bool, enable_type_checks);
 
 Definition::Definition()
     : range_(NULL),
@@ -85,7 +87,7 @@ bool Value::Equals(Value* other) const {
 CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks)
-    : unary_checks_(unary_checks) {
+    : unary_checks_(unary_checks), licm_hoisted_(false) {
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
   ASSERT(!unary_checks_.IsNull());
@@ -160,6 +162,8 @@ Representation LoadFieldInstr::representation() const {
         return kUnboxedDouble;
       case kFloat32x4Cid:
         return kUnboxedFloat32x4;
+      case kFloat64x2Cid:
+        return kUnboxedFloat64x2;
       default:
         UNREACHABLE();
     }
@@ -169,12 +173,16 @@ Representation LoadFieldInstr::representation() const {
 
 
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
-  return FLAG_unbox_numeric_fields && field().IsUnboxedField();
+  return FLAG_unbox_numeric_fields
+      && !field().IsNull()
+      && field().IsUnboxedField();
 }
 
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
-  return FLAG_unbox_numeric_fields && field().IsPotentialUnboxedField();
+  return FLAG_unbox_numeric_fields
+      && !field().IsNull()
+      && field().IsPotentialUnboxedField();
 }
 
 
@@ -188,6 +196,8 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
         return kUnboxedDouble;
       case kFloat32x4Cid:
         return kUnboxedFloat32x4;
+      case kFloat64x2Cid:
+        return kUnboxedFloat64x2;
       default:
         UNREACHABLE();
     }
@@ -1284,6 +1294,35 @@ static Definition* CanonicalizeCommutativeArithmetic(Token::Kind op,
 }
 
 
+Definition* DoubleToFloatInstr::Canonicalize(FlowGraph* flow_graph) {
+#ifdef DEBUG
+  // Must only be used in Float32 StoreIndexedInstr or FloatToDoubleInstr or
+  // Phis introduce by load forwarding.
+  ASSERT(env_use_list() == NULL);
+  for (Value* use = input_use_list();
+       use != NULL;
+       use = use->next_use()) {
+    ASSERT(use->instruction()->IsPhi() ||
+           use->instruction()->IsFloatToDouble() ||
+           (use->instruction()->IsStoreIndexed() &&
+            (use->instruction()->AsStoreIndexed()->class_id() ==
+             kTypedDataFloat32ArrayCid)));
+  }
+#endif
+  if (!HasUses()) return NULL;
+  if (value()->definition()->IsFloatToDouble()) {
+    // F2D(D2F(v)) == v.
+    return value()->definition()->AsFloatToDouble()->value()->definition();
+  }
+  return this;
+}
+
+
+Definition* FloatToDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
+  return HasUses() ? this : NULL;
+}
+
+
 Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* result = NULL;
 
@@ -1434,10 +1473,14 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // call we can replace the length load with the length argument passed to
   // the constructor.
   StaticCallInstr* call = instance()->definition()->AsStaticCall();
-  if ((call != NULL) &&
-      call->is_known_list_constructor() &&
-      IsFixedLengthArrayCid(call->Type()->ToCid())) {
-    return call->ArgumentAt(1);
+  if (call != NULL) {
+    if (call->is_known_list_constructor() &&
+        IsFixedLengthArrayCid(call->Type()->ToCid())) {
+      return call->ArgumentAt(1);
+    }
+    if (call->is_native_list_factory()) {
+      return call->ArgumentAt(0);
+    }
   }
   // For arrays with guarded lengths, replace the length load
   // with a constant.
@@ -1495,6 +1538,11 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     instantiator_type_arguments()->BindTo(null_constant);
   }
   return this;
+}
+
+
+Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
+  return (FLAG_enable_type_checks || HasUses()) ? this : NULL;
 }
 
 
@@ -1564,6 +1612,30 @@ Definition* UnboxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
   BoxFloat32x4Instr* defn = value()->definition()->AsBoxFloat32x4();
   return (defn != NULL) ? defn->value()->definition() : this;
 }
+
+
+Definition* BoxFloat64x2Instr::Canonicalize(FlowGraph* flow_graph) {
+  if (input_use_list() == NULL) {
+    // Environments can accomodate any representation. No need to box.
+    return value()->definition();
+  }
+
+  // Fold away BoxFloat64x2(UnboxFloat64x2(v)).
+  UnboxFloat64x2Instr* defn = value()->definition()->AsUnboxFloat64x2();
+  if ((defn != NULL) && (defn->value()->Type()->ToCid() == kFloat64x2Cid)) {
+    return defn->value()->definition();
+  }
+
+  return this;
+}
+
+
+Definition* UnboxFloat64x2Instr::Canonicalize(FlowGraph* flow_graph) {
+  // Fold away UnboxFloat64x2(BoxFloat64x2(v)).
+  BoxFloat64x2Instr* defn = value()->definition()->AsBoxFloat64x2();
+  return (defn != NULL) ? defn->value()->definition() : this;
+}
+
 
 
 Definition* BoxInt32x4Instr::Canonicalize(FlowGraph* flow_graph) {
@@ -1808,7 +1880,23 @@ Instruction* GuardFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if (field().guarded_list_length() != Field::kNoFixedLength) {
-    // We are still guarding the list length.
+    // We are still guarding the list length. Check if length is statically
+    // known.
+    StaticCallInstr* call = value()->definition()->AsStaticCall();
+    if (call != NULL) {
+      ConstantInstr* length = NULL;
+      if (call->is_known_list_constructor() &&
+          LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
+        length = call->ArgumentAt(1)->AsConstant();
+      }
+      if (call->is_native_list_factory()) {
+        length = call->ArgumentAt(0)->AsConstant();
+      }
+      if ((length != NULL) && length->value().IsSmi()) {
+        intptr_t known_length = Smi::Cast(length->value()).Value();
+        return (known_length != field().guarded_list_length()) ? this : NULL;
+      }
+    }
     return this;
   }
 
@@ -1974,17 +2062,20 @@ void PushTempInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* DropTempsInstr::MakeLocationSummary(bool optimizing) const {
-  return LocationSummary::Make(1,
-                               Location::SameAsFirstInput(),
-                               LocationSummary::kNoCall);
+  return (InputCount() == 1)
+      ? LocationSummary::Make(1,
+                              Location::SameAsFirstInput(),
+                              LocationSummary::kNoCall)
+      : LocationSummary::Make(0,
+                              Location::NoLocation(),
+                              LocationSummary::kNoCall);
 }
 
 
 void DropTempsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
-  Register value = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-  ASSERT(result == value);  // Assert that register assignment is correct.
+  // Assert that register assignment is correct.
+  ASSERT((InputCount() == 0) || (locs()->out(0).reg() == locs()->in(0).reg()));
   __ Drop(num_temps());
 }
 
@@ -2059,7 +2150,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-bool PolymorphicInstanceCallInstr::HasRecognizedTarget() const {
+bool PolymorphicInstanceCallInstr::HasSingleRecognizedTarget() const {
   return ic_data().HasOneTarget() &&
       (MethodRecognizer::RecognizeKind(
           Function::Handle(ic_data().GetTargetAt(0))) !=
@@ -2095,7 +2186,7 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                      dst_type(),
                                      dst_name(),
                                      locs());
-  ASSERT(locs()->in(0).reg() == locs()->out().reg());
+  ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
 }
 
 
@@ -2952,6 +3043,12 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   //   StoreIndexed(v2, v3, v4)   -- v3:constant index, v4: value.
   //   ..
   //   v8 <- StringInterpolate(v2)
+
+  // Don't compile-time fold when optimizing the interpolation function itself.
+  if (flow_graph->parsed_function().function().raw() == CallFunction().raw()) {
+    return this;
+  }
+
   CreateArrayInstr* create_array = value()->definition()->AsCreateArray();
   ASSERT(create_array != NULL);
   // Check if the string interpolation has only constant inputs.
@@ -2996,13 +3093,14 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   const Array& interpolate_arg = Array::Handle(Array::New(1));
   interpolate_arg.SetAt(0, array_argument);
   // Call interpolation function.
-  String& concatenated = String::ZoneHandle();
-  concatenated ^=
-      DartEntry::InvokeFunction(CallFunction(), interpolate_arg);
-  if (concatenated.IsUnhandledException()) {
+  const Object& result = Object::Handle(
+      DartEntry::InvokeFunction(CallFunction(), interpolate_arg));
+  if (result.IsUnhandledException()) {
     return this;
   }
-  concatenated = Symbols::New(concatenated);
+  ASSERT(result.IsString());
+  const String& concatenated =
+      String::ZoneHandle(Symbols::New(String::Cast(result)));
   return flow_graph->GetConstant(concatenated);
 }
 
@@ -3029,7 +3127,7 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     case MethodRecognizer::kDoubleTruncate:
     case MethodRecognizer::kDoubleFloor:
     case MethodRecognizer::kDoubleCeil: {
-      ASSERT(!CPUFeatures::double_truncate_round_supported());
+      ASSERT(!TargetCPUFeatures::double_truncate_round_supported());
       return 1;
     }
     case MethodRecognizer::kDoubleRound:

@@ -89,16 +89,21 @@ abstract class Message {
       return "The 'name' argument for Intl.message must be a simple string "
           "literal.";
     }
+    if (outerName != null && outerName != messageName.expression.value) {
+      return "The 'name' argument for Intl.message must match "
+          "the name of the containing function ("
+          "'${messageName.expression.value}' vs. '$outerName')";
+    }
     var simpleArguments = arguments.where(
         (each) => each is NamedExpression
         && ["desc", "name"].contains(each.name.label.name));
     var values = simpleArguments.map((each) => each.expression).toList();
     for (var arg in values) {
-      if (arg is! SimpleStringLiteral) {
-        return "Intl.message argument '$arg' must be "
-            "a simple string literal";
+      if (arg is! StringLiteral) {
+        return( "Intl.message arguments must be string literals: $arg");
       }
     }
+    return null;
   }
 
   /**
@@ -326,6 +331,13 @@ class MainMessage extends ComplexMessage {
   Map<String, dynamic> examples;
 
   /**
+   * A field to disambiguate two messages that might have exactly the
+   * same text. The two messages will also need different names, but
+   * this can be used by machine translation tools to distinguish them.
+   */
+  String meaning;
+
+  /**
    * The name, which may come from the function name, from the arguments
    * to Intl.message, or we may just re-use the message.
    */
@@ -351,7 +363,7 @@ class MainMessage extends ComplexMessage {
    * the name.
    */
   String get name => _name == null ? computeName() : _name;
-  void set name(x) {_name = x;}
+  set name(String newName) { _name = newName; }
 
   String computeName() => name = expanded((msg, chunk) => "");
 
@@ -369,7 +381,7 @@ class MainMessage extends ComplexMessage {
    * Record the translation for this message in the given locale, after
    * suitably escaping it.
    */
-  String addTranslation(String locale, Message translated) {
+  void addTranslation(String locale, Message translated) {
       translated.parent = this;
       translations[locale] = translated.toCode();
   }
@@ -403,6 +415,7 @@ class MainMessage extends ComplexMessage {
       // We use the actual args from the parser rather than what's given in the
       // arguments to Intl.message.
       case "args" : return;
+      case "meaning" : meaning = value; return;
       default: return;
     }
   }
@@ -419,6 +432,7 @@ class MainMessage extends ComplexMessage {
       // We use the actual args from the parser rather than what's given in the
       // arguments to Intl.message.
       case "args" : return [];
+      case "meaning" : return meaning;
       default: return null;
     }
   }
@@ -429,7 +443,7 @@ class MainMessage extends ComplexMessage {
   get dartMessageName => "message";
 
   /** The parameters that the Intl.message call may provide. */
-  get attributeNames => const ["name", "desc", "examples", "args"];
+  get attributeNames => const ["name", "desc", "examples", "args", "meaning"];
 
   String toString() =>
       "Intl.message(${expanded()}, $name, $description, $examples, $arguments)";

@@ -25,12 +25,8 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
 
 import java.util.ArrayList;
@@ -81,25 +77,55 @@ public class LightweightModel {
     getModel();
   }
 
-  protected ProjectManager projectManager;
-
   protected LightweightModel() {
-    projectManager = DartCore.getProjectManager();
-
     AnalysisWorker.addListener(new AnalysisListener() {
       @Override
       public void complete(AnalysisEvent event) {
-        recalculateFor(event);
       }
 
       @Override
       public void resolved(ResolvedEvent event) {
-
+        IResource resource = event.getResource();
+        if (resource != null) {
+          AnalysisContext context = event.getContext();
+          ResourceMap resourceMap = event.getResourceMap();
+          Source source = event.getSource();
+          // in tests some information may be missing
+          if (context == null || resourceMap == null || source == null) {
+            return;
+          }
+          // OK, update the Source
+          try {
+            recalculateForResource(context, resourceMap, source, resource);
+          } catch (CoreException e) {
+            DartCore.logInformation("Exception updating: " + source);
+          }
+        }
       }
 
       @Override
       public void resolvedHtml(ResolvedHtmlEvent event) {
-
+        IResource htmlResource = event.getResource();
+        if (htmlResource instanceof IFile) {
+          IFile htmlFile = (IFile) htmlResource;
+          AnalysisContext context = event.getContext();
+          ResourceMap resourceMap = event.getResourceMap();
+          Source htmlSource = event.getSource();
+          // in tests some information may be missing
+          if (context == null || resourceMap == null || htmlSource == null) {
+            return;
+          }
+          // OK, process the change
+          try {
+            Source[] librarySources = context.getLibrariesReferencedFromHtml(htmlSource);
+            for (Source librarySource : librarySources) {
+              IFile libraryFile = resourceMap.getResource(librarySource);
+              setFileProperty(libraryFile, HTML_FILE, htmlFile);
+            }
+          } catch (CoreException e) {
+            DartCore.logInformation("Exception updating: " + htmlSource);
+          }
+        }
       }
     });
   }
@@ -152,15 +178,6 @@ public class LightweightModel {
     }
 
     return files;
-  }
-
-  /**
-   * Return the {@link PubFolder} containing the specified resource.
-   * <p>
-   * This is a pass-through call to the ProjectManager implementation.
-   */
-  public PubFolder getPubFolder(IResource resource) {
-    return projectManager.getPubFolder(resource);
   }
 
   /**
@@ -240,87 +257,6 @@ public class LightweightModel {
     }
   }
 
-  protected void recalculateFor(AnalysisEvent event) {
-    final ResourceMap resourceMap = event.getContextManager().getResourceMap(event.getContext());
-    final AnalysisContext context = event.getContext();
-
-    // The SDK context does not have a resource map associated with it.
-    if (resourceMap == null) {
-      return;
-    }
-
-    DartCore.logInformation("Analysis complete for " + resourceMap.getResource().getName());
-
-    // Do this in a resource operation, to batch up change events.
-    IWorkspaceRunnable workspaceRunnable = new IWorkspaceRunnable() {
-      @Override
-      public void run(IProgressMonitor monitor) throws CoreException {
-        resourceMap.getResource().accept(new IResourceVisitor() {
-          @Override
-          public boolean visit(IResource resource) throws CoreException {
-            if (isPackagesFolder(resource)) {
-              return false;
-            }
-
-            if (resource instanceof IFile) {
-              IFile file = (IFile) resource;
-              Source source = resourceMap.getSource(file);
-
-              // Set the library name.
-              String libraryName = getLibraryName(source, resourceMap);
-              setFileProperty(file, DartCore.LIBRARY_NAME, libraryName);
-
-              // Set the source kind.
-              SourceKind kind = (source == null ? SourceKind.UNKNOWN : context.getKindOf(source));
-              setFileProperty(file, SOURCE_KIND, kind.name());
-
-              // Set the client library property.
-              boolean clientLaunchable = source == null ? false : context.isClientLibrary(source);
-              setFileProperty(file, CLIENT_LIBRARY, clientLaunchable);
-
-              // Set the server library property.
-              boolean serverLaunchable = source == null ? false : context.isServerLibrary(source);
-              setFileProperty(file, SERVER_LIBRARY, serverLaunchable);
-
-              // Set the html file property.
-              Source[] htmlSources = source == null ? null
-                  : context.getHtmlFilesReferencing(source);
-              if (htmlSources == null || htmlSources.length == 0) {
-                setFileProperty(file, HTML_FILE, (String) null);
-              } else {
-                setFileProperty(file, HTML_FILE, resourceMap.getResource(htmlSources[0]));
-              }
-
-              // Set the containing library property.
-              Source[] containingSources = source == null ? null
-                  : context.getLibrariesContaining(source);
-              if (containingSources == null || containingSources.length == 0) {
-                setFileProperty(file, CONTAINING_LIBRARY, (String) null);
-              } else {
-                setFileProperty(
-                    file,
-                    CONTAINING_LIBRARY,
-                    resourceMap.getResource(containingSources[0]));
-              }
-            }
-
-            return true;
-          }
-        });
-      }
-    };
-
-    try {
-      ResourcesPlugin.getWorkspace().run(
-          workspaceRunnable,
-          resourceMap.getResource(),
-          IWorkspace.AVOID_UPDATE,
-          new NullProgressMonitor());
-    } catch (CoreException e) {
-      DartCore.logError(e);
-    }
-  }
-
   /**
    * Update the file's property to the new value in the most efficient way possible.
    */
@@ -338,7 +274,8 @@ public class LightweightModel {
    */
   protected void setFileProperty(IFile file, QualifiedName property, IFile newValue)
       throws CoreException {
-    setFileProperty(file, property, newValue.getFullPath().toString());
+    String value = newValue != null ? newValue.getFullPath().toString() : null;
+    setFileProperty(file, property, value);
   }
 
   /**
@@ -357,12 +294,12 @@ public class LightweightModel {
     }
   }
 
-  private String getLibraryName(Source source, ResourceMap resourceMap) {
+  private String getLibraryName(Source source, AnalysisContext context) {
     if (source == null) {
       return null;
     }
 
-    LibraryElement element = resourceMap.getContext().getLibraryElement(source);
+    LibraryElement element = context.getLibraryElement(source);
 
     if (element == null) {
       return null;
@@ -401,5 +338,42 @@ public class LightweightModel {
     }
 
     return false;
+  }
+
+  private void recalculateForResource(AnalysisContext context, ResourceMap resourceMap,
+      Source source, IResource resource) throws CoreException {
+    IFile file = (IFile) resource;
+
+    // Set the library name.
+    String libraryName = getLibraryName(source, context);
+    setFileProperty(file, DartCore.LIBRARY_NAME, libraryName);
+
+    // Set the source kind.
+    SourceKind kind = (source == null ? SourceKind.UNKNOWN : context.getKindOf(source));
+    setFileProperty(file, SOURCE_KIND, kind.name());
+
+    // Set the client library property.
+    boolean clientLaunchable = source == null ? false : context.isClientLibrary(source);
+    setFileProperty(file, CLIENT_LIBRARY, clientLaunchable);
+
+    // Set the server library property.
+    boolean serverLaunchable = source == null ? false : context.isServerLibrary(source);
+    setFileProperty(file, SERVER_LIBRARY, serverLaunchable);
+
+    // Set the HTML file property.
+    Source[] htmlSources = source == null ? null : context.getHtmlFilesReferencing(source);
+    if (htmlSources == null || htmlSources.length == 0) {
+      setFileProperty(file, HTML_FILE, (String) null);
+    } else {
+      setFileProperty(file, HTML_FILE, resourceMap.getResource(htmlSources[0]));
+    }
+
+    // Set the containing library property.
+    Source[] containingSources = source == null ? null : context.getLibrariesContaining(source);
+    if (containingSources == null || containingSources.length == 0) {
+      setFileProperty(file, CONTAINING_LIBRARY, (String) null);
+    } else {
+      setFileProperty(file, CONTAINING_LIBRARY, resourceMap.getResource(containingSources[0]));
+    }
   }
 }

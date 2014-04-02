@@ -1,0 +1,64 @@
+<head>
+  <link rel="import" href="function_ref.html">
+  <link rel="import" href="isolate_ref.html">
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_inset.html">
+  <link rel="import" href="script_ref.html">
+</head>
+<polymer-element name="isolate-summary" extends="observatory-element">
+  <template>
+    <div class="row">
+      <div class="col-md-1">
+        <img src="img/isolate_icon.png" class="img-polaroid">
+      </div>
+
+      <div class="col-md-1">{{ isolate.mainPort }}</div>
+
+      <div class="col-md-4">
+        <div class="row">
+          <isolate-ref ref="{{ isolate }}"></isolate-ref>
+        </div>
+
+        <div class="row">
+          <small>
+            (<a href="{{ isolate.rootLib.hashLink }}">library</a>)
+            (<a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>)
+            (<a href="{{ isolate.relativeHashLink('profile') }}">profile</a>)
+          </small>
+        </div>
+      </div>
+
+      <div class="col-md-2">
+        <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
+          {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
+        </a>
+        ( <a href="{{ isolate.relativeHashLink('heapmap') }}">map</a> )
+      </div>
+      <div class="col-md-2">
+        <template if="{{ isolate.topFrame == null }}">
+          idle
+        </template>
+        <template if="{{ isolate.topFrame != null }}">
+          run
+        </template>
+        ( <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a> )
+      </div>
+    </div>
+
+    <div class="content">
+      <template repeat="{{ key in isolate.counters.keys }}">
+        <div class="memberValue">{{ key }} ({{ isolate.counters[key] }})</div>
+      </template>
+    </div>
+
+    <template if="{{ isolate.topFrame != null }}">
+      <script-inset script="{{ isolate.topFrame['script'] }}"
+                    pos="{{ isolate.topFrame['tokenPos'] }}">
+        <function-ref ref="{{ isolate.topFrame['function'] }}"></function-ref>
+        (<script-ref ref="{{ isolate.topFrame['script'] }}"
+                     pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+      </script-inset>
+    </template>
+  </template>
+  <script type="application/dart" src="isolate_summary.dart"></script>
+</polymer-element>

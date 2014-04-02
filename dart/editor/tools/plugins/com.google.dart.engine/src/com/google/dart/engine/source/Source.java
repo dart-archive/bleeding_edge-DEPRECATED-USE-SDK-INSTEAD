@@ -13,11 +13,33 @@
  */
 package com.google.dart.engine.source;
 
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.internal.context.TimestampedData;
+import com.google.dart.engine.utilities.translation.DartOmit;
+
 import java.net.URI;
 
 /**
  * The interface {@code Source} defines the behavior of objects representing source code that can be
- * compiled.
+ * analyzed by the analysis engine.
+ * <p>
+ * Implementations of this interface need to be aware of some assumptions made by the analysis
+ * engine concerning sources:
+ * <ul>
+ * <li>Sources are not required to be unique. That is, there can be multiple instances representing
+ * the same source.</li>
+ * <li>Sources are long lived. That is, the engine is allowed to hold on to a source for an extended
+ * period of time and that source must continue to report accurate and up-to-date information.</li>
+ * </ul>
+ * Because of these assumptions, most implementations will not maintain any state but will delegate
+ * to an authoritative system of record in order to implement this API. For example, a source that
+ * represents files on disk would typically query the file system to determine the state of the
+ * file.
+ * <p>
+ * If the instances that implement this API are the system of record, then they will typically be
+ * unique. In that case, sources that are created that represent non-existent files must also be
+ * retained so that if those files are created at a later date the long-lived sources representing
+ * those files will know that they now exist.
  * 
  * @coverage dart.engine.source
  */
@@ -55,21 +77,40 @@ public interface Source {
 
   /**
    * Return {@code true} if this source exists.
+   * <p>
+   * Clients should consider using the the method {@link AnalysisContext#exists(Source)} because
+   * contexts can have local overrides of the content of a source that the source is not aware of
+   * and a source with local content is considered to exist even if there is no file on disk.
    * 
    * @return {@code true} if this source exists
    */
   public boolean exists();
 
   /**
-   * Get the contents of this source and pass it to the given receiver. Exactly one of the methods
-   * defined on the receiver will be invoked unless an exception is thrown. The method that will be
-   * invoked depends on which of the possible representations of the contents is the most efficient.
-   * Whichever method is invoked, it will be invoked before this method returns.
+   * Get the contents and timestamp of this source.
+   * <p>
+   * Clients should consider using the the method {@link AnalysisContext#getContents(Source)}
+   * because contexts can have local overrides of the content of a source that the source is not
+   * aware of.
+   * 
+   * @return the contents and timestamp of the source
+   * @throws Exception if the contents of this source could not be accessed
+   */
+  public TimestampedData<CharSequence> getContents() throws Exception;
+
+  /**
+   * Get the contents of this source and pass it to the given content receiver.
+   * <p>
+   * Clients should consider using the the method
+   * {@link AnalysisContext#getContentsToReceiver(Source, ContentReceiver)} because contexts can
+   * have local overrides of the content of a source that the source is not aware of.
    * 
    * @param receiver the content receiver to which the content of this source will be passed
    * @throws Exception if the contents of this source could not be accessed
    */
-  public void getContents(ContentReceiver receiver) throws Exception;
+  @Deprecated
+  @DartOmit
+  public void getContentsToReceiver(ContentReceiver receiver) throws Exception;
 
   /**
    * Return an encoded representation of this source that can be used to create a source that is
@@ -95,6 +136,10 @@ public interface Source {
    * the modification stamp was accessed then the same value will be returned, but if the contents
    * of the source have been modified one or more times (even if the net change is zero) the stamps
    * will be different.
+   * <p>
+   * Clients should consider using the the method
+   * {@link AnalysisContext#getModificationStamp(Source)} because contexts can have local overrides
+   * of the content of a source that the source is not aware of.
    * 
    * @return the modification stamp for this source
    */

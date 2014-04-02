@@ -1,6 +1,6 @@
 library dart_code_gen;
 
-import 'package:angular/tools/reserved_dart_keywords.dart';
+import 'package:angular/utils.dart' show isReservedWord;
 import 'package:angular/core/parser/syntax.dart';
 
 escape(String s) => s.replaceAllMapped(new RegExp(r'(\"|\$|\n)'), (m) {
@@ -44,10 +44,13 @@ class DartCodeGenVisitor extends Visitor {
   String lookupSetter(String key) => setters.lookup(key);
 
   String lookupAccessor(String key) {
-    switch (state) {
-      case STATE_EVAL: return lookupGetter(key);
-      case STATE_EVAL_HOLDER: return lookupHolder(key);
-      case STATE_ASSIGN: return lookupSetter(key);
+    if (state == STATE_EVAL) {
+      return lookupGetter(key);
+    } else if (state == STATE_EVAL_HOLDER) {
+      return lookupHolder(key);
+    } else {
+      assert(state == STATE_ASSIGN);
+      return lookupSetter(key);
     }
   }
 
@@ -226,7 +229,7 @@ class HelperMap {
   String lookup(String key) {
     String name = _computeName(key);
     if (helpers.containsKey(key)) return name;
-    helpers[key] = isReserved(key)
+    helpers[key] = isReservedWord(key)
         ? templateForReserved(name, key)
         : template(name, key);
     return name;

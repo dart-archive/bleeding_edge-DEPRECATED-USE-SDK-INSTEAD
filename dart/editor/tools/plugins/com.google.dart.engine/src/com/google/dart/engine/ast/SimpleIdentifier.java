@@ -76,7 +76,7 @@ public class SimpleIdentifier extends Identifier {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitSimpleIdentifier(this);
   }
 
@@ -141,7 +141,7 @@ public class SimpleIdentifier extends Identifier {
    * @return {@code true} if this identifier is the name being declared in a declaration
    */
   public boolean inDeclarationContext() {
-    ASTNode parent = getParent();
+    AstNode parent = getParent();
     if (parent instanceof CatchClause) {
       CatchClause clause = (CatchClause) parent;
       return this == clause.getExceptionParameter() || this == clause.getStackTraceParameter();
@@ -183,8 +183,8 @@ public class SimpleIdentifier extends Identifier {
    * @return {@code true} if this expression is in a context where a getter will be invoked
    */
   public boolean inGetterContext() {
-    ASTNode parent = getParent();
-    ASTNode target = this;
+    AstNode parent = getParent();
+    AstNode target = this;
     // skip prefix
     if (parent instanceof PrefixedIdentifier) {
       PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
@@ -225,8 +225,8 @@ public class SimpleIdentifier extends Identifier {
    * @return {@code true} if this expression is in a context where a setter will be invoked
    */
   public boolean inSetterContext() {
-    ASTNode parent = getParent();
-    ASTNode target = this;
+    AstNode parent = getParent();
+    AstNode target = this;
     // skip prefix
     if (parent instanceof PrefixedIdentifier) {
       PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
@@ -297,20 +297,21 @@ public class SimpleIdentifier extends Identifier {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     // There are no children to visit.
   }
 
   /**
-   * Return the given element if it is an appropriate element based on the parent of this
-   * identifier, or {@code null} if it is not appropriate.
+   * Return the given element if it is valid, or report the problem and return {@code null} if it is
+   * not appropriate.
    * 
+   * @param parent the parent of the element, used for reporting when there is a problem
+   * @param isValid {@code true} if the element is appropriate
    * @param element the element to be associated with this identifier
    * @return the element to be associated with this identifier
    */
-  private Element validateElement(ASTNode parent, Class<? extends Element> expectedClass,
-      Element element) {
-    if (!expectedClass.isInstance(element)) {
+  private Element returnOrReportElement(AstNode parent, boolean isValid, Element element) {
+    if (!isValid) {
       AnalysisEngine.getInstance().getLogger().logInformation(
           "Internal error: attempting to set the name of a " + parent.getClass().getName()
               + " to a " + element.getClass().getName(),
@@ -331,31 +332,31 @@ public class SimpleIdentifier extends Identifier {
     if (element == null) {
       return null;
     }
-    ASTNode parent = getParent();
+    AstNode parent = getParent();
     if (parent instanceof ClassDeclaration && ((ClassDeclaration) parent).getName() == this) {
-      return validateElement(parent, ClassElement.class, element);
+      return returnOrReportElement(parent, element instanceof ClassElement, element);
     } else if (parent instanceof ClassTypeAlias && ((ClassTypeAlias) parent).getName() == this) {
-      return validateElement(parent, ClassElement.class, element);
+      return returnOrReportElement(parent, element instanceof ClassElement, element);
     } else if (parent instanceof DeclaredIdentifier
         && ((DeclaredIdentifier) parent).getIdentifier() == this) {
-      return validateElement(parent, LocalVariableElement.class, element);
+      return returnOrReportElement(parent, element instanceof LocalVariableElement, element);
     } else if (parent instanceof FormalParameter
         && ((FormalParameter) parent).getIdentifier() == this) {
-      return validateElement(parent, ParameterElement.class, element);
+      return returnOrReportElement(parent, element instanceof ParameterElement, element);
     } else if (parent instanceof FunctionDeclaration
         && ((FunctionDeclaration) parent).getName() == this) {
-      return validateElement(parent, ExecutableElement.class, element);
+      return returnOrReportElement(parent, element instanceof ExecutableElement, element);
     } else if (parent instanceof FunctionTypeAlias
         && ((FunctionTypeAlias) parent).getName() == this) {
-      return validateElement(parent, FunctionTypeAliasElement.class, element);
+      return returnOrReportElement(parent, element instanceof FunctionTypeAliasElement, element);
     } else if (parent instanceof MethodDeclaration
         && ((MethodDeclaration) parent).getName() == this) {
-      return validateElement(parent, ExecutableElement.class, element);
+      return returnOrReportElement(parent, element instanceof ExecutableElement, element);
     } else if (parent instanceof TypeParameter && ((TypeParameter) parent).getName() == this) {
-      return validateElement(parent, TypeParameterElement.class, element);
+      return returnOrReportElement(parent, element instanceof TypeParameterElement, element);
     } else if (parent instanceof VariableDeclaration
         && ((VariableDeclaration) parent).getName() == this) {
-      return validateElement(parent, VariableElement.class, element);
+      return returnOrReportElement(parent, element instanceof VariableElement, element);
     }
     return element;
   }

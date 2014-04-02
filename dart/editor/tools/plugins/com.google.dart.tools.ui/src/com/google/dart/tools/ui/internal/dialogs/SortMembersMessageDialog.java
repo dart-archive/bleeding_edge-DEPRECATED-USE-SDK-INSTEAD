@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.dialogs;
 
-import com.google.dart.tools.ui.CodeTemplateContextType;
+import com.google.dart.tools.mock.ui.CodeTemplateContextType;
+import com.google.dart.tools.mock.ui.MembersOrderPreferencePage;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.MembersOrderPreferencePage;
 import com.google.dart.tools.ui.dialogs.DialogsMessages;
 import com.google.dart.tools.ui.internal.dialogs.fields.DialogField;
 import com.google.dart.tools.ui.internal.dialogs.fields.IDialogFieldListener;

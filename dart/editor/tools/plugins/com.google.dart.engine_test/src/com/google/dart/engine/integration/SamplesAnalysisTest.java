@@ -116,7 +116,7 @@ public class SamplesAnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Analyze the file.
     //
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), sourceFile);
+    Source source = new FileBasedSource(sourceFile);
     long startTime = System.currentTimeMillis();
     LibraryElement library = context.computeLibraryElement(source);
     long endTime = System.currentTimeMillis();

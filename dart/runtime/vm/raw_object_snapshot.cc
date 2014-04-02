@@ -6,6 +6,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot.h"
+#include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/visitor.h"
 
@@ -448,10 +449,18 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
       reader->isolate(), NEW_OBJECT_WITH_LEN_SPACE(TypeArguments, len, kind));
   reader->AddBackRef(object_id, &type_arguments, kIsDeserialized);
 
-  // Now set all the object fields.
+  // Set the instantiations field, which is only read from a full snapshot.
+  if (kind == Snapshot::kFull) {
+    *reader->ArrayHandle() ^= reader->ReadObjectImpl();
+    type_arguments.set_instantiations(*reader->ArrayHandle());
+  } else {
+    type_arguments.set_instantiations(Object::zero_array());
+  }
+
+  // Now set all the type fields.
   for (intptr_t i = 0; i < len; i++) {
     *reader->TypeHandle() ^= reader->ReadObjectImpl();
-    type_arguments.SetTypeAt(i, *reader->TypeHandle());
+    type_arguments.set_type_at(i, *reader->TypeHandle());
   }
 
   // If object needs to be a canonical object, Canonicalize it.
@@ -492,6 +501,11 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
 
   // Write out the length field.
   writer->Write<RawObject*>(ptr()->length_);
+
+  // Write out the instantiations field, but only in a full snapshot.
+  if (kind == Snapshot::kFull) {
+    writer->WriteObjectImpl(ptr()->instantiations_);
+  }
 
   // Write out the individual types.
   intptr_t len = Smi::Value(ptr()->length_);
@@ -696,6 +710,14 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     *(func.raw()->from() + i) = reader->ReadObjectRef();
   }
 
+// TODO(zra): Remove when arm64 is ready.
+#if !defined(TARGET_ARCH_ARM64)
+  // Set up code pointer with the lazy-compile-stub.
+  func.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
+#else
+  func.set_code(Code::Handle());
+#endif
+
   return func.raw();
 }
 
@@ -728,7 +750,11 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitPointers(from(), to_no_code());
+
+  // Write null for the code and unoptimized code.
+  writer->WriteVMIsolateObject(kNullObject);
+  writer->WriteVMIsolateObject(kNullObject);
 }
 
 
@@ -1081,6 +1107,8 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   prefix.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
+  prefix.raw_ptr()->is_deferred_load_ = reader->Read<bool>();
+  prefix.raw_ptr()->is_loaded_ = reader->Read<bool>();
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -1106,11 +1134,13 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteVMIsolateObject(kLibraryPrefixCid);
+  writer->WriteIndexedObject(kLibraryPrefixCid);
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all non object fields.
   writer->WriteIntptrValue(ptr()->num_imports_);
+  writer->Write<bool>(ptr()->is_deferred_load_);
+  writer->Write<bool>(ptr()->is_loaded_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -2275,7 +2305,7 @@ void RawFloat64x2::WriteTo(SnapshotWriter* writer,
 
 
 #define TYPED_DATA_READ(setter, type)                                          \
-  for (intptr_t i = 0; i < lengthInBytes; i += element_size) {                 \
+  for (intptr_t i = 0; i < length_in_bytes; i += element_size) {               \
     result.Set##setter(i, reader->Read<type>());                               \
   }                                                                            \
 
@@ -2297,17 +2327,15 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
 
   // Setup the array elements.
   intptr_t element_size = ElementSizeInBytes(cid);
-  intptr_t lengthInBytes = len * element_size;
+  intptr_t length_in_bytes = len * element_size;
   switch (cid) {
     case kTypedDataInt8ArrayCid:
-      TYPED_DATA_READ(Int8, int8_t);
-      break;
     case kTypedDataUint8ArrayCid:
-      TYPED_DATA_READ(Uint8, uint8_t);
+    case kTypedDataUint8ClampedArrayCid: {
+      uint8_t* data = reinterpret_cast<uint8_t*>(result.DataAddr(0));
+      reader->ReadBytes(data, length_in_bytes);
       break;
-    case kTypedDataUint8ClampedArrayCid:
-      TYPED_DATA_READ(Uint8, uint8_t);
-      break;
+    }
     case kTypedDataInt16ArrayCid:
       TYPED_DATA_READ(Int16, int16_t);
       break;
@@ -2389,14 +2417,12 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
   // Write out the array elements.
   switch (cid) {
     case kTypedDataInt8ArrayCid:
-      TYPED_DATA_WRITE(int8_t);
-      break;
     case kTypedDataUint8ArrayCid:
-      TYPED_DATA_WRITE(uint8_t);
+    case kTypedDataUint8ClampedArrayCid: {
+      uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data_);
+      writer->WriteBytes(data, len);
       break;
-    case kTypedDataUint8ClampedArrayCid:
-      TYPED_DATA_WRITE(uint8_t);
-      break;
+    }
     case kTypedDataInt16ArrayCid:
       TYPED_DATA_WRITE(int16_t);
       break;

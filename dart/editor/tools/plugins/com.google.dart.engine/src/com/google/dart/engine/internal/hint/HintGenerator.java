@@ -22,6 +22,7 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 
@@ -44,6 +45,11 @@ public class HintGenerator {
 
   private final boolean enableDart2JSHints;
 
+  /**
+   * The inheritance manager used to find overridden methods.
+   */
+  private InheritanceManager manager;
+
   public HintGenerator(CompilationUnit[] compilationUnits, AnalysisContext context,
       AnalysisErrorListener errorListener) {
     this.compilationUnits = compilationUnits;
@@ -52,6 +58,7 @@ public class HintGenerator {
     LibraryElement library = compilationUnits[0].getElement().getLibrary();
     importsVerifier = new ImportsVerifier(library);
     enableDart2JSHints = context.getAnalysisOptions().getDart2jsHint();
+    manager = new InheritanceManager(compilationUnits[0].getElement().getLibrary());
   }
 
   public void generateForLibrary() throws AnalysisException {
@@ -82,24 +89,26 @@ public class HintGenerator {
   private void generateForCompilationUnit(CompilationUnit unit, Source source) {
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
 
-    importsVerifier.visitCompilationUnit(unit);
+    unit.accept(importsVerifier);
 
     // dead code analysis
-    new DeadCodeVerifier(errorReporter).visitCompilationUnit(unit);
+    unit.accept(new DeadCodeVerifier(errorReporter));
 
     // dart2js analysis
     if (enableDart2JSHints) {
-      new Dart2JSVerifier(errorReporter).visitCompilationUnit(unit);
+      unit.accept(new Dart2JSVerifier(errorReporter));
     }
 
     // Dart best practices
-    new BestPracticesVerifier(errorReporter).visitCompilationUnit(unit);
+    unit.accept(new BestPracticesVerifier(errorReporter));
+
+    unit.accept(new OverrideVerifier(manager, errorReporter));
 
     // Find to-do comments
     new ToDoFinder(errorReporter).findIn(unit);
 
     // pub analysis
     // TODO(danrubel/jwren) Commented out until bugs in the pub verifier are fixed
-//    new PubVerifier(context, errorReporter).visitCompilationUnit(unit);
+//    unit.accept(new PubVerifier(context, errorReporter));
   }
 }

@@ -21,7 +21,6 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -56,8 +55,8 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
 
     @Override
     public void applyChanges(ChangeSet changeSet) {
-      added.addAll(changeSet.getAdded());
-      changed.addAll(changeSet.getChanged());
+      added.addAll(changeSet.getAddedSources());
+      changed.addAll(changeSet.getChangedSources());
       super.applyChanges(changeSet);
     }
 
@@ -81,6 +80,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
           return;
         }
       }
+      @SuppressWarnings("resource")
       PrintStringWriter msg = new PrintStringWriter();
       msg.println("Expected:");
       for (Source source : expected) {
@@ -171,14 +171,13 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     participant.build(new BuildEvent(projectRes, delta, MONITOR), MONITOR);
 
     manager.assertProjectAnalyzed();
-    ((MockAnalysisContextImpl) project.getDefaultContext()).assertApplyChanges(
-        new Source[] {fileSource},
-        new Source[] {});
+    ((MockAnalysisContextImpl) project.getDefaultContext()).assertApplyChanges(new Source[] {
+        fileSource, fileSource}, new Source[] {});
     markerManager.waitForMarkers(10000);
     fileRes.assertMarkersDeleted();
 
     // file in project changed
-    project.getDefaultContext().getSourceFactory().setContents(fileSource, "library a;##");
+    project.getDefaultContext().setContents(fileSource, "library a;##");
     delta = new MockDelta(projectRes);
     delta.add(fileRes);
     participant.build(new BuildEvent(projectRes, delta, MONITOR), MONITOR);
@@ -207,9 +206,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
 
     AnalysisContext context = project.getDefaultContext();
     File file = fileRes.getLocation().toFile();
-    SourceFactory factory = context.getSourceFactory();
-    fileSource = new FileBasedSource(factory.getContentCache(), file);
-    factory.setContents(fileSource, fileContents);
+    fileSource = new FileBasedSource(file);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(fileSource);
+    context.applyChanges(changeSet);
+    context.setContents(fileSource, fileContents);
 
     participant = new AnalysisEngineParticipant(manager, markerManager) {
       @Override

@@ -1,6 +1,5 @@
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.DartElement;
@@ -24,24 +23,6 @@ public class ActionInstrumentationUtilities {
     for (DartElement m : members) {
       recordElement(m, instrumentation);
     }
-  }
-
-  public static void record(DartNode node, InstrumentationBuilder instrumentation) {
-
-    if (node == null) {
-      instrumentation.metric("DartNode", "null");
-    }
-
-    instrumentation.metric("DartNode-Class", node.getClass().toString());
-
-    com.google.dart.compiler.resolver.Element element = node.getElement();
-
-    if (element == null) {
-      instrumentation.metric("Element", "null");
-    } else {
-      instrumentation.metric("Element-Name", element.getName());
-    }
-
   }
 
   public static void record(Exception exception, InstrumentationBuilder instrumentation) {

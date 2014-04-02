@@ -21,6 +21,7 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(OverrideIndicatorManagerTest.class);
+    suite.addTest(com.google.dart.tools.ui.internal.text.editor.saveactions.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.internal.text.editor.selectionactions.TestAll.suite());
     return suite;
   }

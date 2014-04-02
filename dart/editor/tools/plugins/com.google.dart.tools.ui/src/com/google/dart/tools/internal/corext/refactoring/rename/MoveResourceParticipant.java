@@ -14,10 +14,7 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.common.base.Objects;
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.Directive;
-import com.google.dart.engine.ast.StringLiteral;
-import com.google.dart.engine.ast.UriBasedDirective;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExportElement;
@@ -71,20 +68,6 @@ import java.util.List;
  */
 public class MoveResourceParticipant extends MoveParticipant {
   /**
-   * @return the {@link String} content of the given {@link Source}.
-   */
-  private static String getSourceContent(Source source) throws Exception {
-    final String result[] = {null};
-    source.getContents(new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        result[0] = contents.toString();
-      }
-    });
-    return result[0];
-  }
-
-  /**
    * @return the Java {@link File} which corresponds to the given {@link Source}, may be
    *         {@code null} if cannot be determined.
    */
@@ -97,18 +80,19 @@ public class MoveResourceParticipant extends MoveParticipant {
   }
 
   private static boolean isPackageReference(SearchMatch match) throws Exception {
-    Source source = match.getElement().getSource();
+    Element element = match.getElement();
+    AnalysisContext context = element.getContext();
+    Source source = element.getSource();
     int offset = match.getSourceRange().getOffset() + "'".length();
-    String content = getSourceContent(source);
+    String content = context.getContents(source).getData().toString();
     return content.startsWith("package:", offset);
   }
 
   /**
-   * @return {@code true} if we can prove that the given {@link UriBasedDirective} has relative URI,
-   *         so should be updated.
+   * @return {@code true} if we can prove that the given {@link UriReferencedElement} has a relative
+   *         URI, so should be updated.
    */
-  private static boolean isRelativeUri(UriBasedDirective directive) {
-    UriReferencedElement uriElement = (UriReferencedElement) directive.getElement();
+  private static boolean isRelativeUri(UriReferencedElement uriElement) {
     if (uriElement == null) {
       return false;
     }
@@ -142,12 +126,12 @@ public class MoveResourceParticipant extends MoveParticipant {
   @Override
   public Change createPreChange(final IProgressMonitor pm) throws CoreException,
       OperationCanceledException {
-    return ExecutionUtils.runObjectCore(new RunnableObjectEx<Change>() {
+    return ExecutionUtils.runObjectLog(new RunnableObjectEx<Change>() {
       @Override
       public Change runObject() throws Exception {
         return createChangeEx(pm);
       }
-    });
+    }, null);
   }
 
   @Override
@@ -172,7 +156,7 @@ public class MoveResourceParticipant extends MoveParticipant {
       File destDir = destContainer.getLocation().toFile();
       File destFile = new File(destDir, file.getName());
       SourceFactory sourceFactory = match.getElement().getContext().getSourceFactory();
-      FileBasedSource destSource = new FileBasedSource(sourceFactory.getContentCache(), destFile);
+      FileBasedSource destSource = new FileBasedSource(destFile);
       URI destUri = sourceFactory.restoreUri(destSource);
       if (destUri != null) {
         newUri = destUri.toString();
@@ -216,10 +200,9 @@ public class MoveResourceParticipant extends MoveParticipant {
   }
 
   private void addUnitUriTextEdit(CompilationUnitElement fileElement, URI newUnitUri,
-      Element element, StringLiteral uriNode) {
+      Element element, SourceRange uriRange) {
     if (element != null) {
       Source partUnit = element.getSource();
-      SourceRange uriRange = SourceRangeFactory.rangeNode(uriNode);
       addUnitUriTextEdit(fileElement.getSource(), newUnitUri, uriRange, partUnit);
     }
   }
@@ -251,11 +234,10 @@ public class MoveResourceParticipant extends MoveParticipant {
   private Change createChangeEx(IProgressMonitor pm) throws Exception {
     MoveArguments arguments = getArguments();
     // prepare unit
-    CompilationUnit fileUnit = DartElementUtil.getResolvedCompilationUnit(file);
-    if (fileUnit == null) {
+    CompilationUnitElement fileElement = DartElementUtil.getCompilationUnitElement(file);
+    if (fileElement == null) {
       return null;
     }
-    CompilationUnitElement fileElement = fileUnit.getElement();
     // update references
     Object destination = arguments.getDestination();
     if (arguments.getUpdateReferences() && destination instanceof IContainer) {
@@ -265,32 +247,25 @@ public class MoveResourceParticipant extends MoveParticipant {
       List<SearchMatch> references = searchEngine.searchReferences(fileElement, null, null);
       // update references
       for (SearchMatch match : references) {
+        if (!isFileReference(match)) {
+          continue;
+        }
         addReferenceUpdate(match, destContainer);
       }
       // if moved Unit is defining library, updates references from it to its components
       {
         LibraryElement library = fileElement.getLibrary();
         if (library != null && Objects.equal(library.getDefiningCompilationUnit(), fileElement)) {
+          //  update directives
           URI newUnitUri = destContainer.getLocationURI();
-          for (Directive directive : fileUnit.getDirectives()) {
-            if (directive instanceof UriBasedDirective) {
-              UriBasedDirective uriDirective = (UriBasedDirective) directive;
-              // may be not relative
-              if (!isRelativeUri(uriDirective)) {
-                continue;
-              }
-              // prepare target Element
-              Element targetElement = directive.getElement();
-              if (targetElement instanceof ImportElement) {
-                targetElement = ((ImportElement) targetElement).getImportedLibrary();
-              }
-              if (targetElement instanceof ExportElement) {
-                targetElement = ((ExportElement) targetElement).getExportedLibrary();
-              }
-              // do update
-              StringLiteral uriNode = uriDirective.getUri();
-              addUnitUriTextEdit(fileElement, newUnitUri, targetElement, uriNode);
-            }
+          for (CompilationUnitElement unitElement : library.getParts()) {
+            updateUriElement(fileElement, unitElement, newUnitUri);
+          }
+          for (ImportElement importElement : library.getImports()) {
+            updateUriElement(fileElement, importElement, newUnitUri);
+          }
+          for (ExportElement exportElement : library.getExports()) {
+            updateUriElement(fileElement, exportElement, newUnitUri);
           }
         }
       }
@@ -302,5 +277,44 @@ public class MoveResourceParticipant extends MoveParticipant {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Check if the the given {@link SearchMatch} is a reference to {@link #file}.
+   */
+  private boolean isFileReference(SearchMatch match) throws Exception {
+    Source source = match.getElement().getSource();
+    SourceRange range = match.getSourceRange();
+    CharSequence sourceContent = source.getContents().getData();
+    String uri = sourceContent.subSequence(range.getOffset(), range.getEnd()).toString();
+    String fileName = file.getName();
+    if (uri.startsWith("\"") && uri.endsWith(fileName + "\"")) {
+      return true;
+    }
+    if (uri.startsWith("'") && uri.endsWith(fileName + "'")) {
+      return true;
+    }
+    return false;
+  }
+
+  private void updateUriElement(CompilationUnitElement fileElement,
+      UriReferencedElement uriElement, URI newUnitUri) {
+    // may be not relative
+    if (!isRelativeUri(uriElement)) {
+      return;
+    }
+    // prepare target Element
+    Element targetElement = uriElement;
+    if (targetElement instanceof ImportElement) {
+      targetElement = ((ImportElement) targetElement).getImportedLibrary();
+    }
+    if (targetElement instanceof ExportElement) {
+      targetElement = ((ExportElement) targetElement).getExportedLibrary();
+    }
+    // do update
+    SourceRange uriRange = SourceRangeFactory.rangeStartEnd(
+        uriElement.getUriOffset(),
+        uriElement.getUriEnd());
+    addUnitUriTextEdit(fileElement, newUnitUri, targetElement, uriRange);
   }
 }

@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.internal.util;
 
-import com.google.dart.compiler.PackageLibraryManager;
-import com.google.dart.compiler.Source;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.resources.IFile;
@@ -34,7 +32,7 @@ import java.net.URI;
 import java.util.HashMap;
 
 /**
- * Utilities for mapping {@link Source} to {@link File} to {@link IFile}.
+ * Utilities for dealing with resources.
  * 
  * @coverage dart.tools.core
  */
@@ -85,19 +83,6 @@ public class ResourceUtil {
   }
 
   /**
-   * Return the file corresponding to the specified Dart source, or <code>null</code> if there is no
-   * such file.
-   * 
-   * @param source the source corresponding to the file to be returned
-   * @return the file corresponding to the specified Dart source
-   */
-  public static File getFile(Source source) {
-
-    return null;
-
-  }
-
-  /**
    * Return the file associated with the given URI, or <code>null</code> if the URI does not
    * correspond to an existing file.
    * 
@@ -135,13 +120,6 @@ public class ResourceUtil {
   }
 
   /**
-   * Answer the Eclipse resource associated with the specified source or <code>null</code> if none
-   */
-  public static IResource getResource(Source source) {
-    return getResource(getFile(source));
-  }
-
-  /**
    * Return the resource associated with the given URI, or <code>null</code> if the URI does not
    * correspond to an existing resource.
    * 
@@ -171,13 +149,6 @@ public class ResourceUtil {
   }
 
   /**
-   * Answer the Eclipse resources associated with the Dart source or <code>null</code> if none
-   */
-  public static IResource[] getResources(Source source) {
-    return getResources(getFile(source));
-  }
-
-  /**
    * Return the Eclipse resources associated with the given URI, or <code>null</code> if there is no
    * associated resource. The URI must be a canonical URI (a file: URI built from a canonical path).
    * 
@@ -185,8 +156,6 @@ public class ResourceUtil {
    */
   public static IResource[] getResources(URI uri) {
     if (uri == null) {
-      return null;
-    } else if (PackageLibraryManager.isDartUri(uri)) {
       return null;
     } else if (!uri.isAbsolute()) {
       DartCore.logError(

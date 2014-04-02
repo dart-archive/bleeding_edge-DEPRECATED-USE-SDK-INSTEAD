@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.common.base.Charsets;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.Extensions;
@@ -37,11 +36,15 @@ import com.google.dart.tools.ui.actions.ShowInFinderAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
+import com.google.dart.tools.ui.internal.formatter.DartFormatter.FormatFileAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
+
+import static com.google.dart.tools.core.DartCore.isDartLikeFileName;
+import static com.google.dart.tools.core.DartCore.isHtmlLikeFileName;
 
 import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.filesystem.IFileInfo;
@@ -52,7 +55,6 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -102,9 +104,6 @@ import org.eclipse.ui.part.ResourceTransfer;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.views.navigator.LocalSelectionTransfer;
 
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -200,45 +199,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     return true;
   }
 
-  /**
-   * Checks if the given Dart file will be too complex for the opening it in the Dart editor.
-   */
-  private static boolean isTooComplexDartFile(IFile file) {
-    IPath fileLoc = file.getLocation();
-    if (fileLoc == null) {
-      return false;
-    }
-    try {
-      // read up to 1000 characters
-      char buf[] = new char[1000];
-      Reader reader = new InputStreamReader(new FileInputStream(fileLoc.toFile()), Charsets.UTF_8);
-      try {
-        int bufSize = 0;
-        while (bufSize < buf.length) {
-          int n = reader.read(buf, bufSize, buf.length - bufSize);
-          // too small file
-          if (n == -1) {
-            return false;
-          }
-          // update size
-          bufSize += n;
-        }
-      } finally {
-        reader.close();
-      }
-      // check if there is a line break
-      for (int i = 0; i < buf.length; i++) {
-        if (buf[i] == '\n' || buf[i] == '\r') {
-          return false;
-        }
-      }
-      // one long line, too complex
-      return true;
-    } catch (Throwable e) {
-    }
-    return false;
-  }
-
   private TreeViewer treeViewer;
   private IMemento memento;
   private LinkWithEditorAction linkWithEditorAction;
@@ -256,6 +216,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private EnableDartBuilderAction enableBuilderAction;
 
   private CopyFilePathAction copyFilePathAction;
+
+  private FormatFileAction formatFileAction;
 
   private HideProjectAction hideContainerAction;
   private UndoRedoActionGroup undoRedoActionGroup;
@@ -278,7 +240,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private IPubUpdateListener pubUpdateListener = new PubUpdateListener();
 
-  private RefreshAction refreshAction;
+//  private RefreshAction refreshAction;
 
   private CopyAction copyAction;
 
@@ -380,6 +342,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     if (propertyDialogAction != null) {
       treeViewer.removeSelectionChangedListener(propertyDialogAction);
     }
+    if (formatFileAction != null) {
+      treeViewer.removeSelectionChangedListener(formatFileAction);
+    }
 
     if (pubUpdateListener != null) {
       PubManager.getInstance().removeListener(pubUpdateListener);
@@ -402,7 +367,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         Display.getDefault().asyncExec(new Runnable() {
           @Override
           public void run() {
-            treeViewer.refresh();
+            if (!treeViewer.getControl().isDisposed()) {
+              treeViewer.refresh();
+            }
           }
         });
       }
@@ -529,7 +496,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
 
       manager.add(new Separator());
-      manager.add(refreshAction);
+//      manager.add(refreshAction);
       // reanalyze
       if (!selection.isEmpty() && allElementsAreProjects(selection)) {
         manager.add(cleanFoldersAction);
@@ -550,12 +517,18 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
       if (!isPackagesDir) {
 
+        // Only show this if it's enabled (if it's not the WST one will be there instead)
+        if (formatFileAction.isEnabled()) {
+          manager.add(new Separator());
+          manager.add(formatFileAction);
+        }
+
 //        manager.add(cleanUpAction);
         manager.add(new Separator());
 
         boolean analysisTargets = true;
         for (Object elem : selection.toList()) {
-          if (!(elem instanceof IContainer || isDartLikeFile(elem))) {
+          if (!isAnalyzable(elem)) {
             analysisTargets = false;
             break;
           }
@@ -651,7 +624,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
             String editorId = IDE.getEditorDescriptor(file).getId();
             if (DartUI.ID_CU_EDITOR.equals(editorId)) {
               // Gracefully degrade by opening a simpler text editor on too complex files.
-              if (isTooComplexDartFile(file)) {
+              if (DartUI.isTooComplexDartFile(file)) {
                 instrumentation.metric("isTooComplexDartFile", true);
                 editorId = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
               }
@@ -744,7 +717,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     actionBars.setGlobalActionHandler(ActionFactory.COPY.getId(), copyAction);
     actionBars.setGlobalActionHandler(ActionFactory.PASTE.getId(), pasteAction);
-    actionBars.setGlobalActionHandler(ActionFactory.REFRESH.getId(), refreshAction);
+//    actionBars.setGlobalActionHandler(ActionFactory.REFRESH.getId(), refreshAction);
 
   }
 
@@ -763,8 +736,15 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer.addDropSupport(ops | DND.DROP_DEFAULT, transfers, adapter);
   }
 
-  private boolean isDartLikeFile(Object file) {
-    return file instanceof IResource && DartCore.isDartLikeFileName(((IResource) file).getName());
+  private boolean isAnalyzable(Object obj) {
+    if (obj instanceof IContainer) {
+      return true;
+    }
+    if (obj instanceof IFile) {
+      String name = ((IFile) obj).getName();
+      return isDartLikeFileName(name) || isHtmlLikeFileName(name);
+    }
+    return false;
   }
 
   private boolean isInDartSdkNode(Object selection) {
@@ -812,7 +792,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     renameAction = new RenameResourceAction(getShell(), treeViewer.getTree()) {
       @Override
       public void run() {
-        if (!RefactoringUtils.waitReadyForRefactoring()) {
+        if (!RefactoringUtils.waitReadyForRefactoring2()) {
           return;
         }
         super.run();
@@ -823,6 +803,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 //    treeViewer.addSelectionChangedListener(cleanUpAction);
     moveAction = new MoveResourceAction(getShell());
     treeViewer.addSelectionChangedListener(moveAction);
+
+    formatFileAction = new FormatFileAction(getViewSite());
+    formatFileAction.setEnabled(false); //selection events will update
+    treeViewer.addSelectionChangedListener(formatFileAction);
 
     propertyDialogAction = new PropertyDialogAction(getViewSite(), treeViewer);
     propertyDialogAction.setActionDefinitionId(IWorkbenchCommandConstants.FILE_PROPERTIES);
@@ -844,8 +828,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     copyAction.setEnabled(false); //selection events will update
     treeViewer.addSelectionChangedListener(copyAction);
 
-    refreshAction = new RefreshAction(this);
-    treeViewer.addSelectionChangedListener(refreshAction);
+//    refreshAction = new RefreshAction(this);
+//    treeViewer.addSelectionChangedListener(refreshAction);
 
     deleteAction = new DeleteAction(getSite());
     deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(

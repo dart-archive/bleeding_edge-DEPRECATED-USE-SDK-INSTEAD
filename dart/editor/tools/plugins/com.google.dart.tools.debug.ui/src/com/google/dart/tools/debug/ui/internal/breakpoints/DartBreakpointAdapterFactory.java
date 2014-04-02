@@ -18,6 +18,7 @@ import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdapterFactory;
+import org.eclipse.debug.ui.actions.IRunToLineTarget;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -37,6 +38,10 @@ public class DartBreakpointAdapterFactory implements IAdapterFactory {
   @SuppressWarnings("rawtypes")
   @Override
   public Object getAdapter(Object adaptableObject, Class adapterType) {
+    if (adapterType == IRunToLineTarget.class) {
+      return new RunToLineAdapter();
+    }
+
     if (adaptableObject instanceof ITextEditor) {
       ITextEditor editorPart = (ITextEditor) adaptableObject;
 
@@ -57,7 +62,7 @@ public class DartBreakpointAdapterFactory implements IAdapterFactory {
   @SuppressWarnings("rawtypes")
   @Override
   public Class[] getAdapterList() {
-    return new Class[] {IToggleBreakpointsTarget.class};
+    return new Class[] {IRunToLineTarget.class, IToggleBreakpointsTarget.class};
   }
 
 }

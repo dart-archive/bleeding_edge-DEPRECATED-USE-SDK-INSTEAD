@@ -16,6 +16,22 @@ package com.google.dart.engine.utilities.general;
 import junit.framework.TestCase;
 
 public class StringUtilitiesTest extends TestCase {
+  public void test_abbreviateLeft() throws Exception {
+    assertEquals("123456789", StringUtilities.abbreviateLeft("123456789", 100));
+    assertEquals("123456789", StringUtilities.abbreviateLeft("123456789", 9));
+    assertEquals("...56789", StringUtilities.abbreviateLeft("123456789", 8));
+    assertEquals("...6789", StringUtilities.abbreviateLeft("123456789", 7));
+    assertEquals("...789", StringUtilities.abbreviateLeft("123456789", 6));
+    assertEquals("...89", StringUtilities.abbreviateLeft("123456789", 5));
+    assertEquals("...9", StringUtilities.abbreviateLeft("123456789", 4));
+    try {
+      assertEquals("...", StringUtilities.abbreviateLeft("123456789", 3));
+      fail();
+    } catch (IllegalArgumentException e) {
+
+    }
+  }
+
   public void test_EMPTY() {
     assertEquals("", StringUtilities.EMPTY);
     assertTrue(StringUtilities.EMPTY.isEmpty());

@@ -141,6 +141,8 @@
          categoryId="com.google.dart.tools.ui.javaNoTypeProposalCategory">
          <partition type="__dftl_partition_content_type"/>
          <partition type="__dart_string"/>
+         <partition type="__dart_doc"/>
+         <partition type="__dart_multiline_comment"/>
       </dartCompletionProposalComputer>
    </extension>
    <!-- Dart doc completions -->   
@@ -321,7 +323,7 @@
             name="%searchViewName"
             icon="$nl$/icons/full/eview16/search_results.gif"
             category="com.google.dart.tools.ui.dart"
-            class="com.google.dart.tools.search.internal.ui.SearchView"
+            class="com.google.dart.tools.internal.search.ui.SearchView"
             allowMultiple="false"
             id="com.google.dart.tools.SearchView">
       </view>
@@ -478,11 +480,6 @@
    <extension
          point="org.eclipse.ui.editors.annotationTypes">
       <type
-            name="com.google.dart.tools.ui.angular_error"
-            super="org.eclipse.ui.workbench.texteditor.error"
-            markerType="com.google.dart.tools.core.angular_error"
-            markerSeverity="2"/>
-      <type
             name="com.google.dart.tools.ui.angular_warning"
             super="org.eclipse.ui.workbench.texteditor.warning"
             markerType="com.google.dart.tools.core.angular_warning"
@@ -494,9 +491,8 @@
             markerSeverity="2"/>
       <type
             name="com.google.dart.tools.ui.info"
-            super="org.eclipse.ui.workbench.texteditor.warning"
             markerType="com.google.dart.tools.core.hint"
-            markerSeverity="1"/>
+            markerSeverity="0"/>
       <type
             name="com.google.dart.tools.ui.warning"
             super="org.eclipse.ui.workbench.texteditor.warning"
@@ -519,32 +515,13 @@
    <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
        <specification
-           annotationType="com.google.dart.tools.ui.angular_error"
-           colorPreferenceKey="angularErrorColor"
-           colorPreferenceValue="255,0,0"
-           contributesToHeader="true"
-           highlightPreferenceKey="angularErrorHighlighting"
-           highlightPreferenceValue="false"
-           icon="icons/full/dart16/angular_14_red.png"
-           label="Angular Error"
-           overviewRulerPreferenceKey="angularErrorInOverviewRuler"
-           overviewRulerPreferenceValue="true"
-           presentationLayer="4"
-           textPreferenceKey="angularErrorText"
-           textPreferenceValue="true"
-           textStylePreferenceKey="angularErrorTextStyle"
-           textStylePreferenceValue="PROBLEM_UNDERLINE"
-           verticalRulerPreferenceKey="angularErrorInVerticalRuler"
-           verticalRulerPreferenceValue="true">
-       </specification>
-       <specification
            annotationType="com.google.dart.tools.ui.angular_warning"
            colorPreferenceKey="angularWarningColor"
            colorPreferenceValue="244,200,45"
            contributesToHeader="true"
            highlightPreferenceKey="angularWarningHighlighting"
            highlightPreferenceValue="false"
-           icon="icons/full/dart16/angular_14_yellow.png"
+           icon="icons/full/dart16/angular_14_red.png"
            label="Angular warning"
            overviewRulerPreferenceKey="angularWarningIndicationInOverviewRuler"
            overviewRulerPreferenceValue="true"
@@ -615,7 +592,7 @@
      <specification
            annotationType="com.google.dart.tools.ui.info"
            colorPreferenceKey="suggestionIndicationColor"
-           colorPreferenceValue="244,200,45"
+           colorPreferenceValue="180,180,180"
            icon="icons/full/misc/info.png"
            contributesToHeader="true"
            highlightPreferenceKey="suggestionIndicationHighlighting"
@@ -2654,9 +2631,9 @@
         point="com.google.dart.tools.search.searchResultViewPages">
     <viewPage
       id="com.google.dart.tools.search.text.FileSearchResultPage"
-      searchResultClass="com.google.dart.tools.search.internal.ui.text.FileSearchResult"
+      searchResultClass="com.google.dart.tools.internal.search.ui.text.FileSearchResult"
       helpContextId="com.google.dart.tools.search.file_search_result_page"
-      class="com.google.dart.tools.search.internal.ui.text.FileSearchPage">
+      class="com.google.dart.tools.internal.search.ui.text.FileSearchPage">
     </viewPage>
   </extension>
  

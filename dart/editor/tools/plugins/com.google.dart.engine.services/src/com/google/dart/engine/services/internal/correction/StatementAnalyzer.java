@@ -15,7 +15,7 @@ package com.google.dart.engine.services.internal.correction;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.DoStatement;
@@ -46,15 +46,15 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   /**
    * @return <code>true</code> if "nodes" contains "node".
    */
-  private static boolean contains(List<ASTNode> nodes, ASTNode node) {
+  private static boolean contains(List<AstNode> nodes, AstNode node) {
     return nodes.contains(node);
   }
 
   /**
    * @return <code>true</code> if "nodes" contains one of the "otherNodes".
    */
-  private static boolean contains(List<ASTNode> nodes, List<? extends ASTNode> otherNodes) {
-    for (ASTNode otherNode : otherNodes) {
+  private static boolean contains(List<AstNode> nodes, List<? extends AstNode> otherNodes) {
+    for (AstNode otherNode : otherNodes) {
       if (nodes.contains(otherNode)) {
         return true;
       }
@@ -111,7 +111,7 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   @Override
   public Void visitDoStatement(DoStatement node) {
     super.visitDoStatement(node);
-    List<ASTNode> selectedNodes = getSelectedNodes();
+    List<AstNode> selectedNodes = getSelectedNodes();
     if (contains(selectedNodes, node.getBody())) {
       invalidSelection("Operation not applicable to a 'do' statement's body and expression.");
     }
@@ -121,7 +121,7 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   @Override
   public Void visitForStatement(ForStatement node) {
     super.visitForStatement(node);
-    List<ASTNode> selectedNodes = getSelectedNodes();
+    List<AstNode> selectedNodes = getSelectedNodes();
     boolean containsInit = contains(selectedNodes, node.getInitialization())
         || contains(selectedNodes, node.getVariables());
     boolean containsCondition = contains(selectedNodes, node.getCondition());
@@ -140,9 +140,9 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   @Override
   public Void visitSwitchStatement(SwitchStatement node) {
     super.visitSwitchStatement(node);
-    List<ASTNode> selectedNodes = getSelectedNodes();
+    List<AstNode> selectedNodes = getSelectedNodes();
     List<SwitchMember> switchMembers = node.getMembers();
-    for (ASTNode selectedNode : selectedNodes) {
+    for (AstNode selectedNode : selectedNodes) {
       if (switchMembers.contains(selectedNode)) {
         invalidSelection("Selection must either cover whole switch statement or parts of a single case block.");
         break;
@@ -154,7 +154,7 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   @Override
   public Void visitTryStatement(TryStatement node) {
     super.visitTryStatement(node);
-    ASTNode firstSelectedNode = getFirstSelectedNode();
+    AstNode firstSelectedNode = getFirstSelectedNode();
     if (firstSelectedNode != null) {
       if (firstSelectedNode == node.getBody() || firstSelectedNode == node.getFinallyBlock()) {
         invalidSelection("Selection must either cover whole try statement or parts of try, catch, or finally block.");
@@ -174,7 +174,7 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   @Override
   public Void visitWhileStatement(WhileStatement node) {
     super.visitWhileStatement(node);
-    List<ASTNode> selectedNodes = getSelectedNodes();
+    List<AstNode> selectedNodes = getSelectedNodes();
     if (contains(selectedNodes, node.getCondition()) && contains(selectedNodes, node.getBody())) {
       invalidSelection("Operation not applicable to a while statement's expression and body.");
     }
@@ -197,13 +197,13 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   }
 
   /**
-   * Checks final selected {@link ASTNode}s after processing {@link CompilationUnit}.
+   * Checks final selected {@link AstNode}s after processing {@link CompilationUnit}.
    */
   private void checkSelectedNodes(CompilationUnit unit) {
-    List<ASTNode> nodes = getSelectedNodes();
+    List<AstNode> nodes = getSelectedNodes();
     // some tokens before first selected node
     {
-      ASTNode firstNode = nodes.get(0);
+      AstNode firstNode = nodes.get(0);
       SourceRange rangeBeforeFirstNode = rangeStartStart(selection, firstNode);
       if (hasTokens(rangeBeforeFirstNode)) {
         invalidSelection(
@@ -213,7 +213,7 @@ public class StatementAnalyzer extends SelectionAnalyzer {
     }
     // some tokens after last selected node
     {
-      ASTNode lastNode = Iterables.getLast(nodes);
+      AstNode lastNode = Iterables.getLast(nodes);
       SourceRange rangeAfterLastNode = rangeEndEnd(lastNode, selection);
       if (hasTokens(rangeAfterLastNode)) {
         invalidSelection(

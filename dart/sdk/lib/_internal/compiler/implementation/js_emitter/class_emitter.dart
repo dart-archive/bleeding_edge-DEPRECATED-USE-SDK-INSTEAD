@@ -36,7 +36,7 @@ class ClassEmitter extends CodeEmitterHelper {
       task.needsMixinSupport = true;
     }
 
-    ClassBuilder builder = new ClassBuilder();
+    ClassBuilder builder = new ClassBuilder(namer);
     emitClassConstructor(classElement, builder, runtimeName,
                          onlyForRti: onlyForRti);
     emitFields(classElement, builder, superName, onlyForRti: onlyForRti);
@@ -203,8 +203,8 @@ class ClassEmitter extends CodeEmitterHelper {
             }
             int code = getterCode + (setterCode << 2);
             if (code == 0) {
-              compiler.reportInternalError(
-                  field, 'Internal error: code is 0 ($element/$field)');
+              compiler.internalError(field,
+                  'Field code is 0 ($element/$field).');
             } else {
               fieldCode = FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE];
             }
@@ -314,7 +314,7 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     List<jsAst.Property> statics = new List<jsAst.Property>();
-    ClassBuilder staticsBuilder = new ClassBuilder();
+    ClassBuilder staticsBuilder = new ClassBuilder(namer);
     if (emitFields(classElement, staticsBuilder, null, emitStatics: true)) {
       statics.add(staticsBuilder.toObjectInitializer().properties.single);
     }
@@ -342,7 +342,7 @@ class ClassEmitter extends CodeEmitterHelper {
       if (!backend.isNeededForReflection(classElement)) {
         enclosingBuilder.addProperty("+$reflectionName", js.number(0));
       } else {
-        List<int> types = new List<int>();
+        List<int> types = <int>[];
         if (classElement.supertype != null) {
           types.add(task.metadataEmitter.reifyType(classElement.supertype));
         }
@@ -350,8 +350,7 @@ class ClassEmitter extends CodeEmitterHelper {
           types.add(task.metadataEmitter.reifyType(interface));
         }
         enclosingBuilder.addProperty("+$reflectionName",
-            new jsAst.ArrayInitializer.from(types.map((typeNumber) =>
-                js.number(typeNumber))));
+            new jsAst.ArrayInitializer.from(types.map(js.number)));
       }
     }
   }
@@ -494,10 +493,10 @@ class ClassEmitter extends CodeEmitterHelper {
     return field is ClosureFieldElement;
   }
 
-  bool canAvoidGeneratedCheckedSetter(Element member) {
+  bool canAvoidGeneratedCheckedSetter(VariableElement member) {
     // We never generate accessors for top-level/static fields.
     if (!member.isInstanceMember()) return true;
-    DartType type = member.computeType(compiler);
+    DartType type = member.type;
     return type.treatAsDynamic || (type.element == compiler.objectClass);
   }
 

@@ -27,10 +27,9 @@ public class DirectoryBasedSourceContainerTest extends TestCase {
     File file2 = createFile("/does/not/exist/folder/some2.dart");
     File file3 = createFile("/does/not/exist3/some3.dart");
 
-    ContentCache contentCache = new ContentCache();
-    FileBasedSource source1 = new FileBasedSource(contentCache, file1);
-    FileBasedSource source2 = new FileBasedSource(contentCache, file2);
-    FileBasedSource source3 = new FileBasedSource(contentCache, file3);
+    FileBasedSource source1 = new FileBasedSource(file1);
+    FileBasedSource source2 = new FileBasedSource(file2);
+    FileBasedSource source3 = new FileBasedSource(file3);
 
     DirectoryBasedSourceContainer container = new DirectoryBasedSourceContainer(dir);
 

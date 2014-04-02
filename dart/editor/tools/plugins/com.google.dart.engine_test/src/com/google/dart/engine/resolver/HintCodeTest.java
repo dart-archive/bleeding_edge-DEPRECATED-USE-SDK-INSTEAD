@@ -20,6 +20,33 @@ import com.google.dart.engine.source.Source;
 
 public class HintCodeTest extends ResolverTestCase {
 
+  public void fail_deadCode_statementAfterRehrow() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  try {",
+        "    var one = 1;",
+        "  } catch (e) {",
+        "    rethrow;",
+        "    var two = 2;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void fail_deadCode_statementAfterThrow() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  var one = 1;",
+        "  throw 'Stop here';",
+        "  var two = 2;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
   public void fail_isInt() throws Exception {
     Source source = addSource(createSource(//
     "var v = 1 is int;"));
@@ -42,7 +69,7 @@ public class HintCodeTest extends ResolverTestCase {
         "class B extends A {",
         "  get _g => 0;",
         "}"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {",
         "  get _g => 0;",
@@ -58,7 +85,7 @@ public class HintCodeTest extends ResolverTestCase {
         "class B extends A {",
         "  _m(int x) => 0;",
         "}"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {",
         "  _m(int x) => 0;",
@@ -75,7 +102,7 @@ public class HintCodeTest extends ResolverTestCase {
         "class C extends B {",
         "  _m(int x) => 0;",
         "}"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {",
         "  _m(int x) => 0;",
@@ -91,7 +118,7 @@ public class HintCodeTest extends ResolverTestCase {
         "class B extends A {",
         "  set _s(int x) {}",
         "}"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {",
         "  set _s(int x) {}",
@@ -108,6 +135,42 @@ public class HintCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_functionType() throws Exception {
+    Source source = addSource(createSource(//
+        // 17290
+        "m() {",
+        "  var a = new A();",
+        "  a.n(() => 0);",
+        "}",
+        "class A {",
+        "  n(void f(int i)) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_message() throws Exception {
+    // The implementation of HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE assumes that
+    // StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE has the same message.
+    assertEquals(
+        HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.getMessage(),
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE.getMessage());
+  }
+
+  public void test_argumentTypeNotAssignable_type() throws Exception {
+    Source source = addSource(createSource(//
+        // 17290
+        "m() {",
+        "  var i = '';",
+        "  n(i);",
+        "}",
+        "n(int i) {}"));
+    resolve(source);
+    assertErrors(source, HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
   }
 
@@ -433,7 +496,7 @@ public class HintCodeTest extends ResolverTestCase {
   public void test_deprecatedAnnotationUse_export() throws Exception {
     Source source = addSource(createSource(//
     "export 'deprecated_library.dart';"));
-    addSource("/deprecated_library.dart", createSource(//
+    addNamedSource("/deprecated_library.dart", createSource(//
         "@deprecated",
         "library deprecated_library;",
         "class A {}"));
@@ -460,7 +523,7 @@ public class HintCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "import 'deprecated_library.dart';",
         "f(A a) {}"));
-    addSource("/deprecated_library.dart", createSource(//
+    addNamedSource("/deprecated_library.dart", createSource(//
         "@deprecated",
         "library deprecated_library;",
         "class A {}"));
@@ -617,7 +680,7 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib1.dart';", // duplicate
         "A a;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
@@ -632,7 +695,7 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart';", // duplicate
         "import 'lib1.dart';", // duplicate
         "A a;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
@@ -646,7 +709,7 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart' as M show A hide B;",
         "import 'lib1.dart' as M show A hide B;", // duplicate
         "M.A a;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}",
         "class B {}"));
@@ -689,6 +752,51 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_overrideOnNonOverridingGetter_invalid() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  int get m => 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingMethod_invalid() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  int m() => 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD);
+    verify(source);
+  }
+
+  public void test_overrideOnNonOverridingSetter_invalid() throws Exception {
+    Source source = addSource(createSource(//
+        "library dart.core;",
+        "const override = null;",
+        "class A {",
+        "}",
+        "class B extends A {",
+        "  @override",
+        "  set m(int x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER);
+    verify(source);
+  }
+
   public void test_typeCheck_type_is_Null() throws Exception {
     Source source = addSource(createSource(//
         "m(i) {",
@@ -721,9 +829,9 @@ public class HintCodeTest extends ResolverTestCase {
     assertErrors(source, HintCode.UNDEFINED_GETTER);
   }
 
-  // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
-  // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
   public void test_undefinedGetter_message() throws Exception {
+    // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
+    // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
     assertEquals(
         StaticTypeWarningCode.UNDEFINED_GETTER.getMessage(),
         StaticWarningCode.UNDEFINED_GETTER.getMessage());
@@ -837,9 +945,9 @@ public class HintCodeTest extends ResolverTestCase {
     assertErrors(source, HintCode.UNDEFINED_SETTER);
   }
 
-  // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
-  // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
   public void test_undefinedSetter_message() throws Exception {
+    // The implementation of HintCode.UNDEFINED_SETTER assumes that UNDEFINED_SETTER in
+    // StaticTypeWarningCode and StaticWarningCode are the same, this verifies that assumption.
     assertEquals(
         StaticTypeWarningCode.UNDEFINED_SETTER.getMessage(),
         StaticWarningCode.UNDEFINED_SETTER.getMessage());
@@ -925,7 +1033,7 @@ public class HintCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library L;",
         "import 'lib1.dart';"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;"));
     resolve(source);
     assertErrors(source, HintCode.UNUSED_IMPORT);
@@ -939,7 +1047,7 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart';", // unused
         "import 'lib1.dart' as one;",
         "one.A a;"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
@@ -954,7 +1062,7 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib1.dart' hide A;", // unused
         "A a;"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
@@ -969,7 +1077,7 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart' show A;",
         "import 'lib1.dart' show B;", // unused
         "A a;"));
-    Source source2 = addSource("/lib1.dart", createSource(//
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}",
         "class B {}"));

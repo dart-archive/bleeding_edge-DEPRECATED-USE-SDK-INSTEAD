@@ -275,6 +275,20 @@ class HInstructionStringifier implements HVisitor<String> {
     return 'field set ${temporaryId(node.receiver)}.$fieldName to $valueId';
   }
 
+  String visitReadModifyWrite(HReadModifyWrite node) {
+    String fieldName = node.element.name;
+    String receiverId = temporaryId(node.receiver);
+    String op = node.jsOp;
+    if (node.isAssignOp) {
+      String valueId = temporaryId(node.value);
+      return 'field-update $receiverId.$fieldName $op= $valueId';
+    } else if (node.isPreOp) {
+      return 'field-update $op$receiverId.$fieldName';
+    } else {
+      return 'field-update $receiverId.$fieldName$op';
+    }
+  }
+
   String visitLocalGet(HLocalGet node) {
     String localName = node.element.name;
     return 'local get ${temporaryId(node.local)}.$localName';
@@ -293,7 +307,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitGreater(HGreater node) => handleInvokeBinary(node, '>');
   String visitGreaterEqual(HGreaterEqual node) {
-    handleInvokeBinary(node, '>=');
+    return handleInvokeBinary(node, '>=');
   }
   String visitIdentity(HIdentity node) => handleInvokeBinary(node, '===');
 
@@ -329,6 +343,11 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitInterceptor(HInterceptor node) {
     String value = temporaryId(node.inputs[0]);
+    if (node.interceptedClasses != null) {
+      JavaScriptBackend backend = compiler.backend;
+      String cls = backend.namer.getInterceptorSuffix(node.interceptedClasses);
+      return "Intercept ($cls): $value";
+    }
     return "Intercept: $value";
   }
 
@@ -449,7 +468,7 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitStringify(HStringify node) {
-    return "Stringify: ${node.inputs[0]}";
+    return "Stringify ${temporaryId(node.inputs[0])}";
   }
 
   String visitSubtract(HSubtract node) => handleInvokeBinary(node, '-');
@@ -466,7 +485,7 @@ class HInstructionStringifier implements HVisitor<String> {
       buf.write(", ");
     }
     buf.write("default: B");
-    buf.write(node.block.successors.last.id);
+    buf.write(node.defaultTarget.id);
     return buf.toString();
   }
 
@@ -506,6 +525,11 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitIs(HIs node) {
     String type = node.typeExpression.toString();
     return "TypeTest: ${temporaryId(node.expression)} is $type";
+  }
+
+  String visitIsViaInterceptor(HIsViaInterceptor node) {
+    String type = node.typeExpression.toString();
+    return "TypeTest: ${temporaryId(node.inputs[0])} is $type";
   }
 
   String visitTypeConversion(HTypeConversion node) {

@@ -52,7 +52,7 @@ import java.io.IOException;
  * 
  * @coverage dart.tools.core.builder
  */
-public class DeltaProcessor {
+public class DeltaProcessor extends DeltaBroadcaster {
 
   private class Event implements SourceDeltaEvent, SourceContainerDeltaEvent {
 
@@ -92,7 +92,7 @@ public class DeltaProcessor {
       if (source == null) {
         File file = getResourceFile();
         if (file != null) {
-          source = new FileBasedSource(context.getSourceFactory().getContentCache(), file);
+          source = new FileBasedSource(file);
         } else {
           logNoLocation(getResource());
         }
@@ -208,7 +208,6 @@ public class DeltaProcessor {
   }
 
   private final Project project;
-  private DeltaListener listener;
   private PubFolder pubFolder;
   private AnalysisContext context;
   private Event event;
@@ -220,15 +219,6 @@ public class DeltaProcessor {
    */
   public DeltaProcessor(Project project) {
     this.project = project;
-  }
-
-  /**
-   * Add a listener interested in receiving change information
-   * 
-   * @param listener the listener (not {@code null})
-   */
-  public void addDeltaListener(DeltaListener listener) {
-    this.listener = DeltaListenerList.add(this.listener, listener);
   }
 
   /**
@@ -317,10 +307,13 @@ public class DeltaProcessor {
 
         // Process "packages" folder changes separately
         if (name.equals(PACKAGES_DIRECTORY_NAME)) {
-          if (setContextFor(resource.getParent())) {
-            processPackagesDelta(delta);
+          boolean hasNewContext = setContextFor(resource.getParent());
+          if (pubFolder != null) {
+            if (hasNewContext) {
+              processPackagesDelta(delta);
+            }
+            return false;
           }
-          return false;
         }
 
         // Process folder changes

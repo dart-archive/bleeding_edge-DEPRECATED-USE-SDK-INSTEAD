@@ -820,6 +820,7 @@ class LiteralBool extends Literal<bool> {
     if (identical(token.stringValue, 'true')) return true;
     if (identical(token.stringValue, 'false')) return false;
     (this.handler)(token, "not a bool ${token.value}");
+    throw false;
   }
 
   accept(Visitor visitor) => visitor.visitLiteralBool(this);
@@ -1800,17 +1801,17 @@ abstract class LibraryDependency extends LibraryTag {
 class Import extends LibraryDependency {
   final Identifier prefix;
   final Token importKeyword;
+  final bool isDeferred;
 
   Import(this.importKeyword, StringNode uri,
          this.prefix, NodeList combinators,
-         Link<MetadataAnnotation> metadata)
+         Link<MetadataAnnotation> metadata,
+         {this.isDeferred})
       : super(uri, combinators, metadata);
 
   bool get isImport => true;
 
   Import asImport() => this;
-
-  Token get asKeyword => prefix == null ? null : uri.getEndToken().next;
 
   accept(Visitor visitor) => visitor.visitImport(this);
 
@@ -2113,15 +2114,3 @@ class IsInterpolationVisitor extends Visitor<bool> {
       => node.isInterpolation;
 }
 
-/**
- * If the given node is a send set, it visits its initializer (first
- * argument).
- *
- * TODO(ahe): This method is controversial, the team needs to discuss
- * if top-level methods are acceptable and what naming conventions to
- * use.
- */
-initializerDo(Node node, f(Node node)) {
-  SendSet send = node.asSendSet();
-  if (send != null) return f(send.arguments.head);
-}

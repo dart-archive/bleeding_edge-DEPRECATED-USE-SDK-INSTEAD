@@ -41,7 +41,7 @@ public class DartEngineAnalysisTest extends LibraryAnalysisTest {
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
     context.setSourceFactory(sourceFactory);
 
-    FileBasedSource engineSource = new FileBasedSource(sourceFactory.getContentCache(), new File(
+    FileBasedSource engineSource = new FileBasedSource(new File(
         svnRoot,
         "pkg/analyzer/lib/src/generated/engine.dart"));
     long startTime = System.currentTimeMillis();

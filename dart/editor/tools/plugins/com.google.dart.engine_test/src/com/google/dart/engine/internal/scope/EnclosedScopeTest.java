@@ -22,20 +22,20 @@ import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.resolver.ResolverTestCase;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 public class EnclosedScopeTest extends ResolverTestCase {
   public void test_define_duplicate() {
-    final GatheringErrorListener errorListener = new GatheringErrorListener();
+    final GatheringErrorListener listener = new GatheringErrorListener();
     Scope rootScope = new Scope() {
       @Override
       public AnalysisErrorListener getErrorListener() {
-        return errorListener;
+        return listener;
       }
 
       @Override
-      protected Element lookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
+      protected Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
         return null;
       }
     };
@@ -44,19 +44,19 @@ public class EnclosedScopeTest extends ResolverTestCase {
     VariableElement element2 = localVariableElement(identifier("v1"));
     scope.define(element1);
     scope.define(element2);
-    errorListener.assertErrors(ErrorSeverity.ERROR);
+    listener.assertErrorsWithSeverities(ErrorSeverity.ERROR);
   }
 
   public void test_define_normal() {
-    final GatheringErrorListener errorListener = new GatheringErrorListener();
+    final GatheringErrorListener listener = new GatheringErrorListener();
     Scope rootScope = new Scope() {
       @Override
       public AnalysisErrorListener getErrorListener() {
-        return errorListener;
+        return listener;
       }
 
       @Override
-      protected Element lookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
+      protected Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
         return null;
       }
     };
@@ -66,6 +66,6 @@ public class EnclosedScopeTest extends ResolverTestCase {
     VariableElement element2 = localVariableElement(identifier("v2"));
     outerScope.define(element1);
     innerScope.define(element2);
-    errorListener.assertNoErrors();
+    listener.assertNoErrors();
   }
 }

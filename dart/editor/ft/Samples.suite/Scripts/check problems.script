@@ -1,5 +1,5 @@
-Wait 2
+util.xWait 2
 ClIck (600,500)
-Wait 1
+util.xWait 1
 Click "problems tab"
-WaitFor 1,"empty problems"
+util.xWaitFor 1,"empty problems"

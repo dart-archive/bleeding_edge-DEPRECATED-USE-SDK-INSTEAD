@@ -209,7 +209,6 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
   Dart_ExitIsolate();
   Dart_Cleanup();
-  Platform::Cleanup();
   exit(static_cast<int>(status));
 }
 
@@ -219,6 +218,11 @@ void FUNCTION_NAME(Process_SetExitCode)(Dart_NativeArguments args) {
   // Ignore result if passing invalid argument and just set exit code to 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
   Process::SetGlobalExitCode(status);
+}
+
+
+void FUNCTION_NAME(Process_GetExitCode)(Dart_NativeArguments args) {
+  Dart_SetReturnValue(args, Dart_NewInteger(Process::GlobalExitCode()));
 }
 
 

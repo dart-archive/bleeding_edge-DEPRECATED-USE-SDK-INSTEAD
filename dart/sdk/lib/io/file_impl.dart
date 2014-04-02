@@ -175,38 +175,36 @@ class _FileStream extends Stream<List<int>> {
 class _FileStreamConsumer extends StreamConsumer<List<int>> {
   File _file;
   Future<RandomAccessFile> _openFuture;
-  StreamSubscription _subscription;
 
   _FileStreamConsumer(File this._file, FileMode mode) {
     _openFuture = _file.open(mode: mode);
   }
 
-  _FileStreamConsumer.fromStdio(int fd) {
-    assert(1 <= fd && fd <= 2);
-    _openFuture = new Future.value(_File._openStdioSync(fd));
-  }
-
   Future<File> addStream(Stream<List<int>> stream) {
-    Completer<File> completer = new Completer<File>();
+    Completer<File> completer = new Completer<File>.sync();
     _openFuture
       .then((openedFile) {
+        var _subscription;
+        void error(e, [StackTrace stackTrace]) {
+          _subscription.cancel();
+          openedFile.close();
+          completer.completeError(e, stackTrace);
+        }
         _subscription = stream.listen(
           (d) {
             _subscription.pause();
-            openedFile.writeFrom(d, 0, d.length)
-              .then((_) => _subscription.resume())
-              .catchError((e) {
-                openedFile.close();
-                completer.completeError(e);
-              });
+            try {
+              openedFile.writeFrom(d, 0, d.length)
+                .then((_) => _subscription.resume(),
+                      onError: error);
+            } catch (e, stackTrace) {
+              error(e, stackTrace);
+            }
           },
           onDone: () {
             completer.complete(_file);
           },
-          onError: (e, [StackTrace stackTrace]) {
-            openedFile.close();
-            completer.completeError(e, stackTrace);
-          },
+          onError: error,
           cancelOnError: true);
       })
       .catchError((e) {
@@ -438,29 +436,51 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<List<int>> readAsBytes() {
-    Completer<List<int>> completer = new Completer<List<int>>();
-    var builder = new BytesBuilder();
-    openRead().listen(
-      (d) => builder.add(d),
-      onDone: () {
-        completer.complete(builder.takeBytes());
-      },
-      onError: (e, StackTrace stackTrace) {
-        completer.completeError(e, stackTrace);
-      },
-      cancelOnError: true);
-    return completer.future;
+    Future<List<int>> readDataChunked(file) {
+      var builder = new BytesBuilder(copy: false);
+      var completer = new Completer();
+      void read() {
+        file.read(_BLOCK_SIZE).then((data) {
+          if (data.length > 0) builder.add(data);
+          if (data.length == _BLOCK_SIZE) {
+            read();
+          } else {
+            completer.complete(builder.takeBytes());
+          }
+        }, onError: completer.completeError);
+      }
+      read();
+      return completer.future;
+    }
+
+    return open().then((file) {
+      return file.length().then((length) {
+        if (length == 0) {
+          // May be character device, try to read it in chunks.
+          return readDataChunked(file);
+        }
+        return file.read(length);
+      }).whenComplete(file.close);
+    });
   }
 
   List<int> readAsBytesSync() {
     var opened = openSync();
-    var builder = new BytesBuilder();
     var data;
-    while ((data = opened.readSync(_BLOCK_SIZE)).length > 0) {
-      builder.add(data);
+    var length = opened.lengthSync();
+    if (length == 0) {
+      // May be character device, try to read it in chunks.
+      var builder = new BytesBuilder(copy: false);
+      do {
+        data = opened.readSync(_BLOCK_SIZE);
+        if (data.length > 0) builder.add(data);
+      } while (data.length == _BLOCK_SIZE);
+      data = builder.takeBytes();
+    } else {
+      data = opened.readSync(length);
     }
     opened.closeSync();
-    return builder.takeBytes();
+    return data;
   }
 
   String _tryDecode(List<int> bytes, Encoding encoding) {
@@ -510,18 +530,14 @@ class _File extends FileSystemEntity implements File {
   Future<File> writeAsBytes(List<int> bytes,
                             {FileMode mode: FileMode.WRITE,
                              bool flush: false}) {
-    try {
-      IOSink sink = openWrite(mode: mode);
-      sink.add(bytes);
-      if (flush) {
-        sink.flush().then((_) => sink.close());
-      } else {
-        sink.close();
-      }
-      return sink.done.then((_) => this);
-    } catch (e) {
-      return new Future.error(e);
-    }
+    return open(mode: mode).then((file) {
+      return file.writeFrom(bytes, 0, bytes.length)
+          .then((_) {
+            if (flush) return file.flush().then((_) => this);
+            return this;
+          })
+          .whenComplete(file.close);
+    });
   }
 
   void writeAsBytesSync(List<int> bytes,
@@ -903,7 +919,8 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void _checkAvailable() {
     if (_asyncDispatched) {
-      throw new FileSystemException("An async operation is currently pending", path);
+      throw new FileSystemException("An async operation is currently pending",
+                                    path);
     }
     if (closed) {
       throw new FileSystemException("File closed", path);

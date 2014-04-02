@@ -15,7 +15,6 @@ package com.google.dart.tools.core.workingcopy;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
-import com.google.dart.tools.core.internal.buffer.BufferManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElementDelta;
 import com.google.dart.tools.core.model.DartModelException;
@@ -31,8 +30,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * copy and to create its buffer.
  * <p>
  * Clients should subclass this class to instantiate a working copy owner that is specific to their
- * need and that they can pass in to various APIs (e.g.
- * {@link Type#resolveType(String, WorkingCopyOwner)}. Clients can also override the default
+ * need and that they can pass in to various APIs. Clients can also override the default
  * implementation of {@link #createBuffer(SourceFileElement)}.
  * </p>
  * <p>
@@ -47,24 +45,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * @coverage dart.tools.core
  */
 public abstract class WorkingCopyOwner {
-
-  /**
-   * Create a buffer for the given working copy. The new buffer will be initialized with the
-   * contents of the underlying file if and only if it was not already initialized by the
-   * compilation owner (a buffer is uninitialized if its content is <code>null</code>).
-   * <p>
-   * Note: This buffer will be associated to the working copy for its entire life-cycle. Another
-   * working copy on same unit but owned by a different owner would not share the same buffer unless
-   * its owner decided to implement such a sharing behavior.
-   * </p>
-   * 
-   * @param workingCopy the working copy of the buffer
-   * @return the buffer created for the given working copy
-   */
-  public Buffer createBuffer(SourceFileElement<?> workingCopy) {
-    return BufferManager.createBuffer(workingCopy);
-  }
-
   /**
    * Returns the problem requester used by a working copy of this working copy owner.
    * <p>

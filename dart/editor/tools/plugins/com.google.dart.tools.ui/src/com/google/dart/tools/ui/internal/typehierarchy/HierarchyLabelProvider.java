@@ -17,6 +17,7 @@ import com.google.common.base.Predicate;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.NewDartElementLabelProvider;
+import com.google.dart.tools.ui.internal.typehierarchy.TypeHierarchyContentProvider.TypeItem;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.StyledString;
@@ -38,15 +39,31 @@ public class HierarchyLabelProvider extends NewDartElementLabelProvider {
       ImageDescriptor desc = DartPluginImages.DESC_OBJS_CLASSALT;
       return DartToolsPlugin.getImageDescriptorRegistry().get(desc);
     }
+    if (element instanceof TypeItem) {
+      element = ((TypeItem) element).element;
+    }
     return super.getImage(element);
   }
 
   @Override
   public StyledString getStyledText(Object element) {
+    if (element instanceof TypeItem) {
+      TypeItem item = (TypeItem) element;
+      return item.toStyledString();
+    }
     StyledString styledText = super.getStyledText(element);
     if (lightPredicate.apply(element)) {
       styledText.setStyle(0, styledText.getString().length(), StyledString.QUALIFIER_STYLER);
     }
     return styledText;
+  }
+
+  @Override
+  public String getText(Object element) {
+    if (element instanceof TypeItem) {
+      TypeItem item = (TypeItem) element;
+      return item.toStyledString().getString();
+    }
+    return super.getText(element);
   }
 }

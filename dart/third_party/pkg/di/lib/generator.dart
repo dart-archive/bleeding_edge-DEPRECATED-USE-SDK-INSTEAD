@@ -31,69 +31,103 @@ main(args) {
   print('output: $output');
   print('packageRoots: $packageRoots');
 
+  var code = generateCode(entryPoint, classAnnotations, pathToSdk, packageRoots);
+  code.forEach((chunk, code) {
+    String fileName = output;
+    if (chunk.library != null) {
+      var lastDot = fileName.lastIndexOf('.');
+      fileName = fileName.substring(0, lastDot) + '-' + chunk.library.name + fileName.substring(lastDot);
+    }
+    new File(fileName).writeAsStringSync(code);
+  });
+}
+
+Map<Chunk, String> generateCode(String entryPoint, List<String> classAnnotations,
+    String pathToSdk, List<String> packageRoots) {
   var c = new SourceCrawler(pathToSdk, packageRoots);
   List<String> imports = <String>[];
-  List<ClassElement> typeFactoryTypes = <ClassElement>[];
+  Map<Chunk, List<ClassElement>> typeFactoryTypes = <Chunk, List<ClassElement>>{};
   Map<String, String> typeToImport = new Map<String, String>();
   c.crawl(entryPoint, (CompilationUnitElement compilationUnit, SourceFile source) {
       new CompilationUnitVisitor(c.context, source, classAnnotations, imports,
-          typeToImport, typeFactoryTypes).visit(compilationUnit);
+          typeToImport, typeFactoryTypes).visit(compilationUnit, source);
   });
-  var code = printLibraryCode(typeToImport, imports, typeFactoryTypes);
-  new File(output).writeAsStringSync(code);
+  return printLibraryCode(typeToImport, imports, typeFactoryTypes);
 }
 
-String printLibraryCode(Map<String, String> typeToImport, List<String> imports,
-                      List<ClassElement> typeFactoryTypes) {
-  List<String> requiredImports = <String>[];
-  StringBuffer factories = new StringBuffer();
-
-  String resolveClassIdentifier(InterfaceType type) {
-    if (type.element.library.isDartCore) {
-      return type.name;
-    }
-    String import = typeToImport[getCanonicalName(type)];
-    if (!requiredImports.contains(import)) {
-      requiredImports.add(import);
-    }
-    return 'import_${imports.indexOf(import)}.${type.name}';
-  }
-
-  typeFactoryTypes.forEach((ClassElement clazz) {
-    factories.write(
-        'typeFactories[${resolveClassIdentifier(clazz.type)}] = (f) => ');
-    factories.write('new ${resolveClassIdentifier(clazz.type)}(');
-    ConstructorElement constr =
-        clazz.constructors.firstWhere((c) => c.name.isEmpty,
-        orElse: () {
-          throw 'Unable to find default constructor for $clazz in ${clazz.source}';
-        });
-    factories.write(constr.parameters.map((param) {
-      if (param.type.element is! ClassElement) {
-        throw 'Unable to resolve type for constructor parameter '
-              '"${param.name}" for type "$clazz" in ${clazz.source}';
+Map<Chunk, String> printLibraryCode(Map<String, String> typeToImport,
+    List<String> imports, Map<Chunk, List<ClassElement>> typeFactoryTypes) {
+  Map<Chunk, StringBuffer> factories = <Chunk, StringBuffer>{};
+  Map<Chunk, String> result = <Chunk, String>{};
+  typeFactoryTypes.forEach((Chunk chunk, List<ClassElement> classes) {
+    List<String> requiredImports = <String>[];
+    String resolveClassIdentifier(InterfaceType type) {
+      if (type.element.library.isDartCore) {
+        return type.name;
       }
-      return 'f(${resolveClassIdentifier(param.type)})';
-    }).join(', '));
-    factories.write(');\n');
+      String import = typeToImport[getCanonicalName(type)];
+      if (!requiredImports.contains(import)) {
+        requiredImports.add(import);
+      }
+      return 'import_${imports.indexOf(import)}.${type.name}';
+    }
+    factories[chunk] = new StringBuffer();
+    classes.forEach((ClassElement clazz) {
+      StringBuffer factory = new StringBuffer();
+      bool skip = false;
+      factory.write(
+          '${resolveClassIdentifier(clazz.type)}: (f) => ');
+      factory.write('new ${resolveClassIdentifier(clazz.type)}(');
+      ConstructorElement constr =
+          clazz.constructors.firstWhere((c) => c.name.isEmpty,
+          orElse: () {
+            throw 'Unable to find default constructor for $clazz in ${clazz.source}';
+          });
+      factory.write(constr.parameters.map((param) {
+        if (param.type.element is! ClassElement) {
+          throw 'Unable to resolve type for constructor parameter '
+          '"${param.name}" for type "$clazz" in ${clazz.source}';
+        }
+        if (_isParameterized(param)) {
+          print('WARNING: parameterized types are not supported: $param in $clazz in ${clazz.source}. Skipping!');
+          skip = true;
+        }
+        return 'f(${resolveClassIdentifier(param.type)})';
+      }).join(', '));
+      factory.write('),\n');
+      if (!skip) {
+        factories[chunk].write(factory);
+      }
+    });
+    StringBuffer code = new StringBuffer();
+    String libSuffix = chunk.library == null ? '' : '.${chunk.library.name}';
+    code.write('library di.generated.type_factories$libSuffix;\n');
+    requiredImports.forEach((import) {
+      code.write ('import "$import" as import_${imports.indexOf(import)};\n');
+    });
+    code..write('var typeFactories = {\n${factories[chunk]}\n};\n')
+        ..write('main() {}\n');
+    result[chunk] = code.toString();
   });
-  StringBuffer code = new StringBuffer();
-  code.write('library di.generated.type_factories;\n');
-  requiredImports.forEach((import) {
-    code.write ('import "$import" as import_${imports.indexOf(import)};\n');
-  });
-  code..write('var typeFactories = new Map();\n')
-    ..write('main() {\n')
-    ..write(factories)
-    ..write('}\n');
 
-  return code.toString();
+  return result;
+}
+
+_isParameterized(ParameterElement param) {
+  String typeName = param.type.toString();
+
+  if (typeName.indexOf('<') > -1) {
+    String parameters =
+        typeName.substring(typeName.indexOf('<') + 1, typeName.length - 1);
+    return parameters.split(', ').any((p) => p != 'dynamic');
+  }
+  return false;
 }
 
 class CompilationUnitVisitor {
   List<String> imports;
   Map<String, String> typeToImport;
-  List<ClassElement> typeFactoryTypes;
+  Map<Chunk, List<ClassElement>> typeFactoryTypes;
   List<String> classAnnotations;
   SourceFile source;
   AnalysisContext context;
@@ -102,8 +136,8 @@ class CompilationUnitVisitor {
       this.classAnnotations, this.imports, this.typeToImport,
       this.typeFactoryTypes);
 
-  visit(CompilationUnitElement compilationUnit) {
-    visitLibrary(compilationUnit.enclosingElement);
+  visit(CompilationUnitElement compilationUnit, SourceFile source) {
+    visitLibrary(compilationUnit.enclosingElement, source);
 
     List<ClassElement> types = <ClassElement>[];
     types.addAll(compilationUnit.types);
@@ -112,10 +146,10 @@ class CompilationUnitVisitor {
       types.addAll(part.types);
     }
 
-    types.forEach(visitClassElement);
+    types.forEach((clazz) => visitClassElement(clazz, source));
   }
 
-  visitLibrary(LibraryElement libElement) {
+  visitLibrary(LibraryElement libElement, SourceFile source) {
     CompilationUnit resolvedUnit = context
         .resolveCompilationUnit(libElement.source, libElement);
 
@@ -136,7 +170,12 @@ class CompilationUnitVisitor {
                 throw 'Unable to resolve type "$expr" from @Injectables '
                       'in ${library.element.source}';
               }
-              typeFactoryTypes.add(element as ClassElement);
+              if (typeFactoryTypes[source.chunk] == null) {
+                typeFactoryTypes[source.chunk] = <ClassElement>[];
+              }
+              if (!typeFactoryTypes[source.chunk].contains(element)) {
+                typeFactoryTypes[source.chunk].add(element as ClassElement);
+              }
             }
           }
           annotationIdx++;
@@ -145,7 +184,7 @@ class CompilationUnitVisitor {
     });
   }
 
-  visitClassElement(ClassElement classElement) {
+  visitClassElement(ClassElement classElement, SourceFile source) {
     if (classElement.name.startsWith('_')) {
       return; // ignore private classes.
     }
@@ -159,7 +198,12 @@ class CompilationUnitVisitor {
         ConstructorElement con = ann.element;
         if (classAnnotations
             .contains(getQualifiedName(con.enclosingElement.type))) {
-          typeFactoryTypes.add(classElement);
+          if (typeFactoryTypes[source.chunk] == null) {
+            typeFactoryTypes[source.chunk] = <ClassElement>[];
+          }
+          if (!typeFactoryTypes[source.chunk].contains(classElement)) {
+            typeFactoryTypes[source.chunk].add(classElement);
+          }
         }
       }
     }
@@ -232,41 +276,64 @@ class SourceCrawler {
     var sourceFile = new SourceFile(
         entryPointFile.getAbsolutePath(),
         entryPointImport,
-        resolvedUnit.element);
-    List<SourceFile> visited = <SourceFile>[];
+        resolvedUnit,
+        resolvedUnit.element,
+        new Chunk()); // root chunk
     List<SourceFile> toVisit = <SourceFile>[sourceFile];
+    List<SourceFile> deferred = <SourceFile>[sourceFile];
 
-    while (toVisit.isNotEmpty) {
-      SourceFile currentFile = toVisit.removeAt(0);
-      visited.add(currentFile);
-      _visitor(currentFile.compilationUnit, currentFile);
-      var visitor = new CrawlerVisitor(currentFile, context);
-      visitor.accept(currentFile.compilationUnit);
-      visitor.toVisit.forEach((SourceFile todo) {
-        if (!toVisit.contains(todo) && !visited.contains(todo)) {
-          toVisit.add(todo);
-        }
-      });
+    while (deferred.isNotEmpty) {
+      toVisit.add(deferred.removeAt(0));
+      while (toVisit.isNotEmpty) {
+        SourceFile currentFile = toVisit.removeAt(0);
+        currentFile.chunk.addVisited(currentFile);
+        _visitor(currentFile.compilationUnitElement, currentFile);
+        var visitor = new CrawlerVisitor(currentFile, context);
+        visitor.accept(currentFile.compilationUnit);
+        visitor.toVisit.forEach((SourceFile todo) {
+          if (!toVisit.contains(todo) && !currentFile.chunk.alreadyVisited(todo)) {
+            toVisit.add(todo);
+          }
+        });
+        visitor.deferred.forEach((SourceFile todo) {
+          if (!deferred.contains(todo) && !currentFile.chunk.alreadyVisited(todo)) {
+            deferred.add(todo);
+          }
+        });
+      }
     }
   }
 }
 
 class CrawlerVisitor {
   List<SourceFile> toVisit = <SourceFile>[];
+  List<SourceFile> deferred = <SourceFile>[];
   SourceFile currentFile;
   AnalysisContext context;
   String currentDir;
 
   CrawlerVisitor(this.currentFile, this.context);
 
-  void accept(CompilationUnitElement cu) {
-    cu.enclosingElement.imports.forEach((ImportElement import) =>
-        visitImportElement(import.uri, import.importedLibrary.source));
-    cu.enclosingElement.exports.forEach((ExportElement import) =>
-        visitImportElement(import.uri, import.exportedLibrary.source));
+  void accept(CompilationUnit cu) {
+    cu.directives.forEach((Directive directive) {
+      if (directive.element == null) return; // unresolvable, ignore
+      if (directive is ImportDirective) {
+        var import = directive.element;
+        visitImportElement(
+            new Library(import, import.uri, cu, import.importedLibrary.name),
+            import.importedLibrary.source);
+      }
+      if (directive is ExportDirective) {
+        var import = directive.element;
+        visitImportElement(
+            new Library(import, import.uri, cu, import.exportedLibrary.name),
+            import.exportedLibrary.source);
+      }
+    });
   }
 
-  visitImportElement(String uri, Source source) {
+  visitImportElement(Library library, Source source) {
+    String uri = library.uri;
     if (uri == null) return; // dart:core
 
     String systemImport;
@@ -287,8 +354,10 @@ class CrawlerVisitor {
     var nextCompilationUnit = context
         .resolveCompilationUnit(source, context.computeLibraryElement(source));
 
+    SourceFile sourceFile;
     if (uri.startsWith(PACKAGE_PREFIX)) {
-      toVisit.add(new SourceFile(source.toString(), uri, nextCompilationUnit.element));
+      sourceFile = new SourceFile(source.toString(), uri,
+          nextCompilationUnit, nextCompilationUnit.element, currentFile.chunk);
     } else { // relative import.
       var newImport;
       if (isSystem) {
@@ -309,18 +378,94 @@ class CrawlerVisitor {
         }
         newImport = '$import/$uri';
       }
-      toVisit.add(new SourceFile(
-          source.toString(), newImport, nextCompilationUnit.element));
+      sourceFile = new SourceFile(
+          source.toString(), newImport,
+          nextCompilationUnit, nextCompilationUnit.element, currentFile.chunk);
+    }
+    if (isDeferredImport(library)) {
+      var childChunk = currentFile.chunk.createChild(library);
+      deferred.add(new SourceFile(source.toString(), sourceFile.entryPointImport,
+          nextCompilationUnit, nextCompilationUnit.element, childChunk));
+    } else {
+      toVisit.add(sourceFile);
     }
   }
+}
+
+bool isDeferredImport(Library library) {
+  var isDeferred = false;
+  library.element.metadata.forEach((ElementAnnotation annotation) {
+    if (annotation.element is PropertyAccessorElement) {
+      PropertyAccessorElement pa = annotation.element;
+      library.compilationUnit.declarations.forEach((CompilationUnitMember member) {
+        if (member is TopLevelVariableDeclaration && member.variables.isConst) {
+          TopLevelVariableDeclaration topLevel = member;
+          topLevel.variables.variables.forEach((VariableDeclaration varDecl) {
+            if (varDecl.initializer is InstanceCreationExpression &&
+                (varDecl.initializer as InstanceCreationExpression).isConst &&
+                (varDecl.initializer as InstanceCreationExpression).staticElement is ConstructorElement &&
+                varDecl.name.name == pa.name) {
+              ConstructorElement constr = (varDecl.initializer as InstanceCreationExpression).staticElement;
+              if (constr.enclosingElement.library.name == 'dart.async' &&
+                  constr.enclosingElement.type.name == 'DeferredLibrary') {
+                isDeferred = true;
+              }
+            }
+          });
+        }
+      });
+    }
+  });
+  return isDeferred;
+}
+
+class Library {
+  final Element element;
+  final String uri;
+  final CompilationUnit compilationUnit;
+  final String name;
+
+  Library(this.element, this.uri, this.compilationUnit, this.name);
+
+  toString() => 'Library[$name]';
+}
+
+class Chunk {
+  final Chunk parent;
+  Library library;
+  List<SourceFile> _visited = <SourceFile>[];
+
+  addVisited(SourceFile file) {
+    _visited.add(file);
+  }
+
+  bool alreadyVisited(SourceFile file) {
+    var cursor = this;
+    while (cursor != null) {
+      if (cursor._visited.contains(file)) {
+        return true;
+      }
+      cursor = cursor.parent;
+    }
+    return false;
+  }
+
+  Chunk([this.parent, this.library]);
+
+  Chunk createChild(Library library) => new Chunk(this, library);
+
+  toString() => 'Chunk[$library]';
 }
 
 class SourceFile {
   String canonicalPath;
   String entryPointImport;
-  CompilationUnitElement compilationUnit;
+  CompilationUnit compilationUnit;
+  CompilationUnitElement compilationUnitElement;
+  Chunk chunk;
 
-  SourceFile(this.canonicalPath, this.entryPointImport, this.compilationUnit);
+  SourceFile(this.canonicalPath, this.entryPointImport, this.compilationUnit,
+      this.compilationUnitElement, this.chunk);
 
   operator ==(o) {
     if (o is String) return o == canonicalPath;

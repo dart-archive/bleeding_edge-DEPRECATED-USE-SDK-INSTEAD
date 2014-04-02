@@ -20,6 +20,10 @@ import com.google.dart.engine.element.angular.AngularFilterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
+import com.google.dart.engine.element.angular.AngularViewElement;
+import com.google.dart.engine.element.polymer.PolymerAttributeElement;
+import com.google.dart.engine.element.polymer.PolymerTagDartElement;
+import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
 
 /**
  * The interface {@code ElementVisitor} defines the behavior of objects that can be used to visit an
@@ -41,6 +45,8 @@ public interface ElementVisitor<R> {
   public R visitAngularScopePropertyElement(AngularScopePropertyElement element);
 
   public R visitAngularSelectorElement(AngularSelectorElement element);
+
+  public R visitAngularViewElement(AngularViewElement element);
 
   public R visitClassElement(ClassElement element);
 
@@ -77,6 +83,12 @@ public interface ElementVisitor<R> {
   public R visitMultiplyDefinedElement(MultiplyDefinedElement element);
 
   public R visitParameterElement(ParameterElement element);
+
+  public R visitPolymerAttributeElement(PolymerAttributeElement element);
+
+  public R visitPolymerTagDartElement(PolymerTagDartElement element);
+
+  public R visitPolymerTagHtmlElement(PolymerTagHtmlElement element);
 
   public R visitPrefixElement(PrefixElement element);
 

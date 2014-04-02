@@ -95,6 +95,11 @@ class Parser {
     listener.beginImport(importKeyword);
     assert(optional('import', token));
     token = parseLiteralStringOrRecoverExpression(token.next);
+    Token deferredKeyword;
+    if (optional('deferred', token)) {
+      deferredKeyword = token;
+      token = token.next;
+    }
     Token asKeyword;
     if (optional('as', token)) {
       asKeyword = token;
@@ -103,7 +108,7 @@ class Parser {
     token = parseCombinators(token);
     Token semicolon = token;
     token = expect(';', token);
-    listener.endImport(importKeyword, asKeyword, semicolon);
+    listener.endImport(importKeyword, deferredKeyword, asKeyword, semicolon);
     return token;
   }
 
@@ -131,10 +136,11 @@ class Parser {
         token = parseShow(token);
       } else {
         listener.endCombinators(count);
-        return token;
+        break;
       }
       count++;
     }
+    return token;
   }
 
   /// hide identifierList
@@ -942,7 +948,7 @@ class Parser {
     if (identical(token.kind, STRING_TOKEN)) {
       return parseLiteralString(token);
     } else {
-      listener.recoverableError("unexpected", token: token);
+      listener.recoverableError(token, "unexpected");
       return parseExpression(token);
     }
   }
@@ -1851,6 +1857,7 @@ class Parser {
       return token.next;
     } else {
       listener.unexpected(token);
+      return null;
     }
   }
 

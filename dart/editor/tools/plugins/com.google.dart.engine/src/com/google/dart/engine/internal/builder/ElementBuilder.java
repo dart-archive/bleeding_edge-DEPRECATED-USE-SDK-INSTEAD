@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.builder;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -47,8 +47,8 @@ import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
-import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
+import com.google.dart.engine.ast.visitor.UnifyingAstVisitor;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -92,7 +92,7 @@ import java.util.HashMap;
  * 
  * @coverage dart.engine.resolver
  */
-public class ElementBuilder extends RecursiveASTVisitor<Void> {
+public class ElementBuilder extends RecursiveAstVisitor<Void> {
   /**
    * The element holder associated with the element that is currently being built.
    */
@@ -180,7 +180,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     currentHolder = holder;
     try {
       final ArrayList<ClassMember> nonFields = new ArrayList<ClassMember>();
-      node.visitChildren(new UnifyingASTVisitor<Void>() {
+      node.visitChildren(new UnifyingAstVisitor<Void>() {
         @Override
         public Void visitConstructorDeclaration(ConstructorDeclaration node) {
           nonFields.add(node);
@@ -194,7 +194,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         }
 
         @Override
-        public Void visitNode(ASTNode node) {
+        public Void visitNode(AstNode node) {
           return node.accept(ElementBuilder.this);
         }
       });
@@ -895,7 +895,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
    * @return the body of the function that contains the given parameter
    */
   private FunctionBody getFunctionBody(FormalParameter node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     while (parent != null) {
       if (parent instanceof ConstructorDeclaration) {
         return ((ConstructorDeclaration) parent).getBody();
@@ -937,7 +937,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
    * @param holder the holder that will gather elements that are built while visiting the children
    * @param node the node to be visited
    */
-  private void visit(ElementHolder holder, ASTNode node) {
+  private void visit(ElementHolder holder, AstNode node) {
     if (node != null) {
       ElementHolder previousHolder = currentHolder;
       currentHolder = holder;
@@ -955,7 +955,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
    * @param holder the holder that will gather elements that are built while visiting the children
    * @param node the node whose children are to be visited
    */
-  private void visitChildren(ElementHolder holder, ASTNode node) {
+  private void visitChildren(ElementHolder holder, AstNode node) {
     if (node != null) {
       ElementHolder previousHolder = currentHolder;
       currentHolder = holder;

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.sdk.DartSdk;
@@ -46,7 +45,6 @@ public class AnalysisMarkerManagerTest extends TestCase {
   private DartSdk sdk;
   private ProjectManagerImpl projectManager;
   private Project project;
-  private AnalysisContext context;
   private FileBasedSource source;
 
   private CountDownLatch fileDeleteMarkerStartLatch;
@@ -144,9 +142,9 @@ public class AnalysisMarkerManagerTest extends TestCase {
     sdk = DirectoryBasedDartSdk.getDefaultSdk();
     projectManager = new ProjectManagerImpl(rootRes, sdk, new DartIgnoreManager());
     project = projectManager.getProject(projectRes);
-    context = project.getDefaultContext();
+    project.getDefaultContext();
 
     File file = fileRes.getLocation().toFile();
-    source = new FileBasedSource(context.getSourceFactory().getContentCache(), file);
+    source = new FileBasedSource(file);
   }
 }

@@ -137,14 +137,6 @@
          version="0.0.0"
          unpack="false"/>
 
-<!-- Deleted since it only tests CSS parsing and that is being done by WST now
-   <plugin
-         id="com.google.dart.tools.ui.web_test"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
--->
    <plugin
          id="com.google.dart.tools.tests.buildbot_test"
          download-size="0"
@@ -189,6 +181,13 @@
 
    <plugin
          id="org.eclipse.wst.xml.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.google.dart.tools.debug.ui_test"
          download-size="0"
          install-size="0"
          version="0.0.0"

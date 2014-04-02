@@ -24,6 +24,7 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
@@ -33,6 +34,7 @@ import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
+import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IResource;
@@ -52,11 +54,13 @@ public class AnalysisWorker {
    */
   private abstract class AbstractEvent implements AnalysisEvent {
     private final AnalysisContext context;
+    private final ResourceMap resourceMap;
     Source source;
     IResource resource;
 
-    public AbstractEvent(AnalysisContext context) {
+    public AbstractEvent(AnalysisContext context, ResourceMap resourceMap) {
       this.context = context;
+      this.resourceMap = resourceMap;
     }
 
     @Override
@@ -68,6 +72,11 @@ public class AnalysisWorker {
     public ContextManager getContextManager() {
       return contextManager;
     }
+
+    @Override
+    public ResourceMap getResourceMap() {
+      return resourceMap;
+    }
   }
 
   /**
@@ -76,8 +85,8 @@ public class AnalysisWorker {
   private class Event extends AbstractEvent implements ResolvedEvent {
     CompilationUnit unit;
 
-    public Event(AnalysisContext context) {
-      super(context);
+    public Event(AnalysisContext context, ResourceMap resourceMap) {
+      super(context, resourceMap);
     }
 
     @Override
@@ -102,8 +111,8 @@ public class AnalysisWorker {
   private class HtmlEvent extends AbstractEvent implements ResolvedHtmlEvent {
     HtmlUnit unit;
 
-    public HtmlEvent(AnalysisContext context) {
-      super(context);
+    public HtmlEvent(AnalysisContext context, ResourceMap resourceMap) {
+      super(context, resourceMap);
     }
 
     @Override
@@ -132,7 +141,13 @@ public class AnalysisWorker {
    * The {@link AnalysisContext} cache size for a context when background analysis is being
    * performed on that context.
    */
-  private static final int WORKING_CACHE_SIZE = IDLE_CACHE_SIZE * 2;
+  private static int WORKING_CACHE_SIZE = computeWorkingCacheSize();
+
+  private static final int WORKING_CACHE_SIZE_DEFAULT = IDLE_CACHE_SIZE * 2;
+  private static final int WORKING_CACHE_256_MEMORY = 450 * 1024 * 1024;
+  private static final int WORKING_CACHE_256_SIZE = 256;
+  private static final int WORKING_CACHE_512_MEMORY = 900 * 1024 * 1024;
+  private static final int WORKING_CACHE_512_SIZE = 512;
 
   /**
    * Objects to be notified when each compilation unit has been resolved. Contents of this array
@@ -211,6 +226,20 @@ public class AnalysisWorker {
   }
 
   /**
+   * Returns what cache size to use for working {@link AnalysisContext}, currently depending on
+   * maximum heap size.
+   */
+  private static int computeWorkingCacheSize() {
+    long maxMemory = Runtime.getRuntime().maxMemory();
+    if (maxMemory > WORKING_CACHE_512_MEMORY) {
+      return WORKING_CACHE_512_SIZE;
+    } else if (maxMemory > WORKING_CACHE_256_MEMORY) {
+      return WORKING_CACHE_256_SIZE;
+    }
+    return WORKING_CACHE_SIZE_DEFAULT;
+  }
+
+  /**
    * The context manager containing the source for this context (not {@code null}).
    */
   protected final ContextManager contextManager;
@@ -262,7 +291,12 @@ public class AnalysisWorker {
    * @param context the context used to perform the analysis (not {@code null})
    */
   public AnalysisWorker(ContextManager manager, AnalysisContext context) {
-    this(manager, context, DartCore.getProjectManager(), AnalysisMarkerManager.getInstance());
+    this(
+        manager,
+        context,
+        DartCore.getProjectManager(),
+        DartCore.getProjectManager().getResourceMap(context),
+        AnalysisMarkerManager.getInstance());
   }
 
   /**
@@ -272,17 +306,18 @@ public class AnalysisWorker {
    * @param context the context used to perform the analysis (not {@code null})
    * @param projectManager used to obtain the index to be updated and notified others when analysis
    *          is complete (not {@code null})
+   * @param resourceMap the resource map for the given context
    * @param markerManager used to translate errors into Eclipse markers (not {@code null})
    */
   public AnalysisWorker(ContextManager contextManager, AnalysisContext context,
-      ProjectManager projectManager, AnalysisMarkerManager markerManager) {
+      ProjectManager projectManager, ResourceMap resourceMap, AnalysisMarkerManager markerManager) {
     this.contextManager = contextManager;
     this.context = context;
     this.projectManager = projectManager;
     this.markerManager = markerManager;
     this.contextManager.addWorker(this);
-    this.event = new Event(context);
-    this.htmlEvent = new HtmlEvent(context);
+    this.event = new Event(context, resourceMap);
+    this.htmlEvent = new HtmlEvent(context, resourceMap);
   }
 
   /**
@@ -516,14 +551,24 @@ public class AnalysisWorker {
           if (location != null && !DartCore.isContainedInPackages(location.toFile())) {
             LineInfo lineInfo = change.getLineInfo();
             if (lineInfo == null) {
-              DartCore.logError("Missing line information for: " + source);
               // Sometimes this happens in UI tests, but we don't know what error.
-              StringBuilder sb = new StringBuilder();
+              @SuppressWarnings("resource")
+              PrintStringWriter writer = new PrintStringWriter();
+              writer.print("Missing line information for: ");
+              writer.println(source);
               for (AnalysisError error : errors) {
-                sb.append("Error: " + error.getErrorCode() + " " + error.getSource() + " "
-                    + error.getOffset() + " " + error.getLength() + " " + error.getMessage() + "\n");
+                writer.print("Error: ");
+                writer.print(error.getErrorCode());
+                writer.print(" ");
+                writer.print(error.getSource());
+                writer.print(" ");
+                writer.print(error.getOffset());
+                writer.print(" ");
+                writer.print(error.getLength());
+                writer.print(" ");
+                writer.println(error.getMessage());
               }
-              DartCore.logError(sb.toString());
+              DartCore.logInformation(writer.toString());
             } else {
               markerManager.queueErrors(res, lineInfo, errors);
             }

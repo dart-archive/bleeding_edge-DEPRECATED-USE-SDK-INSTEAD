@@ -5,7 +5,6 @@
 library elements.modelx;
 
 import 'elements.dart';
-import '../../compiler.dart' as api;
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';
@@ -49,18 +48,25 @@ abstract class ElementX implements Element {
   Modifiers get modifiers => Modifiers.EMPTY;
 
   Node parseNode(DiagnosticListener listener) {
-    listener.internalErrorOnElement(this, 'not implemented');
+    listener.internalError(this, 'Not implemented.');
+    return null;
   }
 
   DartType computeType(Compiler compiler) {
-    compiler.internalError("$this.computeType.", token: position());
+    compiler.internalError(this, "$this.computeType.");
+    return null;
   }
 
   void addMetadata(MetadataAnnotation annotation) {
     assert(annotation.annotatedElement == null);
     annotation.annotatedElement = this;
+    addMetadataInternal(annotation);
+  }
+
+  void addMetadataInternal(MetadataAnnotation annotation) {
     metadata = metadata.prepend(annotation);
   }
+
 
   bool isFunction() => identical(kind, ElementKind.FUNCTION);
   bool isConstructor() => isFactoryConstructor() || isGenerativeConstructor();
@@ -70,6 +76,7 @@ abstract class ElementX implements Element {
     return enclosingElement != null && enclosingElement.isClass();
   }
   bool isInstanceMember() => false;
+  bool isDeferredLoaderGetter() => false;
 
   bool isFactoryConstructor() => modifiers.isFactory();
   bool isGenerativeConstructor() =>
@@ -293,6 +300,8 @@ abstract class ElementX implements Element {
   FunctionElement get targetConstructor => null;
 
   void diagnose(Element context, DiagnosticListener listener) {}
+
+  TreeElements get treeElements => enclosingElement.treeElements;
 }
 
 /**
@@ -327,6 +336,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   }
 
   Link<MetadataAnnotation> get metadata => unsupported();
+  get node => unsupported();
   get type => unsupported();
   get cachedNode => unsupported();
   get functionSignature => unsupported();
@@ -405,7 +415,7 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
     if (warning != null) {
       Spannable spannable = warning.spannable;
       if (spannable == null) spannable = usageSpannable;
-      listener.reportWarningCode(
+      listener.reportWarning(
           spannable, warning.messageKind, warning.messageArguments);
     }
     if (info != null) {
@@ -434,7 +444,7 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
   /**
    * The message to report on resolving this element.
    */
-  final DualKind messageKind;
+  final MessageKind messageKind;
 
   /**
    * The message arguments to report on resolving this element.
@@ -511,10 +521,8 @@ class ScopeX {
       if (!identical(existing, element)) {
         listener.reportError(
             element, MessageKind.DUPLICATE_DEFINITION, {'name': name});
-        listener.reportMessage(
-            listener.spanFromSpannable(existing),
-            MessageKind.EXISTING_DEFINITION.error({'name': name}),
-            api.Diagnostic.INFO);
+        listener.reportInfo(existing,
+            MessageKind.EXISTING_DEFINITION, {'name': name});
       }
     }
   }
@@ -536,10 +544,13 @@ class ScopeX {
                    Element existing,
                    DiagnosticListener listener) {
     void reportError(Element other) {
-      // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
-      listener.cancel('duplicate definition of ${accessor.name}',
-                      element: accessor);
-      listener.cancel('existing definition', element: other);
+      listener.reportError(accessor,
+                           MessageKind.DUPLICATE_DEFINITION,
+                           {'name': accessor.name});
+      // TODO(johnniwinther): Make this an info instead of a fatal error.
+      listener.reportFatalError(other,
+                                MessageKind.EXISTING_DEFINITION,
+                                {'name': accessor.name});
     }
 
     if (existing != null) {
@@ -574,7 +585,7 @@ class ScopeX {
   }
 }
 
-class CompilationUnitElementX extends ElementX
+class CompilationUnitElementX extends ElementX with AnalyzableElement
     implements CompilationUnitElement {
   final Script script;
   PartOf partTag;
@@ -614,10 +625,7 @@ class CompilationUnitElementX extends ElementX
       return;
     }
     if (partTag != null) {
-      listener.reportMessage(
-          listener.spanFromSpannable(tag),
-          MessageKind.DUPLICATED_PART_OF.error(),
-          api.Diagnostic.WARNING);
+      listener.reportWarning(tag, MessageKind.DUPLICATED_PART_OF);
       return;
     }
     partTag = tag;
@@ -626,12 +634,12 @@ class CompilationUnitElementX extends ElementX
     if (libraryTag != null) {
       String expectedName = libraryTag.name.toString();
       if (expectedName != actualName) {
-        listener.reportWarningCode(tag.name,
+        listener.reportWarning(tag.name,
             MessageKind.LIBRARY_NAME_MISMATCH,
             {'libraryName': expectedName});
       }
     } else {
-      listener.reportWarningCode(getLibrary(),
+      listener.reportWarning(getLibrary(),
           MessageKind.MISSING_LIBRARY_NAME,
           {'libraryName': actualName});
       listener.reportInfo(tag.name,
@@ -643,7 +651,7 @@ class CompilationUnitElementX extends ElementX
 
   int compareTo(CompilationUnitElement other) {
     if (this == other) return 0;
-    return '${script.uri}'.compareTo('${other.script.uri}');
+    return '${script.readableUri}'.compareTo('${other.script.readableUri}');
   }
 
   accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
@@ -693,6 +701,12 @@ class ImportScope {
     Importers importers = library.importers;
 
     String name = element.name;
+
+    // The loadLibrary function always shadows existing bindings to that name.
+    if (element.isDeferredLoaderGetter()) {
+      importScope.remove(name);
+      // TODO(sigurdm): Print a hint.
+    }
     Element existing = importScope.putIfAbsent(name, () => element);
     importers.registerImport(element, import);
 
@@ -750,7 +764,8 @@ class ImportScope {
   Element operator [](String name) => importScope[name];
 }
 
-class LibraryElementX extends ElementX implements LibraryElement {
+class LibraryElementX extends ElementX with AnalyzableElement
+    implements LibraryElement {
   final Uri canonicalUri;
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
@@ -793,7 +808,8 @@ class LibraryElementX extends ElementX implements LibraryElement {
       new Map<LibraryDependency, LibraryElement>();
 
   LibraryElementX(Script script, [Uri canonicalUri, LibraryElement this.origin])
-    : this.canonicalUri = ((canonicalUri == null) ? script.uri : canonicalUri),
+    : this.canonicalUri =
+          ((canonicalUri == null) ? script.readableUri : canonicalUri),
       super(script.name, ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElementX(script, this);
     if (isPatch) {
@@ -1020,6 +1036,12 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   final ImportScope importScope = new ImportScope();
 
+  bool get isDeferred => _deferredImport != null;
+
+  // Only needed for deferred imports.
+  Import _deferredImport;
+  Import get deferredImport => _deferredImport;
+
   PrefixElementX(String prefix, Element enclosing, this.firstPosition)
       : super(prefix, ElementKind.PREFIX, enclosing);
 
@@ -1034,30 +1056,16 @@ class PrefixElementX extends ElementX implements PrefixElement {
   }
 
   accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
+
+  void markAsDeferred(Import deferredImport) {
+    _deferredImport = deferredImport;
+  }
 }
 
-class TypedefElementX extends ElementX implements TypedefElement {
+class TypedefElementX extends ElementX
+    with AnalyzableElement, TypeDeclarationElementX<TypedefType>
+    implements TypedefElement {
   Typedef cachedNode;
-
-  /**
-   * The type of this typedef in which the type arguments are the type
-   * variables.
-   *
-   * This resembles the [ClassElement.thisType] though a typedef has no notion
-   * of [:this:].
-   *
-   * This type is computed in [computeType].
-   */
-  TypedefType thisType;
-
-  /**
-   * Canonicalized raw version of [thisType].
-   *
-   * See [ClassElement.rawType] for motivation.
-   *
-   * The [rawType] is computed together with [thisType] in [computeType].
-   */
-  TypedefType rawType;
 
   /**
    * The type annotation which defines this typedef.
@@ -1067,10 +1075,7 @@ class TypedefElementX extends ElementX implements TypedefElement {
   /// [:true:] if the typedef has been checked for cyclic reference.
   bool hasBeenCheckedForCycles = false;
 
-  bool get isResolved => mapping != null;
-
-  // TODO(johnniwinther): Store the mapping in the resolution enqueuer instead.
-  TreeElements mapping;
+  bool get isResolved => hasTreeElements;
 
   TypedefElementX(String name, Element enclosing)
       : super(name, ElementKind.TYPEDEF, enclosing);
@@ -1086,26 +1091,16 @@ class TypedefElementX extends ElementX implements TypedefElement {
   FunctionSignature functionSignature;
 
   TypedefType computeType(Compiler compiler) {
-    if (thisType != null) return thisType;
+    if (thisTypeCache != null) return thisTypeCache;
     Typedef node = parseNode(compiler);
-    Link<DartType> parameters =
-        TypeDeclarationElementX.createTypeVariables(this, node.typeParameters);
-    thisType = new TypedefType(this, parameters);
-    if (parameters.isEmpty) {
-      rawType = thisType;
-    } else {
-      var dynamicParameters = const Link<DartType>();
-      parameters.forEach((_) {
-        dynamicParameters =
-            dynamicParameters.prepend(compiler.types.dynamicType);
-      });
-      rawType = new TypedefType(this, dynamicParameters);
-    }
+    setThisAndRawTypes(compiler, createTypeVariables(node.typeParameters));
     compiler.resolveTypedef(this);
-    return thisType;
+    return thisTypeCache;
   }
 
-  Link<DartType> get typeVariables => thisType.typeArguments;
+  TypedefType createType(Link<DartType> typeArguments) {
+    return new TypedefType(this, typeArguments);
+  }
 
   Scope buildScope() {
     return new TypeDeclarationScope(enclosingElement.buildScope(), this);
@@ -1121,83 +1116,138 @@ class TypedefElementX extends ElementX implements TypedefElement {
   accept(ElementVisitor visitor) => visitor.visitTypedefElement(this);
 }
 
-class VariableElementX extends ElementX implements VariableElement {
-  final VariableListElement variables;
-  Expression cachedNode; // The send or the identifier in the variables list.
+// This class holds common information for a list of variable or field
+// declarations. It contains the node, and the type. A [VariableElementX]
+// forwards its [computeType] and [parseNode] methods to this class.
+class VariableList {
+  VariableDefinitions definitions;
+  DartType type;
+  final Modifiers modifiers;
+  Link<MetadataAnnotation> metadata = const Link<MetadataAnnotation>();
+
+  VariableList(Modifiers this.modifiers);
+
+  VariableList.node(VariableDefinitions node, this.type)
+      : this.definitions = node,
+        this.modifiers = node.modifiers {
+    assert(modifiers != null);
+  }
+
+  VariableDefinitions parseNode(Element element, DiagnosticListener listener) {
+    return definitions;
+  }
+
+  DartType computeType(Element element, Compiler compiler) => type;
+}
+
+class VariableElementX extends ElementX with AnalyzableElement
+    implements VariableElement {
+  final Token token;
+  final VariableList variables;
+  VariableDefinitions definitionsCache;
+  Expression initializerCache;
 
   Modifiers get modifiers => variables.modifiers;
 
   VariableElementX(String name,
-                   VariableListElement variables,
                    ElementKind kind,
-                   this.cachedNode)
+                   Element enclosingElement,
+                   VariableList variables,
+                   this.token)
     : this.variables = variables,
-      super(name, kind, variables.enclosingElement);
+      super(name, kind, enclosingElement);
 
   VariableElementX.synthetic(String name,
-      ElementKind kind,
-      Element enclosing) :
+                             ElementKind kind,
+                             Element enclosing)
+      : token = null,
         variables = null,
         super(name, kind, enclosing);
 
-  void addMetadata(MetadataAnnotation metadata) {
-    variables.addMetadata(metadata);
-  }
-
+  // TODO(johnniwinther): Ensure that the [TreeElements] for this variable hold
+  // the mappings for all its metadata.
   Link<MetadataAnnotation> get metadata => variables.metadata;
 
+  void addMetadataInternal(MetadataAnnotation annotation) {
+    variables.metadata = variables.metadata.prepend(annotation);
+  }
+
+  Expression get initializer {
+    assert(invariant(this, definitionsCache != null,
+        message: "Initializer has not been computed for $this."));
+    return initializerCache;
+  }
+
   Node parseNode(DiagnosticListener listener) {
-    if (cachedNode != null) return cachedNode;
-    VariableDefinitions definitions = variables.parseNode(listener);
+    if (definitionsCache != null) return definitionsCache;
+
+    VariableDefinitions definitions = variables.parseNode(this, listener);
+    Expression node;
+    int count = 0;
     for (Link<Node> link = definitions.definitions.nodes;
          !link.isEmpty; link = link.tail) {
       Expression initializedIdentifier = link.head;
       Identifier identifier = initializedIdentifier.asIdentifier();
       if (identifier == null) {
-        identifier = initializedIdentifier.asSendSet().selector.asIdentifier();
+        SendSet sendSet = initializedIdentifier.asSendSet();
+        identifier = sendSet.selector.asIdentifier();
+        if (identical(name, identifier.source)) {
+          node = initializedIdentifier;
+          initializerCache = sendSet.arguments.first;
+        }
+      } else if (identical(name, identifier.source)) {
+        node = initializedIdentifier;
       }
-      if (identical(name, identifier.source)) {
-        cachedNode = initializedIdentifier;
-        return cachedNode;
-      }
+      count++;
     }
-    listener.cancel('internal error: could not find $name', node: variables);
+    if (node == null) {
+      listener.internalError(definitions,
+                             "Could not find '$name'.");
+    }
+    if (count == 1) {
+      definitionsCache = definitions;
+    } else {
+      // Create a [VariableDefinitions] node for the single definition of
+      // [node].
+      definitionsCache = new VariableDefinitions(definitions.type,
+          definitions.modifiers, new NodeList(
+              definitions.definitions.beginToken,
+              const Link<Node>().prepend(node),
+              definitions.definitions.endToken));
+    }
+    return definitionsCache;
   }
 
   DartType computeType(Compiler compiler) {
-    return variables.computeType(compiler);
+    // Call [parseNode] to ensure that [definitionsCache] and [initializerCache]
+    // are set as a consequence of calling [computeType].
+    parseNode(compiler);
+    return variables.computeType(this, compiler);
   }
 
-  bool isInstanceMember() => variables.isInstanceMember();
+  DartType get type {
+    assert(invariant(this, variables.type != null,
+        message: "Type has not been computed for $this."));
+    return variables.type;
+  }
+
+  bool isInstanceMember() => isMember() && !modifiers.isStatic();
 
   // Note: cachedNode.getBeginToken() will not be correct in all
   // cases, for example, for function typed parameters.
-  Token position() => findMyName(variables.position());
+  Token position() => token;
 
   accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
-
-  // TODO(johnniwinther): Move the patch/origin implementation to a parameter
-  // specific element when added.
-
-  /**
-   * A function declaration that should be parsed instead of the current one.
-   * The patch should be parsed as if it was in the current scope. Its
-   * signature must match this function's signature.
-   */
-  VariableElementX patch = null;
-  VariableElementX origin = null;
-
-  bool get isPatch => origin != null;
-  bool get isPatched => patch != null;
 }
 
 class FieldElementX extends VariableElementX implements FieldElement {
   List<FunctionElement> nestedClosures = new List<FunctionElement>();
 
-  FieldElementX(String name,
-                VariableListElement variables,
-                Expression cachedNode)
-    : super(name, variables, ElementKind.FIELD, cachedNode);
+  FieldElementX(Identifier name,
+                Element enclosingElement,
+                VariableList variables)
+    : super(name.source, ElementKind.FIELD, enclosingElement,
+            variables, name.token);
 
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
 }
@@ -1206,97 +1256,83 @@ class FieldElementX extends VariableElementX implements FieldElement {
  * Parameters in constructors that directly initialize fields. For example:
  * [:A(this.field):].
  */
-class FieldParameterElementX extends VariableElementX
+class FieldParameterElementX extends ParameterElementX
     implements FieldParameterElement {
   VariableElement fieldElement;
 
-  FieldParameterElementX(String name,
-                         this.fieldElement,
-                         VariableListElement variables,
-                         Node node)
-      : super(name, variables, ElementKind.FIELD_PARAMETER, node);
-
-  DartType computeType(Compiler compiler) {
-    VariableDefinitions definitions = variables.parseNode(compiler);
-    if (definitions.type == null) {
-      return fieldElement.computeType(compiler);
-    }
-    return super.computeType(compiler);
-  }
+  FieldParameterElementX(Element enclosingElement,
+                         VariableDefinitions variables,
+                         Identifier identifier,
+                         Expression initializer,
+                         this.fieldElement)
+      : super(ElementKind.FIELD_PARAMETER, enclosingElement,
+              variables, identifier, initializer);
 
   accept(ElementVisitor visitor) => visitor.visitFieldParameterElement(this);
 }
 
-// This element represents a list of variable or field declaration.
-// It contains the node, and the type. A [VariableElement] always
-// references its [VariableListElement]. It forwards its
-// [computeType] and [parseNode] methods to this element.
-class VariableListElementX extends ElementX implements VariableListElement {
-  VariableDefinitions cachedNode;
-  DartType type;
-  final Modifiers modifiers;
+/// [Element] for a formal parameter.
+///
+/// A [ParameterElementX] can be patched. A parameter of an external method is
+/// patched with the corresponding parameter of the patch method. This is done
+/// to ensure that default values on parameters are computed once (on the
+/// origin parameter) but can be found through both the origin and the patch.
+class ParameterElementX extends ElementX implements ParameterElement {
+  final VariableDefinitions definitions;
+  final Identifier identifier;
+  final Expression initializer;
+  DartType typeCache;
 
   /**
    * Function signature for a variable with a function type. The signature is
    * kept to provide full information about parameter names through the mirror
    * system.
    */
-  FunctionSignature functionSignature;
+  FunctionSignature functionSignatureCache;
 
-  VariableListElementX(ElementKind kind,
-                       Modifiers this.modifiers,
-                       Element enclosing)
-    : super(null, kind, enclosing);
+  ParameterElementX(ElementKind elementKind,
+                    Element enclosingElement,
+                    this.definitions,
+                    Identifier identifier,
+                    this.initializer)
+      : this.identifier = identifier,
+        super(identifier.source, elementKind, enclosingElement);
 
-  VariableListElementX.node(VariableDefinitions node,
-                            ElementKind kind,
-                            Element enclosing)
-      : super(null, kind, enclosing),
-        this.cachedNode = node,
-        this.modifiers = node.modifiers {
-    assert(modifiers != null);
-  }
+  Modifiers get modifiers => definitions.modifiers;
 
-  VariableDefinitions parseNode(DiagnosticListener listener) {
-    return cachedNode;
-  }
+  Token position() => identifier.getBeginToken();
+
+  Node parseNode(DiagnosticListener listener) => definitions;
 
   DartType computeType(Compiler compiler) {
-    if (type != null) return type;
-    compiler.withCurrentElement(this, () {
-      VariableDefinitions node = parseNode(compiler);
-      if (node.type != null) {
-        type = compiler.resolveTypeAnnotation(this, node.type);
-      } else {
-        // Is node.definitions exactly one FunctionExpression?
-        Link<Node> link = node.definitions.nodes;
-        if (!link.isEmpty &&
-            link.head.asFunctionExpression() != null &&
-            link.tail.isEmpty) {
-          FunctionExpression functionExpression = link.head;
-          // We found exactly one FunctionExpression
-          functionSignature =
-              compiler.resolveFunctionExpression(this, functionExpression);
-          // TODO(johnniwinther): Use the parameter's [VariableElement] instead
-          // of [functionClass].
-          type = compiler.computeFunctionType(compiler.functionClass,
-                                              functionSignature);
-        } else {
-          type = compiler.types.dynamicType;
-        }
-      }
-    });
-    assert(type != null);
+    assert(invariant(this, type != null,
+        message: "Parameter type has not been set for $this."));
     return type;
   }
 
-  Token position() => cachedNode.getBeginToken();
-
-  bool isInstanceMember() {
-    return isMember() && !modifiers.isStatic();
+  DartType get type {
+    assert(invariant(this, typeCache != null,
+            message: "Parameter type has not been set for $this."));
+        return typeCache;
   }
 
-  accept(ElementVisitor visitor) => visitor.visitVariableListElement(this);
+  FunctionSignature get functionSignature {
+    assert(invariant(this, typeCache != null,
+            message: "Parameter signature has not been set for $this."));
+    return functionSignatureCache;
+  }
+
+  VariableDefinitions get node => definitions;
+
+  FunctionType get functionType => type;
+
+  accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
+
+  ParameterElementX patch = null;
+  ParameterElementX origin = null;
+
+  bool get isPatch => origin != null;
+  bool get isPatched => patch != null;
 }
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
@@ -1362,19 +1398,19 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
 class FunctionSignatureX implements FunctionSignature {
   final Link<Element> requiredParameters;
   final Link<Element> optionalParameters;
-  final DartType returnType;
   final int requiredParameterCount;
   final int optionalParameterCount;
   final bool optionalParametersAreNamed;
-
-  List<Element> _orderedOptionalParameters;
+  final List<Element> orderedOptionalParameters;
+  final FunctionType type;
 
   FunctionSignatureX(this.requiredParameters,
                      this.optionalParameters,
                      this.requiredParameterCount,
                      this.optionalParameterCount,
                      this.optionalParametersAreNamed,
-                     this.returnType);
+                     this.orderedOptionalParameters,
+                     this.type);
 
   void forEachRequiredParameter(void function(Element parameter)) {
     for (Link<Element> link = requiredParameters;
@@ -1390,18 +1426,6 @@ class FunctionSignatureX implements FunctionSignature {
          link = link.tail) {
       function(link.head);
     }
-  }
-
-  List<Element> get orderedOptionalParameters {
-    if (_orderedOptionalParameters != null) return _orderedOptionalParameters;
-    List<Element> list = optionalParameters.toList();
-    if (optionalParametersAreNamed) {
-      list.sort((Element a, Element b) {
-        return a.name.compareTo(b.name);
-      });
-    }
-    _orderedOptionalParameters = list;
-    return list;
   }
 
   Element get firstOptionalParameter => optionalParameters.head;
@@ -1455,14 +1479,15 @@ class FunctionSignatureX implements FunctionSignature {
   }
 }
 
-class FunctionElementX extends ElementX implements FunctionElement {
+class FunctionElementX extends ElementX with AnalyzableElement
+    implements FunctionElement {
   FunctionExpression cachedNode;
-  DartType type;
+  DartType typeCache;
   final Modifiers modifiers;
 
   List<FunctionElement> nestedClosures = new List<FunctionElement>();
 
-  FunctionSignature functionSignature;
+  FunctionSignature functionSignatureCache;
 
   /**
    * A function declaration that should be parsed instead of the current one.
@@ -1490,18 +1515,18 @@ class FunctionElementX extends ElementX implements FunctionElement {
       : this.tooMuchOverloading(name, null, kind, modifiers, enclosing, null,
                                 hasNoBody);
 
-  FunctionElementX.node(String name,
-                        FunctionExpression node,
-                        ElementKind kind,
-                        Modifiers modifiers,
-                        Element enclosing)
+  FunctionElementX.fromNode(String name,
+                            FunctionExpression node,
+                            ElementKind kind,
+                            Modifiers modifiers,
+                            Element enclosing)
       : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null,
                                 false);
 
   FunctionElementX.from(String name,
                         FunctionElement other,
                         Element enclosing)
-      : this.tooMuchOverloading(name, other.cachedNode, other.kind,
+      : this.tooMuchOverloading(name, other.node, other.kind,
                                 other.modifiers, enclosing,
                                 other.functionSignature,
                                 false);
@@ -1511,7 +1536,7 @@ class FunctionElementX extends ElementX implements FunctionElement {
                                       ElementKind kind,
                                       this.modifiers,
                                       Element enclosing,
-                                      this.functionSignature,
+                                      this.functionSignatureCache,
                                       bool hasNoBody)
       : super(name, kind, enclosing),
         _hasNoBody = hasNoBody {
@@ -1568,39 +1593,44 @@ class FunctionElementX extends ElementX implements FunctionElement {
   }
 
   FunctionSignature computeSignature(Compiler compiler) {
-    if (functionSignature != null) return functionSignature;
+    if (functionSignatureCache != null) return functionSignatureCache;
     compiler.withCurrentElement(this, () {
-      functionSignature = compiler.resolveSignature(this);
+      functionSignatureCache = compiler.resolveSignature(this);
     });
-    return functionSignature;
+    return functionSignatureCache;
   }
 
-  int requiredParameterCount(Compiler compiler) {
-    return computeSignature(compiler).requiredParameterCount;
-  }
-
-  int optionalParameterCount(Compiler compiler) {
-    return computeSignature(compiler).optionalParameterCount;
-  }
-
-  int parameterCount(Compiler compiler) {
-    return computeSignature(compiler).parameterCount;
+  FunctionSignature get functionSignature {
+    assert(invariant(this, functionSignatureCache != null,
+        message: "Function signature has not been computed for $this."));
+    return functionSignatureCache;
   }
 
   FunctionType computeType(Compiler compiler) {
-    if (type != null) return type;
-    type = compiler.computeFunctionType(declaration,
-                                        computeSignature(compiler));
-    return type;
+    if (typeCache != null) return typeCache;
+    typeCache = computeSignature(compiler).type;
+    return typeCache;
+  }
+
+  FunctionType get type {
+    assert(invariant(this, typeCache != null,
+        message: "Type has not been computed for $this."));
+    return typeCache;
   }
 
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (patch == null) {
       if (modifiers.isExternal()) {
-        listener.cancel("Compiling external function with no implementation.",
-                        element: this);
+        listener.internalError(this,
+            "Compiling external function with no implementation.");
       }
     }
+    return cachedNode;
+  }
+
+  FunctionExpression get node {
+    assert(invariant(this, cachedNode != null,
+        message: "Node has not been computed for $this."));
     return cachedNode;
   }
 
@@ -1634,6 +1664,44 @@ class FunctionElementX extends ElementX implements FunctionElement {
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
 }
 
+class DeferredLoaderGetterElementX extends FunctionElementX {
+
+  final PrefixElement prefix;
+
+  DeferredLoaderGetterElementX(PrefixElement prefix)
+      : this.prefix = prefix,
+        super("loadLibrary",
+              ElementKind.FUNCTION,
+              Modifiers.EMPTY,
+              prefix, true);
+
+  FunctionSignature computeSignature(Compiler compiler) {
+    if (functionSignatureCache != null) return functionSignature;
+    compiler.withCurrentElement(this, () {
+      DartType inner = new FunctionType(this, compiler.types.dynamicType);
+      functionSignatureCache = new FunctionSignatureX(const Link(),
+          const Link(), 0, 0, false, [], inner);
+    });
+    return functionSignatureCache;
+  }
+
+  bool isMember() => false;
+
+  bool isForeign(Compiler compiler) => true;
+
+  bool get isSynthesized => true;
+
+  bool isFunction() => false;
+
+  bool isDeferredLoaderGetter() => true;
+
+  bool isGetter() => true;
+
+  // By having position null, the enclosing elements location is printed in
+  // error messages.
+  Token position() => null;
+}
+
 class ConstructorBodyElementX extends FunctionElementX
     implements ConstructorBodyElement {
   FunctionElement constructor;
@@ -1644,13 +1712,14 @@ class ConstructorBodyElementX extends FunctionElementX
               ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
               Modifiers.EMPTY,
               constructor.enclosingElement, false) {
-    functionSignature = constructor.functionSignature;
+    functionSignatureCache = constructor.functionSignature;
   }
 
   bool isInstanceMember() => true;
 
   FunctionType computeType(Compiler compiler) {
-    compiler.internalErrorOnElement(this, '$this.computeType.');
+    compiler.internalError(this, '$this.computeType.');
+    return null;
   }
 
   Node parseNode(DiagnosticListener listener) {
@@ -1697,19 +1766,20 @@ class SynthesizedConstructorElementX extends FunctionElementX {
   FunctionElement get targetConstructor => superMember;
 
   FunctionSignature computeSignature(compiler) {
-    if (functionSignature != null) return functionSignature;
+    if (functionSignatureCache != null) return functionSignatureCache;
     if (isDefaultConstructor) {
-      return functionSignature = new FunctionSignatureX(
+      return functionSignatureCache = new FunctionSignatureX(
           const Link<Element>(), const Link<Element>(), 0, 0, false,
-          getEnclosingClass().thisType);
+          const <Element>[],
+          new FunctionType(this, getEnclosingClass().thisType));
     }
     if (superMember.isErroneous()) {
-      return functionSignature = compiler.objectClass.localLookup('')
-          .computeSignature(compiler);
+      return functionSignatureCache =
+          compiler.objectClass.localLookup('').computeSignature(compiler);
     }
     // TODO(johnniwinther): Ensure that the function signature (and with it the
     // function type) substitutes type variables correctly.
-    return functionSignature = superMember.computeSignature(compiler);
+    return functionSignatureCache = superMember.computeSignature(compiler);
   }
 
   get declaration => this;
@@ -1732,49 +1802,25 @@ class VoidElementX extends ElementX implements VoidElement {
   accept(ElementVisitor visitor) => visitor.visitVoidElement(this);
 }
 
-class TypeDeclarationElementX {
+abstract class TypeDeclarationElementX<T extends GenericType>
+    implements TypeDeclarationElement {
   /**
-   * Creates the type variables, their type and corresponding element, for the
-   * type variables declared in [parameter] on [element]. The bounds of the type
-   * variables are not set until [element] has been resolved.
-   */
-  static Link<DartType> createTypeVariables(TypeDeclarationElement element,
-                                            NodeList parameters) {
-    if (parameters == null) return const Link<DartType>();
-
-    // Create types and elements for type variable.
-    var arguments = new LinkBuilder<DartType>();
-    for (Link link = parameters.nodes; !link.isEmpty; link = link.tail) {
-      TypeVariable node = link.head;
-      String variableName = node.name.source;
-      TypeVariableElement variableElement =
-          new TypeVariableElementX(variableName, element, node);
-      TypeVariableType variableType = new TypeVariableType(variableElement);
-      variableElement.type = variableType;
-      arguments.addLast(variableType);
-    }
-    return arguments.toLink();
-  }
-}
-
-abstract class BaseClassElementX extends ElementX implements ClassElement {
-  final int id;
-
-  /**
-   * The type of [:this:] for this class declaration.
+   * The `this type` for this type declaration.
    *
-   * The type of [:this:] is the interface type based on this element in which
+   * The type of [:this:] is the generic type based on this element in which
    * the type arguments are the declared type variables. For instance,
    * [:List<E>:] for [:List:] and [:Map<K,V>:] for [:Map:].
    *
+   * For a class declaration this is the type of [:this:].
+   *
    * This type is computed in [computeType].
    */
-  InterfaceType thisType;
+  T thisTypeCache;
 
   /**
-   * The raw type for this class declaration.
+   * The raw type for this type declaration.
    *
-   * The raw type is the interface type base on this element in which the type
+   * The raw type is the generic type base on this element in which the type
    * arguments are all [dynamic]. For instance [:List<dynamic>:] for [:List:]
    * and [:Map<dynamic,dynamic>:] for [:Map:]. For non-generic classes [rawType]
    * is the same as [thisType].
@@ -1789,7 +1835,70 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    *
    * This type is computed together with [thisType] in [computeType].
    */
-  InterfaceType rawTypeCache;
+  T rawTypeCache;
+
+  T get thisType {
+    assert(invariant(this, thisTypeCache != null,
+                     message: 'This type has not been computed for $this'));
+    return thisTypeCache;
+  }
+
+  T get rawType {
+    assert(invariant(this, rawTypeCache != null,
+                     message: 'Raw type has not been computed for $this'));
+    return rawTypeCache;
+  }
+
+  T createType(Link<DartType> typeArguments);
+
+  void setThisAndRawTypes(Compiler compiler, Link<DartType> typeParameters) {
+    assert(invariant(this, thisTypeCache == null,
+        message: "This type has already been set on $this."));
+    assert(invariant(this, rawTypeCache == null,
+        message: "Raw type has already been set on $this."));
+    thisTypeCache = createType(typeParameters);
+    if (typeParameters.isEmpty) {
+      rawTypeCache = thisTypeCache;
+    } else {
+      Link<DartType> dynamicParameters = const Link<DartType>();
+      typeParameters.forEach((_) {
+        dynamicParameters =
+            dynamicParameters.prepend(compiler.types.dynamicType);
+      });
+      rawTypeCache = createType(dynamicParameters);
+    }
+  }
+
+  Link<DartType> get typeVariables => thisType.typeArguments;
+
+  /**
+   * Creates the type variables, their type and corresponding element, for the
+   * type variables declared in [parameter] on [element]. The bounds of the type
+   * variables are not set until [element] has been resolved.
+   */
+  Link<DartType> createTypeVariables(NodeList parameters) {
+    if (parameters == null) return const Link<DartType>();
+
+    // Create types and elements for type variable.
+    LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
+    for (Link<Node> link = parameters.nodes; !link.isEmpty; link = link.tail) {
+      TypeVariable node = link.head;
+      String variableName = node.name.source;
+      TypeVariableElementX variableElement =
+          new TypeVariableElementX(variableName, this, node);
+      TypeVariableType variableType = new TypeVariableType(variableElement);
+      variableElement.typeCache = variableType;
+      arguments.addLast(variableType);
+    }
+    return arguments.toLink();
+  }
+}
+
+abstract class BaseClassElementX extends ElementX
+    with AnalyzableElement, TypeDeclarationElementX<InterfaceType>
+    implements ClassElement {
+  final int id;
+
   DartType supertype;
   Link<DartType> interfaces;
   String nativeTagInfo;
@@ -1830,40 +1939,26 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   bool get isUnnamedMixinApplication => false;
 
+  InterfaceType computeType(Compiler compiler) {
+    if (thisTypeCache == null) {
+      computeThisAndRawType(compiler, computeTypeParameters(compiler));
+    }
+    return thisTypeCache;
+  }
+
   void computeThisAndRawType(Compiler compiler, Link<DartType> typeVariables) {
-    if (thisType == null) {
+    if (thisTypeCache == null) {
       if (origin == null) {
-        Link<DartType> parameters = typeVariables;
-        thisType = new InterfaceType(this, parameters);
-        if (parameters.isEmpty) {
-          rawTypeCache = thisType;
-        } else {
-          var dynamicParameters = const Link<DartType>();
-          parameters.forEach((_) {
-            dynamicParameters =
-                dynamicParameters.prepend(compiler.types.dynamicType);
-          });
-          rawTypeCache = new InterfaceType(this, dynamicParameters);
-        }
+        setThisAndRawTypes(compiler, typeVariables);
       } else {
-        thisType = origin.computeType(compiler);
+        thisTypeCache = origin.computeType(compiler);
         rawTypeCache = origin.rawType;
       }
     }
   }
 
-  // TODO(johnniwinther): Add [thisType] getter similar to [rawType].
-  InterfaceType computeType(Compiler compiler) {
-    if (thisType == null) {
-      computeThisAndRawType(compiler, computeTypeParameters(compiler));
-    }
-    return thisType;
-  }
-
-  InterfaceType get rawType {
-    assert(invariant(this, rawTypeCache != null,
-                     message: 'Raw type has not been computed for $this'));
-    return rawTypeCache;
+  InterfaceType createType(Link<DartType> typeArguments) {
+    return new InterfaceType(this, typeArguments);
   }
 
   Link<DartType> computeTypeParameters(Compiler compiler);
@@ -1874,13 +1969,10 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   bool isObject(Compiler compiler) =>
       identical(declaration, compiler.objectClass);
 
-  Link<DartType> get typeVariables => thisType.typeArguments;
-
-  ClassElement ensureResolved(Compiler compiler) {
+  void ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
       compiler.resolver.resolveClass(this);
     }
-    return this;
   }
 
   void setDefaultConstructor(FunctionElement constructor, Compiler compiler);
@@ -1911,6 +2003,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
         return element;
       }
     }
+    return null;
   }
   /**
    * Lookup super members for the class. This will ignore constructors.
@@ -2197,6 +2290,12 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   void forEachInterfaceMember(f(MemberSignature member)) {
     interfaceMembers.forEach((_, member) => f(member));
   }
+
+  FunctionType get callType {
+    MemberSignature member =
+        lookupInterfaceMember(const PublicName(Compiler.CALL_OPERATOR_NAME));
+    return member != null && member.isMethod ? member.type : null;
+  }
 }
 
 abstract class ClassElementX extends BaseClassElementX {
@@ -2257,8 +2356,7 @@ abstract class ClassElementX extends BaseClassElementX {
 
   Link<DartType> computeTypeParameters(Compiler compiler) {
     ClassNode node = parseNode(compiler);
-    return TypeDeclarationElementX.createTypeVariables(
-        this, node.typeParameters);
+    return createTypeVariables(node.typeParameters);
   }
 
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
@@ -2334,11 +2432,11 @@ class MixinApplicationElementX extends BaseClassElementX
   }
 
   void addMember(Element element, DiagnosticListener listener) {
-    throw new UnsupportedError("cannot add member to $this");
+    throw new UnsupportedError("Cannot add member to $this.");
   }
 
   void addToScope(Element element, DiagnosticListener listener) {
-    listener.internalError('cannot add to scope of $this', element: this);
+    listener.internalError(this, 'Cannot add to scope of $this.');
   }
 
   void addConstructor(FunctionElement constructor) {
@@ -2357,8 +2455,7 @@ class MixinApplicationElementX extends BaseClassElementX
           "Type variables on unnamed mixin applications must be set on "
           "creation.");
     }
-    return TypeDeclarationElementX.createTypeVariables(
-        this, named.typeParameters);
+    return createTypeVariables(named.typeParameters);
   }
 
   accept(ElementVisitor visitor) => visitor.visitMixinApplicationElement(this);
@@ -2434,14 +2531,25 @@ class TargetElementX extends ElementX implements TargetElement {
 
 class TypeVariableElementX extends ElementX implements TypeVariableElement {
   final Node cachedNode;
-  TypeVariableType type;
-  DartType bound;
+  TypeVariableType typeCache;
+  DartType boundCache;
 
-  TypeVariableElementX(String name, Element enclosing, this.cachedNode,
-                       [this.type, this.bound])
+  TypeVariableElementX(String name, Element enclosing, this.cachedNode)
     : super(name, ElementKind.TYPE_VARIABLE, enclosing);
 
   TypeVariableType computeType(compiler) => type;
+
+  TypeVariableType get type {
+    assert(invariant(this, typeCache != null,
+        message: "Type has not been set on $this."));
+    return typeCache;
+  }
+
+  DartType get bound {
+    assert(invariant(this, boundCache != null,
+        message: "Bound has not been set on $this."));
+    return boundCache;
+  }
 
   Node parseNode(compiler) => cachedNode;
 
@@ -2516,3 +2624,4 @@ class ParameterMetadataAnnotation extends MetadataAnnotationX {
 
   Token get endToken => metadata.getEndToken();
 }
+

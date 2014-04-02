@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(zra): Remove when tests are ready to enable.
+#include "platform/globals.h"
+#if !defined(TARGET_ARCH_ARM64)
+
 #include "include/dart_debugger_api.h"
 #include "include/dart_mirrors_api.h"
 #include "platform/assert.h"
@@ -1308,9 +1312,18 @@ UNIT_TEST_CASE(Debug_IsolateID) {
 
 static Monitor* sync = NULL;
 static bool isolate_interrupted = false;
+static bool pause_event_handled = false;
 static Dart_IsolateId interrupt_isolate_id = ILLEGAL_ISOLATE_ID;
 static volatile bool continue_isolate_loop = true;
 
+
+static void InterruptIsolateHandler(Dart_IsolateId isolateId,
+                                    intptr_t breakpointId,
+                                    const Dart_CodeLocation& location) {
+  MonitorLocker ml(sync);
+  pause_event_handled = true;
+  ml.Notify();
+}
 
 static void TestInterruptIsolate(Dart_IsolateId isolate_id,
                                  Dart_IsolateEvent kind) {
@@ -1328,7 +1341,7 @@ static void TestInterruptIsolate(Dart_IsolateId isolate_id,
       MonitorLocker ml(sync);
       isolate_interrupted = true;
       continue_isolate_loop = false;
-      ml.Notify();
+      Dart_SetStepInto();
     }
   } else if (kind == kShutdown) {
     if (interrupt_isolate_id == isolate_id) {
@@ -1394,6 +1407,7 @@ TEST_CASE(Debug_InterruptIsolate) {
   Dart_SetIsolateEventHandler(&TestInterruptIsolate);
   sync = new Monitor();
   EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
+  Dart_SetPausedEventHandler(InterruptIsolateHandler);
   int result = Thread::Start(InterruptIsolateRun, 0);
   EXPECT_EQ(0, result);
 
@@ -1413,11 +1427,12 @@ TEST_CASE(Debug_InterruptIsolate) {
   // Wait for the test isolate to be interrupted.
   {
     MonitorLocker ml(sync);
-    while (!isolate_interrupted) {
+    while (!isolate_interrupted || !pause_event_handled) {
       ml.Wait();
     }
   }
   EXPECT(isolate_interrupted);
+  EXPECT(pause_event_handled);
 
   // Wait for the test isolate to shutdown.
   {
@@ -2067,4 +2082,66 @@ TEST_CASE(Debug_ListSuperType) {
   EXPECT(super_type == Dart_Null());
 }
 
+TEST_CASE(Debug_ScriptGetTokenInfo_Basic) {
+  const char* kScriptChars =
+      "var foo;\n"
+      "\n"
+      "main() {\n"
+      "}";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  intptr_t libId = -1;
+  EXPECT_VALID(Dart_LibraryId(lib, &libId));
+  Dart_Handle scriptUrl = NewString(TestCase::url());
+  Dart_Handle tokens = Dart_ScriptGetTokenInfo(libId, scriptUrl);
+  EXPECT_VALID(tokens);
+
+  Dart_Handle tokens_string = Dart_ToString(tokens);
+  EXPECT_VALID(tokens_string);
+  const char* tokens_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(tokens_string, &tokens_cstr));
+  EXPECT_STREQ(
+      "[null, 1, 0, 1, 1, 5, 2, 8,"
+      " null, 3, 5, 1, 6, 5, 7, 6, 8, 8,"
+      " null, 4, 10, 1]",
+      tokens_cstr);
+}
+
+TEST_CASE(Debug_ScriptGetTokenInfo_MultiLineInterpolation) {
+  const char* kScriptChars =
+      "var foo = 'hello world';\n"
+      "\n"
+      "void test() {\n"
+      "  return '''\n"
+      "foo=$foo"
+      "''';\n"
+      "}\n"
+      "\n"
+      "main() {\n"
+      "}";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  intptr_t libId = -1;
+  EXPECT_VALID(Dart_LibraryId(lib, &libId));
+  Dart_Handle scriptUrl = NewString(TestCase::url());
+  Dart_Handle tokens = Dart_ScriptGetTokenInfo(libId, scriptUrl);
+  EXPECT_VALID(tokens);
+
+  Dart_Handle tokens_string = Dart_ToString(tokens);
+  EXPECT_VALID(tokens_string);
+  const char* tokens_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(tokens_string, &tokens_cstr));
+  EXPECT_STREQ(
+      "[null, 1, 0, 1, 1, 5, 2, 9, 3, 11, 4, 24,"
+      " null, 3, 7, 1, 8, 6, 9, 10, 10, 11, 11, 13,"
+      " null, 4, 13, 3, 14, 10,"
+      " null, 5, 17, 5, 18, 9, 19, 12,"
+      " null, 6, 21, 1,"
+      " null, 8, 24, 1, 25, 5, 26, 6, 27, 8,"
+      " null, 9, 29, 1]",
+      tokens_cstr);
+}
+
 }  // namespace dart
+
+#endif  // !defined(TARGET_ARCH_ARM64)

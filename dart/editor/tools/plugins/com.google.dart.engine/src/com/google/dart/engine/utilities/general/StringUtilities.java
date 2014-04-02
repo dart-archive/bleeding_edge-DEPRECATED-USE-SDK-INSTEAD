@@ -38,6 +38,20 @@ public final class StringUtilities {
   private static final Interner<String> INTERNER = Interners.newWeakInterner();
 
   /**
+   * Abbreviates a String using ellipses inserted at left.
+   */
+  public static String abbreviateLeft(String s, int width) {
+    int length = s.length();
+    if (length > width) {
+      if (width < 4) {
+        throw new IllegalArgumentException("Minimal width is 4");
+      }
+      return "..." + s.substring(length - (width - 3));
+    }
+    return s;
+  }
+
+  /**
    * Return {@code true} if the three-character substring occurs at the end of the given string.
    * 
    * @param string the string being searched
@@ -162,6 +176,28 @@ public final class StringUtilities {
       index++;
     }
     return -1;
+  }
+
+  /**
+   * Return the index of the first not letter/digit character in the given string that is at or
+   * after the given starting index. Return the length of the given string if the all characters to
+   * the end are letters/digits.
+   * 
+   * @param string the string being searched
+   * @param startIndex the index at which the search should begin
+   * @return the index of the first not letter/digit character
+   */
+  public static int indexOfFirstNotLetterDigit(String string, int startIndex) {
+    int index = startIndex;
+    int last = string.length();
+    while (index < last) {
+      char c = string.charAt(index);
+      if (!Character.isLetterOrDigit(c)) {
+        return index;
+      }
+      index++;
+    }
+    return last;
   }
 
   /**

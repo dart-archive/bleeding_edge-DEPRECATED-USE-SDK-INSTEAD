@@ -5,6 +5,7 @@
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash
 cc/AllocGeneric_Overflow: Crash
+cc/CodeImmutability: Crash
 
 cc/SNPrint_BadArgs: Skip
 
@@ -26,6 +27,7 @@ cc/ExternalizeConstantStrings: Skip
 cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
+cc/Service_Profile: Skip
 
 [ $system == linux ]
 cc/ThreadInterrupterHigh: Skip
@@ -41,8 +43,9 @@ cc/ThreadInterrupterLow: Skip
 cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
+cc/Service_Profile: Skip
 
-[ $arch == simmips ]
+[ $arch == simmips && $arch == mips ]
 cc/Service_Coverage: Skip # Dart bug 16250
 
 [ $compiler == dart2js ]
@@ -67,14 +70,21 @@ dart/inline_stack_frame_test: RuntimeError
 *: Skip
 
 [ $arch == mips ]
-cc/Sdc1Ldc1: Crash # Illegal instructions
-cc/Cop1CvtDL: Crash
-cc/Cop1CvtDL_neg: Crash
+cc/StaticNonNullSumCallCodegen: Crash, Pass # dartbug.com/17440
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $arch == mips && $mode == debug ]
+cc/FindCodeObject: Skip # Takes more than 8 minutes. dartbug.com/17440.
+
+[ $arch == simarm64 ]
+dart/*: Skip
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 dart/mirrored_compilation_error_test: Skip # Can't pass needed VM flag
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 dart/optimized_stacktrace_test: StaticWarning
 
 dart/mirrored_compilation_error_test: CompileTimeError, OK # This test intentionally includes invalid method bodies.
+
+[ $compiler == none && $runtime == ContentShellOnAndroid ]
+dart/byte_array_test: RuntimeError # Issue 17612

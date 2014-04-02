@@ -144,10 +144,22 @@ abstract class Source {
         "be implemented for source $name.");
   }
 
-  /// Downloads the package identified by [id] to the system cache. This is only
-  /// called for sources with [shouldCache] set to true.
+  /// Determines if the package with [id] is already downloaded to the system
+  /// cache.
   ///
-  /// By default, this uses [systemCacheDirectory] and [get].
+  /// This should only be called for sources with [shouldCache] set to true.
+  /// Completes to true if the package is in the cache and appears to be
+  /// uncorrupted.
+  Future<bool> isInSystemCache(PackageId id) {
+    return systemCacheDirectory(id).then((packageDir) {
+      return dirExists(packageDir) && !_isCachedPackageCorrupted(packageDir);
+    });
+  }
+
+  /// Downloads the package identified by [id] to the system cache.
+  ///
+  /// This is only called for sources with [shouldCache] set to true. By
+  /// default, this uses [systemCacheDirectory] and [get].
   Future<Package> downloadToSystemCache(PackageId id) {
     var packageDir;
     return systemCacheDirectory(id).then((p) {
@@ -280,6 +292,8 @@ abstract class Source {
     if (shouldCache) {
       throw new UnimplementedError("Source $name must implement this.");
     }
+    throw new UnsupportedError("Cannot call getCachedPackages() on an "
+        "uncached source.");
   }
 
   /// Returns the source's name.

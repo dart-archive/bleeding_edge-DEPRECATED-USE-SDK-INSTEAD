@@ -25,93 +25,63 @@ import java.net.URI;
 
 public class FileBasedSourceTest extends TestCase {
   public void test_equals_false_differentFiles() {
-    ContentCache contentCache = new ContentCache();
     File file1 = createFile("/does/not/exist1.dart");
     File file2 = createFile("/does/not/exist2.dart");
-    FileBasedSource source1 = new FileBasedSource(contentCache, file1);
-    FileBasedSource source2 = new FileBasedSource(contentCache, file2);
+    FileBasedSource source1 = new FileBasedSource(file1);
+    FileBasedSource source2 = new FileBasedSource(file2);
     assertFalse(source1.equals(source2));
   }
 
   public void test_equals_false_null() {
-    ContentCache contentCache = new ContentCache();
     File file1 = createFile("/does/not/exist1.dart");
-    FileBasedSource source1 = new FileBasedSource(contentCache, file1);
+    FileBasedSource source1 = new FileBasedSource(file1);
     assertFalse(source1.equals(null));
   }
 
   public void test_equals_true() {
-    ContentCache contentCache = new ContentCache();
     File file1 = createFile("/does/not/exist.dart");
     File file2 = createFile("/does/not/exist.dart");
-    FileBasedSource source1 = new FileBasedSource(contentCache, file1);
-    FileBasedSource source2 = new FileBasedSource(contentCache, file2);
+    FileBasedSource source1 = new FileBasedSource(file1);
+    FileBasedSource source2 = new FileBasedSource(file2);
     assertTrue(source1.equals(source2));
   }
 
   public void test_getEncoding() {
-    ContentCache contentCache = new ContentCache();
-    SourceFactory factory = new SourceFactory(contentCache, new FileUriResolver());
+    SourceFactory factory = new SourceFactory(new FileUriResolver());
     String fullPath = "/does/not/exist.dart";
     File file = createFile(fullPath);
-    FileBasedSource source = new FileBasedSource(contentCache, file);
+    FileBasedSource source = new FileBasedSource(file);
     assertEquals(source, factory.fromEncoding(source.getEncoding()));
   }
 
   public void test_getFullName() {
-    ContentCache contentCache = new ContentCache();
     String fullPath = "/does/not/exist.dart";
     File file = createFile(fullPath);
-    FileBasedSource source = new FileBasedSource(contentCache, file);
+    FileBasedSource source = new FileBasedSource(file);
     assertEquals(file.getAbsolutePath(), source.getFullName());
   }
 
-  public void test_getModificationStamp() {
-    ContentCache contentCache = new ContentCache();
-    String fullPath = "/does/not/exist.dart";
-    File file = new File(createFile(fullPath).getAbsolutePath()) {
-      // Adjust the time for systems that run too quickly.
-      private long modified = System.currentTimeMillis() - 1000;
-
-      @Override
-      public long lastModified() {
-        return modified;
-      }
-    };
-    FileBasedSource source = new FileBasedSource(contentCache, file);
-    long firstStamp = source.getModificationStamp();
-    contentCache.setContents(source, "");
-    long secondStamp = source.getModificationStamp();
-    assertTrue(secondStamp != firstStamp);
-    contentCache.setContents(source, null);
-    long thirdStamp = source.getModificationStamp();
-    assertTrue(thirdStamp != secondStamp);
-  }
-
   public void test_getShortName() {
-    ContentCache contentCache = new ContentCache();
     File file = createFile("/does/not/exist.dart");
-    FileBasedSource source = new FileBasedSource(contentCache, file);
+    FileBasedSource source = new FileBasedSource(file);
     assertEquals("exist.dart", source.getShortName());
   }
 
   public void test_hashCode() {
-    ContentCache contentCache = new ContentCache();
     File file1 = createFile("/does/not/exist.dart");
     File file2 = createFile("/does/not/exist.dart");
-    FileBasedSource source1 = new FileBasedSource(contentCache, file1);
-    FileBasedSource source2 = new FileBasedSource(contentCache, file2);
+    FileBasedSource source1 = new FileBasedSource(file1);
+    FileBasedSource source2 = new FileBasedSource(file2);
     assertEquals(source1.hashCode(), source2.hashCode());
   }
 
   public void test_isInSystemLibrary_contagious() throws Exception {
-    ContentCache contentCache = new ContentCache();
     File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
     // resolve dart:core
-    Source result = resolver.resolveAbsolute(contentCache, new URI("dart:core"));
+    Source result = resolver.resolveAbsolute(new URI("dart:core"));
     assertNotNull(result);
     assertTrue(result.isInSystemLibrary());
     // system libraries reference only other system libraries
@@ -121,27 +91,24 @@ public class FileBasedSourceTest extends TestCase {
   }
 
   public void test_isInSystemLibrary_false() {
-    ContentCache contentCache = new ContentCache();
     File file = createFile("/does/not/exist.dart");
-    FileBasedSource source = new FileBasedSource(contentCache, file);
+    FileBasedSource source = new FileBasedSource(file);
     assertNotNull(source);
     assertEquals(file.getAbsolutePath(), source.getFullName());
     assertFalse(source.isInSystemLibrary());
   }
 
   public void test_issue14500() {
-    ContentCache contentCache = new ContentCache();
     // see https://code.google.com/p/dart/issues/detail?id=14500
     File file = createFile("/some/packages/foo:bar.dart");
-    FileBasedSource source = new FileBasedSource(contentCache, file, UriKind.DART_URI);
+    FileBasedSource source = new FileBasedSource(file, UriKind.DART_URI);
     assertNotNull(source);
     assertFalse(source.exists());
   }
 
   public void test_system() {
-    ContentCache contentCache = new ContentCache();
     File file = createFile("/does/not/exist.dart");
-    FileBasedSource source = new FileBasedSource(contentCache, file, UriKind.DART_URI);
+    FileBasedSource source = new FileBasedSource(file, UriKind.DART_URI);
     assertNotNull(source);
     assertEquals(file.getAbsolutePath(), source.getFullName());
     assertTrue(source.isInSystemLibrary());

@@ -4,8 +4,6 @@
 
 library pub_tests;
 
-import 'package:scheduled_test/scheduled_test.dart';
-
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import '../serve/utils.dart';
@@ -43,10 +41,9 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     var server = pubServe();
-    expect(server.nextErrLine(),
-        completion(equals('Build error:')));
-    expect(server.nextErrLine(), completion(equals('Transform Rewrite on '
-        'myapp|web/foo.txt threw error: oh no!')));
+    server.stderr.expect(emitsLines(
+        'Build error:\n'
+        'Transform Rewrite on myapp|web/foo.txt threw error: oh no!'));
     endPubServe();
   });
 }

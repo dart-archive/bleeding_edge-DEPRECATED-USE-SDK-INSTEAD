@@ -6,6 +6,8 @@
  ******************************************************************************/
 package com.xored.glance.ui.controls.decor;
 
+import com.xored.glance.ui.utils.TextUtils;
+
 import org.eclipse.jface.util.Policy;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Color;
@@ -13,8 +15,6 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Item;
-
-import com.xored.glance.ui.utils.TextUtils;
 
 public abstract class StructCell extends Cell {
 
@@ -28,21 +28,21 @@ public abstract class StructCell extends Cell {
     super(column);
   }
 
+  public abstract Color getBackground();
+
   public abstract Rectangle getBounds();
 
-  public abstract Color getForeground();
+  public abstract Font getFont();
 
-  public abstract Color getBackground();
+  public abstract Color getForeground();
 
   public abstract Image getImage();
 
   public abstract Rectangle getImageBounds();
 
-  public abstract Rectangle getTextBounds();
-
   public abstract String getText();
 
-  public abstract Font getFont();
+  public abstract Rectangle getTextBounds();
 
   public abstract boolean isSelected();
 

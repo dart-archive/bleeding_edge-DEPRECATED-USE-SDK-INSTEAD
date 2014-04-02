@@ -6,12 +6,12 @@
  ******************************************************************************/
 package com.xored.glance.ui.viewers.descriptors;
 
+import com.xored.glance.ui.sources.ITextSourceDescriptor;
+import com.xored.glance.ui.viewers.utils.ViewerUtils;
+
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Control;
-
-import com.xored.glance.ui.sources.ITextSourceDescriptor;
-import com.xored.glance.ui.viewers.utils.ViewerUtils;
 
 /**
  * @author Yuri Strot

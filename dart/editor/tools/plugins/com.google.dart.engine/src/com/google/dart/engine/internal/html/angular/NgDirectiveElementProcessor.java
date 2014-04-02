@@ -36,30 +36,48 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
 
   @Override
   public void apply(AngularHtmlUnitResolver resolver, XmlTagNode node) {
+    String selectorAttributeName = null;
+    {
+      AngularSelectorElement selector = element.getSelector();
+      if (selector instanceof HasAttributeSelectorElementImpl) {
+        selectorAttributeName = ((HasAttributeSelectorElementImpl) selector).getName();
+        // resolve attribute expression
+        XmlAttributeNode attribute = node.getAttribute(selectorAttributeName);
+        if (attribute != null) {
+          attribute.setElement(selector);
+        }
+      }
+    }
+    //
     for (AngularPropertyElement property : element.getProperties()) {
       // prepare attribute name
       String name = property.getName();
       if (name.equals(".")) {
-        AngularSelectorElement selector = element.getSelector();
-        if (selector instanceof HasAttributeSelectorElementImpl) {
-          name = ((HasAttributeSelectorElementImpl) selector).getName();
-        }
+        name = selectorAttributeName;
       }
-      // resolve attribute expression
+      // prepare attribute
       XmlAttributeNode attribute = node.getAttribute(name);
-      if (attribute != null) {
+      if (attribute == null) {
+        continue;
+      }
+      // if not resolved as the selector, resolve as a property
+      if (!name.equals(selectorAttributeName)) {
         attribute.setElement(property);
-        // resolve if binding
-        if (property.getPropertyKind() != AngularPropertyKind.ATTR) {
-          resolver.pushNameScope();
-          try {
-            onNgEventDirective(resolver);
-            AngularExpression expression = parseAngularExpression(resolver, attribute);
-            resolver.resolveExpression(expression);
-            setExpression(attribute, expression);
-          } finally {
-            resolver.popNameScope();
-          }
+      }
+      // skip if attribute has no value
+      if (!hasValue(attribute)) {
+        continue;
+      }
+      // resolve if binding
+      if (property.getPropertyKind() != AngularPropertyKind.ATTR) {
+        resolver.pushNameScope();
+        try {
+          onNgEventDirective(resolver);
+          AngularExpression expression = parseAngularExpression(resolver, attribute);
+          resolver.resolveExpression(expression);
+          setAngularExpression(attribute, expression);
+        } finally {
+          resolver.popNameScope();
         }
       }
     }
@@ -76,7 +94,7 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
   private void onNgEventDirective(AngularHtmlUnitResolver resolver) {
     if (element.isClass("NgEventDirective")) {
       Type dynamicType = resolver.getTypeProvider().getDynamicType();
-      resolver.defineVariable(resolver.createLocalVariable(dynamicType, "$event"));
+      resolver.defineVariable(resolver.createLocalVariableWithName(dynamicType, "$event"));
     }
   }
 }

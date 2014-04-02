@@ -62,7 +62,7 @@ public class IsExpression extends Expression {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitIsExpression(this);
   }
 
@@ -155,7 +155,7 @@ public class IsExpression extends Expression {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(expression, visitor);
     safelyVisitChild(type, visitor);
   }

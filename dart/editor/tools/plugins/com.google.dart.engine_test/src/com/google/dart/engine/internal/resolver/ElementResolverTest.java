@@ -14,8 +14,8 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ConstructorName;
@@ -63,7 +63,6 @@ import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.SourceFactory;
@@ -71,33 +70,33 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 
-import static com.google.dart.engine.ast.ASTFactory.assignmentExpression;
-import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
-import static com.google.dart.engine.ast.ASTFactory.breakStatement;
-import static com.google.dart.engine.ast.ASTFactory.constructorName;
-import static com.google.dart.engine.ast.ASTFactory.continueStatement;
-import static com.google.dart.engine.ast.ASTFactory.exportDirective;
-import static com.google.dart.engine.ast.ASTFactory.expressionFunctionBody;
-import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
-import static com.google.dart.engine.ast.ASTFactory.formalParameterList;
-import static com.google.dart.engine.ast.ASTFactory.hideCombinator;
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.importDirective;
-import static com.google.dart.engine.ast.ASTFactory.indexExpression;
-import static com.google.dart.engine.ast.ASTFactory.instanceCreationExpression;
-import static com.google.dart.engine.ast.ASTFactory.integer;
-import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.methodInvocation;
-import static com.google.dart.engine.ast.ASTFactory.namedExpression;
-import static com.google.dart.engine.ast.ASTFactory.nullLiteral;
-import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
-import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
-import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
-import static com.google.dart.engine.ast.ASTFactory.showCombinator;
-import static com.google.dart.engine.ast.ASTFactory.superConstructorInvocation;
-import static com.google.dart.engine.ast.ASTFactory.superExpression;
-import static com.google.dart.engine.ast.ASTFactory.thisExpression;
-import static com.google.dart.engine.ast.ASTFactory.typeName;
+import static com.google.dart.engine.ast.AstFactory.assignmentExpression;
+import static com.google.dart.engine.ast.AstFactory.binaryExpression;
+import static com.google.dart.engine.ast.AstFactory.breakStatement;
+import static com.google.dart.engine.ast.AstFactory.constructorName;
+import static com.google.dart.engine.ast.AstFactory.continueStatement;
+import static com.google.dart.engine.ast.AstFactory.exportDirective;
+import static com.google.dart.engine.ast.AstFactory.expressionFunctionBody;
+import static com.google.dart.engine.ast.AstFactory.fieldFormalParameter;
+import static com.google.dart.engine.ast.AstFactory.formalParameterList;
+import static com.google.dart.engine.ast.AstFactory.hideCombinator;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.importDirective;
+import static com.google.dart.engine.ast.AstFactory.indexExpression;
+import static com.google.dart.engine.ast.AstFactory.instanceCreationExpression;
+import static com.google.dart.engine.ast.AstFactory.integer;
+import static com.google.dart.engine.ast.AstFactory.methodDeclaration;
+import static com.google.dart.engine.ast.AstFactory.methodInvocation;
+import static com.google.dart.engine.ast.AstFactory.namedExpression;
+import static com.google.dart.engine.ast.AstFactory.nullLiteral;
+import static com.google.dart.engine.ast.AstFactory.postfixExpression;
+import static com.google.dart.engine.ast.AstFactory.prefixExpression;
+import static com.google.dart.engine.ast.AstFactory.propertyAccess;
+import static com.google.dart.engine.ast.AstFactory.showCombinator;
+import static com.google.dart.engine.ast.AstFactory.superConstructorInvocation;
+import static com.google.dart.engine.ast.AstFactory.superExpression;
+import static com.google.dart.engine.ast.AstFactory.thisExpression;
+import static com.google.dart.engine.ast.AstFactory.typeName;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
 import static com.google.dart.engine.element.ElementFactory.exportFor;
@@ -216,7 +215,7 @@ public class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier array = identifier("a");
     array.setStaticType(classD.getType());
     IndexExpression expression = indexExpression(array, identifier("i"));
-    assertSame(operator, resolve(expression));
+    assertSame(operator, resolveIndexExpression(expression));
     listener.assertNoErrors();
   }
 
@@ -244,12 +243,30 @@ public class ElementResolverTest extends EngineTestCase {
   }
 
   public void test_visitBinaryExpression() throws Exception { // _found and _notFound?
+    // num i;
+    // var j;
+    // i + j
     InterfaceType numType = typeProvider.getNumType();
     SimpleIdentifier left = identifier("i");
     left.setStaticType(numType);
     BinaryExpression expression = binaryExpression(left, TokenType.PLUS, identifier("j"));
     resolveNode(expression);
     assertEquals(getMethod(numType, "+"), expression.getStaticElement());
+    assertNull(expression.getPropagatedElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitBinaryExpression_propagatedElement() throws Exception {
+    // var i = 1;
+    // var j;
+    // i + j
+    InterfaceType numType = typeProvider.getNumType();
+    SimpleIdentifier left = identifier("i");
+    left.setPropagatedType(numType);
+    BinaryExpression expression = binaryExpression(left, TokenType.PLUS, identifier("j"));
+    resolveNode(expression);
+    assertNull(expression.getStaticElement());
+    assertEquals(getMethod(numType, "+"), expression.getPropagatedElement());
     listener.assertNoErrors();
   }
 
@@ -257,7 +274,7 @@ public class ElementResolverTest extends EngineTestCase {
     String label = "loop";
     LabelElementImpl labelElement = new LabelElementImpl(identifier(label), false, false);
     BreakStatement statement = breakStatement(label);
-    assertSame(labelElement, resolve(statement, labelElement));
+    assertSame(labelElement, resolveBreak(statement, labelElement));
     listener.assertNoErrors();
   }
 
@@ -293,7 +310,7 @@ public class ElementResolverTest extends EngineTestCase {
     String label = "loop";
     LabelElementImpl labelElement = new LabelElementImpl(identifier(label), false, false);
     ContinueStatement statement = continueStatement(label);
-    assertSame(labelElement, resolve(statement, labelElement));
+    assertSame(labelElement, resolveContinue(statement, labelElement));
     listener.assertNoErrors();
   }
 
@@ -354,7 +371,7 @@ public class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier array = identifier("a");
     array.setStaticType(classA.getType());
     IndexExpression expression = indexExpression(array, identifier("i"));
-    assertSame(getter, resolve(expression));
+    assertSame(getter, resolveIndexExpression(expression));
     listener.assertNoErrors();
   }
 
@@ -367,7 +384,7 @@ public class ElementResolverTest extends EngineTestCase {
     array.setStaticType(classA.getType());
     IndexExpression expression = indexExpression(array, identifier("i"));
     assignmentExpression(expression, TokenType.EQ, integer(0L));
-    assertSame(setter, resolve(expression));
+    assertSame(setter, resolveIndexExpression(expression));
     listener.assertNoErrors();
   }
 
@@ -634,7 +651,7 @@ public class ElementResolverTest extends EngineTestCase {
 
   public void test_visitSimpleIdentifier_dynamic() throws Exception {
     SimpleIdentifier node = identifier("dynamic");
-    resolve(node);
+    resolveIdentifier(node);
     assertSame(typeProvider.getDynamicType().getElement(), node.getStaticElement());
     assertSame(typeProvider.getTypeType(), node.getStaticType());
     listener.assertNoErrors();
@@ -643,7 +660,7 @@ public class ElementResolverTest extends EngineTestCase {
   public void test_visitSimpleIdentifier_lexicalScope() throws Exception {
     SimpleIdentifier node = identifier("i");
     VariableElementImpl element = localVariableElement(node);
-    assertSame(element, resolve(node, element));
+    assertSame(element, resolveIdentifier(node, element));
     listener.assertNoErrors();
   }
 
@@ -708,13 +725,10 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private ElementResolver createResolver() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    ContentCache contentCache = new ContentCache();
-    SourceFactory sourceFactory = new SourceFactory(contentCache, new DartUriResolver(
+    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
         DirectoryBasedDartSdk.getDefaultSdk()));
     context.setSourceFactory(sourceFactory);
-    FileBasedSource source = new FileBasedSource(
-        contentCache,
-        FileUtilities2.createFile("/test.dart"));
+    FileBasedSource source = new FileBasedSource(FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
     definingCompilationUnit.setSource(source);
     definingLibrary = library(context, "test");
@@ -739,7 +753,7 @@ public class ElementResolverTest extends EngineTestCase {
    * @param labelElement the label element to be defined in the statement's label scope
    * @return the element to which the statement's label was resolved
    */
-  private Element resolve(BreakStatement statement, LabelElementImpl labelElement) {
+  private Element resolveBreak(BreakStatement statement, LabelElementImpl labelElement) {
     resolveStatement(statement, labelElement);
     return statement.getLabel().getStaticElement();
   }
@@ -752,7 +766,7 @@ public class ElementResolverTest extends EngineTestCase {
    * @param labelElement the label element to be defined in the statement's label scope
    * @return the element to which the statement's label was resolved
    */
-  private Element resolve(ContinueStatement statement, LabelElementImpl labelElement) {
+  private Element resolveContinue(ContinueStatement statement, LabelElementImpl labelElement) {
     resolveStatement(statement, labelElement);
     return statement.getLabel().getStaticElement();
   }
@@ -766,21 +780,7 @@ public class ElementResolverTest extends EngineTestCase {
    *          being resolved
    * @return the element to which the expression was resolved
    */
-  private Element resolve(Identifier node, Element... definedElements) {
-    resolveNode(node, definedElements);
-    return node.getStaticElement();
-  }
-
-  /**
-   * Return the element associated with the given expression after the resolver has resolved the
-   * expression.
-   * 
-   * @param node the expression to be resolved
-   * @param definedElements the elements that are to be defined in the scope in which the element is
-   *          being resolved
-   * @return the element to which the expression was resolved
-   */
-  private Element resolve(IndexExpression node, Element... definedElements) {
+  private Element resolveIdentifier(Identifier node, Element... definedElements) {
     resolveNode(node, definedElements);
     return node.getStaticElement();
   }
@@ -793,7 +793,7 @@ public class ElementResolverTest extends EngineTestCase {
    * @param enclosingClass the element representing the class enclosing the identifier
    * @return the element to which the expression was resolved
    */
-  private void resolveInClass(ASTNode node, ClassElement enclosingClass) {
+  private void resolveInClass(AstNode node, ClassElement enclosingClass) {
     try {
       Field enclosingClassField = visitor.getClass().getDeclaredField("enclosingClass");
       enclosingClassField.setAccessible(true);
@@ -820,6 +820,20 @@ public class ElementResolverTest extends EngineTestCase {
   }
 
   /**
+   * Return the element associated with the given expression after the resolver has resolved the
+   * expression.
+   * 
+   * @param node the expression to be resolved
+   * @param definedElements the elements that are to be defined in the scope in which the element is
+   *          being resolved
+   * @return the element to which the expression was resolved
+   */
+  private Element resolveIndexExpression(IndexExpression node, Element... definedElements) {
+    resolveNode(node, definedElements);
+    return node.getStaticElement();
+  }
+
+  /**
    * Return the element associated with the given identifier after the resolver has resolved the
    * identifier.
    * 
@@ -828,7 +842,7 @@ public class ElementResolverTest extends EngineTestCase {
    *          being resolved
    * @return the element to which the expression was resolved
    */
-  private void resolveNode(ASTNode node, Element... definedElements) {
+  private void resolveNode(AstNode node, Element... definedElements) {
     try {
       Field scopeField = visitor.getClass().getSuperclass().getDeclaredField("nameScope");
       scopeField.setAccessible(true);

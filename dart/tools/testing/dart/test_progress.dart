@@ -81,14 +81,17 @@ List<String> _buildFailureOutput(TestCase test,
   output.add('Actual: ${test.result}');
   if (!test.lastCommandOutput.hasTimedOut && test.info != null) {
     if (test.commandOutputs.length != test.commands.length
-        && !test.info.hasCompileError) {
+        && !test.expectCompileError) {
       output.add('Unexpected compile-time error.');
     } else {
-      if (test.info.hasCompileError) {
+      if (test.expectCompileError) {
         output.add('Compile-time error expected.');
       }
       if (test.info.hasRuntimeError) {
         output.add('Runtime error expected.');
+      }
+      if (test.configuration['checked'] && test.info.isNegativeIfChecked) {
+        output.add('Dynamic type error expected.');
       }
     }
   }
@@ -224,7 +227,7 @@ class TestOutcomeLogWriter extends EventListener {
   static final INTERESTED_CONFIGURATION_PARAMETERS =
       ['mode', 'arch', 'compiler', 'runtime', 'checked', 'host_checked',
        'minified', 'csp', 'system', 'vm_options', 'use_sdk',
-       'use_repository_packages', 'use_public_packages'];
+       'use_repository_packages', 'use_public_packages', 'builder_tag'];
 
   IOSink _sink;
 
@@ -264,7 +267,7 @@ class TestOutcomeLogWriter extends EventListener {
   }
 
   void allDone() {
-    _sink.close();
+    if (_sink != null) _sink.close();
   }
 
   void _writeTestOutcomeRecord(Map record) {

@@ -57,10 +57,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "f(p) {p as N;}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -72,10 +72,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "class A extends N {}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -87,10 +87,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "class A implements N {}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -106,13 +106,13 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "part 'part.dart';"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
-    Source partSource = addSource("/part.dart", createSource(//
+    Source partSource = addNamedSource("/part.dart", createSource(//
         "part of lib;",
         "class A extends N {}"));
     resolve(source);
@@ -128,10 +128,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "f() {new N();}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -143,10 +143,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "f(p) {p is N;}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -158,10 +158,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "g() { N.FOO; }"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -181,10 +181,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  N m() { return null; }",
         "}",
         "class B<T extends N> {}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -205,10 +205,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib2.dart';",
         "class A<T> {}",
         "A<N> f() { return null; }"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -221,10 +221,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib2.dart';",
         "class A<T> {}",
         "f() {new A<N>();}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -237,10 +237,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib2.dart';",
         "f() { g(v); }",
         "g(p) {}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "var v;"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "var v;"));
     resolve(source);
@@ -252,10 +252,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "f() { v = 0; }"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "var v;"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "var v;"));
     resolve(source);
@@ -565,11 +565,35 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_assignmentToConst_instanceVariable_plusEq() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static const v = 0;",
+        "}",
+        "f() {",
+        "  A.v += 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_CONST);
+    verify(source);
+  }
+
   public void test_assignmentToConst_localVariable() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
         "  const x = 0;",
         "  x = 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_CONST);
+    verify(source);
+  }
+
+  public void test_assignmentToConst_localVariable_plusEq() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  const x = 0;",
+        "  x += 1;",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_CONST);
@@ -590,11 +614,36 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_assignmentToFinal_instanceVariable_plusEq() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final v = 0;",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  a.v += 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
   public void test_assignmentToFinal_localVariable() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
         "  final x = 0;",
         "  x = 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
+  public void test_assignmentToFinal_localVariable_plusEq() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  final x = 0;",
+        "  x += 1;",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL);
@@ -723,7 +772,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'dart:async';",
         "Future f = null;",
         "Stream s;"));
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class Future {}"));
     resolve(source);
@@ -830,8 +879,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_conflictingInstanceMethodSetter_sameClass() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  foo() {}",
         "  set foo(a) {}",
+        "  foo() {}",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER);
@@ -861,6 +910,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER);
+    verify(source);
+  }
+
+  public void test_conflictingInstanceMethodSetter2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  foo() {}",
+        "  set foo(a) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER2);
     verify(source);
   }
 
@@ -962,8 +1022,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "library test;",
         "export 'lib1.dart';",
         "export 'lib2.dart';"));
-    addSource("/lib1.dart", "library lib;");
-    addSource("/lib2.dart", "library lib;");
+    addNamedSource("/lib1.dart", "library lib;");
+    addNamedSource("/lib2.dart", "library lib;");
     resolve(source);
     assertErrors(source, StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAME);
     verify(source);
@@ -1140,8 +1200,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "library test;",
         "import 'lib1.dart';",
         "import 'lib2.dart';"));
-    addSource("/lib1.dart", "library lib;");
-    addSource("/lib2.dart", "library lib;");
+    addNamedSource("/lib1.dart", "library lib;");
+    addNamedSource("/lib2.dart", "library lib;");
     resolve(source);
     assertErrors(
         source,
@@ -1307,6 +1367,24 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidGetterOverrideReturnType_twoInterfaces() throws Exception {
+    // test from language/override_inheritance_field_test_11.dart
+    Source source = addSource(createSource(//
+        "abstract class I {",
+        "  int get getter => null;",
+        "}",
+        "abstract class J {",
+        "  num get getter => null;",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  String get getter => null;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE);
+    verify(source);
+  }
+
   public void test_invalidMethodOverrideNamedParamType() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1333,6 +1411,23 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidMethodOverrideNormalParamType_twoInterfaces() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class I {",
+        "  m(int n);",
+        "}",
+        "abstract class J {",
+        "  m(num n);",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  m(String n) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE);
+    verify(source);
+  }
+
   public void test_invalidMethodOverrideOptionalParamType() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1340,6 +1435,23 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}",
         "class B implements A {",
         "  m([String a]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidMethodOverrideOptionalParamType_twoInterfaces() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class I {",
+        "  m([int n]);",
+        "}",
+        "abstract class J {",
+        "  m([num n]);",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  m([String n]) {}",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE);
@@ -1359,7 +1471,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidMethodOverrideReturnType_interface2() throws Exception {
+  public void test_invalidMethodOverrideReturnType_interface_grandparent() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
         "  int m();",
@@ -1400,7 +1512,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidMethodOverrideReturnType_superclass2() throws Exception {
+  public void test_invalidMethodOverrideReturnType_superclass_grandparent() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  int m() { return 0; }",
@@ -1409,6 +1521,23 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}",
         "class C extends B {",
         "  String m() { return 'a'; }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidMethodOverrideReturnType_twoInterfaces() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class I {",
+        "  int m();",
+        "}",
+        "abstract class J {",
+        "  num m();",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  String m() => '';",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE);
@@ -1545,6 +1674,24 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidSetterOverrideNormalParamType_twoInterfaces() throws Exception {
+    // test from language/override_inheritance_field_test_34.dart
+    Source source = addSource(createSource(//
+        "abstract class I {",
+        "  set setter14(int _) => null;",
+        "}",
+        "abstract class J {",
+        "  set setter14(num _) => null;",
+        "}",
+        "abstract class A implements I, J {}",
+        "class B extends A {",
+        "  set setter14(String _) => null;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE);
+    verify(source);
+  }
+
   public void test_listElementTypeNotAssignable() throws Exception {
     Source source = addSource(createSource(//
     "var v = <String> [42];"));
@@ -1628,7 +1775,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES);
+    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES, StaticWarningCode.MIXED_RETURN_TYPES);
     verify(source);
   }
 
@@ -1643,7 +1790,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES);
+    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES, StaticWarningCode.MIXED_RETURN_TYPES);
     verify(source);
   }
 
@@ -1656,7 +1803,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  return 0;",
         "}"));
     resolve(source);
-    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES);
+    assertErrors(source, StaticWarningCode.MIXED_RETURN_TYPES, StaticWarningCode.MIXED_RETURN_TYPES);
     verify(source);
   }
 
@@ -1716,8 +1863,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_newWithNonType_fromLibrary() throws Exception {
-    Source source1 = addSource("lib.dart", "class B {}");
-    Source source2 = addSource("lib2.dart", createSource(//
+    Source source1 = addNamedSource("lib.dart", "class B {}");
+    Source source2 = addNamedSource("lib2.dart", createSource(//
         "import 'lib.dart' as lib;",
         "void f() {",
         "  var a = new lib.A();",
@@ -1786,39 +1933,9 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_accessor()
-      throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  int get g => 0;",
-        "}",
-        "abstract class B extends A {",
-        "  int get g;",
-        "}",
-        "class C extends B {}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
-    verify(source);
-  }
-
-  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_method()
-      throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m(p) {}",
-        "}",
-        "abstract class B extends A {",
-        "  m(p);",
-        "}",
-        "class C extends B {}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
-    verify(source);
-  }
-
   public void test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation()
       throws Exception {
-    // bug 15028
+    // 15028
     Source source = addSource(createSource(//
         "class C {",
         "  foo(int x) => x;",
@@ -1901,6 +2018,57 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_getter()
+      throws Exception {
+    // 15001
+    Source source = addSource(createSource(//
+        "abstract class A { get g1; get g2; }",
+        "abstract class B implements A { get g1 => 1; }",
+        "class C extends Object with B {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_method()
+      throws Exception {
+    // 15001
+    Source source = addSource(createSource(//
+        "abstract class A { m1(); m2(); }",
+        "abstract class B implements A { m1() => 1; }",
+        "class C extends Object with B {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_mixinInherits_setter()
+      throws Exception {
+    // 15001
+    Source source = addSource(createSource(//
+        "abstract class A { set s1(v); set s2(v); }",
+        "abstract class B implements A { set s1(v) {} }",
+        "class C extends Object with B {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter()
+      throws Exception {
+    // test from language/override_inheritance_abstract_test_14.dart
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  set field(_);",
+        "}",
+        "abstract class I {",
+        "  var field;",
+        "}",
+        "class B extends A implements I {",
+        "  get field => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
   public void test_nonAbstractClassInheritsAbstractMemberOne_setter_fromInterface()
       throws Exception {
     Source source = addSource(createSource(//
@@ -1944,6 +2112,36 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonAbstractClassInheritsAbstractMemberOne_variable_fromInterface_missingGetter()
+      throws Exception {
+    // 16133
+    Source source = addSource(createSource(//
+        "class I {",
+        "  var v;",
+        "}",
+        "class C implements I {",
+        "  set v(_) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_variable_fromInterface_missingSetter()
+      throws Exception {
+    // 16133
+    Source source = addSource(createSource(//
+        "class I {",
+        "  var v;",
+        "}",
+        "class C implements I {",
+        "  get v => 1;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
   public void test_nonAbstractClassInheritsAbstractMemberThree() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
@@ -1965,6 +2163,20 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  n();",
         "}",
         "class C extends A {",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberTwo_variable_fromInterface_missingBoth()
+      throws Exception {
+    // 16133
+    Source source = addSource(createSource(//
+        "class I {",
+        "  var v;",
+        "}",
+        "class C implements I {",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO);
@@ -2064,7 +2276,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library lib;",
         "part 'part.dart';"));
-    addSource("/part.dart", createSource(//
+    addNamedSource("/part.dart", createSource(//
         "part of lub;"));
     resolve(source);
     assertErrors(source, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY);
@@ -2142,9 +2354,40 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_returnWithoutValue() throws Exception {
+  public void test_returnWithoutValue_factoryConstructor() throws Exception {
+    Source source = addSource(createSource(//
+    "class A { factory A() { return; } }"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.RETURN_WITHOUT_VALUE);
+    verify(source);
+  }
+
+  public void test_returnWithoutValue_function() throws Exception {
     Source source = addSource(createSource(//
     "int f() { return; }"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.RETURN_WITHOUT_VALUE);
+    verify(source);
+  }
+
+  public void test_returnWithoutValue_method() throws Exception {
+    Source source = addSource(createSource(//
+    "class A { int m() { return; } }"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.RETURN_WITHOUT_VALUE);
+    verify(source);
+  }
+
+  public void test_returnWithoutValue_mixedReturnTypes_function() throws Exception {
+    // Tests that only the RETURN_WITHOUT_VALUE warning is created, and no MIXED_RETURN_TYPES are
+    // created.
+    Source source = addSource(createSource(//
+        "int f(int x) {",
+        "  if (x < 0) {",
+        "    return 1;",
+        "  }",
+        "  return;",
+        "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.RETURN_WITHOUT_VALUE);
     verify(source);
@@ -2338,8 +2581,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedGetter_fromLibrary() throws Exception {
-    Source source1 = addSource("lib.dart", "");
-    Source source2 = addSource("lib2.dart", createSource(//
+    Source source1 = addNamedSource("lib.dart", "");
+    Source source2 = addNamedSource("lib2.dart", createSource(//
         "import 'lib.dart' as lib;",
         "void f() {",
         "  var g = lib.gg;",
@@ -2368,7 +2611,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedIdentifier_function_prefix() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class C {}"));
     Source source = addSource(createSource(//
@@ -2389,7 +2632,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedIdentifier_initializer_prefix() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class C {}"));
     Source source = addSource(createSource(//
@@ -2409,7 +2652,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedIdentifier_private_getter() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A {",
         "  var _foo;",
@@ -2426,7 +2669,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedIdentifier_private_setter() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A {",
         "  var _foo;",
@@ -2454,8 +2697,8 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedSetter() throws Exception {
-    Source source1 = addSource("lib.dart", "");
-    Source source2 = addSource("lib2.dart", createSource(//
+    Source source1 = addNamedSource("lib.dart", "");
+    Source source2 = addNamedSource("lib2.dart", createSource(//
         "import 'lib.dart' as lib;",
         "void f() {",
         "  lib.gg = null;",
@@ -2527,5 +2770,14 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_SETTER);
+  }
+
+  public void test_voidReturnForGetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class S {",
+        "  void get value {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.VOID_RETURN_FOR_GETTER);
   }
 }

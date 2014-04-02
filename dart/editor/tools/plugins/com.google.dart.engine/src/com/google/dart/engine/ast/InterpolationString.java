@@ -49,7 +49,7 @@ public class InterpolationString extends InterpolationElement {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitInterpolationString(this);
   }
 
@@ -100,6 +100,6 @@ public class InterpolationString extends InterpolationElement {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
   }
 }

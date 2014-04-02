@@ -20,8 +20,9 @@ class RawCode;
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
 #define VM_STUB_CODE_LIST(V)                                                   \
-  V(CallToRuntime)                                                             \
   V(PrintStopMessage)                                                          \
+  V(CallToRuntime)                                                             \
+  V(LazyCompile)                                                               \
   V(CallBootstrapCFunction)                                                    \
   V(CallNativeCFunction)                                                       \
   V(AllocateArray)                                                             \
@@ -41,7 +42,6 @@ class RawCode;
   V(JumpToExceptionHandler)                                                    \
   V(UnoptimizedIdenticalWithNumberCheck)                                       \
   V(OptimizedIdenticalWithNumberCheck)                                         \
-  V(CompileFunctionRuntimeCall)                                                \
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.
@@ -76,6 +76,7 @@ class StubEntry {
 
   const ExternalLabel& label() const { return label_; }
   uword EntryPoint() const { return entry_point_; }
+  RawCode* code() const { return code_; }
   intptr_t Size() const { return size_; }
 
   // Visit all object pointers.
@@ -156,7 +157,6 @@ class StubCode {
 #undef STUB_CODE_ACCESSOR
 
   static RawCode* GetAllocationStubForClass(const Class& cls);
-  static RawCode* GetAllocationStubForClosure(const Function& func);
 
   static const intptr_t kNoInstantiator = 0;
 
@@ -192,8 +192,6 @@ class StubCode {
   static void GenerateMegamorphicMissStub(Assembler* assembler);
   static void GenerateAllocationStubForClass(Assembler* assembler,
                                              const Class& cls);
-  static void GenerateAllocationStubForClosure(Assembler* assembler,
-                                               const Function& func);
   static void GenerateNArgsCheckInlineCacheStub(
       Assembler* assembler,
       intptr_t num_args,

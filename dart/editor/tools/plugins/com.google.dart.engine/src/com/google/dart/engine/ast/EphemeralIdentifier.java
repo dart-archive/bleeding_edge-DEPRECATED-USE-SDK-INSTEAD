@@ -23,7 +23,7 @@ import com.google.dart.engine.scanner.TokenType;
  */
 public class EphemeralIdentifier extends SimpleIdentifier {
 
-  public EphemeralIdentifier(ASTNode parent, int location) {
+  public EphemeralIdentifier(AstNode parent, int location) {
     super(new StringToken(TokenType.IDENTIFIER, "", location));
     parent.becomeParentOf(this);
   }

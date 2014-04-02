@@ -22,7 +22,7 @@ import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.resolver.ResolverTestCase;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 public class ScopeTest extends ResolverTestCase {
@@ -45,7 +45,7 @@ public class ScopeTest extends ResolverTestCase {
     }
 
     @Override
-    protected Element lookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
+    protected Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
       return localLookup(name, referencingLibrary);
     }
   }
@@ -57,7 +57,7 @@ public class ScopeTest extends ResolverTestCase {
     VariableElement element2 = localVariableElement(identifier("v1"));
     scope.define(element1);
     scope.define(element2);
-    errorListener.assertErrors(ErrorSeverity.ERROR);
+    errorListener.assertErrorsWithSeverities(ErrorSeverity.ERROR);
   }
 
   public void test_define_normal() {

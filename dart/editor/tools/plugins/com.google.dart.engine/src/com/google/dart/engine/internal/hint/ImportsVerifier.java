@@ -17,13 +17,12 @@ import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.ExportDirective;
-import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
@@ -51,7 +50,7 @@ import java.util.HashMap;
  * 
  * @coverage dart.engine.resolver
  */
-public class ImportsVerifier extends RecursiveASTVisitor<Void> {
+public class ImportsVerifier extends RecursiveAstVisitor<Void> {
 
   /**
    * This is set to {@code true} if the current compilation unit which is being visited is the
@@ -134,7 +133,7 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
    */
   public void generateDuplicateImportHints(ErrorReporter errorReporter) {
     for (ImportDirective duplicateImport : duplicateImports) {
-      errorReporter.reportError(HintCode.DUPLICATE_IMPORT, duplicateImport.getUri());
+      errorReporter.reportErrorForNode(HintCode.DUPLICATE_IMPORT, duplicateImport.getUri());
     }
   }
 
@@ -156,7 +155,7 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
           continue;
         }
       }
-      errorReporter.reportError(HintCode.UNUSED_IMPORT, unusedImport.getUri());
+      errorReporter.reportErrorForNode(HintCode.UNUSED_IMPORT, unusedImport.getUri());
     }
   }
 
@@ -316,7 +315,7 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
       ImportElement importElement = importDirective.getElement();
       if (importElement != null) {
         NamespaceBuilder builder = new NamespaceBuilder();
-        namespace = builder.createImportNamespace(importElement);
+        namespace = builder.createImportNamespaceForDirective(importElement);
         namespaceMap.put(importDirective, namespace);
       }
     }
@@ -398,9 +397,9 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
    * @param annotations the list of annotations to visit
    */
   private void visitMetadata(NodeList<Annotation> annotations) {
-    for (Annotation annotation : annotations) {
-      Identifier name = annotation.getName();
-      visitIdentifier(name.getStaticElement(), name.getName());
+    int count = annotations.size();
+    for (int i = 0; i < count; i++) {
+      annotations.get(i).accept(this);
     }
   }
 }

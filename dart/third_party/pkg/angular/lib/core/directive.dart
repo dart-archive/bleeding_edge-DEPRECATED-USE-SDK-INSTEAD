@@ -116,7 +116,7 @@ abstract class NgAnnotation {
    *    that mapping is bi-directional. A change either in field or on
    *    parent scope will result in change to the other.
    *
-   *  * `&onChange` maps the expression into tho controllers `onChange`
+   *  * `&onChange` maps the expression into the controller `onChange`
    *    field. The result of mapping is a callable function which can be
    *    invoked at any time by the controller. The invocation of the
    *    callable function will result in the expression `doSomething()` to
@@ -132,22 +132,14 @@ abstract class NgAnnotation {
 
   /**
    * Use the list to specify a expressions which are evaluated dynamically
-   * (ex. via [Scope.$eval]) and are otherwise not statically discoverable.
+   * (ex. via [Scope.eval]) and are otherwise not statically discoverable.
    */
   final List<String> exportExpressions;
-
-  /**
-   * An expression under which the controller instance will be published into.
-   * This allows the expressions in the template to be referring to controller
-   * instance and its properties.
-   */
-  final String publishAs;
 
   const NgAnnotation({
     this.selector,
     this.children: NgAnnotation.COMPILE_CHILDREN,
     this.visibility: NgDirective.LOCAL_VISIBILITY,
-    this.publishAs,
     this.publishTypes: const [],
     this.map: const {},
     this.exportExpressions: const [],
@@ -172,10 +164,10 @@ abstract class NgAnnotation {
  * ask for any injectable object in their constructor. Components
  * can also ask for other components or directives declared on the DOM element.
  *
- * Components can implement [NgAttachAware], [NgDetachAware], [NgShadowRootAware] and
- * declare these optional methods:
+ * Components can implement [NgAttachAware], [NgDetachAware],
+ * [NgShadowRootAware] and declare these optional methods:
  *
- * * `attach()` - Called on first [Scope.$digest()].
+ * * `attach()` - Called on first [Scope.apply()].
  * * `detach()` - Called on when owning scope is destroyed.
  * * `onShadowRoot(ShadowRoot shadowRoot)` - Called when [ShadowRoot] is loaded.
  */
@@ -192,23 +184,11 @@ class NgComponent extends NgAnnotation {
   final String templateUrl;
 
   /**
-   * A CSS URL to load into the shadow DOM.
-   */
-  final String cssUrl;
-
-  /**
    * A list of CSS URLs to load into the shadow DOM.
    */
-  final List<String> cssUrls;
+  final _cssUrls;
 
-  List<String> get allCssUrls {
-    if (cssUrls == null && cssUrl == null) return null;
-    if (cssUrls == null && cssUrl != null) return [cssUrl];
-    if (cssUrls != null && cssUrl == null) return cssUrls;
-    if (cssUrls != null && cssUrl != null) return [cssUrl]..addAll(cssUrls);
-  }
-
-/**
+  /**
    * Set the shadow root applyAuthorStyles property. See shadow-DOM
    * documentation for further details.
    */
@@ -220,35 +200,44 @@ class NgComponent extends NgAnnotation {
    */
   final bool resetStyleInheritance;
 
+  /**
+   * An expression under which the component's controller instance will be
+   * published into. This allows the expressions in the template to be referring
+   * to controller instance and its properties.
+   */
+  final String publishAs;
+
   const NgComponent({
     this.template,
     this.templateUrl,
-    this.cssUrl,
-    this.cssUrls,
+    cssUrl,
     this.applyAuthorStyles,
     this.resetStyleInheritance,
-    publishAs,
+    this.publishAs,
     map,
     selector,
     visibility,
     publishTypes : const <Type>[],
     exportExpressions,
-    exportExpressionAttrs
-  }) : super(selector: selector,
+    exportExpressionAttrs})
+      : _cssUrls = cssUrl,
+        super(selector: selector,
              children: NgAnnotation.COMPILE_CHILDREN,
              visibility: visibility,
              publishTypes: publishTypes,
-             publishAs: publishAs,
              map: map,
              exportExpressions: exportExpressions,
              exportExpressionAttrs: exportExpressionAttrs);
+
+  List<String> get cssUrls => _cssUrls == null ?
+      const [] :
+      _cssUrls is List ?  _cssUrls : [_cssUrls];
 
   NgAnnotation cloneWithNewMap(newMap) =>
       new NgComponent(
           template: template,
           templateUrl: templateUrl,
-          cssUrl: cssUrl,
-          cssUrls: cssUrls,
+          cssUrl: cssUrls,
           applyAuthorStyles: applyAuthorStyles,
           resetStyleInheritance: resetStyleInheritance,
           publishAs: publishAs,
@@ -272,7 +261,7 @@ RegExp _ATTR_NAME = new RegExp(r'\[([^\]]+)\]$');
  * Directives can implement [NgAttachAware], [NgDetachAware] and
  * declare these optional methods:
  *
- * * `attach()` - Called on first [Scope.$digest()].
+ * * `attach()` - Called on first [Scope.apply()].
  * * `detach()` - Called on when owning scope is destroyed.
  */
 class NgDirective extends NgAnnotation {
@@ -280,24 +269,20 @@ class NgDirective extends NgAnnotation {
   static const String CHILDREN_VISIBILITY = 'children';
   static const String DIRECT_CHILDREN_VISIBILITY = 'direct_children';
 
-  const NgDirective({
-                    children: NgAnnotation.COMPILE_CHILDREN,
-                    publishAs,
+  const NgDirective({children: NgAnnotation.COMPILE_CHILDREN,
                     map,
                     selector,
                     visibility,
                     publishTypes : const <Type>[],
                     exportExpressions,
-                    exportExpressionAttrs
-                    }) : super(selector: selector, children: children, visibility: visibility,
-  publishTypes: publishTypes, publishAs: publishAs, map: map,
+                    exportExpressionAttrs}) : super(selector: selector, children: children, visibility: visibility,
+  publishTypes: publishTypes, map: map,
   exportExpressions: exportExpressions,
   exportExpressionAttrs: exportExpressionAttrs);
 
   NgAnnotation cloneWithNewMap(newMap) =>
       new NgDirective(
           children: children,
-          publishAs: publishAs,
           map: newMap,
           selector: selector,
           visibility: visibility,
@@ -319,7 +304,7 @@ class NgDirective extends NgAnnotation {
  * Controllers can implement [NgAttachAware], [NgDetachAware] and
  * declare these optional methods:
  *
- * * `attach()` - Called on first [Scope.$digest()].
+ * * `attach()` - Called on first [Scope.apply()].
  * * `detach()` - Called on when owning scope is destroyed.
  */
 class NgController extends NgDirective {
@@ -327,9 +312,16 @@ class NgController extends NgDirective {
   static const String CHILDREN_VISIBILITY = 'children';
   static const String DIRECT_CHILDREN_VISIBILITY = 'direct_children';
 
+  /**
+   * An expression under which the controller instance will be published into.
+   * This allows the expressions in the template to be referring to controller
+   * instance and its properties.
+   */
+  final String publishAs;
+
   const NgController({
                     children: NgAnnotation.COMPILE_CHILDREN,
-                    publishAs,
+                    this.publishAs,
                     map,
                     selector,
                     visibility,
@@ -337,7 +329,7 @@ class NgController extends NgDirective {
                     exportExpressions,
                     exportExpressionAttrs
                     }) : super(selector: selector, children: children, visibility: visibility,
-  publishTypes: publishTypes, publishAs: publishAs, map: map,
+  publishTypes: publishTypes, map: map,
   exportExpressions: exportExpressions,
   exportExpressionAttrs: exportExpressionAttrs);
 
@@ -432,62 +424,3 @@ abstract class NgDetachAware {
   void detach();
 }
 
-@NgInjectableService()
-class DirectiveMap extends AnnotationsMap<NgAnnotation> {
-  DirectiveMap(Injector injector, MetadataExtractor metadataExtractor,
-      FieldMetadataExtractor fieldMetadataExtractor)
-      : super(injector, metadataExtractor) {
-    Map<NgAnnotation, List<Type>> directives = {};
-    forEach((NgAnnotation annotation, Type type) {
-      var match;
-      var fieldMetadata = fieldMetadataExtractor(type);
-      if (fieldMetadata.isNotEmpty) {
-        var newMap = annotation.map == null ? {} : new Map.from(annotation.map);
-        fieldMetadata.forEach((String fieldName, AttrFieldAnnotation ann) {
-          var attrName = ann.attrName;
-          if (newMap.containsKey(attrName)) {
-            throw 'Mapping for attribute $attrName is already defined (while '
-                  'processing annottation for field $fieldName of $type)';
-          }
-          newMap[attrName] = '${ann.mappingSpec}$fieldName';
-        });
-        annotation = annotation.cloneWithNewMap(newMap);
-      }
-      directives.putIfAbsent(annotation, () => []).add(type);
-    });
-    _map.clear();
-    _map.addAll(directives);
-  }
-}
-
-@NgInjectableService()
-class FieldMetadataExtractor {
-  List<TypeMirror> _fieldAnnotations = [reflectType(NgAttr),
-      reflectType(NgOneWay), reflectType(NgOneWayOneTime),
-      reflectType(NgTwoWay), reflectType(NgCallback)];
-
-  Map<String, AttrFieldAnnotation> call(Type type) {
-    ClassMirror cm = reflectType(type);
-    Map<String, AttrFieldAnnotation> fields = <String, AttrFieldAnnotation>{};
-    cm.declarations.forEach((Symbol name, DeclarationMirror decl) {
-      if (decl is VariableMirror ||
-          (decl is MethodMirror && (decl.isGetter || decl.isSetter))) {
-        var fieldName = MirrorSystem.getName(name);
-        if (decl is MethodMirror && decl.isSetter) {
-          // Remove = from the end of the setter.
-          fieldName = fieldName.substring(0, fieldName.length - 1);
-        }
-        decl.metadata.forEach((InstanceMirror meta) {
-          if (_fieldAnnotations.contains(meta.type)) {
-            if (fields[fieldName] != null) {
-              throw 'Attribute annotation for $fieldName is defined more '
-                    'than once in $type';
-            }
-            fields[fieldName] = meta.reflectee as AttrFieldAnnotation;
-          }
-        });
-      }
-    });
-    return fields;
-  }
-}

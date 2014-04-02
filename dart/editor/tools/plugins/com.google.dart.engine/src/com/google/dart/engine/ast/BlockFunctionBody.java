@@ -42,7 +42,7 @@ public class BlockFunctionBody extends FunctionBody {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitBlockFunctionBody(this);
   }
 
@@ -75,7 +75,7 @@ public class BlockFunctionBody extends FunctionBody {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(block, visitor);
   }
 }

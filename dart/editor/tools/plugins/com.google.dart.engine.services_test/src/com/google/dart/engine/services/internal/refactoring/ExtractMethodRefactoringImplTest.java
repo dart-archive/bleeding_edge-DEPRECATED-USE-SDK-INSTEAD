@@ -1991,6 +1991,42 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
+  public void test_statements_changeIndentation_multilineString() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "// start",
+        "    print('''",
+        "first line",
+        "second line",
+        "    ''');",
+        "// end",
+        "  }",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "// start",
+        "    res();",
+        "// end",
+        "  }",
+        "}",
+        "",
+        "void res() {",
+        "  print('''",
+        "first line",
+        "second line",
+        "    ''');",
+        "}",
+        "");
+  }
+
   public void test_statements_definesVariable_notUsedOutside() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

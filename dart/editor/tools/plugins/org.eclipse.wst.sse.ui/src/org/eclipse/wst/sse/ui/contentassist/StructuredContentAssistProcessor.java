@@ -51,6 +51,8 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.wst.sse.core.StructuredModelManager;
 import org.eclipse.wst.sse.core.internal.provisional.IStructuredModel;
 import org.eclipse.wst.sse.core.internal.provisional.text.IStructuredDocument;
+import org.eclipse.wst.sse.core.internal.provisional.text.IStructuredDocumentRegion;
+import org.eclipse.wst.sse.core.internal.provisional.text.ITextRegion;
 import org.eclipse.wst.sse.ui.internal.ExtendedConfigurationBuilder;
 import org.eclipse.wst.sse.ui.internal.IReleasable;
 import org.eclipse.wst.sse.ui.internal.SSEUIMessages;
@@ -308,8 +310,68 @@ public class StructuredContentAssistProcessor implements IContentAssistProcessor
    * @see org.eclipse.jface.text.contentassist.IContentAssistProcessor#getCompletionProposalAutoActivationCharacters()
    */
   public char[] getCompletionProposalAutoActivationCharacters() {
+    if (isCaretInAttributeValue() || isInMustache()) {
+      return new char[]{'.'};
+    }
     return (fAutoActivation != null)
         ? fAutoActivation.getCompletionProposalAutoActivationCharacters() : null;
+  }
+  
+  private boolean isCaretInAttributeValue() {
+    IDocument document = fViewer.getDocument();
+    int offset = fViewer.getSelectedRange().x;
+    return isCaretInAttributeValue(document, offset);
+  }
+  
+  private boolean isInMustache() {
+    IDocument document = fViewer.getDocument();
+    int offset = fViewer.getSelectedRange().x;
+    return isInMustache(document, offset);
+  }
+  
+  public static boolean isCaretInAttributeValue(IDocument document, int offset) {
+    if (document instanceof IStructuredDocument) {
+      IStructuredDocument structuredDocument = (IStructuredDocument) document;
+      IStructuredDocumentRegion region = structuredDocument.getRegionAtCharacterOffset(offset);
+      if (region != null) {
+        ITextRegion textRegion = region.getRegionAtCharacterOffset(offset);
+        if (textRegion != null) {
+          return "XML_TAG_ATTRIBUTE_VALUE".equals(textRegion.getType());
+        }
+      }
+    }
+    return false;
+  }
+
+  public static boolean isInMustache(IDocument document, int offset) {
+    if (document instanceof IStructuredDocument) {
+      IStructuredDocument structuredDocument = (IStructuredDocument) document;
+      IStructuredDocumentRegion region = structuredDocument.getRegionAtCharacterOffset(offset);
+      if (region == null) {
+        return false;
+      }
+      ITextRegion textRegion = region.getRegionAtCharacterOffset(offset);
+      if (textRegion == null || !"XML_CONTENT".equals(textRegion.getType())) {
+        return false;
+      }
+    }
+    try {
+      while (offset + 2 < document.getLength()) {
+        if (document.getChar(offset) == '<') {
+          return false;
+        }
+        String str2 = document.get(offset, 2);
+        if (str2.equals("{{")) {
+          return false;
+        }
+        if (str2.equals("}}")) {
+          return true;
+        }
+        offset++;
+      }
+    } catch (Throwable e) {
+    }
+    return false;
   }
 
   /**

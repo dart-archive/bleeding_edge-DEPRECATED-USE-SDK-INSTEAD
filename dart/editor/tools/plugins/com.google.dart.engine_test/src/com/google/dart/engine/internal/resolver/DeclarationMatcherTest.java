@@ -134,18 +134,18 @@ public class DeclarationMatcherTest extends ResolverTestCase {
     Source source = addSource(oldContent);
     LibraryElement library = resolve(source);
     CompilationUnit oldUnit = resolveCompilationUnit(source, library);
-    MethodElement element = (MethodElement) getMethod(oldUnit).getElement();
+    MethodElement element = (MethodElement) getFirstMethod(oldUnit).getElement();
 
     AnalysisContext context = getAnalysisContext();
     context.setContents(source, newContent);
     CompilationUnit newUnit = context.parseCompilationUnit(source);
-    MethodDeclaration newMethod = getMethod(newUnit);
+    MethodDeclaration newMethod = getFirstMethod(newUnit);
 
     DeclarationMatcher matcher = new DeclarationMatcher();
     assertEquals(expectMatch, matcher.matches(newMethod, element));
   }
 
-  private MethodDeclaration getMethod(CompilationUnit unit) {
+  private MethodDeclaration getFirstMethod(CompilationUnit unit) {
     ClassDeclaration classNode = (ClassDeclaration) unit.getDeclarations().get(0);
     return (MethodDeclaration) classNode.getMembers().get(0);
   }

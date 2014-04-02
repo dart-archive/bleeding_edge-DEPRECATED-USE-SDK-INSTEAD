@@ -1,24 +1,24 @@
 Click "run button"
-Wait 5
-WaitFor 20, "browser right arrow button"
+util.xWait 5
+util.xWaitFor 20, "browser right arrow button"
 Click "browser right arrow button"
-WaitFor 20,"sunflower slider"
+util.xWaitFor 20,"sunflower slider"
 Click "sunflower slider"
 util.exitChromium
 DoubleClick (Text:"void main",CaseSensitive:"yes")
-Wait 0.4
+util.xWait 0.4
 TypeText downArrow
-Wait 0.4
+util.xWait 0.4
 TypeText rightArrow,rightArrow
-Wait 0.4
+util.xWait 0.4
 TypeText "x"
-Wait 0.5
+util.xWait 0.5
 util.saveFile
-Wait 5
+util.xWait 5
 util.runApp
 put the SearchRectangle into origRect
 set the SearchRectangle to ((0,800),(1920,1200))
-WaitFor 10, (Text:"Breaking",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
+util.xWaitFor 10, (Text:"Breaking",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
 set the SearchRectangle to origRect
 util.deleteOutput
 Click "stop debug button"

@@ -13,11 +13,11 @@
  */
 package com.google.dart.engine.internal.hint;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.StringLiteral;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.error.PubSuggestionCode;
@@ -33,7 +33,7 @@ import java.io.File;
  * Instances of the class {@code PubVerifier} traverse an AST structure looking for deviations from
  * pub best practices.
  */
-public class PubVerifier extends RecursiveASTVisitor<Void> {
+public class PubVerifier extends RecursiveAstVisitor<Void> {
 
   private static final String PUBSPEC_YAML = "pubspec.yaml";
 
@@ -115,9 +115,9 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
         if (StringUtilities.startsWith4(fullName, fullNameIndex - 4, '/', 'l', 'i', 'b')) {
           String relativePubspecPath = path.substring(0, pathIndex + 3).concat(PUBSPEC_YAML);
           Source pubspecSource = context.getSourceFactory().resolveUri(source, relativePubspecPath);
-          if (pubspecSource != null && pubspecSource.exists()) {
+          if (context.exists(pubspecSource)) {
             // Files inside the lib directory hierarchy should not reference files outside
-            errorReporter.reportError(
+            errorReporter.reportErrorForNode(
                 PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
                 uriLiteral);
           }
@@ -142,13 +142,13 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
   private boolean checkForFileImportOutsideLibReferencesFileInside(StringLiteral uriLiteral,
       String path) {
     if (StringUtilities.startsWith4(path, 0, 'l', 'i', 'b', '/')) {
-      if (checkForFileImportOutsideLibReferencesFileInside(uriLiteral, path, 0)) {
+      if (checkForFileImportOutsideLibReferencesFileInsideAtIndex(uriLiteral, path, 0)) {
         return true;
       }
     }
     int pathIndex = StringUtilities.indexOf5(path, 0, '/', 'l', 'i', 'b', '/');
     while (pathIndex != -1) {
-      if (checkForFileImportOutsideLibReferencesFileInside(uriLiteral, path, pathIndex + 1)) {
+      if (checkForFileImportOutsideLibReferencesFileInsideAtIndex(uriLiteral, path, pathIndex + 1)) {
         return true;
       }
       pathIndex = StringUtilities.indexOf5(path, pathIndex + 4, '/', 'l', 'i', 'b', '/');
@@ -156,12 +156,12 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
     return false;
   }
 
-  private boolean checkForFileImportOutsideLibReferencesFileInside(StringLiteral uriLiteral,
+  private boolean checkForFileImportOutsideLibReferencesFileInsideAtIndex(StringLiteral uriLiteral,
       String path, int pathIndex) {
     Source source = getSource(uriLiteral);
     String relativePubspecPath = path.substring(0, pathIndex).concat(PUBSPEC_YAML);
     Source pubspecSource = context.getSourceFactory().resolveUri(source, relativePubspecPath);
-    if (pubspecSource == null || !pubspecSource.exists()) {
+    if (!context.exists(pubspecSource)) {
       return false;
     }
     String fullName = getSourceFullName(source);
@@ -169,7 +169,7 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
       if (StringUtilities.indexOf5(fullName, 0, '/', 'l', 'i', 'b', '/') < 0) {
         // Files outside the lib directory hierarchy should not reference files inside
         // ... use package: url instead
-        errorReporter.reportError(
+        errorReporter.reportErrorForNode(
             PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
             uriLiteral);
         return true;
@@ -190,7 +190,7 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
     if (StringUtilities.startsWith3(path, 0, '.', '.', '/')
         || StringUtilities.indexOf4(path, 0, '/', '.', '.', '/') >= 0) {
       // Package import should not to contain ".."
-      errorReporter.reportError(PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral);
+      errorReporter.reportErrorForNode(PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral);
       return true;
     }
     return false;
@@ -202,7 +202,7 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
    * @param node the node (not {@code null})
    * @return the source or {@code null} if it could not be determined
    */
-  private Source getSource(ASTNode node) {
+  private Source getSource(AstNode node) {
     Source source = null;
     CompilationUnit unit = node.getAncestor(CompilationUnit.class);
     if (unit != null) {

@@ -15,7 +15,7 @@ patch class _Directory {
   patch static String _systemTemp() {
     throw new UnsupportedError("Directory._systemTemp");
   }
-  patch static int _exists(String path) {
+  patch static _exists(String path) {
     throw new UnsupportedError("Directory._exists");
   }
   patch static _create(String path) {
@@ -179,6 +179,9 @@ patch class _ProcessUtils {
   patch static void _setExitCode(int status) {
     throw new UnsupportedError("ProcessUtils._setExitCode");
   }
+  patch static int _getExitCode() {
+    throw new UnsupportedError("ProcessUtils._getExitCode");
+  }
   patch static void _sleep(int millis) {
     throw new UnsupportedError("ProcessUtils._sleep");
   }
@@ -276,13 +279,13 @@ patch class ServerSocket {
 }
 
 patch class RawSocket {
-  patch static Future<RawSocket> connect(var host, int port) {
+  patch static Future<RawSocket> connect(host, int port) {
     throw new UnsupportedError("RawSocket constructor");
   }
 }
 
 patch class Socket {
-  patch static Future<Socket> connect(var host, int port) {
+  patch static Future<Socket> connect(host, int port) {
     throw new UnsupportedError("Socket constructor");
   }
 }
@@ -322,6 +325,9 @@ patch class _StdIOUtils {
   patch static int _socketType(nativeSocket) {
     throw new UnsupportedError("StdIOUtils._socketType");
   }
+  patch static _getStdioHandleType(int fd) {
+    throw new UnsupportedError("StdIOUtils._getStdioHandleType");
+  }
 }
 
 patch class _WindowsCodePageDecoder {
@@ -337,10 +343,14 @@ patch class _WindowsCodePageEncoder {
 }
 
 patch class _Filter {
-  patch static _Filter newZLibDeflateFilter(bool gzip, int level) {
+  patch static _Filter newZLibDeflateFilter(bool gzip, int level,
+                                            int windowBits, int memLevel,
+                                            int strategy,
+                                            List<int> dictionary, bool raw) {
     throw new UnsupportedError("newZLibDeflateFilter");
   }
-  patch static _Filter newZLibInflateFilter() {
+  patch static _Filter newZLibInflateFilter(int windowBits,
+                                            List<int> dictionary, bool raw) {
     throw new UnsupportedError("newZLibInflateFilter");
   }
 }

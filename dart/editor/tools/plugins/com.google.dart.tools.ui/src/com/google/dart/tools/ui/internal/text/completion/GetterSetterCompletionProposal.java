@@ -13,15 +13,14 @@
  */
 package com.google.dart.tools.ui.internal.text.completion;
 
-import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.ui.CodeGenerationSettings;
+import com.google.dart.tools.mock.ui.CodeGenerationSettings;
+import com.google.dart.tools.mock.ui.GetterSetterUtil;
+import com.google.dart.tools.mock.ui.JavaPreferencesSettings;
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.GetterSetterUtil;
-import com.google.dart.tools.ui.JavaPreferencesSettings;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.text.dart.DartTextMessages;
 import com.google.dart.tools.ui.internal.text.dart.ImportRewrite;
@@ -146,18 +145,14 @@ public class GetterSetterCompletionProposal extends DartTypeCompletionProposal i
 
     CodeGenerationSettings settings = JavaPreferencesSettings.getCodeGenerationSettings(fField.getDartProject());
     boolean addComments = settings.createComments;
-    Modifiers modifiers = Modifiers.NONE;
-    if (fField.getModifiers().isStatic()) {
-      modifiers.makeStatic();
-    }
 
     String stub;
     if (fIsGetter) {
       String getterName = GetterSetterUtil.getGetterName(fField, null);
-      stub = GetterSetterUtil.getGetterStub(fField, getterName, addComments, modifiers);
+      stub = GetterSetterUtil.getGetterStub(fField, getterName, addComments);
     } else {
       String setterName = GetterSetterUtil.getSetterName(fField, null);
-      stub = GetterSetterUtil.getSetterStub(fField, setterName, addComments, modifiers);
+      stub = GetterSetterUtil.getSetterStub(fField, setterName, addComments);
     }
 
     // use the code formatter

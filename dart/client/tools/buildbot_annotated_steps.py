@@ -204,8 +204,10 @@ def main():
   elif name.startswith('cross') or name.startswith('target'):
     status = ProcessBot(name, 'cross-vm',
                         custom_env=EnvironmentWithoutBotoConfig())
-  elif name.startswith('src-tarball'):
-    status = ProcessBot(name, 'src-tarball')
+  elif name.startswith('linux-distribution-support'):
+    status = ProcessBot(name, 'linux_distribution_support')
+  elif name.startswith('ft'):
+    status = ProcessBot(name, 'functional_testing')
   else:
     status = ProcessBot(name, 'compiler')
 

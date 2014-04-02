@@ -15,6 +15,7 @@
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
+#include "vm/tags.h"
 
 #define __ assembler->
 
@@ -24,7 +25,6 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DECLARE_FLAG(int, optimization_counter_threshold);
 
 
 // Input parameters:
@@ -62,6 +62,20 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing runtime code.
   __ mov(CTX, A0);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ lw(T0, Address(A0, Isolate::vm_tag_offset()));
+    __ BranchEqual(T0, VMTag::kScriptTagId, &ok);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing VM code.
+  __ LoadImmediate(T0, VMTag::kVMTagId);
+  __ sw(T0, Address(A0, Isolate::vm_tag_offset()));
+
   // Reserve space for arguments and align frame before entering C++ world.
   // NativeArguments are passed in registers.
   ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
@@ -95,6 +109,10 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Retval is next to 1st argument.
   __ delay_slot()->addiu(A3, A2, Immediate(kWordSize));
   __ TraceSimMsg("CallToRuntimeStub return");
+
+  // Mark that the isolate is executing Dart code.
+  __ LoadImmediate(A2, VMTag::kScriptTagId);
+  __ sw(A2, Address(CTX, Isolate::vm_tag_offset()));
 
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(CTX, Isolate::top_exit_frame_info_offset()));
@@ -171,6 +189,20 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing native code.
   __ mov(CTX, A0);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ lw(T0, Address(A0, Isolate::vm_tag_offset()));
+    __ BranchEqual(T0, VMTag::kScriptTagId, &ok);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing Native code.
+  __ LoadImmediate(T0, VMTag::kRuntimeNativeTagId);
+  __ sw(T0, Address(A0, Isolate::vm_tag_offset()));
+
   // Initialize NativeArguments structure and call native function.
   // Registers A0, A1, A2, and A3 are used.
 
@@ -231,6 +263,10 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ Bind(&done);
 
+  // Mark that the isolate is executing Dart code.
+  __ LoadImmediate(A2, VMTag::kScriptTagId);
+  __ sw(A2, Address(CTX, Isolate::vm_tag_offset()));
+
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(CTX, Isolate::top_exit_frame_info_offset()));
 
@@ -287,6 +323,20 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing native code.
   __ mov(CTX, A0);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ lw(T0, Address(A0, Isolate::vm_tag_offset()));
+    __ BranchEqual(T0, VMTag::kScriptTagId, &ok);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing Native code.
+  __ LoadImmediate(T0, VMTag::kRuntimeNativeTagId);
+  __ sw(T0, Address(A0, Isolate::vm_tag_offset()));
+
   // Initialize NativeArguments structure and call native function.
   // Registers A0, A1, A2, and A3 are used.
 
@@ -323,6 +373,10 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ mov(T9, T5);
   __ jalr(T9);
   __ TraceSimMsg("CallNativeCFunctionStub return");
+
+  // Mark that the isolate is executing Dart code.
+  __ LoadImmediate(A2, VMTag::kScriptTagId);
+  __ sw(A2, Address(CTX, Isolate::vm_tag_offset()));
 
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(CTX, Isolate::top_exit_frame_info_offset()));
@@ -854,42 +908,16 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ beq(T0, T7, &not_closure);
 
   // T0 is just the signature function. Load the actual closure function.
-  __ lw(T2, FieldAddress(T1, Closure::function_offset()));
+  __ lw(T0, FieldAddress(T1, Closure::function_offset()));
 
   // Load closure context in CTX; note that CTX has already been preserved.
   __ lw(CTX, FieldAddress(T1, Closure::context_offset()));
 
-  Label function_compiled;
-  // Load closure function code in T0.
-  __ lw(T0, FieldAddress(T2, Function::code_offset()));
-  __ bne(T0, T7, &function_compiled);
-
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-
-  // Preserve arguments descriptor array and read-only function object argument.
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(S4, Address(SP, 1 * kWordSize));
-  __ sw(T2, Address(SP, 0 * kWordSize));
-  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ TraceSimMsg("GenerateCallClosureFunctionStub return");
-  // Restore arguments descriptor array and read-only function object argument.
-  __ lw(T2, Address(SP, 0 * kWordSize));
-  __ lw(S4, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
-  // Restore T0.
-  __ lw(T0, FieldAddress(T2, Function::code_offset()));
-
-  // Remove the stub frame as we are about to jump to the closure function.
-  __ LeaveStubFrame();
-
-  __ Bind(&function_compiled);
-  // T0: Code.
-  // S4: Arguments descriptor array.
-  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
-  __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jr(T0);
+  // Load closure function code in T2.
+  __ lw(T2, FieldAddress(T0, Function::code_offset()));
+  __ lw(T2, FieldAddress(T2, Code::instructions_offset()));
+  __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T2);
 
   __ Bind(&not_closure);
   // Call runtime to attempt to resolve and invoke a call method on a
@@ -945,8 +973,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save new context and C++ ABI callee-saved registers.
 
-  // The new context, the top exit frame, and the old context.
-  const intptr_t kPreservedContextSlots = 3;
+  // The new context, saved vm tag, the top exit frame, and the old context.
+  const intptr_t kPreservedContextSlots = 4;
   const intptr_t kNewContextOffsetFromFp =
       -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
   const intptr_t kPreservedRegSpace =
@@ -969,7 +997,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ swc1(r, Address(SP, slot * kWordSize));
   }
 
-  __ sw(A3, Address(SP, 2 * kWordSize));
+  __ sw(A3, Address(SP, 3 * kWordSize));
 
   // We now load the pool pointer(PP) as we are about to invoke dart code and we
   // could potentially invoke some intrinsic functions which need the PP to be
@@ -988,6 +1016,15 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Load Isolate pointer from Context structure into temporary register R8.
   __ lw(T2, FieldAddress(CTX, Context::isolate_offset()));
 
+  // Save the current VMTag on the stack.
+  ASSERT(kSavedVMTagSlotFromEntryFp == -22);
+  __ lw(T1, Address(T2, Isolate::vm_tag_offset()));
+  __ sw(T1, Address(SP, 2 * kWordSize));
+
+  // Mark that the isolate is executing Dart code.
+  __ LoadImmediate(T0, VMTag::kScriptTagId);
+  __ sw(T0, Address(T2, Isolate::vm_tag_offset()));
+
   // Save the top exit frame info. Use T0 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   __ lw(T0, Address(T2, Isolate::top_exit_frame_info_offset()));
@@ -1002,8 +1039,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // The constants kSavedContextSlotFromEntryFp and
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -22);
-  ASSERT(kSavedContextSlotFromEntryFp == -23);
+  ASSERT(kExitLinkSlotFromEntryFp == -23);
+  ASSERT(kSavedContextSlotFromEntryFp == -24);
   __ sw(T0, Address(SP, 1 * kWordSize));
   __ sw(T1, Address(SP, 0 * kWordSize));
 
@@ -1052,6 +1089,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Load Isolate pointer from Context structure into CTX. Drop Context.
   __ lw(CTX, FieldAddress(CTX, Context::isolate_offset()));
 
+  // Restore the current VMTag from the stack.
+  __ lw(T1, Address(SP, 2 * kWordSize));
+  __ sw(T1, Address(CTX, Isolate::vm_tag_offset()));
+
   // Restore the saved Context pointer into the Isolate structure.
   // Uses T1 as a temporary register for this.
   // Restore the saved top exit frame info back into the Isolate structure.
@@ -1077,7 +1118,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ lwc1(r, Address(SP, slot * kWordSize));
   }
 
-  __ lw(A3, Address(SP, 2 * kWordSize));
+  __ lw(A3, Address(SP, 3 * kWordSize));
   __ addiu(SP, SP, Immediate(kPreservedRegSpace));
 
   // Restore the frame pointer and return.
@@ -1287,8 +1328,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Called for inline allocation of objects.
 // Input parameters:
 //   RA : return address.
-//   SP + 4 : type arguments object (only if class is parameterized).
-//   SP + 0 : type arguments of instantiator (only if class is parameterized).
+//   SP + 0 : type arguments object (only if class is parameterized).
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
   __ TraceSimMsg("AllocationStubForClass");
@@ -1302,46 +1342,15 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const int kInlineInstanceSize = 12;
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
-  Label slow_case_with_type_arguments;
+  if (is_cls_parameterized) {
+    __ lw(T1, Address(SP, 0 * kWordSize));
+    // T1: type arguments.
+  }
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
-    Label slow_case_reload_type_arguments;
-    if (is_cls_parameterized) {
-      // Instantiation of the type arguments vector is only required if an
-      // instantiator is provided (not kNoInstantiator, but may be null).
-      __ lw(T1, Address(SP, 1 * kWordSize));
-      __ lw(T0, Address(SP, 0 * kWordSize));
-      // R1: type arguments, instantiated or not.
-      // R0: instantiator type arguments or kNoInstantiator.
-      Label type_arguments_ready;
-      __ BranchEqual(T0, Smi::RawValue(StubCode::kNoInstantiator),
-                     &type_arguments_ready);
-      // Lookup instantiator EDI in instantiations array of type arguments EDX
-      // and, if found, use cached instantiated type arguments.
-      __ lw(T2, FieldAddress(T1, TypeArguments::instantiations_offset()));
-      __ lw(T3, FieldAddress(T2, Array::length_offset()));
-      __ AddImmediate(T2, Array::data_offset() - kHeapObjectTag);
-      __ sll(TMP, T3, 1);  // T3 is Smi.
-      __ addu(T3, T2, TMP);
-      Label loop, found;
-      __ Bind(&loop);
-      __ BranchUnsignedGreaterEqual(T2, T3, &slow_case_reload_type_arguments);
-      __ lw(T1, Address(T2, 0 * kWordSize));  // Cached instantiator.
-      __ beq(T1, T0, &found);
-      __ BranchEqual(T1, Smi::RawValue(StubCode::kNoInstantiator),
-                     &slow_case_reload_type_arguments);
-      __ b(&loop);
-      __ delay_slot()->addiu(T2, T2, Immediate(2 * kWordSize));
-      __ Bind(&found);
-      __ lw(T1, Address(T2, 1 * kWordSize));  // Cached instantiated args.
-      __ LoadImmediate(T0, Smi::RawValue(StubCode::kNoInstantiator));
-      __ Bind(&type_arguments_ready);
-      // T0: instantiated type arguments.
-      // T1: kNoInstantiator.
-    }
+    Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
-    // T0: instantiated type arguments (if is_cls_parameterized).
-    // T1: kNoInstantiator (if is_cls_parameterized).
+    // T1: instantiated type arguments (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
     __ LoadImmediate(T5, heap->TopAddress());
     __ lw(T2, Address(T5));
@@ -1353,10 +1362,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ LoadImmediate(TMP, heap->EndAddress());
     __ lw(CMPRES1, Address(TMP));
     if (FLAG_use_slow_path) {
-      __ b(&slow_case_with_type_arguments);
+      __ b(&slow_case);
     } else {
-      __ BranchUnsignedGreaterEqual(T3, CMPRES1,
-                                    &slow_case_with_type_arguments);
+      __ BranchUnsignedGreaterEqual(T3, CMPRES1, &slow_case);
     }
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -1405,7 +1413,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ Bind(&loop_exit);
     }
     if (is_cls_parameterized) {
-      // R1: new object type arguments.
+      // T1: new object type arguments.
       // Set the type arguments in the new object.
       __ sw(T1, Address(T2, cls.type_arguments_field_offset()));
     }
@@ -1414,198 +1422,35 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ Ret();
     __ delay_slot()->addiu(V0, T2, Immediate(kHeapObjectTag));
 
-    __ Bind(&slow_case_reload_type_arguments);
+    __ Bind(&slow_case);
   }
-  if (is_cls_parameterized) {
-    __ lw(T1, Address(SP, 1 * kWordSize));
-    __ lw(T0, Address(SP, 0 * kWordSize));
-  }
-  __ Bind(&slow_case_with_type_arguments);
   // If is_cls_parameterized:
   // T1: new object type arguments (instantiated or not).
-  // T0: instantiator type arguments or kNoInstantiator.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
   __ LoadObject(TMP, cls);
 
-  __ addiu(SP, SP, Immediate(-4 * kWordSize));
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
   // Space on stack for return value.
   __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
-  __ sw(T7, Address(SP, 3 * kWordSize));
-  __ sw(TMP, Address(SP, 2 * kWordSize));  // Class of object to be allocated.
+  __ sw(T7, Address(SP, 2 * kWordSize));
+  __ sw(TMP, Address(SP, 1 * kWordSize));  // Class of object to be allocated.
 
   if (is_cls_parameterized) {
     // Push type arguments of object to be allocated and of instantiator.
-    __ sw(T1, Address(SP, 1 * kWordSize));
-    __ sw(T0, Address(SP, 0 * kWordSize));
-  } else {
-    // Push null type arguments and kNoInstantiator.
-    __ LoadImmediate(T1, Smi::RawValue(StubCode::kNoInstantiator));
-    __ sw(T7, Address(SP, 1 * kWordSize));
     __ sw(T1, Address(SP, 0 * kWordSize));
+  } else {
+    // Push null type arguments.
+    __ sw(T7, Address(SP, 0 * kWordSize));
   }
-  __ CallRuntime(kAllocateObjectRuntimeEntry, 3);  // Allocate object.
+  __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
   __ TraceSimMsg("AllocationStubForClass return");
   // Pop result (newly allocated object).
-  __ lw(V0, Address(SP, 3 * kWordSize));
-  __ addiu(SP, SP, Immediate(4 * kWordSize));  // Pop arguments.
+  __ lw(V0, Address(SP, 2 * kWordSize));
+  __ addiu(SP, SP, Immediate(3 * kWordSize));  // Pop arguments.
   // V0: new object
   // Restore the frame pointer and return.
-  __ LeaveStubFrameAndReturn(RA);
-}
-
-
-// Called for inline allocation of closures.
-// Input parameters:
-//   RA: return address.
-//   SP + 4 : receiver (null if not an implicit instance closure).
-//   SP + 0 : type arguments object (null if class is no parameterized).
-void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
-                                                const Function& func) {
-  ASSERT(func.IsClosureFunction());
-  ASSERT(!func.IsImplicitStaticClosureFunction());
-  const bool is_implicit_instance_closure =
-      func.IsImplicitInstanceClosureFunction();
-  const Class& cls = Class::ZoneHandle(func.signature_class());
-  const bool has_type_arguments = cls.NumTypeArguments() > 0;
-
-  __ TraceSimMsg("AllocationStubForClosure");
-  __ EnterStubFrame(true);  // Uses pool pointer to refer to function.
-  const intptr_t kTypeArgumentsFPOffset = 3 * kWordSize;
-  const intptr_t kReceiverFPOffset = 4 * kWordSize;
-  const intptr_t closure_size = Closure::InstanceSize();
-  const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
-  if (FLAG_inline_alloc &&
-      Heap::IsAllocatableInNewSpace(closure_size + context_size)) {
-    Label slow_case;
-    Heap* heap = Isolate::Current()->heap();
-    __ LoadImmediate(T5, heap->TopAddress());
-    __ lw(T2, Address(T5));
-    __ AddImmediate(T3, T2, closure_size);
-    if (is_implicit_instance_closure) {
-      __ mov(T4, T3);  // T4: new context address.
-      __ AddImmediate(T3, context_size);
-    }
-    // Check if the allocation fits into the remaining space.
-    // T2: potential new closure object.
-    // T3: address of top of heap.
-    // T4: potential new context object (only if is_implicit_closure).
-    __ LoadImmediate(TMP, heap->EndAddress());
-    __ lw(CMPRES1, Address(TMP));
-    if (FLAG_use_slow_path) {
-      __ b(&slow_case);
-    } else {
-      __ BranchUnsignedGreaterEqual(T3, CMPRES1, &slow_case);
-    }
-
-    // Successfully allocated the object, now update top to point to
-    // next object start and initialize the object.
-    __ sw(T3, Address(T5));
-    if (is_implicit_instance_closure) {
-      // This closure allocates a context, update allocation stats.
-      // T3: context size.
-      __ LoadImmediate(T3, context_size);
-      // T5: Clobbered.
-     __ UpdateAllocationStatsWithSize(kContextCid, T3, T5);
-    }
-    // The closure allocation is attributed to the signature class.
-    // T5: Will be clobbered.
-    __ UpdateAllocationStats(cls.id(), T5);
-
-    // T2: new closure object.
-    // T4: new context object (only if is_implicit_closure).
-    // Set the tags.
-    uword tags = 0;
-    tags = RawObject::SizeTag::update(closure_size, tags);
-    tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    __ LoadImmediate(T0, tags);
-    __ sw(T0, Address(T2, Instance::tags_offset()));
-
-    // Initialize the function field in the object.
-    // T2: new closure object.
-    // T4: new context object (only if is_implicit_closure).
-    __ LoadObject(T0, func);  // Load function of closure to be allocated.
-    __ sw(T0, Address(T2, Closure::function_offset()));
-
-    // Setup the context for this closure.
-    if (is_implicit_instance_closure) {
-      // Initialize the new context capturing the receiver.
-      const Class& context_class = Class::ZoneHandle(Object::context_class());
-      // Set the tags.
-      uword tags = 0;
-      tags = RawObject::SizeTag::update(context_size, tags);
-      tags = RawObject::ClassIdTag::update(context_class.id(), tags);
-      __ LoadImmediate(T0, tags);
-      __ sw(T0, Address(T4, Context::tags_offset()));
-
-      // Set number of variables field to 1 (for captured receiver).
-      __ LoadImmediate(T0, 1);
-      __ sw(T0, Address(T4, Context::num_variables_offset()));
-
-      // Set isolate field to isolate of current context.
-      __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
-      __ sw(T0, Address(T4, Context::isolate_offset()));
-
-      // Set the parent to null.
-      __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
-      __ sw(TMP, Address(T4, Context::parent_offset()));
-
-      // Initialize the context variable to the receiver.
-      __ lw(T0, Address(FP, kReceiverFPOffset));
-      __ sw(T0, Address(T4, Context::variable_offset(0)));
-
-      // Set the newly allocated context in the newly allocated closure.
-      __ AddImmediate(T1, T4, kHeapObjectTag);
-      __ sw(T1, Address(T2, Closure::context_offset()));
-    } else {
-      __ sw(CTX, Address(T2, Closure::context_offset()));
-    }
-
-    // Set the type arguments field in the newly allocated closure.
-    __ lw(T0, Address(FP, kTypeArgumentsFPOffset));
-    __ sw(T0, Address(T2, Closure::type_arguments_offset()));
-
-    // Done allocating and initializing the instance.
-    // V0: new object.
-    __ addiu(V0, T2, Immediate(kHeapObjectTag));
-
-    __ LeaveStubFrameAndReturn(RA);
-
-    __ Bind(&slow_case);
-  }
-
-  // If it's an implicit instance closure we need 4 stack slots, o/w only 3.
-  intptr_t num_slots = is_implicit_instance_closure ? 4 : 3;
-  __ addiu(SP, SP, Immediate(-num_slots * kWordSize));
-  // Setup space on stack for return value.
-  __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
-  __ sw(T7, Address(SP, (num_slots - 1) * kWordSize));
-  __ LoadObject(TMP, func);
-  __ sw(TMP, Address(SP, (num_slots - 2) * kWordSize));
-  __ mov(T2, T7);
-  if (is_implicit_instance_closure) {
-    __ lw(T1, Address(FP, kReceiverFPOffset));
-    __ sw(T1, Address(SP, (num_slots - 3) * kWordSize));  // Receiver.
-  }
-  if (has_type_arguments) {
-    __ lw(T2, Address(FP, kTypeArgumentsFPOffset));
-  }
-  __ sw(T2, Address(SP, 0 * kWordSize));
-
-  if (is_implicit_instance_closure) {
-    __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry, 3);
-    __ TraceSimMsg("AllocationStubForClosure return");
-  } else {
-    ASSERT(func.IsNonImplicitClosureFunction());
-    __ CallRuntime(kAllocateClosureRuntimeEntry, 2);
-    __ TraceSimMsg("AllocationStubForClosure return");
-  }
-  __ lw(V0, Address(SP, (num_slots - 1) * kWordSize));  // Pop function object.
-  __ addiu(SP, SP, Immediate(num_slots * kWordSize));
-
-  // V0: new object
-  // Restore the frame pointer.
   __ LeaveStubFrameAndReturn(RA);
 }
 
@@ -1867,29 +1712,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ sw(T1, Address(T0, count_offset));
 
   __ Bind(&call_target_function);
-  // T3: Target function.
+  // T0 <- T3: Target function.
+  __ mov(T0, T3);
   Label is_compiled;
-  __ lw(T4, FieldAddress(T3, Function::code_offset()));
-  if (FLAG_collect_code) {
-    __ BranchNotEqual(T4, reinterpret_cast<int32_t>(Object::null()),
-                      &is_compiled);
-    __ EnterStubFrame();
-    __ addiu(SP, SP, Immediate(-3 * kWordSize));
-    __ sw(S5, Address(SP, 2 * kWordSize));  // Preserve IC data.
-    __ sw(S4, Address(SP, 1 * kWordSize));  // Preserve arg desc.
-    __ sw(T3, Address(SP, 0 * kWordSize));  // Function argument.
-    __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-    __ lw(T3, Address(SP, 0 * kWordSize));  // Restore Function.
-    __ lw(S4, Address(SP, 1 * kWordSize));  // Restore arg desc.
-    __ lw(S5, Address(SP, 2 * kWordSize));  // Restore IC data.
-    __ addiu(SP, SP, Immediate(3 * kWordSize));
-    __ LeaveStubFrame();
-    __ lw(T4, FieldAddress(T3, Function::code_offset()));
-    __ Bind(&is_compiled);
-  }
-  __ lw(T3, FieldAddress(T4, Code::instructions_offset()));
-  __ AddImmediate(T3, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jr(T3);
+  __ lw(T4, FieldAddress(T0, Function::code_offset()));
+  __ lw(T4, FieldAddress(T4, Code::instructions_offset()));
+  __ AddImmediate(T4, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T4);
 
   // Instance in T3, return its class-id in T3 as Smi.
   __ Bind(&get_class_id_as_smi);
@@ -2029,36 +1858,17 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   __ Bind(&increment_done);
 
-  Label target_is_compiled;
-  // Get function and call it, if possible.
-  __ lw(T3, Address(T0, target_offset));
-  __ lw(T4, FieldAddress(T3, Function::code_offset()));
-  __ LoadImmediate(CMPRES1, reinterpret_cast<intptr_t>(Object::null()));
-  __ bne(T4, CMPRES1, &target_is_compiled);
-
-  __ EnterStubFrame();
-  // Preserve target function and IC data object.
-  // Two preserved registers, one argument (function) => 3 slots.
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(S5, Address(SP, 2 * kWordSize));  // Preserve IC data.
-  __ sw(T3, Address(SP, 1 * kWordSize));  // Preserve function.
-  __ sw(T3, Address(SP, 0 * kWordSize));  // Function argument.
-  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ lw(T3, Address(SP, 1 * kWordSize));  // Restore function.
-  __ lw(S5, Address(SP, 2 * kWordSize));  // Restore IC data.
-  __ addiu(SP, SP, Immediate(3 * kWordSize));
-  // T3: target function.
-  __ lw(T4, FieldAddress(T3, Function::code_offset()));
-  __ LeaveStubFrame();
-
-  __ Bind(&target_is_compiled);
-  // T4: target code.
-  __ lw(T3, FieldAddress(T4, Code::instructions_offset()));
-  __ AddImmediate(T3, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jr(T3);
   // Load arguments descriptor into S4.
-  __ delay_slot()->
-      lw(S4,  FieldAddress(S5, ICData::arguments_descriptor_offset()));
+  __ lw(S4,  FieldAddress(S5, ICData::arguments_descriptor_offset()));
+
+  // Get function and call it, if possible.
+  __ lw(T0, Address(T0, target_offset));
+  __ lw(T4, FieldAddress(T0, Function::code_offset()));
+
+  // T4: target code.
+  __ lw(T4, FieldAddress(T4, Code::instructions_offset()));
+  __ AddImmediate(T4, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T4);
 }
 
 
@@ -2069,11 +1879,11 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 }
 
 
-// Stub for calling the CompileFunction runtime call.
-// S5: IC-Data.
+// Stub for compiling a function and jumping to the compiled code.
+// S5: IC-Data (for methods).
 // S4: Arguments descriptor.
 // T0: Function.
-void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
+void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(S5, Address(SP, 2 * kWordSize));  // Preserve IC data object.
@@ -2083,7 +1893,13 @@ void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
   __ lw(T0, Address(SP, 0 * kWordSize));  // Restore function.
   __ lw(S4, Address(SP, 1 * kWordSize));  // Restore args descriptor array.
   __ lw(S5, Address(SP, 2 * kWordSize));  // Restore IC data array.
-  __ LeaveStubFrameAndReturn();
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrame();
+
+  __ lw(T2, FieldAddress(T0, Function::code_offset()));
+  __ lw(T2, FieldAddress(T2, Code::instructions_offset()));
+  __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T2);
 }
 
 

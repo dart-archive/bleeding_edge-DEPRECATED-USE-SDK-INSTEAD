@@ -15,17 +15,14 @@ import org.eclipse.ui.PlatformUI;
  */
 public class UIUtils {
 
-  public static Display getDisplay() {
-    return PlatformUI.getWorkbench().getDisplay();
-  }
-
   public static void asyncExec(final Control control, final Runnable runnable) {
     if (control != null && !control.isDisposed()) {
       control.getDisplay().asyncExec(new Runnable() {
         @Override
         public void run() {
-          if (!control.isDisposed())
+          if (!control.isDisposed()) {
             runnable.run();
+          }
         }
       });
     }
@@ -36,11 +33,16 @@ public class UIUtils {
       display.asyncExec(new Runnable() {
         @Override
         public void run() {
-          if (!display.isDisposed())
+          if (!display.isDisposed()) {
             runnable.run();
+          }
         }
       });
     }
+  }
+
+  public static Display getDisplay() {
+    return PlatformUI.getWorkbench().getDisplay();
   }
 
   public static void syncExec(final Display display, final Runnable runnable) {
@@ -48,8 +50,9 @@ public class UIUtils {
       display.syncExec(new Runnable() {
         @Override
         public void run() {
-          if (!display.isDisposed())
+          if (!display.isDisposed()) {
             runnable.run();
+          }
         }
       });
     }

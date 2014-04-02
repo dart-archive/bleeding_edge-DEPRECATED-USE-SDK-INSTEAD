@@ -186,6 +186,12 @@ class MockTouch implements Touch {
 
   EventTarget get target => wrapped.target;
 
+  double get force { throw new UnimplementedError(); }
+  Point get page { throw new UnimplementedError(); }
+  int get radiusX { throw new UnimplementedError(); }
+  int get radiusY { throw new UnimplementedError(); }
+  num get rotationAngle { throw new UnimplementedError(); }
+  Point get screen { throw new UnimplementedError(); }
   num get webkitForce { throw new UnimplementedError(); }
   int get webkitRadiusX { throw new UnimplementedError(); }
   int get webkitRadiusY { throw new UnimplementedError(); }
@@ -258,4 +264,11 @@ class MockTouchEvent implements TouchEvent {
   bool get metaKey => wrapped.metaKey;
 
   bool get shiftKey => wrapped.shiftKey;
+
+  DataTransfer get clipboardData { throw new UnimplementedError(); }
+  Point get layer { throw new UnimplementedError(); }
+  Element get matchingTarget { throw new UnimplementedError(); }
+  Point get page { throw new UnimplementedError(); }
+  List get path { throw new UnimplementedError(); }
+  Point get screen { throw new UnimplementedError(); }
 }

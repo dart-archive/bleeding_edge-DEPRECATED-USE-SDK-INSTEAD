@@ -4,10 +4,6 @@
 
 part of dart2js.mirrors;
 
-//------------------------------------------------------------------------------
-// Types
-//------------------------------------------------------------------------------
-
 abstract class ClassMirrorMixin implements ClassSourceMirror {
   bool get hasReflectedType => false;
   Type get reflectedType {
@@ -37,6 +33,10 @@ abstract class Dart2JsTypeMirror
     return mirrorSystem._getLibrary(_type.element.getLibrary());
   }
 
+  bool get hasReflectedType => throw new UnimplementedError();
+
+  Type get reflectedType => throw new UnimplementedError();
+
   bool get isOriginalDeclaration => true;
 
   TypeMirror get originalDeclaration => this;
@@ -53,6 +53,22 @@ abstract class Dart2JsTypeMirror
   bool get isVoid => false;
 
   bool get isDynamic => false;
+
+  bool isSubtypeOf(TypeMirror other) {
+    if (other is Dart2JsTypeMirror) {
+      return mirrorSystem.compiler.types.isSubtype(this._type, other._type);
+    } else {
+      throw new ArgumentError(other);
+    }
+  }
+
+  bool isAssignableTo(TypeMirror other) {
+    if (other is Dart2JsTypeMirror) {
+      return mirrorSystem.compiler.types.isAssignable(this._type, other._type);
+    } else {
+      throw new ArgumentError(other);
+    }
+  }
 
   String toString() => _type.toString();
 }
@@ -151,8 +167,7 @@ abstract class Dart2JsGenericTypeMirror extends Dart2JsTypeMirror {
 
 class Dart2JsInterfaceTypeMirror
     extends Dart2JsGenericTypeMirror
-    with ObjectMirrorMixin, InstanceMirrorMixin, ClassMirrorMixin,
-         ContainerMixin
+    with ObjectMirrorMixin, ClassMirrorMixin, ContainerMixin
     implements ClassMirror {
   Dart2JsInterfaceTypeMirror(Dart2JsMirrorSystem system,
                              InterfaceType interfaceType)
@@ -179,6 +194,14 @@ class Dart2JsInterfaceTypeMirror
       return _getTypeMirror(_element.supertype);
     }
     return null;
+  }
+
+  bool isSubclassOf(Mirror other) {
+    if (other is Dart2JsTypeMirror) {
+      return _element.isSubclassOf(other._type.element);
+    } else {
+      throw new ArgumentError(other);
+    }
   }
 
   ClassMirror get mixin {
@@ -225,6 +248,17 @@ class Dart2JsClassDeclarationMirror
   Dart2JsClassDeclarationMirror(Dart2JsMirrorSystem system,
                                 InterfaceType type)
       : super(system, type);
+
+  bool isSubclassOf(ClassMirror other) {
+    if (other is Dart2JsClassDeclarationMirror) {
+      Dart2JsClassDeclarationMirror otherDeclaration =
+          other.originalDeclaration;
+      return _element.isSubclassOf(otherDeclaration._element);
+    } else if (other is FunctionTypeMirror) {
+      return false;
+    }
+    throw new ArgumentError(other);
+  }
 
   String toString() => 'Mirror on class ${_type.name}';
 }
@@ -295,6 +329,8 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeMirror
     return _owner;
   }
 
+  bool get isStatic => false;
+
   TypeMirror get upperBound => owner._getTypeMirror(_type.element.bound);
 
   bool operator ==(var other) {
@@ -314,8 +350,7 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeMirror
 }
 
 class Dart2JsFunctionTypeMirror extends Dart2JsTypeMirror
-    with ObjectMirrorMixin, InstanceMirrorMixin,
-         ClassMirrorMixin, DeclarationMixin
+    with ObjectMirrorMixin, ClassMirrorMixin, DeclarationMixin
     implements FunctionTypeMirror {
   final FunctionSignature _functionSignature;
   List<ParameterMirror> _parameters;
@@ -384,6 +419,8 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeMirror
   }
 
   String toString() => 'Mirror on function type $_type';
+
+  bool isSubclassOf(ClassMirror other) => false;
 }
 
 class Dart2JsVoidMirror extends Dart2JsTypeMirror {

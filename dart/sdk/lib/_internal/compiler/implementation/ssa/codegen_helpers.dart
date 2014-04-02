@@ -5,6 +5,253 @@
 part of ssa;
 
 /**
+ * Replaces some instructions with specialized versions to make codegen easier.
+ * Caches codegen information on nodes.
+ */
+class SsaInstructionSelection extends HBaseVisitor {
+  final Compiler compiler;
+  HGraph graph;
+
+  SsaInstructionSelection(this.compiler);
+
+  JavaScriptBackend get backend => compiler.backend;
+
+  void visitGraph(HGraph graph) {
+    this.graph = graph;
+    visitDominatorTree(graph);
+  }
+
+  visitBasicBlock(HBasicBlock block) {
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      HInstruction next = instruction.next;
+      HInstruction replacement = instruction.accept(this);
+      if (replacement != instruction && replacement != null) {
+        block.rewrite(instruction, replacement);
+
+        // If the replacement instruction does not know its source element, use
+        // the source element of the instruction.
+        if (replacement.sourceElement == null) {
+          replacement.sourceElement = instruction.sourceElement;
+        }
+        if (replacement.sourcePosition == null) {
+          replacement.sourcePosition = instruction.sourcePosition;
+        }
+        if (!replacement.isInBasicBlock()) {
+          // The constant folding can return an instruction that is already
+          // part of the graph (like an input), so we only add the replacement
+          // if necessary.
+          block.addAfter(instruction, replacement);
+          // Visit the replacement as the next instruction in case it can also
+          // be constant folded away.
+          next = replacement;
+        }
+        block.remove(instruction);
+      }
+      instruction = next;
+    }
+  }
+
+  HInstruction visitInstruction(HInstruction node) {
+    return node;
+  }
+
+  HInstruction visitIs(HIs node) {
+    if (node.kind == HIs.RAW_CHECK) {
+      HInstruction interceptor = node.interceptor;
+      if (interceptor != null) {
+        return new HIsViaInterceptor(node.typeExpression, interceptor,
+                                     backend.boolType);
+      }
+    }
+    return node;
+  }
+
+  HInstruction visitIdentity(HIdentity node) {
+    node.singleComparisonOp = simpleOp(node.left, node.right);
+    return node;
+  }
+
+  String simpleOp(HInstruction left, HInstruction right) {
+    // Returns the single identity comparison (== or ===) or null if a more
+    // complex expression is required.
+    TypeMask leftType = left.instructionType;
+    TypeMask rightType = right.instructionType;
+    if (leftType.isNullable && rightType.isNullable) {
+      if (left.isConstantNull() ||
+          right.isConstantNull() ||
+          (left.isPrimitive(compiler) &&
+           leftType == rightType)) {
+        return '==';
+      }
+      return null;
+    }
+    return '===';
+  }
+
+  HInstruction visitInvokeDynamic(HInvokeDynamic node) {
+    if (node.isInterceptedCall) {
+      // Calls of the form
+      //
+      //     a.foo$1(a, x)
+      //
+      // where the interceptor calling convention is used come from recognizing
+      // that 'a' is a 'self-interceptor'.  If the selector matches only methods
+      // that ignore the explicit receiver parameter, replace occurences of the
+      // receiver argument with a dummy receiver '0':
+      //
+      //     a.foo$1(a, x)   --->   a.foo$1(0, x)
+      //
+      // This often reduces the number of references to 'a' to one, allowing 'a'
+      // to be generated at use to avoid a temporary, e.g.
+      //
+      //     t1 = b.get$thing();
+      //     t1.foo$1(t1, x)
+      // --->
+      //     b.get$thing().foo$1(0, x)
+      //
+      Selector selector = node.selector;
+      if (backend.isInterceptedSelector(selector) &&
+          !backend.isInterceptedMixinSelector(selector)) {
+        HInstruction interceptor = node.inputs[0];
+        HInstruction receiverArgument = node.inputs[1];
+
+        // TODO(15720): The test here should be
+        //
+        //     interceptor.nonCheck() == receiverArgument.nonCheck()
+        //
+        if (interceptor == receiverArgument) {
+          // TODO(15933): Make automatically generated property extraction
+          // closures work with the dummy receiver optimization.
+          if (!selector.isGetter()) {
+            Constant constant = new DummyConstant(
+                receiverArgument.instructionType);
+            HConstant dummy = graph.addConstant(constant, compiler);
+            receiverArgument.usedBy.remove(node);
+            node.inputs[1] = dummy;
+            dummy.usedBy.add(node);
+          }
+        }
+      }
+    }
+
+    return node;
+  }
+
+  HInstruction visitFieldSet(HFieldSet setter) {
+    // Pattern match
+    //     t1 = x.f; t2 = t1 + 1; x.f = t2; use(t2)   -->  ++x.f
+    //     t1 = x.f; t2 = t1 op y; x.f = t2; use(t2)  -->  x.f op= y
+    //     t1 = x.f; t2 = t1 + 1; x.f = t2; use(t1)   -->  x.f++
+    HBasicBlock block = setter.block;
+    HInstruction op = setter.value;
+    HInstruction receiver = setter.receiver;
+
+    bool isMatchingRead(HInstruction candidate) {
+      if (candidate is HFieldGet) {
+        if (candidate.element != setter.element) return false;
+        if (candidate.receiver != setter.receiver) return false;
+        // Recognize only three instructions in sequence in the same block.  This
+        // could be broadened to allow non-interfering interleaved instructions.
+        if (op.block != block) return false;
+        if (candidate.block != block) return false;
+        if (setter.previous != op) return false;
+        if (op.previous != candidate) return false;
+        return true;
+      }
+      return false;
+    }
+
+    HInstruction noMatchingRead() {
+      // If we have other HFieldSet optimizations, they go here.
+      return null;
+    }
+
+    HInstruction replaceOp(HInstruction replacement, HInstruction getter) {
+      block.addBefore(setter, replacement);
+      block.remove(setter);
+      block.rewrite(op, replacement);
+      block.remove(op);
+      block.remove(getter);
+      return null;
+    }
+
+    HInstruction plusOrMinus(String assignOp, String incrementOp) {
+      HInvokeBinary binary = op;
+      HInstruction left = binary.left;
+      HInstruction right = binary.right;
+      if (isMatchingRead(left)) {
+        if (left.usedBy.length == 1) {
+          if (right is HConstant && right.constant.isOne) {
+            HInstruction rmw = new HReadModifyWrite.preOp(
+                setter.element, incrementOp, receiver, op.instructionType);
+            return replaceOp(rmw, left);
+          } else {
+            HInstruction rmw = new HReadModifyWrite.assignOp(
+                setter.element,
+                assignOp,
+                receiver, right, op.instructionType);
+            return replaceOp(rmw, left);
+          }
+        } else if (op.usedBy.length == 1 &&
+                   right is HConstant &&
+                   right.constant.isOne) {
+          HInstruction rmw = new HReadModifyWrite.postOp(
+              setter.element, incrementOp, receiver, op.instructionType);
+          block.addAfter(left, rmw);
+          block.remove(setter);
+          block.remove(op);
+          block.rewrite(left, rmw);
+          block.remove(left);
+          return null;
+        }
+      }
+      return noMatchingRead();
+    }
+
+    HInstruction simple(String assignOp,
+                        HInstruction left, HInstruction right) {
+      if (isMatchingRead(left)) {
+        if (left.usedBy.length == 1) {
+          HInstruction rmw = new HReadModifyWrite.assignOp(
+              setter.element,
+              assignOp,
+              receiver, right, op.instructionType);
+          return replaceOp(rmw, left);
+        }
+      }
+      return noMatchingRead();
+    }
+
+    HInstruction simpleBinary(String assignOp) {
+      HInvokeBinary binary = op;
+      return simple(assignOp, binary.left, binary.right);
+    }
+
+    HInstruction bitop(String assignOp) {
+      // HBitAnd, HBitOr etc. are more difficult because HBitAnd(a.x, y)
+      // sometimes needs to be forced to unsigned: a.x = (a.x & y) >>> 0.
+      if (op.isUInt31(compiler)) return simpleBinary(assignOp);
+      return noMatchingRead();
+    }
+
+    if (op is HAdd) return plusOrMinus('+', '++');
+    if (op is HSubtract) return plusOrMinus('-', '--');
+
+    if (op is HStringConcat) return simple('+', op.left, op.right);
+
+    if (op is HMultiply) return simpleBinary('*');
+    if (op is HDivide) return simpleBinary('/');
+
+    if (op is HBitAnd) return bitop('&');
+    if (op is HBitOr) return bitop('|');
+    if (op is HBitXor) return bitop('^');
+
+    return noMatchingRead();
+  }
+}
+
+/**
  * Remove [HTypeKnown] instructions from the graph, to make codegen
  * analysis easier.
  */
@@ -124,9 +371,7 @@ class SsaInstructionMerger extends HBaseVisitor {
   // does not require an expression with multiple uses (because of null /
   // undefined).
   void visitIdentity(HIdentity instruction) {
-    HInstruction left = instruction.left;
-    HInstruction right = instruction.right;
-    if (singleIdentityComparison(left, right, compiler) != null) {
+    if (instruction.singleComparisonOp != null) {
       super.visitIdentity(instruction);
     }
     // Do nothing.
@@ -204,16 +449,66 @@ class SsaInstructionMerger extends HBaseVisitor {
         markAsGenerateAtUseSite(instruction);
         continue;
       }
-      if (instruction.isJsStatement()) {
-        expectedInputs.clear();
-      }
       if (instruction.isPure()) {
         if (pureInputs.contains(instruction)) {
           tryGenerateAtUseSite(instruction);
         } else {
           // If the input is not in the [pureInputs] set, it has not
-          // been visited.
+          // been visited or should not be generated at use-site. The most
+          // likely reason for the latter, is that the instruction is used
+          // in more than one location.
+          // We must either clear the expectedInputs, or move the pure
+          // instruction's inputs in front of the existing ones.
+          // Example:
+          //   t1 = foo();  // side-effect.
+          //   t2 = bar();  // side-effect.
+          //   t3 = pure(t2);    // used more than once.
+          //   f(t1, t3);   // expected inputs of 'f': t1.
+          //   use(t3);
+          //
+          // If we don't clear the expected inputs we end up in a situation
+          // where pure pushes "t2" on top of "t1" leading to:
+          //   t3 = pure(bar());
+          //   f(foo(), t3);
+          //   use(t3);
+          //
+          // If we clear the expected-inputs list we have the correct
+          // output:
+          //   t1 = foo();
+          //   t3 = pure(bar());
+          //   f(t1, t3);
+          //   use(t3);
+          //
+          // Clearing is, however, not optimal.
+          // Example:
+          //   t1 = foo();  // t1 is now used by `pure`.
+          //   t2 = bar();  // t2 is now used by `f`.
+          //   t3 = pure(t1);
+          //   f(t2, t3);
+          //   use(t3);
+          //
+          // If we clear the expected-inputs we can't generate-at-use any of
+          // the instructions.
+          //
+          // The optimal solution is to move the inputs of 'pure' in
+          // front of the expectedInputs list. This makes sense, since we
+          // push expected-inputs from left-to right, and the `pure` function
+          // invocation is "more left" (i.e. before) the first argument of `f`.
+          // With that approach we end up with:
+          //   t3 = pure(foo();
+          //   f(bar(), t3);
+          //   use(t3);
+          //
+          int oldLength = expectedInputs.length;
           instruction.accept(this);
+          if (oldLength != 0 && oldLength != expectedInputs.length) {
+            // Move the pure instruction's inputs to the front.
+            List<HInstruction> newInputs = expectedInputs.sublist(oldLength);
+            int newCount = newInputs.length;
+            expectedInputs.setRange(
+                newCount, newCount + oldLength, expectedInputs);
+            expectedInputs.setRange(0, newCount, newInputs);
+          }
         }
       } else {
         if (findInInputsAndPopNonMatching(instruction)) {

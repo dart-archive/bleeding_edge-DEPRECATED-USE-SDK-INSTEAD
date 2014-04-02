@@ -6,16 +6,17 @@ library polymer.test.bind_mdv_test;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:custom_element/polyfill.dart';
 import 'package:template_binding/template_binding.dart';
 import 'package:observe/observe.dart';
+import 'package:observe/mirrors_used.dart'; // make test smaller.
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
+import 'package:web_components/polyfill.dart';
 
 main() {
   useHtmlConfiguration();
 
-  var registered = loadCustomElementPolyfill().then((_) {
+  var registered = customElementsReady.then((_) {
     document.register('my-div', MyDivElement);
   });
 

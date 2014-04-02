@@ -4,7 +4,6 @@
 
 library source_map_builder;
 
-
 import 'util/util.dart';
 import 'scanner/scannerlib.dart' show Token;
 import 'source_file.dart';
@@ -19,6 +18,7 @@ class SourceMapBuilder {
                                       'opqrstuvwxyz0123456789+/';
 
   final Uri uri;
+  final Uri fileUri;
 
   List<SourceMapEntry> entries;
 
@@ -35,7 +35,7 @@ class SourceMapBuilder {
   int previousSourceNameIndex;
   bool firstEntryInLine;
 
-  SourceMapBuilder(this.uri) {
+  SourceMapBuilder(this.uri, this.fileUri) {
     entries = new List<SourceMapEntry>();
 
     sourceUrlMap = new Map<String, int>();
@@ -76,6 +76,9 @@ class SourceMapBuilder {
     StringBuffer buffer = new StringBuffer();
     buffer.write('{\n');
     buffer.write('  "version": 3,\n');
+    if (uri != null && fileUri != null) {
+      buffer.write('  "file": "${relativize(uri, fileUri, false)}",\n');
+    }
     buffer.write('  "sourceRoot": "",\n');
     buffer.write('  "sources": ');
     if (uri != null) {
@@ -210,13 +213,4 @@ class TokenSourceFileLocation extends SourceFileLocation {
     if (token.isIdentifier()) return token.value;
     return null;
   }
-}
-
-class OffsetSourceFileLocation extends SourceFileLocation {
-  final int offset;
-  final String sourceName;
-  OffsetSourceFileLocation(SourceFile sourceFile, this.offset,
-      [this.sourceName]) : super(sourceFile);
-
-  String getSourceName() => sourceName;
 }

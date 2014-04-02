@@ -5,21 +5,19 @@
 third_party/pkg/route_hierarchical: Fail
 
 samples/third_party/angular_todo: Pass, Slow
-samples/third_party/pop-pop-win: Pass, Slow
+samples/third_party/dromaeo: Pass, Slow
+samples/third_party/todomvc_performance: Pass, Slow
+samples/pop_pop_win: Pass, Slow
 samples/searchable_list: Pass, Slow
 pkg/docgen: Pass, Slow
 
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
-pkg/args: PubGetError
-pkg/async: PubGetError
-pkg/collection: PubGetError
-pkg/stack_trace: PubGetError
+pkg/browser: PubGetError
 
 [ $use_public_packages ]
-pkg/watcher: PubGetError # Issue 16026
-pkg/template_binding: Pass, PubGetError # Issue 16026
+samples/third_party/todomvc: Fail # Issue 17324
 
 [ $builder_tag == russian ]
-samples/third_party/pop-pop-win: Fail # Issue 16356
+samples/pop_pop_win: Fail # Issue 16356
 samples/third_party/angular_todo: Fail # Issue 16356

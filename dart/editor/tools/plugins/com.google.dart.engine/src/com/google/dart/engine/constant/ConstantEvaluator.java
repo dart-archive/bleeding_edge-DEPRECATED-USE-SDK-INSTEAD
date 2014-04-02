@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.constant;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.constant.ConstantVisitor;
@@ -99,7 +99,7 @@ public class ConstantEvaluator {
     }
     ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
     for (ErrorResult.ErrorData data : ((ErrorResult) result).getErrorData()) {
-      ASTNode node = data.getNode();
+      AstNode node = data.getNode();
       errors.add(new AnalysisError(source, node.getOffset(), node.getLength(), data.getErrorCode()));
     }
     return EvaluationResult.forErrors(errors.toArray(new AnalysisError[errors.size()]));

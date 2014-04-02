@@ -223,7 +223,7 @@ public class TypeProviderImpl implements TypeProvider {
    * @param library the library containing the definitions of the core types
    */
   private void initializeFrom(LibraryElement library) {
-    Namespace namespace = new NamespaceBuilder().createPublicNamespace(library);
+    Namespace namespace = new NamespaceBuilder().createPublicNamespaceForLibrary(library);
     boolType = getType(namespace, "bool");
     bottomType = BottomTypeImpl.getInstance();
     deprecatedType = getType(namespace, "Deprecated");

@@ -4,8 +4,8 @@
 
 import 'dart:convert';
 
-import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
+import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
@@ -32,12 +32,8 @@ main() {
       response.close();
     });
 
-    expect(pub.nextErrLine(), completion(equals('OAuth2 authorization failed '
-        '(your token sucks).')));
-    // TODO(rnystrom): The confirm line is run together with this one because
-    // in normal usage, the user will have entered a newline on stdin which
-    // gets echoed to the terminal. Do something better here?
-    expect(pub.nextLine(), completion(equals('Uploading...')));
+    pub.stderr.expect('OAuth2 authorization failed (your token sucks).');
+    pub.stdout.expect(startsWith('Uploading...'));
     pub.kill();
   });
 }

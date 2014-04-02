@@ -9,11 +9,13 @@
 #error Do not include eventhandler_linux.h directly; use eventhandler.h instead.
 #endif
 
-#include <unistd.h>
+#include <errno.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include "platform/hashmap.h"
+#include "platform/signal_blocker.h"
 
 
 namespace dart {
@@ -27,46 +29,20 @@ class InterruptMessage {
 };
 
 
-enum PortDataFlags {
-  kClosedRead = 0,
-  kClosedWrite = 1,
-};
-
-
 class SocketData {
  public:
-  explicit SocketData(intptr_t fd)
-      : tracked_by_epoll_(false), fd_(fd), port_(0), mask_(0), flags_(0) {
+  explicit SocketData(intptr_t fd) : fd_(fd), port_(0), mask_(0), tokens_(16) {
     ASSERT(fd_ != -1);
   }
 
   intptr_t GetPollEvents();
 
-  void ShutdownRead() {
-    shutdown(fd_, SHUT_RD);
-    MarkClosedRead();
-  }
-
-  void ShutdownWrite() {
-    shutdown(fd_, SHUT_WR);
-    MarkClosedWrite();
-  }
-
   void Close() {
     port_ = 0;
     mask_ = 0;
-    flags_ = 0;
-    close(fd_);
+    VOID_TEMP_FAILURE_RETRY(close(fd_));
     fd_ = -1;
   }
-
-  bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
-  bool IsPipe() { return (mask_ & (1 << kPipe)) != 0; }
-  bool IsClosedRead() { return (flags_ & (1 << kClosedRead)) != 0; }
-  bool IsClosedWrite() { return (flags_ & (1 << kClosedWrite)) != 0; }
-
-  void MarkClosedRead() { flags_ |= (1 << kClosedRead); }
-  void MarkClosedWrite() { flags_ |= (1 << kClosedWrite); }
 
   void SetPortAndMask(Dart_Port port, intptr_t mask) {
     ASSERT(fd_ != -1);
@@ -76,16 +52,28 @@ class SocketData {
 
   intptr_t fd() { return fd_; }
   Dart_Port port() { return port_; }
-  intptr_t mask() { return mask_; }
-  bool tracked_by_epoll() { return tracked_by_epoll_; }
-  void set_tracked_by_epoll(bool value) { tracked_by_epoll_ = value; }
+
+  bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
+
+  // Returns true if the last token was taken.
+  bool TakeToken() {
+    ASSERT(tokens_ > 0);
+    tokens_--;
+    return tokens_ == 0;
+  }
+
+  // Returns true if the tokens was 0 before adding.
+  bool ReturnToken() {
+    ASSERT(tokens_ >= 0);
+    tokens_++;
+    return tokens_ == 1;
+  }
 
  private:
-  bool tracked_by_epoll_;
   intptr_t fd_;
   Dart_Port port_;
   intptr_t mask_;
-  intptr_t flags_;
+  int tokens_;
 };
 
 

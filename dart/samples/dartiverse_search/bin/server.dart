@@ -87,7 +87,7 @@ void main() {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
 
-  var buildPath = Platform.script.resolve('../build').toFilePath();
+  var buildPath = Platform.script.resolve('../build/web').toFilePath();
   if (!new Directory(buildPath).existsSync()) {
     log.severe("The 'build/' directory was not found. Please run 'pub build'.");
     return;

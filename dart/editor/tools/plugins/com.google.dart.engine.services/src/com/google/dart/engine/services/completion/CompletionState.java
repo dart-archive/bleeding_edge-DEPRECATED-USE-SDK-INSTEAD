@@ -1,6 +1,6 @@
 package com.google.dart.engine.services.completion;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.element.ParameterElement;
 
 /**
@@ -11,6 +11,7 @@ class CompletionState {
   boolean isVoidAllowed;
   boolean isDynamicAllowed;
   boolean isSourceDeclarationStatic;
+  boolean isThisAllowed = true;
   boolean isVarAllowed;
   boolean areLiteralsAllowed;
   boolean areLiteralsProhibited;
@@ -68,6 +69,10 @@ class CompletionState {
     areStaticReferencesProhibited = true;
   }
 
+  void prohibitThis() {
+    isThisAllowed = false;
+  }
+
   void prohibitsUndefinedTypes() {
     areUndefinedTypesProhibited = true;
   }
@@ -86,7 +91,7 @@ class CompletionState {
     prohibitsLiterals();
   }
 
-  void setContext(ASTNode base) {
+  void setContext(AstNode base) {
     base.accept(new ContextAnalyzer(this, base));
   }
 

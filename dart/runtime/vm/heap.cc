@@ -7,7 +7,6 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/flags.h"
-#include "vm/heap_histogram.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_set.h"
@@ -16,6 +15,7 @@
 #include "vm/raw_object.h"
 #include "vm/scavenger.h"
 #include "vm/stack_frame.h"
+#include "vm/tags.h"
 #include "vm/verifier.h"
 #include "vm/virtual_memory.h"
 #include "vm/weak_table.h"
@@ -34,6 +34,8 @@ DEFINE_FLAG(int, new_gen_heap_size, 32, "new gen heap size in MB,"
 DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
             "old gen heap size in MB,"
             "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
+DEFINE_FLAG(int, new_gen_ext_limit, 64,
+            "maximum total external size (MB) in new gen before triggering GC");
 
 Heap::Heap() : read_only_(false), gc_in_progress_(false) {
   for (int sel = 0;
@@ -91,6 +93,28 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   return addr;
 }
 
+void Heap::AllocateExternal(intptr_t size, Space space) {
+  if (space == kNew) {
+    new_space_->AllocateExternal(size);
+    if (new_space_->ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {
+      // Attempt to free some external allocation by a scavenge. (If the total
+      // remains above the limit, next external alloc will trigger another.)
+      CollectGarbage(kNew);
+    }
+  } else {
+    ASSERT(space == kOld);
+    old_space_->AllocateExternal(size);
+  }
+}
+
+void Heap::FreeExternal(intptr_t size, Space space) {
+  if (space == kNew) {
+    new_space_->FreeExternal(size);
+  } else {
+    ASSERT(space == kOld);
+    old_space_->FreeExternal(size);
+  }
+}
 
 bool Heap::Contains(uword addr) const {
   return new_space_->Contains(addr) ||
@@ -145,7 +169,7 @@ void Heap::IterateOldObjects(ObjectVisitor* visitor) {
 }
 
 
-RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) {
+RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
   // Only executable pages can have RawInstructions objects.
   RawObject* raw_obj = old_space_->FindObject(visitor, HeapPage::kExecutable);
   ASSERT((raw_obj == Object::null()) ||
@@ -159,16 +183,38 @@ RawObject* Heap::FindOldObject(FindObjectVisitor* visitor) const {
 }
 
 
+RawObject* Heap::FindNewObject(FindObjectVisitor* visitor) const {
+  return new_space_->FindObject(visitor);
+}
+
+
+RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
+  ASSERT(Isolate::Current()->no_gc_scope_depth() != 0);
+  RawObject* raw_obj = FindNewObject(visitor);
+  if (raw_obj != Object::null()) {
+    return raw_obj;
+  }
+  raw_obj = FindOldObject(visitor);
+  if (raw_obj != Object::null()) {
+    return raw_obj;
+  }
+  raw_obj = FindObjectInCodeSpace(visitor);
+  return raw_obj;
+}
+
+
 void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
+  Isolate* isolate = Isolate::Current();
   bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {
     case kNew: {
+      VMTagScope tagScope(isolate, VMTag::kGCNewSpaceTagId);
       RecordBeforeGC(kNew, kNewSpace);
       UpdateClassHeapStatsBeforeGC(kNew);
       new_space_->Scavenge(invoke_api_callbacks);
       RecordAfterGC();
       PrintStats();
-      if (new_space_->HadPromotionFailure()) {
+      if (new_space_->HadPromotionFailure() || old_space_->NeedExternalGC()) {
         // Old collections should call the API callbacks.
         CollectGarbage(kOld, kInvokeApiCallbacks);
       }
@@ -176,25 +222,18 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
     }
     case kOld:
     case kCode: {
+      VMTagScope tagScope(isolate, VMTag::kGCOldSpaceTagId);
       bool promotion_failure = new_space_->HadPromotionFailure();
       RecordBeforeGC(kOld, promotion_failure ? kPromotionFailure : kOldSpace);
       UpdateClassHeapStatsBeforeGC(kOld);
       old_space_->MarkSweep(invoke_api_callbacks);
       RecordAfterGC();
       PrintStats();
-      UpdateObjectHistogram();
       break;
     }
     default:
       UNREACHABLE();
   }
-}
-
-
-void Heap::UpdateObjectHistogram() {
-  Isolate* isolate = Isolate::Current();
-  if (isolate->object_histogram() == NULL) return;
-  isolate->object_histogram()->Collect();
 }
 
 
@@ -221,17 +260,23 @@ void Heap::CollectGarbage(Space space) {
 
 
 void Heap::CollectAllGarbage() {
-  RecordBeforeGC(kNew, kFull);
-  UpdateClassHeapStatsBeforeGC(kNew);
-  new_space_->Scavenge(kInvokeApiCallbacks);
-  RecordAfterGC();
-  PrintStats();
-  RecordBeforeGC(kOld, kFull);
-  UpdateClassHeapStatsBeforeGC(kOld);
-  old_space_->MarkSweep(kInvokeApiCallbacks);
-  RecordAfterGC();
-  PrintStats();
-  UpdateObjectHistogram();
+  Isolate* isolate = Isolate::Current();
+  {
+    VMTagScope tagScope(isolate, VMTag::kGCNewSpaceTagId);
+    RecordBeforeGC(kNew, kFull);
+    UpdateClassHeapStatsBeforeGC(kNew);
+    new_space_->Scavenge(kInvokeApiCallbacks);
+    RecordAfterGC();
+    PrintStats();
+  }
+  {
+    VMTagScope tagScope(isolate, VMTag::kGCOldSpaceTagId);
+    RecordBeforeGC(kOld, kFull);
+    UpdateClassHeapStatsBeforeGC(kOld);
+    old_space_->MarkSweep(kInvokeApiCallbacks);
+    RecordAfterGC();
+    PrintStats();
+  }
 }
 
 
@@ -334,6 +379,10 @@ intptr_t Heap::CapacityInWords(Space space) const {
                          old_space_->CapacityInWords();
 }
 
+intptr_t Heap::ExternalInWords(Space space) const {
+  return space == kNew ? new_space_->ExternalInWords() :
+                         old_space_->ExternalInWords();
+}
 
 int64_t Heap::GCTimeInMicros(Space space) const {
   if (space == kNew) {
@@ -420,8 +469,10 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
   stats_.before_.micros_ = OS::GetCurrentTimeMicros();
   stats_.before_.new_used_in_words_ = new_space_->UsedInWords();
   stats_.before_.new_capacity_in_words_ = new_space_->CapacityInWords();
+  stats_.before_.new_external_in_words_ = new_space_->ExternalInWords();
   stats_.before_.old_used_in_words_ = old_space_->UsedInWords();
   stats_.before_.old_capacity_in_words_ = old_space_->CapacityInWords();
+  stats_.before_.old_external_in_words_ = old_space_->ExternalInWords();
   stats_.times_[0] = 0;
   stats_.times_[1] = 0;
   stats_.times_[2] = 0;
@@ -445,8 +496,10 @@ void Heap::RecordAfterGC() {
   }
   stats_.after_.new_used_in_words_ = new_space_->UsedInWords();
   stats_.after_.new_capacity_in_words_ = new_space_->CapacityInWords();
+  stats_.after_.new_external_in_words_ = new_space_->ExternalInWords();
   stats_.after_.old_used_in_words_ = old_space_->UsedInWords();
   stats_.after_.old_capacity_in_words_ = old_space_->CapacityInWords();
+  stats_.after_.old_external_in_words_ = old_space_->ExternalInWords();
   ASSERT(gc_in_progress_);
   gc_in_progress_ = false;
 }
@@ -461,7 +514,7 @@ void Heap::PrintStats() {
     OS::PrintErr("[    GC    |  space  | count | start | gc time | "
                  "new gen (KB) | old gen (KB) | timers | data ]\n"
                  "[ (isolate)| (reason)|       |  (s)  |   (ms)  | "
-                 " used , cap  |  used , cap  |  (ms)  |      ]\n");
+                 "used,cap,ext | used,cap,ext |  (ms)  |      ]\n");
   }
 
   const char* space_str = stats_.space_ == kNew ? "Scavenge" : "Mark-Sweep";
@@ -472,28 +525,34 @@ void Heap::PrintStats() {
     "%.3f, "  // total time
     "%" Pd ", %" Pd ", "  // new gen: in use before/after
     "%" Pd ", %" Pd ", "  // new gen: capacity before/after
+    "%" Pd ", %" Pd ", "  // new gen: external before/after
     "%" Pd ", %" Pd ", "  // old gen: in use before/after
     "%" Pd ", %" Pd ", "  // old gen: capacity before/after
+    "%" Pd ", %" Pd ", "  // old gen: external before/after
     "%.3f, %.3f, %.3f, %.3f, "  // times
     "%" Pd ", %" Pd ", %" Pd ", %" Pd ", "  // data
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
     isolate->main_port(), space_str, GCReasonToString(stats_.reason_),
     stats_.num_,
-    RoundMicrosecondsToSeconds(stats_.before_.micros_ - isolate->start_time()),
-    RoundMicrosecondsToMilliseconds(stats_.after_.micros_ -
+    MicrosecondsToSeconds(stats_.before_.micros_ - isolate->start_time()),
+    MicrosecondsToMilliseconds(stats_.after_.micros_ -
                                     stats_.before_.micros_),
     RoundWordsToKB(stats_.before_.new_used_in_words_),
     RoundWordsToKB(stats_.after_.new_used_in_words_),
     RoundWordsToKB(stats_.before_.new_capacity_in_words_),
     RoundWordsToKB(stats_.after_.new_capacity_in_words_),
+    RoundWordsToKB(stats_.before_.new_external_in_words_),
+    RoundWordsToKB(stats_.after_.new_external_in_words_),
     RoundWordsToKB(stats_.before_.old_used_in_words_),
     RoundWordsToKB(stats_.after_.old_used_in_words_),
     RoundWordsToKB(stats_.before_.old_capacity_in_words_),
     RoundWordsToKB(stats_.after_.old_capacity_in_words_),
-    RoundMicrosecondsToMilliseconds(stats_.times_[0]),
-    RoundMicrosecondsToMilliseconds(stats_.times_[1]),
-    RoundMicrosecondsToMilliseconds(stats_.times_[2]),
-    RoundMicrosecondsToMilliseconds(stats_.times_[3]),
+    RoundWordsToKB(stats_.before_.old_external_in_words_),
+    RoundWordsToKB(stats_.after_.old_external_in_words_),
+    MicrosecondsToMilliseconds(stats_.times_[0]),
+    MicrosecondsToMilliseconds(stats_.times_[1]),
+    MicrosecondsToMilliseconds(stats_.times_[2]),
+    MicrosecondsToMilliseconds(stats_.times_[3]),
     stats_.data_[0],
     stats_.data_[1],
     stats_.data_[2],

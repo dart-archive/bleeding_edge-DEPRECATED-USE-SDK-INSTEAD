@@ -5,23 +5,12 @@ TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 (*Run "check problems"*)
 
 Click "run button"
-WaitFor 10,"browser right arrow button"
+util.xWaitFor 10,"browser right arrow button"
 Click (Text:"Untitled",CaseSensitive:"yes")
 Click "plus file"
 Click "red stripe"
 Click "delete file X"
 util.exitChromium
-
-util.selectContextMenuItem "app.dart", "Run as JavaScript"
-Wait 2
-WaitFor 30,"plus file"
-Click (Text:"Untitled",CaseSensitive:"yes")
-util.closeTab
-if (util.isMacOSX) then
-  Wait 1
-  TypeText CommandKey,Tab
-end if
-Wait 1
 
 set the SearchRectangle to ((0,100),(300,400))
 (*Click (Text:"document",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)*)
@@ -30,20 +19,20 @@ DoubleClick (Text:"app.dart",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharact
 set the SearchRectangle to ()
 put -80 into offset
 if (util's isLinux) then
-  put -100 into offset
+	put -100 into offset
 end if
 DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)) + (offset,0)
 Click "run button"
 set the SearchRectangle to ((100,400),(500,800))
-WaitFor 10,"debug line indicator"
+util.xWaitFor 10,"debug line indicator"
 set the SearchRectangle to ()
 
 Click "step into icon"
-Wait 2
+util.xWait 2
 Click "step out icon"
-Wait 2
+util.xWait 2
 Click "step over icon"
-Wait 2
+util.xWait 2
 Click "stop debug button"
 
 DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)) + (offset,0)

@@ -5,7 +5,6 @@
 library polymer.test.property_change_test;
 
 import 'dart:async';
-import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
@@ -47,12 +46,11 @@ class XTest extends XBase {
   }
 }
 
-main() {
-  initPolymer();
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
 
   test('bar change detected', () => _bar.future);
   test('zonk change detected', () => _zonk.future);
-}
+});

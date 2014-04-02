@@ -83,7 +83,7 @@ public class EnclosedScope extends Scope {
   }
 
   @Override
-  protected Element lookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
+  protected Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
     Element element = localLookup(name, referencingLibrary);
     if (element != null) {
       return element;
@@ -102,6 +102,6 @@ public class EnclosedScope extends Scope {
       }
     }
     // Check enclosing scope.
-    return enclosingScope.lookup(identifier, name, referencingLibrary);
+    return enclosingScope.internalLookup(identifier, name, referencingLibrary);
   }
 }

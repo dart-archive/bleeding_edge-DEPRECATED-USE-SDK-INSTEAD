@@ -16,16 +16,20 @@ package com.google.dart.tools.ui.feedback;
 import com.google.dart.engine.utilities.instrumentation.HealthUtils;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.internal.Library;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.PlatformUI;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.zip.CRC32;
 
 /**
@@ -38,21 +42,42 @@ public class FeedbackUtils {
    * Contains information about the current session
    */
   public static class Stats {
-    public final int numProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects().length;
-    public final int numEditors = getNumberOfOpenDartEditors();
-    public final int numThreads = getNumberOfThreads();
-    public final long maxMem = HealthUtils.getMaxMem();
-    public final long totalMem = Runtime.getRuntime().totalMemory();
-    public final long freeMem = Runtime.getRuntime().freeMemory();
+    public final int numProjects;
+    public final int numEditors;
+    public final int numThreads;
+    public final long maxMem;
+    public final long totalMem;
+    public final long freeMem;
     public final String indexStats;
-    public final boolean autoRunPubEnabled = DartCore.getPlugin().isAutoRunPubEnabled();
+    public final boolean autoRunPubEnabled;
 
     public Stats() {
-      indexStats = "index: " + DartCore.getProjectManager().getIndex().getStatistics();
+      this(
+          ResourcesPlugin.getWorkspace().getRoot().getProjects().length,
+          getNumberOfOpenDartEditors(),
+          getNumberOfThreads(),
+          HealthUtils.getMaxMem(),
+          Runtime.getRuntime().totalMemory(),
+          Runtime.getRuntime().freeMemory(),
+          DartCore.getProjectManager().getIndex().getStatistics(),
+          DartCore.getPlugin().isAutoRunPubEnabled());
+    }
+
+    public Stats(int numProjects, int numEditors, int numThreads, long maxMem, long totalMem,
+        long freeMem, String indexStats, boolean autoRunPubEnabled) {
+      this.numProjects = numProjects;
+      this.numEditors = numEditors;
+      this.numThreads = numThreads;
+      this.maxMem = maxMem;
+      this.totalMem = totalMem;
+      this.freeMem = freeMem;
+      this.indexStats = indexStats;
+      this.autoRunPubEnabled = autoRunPubEnabled;
     }
 
     @Override
     public String toString() {
+      @SuppressWarnings("resource")
       PrintStringWriter writer = new PrintStringWriter();
 
       writer.print("# projects: ");
@@ -75,7 +100,7 @@ public class FeedbackUtils {
 
       writer.println("thread count: " + countString(numThreads));
 
-      writer.println(indexStats);
+      writer.println("index: " + indexStats);
 
       return writer.toString();
     }
@@ -154,6 +179,14 @@ public class FeedbackUtils {
     }
   }
 
+  public static String getWS() {
+    try {
+      return Platform.getWS();
+    } catch (Throwable ex) {
+      return "unknown";
+    }
+  }
+
   /**
    * Return a list of the substrings in the given string that are separated by the given separator.
    * If the given flag is <code>true</code>, the substrings will have leading and trailing
@@ -174,6 +207,18 @@ public class FeedbackUtils {
     }
 
     return results;
+  }
+
+  static Map<String, String> getSparseOptionsMap() {
+    return Platform.isRunning() ? DartCoreDebug.SPARSE_OPTION_MAP : null;
+  }
+
+  static boolean isDartiumInstalled() {
+    return isSdkInstalled() && DartSdkManager.getManager().getSdk().isDartiumInstalled();
+  }
+
+  static boolean isSdkInstalled() {
+    return DartSdkManager.getManager().hasSdk();
   }
 
   private static boolean binaryMismatch() throws Exception {
@@ -265,5 +310,4 @@ public class FeedbackUtils {
 
     return str;
   }
-
 }

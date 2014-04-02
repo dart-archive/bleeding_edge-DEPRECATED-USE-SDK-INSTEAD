@@ -31,7 +31,7 @@ bool File::ReadFully(void* buffer, int64_t num_bytes) {
   int64_t remaining = num_bytes;
   char* current_buffer = reinterpret_cast<char*>(buffer);
   while (remaining > 0) {
-    int bytes_read = Read(current_buffer, remaining);
+    int64_t bytes_read = Read(current_buffer, remaining);
     if (bytes_read <= 0) {
       return false;
     }
@@ -46,7 +46,7 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
   int64_t remaining = num_bytes;
   const char* current_buffer = reinterpret_cast<const char*>(buffer);
   while (remaining > 0) {
-    int bytes_read = Write(current_buffer, remaining);
+    int64_t bytes_read = Write(current_buffer, remaining);
     if (bytes_read < 0) {
       return false;
     }
@@ -261,7 +261,7 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
   ASSERT(buffer != NULL);
 
   // Write the data out into the file.
-  int64_t bytes_written = file->Write(reinterpret_cast<void*>(buffer), length);
+  int64_t bytes_written = file->Write(buffer, length);
   // Release the direct pointer acquired above.
   result = Dart_TypedDataReleaseData(buffer_obj);
   if (Dart_IsError(result)) Dart_PropagateError(result);

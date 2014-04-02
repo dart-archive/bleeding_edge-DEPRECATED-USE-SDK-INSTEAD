@@ -19,33 +19,29 @@ import '../../../../compiler/implementation/dart2js.dart'
 import '../../../../compiler/implementation/source_file.dart';
 import '../barback.dart';
 import '../dart.dart' as dart;
-import '../io.dart';
-import '../package.dart';
-import '../package_graph.dart';
+import '../pool.dart';
 import '../utils.dart';
 import 'build_environment.dart';
 
 /// The set of all valid configuration options for this transformer.
 final _validOptions = new Set<String>.from([
   'commandLineOptions', 'checked', 'minify', 'verbose', 'environment',
-  'analyzeAll', 'suppressWarnings', 'suppressHints', 'terse'
+  'analyzeAll', 'suppressWarnings', 'suppressHints', 'suppressPackageWarnings',
+  'terse'
 ]);
 
 /// A [Transformer] that uses dart2js's library API to transform Dart
 /// entrypoints in "web" to JavaScript.
-class Dart2JSTransformer extends Transformer {
-  final BuildEnvironment _environment;
-  final BarbackSettings _settings;
-
-  /// If this is non-null, then the transformer is currently being applied, so
-  /// subsequent calls to [apply] will wait for this to finish before
-  /// proceeding.
+class Dart2JSTransformer extends Transformer implements LazyTransformer {
+  /// We use this to ensure that only one compilation is in progress at a time.
   ///
   /// Dart2js uses lots of memory, so if we try to actually run compiles in
-  /// parallel, it takes down the VM. Instead, the transformer will force
-  /// all applies to be sequential. The tracking bug to do something better
+  /// parallel, it takes down the VM. The tracking bug to do something better
   /// is here: https://code.google.com/p/dart/issues/detail?id=14730.
-  Future _running;
+  static final _pool = new Pool(1);
+
+  final BuildEnvironment _environment;
+  final BarbackSettings _settings;
 
   Dart2JSTransformer.withSettings(this._environment, this._settings) {
     var invalidOptions = _settings.configuration.keys.toSet()
@@ -60,53 +56,47 @@ class Dart2JSTransformer extends Transformer {
   Dart2JSTransformer(BuildEnvironment environment, BarbackMode mode)
       : this.withSettings(environment, new BarbackSettings({}, mode));
 
-  /// Only ".dart" files within a buildable directory are processed.
+  /// Only ".dart" entrypoint files within a buildable directory are processed.
   Future<bool> isPrimary(Asset asset) {
     if (asset.id.extension != ".dart") return new Future.value(false);
 
-    for (var dir in ["benchmark", "example", "test", "web"]) {
-      if (asset.id.path.startsWith("$dir/")) return new Future.value(true);
+    // These should only contain libraries. For efficiency's sake, we don't
+    // look for entrypoints in there.
+    if (["asset/", "lib/"].any(asset.id.path.startsWith)) {
+      return new Future.value(false);
     }
 
-    return new Future.value(false);
-  }
-
-  Future apply(Transform transform) {
-    // Wait for any ongoing apply to finish first.
-    // TODO(rnystrom): If there are multiple simultaneous compiles, this will
-    // resume and pause them repeatedly. It still serializes them correctly,
-    // but it might be cleaner to use a real queue.
-    // TODO(rnystrom): Add a test that this is functionality is helpful.
-    if (_running != null) {
-      return _running.then((_) => apply(transform));
-    }
-
-    var completer = new Completer();
-    _running = completer.future;
-
-    var stopwatch = new Stopwatch();
-    stopwatch.start();
-
-    return transform.primaryInput.readAsString().then((code) {
+    return asset.readAsString().then((code) {
       try {
-        var id = transform.primaryInput.id;
-        var name = id.path;
-        if (id.package != _environment.rootPackage.name) {
-          name += " in ${id.package}";
+        var name = asset.id.path;
+        if (asset.id.package != _environment.rootPackage.name) {
+          name += " in ${asset.id.package}";
         }
 
         var parsed = parseCompilationUnit(code, name: name);
-        if (!dart.isEntrypoint(parsed)) return null;
+        return dart.isEntrypoint(parsed);
       } on AnalyzerErrorGroup catch (e) {
-        transform.logger.error(e.message);
-        return null;
+        // If we get a parse error, consider the asset primary so we report
+        // dart2js's more detailed error message instead.
+        return true;
       }
+    });
+  }
 
-      var provider = new _BarbackCompilerProvider(_environment, transform);
+  Future apply(Transform transform) {
+    var stopwatch = new Stopwatch();
+
+    // Wait for any ongoing apply to finish first.
+    return _pool.withResource(() {
+      transform.logger.info("Compiling ${transform.primaryInput.id}...");
+      stopwatch.start();
+
+      var provider = new _BarbackCompilerProvider(_environment, transform,
+          generateSourceMaps: _settings.mode != BarbackMode.RELEASE);
 
       // Create a "path" to the entrypoint script. The entrypoint may not
-      // actually be on disk, but this gives dart2js a root to resolve
-      // relative paths against.
+      // actually be on disk, but this gives dart2js a root to resolve relative
+      // paths against.
       var id = transform.primaryInput.id;
 
       var entrypoint = path.join(_environment.graph.packages[id.package].dir,
@@ -129,14 +119,23 @@ class Dart2JSTransformer extends Transformer {
           analyzeAll: _configBool('analyzeAll'),
           suppressWarnings: _configBool('suppressWarnings'),
           suppressHints: _configBool('suppressHints'),
-          terse: _configBool('terse'))).then((_) {
+          suppressPackageWarnings: _configBool(
+              'suppressPackageWarnings', defaultsTo: true),
+          terse: _configBool('terse'),
+          includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE))
+          .then((_) {
         stopwatch.stop();
         transform.logger.info("Took ${stopwatch.elapsed} to compile $id.");
       });
-    }).whenComplete(() {
-      completer.complete();
-      _running = null;
     });
+  }
+
+  Future declareOutputs(DeclaringTransform transform) {
+    var primaryId = transform.primaryInput.id;
+    transform.declareOutput(primaryId.addExtension(".js"));
+    transform.declareOutput(primaryId.addExtension(".js.map"));
+    transform.declareOutput(primaryId.addExtension(".precompiled.js"));
+    return new Future.value();
   }
 
   /// Parses and returns the "commandLineOptions" configuration option.
@@ -187,8 +186,11 @@ class Dart2JSTransformer extends Transformer {
 /// difference is that it uses barback's logging code and, more importantly, it
 /// handles missing source files more gracefully.
 class _BarbackCompilerProvider implements dart.CompilerProvider {
+  Uri get libraryRoot => Uri.parse("${path.toUri(_libraryRootPath)}/");
+
   final BuildEnvironment _environment;
   final Transform _transform;
+  String _libraryRootPath;
 
   /// The map of previously loaded files.
   ///
@@ -212,6 +214,8 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
   /// errors.
   var _isAborting = false;
 
+  final bool generateSourceMaps;
+
   compiler.Diagnostic _lastKind = null;
 
   static final int _FATAL =
@@ -221,7 +225,31 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
       compiler.Diagnostic.INFO.ordinal |
       compiler.Diagnostic.VERBOSE_INFO.ordinal;
 
-  _BarbackCompilerProvider(this._environment, this._transform);
+  _BarbackCompilerProvider(this._environment, this._transform,
+      {this.generateSourceMaps: true}) {
+    // Dart2js outputs source maps that reference the Dart SDK sources. For
+    // that to work, those sources need to be inside the build environment. We
+    // do that by placing them in a special "$sdk" pseudo-package. In order for
+    // dart2js to generate the right URLs to point to that package, we give it
+    // a library root that corresponds to where that package can be found
+    // relative to the public build directory containing that entrypoint.
+    //
+    // For example, say the package being compiled is "/dev/myapp", the
+    // entrypoint is "web/sub/foo/bar.dart", and the build directory is
+    // "web/sub". This means the SDK sources will be (conceptually) at:
+    //
+    //     /dev/myapp/web/sub/packages/$sdk/lib/
+    //
+    // This implies that the asset path for a file in the SDK is:
+    //
+    //     $sdk|lib/lib/...
+    //
+    // TODO(rnystrom): Fix this if #17751 is fixed.
+    var buildDir = _environment.getBuildDirectoryContaining(
+        _transform.primaryInput.id.path);
+    _libraryRootPath = path.join(_environment.rootPackage.dir,
+        buildDir, "packages", r"$sdk");
+  }
 
   /// A [CompilerInputProvider] for dart2js.
   Future<String> provideInput(Uri resourceUri) {
@@ -244,6 +272,11 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // other files, we'd need some logic to determine the right relative path
     // for it.
     assert(name == "");
+
+    // TODO(rnystrom): Do this more cleanly. See: #17403.
+    if (!generateSourceMaps && extension.endsWith(".map")) {
+      return new NullSink<String>();
+    }
 
     var primaryId = _transform.primaryInput.id;
     var id = new AssetId(primaryId.package, "${primaryId.path}.$extension");
@@ -303,7 +336,6 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
 
     var fatal = (kind.ordinal & _FATAL) != 0;
     if (uri == null) {
-      assert(fatal);
       logFn(message);
     } else {
       SourceFile file = _sourceFiles[uri.toString()];
@@ -323,17 +355,16 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
   }
 
   Future<String> _readResource(Uri url) {
-    // See if the path is within a package. If so, use Barback so we can use
-    // generated Dart assets.
+    return syncFuture(() {
+      // Find the corresponding asset in barback.
+      var id = _sourceUrlToId(url);
+      if (id != null) return _transform.readInputAsString(id);
 
-    var id = _sourceUrlToId(url);
-    if (id != null) return _transform.readInputAsString(id);
-
-    // If we get here, the path doesn't appear to be in a package, so we'll
-    // skip Barback and just hit the file system. This will occur at the very
-    // least for dart2js's implementations of the core libraries.
-    var sourcePath = path.fromUri(url);
-    return Chain.track(new File(sourcePath).readAsString());
+      // Don't allow arbitrary file paths that point to things not in packages.
+      // Doing so won't work in Dartium.
+      throw new Exception(
+          "Cannot read $url because it is outside of the build environment.");
+    });
   }
 
   AssetId _sourceUrlToId(Uri url) {
@@ -344,16 +375,22 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // See if it's a path to a "public" asset within the root package. All
     // other files in the root package are not visible to transformers, so
     // should be loaded directly from disk.
-    var rootDir = _environment.rootPackage.dir;
     var sourcePath = path.fromUri(url);
-    if (isBeneath(sourcePath, path.join(rootDir, "lib")) ||
-        isBeneath(sourcePath, path.join(rootDir, "asset")) ||
-        isBeneath(sourcePath, path.join(rootDir, "web"))) {
-      var relative = path.relative(sourcePath, from: rootDir);
+    if (_environment.containsPath(sourcePath)) {
+      var relative = path.relative(sourcePath,
+          from: _environment.rootPackage.dir);
 
       return new AssetId(_environment.rootPackage.name, relative);
     }
 
     return null;
   }
+}
+
+/// An [EventSink] that discards all data. Provided to dart2js when we don't
+/// want an actual output.
+class NullSink<T> implements EventSink<T> {
+  void add(T event) {}
+  void addError(errorEvent, [StackTrace stackTrace]) {}
+  void close() {}
 }

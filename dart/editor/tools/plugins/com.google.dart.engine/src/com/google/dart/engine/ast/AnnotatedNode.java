@@ -25,7 +25,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public abstract class AnnotatedNode extends ASTNode {
+public abstract class AnnotatedNode extends AstNode {
   /**
    * The documentation comment associated with this node, or {@code null} if this node does not have
    * a documentation comment associated with it.
@@ -106,12 +106,12 @@ public abstract class AnnotatedNode extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     if (commentIsBeforeAnnotations()) {
       safelyVisitChild(comment, visitor);
       metadata.accept(visitor);
     } else {
-      for (ASTNode child : getSortedCommentAndAnnotations()) {
+      for (AstNode child : getSortedCommentAndAnnotations()) {
         child.accept(visitor);
       }
     }
@@ -144,12 +144,12 @@ public abstract class AnnotatedNode extends ASTNode {
    * @return the comment and annotations associated with this node in the order in which they
    *         appeared in the original source
    */
-  private ASTNode[] getSortedCommentAndAnnotations() {
-    ArrayList<ASTNode> childList = new ArrayList<ASTNode>();
+  private AstNode[] getSortedCommentAndAnnotations() {
+    ArrayList<AstNode> childList = new ArrayList<AstNode>();
     childList.add(comment);
     childList.addAll(metadata);
-    ASTNode[] children = childList.toArray(new ASTNode[childList.size()]);
-    Arrays.sort(children, ASTNode.LEXICAL_ORDER);
+    AstNode[] children = childList.toArray(new AstNode[childList.size()]);
+    Arrays.sort(children, AstNode.LEXICAL_ORDER);
     return children;
   }
 }

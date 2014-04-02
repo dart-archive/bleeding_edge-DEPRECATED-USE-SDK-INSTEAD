@@ -39,7 +39,7 @@ public interface IndexStore {
    * @return {@code true} the given {@link AnalysisContext} is active, or {@code false} if it was
    *         removed before, so no any unit may be indexed with it
    */
-  boolean aboutToIndex(AnalysisContext context, CompilationUnitElement unitElement);
+  boolean aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement);
 
   /**
    * Notifies the index store that we are going to index the given {@link HtmlElement}.
@@ -49,7 +49,7 @@ public interface IndexStore {
    * @return {@code true} the given {@link AnalysisContext} is active, or {@code false} if it was
    *         removed before, so no any unit may be indexed with it
    */
-  boolean aboutToIndex(AnalysisContext context, HtmlElement htmlElement);
+  boolean aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement);
 
   /**
    * Return the locations of the elements that have the given relationship with the given element.

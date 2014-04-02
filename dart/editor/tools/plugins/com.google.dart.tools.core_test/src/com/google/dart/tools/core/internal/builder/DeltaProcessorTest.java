@@ -314,6 +314,25 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     project.assertNoCalls();
   }
 
+  public void test_traverse_packages_removed_inSimpleProject() throws Exception {
+    projectContainer = TestProjects.newSimpleProjectWithPackages();
+    project = new DeltaProcessorMockProject(projectContainer);
+
+    MockFolder packages = (MockFolder) projectContainer.remove(PACKAGES_DIRECTORY_NAME);
+    MockDelta delta = new MockDelta(projectContainer);
+    delta.add(packages, REMOVED);
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(delta);
+    updater.applyChanges();
+
+    project.assertDiscardContextsIn(packages);
+    project.assertChanged(null, null, null, new IResource[] {packages});
+    project.assertNoCalls();
+  }
+
   public void test_traverse_project_file_added() throws Exception {
     MockDelta delta = new MockDelta(projectContainer);
     MockFile file = projectContainer.getMockFile("some.dart");

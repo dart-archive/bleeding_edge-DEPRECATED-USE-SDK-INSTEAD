@@ -14,7 +14,7 @@
 
 package com.google.dart.java2dart.processor;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
@@ -28,7 +28,7 @@ import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
 
@@ -39,7 +39,7 @@ import static com.google.dart.java2dart.util.TokenFactory.token;
  */
 public class BeautifySemanticProcessor extends SemanticProcessor {
   private static boolean canRemovePathenthesis(ParenthesizedExpression node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     // argument of invocation
     if (parent instanceof ArgumentList) {
       return true;
@@ -89,7 +89,7 @@ public class BeautifySemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitAsExpression(AsExpression node) {
         super.visitAsExpression(node);

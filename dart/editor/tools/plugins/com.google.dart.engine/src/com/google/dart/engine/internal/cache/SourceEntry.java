@@ -28,6 +28,12 @@ import com.google.dart.engine.utilities.source.LineInfo;
  */
 public interface SourceEntry {
   /**
+   * The data descriptor representing the contents of the source.
+   */
+  public static final DataDescriptor<CharSequence> CONTENT = new DataDescriptor<CharSequence>(
+      "DartEntry.CONTENT");
+
+  /**
    * The data descriptor representing the line information.
    */
   public static final DataDescriptor<LineInfo> LINE_INFO = new DataDescriptor<LineInfo>(
@@ -40,6 +46,14 @@ public interface SourceEntry {
    * @return the exception that caused one or more values to be uncomputable
    */
   public AnalysisException getException();
+
+  /**
+   * Return {@code true} if the source was explicitly added to the context or {@code false} if the
+   * source was implicitly added because it was referenced by another source.
+   * 
+   * @return {@code true} if the source was explicitly added to the context
+   */
+  public boolean getExplicitlyAdded();
 
   /**
    * Return the kind of the source, or {@code null} if the kind is not currently cached.

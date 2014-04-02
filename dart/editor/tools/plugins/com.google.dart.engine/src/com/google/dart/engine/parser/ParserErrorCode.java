@@ -184,7 +184,7 @@ public enum ParserErrorCode implements ErrorCode {
   /**
    * The severity of this error.
    */
-  private final ErrorSeverity severity;
+  private final ErrorSeverity errorSeverity;
 
   /**
    * The template used to create the message to be displayed for this error.
@@ -200,23 +200,22 @@ public enum ParserErrorCode implements ErrorCode {
   /**
    * Initialize a newly created error code to have the given severity and message.
    * 
-   * @param severity the severity of the error
+   * @param errorSeverity the severity of the error
    * @param message the message template used to create the message to be displayed for the error
    */
-  private ParserErrorCode(ErrorSeverity severity, String message) {
-    this.severity = severity;
-    this.message = message;
+  private ParserErrorCode(ErrorSeverity errorSeverity, String message) {
+    this(errorSeverity, message, null);
   }
 
   /**
    * Initialize a newly created error code to have the given severity, message and correction.
    * 
-   * @param severity the severity of the error
+   * @param errorSeverity the severity of the error
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  private ParserErrorCode(ErrorSeverity severity, String message, String correction) {
-    this.severity = severity;
+  private ParserErrorCode(ErrorSeverity errorSeverity, String message, String correction) {
+    this.errorSeverity = errorSeverity;
     this.message = message;
     this.correction = correction;
   }
@@ -227,7 +226,7 @@ public enum ParserErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   private ParserErrorCode(String message) {
-    this(ErrorSeverity.ERROR, message);
+    this(ErrorSeverity.ERROR, message, null);
   }
 
   @Override
@@ -237,7 +236,7 @@ public enum ParserErrorCode implements ErrorCode {
 
   @Override
   public ErrorSeverity getErrorSeverity() {
-    return severity;
+    return errorSeverity;
   }
 
   @Override

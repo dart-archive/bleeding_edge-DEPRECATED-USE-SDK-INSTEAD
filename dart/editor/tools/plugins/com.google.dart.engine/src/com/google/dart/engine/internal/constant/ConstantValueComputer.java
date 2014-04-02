@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.constant;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -23,6 +23,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.collection.DirectedGraph;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,7 +57,7 @@ public class ConstantValueComputer {
   /**
    * A table mapping constant variables to the declarations of those variables.
    */
-  HashMap<VariableElement, VariableDeclaration> declarationMap;
+  private HashMap<VariableElement, VariableDeclaration> declarationMap;
 
   /**
    * Initialize a newly created constant value computer.
@@ -137,7 +138,7 @@ public class ConstantValueComputer {
     if (result instanceof ErrorResult) {
       ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
       for (ErrorResult.ErrorData data : ((ErrorResult) result).getErrorData()) {
-        ASTNode node = data.getNode();
+        AstNode node = data.getNode();
         Source source = variable.getAncestor(CompilationUnitElement.class).getSource();
         errors.add(new AnalysisError(
             source,

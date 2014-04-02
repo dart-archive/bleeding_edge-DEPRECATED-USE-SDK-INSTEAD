@@ -73,6 +73,13 @@ outerPlural(n) => Intl.plural(n, zero: 'none', one: 'one', other: 'some',
 outerGender(g) => Intl.gender(g, male: 'm', female: 'f', other: 'o',
     name: 'outerGender', desc: 'A gender with no enclosing message', args: [g]);
 
+pluralThatFailsParsing(noOfThings) => Intl.plural(noOfThings,
+    one: "1 thing:",
+    other: "$noOfThings things:",
+    name: "pluralThatFailsParsing",
+    args: [noOfThings],
+    desc: "How many things are there?");
+
 // A standalone gender message where we don't provide name or args. This should
 // be rejected by validation code.
 invalidOuterGender(g) => Intl.gender(g, other: 'o');
@@ -102,6 +109,21 @@ nestedOuter(number, gen) => Intl.plural(number,
     other: Intl.gender(gen, male: "$number male", other: "$number other"),
     name: 'nestedOuter',
     args: [number, gen]);
+
+sameContentsDifferentName() => Intl.message("Hello World",
+    name: "sameContentsDifferentName",
+    desc: "One of two messages with the same contents, but different names");
+
+differentNameSameContents() => Intl.message("Hello World",
+    name: "differentNameSameContents",
+    desc: "One of two messages with the same contents, but different names");
+
+/// Distinguish two messages with identical text using the meaning parameter.
+rentToBePaid() => Intl.message("rent", name: "rentToBePaid",
+    meaning: 'Money for rent', desc: "Money to be paid for rent");
+
+rentAsVerb() => Intl.message("rent", name: "rentAsVerb",
+    meaning: 'rent as a verb', desc: "The action of renting, as in rent a car");
 
 printStuff(Intl locale) {
 
@@ -150,6 +172,19 @@ printStuff(Intl locale) {
     printOut(thing.plurals(0));
     printOut(thing.plurals(1));
     printOut(thing.plurals(2));
+    printOut(thing.plurals(3));
+    printOut(thing.plurals(4));
+    printOut(thing.plurals(5));
+    printOut(thing.plurals(6));
+    printOut(thing.plurals(7));
+    printOut(thing.plurals(8));
+    printOut(thing.plurals(9));
+    printOut(thing.plurals(10));
+    printOut(thing.plurals(11));
+    printOut(thing.plurals(20));
+    printOut(thing.plurals(100));
+    printOut(thing.plurals(101));
+    printOut(thing.plurals(100000));
     var alice = new Person("Alice", "female");
     var bob = new Person("Bob", "male");
     var cat = new Person("cat", null);
@@ -171,6 +206,12 @@ printStuff(Intl locale) {
     printOut(outerSelect("EUR", 5));
     printOut(nestedSelect("CDN", 1));
     printOut(nestedSelect("CDN", 2));
+    printOut(pluralThatFailsParsing(1));
+    printOut(pluralThatFailsParsing(2));
+    printOut(differentNameSameContents());
+    printOut(sameContentsDifferentName());
+    printOut(rentAsVerb());
+    printOut(rentToBePaid());
   });
 }
 

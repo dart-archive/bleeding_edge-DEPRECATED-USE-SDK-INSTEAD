@@ -7,10 +7,12 @@ import org.eclipse.jface.bindings.BindingManager;
 import org.eclipse.jface.bindings.keys.KeySequence;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.keys.BindingService;
 import org.eclipse.ui.internal.keys.WorkbenchKeyboard;
 import org.eclipse.ui.keys.IBindingService;
+import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.IWorkbenchActionDefinitionIds;
 
 import java.util.List;
@@ -61,6 +63,13 @@ public class GlanceEventDispatcher {
       event.doit = false;
     } else if (CLEAR_COMMAND.equals(commandID)) {
       SearchManager.getIntance().clearHistory();
+      event.doit = false;
+    } else if (IWorkbenchCommandConstants.EDIT_SELECT_ALL.equals(commandID)) {
+      SearchManager.getIntance().selectAll();
+      event.doit = false;
+    } else if (ITextEditorActionDefinitionIds.SMART_ENTER.equals(commandID)) {
+      // on linux we have to deal with this
+      SearchManager.getIntance().findPrevious();
       event.doit = false;
     }
   }

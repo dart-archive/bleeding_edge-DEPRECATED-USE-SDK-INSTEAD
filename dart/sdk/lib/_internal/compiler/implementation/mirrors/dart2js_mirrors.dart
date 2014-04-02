@@ -12,7 +12,11 @@ import '../resolution/resolution.dart' show Scope;
 import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../tree/tree.dart';
-import '../util/util.dart' show Spannable, Link, LinkBuilder;
+import '../util/util.dart'
+    show Spannable,
+         Link,
+         LinkBuilder,
+         NO_LOCATION_SPANNABLE;
 import '../util/characters.dart' show $CR, $LF;
 
 import 'source_mirrors.dart';
@@ -131,8 +135,9 @@ abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
       }
       return members;
     }
-    mirrorSystem.compiler.internalError(
-        "Unexpected member type $element ${element.kind}");
+    mirrorSystem.compiler.internalError(element,
+        "Unexpected member type $element ${element.kind}.");
+    return null;
   }
 
 }
@@ -147,15 +152,6 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
     assert (_element != null);
   }
 
-  /**
-   * Returns the element to be used to determine the begin token of this
-   * declaration and the metadata associated with this declaration.
-   *
-   * This indirection is needed to use the [VariableListElement] as the location
-   * for type and metadata information on a [VariableElement].
-   */
-  Element get _beginElement => _element;
-
   String get _simpleNameString => _element.name;
 
   bool get isNameSynthetic => false;
@@ -166,9 +162,9 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
    */
   Token getBeginToken() {
     // TODO(johnniwinther): Avoid calling [parseNode].
-    Node node = _beginElement.parseNode(mirrorSystem.compiler);
+    Node node = _element.parseNode(mirrorSystem.compiler);
     if (node == null) {
-      return _beginElement.position();
+      return _element.position();
     }
     return node.getBeginToken();
   }
@@ -191,8 +187,8 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
    * metadata annotations.
    */
   Token getFirstToken() {
-    if (!_beginElement.metadata.isEmpty) {
-      for (MetadataAnnotation metadata in _beginElement.metadata) {
+    if (!_element.metadata.isEmpty) {
+      for (MetadataAnnotation metadata in _element.metadata) {
         if (metadata.beginToken != null) {
           return metadata.beginToken;
         }
@@ -208,11 +204,11 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
     Script script = getScript();
     SourceSpan span;
     if (beginToken == null) {
-      span = new SourceSpan(script.uri, 0, 0);
+      span = new SourceSpan(script.readableUri, 0, 0);
     } else {
       Token endToken = getEndToken();
       span = mirrorSystem.compiler.spanFromTokens(
-          beginToken, endToken, script.uri);
+          beginToken, endToken, script.readableUri);
     }
     return new Dart2JsSourceLocation(script, span);
   }
@@ -347,17 +343,19 @@ class Dart2JsMirrorSystem extends MirrorSystem {
         return new Dart2JsTypedefMirror(this, type);
       }
     }
-    compiler.internalError("Unexpected type $type of kind ${type.kind}");
+    compiler.internalError(type.element,
+        "Unexpected type $type of kind ${type.kind}.");
+    return null;
   }
 
-  DeclarationMirror _getTypeDeclarationMirror(Element element) {
+  DeclarationMirror _getTypeDeclarationMirror(TypeDeclarationElement element) {
     if (element.isClass()) {
-      return new Dart2JsClassDeclarationMirror(
-          this, element.computeType(compiler));
+      return new Dart2JsClassDeclarationMirror(this, element.thisType);
     } else if (element.isTypedef()) {
-      return new Dart2JsTypedefDeclarationMirror(this,
-          element.computeType(compiler));
+      return new Dart2JsTypedefDeclarationMirror(this, element.thisType);
     }
+    compiler.internalError(element, "Unexpected element $element.");
+    return null;
   }
 }
 
@@ -400,15 +398,16 @@ abstract class ContainerMixin {
 DeclarationMirror _convertElementToDeclarationMirror(Dart2JsMirrorSystem system,
                                                      Element element) {
   if (element.isTypeVariable()) {
-    return new Dart2JsTypeVariableMirror(
-        system, element.computeType(system.compiler));
+    TypeVariableElement typeVariable = element;
+    return new Dart2JsTypeVariableMirror(system, typeVariable.type);
   }
 
   Dart2JsLibraryMirror library = system._libraryMap[element.getLibrary()];
   if (element.isLibrary()) return library;
   if (element.isTypedef()) {
+    TypedefElement typedefElement = element;
     return new Dart2JsTypedefMirror.fromLibrary(
-        library, element.computeType(system.compiler));
+        library, typedefElement.thisType);
   }
 
   Dart2JsDeclarationMirror container = library;
@@ -450,7 +449,7 @@ class Dart2JsCompilationUnitMirror extends Dart2JsMirror
   Iterable<DeclarationMirror> _getDeclarationMirrors(Element element) =>
       _library._getDeclarationMirrors(element);
 
-  Uri get uri => _element.script.uri;
+  Uri get uri => _element.script.resourceUri;
 }
 
 /**

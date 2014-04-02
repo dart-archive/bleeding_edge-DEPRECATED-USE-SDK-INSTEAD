@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.parser;
 
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -391,7 +392,7 @@ public class RecoveryParserTest extends ParserTestCase {
         "parseExpressionList",
         ", 2, 3, 4",
         ParserErrorCode.MISSING_IDENTIFIER);
-    assertSize(4, result);
+    assertSizeOfList(4, result);
     Expression syntheticExpression = result.get(0);
     assertInstanceOf(SimpleIdentifier.class, syntheticExpression);
     assertTrue(syntheticExpression.isSynthetic());
@@ -402,7 +403,7 @@ public class RecoveryParserTest extends ParserTestCase {
         "parseExpressionList",
         "1, 2, , 4",
         ParserErrorCode.MISSING_IDENTIFIER);
-    assertSize(4, result);
+    assertSizeOfList(4, result);
     Expression syntheticExpression = result.get(2);
     assertInstanceOf(SimpleIdentifier.class, syntheticExpression);
     assertTrue(syntheticExpression.isSynthetic());
@@ -413,7 +414,7 @@ public class RecoveryParserTest extends ParserTestCase {
         "parseExpressionList",
         "1, 2, 3,",
         ParserErrorCode.MISSING_IDENTIFIER);
-    assertSize(4, result);
+    assertSizeOfList(4, result);
     Expression syntheticExpression = result.get(3);
     assertInstanceOf(SimpleIdentifier.class, syntheticExpression);
     assertTrue(syntheticExpression.isSynthetic());
@@ -422,11 +423,11 @@ public class RecoveryParserTest extends ParserTestCase {
   public void test_incomplete_topLevelVariable() throws Exception {
     CompilationUnit unit = parseCompilationUnit("String", ParserErrorCode.EXPECTED_EXECUTABLE);
     NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
-    assertSize(1, declarations);
+    assertSizeOfList(1, declarations);
     CompilationUnitMember member = declarations.get(0);
     assertInstanceOf(TopLevelVariableDeclaration.class, member);
     NodeList<VariableDeclaration> variables = ((TopLevelVariableDeclaration) member).getVariables().getVariables();
-    assertSize(1, variables);
+    assertSizeOfList(1, variables);
     SimpleIdentifier name = variables.get(0).getName();
     assertTrue(name.isSynthetic());
   }
@@ -531,6 +532,18 @@ public class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.MISSING_IDENTIFIER);
     assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
+  }
+
+  public void test_missingIdentifier_afterAnnotation() throws Exception {
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "@override }",
+        ParserErrorCode.EXPECTED_CLASS_MEMBER);
+    assertNull(method.getDocumentationComment());
+    NodeList<Annotation> metadata = method.getMetadata();
+    assertSizeOfList(1, metadata);
+    assertEquals("override", metadata.get(0).getName().getName());
   }
 
   public void test_multiplicativeExpression_missing_LHS() throws Exception {
@@ -681,7 +694,7 @@ public class RecoveryParserTest extends ParserTestCase {
         ParserErrorCode.EXPECTED_TOKEN,
         ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
     NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
-    assertSize(1, declarations);
+    assertSizeOfList(1, declarations);
     CompilationUnitMember member = declarations.get(0);
     assertInstanceOf(FunctionTypeAlias.class, member);
   }

@@ -29,7 +29,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public abstract class SwitchMember extends ASTNode {
+public abstract class SwitchMember extends AstNode {
   /**
    * The labels associated with the switch member.
    */

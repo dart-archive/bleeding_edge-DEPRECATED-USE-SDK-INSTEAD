@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.cache;
 
-import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
@@ -198,6 +197,11 @@ public class AnalysisCache {
    * Remove and return one source from the list of recently used sources whose AST structure can be
    * flushed from the cache. The source that will be returned will be the source that has been
    * unreferenced for the longest period of time but that is not a priority for analysis.
+   * <p>
+   * It is possible for there to be no AST that can be flushed, in which case {@code null} will be
+   * returned. This happens, for example, if the context is reserving the AST's needed to resolve a
+   * cycle of libraries and the number of AST's being reserved is larger than the current cache
+   * size.
    * 
    * @return the source that was removed
    */
@@ -213,9 +217,6 @@ public class AnalysisCache {
       }
     }
     if (sourceToRemove < 0) {
-      AnalysisEngine.getInstance().getLogger().logError(
-          "Internal error: Could not flush data from the cache",
-          new Exception());
       return null;
     }
     return recentlyUsed.remove(sourceToRemove);

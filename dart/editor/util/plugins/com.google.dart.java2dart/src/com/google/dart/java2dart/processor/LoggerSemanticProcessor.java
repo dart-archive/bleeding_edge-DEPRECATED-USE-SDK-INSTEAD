@@ -17,13 +17,13 @@ package com.google.dart.java2dart.processor;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.MethodInvocation;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.java2dart.Context;
 
-import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
-import static com.google.dart.java2dart.util.ASTFactory.string;
-import static com.google.dart.java2dart.util.ASTFactory.typeName;
+import static com.google.dart.java2dart.util.AstFactory.instanceCreationExpression;
+import static com.google.dart.java2dart.util.AstFactory.string;
+import static com.google.dart.java2dart.util.AstFactory.typeName;
 
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
@@ -37,7 +37,7 @@ public class LoggerSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         super.visitMethodInvocation(node);

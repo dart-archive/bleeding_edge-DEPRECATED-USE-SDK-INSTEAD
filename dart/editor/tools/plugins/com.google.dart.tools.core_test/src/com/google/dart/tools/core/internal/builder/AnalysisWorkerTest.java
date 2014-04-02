@@ -19,7 +19,6 @@ import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
@@ -34,6 +33,7 @@ import com.google.dart.tools.core.mock.MockWorkspaceRoot;
 
 import org.eclipse.core.resources.IResource;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
@@ -59,13 +59,15 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
     @Override
     public void resolved(ResolvedEvent event) {
       resolved.add(event.getResource());
-      assertEquals(originalCacheSize * 2, event.getContext().getAnalysisOptions().getCacheSize());
+      assertThat(event.getContext().getAnalysisOptions().getCacheSize()).isGreaterThan(
+          originalCacheSize);
     }
 
     @Override
     public void resolvedHtml(ResolvedHtmlEvent event) {
       resolved.add(event.getResource());
-      assertEquals(originalCacheSize * 2, event.getContext().getAnalysisOptions().getCacheSize());
+      assertThat(event.getContext().getAnalysisOptions().getCacheSize()).isGreaterThan(
+          originalCacheSize);
     }
 
     void assertCompleted(AnalysisContext expected) {
@@ -91,28 +93,31 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
   private final Listener listener = new Listener();
 
   public void test_getContext() throws Exception {
-    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, null);
+    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, null, null);
     assertSame(analysisContext, worker.getContext());
   }
 
   public void test_new() throws Exception {
-    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, null);
+    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, null, null);
     verify(contextManager).addWorker(worker);
   }
 
   public void test_performAnalysis() throws Exception {
     MockFile libFile = project.addFile("test.dart");
-    SourceFactory sourceFactory = analysisContext.getSourceFactory();
-    Source libSource = new FileBasedSource(sourceFactory.getContentCache(), libFile.toFile());
-    sourceFactory.setContents(libSource, "library a;\nmain() {}");
+    Source libSource = addSource(libFile, "library a;\nmain() {}");
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(libSource);
+    changeSet.addedSource(libSource);
     analysisContext.applyChanges(changeSet);
     when(contextManager.getResource(libSource)).thenReturn(libFile);
 
     AnalysisManager analysisManager = new AnalysisManager();
     when(contextManager.getResource()).thenReturn(project);
-    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, markerManager);
+    AnalysisWorker worker = new AnalysisWorker(
+        contextManager,
+        analysisContext,
+        null,
+        null,
+        markerManager);
     worker.performAnalysis(analysisManager);
     verify(markerManager).queueHasDartSdk(project, true);
     verify(markerManager, atLeastOnce()).queueErrors(
@@ -128,7 +133,12 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
   public void test_performAnalysis_nothingToDo() throws Exception {
     AnalysisManager analysisManager = new AnalysisManager();
     when(contextManager.getResource()).thenReturn(project);
-    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, markerManager);
+    AnalysisWorker worker = new AnalysisWorker(
+        contextManager,
+        analysisContext,
+        null,
+        null,
+        markerManager);
     worker.performAnalysis(analysisManager);
     verify(markerManager).queueHasDartSdk(project, true);
     verify(markerManager).done();
@@ -138,7 +148,7 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
   }
 
   public void test_performAnalysis_nullContext() throws Exception {
-    AnalysisWorker worker = new AnalysisWorker(contextManager, null, null, null);
+    AnalysisWorker worker = new AnalysisWorker(contextManager, null, null, null, null);
     worker.performAnalysis(null);
     verifyNoMoreInteractions(markerManager);
     listener.assertNotCompleted(analysisContext);
@@ -147,17 +157,20 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
 
   public void test_performAnalysis_stop() throws Exception {
     MockFile libFile = project.addFile("test.dart");
-    SourceFactory sourceFactory = analysisContext.getSourceFactory();
-    Source libSource = new FileBasedSource(sourceFactory.getContentCache(), libFile.toFile());
-    sourceFactory.setContents(libSource, "library a;\nmain() {}");
+    Source libSource = addSource(libFile, "library a;\nmain() {}");
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(libSource);
+    changeSet.addedSource(libSource);
     analysisContext.applyChanges(changeSet);
     when(contextManager.getResource(libSource)).thenReturn(libFile);
 
     AnalysisManager analysisManager = new AnalysisManager();
     when(contextManager.getResource()).thenReturn(project);
-    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, markerManager);
+    AnalysisWorker worker = new AnalysisWorker(
+        contextManager,
+        analysisContext,
+        null,
+        null,
+        markerManager);
     worker.stop();
     worker.performAnalysis(analysisManager);
     verifyNoMoreInteractions(markerManager);
@@ -166,7 +179,7 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
   }
 
   public void test_stop() throws Exception {
-    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, null);
+    AnalysisWorker worker = new AnalysisWorker(contextManager, analysisContext, null, null, null);
     worker.stop();
     assertNull(worker.getContext());
     verify(contextManager).removeWorker(worker);
@@ -180,5 +193,14 @@ public class AnalysisWorkerTest extends AbstractDartCoreTest {
   @Override
   protected void tearDown() throws Exception {
     AnalysisWorker.removeListener(listener);
+  }
+
+  private Source addSource(MockFile file, String contents) {
+    Source source = new FileBasedSource(file.toFile());
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    analysisContext.applyChanges(changeSet);
+    analysisContext.setContents(source, contents);
+    return source;
   }
 }

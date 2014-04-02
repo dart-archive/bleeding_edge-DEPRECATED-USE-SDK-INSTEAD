@@ -6,14 +6,14 @@
  *******************************************************************************/
 package com.xored.glance.ui.controls.items;
 
+import com.xored.glance.ui.sources.ITextBlock;
+import com.xored.glance.ui.sources.ITextBlockListener;
+import com.xored.glance.ui.utils.TextUtils;
+
 import org.eclipse.jface.util.Policy;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Item;
-
-import com.xored.glance.ui.sources.ITextBlock;
-import com.xored.glance.ui.sources.ITextBlockListener;
-import com.xored.glance.ui.utils.TextUtils;
 
 /**
  * @author Yuri Strot
@@ -32,15 +32,41 @@ public class ItemCell implements ITextBlock {
     this.provider = provider;
   }
 
+  @Override
+  public void addTextBlockListener(ITextBlockListener listener) {
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see java.lang.Comparable#compareTo(java.lang.Object)
+   */
+  @Override
+  public int compareTo(ITextBlock block) {
+    ItemCell cell = (ItemCell) block;
+    return provider.compare(item, cell.item);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see java.lang.Object#equals(java.lang.Object)
+   */
+  @Override
+  public boolean equals(Object obj) {
+    ItemCell item = (ItemCell) obj;
+    return item.item.equals(this.item) && item.index == index;
+  }
+
   public Image getImage() {
     return provider.getImage(item, index);
   }
 
-  public Object getKey() {
-    Object data = item.getData();
-    if (data != null)
-      return data;
-    return item;
+  /**
+   * @return the index
+   */
+  public int getIndex() {
+    return index;
   }
 
   /**
@@ -50,9 +76,12 @@ public class ItemCell implements ITextBlock {
     return item;
   }
 
-  @Override
-  public String getText() {
-    return provider.getColumnCount(item) == 0 ? item.getText() : provider.getText(item, index);
+  public Object getKey() {
+    Object data = item.getData();
+    if (data != null) {
+      return data;
+    }
+    return item;
   }
 
   public int getLength() {
@@ -68,11 +97,9 @@ public class ItemCell implements ITextBlock {
     return new StyleRange[0];
   }
 
-  /**
-   * @return the index
-   */
-  public int getIndex() {
-    return index;
+  @Override
+  public String getText() {
+    return provider.getColumnCount(item) == 0 ? item.getText() : provider.getText(item, index);
   }
 
   /*
@@ -83,32 +110,6 @@ public class ItemCell implements ITextBlock {
   @Override
   public int hashCode() {
     return item.hashCode() ^ index;
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see java.lang.Object#equals(java.lang.Object)
-   */
-  @Override
-  public boolean equals(Object obj) {
-    ItemCell item = (ItemCell) obj;
-    return item.item.equals(this.item) && item.index == index;
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see java.lang.Comparable#compareTo(java.lang.Object)
-   */
-  @Override
-  public int compareTo(ITextBlock block) {
-    ItemCell cell = (ItemCell) block;
-    return provider.compare(item, cell.item);
-  }
-
-  @Override
-  public void addTextBlockListener(ITextBlockListener listener) {
   }
 
   @Override

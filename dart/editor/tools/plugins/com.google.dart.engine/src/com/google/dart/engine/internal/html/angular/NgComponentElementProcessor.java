@@ -43,7 +43,7 @@ class NgComponentElementProcessor extends NgDirectiveProcessor {
         if (property.getPropertyKind() != AngularPropertyKind.ATTR) {
           AngularExpression expression = parseAngularExpression(resolver, attribute);
           resolver.resolveExpression(expression);
-          setExpression(attribute, expression);
+          setAngularExpression(attribute, expression);
         }
       }
     }

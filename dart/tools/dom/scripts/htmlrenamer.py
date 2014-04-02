@@ -78,6 +78,7 @@ _removed_html_interfaces = [
   'DataView', # Typed arrays
   'DirectoryEntrySync', # Workers
   'DirectoryReaderSync', # Workers
+  'DocumentType',
   'EntrySync', # Workers
   'FileEntrySync', # Workers
   'FileReaderSync', # Workers
@@ -98,6 +99,7 @@ _removed_html_interfaces = [
   'RGBColor',
   'RadioNodeList',  # Folded onto NodeList in dart2js.
   'Rect',
+  'ServiceWorker',
   'SQLTransactionSync', # Workers
   'SQLTransactionSyncCallback', # Workers
   'SVGAltGlyphDefElement', # Webkit only.
@@ -121,13 +123,13 @@ _removed_html_interfaces = [
   'SVGMissingGlyphElement',
   'SVGTRefElement',
   'SVGVKernElement',
-  'SharedWorker', # Workers
   'SubtleCrypto',
   'WebKitCSSFilterValue',
   'WebKitCSSMatrix',
   'WebKitCSSMixFunctionValue',
   'WebKitCSSTransformValue',
   'WebKitMediaSource',
+  'WebKitNotification',
   'WebKitSourceBuffer',
   'WebKitSourceBufferList',
   'WorkerLocation', # Workers
@@ -309,7 +311,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Storage.removeItem',
   'Storage.setItem',
   'StorageEvent.initStorageEvent',
-  'StorageInfo.queryUsageAndQuota',
   'TextEvent.initTextEvent',
   'Touch.clientX',
   'Touch.clientY',
@@ -356,7 +357,6 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Window.webkitNotifications': 'notifications',
     'Window.webkitRequestFileSystem': '_requestFileSystem',
     'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
-    'Element.webkitMatchesSelector' : 'matches',
     'Navigator.webkitGetUserMedia': '_getUserMedia',
     'Node.appendChild': 'append',
     'Node.cloneNode': 'clone',
@@ -598,11 +598,13 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Element.setAttributeNode',
     'Element.setAttributeNodeNS',
     'Element.webkitCreateShadowRoot',
+    'Element.webkitMatchesSelector',
     'Element.webkitPseudo',
     'Element.webkitShadowRoot',
     '=Event.returnValue', # Only suppress on Event, allow for BeforeUnloadEvnt.
     'Event.srcElement',
     'EventSource.URL',
+    'FontFace.ready',
     'FontFaceSet.load',
     'FontFaceSet.ready',
     'HTMLAnchorElement.charset',
@@ -625,6 +627,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'HTMLDirectoryElement.*',
     'HTMLDivElement.align',
     'HTMLFontElement.*',
+    'HTMLFormControlsCollection.__getter__',
     'HTMLFormElement.get:elements',
     'HTMLFrameElement.*',
     'HTMLFrameSetElement.*',
@@ -751,6 +754,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'SVGElementInstance.on:wheel',
     'WheelEvent.wheelDelta',
     'Window.on:wheel',
+    'WindowEventHandlers.on:beforeUnload',
     'WorkerGlobalScope.webkitIndexedDB',
 # TODO(jacobr): should these be removed?
     'Document.close',
@@ -813,7 +817,7 @@ class HtmlRenamer(object):
     if self.ShouldSuppressMember(interface, member, member_prefix):
       return None
 
-    if 'CheckSecurityForNode' in member_node.ext_attrs:
+    if 'CheckSecurity' in member_node.ext_attrs:
       return None
 
     name = self._FindMatch(interface, member, member_prefix,

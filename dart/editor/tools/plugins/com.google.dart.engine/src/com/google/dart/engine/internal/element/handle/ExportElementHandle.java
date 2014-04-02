@@ -55,6 +55,16 @@ public class ExportElementHandle extends ElementHandle implements ExportElement 
   }
 
   @Override
+  public int getUriEnd() {
+    return getActualElement().getUriEnd();
+  }
+
+  @Override
+  public int getUriOffset() {
+    return getActualElement().getUriOffset();
+  }
+
+  @Override
   protected ExportElement getActualElement() {
     return (ExportElement) super.getActualElement();
   }

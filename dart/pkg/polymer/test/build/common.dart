@@ -20,15 +20,11 @@ String _removeTrailingWhitespace(String str) =>
     str.splitMapJoin('\n',
         onNonMatch: (s) => s.replaceAll(new RegExp(r'\s+$'), ''));
 
-/**
- * A helper package provider that has files stored in memory, also wraps
- * [Barback] to simply our tests.
- */
+/// A helper package provider that has files stored in memory, also wraps
+/// [Barback] to simply our tests.
 class TestHelper implements PackageProvider {
-  /**
-   * Maps from an asset string identifier of the form 'package|path' to the
-   * file contents.
-   */
+  /// Maps from an asset string identifier of the form 'package|path' to the
+  /// file contents.
   final Map<String, String> files;
   final Iterable<String> packages;
   final List<String> messages;
@@ -40,8 +36,11 @@ class TestHelper implements PackageProvider {
   var resultSubscription;
   var logSubscription;
 
-  Future<Asset> getAsset(AssetId id) =>
-      new Future.value(new Asset.fromString(id, files[idToString(id)]));
+  Future<Asset> getAsset(AssetId id) {
+    var content = files[idToString(id)];
+    if (content == null) fail('error: requested $id, but $id is not available');
+    return new Future.value(new Asset.fromString(id, content));
+  }
 
   TestHelper(List<List<Transformer>> transformers, Map<String, String> files,
       this.messages)
@@ -66,6 +65,8 @@ class TestHelper implements PackageProvider {
     });
 
     logSubscription = barback.log.listen((entry) {
+      // Ignore info messages.
+      if (entry.level == LogLevel.INFO) return;
       if (entry.level == LogLevel.ERROR) errorSeen = true;
       // We only check messages when an expectation is provided.
       if (messages == null) return;
@@ -86,10 +87,8 @@ class TestHelper implements PackageProvider {
     logSubscription.cancel();
   }
 
-  /**
-   * Tells barback which files have changed, and thus anything that depends on
-   * it on should be computed. By default mark all the input files.
-   */
+  /// Tells barback which files have changed, and thus anything that depends on
+  /// it on should be computed. By default mark all the input files.
   void run([Iterable<String> paths]) {
     if (paths == null) paths = files.keys;
     barback.updateSources(paths.map(idFromString));
@@ -109,11 +108,14 @@ class TestHelper implements PackageProvider {
   }
 
   Future checkAll(Map<String, String> files) {
-    var futures = [];
-    files.forEach((k, v) {
-      futures.add(check(k, v));
-    });
-    return Future.wait(futures).then((_) {
+    return barback.results.first.then((_) {
+      if (files == null) return null;
+      var futures = [];
+      files.forEach((k, v) {
+        futures.add(check(k, v));
+      });
+      return Future.wait(futures);
+    }).then((_) {
       // We only check messages when an expectation is provided.
       if (messages == null) return;
       expect(messages.length, messagesSeen,
@@ -124,20 +126,60 @@ class TestHelper implements PackageProvider {
 
 testPhases(String testName, List<List<Transformer>> phases,
     Map<String, String> inputFiles, Map<String, String> expectedFiles,
-    [List<String> expectedMessages]) {
-  test(testName, () {
+    [List<String> expectedMessages, bool solo = false]) {
+
+  // Include mock versions of the polymer library that can be used to test
+  // resolver-based code generation.
+  POLYMER_MOCKS.forEach((file, contents) { inputFiles[file] = contents; });
+  (solo ? solo_test : test)(testName, () {
     var helper = new TestHelper(phases, inputFiles, expectedMessages)..run();
-    return helper.checkAll(expectedFiles).then((_) => helper.tearDown());
+    return helper.checkAll(expectedFiles).whenComplete(() => helper.tearDown());
   });
 }
 
-// TODO(jmesserly): this is .debug to workaround issue 14720.
-const SHADOW_DOM_TAG =
-    '<script src="packages/shadow_dom/shadow_dom.debug.js"></script>\n';
+const WEB_COMPONENTS_TAG =
+    '<script src="packages/web_components/platform.js"></script>\n'
+    '<script src="packages/web_components/dart_support.js"></script>\n';
 
 const INTEROP_TAG = '<script src="packages/browser/interop.js"></script>\n';
 const DART_JS_TAG = '<script src="packages/browser/dart.js"></script>';
 
-const CUSTOM_ELEMENT_TAG =
-    '<script src="packages/custom_element/custom-elements.debug.js">'
-    '</script>\n';
+const POLYMER_MOCKS = const {
+  'polymer|lib/polymer.dart':
+      'library polymer;\n'
+      'import "dart:html";\n'
+      'export "package:observe/observe.dart";\n' // for @observable
+      'part "src/loader.dart";\n'  // for @CustomTag and @initMethod
+      'part "src/instance.dart";\n', // for @published and @ObserveProperty
+
+  'polymer|lib/src/loader.dart':
+      'part of polymer;\n'
+      'class CustomTag {\n'
+      '  final String tagName;\n'
+      '  const CustomTag(this.tagName);'
+      '}\n'
+      'class InitMethodAnnotation { const InitMethodAnnotation(); }\n'
+      'const initMethod = const InitMethodAnnotation();\n',
+
+  'polymer|lib/src/instance.dart':
+      'part of polymer;\n'
+      'class PublishedProperty { const PublishedProperty(); }\n'
+      'const published = const PublishedProperty();\n'
+      'class ObserveProperty { const ObserveProperty(); }\n'
+      'abstract class Polymer {}\n'
+      'class PolymerElement extends HtmlElement with Polymer {}\n',
+
+  'polymer|lib/init.dart':
+      'library polymer.init;\n'
+      'import "package:polymer/polymer.dart";\n'
+      'main() {};\n',
+
+  'observe|lib/observe.dart':
+      'library observe;\n'
+      'export "src/metadata.dart";',
+
+  'observe|lib/src/metadata.dart':
+      'library observe.src.metadata;\n'
+      'class ObservableProperty { const ObservableProperty(); }\n'
+      'const observable = const ObservableProperty();\n',
+};

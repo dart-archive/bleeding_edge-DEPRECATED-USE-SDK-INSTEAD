@@ -24,6 +24,7 @@ enum MessageFlags {
   kCloseCommand = 8,
   kShutdownReadCommand = 9,
   kShutdownWriteCommand = 10,
+  kReturnTokenCommand = 11,
   kListeningSocket = 16,
   kPipe = 17,
 };
@@ -65,10 +66,12 @@ class TimeoutQueue {
   bool HasTimeout() const { return next_timeout_ != NULL; }
 
   int64_t CurrentTimeout() const {
+    ASSERT(next_timeout_ != NULL);
     return next_timeout_->timeout();
   }
 
   Dart_Port CurrentPort() const {
+    ASSERT(next_timeout_ != NULL);
     return next_timeout_->port();
   }
 

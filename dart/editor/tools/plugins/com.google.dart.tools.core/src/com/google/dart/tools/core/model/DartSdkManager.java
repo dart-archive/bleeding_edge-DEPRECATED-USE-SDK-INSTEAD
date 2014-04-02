@@ -16,9 +16,9 @@ package com.google.dart.tools.core.model;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.sdk.SdkLibrary;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.osgi.util.NLS;
 import org.osgi.framework.Bundle;
 
 import java.io.BufferedInputStream;
@@ -75,6 +76,8 @@ public class DartSdkManager {
 
   private static final String USER_DEFINED_SDK_KEY = "dart.sdk";
 
+  private static final String SDK_ZIP = "latest/sdk/dartsdk-{0}-{1}-release.zip";
+
   /**
    * A special instance of {@link com.google.dart.engine.sdk.DartSdk} representing missing SDK.
    */
@@ -85,8 +88,8 @@ public class DartSdkManager {
     private FileBasedSource coreSource;
 
     @Override
-    public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
-      return new FileBasedSource(contentCache, new File(uri), kind);
+    public Source fromEncoding(UriKind kind, URI uri) {
+      return new FileBasedSource(new File(uri), kind);
     }
 
     @Override
@@ -122,13 +125,15 @@ public class DartSdkManager {
     public Source mapDartUri(String dartUri) {
       if (DART_CORE.equals(dartUri)) {
         if (coreSource == null) {
-          coreSource = new FileBasedSource(
-              getContext().getSourceFactory().getContentCache(),
-              new File("core.dart"),
-              UriKind.DART_URI) {
+          coreSource = new FileBasedSource(new File("core.dart"), UriKind.DART_URI) {
             @Override
-            public void getContents(com.google.dart.engine.source.Source.ContentReceiver receiver)
-                throws Exception {
+            public TimestampedData<CharSequence> getContents() throws Exception {
+              return new TimestampedData<CharSequence>(0L, "library dart.core;");
+            };
+
+            @Override
+            public void getContentsToReceiver(
+                com.google.dart.engine.source.Source.ContentReceiver receiver) throws Exception {
               receiver.accept("library dart.core;", 0L);
             };
           };
@@ -257,9 +262,9 @@ public class DartSdkManager {
   /**
    * @param monitor
    */
-  public IStatus upgrade(IProgressMonitor monitor) {
+  public IStatus upgrade(String channel, IProgressMonitor monitor) {
     try {
-      upgradeImpl(monitor);
+      upgradeImpl(channel, monitor);
 
       return Status.OK_STATUS;
     } catch (IOException ioe) {
@@ -342,11 +347,9 @@ public class DartSdkManager {
     dir.delete();
   }
 
-  private File downloadFile(IProgressMonitor monitor) throws IOException {
+  private File downloadFile(URI downloadURI, IProgressMonitor monitor) throws IOException {
     File tempFile = File.createTempFile(SDK_DIR_NAME, ".zip");
     tempFile.deleteOnExit();
-
-    URI downloadURI = URI.create(getSdkUrl());
 
     URLConnection connection = downloadURI.toURL().openConnection();
 
@@ -367,13 +370,19 @@ public class DartSdkManager {
     return tempFile;
   }
 
-  private String getSdkUrl() {
-    String url = getUpdateChannelUrl();
-    if (url == null) {
-      url = DEFAULT_UPDATE_URL;
+  private String getSdkUrl(String channel) {
+
+    String sdkZip = NLS.bind(SDK_ZIP, getPlatformCode(), getPlatformBititude());
+
+    if (channel != null) {
+      return channel + sdkZip;
+    } else {
+      String url = getUpdateChannelUrl();
+      if (url != null) {
+        return url + sdkZip;
+      }
     }
-    return url + "latest/sdk/dartsdk-" + getPlatformCode() + "-" + getPlatformBititude()
-        + "-release.zip";
+    return DEFAULT_UPDATE_URL + sdkZip;
   }
 
   private String getUpdateChannelUrl() {
@@ -489,13 +498,15 @@ public class DartSdkManager {
     unzip(newSDK, getDefaultPluginsSdkDirectory().getParentFile(), monitor);
   }
 
-  private void upgradeImpl(IProgressMonitor monitor) throws IOException {
+  private void upgradeImpl(String channel, IProgressMonitor monitor) throws IOException {
     try {
       // init progress
       SubMonitor mon = SubMonitor.convert(monitor, "Downloading Dart SDK", 100);
 
+      URI downloadURI = URI.create(getSdkUrl(channel));
+
       // download to a temp file
-      File tempFile = downloadFile(mon.newChild(80));
+      File tempFile = downloadFile(downloadURI, mon.newChild(80));
 
       // copy the new sdk
       File newSdk = copyNewSdk(mon.newChild(3), tempFile);
@@ -515,6 +526,11 @@ public class DartSdkManager {
 
       // send upgrade notifications
       notifyListeners();
+
+      DartCore.getConsole().printSeparator("Dart SDK update");
+      DartCore.getConsole().println(
+          "Dart SDK updated to version " + getManager().getSdk().getSdkVersion());
+
     } finally {
       monitor.done();
     }

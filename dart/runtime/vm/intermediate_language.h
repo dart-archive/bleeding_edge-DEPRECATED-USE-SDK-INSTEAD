@@ -41,6 +41,7 @@ class Range;
   V(Object, ==, ObjectEquals, 1068471689)                                      \
   V(Object, Object., ObjectConstructor, 1058615085)                            \
   V(Object, get:_cid, ObjectCid, 1498751301)                                   \
+  V(_TypedListBase, get:_cid, TypedListBaseCid, 1938244762)                    \
   V(_List, get:length, ObjectArrayLength, 215183186)                           \
   V(_ImmutableList, get:length, ImmutableArrayLength, 578762861)               \
   V(_TypedList, get:length, TypedDataLength, 26646119)                         \
@@ -94,6 +95,7 @@ class Range;
   V(Float32x4, Float32x4.splat, Float32x4Splat, 1148280442)                    \
   V(Float32x4, Float32x4.fromInt32x4Bits, Float32x4FromInt32x4Bits,            \
       872145194)                                                               \
+  V(Float32x4, Float32x4.fromFloat64x2, Float32x4FromFloat64x2, 1511660322)    \
   V(_Float32x4, shuffle, Float32x4Shuffle, 1178727105)                         \
   V(_Float32x4, shuffleMix, Float32x4ShuffleMix, 927956119)                    \
   V(_Float32x4, get:x, Float32x4ShuffleX, 1351747629)                          \
@@ -120,6 +122,21 @@ class Range;
   V(_Float32x4, withY, Float32x4WithY, 1806065938)                             \
   V(_Float32x4, withZ, Float32x4WithZ, 320659034)                              \
   V(_Float32x4, withW, Float32x4WithW, 1108437255)                             \
+  V(Float64x2, Float64x2., Float64x2Constructor, 1283521526)                   \
+  V(Float64x2, Float64x2.zero, Float64x2Zero, 1971574037)                      \
+  V(Float64x2, Float64x2.splat, Float64x2Splat, 823230813)                     \
+  V(Float64x2, Float64x2.fromFloat32x4, Float64x2FromFloat32x4, 1383666060)    \
+  V(_Float64x2, get:x, Float64x2GetX, 176817227)                               \
+  V(_Float64x2, get:y, Float64x2GetY, 1858031019)                              \
+  V(_Float64x2, _negate, Float64x2Negate, 1345265430)                          \
+  V(_Float64x2, abs, Float64x2Abs, 778551930)                                  \
+  V(_Float64x2, sqrt, Float64x2Sqrt, 591345168)                                \
+  V(_Float64x2, get:signMask, Float64x2GetSignMask, 601579087)                 \
+  V(_Float64x2, scale, Float64x2Scale, 1781090062)                             \
+  V(_Float64x2, withX, Float64x2WithX, 1624377250)                             \
+  V(_Float64x2, withY, Float64x2WithY, 2078610265)                             \
+  V(_Float64x2, min, Float64x2Min, 876488999)                                  \
+  V(_Float64x2, max, Float64x2Max, 389912972)                                  \
   V(Int32x4, Int32x4.bool, Int32x4BoolConstructor, 295910141)                  \
   V(Int32x4, Int32x4.fromFloat32x4Bits, Int32x4FromFloat32x4Bits,              \
       893850947)                                                               \
@@ -168,6 +185,8 @@ class Range;
   V(_Float32x4Array, []=, Float32x4ArraySetIndexed, 1583018506)                \
   V(_Int32x4Array, [], Int32x4ArrayGetIndexed, 1911863146)                     \
   V(_Int32x4Array, []=, Int32x4ArraySetIndexed, 973572811)                     \
+  V(_Float64x2Array, [], Float64x2ArrayGetIndexed, 325873961)                  \
+  V(_Float64x2Array, []=, Float64x2ArraySetIndexed, 2105580462)                \
 
 
 // A list of core function that should always be inlined.
@@ -180,9 +199,50 @@ class Range;
   V(ListIterator, moveNext, ListIteratorMoveNext, 2062984847)                  \
   V(_GrowableList, get:iterator, GrowableArrayIterator, 1155241039)            \
   V(_GrowableList, forEach, GrowableArrayForEach, 195359970)                   \
+  V(_List, [], ObjectArrayGetIndexed, 675155875)                               \
+  V(_List, []=, ObjectArraySetIndexed, 1228569706)                             \
+  V(_ImmutableList, [], ImmutableArrayGetIndexed, 1768793932)                  \
+  V(_GrowableList, [], GrowableArrayGetIndexed, 1282104248)                    \
+  V(_GrowableList, []=, GrowableArraySetIndexed, 807019110)                    \
+  V(_Float32Array, [], Float32ArrayGetIndexed, 1461569776)                     \
+  V(_Float32Array, []=, Float32ArraySetIndexed, 1318757370)                    \
+  V(_Float64Array, [], Float64ArrayGetIndexed, 1107401598)                     \
+  V(_Float64Array, []=, Float64ArraySetIndexed, 377873481)                     \
+  V(_Int8Array, [], Int8ArrayGetIndexed, 436208801)                            \
+  V(_Int8Array, []=, Int8ArraySetIndexed, 1257450859)                          \
+  V(_Uint8Array, [], Uint8ArrayGetIndexed, 738731818)                          \
+  V(_Uint8Array, []=, Uint8ArraySetIndexed, 1414236073)                        \
+  V(_Uint8ClampedArray, [], Uint8ClampedArrayGetIndexed, 1529176866)           \
+  V(_Uint8ClampedArray, []=, Uint8ClampedArraySetIndexed, 1902969517)          \
+  V(_Uint16Array, [], Uint16ArrayGetIndexed, 1050460407)                       \
+  V(_Uint16Array, []=, Uint16ArraySetIndexed, 1895506641)                      \
+  V(_Int16Array, [], Int16ArrayGetIndexed, 1428082706)                         \
+  V(_Int16Array, []=, Int16ArraySetIndexed, 266849900)                         \
+  V(_Int32Array, [], Int32ArrayGetIndexed, 1023604903)                         \
+  V(_Int32Array, []=, Int32ArraySetIndexed, 599753059)                         \
+  V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 250795553)                  \
+  V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 533993880)                 \
+  V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 530738523)                    \
+  V(_Int8ArrayView, []=, Int8ArrayViewSetIndexed, 1513635170)                  \
+  V(::, asin, MathASin, 1528431637)                                            \
+  V(::, acos, MathACos, 1558635398)                                            \
+  V(::, atan, MathATan, 209476605)                                             \
+  V(::, atan2, MathATan2, 2059468649)                                          \
+  V(::, cos, MathCos, 1282146521)                                              \
+  V(::, exp, MathExp, 1951779581)                                              \
+  V(::, log, MathLog, 255699484)                                               \
+  V(::, max, MathMax, 612058870)                                               \
+  V(::, min, MathMin, 1022567780)                                              \
+  V(::, pow, MathPow, 1880071137)                                              \
+  V(::, sin, MathSin, 730107143)                                               \
+  V(::, sqrt, MathSqrt, 465520247)                                             \
+  V(::, tan, MathTan, 2077846426)                                              \
+
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
+  V(_StringBase, [], StringBaseCharAt, 585372763)                              \
+  V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 1958436584)                 \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 272598802)                     \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 831354841)                   \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 1832126257)                  \
@@ -193,6 +253,16 @@ class Range;
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1356392173)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1239681356)          \
   V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 163795162)               \
+  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 1793798234)                    \
+  V(_TypedList, _setUint8, ByteArrayBaseSetInt8, 67253374)                     \
+  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 10467750)                    \
+  V(_TypedList, _setUint16, ByteArrayBaseSetInt16, 1596986894)                 \
+  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 868037529)                   \
+  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 1776345006)                \
+  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1807927533)              \
+  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 399659907)               \
+  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1612092224)          \
+  V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 74799321)                \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -630,16 +700,12 @@ class EmbeddedArray<T, 0> {
   M(BooleanNegate)                                                             \
   M(InstanceOf)                                                                \
   M(CreateArray)                                                               \
-  M(CreateClosure)                                                             \
   M(AllocateObject)                                                            \
   M(LoadField)                                                                 \
-  M(StoreVMField)                                                              \
   M(LoadUntagged)                                                              \
   M(LoadClassId)                                                               \
   M(InstantiateType)                                                           \
   M(InstantiateTypeArguments)                                                  \
-  M(ExtractConstructorTypeArguments)                                           \
-  M(ExtractConstructorInstantiator)                                            \
   M(AllocateContext)                                                           \
   M(CloneContext)                                                              \
   M(BinarySmiOp)                                                               \
@@ -650,6 +716,8 @@ class EmbeddedArray<T, 0> {
   M(DoubleToInteger)                                                           \
   M(DoubleToSmi)                                                               \
   M(DoubleToDouble)                                                            \
+  M(DoubleToFloat)                                                             \
+  M(FloatToDouble)                                                             \
   M(CheckClass)                                                                \
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
@@ -700,6 +768,17 @@ class EmbeddedArray<T, 0> {
   M(Int32x4ToFloat32x4)                                                        \
   M(BinaryInt32x4Op)                                                           \
   M(TestSmi)                                                                   \
+  M(BoxFloat64x2)                                                              \
+  M(UnboxFloat64x2)                                                            \
+  M(BinaryFloat64x2Op)                                                         \
+  M(Float64x2Zero)                                                             \
+  M(Float64x2Constructor)                                                      \
+  M(Float64x2Splat)                                                            \
+  M(Float32x4ToFloat64x2)                                                      \
+  M(Float64x2ToFloat32x4)                                                      \
+  M(Simd64x2Shuffle)                                                           \
+  M(Float64x2ZeroArg)                                                          \
+  M(Float64x2OneArg)                                                           \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -961,11 +1040,13 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
  private:
   friend class FlowGraphPrinter;
   friend class Definition;  // Needed for InsertBefore, InsertAfter.
+  friend class CallSiteInliner;
 
   // Classes that set or read deopt_id_.
   friend class UnboxIntegerInstr;
   friend class UnboxDoubleInstr;
   friend class UnboxFloat32x4Instr;
+  friend class UnboxFloat64x2Instr;
   friend class UnboxInt32x4Instr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryFloat32x4OpInstr;
@@ -983,12 +1064,21 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Float32x4ClampInstr;
   friend class Float32x4WithInstr;
   friend class Float32x4ToInt32x4Instr;
+  friend class Simd64x2ShuffleInstr;
+  friend class Float64x2ZeroArgInstr;
+  friend class Float64x2OneArgInstr;
+  friend class Float32x4ToFloat64x2Instr;
+  friend class Float64x2ToFloat32x4Instr;
+  friend class Float64x2ZeroInstr;
+  friend class Float64x2SplatInstr;
+  friend class Float64x2ConstructorInstr;
   friend class Int32x4BoolConstructorInstr;
   friend class Int32x4GetFlagInstr;
   friend class Int32x4SetFlagInstr;
   friend class Int32x4SelectInstr;
   friend class Int32x4ToFloat32x4Instr;
   friend class BinaryInt32x4OpInstr;
+  friend class BinaryFloat64x2OpInstr;
   friend class BinaryMintOpInstr;
   friend class BinarySmiOpInstr;
   friend class UnarySmiOpInstr;
@@ -1005,6 +1095,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class LICM;
   friend class DoubleToSmiInstr;
   friend class DoubleToDoubleInstr;
+  friend class DoubleToFloatInstr;
+  friend class FloatToDoubleInstr;
   friend class InvokeMathCFunctionInstr;
   friend class MergedMathInstr;
   friend class FlowGraphOptimizer;
@@ -1629,6 +1721,16 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
 };
 
 
+// If the result of the allocation is not stored into any field, passed
+// as an argument or used in a phi then it can't alias with any other
+// SSA value.
+enum AliasIdentity {
+  kIdentityUnknown,
+  kIdentityAliased,
+  kIdentityNotAliased
+};
+
+
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
@@ -1764,6 +1866,16 @@ class Definition : public Instruction {
     ASSERT(WasEliminated());
     ssa_temp_index_ = kReplacementMarker;
     temp_index_ = reinterpret_cast<intptr_t>(other);
+  }
+
+  virtual AliasIdentity Identity() const {
+    // Only implemented for allocation instructions.
+    UNREACHABLE();
+    return kIdentityUnknown;
+  }
+
+  virtual void SetIdentity(AliasIdentity identity) {
+    UNREACHABLE();
   }
 
  protected:
@@ -2862,7 +2974,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
     return instance_call()->PushArgumentAt(index);
   }
 
-  bool HasRecognizedTarget() const;
+  bool HasSingleRecognizedTarget() const;
 
   virtual intptr_t CallCount() const { return ic_data().AggregateCount(); }
 
@@ -3187,7 +3299,9 @@ class StaticCallInstr : public TemplateDefinition<0> {
         argument_names_(argument_names),
         arguments_(arguments),
         result_cid_(kDynamicCid),
-        is_known_list_constructor_(false) {
+        is_known_list_constructor_(false),
+        is_native_list_factory_(false),
+        identity_(kIdentityUnknown) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
@@ -3226,7 +3340,19 @@ class StaticCallInstr : public TemplateDefinition<0> {
     is_known_list_constructor_ = value;
   }
 
+  bool is_native_list_factory() const { return is_native_list_factory_; }
+  void set_is_native_list_factory(bool value) {
+    is_native_list_factory_ = value;
+  }
+
+  bool IsRecognizedFactory() const {
+    return is_known_list_constructor() || is_native_list_factory();
+  }
+
   virtual bool MayThrow() const { return true; }
+
+  virtual AliasIdentity Identity() const { return identity_; }
+  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
  private:
   const ICData* ic_data_;
@@ -3238,6 +3364,9 @@ class StaticCallInstr : public TemplateDefinition<0> {
 
   // 'True' for recognized list constructors.
   bool is_known_list_constructor_;
+  bool is_native_list_factory_;
+
+  AliasIdentity identity_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
@@ -3307,20 +3436,30 @@ class PushTempInstr : public TemplateDefinition<1> {
 };
 
 
-class DropTempsInstr : public TemplateDefinition<1> {
+class DropTempsInstr : public Definition {
  public:
-  explicit DropTempsInstr(intptr_t num_temps, Value* value)
-      : num_temps_(num_temps) {
-    SetInputAt(0, value);
+  explicit DropTempsInstr(intptr_t num_temps, Value* value = NULL)
+      : num_temps_(num_temps), value_(NULL) {
+    if (value != NULL) {
+      SetInputAt(0, value);
+    }
   }
 
   DECLARE_INSTRUCTION(DropTemps)
 
-  Value* value() const { return inputs_[0]; }
+  virtual intptr_t InputCount() const { return value_ != NULL ? 1 : 0; }
+  virtual Value* InputAt(intptr_t i) const {
+    ASSERT((value_ != NULL) && (i == 0));
+    return value_;
+  }
+
+  Value* value() const { return value_; }
 
   intptr_t num_temps() const { return num_temps_; }
 
   virtual CompileType* ComputeInitialType() const;
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -3335,7 +3474,12 @@ class DropTempsInstr : public TemplateDefinition<1> {
   }
 
  private:
-  intptr_t num_temps_;
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    value_ = value;
+  }
+
+  const intptr_t num_temps_;
+  Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(DropTempsInstr);
 };
@@ -3463,6 +3607,20 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
                           StoreBarrierType emit_store_barrier,
                           bool is_initialization = false)
       : field_(field),
+        offset_in_bytes_(field.Offset()),
+        emit_store_barrier_(emit_store_barrier),
+        is_initialization_(is_initialization) {
+    SetInputAt(kInstancePos, instance);
+    SetInputAt(kValuePos, value);
+  }
+
+  StoreInstanceFieldInstr(intptr_t offset_in_bytes,
+                          Value* instance,
+                          Value* value,
+                          StoreBarrierType emit_store_barrier,
+                          bool is_initialization = false)
+      : field_(Field::Handle()),
+        offset_in_bytes_(offset_in_bytes),
         emit_store_barrier_(emit_store_barrier),
         is_initialization_(is_initialization) {
     SetInputAt(kInstancePos, instance);
@@ -3482,6 +3640,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   virtual CompileType* ComputeInitialType() const;
 
   const Field& field() const { return field_; }
+  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
 
   bool ShouldEmitStoreBarrier() const {
     return value()->NeedsStoreBuffer()
@@ -3521,6 +3680,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   }
 
   const Field& field_;
+  intptr_t offset_in_bytes_;
   const StoreBarrierType emit_store_barrier_;
   const bool is_initialization_;  // Marks stores in the constructor.
 
@@ -3698,9 +3858,9 @@ class StringFromCharCodeInstr : public TemplateDefinition<1> {
  public:
   StringFromCharCodeInstr(Value* char_code, intptr_t cid) : cid_(cid) {
     ASSERT(char_code != NULL);
-    ASSERT(char_code->definition()->IsLoadIndexed() &&
-           (char_code->definition()->AsLoadIndexed()->class_id() ==
-            kOneByteStringCid));
+    ASSERT(char_code->definition()->IsLoadIndexed());
+    ASSERT(char_code->definition()->AsLoadIndexed()->class_id() ==
+           kOneByteStringCid);
     SetInputAt(0, char_code);
   }
 
@@ -3935,11 +4095,10 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
       : token_pos_(token_pos),
         cls_(cls),
         arguments_(arguments),
-        identity_(kUnknown),
-        closure_function_(Function::ZoneHandle()),
-        context_field_(Field::ZoneHandle()) {
+        identity_(kIdentityUnknown),
+        closure_function_(Function::ZoneHandle()) {
     // Either no arguments or one type-argument and one instantiator.
-    ASSERT(arguments->is_empty() || (arguments->length() == 2));
+    ASSERT(arguments->is_empty() || (arguments->length() == 1));
   }
 
   DECLARE_INSTRUCTION(AllocateObject)
@@ -3958,11 +4117,6 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
     closure_function_ ^= function.raw();
   }
 
-  const Field& context_field() const { return context_field_; }
-  void set_context_field(const Field& field) {
-    context_field_ ^= field.raw();
-  }
-
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
@@ -3971,25 +4125,15 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
 
   virtual bool MayThrow() const { return false; }
 
-  // If the result of the allocation is not stored into any field, passed
-  // as an argument or used in a phi then it can't alias with any other
-  // SSA value.
-  enum Identity {
-    kUnknown,
-    kAliased,
-    kNotAliased
-  };
-
-  Identity identity() const { return identity_; }
-  void set_identity(Identity identity) { identity_ = identity; }
+  virtual AliasIdentity Identity() const { return identity_; }
+  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
  private:
   const intptr_t token_pos_;
   const Class& cls_;
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
-  Identity identity_;
+  AliasIdentity identity_;
   Function& closure_function_;
-  Field& context_field_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
@@ -4001,10 +4145,10 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
 class MaterializeObjectInstr : public Definition {
  public:
   MaterializeObjectInstr(const Class& cls,
-                         const ZoneGrowableArray<const Field*>& fields,
+                         const ZoneGrowableArray<const Object*>& slots,
                          ZoneGrowableArray<Value*>* values)
-      : cls_(cls), fields_(fields), values_(values), locations_(NULL) {
-    ASSERT(fields_.length() == values_->length());
+      : cls_(cls), slots_(slots), values_(values), locations_(NULL) {
+    ASSERT(slots_.length() == values_->length());
     for (intptr_t i = 0; i < InputCount(); i++) {
       InputAt(i)->set_instruction(this);
       InputAt(i)->set_use_index(i);
@@ -4012,8 +4156,10 @@ class MaterializeObjectInstr : public Definition {
   }
 
   const Class& cls() const { return cls_; }
-  const Field& FieldAt(intptr_t i) const {
-    return *fields_[i];
+  intptr_t FieldOffsetAt(intptr_t i) const {
+    return slots_[i]->IsField()
+        ? Field::Cast(*slots_[i]).Offset()
+        : Smi::Cast(*slots_[i]).Value();
   }
   const Location& LocationAt(intptr_t i) {
     return locations_[i];
@@ -4054,7 +4200,7 @@ class MaterializeObjectInstr : public Definition {
   }
 
   const Class& cls_;
-  const ZoneGrowableArray<const Field*>& fields_;
+  const ZoneGrowableArray<const Object*>& slots_;
   ZoneGrowableArray<Value*>* values_;
   Location* locations_;
 
@@ -4067,7 +4213,7 @@ class CreateArrayInstr : public TemplateDefinition<2> {
   CreateArrayInstr(intptr_t token_pos,
                    Value* element_type,
                    Value* num_elements)
-      : token_pos_(token_pos) {
+      : token_pos_(token_pos), identity_(kIdentityUnknown)  {
     SetInputAt(kElementTypePos, element_type);
     SetInputAt(kLengthPos, num_elements);
   }
@@ -4093,47 +4239,14 @@ class CreateArrayInstr : public TemplateDefinition<2> {
 
   virtual bool MayThrow() const { return false; }
 
+  virtual AliasIdentity Identity() const { return identity_; }
+  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
+
  private:
   const intptr_t token_pos_;
+  AliasIdentity identity_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
-};
-
-
-class CreateClosureInstr : public TemplateDefinition<0> {
- public:
-  CreateClosureInstr(const Function& function,
-                     ZoneGrowableArray<PushArgumentInstr*>* arguments,
-                     intptr_t token_pos)
-      : function_(function),
-        arguments_(arguments),
-        token_pos_(token_pos) { }
-
-  DECLARE_INSTRUCTION(CreateClosure)
-  virtual CompileType ComputeType() const;
-
-  intptr_t token_pos() const { return token_pos_; }
-  const Function& function() const { return function_; }
-
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const Function& function_;
-  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
-  intptr_t token_pos_;
-
-  DISALLOW_COPY_AND_ASSIGN(CreateClosureInstr);
 };
 
 
@@ -4218,6 +4331,21 @@ class LoadFieldInstr : public TemplateDefinition<1> {
     SetInputAt(0, instance);
   }
 
+  LoadFieldInstr(Value* instance,
+                 const Field* field,
+                 const AbstractType& type,
+                 bool immutable = false)
+      : offset_in_bytes_(field->Offset()),
+        type_(type),
+        result_cid_(kDynamicCid),
+        immutable_(immutable),
+        recognized_kind_(MethodRecognizer::kUnknown),
+        field_(field) {
+    ASSERT(field->IsZoneHandle());
+    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
+    SetInputAt(0, instance);
+  }
+
   Value* instance() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
@@ -4225,7 +4353,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   intptr_t result_cid() const { return result_cid_; }
 
   const Field* field() const { return field_; }
-  void set_field(const Field* field) { field_ = field; }
 
   virtual Representation representation() const;
 
@@ -4276,47 +4403,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   const Field* field_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
-};
-
-
-class StoreVMFieldInstr : public TemplateDefinition<2> {
- public:
-  StoreVMFieldInstr(Value* dest,
-                    intptr_t offset_in_bytes,
-                    Value* value,
-                    const AbstractType& type)
-      : offset_in_bytes_(offset_in_bytes), type_(type) {
-    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    SetInputAt(kValuePos, value);
-    SetInputAt(kObjectPos, dest);
-  }
-
-  enum {
-    kValuePos = 0,
-    kObjectPos = 1
-  };
-
-  DECLARE_INSTRUCTION(StoreVMField)
-  virtual CompileType* ComputeInitialType() const;
-
-  Value* value() const { return inputs_[kValuePos]; }
-  Value* dest() const { return inputs_[kObjectPos]; }
-  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
-  const AbstractType& type() const { return type_; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const intptr_t offset_in_bytes_;
-  const AbstractType& type_;
-
-  DISALLOW_COPY_AND_ASSIGN(StoreVMFieldInstr);
 };
 
 
@@ -4388,84 +4474,14 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
 
   virtual bool MayThrow() const { return true; }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
  private:
   const intptr_t token_pos_;
   const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
-};
-
-
-class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
- public:
-  ExtractConstructorTypeArgumentsInstr(
-      intptr_t token_pos,
-      const TypeArguments& type_arguments,
-      const Class& instantiator_class,
-      Value* instantiator)
-      : token_pos_(token_pos),
-        type_arguments_(type_arguments),
-        instantiator_class_(instantiator_class) {
-    SetInputAt(0, instantiator);
-  }
-
-  DECLARE_INSTRUCTION(ExtractConstructorTypeArguments)
-
-  Value* instantiator() const { return inputs_[0]; }
-  const TypeArguments& type_arguments() const {
-    return type_arguments_;
-  }
-  const Class& instantiator_class() const { return instantiator_class_; }
-  intptr_t token_pos() const { return token_pos_; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const intptr_t token_pos_;
-  const TypeArguments& type_arguments_;
-  const Class& instantiator_class_;
-
-  DISALLOW_COPY_AND_ASSIGN(ExtractConstructorTypeArgumentsInstr);
-};
-
-
-class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
- public:
-  ExtractConstructorInstantiatorInstr(ConstructorCallNode* ast_node,
-                                      const Class& instantiator_class,
-                                      Value* instantiator)
-      : ast_node_(*ast_node), instantiator_class_(instantiator_class) {
-    SetInputAt(0, instantiator);
-  }
-
-  DECLARE_INSTRUCTION(ExtractConstructorInstantiator)
-
-  Value* instantiator() const { return inputs_[0]; }
-  const TypeArguments& type_arguments() const {
-    return ast_node_.type_arguments();
-  }
-  const Function& constructor() const { return ast_node_.constructor(); }
-  const Class& instantiator_class() const { return instantiator_class_; }
-  intptr_t token_pos() const { return ast_node_.token_pos(); }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const ConstructorCallNode& ast_node_;
-  const Class& instantiator_class_;
-
-  DISALLOW_COPY_AND_ASSIGN(ExtractConstructorInstantiatorInstr);
 };
 
 
@@ -4630,6 +4646,43 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
 };
 
 
+class BoxFloat64x2Instr : public TemplateDefinition<1> {
+ public:
+  explicit BoxFloat64x2Instr(Value* value) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return Isolate::kNoDeoptId;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat64x2;
+  }
+
+  DECLARE_INSTRUCTION(BoxFloat64x2)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoxFloat64x2Instr);
+};
+
+
+
 class BoxInt32x4Instr : public TemplateDefinition<1> {
  public:
   explicit BoxInt32x4Instr(Value* value) {
@@ -4766,6 +4819,40 @@ class UnboxFloat32x4Instr : public TemplateDefinition<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxFloat32x4Instr);
+};
+
+
+class UnboxFloat64x2Instr : public TemplateDefinition<1> {
+ public:
+  UnboxFloat64x2Instr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const {
+    return (value()->Type()->ToCid() != kFloat64x2Cid);
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat64x2;
+  }
+
+  DECLARE_INSTRUCTION(UnboxFloat64x2)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxFloat64x2Instr);
 };
 
 
@@ -5705,6 +5792,72 @@ class Float32x4WithInstr : public TemplateDefinition<2> {
 };
 
 
+class Simd64x2ShuffleInstr : public TemplateDefinition<1> {
+ public:
+  Simd64x2ShuffleInstr(MethodRecognizer::Kind op_kind, Value* value,
+                       intptr_t mask,
+                       intptr_t deopt_id)
+      : op_kind_(op_kind), mask_(mask) {
+    SetInputAt(0, value);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  intptr_t mask() const { return mask_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    if ((op_kind_ == MethodRecognizer::kFloat64x2GetX) ||
+        (op_kind_ == MethodRecognizer::kFloat64x2GetY)) {
+      return kUnboxedDouble;
+    }
+    UNIMPLEMENTED();
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    if ((op_kind_ == MethodRecognizer::kFloat64x2GetX) ||
+        (op_kind_ == MethodRecognizer::kFloat64x2GetY)) {
+      return kUnboxedFloat64x2;
+    }
+    UNIMPLEMENTED();
+    return kUnboxedFloat64x2;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Simd64x2Shuffle)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return (op_kind() == other->AsSimd64x2Shuffle()->op_kind()) &&
+           (mask() == other->AsSimd64x2Shuffle()->mask());
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+  const intptr_t mask_;
+
+  DISALLOW_COPY_AND_ASSIGN(Simd64x2ShuffleInstr);
+};
+
+
 class Float32x4ToInt32x4Instr : public TemplateDefinition<1> {
  public:
   Float32x4ToInt32x4Instr(Value* left, intptr_t deopt_id) {
@@ -5745,6 +5898,334 @@ class Float32x4ToInt32x4Instr : public TemplateDefinition<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ToInt32x4Instr);
+};
+
+
+class Float32x4ToFloat64x2Instr : public TemplateDefinition<1> {
+ public:
+  Float32x4ToFloat64x2Instr(Value* left, intptr_t deopt_id) {
+    SetInputAt(0, left);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* left() const { return inputs_[0]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat64x2;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4ToFloat64x2)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Float32x4ToFloat64x2Instr);
+};
+
+
+class Float64x2ToFloat32x4Instr : public TemplateDefinition<1> {
+ public:
+  Float64x2ToFloat32x4Instr(Value* left, intptr_t deopt_id) {
+    SetInputAt(0, left);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* left() const { return inputs_[0]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat64x2;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float64x2ToFloat32x4)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Float64x2ToFloat32x4Instr);
+};
+
+
+class Float64x2ConstructorInstr : public TemplateDefinition<2> {
+ public:
+  Float64x2ConstructorInstr(Value* value0, Value* value1, intptr_t deopt_id) {
+    SetInputAt(0, value0);
+    SetInputAt(1, value1);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value0() const { return inputs_[0]; }
+  Value* value1() const { return inputs_[1]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat64x2;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx >= 0 && idx < 2);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float64x2Constructor)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Float64x2ConstructorInstr);
+};
+
+
+class Float64x2SplatInstr : public TemplateDefinition<1> {
+ public:
+  Float64x2SplatInstr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat64x2;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float64x2Splat)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Float64x2SplatInstr);
+};
+
+
+class Float64x2ZeroInstr : public TemplateDefinition<0> {
+ public:
+  explicit Float64x2ZeroInstr(intptr_t deopt_id) {
+    deopt_id_ = deopt_id;
+  }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat64x2;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    UNIMPLEMENTED();
+    return kUnboxedFloat64x2;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float64x2Zero)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Float64x2ZeroInstr);
+};
+
+
+class Float64x2ZeroArgInstr : public TemplateDefinition<1> {
+ public:
+  Float64x2ZeroArgInstr(MethodRecognizer::Kind op_kind, Value* left,
+                        intptr_t deopt_id) : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* left() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    if (op_kind() == MethodRecognizer::kFloat64x2GetSignMask) {
+      // Smi.
+      return kTagged;
+    }
+    return kUnboxedFloat64x2;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat64x2;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float64x2ZeroArg)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat64x2ZeroArg()->op_kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float64x2ZeroArgInstr);
+};
+
+
+class Float64x2OneArgInstr : public TemplateDefinition<2> {
+ public:
+  Float64x2OneArgInstr(MethodRecognizer::Kind op_kind, Value* left,
+                       Value* right, intptr_t deopt_id) : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat64x2;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    if (idx == 0) {
+      return kUnboxedFloat64x2;
+    }
+    ASSERT(idx == 1);
+    if ((op_kind() == MethodRecognizer::kFloat64x2WithX) ||
+        (op_kind() == MethodRecognizer::kFloat64x2WithY) ||
+        (op_kind() == MethodRecognizer::kFloat64x2Scale)) {
+      return kUnboxedDouble;
+    }
+    return kUnboxedFloat64x2;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float64x2OneArg)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat64x2OneArg()->op_kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float64x2OneArgInstr);
 };
 
 
@@ -6106,6 +6587,63 @@ class BinaryInt32x4OpInstr : public TemplateDefinition<2> {
 
   DISALLOW_COPY_AND_ASSIGN(BinaryInt32x4OpInstr);
 };
+
+
+class BinaryFloat64x2OpInstr : public TemplateDefinition<2> {
+ public:
+  BinaryFloat64x2OpInstr(Token::Kind op_kind,
+                         Value* left,
+                         Value* right,
+                         intptr_t deopt_id)
+      : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat64x2;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedFloat64x2;
+  }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(BinaryFloat64x2Op)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    ASSERT(other->IsBinaryFloat64x2Op());
+    return op_kind() == other->AsBinaryFloat64x2Op()->op_kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const Token::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(BinaryFloat64x2OpInstr);
+};
+
 
 class BinaryMintOpInstr : public TemplateDefinition<2> {
  public:
@@ -6599,6 +7137,92 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
 };
 
 
+class DoubleToFloatInstr: public TemplateDefinition<1> {
+ public:
+  DoubleToFloatInstr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  DECLARE_INSTRUCTION(DoubleToFloat)
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    // This works since double is the representation that the typed array
+    // store expects.
+    // TODO(fschneider): Change this to a genuine float representation once it
+    // is supported.
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DoubleToFloatInstr);
+};
+
+
+class FloatToDoubleInstr: public TemplateDefinition<1> {
+ public:
+  FloatToDoubleInstr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  DECLARE_INSTRUCTION(FloatToDouble)
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(FloatToDoubleInstr);
+};
+
+
 class InvokeMathCFunctionInstr : public Definition {
  public:
   InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
@@ -6647,6 +7271,9 @@ class InvokeMathCFunctionInstr : public Definition {
   virtual bool MayThrow() const { return false; }
 
  private:
+  static const intptr_t kSavedSpTempIndex = 0;
+  static const intptr_t kObjectTempIndex = 1;
+  static const intptr_t kDoubleTempIndex = 2;
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*inputs_)[i] = value;
   }
@@ -6793,8 +7420,11 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   virtual bool MayThrow() const { return false; }
 
+  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+
  private:
   const ICData& unary_checks_;
+  bool licm_hoisted_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };

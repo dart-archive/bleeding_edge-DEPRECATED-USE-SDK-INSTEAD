@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -30,7 +31,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * @coverage dart.engine.ast
  */
-public class Annotation extends ASTNode {
+public class Annotation extends AstNode {
   /**
    * The at sign that introduced the annotation.
    */
@@ -67,6 +68,11 @@ public class Annotation extends ASTNode {
   private Element element;
 
   /**
+   * The element annotation representing this annotation in the element model.
+   */
+  private ElementAnnotation elementAnnotation;
+
+  /**
    * Initialize a newly created annotation.
    * 
    * @param atSign the at sign that introduced the annotation
@@ -89,7 +95,7 @@ public class Annotation extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitAnnotation(this);
   }
 
@@ -141,6 +147,15 @@ public class Annotation extends ASTNode {
       return name.getStaticElement();
     }
     return null;
+  }
+
+  /**
+   * Return the element annotation representing this annotation in the element model.
+   * 
+   * @return the element annotation representing this annotation in the element model
+   */
+  public ElementAnnotation getElementAnnotation() {
+    return elementAnnotation;
   }
 
   @Override
@@ -210,6 +225,17 @@ public class Annotation extends ASTNode {
   }
 
   /**
+   * Set the element annotation representing this annotation in the element model to the given
+   * element annotation.
+   * 
+   * @param elementAnnotation the element annotation representing this annotation in the element
+   *          model
+   */
+  public void setElementAnnotation(ElementAnnotation elementAnnotation) {
+    this.elementAnnotation = elementAnnotation;
+  }
+
+  /**
    * Set the name of the class defining the constructor that is being invoked or the name of the
    * field that is being referenced to the given name.
    * 
@@ -229,7 +255,7 @@ public class Annotation extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(name, visitor);
     safelyVisitChild(constructorName, visitor);
     safelyVisitChild(arguments, visitor);

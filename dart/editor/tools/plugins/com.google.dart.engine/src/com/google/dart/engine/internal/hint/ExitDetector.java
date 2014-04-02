@@ -65,7 +65,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.scanner.TokenType;
 
 /**
@@ -73,7 +73,7 @@ import com.google.dart.engine.scanner.TokenType;
  * to terminate by executing a {@code return} statement, {@code throw} expression, {@code rethrow}
  * expression, or simple infinite loop such as {@code while(true)}.
  */
-public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
+public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
 
   /**
    * Set to {@code true} when a {@code break} is encountered, and reset to {@code false} when a
@@ -136,7 +136,9 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
         }
       }
     }
-    return lhsExpression.accept(this) || node.getRightOperand().accept(this);
+    Expression rhsExpression = node.getRightOperand();
+    return (lhsExpression != null && lhsExpression.accept(this))
+        || (rhsExpression != null && rhsExpression.accept(this));
   }
 
   @Override
@@ -222,7 +224,13 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
 
   @Override
   public Boolean visitForEachStatement(ForEachStatement node) {
-    return node.getIterator().accept(this);
+    boolean outerBreakValue = enclosingBlockContainsBreak;
+    enclosingBlockContainsBreak = false;
+    try {
+      return node.getIterator().accept(this);
+    } finally {
+      enclosingBlockContainsBreak = outerBreakValue;
+    }
   }
 
   @Override
@@ -245,12 +253,13 @@ public class ExitDetector extends GeneralizingASTVisitor<Boolean> {
         return true;
       }
       // TODO(jwren) Do we want to take all constant expressions into account?
-      if (conditionExpression instanceof BooleanLiteral) {
-        BooleanLiteral booleanLiteral = (BooleanLiteral) conditionExpression;
-        // If for(; true; ), and the body doesn't return or the body doesn't have a break, then
-        // return true.
+      // If for(; true; ) (or for(;;)), and the body doesn't return or the body doesn't have a
+      // break, then return true.
+      boolean implicitOrExplictTrue = conditionExpression == null
+          || (conditionExpression instanceof BooleanLiteral && ((BooleanLiteral) conditionExpression).getValue());
+      if (implicitOrExplictTrue) {
         boolean blockReturns = node.getBody().accept(this);
-        if (booleanLiteral.getValue() && (blockReturns || !enclosingBlockContainsBreak)) {
+        if (blockReturns || !enclosingBlockContainsBreak) {
           return true;
         }
       }

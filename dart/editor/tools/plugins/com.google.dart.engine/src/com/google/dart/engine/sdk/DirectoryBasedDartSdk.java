@@ -20,7 +20,6 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.internal.sdk.SdkLibrariesReader;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -28,6 +27,9 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
+import com.google.dart.engine.utilities.translation.DartBlockBody;
+import com.google.dart.engine.utilities.translation.DartOmit;
+import com.google.dart.engine.utilities.translation.DartOptional;
 
 import java.io.File;
 import java.io.IOException;
@@ -191,23 +193,35 @@ public class DirectoryBasedDartSdk implements DartSdk {
    * 
    * @param sdkDirectory the directory containing the SDK
    */
+  @DartOmit
   public DirectoryBasedDartSdk(File sdkDirectory) {
+    this(sdkDirectory, false);
+  }
+
+  /**
+   * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
+   * 
+   * @param sdkDirectory the directory containing the SDK
+   * @param useDart2jsPaths {@code true} if the dart2js path should be used when it is available
+   */
+  public DirectoryBasedDartSdk(File sdkDirectory,
+      @DartOptional(defaultValue = "false") boolean useDart2jsPaths) {
     this.sdkDirectory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
-    initializeLibraryMap();
+    initializeLibraryMap(useDart2jsPaths);
     analysisContext = new AnalysisContextImpl();
     analysisContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
     String[] uris = getUris();
     ChangeSet changeSet = new ChangeSet();
     for (String uri : uris) {
-      changeSet.added(analysisContext.getSourceFactory().forUri(uri));
+      changeSet.addedSource(analysisContext.getSourceFactory().forUri(uri));
     }
     analysisContext.applyChanges(changeSet);
   }
 
   @Override
-  public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
-    return new FileBasedSource(contentCache, new File(uri), kind);
+  public Source fromEncoding(UriKind kind, URI uri) {
+    return new FileBasedSource(new File(uri), kind);
   }
 
   @Override
@@ -389,15 +403,14 @@ public class DirectoryBasedDartSdk implements DartSdk {
     if (library == null) {
       return null;
     }
-    return new FileBasedSource(analysisContext.getSourceFactory().getContentCache(), new File(
-        getLibraryDirectory(),
-        library.getPath()), UriKind.DART_URI);
+    return new FileBasedSource(new File(getLibraryDirectory(), library.getPath()), UriKind.DART_URI);
   }
 
   /**
    * Ensure that the dart VM is executable. If it is not, make it executable and log that it was
    * necessary for us to do so.
    */
+  @DartBlockBody({})
   private void ensureVmIsExecutable() {
     File dartVm = getVmExecutable();
     if (dartVm != null) {
@@ -438,12 +451,14 @@ public class DirectoryBasedDartSdk implements DartSdk {
 
   /**
    * Read all of the configuration files to initialize the library maps.
+   * 
+   * @param useDart2jsPaths {@code true} if the dart2js path should be used when it is available
    */
-  private void initializeLibraryMap() {
+  private void initializeLibraryMap(boolean useDart2jsPaths) {
     File librariesFile = new File(new File(getLibraryDirectory(), INTERNAL_DIR), LIBRARIES_FILE);
     try {
       String contents = FileUtilities.getContents(librariesFile);
-      libraryMap = new SdkLibrariesReader().readFrom(librariesFile, contents);
+      libraryMap = new SdkLibrariesReader(useDart2jsPaths).readFromFile(librariesFile, contents);
     } catch (Exception exception) {
       AnalysisEngine.getInstance().getLogger().logError(
           "Could not initialize the library map from " + librariesFile.getAbsolutePath(),

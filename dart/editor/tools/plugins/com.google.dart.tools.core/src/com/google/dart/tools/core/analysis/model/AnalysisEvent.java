@@ -35,4 +35,11 @@ public interface AnalysisEvent {
    * @return the manager (not {@code null})
    */
   ContextManager getContextManager();
+
+  /**
+   * Answer the resource map of the context in which the analysis was performed.
+   * 
+   * @return the resource map (not {@code null})
+   */
+  ResourceMap getResourceMap();
 }

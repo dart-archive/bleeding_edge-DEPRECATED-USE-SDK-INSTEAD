@@ -1,12 +1,12 @@
 openLab 5
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 util.expandTreeNode (* expand web *)
-Wait 1
+util.xWait 1
 
 util.selectContextImageMenuItem "lib expando", "New File"
 TypeText "storage"
 util.newline
-Wait 5
+util.xWait 5
 
 DoubleClick (Text:"for_later",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"no",ValidCharacters:"*",dpi:94)
 TypeText downArrow
@@ -18,14 +18,14 @@ util.selectAll
 util.pasteText
 
 TypeText upArrow,upArrow,upArrow,upArrow
-Wait 1
+util.xWait 1
 util.quickOutline(* Navigate to saveDocument() *)
 TypeText upArrow
 TypeText upArrow
 TypeText upArrow
 TypeText upArrow
 util.newline
-Wait 2
+util.xWait 2
 
 TypeText downArrow,downArrow,leftArrow
 util.newline
@@ -34,7 +34,7 @@ window.localStorage[doc.id] = doc.toJson();
 }}
 TypeText downArrow,downArrow,downArrow,leftArrow
 util.newline
-Wait 2
+util.xWait 2
 TypeText {{
 if (!_storedIds.contains(doc.id)
 }}
@@ -46,19 +46,19 @@ _storedIds.add(doc.id);
 TypeText downArrow,downArrow,downArrow
 util.endOfLine
 util.newline
-Wait 2
+util.xWait 2
 TypeText {{
 window.localStorage[DOCUMENT_ID_KEY] = JSON.encode(_storedIds);
 }}
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 util.newline
-Wait 2
+util.xWait 2
 TypeText {{
 _storedIds.remove(doc.id);
 window.localStorage.remove(doc.id);
 window.localStorage[DOCUMENT_ID_KEY] = JSON.encode(_storedIds);
 }}
-Wait 5
+util.xWait 5
 
 util.quickOutline
 TypeText downArrow, downArrow
@@ -66,7 +66,7 @@ util.newline
 TypeText downArrow
 util.endOfLine
 util.newline
-Wait 2
+util.xWait 2
 TypeText {{
 if (window.localStorage[DOCUMENT_ID_KEY] != null) {
 _storedIds = JSON.decode(window.localStorage[DOCUMENT_ID_KEY]
@@ -76,34 +76,34 @@ TypeText ";"
 TypeText downArrow,downArrow,downArrow
 util.endOfLine
 util.newline
-Wait 2
+util.xWait 2
 TypeText {{
 return _storedIds.map(_fetchDocument
 }}
 TypeText rightArrow
 TypeText ";"
-(*Wait 5*)
+(*util.xWait 5*)
 
 (*util.openFind*)
 (*TypeText "_fetch"*)
 (*TypeText escape*)
-(*Wait 5*) (* Allow for scrolling and screen updating *)
+(*util.xWait 5*) (* Allow for scrolling and screen updating *)
 (*TypeText downArrow*)
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 util.endOfLine
 util.newline
-Wait 2
+util.xWait 2
 TypeText {{
 return new Document.fromJson(window.localStorage[id]
 }}
 TypeText rightArrow
 TypeText ";"
 util.saveFile
-Wait 5
+util.xWait 5
 util.checkProblems
 
 DoubleClick "index html icon"
-Wait 2
+util.xWait 2
 util.activateEditor
 
 util.openFind
@@ -132,10 +132,10 @@ on-key-up="saveDocument(activeDocument)
 }}
 
 util.saveFile
-Wait 5
+util.xWait 5
 
 DoubleClick (Text:"app.dart",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
-Wait 2
+util.xWait 2
 util.activateEditor
 
 util.openFind
@@ -146,17 +146,17 @@ TypeText {{
 import 'package:writer/storage.dart';
 }}
 util.newline
-Wait 5
+util.xWait 5
 
 util.quickOutline
 TypeText downArrow,downArrow,downArrow,downArrow
-Wait 1
+util.xWait 1
 TypeText downArrow,downArrow,downArrow,downArrow
-Wait 1
+util.xWait 1
 TypeText downArrow,downArrow
-Wait 1
+util.xWait 1
 util.newline (* Navigate to main() *)
-Wait 5 (* Allow for scrolling and screen updating *)
+util.xWait 5 (* Allow for scrolling and screen updating *)
 
 TypeText downArrow
 TypeText downArrow
@@ -167,7 +167,7 @@ documents.addAll(fetchDocuments()
 TypeText rightArrow
 TypeText ";"
 util.newline
-Wait 5
+util.xWait 5
 
 util.quickOutline
 TypeText upArrow,upArrow,upArrow
@@ -181,37 +181,37 @@ removeDocument(doc);
 }}
 
 util.saveFile
-Wait 5
+util.xWait 5
 util.checkProblems
 
 util.selectContextMenuItem "out/index.html","Run in Dartium"
-Wait 2
-WaitFor 10,"browser right arrow button"
-WaitFor 10, "filter box"
+util.xWait 2
+util.xWaitFor 10,"browser right arrow button"
+util.xWaitFor 10, "filter box"
 
 DoubleClick (ImageLocation("plus file") + (300,0))
-Wait 1
+util.xWait 1
 TypeText "abunai"
 TypeText tab
 TypeText "doko deshou ka"
-Wait 1
+util.xWait 1
 Click "plus file"
-Wait 2
+util.xWait 2
 DoubleClick (ImageLocation("plus file") + (300,0))
-Wait 1
+util.xWait 1
 TypeText "tabemono"
 TypeText tab
 TypeText "sake sakee sakeen"
-Wait 1
+util.xWait 1
 
 util.exitChromium
-Wait 30
+util.xWait 30
 
 util.selectContextMenuItem "out/index.html","Run in Dartium"
-Wait 2
-WaitFor 10,"browser right arrow button"
-WaitFor 10, "filter box"
-WaitFor 10, (Text:"tabemono",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+util.xWait 2
+util.xWaitFor 10,"browser right arrow button"
+util.xWaitFor 10, "filter box"
+util.xWaitFor 10, (Text:"tabemono",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
 Click (Text:"tabemono",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
 put ImageLocation("delete file X") into pos
 Click "delete file X"

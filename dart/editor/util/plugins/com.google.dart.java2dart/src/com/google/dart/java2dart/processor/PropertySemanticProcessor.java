@@ -25,6 +25,7 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.EmptyFunctionBody;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.ExpressionStatement;
@@ -43,16 +44,16 @@ import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.Bindings;
 
-import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
-import static com.google.dart.java2dart.util.ASTFactory.emptyFunctionBody;
-import static com.google.dart.java2dart.util.ASTFactory.fieldFormalParameter;
-import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
+import static com.google.dart.java2dart.util.AstFactory.assignmentExpression;
+import static com.google.dart.java2dart.util.AstFactory.emptyFunctionBody;
+import static com.google.dart.java2dart.util.AstFactory.fieldFormalParameter;
+import static com.google.dart.java2dart.util.AstFactory.propertyAccess;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
 import org.apache.commons.lang3.StringUtils;
@@ -79,6 +80,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
     VariableDeclaration setterField;
     VariableDeclaration field;
     SimpleIdentifier fieldName;
+    String fieldFormalParameterName;
     List<SimpleIdentifier> fieldAssignmentReferences;
 
     public FieldPropertyInfo(ClassDeclaration clazz, String name) {
@@ -89,10 +91,14 @@ public class PropertySemanticProcessor extends SemanticProcessor {
 
   public static final String KEY_ORIGINAL_PARAMETER = "original-formal-parameter";
 
-  private static int getNumConstructors(ClassDeclaration classDeclaration) {
+  private static int getNumConstructorsWithBody(ClassDeclaration classDeclaration) {
     int numConstructors = 0;
     for (ClassMember member : classDeclaration.getMembers()) {
       if (member instanceof ConstructorDeclaration) {
+        ConstructorDeclaration constructor = (ConstructorDeclaration) member;
+        if (constructor.getBody() instanceof EmptyFunctionBody) {
+          continue;
+        }
         numConstructors++;
       }
     }
@@ -145,7 +151,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
    */
   private static boolean onlyBasicGettersSetters(CompilationUnit unit) {
     final AtomicBoolean result = new AtomicBoolean();
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitVariableDeclaration(VariableDeclaration node) {
         if (node.getName().getName().equals("_onlyBasicGettersSetters")) {
@@ -178,7 +184,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
     MethodDeclaration setter = property.setter;
     VariableDeclaration field = property.field;
     SimpleIdentifier fieldName = property.fieldName;
-    int numConstructors = getNumConstructors(property.clazz);
+    int numConstructors = getNumConstructorsWithBody(property.clazz);
     // analyze field assignments
     boolean canBeFinal;
     {
@@ -225,7 +231,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
 
   public void convertToFields(CompilationUnit unit) {
     final Set<IBinding> overriddenMethods = getOverriddenMethods(unit);
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
         List<FieldPropertyInfo> properties = getFieldProperties(node);
@@ -241,6 +247,48 @@ public class PropertySemanticProcessor extends SemanticProcessor {
     });
   }
 
+  public void convertToFinalFields(CompilationUnit unit) {
+    unit.accept(new RecursiveAstVisitor<Void>() {
+      @Override
+      public Void visitClassDeclaration(ClassDeclaration node) {
+        NodeList<ClassMember> members = node.getMembers();
+        for (ClassMember member : members) {
+          if (member instanceof FieldDeclaration) {
+            FieldDeclaration fieldDeclaration = (FieldDeclaration) member;
+            VariableDeclaration field = fieldDeclaration.getFields().getVariables().get(0);
+            processField(node, field);
+          }
+        }
+        return null;
+      }
+
+      private void processField(ClassDeclaration node, VariableDeclaration field) {
+        SimpleIdentifier fieldNameNode = field.getName();
+        String fieldName = fieldNameNode.getName();
+        if (!fieldName.startsWith("_")) {
+          return;
+        }
+        String propertyName = fieldName.substring(1);
+        // prepare property
+        FieldPropertyInfo property = new FieldPropertyInfo(node, propertyName);
+        property.fieldName = fieldNameNode;
+        property.fieldFormalParameterName = fieldName;
+        int numConstructors = getNumConstructorsWithBody(property.clazz);
+        // analyze field assignments
+        getAssignmentReferencesInConstructors(property);
+        List<SimpleIdentifier> references = property.fieldAssignmentReferences;
+        if (references == null || numConstructors == 0 || references.size() != numConstructors) {
+          return;
+        }
+        // convert to "this.property" in constructors
+        convertToFieldFormalInitializers(property, references);
+        // update field
+        ((VariableDeclarationList) field.getParent()).setKeyword(token(Keyword.FINAL));
+        field.setInitializer(null);
+      }
+    });
+  }
+
   @Override
   public void process(CompilationUnit unit) {
     convertGettersSetters(unit);
@@ -248,6 +296,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
       return;
     }
     convertToFields(unit);
+    convertToFinalFields(unit);
   }
 
   /**
@@ -256,17 +305,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
    * {@link PropertyAccess} in references.
    */
   private void convertGettersSetters(CompilationUnit unit) {
-    unit.accept(new RecursiveASTVisitor<Void>() {
-      @Override
-      public Void visitFieldDeclaration(FieldDeclaration node) {
-        if (context.getPrivateClassMembers().contains(node)) {
-          for (VariableDeclaration field : node.getFields().getVariables()) {
-            SimpleIdentifier name = field.getName();
-            context.renameIdentifier(name, "_" + name.getName());
-          }
-        }
-        return super.visitFieldDeclaration(node);
-      }
+    unit.accept(new RecursiveAstVisitor<Void>() {
 
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
@@ -275,11 +314,18 @@ public class PropertySemanticProcessor extends SemanticProcessor {
           String name = context.getIdentifierOriginalName(nameNode);
           List<FormalParameter> parameters = node.getParameters().getParameters();
           // getter
-          if (parameters.isEmpty() && (hasPrefix(name, "get") || hasPrefix(name, "is"))) {
+          if (parameters.isEmpty()
+              && (hasPrefix(name, "get") || hasPrefix(name, "is") || hasPrefix(name, "has"))) {
             if (!context.canMakeProperty(nameNode)) {
               return null;
             }
-            String propertyName = StringUtils.uncapitalize(StringUtils.removeStart(name, "get"));
+            String propertyName = name;
+            if (hasPrefix(name, "get")) {
+              propertyName = StringUtils.removeStart(name, "get");
+            } else if (hasPrefix(name, "is")) {
+              // don't remove "is" prefix, for example because we want to keep "isSynthetic" name
+            }
+            propertyName = StringUtils.uncapitalize(propertyName);
             // rename references
             context.renameIdentifier(nameNode, propertyName);
             // replace MethodInvocation with PropertyAccess
@@ -355,6 +401,9 @@ public class PropertySemanticProcessor extends SemanticProcessor {
           SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter;
           SimpleIdentifier parameterName = simpleParameter.getIdentifier();
           if (parameterName.getName().equals(property.name)) {
+            if (property.fieldFormalParameterName != null) {
+              context.renameIdentifier(parameterName, property.fieldFormalParameterName);
+            }
             FormalParameter ffp = fieldFormalParameter(null, null, parameterName);
             ffp.setProperty(KEY_ORIGINAL_PARAMETER, parameter);
             replaceNode(simpleParameter, ffp);
@@ -424,7 +473,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
         }
         String rightName = right.getName();
         String leftName = reference.getName();
-        if (!leftName.equals("_" + rightName)) {
+        if (!isFieldWithPropertyName(leftName, rightName)) {
           return;
         }
       } else {
@@ -447,7 +496,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
 
   private List<FieldPropertyInfo> getFieldProperties(final ClassDeclaration classDeclaration) {
     final Map<String, FieldPropertyInfo> properties = Maps.newHashMap();
-    classDeclaration.accept(new RecursiveASTVisitor<Void>() {
+    classDeclaration.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         // we need getter or setter
@@ -476,18 +525,6 @@ public class PropertySemanticProcessor extends SemanticProcessor {
           properties.put(name, property);
         }
         return property;
-      }
-
-      private boolean isFieldWithPropertyName(String fieldName, String propertyName) {
-        String prefix = "_" + propertyName;
-        if (!fieldName.startsWith(prefix)) {
-          return false;
-        }
-        String rest = fieldName.substring(prefix.length());
-        if (!StringUtils.isNumericSpace(rest)) {
-          return false;
-        }
-        return true;
       }
 
       private void processGetter(FieldPropertyInfo property, MethodDeclaration node) {
@@ -577,7 +614,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
 
   private Set<IBinding> getOverriddenMethods(CompilationUnit unit) {
     final Set<IBinding> overriddenMethods = Sets.newHashSet();
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
@@ -591,6 +628,24 @@ public class PropertySemanticProcessor extends SemanticProcessor {
       }
     });
     return overriddenMethods;
+  }
+
+  private boolean isFieldWithPropertyName(String fieldName, String propertyName) {
+    String prefix;
+    if (fieldName.startsWith("_" + propertyName)) {
+      // field was private
+      prefix = "_" + propertyName;
+    } else if (fieldName.startsWith(propertyName)) {
+      // field was protected
+      prefix = propertyName;
+    } else {
+      return false;
+    }
+    String rest = fieldName.substring(prefix.length());
+    if (!StringUtils.isNumericSpace(rest)) {
+      return false;
+    }
+    return true;
   }
 
   private boolean isOverridden(Set<IBinding> overriddenMethods, MethodDeclaration method) {

@@ -83,7 +83,7 @@ public class VmVariable extends VmRef implements Comparable<VmVariable> {
     return var;
   }
 
-  static List<VmVariable> createFrom(VmIsolate isolate, JSONArray arr, boolean sort)
+  static List<VmVariable> createFrom(VmIsolate isolate, JSONArray arr, boolean isLocal)
       throws JSONException {
     if (arr == null) {
       return null;
@@ -92,22 +92,23 @@ public class VmVariable extends VmRef implements Comparable<VmVariable> {
     List<VmVariable> variables = new ArrayList<VmVariable>();
 
     for (int i = 0; i < arr.length(); i++) {
-      variables.add(createFrom(isolate, arr.getJSONObject(i)));
+      variables.add(createFrom(isolate, arr.getJSONObject(i), isLocal));
     }
 
-    if (sort) {
+    if (!isLocal) {
       Collections.sort(variables);
     }
 
     return variables;
   }
 
-  static VmVariable createFrom(VmIsolate isolate, JSONObject obj) {
+  static VmVariable createFrom(VmIsolate isolate, JSONObject obj, boolean isLocal) {
     // {"name":"server","value":{"objectId":4,"kind":"object","text":"Instance of '_HttpServer@14117cc4'"}}
     VmVariable var = new VmVariable(isolate);
 
     var.name = obj.optString("name");
     var.value = VmValue.createFrom(isolate, obj.optJSONObject("value"));
+    var.isLocal = isLocal;
 
     return var;
   }
@@ -127,6 +128,8 @@ public class VmVariable extends VmRef implements Comparable<VmVariable> {
   private String name;
 
   private boolean isException;
+
+  private boolean isLocal;
 
   private LazyValue lazyValue;
 
@@ -154,6 +157,14 @@ public class VmVariable extends VmRef implements Comparable<VmVariable> {
     }
 
     return value;
+  }
+
+  public boolean isLocal() {
+    return isLocal;
+  }
+
+  public boolean isThisObject() {
+    return "this".equals(name);
   }
 
   @Override

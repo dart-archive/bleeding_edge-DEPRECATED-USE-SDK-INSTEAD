@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.utilities.dartdoc;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.visitor.ElementLocator;
@@ -26,7 +26,7 @@ import com.google.dart.engine.type.Type;
 
 public class DartDocUtilitiesTest extends ResolverTestCase {
   public void test_class_doc() throws Exception {
-    ASTNode id = findNodeIn("A", createSource(//
+    AstNode id = findNodeIn("A", createSource(//
         "/// My class",
         "class A { }"));
     Element element = ElementLocator.locate(id);
@@ -34,7 +34,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_class_doc_2() throws Exception {
-    ASTNode id = findNodeIn("A", createSource(//
+    AstNode id = findNodeIn("A", createSource(//
         "/**",
         " * My class",
         " */",
@@ -44,25 +44,25 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_class_doc_none() throws Exception {
-    ASTNode id = findNodeIn("A", "class A { }");
+    AstNode id = findNodeIn("A", "class A { }");
     Element element = ElementLocator.locate(id);
     assertEquals(null, DartDocUtilities.getDartDocAsHtml(element));
   }
 
   public void test_class_param__bound_text_summary() throws Exception {
-    ASTNode id = findNodeIn("A", "class Z<A extends List> { }");
+    AstNode id = findNodeIn("A", "class Z<A extends List> { }");
     Element element = ElementLocator.locate(id);
     assertEquals("<A extends List>", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_class_param_text_summary() throws Exception {
-    ASTNode id = findNodeIn("A", "class Z<A> { }");
+    AstNode id = findNodeIn("A", "class Z<A> { }");
     Element element = ElementLocator.locate(id);
     assertEquals("<A>", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_class_param_text_summary_2() throws Exception {
-    ASTNode id = findNodeIn("'foo'", createSource(//
+    AstNode id = findNodeIn("'foo'", createSource(//
         "x(String s){}",
         "main() { x('foo'); }"));
     Element element = ElementLocator.locate(id);
@@ -70,13 +70,13 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_class_text_summary() throws Exception {
-    ASTNode id = findNodeIn("A", "class A { }");
+    AstNode id = findNodeIn("A", "class A { }");
     Element element = ElementLocator.locate(id);
     assertEquals("A", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_codeBlock() throws Exception {
-    ASTNode id = findNodeIn("A {", createSource(//
+    AstNode id = findNodeIn("A {", createSource(//
         "/**",
         " * Example:",
         " *",
@@ -93,7 +93,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_cons_named_text_summary() throws Exception {
-    ASTNode id = findNodeIn("A.named", createSource(//
+    AstNode id = findNodeIn("A.named", createSource(//
         "class A { ",
         "  A.named(String x){}",
         "}"));
@@ -102,7 +102,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_cons_text_summary() throws Exception {
-    ASTNode id = findNodeIn("A(", createSource(//
+    AstNode id = findNodeIn("A(", createSource(//
         "class A { ",
         "  A(String x){}",
         "}"));
@@ -111,7 +111,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_formal_params_text_summary() throws Exception {
-    ASTNode id = findNodeIn("index", createSource(//
+    AstNode id = findNodeIn("index", createSource(//
         "class A { ",
         "  A(this.index);",
         "  int index;",
@@ -121,7 +121,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_functionTypeAlias_summary() throws Exception {
-    ASTNode id = findNodeIn("FFF", createSource(//
+    AstNode id = findNodeIn("FFF", createSource(//
         "/// My function type",
         "typedef int FFF(int a, double b);"));
     Element element = ElementLocator.locate(id);
@@ -129,7 +129,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_method_doc() throws Exception {
-    ASTNode id = findNodeIn("x", createSource(//
+    AstNode id = findNodeIn("x", createSource(//
         "/// My method",
         "int x() => 42;"));
     Element element = ElementLocator.locate(id);
@@ -137,13 +137,13 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_method_named_doc() throws Exception {
-    ASTNode id = findNodeIn("x", "void x({String named}) {}");
+    AstNode id = findNodeIn("x", "void x({String named}) {}");
     Element element = ElementLocator.locate(id);
     assertEquals("void x({String named})", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_method_named_doc_2() throws Exception {
-    ASTNode id = findNodeIn("x", "void x(int unnamed, {String named}) {}");
+    AstNode id = findNodeIn("x", "void x(int unnamed, {String named}) {}");
     Element element = ElementLocator.locate(id);
     assertEquals(
         "void x(int unnamed, {String named})",
@@ -151,14 +151,14 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_method_null_body() throws Exception {
-    ASTNode id = findNodeIn("null", createSource(//
+    AstNode id = findNodeIn("null", createSource(//
         "List<String> x()=> null;"));
     Element element = ElementLocator.locate(id);
     assertEquals(null, DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_method_optional_doc() throws Exception {
-    ASTNode id = findNodeIn("x", "void x([bool opt = false, bool opt2 = true]) {}");
+    AstNode id = findNodeIn("x", "void x([bool opt = false, bool opt2 = true]) {}");
     Element element = ElementLocator.locate(id);
     assertEquals(
         "void x([bool opt: false, bool opt2: true])",
@@ -166,14 +166,14 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_method_paramed_text() throws Exception {
-    ASTNode id = findNodeIn("x", createSource(//
+    AstNode id = findNodeIn("x", createSource(//
         "List<String> x()=> null;"));
     Element element = ElementLocator.locate(id);
     assertEquals("List<String> x()", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_orderedList() throws Exception {
-    ASTNode id = findNodeIn("A {", createSource(//
+    AstNode id = findNodeIn("A {", createSource(//
         "/**",
         " * Example:",
         " *",
@@ -191,7 +191,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_param__with_default_value_text_summary() throws Exception {
-    ASTNode id = findNodeIn("foo", createSource(//
+    AstNode id = findNodeIn("foo", createSource(//
         "class A { ",
         "  void foo({bool x: false}){}",
         "}"));
@@ -200,7 +200,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_param_text_summary() throws Exception {
-    ASTNode id = findNodeIn("x", createSource(//
+    AstNode id = findNodeIn("x", createSource(//
         "class A { ",
         "  A(String x){}",
         "}"));
@@ -209,7 +209,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_unorderedList() throws Exception {
-    ASTNode id = findNodeIn("A {", createSource(//
+    AstNode id = findNodeIn("A {", createSource(//
         "/**",
         " * Example:",
         " *",
@@ -227,19 +227,19 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   }
 
   public void test_var_text() throws Exception {
-    ASTNode id = findNodeIn("x", "int x;\n");
+    AstNode id = findNodeIn("x", "int x;\n");
     Element element = ElementLocator.locate(id);
     assertEquals("int x", DartDocUtilities.getTextSummary(null, element));
   }
 
   public void test_var_text_withType() throws Exception {
-    ASTNode id = findNodeIn("x", "var x = 42;\n");
+    AstNode id = findNodeIn("x", "var x = 42;\n");
     Type type = ((Expression) id).getBestType();
     Element element = ElementLocator.locate(id);
     assertEquals("int x", DartDocUtilities.getTextSummary(type, element));
   }
 
-  private ASTNode findNodeIn(String nodePattern, String... lines) throws Exception {
+  private AstNode findNodeIn(String nodePattern, String... lines) throws Exception {
     String contents = createSource(lines);
     CompilationUnit cu = resolve(contents);
     int start = contents.indexOf(nodePattern);

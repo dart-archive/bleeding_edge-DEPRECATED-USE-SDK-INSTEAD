@@ -16,7 +16,7 @@
 #include "vm/scavenger.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
-
+#include "vm/tags.h"
 
 #define __ assembler->
 
@@ -26,7 +26,6 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DECLARE_FLAG(int, optimization_counter_threshold);
 
 
 // Input parameters:
@@ -59,6 +58,20 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing runtime code.
   __ movq(CTX, RAX);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ movq(RAX, Immediate(VMTag::kScriptTagId));
+    __ cmpq(RAX, Address(CTX, Isolate::vm_tag_offset()));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing VM code.
+  __ movq(Address(CTX, Isolate::vm_tag_offset()), Immediate(VMTag::kVMTagId));
+
   // Reserve space for arguments and align frame before entering C++ world.
   __ subq(RSP, Immediate(sizeof(NativeArguments)));
   if (OS::ActivationFrameAlignment() > 1) {
@@ -75,6 +88,10 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ addq(RAX, Immediate(1 * kWordSize));  // Retval is next to 1st argument.
   __ movq(Address(RSP, retval_offset), RAX);  // Set retval in NativeArguments.
   __ call(RBX);
+
+  // Mark that the isolate is executing Dart code.
+  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -140,11 +157,26 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // to transition to native code.
   __ movq(Address(R8, Isolate::top_exit_frame_info_offset()), RSP);
 
-  // Save current Context pointer into Isolate structure.
+// Save current Context pointer into Isolate structure.
   __ movq(Address(R8, Isolate::top_context_offset()), CTX);
 
   // Cache Isolate pointer into CTX while executing native code.
   __ movq(CTX, R8);
+
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ movq(R8, Immediate(VMTag::kScriptTagId));
+    __ cmpq(R8, Address(CTX, Isolate::vm_tag_offset()));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing Native code.
+  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kRuntimeNativeTagId));
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -173,6 +205,10 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ Bind(&leaf_call);
   __ call(RBX);
   __ Bind(&done);
+
+  // Mark that the isolate is executing Dart code.
+  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -224,6 +260,21 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing native code.
   __ movq(CTX, R8);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ movq(R8, Immediate(VMTag::kScriptTagId));
+    __ cmpq(R8, Address(CTX, Isolate::vm_tag_offset()));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing Native code.
+  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kRuntimeNativeTagId));
+
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
   // RDI) and align frame before entering the C++ world.
@@ -240,6 +291,10 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ movq(Address(RSP, retval_offset), RAX);  // Set retval in NativeArguments.
   __ movq(RDI, RSP);  // Pass the pointer to the NativeArguments.
   __ call(RBX);
+
+  // Mark that the isolate is executing Dart code.
+  __ movq(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -705,40 +760,19 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ j(EQUAL, &not_closure, Assembler::kNearJump);
 
   // RAX is just the signature function. Load the actual closure function.
-  __ movq(RBX, FieldAddress(R13, Closure::function_offset()));
+  __ movq(RAX, FieldAddress(R13, Closure::function_offset()));
 
   // Load closure context in CTX; note that CTX has already been preserved.
   __ movq(CTX, FieldAddress(R13, Closure::context_offset()));
 
   // Load closure function code in RAX.
-  __ movq(RAX, FieldAddress(RBX, Function::code_offset()));
-  __ cmpq(RAX, R12);
-  Label function_compiled;
-  __ j(NOT_EQUAL, &function_compiled, Assembler::kNearJump);
+  __ movq(RBX, FieldAddress(RAX, Function::code_offset()));
 
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-
-  __ pushq(R10);  // Preserve arguments descriptor array.
-  __ pushq(RBX);  // Preserve read-only function object argument.
-  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ popq(RBX);  // Restore read-only function object argument in RBX.
-  __ popq(R10);  // Restore arguments descriptor array.
-  // Restore RAX.
-  __ movq(RAX, FieldAddress(RBX, Function::code_offset()));
-
-  // Remove the stub frame as we are about to jump to the closure function.
-  __ LeaveStubFrame();
-
-  __ Bind(&function_compiled);
-  // RAX: Code.
-  // RBX: Function.
+  // RAX: Function.
   // R10: Arguments descriptor array.
-
-  __ movq(RBX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(RBX);
+  __ movq(RCX, FieldAddress(RBX, Code::instructions_offset()));
+  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RCX);
 
   __ Bind(&not_closure);
   // Call runtime to attempt to resolve and invoke a call method on a
@@ -820,11 +854,20 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Load Isolate pointer from Context structure into R8.
   __ movq(R8, FieldAddress(CTX, Context::isolate_offset()));
 
+  // Save the current VMTag on the stack.
+  ASSERT(kSavedVMTagSlotFromEntryFp == -8);
+  __ movq(RAX, Address(R8, Isolate::vm_tag_offset()));
+  __ pushq(RAX);
+
+  // Mark that the isolate is executing Dart code.
+  __ movq(Address(R8, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
+
   // Save the top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -8);
+  ASSERT(kExitLinkSlotFromEntryFp == -9);
   __ movq(RAX, Address(R8, Isolate::top_exit_frame_info_offset()));
   __ pushq(RAX);
   __ movq(Address(R8, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -836,7 +879,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // EntryFrame::SavedContext reads the context saved in this frame.
   // The constant kSavedContextSlotFromEntryFp must be kept in sync with
   // the code below.
-  ASSERT(kSavedContextSlotFromEntryFp == -9);
+  ASSERT(kSavedContextSlotFromEntryFp == -10);
   __ movq(RAX, Address(R8, Isolate::top_context_offset()));
   __ pushq(RAX);
 
@@ -892,6 +935,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Uses RDX as a temporary register for this.
   __ popq(RDX);
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), RDX);
+
+  // Restore the current VMTag from the stack.
+  __ popq(RDX);
+  __ movq(Address(CTX, Isolate::vm_tag_offset()), RDX);
 
   // Restore C++ ABI callee-saved registers.
   __ popq(R15);
@@ -1097,13 +1144,11 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 
 // Called for inline allocation of objects.
 // Input parameters:
-//   RSP + 16 : type arguments object (only if class is parameterized).
-//   RSP + 8 : type arguments of instantiator (only if class is parameterized).
+//   RSP + 8 : type arguments object (only if class is parameterized).
 //   RSP : points to return address.
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
-  const intptr_t kObjectTypeArgumentsOffset = 2 * kWordSize;
-  const intptr_t kInstantiatorTypeArgumentsOffset = 1 * kWordSize;
+  const intptr_t kObjectTypeArgumentsOffset = 1 * kWordSize;
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
   ASSERT(!is_cls_parameterized ||
@@ -1115,45 +1160,15 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
   __ LoadObject(R12, Object::null_object(), PP);
-  Label slow_case_with_type_arguments;
+  if (is_cls_parameterized) {
+    __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
+    // RDX: instantiated type arguments.
+  }
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
-    Label slow_case_reload_type_arguments;
-    if (is_cls_parameterized) {
-      // Instantiation of the type arguments vector is only required if an
-      // instantiator is provided (not kNoInstantiator, but may be null).
-      __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
-      __ movq(RDI, Address(RSP, kInstantiatorTypeArgumentsOffset));
-      Label type_arguments_ready;
-      __ cmpq(RDI, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ j(EQUAL, &type_arguments_ready, Assembler::kNearJump);
-      // Lookup instantiator RDI in instantiations array of type arguments RDX
-      // and, if found, use cached instantiated type arguments.
-      __ movq(RAX, FieldAddress(RDX, TypeArguments::instantiations_offset()));
-      __ movq(RBX, FieldAddress(RAX, Array::length_offset()));
-      __ leaq(RAX, FieldAddress(RAX, Array::data_offset()));
-      __ leaq(RBX, Address(RAX, RBX, TIMES_4, 0));  // RBX is smi.
-      Label loop, found;
-      __ Bind(&loop);
-      __ cmpq(RAX, RBX);
-      __ j(ABOVE_EQUAL, &slow_case_reload_type_arguments);
-      __ movq(RDX, Address(RAX, 0 * kWordSize));  // Cached instantiator.
-      __ cmpq(RDX, RDI);
-      __ j(EQUAL, &found, Assembler::kNearJump);
-      __ cmpq(RDX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ j(EQUAL, &slow_case_reload_type_arguments);
-      __ addq(RAX, Immediate(2 * kWordSize));
-      __ jmp(&loop, Assembler::kNearJump);
-      __ Bind(&found);
-      __ movq(RDX, Address(RAX, 1 * kWordSize));  // Cached instantiated args.
-      __ movq(RDI, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ Bind(&type_arguments_ready);
-      // RDX: instantiated type arguments.
-      // RDI: kNoInstantiator.
-    }
+    Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // RDX: instantiated type arguments (if is_cls_parameterized).
-    // RDI: kNoInstantiator (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
     __ movq(RCX, Immediate(heap->TopAddress()));
     __ movq(RAX, Address(RCX, 0));
@@ -1165,9 +1180,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ movq(R13, Immediate(heap->EndAddress()));
     __ cmpq(RBX, Address(R13, 0));
     if (FLAG_use_slow_path) {
-      __ jmp(&slow_case_with_type_arguments);
+      __ jmp(&slow_case);
     } else {
-      __ j(ABOVE_EQUAL, &slow_case_with_type_arguments);
+      __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movq(Address(RCX, 0), RBX);
     __ UpdateAllocationStats(cls.id());
@@ -1223,188 +1238,25 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ addq(RAX, Immediate(kHeapObjectTag));
     __ ret();
 
-    __ Bind(&slow_case_reload_type_arguments);
+    __ Bind(&slow_case);
   }
-  if (is_cls_parameterized) {
-    __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
-    __ movq(RDI, Address(RSP, kInstantiatorTypeArgumentsOffset));
-  }
-  __ Bind(&slow_case_with_type_arguments);
   // If is_cls_parameterized:
-  // RDX: new object type arguments (instantiated or not).
-  // RDI: instantiator type arguments or kNoInstantiator.
+  // RDX: new object type arguments.
   // Create a stub frame.
   __ EnterStubFrame(true);  // Uses PP to access class object.
   __ pushq(R12);  // Setup space on stack for return value.
   __ PushObject(cls, PP);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
     __ pushq(RDX);  // Push type arguments of object to be allocated.
-    __ pushq(RDI);  // Push type arguments of instantiator.
   } else {
     __ pushq(R12);  // Push null type arguments.
-    __ pushq(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
   }
-  __ CallRuntime(kAllocateObjectRuntimeEntry, 3);  // Allocate object.
-  __ popq(RAX);  // Pop argument (instantiator).
+  __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
   __ popq(RAX);  // Pop argument (type arguments of object).
   __ popq(RAX);  // Pop argument (class of object).
   __ popq(RAX);  // Pop result (newly allocated object).
   // RAX: new object
   // Restore the frame pointer.
-  __ LeaveStubFrame();
-  __ ret();
-}
-
-
-// Called for inline allocation of closures.
-// Input parameters:
-//   RSP + 16 : receiver (null if not an implicit instance closure).
-//   RSP + 8 : type arguments object (null if class is not parameterized).
-//   RSP : points to return address.
-void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
-                                                const Function& func) {
-  ASSERT(func.IsClosureFunction());
-  ASSERT(!func.IsImplicitStaticClosureFunction());
-  const bool is_implicit_instance_closure =
-      func.IsImplicitInstanceClosureFunction();
-  const Class& cls = Class::ZoneHandle(func.signature_class());
-  const bool has_type_arguments = cls.NumTypeArguments() > 0;
-
-  __ EnterStubFrame(true);  // Uses pool pointer to refer to function.
-  __ LoadObject(R12, Object::null_object(), PP);
-  const intptr_t kTypeArgumentsOffset = 4 * kWordSize;
-  const intptr_t kReceiverOffset = 5 * kWordSize;
-  const intptr_t closure_size = Closure::InstanceSize();
-  const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
-  if (FLAG_inline_alloc &&
-      Heap::IsAllocatableInNewSpace(closure_size + context_size)) {
-    Label slow_case;
-    Heap* heap = Isolate::Current()->heap();
-    __ movq(RAX, Immediate(heap->TopAddress()));
-    __ movq(RAX, Address(RAX, 0));
-    __ leaq(R13, Address(RAX, closure_size));
-    if (is_implicit_instance_closure) {
-      __ movq(RBX, R13);  // RBX: new context address.
-      __ addq(R13, Immediate(context_size));
-    }
-    // Check if the allocation fits into the remaining space.
-    // RAX: potential new closure object.
-    // RBX: potential new context object (only if is_implicit_closure).
-    // R13: potential next object start.
-    __ movq(RDI, Immediate(heap->EndAddress()));
-    __ cmpq(R13, Address(RDI, 0));
-    if (FLAG_use_slow_path) {
-      __ jmp(&slow_case);
-    } else {
-      __ j(ABOVE_EQUAL, &slow_case);
-    }
-
-    // Successfully allocated the object, now update top to point to
-    // next object start and initialize the object.
-    __ movq(RDI, Immediate(heap->TopAddress()));
-    __ movq(Address(RDI, 0), R13);
-
-    // RAX: new closure object.
-    // RBX: new context object (only if is_implicit_closure).
-    if (is_implicit_instance_closure) {
-      // This closure allocates a context, update allocation stats.
-      // RDI: context size.
-      __ movq(RDI, Immediate(context_size));
-     __ UpdateAllocationStatsWithSize(kContextCid, RDI);
-    }
-    // The closure allocation is attributed to the signature class.
-    __ UpdateAllocationStats(cls.id());
-
-    // RAX: new closure object.
-    // RBX: new context object (only if is_implicit_closure).
-    // Set the tags.
-    uword tags = 0;
-    tags = RawObject::SizeTag::update(closure_size, tags);
-    tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    __ movq(Address(RAX, Instance::tags_offset()), Immediate(tags));
-
-    // Initialize the function field in the object.
-    // RAX: new closure object.
-    // RBX: new context object (only if is_implicit_closure).
-    // R13: next object start.
-    // Load function of closure to be allocated.
-    __ LoadObject(R10, func, PP);
-    __ movq(Address(RAX, Closure::function_offset()), R10);
-
-    // Setup the context for this closure.
-    if (is_implicit_instance_closure) {
-      // Initialize the new context capturing the receiver.
-
-      const Class& context_class = Class::ZoneHandle(Object::context_class());
-      // Set the tags.
-      uword tags = 0;
-      tags = RawObject::SizeTag::update(context_size, tags);
-      tags = RawObject::ClassIdTag::update(context_class.id(), tags);
-      __ movq(Address(RBX, Context::tags_offset()), Immediate(tags));
-
-      // Set number of variables field to 1 (for captured receiver).
-      __ movq(Address(RBX, Context::num_variables_offset()), Immediate(1));
-
-      // Set isolate field to isolate of current context.
-      __ movq(R10, FieldAddress(CTX, Context::isolate_offset()));
-      __ movq(Address(RBX, Context::isolate_offset()), R10);
-
-      // Set the parent to null.
-      __ movq(Address(RBX, Context::parent_offset()), R12);
-
-      // Initialize the context variable to the receiver.
-      __ movq(R10, Address(RSP, kReceiverOffset));
-      __ movq(Address(RBX, Context::variable_offset(0)), R10);
-
-      // Set the newly allocated context in the newly allocated closure.
-      __ addq(RBX, Immediate(kHeapObjectTag));
-      __ movq(Address(RAX, Closure::context_offset()), RBX);
-    } else {
-      __ movq(Address(RAX, Closure::context_offset()), CTX);
-    }
-
-    // Set the type arguments field in the newly allocated closure.
-    __ movq(R10, Address(RSP, kTypeArgumentsOffset));
-    __ movq(Address(RAX, Closure::type_arguments_offset()), R10);
-
-    // Done allocating and initializing the instance.
-    // RAX: new object.
-    __ addq(RAX, Immediate(kHeapObjectTag));
-    __ LeaveStubFrame();
-    __ ret();
-
-    __ Bind(&slow_case);
-  }
-  if (has_type_arguments) {
-    __ movq(RCX, Address(RSP, kTypeArgumentsOffset));
-  }
-  if (is_implicit_instance_closure) {
-    __ movq(RAX, Address(RSP, kReceiverOffset));
-  }
-
-  __ pushq(R12);  // Setup space on stack for the return value.
-  __ PushObject(func, PP);
-  if (is_implicit_instance_closure) {
-    __ pushq(RAX);  // Receiver.
-  }
-  if (has_type_arguments) {
-    __ pushq(RCX);  // Push type arguments of closure to be allocated.
-  } else {
-    __ pushq(R12);  // Push null type arguments.
-  }
-  if (is_implicit_instance_closure) {
-    __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry, 3);
-    __ popq(RAX);  // Pop type arguments.
-    __ popq(RAX);  // Pop receiver.
-  } else {
-    ASSERT(func.IsNonImplicitClosureFunction());
-    __ CallRuntime(kAllocateClosureRuntimeEntry, 2);
-    __ popq(RAX);  // Pop type arguments.
-  }
-  __ popq(RAX);  // Pop the function object.
-  __ popq(RAX);  // Pop the result.
-  // RAX: New closure object.
-  // Restore the calling frame.
   __ LeaveStubFrame();
   __ ret();
 }
@@ -1621,25 +1473,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // RAX: Target function.
   Label is_compiled;
   __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
-  if (FLAG_collect_code) {
-    // If code might be GC'd, then RBX might be null. If it is, recompile.
-    __ CompareObject(RCX, Object::null_object(), PP);
-    __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
-    __ EnterStubFrame();
-    __ pushq(R10);  // Preserve arguments descriptor array.
-    __ pushq(RBX);  // Preserve IC data object.
-    __ pushq(RAX);  // Pass function.
-    __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-    __ popq(RAX);  // Restore function.
-    __ popq(RBX);  // Restore IC data array.
-    __ popq(R10);  // Restore arguments descriptor array.
-    __ LeaveStubFrame();
-    __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
-    __ Bind(&is_compiled);
-  }
-  __ movq(RAX, FieldAddress(RCX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(RAX);
+  __ movq(RCX, FieldAddress(RCX, Code::instructions_offset()));
+  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RCX);
 
   __ Bind(&get_class_id_as_smi);
   Label not_smi;
@@ -1782,32 +1618,16 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
           Immediate(Smi::RawValue(Smi::kMaxValue)));
   __ Bind(&increment_done);
 
-  Label target_is_compiled;
-  // Get function and call it, if possible.
-  __ movq(R13, Address(R12, target_offset));
-  __ movq(RAX, FieldAddress(R13, Function::code_offset()));
-  __ LoadObject(R12, Object::null_object(), PP);
-  __ cmpq(RAX, R12);
-  __ j(NOT_EQUAL, &target_is_compiled, Assembler::kNearJump);
-
-  __ EnterStubFrame();
-  __ pushq(R13);  // Preserve target function.
-  __ pushq(RBX);  // Preserve IC data object.
-  __ pushq(R13);  // Pass function.
-  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ popq(RAX);  // Discard argument.
-  __ popq(RBX);  // Restore IC data object.
-  __ popq(R13);  // Restore target function.
-  __ LeaveStubFrame();
-  __ movq(RAX, FieldAddress(R13, Function::code_offset()));
-
-  __ Bind(&target_is_compiled);
-  // RAX: Target code.
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   // Load arguments descriptor into R10.
   __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
-  __ jmp(RAX);
+
+  // Get function and call it, if possible.
+  __ movq(RAX, Address(R12, target_offset));
+  __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
+  // RCX: Target code.
+  __ movq(RCX, FieldAddress(RCX, Code::instructions_offset()));
+  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RCX);
 }
 
 
@@ -1818,21 +1638,25 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 }
 
 
-// Stub for calling the CompileFunction runtime call.
-// RCX: IC-Data.
-// RDX: Arguments descriptor.
+// Stub for compiling a function and jumping to the compiled code.
+// RCX: IC-Data (for methods).
+// R10: Arguments descriptor.
 // RAX: Function.
-void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
+void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ pushq(RDX);  // Preserve arguments descriptor array.
-  __ pushq(RCX);  // Preserve IC data object.
+  __ pushq(R10);  // Preserve arguments descriptor array.
+  __ pushq(RBX);  // Preserve IC data object.
   __ pushq(RAX);  // Pass function.
   __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
   __ popq(RAX);  // Restore function.
-  __ popq(RCX);  // Restore IC data array.
-  __ popq(RDX);  // Restore arguments descriptor array.
+  __ popq(RBX);  // Restore IC data array.
+  __ popq(R10);  // Restore arguments descriptor array.
   __ LeaveStubFrame();
-  __ ret();
+
+  __ movq(RAX, FieldAddress(RAX, Function::code_offset()));
+  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
+  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(RAX);
 }
 
 

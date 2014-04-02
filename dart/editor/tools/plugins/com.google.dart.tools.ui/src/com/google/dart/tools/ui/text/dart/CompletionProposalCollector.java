@@ -31,6 +31,7 @@ import com.google.dart.tools.ui.internal.text.completion.LazyDartCompletionPropo
 import com.google.dart.tools.ui.internal.text.completion.LazyDartTypeCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.MethodDeclarationCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.NamedArgumentCompletionProposal;
+import com.google.dart.tools.ui.internal.text.completion.OptionalArgumentCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.OverrideCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.ProposalContextInformation;
 import com.google.dart.tools.ui.internal.util.TypeFilter;
@@ -451,6 +452,8 @@ public class CompletionProposalCollector extends CompletionRequestor {
         return createLocalVariableProposal(proposal);
       case CompletionProposal.TYPE_IMPORT:
         return createImportProposal(proposal);
+      case CompletionProposal.OPTIONAL_ARGUMENT:
+        return new OptionalArgumentCompletionProposal(proposal);
       case CompletionProposal.NAMED_ARGUMENT:
         return new NamedArgumentCompletionProposal(proposal);
 //      case CompletionProposal.ANNOTATION_ATTRIBUTE_REF:
@@ -551,6 +554,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
       case CompletionProposal.KEYWORD:
       case CompletionProposal.LABEL_REF:
       case CompletionProposal.TYPE_IMPORT:
+      case CompletionProposal.OPTIONAL_ARGUMENT:
       case CompletionProposal.NAMED_ARGUMENT:
 //      case CompletionProposal.JAVADOC_BLOCK_TAG:
 //      case CompletionProposal.JAVADOC_INLINE_TAG:

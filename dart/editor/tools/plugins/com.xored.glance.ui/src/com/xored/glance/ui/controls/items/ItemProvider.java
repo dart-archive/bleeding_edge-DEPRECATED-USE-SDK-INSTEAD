@@ -17,28 +17,28 @@ import org.eclipse.swt.widgets.Item;
  */
 public interface ItemProvider {
 
-  public String getText(Item item, int index);
-
-  public Image getImage(Item item, int index);
-
-  public Rectangle getTextBounds(Item item, int index);
-
-  public Rectangle getImageBounds(Item item, int index);
-
-  public Rectangle getBounds(Item item, int index);
+  public int compare(Item item1, Item item2);
 
   public Color getBackground(Item item, int index);
 
-  public Color getForeground(Item item, int index);
-
-  public Font getFont(Item item, int index);
+  public Rectangle getBounds(Item item, int index);
 
   public int getColumnCount(Item item);
 
-  public void show(Item item);
+  public Font getFont(Item item, int index);
 
-  public int compare(Item item1, Item item2);
+  public Color getForeground(Item item, int index);
+
+  public Image getImage(Item item, int index);
+
+  public Rectangle getImageBounds(Item item, int index);
+
+  public String getText(Item item, int index);
+
+  public Rectangle getTextBounds(Item item, int index);
 
   public void select(Item item);
+
+  public void show(Item item);
 
 }

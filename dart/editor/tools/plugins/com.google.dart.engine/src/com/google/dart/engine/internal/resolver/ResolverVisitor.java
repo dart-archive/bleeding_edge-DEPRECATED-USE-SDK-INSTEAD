@@ -13,10 +13,10 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -70,7 +70,7 @@ import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
@@ -201,6 +201,20 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * 
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  public ResolverVisitor(ResolvableLibrary library, Source source, TypeProvider typeProvider) {
+    super(library, source, typeProvider);
+    this.inheritanceManager = library.getInheritanceManager();
+    this.elementResolver = new ElementResolver(this);
+    this.typeAnalyzer = new StaticTypeAnalyzer(this);
+  }
+
+  /**
    * Return the object keeping track of which elements have had their types overridden.
    * 
    * @return the object keeping track of which elements have had their types overridden
@@ -225,7 +239,7 @@ public class ResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
-    override(node.getExpression(), node.getType().getType());
+    overrideExpression(node.getExpression(), node.getType().getType());
     return null;
   }
 
@@ -414,8 +428,8 @@ public class ResolverVisitor extends ScopedVisitor {
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
 
-    boolean thenIsAbrupt = isAbruptTermination(thenExpression);
-    boolean elseIsAbrupt = isAbruptTermination(elseExpression);
+    boolean thenIsAbrupt = isAbruptTerminationExpression(thenExpression);
+    boolean elseIsAbrupt = isAbruptTerminationExpression(elseExpression);
     if (elseIsAbrupt && !thenIsAbrupt) {
       propagateTrueState(condition);
       propagateState(thenExpression);
@@ -632,8 +646,8 @@ public class ResolverVisitor extends ScopedVisitor {
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
 
-    boolean thenIsAbrupt = isAbruptTermination(thenStatement);
-    boolean elseIsAbrupt = isAbruptTermination(elseStatement);
+    boolean thenIsAbrupt = isAbruptTerminationStatement(thenStatement);
+    boolean elseIsAbrupt = isAbruptTerminationStatement(elseStatement);
     if (elseIsAbrupt && !thenIsAbrupt) {
       propagateTrueState(condition);
       if (thenOverrides != null) {
@@ -693,7 +707,7 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   @Override
-  public Void visitNode(ASTNode node) {
+  public Void visitNode(AstNode node) {
     node.visitChildren(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -923,14 +937,14 @@ public class ResolverVisitor extends ScopedVisitor {
    *          might be overridden
    * @param potentialType the potential type of the elements
    */
-  protected void override(Expression expression, Type potentialType) {
+  protected void overrideExpression(Expression expression, Type potentialType) {
     VariableElement element = getOverridableStaticElement(expression);
     if (element != null) {
-      override(element, potentialType);
+      overrideVariable(element, potentialType);
     }
     element = getOverridablePropagatedElement(expression);
     if (element != null) {
-      override(element, potentialType);
+      overrideVariable(element, potentialType);
     }
   }
 
@@ -942,7 +956,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param element the element whose type might be overridden
    * @param potentialType the potential type of the element
    */
-  protected void override(VariableElement element, Type potentialType) {
+  protected void overrideVariable(VariableElement element, Type potentialType) {
     if (potentialType == null || potentialType.isBottom()) {
       return;
     }
@@ -966,8 +980,8 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportErrorProxyConditionalAnalysisError(Element enclosingElement,
-      ErrorCode errorCode, ASTNode node, Object... arguments) {
+  protected void reportProxyConditionalErrorForNode(Element enclosingElement, ErrorCode errorCode,
+      AstNode node, Object... arguments) {
     proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
         enclosingElement,
         new AnalysisError(getSource(), node.getOffset(), node.getLength(), errorCode, arguments)));
@@ -982,7 +996,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param length the length of the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportErrorProxyConditionalAnalysisError(Element enclosingElement,
+  protected void reportProxyConditionalErrorForOffset(Element enclosingElement,
       ErrorCode errorCode, int offset, int length, Object... arguments) {
     proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
         enclosingElement,
@@ -997,8 +1011,8 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportErrorProxyConditionalAnalysisError(Element enclosingElement,
-      ErrorCode errorCode, Token token, Object... arguments) {
+  protected void reportProxyConditionalErrorForToken(Element enclosingElement, ErrorCode errorCode,
+      Token token, Object... arguments) {
     proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
         enclosingElement,
         new AnalysisError(getSource(), token.getOffset(), token.getLength(), errorCode, arguments)));
@@ -1024,14 +1038,14 @@ public class ResolverVisitor extends ScopedVisitor {
           LocalVariableElement loopElement = loopVariable.getElement();
           if (loopElement != null) {
             Type iteratorElementType = getIteratorElementType(iterator);
-            override(loopElement, iteratorElementType);
+            overrideVariable(loopElement, iteratorElementType);
             recordPropagatedType(loopVariable.getIdentifier(), iteratorElementType);
           }
         } else if (identifier != null && iterator != null) {
           Element identifierElement = identifier.getStaticElement();
           if (identifierElement instanceof VariableElement) {
             Type iteratorElementType = getIteratorElementType(iterator);
-            override((VariableElement) identifierElement, iteratorElementType);
+            overrideVariable((VariableElement) identifierElement, iteratorElementType);
             recordPropagatedType(identifier, iteratorElementType);
           }
         }
@@ -1068,7 +1082,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * If the variable <i>v</i> is accessed by a closure in <i>s<sub>1</sub></i> then the variable
    * <i>v</i> is not potentially mutated anywhere in the scope of <i>v</i>.
    */
-  private void clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(ASTNode target) {
+  private void clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(AstNode target) {
     for (Element element : promoteManager.getPromotedElements()) {
       if (((VariableElementImpl) element).isPotentiallyMutatedInScope()) {
         if (isVariableAccessedInClosure(element, target)) {
@@ -1084,7 +1098,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * <p>
    * <i>v</i> is not potentially mutated in <i>s<sub>1</sub></i> or within a closure.
    */
-  private void clearTypePromotionsIfPotentiallyMutatedIn(ASTNode target) {
+  private void clearTypePromotionsIfPotentiallyMutatedIn(AstNode target) {
     for (Element element : promoteManager.getPromotedElements()) {
       if (isVariablePotentiallyMutatedIn(element, target)) {
         promoteManager.setType(element, null);
@@ -1120,7 +1134,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @return the type of objects that will be assigned to the loop variable
    */
   private Type getIteratorElementType(Expression iteratorExpression) {
-    Type expressionType = iteratorExpression.getStaticType();
+    Type expressionType = iteratorExpression.getBestType();
     if (expressionType instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) expressionType;
       FunctionType iteratorFunction = inheritanceManager.lookupMemberType(interfaceType, "iterator");
@@ -1160,6 +1174,13 @@ public class ResolverVisitor extends ScopedVisitor {
       return;
     }
     FunctionType expectedClosureType = (FunctionType) mayByFunctionType;
+
+    // If the expectedClosureType is not more specific than the static type, return.
+    Type staticClosureType = closure.getElement() != null ? closure.getElement().getType() : null;
+    if (staticClosureType != null && !expectedClosureType.isMoreSpecificThan(staticClosureType)) {
+      return;
+    }
+
     // set propagated type for the closure
     closure.setPropagatedType(expectedClosureType);
     // set inferred types for parameters
@@ -1199,7 +1220,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param expression the expression being tested
    * @return {@code true} if the given expression terminates abruptly
    */
-  private boolean isAbruptTermination(Expression expression) {
+  private boolean isAbruptTerminationExpression(Expression expression) {
     // TODO(brianwilkerson) This needs to be significantly improved. Ideally we would eventually
     // turn this into a method on Expression that returns a termination indication (normal, abrupt
     // with no exception, abrupt with an exception).
@@ -1216,7 +1237,7 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param statement the statement being tested
    * @return {@code true} if the given statement terminates abruptly
    */
-  private boolean isAbruptTermination(Statement statement) {
+  private boolean isAbruptTerminationStatement(Statement statement) {
     // TODO(brianwilkerson) This needs to be significantly improved. Ideally we would eventually
     // turn this into a method on Statement that returns a termination indication (normal, abrupt
     // with no exception, abrupt with an exception).
@@ -1224,30 +1245,30 @@ public class ResolverVisitor extends ScopedVisitor {
         || statement instanceof ContinueStatement) {
       return true;
     } else if (statement instanceof ExpressionStatement) {
-      return isAbruptTermination(((ExpressionStatement) statement).getExpression());
+      return isAbruptTerminationExpression(((ExpressionStatement) statement).getExpression());
     } else if (statement instanceof Block) {
       NodeList<Statement> statements = ((Block) statement).getStatements();
       int size = statements.size();
       if (size == 0) {
         return false;
       }
-      return isAbruptTermination(statements.get(size - 1));
+      return isAbruptTerminationStatement(statements.get(size - 1));
     }
     return false;
   }
 
   /**
    * Return {@code true} if the given variable is accessed within a closure in the given
-   * {@link ASTNode} and also mutated somewhere in variable scope. This information is only
+   * {@link AstNode} and also mutated somewhere in variable scope. This information is only
    * available for local variables (including parameters).
    * 
    * @param variable the variable to check
-   * @param target the {@link ASTNode} to check within
+   * @param target the {@link AstNode} to check within
    * @return {@code true} if this variable is potentially mutated somewhere in the given ASTNode
    */
-  private boolean isVariableAccessedInClosure(final Element variable, ASTNode target) {
+  private boolean isVariableAccessedInClosure(final Element variable, AstNode target) {
     final boolean[] result = {false};
-    target.accept(new RecursiveASTVisitor<Void>() {
+    target.accept(new RecursiveAstVisitor<Void>() {
       private boolean inClosure = false;
 
       @Override
@@ -1277,15 +1298,15 @@ public class ResolverVisitor extends ScopedVisitor {
 
   /**
    * Return {@code true} if the given variable is potentially mutated somewhere in the given
-   * {@link ASTNode}. This information is only available for local variables (including parameters).
+   * {@link AstNode}. This information is only available for local variables (including parameters).
    * 
    * @param variable the variable to check
-   * @param target the {@link ASTNode} to check within
+   * @param target the {@link AstNode} to check within
    * @return {@code true} if this variable is potentially mutated somewhere in the given ASTNode
    */
-  private boolean isVariablePotentiallyMutatedIn(final Element variable, ASTNode target) {
+  private boolean isVariablePotentiallyMutatedIn(final Element variable, AstNode target) {
     final boolean[] result = {false};
-    target.accept(new RecursiveASTVisitor<Void>() {
+    target.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
         if (result[0]) {
@@ -1379,7 +1400,7 @@ public class ResolverVisitor extends ScopedVisitor {
     } else if (condition instanceof IsExpression) {
       IsExpression is = (IsExpression) condition;
       if (is.getNotOperator() != null) {
-        override(is.getExpression(), is.getType().getType());
+        overrideExpression(is.getExpression(), is.getType().getType());
       }
     } else if (condition instanceof PrefixExpression) {
       PrefixExpression prefix = (PrefixExpression) condition;
@@ -1417,7 +1438,7 @@ public class ResolverVisitor extends ScopedVisitor {
     } else if (condition instanceof IsExpression) {
       IsExpression is = (IsExpression) condition;
       if (is.getNotOperator() == null) {
-        override(is.getExpression(), is.getType().getType());
+        overrideExpression(is.getExpression(), is.getType().getType());
       }
     } else if (condition instanceof PrefixExpression) {
       PrefixExpression prefix = (PrefixExpression) condition;

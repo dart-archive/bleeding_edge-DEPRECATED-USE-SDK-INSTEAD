@@ -145,7 +145,7 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
     return emitCanonicalVersion(constant);
   }
 
-  jsAst.Expression visitDummyReceiver(DummyReceiverConstant constant) {
+  jsAst.Expression visitDummy(DummyConstant constant) {
     return new jsAst.LiteralNumber('0');
   }
 }
@@ -179,8 +179,9 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   }
 
   jsAst.Expression visitFunction(FunctionConstant constant) {
-    compiler.internalError(
-        "The function constant does not need specific JS code");
+    compiler.internalError(NO_LOCATION_SPANNABLE,
+        "The function constant does not need specific JS code.");
+    return null;
   }
 
   jsAst.Expression visitNull(NullConstant constant) {
@@ -273,7 +274,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
           } else if (field.name == MapConstant.JS_DATA_NAME) {
             arguments.add(jsGeneralMap());
           } else {
-            compiler.internalError(
+            compiler.internalError(field,
                 "Compiler has unexpected field ${field.name} for "
                 "${className}.");
           }
@@ -286,7 +287,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
          emittedArgumentCount != 4) ||
         (className == MapConstant.DART_GENERAL_CLASS &&
          emittedArgumentCount != 1)) {
-      compiler.internalError(
+      compiler.internalError(classElement,
           "Compiler and ${className} disagree on number of fields.");
     }
 
@@ -317,7 +318,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
         'prototype');
   }
 
-  jsAst.Expression visitDummyReceiver(DummyReceiverConstant constant) {
+  jsAst.Expression visitDummy(DummyConstant constant) {
     return _reference(constant);
   }
 

@@ -9,7 +9,7 @@
 
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 
-issue14236_test: Crash, RuntimeError # Issue 14516.
+issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
@@ -33,7 +33,7 @@ io/directory_fuzz_test: Skip
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 typed_array_test: Fail # Issue 13921
 typed_array_int64_uint64_test: Fail # Issue 13921
 typed_data_isolate_test: Skip # This test uses dart:io
@@ -47,7 +47,7 @@ issue14236_test: Skip # Issue 14236 Script snapshots do not work in the browser.
 
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-javascript_int_overflow_literal_test/01: fail, ok
+javascript_int_overflow_literal_test/01: Fail, OK
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
 
 # test issue https://code.google.com/p/dart/issues/detail?id=11518
@@ -81,7 +81,6 @@ javascript_int_overflow_literal_test: Skip
 oom_error_stacktrace_test: RuntimeError, OK # (OOM on JS may produce a stacktrace).
 vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 issue14236_test: Skip # dart2js does not deal with Script snapshots.
-io/platform_test: Pass, CompileTimeError # Issue 14603
 
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
@@ -101,9 +100,6 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == arm ]
-io/internet_address_test: Fail  # localhost is an Unknown name?
-
 [ $arch == simarm ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
@@ -115,15 +111,21 @@ out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
 [ $arch == mips ]
-io/test_extension_test: Fail
-io/test_extension_fail_test: Fail
-io/dart_std_io_pipe_test: Fail
-io/file_read_special_device_test: Fail
+io/signals_test: Fail # dartbug.com/17440
+io/file_stat_test: Fail # dartbug.com/17440
+io/process_sync_test: Skip # Starts 10 dart subprocesses, uses too much memory.
+io/signals_test: Skip # Starts 10 dart subprocesses, uses too much memory
 
-[ $compiler == none && $runtime == dartium && $unchecked ]
+[ $arch == mips && $mode == debug ]
+io/file_read_special_device_test: Fail # dartbug.com/17440
+
+[ $arch == simarm64 ]
+*: Skip
+
+[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
 assert_test: Fail # Issue 13719: Please triage this failure.
 
-[ $compiler == none && $runtime == dartium ]
+[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 javascript_int_overflow_literal_test/01: Fail # Issue 13719: Please triage this failure.
 javascript_int_overflow_test: Fail # Issue 13719: Please triage this failure.
 

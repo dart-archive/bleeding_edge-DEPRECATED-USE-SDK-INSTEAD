@@ -7,7 +7,7 @@ library trydart.main;
 import 'dart:html' show
     HttpRequest,
     LinkElement,
-    query,
+    querySelector,
     window;
 
 import 'dart:isolate' show
@@ -16,10 +16,8 @@ import 'dart:isolate' show
 
 import 'compilation.dart' show
     compilerIsolate,
-    compilerPort;
-
-import 'editor.dart' show
-    onMutation;
+    compilerPort,
+    currentSource;
 
 import 'isolate_legacy.dart' show
     spawnDomFunction,
@@ -30,7 +28,11 @@ import 'samples.dart' show
 
 import 'ui.dart' show
     buildUI,
+    interaction,
     observer;
+
+import 'user_option.dart' show
+    UserOption;
 
 int count = 0;
 
@@ -48,8 +50,9 @@ checkHttpRequest(SendPort replyTo) {
 }
 
 main() {
-  if (window.localStorage['currentSource'] == null) {
-    window.localStorage['currentSource'] = EXAMPLE_HELLO;
+  UserOption.storage = window.localStorage;
+  if (currentSource == null) {
+    currentSource = EXAMPLE_HELLO;
   }
 
   buildUI();
@@ -60,7 +63,7 @@ main() {
     } else {
       port = spawnDomFunction(compilerIsolate);
     }
-    LinkElement link = query('link[rel="dart-sdk"]');
+    LinkElement link = querySelector('link[rel="dart-sdk"]');
     String sdk = link.href;
     print('Using Dart SDK: $sdk');
     int messageCount = 0;
@@ -75,7 +78,7 @@ main() {
         case 2:
           // Acknowledged Receiving the SDK URI.
           compilerPort = sendPort;
-          onMutation([], observer);
+          interaction.onMutation([], observer);
           break;
         default:
           // TODO(ahe): Close [port]?

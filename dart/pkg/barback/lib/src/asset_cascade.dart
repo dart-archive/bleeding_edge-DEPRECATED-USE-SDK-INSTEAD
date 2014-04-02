@@ -5,21 +5,18 @@
 library barback.asset_cascade;
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
 import 'log.dart';
-import 'build_result.dart';
 import 'cancelable_future.dart';
 import 'errors.dart';
 import 'package_graph.dart';
 import 'phase.dart';
 import 'stream_pool.dart';
 import 'transformer.dart';
-import 'utils.dart';
 
 /// The asset cascade for an individual package.
 ///
@@ -51,62 +48,43 @@ class AssetCascade {
   /// one.
   final _loadingSources = new Map<AssetId, CancelableFuture<Asset>>();
 
+  /// The list of phases in this cascade.
+  ///
+  /// This will always contain at least one phase, and the first phase will
+  /// never have any transformers. This ensures that every transformer can
+  /// request inputs from a previous phase.
   final _phases = <Phase>[];
 
-  /// A stream that emits a [BuildResult] each time the build is completed,
-  /// whether or not it succeeded.
-  ///
-  /// If an unexpected error in barback itself occurs, it will be emitted
-  /// through this stream's error channel.
-  Stream<BuildResult> get results => _resultsController.stream;
-  final _resultsController = new StreamController<BuildResult>.broadcast();
+  /// The subscription to the [Phase.onDone] stream of the last [Phase] in
+  /// [_phases].
+  StreamSubscription _phaseOnDoneSubscription;
 
   /// A stream that emits any errors from the cascade or the transformers.
   ///
   /// This emits errors as they're detected. If an error occurs in one part of
   /// the cascade, unrelated parts will continue building.
-  ///
-  /// This will not emit programming errors from barback itself. Those will be
-  /// emitted through the [results] stream's error channel.
   Stream<BarbackException> get errors => _errorsController.stream;
-  final _errorsController = new StreamController<BarbackException>.broadcast();
-
-  /// A stream that emits an event whenever this cascade becomes dirty.
-  ///
-  /// After this stream emits an event, [results] will emit an event once the
-  /// cascade is no longer dirty.
-  ///
-  /// This may emit events when the cascade was already dirty. Events are
-  /// emitted synchronously to ensure that the dirty state is thoroughly
-  /// propagated as soon as any assets are changed.
-  Stream get onDirty => _onDirtyPool.stream;
-  final _onDirtyPool = new StreamPool.broadcast();
-
-  /// A controller whose stream feeds into [_onDirtyPool].
-  final _onDirtyController = new StreamController.broadcast(sync: true);
+  final _errorsController =
+      new StreamController<BarbackException>.broadcast(sync: true);
 
   /// A stream that emits an event whenever any transforms in this cascade logs
   /// an entry.
   Stream<LogEntry> get onLog => _onLogPool.stream;
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
-  /// The errors that have occurred since the current build started.
+  /// Whether [this] is dirty and still has more processing to do.
+  bool get isDirty {
+    // Just check the last phase, since it will check all the previous phases
+    // itself.
+    return _phases.last.isDirty;
+  }
+
+  /// A stream that emits an event whenever [this] is no longer dirty.
   ///
-  /// This will be empty if no build is occurring.
-  Queue<BarbackException> _accumulatedErrors;
-
-  /// The number of errors that have been logged since the current build
-  /// started.
-  int _numLogErrors;
-
-  /// A future that completes when the currently running build process finishes.
-  ///
-  /// If no build it in progress, is `null`.
-  Future _processDone;
-
-  /// Whether any source assets have been updated or removed since processing
-  /// last began.
-  var _newChanges = false;
+  /// This is synchronous in order to guarantee that it will emit an event as
+  /// soon as [isDirty] flips from `true` to `false`.
+  Stream get onDone => _onDoneController.stream;
+  final _onDoneController = new StreamController.broadcast(sync: true);
 
   /// Returns all currently-available output assets from this cascade.
   AssetSet get availableOutputs =>
@@ -116,17 +94,7 @@ class AssetCascade {
   ///
   /// It loads source assets within [package] using [provider].
   AssetCascade(this.graph, this.package) {
-    _onDirtyPool.add(_onDirtyController.stream);
-    _addPhase(new Phase(this, [], package));
-
-    // Keep track of logged errors so we can know that the build failed.
-    onLog.listen((entry) {
-      if (entry.level == LogLevel.ERROR) {
-        // TODO(nweiz): keep track of stack chain.
-        _accumulatedErrors.add(
-            new TransformerException(entry.transform, entry.message, null));
-      }
-    });
+    _addPhase(new Phase(this, package));
   }
 
   /// Gets the asset identified by [id].
@@ -139,6 +107,7 @@ class AssetCascade {
   Future<AssetNode> getAssetNode(AssetId id) {
     assert(id.package == package);
 
+    var oldLastPhase = _phases.last;
     // TODO(rnystrom): Waiting for the entire build to complete is unnecessary
     // in some cases. Should optimize:
     // * [id] may be generated before the compilation is finished. We should
@@ -147,19 +116,12 @@ class AssetCascade {
     // * If [id] has never been generated and all active transformers provide
     //   metadata about the file names of assets it can emit, we can prove that
     //   none of them can emit [id] and fail early.
-    return _phases.last.getOutput(id).then((node) {
-      // If the requested asset is available, we can just return it.
-      if (node != null && node.state.isAvailable) return node;
-
-      // If there's a build running, that build might generate the asset, so we
-      // wait for it to complete and then try again.
-      if (_processDone != null) {
-        return _processDone.then((_) => getAssetNode(id));
-      }
-
-      // If the asset hasn't been built and nothing is building now, the asset
-      // won't be generated, so we return null.
-      return null;
+    return oldLastPhase.getOutput(id).then((node) {
+      // The last phase may have changed if [updateSources] was called after
+      // requesting the output. In that case, we want the output from the new
+      // last phase.
+      if (_phases.last == oldLastPhase) return node;
+      return getAssetNode(id);
     });
   }
 
@@ -216,97 +178,49 @@ class AssetCascade {
   void updateTransformers(Iterable<Iterable> transformersIterable) {
     var transformers = transformersIterable.toList();
 
+    // Always preserve a single phase with no transformers at the beginning of
+    // the cascade so that [TransformNode]s in the first populated phase will
+    // have something to request assets from.
     for (var i = 0; i < transformers.length; i++) {
-      if (_phases.length > i) {
-        _phases[i].updateTransformers(transformers[i]);
+      if (_phases.length > i + 1) {
+        _phases[i + 1].updateTransformers(transformers[i]);
         continue;
       }
 
-      _addPhase(_phases.last.addPhase(transformers[i]));
+      var phase = _phases.last.addPhase();
+      _addPhase(phase);
+      phase.updateTransformers(transformers[i]);
     }
 
-    if (transformers.length == 0) {
-      _phases.last.updateTransformers([]);
-    } else if (transformers.length < _phases.length) {
-      _phases[transformers.length - 1].removeFollowing();
-      _phases.removeRange(transformers.length, _phases.length);
+    for (var i = transformers.length + 1; i < _phases.length; i++) {
+      _phases[i].remove();
+    }
+    _phases.removeRange(transformers.length + 1, _phases.length);
+
+    _phaseOnDoneSubscription.cancel();
+    _phaseOnDoneSubscription = _phases.last.onDone
+        .listen(_onDoneController.add);
+  }
+
+  /// Force all [LazyTransformer]s' transforms in this cascade to begin
+  /// producing concrete assets.
+  void forceAllTransforms() {
+    for (var phase in _phases) {
+      phase.forceAllTransforms();
     }
   }
 
   void reportError(BarbackException error) {
-    _accumulatedErrors.add(error);
     _errorsController.add(error);
   }
 
-  /// Add [phase] to the end of [_phases] and watch its [onDirty] stream.
+  /// Add [phase] to the end of [_phases] and watch its streams.
   void _addPhase(Phase phase) {
-    _onDirtyPool.add(phase.onDirty);
     _onLogPool.add(phase.onLog);
-    phase.onDirty.listen((_) {
-      _newChanges = true;
-      _waitForProcess();
-    });
+    if (_phaseOnDoneSubscription != null) _phaseOnDoneSubscription.cancel();
+    _phaseOnDoneSubscription = phase.onDone.listen(_onDoneController.add);
+
     _phases.add(phase);
-  }
-
-  /// Starts the build process asynchronously if there is work to be done.
-  ///
-  /// Returns a future that completes with the background processing is done.
-  /// If there is no work to do, returns a future that completes immediately.
-  /// All errors that occur during processing will be caught (and routed to the
-  /// [results] stream) before they get to the returned future, so it is safe
-  /// to discard it.
-  Future _waitForProcess() {
-    if (_processDone != null) return _processDone;
-
-    _accumulatedErrors = new Queue();
-    _numLogErrors = 0;
-    return _processDone = _process().then((_) {
-      // Report the build completion.
-      // TODO(rnystrom): Put some useful data in here.
-      _resultsController.add(
-          new BuildResult(_accumulatedErrors));
-    }).catchError((error, stackTrace) {
-      // If we get here, it's an unexpected error. Runtime errors like missing
-      // assets should be handled earlier. Errors from transformers or other
-      // external code that barback calls into should be caught at that API
-      // boundary.
-      //
-      // On the off chance we get here, pipe the error to the results stream
-      // as an error. That will let applications handle it without it appearing
-      // in the same path as "normal" errors that get reported.
-      _resultsController.addError(error, stackTrace);
-    }).whenComplete(() {
-      _processDone = null;
-      _accumulatedErrors = null;
-    });
-  }
-
-  /// Starts the background processing.
-  ///
-  /// Returns a future that completes when all assets have been processed.
-  Future _process() {
-    _newChanges = false;
-    return newFuture(() {
-      // Find the first phase that has work to do and do it.
-      var future;
-      for (var phase in _phases) {
-        future = phase.process();
-        if (future != null) break;
-      }
-
-      // If all phases are done and no new updates have come in, we're done.
-      if (future == null) {
-        // If changes have come in, start over.
-        if (_newChanges) return _process();
-
-        // Otherwise, everything is done.
-        return null;
-      }
-
-      // Process that phase and then loop onto the next.
-      return future.then((_) => _process());
-    });
   }
 
   String toString() => "cascade for $package";

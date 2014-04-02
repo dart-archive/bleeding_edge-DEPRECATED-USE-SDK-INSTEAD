@@ -84,6 +84,8 @@ class _InternetAddress implements InternetAddress {
 
   String get host => _host != null ? _host : address;
 
+  List<int> get rawAddress => new Uint8List.fromList(_in_addr);
+
   bool get isLoopback {
     switch (type) {
       case InternetAddressType.IP_V4:
@@ -205,6 +207,131 @@ class _NetworkInterface implements NetworkInterface {
 }
 
 
+class _Rate {
+  final int buckets;
+  final data;
+  int lastValue = 0;
+  int nextBucket = 0;
+
+  _Rate(int buckets) : buckets = buckets, data = new List.filled(buckets, 0);
+
+  void update(int value) {
+    data[nextBucket] = value - lastValue;
+    lastValue = value;
+    nextBucket = (nextBucket + 1) % buckets;
+  }
+
+  int get rate {
+    int sum = data.fold(0, (prev, element) => prev + element);
+    return sum ~/ buckets;
+  }
+}
+
+// Statics information for the observatory.
+class _SocketStat {
+  _Rate readRate = new _Rate(5);
+  _Rate writeRate = new _Rate(5);
+
+  void update(_NativeSocket socket) {
+    readRate.update(socket.totalRead);
+    writeRate.update(socket.totalWritten);
+  }
+}
+
+class _SocketsObservatory {
+  static int socketCount = 0;
+  static Map sockets = new Map<_NativeSocket, _SocketStat>();
+  static Timer timer;
+
+  static add(_NativeSocket socket) {
+    if (socketCount == 0) startTimer();
+    sockets[socket] = new _SocketStat();
+    socketCount++;
+  }
+
+  static remove(_NativeSocket socket) {
+    _SocketStat stats = sockets.remove(socket);
+    assert(stats != null);
+    socketCount--;
+    if (socketCount == 0) stopTimer();
+  }
+
+  static update(_) {
+    sockets.forEach((socket, stat) {
+      stat.update(socket);
+    });
+  }
+
+  static startTimer() {
+    if (timer != null) return;
+    // TODO(sgjesse): Enable the rate timer.
+    // timer = new Timer.periodic(new Duration(seconds: 1), update);
+  }
+
+  static stopTimer() {
+    if (timer == null) return;
+    timer.cancel();
+    timer = null;
+  }
+
+  static String generateResponse() {
+    var response = new Map();
+    response['type'] = 'SocketList';
+    var members = new List();
+    response['members'] = members;
+    sockets.forEach((socket, stat) {
+      var kind =
+          socket.isListening ? "LISTENING" :
+          socket.isPipe ? "PIPE" :
+          socket.isInternal ? "INTERNAL" : "NORMAL";
+      var protocol =
+          socket.isTcp ? "tcp" :
+          socket.isUdp ? "udp" : "";
+      var localAddress;
+      var localPort;
+      var remoteAddress;
+      var remotePort;
+      try {
+        localAddress = socket.address.address;
+      } catch (e) {
+        localAddress = "n/a";
+      }
+      try {
+        localPort = socket.port;
+      } catch (e) {
+        localPort = "n/a";
+      }
+      try {
+        remoteAddress = socket.remoteAddress.address;
+      } catch (e) {
+        remoteAddress = "n/a";
+      }
+      try {
+        remotePort = socket.remotePort;
+      } catch (e) {
+        remotePort = "n/a";
+      }
+      members.add({'type': 'Socket', 'kind': kind, 'protocol': protocol,
+                   'localAddress': localAddress, 'localPort': localPort,
+                   'remoteAddress': remoteAddress, 'remotePort': remotePort,
+                   'totalRead': socket.totalRead,
+                   'totalWritten': socket.totalWritten,
+                   'readPerSec': stat.readRate.rate,
+                   'writePerSec': stat.writeRate.rate});
+    });
+    return JSON.encode(response);;
+  }
+
+  static String toJSON() {
+    try {
+      return generateResponse();
+    } catch (e, s) {
+      return '{"type":"Error","text":"$e","stacktrace":"$s"}';
+    }
+  }
+}
+
+
 // The _NativeSocket class encapsulates an OS socket.
 class _NativeSocket extends NativeFieldWrapperClass1 {
   // Bit flags used when communicating between the eventhandler and
@@ -228,8 +355,11 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static const int CLOSE_COMMAND = 8;
   static const int SHUTDOWN_READ_COMMAND = 9;
   static const int SHUTDOWN_WRITE_COMMAND = 10;
+  // The lower bits of RETURN_TOKEN_COMMAND messages contains the number
+  // of tokens returned.
+  static const int RETURN_TOKEN_COMMAND = 11;
   static const int FIRST_COMMAND = CLOSE_COMMAND;
-  static const int LAST_COMMAND = SHUTDOWN_WRITE_COMMAND;
+  static const int LAST_COMMAND = RETURN_TOKEN_COMMAND;
 
   // Type flag send to the eventhandler providing additional
   // information on the type of the file descriptor.
@@ -238,6 +368,18 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static const int TYPE_NORMAL_SOCKET = 0;
   static const int TYPE_LISTENING_SOCKET = 1 << LISTENING_SOCKET;
   static const int TYPE_PIPE = 1 << PIPE_SOCKET;
+  static const int TYPE_TYPE_MASK = TYPE_LISTENING_SOCKET | PIPE_SOCKET;
+
+  // Protocol flags.
+  static const int TCP_SOCKET = 18;
+  static const int UDP_SOCKET = 19;
+  static const int INTERNAL_SOCKET = 20;
+  static const int TYPE_TCP_SOCKET = 1 << TCP_SOCKET;
+  static const int TYPE_UDP_SOCKET = 1 << UDP_SOCKET;
+  static const int TYPE_INTERNAL_SOCKET = 1 << INTERNAL_SOCKET;
+  static const int TYPE_PROTOCOL_MASK =
+      TYPE_TCP_SOCKET | TYPE_UDP_SOCKET | TYPE_INTERNAL_SOCKET;
+
 
   // Native port messages.
   static const HOST_NAME_LOOKUP = 0;
@@ -253,15 +395,11 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   bool isClosing = false;
   bool isClosedRead = false;
   bool isClosedWrite = false;
-  Completer closeCompleter = new Completer();
+  Completer closeCompleter = new Completer.sync();
 
   // Handlers and receive port for socket events from the event handler.
-  int eventMask = 0;
-  List eventHandlers;
+  final List eventHandlers = new List(EVENT_COUNT + 1);
   RawReceivePort eventPort;
-
-  // Indicates if native interrupts can be activated.
-  bool canActivateEvents = true;
 
   // The type flags for this socket.
   final int typeFlags;
@@ -271,6 +409,21 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
   // Holds the address used to connect or bind the socket.
   InternetAddress address;
+
+  int available = 0;
+
+  int returnTokens = 0;
+
+  bool sendReadEvents = false;
+  bool readEventIssued = false;
+
+  bool sendWriteEvents = false;
+  bool writeEventIssued = false;
+  bool writeAvailable = false;
+
+  // Statistics.
+  int totalRead = 0;
+  int totalWritten = 0;
 
   static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
@@ -427,48 +580,41 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   }
 
   _NativeSocket.datagram(this.address)
-      : typeFlags = TYPE_NORMAL_SOCKET {
-    eventHandlers = new List(EVENT_COUNT + 1);
-  }
+    : typeFlags = TYPE_NORMAL_SOCKET | TYPE_UDP_SOCKET;
 
-  _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET {
-    eventHandlers = new List(EVENT_COUNT + 1);
-  }
+  _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET | TYPE_TCP_SOCKET;
 
-  _NativeSocket.listen() : typeFlags = TYPE_LISTENING_SOCKET {
-    eventHandlers = new List(EVENT_COUNT + 1);
-  }
+  _NativeSocket.listen() : typeFlags = TYPE_LISTENING_SOCKET | TYPE_TCP_SOCKET;
 
-  _NativeSocket.pipe() : typeFlags = TYPE_PIPE {
-    eventHandlers = new List(EVENT_COUNT + 1);
-  }
+  _NativeSocket.pipe() : typeFlags = TYPE_PIPE;
 
-  _NativeSocket.watch(int id) : typeFlags = TYPE_NORMAL_SOCKET {
-    eventHandlers = new List(EVENT_COUNT + 1);
+  _NativeSocket.watch(int id)
+      : typeFlags = TYPE_NORMAL_SOCKET | TYPE_INTERNAL_SOCKET {
     isClosedWrite = true;
     nativeSetSocketId(id);
   }
 
-  int available() {
-    if (isClosing || isClosed) return 0;
-    var result = nativeAvailable();
-    if (result is OSError) {
-      reportError(result, "Available failed");
-      return 0;
-    } else {
-      return result;
-    }
-  }
+  bool get isListening => (typeFlags & TYPE_LISTENING_SOCKET) != 0;
+  bool get isPipe => (typeFlags & TYPE_PIPE) != 0;
+  bool get isInternal => (typeFlags & TYPE_INTERNAL_SOCKET) != 0;
+  bool get isTcp => (typeFlags & TYPE_TCP_SOCKET) != 0;
+  bool get isUdp => (typeFlags & TYPE_UDP_SOCKET) != 0;
 
   List<int> read(int len) {
     if (len != null && len <= 0) {
       throw new ArgumentError("Illegal length $len");
     }
     if (isClosing || isClosed) return null;
-    var result = nativeRead(len == null ? -1 : len);
+    len = min(available, len == null ? available : len);
+    if (len == 0) return null;
+    var result = nativeRead(len);
     if (result is OSError) {
       reportError(result, "Read failed");
       return null;
+    }
+    if (result != null) {
+      available -= result.length;
+      totalRead += result.length;
     }
     return result;
   }
@@ -479,6 +625,15 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     if (result is OSError) {
       reportError(result, "Receive failed");
       return null;
+    }
+    if (result != null) {
+      if (Platform.isMacOS) {
+        // Mac includes the header size, so we need to query the actual
+        // available.
+        available = nativeAvailable();
+      } else {
+        available -= result.data.length;
+      }
     }
     return result;
   }
@@ -510,6 +665,15 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       scheduleMicrotask(() => reportError(result, "Write failed"));
       result = 0;
     }
+    // The result may be negative, if we forced a short write for testing
+    // purpose. In such case, don't mark writeAvailable as false, as we don't
+    // know if we'll receive an event. It's better to just retry.
+    if (result >= 0 && result < bytes) {
+      writeAvailable = false;
+    }
+    // Negate the result, as stated above.
+    if (result < 0) result = -result;
+    totalWritten += result;
     return result;
   }
 
@@ -536,12 +700,15 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     if (nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
     socket.address = address;
+    totalRead += 1;
     return socket;
   }
 
   int get port {
     if (localPort != 0) return localPort;
-    return localPort = nativeGetPort();
+    var result = nativeGetPort();
+    if (result is OSError) throw result;
+    return localPort = result;
   }
 
   int get remotePort {
@@ -554,46 +721,96 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     return new _InternetAddress(result[1], null, result[2]);
   }
 
+  void issueReadEvent() {
+    if (readEventIssued) return;
+    readEventIssued = true;
+    void issue() {
+      readEventIssued = false;
+      if (isClosing) return;
+      if (!sendReadEvents) return;
+      if (available == 0) {
+        if (isClosedRead) {
+          if (isClosedWrite) close();
+          var handler = eventHandlers[CLOSED_EVENT];
+          if (handler == null) return;
+          handler();
+        }
+        return;
+      }
+      var handler = eventHandlers[READ_EVENT];
+      if (handler == null) return;
+      readEventIssued = true;
+      handler();
+      scheduleMicrotask(issue);
+    }
+    scheduleMicrotask(issue);
+  }
+
+  void issueWriteEvent({bool delayed: true}) {
+    if (writeEventIssued) return;
+    if (!writeAvailable) return;
+    void issue() {
+      writeEventIssued = false;
+      if (!writeAvailable) return;
+      if (isClosing) return;
+      if (!sendWriteEvents) return;
+      sendWriteEvents = false;
+      var handler = eventHandlers[WRITE_EVENT];
+      if (handler == null) return;
+      handler();
+    }
+    if (delayed) {
+      writeEventIssued = true;
+      scheduleMicrotask(issue);
+    } else {
+      issue();
+    }
+  }
+
   // Multiplexes socket events to the socket handlers.
   void multiplex(int events) {
-    canActivateEvents = false;
     for (int i = FIRST_EVENT; i <= LAST_EVENT; i++) {
       if (((events & (1 << i)) != 0)) {
         if ((i == CLOSED_EVENT || i == READ_EVENT) && isClosedRead) continue;
+        if (isClosing && i != DESTROYED_EVENT) continue;
         if (i == CLOSED_EVENT &&
-            typeFlags != TYPE_LISTENING_SOCKET &&
+            !isListening  &&
             !isClosing &&
             !isClosed) {
           isClosedRead = true;
+          issueReadEvent();
+          continue;
+        }
+
+        if (i == WRITE_EVENT) {
+          writeAvailable = true;
+          issueWriteEvent(delayed: false);
+          continue;
+        }
+
+        if (i == READ_EVENT && !isListening) {
+          var avail = nativeAvailable();
+          if (avail is int) {
+            available = avail;
+          } else {
+            // Available failed. Mark socket as having data, to ensure read
+            // events, and thus reporting of this error.
+            available = 1;
+          }
+          issueReadEvent();
+          continue;
         }
 
         var handler = eventHandlers[i];
         if (i == DESTROYED_EVENT) {
           assert(!isClosed);
           isClosed = true;
-          closeCompleter.complete(this);
+          closeCompleter.complete();
           disconnectFromEventHandler();
           if (handler != null) handler();
           continue;
         }
-        assert(handler != null);
-        if (i == WRITE_EVENT) {
-          // If the event was disabled before we had a chance to fire the event,
-          // discard it. If we register again, we'll get a new one.
-          if ((eventMask & (1 << i)) == 0) continue;
-          // Unregister the out handler before executing it. There is
-          // no need to notify the eventhandler as handlers are
-          // disabled while the event is handled.
-          eventMask &= ~(1 << i);
-        }
 
-        // Don't call the in handler if there is no data available
-        // after all.
-        if (i == READ_EVENT &&
-            typeFlags != TYPE_LISTENING_SOCKET &&
-            available() == 0) {
-          continue;
-        }
         if (i == ERROR_EVENT) {
           if (!isClosing) {
             reportError(nativeGetError(), "");
@@ -605,9 +822,15 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
         }
       }
     }
-    if (isClosedRead && isClosedWrite) close();
-    canActivateEvents = true;
-    activateHandlers();
+    if (eventPort != null && !isClosing && !isClosed && !isListening) {
+      returnTokens++;
+      if (returnTokens == 8) {
+        // Return in batches of 8.
+        assert(returnTokens < (1 << FIRST_COMMAND));
+        sendToEventHandler((1 << RETURN_TOKEN_COMMAND) | returnTokens);
+        returnTokens = 0;
+      }
+    }
   }
 
   void setHandlers({read, write, error, closed, destroyed}) {
@@ -619,36 +842,24 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   }
 
   void setListening({read: true, write: true}) {
-    eventMask = (1 << CLOSED_EVENT) | (1 << ERROR_EVENT);
-    if (read) eventMask |= (1 << READ_EVENT);
-    if (write) eventMask |= (1 << WRITE_EVENT);
-    activateHandlers();
-  }
-
-  Future<_NativeSocket> get closeFuture => closeCompleter.future;
-
-  void activateHandlers() {
-    if (canActivateEvents && !isClosing && !isClosed) {
-      if ((eventMask & ((1 << READ_EVENT) | (1 << WRITE_EVENT))) == 0) {
-        // If we don't listen for either read or write, disconnect as we won't
-        // get close and error events anyway.
-        if (eventPort != null) disconnectFromEventHandler();
-      } else {
-        int data = eventMask;
-        if (isClosedRead) data &= ~(1 << READ_EVENT);
-        if (isClosedWrite) data &= ~(1 << WRITE_EVENT);
-        data |= typeFlags;
-        sendToEventHandler(data);
-      }
+    sendReadEvents = read;
+    sendWriteEvents = write;
+    if (read) issueReadEvent();
+    if (write) issueWriteEvent();
+    if (eventPort == null) {
+      int flags = typeFlags & TYPE_TYPE_MASK;
+      if (!isClosedRead) flags |= 1 << READ_EVENT;
+      if (!isClosedWrite) flags |= 1 << WRITE_EVENT;
+      sendToEventHandler(flags);
     }
   }
 
-  Future<_NativeSocket> close() {
+  Future close() {
     if (!isClosing && !isClosed) {
       sendToEventHandler(1 << CLOSE_COMMAND);
       isClosing = true;
     }
-    return closeFuture;
+    return closeCompleter.future;
   }
 
   void shutdown(SocketDirection direction) {
@@ -674,9 +885,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       if (isClosedRead) {
         close();
       } else {
-        bool connected = eventPort != null;
         sendToEventHandler(1 << SHUTDOWN_WRITE_COMMAND);
-        if (!connected) disconnectFromEventHandler();
       }
       isClosedWrite = true;
     }
@@ -687,31 +896,30 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       if (isClosedWrite) {
         close();
       } else {
-        bool connected = eventPort != null;
         sendToEventHandler(1 << SHUTDOWN_READ_COMMAND);
-        if (!connected) disconnectFromEventHandler();
       }
       isClosedRead = true;
     }
   }
 
   void sendToEventHandler(int data) {
+    assert(!isClosing);
     connectToEventHandler();
-    assert(!isClosed);
     _EventHandler._sendData(this, eventPort, data);
   }
 
   void connectToEventHandler() {
     if (eventPort == null) {
       eventPort = new RawReceivePort(multiplex);
+      _SocketsObservatory.add(this);
     }
   }
 
   void disconnectFromEventHandler() {
-    if (eventPort != null) {
-      eventPort.close();
-      eventPort = null;
-    }
+    assert(eventPort != null);
+    eventPort.close();
+    eventPort = null;
+    _SocketsObservatory.remove(this);
   }
 
   // Check whether this is an error response from a native port call.
@@ -867,16 +1075,19 @@ class _RawServerSocket extends Stream<RawSocket>
         onCancel: _onSubscriptionStateChange,
         onPause: _onPauseStateChange,
         onResume: _onPauseStateChange);
-    _socket.closeFuture.then((_) => _controller.close());
     _socket.setHandlers(
       read: zone.bindCallback(() {
-        var socket = _socket.accept();
-        if (socket != null) _controller.add(new _RawSocket(socket));
+        do {
+          var socket = _socket.accept();
+          if (socket == null) return;
+          _controller.add(new _RawSocket(socket));
+        } while (!_controller.isPaused);
       }),
       error: zone.bindUnaryCallback((e) {
         _controller.addError(e);
         _controller.close();
-      })
+      }),
+      destroyed: _controller.close
     );
   }
 
@@ -909,7 +1120,7 @@ class _RawServerSocket extends Stream<RawSocket>
     if (_controller.hasListener) {
       _resume();
     } else {
-      close();
+      _socket.close();
     }
   }
 
@@ -945,7 +1156,6 @@ class _RawSocket extends Stream<RawSocketEvent>
         onCancel: _onSubscriptionStateChange,
         onPause: _onPauseStateChange,
         onResume: _onPauseStateChange);
-    _socket.closeFuture.then((_) => _controller.close());
     _socket.setHandlers(
       read: () => _controller.add(RawSocketEvent.READ),
       write: () {
@@ -955,18 +1165,20 @@ class _RawSocket extends Stream<RawSocketEvent>
         _controller.add(RawSocketEvent.WRITE);
       },
       closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
-      destroyed: () => _controller.add(RawSocketEvent.CLOSED),
+      destroyed: () {
+        _controller.add(RawSocketEvent.CLOSED);
+        _controller.close();
+      },
       error: zone.bindUnaryCallback((e) {
         _controller.addError(e);
-        close();
+        _socket.close();
       })
     );
   }
 
-  factory _RawSocket._writePipe(int fd) {
+  factory _RawSocket._writePipe() {
     var native = new _NativeSocket.pipe();
     native.isClosedRead = true;
-    if (fd != null) _getStdioHandle(native, fd);
     return new _RawSocket(native);
   }
 
@@ -992,7 +1204,7 @@ class _RawSocket extends Stream<RawSocketEvent>
         cancelOnError: cancelOnError);
   }
 
-  int available() => _socket.available();
+  int available() => _socket.available;
 
   List<int> read([int len]) {
     if (_isMacOSTerminalInput) {
@@ -1064,7 +1276,7 @@ class _RawSocket extends Stream<RawSocketEvent>
     if (_controller.hasListener) {
       _resume();
     } else {
-      close();
+      _socket.close();
     }
   }
 }
@@ -1140,10 +1352,16 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
             assert(buffer == null);
             buffer = data;
             offset = 0;
-            write();
+            try {
+              write();
+            } catch (e) {
+              socket.destroy();
+              stop();
+              done(e);
+            }
           },
           onError: (error, [stackTrace]) {
-            socket._consumerDone();
+            socket.destroy();
             done(error, stackTrace);
           },
           onDone: () {
@@ -1160,28 +1378,22 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
   }
 
   void write() {
-    try {
-      if (subscription == null) return;
-      assert(buffer != null);
-      // Write as much as possible.
-      offset += socket._write(buffer, offset, buffer.length - offset);
-      if (offset < buffer.length) {
-        if (!paused) {
-          paused = true;
-          subscription.pause();
-        }
-        socket._enableWriteEvent();
-      } else {
-        buffer = null;
-        if (paused) {
-          paused = false;
-          subscription.resume();
-        }
+    if (subscription == null) return;
+    assert(buffer != null);
+    // Write as much as possible.
+    offset += socket._write(buffer, offset, buffer.length - offset);
+    if (offset < buffer.length) {
+      if (!paused) {
+        paused = true;
+        subscription.pause();
       }
-    } catch (e) {
-      stop();
-      socket._consumerDone();
-      done(e);
+      socket._enableWriteEvent();
+    } else {
+      buffer = null;
+      if (paused) {
+        paused = false;
+        subscription.resume();
+      }
     }
   }
 
@@ -1232,8 +1444,8 @@ class _Socket extends Stream<List<int>> implements Socket {
     _raw.writeEventsEnabled = false;
   }
 
-  factory _Socket._writePipe([int fd]) {
-    return new _Socket(new _RawSocket._writePipe(fd));
+  factory _Socket._writePipe() {
+    return new _Socket(new _RawSocket._writePipe());
   }
 
   factory _Socket._readPipe([int fd]) {
@@ -1427,7 +1639,6 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
         onCancel: _onSubscriptionStateChange,
         onPause: _onPauseStateChange,
         onResume: _onPauseStateChange);
-    _socket.closeFuture.then((_) => _controller.close());
     _socket.setHandlers(
       read: () => _controller.add(RawSocketEvent.READ),
       write: () {
@@ -1437,10 +1648,13 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
         _controller.add(RawSocketEvent.WRITE);
       },
       closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
-      destroyed: () => _controller.add(RawSocketEvent.CLOSED),
+      destroyed: () {
+        _controller.add(RawSocketEvent.CLOSED);
+        _controller.close();
+      },
       error: zone.bindUnaryCallback((e) {
         _controller.addError(e);
-        close();
+        _socket.close();
       })
     );
   }
@@ -1541,7 +1755,7 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
     if (_controller.hasListener) {
       _resume();
     } else {
-      close();
+      _socket.close();
     }
   }
 }
@@ -1555,3 +1769,5 @@ Datagram _makeDatagram(List<int> data,
       new _InternetAddress(address, null, in_addr),
       port);
 }
+
+String _socketsStats() => _SocketsObservatory.toJSON();

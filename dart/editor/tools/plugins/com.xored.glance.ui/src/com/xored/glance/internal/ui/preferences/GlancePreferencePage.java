@@ -6,6 +6,10 @@
  *******************************************************************************/
 package com.xored.glance.internal.ui.preferences;
 
+import com.xored.glance.internal.ui.GlancePlugin;
+import com.xored.glance.internal.ui.search.SearchManager;
+import com.xored.glance.ui.sources.ColorManager;
+
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ColorFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
@@ -22,15 +26,28 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
-import com.xored.glance.internal.ui.GlancePlugin;
-import com.xored.glance.internal.ui.search.SearchManager;
-import com.xored.glance.ui.sources.ColorManager;
-
 /**
  * @author Yuri Strot
  */
 public class GlancePreferencePage extends FieldEditorPreferencePage implements
     IWorkbenchPreferencePage, IPreferenceConstants {
+
+  private static class ColorEditor extends ColorFieldEditor {
+
+    public ColorEditor(final Composite parent, final String text, final String prefKey) {
+      this(parent, text, prefKey, ColorManager.getStore());
+    }
+
+    public ColorEditor(final Composite parent, final String text, final String prefKey,
+        IPreferenceStore store) {
+      super(prefKey, text, parent);
+      super.setPreferenceStore(store);
+    }
+
+    @Override
+    public void setPreferenceStore(final IPreferenceStore store) {
+    }
+  }
 
   private Button currentWindow;
 
@@ -43,15 +60,16 @@ public class GlancePreferencePage extends FieldEditorPreferencePage implements
   }
 
   @Override
-  protected IPreferenceStore doGetPreferenceStore() {
-    return GlancePlugin.getDefault().getPreferenceStore();
-  }
-
-  @Override
-  protected void createFieldEditors() {
-    createSearchSettings(getFieldEditorParent());
-    createColorSettings(getFieldEditorParent());
-    createPanelSettings(getFieldEditorParent());
+  public boolean performOk() {
+    final IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+    if (window != null) {
+      final boolean inWindow = SearchManager.getIntance().isInWindow(window);
+      final boolean open = currentWindow.getSelection();
+      if (open != inWindow) {
+        SearchManager.getIntance().setStatusLine(window, open);
+      }
+    }
+    return super.performOk();
   }
 
   /**
@@ -61,6 +79,45 @@ public class GlancePreferencePage extends FieldEditorPreferencePage implements
   protected void adjustGridLayout() {
     super.adjustGridLayout();
     ((GridLayout) getFieldEditorParent().getLayout()).numColumns = 1;
+  }
+
+  @Override
+  protected void createFieldEditors() {
+    createSearchSettings(getFieldEditorParent());
+    createColorSettings(getFieldEditorParent());
+    createPanelSettings(getFieldEditorParent());
+  }
+
+  @Override
+  protected IPreferenceStore doGetPreferenceStore() {
+    return GlancePlugin.getDefault().getPreferenceStore();
+  }
+
+  @Override
+  protected void performDefaults() {
+    super.performDefaults();
+    initCurrentWindow();
+  }
+
+  private Group createColorSettings(final Composite parent) {
+    final Group group = new Group(parent, SWT.NONE);
+    group.setText("Colors");
+    group.setLayout(new GridLayout(1, false));
+    group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+    final Composite composite = new Composite(group, SWT.NONE);
+    composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+    addField(new ColorEditor(composite, "Highlight:", COLOR_HIGHLIGHT));
+    addField(new ColorEditor(composite, "Selection:", COLOR_SELECTION));
+
+    return group;
+  }
+
+  private void createCurrentWindowOption(final Composite composite) {
+    currentWindow = new Button(composite, SWT.CHECK);
+    currentWindow.setText("Show in the current window");
+    initCurrentWindow();
   }
 
   private Group createPanelSettings(final Composite parent) {
@@ -93,41 +150,6 @@ public class GlancePreferencePage extends FieldEditorPreferencePage implements
     return group;
   }
 
-  private void createCurrentWindowOption(final Composite composite) {
-    currentWindow = new Button(composite, SWT.CHECK);
-    currentWindow.setText("Show in the current window");
-    initCurrentWindow();
-  }
-
-  @Override
-  protected void performDefaults() {
-    super.performDefaults();
-    initCurrentWindow();
-  }
-
-  private void initCurrentWindow() {
-    final IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-    if (window == null) {
-      currentWindow.setEnabled(false);
-    } else {
-      final boolean inWindow = SearchManager.getIntance().isInWindow(window);
-      currentWindow.setSelection(inWindow);
-    }
-  }
-
-  @Override
-  public boolean performOk() {
-    final IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-    if (window != null) {
-      final boolean inWindow = SearchManager.getIntance().isInWindow(window);
-      final boolean open = currentWindow.getSelection();
-      if (open != inWindow) {
-        SearchManager.getIntance().setStatusLine(window, open);
-      }
-    }
-    return super.performOk();
-  }
-
   private Group createSearchSettings(final Composite parent) {
     final Group group = new Group(parent, SWT.NONE);
     group.setText("Search");
@@ -145,35 +167,13 @@ public class GlancePreferencePage extends FieldEditorPreferencePage implements
     return group;
   }
 
-  private Group createColorSettings(final Composite parent) {
-    final Group group = new Group(parent, SWT.NONE);
-    group.setText("Colors");
-    group.setLayout(new GridLayout(1, false));
-    group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-    final Composite composite = new Composite(group, SWT.NONE);
-    composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-    addField(new ColorEditor(composite, "Highlight:", COLOR_HIGHLIGHT));
-    addField(new ColorEditor(composite, "Selection:", COLOR_SELECTION));
-
-    return group;
-  }
-
-  private static class ColorEditor extends ColorFieldEditor {
-
-    public ColorEditor(final Composite parent, final String text, final String prefKey) {
-      this(parent, text, prefKey, ColorManager.getStore());
-    }
-
-    public ColorEditor(final Composite parent, final String text, final String prefKey,
-        IPreferenceStore store) {
-      super(prefKey, text, parent);
-      super.setPreferenceStore(store);
-    }
-
-    @Override
-    public void setPreferenceStore(final IPreferenceStore store) {
+  private void initCurrentWindow() {
+    final IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+    if (window == null) {
+      currentWindow.setEnabled(false);
+    } else {
+      final boolean inWindow = SearchManager.getIntance().isInWindow(window);
+      currentWindow.setSelection(inWindow);
     }
   }
 

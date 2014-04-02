@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.utilities.ast;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ConstructorDeclaration;
@@ -35,7 +35,7 @@ import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeAlias;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 
 import java.util.HashMap;
 import java.util.List;
@@ -51,10 +51,10 @@ import java.util.Map;
  * 
  * @coverage com.google.dart.engine.services.completion
  */
-public class ScopedNameFinder extends GeneralizingASTVisitor<Void> {
+public class ScopedNameFinder extends GeneralizingAstVisitor<Void> {
 
   private Declaration declarationNode;
-  private ASTNode immediateChild;
+  private AstNode immediateChild;
   private Map<String, SimpleIdentifier> locals = new HashMap<String, SimpleIdentifier>();
   private int position;
   private boolean referenceIsWithinLocalFunction;
@@ -152,9 +152,9 @@ public class ScopedNameFinder extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
-  public Void visitNode(ASTNode node) {
+  public Void visitNode(AstNode node) {
     immediateChild = node;
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent != null) {
       parent.accept(this);
     }
@@ -218,7 +218,7 @@ public class ScopedNameFinder extends GeneralizingASTVisitor<Void> {
     }
   }
 
-  private boolean isInRange(ASTNode node) {
+  private boolean isInRange(AstNode node) {
     if (position < 0) {
       // if source position is not set then all nodes are in range
       return true; // not reached

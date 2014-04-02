@@ -6,14 +6,14 @@
  ******************************************************************************/
 package com.xored.glance.ui.controls.tree;
 
+import com.xored.glance.ui.controls.decor.StructCell;
+
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.TreeItem;
-
-import com.xored.glance.ui.controls.decor.StructCell;
 
 public class TreeCell extends StructCell {
 
@@ -22,20 +22,6 @@ public class TreeCell extends StructCell {
   public TreeCell(TreeItem item, int column) {
     super(column);
     this.item = item;
-  }
-
-  @Override
-  public boolean isSelected() {
-    TreeItem[] items = item.getParent().getSelection();
-    for (TreeItem treeItem : items) {
-      if (treeItem == item)
-        return true;
-    }
-    return false;
-  }
-
-  public TreeItem getTreeItem() {
-    return item;
   }
 
   @Override
@@ -69,11 +55,6 @@ public class TreeCell extends StructCell {
   }
 
   @Override
-  protected Item getItem() {
-    return item;
-  }
-
-  @Override
   public String getText() {
     return item.getText(getColumn());
   }
@@ -81,6 +62,26 @@ public class TreeCell extends StructCell {
   @Override
   public Rectangle getTextBounds() {
     return item.getTextBounds(getColumn());
+  }
+
+  public TreeItem getTreeItem() {
+    return item;
+  }
+
+  @Override
+  public boolean isSelected() {
+    TreeItem[] items = item.getParent().getSelection();
+    for (TreeItem treeItem : items) {
+      if (treeItem == item) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  protected Item getItem() {
+    return item;
   }
 
 }

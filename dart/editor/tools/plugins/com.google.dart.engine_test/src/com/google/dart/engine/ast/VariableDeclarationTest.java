@@ -18,8 +18,8 @@ import com.google.dart.engine.parser.ParserTestCase;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.Token;
 
-import static com.google.dart.engine.ast.ASTFactory.topLevelVariableDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
+import static com.google.dart.engine.ast.AstFactory.topLevelVariableDeclaration;
+import static com.google.dart.engine.ast.AstFactory.variableDeclaration;
 
 public class VariableDeclarationTest extends ParserTestCase {
 

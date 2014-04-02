@@ -3,25 +3,37 @@
  */
 package com.xored.glance.ui.utils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.ListenerList;
-import org.eclipse.swt.widgets.Control;
-
 import com.xored.glance.ui.sources.ITextBlock;
 import com.xored.glance.ui.sources.ITextSource;
 import com.xored.glance.ui.sources.ITextSourceListener;
 import com.xored.glance.ui.sources.Match;
 import com.xored.glance.ui.sources.SourceSelection;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.swt.widgets.Control;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author Yuri Strot
  */
 public class UITextSource implements ITextSource, ITextSourceListener {
+
+  private SourceSelection selection;
+
+  private Map<ITextBlock, UITextBlock> blockToBlock;
+
+  private final ListenerList listeners;
+
+  private List<UITextBlock> blocks;
+
+  private final ITextSource source;
+
+  private final Control control;
 
   public UITextSource(final ITextSource source, final Control control) {
     this.source = source;
@@ -38,125 +50,12 @@ public class UITextSource implements ITextSource, ITextSourceListener {
   /*
    * (non-Javadoc)
    * 
-   * @see com.xored.glance.ui.sources.ITextSource#getSelection()
-   */
-  @Override
-  public SourceSelection getSelection() {
-    return selection;
-  }
-
-  public Control getControl() {
-    return control;
-  }
-
-  @Override
-  public boolean isIndexRequired() {
-    return source.isIndexRequired();
-  }
-
-  @Override
-  public void dispose() {
-    synchronized (blocks) {
-      for (final UITextBlock block : blocks) {
-        block.dispose();
-      }
-    }
-    source.removeTextSourceListener(this);
-    source.dispose();
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.xored.glance.ui.sources.ITextSource#isDisposed()
-   */
-  @Override
-  public boolean isDisposed() {
-    return source.isDisposed();
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.xored.glance.ui.sources.ITextSource#getBlocks()
-   */
-  @Override
-  public ITextBlock[] getBlocks() {
-    return blocks.toArray(new ITextBlock[blocks.size()]);
-  }
-
-  @Override
-  public void index(final IProgressMonitor monitor) {
-    source.index(monitor);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.xored.glance.ui.sources.ITextSource#select(com.xored.glance.ui.sources .Match)
-   */
-  @Override
-  public void select(final Match match) {
-    UIUtils.asyncExec(control, new Runnable() {
-
-      @Override
-      public void run() {
-        if (!source.isDisposed()) {
-          if (match == null)
-            source.select(null);
-          else {
-            final UITextBlock block = (UITextBlock) match.getBlock();
-            source.select(new Match(block.getBlock(), match.getOffset(), match.getLength()));
-          }
-        }
-      }
-    });
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.xored.glance.ui.sources.ITextSource#show(com.xored.glance.ui.sources .Match[])
-   */
-  @Override
-  public void show(final Match[] matches) {
-    UIUtils.asyncExec(control, new Runnable() {
-
-      @Override
-      public void run() {
-        if (!source.isDisposed()) {
-          final Match[] newMatches = new Match[matches.length];
-          for (int i = 0; i < matches.length; i++) {
-            final Match match = matches[i];
-            final UITextBlock block = (UITextBlock) match.getBlock();
-            newMatches[i] = new Match(block.getBlock(), match.getOffset(), match.getLength());
-          }
-          source.show(newMatches);
-        }
-      }
-    });
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
    * @see com.xored.glance.ui.sources.ITextSource#addTextSourceListener(com.xored
    * .glance.ui.sources.ITextSourceListener)
    */
   @Override
   public void addTextSourceListener(final ITextSourceListener listener) {
     listeners.add(listener);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.xored.glance.ui.sources.ITextSource#removeTextSourceListener(com.
-   * xored.glance.ui.sources.ITextSourceListener)
-   */
-  @Override
-  public void removeTextSourceListener(final ITextSourceListener listener) {
-    listeners.remove(listener);
   }
 
   /*
@@ -194,6 +93,102 @@ public class UITextSource implements ITextSource, ITextSourceListener {
     selection = source.getSelection();
   }
 
+  @Override
+  public void dispose() {
+    synchronized (blocks) {
+      for (final UITextBlock block : blocks) {
+        block.dispose();
+      }
+    }
+    source.removeTextSourceListener(this);
+    source.dispose();
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.xored.glance.ui.sources.ITextSource#getBlocks()
+   */
+  @Override
+  public ITextBlock[] getBlocks() {
+    return blocks.toArray(new ITextBlock[blocks.size()]);
+  }
+
+  public Control getControl() {
+    return control;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.xored.glance.ui.sources.ITextSource#getSelection()
+   */
+  @Override
+  public SourceSelection getSelection() {
+    return selection;
+  }
+
+  @Override
+  public void index(final IProgressMonitor monitor) {
+    source.index(monitor);
+  }
+
+  @Override
+  public void init() {
+    if (source != null) {
+      source.init();
+    }
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.xored.glance.ui.sources.ITextSource#isDisposed()
+   */
+  @Override
+  public boolean isDisposed() {
+    return source.isDisposed();
+  }
+
+  @Override
+  public boolean isIndexRequired() {
+    return source.isIndexRequired();
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.xored.glance.ui.sources.ITextSource#removeTextSourceListener(com.
+   * xored.glance.ui.sources.ITextSourceListener)
+   */
+  @Override
+  public void removeTextSourceListener(final ITextSourceListener listener) {
+    listeners.remove(listener);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.xored.glance.ui.sources.ITextSource#select(com.xored.glance.ui.sources .Match)
+   */
+  @Override
+  public void select(final Match match) {
+    UIUtils.asyncExec(control, new Runnable() {
+
+      @Override
+      public void run() {
+        if (!source.isDisposed()) {
+          if (match == null) {
+            source.select(null);
+          } else {
+            final UITextBlock block = (UITextBlock) match.getBlock();
+            source.select(new Match(block.getBlock(), match.getOffset(), match.getLength()));
+          }
+        }
+      }
+    });
+  }
+
   /*
    * (non-Javadoc)
    * 
@@ -208,6 +203,30 @@ public class UITextSource implements ITextSource, ITextSourceListener {
       final ITextSourceListener listener = (ITextSourceListener) object;
       listener.selectionChanged(newSelection);
     }
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.xored.glance.ui.sources.ITextSource#show(com.xored.glance.ui.sources .Match[])
+   */
+  @Override
+  public void show(final Match[] matches) {
+    UIUtils.asyncExec(control, new Runnable() {
+
+      @Override
+      public void run() {
+        if (!source.isDisposed()) {
+          final Match[] newMatches = new Match[matches.length];
+          for (int i = 0; i < matches.length; i++) {
+            final Match match = matches[i];
+            final UITextBlock block = (UITextBlock) match.getBlock();
+            newMatches[i] = new Match(block.getBlock(), match.getOffset(), match.getLength());
+          }
+          source.show(newMatches);
+        }
+      }
+    });
   }
 
   protected ITextBlock[] addBlocks(final ITextBlock[] blocks) {
@@ -252,18 +271,4 @@ public class UITextSource implements ITextSource, ITextSourceListener {
     }
     return selection;
   }
-
-  @Override
-  public void init() {
-    if (source != null) {
-      source.init();
-    }
-  }
-
-  private SourceSelection selection;
-  private Map<ITextBlock, UITextBlock> blockToBlock;
-  private final ListenerList listeners;
-  private List<UITextBlock> blocks;
-  private final ITextSource source;
-  private final Control control;
 }

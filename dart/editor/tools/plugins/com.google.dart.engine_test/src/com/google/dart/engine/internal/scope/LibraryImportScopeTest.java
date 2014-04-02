@@ -29,10 +29,11 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
+import com.google.dart.engine.source.SourceFactory;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.typeName;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.methodDeclaration;
+import static com.google.dart.engine.ast.AstFactory.typeName;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.importFor;
 import static com.google.dart.engine.element.ElementFactory.prefix;
@@ -40,6 +41,7 @@ import static com.google.dart.engine.element.ElementFactory.prefix;
 public class LibraryImportScopeTest extends ResolverTestCase {
   public void test_conflictingImports() {
     AnalysisContext context = new AnalysisContextImpl();
+    context.setSourceFactory(new SourceFactory());
     String typeNameA = "A";
     String typeNameB = "B";
     String typeNameC = "C";
@@ -71,7 +73,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
       errorListener.assertNoErrors();
 
       Element element = scope.lookup(identifier(typeNameB), importingLibrary);
-      errorListener.assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT);
+      errorListener.assertErrorsWithCodes(StaticWarningCode.AMBIGUOUS_IMPORT);
       assertInstanceOf(MultiplyDefinedElement.class, element);
 
       Element[] conflictingElements = ((MultiplyDefinedElement) element).getConflictingElements();
@@ -92,19 +94,20 @@ public class LibraryImportScopeTest extends ResolverTestCase {
       Identifier identifier = identifier(typeNameB);
       methodDeclaration(null, typeName(identifier), null, null, identifier("foo"), null);
       Element element = scope.lookup(identifier, importingLibrary);
-      errorListener.assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT);
+      errorListener.assertErrorsWithCodes(StaticWarningCode.AMBIGUOUS_IMPORT);
       assertInstanceOf(MultiplyDefinedElement.class, element);
     }
   }
 
   public void test_creation_empty() {
-    LibraryElement definingLibrary = createTestLibrary();
+    LibraryElement definingLibrary = createDefaultTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
     new LibraryImportScope(definingLibrary, errorListener);
   }
 
   public void test_creation_nonEmpty() {
     AnalysisContext context = new AnalysisContextImpl();
+    context.setSourceFactory(new SourceFactory());
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl(identifier(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
@@ -119,7 +122,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   public void test_getErrorListener() throws Exception {
-    LibraryElement definingLibrary = createTestLibrary();
+    LibraryElement definingLibrary = createDefaultTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
     LibraryImportScope scope = new LibraryImportScope(definingLibrary, errorListener);
     assertEquals(errorListener, scope.getErrorListener());
@@ -144,11 +147,12 @@ public class LibraryImportScopeTest extends ResolverTestCase {
     Scope scope = new LibraryImportScope(importingLibrary, errorListener);
 
     assertEquals(type, scope.lookup(identifier(typeName), importingLibrary));
-    errorListener.assertErrors(StaticWarningCode.CONFLICTING_DART_IMPORT);
+    errorListener.assertErrorsWithCodes(StaticWarningCode.CONFLICTING_DART_IMPORT);
   }
 
   public void test_nonConflictingImports_sameElement() {
     AnalysisContext context = new AnalysisContextImpl();
+    context.setSourceFactory(new SourceFactory());
     String typeNameA = "A";
     String typeNameB = "B";
     ClassElement typeA = classElement(typeNameA);
@@ -175,6 +179,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
 
   public void test_prefixedAndNonPrefixed() {
     AnalysisContext context = new AnalysisContextImpl();
+    context.setSourceFactory(new SourceFactory());
     String typeName = "C";
     String prefixName = "p";
     ClassElement prefixedType = classElement(typeName);

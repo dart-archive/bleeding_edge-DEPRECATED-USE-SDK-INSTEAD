@@ -25,5 +25,5 @@ package com.google.dart.engine.ast;
  * 
  * @coverage dart.engine.ast
  */
-public abstract class ConstructorInitializer extends ASTNode {
+public abstract class ConstructorInitializer extends AstNode {
 }

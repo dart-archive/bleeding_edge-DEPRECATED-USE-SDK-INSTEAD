@@ -1,9 +1,8 @@
-name: angular_dart_demo
-version: 0.0.2
+name: angular_todo
+version: 0.0.4
 environment:
-  sdk: '>=0.8.10+6 <2.0.0'
+  sdk: '>=1.2.0 <2.0.0'
 dependencies:
-  angular: '>=0.9.0 <0.10.0'
+  angular: '>=0.9.10 <0.9.11'
   browser: '>=0.9.0 <0.10.0'
-  js: '>=0.2.0'
-  unittest: '>=0.9.0'
+  unittest: '>=0.10.0 <0.11.0'

@@ -14,7 +14,7 @@
 package com.google.dart.dev.util.ast;
 
 import com.google.dart.dev.util.DartDevPlugin;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
@@ -184,8 +184,8 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
         ISelection selection = event.getSelection();
         if (selection instanceof TreeSelection) {
           Object element = ((TreeSelection) selection).getFirstElement();
-          if (element instanceof ASTNode) {
-            ASTNode node = (ASTNode) element;
+          if (element instanceof AstNode) {
+            AstNode node = (AstNode) element;
             EditorUtility.revealInEditor(editor, node.getOffset(), node.getLength());
           }
           if (element instanceof AnalysisError) {
@@ -210,7 +210,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
 
   private class ExplorerContentProvider implements IStructuredContentProvider, ITreeContentProvider {
 
-    private final ASTNode[] NO_NODES = new ASTNode[0];
+    private final AstNode[] NO_NODES = new AstNode[0];
 
     @Override
     public void dispose() {
@@ -218,8 +218,8 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
 
     @Override
     public Object[] getChildren(Object parent) {
-      if (parent instanceof ASTNode) {
-        ASTNode node = (ASTNode) parent;
+      if (parent instanceof AstNode) {
+        AstNode node = (AstNode) parent;
         CollectingVisitor nodeCollector = new CollectingVisitor();
         node.visitChildren(nodeCollector);
         return nodes(nodeCollector, parent);
@@ -238,8 +238,8 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
 
     @Override
     public Object getParent(Object child) {
-      if (child instanceof ASTNode) {
-        return ((ASTNode) child).getParent();
+      if (child instanceof AstNode) {
+        return ((AstNode) child).getParent();
       }
       return null;
     }
@@ -288,8 +288,8 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
       }
       StringBuilder builder = new StringBuilder();
       builder.append(obj.getClass().getSimpleName());
-      if (obj instanceof ASTNode) {
-        ASTNode node = (ASTNode) obj;
+      if (obj instanceof AstNode) {
+        AstNode node = (AstNode) obj;
 //        builder.append(" [");
 //        builder.append(node.getOffset());
 //        builder.append("..");
@@ -333,7 +333,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
      * @param node the node whose name is to be returned
      * @return the name of the given node
      */
-    private String getName(ASTNode node) {
+    private String getName(AstNode node) {
       // TODO(brianwilkerson) Rewrite this to use a visitor.
       if (node instanceof ClassTypeAlias) {
         return ((ClassTypeAlias) node).getName().getName();
@@ -425,8 +425,8 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
     }
 
     private void addProperties(HashMap<String, String> propertyMap, Object inputElement) {
-      if (inputElement instanceof ASTNode) {
-        ASTNode node = (ASTNode) inputElement;
+      if (inputElement instanceof AstNode) {
+        AstNode node = (AstNode) inputElement;
         propertyMap.put("offset", Integer.toString(node.getOffset()));
         propertyMap.put("length", Integer.toString(node.getLength()));
       }

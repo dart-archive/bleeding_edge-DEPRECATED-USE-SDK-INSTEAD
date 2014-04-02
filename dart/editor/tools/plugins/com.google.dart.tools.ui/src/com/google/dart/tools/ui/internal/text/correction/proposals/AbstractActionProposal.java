@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2014, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,15 +15,14 @@ package com.google.dart.tools.ui.internal.text.correction.proposals;
 
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionCommandHandler;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
 import com.google.dart.tools.ui.internal.text.correction.ICommandAccess;
-import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
 import org.eclipse.jface.text.contentassist.IContextInformation;
@@ -33,20 +32,17 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
 /**
- * A quick assist proposal that runs some (refactoring) action.
+ * A quick assist proposal that runs some action.
  * 
  * @coverage dart.editor.ui.correction
  */
 public abstract class AbstractActionProposal implements IDartCompletionProposal,
     ICompletionProposalExtension6, ICommandAccess {
-  private final AbstractDartSelectionAction action;
-  private final DartSelection selection;
+  private final IAction action;
   private final String label;
 
-  public AbstractActionProposal(AbstractDartSelectionAction action, String label,
-      DartSelection selection) {
+  public AbstractActionProposal(IAction action, String label) {
     this.action = action;
-    this.selection = selection;
     this.label = label;
   }
 
@@ -54,7 +50,7 @@ public abstract class AbstractActionProposal implements IDartCompletionProposal,
   public void apply(IDocument document) {
     UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(this.getClass());
     try {
-      action.doRun(selection, null, instrumentation);
+      action.run();
       instrumentation.metric("Apply", "Completed");
     } catch (RuntimeException e) {
       instrumentation.record(e);

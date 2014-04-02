@@ -1,0 +1,45 @@
+diff --git a/org.eclipse.jface.text/src/org/eclipse/jface/text/source/AnnotationRulerColumn-ori.java b/org.eclipse.jface.text/src/org/eclipse/jface/text/source/AnnotationRulerColumn.java
+index 06d813b..96e0bfa 100644
+--- a/org.eclipse.jface.text/src/org/eclipse/jface/text/source/AnnotationRulerColumn-ori.java
++++ b/org.eclipse.jface.text/src/org/eclipse/jface/text/source/AnnotationRulerColumn.java
+@@ -531,21 +531,25 @@ public class AnnotationRulerColumn implements IVerticalRulerColumn, IVerticalRul
+ 		if (fBuffer == null)
+ 			fBuffer= new Image(fCanvas.getDisplay(), size.x, size.y);
+ 
+-		GC gc= new GC(fBuffer);
+-		gc.setFont(fCachedTextWidget.getFont());
+-		try {
+-			gc.setBackground(fCanvas.getBackground());
+-			gc.fillRectangle(0, 0, size.x, size.y);
+-
+-			if (fCachedTextViewer instanceof ITextViewerExtension5)
+-				doPaint1(gc);
+-			else
+-				doPaint(gc);
+-		} finally {
+-			gc.dispose();
+-		}
+-
+-		dest.drawImage(fBuffer, 0, 0);
++    try {
++      GC gc = new GC(fBuffer);
++      try {
++        gc.setFont(fCachedTextWidget.getFont());
++        gc.setBackground(fCanvas.getBackground());
++        gc.fillRectangle(0, 0, size.x, size.y);
++
++        if (fCachedTextViewer instanceof ITextViewerExtension5)
++          doPaint1(gc);
++        else
++          doPaint(gc);
++      } finally {
++        gc.dispose();
++      }
++
++      dest.drawImage(fBuffer, 0, 0);
++    } catch (IllegalArgumentException e) {
++      // Ignore.
++    }
+ 	}
+ 
+ 	/**

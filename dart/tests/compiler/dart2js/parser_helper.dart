@@ -32,27 +32,37 @@ class LoggerCanceler implements DiagnosticListener {
     print(message);
   }
 
-  void internalErrorOnElement(element, String message) {
+  void internalError(node, String message) {
     log(message);
   }
 
-  void internalError(String message, {node, token, instruction, element}) {
-    log(message);
-  }
-
-  SourceSpan spanFromSpannable(node, [uri]) {
+  SourceSpan spanFromSpannable(node) {
     throw 'unsupported operation';
   }
 
-  void reportMessage(SourceSpan span, Diagnostic message, kind) {
+  void reportMessage(SourceSpan span, Message message, kind) {
     log(message);
+  }
+
+  void reportFatalError(Spannable node,
+                        MessageKind errorCode,
+                        [Map arguments]) {
+    log(new Message(errorCode, arguments, false));
   }
 
   void reportError(Spannable node, MessageKind errorCode, [Map arguments]) {
     log(new Message(errorCode, arguments, false));
   }
 
+  void reportWarning(Spannable node, MessageKind errorCode, [Map arguments]) {
+    log(new Message(errorCode, arguments, false));
+  }
+
   void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]) {
+    log(new Message(errorCode, arguments, false));
+  }
+
+  void reportHint(Spannable node, MessageKind errorCode, [Map arguments]) {
     log(new Message(errorCode, arguments, false));
   }
 
@@ -65,10 +75,8 @@ Node parseBodyCode(String text, Function parseMethod,
                    {DiagnosticListener diagnosticHandler}) {
   Token tokens = scan(text);
   if (diagnosticHandler == null) diagnosticHandler = new LoggerCanceler();
-  Script script =
-      new Script(
-          new Uri(scheme: "source"),
-          new MockFile(text));
+  Uri uri = new Uri(scheme: "source");
+  Script script = new Script(uri, uri,new MockFile(text));
   LibraryElement library = new LibraryElementX(script);
   library.canUseNative = true;
   NodeListener listener =
@@ -112,7 +120,7 @@ Link<Element> parseUnit(String text, Compiler compiler,
   if (registerSource != null) {
     registerSource(uri, text);
   }
-  var script = new Script(uri, new MockFile(text));
+  var script = new Script(uri, uri, new MockFile(text));
   var unit = new CompilationUnitElementX(script, library);
   int id = 0;
   ElementListener listener = new ElementListener(compiler, unit, () => id++);

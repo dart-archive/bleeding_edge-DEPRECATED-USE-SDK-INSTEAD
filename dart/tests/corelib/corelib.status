@@ -15,7 +15,7 @@ string_from_environment3_test: Skip
 string_from_environment_default_value: Skip
 string_from_environment_test: Skip
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 bool_from_environment2_test: Skip
 bool_from_environment_default_value_test: Skip
 bool_from_environment_test: Skip
@@ -42,13 +42,17 @@ string_from_environment3_test/02: Fail
 string_from_environment3_test/03: Fail
 string_from_environment3_test/04: Fail
 
+[ $compiler == dartanalyzer ]
+string_from_environment_test: Crash # http://dartbug.com/17234
+int_from_environment2_test: Crash # http://dartbug.com/17234
+
 [ $compiler == none ]
 unicode_test: Fail        # Bug 6706
 compare_to2_test: Fail    # Bug 4018
 
 symbol_test/01: Fail, Pass # bug 11669
 
-[ $compiler == none && $runtime != dartium && $runtime != drt ]
+[ $compiler == none && $runtime != dartium && $runtime != drt && $runtime != ContentShellOnAndroid ]
 symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
 
@@ -56,10 +60,7 @@ symbol_test/03: MissingCompileTimeError # bug 11669
 symbol_test/none: Fail # bug 11669
 symbol_operator_test/03: Fail # bug 11669
 
-[ $compiler == none && $runtime == drt ]
-main_test: Fail  # Dartium needs to check for both main() and main(args).
-
-[ $compiler == none && $runtime == dartium ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 main_test: Fail  # Dartium needs to check for both main() and main(args).
 
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
@@ -82,6 +83,7 @@ unicode_test: Fail # Issue 14694
 [ $compiler == dart2js ]
 error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: RuntimeError # Issue 11551
+integer_to_string_test/01: RuntimeError # Issue 1533
 
 big_integer_vm_test: RuntimeError, OK # VM specific test.
 bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
@@ -105,6 +107,12 @@ shuffle_test: Fail # IE doesn't support typed data.
 list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && ($runtime == firefox || $runtime == safari || $runtime == chrome || $runtime == drt) ]
+
+[ $compiler == dart2js && ($runtime == d8 || $runtime == chrome || $runtime == drt || $runtime == safari) ]
+string_trimlr_test/none: Fail # Bug in v8. Fixed in v8 r19222, 2014-02-10.
+
+[ $compiler == dart2js && $checked ]
+map_test: Crash # Issue 17829
 
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
@@ -134,6 +142,9 @@ int_parse_radix_test: Skip # Timeout
 
 [ $arch == simarm && $checked ]
 num_parse_test: Pass, Timeout
+
+[ $arch == simarm64 ]
+*: Skip
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.

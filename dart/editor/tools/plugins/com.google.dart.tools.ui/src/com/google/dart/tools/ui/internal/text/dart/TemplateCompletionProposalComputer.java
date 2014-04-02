@@ -14,11 +14,11 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.ui.DartContextType;
-import com.google.dart.tools.ui.DartDocContextType;
+import com.google.dart.tools.mock.ui.DartContextType;
+import com.google.dart.tools.mock.ui.DartDocContextType;
+import com.google.dart.tools.mock.ui.TemplateEngine;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
-import com.google.dart.tools.ui.TemplateEngine;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;

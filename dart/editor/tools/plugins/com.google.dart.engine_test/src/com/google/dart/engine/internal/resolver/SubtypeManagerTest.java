@@ -20,7 +20,6 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 
@@ -54,7 +53,7 @@ public class SubtypeManagerTest extends EngineTestCase {
     HashSet<ClassElement> subtypesOfA = subtypeManager.computeAllSubtypes(classA);
     ClassElement[] arraySubtypesOfA = subtypesOfA.toArray(new ClassElement[subtypesOfA.size()]);
 
-    assertSize(2, subtypesOfA);
+    assertSizeOfSet(2, subtypesOfA);
     assertContains(arraySubtypesOfA, classA, classB);
   }
 
@@ -79,10 +78,10 @@ public class SubtypeManagerTest extends EngineTestCase {
     HashSet<ClassElement> subtypesOfB = subtypeManager.computeAllSubtypes(classB);
     ClassElement[] arraySubtypesOfB = subtypesOfB.toArray(new ClassElement[subtypesOfB.size()]);
 
-    assertSize(4, subtypesOfA);
+    assertSizeOfSet(4, subtypesOfA);
     assertContains(arraySubtypesOfA, classB, classC, classD, classE);
 
-    assertSize(3, subtypesOfB);
+    assertSizeOfSet(3, subtypesOfB);
     assertContains(arraySubtypesOfB, classC, classD, classE);
   }
 
@@ -95,7 +94,7 @@ public class SubtypeManagerTest extends EngineTestCase {
 
     HashSet<ClassElement> subtypesOfA = subtypeManager.computeAllSubtypes(classA);
 
-    assertSize(0, subtypesOfA);
+    assertSizeOfSet(0, subtypesOfA);
   }
 
   public void test_computeAllSubtypes_oneSubtype() throws Exception {
@@ -110,7 +109,7 @@ public class SubtypeManagerTest extends EngineTestCase {
     HashSet<ClassElement> subtypesOfA = subtypeManager.computeAllSubtypes(classA);
     ClassElement[] arraySubtypesOfA = subtypesOfA.toArray(new ClassElement[subtypesOfA.size()]);
 
-    assertSize(1, subtypesOfA);
+    assertSizeOfSet(1, subtypesOfA);
     assertContains(arraySubtypesOfA, classB);
   }
 
@@ -118,9 +117,7 @@ public class SubtypeManagerTest extends EngineTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
-    FileBasedSource source = new FileBasedSource(
-        new ContentCache(),
-        FileUtilities2.createFile("/test.dart"));
+    FileBasedSource source = new FileBasedSource(FileUtilities2.createFile("/test.dart"));
     definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
     definingCompilationUnit.setSource(source);
     LibraryElementImpl definingLibrary = library(context, "test");

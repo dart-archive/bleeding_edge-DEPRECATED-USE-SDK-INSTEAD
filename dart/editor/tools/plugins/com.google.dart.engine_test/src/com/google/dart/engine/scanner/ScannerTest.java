@@ -803,7 +803,7 @@ public class ScannerTest extends TestCase {
 
   public void test_unclosedPairInInterpolation() throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    scan("'${(}'", listener);
+    scanWithListener("'${(}'", listener);
   }
 
   private void assertComment(TokenType commentType, String source) throws Exception {
@@ -844,7 +844,7 @@ public class ScannerTest extends TestCase {
    */
   private void assertError(ScannerErrorCode expectedError, int expectedOffset, String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    scan(source, listener);
+    scanWithListener(source, listener);
     listener.assertErrors(new AnalysisError(
         null,
         expectedOffset,
@@ -885,7 +885,7 @@ public class ScannerTest extends TestCase {
 
   private void assertLineInfo(String source, ExpectedLocation... expectedLocations) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    scan(source, listener);
+    scanWithListener(source, listener);
     listener.assertNoErrors();
     LineInfo info = listener.getLineInfo(new TestSource());
     assertNotNull(info);
@@ -974,12 +974,12 @@ public class ScannerTest extends TestCase {
 
   private Token scan(String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    Token token = scan(source, listener);
+    Token token = scanWithListener(source, listener);
     listener.assertNoErrors();
     return token;
   }
 
-  private Token scan(String source, GatheringErrorListener listener) {
+  private Token scanWithListener(String source, GatheringErrorListener listener) {
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     Token result = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.getLineStarts());

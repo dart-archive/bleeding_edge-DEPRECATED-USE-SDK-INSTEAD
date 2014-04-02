@@ -288,7 +288,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     ClassElement find(name) {
       Element e = compiler.findHelper(name);
       if (e == null || e is! ClassElement) {
-        compiler.cancel("Could not find implementation class '${name}'");
+        compiler.internalError(NO_LOCATION_SPANNABLE,
+            "Could not find implementation class '${name}'.");
       }
       return e;
     }
@@ -315,7 +316,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       // TODO(sra): Better validation of the constant.
       if (fields.length != 1 || fields[0] is! StringConstant) {
         PartialMetadataAnnotation partial = annotation;
-        compiler.cancel(
+        compiler.internalError(annotation,
             'Annotations needs one string: ${partial.parseNode(compiler)}');
       }
       String specString = fields[0].toDartString().slowToString();
@@ -323,7 +324,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         name = specString;
       } else {
         PartialMetadataAnnotation partial = annotation;
-        compiler.cancel(
+        compiler.internalError(annotation,
             'Too many JSName annotations: ${partial.parseNode(compiler)}');
       }
     }
@@ -764,19 +765,19 @@ class NativeBehavior {
 
     var argNodes = jsCall.arguments;
     if (argNodes.isEmpty) {
-      compiler.cancel("JS expression has no type", node: jsCall);
+      compiler.internalError(jsCall, "JS expression has no type.");
     }
 
     var code = argNodes.tail.head;
     if (code is !StringNode || code.isInterpolation) {
-      compiler.cancel('JS code must be a string literal', node: code);
+      compiler.internalError(code, 'JS code must be a string literal.');
     }
 
     LiteralString specLiteral = argNodes.head.asLiteralString();
     if (specLiteral == null) {
       // TODO(sra): We could accept a type identifier? e.g. JS(bool, '1<2').  It
       // is not very satisfactory because it does not work for void, dynamic.
-      compiler.cancel("Unexpected JS first argument", node: argNodes.head);
+      compiler.internalError(argNodes.head, "Unexpected JS first argument.");
     }
 
     var behavior = new NativeBehavior();
@@ -815,9 +816,9 @@ class NativeBehavior {
     // TODO(sra): Optional arguments are currently missing from the
     // DartType. This should be fixed so the following work-around can be
     // removed.
-    method.computeSignature(compiler).forEachOptionalParameter(
-        (Element parameter) {
-          behavior._escape(parameter.computeType(compiler), compiler);
+    method.functionSignature.forEachOptionalParameter(
+        (ParameterElement parameter) {
+          behavior._escape(parameter.type, compiler);
         });
 
     behavior._overrideWithAnnotations(method, compiler);
@@ -853,7 +854,7 @@ class NativeBehavior {
       if (e is! ClassElement) return null;
       ClassElement cls = e;
       cls.ensureResolved(compiler);
-      return cls.computeType(compiler);
+      return cls.thisType;
     }
 
     NativeEnqueuer enqueuer = compiler.enqueuer.resolution.nativeEnqueuer;
@@ -891,7 +892,7 @@ class NativeBehavior {
       // TODO(sra): Better validation of the constant.
       if (fields.length != 1 || fields[0] is! StringConstant) {
         PartialMetadataAnnotation partial = annotation;
-        compiler.cancel(
+        compiler.internalError(annotation,
             'Annotations needs one string: ${partial.parseNode(compiler)}');
       }
       String specString = fields[0].toDartString().slowToString();
@@ -950,16 +951,18 @@ class NativeBehavior {
 
     int index = typeString.indexOf('<');
     if (index < 1) {
-      compiler.cancel("Type '$typeString' not found",
-          node: _errorNode(locationNodeOrElement, compiler));
+      compiler.internalError(
+          _errorNode(locationNodeOrElement, compiler),
+          "Type '$typeString' not found.");
     }
     type = lookup(typeString.substring(0, index));
     if (type != null)  {
       // TODO(sra): Parse type parameters.
       return type;
     }
-    compiler.cancel("Type '$typeString' not found",
-        node: _errorNode(locationNodeOrElement, compiler));
+    compiler.internalError(
+        _errorNode(locationNodeOrElement, compiler),
+        "Type '$typeString' not found.");
   }
 
   static _errorNode(locationNodeOrElement, compiler) {
@@ -971,7 +974,7 @@ class NativeBehavior {
 void checkAllowedLibrary(ElementListener listener, Token token) {
   LibraryElement currentLibrary = listener.compilationUnitElement.getLibrary();
   if (!currentLibrary.canUseNative) {
-    listener.recoverableError("Unexpected token", token: token);
+    listener.recoverableError(token, "Unexpected token");
   }
 }
 
@@ -1047,7 +1050,7 @@ String checkForNativeClass(ElementListener listener) {
 
 final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
 
-void handleSsaNative(SsaFromAstBuilder builder, Expression nativeBody) {
+void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   Compiler compiler = builder.compiler;
   FunctionElement element = builder.work.element;
   NativeEmitter nativeEmitter = builder.nativeEmitter;
@@ -1080,8 +1083,8 @@ void handleSsaNative(SsaFromAstBuilder builder, Expression nativeBody) {
     LiteralString jsCode = nativeBody.asLiteralString();
     String str = jsCode.dartString.slowToString();
     if (nativeRedirectionRegExp.hasMatch(str)) {
-      compiler.cancel("Deprecated syntax, use @JSName('name') instead.",
-                      node: nativeBody);
+      compiler.internalError(
+          nativeBody, "Deprecated syntax, use @JSName('name') instead.");
     }
     hasBody = true;
   }
@@ -1090,7 +1093,7 @@ void handleSsaNative(SsaFromAstBuilder builder, Expression nativeBody) {
     nativeEmitter.nativeMethods.add(element);
   }
 
-  FunctionSignature parameters = element.computeSignature(builder.compiler);
+  FunctionSignature parameters = element.functionSignature;
   if (!hasBody) {
     List<String> arguments = <String>[];
     List<HInstruction> inputs = <HInstruction>[];
@@ -1099,8 +1102,8 @@ void handleSsaNative(SsaFromAstBuilder builder, Expression nativeBody) {
       receiver = '#.';
       inputs.add(builder.localsHandler.readThis());
     }
-    parameters.forEachParameter((Element parameter) {
-      DartType type = parameter.computeType(compiler).unalias(compiler);
+    parameters.forEachParameter((ParameterElement parameter) {
+      DartType type = parameter.type.unalias(compiler);
       HInstruction input = builder.localsHandler.readLocal(parameter);
       if (type is FunctionType) {
         // The parameter type is a function type either directly or through
@@ -1120,8 +1123,8 @@ void handleSsaNative(SsaFromAstBuilder builder, Expression nativeBody) {
     } else if (element.kind == ElementKind.SETTER) {
       nativeMethodCall = '$receiver$nativeMethodName = $foreignParameters';
     } else {
-      builder.compiler.internalError('unexpected kind: "${element.kind}"',
-                                     element: element);
+      builder.compiler.internalError(element,
+                                     'Unexpected kind: "${element.kind}".');
     }
 
     builder.push(new HForeign(js.js(nativeMethodCall), backend.dynamicType,
@@ -1129,9 +1132,9 @@ void handleSsaNative(SsaFromAstBuilder builder, Expression nativeBody) {
     builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
   } else {
     if (parameters.parameterCount != 0) {
-      compiler.cancel(
-          'native "..." syntax is restricted to functions with zero parameters',
-          node: nativeBody);
+      compiler.internalError(nativeBody,
+          'native "..." syntax is restricted to '
+          'functions with zero parameters.');
     }
     LiteralString jsCode = nativeBody.asLiteralString();
     builder.push(new HForeign.statement(

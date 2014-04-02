@@ -261,6 +261,6 @@ public class InlineLocalRefactoringImplTest extends RefactoringImplTest {
    */
   @SuppressWarnings("unused")
   private void printRefactoringResultSource() throws Exception {
-    printRefactoringTestSourceResult(refactoring);
+    printRefactoringTestSourceResult(getAnalysisContext(), refactoring);
   }
 }

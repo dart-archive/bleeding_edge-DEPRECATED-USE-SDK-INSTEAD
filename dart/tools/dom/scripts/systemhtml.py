@@ -52,16 +52,19 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'ConsoleBase.warn',
     'WebKitCSSKeyframesRule.insertRule',
     'CSSStyleDeclaration.setProperty',
+    'Document.createNodeIterator',
+    'Document.createTreeWalker',
+    'DOMException.name',
     'Element.createShadowRoot',
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
     'Element.insertAdjacentText',
     'Element.remove',
     'Element.shadowRoot',
-    'Element.webkitMatchesSelector',
+    'Element.matches',
     'ElementEvents.mouseWheel',
     'ElementEvents.transitionEnd',
-    'DOMException.name',
+    'FileReader.result',
     'HTMLTableElement.createTBody',
     'IDBCursor.next',
     'IDBDatabase.transaction',
@@ -510,10 +513,10 @@ class HtmlDartInterfaceGenerator(object):
 
     for info in infos:
       constructors.append(info.ConstructorInfo(self._interface.id))
-      if factory_provider:
-        assert factory_provider == info.factory_provider_name
-      else:
-        factory_provider = info.factory_provider_name
+      if factory_provider and factory_provider != info.factory_provider_name:
+        _logger.warn('Conflicting factory provider names: %s != %s' %
+          (factory_provider, info.factory_provider_name))
+      factory_provider = info.factory_provider_name
 
     implementation_emitter = self._ImplementationEmitter()
 

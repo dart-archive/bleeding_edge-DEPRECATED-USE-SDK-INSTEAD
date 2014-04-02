@@ -6,6 +6,21 @@
  * KeyEvent tries to provide a higher level, more polished keyboard event
  * information on top of the "raw" [KeyboardEvent].
  *
+ * The mechanics of using KeyEvents is a little different from the underlying
+ * [KeyboardEvent]. To use KeyEvents, you need to create a stream and then add
+ * KeyEvents to the stream, rather than using the [EventTarget.dispatchEvent].
+ * Here's an example usage:
+ *
+ *     // Initialize a stream for the KeyEvents:
+ *     var stream = KeyEvent.keyPressEvent.forTarget(document.body);
+ *     // Start listening to the stream of KeyEvents.
+ *     stream.listen((keyEvent) =>
+ *         window.console.log('KeyPress event detected ${keyEvent.charCode}'));
+ *     ...
+ *     // Add a new KeyEvent of someone pressing the 'A' key to the stream so
+ *     // listeners can know a KeyEvent happened.
+ *     stream.add(new KeyEvent('keypress', keyCode: 65, charCode: 97));
+ *
  * This class is very much a work in progress, and we'd love to get information
  * on how we can make this class work with as many international keyboards as
  * possible. Bugs welcome!
@@ -129,4 +144,15 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
+  int get _layerX => throw new UnsupportedError('Not applicable to KeyEvent');
+  int get _layerY => throw new UnsupportedError('Not applicable to KeyEvent');
+  int get _pageX => throw new UnsupportedError('Not applicable to KeyEvent');
+  int get _pageY => throw new UnsupportedError('Not applicable to KeyEvent');
+  @Experimental() // untriaged
+  bool getModifierState(String keyArgument) => throw new UnimplementedError();
+  @Experimental() // untriaged
+  int get location => throw new UnimplementedError();
+  @Experimental() // untriaged
+  bool get repeat => throw new UnimplementedError();
+  dynamic get _get_view => throw new UnimplementedError();
 }

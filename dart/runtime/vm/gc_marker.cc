@@ -249,7 +249,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
         // If the code wasn't strongly visited through other references
         // after skipping the function's code pointer, then we disconnect the
         // code from the function.
-        func->ptr()->code_ = Code::null();
+        func->ptr()->code_ = StubCode::LazyCompile_entry()->code();
         func->ptr()->unoptimized_code_ = Code::null();
         if (FLAG_log_code_drop) {
           // NOTE: This code runs while GC is in progress and runs within
@@ -298,7 +298,7 @@ bool IsUnreachable(const RawObject* raw_obj) {
 
 class MarkingWeakVisitor : public HandleVisitor {
  public:
-  MarkingWeakVisitor() {
+  MarkingWeakVisitor() : HandleVisitor(Isolate::Current()) {
   }
 
   void VisitHandle(uword addr) {
@@ -306,7 +306,7 @@ class MarkingWeakVisitor : public HandleVisitor {
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject* raw_obj = handle->raw();
     if (IsUnreachable(raw_obj)) {
-      FinalizablePersistentHandle::Finalize(handle);
+      handle->UpdateUnreachable(isolate());
     }
   }
 
@@ -316,8 +316,8 @@ class MarkingWeakVisitor : public HandleVisitor {
 
 
 void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
-  if (invoke_api_callbacks) {
-    isolate->gc_prologue_callbacks().Invoke();
+  if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
+    (isolate->gc_prologue_callback())();
   }
   // The store buffers will be rebuilt as part of marking, reset them now.
   isolate->store_buffer()->Reset();
@@ -325,8 +325,8 @@ void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
 
 
 void GCMarker::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
-  if (invoke_api_callbacks) {
-    isolate->gc_epilogue_callbacks().Invoke();
+  if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
+    (isolate->gc_epilogue_callback())();
   }
 }
 

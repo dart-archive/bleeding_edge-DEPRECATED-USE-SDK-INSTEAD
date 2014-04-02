@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_MIPS)
 
 #include "vm/assembler.h"
+#include "vm/cpu.h"
 #include "vm/os.h"
 #include "vm/unit_test.h"
 #include "vm/virtual_memory.h"
@@ -1958,10 +1959,14 @@ ASSEMBLER_TEST_RUN(Cop1CvtDW_neg, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Cop1CvtDL, assembler) {
-  __ LoadImmediate(T0, 0x1);
-  __ mtc1(ZR, F2);
-  __ mtc1(T0, F3);  // D0 <- 0x100000000 = 4294967296
-  __ cvtdl(D0, D1);
+  if (TargetCPUFeatures::mips_version() == MIPS32r2) {
+    __ LoadImmediate(T0, 0x1);
+    __ mtc1(ZR, F2);
+    __ mtc1(T0, F3);  // D0 <- 0x100000000 = 4294967296
+    __ cvtdl(D0, D1);
+  } else {
+    __ LoadImmediate(D0, 4294967296.0);
+  }
   __ Ret();
 }
 
@@ -1975,10 +1980,14 @@ ASSEMBLER_TEST_RUN(Cop1CvtDL, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Cop1CvtDL_neg, assembler) {
-  __ LoadImmediate(T0, 0xffffffff);
-  __ mtc1(T0, F2);
-  __ mtc1(T0, F3);  // D0 <- 0xffffffffffffffff = -1
-  __ cvtdl(D0, D1);;
+  if (TargetCPUFeatures::mips_version() == MIPS32r2) {
+    __ LoadImmediate(T0, 0xffffffff);
+    __ mtc1(T0, F2);
+    __ mtc1(T0, F3);  // D0 <- 0xffffffffffffffff = -1
+    __ cvtdl(D0, D1);
+  } else {
+    __ LoadImmediate(D0, -1.0);
+  }
   __ Ret();
 }
 

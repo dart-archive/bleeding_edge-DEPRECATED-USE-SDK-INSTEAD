@@ -66,6 +66,8 @@ import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.formatter.IContentFormatter;
+import org.eclipse.jface.text.hyperlink.DefaultHyperlinkPresenter;
+import org.eclipse.jface.text.hyperlink.IHyperlinkPresenter;
 import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.information.IInformationProvider;
 import org.eclipse.jface.text.information.InformationPresenter;
@@ -436,6 +438,20 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     presenter.setInformationProvider(provider, DartPartitions.DART_MULTI_LINE_STRING);
     presenter.setSizeConstraints(50, 20, true, false);
     return presenter;
+  }
+
+  /**
+   * Returns the hyperlink presenter for the given source viewer. This implementation always returns
+   * the {@link DefaultHyperlinkPresenter}.
+   * 
+   * @param sourceViewer the source viewer to be configured by this configuration
+   * @return the hyperlink presenter or <code>null</code> if no hyperlink support should be
+   *         installed
+   * @since 3.1
+   */
+  @Override
+  public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) {
+    return new DefaultHyperlinkPresenter(fColorManager.getColor("dart_doc_link"));
   }
 
   @Override

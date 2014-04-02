@@ -13,36 +13,25 @@ import 'java_core.dart';
  * The enumeration `ParameterKind` defines the different kinds of parameters. There are two
  * basic kinds of parameters: required and optional. Optional parameters are further divided into
  * two kinds: positional optional and named optional.
- *
- * @coverage dart.engine.utilities
  */
 class ParameterKind extends Enum<ParameterKind> {
-  static final ParameterKind REQUIRED = new ParameterKind('REQUIRED', 0, false);
+  static const ParameterKind REQUIRED = const ParameterKind('REQUIRED', 0, false);
 
-  static final ParameterKind POSITIONAL = new ParameterKind('POSITIONAL', 1, true);
+  static const ParameterKind POSITIONAL = const ParameterKind('POSITIONAL', 1, true);
 
-  static final ParameterKind NAMED = new ParameterKind('NAMED', 2, true);
+  static const ParameterKind NAMED = const ParameterKind('NAMED', 2, true);
 
-  static final List<ParameterKind> values = [REQUIRED, POSITIONAL, NAMED];
+  static const List<ParameterKind> values = const [REQUIRED, POSITIONAL, NAMED];
 
   /**
    * A flag indicating whether this is an optional parameter.
    */
-  bool _isOptional2 = false;
+  final bool isOptional;
 
   /**
    * Initialize a newly created kind with the given state.
    *
    * @param isOptional `true` if this is an optional parameter
    */
-  ParameterKind(String name, int ordinal, bool isOptional) : super(name, ordinal) {
-    this._isOptional2 = isOptional;
-  }
-
-  /**
-   * Return `true` if this is an optional parameter.
-   *
-   * @return `true` if this is an optional parameter
-   */
-  bool get isOptional => _isOptional2;
+  const ParameterKind(String name, int ordinal, this.isOptional) : super(name, ordinal);
 }

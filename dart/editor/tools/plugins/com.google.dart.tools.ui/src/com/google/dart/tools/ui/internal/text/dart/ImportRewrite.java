@@ -13,13 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.ast.DartDirective;
-import com.google.dart.compiler.ast.DartImportDirective;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.ui.ContextSensitiveImportRewriteContext;
+import com.google.dart.tools.mock.ui.ContextSensitiveImportRewriteContext;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -28,7 +24,6 @@ import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.TextEdit;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -37,7 +32,6 @@ import java.util.List;
 public class ImportRewrite {
 
   private CompilationUnit compUnit;
-  private DartUnit dartUnit;
   private boolean restoreExistingImports;
 
   List<String> imports = new ArrayList<String>();
@@ -52,15 +46,8 @@ public class ImportRewrite {
   private Object filterImplicitImports;
 
   public ImportRewrite(CompilationUnit compUnit, boolean restoreExistingImports) {
-    this(compUnit, null, restoreExistingImports);
-  }
-
-  public ImportRewrite(CompilationUnit compUnit, DartUnit dartUnit, boolean restoreExistingImports) {
-
     this.compUnit = compUnit;
-    this.dartUnit = dartUnit;
     this.restoreExistingImports = restoreExistingImports;
-    initializeImports();
   }
 
   public String addImport(String importString) {
@@ -100,14 +87,7 @@ public class ImportRewrite {
         return new MultiTextEdit();
       }
 
-      DartUnit usedAstRoot = this.dartUnit;
-      if (usedAstRoot == null && compUnit != null) {
-        Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
-        dartUnit = null;
-      }
-
       ImportRewriteAnalyzer computer = new ImportRewriteAnalyzer(
-          usedAstRoot,
           this.compUnit,
           this.restoreExistingImports,
           this.useContextToFilterImplicitImports);
@@ -133,15 +113,6 @@ public class ImportRewrite {
       return result;
     } finally {
       monitor.done();
-    }
-  }
-
-  private void initializeImports() {
-    List<DartDirective> directives = dartUnit.getDirectives();
-    for (DartDirective directive : directives) {
-      if (directive instanceof DartImportDirective) {
-        imports.add(directive.toString());
-      }
     }
   }
 }

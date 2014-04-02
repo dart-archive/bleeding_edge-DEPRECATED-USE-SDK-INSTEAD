@@ -16,6 +16,7 @@ class SsaOptimizerTask extends CompilerTask {
       super(backend.compiler);
   String get name => 'SSA optimizer';
   Compiler get compiler => backend.compiler;
+  Map<HInstruction, Range> ranges = <HInstruction, Range>{};
 
   void runPhases(HGraph graph, List<OptimizationPhase> phases) {
     for (OptimizationPhase phase in phases) {
@@ -66,17 +67,24 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaCheckInserter(backend, work, context.boundsChecked),
           new SsaSimplifyInterceptors(compiler, constantSystem, work),
-          dce = new SsaDeadCodeEliminator(compiler)];
+          dce = new SsaDeadCodeEliminator(compiler),
+          new SsaTypePropagator(compiler)];
       runPhases(graph, phases);
-      if (!dce.eliminatedSideEffects) return;
-      phases = <OptimizationPhase>[
-          new SsaGlobalValueNumberer(compiler),
-          new SsaCodeMotion(),
-          new SsaValueRangeAnalyzer(compiler, constantSystem, work),
-          new SsaInstructionSimplifier(constantSystem, backend, work),
-          new SsaCheckInserter(backend, work, context.boundsChecked),
-          new SsaSimplifyInterceptors(compiler, constantSystem, work),
-          new SsaDeadCodeEliminator(compiler)];
+      if (dce.eliminatedSideEffects) {
+        phases = <OptimizationPhase>[
+            new SsaGlobalValueNumberer(compiler),
+            new SsaCodeMotion(),
+            new SsaValueRangeAnalyzer(compiler, constantSystem, work),
+            new SsaInstructionSimplifier(constantSystem, backend, work),
+            new SsaCheckInserter(backend, work, context.boundsChecked),
+            new SsaSimplifyInterceptors(compiler, constantSystem, work),
+            new SsaDeadCodeEliminator(compiler)];
+      } else {
+        phases = <OptimizationPhase>[
+            // Run the simplifier to remove unneeded type checks inserted
+            // by type propagation.
+            new SsaInstructionSimplifier(constantSystem, backend, work)];
+      }
       runPhases(graph, phases);
     });
   }
@@ -101,6 +109,12 @@ bool isFixedLength(mask, Compiler compiler) {
  */
 class SsaInstructionSimplifier extends HBaseVisitor
     implements OptimizationPhase {
+
+  // We don't produce constant-folded strings longer than this unless they have
+  // a single use.  This protects against exponentially large constant folded
+  // strings.
+  static const MAX_SHARED_CONSTANT_FOLDED_STRING_LENGTH = 512;
+
   final String name = "SsaInstructionSimplifier";
   final JavaScriptBackend backend;
   final CodegenWorkItem work;
@@ -184,7 +198,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction input = inputs[0];
     if (input is HConstant) {
       HConstant constant = input;
-      bool isTrue = constant.constant.isTrue();
+      bool isTrue = constant.constant.isTrue;
       return graph.addConstantBool(!isTrue, compiler);
     } else if (input is HNot) {
       return input.inputs[0];
@@ -263,20 +277,21 @@ class SsaInstructionSimplifier extends HBaseVisitor
             target = backend.jsArrayAdd;
           }
         }
-      } else if (input.isString(compiler)) {
+      } else if (input.isStringOrNull(compiler)) {
         if (selector.applies(backend.jsStringSplit, compiler)) {
           HInstruction argument = node.inputs[2];
-          if (argument.isString(compiler) && !argument.canBeNull()) {
+          if (argument.isString(compiler)) {
             target = backend.jsStringSplit;
           }
         } else if (selector.applies(backend.jsStringOperatorAdd, compiler)) {
           // `operator+` is turned into a JavaScript '+' so we need to
           // make sure the receiver and the argument are not null.
+          // TODO(sra): Do this via [node.specializer].
           HInstruction argument = node.inputs[2];
           if (argument.isString(compiler)
-              && !argument.canBeNull()
               && !input.canBeNull()) {
-            target = backend.jsStringOperatorAdd;
+            return new HStringConcat(input, argument, null,
+                                     node.instructionType);
           }
         } else if (selector.applies(backend.jsStringToString, compiler)
                    && !input.canBeNull()) {
@@ -330,7 +345,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         // TODO(ngeoffray): If the method has optional parameters,
         // we should pass the default values.
-        FunctionSignature parameters = method.computeSignature(compiler);
+        FunctionSignature parameters = method.functionSignature;
         if (parameters.optionalParameterCount == 0
             || parameters.parameterCount == node.selector.argumentCount) {
           node.element = element;
@@ -358,7 +373,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     //   foo() native 'return something';
     // They should not be used.
 
-    FunctionSignature signature = method.computeSignature(compiler);
+    FunctionSignature signature = method.functionSignature;
     if (signature.optionalParametersAreNamed) return null;
 
     // Return types on native methods don't need to be checked, since the
@@ -370,10 +385,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
     List<HInstruction> inputs = node.inputs.sublist(1);
     int inputPosition = 1;  // Skip receiver.
     bool canInline = true;
-    signature.forEachParameter((Element element) {
+    signature.forEachParameter((ParameterElement element) {
       if (inputPosition < inputs.length && canInline) {
         HInstruction input = inputs[inputPosition++];
-        DartType type = element.computeType(compiler).unalias(compiler);
+        DartType type = element.type.unalias(compiler);
         if (type is FunctionType) {
           canInline = false;
         }
@@ -406,7 +421,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (index.isInteger(compiler)) return node;
     if (index.isConstant()) {
       HConstant constantInstruction = index;
-      assert(!constantInstruction.constant.isInt());
+      assert(!constantInstruction.constant.isInt);
       if (!constantSystem.isInt(constantInstruction.constant)) {
         // -0.0 is a double but will pass the runtime integer check.
         node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
@@ -425,6 +440,28 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (folded != null) return graph.addConstant(folded, compiler);
     }
     return null;
+  }
+
+  HInstruction visitAdd(HAdd node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+    // We can only perform this rewriting on Integer, as it is not
+    // valid for -0.0.
+    if (left.isInteger(compiler) && right.isInteger(compiler)) {
+      if (left is HConstant && left.constant.isZero) return right;
+      if (right is HConstant && right.constant.isZero) return left;
+    }
+    return super.visitAdd(node);
+  }
+
+  HInstruction visitMultiply(HMultiply node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+    if (left.isNumber(compiler) && right.isNumber(compiler)) {
+      if (left is HConstant && left.constant.isOne) return right;
+      if (right is HConstant && right.constant.isOne) return left;
+    }
+    return super.visitMultiply(node);
   }
 
   HInstruction visitInvokeBinary(HInvokeBinary node) {
@@ -476,7 +513,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (left.isConstantBoolean() && right.isBoolean(compiler)) {
       HConstant constant = left;
-      if (constant.constant.isTrue()) {
+      if (constant.constant.isTrue) {
         return right;
       } else {
         return new HNot(right, backend.boolType);
@@ -485,7 +522,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (right.isConstantBoolean() && left.isBoolean(compiler)) {
       HConstant constant = right;
-      if (constant.constant.isTrue()) {
+      if (constant.constant.isTrue) {
         return left;
       } else {
         return new HNot(left, backend.boolType);
@@ -636,8 +673,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return inputType.isInMask(checkedType, compiler) ? input : node;
   }
 
-  Element findConcreteFieldForDynamicAccess(HInstruction receiver,
-                                            Selector selector) {
+  VariableElement findConcreteFieldForDynamicAccess(HInstruction receiver,
+                                                    Selector selector) {
     TypeMask receiverType = receiver.instructionType;
     return compiler.world.locateSingleField(
         new TypedSelector(receiverType, selector));
@@ -702,7 +739,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
-    Modifiers modifiers = field.modifiers;
+    ast.Modifiers modifiers = field.modifiers;
     bool isAssignable = !compiler.world.fieldNeverChanges(field);
 
     TypeMask type;
@@ -725,14 +762,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction receiver = node.getDartReceiver(compiler);
-    Element field = findConcreteFieldForDynamicAccess(receiver, node.selector);
+    VariableElement field =
+        findConcreteFieldForDynamicAccess(receiver, node.selector);
     if (field == null || !field.isAssignable()) return node;
     // Use [:node.inputs.last:] in case the call follows the
     // interceptor calling convention, but is not a call on an
     // interceptor.
     HInstruction value = node.inputs.last;
     if (compiler.enableTypeAssertions) {
-      DartType type = field.computeType(compiler);
+      DartType type = field.type;
       if (!type.treatAsRaw || type.kind == TypeKind.TYPE_VARIABLE) {
         // We cannot generate the correct type representation here, so don't
         // inline this access.
@@ -782,9 +820,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (leftString == null) return node;
     }
 
+    if (leftString.value.length + rightString.value.length >
+        MAX_SHARED_CONSTANT_FOLDED_STRING_LENGTH) {
+      if (node.usedBy.length > 1) return node;
+    }
+
     HInstruction folded = graph.addConstant(
         constantSystem.createString(
-            new DartString.concat(leftString.value, rightString.value)),
+            new ast.DartString.concat(leftString.value, rightString.value)),
         compiler);
     if (prefix == null) return folded;
     return new HStringConcat(prefix, folded, node.node, backend.stringType);
@@ -792,10 +835,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitStringify(HStringify node) {
     HInstruction input = node.inputs[0];
-    if (input.isString(compiler) && !input.canBeNull()) return input;
+    if (input.isString(compiler)) return input;
     if (input.isConstant()) {
       HConstant constant = input;
-      if (!constant.constant.isPrimitive()) return node;
+      if (!constant.constant.isPrimitive) return node;
       PrimitiveConstant primitive = constant.constant;
       return graph.addConstant(constantSystem.createString(
           primitive.toDartString()), compiler);
@@ -894,9 +937,12 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   HInstruction zapInstructionCache;
   HInstruction get zapInstruction {
-    return (zapInstructionCache == null)
-        ? zapInstructionCache = analyzer.graph.addConstantInt(0, compiler)
-        : zapInstructionCache;
+    if (zapInstructionCache == null) {
+      // A constant with no type does not pollute types at phi nodes.
+      Constant constant = new DummyConstant(const TypeMask.nonNullEmpty());
+      zapInstructionCache = analyzer.graph.addConstant(constant, compiler);
+    }
+    return zapInstructionCache;
   }
 
   /// Returns whether the next throwing instruction that may have side
@@ -939,7 +985,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void visitGraph(HGraph graph) {
-    analyzer = new SsaLiveBlockAnalyzer(graph);
+    analyzer = new SsaLiveBlockAnalyzer(graph, compiler);
     analyzer.analyze();
     visitPostDominatorTree(graph);
     cleanPhis(graph);
@@ -967,6 +1013,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   void cleanPhis(HGraph graph) {
     L: for (HBasicBlock block in graph.blocks) {
       List<HBasicBlock> predecessors = block.predecessors;
+      // Zap all inputs to phis that correspond to dead blocks.
+      block.forEachPhi((HPhi phi) {
+        for (int i = 0; i < phi.inputs.length; ++i) {
+          if (!predecessors[i].isLive && phi.inputs[i] != zapInstruction) {
+            replaceInput(i, phi, zapInstruction);
+          }
+        }
+      });
       if (predecessors.length < 2) continue L;
       // Find the index of the single live predecessor if it exists.
       int indexOfLive = -1;
@@ -989,6 +1043,12 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     }
   }
 
+  void replaceInput(int i, HInstruction from, HInstruction by) {
+    from.inputs[i].usedBy.remove(from);
+    from.inputs[i] = by;
+    by.usedBy.add(from);
+  }
+
   void removeUsers(HInstruction instruction) {
     instruction.usedBy.forEach((user) {
       removeInput(user, instruction);
@@ -1000,9 +1060,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     List<HInstruction> inputs = user.inputs;
     for (int i = 0, length = inputs.length; i < length; i++) {
       if (input == inputs[i]) {
-        HInstruction zap = zapInstruction;
-        inputs[i] = zap;
-        zap.usedBy.add(user);
+        user.inputs[i] = zapInstruction;
+        zapInstruction.usedBy.add(user);
       }
     }
   }
@@ -1010,9 +1069,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
 class SsaLiveBlockAnalyzer extends HBaseVisitor {
   final HGraph graph;
+  final Compiler compiler;
   final Set<HBasicBlock> live = new Set<HBasicBlock>();
   final List<HBasicBlock> worklist = <HBasicBlock>[];
-  SsaLiveBlockAnalyzer(this.graph);
+
+  SsaLiveBlockAnalyzer(this.graph, this.compiler);
+
+  JavaScriptBackend get backend => compiler.backend;
+  Map<HInstruction, Range> get ranges => backend.optimizer.ranges;
 
   bool isDeadBlock(HBasicBlock block) => !live.contains(block);
 
@@ -1046,6 +1110,38 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
     } else {
       visitControlFlow(instruction);
     }
+  }
+
+  void visitSwitch(HSwitch node) {
+    if (node.expression.isInteger(compiler)) {
+      Range switchRange = ranges[node.expression];
+      if (switchRange != null &&
+          switchRange.lower is IntValue &&
+          switchRange.upper is IntValue) {
+        IntValue lowerValue = switchRange.lower;
+        IntValue upperValue = switchRange.upper;
+        int lower = lowerValue.value;
+        int upper = upperValue.value;
+        Set<int> liveLabels = new Set<int>();
+        for (int pos = 1; pos < node.inputs.length; pos++) {
+          HConstant input = node.inputs[pos];
+          if (!input.isConstantInteger()) continue;
+          IntConstant constant = input.constant;
+          int label = constant.value;
+          if (!liveLabels.contains(label) &&
+              label <= upper &&
+              label >= lower) {
+            markBlockLive(node.block.successors[pos - 1]);
+            liveLabels.add(label);
+          }
+        }
+        if (liveLabels.length != upper - lower + 1) {
+          markBlockLive(node.defaultTarget);
+        }
+        return;
+      }
+    }
+    visitControlFlow(node);
   }
 }
 
@@ -1218,7 +1314,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
             && loopHeader.successors[0] == block);
     while (instruction != null) {
       HInstruction next = instruction.next;
-      if (instruction.useGvn()
+      if (instruction.useGvn() && instruction.isMovable
           && (!instruction.canThrow() || firstInstructionInLoop)
           && !instruction.sideEffects.dependsOn(dependsFlags)) {
         bool loopInvariantInputs = true;
@@ -1440,11 +1536,11 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
 
       HInstruction current = instruction;
       instruction = instruction.next;
-
-      // TODO(ngeoffray): this check is needed because we currently do
-      // not have flags to express 'Gvn'able', but not movable.
-      if (current is HCheck) continue;
-      if (!current.useGvn()) continue;
+      if (!current.useGvn() || !current.isMovable) continue;
+      // TODO(sra): We could move throwing instructions provided we keep the
+      // exceptions in the same order.  This requires they are in the same order
+      // in all successors, which is not tracked by the ValueSet.
+      if (current.canThrow()) continue;
       if (current.sideEffects.dependsOn(dependsFlags)) continue;
 
       bool canBeMoved = true;
@@ -1479,14 +1575,16 @@ class SsaTypeConversionInserter extends HBaseVisitor
   }
 
   // Update users of [input] that are dominated by [:dominator.first:]
-  // to use [newInput] instead.
-  void changeUsesDominatedBy(HBasicBlock dominator,
-                             HInstruction input,
-                             TypeMask convertedType) {
+  // to use [TypeKnown] of [input] instead. As the type information depends
+  // on the control flow, we mark the inserted [HTypeKnown] nodes as
+  // non-movable.
+  void insertTypePropagationForDominatedUsers(HBasicBlock dominator,
+                                              HInstruction input,
+                                              TypeMask convertedType) {
     Setlet<HInstruction> dominatedUsers = input.dominatedUsers(dominator.first);
     if (dominatedUsers.isEmpty) return;
 
-    HTypeKnown newInput = new HTypeKnown(convertedType, input);
+    HTypeKnown newInput = new HTypeKnown.pinned(convertedType, input);
     dominator.addBefore(dominator.first, newInput);
     dominatedUsers.forEach((HInstruction user) {
       user.changeUse(input, newInput);
@@ -1504,30 +1602,74 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     List<HInstruction> ifUsers = <HInstruction>[];
     List<HInstruction> notIfUsers = <HInstruction>[];
-    for (HInstruction user in instruction.usedBy) {
-      if (user is HIf) {
-        ifUsers.add(user);
-      } else if (user is HNot) {
-        for (HInstruction notUser in user.usedBy) {
-          if (notUser is HIf) notIfUsers.add(notUser);
-        }
-      }
-    }
+
+    collectIfUsers(instruction, ifUsers, notIfUsers);
 
     if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
     TypeMask convertedType = new TypeMask.nonNullSubtype(element);
     HInstruction input = instruction.expression;
+
     for (HIf ifUser in ifUsers) {
-      changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);
+      insertTypePropagationForDominatedUsers(ifUser.thenBlock, input,
+                                             convertedType);
       // TODO(ngeoffray): Also change uses for the else block on a type
       // that knows it is not of a specific type.
     }
-
     for (HIf ifUser in notIfUsers) {
-      changeUsesDominatedBy(ifUser.elseBlock, input, convertedType);
+      insertTypePropagationForDominatedUsers(ifUser.elseBlock, input,
+                                             convertedType);
       // TODO(ngeoffray): Also change uses for the then block on a type
       // that knows it is not of a specific type.
+    }
+  }
+
+  void visitIdentity(HIdentity instruction) {
+    // At HIf(HIdentity(x, null)) strengthens x to non-null on else branch.
+    HInstruction left = instruction.left;
+    HInstruction right = instruction.right;
+    HInstruction input;
+
+    if (left.isConstantNull()) {
+      input = right;
+    } else if (right.isConstantNull()) {
+      input = left;
+    } else {
+      return;
+    }
+
+    if (!input.instructionType.isNullable) return;
+
+    List<HInstruction> ifUsers = <HInstruction>[];
+    List<HInstruction> notIfUsers = <HInstruction>[];
+
+    collectIfUsers(instruction, ifUsers, notIfUsers);
+
+    if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
+
+    TypeMask nonNullType = input.instructionType.nonNullable();
+
+    for (HIf ifUser in ifUsers) {
+      insertTypePropagationForDominatedUsers(ifUser.elseBlock, input,
+                                             nonNullType);
+      // Uses in thenBlock are `null`, but probably not common.
+    }
+    for (HIf ifUser in notIfUsers) {
+      insertTypePropagationForDominatedUsers(ifUser.thenBlock, input,
+                                             nonNullType);
+      // Uses in elseBlock are `null`, but probably not common.
+    }
+  }
+
+  collectIfUsers(HInstruction instruction,
+                 List<HInstruction> ifUsers,
+                 List<HInstruction> notIfUsers) {
+    for (HInstruction user in instruction.usedBy) {
+      if (user is HIf) {
+        ifUsers.add(user);
+      } else if (user is HNot) {
+        collectIfUsers(user, notIfUsers, ifUsers);
+      }
     }
   }
 }

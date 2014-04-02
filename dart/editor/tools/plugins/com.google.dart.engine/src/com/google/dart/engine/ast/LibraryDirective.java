@@ -61,7 +61,7 @@ public class LibraryDirective extends Directive {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitLibraryDirective(this);
   }
 
@@ -130,7 +130,7 @@ public class LibraryDirective extends Directive {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(name, visitor);
   }

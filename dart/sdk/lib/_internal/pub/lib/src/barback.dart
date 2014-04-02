@@ -12,10 +12,10 @@ import 'package:path/path.dart' as path;
 import 'utils.dart';
 import 'version.dart';
 
-/// The currently supported version of the Barback package that this version of
+/// The currently supported versions of the Barback package that this version of
 /// pub works with.
 ///
-/// Pub implicitly constrains barback to this version or later patch versions.
+/// Pub implicitly constrains barback to these versions.
 ///
 /// Barback is in a unique position. Pub imports it, so a copy of Barback is
 /// physically included in the SDK. Packages also depend on Barback (from
@@ -31,7 +31,7 @@ import 'version.dart';
 ///
 /// Whenever a new non-patch version of barback is published, this *must* be
 /// incremented to synchronize with that.
-final supportedVersion = new Version(0, 11, 0);
+final supportedVersions = new VersionConstraint.parse(">=0.11.0 <0.13.0");
 
 /// A list of the names of all built-in transformers that pub exposes.
 const _BUILT_IN_TRANSFORMERS = const ['\$dart2js'];
@@ -57,8 +57,31 @@ class TransformerId {
 
   /// The configuration to pass to the transformer.
   ///
-  /// This will be an empty map if no configuration was provided.
+  /// Any pub-specific configuration (i.e. keys starting with "$") will have
+  /// been stripped out of this and handled separately. This will be an empty
+  /// map if no configuration was provided.
   final Map configuration;
+
+  /// The primary input inclusions.
+  ///
+  /// Each inclusion is an asset path. If this set is non-empty, than *only*
+  /// matching assets are allowed as a primary input by this transformer. If
+  /// `null`, all assets are included.
+  ///
+  /// This is processed before [excludes]. If a transformer has both includes
+  /// and excludes, then the set of included assets is determined and assets
+  /// are excluded from that resulting set.
+  final Set<String> includes;
+
+  /// The primary input exclusions.
+  ///
+  /// Any asset whose pach is in this is not allowed as a primary input by
+  /// this transformer.
+  ///
+  /// This is processed after [includes]. If a transformer has both includes
+  /// and excludes, then the set of included assets is determined and assets
+  /// are excluded from that resulting set.
+  final Set<String> excludes;
 
   /// Whether this ID points to a built-in transformer exposed by pub.
   bool get isBuiltInTransformer => package.startsWith('\$');
@@ -79,11 +102,63 @@ class TransformerId {
     if (parts.length == 1) {
       return new TransformerId(parts.single, null, configuration);
     }
+
     return new TransformerId(parts.first, parts.last, configuration);
   }
 
-  TransformerId(this.package, this.path, Map configuration)
-      : configuration = configuration == null ? {} : configuration {
+  factory TransformerId(String package, String path, Map configuration) {
+    parseField(key) {
+      if (!configuration.containsKey(key)) return null;
+      var field = configuration.remove(key);
+
+      if (field is String) return new Set<String>.from([field]);
+
+      if (field is List) {
+        var nonstrings = field
+            .where((element) => element is! String)
+            .map((element) => '"$element"');
+
+        if (nonstrings.isNotEmpty) {
+          throw new FormatException(
+              '"$key" list field may only contain strings, but contained '
+              '${toSentence(nonstrings)}.');
+        }
+
+        return new Set<String>.from(field);
+      } else {
+        throw new FormatException(
+            '"$key" field must be a string or list, but was "$field".');
+      }
+    }
+
+    var includes = null;
+    var excludes = null;
+
+    if (configuration == null) {
+      configuration = {};
+    } else {
+      // Pull out the exclusions/inclusions.
+      includes = parseField("\$include");
+      excludes = parseField("\$exclude");
+
+      // All other keys starting with "$" are unexpected.
+      var reservedKeys = configuration.keys
+          .where((key) => key is String && key.startsWith(r'$'))
+          .map((key) => '"$key"');
+
+      if (reservedKeys.isNotEmpty) {
+        throw new FormatException(
+            'Unknown reserved ${pluralize('field', reservedKeys.length)} '
+            '${toSentence(reservedKeys)}.');
+      }
+    }
+
+    return new TransformerId._(package, path, configuration,
+        includes, excludes);
+  }
+
+  TransformerId._(this.package, this.path, this.configuration,
+      this.includes, this.excludes) {
     if (!package.startsWith('\$')) return;
     if (_BUILT_IN_TRANSFORMERS.contains(package)) return;
     throw new FormatException('Unsupported built-in transformer $package.');
@@ -126,100 +201,53 @@ Uri idToPackageUri(AssetId id) {
   return new Uri(scheme: 'package', path: id.path.replaceFirst('lib/', ''));
 }
 
-/// Converts [uri] into an [AssetId] if it has a path containing "packages" or
+/// Converts [uri] into an [AssetId] if its path is within "packages" or
 /// "assets".
 ///
-/// If the URI doesn't contain one of those special directories, returns null.
-/// If it does contain a special directory, but lacks a following package name,
+/// While "packages" can appear anywhere in the path, "assets" is only allowed
+/// as the top-level directory. (This throws a [FormatException] if "assets"
+/// appears anywhere else.)
+///
+/// If the URL contains a special directory, but lacks a following package name,
 /// throws a [FormatException].
+///
+/// If the URI doesn't contain one of those special directories, returns null.
 AssetId specialUrlToId(Uri url) {
   var parts = path.url.split(url.path);
 
-  for (var pair in [["packages", "lib"], ["assets", "asset"]]) {
-    var partName = pair.first;
-    var dirName = pair.last;
+  // Strip the leading "/" from the URL.
+  if (parts.isNotEmpty && parts.first == "/") parts = parts.skip(1).toList();
 
-    // Find the package name and the relative path in the package.
-    var index = parts.indexOf(partName);
-    if (index == -1) continue;
+  if (parts.isEmpty) return null;
 
-    // If we got here, the path *did* contain the special directory, which
-    // means we should not interpret it as a regular path. If it's missing the
-    // package name after the special directory, it's invalid.
-    if (index + 1 >= parts.length) {
+  // Check for "assets" at the beginning of the URL.
+  if (parts.first == "assets") {
+    if (parts.length <= 1) {
       throw new FormatException(
-          'Invalid package path "${path.url.joinAll(parts)}". '
-          'Expected package name after "$partName".');
+          'Invalid URL path "${url.path}". Expected package name after '
+          '"assets".');
     }
 
-    var package = parts[index + 1];
-    var assetPath = path.url.join(dirName,
-        path.url.joinAll(parts.skip(index + 2)));
+    var package = parts[1];
+    var assetPath = path.url.join("asset", path.url.joinAll(parts.skip(2)));
     return new AssetId(package, assetPath);
   }
 
-  return null;
-}
+  // Check for "packages" anywhere in the URL.
+  // TODO(rnystrom): If we rewrite "package:" imports to relative imports that
+  // point to a canonical "packages" directory, we can limit "packages" to the
+  // root of the URL as well. See: #16649.
+  var index = parts.indexOf("packages");
+  if (index == -1) return null;
 
-/// Converts [id] to a "servable path" for that asset.
-///
-/// This is the root relative URL that could be used to request that asset from
-/// pub serve. It's also the relative path that the asset will be output to by
-/// pub build (except this always returns a path using URL separators).
-///
-/// [entrypoint] is the name of the entrypoint package.
-///
-/// Examples (where [entrypoint] is "myapp"):
-///
-///     myapp|web/index.html   -> /index.html
-///     myapp|lib/lib.dart     -> /packages/myapp/lib.dart
-///     foo|lib/foo.dart       -> /packages/foo/foo.dart
-///     foo|asset/foo.png      -> /assets/foo/foo.png
-///     myapp|test/main.dart   -> ERROR
-///     foo|web/
-///
-/// Throws a [FormatException] if [id] is not a valid public asset.
-// TODO(rnystrom): Get rid of [useWebAsRoot] once pub serve also serves out of
-// the package root directory.
-String idtoUrlPath(String entrypoint, AssetId id, {bool useWebAsRoot: true}) {
-  var parts = path.url.split(id.path);
-
-  if (parts.length < 2) {
+  // There should be a package name after "packages".
+  if (parts.length <= index + 1) {
     throw new FormatException(
-        "Can not serve assets from top-level directory.");
+        'Invalid URL path "${url.path}". Expected package name '
+        'after "packages".');
   }
 
-  // Map "asset" and "lib" to their shared directories.
-  var dir = parts[0];
-  var rest = parts.skip(1);
-
-  if (dir == "asset") {
-    return path.url.join("/", "assets", id.package, path.url.joinAll(rest));
-  }
-
-  if (dir == "lib") {
-    return path.url.join("/", "packages", id.package, path.url.joinAll(rest));
-  }
-
-  if (useWebAsRoot) {
-    if (dir != "web") {
-      throw new FormatException('Cannot access assets from "$dir".');
-    }
-
-    if (id.package != entrypoint) {
-      throw new FormatException(
-          'Cannot access "web" directory of non-root packages.');
-    }
-
-    return path.url.join("/", path.url.joinAll(rest));
-  }
-
-  if (id.package != entrypoint) {
-    throw new FormatException(
-        'Can only access "lib" and "asset" directories of non-entrypoint '
-    'packages.');
-  }
-
-  // Allow any path in the entrypoint package.
-  return path.url.join("/", path.url.joinAll(parts));
+  var package = parts[index + 1];
+  var assetPath = path.url.join("lib", path.url.joinAll(parts.skip(index + 2)));
+  return new AssetId(package, assetPath);
 }

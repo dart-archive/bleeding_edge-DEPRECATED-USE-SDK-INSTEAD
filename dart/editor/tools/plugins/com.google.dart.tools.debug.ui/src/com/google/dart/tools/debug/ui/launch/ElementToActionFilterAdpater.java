@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.tools.core.model.HTMLFile;
-
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.ui.IActionFilter;
 
 /**
@@ -36,12 +33,6 @@ public class ElementToActionFilterAdpater implements IActionFilter {
 
   @Override
   public boolean testAttribute(Object target, String name, String value) {
-
-    IAdaptable element = (IAdaptable) target;
-    if (element instanceof HTMLFile) {
-      return true;
-    }
     return false;
   }
-
 }

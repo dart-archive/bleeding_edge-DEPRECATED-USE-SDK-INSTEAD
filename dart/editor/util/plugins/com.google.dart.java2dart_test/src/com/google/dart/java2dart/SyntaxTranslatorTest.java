@@ -16,7 +16,7 @@ package com.google.dart.java2dart;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
@@ -33,9 +33,9 @@ import static org.fest.assertions.Assertions.assertThat;
  */
 public class SyntaxTranslatorTest extends AbstractSemanticTest {
   /**
-   * @return the formatted Dart source dump of the given {@link ASTNode}.
+   * @return the formatted Dart source dump of the given {@link AstNode}.
    */
-  private static String toFormattedSource(ASTNode node) {
+  private static String toFormattedSource(AstNode node) {
     PrintStringWriter writer = new PrintStringWriter();
     node.accept(new ToFormattedSourceVisitor(writer));
     String result = writer.toString();
@@ -47,6 +47,54 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
   private String javaSource;
   private org.eclipse.jdt.core.dom.CompilationUnit javaUnit;
   private com.google.dart.engine.ast.CompilationUnit dartUnit;
+
+  public void test_annotation_marker() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public @interface DartOmit {",
+        "}",
+        "public class A {",
+        "  @DartOmit",
+        "  public void foo() {}",
+        "  public void var() {}",
+        "}");
+    translate();
+    String actual = context.getNodeAnnotations().toString();
+    assertEquals("{void foo() {}=[DartOmit{}]}", actual);
+  }
+
+  public void test_annotation_normal() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public @interface DartLibrary {",
+        "  String name();",
+        "  String path();",
+        "}",
+        "public class A {",
+        "  @DartLibrary(name = \"my.name\", path = \"my/path\")",
+        "  public void foo() {}",
+        "  public void var() {}",
+        "}");
+    translate();
+    String actual = context.getNodeAnnotations().toString();
+    assertEquals("{void foo() {}=[DartLibrary{name=my.name, path=my/path}]}", actual);
+  }
+
+  public void test_annotation_single() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public @interface DartBlockBody {",
+        "  String[] value();",
+        "}",
+        "public class A {",
+        "  @DartBlockBody({\"aaa\", \"bbb\", \"ccc\"})",
+        "  public void foo() {}",
+        "  public void var() {}",
+        "}");
+    translate();
+    String actual = context.getNodeAnnotations().toString();
+    assertEquals("{void foo() {}=[DartBlockBody{value=[aaa, bbb, ccc]}]}", actual);
+  }
 
   public void test_classAbstract() throws Exception {
     parseJava(
@@ -274,8 +322,8 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "abstract class I {",
         "}",
         "class Direction extends Enum<Direction> implements I {",
-        "  static final List<Direction> values = [];",
-        "  Direction.jtd_constructor_0_decl(String name, int ordinal) : super(name, ordinal) {",
+        "  static const List<Direction> values = const [];",
+        "  const Direction.jtd_constructor_0_decl(String name, int ordinal) : super(name, ordinal) {",
         "  }",
         "}");
   }
@@ -284,17 +332,45 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
         "public class A {",
-        "  boolean testA(Object a, Object b) {",
+        "  boolean testObject(Object a, Object b) {",
         "    return a == b;",
         "  }",
-        "  boolean testB(Object p) {",
-        "    return p == null || p == 1 || p == 2L || p == 3.0f || p == 4.0d;",
+        "  boolean testNull(Object p) {",
+        "    return p == null;",
+        "  }",
+        "  boolean testBool(Object p) {",
+        "    return p == true;",
+        "  }",
+        "  boolean testChar(Object p) {",
+        "    return p == '0';",
+        "  }",
+        "  boolean testByte(Object p) {",
+        "    return p == (byte) 1;",
+        "  }",
+        "  boolean testInt(Object p) {",
+        "    return p == 2;",
+        "  }",
+        "  boolean testLong(Object p) {",
+        "    return p == 3L;",
+        "  }",
+        "  boolean testFloat(Object p) {",
+        "    return p == 4.0f;",
+        "  }",
+        "  boolean testDouble(Object p) {",
+        "    return p == 5.0d;",
         "  }",
         "}");
     assertDartSource(
         "class A {",
-        "  bool testA(Object a, Object b) => identical(a, b);",
-        "  bool testB(Object p) => p == null || p == 1 || p == 2 || p == 3.0 || p == 4.0;",
+        "  bool testObject(Object a, Object b) => identical(a, b);",
+        "  bool testNull(Object p) => p == null;",
+        "  bool testBool(Object p) => p == true;",
+        "  bool testChar(Object p) => p == 0x30;",
+        "  bool testByte(Object p) => p == 1;",
+        "  bool testInt(Object p) => p == 2;",
+        "  bool testLong(Object p) => p == 3;",
+        "  bool testFloat(Object p) => p == 4.0;",
+        "  bool testDouble(Object p) => p == 5.0;",
         "}");
   }
 
@@ -313,6 +389,24 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "    bool b1 = p is String;",
         "    bool b2 = !(p is String);",
         "  }",
+        "}");
+  }
+
+  public void test_expression_notEquals() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  boolean testA(Object a, Object b) {",
+        "    return a != b;",
+        "  }",
+        "  boolean testB(Object p) {",
+        "    return p != null || p != 1 || p != 2L || p != 3.0f || p != 4.0d;",
+        "  }",
+        "}");
+    assertDartSource(
+        "class A {",
+        "  bool testA(Object a, Object b) => !identical(a, b);",
+        "  bool testB(Object p) => p != null || p != 1 || p != 2 || p != 3.0 || p != 4.0;",
         "}");
   }
 
@@ -450,6 +544,28 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "}");
   }
 
+  public void test_expressionCast_toByte() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class Test {",
+        "  void main(Object p) {",
+        "    print((byte) p);",
+        "    print((byte) 2);",
+        "    print((byte) 256);",
+        "    print((byte) 257);",
+        "  }",
+        "}");
+    assertDartSource(//
+        "class Test {",
+        "  void main(Object p) {",
+        "    print(toByte(p));",
+        "    print(2);",
+        "    print(0);",
+        "    print(1);",
+        "  }",
+        "}");
+  }
+
   public void test_expressionClassInstanceCreation() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -531,7 +647,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         toString(
             "// filler filler filler filler filler filler filler filler filler filler",
             "public class A {",
-            "  void test() {",
+            "  public void test() {",
             "    int m1 = 0 + 1;",
             "    int m2 = 0 - 1;",
             "    int m3 = 0 * 1;",
@@ -833,9 +949,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "}");
     assertDartSource(//
         "/**",
-        " *",
         " * * foo bar",
-        " *",
         " */",
         "class A {",
         "}");
@@ -1548,9 +1662,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
     assertDartSource(//
         "class A {",
         "  void test() {",
-        "    {",
-        "      print(0);",
-        "    }",
+        "    print(0);",
         "  }",
         "}");
   }

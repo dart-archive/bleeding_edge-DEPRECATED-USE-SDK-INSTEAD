@@ -22,6 +22,9 @@ class FreeListElement {
   FreeListElement* next() const {
     return next_;
   }
+  uword next_address() const {
+    return reinterpret_cast<uword>(&next_);
+  }
 
   void set_next(FreeListElement* next) {
     next_ = next;
@@ -36,6 +39,8 @@ class FreeListElement {
   static FreeListElement* AsElement(uword addr, intptr_t size);
 
   static void InitOnce();
+
+  static intptr_t HeaderSizeFor(intptr_t size);
 
   // Used to allocate class for free list elements in Object::InitOnce.
   class FakeInstance {
@@ -75,7 +80,7 @@ class FreeList {
   FreeList();
   ~FreeList();
 
-  uword TryAllocate(intptr_t size);
+  uword TryAllocate(intptr_t size, bool is_protected);
   void Free(uword addr, intptr_t size);
 
   void Reset();
@@ -92,7 +97,9 @@ class FreeList {
   void EnqueueElement(FreeListElement* element, intptr_t index);
   FreeListElement* DequeueElement(intptr_t index);
 
-  void SplitElementAfterAndEnqueue(FreeListElement* element, intptr_t size);
+  void SplitElementAfterAndEnqueue(FreeListElement* element,
+                                   intptr_t size,
+                                   bool is_protected);
 
   void PrintSmall() const;
   void PrintLarge() const;

@@ -76,7 +76,7 @@ public class CreateFileChange extends Change {
     // prepare IFile
     final IFile newFile;
     {
-      Source source = new FileBasedSource(null, file);
+      Source source = new FileBasedSource(file);
       IResource resource = DartCore.getProjectManager().getResource(source);
       if (!(resource instanceof IFile)) {
         return null;

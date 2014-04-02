@@ -111,17 +111,36 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   bool TryInlineFloat32x4Constructor(StaticCallInstr* call,
                                      MethodRecognizer::Kind recognized_kind);
+  bool TryInlineFloat64x2Constructor(StaticCallInstr* call,
+                                     MethodRecognizer::Kind recognized_kind);
   bool TryInlineInt32x4Constructor(StaticCallInstr* call,
                                     MethodRecognizer::Kind recognized_kind);
   bool TryInlineFloat32x4Method(InstanceCallInstr* call,
+                                MethodRecognizer::Kind recognized_kind);
+  bool TryInlineFloat64x2Method(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);
   bool TryInlineInt32x4Method(InstanceCallInstr* call,
                                MethodRecognizer::Kind recognized_kind);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
   void ReplaceWithTypeCast(InstanceCallInstr* instr);
 
-  LoadIndexedInstr* BuildStringCodeUnitAt(InstanceCallInstr* call,
-                                          intptr_t cid);
+  bool TryReplaceInstanceCallWithInline(InstanceCallInstr* call);
+
+  Definition* PrepareInlineStringIndexOp(Instruction* call,
+                                         intptr_t cid,
+                                         Definition* str,
+                                         Definition* index,
+                                         Instruction* cursor);
+
+  bool InlineStringCodeUnitAt(Instruction* call,
+                              intptr_t cid,
+                              TargetEntryInstr** entry,
+                              Definition** last);
+
+  bool InlineStringBaseCharAt(Instruction* call,
+                              intptr_t cid,
+                              TargetEntryInstr** entry,
+                              Definition** last);
 
   bool InlineByteArrayViewLoad(Instruction* call,
                                Definition* receiver,
@@ -130,6 +149,15 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                const ICData& ic_data,
                                TargetEntryInstr** entry,
                                Definition** last);
+
+  bool InlineByteArrayViewStore(const Function& target,
+                                Instruction* call,
+                                Definition* receiver,
+                                intptr_t array_cid,
+                                intptr_t view_cid,
+                                const ICData& ic_data,
+                                TargetEntryInstr** entry,
+                                Definition** last);
 
   intptr_t PrepareInlineByteArrayViewOp(Instruction* call,
                                         intptr_t array_cid,
@@ -142,10 +170,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                               intptr_t view_cid);
   bool BuildByteArrayViewStore(InstanceCallInstr* call,
                                intptr_t view_cid);
-  void PrepareByteArrayViewOp(InstanceCallInstr* call,
-                              intptr_t receiver_cid,
-                              intptr_t view_cid,
-                              Definition** array);
 
   // Insert a check of 'to_check' determined by 'unary_checks'.  If the
   // check fails it will deoptimize to 'deopt_id' using the deoptimization
@@ -188,12 +212,16 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   bool InlineFloat32x4Getter(InstanceCallInstr* call,
                              MethodRecognizer::Kind getter);
+  bool InlineFloat64x2Getter(InstanceCallInstr* call,
+                             MethodRecognizer::Kind getter);
   bool InlineInt32x4Getter(InstanceCallInstr* call,
                             MethodRecognizer::Kind getter);
   bool InlineFloat32x4BinaryOp(InstanceCallInstr* call,
                                Token::Kind op_kind);
   bool InlineInt32x4BinaryOp(InstanceCallInstr* call,
                               Token::Kind op_kind);
+  bool InlineFloat64x2BinaryOp(InstanceCallInstr* call,
+                               Token::Kind op_kind);
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,
@@ -378,7 +406,7 @@ class AllocationSinking : public ZoneAllocated {
       Instruction* exit,
       AllocateObjectInstr* alloc,
       const Class& cls,
-      const ZoneGrowableArray<const Field*>& fields);
+      const ZoneGrowableArray<const Object*>& fields);
 
   FlowGraph* flow_graph_;
 

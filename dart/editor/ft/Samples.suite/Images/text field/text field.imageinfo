@@ -1,19 +1,20 @@
-{
-    CaptureDate = <*D2013-12-13 04:57:25 +0000>;
+﻿{
+    CaptureDate = "2013-12-13 04:57:25 +0000";
     CaptureHost = "kyodai.pdx.corp.google.com:0.0";
-    CaptureScreenSize = (
-	<*I1920>,
-	<*I1200>
+    CaptureScreenSize =     (
+        1920,
+        1200
     );
-    HasAlpha = <*BY>;
-    HonorAlpha = <*BY>;
-    HotSpotX = <*R62>;
-    HotSpotY = <*R21>;
+    HasAlpha = 1;
+    HonorAlpha = 1;
+    HotSpotX = 62;
+    HotSpotY = 21;
     ImageDescription = <>;
-    LastKnownLocationX = <*I0>;
-    LastKnownLocationY = <*I0>;
-    OriginalLocationX = <*I455>;
-    OriginalLocationY = <*I367>;
-    Pulsing = <*BN>;
-    Scale = <*R1>;
+    LastKnownLocationX = 0;
+    LastKnownLocationY = 0;
+    OriginalLocationX = 455;
+    OriginalLocationY = 367;
+    Pulsing = 0;
+    Scale = 1;
+    SearchAlgorithm = TextSmoothSquare;
 }

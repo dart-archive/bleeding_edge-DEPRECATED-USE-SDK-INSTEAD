@@ -5,6 +5,13 @@
 library _js_helper;
 
 import 'dart:collection';
+import 'dart:_isolate_helper' show
+    IsolateNatives,
+    leaveJsAsync,
+    enterJsAsync,
+    isWorker;
+
+import 'dart:async' show Future, DeferredLoadException, Completer;
 
 import 'dart:_foreign_helper' show
     DART_CLOSURE_TO_JS,
@@ -23,6 +30,7 @@ import 'dart:_foreign_helper' show
     JS_FUNCTION_TYPE_TAG,
     JS_FUNCTION_TYPE_VOID_RETURN_TAG,
     JS_GET_NAME,
+    JS_GET_FLAG,
     JS_HAS_EQUALS,
     JS_IS_INDEXABLE_FIELD_NAME,
     JS_NULL_CLASS_NAME,
@@ -30,6 +38,7 @@ import 'dart:_foreign_helper' show
     JS_OPERATOR_AS_PREFIX,
     JS_OPERATOR_IS_PREFIX,
     JS_SIGNATURE_NAME,
+    JS_STRING_CONCAT,
     RAW_DART_FUNCTION_REF;
 
 import 'dart:_interceptors';
@@ -174,8 +183,14 @@ class JSInvocationMirror implements Invocation {
     // critical, we might want to dynamically change [interceptedNames]
     // to be a JavaScript object with intercepted names as property
     // instead of a JavaScript array.
+    // TODO(floitsch): we already add stubs (tear-off getters) as properties
+    // in init.interceptedNames.
+    // Finish the transition and always use the object as hashtable.
     bool isIntercepted =
-        JS('int', '#.indexOf(#)', interceptedNames, name) != -1;
+        JS("bool",
+            'Object.prototype.hasOwnProperty.call(init.interceptedNames, #) ||'
+            '#.indexOf(#) !== -1',
+            name, interceptedNames, name);
     if (isIntercepted) {
       receiver = interceptor;
       if (JS('bool', '# === #', object, interceptor)) {
@@ -202,7 +217,12 @@ class JSInvocationMirror implements Invocation {
       isCatchAll = true;
     }
     if (JS('bool', 'typeof # == "function"', method)) {
-      if (!hasReflectableProperty(method)) {
+      // TODO(floitsch): bound or tear-off closure does not guarantee that the
+      // function is reflectable.
+      bool isReflectable = hasReflectableProperty(method) ||
+          object is BoundClosure ||
+          object is TearOffClosure;
+      if (!isReflectable) {
         throwInvalidReflectionError(_symbol_dev.Symbol.getName(memberName));
       }
       if (isCatchAll) {
@@ -366,6 +386,8 @@ class ReflectionInfo {
   /// type variables).
   final functionType;
 
+  List cachedSortedIndices;
+
   ReflectionInfo.internal(this.jsFunction,
                           this.data,
                           this.isAccessor,
@@ -396,15 +418,77 @@ class ReflectionInfo {
   }
 
   String parameterName(int parameter) {
-    int metadataIndex = JS('int', '#[# + # + #]', data, parameter,
-                           optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+    int metadataIndex;
+    if (JS_GET_FLAG('MUST_RETAIN_METADATA')) {
+      metadataIndex = JS('int', '#[2 * # + # + #]', data,
+          parameter, optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+    } else {
+      metadataIndex = JS('int', '#[# + # + #]', data,
+          parameter, optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+    }
     return JS('String', 'init.metadata[#]', metadataIndex);
+  }
+
+  List<int> parameterMetadataAnnotations(int parameter) {
+    if (!JS_GET_FLAG('MUST_RETAIN_METADATA')) {
+      throw new StateError('metadata has not been preserved');
+    } else {
+      return JS('', '#[2 * # + # + # + 1]', data, parameter,
+          optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+    }
   }
 
   int defaultValue(int parameter) {
     if (parameter < requiredParameterCount) return null;
     return JS('int', '#[# + # - #]', data,
               FIRST_DEFAULT_ARGUMENT, parameter, requiredParameterCount);
+  }
+
+  /// Returns the default value of the [parameter]th entry of the list of
+  /// parameters sorted by name.
+  int defaultValueInOrder(int parameter) {
+    if (parameter < requiredParameterCount) return null;
+
+    if (!areOptionalParametersNamed || optionalParameterCount == 1) {
+      return defaultValue(parameter);
+    }
+
+    int index = sortedIndex(parameter - requiredParameterCount);
+    return defaultValue(index);
+  }
+
+  /// Returns the default value of the [parameter]th entry of the list of
+  /// parameters sorted by name.
+  String parameterNameInOrder(int parameter) {
+    if (parameter < requiredParameterCount) return null;
+
+    if (!areOptionalParametersNamed ||
+        optionalParameterCount == 1) {
+      return parameterName(parameter);
+    }
+
+    int index = sortedIndex(parameter - requiredParameterCount);
+    return parameterName(index);
+  }
+
+  /// Computes the index of the parameter in the list of named parameters sorted
+  /// by their name.
+  int sortedIndex(int unsortedIndex) {
+    if (cachedSortedIndices == null) {
+      // TODO(karlklose): cache this between [ReflectionInfo] instances or cache
+      // [ReflectionInfo] instances by [jsFunction].
+      cachedSortedIndices = new List(optionalParameterCount);
+      Map<String, int> positions = <String, int>{};
+      for (int i = 0; i < optionalParameterCount; i++) {
+        int index = requiredParameterCount + i;
+        positions[parameterName(index)] = index;
+      }
+      int index = 0;
+      (positions.keys.toList()..sort()).forEach((String name) {
+        cachedSortedIndices[index++] = positions[name];
+      });
+    }
+    return cachedSortedIndices[unsortedIndex];
   }
 
   @NoInline()
@@ -688,8 +772,23 @@ class Primitives {
     return _fromCharCodeApply(charCodes);
   }
 
+  static String stringFromCharCode(charCode) {
+    if (0 <= charCode) {
+      if (charCode <= 0xffff) {
+        return JS('String', 'String.fromCharCode(#)', charCode);
+      }
+      if (charCode <= 0x10ffff) {
+        var bits = charCode - 0x10000;
+        var low = 0xDC00 | (bits & 0x3ff);
+        var high = 0xD800 | (bits >> 10);
+        return  JS('String', 'String.fromCharCode(#, #)', high, low);
+      }
+    }
+    throw new RangeError.range(charCode, 0, 0x10ffff);
+  }
+
   static String stringConcatUnchecked(String string1, String string2) {
-    return JS('String', r'# + #', string1, string2);
+    return JS_STRING_CONCAT(string1, string2);
   }
 
   static String getTimeZoneName(receiver) {
@@ -876,7 +975,8 @@ class Primitives {
       });
     }
 
-    String selectorName = 'call\$$argumentCount$names';
+    String selectorName =
+      '${JS_GET_NAME("CALL_PREFIX")}\$$argumentCount$names';
 
     return function.noSuchMethod(
         createUnmangledInvocationMirror(
@@ -918,9 +1018,10 @@ class Primitives {
       }
       var defaultArguments = new Map();
       for (int i = 0; i < info.optionalParameterCount; i++) {
-        var parameterName = info.parameterName(i + info.requiredParameterCount);
-        var defaultValue =
-            getMetadata(info.defaultValue(i + info.requiredParameterCount));
+        int index = i + info.requiredParameterCount;
+        var parameterName = info.parameterNameInOrder(index);
+        var value = info.defaultValueInOrder(index);
+        var defaultValue = getMetadata(value);
         defaultArguments[parameterName] = defaultValue;
       }
       bool bad = false;
@@ -948,7 +1049,7 @@ class Primitives {
       arguments.addAll(positionalArguments);
     }
 
-    String selectorName = 'call\$$argumentCount';
+    String selectorName = '${JS_GET_NAME("CALL_PREFIX")}\$$argumentCount';
     var jsFunction = JS('var', '#[#]', function, selectorName);
     if (jsFunction == null) {
 
@@ -964,16 +1065,44 @@ class Primitives {
     return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
   }
 
-  static getConstructorOrInterceptor(String className) {
+  static getConstructorOrInterceptorToken(String className) {
     // TODO(ahe): Generalize this and improve test coverage of
     // reflecting on intercepted classes.
+
+    // We should probably not be mappling the dart:core interface names to the
+    // interceptor library implementation classes like this.  `JSArray` is just
+    // one implementation of `List`, there are others that have no relationship
+    // with JSArray other than implementing a common interface.
+    //
+    // For now `List` in dart:core and `JSArray` is in dart:_interceptors.  We
+    // need to maintain a distinction to get the correct library mirror.
+    //
+    // TODO(17394): Short term: Refactor to avoid two copies of the list of
+    // known interceptor implementations.
+    //
+    // TODO(17394): Longer term: The proper interfaces with abstract methods
+    // should be emitted.
+
     if (JS('bool', '# == "String"', className)) return const JSString();
     if (JS('bool', '# == "int"', className)) return const JSInt();
     if (JS('bool', '# == "double"', className)) return const JSDouble();
     if (JS('bool', '# == "num"', className)) return const JSNumber();
     if (JS('bool', '# == "bool"', className)) return const JSBool();
     if (JS('bool', '# == "List"', className)) return const JSArray();
+    if (JS('bool', '# == "Null"', className)) return const JSNull();
     return JS('var', 'init.allClasses[#]', className);
+  }
+
+  static bool isInterceptorToken(var object) {
+    // This must match the list of tokens returned by
+    // [getConstructorOrInterceptorToken] above.
+    return JS('bool', '# === #', object, const JSString())
+        || JS('bool', '# === #', object, const JSInt())
+        || JS('bool', '# === #', object, const JSDouble())
+        || JS('bool', '# === #', object, const JSNumber())
+        || JS('bool', '# === #', object, const JSBool())
+        || JS('bool', '# === #', object, const JSArray())
+        || JS('bool', '# === #', object, const JSNull());
   }
 
   static bool identicalImplementation(a, b) {
@@ -1868,7 +1997,8 @@ abstract class Closure implements Function {
         // Intercepted call.
         isIntercepted = true;
       }
-      trampoline = forwardCallTo(function, isIntercepted);
+      trampoline = forwardCallTo(receiver, function, isIntercepted);
+      JS('', '#.\$reflectionInfo = #', trampoline, reflectionInfo);
     } else {
       JS('', '#.\$name = #', prototype, propertyName);
     }
@@ -1902,66 +2032,69 @@ abstract class Closure implements Function {
       var stubCallName = JS('String|Null', '#.\$callName', stub);
       if (stubCallName != null) {
         JS('', '#[#] = #', prototype, stubCallName,
-           isStatic ? stub : forwardCallTo(stub, isIntercepted));
+           isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted));
       }
     }
 
-    JS('', '#["call*"] = #', prototype, function);
+    JS('', '#["call*"] = #', prototype, trampoline);
 
     return constructor;
   }
 
-  static cspForwardCall(int arity, function) {
+  static cspForwardCall(int arity, bool isSuperCall, String stubName,
+                        function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
+    // Handle intercepted stub-names with the default slow case.
+    if (isSuperCall) arity = -1;
     switch (arity) {
     case 0:
       return JS(
           '',
-          'function(F,S){'
+          'function(n,S){'
             'return function(){'
-              'return F.call(S(this))'
+              'return S(this)[n]()'
             '}'
-          '}(#,#)', function, getSelf);
+          '}(#,#)', stubName, getSelf);
     case 1:
       return JS(
           '',
-          'function(F,S){'
+          'function(n,S){'
             'return function(a){'
-              'return F.call(S(this),a)'
+              'return S(this)[n](a)'
             '}'
-          '}(#,#)', function, getSelf);
+          '}(#,#)', stubName, getSelf);
     case 2:
       return JS(
           '',
-          'function(F,S){'
+          'function(n,S){'
             'return function(a,b){'
-              'return F.call(S(this),a,b)'
+              'return S(this)[n](a,b)'
             '}'
-          '}(#,#)', function, getSelf);
+          '}(#,#)', stubName, getSelf);
     case 3:
       return JS(
           '',
-          'function(F,S){'
+          'function(n,S){'
             'return function(a,b,c){'
-              'return F.call(S(this),a,b,c)'
+              'return S(this)[n](a,b,c)'
             '}'
-          '}(#,#)', function, getSelf);
+          '}(#,#)', stubName, getSelf);
     case 4:
       return JS(
           '',
-          'function(F,S){'
+          'function(n,S){'
             'return function(a,b,c,d){'
-              'return F.call(S(this),a,b,c,d)'
+              'return S(this)[n](a,b,c,d)'
             '}'
-          '}(#,#)', function, getSelf);
+          '}(#,#)', stubName, getSelf);
     case 5:
       return JS(
           '',
-          'function(F,S){'
+          'function(n,S){'
             'return function(a,b,c,d,e){'
-              'return F.call(S(this),a,b,c,d,e)'
+              'return S(this)[n](a,b,c,d,e)'
             '}'
-          '}(#,#)', function, getSelf);
+          '}(#,#)', stubName, getSelf);
     default:
       return JS(
           '',
@@ -1975,40 +2108,50 @@ abstract class Closure implements Function {
 
   static bool get isCsp => JS('bool', 'typeof dart_precompiled == "function"');
 
-  static forwardCallTo(function, bool isIntercepted) {
-    if (isIntercepted) return forwardInterceptedCallTo(function);
+  static forwardCallTo(receiver, function, bool isIntercepted) {
+    if (isIntercepted) return forwardInterceptedCallTo(receiver, function);
+    String stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
-    if (isCsp) {
-      return cspForwardCall(arity, function);
-    } else if (arity == 0) {
-      return JS(
-          '',
-          '(new Function("F",#))(#)',
-          'return function(){'
-            'return F.call(this.${BoundClosure.selfFieldName()});${functionCounter++}'
-          '}',
-          function);
-    } else if (1 <= arity && arity < 27) {
-      String arguments = JS(
-          'String',
-          '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
-          arity);
-      return JS(
-          '',
-          '(new Function("F",#))(#)',
-          'return function($arguments){'
-            'return F.call(this.${BoundClosure.selfFieldName()},$arguments);'
-            '${functionCounter++}'
-          '}',
-          function);
-    } else {
-      return cspForwardCall(arity, function);
+    var lookedUpFunction = JS("", "#[#]", receiver, stubName);
+    // The receiver[stubName] may not be equal to the function if we try to
+    // forward to a super-method. Especially when we create a bound closure
+    // of a super-call we need to make sure that we don't forward back to the
+    // dynamically looked up function.
+    bool isSuperCall = !identical(function, lookedUpFunction);
+
+    if (isCsp || isSuperCall || arity >= 27) {
+      return cspForwardCall(arity, isSuperCall, stubName, function);
     }
+
+    if (arity == 0) {
+      return JS(
+          '',
+          '(new Function(#))()',
+          'return function(){'
+            'return this.${BoundClosure.selfFieldName()}.$stubName();'
+            '${functionCounter++}'
+          '}');
+    }
+    assert (1 <= arity && arity < 27);
+    String arguments = JS(
+        'String',
+        '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
+        arity);
+    return JS(
+        '',
+        '(new Function(#))()',
+        'return function($arguments){'
+          'return this.${BoundClosure.selfFieldName()}.$stubName($arguments);'
+          '${functionCounter++}'
+        '}');
   }
 
-  static cspForwardInterceptedCall(int arity, String name, function) {
+  static cspForwardInterceptedCall(int arity, bool isSuperCall,
+                                   String name, function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
     var getReceiver = RAW_DART_FUNCTION_REF(BoundClosure.receiverOf);
+    // Handle intercepted stub-names with the default slow case.
+    if (isSuperCall) arity = -1;
     switch (arity) {
     case 0:
       // Intercepted functions always takes at least one argument (the
@@ -2075,33 +2218,44 @@ abstract class Closure implements Function {
     }
   }
 
-  static forwardInterceptedCallTo(function) {
+  static forwardInterceptedCallTo(receiver, function) {
+    String selfField = BoundClosure.selfFieldName();
+    String receiverField = BoundClosure.receiverFieldName();
     String stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
     bool isCsp = JS('bool', 'typeof dart_precompiled == "function"');
-    if (isCsp) {
-      return cspForwardInterceptedCall(arity, stubName, function);
-    } else if (arity == 1) {
-      return JS('', 'new Function(#)',
-                'return this.${BoundClosure.selfFieldName()}.$stubName('
-                    'this.${BoundClosure.receiverFieldName()});'
-                '${functionCounter++}');
-    } else if (1 < arity && arity < 28) {
-      String arguments = JS(
-          'String',
-          '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
-          arity - 1);
+    var lookedUpFunction = JS("", "#[#]", receiver, stubName);
+    // The receiver[stubName] may not be equal to the function if we try to
+    // forward to a super-method. Especially when we create a bound closure
+    // of a super-call we need to make sure that we don't forward back to the
+    // dynamically looked up function.
+    bool isSuperCall = !identical(function, lookedUpFunction);
+
+    if (isCsp || isSuperCall || arity >= 28) {
+      return cspForwardInterceptedCall(arity, isSuperCall, stubName,
+                                       function);
+    }
+    if (arity == 1) {
       return JS(
           '',
           '(new Function(#))()',
-          'return function($arguments){'
-            'return this.${BoundClosure.selfFieldName()}.$stubName('
-                'this.${BoundClosure.receiverFieldName()},$arguments);'
+          'return function(){'
+            'return this.$selfField.$stubName(this.$receiverField);'
             '${functionCounter++}'
           '}');
-    } else {
-      return cspForwardInterceptedCall(arity, stubName, function);
     }
+    assert(1 < arity && arity < 28);
+    String arguments = JS(
+        'String',
+        '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
+        arity - 1);
+    return JS(
+        '',
+        '(new Function(#))()',
+        'return function($arguments){'
+          'return this.$selfField.$stubName(this.$receiverField, $arguments);'
+          '${functionCounter++}'
+        '}');
   }
 
   String toString() => "Closure";
@@ -2325,9 +2479,11 @@ class JSName {
  * use the compiler's convention to do is-checks on regular objects.
  */
 boolConversionCheck(value) {
+  if (value is bool) return value;
+  // One of the following checks will always fail.
   boolTypeCheck(value);
   assert(value != null);
-  return value;
+  return false;
 }
 
 stringTypeCheck(value) {
@@ -2618,13 +2774,16 @@ class FallThroughErrorImplementation extends FallThroughError {
  * Helper function for implementing asserts. The compiler treats this specially.
  */
 void assertHelper(condition) {
-  if (condition is Function) condition = condition();
+  // Do a bool check first because it is common and faster than 'is Function'.
   if (condition is !bool) {
-    throw new TypeErrorImplementation(condition, 'bool');
+    if (condition is Function) condition = condition();
+    if (condition is !bool) {
+      throw new TypeErrorImplementation(condition, 'bool');
+    }
   }
   // Compare to true to avoid boolean conversion check in checked
   // mode.
-  if (!identical(condition, true)) throw new AssertionError();
+  if (true != condition) throw new AssertionError();
 }
 
 /**
@@ -3049,4 +3208,135 @@ int random64() {
   int int32a = JS("int", "(Math.random() * 0x100000000) >>> 0");
   int int32b = JS("int", "(Math.random() * 0x100000000) >>> 0");
   return int32a + int32b * 0x100000000;
+}
+
+/**
+ * Returns a property name for placing data on JavaScript objects shared between
+ * DOM isolates.  This happens when multiple programs are loaded in the same
+ * JavaScript context (i.e. page).  The name is based on [name] but with an
+ * additional part that is unique for each isolate.
+ *
+ * The form of the name is '___dart_$name_$id'.
+ */
+String getIsolateAffinityTag(String name) {
+  return JS('String', 'init.getIsolateTag(#)', name);
+}
+
+typedef Future<bool> LoadLibraryFunctionType();
+
+LoadLibraryFunctionType _loadLibraryWrapper(String loadId) {
+  return () => loadDeferredLibrary(loadId);
+}
+
+final Map<String, Future<bool>> _loadedLibraries = <String, Future<bool>>{};
+
+Future<bool> loadDeferredLibrary(String loadId, [String uri]) {
+  List hunkNames = new List();
+  if (JS('bool', '\$.libraries_to_load[#] === undefined', loadId)) {
+    return new Future(() => false);
+  }
+  for (int index = 0;
+       index < JS('int', '\$.libraries_to_load[#].length', loadId);
+       ++index) {
+    hunkNames.add(JS('String', '\$.libraries_to_load[#][#]',
+                     loadId, index));
+  }
+  Iterable<Future<bool>> allLoads =
+      hunkNames.map((hunkName) => _loadHunk(hunkName, uri));
+  return Future.wait(allLoads).then((results) {
+    return results.any((x) => x);
+  });
+}
+
+Future<bool> _loadHunk(String hunkName, String uri) {
+  // TODO(ahe): Validate libraryName.  Kasper points out that you want
+  // to be able to experiment with the effect of toggling @DeferLoad,
+  // so perhaps we should silently ignore "bad" library names.
+  Future<bool> future = _loadedLibraries[hunkName];
+  if (future != null) {
+    return future.then((_) => false);
+  }
+
+  if (uri == null) {
+    uri = IsolateNatives.thisScript;
+  }
+  int index = uri.lastIndexOf('/');
+  uri = '${uri.substring(0, index + 1)}$hunkName';
+
+  if (Primitives.isJsshell || Primitives.isD8) {
+    // TODO(ahe): Move this code to a JavaScript command helper script that is
+    // not included in generated output.
+    return _loadedLibraries[hunkName] = new Future<bool>(() {
+      try {
+        // Create a new function to avoid getting access to current function
+        // context.
+        JS('void', '(new Function(#))()', 'load("$uri")');
+      } catch (error, stackTrace) {
+        throw new DeferredLoadException("Loading $uri failed.");
+      }
+      return true;
+    });
+  } else if (isWorker()) {
+    // We are in a web worker. Load the code with an XMLHttpRequest.
+    return _loadedLibraries[hunkName] = new Future<bool>(() {
+      Completer completer = new Completer<bool>();
+      enterJsAsync();
+      Future<bool> leavingFuture = completer.future.whenComplete(() {
+        leaveJsAsync();
+      });
+
+      int index = uri.lastIndexOf('/');
+      uri = '${uri.substring(0, index + 1)}$hunkName';
+      var xhr = JS('dynamic', 'new XMLHttpRequest()');
+      JS('void', '#.open("GET", #)', xhr, uri);
+      JS('void', '#.addEventListener("load", #, false)',
+         xhr, convertDartClosureToJS((event) {
+        if (JS('int', '#.status', xhr) != 200) {
+          completer.completeError(
+              new DeferredLoadException("Loading $uri failed."));
+          return;
+        }
+        String code = JS('String', '#.responseText', xhr);
+        try {
+          // Create a new function to avoid getting access to current function
+          // context.
+          JS('void', '(new Function(#))()', code);
+        } catch (error, stackTrace) {
+          completer.completeError(
+            new DeferredLoadException("Evaluating $uri failed."));
+          return;
+        }
+        completer.complete(true);
+      }, 1));
+
+      var fail = convertDartClosureToJS((event) {
+        new DeferredLoadException("Loading $uri failed.");
+      }, 1);
+      JS('void', '#.addEventListener("error", #, false)', xhr, fail);
+      JS('void', '#.addEventListener("abort", #, false)', xhr, fail);
+
+      JS('void', '#.send()', xhr);
+      return leavingFuture;
+    });
+  }
+  // We are in a dom-context.
+  return _loadedLibraries[hunkName] = new Future<bool>(() {
+    Completer completer = new Completer<bool>();
+    // Inject a script tag.
+    var script = JS('', 'document.createElement("script")');
+    JS('', '#.type = "text/javascript"', script);
+    JS('', '#.src = #', script, uri);
+    JS('', '#.addEventListener("load", #, false)',
+       script, convertDartClosureToJS((event) {
+      completer.complete(true);
+    }, 1));
+    JS('', '#.addEventListener("error", #, false)',
+       script, convertDartClosureToJS((event) {
+      completer.completeError(
+          new DeferredLoadException("Loading $uri failed."));
+    }, 1));
+    JS('', 'document.body.appendChild(#)', script);
+
+    return completer.future;
+  });
 }

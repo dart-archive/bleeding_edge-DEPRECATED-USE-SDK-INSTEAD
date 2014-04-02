@@ -18,10 +18,10 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -59,14 +59,14 @@ public class AbstractDartTest extends TestCase {
   protected static AnalysisContext analysisContext;
 
   /**
-   * @return {@link ASTNode} which has required offset and type.
+   * @return {@link AstNode} which has required offset and type.
    */
-  public static <E extends ASTNode> E findNode(ASTNode root, final int offset, final Class<E> clazz) {
+  public static <E extends AstNode> E findNode(AstNode root, final int offset, final Class<E> clazz) {
     final AtomicReference<E> resultRef = new AtomicReference<E>();
-    root.accept(new GeneralizingASTVisitor<Void>() {
+    root.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       @SuppressWarnings("unchecked")
-      public Void visitNode(ASTNode node) {
+      public Void visitNode(AstNode node) {
         if (node.getOffset() <= offset && offset < node.getEnd() && clazz.isInstance(node)) {
           resultRef.set((E) node);
         }
@@ -89,14 +89,7 @@ public class AbstractDartTest extends TestCase {
    * @return the {@link String} content of the given {@link Source}.
    */
   public static String getSourceContent(Source source) throws Exception {
-    final String result[] = {null};
-    source.getContents(new Source.ContentReceiver() {
-      @Override
-      public void accept(CharSequence contents, long modificationTime) {
-        result[0] = contents.toString();
-      }
-    });
-    return result[0];
+    return analysisContext.getContents(source).getData().toString();
   }
 
   /**
@@ -115,16 +108,10 @@ public class AbstractDartTest extends TestCase {
   public static CompilationUnit parseUnit(String path, String code) throws Exception {
     ensureAnalysisContext();
     // configure Source
-    Source source = new FileBasedSource(
-        sourceFactory.getContentCache(),
-        FileUtilities2.createFile(path));
-    {
-      sourceFactory.setContents(source, "");
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.added(source);
-      analysisContext.applyChanges(changeSet);
-    }
-    // update Source
+    Source source = new FileBasedSource(FileUtilities2.createFile(path));
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    analysisContext.applyChanges(changeSet);
     analysisContext.setContents(source, code);
     // parse and resolve
     LibraryElement library = analysisContext.computeLibraryElement(source);
@@ -237,14 +224,12 @@ public class AbstractDartTest extends TestCase {
    */
   protected Source addSource(String filePath, String contents) {
     ensureAnalysisContext();
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
+    Source source = new FileBasedSource(createFile(filePath));
     // add Source to the context
-    sourceFactory.setContents(source, contents);
-    {
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.added(source);
-      analysisContext.applyChanges(changeSet);
-    }
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    analysisContext.applyChanges(changeSet);
+    analysisContext.setContents(source, contents);
     // remember Source to remove from the context later
     sourceWithSetContent.add(source);
     // done
@@ -286,16 +271,16 @@ public class AbstractDartTest extends TestCase {
   }
 
   /**
-   * @return {@link ASTNode} form {@link #testUnit} which has required offset and type.
+   * @return {@link AstNode} form {@link #testUnit} which has required offset and type.
    */
-  protected final <E extends ASTNode> E findNode(int offset, Class<E> clazz) {
+  protected final <E extends AstNode> E findNode(int offset, Class<E> clazz) {
     return findNode(testUnit, offset, clazz);
   }
 
   /**
-   * @return {@link ASTNode} from {@link #testUnit} which starts at given text has has given type.
+   * @return {@link AstNode} from {@link #testUnit} which starts at given text has has given type.
    */
-  protected final <E extends ASTNode> E findNode(String search, Class<E> clazz) {
+  protected final <E extends AstNode> E findNode(String search, Class<E> clazz) {
     int offset = findOffset(search);
     return findNode(testUnit, offset, clazz);
   }
@@ -373,12 +358,12 @@ public class AbstractDartTest extends TestCase {
   protected final void parseTestUnits(Source... sources) throws Exception {
     Source librarySource = sources[0];
     testSource = sources[1];
-    testCode = sourceFactory.getContentCache().getContents(testSource);
+    testCode = analysisContext.getContents(testSource).getData().toString();
     // fill AnalysisContext
     {
       ChangeSet changeSet = new ChangeSet();
       for (Source source : sources) {
-        changeSet.added(source);
+        changeSet.addedSource(source);
       }
       analysisContext.applyChanges(changeSet);
     }
@@ -398,10 +383,10 @@ public class AbstractDartTest extends TestCase {
    * @return the {@link Source} which corresponds given path.
    */
   protected final Source setFileContent(String path, String content) {
-    FileBasedSource source = new FileBasedSource(sourceFactory.getContentCache(), createFile("/"
-        + path));
+    ensureAnalysisContext();
+    FileBasedSource source = new FileBasedSource(createFile("/" + path));
     sourceWithSetContent.add(source);
-    sourceFactory.setContents(source, content);
+    analysisContext.setContents(source, content);
     return source;
   }
 
@@ -409,16 +394,16 @@ public class AbstractDartTest extends TestCase {
   protected void tearDown() throws Exception {
     // reset SourceFactory
     for (Source source : sourceWithSetContent) {
-      sourceFactory.setContents(source, null);
+      analysisContext.setContents(source, null);
     }
     // reset AnalysisContext
     if (analysisContext != null) {
       ChangeSet changeSet = new ChangeSet();
       if (testSource != null) {
-        changeSet.removed(testSource);
+        changeSet.removedSource(testSource);
       }
       for (Source source : sourceWithSetContent) {
-        changeSet.removed(source);
+        changeSet.removedSource(source);
       }
       analysisContext.applyChanges(changeSet);
     }
@@ -435,6 +420,6 @@ public class AbstractDartTest extends TestCase {
           testCode).isEmpty();
     }
     testSource = testUnitElement.getSource();
-    testCode = getSourceContent(testSource);;
+    testCode = getSourceContent(testSource);
   }
 }

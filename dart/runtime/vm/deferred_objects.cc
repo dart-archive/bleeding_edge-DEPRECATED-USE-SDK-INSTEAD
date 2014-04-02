@@ -54,6 +54,20 @@ void DeferredFloat32x4::Materialize(DeoptContext* deopt_context) {
 }
 
 
+void DeferredFloat64x2::Materialize(DeoptContext* deopt_context) {
+  RawFloat64x2** float64x2_slot = reinterpret_cast<RawFloat64x2**>(slot());
+  RawFloat64x2* raw_float64x2 = Float64x2::New(value());
+  *float64x2_slot = raw_float64x2;
+
+  if (FLAG_trace_deoptimization_verbose) {
+    double x = raw_float64x2->x();
+    double y = raw_float64x2->y();
+    OS::PrintErr("materializing Float64x2 at %" Px ": %g,%g\n",
+                 reinterpret_cast<uword>(slot()), x, y);
+  }
+}
+
+
 void DeferredInt32x4::Materialize(DeoptContext* deopt_context) {
   RawInt32x4** int32x4_slot = reinterpret_cast<RawInt32x4**>(slot());
   RawInt32x4* raw_int32x4 = Int32x4::New(value());
@@ -102,12 +116,22 @@ void DeferredObject::Materialize() {
 
   const Instance& obj = Instance::ZoneHandle(Instance::New(cls));
 
+  Smi& offset = Smi::Handle();
   Field& field = Field::Handle();
   Object& value = Object::Handle();
+  const Array& offset_map = Array::Handle(cls.OffsetToFieldMap());
+
   for (intptr_t i = 0; i < field_count_; i++) {
-    field ^= GetField(i);
+    offset ^= GetFieldOffset(i);
+    field ^= offset_map.At(offset.Value() / kWordSize);
     value = GetValue(i);
-    obj.SetField(field, value);
+    if (!field.IsNull()) {
+      obj.SetField(field, value);
+    } else {
+      ASSERT(cls.IsSignatureClass() ||
+             (offset.Value() == cls.type_arguments_field_offset()));
+      obj.SetFieldAtOffset(offset.Value(), value);
+    }
 
     if (FLAG_trace_deoptimization_verbose) {
       OS::PrintErr("    %s <- %s\n",

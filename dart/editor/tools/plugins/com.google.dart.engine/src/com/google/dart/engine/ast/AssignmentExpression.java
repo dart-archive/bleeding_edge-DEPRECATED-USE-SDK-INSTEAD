@@ -71,7 +71,7 @@ public class AssignmentExpression extends Expression {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitAssignmentExpression(this);
   }
 
@@ -205,7 +205,7 @@ public class AssignmentExpression extends Expression {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(leftHandSide, visitor);
     safelyVisitChild(rightHandSide, visitor);
   }

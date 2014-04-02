@@ -13,15 +13,9 @@
  */
 package com.google.dart.tools.core.search;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.search.scope.LibrarySearchScope;
 import com.google.dart.tools.core.internal.search.scope.ProjectSearchScope;
 import com.google.dart.tools.core.internal.search.scope.WorkspaceSearchScope;
-import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.TypeHierarchy;
-
-import java.util.Collection;
 
 /**
  * The class <code>SearchScopeFactory</code> defines utility methods that can be used to create
@@ -35,48 +29,6 @@ public final class SearchScopeFactory {
    * there is no reason not to share a single instance.
    */
   private static final SearchScope WORKSPACE_SCOPE = new WorkspaceSearchScope();
-
-  /**
-   * Create a search scope that encompasses everything in the types included in the given type
-   * hierarchy.
-   * 
-   * @param typeHierarchy the type hierarchy defining which types are included in the scope
-   * @return the search scope that was created
-   */
-  public static SearchScope createHierarchyScope(TypeHierarchy typeHierarchy) {
-    DartCore.notYetImplemented();
-    return null;
-  }
-
-  /**
-   * Create a search scope that encompasses everything in the given library.
-   * 
-   * @param library the library defining which elements are included in the scope
-   * @return the search scope that was created
-   */
-  public static SearchScope createLibraryScope(Collection<DartLibrary> libraries) {
-    return new LibrarySearchScope(libraries);
-  }
-
-  /**
-   * Create a search scope that encompasses everything in the given libraries.
-   * 
-   * @param libraries the libraries defining which elements are included in the scope
-   * @return the search scope that was created
-   */
-  public static SearchScope createLibraryScope(DartLibrary... libraries) {
-    return new LibrarySearchScope(libraries);
-  }
-
-  /**
-   * Create a search scope that encompasses everything in the given library.
-   * 
-   * @param library the library defining which elements are included in the scope
-   * @return the search scope that was created
-   */
-  public static SearchScope createLibraryScope(DartLibrary library) {
-    return new LibrarySearchScope(library);
-  }
 
   /**
    * Create a search scope that encompasses everything in the types included in the given project.
@@ -103,5 +55,4 @@ public final class SearchScopeFactory {
   private SearchScopeFactory() {
     super();
   }
-
 }

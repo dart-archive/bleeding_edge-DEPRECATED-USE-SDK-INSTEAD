@@ -12,6 +12,8 @@ const REQUIRED_PARAMETER_INDEX = 3;
 const OPTIONAL_PARAMETER_INDEX = 4;
 const DEFAULT_ARGUMENTS_INDEX = 5;
 
+const bool VALIDATE_DATA = false;
+
 // TODO(ahe): This code should be integrated in CodeEmitterTask.finishClasses.
 String getReflectionDataParser(String classesCollector,
                                JavaScriptBackend backend) {
@@ -56,6 +58,9 @@ String getReflectionDataParser(String classesCollector,
   function map(x){x={x:x};delete x.x;return x}
 ''';
 
+  String unmangledNameIndex = backend.mustRetainMetadata
+      ? ' 3 * optionalParameterCount + 2 * requiredParameterCount + 3'
+      : ' 2 * optionalParameterCount + requiredParameterCount + 3';
 
   /**
    * See [dart2js.js_emitter.ContainerBuilder.addMemberMethod] for format of
@@ -95,10 +100,12 @@ String getReflectionDataParser(String classesCollector,
     var isIntercepted =''' // Break long line.
        ''' requiredParameterCount + optionalParameterCount != funcs[0].length;
     var functionTypeIndex = ${readFunctionType("array", "2")};
-    var isReflectable =''' // Break long line.
-    ''' array.length > requiredParameterCount + optionalParameterCount + 3;
+    var unmangledNameIndex = $unmangledNameIndex;
+    var isReflectable = array.length > unmangledNameIndex;
+
     if (getterStubName) {
       f = tearOff(funcs, array, isStatic, name, isIntercepted);
+      f.getterStub = true;
 '''
       /* Used to create an isolate using spawnFunction.*/
 '''
@@ -108,30 +115,29 @@ String getReflectionDataParser(String classesCollector,
       if (getterStubName) functions.push(getterStubName);
       f.\$stubName = getterStubName;
       f.\$callName = null;
+      if (isIntercepted) init.interceptedNames[getterStubName] = true;
     }
     if (isReflectable) {
       for (var i = 0; i < funcs.length; i++) {
         funcs[i].$reflectableField = 1;
         funcs[i].$reflectionInfoField = array;
       }
-    }
-    if (isReflectable) {
-      var unmangledNameIndex =''' // Break long line.
-      ''' optionalParameterCount * 2 + requiredParameterCount + 3;
+      var mangledNames = isStatic ? init.mangledGlobalNames : init.mangledNames;
       var unmangledName = ${readString("array", "unmangledNameIndex")};
-      var reflectionName =''' // Break long line.
-      ''' unmangledName + ":" + requiredParameterCount +''' // Break long line.
+'''
+      // The function is either a getter, a setter, or a method.
+      // If it is a method, it might also have a tear-off closure.
+      // The unmangledName is the same as the getter-name.
+'''
+      var reflectionName = unmangledName;
+      if (getterStubName) mangledNames[getterStubName] = reflectionName;
+      if (isSetter) {
+        reflectionName += "=";
+      } else if (!isGetter) {
+        reflectionName += ":" + requiredParameterCount +''' // Break long line.
       ''' ":" + optionalParameterCount;
-      if (isGetter) {
-        reflectionName = unmangledName;
-      } else if (isSetter) {
-        reflectionName = unmangledName + "=";
       }
-      if (isStatic) {
-        init.mangledGlobalNames[name] = reflectionName;
-      } else {
-        init.mangledNames[name] = reflectionName;
-      }
+      mangledNames[name] = reflectionName;
       funcs[0].$reflectionNameField = reflectionName;
       funcs[0].$metadataIndexField = unmangledNameIndex + 1;
       if (optionalParameterCount) descriptor[unmangledName + "*"] = funcs[0];
@@ -196,6 +202,7 @@ String getReflectionDataParser(String classesCollector,
   if (!init.statics) init.statics = map();
   if (!init.typeInformation) init.typeInformation = map();
   if (!init.globalFunctions) init.globalFunctions = map();
+  if (!init.interceptedNames) init.interceptedNames = map();
   var libraries = init.libraries;
   var mangledNames = init.mangledNames;
   var mangledGlobalNames = init.mangledGlobalNames;
@@ -221,7 +228,7 @@ String getReflectionDataParser(String classesCollector,
     var globalObject = data[3];
     var descriptor = data[4];
     var isRoot = !!data[5];
-    var fields = descriptor && descriptor[""];
+    var fields = descriptor && descriptor["${namer.classDescriptorProperty}"];
     var classes = [];
     var functions = [];
 ''';
@@ -230,14 +237,15 @@ String getReflectionDataParser(String classesCollector,
     function processStatics(descriptor) {
       for (var property in descriptor) {
         if (!hasOwnProperty.call(descriptor, property)) continue;
-        if (property === "") continue;
+        if (property === "${namer.classDescriptorProperty}") continue;
         var element = descriptor[property];
         var firstChar = property.substring(0, 1);
         var previousProperty;
         if (firstChar === "+") {
           mangledGlobalNames[previousProperty] = property.substring(1);
-          if (descriptor[property] == 1) ''' // Break long line.
-         '''descriptor[previousProperty].$reflectableField = 1;
+          var flag = descriptor[property];
+          if (flag > 0) ''' // Break long line.
+         '''descriptor[previousProperty].$reflectableField = flag;
           if (element && element.length) ''' // Break long line.
          '''init.typeInformation[previousProperty] = element;
         } else if (firstChar === "@") {
@@ -268,8 +276,9 @@ String getReflectionDataParser(String classesCollector,
               processStatics(init.statics[property] = element[prop]);
             } else if (firstChar === "+") {
               mangledNames[previousProp] = prop.substring(1);
-              if (element[prop] == 1) ''' // Break long line.
-             '''element[previousProp].$reflectableField = 1;
+              var flag = element[prop];
+              if (flag > 0) ''' // Break long line.
+             '''element[previousProp].$reflectableField = flag;
             } else if (firstChar === "@" && prop !== "@") {
               newDesc[prop.substring(1)][$metadataField] = element[prop];
             } else if (firstChar === "*") {
@@ -281,7 +290,8 @@ String getReflectionDataParser(String classesCollector,
               optionalMethods[prop] = previousProp;
             } else {
               var elem = element[prop];
-              if (prop && elem != null &&''' // Break long line.
+              if (prop !== "${namer.classDescriptorProperty}" &&'''
+              ''' elem != null &&''' // Break long line.
               ''' elem.constructor === Array &&''' // Break long line.
               ''' prop !== "<>") {
                 addStubs(newDesc, elem, prop, false, element, []);
@@ -336,6 +346,7 @@ String readFunctionType(String array, String index) {
 }
 
 String readChecked(String array, String index, String check, String type) {
+  if (!VALIDATE_DATA) return '$array[$index]';
   return '''
 (function() {
   var result = $array[$index];

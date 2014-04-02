@@ -54,7 +54,7 @@ public class HtmlUnit extends XmlNode {
    */
   public HtmlUnit(Token beginToken, List<XmlTagNode> tagNodes, Token endToken) {
     this.beginToken = beginToken;
-    this.tagNodes = becomeParentOf(tagNodes);
+    this.tagNodes = becomeParentOfAll(tagNodes);
     this.endToken = endToken;
   }
 

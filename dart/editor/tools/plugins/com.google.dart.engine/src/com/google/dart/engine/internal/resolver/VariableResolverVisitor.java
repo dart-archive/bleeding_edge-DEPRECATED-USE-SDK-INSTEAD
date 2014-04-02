@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
@@ -73,6 +73,17 @@ public class VariableResolverVisitor extends ScopedVisitor {
     super(definingLibrary, source, typeProvider, nameScope, errorListener);
   }
 
+  /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * 
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  public VariableResolverVisitor(ResolvableLibrary library, Source source, TypeProvider typeProvider) {
+    super(library, source, typeProvider);
+  }
+
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = enclosingFunction;
@@ -106,7 +117,7 @@ public class VariableResolverVisitor extends ScopedVisitor {
       return null;
     }
     // Ignore if qualified.
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof PrefixedIdentifier
         && ((PrefixedIdentifier) parent).getIdentifier() == node) {
       return null;

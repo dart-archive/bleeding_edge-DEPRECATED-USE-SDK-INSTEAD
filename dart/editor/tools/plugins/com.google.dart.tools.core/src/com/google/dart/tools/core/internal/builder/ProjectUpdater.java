@@ -52,12 +52,12 @@ public class ProjectUpdater implements DeltaListener {
 
   @Override
   public void packageSourceAdded(SourceDeltaEvent event) {
-    currentChanges.added(event.getSource());
+    currentChanges.addedSource(event.getSource());
   }
 
   @Override
   public void packageSourceChanged(SourceDeltaEvent event) {
-    currentChanges.changed(event.getSource());
+    currentChanges.changedSource(event.getSource());
   }
 
   @Override
@@ -67,7 +67,7 @@ public class ProjectUpdater implements DeltaListener {
 
   @Override
   public void packageSourceRemoved(SourceDeltaEvent event) {
-    currentChanges.removed(event.getSource());
+    currentChanges.removedSource(event.getSource());
   }
 
   @Override
@@ -91,14 +91,14 @@ public class ProjectUpdater implements DeltaListener {
   @Override
   public void sourceAdded(SourceDeltaEvent event) {
     if (DartCore.isAnalyzed(event.getResource())) {
-      currentChanges.added(event.getSource());
+      currentChanges.addedSource(event.getSource());
     }
   }
 
   @Override
   public void sourceChanged(SourceDeltaEvent event) {
     if (DartCore.isAnalyzed(event.getResource())) {
-      currentChanges.changed(event.getSource());
+      currentChanges.changedSource(event.getSource());
     }
   }
 
@@ -114,7 +114,7 @@ public class ProjectUpdater implements DeltaListener {
 
   @Override
   public void sourceRemoved(SourceDeltaEvent event) {
-    currentChanges.removed(event.getSource());
+    currentChanges.removedSource(event.getSource());
   }
 
   @Override

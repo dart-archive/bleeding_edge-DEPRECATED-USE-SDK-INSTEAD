@@ -1,7 +1,6 @@
-/** Support code for the tests in this directory. */
+/// Support code for the tests in this directory.
 library support;
 
-import 'dart:async';
 import 'dart:io';
 import 'dart:collection';
 import 'package:path/path.dart' as path;
@@ -73,10 +72,8 @@ class TestData extends IterableBase<Map> {
     return result;
   }
 
-  /**
-   * If the current heading is a test section heading return the heading,
-   * otherwise return null.
-   */
+  /// If the current heading is a test section heading return the heading,
+  /// otherwise return null.
   static String sectionHeading(String line) {
     return line.startsWith("#") ? line.substring(1).trim() : null;
   }
@@ -92,14 +89,12 @@ class TestData extends IterableBase<Map> {
   }
 }
 
-/**
- * Serialize the [document] into the html5 test data format.
- */
+/// Serialize the [document] into the html5 test data format.
 testSerializer(Document document) {
   return (new TestSerializer()..visit(document)).toString();
 }
 
-/** Serializes the DOM into test format. See [testSerializer]. */
+/// Serializes the DOM into test format. See [testSerializer].
 class TestSerializer extends TreeVisitor {
   final StringBuffer _str;
   int _indent = 0;

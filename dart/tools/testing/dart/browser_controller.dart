@@ -80,7 +80,8 @@ abstract class Browser {
   }
 
   static const List<String> SUPPORTED_BROWSERS =
-    const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10', 'dartium'];
+    const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10',
+           'ie11', 'dartium'];
 
   static const List<String> BROWSERS_WITH_WINDOW_SUPPORT = const [];
 
@@ -463,7 +464,7 @@ class IE extends Browser {
     var args = ["query",
                 "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Internet Explorer",
                 "/v",
-                "version"];
+                "svcVersion"];
     return Process.run("reg", args).then((result) {
       if (result.exitCode == 0) {
         // The string we get back looks like this:
@@ -760,19 +761,27 @@ class BrowserTestRunner {
 
   BrowserTestingServer testingServer;
 
+  /**
+   * The TestRunner takes the testingServer in as a constructor parameter in
+   * case we wish to have a testing server with different behavior (such as the
+   * case for performance testing.
+   */
   BrowserTestRunner(this.globalConfiguration,
                     this.localIp,
                     this.browserName,
                     this.maxNumBrowsers,
-                    {bool this.checkedMode: false});
+                    {bool this.checkedMode: false,
+                    BrowserTestingServer this.testingServer});
 
   Future<bool> start() {
     // If [browserName] doesn't support opening new windows, we use new iframes
     // instead.
     bool useIframe =
         !Browser.BROWSERS_WITH_WINDOW_SUPPORT.contains(browserName);
-    testingServer = new BrowserTestingServer(
-        globalConfiguration, localIp, useIframe);
+    if (testingServer == null) {
+      testingServer = new BrowserTestingServer(
+          globalConfiguration, localIp, useIframe);
+    }
     return testingServer.start().then((_) {
       testingServer.testDoneCallBack = handleResults;
       testingServer.testStatusUpdateCallBack = handleStatusUpdate;
@@ -1159,7 +1168,7 @@ class BrowserTestingServer {
             print("Textresponse $textResponse");
             throw "Error returning content to browser: $error";
           }
-      });
+        });
       }
       void errorHandler(e) {
         if (!underTermination) print("Error occured in httpserver: $e");
@@ -1411,22 +1420,24 @@ class BrowserTestingServer {
 
         var parsedData = parseResult(msg);
         if (parsedData) {
-          // Only if the JSON was valid, we'll post it back.
-          var message = parsedData['message'];
-          var isFirstMessage = parsedData['is_first_message'];
-          var isStatusUpdate = parsedData['is_status_update'];
-          var isDone = parsedData['is_done'];
-          if (!isFirstMessage && !isStatusUpdate) {
-            if (!isDone) {
-              alert("Bug in test_controller.js: " +
-                    "isFirstMessage/isStatusUpdate/isDone were all false");
+          // Only if the JSON message contains all required parameters,
+          // will we handle it and post it back to the test controller.
+          if ('message' in parsedData &&
+              'is_first_message' in parsedData &&
+              'is_status_update' in parsedData &&
+              'is_done' in parsedData) {
+            var message = parsedData['message'];
+            var isFirstMessage = parsedData['is_first_message'];
+            var isStatusUpdate = parsedData['is_status_update'];
+            var isDone = parsedData['is_done'];
+            if (!isFirstMessage && !isStatusUpdate) {
+              if (!isDone) {
+                alert("Bug in test_controller.js: " +
+                      "isFirstMessage/isStatusUpdate/isDone were all false");
+              }
             }
-          }
-          if (message) {
             reportMessage(message, isFirstMessage, isStatusUpdate);
           }
-        } else {
-          reportMessage(msg, msg == 'STARTING', false);
         }
       }
 

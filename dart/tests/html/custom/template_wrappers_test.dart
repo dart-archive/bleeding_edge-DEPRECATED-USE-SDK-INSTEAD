@@ -22,22 +22,18 @@ class CustomElement extends HtmlElement {
   }
 }
 
-// Pump custom events polyfill events.
-void customElementsTakeRecords() {
-  if (js.context != null && js.context.hasProperty('CustomElements')) {
-    js.context['CustomElements'].callMethod('takeRecords');
-  }
-}
-
 main() {
   useHtmlConfiguration();
 
-  setUp(loadPolyfills);
+  setUp(() => customElementsReady);
 
   test('element is upgraded once', () {
 
     expect(createdCount, 0);
     document.register('x-custom', CustomElement);
+    expect(createdCount, 0);
+
+    var element = document.createElement('x-custom');
     expect(createdCount, 1);
 
     forceGC();
@@ -47,7 +43,7 @@ main() {
 
       var fragment = t.content;
 
-      fragment.querySelector('x-custom').checkCreated();
+      fragment.querySelector('x-custom').attributes['foo'] = 'true';
       expect(createdCount, 1);
     });
   });

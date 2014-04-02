@@ -163,6 +163,12 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       resolvedUnitState = CacheState.FLUSHED;
       resolvedUnit = null;
     }
+    if (angularEntryState == CacheState.VALID) {
+      angularEntryState = CacheState.FLUSHED;
+    }
+    if (angularErrorsState == CacheState.VALID) {
+      angularErrorsState = CacheState.FLUSHED;
+    }
   }
 
   @Override
@@ -311,6 +317,12 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
     hints = AnalysisError.NO_ERRORS;
     hintsState = CacheState.INVALID;
+  }
+
+  @Override
+  public void recordContentError() {
+    super.recordContentError();
+    recordParseError();
   }
 
   /**

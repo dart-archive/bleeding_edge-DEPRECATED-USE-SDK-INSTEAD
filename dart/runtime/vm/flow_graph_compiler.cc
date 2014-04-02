@@ -24,6 +24,8 @@
 namespace dart {
 
 DECLARE_FLAG(bool, code_comments);
+DECLARE_FLAG(bool, disassemble);
+DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, propagate_ic_data);
@@ -86,6 +88,8 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
           Isolate::Current()->object_store()->double_class())),
       float32x4_class_(Class::ZoneHandle(
           Isolate::Current()->object_store()->float32x4_class())),
+      float64x2_class_(Class::ZoneHandle(
+          Isolate::Current()->object_store()->float64x2_class())),
       int32x4_class_(Class::ZoneHandle(
           Isolate::Current()->object_store()->int32x4_class())),
       list_class_(Class::ZoneHandle(
@@ -262,7 +266,10 @@ void FlowGraphCompiler::VisitBlocks() {
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
-      if (FLAG_code_comments) EmitComment(instr);
+      if (FLAG_code_comments &&
+          (FLAG_disassemble || FLAG_disassemble_optimized)) {
+        EmitComment(instr);
+      }
       if (instr->IsParallelMove()) {
         parallel_move_resolver_.EmitNativeCode(instr->AsParallelMove());
       } else {
@@ -574,6 +581,7 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
           break;
         case kUnboxedFloat32x4:
         case kUnboxedInt32x4:
+        case kUnboxedFloat64x2:
           it.SetCurrentLocation(Location::QuadStackSlot(index));
           break;
         default:
@@ -908,10 +916,10 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     }
   }
 
-  if (locs->out().IsRegister()) {
+  if (locs->out(0).IsRegister()) {
     // Fixed output registers are allowed to overlap with
     // temps and inputs.
-    blocked_registers[locs->out().reg()] = true;
+    blocked_registers[locs->out(0).reg()] = true;
   }
 
   // Do not allocate known registers.
@@ -968,7 +976,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     }
   }
 
-  Location result_location = locs->out();
+  Location result_location = locs->out(0);
   if (result_location.IsUnallocated()) {
     switch (result_location.policy()) {
       case Location::kAny:
@@ -985,7 +993,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         UNREACHABLE();
         break;
     }
-    locs->set_out(result_location);
+    locs->set_out(0, result_location);
   }
 }
 
@@ -1232,35 +1240,6 @@ intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
       UNIMPLEMENTED();
       return Array::data_offset();
   }
-}
-
-
-// Returns true if checking against this type is a direct class id comparison.
-bool FlowGraphCompiler::TypeCheckAsClassEquality(const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
-  // Requires CHA, which can be applied in optimized code only,
-  if (!FLAG_use_cha || !is_optimizing()) return false;
-  if (!type.IsInstantiated()) return false;
-  const Class& type_class = Class::Handle(type.type_class());
-  // Signature classes have different type checking rules.
-  if (type_class.IsSignatureClass()) return false;
-  // Could be an interface check?
-  if (type_class.is_implemented()) return false;
-  const intptr_t type_cid = type_class.id();
-  if (CHA::HasSubclasses(type_cid)) return false;
-  const intptr_t num_type_args = type_class.NumTypeArguments();
-  if (num_type_args > 0) {
-    // Only raw types can be directly compared, thus disregarding type
-    // arguments.
-    const intptr_t num_type_params = type_class.NumTypeParameters();
-    const intptr_t from_index = num_type_args - num_type_params;
-    const TypeArguments& type_arguments =
-        TypeArguments::Handle(type.arguments());
-    const bool is_raw_type = type_arguments.IsNull() ||
-        type_arguments.IsRaw(from_index, num_type_params);
-    return is_raw_type;
-  }
-  return true;
 }
 
 

@@ -14,12 +14,12 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.ASTVisitor;
 import com.google.dart.engine.ast.AnnotatedNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.AstVisitor;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -70,7 +70,7 @@ import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
-import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
+import com.google.dart.engine.ast.visitor.SimpleAstVisitor;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -100,7 +100,6 @@ import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.ElementAnnotationImpl;
 import com.google.dart.engine.internal.element.ElementImpl;
-import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
@@ -108,7 +107,6 @@ import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
-import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
@@ -175,7 +173,7 @@ import java.util.HashSet;
  * 
  * @coverage dart.engine.resolver
  */
-public class ElementResolver extends SimpleASTVisitor<Void> {
+public class ElementResolver extends SimpleAstVisitor<Void> {
   /**
    * Instances of the class {@code SyntheticIdentifier} implement an identifier that can be used to
    * look up names in the lexical scope when there is no identifier in the AST structure. There is
@@ -198,7 +196,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
 
     @Override
-    public <R> R accept(ASTVisitor<R> visitor) {
+    public <R> R accept(AstVisitor<R> visitor) {
       return null;
     }
 
@@ -238,7 +236,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
 
     @Override
-    public void visitChildren(ASTVisitor<?> visitor) {
+    public void visitChildren(AstVisitor<?> visitor) {
     }
   }
 
@@ -246,38 +244,41 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * Checks if the given expression is the reference to the type, if it is then the
    * {@link ClassElement} is returned, otherwise {@code null} is returned.
    * 
-   * @param expr the expression to evaluate
+   * @param expression the expression to evaluate
    * @return the {@link ClassElement} if the given expression is the reference to the type, and
    *         {@code null} otherwise
    */
-  public static ClassElementImpl getTypeReference(Expression expr) {
-    if (expr instanceof Identifier) {
-      Identifier identifier = (Identifier) expr;
-      if (identifier.getStaticElement() instanceof ClassElementImpl) {
-        return (ClassElementImpl) identifier.getStaticElement();
+  public static ClassElementImpl getTypeReference(Expression expression) {
+    if (expression instanceof Identifier) {
+      Element staticElement = ((Identifier) expression).getStaticElement();
+      if (staticElement instanceof ClassElementImpl) {
+        return (ClassElementImpl) staticElement;
       }
     }
     return null;
   }
 
   /**
+   * Return {@code true} if the given identifier is the return type of a constructor declaration.
+   * 
    * @return {@code true} if the given identifier is the return type of a constructor declaration.
    */
-  private static boolean isConstructorReturnType(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+  private static boolean isConstructorReturnType(SimpleIdentifier identifier) {
+    AstNode parent = identifier.getParent();
     if (parent instanceof ConstructorDeclaration) {
-      ConstructorDeclaration constructor = (ConstructorDeclaration) parent;
-      return constructor.getReturnType() == node;
+      return ((ConstructorDeclaration) parent).getReturnType() == identifier;
     }
     return false;
   }
 
   /**
+   * Return {@code true} if the given identifier is the return type of a factory constructor.
+   * 
    * @return {@code true} if the given identifier is the return type of a factory constructor
    *         declaration.
    */
   private static boolean isFactoryConstructorReturnType(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof ConstructorDeclaration) {
       ConstructorDeclaration constructor = (ConstructorDeclaration) parent;
       return constructor.getReturnType() == node && constructor.getFactoryKeyword() != null;
@@ -286,13 +287,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Checks if the given 'super' expression is used in the valid context.
+   * Return {@code true} if the given 'super' expression is used in a valid context.
    * 
    * @param node the 'super' expression to analyze
-   * @return {@code true} if the given 'super' expression is in the valid context
+   * @return {@code true} if the 'super' expression is in a valid context
    */
   private static boolean isSuperInValidContext(SuperExpression node) {
-    for (ASTNode n = node; n != null; n = n.getParent()) {
+    for (AstNode n = node; n != null; n = n.getParent()) {
       if (n instanceof CompilationUnit) {
         return false;
       }
@@ -392,32 +393,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         MethodElement propagatedMethod = lookUpMethod(leftHandSide, propagatedType, methodName);
         node.setPropagatedElement(propagatedMethod);
 
-        boolean shouldReportMissingMember_static = shouldReportMissingMember(
-            staticType,
-            staticMethod);
-        boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static
-            && enableHints ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-        //
-        // If we are about to generate the hint (propagated version of this warning), then check
-        // that the member is not in a subtype of the propagated type.
-        //
-        if (shouldReportMissingMember_propagated) {
-          if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-            shouldReportMissingMember_propagated = false;
-          }
-        }
-
-        if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
-          ErrorCode errorCode = shouldReportMissingMember_static
-              ? StaticTypeWarningCode.UNDEFINED_METHOD : HintCode.UNDEFINED_METHOD;
-          resolver.reportErrorProxyConditionalAnalysisError(
-              shouldReportMissingMember_static ? staticType.getElement()
-                  : propagatedType.getElement(),
-              errorCode,
+        if (shouldReportMissingMember(staticType, staticMethod)) {
+          resolver.reportProxyConditionalErrorForToken(
+              staticType.getElement(),
+              StaticTypeWarningCode.UNDEFINED_METHOD,
               operator,
               methodName,
-              shouldReportMissingMember_static ? staticType.getDisplayName()
-                  : propagatedType.getDisplayName());
+              staticType.getDisplayName());
+        } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
+            && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
+          resolver.reportProxyConditionalErrorForToken(
+              propagatedType.getElement(),
+              HintCode.UNDEFINED_METHOD,
+              operator,
+              methodName,
+              propagatedType.getDisplayName());
         }
       }
     }
@@ -440,32 +430,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         MethodElement propagatedMethod = lookUpMethod(leftOperand, propagatedType, methodName);
         node.setPropagatedElement(propagatedMethod);
 
-        boolean shouldReportMissingMember_static = shouldReportMissingMember(
-            staticType,
-            staticMethod);
-        boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static
-            && enableHints ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-        //
-        // If we are about to generate the hint (propagated version of this warning), then check
-        // that the member is not in a subtype of the propagated type.
-        //
-        if (shouldReportMissingMember_propagated) {
-          if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-            shouldReportMissingMember_propagated = false;
-          }
-        }
-
-        if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
-          ErrorCode errorCode = shouldReportMissingMember_static
-              ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
-          resolver.reportErrorProxyConditionalAnalysisError(
-              shouldReportMissingMember_static ? staticType.getElement()
-                  : propagatedType.getElement(),
-              errorCode,
+        if (shouldReportMissingMember(staticType, staticMethod)) {
+          resolver.reportProxyConditionalErrorForToken(
+              staticType.getElement(),
+              StaticTypeWarningCode.UNDEFINED_OPERATOR,
               operator,
               methodName,
-              shouldReportMissingMember_static ? staticType.getDisplayName()
-                  : propagatedType.getDisplayName());
+              staticType.getDisplayName());
+        } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
+            && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
+          resolver.reportProxyConditionalErrorForToken(
+              propagatedType.getElement(),
+              HintCode.UNDEFINED_OPERATOR,
+              operator,
+              methodName,
+              propagatedType.getDisplayName());
         }
       }
     }
@@ -474,11 +453,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitBreakStatement(BreakStatement node) {
-    SimpleIdentifier labelNode = node.getLabel();
-    LabelElementImpl labelElement = lookupLabel(node, labelNode);
-    if (labelElement != null && labelElement.isOnSwitchMember()) {
-      resolver.reportError(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
-    }
+    lookupLabel(node, node.getLabel());
     return null;
   }
 
@@ -606,17 +581,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ConstructorElement element = node.getElement();
     if (element instanceof ConstructorElementImpl) {
       ConstructorElementImpl constructorElement = (ConstructorElementImpl) element;
-      // set redirected factory constructor
       ConstructorName redirectedNode = node.getRedirectedConstructor();
       if (redirectedNode != null) {
+        // set redirected factory constructor
         ConstructorElement redirectedElement = redirectedNode.getStaticElement();
         constructorElement.setRedirectedConstructor(redirectedElement);
-      }
-      // set redirected generate constructor
-      for (ConstructorInitializer initializer : node.getInitializers()) {
-        if (initializer instanceof RedirectingConstructorInvocation) {
-          ConstructorElement redirectedElement = ((RedirectingConstructorInvocation) initializer).getStaticElement();
-          constructorElement.setRedirectedConstructor(redirectedElement);
+      } else {
+        // set redirected generative constructor
+        for (ConstructorInitializer initializer : node.getInitializers()) {
+          if (initializer instanceof RedirectingConstructorInvocation) {
+            ConstructorElement redirectedElement = ((RedirectingConstructorInvocation) initializer).getStaticElement();
+            constructorElement.setRedirectedConstructor(redirectedElement);
+          }
         }
       }
       setMetadata(constructorElement, node);
@@ -630,11 +606,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ClassElement enclosingClass = resolver.getEnclosingClass();
     FieldElement fieldElement = enclosingClass.getField(fieldName.getName());
     fieldName.setStaticElement(fieldElement);
-    if (fieldElement == null || fieldElement.isSynthetic()) {
-      resolver.reportError(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD, node, fieldName);
-    } else if (fieldElement.isStatic()) {
-      resolver.reportError(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, node, fieldName);
-    }
     return null;
   }
 
@@ -645,16 +616,16 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     } else if (!(type instanceof InterfaceType)) {
       // TODO(brianwilkerson) Report these errors.
-      ASTNode parent = node.getParent();
-      if (parent instanceof InstanceCreationExpression) {
-        if (((InstanceCreationExpression) parent).isConst()) {
-          // CompileTimeErrorCode.CONST_WITH_NON_TYPE
-        } else {
-          // StaticWarningCode.NEW_WITH_NON_TYPE
-        }
-      } else {
-        // This is part of a redirecting factory constructor; not sure which error code to use
-      }
+//      ASTNode parent = node.getParent();
+//      if (parent instanceof InstanceCreationExpression) {
+//        if (((InstanceCreationExpression) parent).isConst()) {
+//          // CompileTimeErrorCode.CONST_WITH_NON_TYPE
+//        } else {
+//          // StaticWarningCode.NEW_WITH_NON_TYPE
+//        }
+//      } else {
+//        // This is part of a redirecting factory constructor; not sure which error code to use
+//      }
       return null;
     }
     // look up ConstructorElement
@@ -673,11 +644,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitContinueStatement(ContinueStatement node) {
-    SimpleIdentifier labelNode = node.getLabel();
-    LabelElementImpl labelElement = lookupLabel(node, labelNode);
-    if (labelElement != null && labelElement.isOnSwitchStatement()) {
-      resolver.reportError(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH, labelNode);
-    }
+    lookupLabel(node, node.getLabel());
     return null;
   }
 
@@ -689,72 +656,20 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitExportDirective(ExportDirective node) {
-    Element element = node.getElement();
-    if (element instanceof ExportElement) {
+    ExportElement exportElement = node.getElement();
+    if (exportElement != null) {
       // The element is null when the URI is invalid
       // TODO(brianwilkerson) Figure out whether the element can ever be something other than an
       // ExportElement
-      resolveCombinators(((ExportElement) element).getExportedLibrary(), node.getCombinators());
-      setMetadata(element, node);
+      resolveCombinators(exportElement.getExportedLibrary(), node.getCombinators());
+      setMetadata(exportElement, node);
     }
     return null;
   }
 
   @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
-    String fieldName = node.getIdentifier().getName();
-    ClassElement classElement = resolver.getEnclosingClass();
-    if (classElement != null) {
-      FieldElement fieldElement = classElement.getField(fieldName);
-      if (fieldElement == null || fieldElement.isSynthetic()) {
-        resolver.reportError(
-            CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
-            node,
-            fieldName);
-      } else {
-        ParameterElement parameterElement = node.getElement();
-        if (parameterElement instanceof FieldFormalParameterElementImpl) {
-          FieldFormalParameterElementImpl fieldFormal = (FieldFormalParameterElementImpl) parameterElement;
-          Type declaredType = fieldFormal.getType();
-          Type fieldType = fieldElement.getType();
-          if (fieldElement.isSynthetic()) {
-            resolver.reportError(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
-                node,
-                fieldName);
-          } else if (fieldElement.isStatic()) {
-            resolver.reportError(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
-                node,
-                fieldName);
-          } else if (declaredType != null && fieldType != null
-              && !declaredType.isAssignableTo(fieldType)) {
-            resolver.reportError(
-                StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
-                node,
-                declaredType.getDisplayName(),
-                fieldType.getDisplayName());
-          }
-        } else {
-          if (fieldElement.isSynthetic()) {
-            resolver.reportError(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
-                node,
-                fieldName);
-          } else if (fieldElement.isStatic()) {
-            resolver.reportError(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
-                node,
-                fieldName);
-          }
-        }
-      }
-    }
-//    else {
-//    // TODO(jwren) Report error, constructor initializer variable is a top level element
-//    // (Either here or in ErrorVerifier#checkForAllFinalInitializedErrorCodes)
-//    }
-    setMetadata(node.getElement(), node);
+    setMetadataForParameter(node.getElement(), node);
     return super.visitFieldFormalParameter(node);
   }
 
@@ -772,7 +687,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       FunctionExpression functionExpression = (FunctionExpression) expression;
       ExecutableElement functionElement = functionExpression.getElement();
       ArgumentList argumentList = node.getArgumentList();
-      ParameterElement[] parameters = resolveArgumentsToParameters(
+      ParameterElement[] parameters = resolveArgumentsToFunction(
           false,
           argumentList,
           functionElement);
@@ -791,7 +706,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    setMetadata(node.getElement(), node);
+    setMetadataForParameter(node.getElement(), node);
     return null;
   }
 
@@ -905,7 +820,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ConstructorElement invokedConstructor = node.getConstructorName().getStaticElement();
     node.setStaticElement(invokedConstructor);
     ArgumentList argumentList = node.getArgumentList();
-    ParameterElement[] parameters = resolveArgumentsToParameters(
+    ParameterElement[] parameters = resolveArgumentsToFunction(
         node.isConst(),
         argumentList,
         invokedConstructor);
@@ -961,8 +876,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       if (typeReference != null) {
         staticElement = propagatedElement = resolveElement(typeReference, methodName);
       } else {
-        staticElement = resolveInvokedElement(target, staticType, methodName);
-        propagatedElement = resolveInvokedElement(target, getPropagatedType(target), methodName);
+        staticElement = resolveInvokedElementWithTarget(target, staticType, methodName);
+        propagatedElement = resolveInvokedElementWithTarget(
+            target,
+            getPropagatedType(target),
+            methodName);
       }
     }
     staticElement = convertSetterToGetter(staticElement);
@@ -1022,12 +940,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     }
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
-      resolver.reportError(
+      resolver.reportErrorForNode(
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
           methodName,
           methodName.getName());
     } else if (errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION) {
-      resolver.reportError(
+      resolver.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_FUNCTION,
           methodName,
           methodName.getName());
@@ -1038,7 +956,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         targetTypeName = enclosingClass.getDisplayName();
         ErrorCode proxyErrorCode = generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD;
-        resolver.reportErrorProxyConditionalAnalysisError(
+        resolver.reportProxyConditionalErrorForNode(
             resolver.getEnclosingClass(),
             proxyErrorCode,
             methodName,
@@ -1067,7 +985,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         targetTypeName = targetType == null ? null : targetType.getDisplayName();
         ErrorCode proxyErrorCode = generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD;
-        resolver.reportErrorProxyConditionalAnalysisError(
+        resolver.reportProxyConditionalErrorForNode(
             targetType.getElement(),
             proxyErrorCode,
             methodName,
@@ -1079,7 +997,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // The error code will never be generated via type propagation
       Type targetType = getStaticType(target);
       String targetTypeName = targetType == null ? null : targetType.getName();
-      resolver.reportError(
+      resolver.reportErrorForNode(
           StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
           methodName,
           methodName.getName(),
@@ -1113,29 +1031,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
     node.setPropagatedElement(propagatedMethod);
 
-    boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod);
-    boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static && enableHints
-        ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-    //
-    // If we are about to generate the hint (propagated version of this warning), then check
-    // that the member is not in a subtype of the propagated type.
-    //
-    if (shouldReportMissingMember_propagated) {
-      if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-        shouldReportMissingMember_propagated = false;
-      }
-    }
-
-    if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
-      ErrorCode errorCode = shouldReportMissingMember_static
-          ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
-      resolver.reportErrorProxyConditionalAnalysisError(
-          shouldReportMissingMember_static ? staticType.getElement() : propagatedType.getElement(),
-          errorCode,
+    if (shouldReportMissingMember(staticType, staticMethod)) {
+      resolver.reportProxyConditionalErrorForToken(
+          staticType.getElement(),
+          StaticTypeWarningCode.UNDEFINED_OPERATOR,
           node.getOperator(),
           methodName,
-          shouldReportMissingMember_static ? staticType.getDisplayName()
-              : propagatedType.getDisplayName());
+          staticType.getDisplayName());
+    } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
+        && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
+      resolver.reportProxyConditionalErrorForToken(
+          propagatedType.getElement(),
+          HintCode.UNDEFINED_OPERATOR,
+          node.getOperator(),
+          methodName,
+          propagatedType.getDisplayName());
     }
     return null;
   }
@@ -1157,17 +1067,17 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
       if (element == null) {
         if (identifier.inSetterContext()) {
-          resolver.reportError(
+          resolver.reportErrorForNode(
               StaticWarningCode.UNDEFINED_SETTER,
               identifier,
               identifier.getName(),
               prefixElement.getName());
         } else if (node.getParent() instanceof Annotation) {
           Annotation annotation = (Annotation) node.getParent();
-          resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+          resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
           return null;
         } else {
-          resolver.reportError(
+          resolver.reportErrorForNode(
               StaticWarningCode.UNDEFINED_GETTER,
               identifier,
               identifier.getName(),
@@ -1227,30 +1137,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
       node.setPropagatedElement(propagatedMethod);
 
-      boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod);
-      boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static
-          && enableHints ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-      //
-      // If we are about to generate the hint (propagated version of this warning), then check
-      // that the member is not in a subtype of the propagated type.
-      //
-      if (shouldReportMissingMember_propagated) {
-        if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-          shouldReportMissingMember_propagated = false;
-        }
-      }
-
-      if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
-        ErrorCode errorCode = shouldReportMissingMember_static
-            ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
-        resolver.reportErrorProxyConditionalAnalysisError(
-            shouldReportMissingMember_static ? staticType.getElement()
-                : propagatedType.getElement(),
-            errorCode,
+      if (shouldReportMissingMember(staticType, staticMethod)) {
+        resolver.reportProxyConditionalErrorForToken(
+            staticType.getElement(),
+            StaticTypeWarningCode.UNDEFINED_OPERATOR,
             operator,
             methodName,
-            shouldReportMissingMember_static ? staticType.getDisplayName()
-                : propagatedType.getDisplayName());
+            staticType.getDisplayName());
+      } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
+          && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
+        resolver.reportProxyConditionalErrorForToken(
+            propagatedType.getElement(),
+            HintCode.UNDEFINED_OPERATOR,
+            operator,
+            methodName,
+            propagatedType.getDisplayName());
       }
     }
     return null;
@@ -1290,7 +1191,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     node.setStaticElement(element);
     ArgumentList argumentList = node.getArgumentList();
-    ParameterElement[] parameters = resolveArgumentsToParameters(false, argumentList, element);
+    ParameterElement[] parameters = resolveArgumentsToFunction(false, argumentList, element);
     if (parameters != null) {
       argumentList.setCorrespondingStaticParameters(parameters);
     }
@@ -1299,7 +1200,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    setMetadata(node.getElement(), node);
+    setMetadataForParameter(node.getElement(), node);
     return null;
   }
 
@@ -1332,19 +1233,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Element element = resolveSimpleIdentifier(node);
     ClassElement enclosingClass = resolver.getEnclosingClass();
     if (isFactoryConstructorReturnType(node) && element != enclosingClass) {
-      resolver.reportError(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
+      resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
     } else if (isConstructorReturnType(node) && element != enclosingClass) {
-      resolver.reportError(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
+      resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       element = null;
     } else if (element == null || (element instanceof PrefixElement && !isValidAsPrefix(node))) {
       // TODO(brianwilkerson) Recover from this error.
       if (isConstructorReturnType(node)) {
-        resolver.reportError(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
+        resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       } else if (node.getParent() instanceof Annotation) {
         Annotation annotation = (Annotation) node.getParent();
-        resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+        resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       } else {
-        resolver.reportErrorProxyConditionalAnalysisError(
+        resolver.reportProxyConditionalErrorForNode(
             resolver.getEnclosingClass(),
             StaticWarningCode.UNDEFINED_IDENTIFIER,
             node,
@@ -1389,13 +1290,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ConstructorElement element = superType.lookUpConstructor(superName, definingLibrary);
     if (element == null) {
       if (name != null) {
-        resolver.reportError(
+        resolver.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
             node,
             superType.getDisplayName(),
             name);
       } else {
-        resolver.reportError(
+        resolver.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
             node,
             superType.getDisplayName());
@@ -1403,7 +1304,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     } else {
       if (element.isFactory()) {
-        resolver.reportError(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node, element);
+        resolver.reportErrorForNode(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node, element);
       }
     }
     if (name != null) {
@@ -1411,7 +1312,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     node.setStaticElement(element);
     ArgumentList argumentList = node.getArgumentList();
-    ParameterElement[] parameters = resolveArgumentsToParameters(
+    ParameterElement[] parameters = resolveArgumentsToFunction(
         isInConstConstructor(),
         argumentList,
         element);
@@ -1424,7 +1325,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitSuperExpression(SuperExpression node) {
     if (!isSuperInValidContext(node)) {
-      resolver.reportError(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
+      resolver.reportErrorForNode(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
     }
     return super.visitSuperExpression(node);
   }
@@ -1452,9 +1353,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       NodeList<Annotation> annotations) {
     int annotationCount = annotations.size();
     for (int i = 0; i < annotationCount; i++) {
-      Element resolvedElement = annotations.get(i).getElement();
+      Annotation annotation = annotations.get(i);
+      Element resolvedElement = annotation.getElement();
       if (resolvedElement != null) {
-        annotationList.add(new ElementAnnotationImpl(resolvedElement));
+        ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(resolvedElement);
+        annotation.setElementAnnotation(elementAnnotation);
+        annotationList.add(elementAnnotation);
       }
     }
   }
@@ -1560,16 +1464,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
     boolean shouldReportMissingMember_static = shouldReportMissingMember(staticType, staticMethod);
     boolean shouldReportMissingMember_propagated = !shouldReportMissingMember_static && enableHints
-        ? shouldReportMissingMember(propagatedType, propagatedMethod) : false;
-    //
-    // If we are about to generate the hint (propagated version of this warning), then check
-    // that the member is not in a subtype of the propagated type.
-    //
-    if (shouldReportMissingMember_propagated) {
-      if (memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-        shouldReportMissingMember_propagated = false;
-      }
-    }
+        && shouldReportMissingMember(propagatedType, propagatedMethod)
+        && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false);
 
     if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
       Token leftBracket = node.getLeftBracket();
@@ -1577,7 +1473,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       ErrorCode errorCode = shouldReportMissingMember_static
           ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
       if (leftBracket == null || rightBracket == null) {
-        resolver.reportErrorProxyConditionalAnalysisError(
+        resolver.reportProxyConditionalErrorForNode(
             shouldReportMissingMember_static ? staticType.getElement()
                 : propagatedType.getElement(),
             errorCode,
@@ -1588,7 +1484,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       } else {
         int offset = leftBracket.getOffset();
         int length = rightBracket.getOffset() - offset + 1;
-        resolver.reportErrorProxyConditionalAnalysisError(
+        resolver.reportProxyConditionalErrorForOffset(
             shouldReportMissingMember_static ? staticType.getElement()
                 : propagatedType.getElement(),
             errorCode,
@@ -1626,12 +1522,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
               CALL_METHOD_NAME,
               definingLibrary);
           if (callMethod != null) {
-            return resolveArgumentsToParameters(false, argumentList, callMethod);
+            return resolveArgumentsToFunction(false, argumentList, callMethod);
           }
         } else if (getterReturnType instanceof FunctionType) {
           Element functionElement = ((FunctionType) getterReturnType).getElement();
           if (functionElement instanceof ExecutableElement) {
-            return resolveArgumentsToParameters(
+            return resolveArgumentsToFunction(
                 false,
                 argumentList,
                 (ExecutableElement) functionElement);
@@ -1639,7 +1535,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         }
       }
     } else if (element instanceof ExecutableElement) {
-      return resolveArgumentsToParameters(false, argumentList, (ExecutableElement) element);
+      return resolveArgumentsToFunction(false, argumentList, (ExecutableElement) element);
     } else if (element instanceof VariableElement) {
       VariableElement variable = (VariableElement) element;
       Type type = promoteManager.getStaticType(variable);
@@ -1831,7 +1727,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return {@code true} if the given node is the prefix in an import directive
    */
   private boolean isValidAsPrefix(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
+    AstNode parent = node.getParent();
     if (parent instanceof ImportDirective) {
       return ((ImportDirective) parent).getPrefix() == node;
     } else if (parent instanceof PrefixedIdentifier) {
@@ -2022,7 +1918,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param labelNode the node representing the label being looked up
    * @return the element corresponding to the given label node in the current scope
    */
-  private LabelElementImpl lookupLabel(ASTNode parentNode, SimpleIdentifier labelNode) {
+  private LabelElementImpl lookupLabel(AstNode parentNode, SimpleIdentifier labelNode) {
     LabelScope labelScope = resolver.getLabelScope();
     LabelElementImpl labelElement = null;
     if (labelNode == null) {
@@ -2043,11 +1939,17 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     } else {
       if (labelScope == null) {
-        resolver.reportError(CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, labelNode.getName());
+        resolver.reportErrorForNode(
+            CompileTimeErrorCode.LABEL_UNDEFINED,
+            labelNode,
+            labelNode.getName());
       } else {
-        labelElement = (LabelElementImpl) labelScope.lookup(labelNode);
+        labelElement = (LabelElementImpl) labelScope.lookup(labelNode.getName());
         if (labelElement == null) {
-          resolver.reportError(CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, labelNode.getName());
+          resolver.reportErrorForNode(
+              CompileTimeErrorCode.LABEL_UNDEFINED,
+              labelNode,
+              labelNode.getName());
         } else {
           labelNode.setStaticElement(labelElement);
         }
@@ -2056,7 +1958,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (labelElement != null) {
       ExecutableElement labelContainer = labelElement.getAncestor(ExecutableElement.class);
       if (labelContainer != resolver.getEnclosingFunction()) {
-        resolver.reportError(
+        resolver.reportErrorForNode(
             CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
             labelNode,
             labelNode.getName());
@@ -2292,11 +2194,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         return TokenType.STAR;
       case TILDE_SLASH_EQ:
         return TokenType.TILDE_SLASH;
+      default:
+        // Internal error: Unmapped assignment operator.
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Failed to map " + operator.getLexeme() + " to it's corresponding operator");
+        return operator;
     }
-    // Internal error: Unmapped assignment operator.
-    AnalysisEngine.getInstance().getLogger().logError(
-        "Failed to map " + operator.getLexeme() + " to it's corresponding operator");
-    return operator;
   }
 
   private void resolveAnnotationConstructorInvocationArguments(Annotation annotation,
@@ -2307,7 +2210,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return;
     }
     // resolve arguments to parameters
-    ParameterElement[] parameters = resolveArgumentsToParameters(true, argumentList, constructor);
+    ParameterElement[] parameters = resolveArgumentsToFunction(true, argumentList, constructor);
     if (parameters != null) {
       argumentList.setCorrespondingStaticParameters(parameters);
     }
@@ -2406,7 +2309,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     // we need constructor
     if (constructor == null) {
-      resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
     // record element
@@ -2419,13 +2322,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       PropertyAccessorElement accessorElement) {
     // accessor should be synthetic
     if (!accessorElement.isSynthetic()) {
-      resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
     // variable should be constant
     VariableElement variableElement = accessorElement.getVariable();
     if (!variableElement.isConst()) {
-      resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
     }
     // OK
     return;
@@ -2442,7 +2345,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param executableElement the element that will be invoked with the arguments
    * @return the parameters that correspond to the arguments
    */
-  private ParameterElement[] resolveArgumentsToParameters(boolean reportError,
+  private ParameterElement[] resolveArgumentsToFunction(boolean reportError,
       ArgumentList argumentList, ExecutableElement executableElement) {
     if (executableElement == null) {
       return null;
@@ -2497,13 +2400,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         if (element == null) {
           ErrorCode errorCode = reportError ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
               : StaticWarningCode.UNDEFINED_NAMED_PARAMETER;
-          resolver.reportError(errorCode, nameNode, name);
+          resolver.reportErrorForNode(errorCode, nameNode, name);
         } else {
           resolvedParameters[i] = element;
           nameNode.setStaticElement(element);
         }
         if (!usedNames.add(name)) {
-          resolver.reportError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, name);
+          resolver.reportErrorForNode(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, name);
         }
       } else {
         positionalArgumentCount++;
@@ -2515,7 +2418,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (positionalArgumentCount < requiredParameters.size()) {
       ErrorCode errorCode = reportError ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
           : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS;
-      resolver.reportError(
+      resolver.reportErrorForNode(
           errorCode,
           argumentList,
           requiredParameters.size(),
@@ -2523,7 +2426,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else if (positionalArgumentCount > unnamedParameterCount) {
       ErrorCode errorCode = reportError ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
           : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS;
-      resolver.reportError(errorCode, argumentList, unnamedParameterCount, positionalArgumentCount);
+      resolver.reportErrorForNode(
+          errorCode,
+          argumentList,
+          unnamedParameterCount,
+          positionalArgumentCount);
     }
     return resolvedParameters;
   }
@@ -2542,7 +2449,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       //
       return;
     }
-    Namespace namespace = new NamespaceBuilder().createExportNamespace(library);
+    Namespace namespace = new NamespaceBuilder().createExportNamespaceForLibrary(library);
     for (Combinator combinator : combinators) {
       NodeList<SimpleIdentifier> names;
       if (combinator instanceof HideCombinator) {
@@ -2583,50 +2490,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Given an invocation of the form 'e.m(a1, ..., an)', resolve 'e.m' to the element being invoked.
-   * If the returned element is a method, then the method will be invoked. If the returned element
-   * is a getter, the getter will be invoked without arguments and the result of that invocation
-   * will then be invoked with the arguments.
-   * 
-   * @param target the target of the invocation ('e')
-   * @param targetType the type of the target
-   * @param methodName the name of the method being invoked ('m')
-   * @return the element being invoked
-   */
-  private Element resolveInvokedElement(Expression target, Type targetType,
-      SimpleIdentifier methodName) {
-    if (targetType instanceof InterfaceType) {
-      InterfaceType classType = (InterfaceType) targetType;
-      Element element = lookUpMethod(target, classType, methodName.getName());
-      if (element == null) {
-        //
-        // If there's no method, then it's possible that 'm' is a getter that returns a function.
-        //
-        element = lookUpGetter(target, classType, methodName.getName());
-      }
-      return element;
-    } else if (target instanceof SimpleIdentifier) {
-      Element targetElement = ((SimpleIdentifier) target).getStaticElement();
-      if (targetElement instanceof PrefixElement) {
-        //
-        // Look to see whether the name of the method is really part of a prefixed identifier for an
-        // imported top-level function or top-level getter that returns a function.
-        //
-        final String name = ((SimpleIdentifier) target).getName() + "." + methodName;
-        Identifier functionName = new SyntheticIdentifier(name);
-        Element element = resolver.getNameScope().lookup(functionName, definingLibrary);
-        if (element != null) {
-          // TODO(brianwilkerson) This isn't a method invocation, it's a function invocation where
-          // the function name is a prefixed identifier. Consider re-writing the AST.
-          return element;
-        }
-      }
-    }
-    // TODO(brianwilkerson) Report this error.
-    return null;
-  }
-
-  /**
    * Given an invocation of the form 'm(a1, ..., an)', resolve 'm' to the element being invoked. If
    * the returned element is a method, then the method will be invoked. If the returned element is a
    * getter, the getter will be invoked without arguments and the result of that invocation will
@@ -2659,6 +2522,50 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     // TODO(brianwilkerson) Report this error.
     return element;
+  }
+
+  /**
+   * Given an invocation of the form 'e.m(a1, ..., an)', resolve 'e.m' to the element being invoked.
+   * If the returned element is a method, then the method will be invoked. If the returned element
+   * is a getter, the getter will be invoked without arguments and the result of that invocation
+   * will then be invoked with the arguments.
+   * 
+   * @param target the target of the invocation ('e')
+   * @param targetType the type of the target
+   * @param methodName the name of the method being invoked ('m')
+   * @return the element being invoked
+   */
+  private Element resolveInvokedElementWithTarget(Expression target, Type targetType,
+      SimpleIdentifier methodName) {
+    if (targetType instanceof InterfaceType) {
+      InterfaceType classType = (InterfaceType) targetType;
+      Element element = lookUpMethod(target, classType, methodName.getName());
+      if (element == null) {
+        //
+        // If there's no method, then it's possible that 'm' is a getter that returns a function.
+        //
+        element = lookUpGetter(target, classType, methodName.getName());
+      }
+      return element;
+    } else if (target instanceof SimpleIdentifier) {
+      Element targetElement = ((SimpleIdentifier) target).getStaticElement();
+      if (targetElement instanceof PrefixElement) {
+        //
+        // Look to see whether the name of the method is really part of a prefixed identifier for an
+        // imported top-level function or top-level getter that returns a function.
+        //
+        final String name = ((SimpleIdentifier) target).getName() + "." + methodName;
+        Identifier functionName = new SyntheticIdentifier(name);
+        Element element = resolver.getNameScope().lookup(functionName, definingLibrary);
+        if (element != null) {
+          // TODO(brianwilkerson) This isn't a method invocation, it's a function invocation where
+          // the function name is a prefixed identifier. Consider re-writing the AST.
+          return element;
+        }
+      }
+    }
+    // TODO(brianwilkerson) Report this error.
+    return null;
   }
 
   /**
@@ -2734,7 +2641,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         if (propertyName.inSetterContext()) {
           ErrorCode errorCode = shouldReportMissingMember_static
               ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
-          resolver.reportError(
+          resolver.reportErrorForNode(
               errorCode,
               propertyName,
               propertyName.getName(),
@@ -2742,13 +2649,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         } else if (propertyName.inGetterContext()) {
           ErrorCode errorCode = shouldReportMissingMember_static
               ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-          resolver.reportError(
+          resolver.reportErrorForNode(
               errorCode,
               propertyName,
               propertyName.getName(),
               staticType.getDisplayName());
         } else {
-          resolver.reportError(
+          resolver.reportErrorForNode(
               StaticWarningCode.UNDEFINED_IDENTIFIER,
               propertyName,
               propertyName.getName());
@@ -2762,7 +2669,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           if (isStaticProperty) {
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
-            resolver.reportErrorProxyConditionalAnalysisError(
+            resolver.reportProxyConditionalErrorForNode(
                 staticOrPropagatedEnclosingElt,
                 errorCode,
                 propertyName,
@@ -2771,7 +2678,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           } else {
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
-            resolver.reportErrorProxyConditionalAnalysisError(
+            resolver.reportProxyConditionalErrorForNode(
                 staticOrPropagatedEnclosingElt,
                 errorCode,
                 propertyName,
@@ -2782,7 +2689,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           if (isStaticProperty) {
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-            resolver.reportErrorProxyConditionalAnalysisError(
+            resolver.reportProxyConditionalErrorForNode(
                 staticOrPropagatedEnclosingElt,
                 errorCode,
                 propertyName,
@@ -2791,7 +2698,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           } else {
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-            resolver.reportErrorProxyConditionalAnalysisError(
+            resolver.reportProxyConditionalErrorForNode(
                 staticOrPropagatedEnclosingElt,
                 errorCode,
                 propertyName,
@@ -2799,7 +2706,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
                 staticOrPropagatedEnclosingElt.getDisplayName());
           }
         } else {
-          resolver.reportErrorProxyConditionalAnalysisError(
+          resolver.reportProxyConditionalErrorForNode(
               staticOrPropagatedEnclosingElt,
               StaticWarningCode.UNDEFINED_IDENTIFIER,
               propertyName,
@@ -2914,7 +2821,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param element the element to which the node has been resolved
    * @param node the node that can have annotations associated with it
    */
-  private void setMetadata(Element element, NormalFormalParameter node) {
+  private void setMetadataForParameter(Element element, NormalFormalParameter node) {
     if (!(element instanceof ElementImpl)) {
       return;
     }

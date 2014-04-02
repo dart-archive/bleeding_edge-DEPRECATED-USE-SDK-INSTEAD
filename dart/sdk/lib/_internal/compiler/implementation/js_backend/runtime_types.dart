@@ -186,8 +186,8 @@ class RuntimeTypes {
           potentiallyAddForRti(contextClass);
         }
         if (type.kind == TypeKind.FUNCTION) {
-          void analyzeMethod(Element method) {
-            DartType memberType = method.computeType(compiler);
+          void analyzeMethod(TypedElement method) {
+            DartType memberType = method.type;
             ClassElement contextClass = Types.getClassContext(memberType);
             if (contextClass != null &&
                 compiler.types.isPotentialSubtype(memberType, type)) {
@@ -201,8 +201,8 @@ class RuntimeTypes {
       }
     });
     if (compiler.enableTypeAssertions) {
-      void analyzeMethod(Element method) {
-        DartType memberType = method.computeType(compiler);
+      void analyzeMethod(TypedElement method) {
+        DartType memberType = method.type;
         ClassElement contextClass = Types.getClassContext(memberType);
         if (contextClass != null) {
           potentiallyAddForRti(contextClass);
@@ -275,22 +275,21 @@ class RuntimeTypes {
     for (DartType instantiatedType in universe.instantiatedTypes) {
       if (instantiatedType.kind == TypeKind.INTERFACE) {
         InterfaceType interface = instantiatedType;
-        InterfaceTypeMember member =
-            interface.lookupMember(Compiler.CALL_OPERATOR_NAME);
-        if (member != null) {
-          instantiatedTypes.add(member.computeType(compiler));
+        FunctionType callType = interface.callType;
+        if (callType != null) {
+          instantiatedTypes.add(callType);
         }
       }
     }
     for (FunctionElement element in universe.staticFunctionsNeedingGetter) {
-      instantiatedTypes.add(element.computeType(compiler));
+      instantiatedTypes.add(element.type);
     }
     // TODO(johnniwinther): We should get this information through the
     // [neededClasses] computed in the emitter instead of storing it and pulling
     // it from resolution, but currently it would introduce a cyclic dependency
     // between [computeRequiredChecks] and [computeNeededClasses].
-    for (Element element in compiler.resolverWorld.closurizedMembers) {
-      instantiatedTypes.add(element.computeType(compiler));
+    for (TypedElement element in compiler.resolverWorld.closurizedMembers) {
+      instantiatedTypes.add(element.type);
     }
     return instantiatedTypes;
   }
@@ -433,7 +432,7 @@ class RuntimeTypes {
       return true;
     }
 
-    InterfaceType originalType = cls.computeType(compiler);
+    InterfaceType originalType = cls.thisType;
     InterfaceType type = originalType.asInstanceOf(check);
     // [type] is not a subtype of [check]. we do not generate a check and do not
     // need a substitution.
@@ -499,7 +498,7 @@ class RuntimeTypes {
     // Unnamed mixin application classes do not need substitutions, because they
     // are never instantiated and their checks are overwritten by the class that
     // they are mixed into.
-    InterfaceType type = cls.computeType(compiler);
+    InterfaceType type = cls.thisType;
     InterfaceType target = type.asInstanceOf(check);
     Link<DartType> typeVariables = cls.typeVariables;
     if (typeVariables.isEmpty && !alwaysGenerateFunction) {
@@ -603,6 +602,8 @@ class RuntimeTypes {
          index++, variables = variables.tail) {
       if (variables.head.element == variable) return index;
     }
+    throw invariant(variable, false,
+                    message: "Couldn't find type-variable index");
   }
 
   /// Return all classes that are referenced in the type of the function, i.e.,
@@ -720,7 +721,8 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   }
 
   visitType(DartType type, _) {
-    compiler.internalError('Unexpected type: $type (${type.kind})');
+    compiler.internalError(NO_LOCATION_SPANNABLE,
+        'Unexpected type: $type (${type.kind}).');
   }
 }
 

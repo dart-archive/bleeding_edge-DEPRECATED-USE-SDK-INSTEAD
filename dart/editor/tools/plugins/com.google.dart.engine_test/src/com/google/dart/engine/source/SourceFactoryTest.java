@@ -69,13 +69,13 @@ public class SourceFactoryTest extends TestCase {
     final boolean[] invoked = {false};
     SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
-      public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+      public Source fromEncoding(UriKind kind, URI uri) {
         invoked[0] = true;
-        return new FileBasedSource(contentCache, new File(uri), kind);
+        return new FileBasedSource(new File(uri), kind);
       }
 
       @Override
-      public Source resolveAbsolute(ContentCache contentCache, URI uri) {
+      public Source resolveAbsolute(URI uri) {
         return null;
       }
     });
@@ -87,14 +87,14 @@ public class SourceFactoryTest extends TestCase {
     final boolean[] invoked = {false};
     SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
-      public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+      public Source fromEncoding(UriKind kind, URI uri) {
         assertSame(UriKind.PACKAGE_SELF_URI, kind);
         invoked[0] = true;
-        return new FileBasedSource(contentCache, new File(uri), kind);
+        return new FileBasedSource(new File(uri), kind);
       }
 
       @Override
-      public Source resolveAbsolute(ContentCache contentCache, URI uri) {
+      public Source resolveAbsolute(URI uri) {
         return null;
       }
     });
@@ -106,12 +106,12 @@ public class SourceFactoryTest extends TestCase {
     final boolean[] invoked = {false};
     SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
-      public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+      public Source fromEncoding(UriKind kind, URI uri) {
         return null;
       }
 
       @Override
-      public Source resolveAbsolute(ContentCache contentCache, URI uri) {
+      public Source resolveAbsolute(URI uri) {
         invoked[0] = true;
         return null;
       }
@@ -121,38 +121,36 @@ public class SourceFactoryTest extends TestCase {
   }
 
   public void test_resolveUri_nonAbsolute_absolute() throws Exception {
-    ContentCache contentCache = new ContentCache();
-    SourceFactory factory = new SourceFactory(contentCache, new UriResolver() {
+    SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
-      public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+      public Source fromEncoding(UriKind kind, URI uri) {
         return null;
       }
 
       @Override
-      public Source resolveAbsolute(ContentCache contentCache, URI uri) {
+      public Source resolveAbsolute(URI uri) {
         return null;
       }
     });
     String absolutePath = "/does/not/matter.dart";
-    Source containingSource = new FileBasedSource(contentCache, createFile("/does/not/exist.dart"));
+    Source containingSource = new FileBasedSource(createFile("/does/not/exist.dart"));
     Source result = factory.resolveUri(containingSource, absolutePath);
     assertEquals(createFile(absolutePath).getAbsolutePath(), result.getFullName());
   }
 
   public void test_resolveUri_nonAbsolute_relative() throws Exception {
-    ContentCache contentCache = new ContentCache();
-    SourceFactory factory = new SourceFactory(contentCache, new UriResolver() {
+    SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
-      public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+      public Source fromEncoding(UriKind kind, URI uri) {
         return null;
       }
 
       @Override
-      public Source resolveAbsolute(ContentCache contentCache, URI uri) {
+      public Source resolveAbsolute(URI uri) {
         return null;
       }
     });
-    Source containingSource = new FileBasedSource(contentCache, createFile("/does/not/have.dart"));
+    Source containingSource = new FileBasedSource(createFile("/does/not/have.dart"));
     Source result = factory.resolveUri(containingSource, "exist.dart");
     assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
   }
@@ -160,17 +158,17 @@ public class SourceFactoryTest extends TestCase {
   public void test_restoreUri() throws Exception {
     File file1 = createFile("/some/file1.dart");
     File file2 = createFile("/some/file2.dart");
-    final Source source1 = new FileBasedSource(null, file1);
-    final Source source2 = new FileBasedSource(null, file2);
+    final Source source1 = new FileBasedSource(file1);
+    final Source source2 = new FileBasedSource(file2);
     final URI expected1 = new URI("http://www.google.com");
     SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
-      public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+      public Source fromEncoding(UriKind kind, URI uri) {
         return null;
       }
 
       @Override
-      public Source resolveAbsolute(ContentCache contentCache, URI uri) {
+      public Source resolveAbsolute(URI uri) {
         return null;
       }
 
@@ -184,59 +182,5 @@ public class SourceFactoryTest extends TestCase {
     });
     assertSame(expected1, factory.restoreUri(source1));
     assertSame(null, factory.restoreUri(source2));
-  }
-
-  public void test_setContents() {
-    ContentCache contentCache = new ContentCache();
-    TestSourceFactory factory = new TestSourceFactory(contentCache);
-    File file = createFile("/does/not/exist.dart");
-    Source source = new FileBasedSource(contentCache, file);
-    assertNull(factory.getContents(source));
-    assertNull(factory.getModificationStamp(source));
-
-    String contents = "library lib;";
-    assertNull(factory.setContents(source, contents));
-    assertEquals(contents, factory.getContents(source));
-    assertNotNull(factory.getModificationStamp(source));
-
-    assertEquals(contents, factory.setContents(source, contents));
-
-    assertEquals(contents, factory.setContents(source, null));
-    assertNull(factory.getContents(source));
-    assertNull(factory.getModificationStamp(source));
-
-    assertNull(factory.setContents(source, null));
-  }
-
-  public void test_sharedContents() {
-    ContentCache contentCache = new ContentCache();
-
-    TestSourceFactory factory1 = new TestSourceFactory(contentCache);
-    File file = createFile("/does/not/exist.dart");
-    Source source1 = new FileBasedSource(contentCache, file);
-    assertNull(factory1.getContents(source1));
-    String contents = "library lib;";
-    factory1.setContents(source1, contents);
-    assertEquals(contents, factory1.getContents(source1));
-
-    TestSourceFactory factory2 = new TestSourceFactory(contentCache);
-    Source source2 = new FileBasedSource(contentCache, file);
-    assertEquals(contents, factory2.getContents(source2));
-  }
-
-  public void test_sharedContentsNot() {
-    ContentCache contentCache1 = new ContentCache();
-    TestSourceFactory factory1 = new TestSourceFactory(contentCache1);
-    File file = createFile("/does/not/exist.dart");
-    Source source1 = new FileBasedSource(contentCache1, file);
-    assertNull(factory1.getContents(source1));
-    String contents = "library lib;";
-    factory1.setContents(source1, contents);
-    assertEquals(contents, factory1.getContents(source1));
-
-    ContentCache contentCache2 = new ContentCache();
-    TestSourceFactory factory2 = new TestSourceFactory(contentCache2);
-    Source source2 = new FileBasedSource(contentCache2, file);
-    assertNull(factory2.getContents(source2));
   }
 }

@@ -106,7 +106,12 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
     } else if (value instanceof ServerDebugValue) {
       ServerDebugValue debugValue = (ServerDebugValue) value;
 
-      listener.detailComputed(value, debugValue.getDetailValue());
+      debugValue.computeDetail(new DartiumDebugValue.ValueCallback() {
+        @Override
+        public void detailComputed(String stringValue) {
+          listener.detailComputed(value, stringValue);
+        }
+      });
     } else {
       listener.detailComputed(value, null);
     }
@@ -222,6 +227,8 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
           return DartDebugUIPlugin.getImage("obj16/object_library.png");
         } else if (variable.isStatic()) {
           return DartDebugUIPlugin.getImage("obj16/object_static.png");
+        } else if (variable.isLocal()) {
+          return DartDebugUIPlugin.getImage("obj16/object_local.gif");
         } else {
           return DartDebugUIPlugin.getImage("obj16/object_obj.png");
         }

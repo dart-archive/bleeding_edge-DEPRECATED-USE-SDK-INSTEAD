@@ -32,25 +32,21 @@ public class DartUriResolverTest extends TestCase {
   }
 
   public void test_fromEncoding_dart() throws Exception {
-    ContentCache contentCache = new ContentCache();
     File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.fromEncoding(contentCache, UriKind.DART_URI, new URI(
-        "file:/does/not/exist.dart"));
+    Source result = resolver.fromEncoding(UriKind.DART_URI, new URI("file:/does/not/exist.dart"));
     assertNotNull(result);
     assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
   }
 
   public void test_fromEncoding_nonDart() throws Exception {
-    ContentCache contentCache = new ContentCache();
     File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.fromEncoding(contentCache, UriKind.FILE_URI, new URI(
-        "file:/does/not/exist.dart"));
+    Source result = resolver.fromEncoding(UriKind.FILE_URI, new URI("file:/does/not/exist.dart"));
     assertNull(result);
   }
 
@@ -61,32 +57,29 @@ public class DartUriResolverTest extends TestCase {
   }
 
   public void test_resolve_dart() throws Exception {
-    ContentCache contentCache = new ContentCache();
     File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.resolveAbsolute(contentCache, new URI("dart:core"));
+    Source result = resolver.resolveAbsolute(new URI("dart:core"));
     assertNotNull(result);
   }
 
   public void test_resolve_dart_nonExistingLibrary() throws Exception {
-    ContentCache contentCache = new ContentCache();
     File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.resolveAbsolute(contentCache, new URI("dart:cor"));
+    Source result = resolver.resolveAbsolute(new URI("dart:cor"));
     assertNull(result);
   }
 
   public void test_resolve_nonDart() throws Exception {
-    ContentCache contentCache = new ContentCache();
     File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.resolveAbsolute(contentCache, new URI("package:some/file.dart"));
+    Source result = resolver.resolveAbsolute(new URI("package:some/file.dart"));
     assertNull(result);
   }
 }

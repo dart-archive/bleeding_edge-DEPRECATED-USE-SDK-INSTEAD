@@ -16,7 +16,6 @@ package com.google.dart.engine.internal.index;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
@@ -34,6 +33,8 @@ import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.internal.element.member.Member;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
+import com.google.dart.engine.utilities.translation.DartExpressionBody;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -118,8 +119,6 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
   }
 
-  private static final Object WEAK_SET_VALUE = new Object();
-
   /**
    * When logging is on, {@link AnalysisEngine} actually creates
    * {@link InstrumentedAnalysisContextImpl}, which wraps {@link AnalysisContextImpl} used to create
@@ -146,12 +145,6 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
     return library.getSource();
   }
-
-  /**
-   * We add {@link AnalysisContext} to this weak set to ensure that we don't continue to add
-   * relationships after some context was removed using {@link #removeContext(AnalysisContext)}.
-   */
-  private final Map<AnalysisContext, Object> removedContexts = new MapMaker().weakKeys().makeMap();
 
   /**
    * This map is used to canonicalize equal keys.
@@ -192,10 +185,10 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   private int locationCount;
 
   @Override
-  public boolean aboutToIndex(AnalysisContext context, CompilationUnitElement unitElement) {
+  public boolean aboutToIndexDart(AnalysisContext context, CompilationUnitElement unitElement) {
     context = unwrapContext(context);
-    // may be already removed in other thread
-    if (isRemovedContext(context)) {
+    // may be already disposed in other thread
+    if (context.isDisposed()) {
       return false;
     }
     // validate unit
@@ -257,10 +250,10 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
-  public boolean aboutToIndex(AnalysisContext context, HtmlElement htmlElement) {
+  public boolean aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement) {
     context = unwrapContext(context);
-    // may be already removed in other thread
-    if (isRemovedContext(context)) {
+    // may be already disposed in other thread
+    if (context.isDisposed()) {
       return false;
     }
     // remove locations
@@ -313,7 +306,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @VisibleForTesting
-  public int internalGetLocationCount(AnalysisContext context) {
+  public int internalGetLocationCountForContext(AnalysisContext context) {
     context = unwrapContext(context);
     int count = 0;
     for (Set<Location> locations : keyToLocations.values()) {
@@ -339,6 +332,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
+  @DartOmit
   public void readIndex(AnalysisContext context, InputStream input) throws IOException {
     context = unwrapContext(context);
     new MemoryIndexReader(this, context, input).read();
@@ -349,7 +343,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (element == null || location == null) {
       return;
     }
-    location = location.clone();
+    location = location.newClone();
     // at the index level we don't care about Member(s)
     if (element instanceof Member) {
       element = ((Member) element).getBaseElement();
@@ -377,11 +371,11 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
         && !(element instanceof UniverseElementImpl)) {
       return;
     }
-    // may be already removed in other thread
-    if (isRemovedContext(elementContext)) {
+    // may be already disposed in other thread
+    if (elementContext != null && elementContext.isDisposed()) {
       return;
     }
-    if (isRemovedContext(locationContext)) {
+    if (locationContext.isDisposed()) {
       return;
     }
     // record: key -> location(s)
@@ -441,8 +435,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (context == null) {
       return;
     }
-    // mark as removed
-    markRemovedContext(context);
+    // remove sources
     removeSources(context, null);
     // remove context
     contextToSourceToKeys.remove(context);
@@ -518,6 +511,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
+  @DartOmit
   public void writeIndex(AnalysisContext context, OutputStream output) throws IOException {
     context = unwrapContext(context);
     new MemoryIndexWriter(this, context, output).write();
@@ -526,6 +520,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   /**
    * Creates new {@link Set} that uses object identity instead of equals.
    */
+  @DartExpressionBody("new Set<Location>.identity()")
   private Set<Location> createLocationIdentitySet() {
     return Sets.newSetFromMap(new IdentityHashMap<Location, Boolean>(4));
   }
@@ -542,20 +537,6 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       canonicalKeys.put(key, canonicalKey);
     }
     return canonicalKey;
-  }
-
-  /**
-   * Checks if given {@link AnalysisContext} is marked as removed.
-   */
-  private boolean isRemovedContext(AnalysisContext context) {
-    return removedContexts.containsKey(context);
-  }
-
-  /**
-   * Marks given {@link AnalysisContext} as removed.
-   */
-  private void markRemovedContext(AnalysisContext context) {
-    removedContexts.put(context, WEAK_SET_VALUE);
   }
 
   private void recordUnitInLibrary(AnalysisContext context, Source library, Source unit) {

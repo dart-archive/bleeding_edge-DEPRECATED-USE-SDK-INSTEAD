@@ -3,17 +3,19 @@
  */
 package com.xored.glance.ui.controls.descriptors;
 
-import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.widgets.Control;
-
 import com.xored.glance.ui.controls.text.styled.ListeningStyledTextSource;
 import com.xored.glance.ui.sources.ITextSource;
 import com.xored.glance.ui.sources.ITextSourceDescriptor;
+
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.widgets.Control;
 
 /**
  * @author Yuri Strot
  */
 public class ListeningStyledTextDescriptor implements ITextSourceDescriptor {
+
+  static final int LineGetStyle = 3002;
 
   @Override
   public ITextSource createSource(Control control) {
@@ -28,7 +30,5 @@ public class ListeningStyledTextDescriptor implements ITextSourceDescriptor {
     }
     return false;
   }
-
-  static final int LineGetStyle = 3002;
 
 }

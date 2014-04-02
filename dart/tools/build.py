@@ -44,7 +44,7 @@ def BuildOptions():
       default=False, action="store_true")
   result.add_option("-a", "--arch",
       help='Target architectures (comma-separated).',
-      metavar='[all,ia32,x64,simarm,arm,simmips,mips]',
+      metavar='[all,ia32,x64,simarm,arm,simmips,mips,simarm64]',
       default=utils.GuessArchitecture())
   result.add_option("--os",
     help='Target OSs (comma-separated).',
@@ -76,7 +76,7 @@ def ProcessOsOption(os):
 
 def ProcessOptions(options, args):
   if options.arch == 'all':
-    options.arch = 'ia32,x64,simarm,simmips'
+    options.arch = 'ia32,x64,simarm,simmips,simarm64'
   if options.mode == 'all':
     options.mode = 'release,debug'
   if options.os == 'all':
@@ -89,7 +89,8 @@ def ProcessOptions(options, args):
       print "Unknown mode %s" % mode
       return False
   for arch in options.arch:
-    if not arch in ['ia32', 'x64', 'simarm', 'arm', 'simmips', 'mips']:
+    archs = ['ia32', 'x64', 'simarm', 'arm', 'simmips', 'mips', 'simarm64']
+    if not arch in archs:
       print "Unknown arch %s" % arch
       return False
   options.os = [ProcessOsOption(os) for os in options.os]
@@ -105,7 +106,7 @@ def ProcessOptions(options, args):
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os, HOST_OS))
         return False
-      if not arch in ['ia32', 'arm']:
+      if not arch in ['ia32', 'arm', 'mips']:
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os, arch))
         return False
@@ -113,9 +114,6 @@ def ProcessOptions(options, args):
       # NDK/SDK, so don't try to build it.
       if args == []:
         print "For android builds you must specify a target, such as 'runtime'."
-        return False
-      if 'v8' in args:
-        print "The v8 target is not supported for android builds."
         return False
   return True
 
@@ -304,6 +302,36 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
     print '\n'.join(chunk)
 
 
+def NotifyBuildDone(build_config, success):
+  if not success:
+    print "BUILD FAILED"
+
+  sys.stdout.flush()
+
+  if success:
+    message = 'Build succeeded.'
+  else:
+    message = 'Build failed.'
+  title = build_config
+
+  command = None
+  if HOST_OS == 'macos':
+    # Use AppleScript to display a UI non-modal notification.
+    script = 'display notification  "%s" with title "%s" sound name "Glass"' % (
+      message, title)
+    command = "osascript -e '%s' &" % script
+  elif HOST_OS == 'linux':
+    if success:
+      icon = 'dialog-information'
+    else:
+      icon = 'dialog-error'
+    command = "notify-send -i '%s' '%s' '%s' &" % (icon, message, title)
+
+  if command:
+    # Ignore return code, if this command fails, it doesn't matter.
+    os.system(command)
+
+
 def Main():
   utils.ConfigureJava()
   # Parse the options.
@@ -407,8 +435,10 @@ def Main():
             process = subprocess.Popen(args, stdin=None)
           process.wait()
           if process.returncode != 0:
-            print "BUILD FAILED"
+            NotifyBuildDone(build_config, success=False)
             return 1
+          else:
+            NotifyBuildDone(build_config, success=True)
 
   return 0
 

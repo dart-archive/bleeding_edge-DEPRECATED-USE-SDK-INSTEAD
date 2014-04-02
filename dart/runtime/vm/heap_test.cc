@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if !defined(TARGET_ARCH_ARM64)
+
 #include "platform/assert.h"
 #include "vm/dart_api_impl.h"
 #include "vm/globals.h"
@@ -56,9 +59,9 @@ class ClassHeapStatsTestHelper {
   }
 
   static void DumpClassHeapStats(ClassHeapStats* stats) {
-    printf("%" Pd " ", stats->allocated_since_gc_new_space);
-    printf("%" Pd " ", stats->live_after_gc_new_space);
-    printf("%" Pd " ", stats->allocated_before_gc_new_space);
+    printf("%" Pd " ", stats->recent.new_count);
+    printf("%" Pd " ", stats->post_gc.new_count);
+    printf("%" Pd " ", stats->pre_gc.new_count);
     printf("\n");
   }
 };
@@ -101,64 +104,110 @@ TEST_CASE(ClassHeapStats) {
       ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table,
                                                    cid);
   // Verify preconditions:
-  EXPECT_EQ(0, class_stats->allocated_before_gc_old_space);
-  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
-  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
-  EXPECT_EQ(0, class_stats->allocated_before_gc_new_space);
-  EXPECT_EQ(0, class_stats->live_after_gc_new_space);
+  EXPECT_EQ(0, class_stats->pre_gc.old_count);
+  EXPECT_EQ(0, class_stats->post_gc.old_count);
+  EXPECT_EQ(0, class_stats->recent.old_count);
+  EXPECT_EQ(0, class_stats->pre_gc.new_count);
+  EXPECT_EQ(0, class_stats->post_gc.new_count);
   // Class allocated twice since GC from new space.
-  EXPECT_EQ(2, class_stats->allocated_since_gc_new_space);
+  EXPECT_EQ(2, class_stats->recent.new_count);
   // Perform GC.
   heap->CollectGarbage(Heap::kNew);
   // Verify postconditions:
-  EXPECT_EQ(0, class_stats->allocated_before_gc_old_space);
-  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
-  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+  EXPECT_EQ(0, class_stats->pre_gc.old_count);
+  EXPECT_EQ(0, class_stats->post_gc.old_count);
+  EXPECT_EQ(0, class_stats->recent.old_count);
   // Total allocations before GC.
-  EXPECT_EQ(2, class_stats->allocated_before_gc_new_space);
+  EXPECT_EQ(2, class_stats->pre_gc.new_count);
   // Only one survived.
-  EXPECT_EQ(1, class_stats->live_after_gc_new_space);
-  EXPECT_EQ(0, class_stats->allocated_since_gc_new_space);
+  EXPECT_EQ(1, class_stats->post_gc.new_count);
+  EXPECT_EQ(0, class_stats->recent.new_count);
   // Perform GC. The following is heavily dependent on the behaviour
   // of the GC: Retained instance of A will be promoted.
   heap->CollectGarbage(Heap::kNew);
   // Verify postconditions:
-  EXPECT_EQ(0, class_stats->allocated_before_gc_old_space);
-  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
+  EXPECT_EQ(0, class_stats->pre_gc.old_count);
+  EXPECT_EQ(0, class_stats->post_gc.old_count);
   // Promotion counted as an allocation from old space.
-  EXPECT_EQ(1, class_stats->allocated_since_gc_old_space);
+  EXPECT_EQ(1, class_stats->recent.old_count);
   // There was one instance allocated before GC.
-  EXPECT_EQ(1, class_stats->allocated_before_gc_new_space);
+  EXPECT_EQ(1, class_stats->pre_gc.new_count);
   // There are no instances allocated in new space after GC.
-  EXPECT_EQ(0, class_stats->live_after_gc_new_space);
+  EXPECT_EQ(0, class_stats->post_gc.new_count);
   // No new allocations.
-  EXPECT_EQ(0, class_stats->allocated_since_gc_new_space);
+  EXPECT_EQ(0, class_stats->recent.new_count);
   // Perform a GC on new space.
   heap->CollectGarbage(Heap::kNew);
   // There were no instances allocated before GC.
-  EXPECT_EQ(0, class_stats->allocated_before_gc_new_space);
+  EXPECT_EQ(0, class_stats->pre_gc.new_count);
   // There are no instances allocated in new space after GC.
-  EXPECT_EQ(0, class_stats->live_after_gc_new_space);
+  EXPECT_EQ(0, class_stats->post_gc.new_count);
   // No new allocations.
-  EXPECT_EQ(0, class_stats->allocated_since_gc_new_space);
+  EXPECT_EQ(0, class_stats->recent.new_count);
   heap->CollectGarbage(Heap::kOld);
   // Verify postconditions:
-  EXPECT_EQ(1, class_stats->allocated_before_gc_old_space);
-  EXPECT_EQ(1, class_stats->live_after_gc_old_space);
-  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+  EXPECT_EQ(1, class_stats->pre_gc.old_count);
+  EXPECT_EQ(1, class_stats->post_gc.old_count);
+  EXPECT_EQ(0, class_stats->recent.old_count);
   // Exit scope, freeing instance.
   Dart_ExitScope();
   // Perform GC.
   heap->CollectGarbage(Heap::kOld);
   // Verify postconditions:
-  EXPECT_EQ(1, class_stats->allocated_before_gc_old_space);
-  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
-  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+  EXPECT_EQ(1, class_stats->pre_gc.old_count);
+  EXPECT_EQ(0, class_stats->post_gc.old_count);
+  EXPECT_EQ(0, class_stats->recent.old_count);
   // Perform GC.
   heap->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(0, class_stats->allocated_before_gc_old_space);
-  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
-  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+  EXPECT_EQ(0, class_stats->pre_gc.old_count);
+  EXPECT_EQ(0, class_stats->post_gc.old_count);
+  EXPECT_EQ(0, class_stats->recent.old_count);
+}
+
+
+class FindOnly : public FindObjectVisitor {
+ public:
+  FindOnly(Isolate* isolate, RawObject* target)
+      : FindObjectVisitor(isolate), target_(target) {
+    ASSERT(isolate->no_gc_scope_depth() != 0);
+  }
+  virtual ~FindOnly() { }
+
+  virtual bool FindObject(RawObject* obj) const {
+    return obj == target_;
+  }
+ private:
+  RawObject* target_;
+};
+
+
+class FindNothing : public FindObjectVisitor {
+ public:
+  FindNothing() : FindObjectVisitor(Isolate::Current()) { }
+  virtual ~FindNothing() { }
+  virtual bool FindObject(RawObject* obj) const { return false; }
+};
+
+
+TEST_CASE(FindObject) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+  Heap::Space spaces[2] = {Heap::kOld, Heap::kNew};
+  for (size_t space = 0; space < ARRAY_SIZE(spaces); ++space) {
+    const String& obj = String::Handle(String::New("x", spaces[space]));
+    {
+      NoGCScope no_gc;
+      FindOnly find_only(isolate, obj.raw());
+      EXPECT(obj.raw() == heap->FindObject(&find_only));
+    }
+  }
+  {
+    NoGCScope no_gc;
+    FindNothing find_nothing;
+    EXPECT(Object::null() == heap->FindObject(&find_nothing));
+  }
 }
 
 }  // namespace dart.
+
+#endif  // !defined(TARGET_ARCH_ARM64)

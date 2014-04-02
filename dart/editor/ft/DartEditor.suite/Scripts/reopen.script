@@ -1,25 +1,25 @@
 Click(Text:"web")
 util.selectContextImageMenuItem "sample project", "Close Folder"
-Wait 2
+util.xWait 2
 util.openFileDialog
-Wait 2
+util.xWait 2
 DoubleClick "dart folder icon"
-Wait 2
+util.xWait 2
 Click "sample folder icon"
-Wait 1
+util.xWait 1
 util.newline
 if (util.isLinux) then
 	TypeText return
 end if
-Wait 2
+util.xWait 2
 Click "dart sdk"
-Wait 1
+util.xWait 1
 util.selectContextImageMenuItem "sample project", "Delete"
 util.newline
-Wait 2
+util.xWait 2
 util.openFileDialog
 util.newline
-Wait 1
+util.xWait 1
 util.expandTreeNode (* expand sample *)
 TypeText downArrow
 TypeText downArrow

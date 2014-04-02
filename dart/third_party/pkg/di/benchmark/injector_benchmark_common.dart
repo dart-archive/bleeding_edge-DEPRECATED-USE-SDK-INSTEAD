@@ -3,6 +3,8 @@ library di.injector_benchmark_common;
 import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:di/di.dart';
 
+int count = 0;
+
 class InjectorBenchmark extends BenchmarkBase {
   var injectorFactory;
   var module;
@@ -27,21 +29,38 @@ class InjectorBenchmark extends BenchmarkBase {
       ..type(D)
       ..type(E);
   }
+
+  teardown() {
+    print(count);
+  }
 }
 
 class A {
-  A(B b, C c);
+  A(B b, C c) {
+    count++;
+  }
 }
 
 class B {
-  B(D b, E c);
+  B(D b, E c) {
+    count++;
+  }
 }
 
 class C {
+  C() {
+    count++;
+  }
 }
 
 class D {
+  D() {
+    count++;
+  }
 }
 
 class E {
+  E() {
+    count++;
+  }
 }

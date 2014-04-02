@@ -6,22 +6,26 @@
  ******************************************************************************/
 package com.xored.glance.internal.ui.viewers;
 
-import java.lang.reflect.Field;
-import java.util.List;
+import com.xored.glance.ui.sources.ITextBlock;
+import com.xored.glance.ui.sources.ITextBlockListener;
+import com.xored.glance.ui.sources.TextChangedEvent;
 
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.text.ITextListener;
 import org.eclipse.jface.text.TextEvent;
 import org.eclipse.jface.text.TextViewer;
 
-import com.xored.glance.ui.sources.ITextBlock;
-import com.xored.glance.ui.sources.ITextBlockListener;
-import com.xored.glance.ui.sources.TextChangedEvent;
+import java.lang.reflect.Field;
+import java.util.List;
 
 /**
  * @author Yuri Strot
  */
 public class TextViewerBlock implements ITextBlock, ITextListener {
+
+  private ListenerList listeners;
+
+  protected TextViewer viewer;
 
   public TextViewerBlock(TextViewer viewer) {
     this.viewer = viewer;
@@ -29,14 +33,57 @@ public class TextViewerBlock implements ITextBlock, ITextListener {
     addListeners();
   }
 
+  @Override
+  public void addTextBlockListener(ITextBlockListener listener) {
+    listeners.add(listener);
+  }
+
+  @Override
+  public int compareTo(ITextBlock o) {
+    return 0;
+  }
+
   public void dispose() {
     removeListeners();
+  }
+
+  @Override
+  public String getText() {
+    return viewer.getDocument().get();
+  }
+
+  @Override
+  public void removeTextBlockListener(ITextBlockListener listener) {
+    listeners.remove(listener);
+  }
+
+  @Override
+  public void textChanged(TextEvent event) {
+    if (event.getDocumentEvent() != null) {
+      TextChangedEvent changedEvent = new TextChangedEvent(
+          event.getOffset(),
+          event.getLength(),
+          event.getReplacedText());
+      fireTextChanged(changedEvent);
+    }
   }
 
   protected void addListeners() {
     if (!addFirstListener()) {
       viewer.addTextListener(this);
     }
+  }
+
+  protected void fireTextChanged(TextChangedEvent changedEvent) {
+    Object[] objects = listeners.getListeners();
+    for (Object object : objects) {
+      ITextBlockListener listener = (ITextBlockListener) object;
+      listener.textChanged(changedEvent);
+    }
+  }
+
+  protected void removeListeners() {
+    viewer.removeTextListener(this);
   }
 
   /**
@@ -61,51 +108,5 @@ public class TextViewerBlock implements ITextBlock, ITextListener {
       return false;
     }
   }
-
-  protected void removeListeners() {
-    viewer.removeTextListener(this);
-  }
-
-  @Override
-  public void textChanged(TextEvent event) {
-    if (event.getDocumentEvent() != null) {
-      TextChangedEvent changedEvent = new TextChangedEvent(
-          event.getOffset(),
-          event.getLength(),
-          event.getReplacedText());
-      fireTextChanged(changedEvent);
-    }
-  }
-
-  protected void fireTextChanged(TextChangedEvent changedEvent) {
-    Object[] objects = listeners.getListeners();
-    for (Object object : objects) {
-      ITextBlockListener listener = (ITextBlockListener) object;
-      listener.textChanged(changedEvent);
-    }
-  }
-
-  @Override
-  public void addTextBlockListener(ITextBlockListener listener) {
-    listeners.add(listener);
-  }
-
-  @Override
-  public String getText() {
-    return viewer.getDocument().get();
-  }
-
-  @Override
-  public void removeTextBlockListener(ITextBlockListener listener) {
-    listeners.remove(listener);
-  }
-
-  @Override
-  public int compareTo(ITextBlock o) {
-    return 0;
-  }
-
-  private ListenerList listeners;
-  protected TextViewer viewer;
 
 }

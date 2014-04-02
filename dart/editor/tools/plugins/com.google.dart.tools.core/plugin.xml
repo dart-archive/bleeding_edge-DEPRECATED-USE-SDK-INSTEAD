@@ -79,12 +79,6 @@
       <persistent value="false"/>
    </extension>
 
-  <extension id="angular_error" name="%angular.marker.error.name" point="org.eclipse.core.resources.markers">
-    <super type="org.eclipse.core.resources.problemmarker"/>
-    <super type="org.eclipse.core.resources.textmarker"/>
-    <persistent value="true"/>
-  </extension>
-
   <extension id="angular_warning" name="%angular.marker.warning.name" point="org.eclipse.core.resources.markers">
     <super type="org.eclipse.core.resources.problemmarker"/>
     <super type="org.eclipse.core.resources.textmarker"/>

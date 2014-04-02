@@ -5,4 +5,4 @@ mkdir ~/dart
 cd ~/dart
 tar xfz $BUILD_DIR/editor/ft/io-2013-dart-codelab.tar.gz
 cd
-~/Downloads/dart/DartEditor
+~/Desktop/dart/DartEditor

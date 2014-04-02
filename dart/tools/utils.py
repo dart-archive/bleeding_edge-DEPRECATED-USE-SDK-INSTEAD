@@ -50,6 +50,8 @@ def GuessArchitecture():
   id = platform.machine()
   if id.startswith('arm'):
     return 'arm'
+  elif id.startswith('mips'):
+    return 'mips'
   elif (not id) or (not re.match('(x|i[3-6])86', id) is None):
     return 'ia32'
   elif id == 'i86pc':
@@ -57,6 +59,10 @@ def GuessArchitecture():
   elif '64' in id:
     return 'x64'
   else:
+    guess_os = GuessOS()
+    print "Warning: Guessing architecture %s based on os %s\n" % (id, guess_os)
+    if guess_os == 'win32':
+      return 'ia32'
     return None
 
 
@@ -207,6 +213,20 @@ BUILD_ROOT = {
   'macos': os.path.join('xcodebuild'),
 }
 
+ARCH_FAMILY = {
+  'ia32': 'ia32',
+  'x64': 'ia32',
+  'arm': 'arm',
+  'mips': 'mips',
+  'simarm': 'ia32',
+  'simmips': 'ia32',
+  'simarm64': 'ia32',
+}
+
+ARCH_GUESS = GuessArchitecture()
+BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
+DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
+
 def GetBuildbotGSUtilPath():
   gsutil = '/b/build/scripts/slave/gsutil'
   if platform.system() == 'Windows':
@@ -216,16 +236,20 @@ def GetBuildbotGSUtilPath():
 def GetBuildMode(mode):
   return BUILD_MODES[mode]
 
+def GetArchFamily(arch):
+  return ARCH_FAMILY[arch]
+
 def GetBuildConf(mode, arch, conf_os=None):
   if conf_os == 'android':
     return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
   else:
-    return '%s%s' % (GetBuildMode(mode), arch.upper())
-
-ARCH_GUESS = GuessArchitecture()
-BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
-DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
-
+    # Ask for a cross build if the host and target architectures don't match.
+    host_arch = ARCH_GUESS
+    cross_build = ''
+    if GetArchFamily(host_arch) != GetArchFamily(arch):
+      print "GetBuildConf: Cross-build of %s on %s\n" % (arch, host_arch)
+      cross_build = 'X'
+    return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
 
 def GetBuildDir(host_os, target_os):
   return BUILD_ROOT[host_os]
@@ -318,6 +342,14 @@ def ReadVersionFile():
     return None
 
 def GetSVNRevision():
+  # When building from tarball use tools/SVN_REVISION
+  svn_revision_file = os.path.join(DART_DIR, 'tools', 'SVN_REVISION')
+  try:
+    with open(svn_revision_file) as fd:
+      return fd.read()
+  except:
+    pass
+
   # FIXME(kustermann): Make this work for newer SVN versions as well (where
   # we've got only one '.svn' directory)
   custom_env = dict(os.environ)
@@ -338,14 +370,6 @@ def GetSVNRevision():
   revision = ParseSvnInfoOutput(output)
   if revision:
     return revision
-
-  # When building from tarball use tools/SVN_REVISION
-  svn_revision_file = os.path.join(DART_DIR, 'tools', 'SVN_REVISION')
-  try:
-    with open(svn_revision_file) as fd:
-      return fd.read()
-  except:
-    pass
 
   # Only fail on the buildbot in case of a SVN client version mismatch.
   user = GetUserName()
@@ -503,6 +527,8 @@ def DartBinary():
     system = GuessOS()
     if arch == 'arm':
       return os.path.join(dart_binary_prefix, system, 'dart-arm')
+    elif arch == 'mips':
+      return os.path.join(dart_binary_prefix, system, 'dart-mips')
     else:
       return os.path.join(dart_binary_prefix, system, 'dart')
 

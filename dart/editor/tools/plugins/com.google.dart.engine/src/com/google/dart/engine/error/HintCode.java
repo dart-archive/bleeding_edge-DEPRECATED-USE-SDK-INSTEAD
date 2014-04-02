@@ -19,6 +19,18 @@ package com.google.dart.engine.error;
  */
 public enum HintCode implements ErrorCode {
   /**
+   * This hint is generated anywhere where the
+   * {@link StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE} would have been generated, if we used
+   * propagated information for the warnings.
+   * 
+   * @param actualType the name of the actual argument type
+   * @param expectedType the name of the expected type
+   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  ARGUMENT_TYPE_NOT_ASSIGNABLE(
+      "The argument type '%s' cannot be assigned to the parameter type '%s'"),
+
+  /**
    * Dead code is code that is never reached, this can happen for instance if a statement follows a
    * return statement.
    */
@@ -88,8 +100,23 @@ public enum HintCode implements ErrorCode {
    * @param returnType the name of the declared return type
    */
   MISSING_RETURN(
-      "This function declares a return type of '%s', but does not end with a return statement.",
-      "Either add a return statement or change the return type to 'void'."),
+      "This function declares a return type of '%s', but does not end with a return statement",
+      "Either add a return statement or change the return type to 'void'"),
+
+  /**
+   * A getter with the override annotation does not override an existing getter.
+   */
+  OVERRIDE_ON_NON_OVERRIDING_GETTER("Getter does not override an inherited getter"),
+
+  /**
+   * A method with the override annotation does not override an existing method.
+   */
+  OVERRIDE_ON_NON_OVERRIDING_METHOD("Method does not override an inherited method"),
+
+  /**
+   * A setter with the override annotation does not override an existing setter.
+   */
+  OVERRIDE_ON_NON_OVERRIDING_SETTER("Setter does not override an inherited setter"),
 
   /**
    * It is not in best practice to declare a private method that happens to override the method in a
@@ -131,7 +158,7 @@ public enum HintCode implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_GETTER
    * @see StaticWarningCode#UNDEFINED_GETTER
    */
-  UNDEFINED_GETTER(StaticTypeWarningCode.UNDEFINED_GETTER.getMessage()),
+  UNDEFINED_GETTER("There is no such getter '%s' in '%s'"),
 
   /**
    * This hint is generated anywhere where the {@link StaticTypeWarningCode#UNDEFINED_METHOD} would
@@ -141,7 +168,7 @@ public enum HintCode implements ErrorCode {
    * @param typeName the resolved type name that the method lookup is happening on
    * @see StaticTypeWarningCode#UNDEFINED_METHOD
    */
-  UNDEFINED_METHOD(StaticTypeWarningCode.UNDEFINED_METHOD.getMessage()),
+  UNDEFINED_METHOD("The method '%s' is not defined for the class '%s'"),
 
   /**
    * This hint is generated anywhere where the {@link StaticTypeWarningCode#UNDEFINED_OPERATOR}
@@ -151,7 +178,7 @@ public enum HintCode implements ErrorCode {
    * @param enclosingType the name of the enclosing type where the operator is being looked for
    * @see StaticTypeWarningCode#UNDEFINED_OPERATOR
    */
-  UNDEFINED_OPERATOR(StaticTypeWarningCode.UNDEFINED_OPERATOR.getMessage()),
+  UNDEFINED_OPERATOR("There is no such operator '%s' in '%s'"),
 
   /**
    * This hint is generated anywhere where the {@link StaticTypeWarningCode#UNDEFINED_SETTER} or
@@ -163,7 +190,7 @@ public enum HintCode implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_SETTER
    * @see StaticWarningCode#UNDEFINED_SETTER
    */
-  UNDEFINED_SETTER(StaticTypeWarningCode.UNDEFINED_SETTER.getMessage()),
+  UNDEFINED_SETTER("There is no such setter '%s' in '%s'"),
 
   /**
    * Unnecessary cast.
@@ -210,7 +237,7 @@ public enum HintCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   private HintCode(String message) {
-    this.message = message;
+    this(message, null);
   }
 
   /**

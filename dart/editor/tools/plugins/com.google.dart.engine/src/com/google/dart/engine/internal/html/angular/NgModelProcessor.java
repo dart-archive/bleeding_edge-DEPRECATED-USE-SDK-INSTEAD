@@ -66,7 +66,7 @@ class NgModelProcessor extends NgDirectiveProcessor {
     SimpleIdentifier identifier = (SimpleIdentifier) expression;
     // define variable Element
     InterfaceType type = resolver.getTypeProvider().getStringType();
-    LocalVariableElementImpl element = resolver.createLocalVariable(type, identifier);
+    LocalVariableElementImpl element = resolver.createLocalVariableFromIdentifier(type, identifier);
     resolver.defineTopVariable(element);
     // remember expression
     identifier.setStaticElement(element);

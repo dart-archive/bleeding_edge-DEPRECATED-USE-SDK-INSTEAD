@@ -13,15 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.IPartListener2;
@@ -30,8 +26,6 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-
-import java.util.List;
 
 /**
  * Provides a shared AST for clients. The shared AST is the AST of the active Dart editor's input
@@ -254,7 +248,6 @@ public final class ASTProvider {
 
   private DartElement fReconcilingJavaElement;
   private DartElement fActiveJavaElement;
-  private DartUnit fAST;
   private ActivationListener fActivationListener;
   private Object fReconcileLock = new Object();
   private Object fWaitLock = new Object();
@@ -278,109 +271,9 @@ public final class ASTProvider {
     PlatformUI.getWorkbench().removeWindowListener(fActivationListener);
     fActivationListener = null;
 
-    disposeAST();
-
     synchronized (fWaitLock) {
       fWaitLock.notifyAll();
     }
-  }
-
-  /**
-   * Returns a shared compilation unit AST for the given Java element.
-   * <p>
-   * Clients are not allowed to modify the AST and must synchronize all access to its nodes.
-   * </p>
-   * 
-   * @param je the Java element
-   * @param waitFlag {@link #WAIT_YES}, {@link #WAIT_NO} or {@link #WAIT_ACTIVE_ONLY}
-   * @param progressMonitor the progress monitor or <code>null</code>
-   * @return the AST or <code>null</code> if the AST is not available
-   */
-  public DartUnit getAST(DartElement je, WAIT_FLAG waitFlag, IProgressMonitor progressMonitor) {
-    if (je == null) {
-      return null;
-    }
-
-    Assert.isTrue(je.getElementType() == DartElement.COMPILATION_UNIT);
-
-    if (progressMonitor != null && progressMonitor.isCanceled()) {
-      return null;
-    }
-
-    boolean isActiveElement;
-    synchronized (this) {
-      isActiveElement = je.equals(fActiveJavaElement);
-      if (isActiveElement) {
-        if (fAST != null) {
-          if (DEBUG) {
-            System.out.println(getThreadName()
-                + " - " + DEBUG_PREFIX + "returning cached AST:" + toString(fAST) + " for: " + je.getElementName()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-          }
-
-          return fAST;
-        }
-        if (waitFlag == WAIT_NO) {
-          if (DEBUG) {
-            System.out.println(getThreadName()
-                + " - " + DEBUG_PREFIX + "returning null (WAIT_NO) for: " + je.getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
-          }
-
-          return null;
-
-        }
-      }
-    }
-    if (isActiveElement && isReconciling(je)) {
-      try {
-        final DartElement activeElement = fReconcilingJavaElement;
-
-        // Wait for AST
-        synchronized (fWaitLock) {
-          if (DEBUG) {
-            System.out.println(getThreadName()
-                + " - " + DEBUG_PREFIX + "waiting for AST for: " + je.getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
-          }
-
-          fWaitLock.wait();
-        }
-
-        // Check whether active element is still valid
-        synchronized (this) {
-          if (activeElement == fActiveJavaElement && fAST != null) {
-            if (DEBUG) {
-              System.out.println(getThreadName()
-                  + " - " + DEBUG_PREFIX + "...got AST for: " + je.getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
-            }
-
-            return fAST;
-          }
-        }
-        return getAST(je, waitFlag, progressMonitor);
-      } catch (InterruptedException e) {
-        return null; // thread has been interrupted don't compute AST
-      }
-    } else if (waitFlag == WAIT_NO
-        || (waitFlag == WAIT_ACTIVE_ONLY && !(isActiveElement && fAST == null))) {
-      return null;
-    }
-
-    if (isActiveElement) {
-      aboutToBeReconciled(je);
-    }
-
-    final DartUnit ast = null;
-    try {
-    } finally {
-      if (isActiveElement) {
-        if (fAST != null) {
-          reconciled(fAST, je, null);
-        } else {
-          reconciled(ast, je, null);
-        }
-      }
-    }
-
-    return ast;
   }
 
   /**
@@ -391,40 +284,6 @@ public final class ASTProvider {
    */
   public boolean isActive(CompilationUnit cu) {
     return cu != null && cu.equals(fActiveJavaElement);
-  }
-
-  /**
-   * Returns whether the given compilation unit AST is cached by this AST provided.
-   * 
-   * @param ast the compilation unit AST
-   * @return <code>true</code> if the given AST is the cached one
-   */
-  public boolean isCached(DartUnit ast) {
-    return ast != null && fAST == ast;
-  }
-
-  /**
-   * Informs that reconciling for the given element is about to be started.
-   * 
-   * @param javaElement the Java element
-   * @see com.google.dart.tools.ui.IDartReconcilingListener_OLD.java.IJavaReconcilingListener#aboutToBeReconciled()
-   */
-  void aboutToBeReconciled(DartElement javaElement) {
-
-    if (javaElement == null) {
-      return;
-    }
-
-    if (DEBUG) {
-      System.out.println(getThreadName()
-          + " - " + DEBUG_PREFIX + "about to reconcile: " + toString(javaElement)); //$NON-NLS-1$ //$NON-NLS-2$
-    }
-
-    synchronized (fReconcileLock) {
-      fIsReconciling = true;
-      fReconcilingJavaElement = javaElement;
-    }
-    cache(null, javaElement);
   }
 
   /**
@@ -442,11 +301,11 @@ public final class ASTProvider {
     }
   }
 
-  void reconciled(DartUnit ast, DartElement javaElement, IProgressMonitor progressMonitor) {
+  void reconciled(DartElement javaElement, IProgressMonitor progressMonitor) {
 
     if (DEBUG) {
       System.out.println(getThreadName()
-          + " - " + DEBUG_PREFIX + "reconciled: " + toString(javaElement) + ", AST: " + toString(ast)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+          + " - " + DEBUG_PREFIX + "reconciled: " + toString(javaElement)); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     synchronized (fReconcileLock) {
@@ -466,8 +325,6 @@ public final class ASTProvider {
 
         return;
       }
-
-      cache(ast, javaElement);
     }
   }
 
@@ -481,7 +338,6 @@ public final class ASTProvider {
     synchronized (this) {
       fActiveEditor = editor;
       fActiveJavaElement = dartElement;
-      cache(null, dartElement);
     }
 
     if (DEBUG) {
@@ -501,78 +357,12 @@ public final class ASTProvider {
     }
   }
 
-  /**
-   * Caches the given compilation unit AST for the given Java element.
-   * 
-   * @param ast
-   * @param javaElement
-   */
-  private synchronized void cache(DartUnit ast, DartElement javaElement) {
-
-    if (fActiveJavaElement != null && !fActiveJavaElement.equals(javaElement)) {
-      if (DEBUG && javaElement != null) {
-        // don't report call from disposeAST()
-        System.out.println(getThreadName()
-            + " - " + DEBUG_PREFIX + "don't cache AST for inactive: " + toString(javaElement)); //$NON-NLS-1$ //$NON-NLS-2$
-      }
-      return;
-    }
-
-    if (DEBUG && (javaElement != null || ast != null)) {
-      // don't report call from disposeAST()
-      System.out.println(getThreadName()
-          + " - " + DEBUG_PREFIX + "caching AST: " + toString(ast) + " for: " + toString(javaElement)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    }
-
-    if (fAST != null) {
-      disposeAST();
-    }
-
-    fAST = ast;
-
-    // Signal AST change
-    synchronized (fWaitLock) {
-      fWaitLock.notifyAll();
-    }
-  }
-
-  /**
-   * Disposes the cached AST.
-   */
-  private synchronized void disposeAST() {
-
-    if (fAST == null) {
-      return;
-    }
-
-    if (DEBUG) {
-      System.out.println(getThreadName()
-          + " - " + DEBUG_PREFIX + "disposing AST: " + toString(fAST) + " for: " + toString(fActiveJavaElement)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    }
-
-    fAST = null;
-
-    cache(null, null);
-  }
-
   private String getThreadName() {
     String name = Thread.currentThread().getName();
     if (name != null) {
       return name;
     } else {
       return Thread.currentThread().toString();
-    }
-  }
-
-  /**
-   * Tells whether the given Java element is the one reported as currently being reconciled.
-   * 
-   * @param javaElement the Java element
-   * @return <code>true</code> if reported as currently being reconciled
-   */
-  private boolean isReconciling(DartElement javaElement) {
-    synchronized (fReconcileLock) {
-      return javaElement != null && javaElement.equals(fReconcilingJavaElement) && fIsReconciling;
     }
   }
 
@@ -590,29 +380,4 @@ public final class ASTProvider {
     }
 
   }
-
-  /**
-   * Returns a string for the given AST used for debugging.
-   * 
-   * @param ast the compilation unit AST
-   * @return a string used for debugging
-   */
-  private String toString(DartUnit ast) {
-    if (ast == null) {
-      return "null"; //$NON-NLS-1$
-    }
-
-    List<DartNode> types = ast.getTopLevelNodes();
-    if (types != null && types.size() > 0) {
-      for (DartNode node : types) {
-        if (node instanceof DartClass) {
-          return ((DartClass) node).getClassName();
-        }
-      }
-      return "AST without any type"; //$NON-NLS-1$
-    } else {
-      return "AST without any type"; //$NON-NLS-1$
-    }
-  }
-
 }

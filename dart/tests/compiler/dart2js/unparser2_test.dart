@@ -57,7 +57,7 @@ void compareCode(String code) {
 
 String doUnparse(String source) {
   MessageCollector diagnosticListener = new MessageCollector();
-  Script script = new Script(null, null);
+  Script script = new Script(null, null, null);
   LibraryElement lib = new LibraryElementX(script);
   CompilationUnitElement element = new CompilationUnitElementX(script, lib);
   StringScanner scanner = new StringScanner.fromString(source);
@@ -75,19 +75,12 @@ class MessageCollector implements DiagnosticListener {
   MessageCollector() {
     messages = [];
   }
-  void cancel(String reason, {node, token, instruction, element}) {
+  void internalError(node, String reason) {
     messages.add(reason);
     throw reason;
   }
+
   void log(message) {
     messages.add(message);
-  }
-  void internalErrorOnElement(Element element, String message) {
-    throw message;
-  }
-  void internalError(String message,
-                     {Node node, Token token, dynamic instruction,
-                      Element element}) {
-    throw message;
   }
 }

@@ -24,8 +24,8 @@ import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeParameterTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
 
 public class TypeProviderImplTest extends EngineTestCase {
   public void test_creation() {

@@ -16,10 +16,10 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -29,41 +29,51 @@ import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularDirectiveElement;
 import com.google.dart.engine.element.angular.AngularElement;
+import com.google.dart.engine.element.angular.AngularHasSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
+import com.google.dart.engine.element.angular.AngularViewElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularComponentElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularControllerElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularDirectiveElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularFilterElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularHasClassSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularPropertyElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularScopePropertyElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularTagSelectorElementImpl;
+import com.google.dart.engine.internal.element.angular.AngularViewElementImpl;
 import com.google.dart.engine.internal.element.angular.HasAttributeSelectorElementImpl;
 import com.google.dart.engine.internal.element.angular.IsTagHasAttributeSelectorElementImpl;
-import com.google.dart.engine.internal.element.angular.AngularTagSelectorElementImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.List;
@@ -92,7 +102,7 @@ public class AngularCompilationUnitBuilder {
   private static final String NG_ONE_WAY_ONE_TIME = "NgOneWayOneTime";
   private static final String NG_TWO_WAY = "NgTwoWay";
 
-  public static Element getElement(ASTNode node, int offset) {
+  public static Element getElement(AstNode node, int offset) {
     // maybe node is not SimpleStringLiteral
     if (!(node instanceof SimpleStringLiteral)) {
       return null;
@@ -124,17 +134,17 @@ public class AngularCompilationUnitBuilder {
           return toolkitObject;
         }
       }
+      // try selector
+      if (toolkitObject instanceof AngularHasSelectorElement) {
+        AngularHasSelectorElement hasSelector = (AngularHasSelectorElement) toolkitObject;
+        AngularSelectorElement selector = hasSelector.getSelector();
+        if (isNameCoveredByLiteral(selector, node)) {
+          return selector;
+        }
+      }
       // try properties of AngularComponentElement
       if (toolkitObject instanceof AngularComponentElement) {
         AngularComponentElement component = (AngularComponentElement) toolkitObject;
-        // try selector
-        {
-          AngularSelectorElement selector = component.getSelector();
-          if (isNameCoveredByLiteral(selector, node)) {
-            return selector;
-          }
-        }
-        // try properties
         properties = component.getProperties();
       }
       // try properties of AngularDirectiveElement
@@ -171,10 +181,16 @@ public class AngularCompilationUnitBuilder {
   public static AngularSelectorElement parseSelector(int offset, String text) {
     // [attribute]
     if (StringUtilities.startsWithChar(text, '[') && StringUtilities.endsWithChar(text, ']')) {
-      int nameOffset = offset + "[".length();
+      int nameOffset = offset + 1;
       String attributeName = text.substring(1, text.length() - 1);
       // TODO(scheglov) report warning if there are spaces between [ and identifier
       return new HasAttributeSelectorElementImpl(attributeName, nameOffset);
+    }
+    // .class
+    if (StringUtilities.startsWithChar(text, '.')) {
+      int nameOffset = offset + 1;
+      String className = text.substring(1, text.length());
+      return new AngularHasClassSelectorElementImpl(className, nameOffset);
     }
     // tag[attribute]
     if (StringUtilities.endsWithChar(text, ']')) {
@@ -225,7 +241,7 @@ public class AngularCompilationUnitBuilder {
    * Checks if the name range of the given {@link Element} is completely covered by the given
    * {@link SimpleStringLiteral}.
    */
-  private static boolean isNameCoveredByLiteral(Element element, ASTNode node) {
+  private static boolean isNameCoveredByLiteral(Element element, AstNode node) {
     if (element != null) {
       String name = element.getName();
       if (name != null) {
@@ -240,7 +256,7 @@ public class AngularCompilationUnitBuilder {
   /**
    * Parses given {@link SimpleStringLiteral} using {@link #parseSelector(int, String)}.
    */
-  private static AngularSelectorElement parseSelector(SimpleStringLiteral literal) {
+  private static AngularSelectorElement parseSelectorFromString(SimpleStringLiteral literal) {
     int offset = literal.getValueOffset();
     String text = literal.getStringValue();
     return parseSelector(offset, text);
@@ -257,6 +273,11 @@ public class AngularCompilationUnitBuilder {
   private final Source source;
 
   /**
+   * The compilation unit with built Dart element models.
+   */
+  private CompilationUnit unit;
+
+  /**
    * The {@link ClassDeclaration} that is currently being analyzed.
    */
   private ClassDeclaration classDeclaration;
@@ -265,11 +286,6 @@ public class AngularCompilationUnitBuilder {
    * The {@link ClassElementImpl} that is currently being analyzed.
    */
   private ClassElementImpl classElement;
-
-  /**
-   * The {@link ToolkitObjectElement}s to set for {@link #classElement}.
-   */
-  private List<ToolkitObjectElement> classToolkitObjects = Lists.newArrayList();
 
   /**
    * The {@link Annotation} that is currently being analyzed.
@@ -281,24 +297,25 @@ public class AngularCompilationUnitBuilder {
    * 
    * @param errorListener the listener to which errors will be reported.
    * @param source the source containing the unit that will be analyzed
+   * @param unit the compilation unit with built Dart element models
    */
-  public AngularCompilationUnitBuilder(AnalysisErrorListener errorListener, Source source) {
+  public AngularCompilationUnitBuilder(AnalysisErrorListener errorListener, Source source,
+      CompilationUnit unit) {
     this.errorListener = errorListener;
     this.source = source;
+    this.unit = unit;
   }
 
   /**
    * Builds Angular specific element models and adds them to the existing Dart elements.
-   * 
-   * @param unit the compilation unit with built Dart element models
    */
-  public void build(CompilationUnit unit) {
+  public void build() {
+    parseViews();
     // process classes
     for (CompilationUnitMember unitMember : unit.getDeclarations()) {
       if (unitMember instanceof ClassDeclaration) {
         this.classDeclaration = (ClassDeclaration) unitMember;
         this.classElement = (ClassElementImpl) classDeclaration.getElement();
-        this.classToolkitObjects.clear();
         // process annotations
         NodeList<Annotation> annotations = classDeclaration.getMetadata();
         for (Annotation annotation : annotations) {
@@ -308,30 +325,25 @@ public class AngularCompilationUnitBuilder {
           }
           this.annotation = annotation;
           // @NgFilter
-          if (isAngularAnnotation(NG_FILTER)) {
+          if (isAngularAnnotation(annotation, NG_FILTER)) {
             parseNgFilter();
             continue;
           }
           // @NgComponent
-          if (isAngularAnnotation(NG_COMPONENT)) {
+          if (isAngularAnnotation(annotation, NG_COMPONENT)) {
             parseNgComponent();
             continue;
           }
           // @NgController
-          if (isAngularAnnotation(NG_CONTROLLER)) {
+          if (isAngularAnnotation(annotation, NG_CONTROLLER)) {
             parseNgController();
             continue;
           }
           // @NgDirective
-          if (isAngularAnnotation(NG_DIRECTIVE)) {
+          if (isAngularAnnotation(annotation, NG_DIRECTIVE)) {
             parseNgDirective();
             continue;
           }
-        }
-        // set toolkit objects
-        if (!classToolkitObjects.isEmpty()) {
-          List<ToolkitObjectElement> objects = classToolkitObjects;
-          classElement.setToolkitObjects(objects.toArray(new ToolkitObjectElement[objects.size()]));
         }
       }
     }
@@ -398,13 +410,6 @@ public class AngularCompilationUnitBuilder {
     return false;
   }
 
-  /**
-   * Checks if {@link #annotation} is an annotation with required name.
-   */
-  private boolean isAngularAnnotation(String name) {
-    return isAngularAnnotation(annotation, name);
-  }
-
   private void parseNgComponent() {
     boolean isValid = true;
     // publishAs
@@ -421,7 +426,7 @@ public class AngularCompilationUnitBuilder {
       isValid = false;
     } else {
       SimpleStringLiteral selectorLiteral = getStringLiteral(SELECTOR);
-      selector = parseSelector(selectorLiteral);
+      selector = parseSelectorFromString(selectorLiteral);
       if (selector == null) {
         reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorLiteral);
         isValid = false;
@@ -452,21 +457,19 @@ public class AngularCompilationUnitBuilder {
       element.setTemplateUriOffset(templateUriOffset);
       element.setStyleUri(styleUri);
       element.setStyleUriOffset(styleUriOffset);
-      element.setProperties(parseNgComponentProperties(true));
+      element.setProperties(parseNgComponentProperties());
       element.setScopeProperties(parseScopeProperties());
-      classToolkitObjects.add(element);
+      classElement.addToolkitObjects(element);
     }
   }
 
   /**
    * Parses {@link AngularPropertyElement}s from {@link #annotation} and {@link #classDeclaration}.
    */
-  private AngularPropertyElement[] parseNgComponentProperties(boolean fromFields) {
+  private AngularPropertyElement[] parseNgComponentProperties() {
     List<AngularPropertyElement> properties = Lists.newArrayList();
     parseNgComponentProperties_fromMap(properties);
-    if (fromFields) {
-      parseNgComponentProperties_fromFields(properties);
-    }
+    parseNgComponentProperties_fromFields(properties);
     return properties.toArray(new AngularPropertyElement[properties.size()]);
   }
 
@@ -521,7 +524,7 @@ public class AngularCompilationUnitBuilder {
     }
     // prepare map literal
     if (!(mapExpression instanceof MapLiteral)) {
-      reportError(mapExpression, AngularCode.INVALID_PROPERTY_MAP);
+      reportErrorForNode(AngularCode.INVALID_PROPERTY_MAP, mapExpression);
       return;
     }
     MapLiteral mapLiteral = (MapLiteral) mapExpression;
@@ -530,7 +533,7 @@ public class AngularCompilationUnitBuilder {
       // prepare property name
       Expression nameExpression = entry.getKey();
       if (!(nameExpression instanceof SimpleStringLiteral)) {
-        reportError(nameExpression, AngularCode.INVALID_PROPERTY_NAME);
+        reportErrorForNode(AngularCode.INVALID_PROPERTY_NAME, nameExpression);
         continue;
       }
       SimpleStringLiteral nameLiteral = (SimpleStringLiteral) nameExpression;
@@ -539,7 +542,7 @@ public class AngularCompilationUnitBuilder {
       // prepare field specification
       Expression specExpression = entry.getValue();
       if (!(specExpression instanceof SimpleStringLiteral)) {
-        reportError(specExpression, AngularCode.INVALID_PROPERTY_SPEC);
+        reportErrorForNode(AngularCode.INVALID_PROPERTY_SPEC, specExpression);
         continue;
       }
       SimpleStringLiteral specLiteral = (SimpleStringLiteral) specExpression;
@@ -563,7 +566,7 @@ public class AngularCompilationUnitBuilder {
         kind = AngularPropertyKind.TWO_WAY;
         fieldNameOffset = 3;
       } else {
-        reportError(specLiteral, AngularCode.INVALID_PROPERTY_KIND, spec);
+        reportErrorForNode(AngularCode.INVALID_PROPERTY_KIND, specLiteral, spec);
         continue;
       }
       String fieldName = spec.substring(fieldNameOffset);
@@ -573,10 +576,10 @@ public class AngularCompilationUnitBuilder {
           fieldName,
           classElement.getLibrary());
       if (setter == null) {
-        reportError(
+        reportErrorForOffset(
+            AngularCode.INVALID_PROPERTY_FIELD,
             fieldNameOffset,
             fieldName.length(),
-            AngularCode.INVALID_PROPERTY_FIELD,
             fieldName);
         continue;
       }
@@ -604,7 +607,7 @@ public class AngularCompilationUnitBuilder {
       isValid = false;
     } else {
       SimpleStringLiteral selectorLiteral = getStringLiteral(SELECTOR);
-      selector = parseSelector(selectorLiteral);
+      selector = parseSelectorFromString(selectorLiteral);
       if (selector == null) {
         reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorLiteral);
         isValid = false;
@@ -616,7 +619,7 @@ public class AngularCompilationUnitBuilder {
       int nameOffset = getStringArgumentOffset(PUBLISH_AS);
       AngularControllerElementImpl element = new AngularControllerElementImpl(name, nameOffset);
       element.setSelector(selector);
-      classToolkitObjects.add(element);
+      classElement.addToolkitObjects(element);
     }
   }
 
@@ -629,7 +632,7 @@ public class AngularCompilationUnitBuilder {
       isValid = false;
     } else {
       SimpleStringLiteral selectorLiteral = getStringLiteral(SELECTOR);
-      selector = parseSelector(selectorLiteral);
+      selector = parseSelectorFromString(selectorLiteral);
       if (selector == null) {
         reportErrorForArgument(SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, selectorLiteral);
         isValid = false;
@@ -640,8 +643,8 @@ public class AngularCompilationUnitBuilder {
       int offset = annotation.getOffset();
       AngularDirectiveElementImpl element = new AngularDirectiveElementImpl(offset);
       element.setSelector(selector);
-      element.setProperties(parseNgComponentProperties(false));
-      classToolkitObjects.add(element);
+      element.setProperties(parseNgComponentProperties());
+      classElement.addToolkitObjects(element);
     }
   }
 
@@ -656,27 +659,38 @@ public class AngularCompilationUnitBuilder {
     if (isValid) {
       String name = getStringArgument(NAME);
       int nameOffset = getStringArgumentOffset(NAME);
-      classToolkitObjects.add(new AngularFilterElementImpl(name, nameOffset));
+      classElement.addToolkitObjects(new AngularFilterElementImpl(name, nameOffset));
     }
   }
 
   private AngularScopePropertyElement[] parseScopeProperties() {
     final List<AngularScopePropertyElement> properties = Lists.newArrayList();
-    classDeclaration.accept(new RecursiveASTVisitor<Void>() {
+    classDeclaration.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitAssignmentExpression(AssignmentExpression node) {
-        SimpleStringLiteral nameNode = getNameNode(node.getLeftHandSide());
-        if (nameNode != null) {
-          String name = nameNode.getStringValue();
-          int nameOffset = nameNode.getValueOffset();
-          AngularScopePropertyElement property = new AngularScopePropertyElementImpl(
-              name,
-              nameOffset,
-              node.getRightHandSide().getBestType());
-          nameNode.setToolkitElement(property);
-          properties.add(property);
-        }
+        addProperty(node);
         return super.visitAssignmentExpression(node);
+      }
+
+      private void addProperty(AssignmentExpression node) {
+        // try to find "name" in scope[name]
+        SimpleStringLiteral nameNode = getNameNode(node.getLeftHandSide());
+        if (nameNode == null) {
+          return;
+        }
+        // prepare unique
+        String name = nameNode.getStringValue();
+        if (hasPropertyWithName(name)) {
+          return;
+        }
+        // do add property
+        int nameOffset = nameNode.getValueOffset();
+        AngularScopePropertyElement property = new AngularScopePropertyElementImpl(
+            name,
+            nameOffset,
+            node.getRightHandSide().getBestType());
+        nameNode.setToolkitElement(property);
+        properties.add(property);
       }
 
       private SimpleStringLiteral getNameNode(Expression node) {
@@ -684,11 +698,30 @@ public class AngularCompilationUnitBuilder {
           IndexExpression indexExpression = (IndexExpression) node;
           Expression target = indexExpression.getTarget();
           Expression index = indexExpression.getIndex();
-          if (index instanceof SimpleStringLiteral && isScope(target)) {
+          if (index instanceof SimpleStringLiteral && isContext(target)) {
             return (SimpleStringLiteral) index;
           }
         }
         return null;
+      }
+
+      private boolean hasPropertyWithName(String name) {
+        for (AngularScopePropertyElement property : properties) {
+          if (property.getName().equals(name)) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      private boolean isContext(Expression target) {
+        if (target instanceof PrefixedIdentifier) {
+          PrefixedIdentifier prefixed = (PrefixedIdentifier) target;
+          SimpleIdentifier prefix = prefixed.getPrefix();
+          SimpleIdentifier identifier = prefixed.getIdentifier();
+          return ObjectUtilities.equals(identifier.getName(), "context") && isScope(prefix);
+        }
+        return false;
       }
 
       private boolean isScope(Expression target) {
@@ -705,22 +738,84 @@ public class AngularCompilationUnitBuilder {
     return properties.toArray(new AngularScopePropertyElement[properties.size()]);
   }
 
-  private void reportError(ASTNode node, ErrorCode errorCode, Object... arguments) {
-    int offset = node.getOffset();
-    int length = node.getLength();
-    reportError(offset, length, errorCode, arguments);
-  }
+  /**
+   * Create {@link AngularViewElement} for each valid <code>view('template.html')</code> invocation,
+   * where <code>view</code> is <code>ViewFactory</code>.
+   */
+  private void parseViews() {
+    final List<AngularViewElement> views = Lists.newArrayList();
+    unit.accept(new RecursiveAstVisitor<Void>() {
+      @Override
+      public Void visitMethodInvocation(MethodInvocation node) {
+        addView(node);
+        return super.visitMethodInvocation(node);
+      }
 
-  private void reportError(int offset, int length, ErrorCode errorCode, Object... arguments) {
-    errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
+      private void addView(MethodInvocation node) {
+        // only one argument
+        List<Expression> arguments = node.getArgumentList().getArguments();
+        if (arguments.size() != 1) {
+          return;
+        }
+        // String literal
+        Expression argument = arguments.get(0);
+        if (!(argument instanceof SimpleStringLiteral)) {
+          return;
+        }
+        SimpleStringLiteral literal = (SimpleStringLiteral) argument;
+        // just view('template')
+        if (node.getRealTarget() != null) {
+          return;
+        }
+        // should be ViewFactory
+        if (!isViewFactory(node.getMethodName())) {
+          return;
+        }
+        // add AngularViewElement
+        String templateUri = literal.getStringValue();
+        int templateUriOffset = literal.getValueOffset();
+        views.add(new AngularViewElementImpl(templateUri, templateUriOffset));
+      }
+
+      private boolean isViewFactory(Expression target) {
+        if (target instanceof SimpleIdentifier) {
+          SimpleIdentifier identifier = (SimpleIdentifier) target;
+          Element element = identifier.getStaticElement();
+          if (element instanceof VariableElement) {
+            VariableElement variable = (VariableElement) element;
+            Type type = variable.getType();
+            if (type instanceof InterfaceType) {
+              InterfaceType interfaceType = (InterfaceType) type;
+              return interfaceType.getName().equals("ViewFactory");
+            }
+          }
+        }
+        return false;
+      }
+    });
+    if (!views.isEmpty()) {
+      AngularViewElement[] viewArray = views.toArray(new AngularViewElement[views.size()]);
+      ((CompilationUnitElementImpl) unit.getElement()).setAngularViews(viewArray);
+    }
   }
 
   private void reportErrorForAnnotation(ErrorCode errorCode, Object... arguments) {
-    reportError(annotation, errorCode, arguments);
+    reportErrorForNode(errorCode, annotation, arguments);
   }
 
   private void reportErrorForArgument(String argumentName, ErrorCode errorCode, Object... arguments) {
     Expression argument = getArgument(argumentName);
-    reportError(argument, errorCode, arguments);
+    reportErrorForNode(errorCode, argument, arguments);
+  }
+
+  private void reportErrorForNode(ErrorCode errorCode, AstNode node, Object... arguments) {
+    int offset = node.getOffset();
+    int length = node.getLength();
+    reportErrorForOffset(errorCode, offset, length, arguments);
+  }
+
+  private void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
+      Object... arguments) {
+    errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
   }
 }

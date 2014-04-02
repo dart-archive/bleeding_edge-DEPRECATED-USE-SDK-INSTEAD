@@ -70,9 +70,9 @@ class JsMirrorSystem implements MirrorSystem {
   JsTypeMirror get dynamicType => _dynamicType;
   JsTypeMirror get voidType => _voidType;
 
-  final static JsTypeMirror _dynamicType =
+  static final JsTypeMirror _dynamicType =
       new JsTypeMirror(const Symbol('dynamic'));
-  final static JsTypeMirror _voidType = new JsTypeMirror(const Symbol('void'));
+  static final JsTypeMirror _voidType = new JsTypeMirror(const Symbol('void'));
 
   static final Map<String, List<LibraryMirror>> librariesByName =
       computeLibrariesByName();
@@ -220,12 +220,16 @@ class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
   String get _prettyName => 'TypeVariableMirror';
 
   bool get isTopLevel => false;
+  bool get isStatic => false;
 
   TypeMirror get upperBound {
     if (_cachedUpperBound != null) return _cachedUpperBound;
     return _cachedUpperBound = typeMirrorFromRuntimeTypeRepresentation(
         owner, getMetadata(_typeVariable.bound));
   }
+
+  bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+  bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 
   _asRuntimeType() => _metadataIndex;
 }
@@ -254,6 +258,9 @@ class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
 
   bool get isOriginalDeclaration => true;
   TypeMirror get originalDeclaration => this;
+
+  bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+  bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 
   _asRuntimeType() {
     if (this == JsMirrorSystem._dynamicType) return null;
@@ -349,11 +356,8 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
       throw new NoSuchMethodError(
           this, memberName, positionalArguments, namedArguments);
     }
-    if (mirror is JsMethodMirror) {
-      JsMethodMirror method = mirror;
-      if (!method.canInvokeReflectively()) {
-        throwInvalidReflectionError(n(memberName));
-      }
+    if (mirror is JsMethodMirror && !mirror.canInvokeReflectively()) {
+      throwInvalidReflectionError(n(memberName));
     }
     return reflect(mirror._invoke(positionalArguments, namedArguments));
   }
@@ -382,10 +386,13 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
       String name = _functions[i];
       var jsFunction = JS('', '#[#]', _globalObject, name);
       String unmangledName = mangledGlobalNames[name];
-      if (unmangledName == null) {
+      if (unmangledName == null ||
+          JS('bool', "!!#['getterStub']", jsFunction)) {
         // If there is no unmangledName, [jsFunction] is either a synthetic
         // implementation detail, or something that is excluded
         // by @MirrorsUsed.
+        // If it has a getterStub property it is a synthetic stub.
+        // TODO(floitsch): Remove the getterStub hack.
         continue;
       }
       bool isConstructor = unmangledName.startsWith('new ');
@@ -481,12 +488,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   // TODO(ahe): Test this getter.
   DeclarationMirror get owner => null;
 
-  // TODO(ahe): Implement this.
-  Map<Symbol, MethodMirror> get topLevelMembers
-      => throw new UnimplementedError();
-
-  // TODO(ahe): Implement this.
-  Function operator [](Symbol name)
+  List<LibraryDependencyMirror> get libraryDependencies
       => throw new UnimplementedError();
 }
 
@@ -544,7 +546,7 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     return mirror;
   }
   var constructorOrInterceptor =
-      Primitives.getConstructorOrInterceptor(mangledName);
+      Primitives.getConstructorOrInterceptorToken(mangledName);
   if (constructorOrInterceptor == null) {
     int index = JS('int|Null', 'init.functionAliases[#]', mangledName);
     if (index != null) {
@@ -556,7 +558,7 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     // TODO(ahe): How to handle intercepted classes?
     throw new UnsupportedError('Cannot find class for: ${n(symbol)}');
   }
-  var constructor = (constructorOrInterceptor is Interceptor)
+  var constructor = (Primitives.isInterceptorToken(constructorOrInterceptor))
       ? JS('', '#.constructor', constructorOrInterceptor)
       : constructorOrInterceptor;
   var descriptor = JS('', '#["@"]', constructor);
@@ -566,7 +568,8 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     // This is a native class, or an intercepted class.
     // TODO(ahe): Preserve descriptor for such classes.
   } else {
-    fields = JS('', '#[""]', descriptor);
+    fields = JS('', '#[#]', descriptor,
+        JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY'));
     if (fields is List) {
       fieldsMetadata = fields.getRange(1, fields.length).toList();
       fields = fields[0];
@@ -787,10 +790,15 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 
   List<TypeMirror> get typeArguments => const <TypeMirror>[];
 
-  // TODO(ahe): Implement this.
-  Function operator [](Symbol name) => throw new UnimplementedError();
-
   bool get isAbstract => throw new UnimplementedError();
+
+  bool isSubclassOf(ClassMirror other) {
+    superclass.isSubclassOf(other) || mixin.isSubclassOf(other);
+  }
+
+  bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+
+  bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 }
 
 abstract class JsObjectMirror implements ObjectMirror {
@@ -871,10 +879,11 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   /// reflective information to know how to to invoke a specific member.
   get _classInvocationCache {
     String cacheName = Primitives.mirrorInvokeCacheName;
-    var cache = JS('', r'#.constructor[#]', reflectee, cacheName);
+    var cacheHolder = (reflectee == null) ? getInterceptor(null) : reflectee;
+    var cache = JS('', r'#.constructor[#]', cacheHolder, cacheName);
     if (cache == null) {
       cache = JsCache.allocate();
-      JS('void', r'#.constructor[#] = #', reflectee, cacheName, cache);
+      JS('void', r'#.constructor[#] = #', cacheHolder, cacheName, cache);
     }
     return cache;
   }
@@ -1063,7 +1072,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     // interceptor between multiple different instances of [InstanceMirror].
     var interceptor = getInterceptor(object);
     if (!useEval) return _newInterceptGetterNoEvalFn(name, interceptor);
-    String className = JS('String', '#.constructor.name', object);
+    String className = JS('String', '#.constructor.name', interceptor);
     var body = "(function $className\$$name(o){return i.$name(o)})";
     return JS('', '(function(b,i){return eval(b)})(#,#)', body, interceptor);
   }
@@ -1090,9 +1099,6 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
   // TODO(ahe): Remove this method from the API.
   MirrorSystem get mirrors => currentJsMirrorSystem;
-
-  // TODO(ahe): Implement this method.
-  Function operator [](Symbol name) => throw new UnimplementedError();
 }
 
 /**
@@ -1139,6 +1145,15 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
         super(originalDeclaration.simpleName);
 
   String get _prettyName => 'ClassMirror';
+
+  String toString() {
+    String result = '$_prettyName on ${n(simpleName)}';
+    if (typeArguments != null) {
+      result = "$result<${typeArguments.join(', ')}>";
+    }
+    return result;
+  }
+
   String get _mangledName {
     for (TypeMirror typeArgument in typeArguments) {
       if (typeArgument != JsMirrorSystem._dynamicType) {
@@ -1364,6 +1379,8 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
 
   bool get isAbstract => _class.isAbstract;
 
+  bool isSubclassOf(ClassMirror other) => _class.isSubclassOf(other);
+
   SourceLocation get location => _class.location;
 
   MirrorSystem get mirrors => _class.mirrors;
@@ -1379,8 +1396,9 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
   // TODO(ahe): Implement this.
   ClassMirror get mixin => throw new UnimplementedError();
 
-  // TODO(ahe): Implement this.
-  Function operator [](Symbol name) => throw new UnimplementedError();
+  bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+
+  bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 }
 
 class JsSyntheticAccessor implements MethodMirror {
@@ -1486,7 +1504,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   String get _prettyName => 'ClassMirror';
 
   get _jsConstructor {
-    if (_jsConstructorOrInterceptor is Interceptor) {
+    if (Primitives.isInterceptorToken(_jsConstructorOrInterceptor)) {
       return JS('', '#.constructor', _jsConstructorOrInterceptor);
     } else {
       return _jsConstructorOrInterceptor;
@@ -1522,6 +1540,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       // reflection with metadata.
       if (simpleName == null) continue;
       var function = JS('', '#[#]', prototype, key);
+      if (isNoSuchMethodStub(function)) continue;
       var mirror =
           new JsMethodMirror.fromUnmangledName(
               simpleName, function, false, false);
@@ -1578,7 +1597,10 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     var staticDescriptor = JS('', 'init.statics[#]', _mangledName);
     if (staticDescriptor != null) {
       parseCompactFieldSpecification(
-          fieldOwner, JS('', '#[""]', staticDescriptor), true, result);
+          fieldOwner,
+          JS('', '#[#]',
+              staticDescriptor, JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY')),
+          true, result);
     }
     return result;
   }
@@ -1752,7 +1774,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   JsLibraryMirror get owner {
     if (_owner == null) {
-      if (_jsConstructorOrInterceptor is Interceptor) {
+      if (Primitives.isInterceptorToken(_jsConstructorOrInterceptor)) {
         _owner = reflectType(Object).owner;
       } else {
         for (var list in JsMirrorSystem.librariesByName.values) {
@@ -1883,10 +1905,23 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   // TODO(ahe): Implement this.
   ClassMirror get mixin => throw new UnimplementedError();
 
-  // TODO(ahe): Implement this.
-  Function operator [](Symbol name) => throw new UnimplementedError();
-
   bool get isAbstract => throw new UnimplementedError();
+
+  bool isSubclassOf(ClassMirror other) {
+    if (other is! ClassMirror) {
+      throw new ArgumentError(other);
+    }
+    if (other is JsFunctionTypeMirror) {
+      return false;
+    } if (other is JsClassMirror &&
+          JS('bool', '# == #', other._jsConstructor, _jsConstructor)) {
+      return true;
+    } else if (superclass == null) {
+      return false;
+    } else {
+      return superclass.isSubclassOf(other);
+    }
+  }
 }
 
 class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
@@ -2013,14 +2048,17 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
     if (cachedFunction != null) return cachedFunction;
     disableTreeShaking();
     // TODO(ahe): What about optional parameters (named or not).
+    String callPrefix = "${JS_GET_NAME("CALL_PREFIX")}\$";
     var extractCallName = JS('', r'''
 function(reflectee) {
   for (var property in reflectee) {
-    if ("call$" == property.substring(0, 5)) return property;
+    if (# == property.substring(0, #) &&
+        property[#] >= '0' &&
+        property[#] <= '9') return property;
   }
   return null;
 }
-''');
+''', callPrefix, callPrefix.length, callPrefix.length, callPrefix.length);
     String callName = JS('String|Null', '#(#)', extractCallName, reflectee);
     if (callName == null) {
       throw new RuntimeError('Cannot find callName on "$reflectee"');
@@ -2061,9 +2099,6 @@ function(reflectee) {
   InstanceMirror findInContext(Symbol name, {ifAbsent: null}) {
     throw new UnsupportedError("ClosureMirror.findInContext not yet supported");
   }
-
-  // TODO(ahe): Implement this method.
-  Function operator [](Symbol name) => throw new UnimplementedError();
 }
 
 class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
@@ -2167,13 +2202,15 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
         bool isNamed = info.areOptionalParametersNamed;
         for (JsParameterMirror parameter in type.parameters) {
           var name = info.parameterName(i);
+          List<int> annotations = info.parameterMetadataAnnotations(i);
           var p;
           if (i < info.requiredParameterCount) {
-            p = new JsParameterMirror(name, this, parameter._type);
+            p = new JsParameterMirror(name, this, parameter._type,
+                metadataList: annotations);
           } else {
             var defaultValue = info.defaultValue(i);
             p = new JsParameterMirror(
-                name, this, parameter._type,
+                name, this, parameter._type, metadataList: annotations,
                 isOptional: true, isNamed: isNamed, defaultValue: defaultValue);
           }
           formals[i++] = p;
@@ -2268,10 +2305,13 @@ class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
 
   final int _defaultValue;
 
+  final List<int> metadataList;
+
   JsParameterMirror(String unmangledName,
                     this.owner,
                     this._type,
-                    {this.isOptional: false,
+                     {this.metadataList: const <int>[],
+                     this.isOptional: false,
                      this.isNamed: false,
                      defaultValue})
       : _defaultValue = defaultValue,
@@ -2298,8 +2338,10 @@ class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
     return hasDefaultValue ? reflect(getMetadata(_defaultValue)) : null;
   }
 
-  // TODO(ahe): Implement this.
-  List<InstanceMirror> get metadata => throw new UnimplementedError();
+  List<InstanceMirror> get metadata {
+    preserveMetadata();
+    return metadataList.map((int i) => reflect(getMetadata(i))).toList();
+  }
 }
 
 class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
@@ -2314,6 +2356,10 @@ class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
   JsFunctionTypeMirror get value => referent;
 
   String get _prettyName => 'TypedefMirror';
+
+  bool get hasReflectedType => throw new UnimplementedError();
+
+  Type get reflectedType => throw new UnimplementedError();
 
   // TODO(ahe): Implement this method.
   List<TypeVariableMirror> get typeVariables => throw new UnimplementedError();
@@ -2332,6 +2378,9 @@ class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
 
   // TODO(ahe): Implement this method.
   List<InstanceMirror> get metadata => throw new UnimplementedError();
+
+  bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+  bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 }
 
 // TODO(ahe): Remove this class when API is updated.
@@ -2349,8 +2398,7 @@ class BrokenClassMirror {
   InstanceMirror newInstance(
       Symbol constructorName,
       List positionalArguments,
-      [Map<Symbol,dynamic> namedArguments]) => throw new UnimplementedError();
-  Function operator [](Symbol name) => throw new UnimplementedError();
+      [Map<Symbol, dynamic> namedArguments]) => throw new UnimplementedError();
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
                         [Map<Symbol, dynamic> namedArguments])
@@ -2473,6 +2521,12 @@ class JsFunctionTypeMirror extends BrokenClassMirror
     return _cachedToString = "$s'";
   }
 
+  bool isSubclassOf(ClassMirror other) => false;
+
+  bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+
+  bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
+
   // TODO(ahe): Implement this method.
   MethodMirror get callMethod => throw new UnimplementedError();
 }
@@ -2522,7 +2576,7 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
       representation = runtimeTypeToString(type);
     }
   } else {
-    getTypeArgument(int index) {
+    TypeMirror getTypeArgument(int index) {
       TypeVariable typeVariable = getMetadata(index);
       int variableIndex =
           findTypeVariableIndex(ownerClass.typeVariables, typeVariable.name);
@@ -2538,8 +2592,9 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
     }
     String substituteTypeVariable(int index) {
       var typeArgument = getTypeArgument(index);
-      if (typeArgument is JsTypeVariableMirror)
+      if (typeArgument is JsTypeVariableMirror) {
         return '${typeArgument._metadataIndex}';
+      }
       if (typeArgument is! JsClassMirror &&
           typeArgument is! JsTypeBoundClassMirror) {
         if (typeArgument == JsMirrorSystem._dynamicType) {
@@ -2589,7 +2644,7 @@ List extractMetadata(victim) {
       (int i) => getMetadata(i)).toList();
 }
 
-List<JsVariableMirror> parseCompactFieldSpecification(
+void parseCompactFieldSpecification(
     JsDeclarationMirror owner,
     fieldSpecification,
     bool isStatic,
@@ -2654,9 +2709,16 @@ bool isOperatorName(String name) {
 /// Returns true if the key represent ancillary reflection data, that is, not a
 /// method.
 bool isReflectiveDataInPrototype(String key) {
-  if (key == '' || key == METHODS_WITH_OPTIONAL_ARGUMENTS) return true;
+  if (key == JS_GET_NAME('CLASS_DESCRIPTOR_PROPERTY') ||
+      key == METHODS_WITH_OPTIONAL_ARGUMENTS) {
+    return true;
+  }
   String firstChar = key[0];
   return firstChar == '*' || firstChar == '+';
+}
+
+bool isNoSuchMethodStub(var jsFunction) {
+  return JS('bool', r'#.$reflectable == 2', jsFunction);
 }
 
 class NoSuchStaticMethodError extends Error implements NoSuchMethodError {
@@ -2714,7 +2776,6 @@ class UnmodifiableMapView<K, V> implements Map<K, V> {
 
   Iterable<V> get values => _source.values;
 
-
   void operator []=(K key, V value) => _throw();
 
   V putIfAbsent(K key, V ifAbsent()) { _throw(); }
@@ -2724,4 +2785,32 @@ class UnmodifiableMapView<K, V> implements Map<K, V> {
   V remove(K key) { _throw(); }
 
   void clear() => _throw();
+}
+
+Symbol getSymbol(String name, LibraryMirror library) {
+  if (_isPublicSymbol(name)) {
+    return new _symbol_dev.Symbol.validated(name);
+  }
+  if (library == null) {
+    throw new ArgumentError(
+        "Library required for private symbol name: $name");
+  }
+  if (!_symbol_dev.Symbol.isValidSymbol(name)) {
+    throw new ArgumentError("Not a valid symbol name: $name");
+  }
+  throw new UnimplementedError(
+      "MirrorSystem.getSymbol not implemented for private names");
+}
+
+bool _isPublicSymbol(String name) {
+  // A symbol is public if it doesn't start with '_' and it doesn't
+  // have a part (following a '.') that starts with '_'.
+  const int UNDERSCORE = 0x5f;
+  if (name.isEmpty) return true;
+  int index = -1;
+  do {
+    if (name.codeUnitAt(index + 1) == UNDERSCORE) return false;
+    index = name.indexOf('.', index + 1);
+  } while (index >= 0 && index + 1 < name.length);
+  return true;
 }

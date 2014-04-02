@@ -63,7 +63,7 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
     // check syntax
     Matcher syntaxMatcher = SYNTAX_PATTERN.matcher(spec);
     if (!syntaxMatcher.matches()) {
-      resolver.reportError(offset, spec.length() - 2, AngularCode.INVALID_REPEAT_SYNTAX);
+      resolver.reportErrorForOffset(AngularCode.INVALID_REPEAT_SYNTAX, offset, spec.length() - 2);
       return;
     }
     String lhsSpec = syntaxMatcher.group(1);
@@ -76,14 +76,21 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
     // check LHS syntax
     Matcher lhsMatcher = LHS_PATTERN.matcher(lhsSpec);
     if (!lhsMatcher.matches()) {
-      resolver.reportError(lhsOffset, lhsSpec.length(), AngularCode.INVALID_REPEAT_ITEM_SYNTAX);
+      resolver.reportErrorForOffset(
+          AngularCode.INVALID_REPEAT_ITEM_SYNTAX,
+          lhsOffset,
+          lhsSpec.length());
       return;
     }
     // parse item name
-    Expression varExpression = resolver.parseDartExpression(lhsSpec, lhsOffset);
+    Expression varExpression = resolver.parseDartExpression(lhsSpec, 0, lhsSpec.length(), lhsOffset);
     SimpleIdentifier varName = (SimpleIdentifier) varExpression;
     // parse iterable
-    AngularExpression iterableExpr = resolver.parseAngularExpression(iterableSpec, iterableOffset);
+    AngularExpression iterableExpr = resolver.parseAngularExpression(
+        iterableSpec,
+        0,
+        iterableSpec.length(),
+        iterableOffset);
     // resolve as: for (name in iterable) {}
     DeclaredIdentifier loopVariable = new DeclaredIdentifier(null, null, null, null, varName);
     Block loopBody = new Block(null, new ArrayList<Statement>(), null);
@@ -110,7 +117,11 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
     expressions.add(newRawXmlExpression(varExpression));
     expressions.add(newAngularRawXmlExpression(iterableExpr));
     if (idSpec != null) {
-      AngularExpression idExpression = resolver.parseAngularExpression(idSpec, idOffset);
+      AngularExpression idExpression = resolver.parseAngularExpression(
+          idSpec,
+          0,
+          idSpec.length(),
+          idOffset);
       expressions.add(newAngularRawXmlExpression(idExpression));
     }
     setExpressions(attribute, expressions);
@@ -130,13 +141,13 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
 
   private void defineLocalVariable_bool(AngularHtmlUnitResolver resolver, String name) {
     InterfaceType type = resolver.getTypeProvider().getBoolType();
-    LocalVariableElementImpl variable = resolver.createLocalVariable(type, name);
+    LocalVariableElementImpl variable = resolver.createLocalVariableWithName(type, name);
     resolver.defineVariable(variable);
   }
 
   private void defineLocalVariable_int(AngularHtmlUnitResolver resolver, String name) {
     InterfaceType type = resolver.getTypeProvider().getIntType();
-    LocalVariableElementImpl variable = resolver.createLocalVariable(type, name);
+    LocalVariableElementImpl variable = resolver.createLocalVariableWithName(type, name);
     resolver.defineVariable(variable);
   }
 
@@ -198,7 +209,7 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
         return;
       }
       // resolve property name
-      arg = resolver.parseDartExpression(exprSource, argOffset);
+      arg = resolver.parseDartExpression(exprSource, 0, exprSource.length(), argOffset);
       if (arg instanceof SimpleIdentifier) {
         SimpleIdentifier propertyNode = (SimpleIdentifier) arg;
         resolvePropertyNode(resolver, expressions, itemType, propertyNode);
@@ -209,8 +220,8 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
   /**
    * Resolves an argument for "orderBy" filter.
    */
-  private void resolveFilterArgument_orderBy(AngularHtmlUnitResolver resolver, Type itemType,
-      AngularFilterArgument argument, int argIndex) {
+  private void resolveFilterArgument_orderByWithFilter(AngularHtmlUnitResolver resolver,
+      Type itemType, AngularFilterArgument argument, int argIndex) {
     Expression arg = argument.getExpression();
     // only first argument is special for "orderBy"
     if (argIndex != 0) {
@@ -232,7 +243,7 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
         resolveFilterArgument_filter(resolver, itemType, argument, index);
       }
       if ("orderBy".equals(filterName)) {
-        resolveFilterArgument_orderBy(resolver, itemType, argument, index);
+        resolveFilterArgument_orderByWithFilter(resolver, itemType, argument, index);
       }
       index++;
     }

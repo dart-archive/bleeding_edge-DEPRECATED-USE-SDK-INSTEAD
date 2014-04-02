@@ -30,34 +30,34 @@
 #include "vm/parser.h"
 #include "vm/scanner.h"
 #include "vm/symbols.h"
+#include "vm/tags.h"
 #include "vm/timer.h"
 
 namespace dart {
 
-DEFINE_FLAG(bool, disassemble, false, "Disassemble dart code.");
-DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
-DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
-DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
-DEFINE_FLAG(bool, constant_propagation, true,
-    "Do conditional constant propagation/unreachable code elimination.");
-DEFINE_FLAG(bool, common_subexpression_elimination, true,
-    "Do common subexpression elimination.");
-DEFINE_FLAG(bool, loop_invariant_code_motion, true,
-    "Do loop invariant code motion.");
 DEFINE_FLAG(bool, allocation_sinking, true,
     "Attempt to sink temporary allocations to side exits");
+DEFINE_FLAG(bool, common_subexpression_elimination, true,
+    "Do common subexpression elimination.");
+DEFINE_FLAG(bool, constant_propagation, true,
+    "Do conditional constant propagation/unreachable code elimination.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 16,
     "How many times we allow deoptimization before we disallow optimization.");
-DEFINE_FLAG(int, deoptimization_counter_licm_threshold, 8,
-    "How many times we allow deoptimization before we disable LICM.");
+DEFINE_FLAG(bool, disassemble, false, "Disassemble dart code.");
+DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
+DEFINE_FLAG(bool, loop_invariant_code_motion, true,
+    "Do loop invariant code motion.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DEFINE_FLAG(bool, print_flow_graph_optimized, false,
-            "Print the IR flow graph when optimizing.");
+    "Print the IR flow graph when optimizing.");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DEFINE_FLAG(bool, reorder_basic_blocks, true, "Enable basic-block reordering.");
+DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
+DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
+
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 
 // Compile a function. Should call only if the function has not been compiled.
@@ -262,6 +262,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
+  VMTagScope tagScope(isolate, VMTag::kCompileTagId);
   HANDLESCOPE(isolate);
   isolate->set_cha_used(false);
 
@@ -442,9 +443,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         optimizer.TryOptimizePatterns();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        if (FLAG_loop_invariant_code_motion &&
-            (function.deoptimization_counter() <
-             FLAG_deoptimization_counter_licm_threshold)) {
+        if (FLAG_loop_invariant_code_motion) {
           LICM licm(flow_graph);
           licm.Optimize();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -516,6 +515,10 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           sinking->DetachMaterializations();
         }
 
+        // Compute and store graph informations (call & instruction counts)
+        // to be later used by the inliner.
+        FlowGraphInliner::CollectGraphInfo(flow_graph, true);
+
         // Perform register allocation on the SSA graph.
         FlowGraphAllocator allocator(*flow_graph);
         allocator.AllocateRegisters();
@@ -563,7 +566,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
                   Code::Handle(function.unoptimized_code()).EntryPoint());
             }
           }
-          function.SetCode(code);
+          function.AttachCode(code);
 
           for (intptr_t i = 0;
                i < flow_graph->guarded_fields()->length();
@@ -573,8 +576,16 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           }
         } else {
           function.set_unoptimized_code(code);
-          function.SetCode(code);
+          function.AttachCode(code);
           ASSERT(CodePatcher::CodeIsPatchable(code));
+        }
+        if (parsed_function->HasDeferredPrefixes()) {
+          GrowableObjectArray* prefixes = parsed_function->DeferredPrefixes();
+          LibraryPrefix& prefix = LibraryPrefix::Handle();
+          for (intptr_t i = 0; i < prefixes->Length(); i++) {
+            prefix ^= prefixes->At(i);
+            prefix.RegisterDependentCode(code);
+          }
         }
       }
       is_compiled = true;
@@ -751,7 +762,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     return Error::null();
   }
   if (setjmp(*jump.Set()) == 0) {
-    TIMERSCOPE(time_compilation);
+    TIMERSCOPE(isolate, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
     ParsedFunction* parsed_function =
@@ -874,6 +885,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
       if (!error.IsNull()) {
         return error.raw();
       }
+      func.ClearCode();
     }
   }
   // Inner functions get added to the closures array. As part of compilation
@@ -889,6 +901,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
         if (!error.IsNull()) {
           return error.raw();
         }
+        func.ClearCode();
       }
     }
   }

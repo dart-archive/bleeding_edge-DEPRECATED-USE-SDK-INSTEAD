@@ -23,11 +23,23 @@ abstract class StreamMatcher {
   factory StreamMatcher.wrap(matcher) =>
       matcher is StreamMatcher ? matcher : nextValue(matcher);
 
+  StreamMatcher();
+
   /// Tries to match [this] against [stream].
   ///
   /// If the match succeeds, this returns `null`. If it fails, this returns a
   /// [Description] describing the failure.
   Future<Description> tryMatch(ScheduledStream stream);
+
+  /// Returns whether [this] would match [stream] without actually consuming
+  /// values from [stream].
+  ///
+  /// If the match succeeds, this returns `null`. If it fails, this returns a
+  /// [Description] describing the failure.
+  Future<Description> hasMatch(ScheduledStream stream) {
+    var fork = stream.fork();
+    return tryMatch(fork).whenComplete(fork.close);
+  }
 
   String toString();
 }
@@ -57,12 +69,25 @@ StreamMatcher inOrder(Iterable streamMatchers) {
 }
 
 /// A matcher that consumes values emitted by a stream until one matching
-/// [matcher] is emitted.
+/// [streamMatcher] is emitted.
 ///
-/// This will fail if the stream never emits a value that matches [matcher].
+/// This will fail if the stream never emits a value that matches
+/// [streamMatcher].
 ///
-/// [matcher] can be a [Matcher] or an [Object], but not a [StreamMatcher].
-StreamMatcher consumeThrough(matcher) => new _ConsumeThroughMatcher(matcher);
+/// [streamMatcher] can be a [StreamMatcher], a [Matcher] or an [Object].
+StreamMatcher consumeThrough(streamMatcher) =>
+    new _ConsumeThroughMatcher(streamMatcher);
+
+/// A matcher that consumes values emitted by a stream as long as they match
+/// [streamMatcher].
+///
+/// This matcher will always match a stream. It exists to consume values. If
+/// [streamMatcher] consumes more than one value, the next match will begin
+/// after all the consumed values.
+///
+/// [streamMatcher] can be a [StreamMatcher], a [Matcher] or an [Object].
+StreamMatcher consumeWhile(streamMatcher) =>
+    new _ConsumeWhileMatcher(streamMatcher);
 
 /// A matcher that matches either [streamMatcher1], [streamMatcher2], or both.
 ///
@@ -82,11 +107,19 @@ StreamMatcher either(streamMatcher1, streamMatcher2) =>
 /// [streamMatcher] can be a [StreamMatcher], a [Matcher], or an [Object].
 StreamMatcher allow(streamMatcher) => new _AllowMatcher(streamMatcher);
 
+/// A matcher that asserts that a stream never emits values matching
+/// [streamMatcher].
+///
+/// This will consume the remainder of a stream.
+///
+/// [streamMatcher] can be a [StreamMatcher], a [Matcher], or an [Object].
+StreamMatcher never(streamMatcher) => new _NeverMatcher(streamMatcher);
+
 /// A matcher that matches a stream that emits no more values.
 StreamMatcher get isDone => new _IsDoneMatcher();
 
 /// See [nextValue].
-class _NextValueMatcher implements StreamMatcher {
+class _NextValueMatcher extends StreamMatcher {
   final Matcher _matcher;
 
   _NextValueMatcher(matcher)
@@ -110,7 +143,7 @@ class _NextValueMatcher implements StreamMatcher {
 }
 
 /// See [nextValues].
-class _NextValuesMatcher implements StreamMatcher {
+class _NextValuesMatcher extends StreamMatcher {
   final int _n;
   final Matcher _matcher;
 
@@ -132,8 +165,8 @@ class _NextValuesMatcher implements StreamMatcher {
       });
     }
 
-    return collectValues(_n).then((description) {
-      if (description != null) return description;
+    return collectValues(_n).then((failure) {
+      if (failure != null) return failure;
       var matchState = {};
       if (_matcher.matches(collectedValues, matchState)) return null;
       return _matcher.describeMismatch(collectedValues, new StringDescription(),
@@ -149,7 +182,7 @@ class _NextValuesMatcher implements StreamMatcher {
 }
 
 /// See [inOrder].
-class _InOrderMatcher implements StreamMatcher {
+class _InOrderMatcher extends StreamMatcher {
   final List<StreamMatcher> _matchers;
 
   _InOrderMatcher(Iterable streamMatchers)
@@ -162,12 +195,12 @@ class _InOrderMatcher implements StreamMatcher {
     matchNext() {
       if (matchers.isEmpty) return new Future.value();
       var matcher = matchers.removeFirst();
-      return matcher.tryMatch(stream).then((description) {
-        if (description == null) return matchNext();
-        var newDescription = new StringDescription(
+      return matcher.tryMatch(stream).then((failure) {
+        if (failure == null) return matchNext();
+        var newFailure = new StringDescription(
               'matcher #${_matchers.length - matchers.length} failed');
-        if (description.length != 0) newDescription.add(':\n$description');
-        return newDescription;
+        if (failure.length != 0) newFailure.add(':\n$failure');
+        return newFailure;
       });
     }
 
@@ -180,20 +213,20 @@ class _InOrderMatcher implements StreamMatcher {
 }
 
 /// See [consumeThrough].
-class _ConsumeThroughMatcher implements StreamMatcher {
-  final Matcher _matcher;
+class _ConsumeThroughMatcher extends StreamMatcher {
+  final StreamMatcher _matcher;
 
-  _ConsumeThroughMatcher(matcher)
-      : _matcher = wrapMatcher(matcher);
+  _ConsumeThroughMatcher(streamMatcher)
+      : _matcher = new StreamMatcher.wrap(streamMatcher);
 
   Future<Description> tryMatch(ScheduledStream stream) {
     consumeNext() {
       return stream.hasNext.then((hasNext) {
         if (!hasNext) return new StringDescription("unexpected end of stream");
 
-        return stream.next().then((value) {
-          if (_matcher.matches(value, {})) return null;
-          return consumeNext();
+        return _matcher.hasMatch(stream).then((failure) {
+          if (failure != null) return stream.next().then((_) => consumeNext());
+          return _matcher.tryMatch(stream);
         });
       });
     }
@@ -202,13 +235,49 @@ class _ConsumeThroughMatcher implements StreamMatcher {
   }
 
   String toString() {
-    return new StringDescription('values followed by ')
-      .addDescriptionOf(_matcher).toString();
+    var matcherString = _matcher.toString();
+    if (matcherString.contains("\n")) {
+      return 'values followed by:\n' + prefixLines(matcherString, prefix: '  ');
+    } else {
+      return 'values followed by $matcherString';
+    }
+  }
+}
+
+/// See [consumeWhile].
+class _ConsumeWhileMatcher extends StreamMatcher {
+  final StreamMatcher _matcher;
+
+  _ConsumeWhileMatcher(matcher)
+      : _matcher = new StreamMatcher.wrap(matcher);
+
+  Future<Description> tryMatch(ScheduledStream stream) {
+    consumeNext() {
+      return stream.hasNext.then((hasNext) {
+        if (!hasNext) return new Future.value();
+
+        return _matcher.hasMatch(stream).then((failure) {
+          if (failure != null) return new Future.value();
+          return _matcher.tryMatch(stream).then((_) => consumeNext());
+        });
+      });
+    }
+
+    return consumeNext();
+  }
+
+  String toString() {
+    var matcherString = _matcher.toString();
+    if (matcherString.contains("\n")) {
+      return 'any number of\n' + prefixLines(matcherString, prefix: '  ');
+    } else {
+      return 'any number of $matcherString';
+    }
   }
 }
 
 /// See [either].
-class _EitherMatcher implements StreamMatcher {
+class _EitherMatcher extends StreamMatcher {
   final StreamMatcher _matcher1;
   final StreamMatcher _matcher2;
 
@@ -223,26 +292,26 @@ class _EitherMatcher implements StreamMatcher {
     return Future.wait([
       _matcher1.tryMatch(stream1).whenComplete(stream1.close),
       _matcher2.tryMatch(stream2).whenComplete(stream2.close)
-    ]).then((descriptions) {
-      var description1 = descriptions.first;
-      var description2 = descriptions.last;
+    ]).then((failures) {
+      var failure1 = failures.first;
+      var failure2 = failures.last;
 
       // If both matchers matched, use the one that consumed more of the stream.
-      if (description1 == null && description2 == null) {
+      if (failure1 == null && failure2 == null) {
         if (stream1.emittedValues.length >= stream2.emittedValues.length) {
           return _matcher1.tryMatch(stream);
         } else {
           return _matcher2.tryMatch(stream);
         }
-      } else if (description1 == null) {
+      } else if (failure1 == null) {
         return _matcher1.tryMatch(stream);
-      } else if (description2 == null) {
+      } else if (failure2 == null) {
         return _matcher2.tryMatch(stream);
       } else {
         return new StringDescription('both\n')
-            .add(prefixLines(description1.toString(), prefix: '  '))
+            .add(prefixLines(failure1.toString(), prefix: '  '))
             .add('\nand\n')
-            .add(prefixLines(description2.toString(), prefix: '  '))
+            .add(prefixLines(failure2.toString(), prefix: '  '))
             .toString();
       }
     });
@@ -258,16 +327,15 @@ class _EitherMatcher implements StreamMatcher {
 }
 
 /// See [allow].
-class _AllowMatcher implements StreamMatcher {
+class _AllowMatcher extends StreamMatcher {
   final StreamMatcher _matcher;
 
   _AllowMatcher(streamMatcher)
       : _matcher = new StreamMatcher.wrap(streamMatcher);
 
   Future<Description> tryMatch(ScheduledStream stream) {
-    var fork = stream.fork();
-    return _matcher.tryMatch(fork).whenComplete(fork.close).then((description) {
-      if (description != null) return null;
+    return _matcher.hasMatch(stream).then((failure) {
+      if (failure != null) return null;
       return _matcher.tryMatch(stream);
     });
   }
@@ -279,8 +347,38 @@ class _AllowMatcher implements StreamMatcher {
   }
 }
 
+/// See [never].
+class _NeverMatcher extends StreamMatcher {
+  final StreamMatcher _matcher;
+
+  _NeverMatcher(streamMatcher)
+    : _matcher = new StreamMatcher.wrap(streamMatcher);
+
+  Future<Description> tryMatch(ScheduledStream stream) {
+    consumeNext() {
+      return stream.hasNext.then((hasNext) {
+        if (!hasNext) return new Future.value();
+
+        return _matcher.hasMatch(stream).then((failure) {
+          if (failure != null) {
+            return stream.next().then((_) => consumeNext());
+          }
+
+          return new StringDescription("matched\n")
+              .add(prefixLines(_matcher.toString(), prefix: '  '));
+        });
+      });
+    }
+
+    return consumeNext();
+  }
+
+  String toString() =>
+    'never\n${prefixLines(_matcher.toString(), prefix: '  ')}';
+}
+
 /// See [isDone].
-class _IsDoneMatcher implements StreamMatcher {
+class _IsDoneMatcher extends StreamMatcher {
   _IsDoneMatcher();
 
   Future<Description> tryMatch(ScheduledStream stream) {
@@ -291,4 +389,11 @@ class _IsDoneMatcher implements StreamMatcher {
   }
 
   String toString() => 'is done';
+}
+
+/// Returns a [Future] that completes to the next value emitted by [stream]
+/// without actually consuming that value.
+Future _peek(ScheduledStream stream) {
+  var fork = stream.fork();
+  return fork.next().whenComplete(fork.close);
 }

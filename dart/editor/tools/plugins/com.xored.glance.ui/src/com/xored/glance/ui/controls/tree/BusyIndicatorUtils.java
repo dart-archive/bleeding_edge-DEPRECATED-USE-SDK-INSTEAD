@@ -16,8 +16,9 @@ public class BusyIndicatorUtils {
   static final Integer NO_BUSY = new Integer(0);
 
   public static void withoutIndicator(Display display, Runnable runnable) {
-    if (runnable == null)
+    if (runnable == null) {
       SWT.error(SWT.ERROR_NULL_ARGUMENT);
+    }
     if (display == null) {
       display = Display.getCurrent();
       if (display == null) {

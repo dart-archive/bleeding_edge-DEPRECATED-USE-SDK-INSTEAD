@@ -58,6 +58,9 @@ public enum StaticWarningCode implements ErrorCode {
    * p<sub>n+k</sub>}</i> or a static warning occurs. It is a static warning if
    * <i>T<sub>m+j</sub></i> may not be assigned to <i>S<sub>r</sub></i>, where <i>r = q<sub>j</sub>,
    * 1 &lt;= j &lt;= l</i>.
+   * 
+   * @param actualType the name of the actual argument type
+   * @param expectedType the name of the expected type
    */
   ARGUMENT_TYPE_NOT_ASSIGNABLE(
       "The argument type '%s' cannot be assigned to the parameter type '%s'"),
@@ -76,7 +79,7 @@ public enum StaticWarningCode implements ErrorCode {
    * to be thrown, because no setter is defined for it. The assignment will also give rise to a
    * static warning for the same reason.
    */
-  ASSIGNMENT_TO_FINAL("Final variables cannot be assigned a value"),
+  ASSIGNMENT_TO_FINAL("'%s' cannot be used as a setter, it is final"),
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
@@ -133,7 +136,14 @@ public enum StaticWarningCode implements ErrorCode {
    * named <i>n</i> and has a setter named <i>n=</i>.
    */
   CONFLICTING_INSTANCE_METHOD_SETTER(
-      "Class '%s' declares instance method %s and has a setter with the same name from '%s'"),
+      "Class '%s' declares instance method '%s', but also has a setter with the same name from '%s'"),
+
+  /**
+   * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares an instance method
+   * named <i>n</i> and has a setter named <i>n=</i>.
+   */
+  CONFLICTING_INSTANCE_METHOD_SETTER2(
+      "Class '%s' declares the setter '%s', but also has an instance method in the same class"),
 
   /**
    * 7.3 Setters: It is a static warning if a class <i>C</i> declares an instance setter named
@@ -557,7 +567,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param additionalCount the number of additional missing members that aren't listed
    */
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS(
-      "Missing concrete implementation of '%s', '%s', '%s', '%s' and %d more"),
+      "Missing concrete implementation of %s, %s, %s, %s and %d more"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -577,7 +587,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param memberName the name of the fourth member
    */
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR(
-      "Missing concrete implementation of '%s', '%s', '%s' and '%s'"),
+      "Missing concrete implementation of %s, %s, %s and %s"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -593,7 +603,7 @@ public enum StaticWarningCode implements ErrorCode {
    * 
    * @param memberName the name of the member
    */
-  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE("Missing concrete implementation of '%s'"),
+  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE("Missing concrete implementation of %s"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -612,7 +622,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param memberName the name of the third member
    */
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE(
-      "Missing concrete implementation of '%s', '%s' and '%s'"),
+      "Missing concrete implementation of %s, %s and %s"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -629,8 +639,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param memberName the name of the first member
    * @param memberName the name of the second member
    */
-  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO(
-      "Missing concrete implementation of '%s' and '%s'"),
+  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO("Missing concrete implementation of %s and %s"),
 
   /**
    * 13.11 Try: An on-catch clause of the form <i>on T catch (p<sub>1</sub>, p<sub>2</sub>) s</i> or
@@ -722,7 +731,7 @@ public enum StaticWarningCode implements ErrorCode {
       "The name '%s' is not a type and cannot be used in a redirected constructor"),
 
   /**
-   * 13.11 Return: Let <i>f</i> be the function immediately enclosing a return statement of the form
+   * 13.12 Return: Let <i>f</i> be the function immediately enclosing a return statement of the form
    * <i>return;</i> It is a static warning if both of the following conditions hold:
    * <ol>
    * <li><i>f</i> is not a generative constructor.
@@ -830,7 +839,12 @@ public enum StaticWarningCode implements ErrorCode {
    * @param enclosingType the name of the enclosing type where the method is being looked for
    */
   // Note: all cases of this method are covered by the StaticWarningCode.UNDEFINED_METHOD/UNDEFINED_GETTER and UNDEFINED_SETTER codes
-  UNDEFINED_STATIC_METHOD_OR_GETTER("There is no such static method, getter or setter '%s' in '%s'");
+  UNDEFINED_STATIC_METHOD_OR_GETTER("There is no such static method, getter or setter '%s' in '%s'"),
+
+  /**
+   * 7.2 Getters: It is a static warning if the return type of a getter is void.
+   */
+  VOID_RETURN_FOR_GETTER("The return type of the getter must not be 'void'");
 
   /**
    * The template used to create the message to be displayed for this error.
@@ -849,7 +863,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   private StaticWarningCode(String message) {
-    this.message = message;
+    this(message, null);
   }
 
   /**

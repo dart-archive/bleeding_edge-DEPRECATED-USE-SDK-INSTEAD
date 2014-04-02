@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.visitor.NodeLocator;
@@ -27,6 +27,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.BooleanArray;
 import com.google.dart.engine.utilities.general.StringUtilities;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * The abstract class {@code ElementImpl} implements the behavior common to objects that implement
@@ -72,6 +73,7 @@ public abstract class ElementImpl implements Element {
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public ElementImpl(Identifier name) {
     this(name == null ? "" : name.getName(), name == null ? -1 : name.getOffset());
   }
@@ -174,8 +176,8 @@ public abstract class ElementImpl implements Element {
   }
 
   @Override
-  public ASTNode getNode() throws AnalysisException {
-    return getNode(ASTNode.class);
+  public AstNode getNode() throws AnalysisException {
+    return getNodeMatching(AstNode.class);
   }
 
   @Override
@@ -196,7 +198,13 @@ public abstract class ElementImpl implements Element {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
     if (cachedHashCode == 0) {
-      cachedHashCode = getLocation().hashCode();
+      int hashIdentifier = getIdentifier().hashCode();
+      Element enclosing = getEnclosingElement();
+      if (enclosing != null) {
+        cachedHashCode = hashIdentifier + enclosing.hashCode();
+      } else {
+        cachedHashCode = hashIdentifier;
+      }
     }
     return cachedHashCode;
   }
@@ -213,6 +221,16 @@ public abstract class ElementImpl implements Element {
   public boolean isDeprecated() {
     for (ElementAnnotation annotation : metadata) {
       if (annotation.isDeprecated()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean isOverride() {
+    for (ElementAnnotation annotation : metadata) {
+      if (annotation.isOverride()) {
         return true;
       }
     }
@@ -314,15 +332,15 @@ public abstract class ElementImpl implements Element {
   }
 
   /**
-   * Return the resolved {@link ASTNode} of the given type enclosing {@link #getNameOffset()}.
+   * Return the resolved {@link AstNode} of the given type enclosing {@link #getNameOffset()}.
    */
-  protected <T extends ASTNode> T getNode(Class<T> clazz) throws AnalysisException {
+  protected <T extends AstNode> T getNodeMatching(Class<T> clazz) throws AnalysisException {
     CompilationUnit unit = getUnit();
     if (unit == null) {
       return null;
     }
     int offset = getNameOffset();
-    ASTNode node = new NodeLocator(offset).searchWithin(unit);
+    AstNode node = new NodeLocator(offset).searchWithin(unit);
     if (node == null) {
       return null;
     }
@@ -336,7 +354,7 @@ public abstract class ElementImpl implements Element {
    * @return {@code true} if this element has the given modifier associated with it
    */
   protected boolean hasModifier(Modifier modifier) {
-    return BooleanArray.get(modifiers, modifier);
+    return BooleanArray.getEnum(modifiers, modifier);
   }
 
   /**
@@ -382,6 +400,6 @@ public abstract class ElementImpl implements Element {
    * @param value {@code true} if the modifier is to be associated with this element
    */
   protected void setModifier(Modifier modifier, boolean value) {
-    modifiers = BooleanArray.set(modifiers, modifier, value);
+    modifiers = BooleanArray.setEnum(modifiers, modifier, value);
   }
 }

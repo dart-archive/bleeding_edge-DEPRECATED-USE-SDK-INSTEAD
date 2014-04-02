@@ -45,6 +45,36 @@ class JsBuilder {
     return call(source, expression);
   }
 
+  /// Creates a litteral js string from [value].
+  LiteralString escapedString(String value) {
+    // Do not escape unicode characters and ' because they are allowed in the
+    // string literal anyway.
+    String escaped =
+        value.replaceAllMapped(new RegExp('\n|"|\\|\0|\b|\t|\v'), (match) {
+      switch (match.group(0)) {
+        case "\n" : return r"\n";
+        case "\\" : return r"\\";
+        case "\"" : return r'\"';
+        case "\0" : return r"\0";
+        case "\b" : return r"\b";
+        case "\t" : return r"\t";
+        case "\f" : return r"\f";
+        case "\v" : return r"\v";
+      }
+    });
+    LiteralString result = string(escaped);
+    // We don't escape ' under the assumption that the string is wrapped
+    // into ". Verify that assumption.
+    assert(result.value.codeUnitAt(0) == '"'.codeUnitAt(0));
+    return result;
+  }
+
+  /// Creates a litteral js string from [value].
+  ///
+  /// Note that this function only puts quotes around [value]. It does not do
+  /// any escaping, so use only when you can guarantee that [value] does not
+  /// contain newlines or backslashes. For escaping the string use
+  /// [escapedString].
   LiteralString string(String value) => new LiteralString('"$value"');
 
   LiteralNumber number(num value) => new LiteralNumber('$value');
@@ -126,16 +156,12 @@ class JsBuilder {
       }
       return new ObjectInitializer([]);
     } else if (expression is List) {
-      var values = new List<ArrayElement>(expression.length);
-      int index = 0;
-      for (var entry in expression) {
-        values[index] = new ArrayElement(index, toExpression(entry));
-        index++;
-      }
+      var values = new List<ArrayElement>.generate(expression.length,
+          (index) => new ArrayElement(index, toExpression(expression[index])));
       return new ArrayInitializer(values.length, values);
     } else {
       throw new ArgumentError('expression should be an Expression, '
-                              'a String, a num, a bool, or a Map');
+                              'a String, a num, a bool, a Map, or a List;');
     }
   }
 
@@ -489,6 +515,7 @@ class MiniJsParser {
       return expression;
     } else {
       error("Expected primary expression");
+      return null;
     }
   }
 
@@ -502,9 +529,10 @@ class MiniJsParser {
         expectCategory(RSQUARE);
         receiver = new PropertyAccess(receiver, inBraces);
       } else {
-        return receiver;
+        break;
       }
     }
+    return receiver;
   }
 
   Expression parseCall() {
@@ -534,9 +562,10 @@ class MiniJsParser {
       } else {
         // JS allows new without (), but we don't.
         if (constructor) error("Parentheses are required for new");
-        return receiver;
+        break;
       }
     }
+    return receiver;
   }
 
   Expression getDotRhs(Expression receiver) {
@@ -591,8 +620,7 @@ class MiniJsParser {
       if (lastCategory != SYMBOL ||
           !BINARY_PRECEDENCE.containsKey(symbol) ||
           BINARY_PRECEDENCE[symbol] > maxPrecedence) {
-        if (rhs == null) return lhs;
-        return new Binary(lastSymbol, lhs, rhs);
+        break;
       }
       expectCategory(SYMBOL);
       if (rhs == null || BINARY_PRECEDENCE[symbol] >= minPrecedence) {
@@ -605,6 +633,8 @@ class MiniJsParser {
         rhs = new Binary(symbol, rhs, higher);
       }
     }
+    if (rhs == null) return lhs;
+    return new Binary(lastSymbol, lhs, rhs);
   }
 
   Expression parseConditional() {
@@ -685,6 +715,7 @@ class UninterpolateJSExpression extends BaseVisitor<Node> {
 
   Node visitNode(Node node) {
     error('Cannot handle $node');
+    return null;
   }
 
   Node copyPosition(Node oldNode, Node newNode) {

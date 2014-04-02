@@ -27,7 +27,7 @@ import com.google.dart.engine.type.Type;
  * 
  * @coverage dart.engine.ast
  */
-public class TypeName extends ASTNode {
+public class TypeName extends AstNode {
   /**
    * The name of the type.
    */
@@ -56,7 +56,7 @@ public class TypeName extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitTypeName(this);
   }
 
@@ -134,7 +134,7 @@ public class TypeName extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(name, visitor);
     safelyVisitChild(typeArguments, visitor);
   }

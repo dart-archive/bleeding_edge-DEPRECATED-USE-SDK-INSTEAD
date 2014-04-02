@@ -15,12 +15,15 @@
 # ....bin/
 # ......dart or dart.exe (executable)
 # ......dart.lib (import library for VM native extensions on Windows)
+# ......dartfmt
 # ......dart2js
 # ......dartanalyzer
 # ......pub
 # ......snapshots/
-# ........utils_wrapper.dart.snapshot
+# ........dart2js.dart.snapshot
+# ........dartfmt.dart.snapshot
 # ........pub.dart.snapshot
+# ........utils_wrapper.dart.snapshot
 # ....include/
 # ......dart_api.h
 # ......dart_debugger_api.h
@@ -105,13 +108,13 @@ def CopyShellScript(src_file, dest_dir):
 
 
 def CopyDartScripts(home, sdk_root):
-  for executable in ['dart2js', 'dartanalyzer', 'docgen', 'pub']:
+  for executable in ['dart2js', 'dartanalyzer', 'dartfmt', 'docgen', 'pub']:
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
 
 def CopySnapshots(snapshots, sdk_root):
-  for snapshot in ['dart2js', 'utils_wrapper', 'pub']:
+  for snapshot in ['dart2js', 'dartfmt', 'utils_wrapper', 'pub']:
     snapshot += '.dart.snapshot'
     copyfile(join(snapshots, snapshot),
              join(sdk_root, 'bin', 'snapshots', snapshot))
@@ -227,10 +230,14 @@ def Main(argv):
   for jarFile in jarFiles:
     copyfile(jarFile, join(DARTANALYZER_DEST, os.path.basename(jarFile)))
 
+  RESOURCE = join(SDK_tmp, 'lib', '_internal', 'pub', 'asset')
+  os.makedirs(os.path.dirname(RESOURCE))
+  copytree(join(HOME, 'sdk', 'lib', '_internal', 'pub', 'asset'),
+           join(RESOURCE),
+           ignore=ignore_patterns('.svn'))
+
   # Copy in 7zip for Windows.
   if HOST_OS == 'win32':
-    RESOURCE = join(SDK_tmp, 'lib', '_internal', 'pub', 'resource')
-    os.makedirs(RESOURCE)
     copytree(join(HOME, 'third_party', '7zip'),
              join(RESOURCE, '7zip'),
              ignore=ignore_patterns('.svn'))

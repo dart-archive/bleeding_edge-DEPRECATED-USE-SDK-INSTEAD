@@ -14,8 +14,10 @@
 package com.google.dart.engine.parser;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringLiteral;
@@ -25,7 +27,7 @@ import com.google.dart.engine.ast.TypedLiteral;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.Token;
 
-import static com.google.dart.engine.scanner.TokenFactory.token;
+import static com.google.dart.engine.scanner.TokenFactory.tokenFromKeyword;
 
 /**
  * The class {@code ErrorParserTest} defines parser tests that test the parsing of code to ensure
@@ -498,7 +500,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_expectedToken_semicolonAfterClass() throws Exception {
-    Token token = token(Keyword.CLASS);
+    Token token = tokenFromKeyword(Keyword.CLASS);
     parse(
         "parseClassTypeAlias",
         new Object[] {emptyCommentAndMetadata(), null, token},
@@ -506,8 +508,28 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.EXPECTED_TOKEN);
   }
 
+  public void test_expectedToken_semicolonMissingAfterExport() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(
+        "export '' class A {}",
+        ParserErrorCode.EXPECTED_TOKEN);
+    ExportDirective directive = (ExportDirective) unit.getDirectives().get(0);
+    Token semicolon = directive.getSemicolon();
+    assertNotNull(semicolon);
+    assertTrue(semicolon.isSynthetic());
+  }
+
   public void test_expectedToken_semicolonMissingAfterExpression() throws Exception {
     parseStatement("x", ParserErrorCode.EXPECTED_TOKEN);
+  }
+
+  public void test_expectedToken_semicolonMissingAfterImport() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(
+        "import '' class A {}",
+        ParserErrorCode.EXPECTED_TOKEN);
+    ImportDirective directive = (ImportDirective) unit.getDirectives().get(0);
+    Token semicolon = directive.getSemicolon();
+    assertNotNull(semicolon);
+    assertTrue(semicolon.isSynthetic());
   }
 
   public void test_expectedToken_whileMissingInDoStatement() throws Exception {
@@ -1184,7 +1206,7 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER);
     assertNull(methodInvocation.getTarget());
     assertEquals("", methodInvocation.getMethodName().getName());
-    assertSize(0, methodInvocation.getArgumentList().getArguments());
+    assertSizeOfList(0, methodInvocation.getArgumentList().getArguments());
   }
 
   public void test_positionalAfterNamedArgument() throws Exception {

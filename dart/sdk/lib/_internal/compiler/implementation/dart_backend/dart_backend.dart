@@ -10,6 +10,8 @@ import '../elements/modelx.dart' show SynthesizedConstructorElementX;
 import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../tree/tree.dart';
+import '../ir/ir_nodes.dart' as ir;
+import 'dart_tree.dart' as tree;
 import '../util/util.dart';
 import '../mirror_renamer/mirror_renamer.dart';
 
@@ -24,4 +26,3 @@ part 'backend.dart';
 part 'emitter.dart';
 part 'renamer.dart';
 part 'placeholder_collector.dart';
-part 'utils.dart';

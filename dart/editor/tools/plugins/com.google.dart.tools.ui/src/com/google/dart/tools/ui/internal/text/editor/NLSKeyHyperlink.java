@@ -15,9 +15,9 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.core.dom.ITypeBinding;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.ui.AccessorClassReference;
+import com.google.dart.tools.mock.ui.AccessorClassReference;
+import com.google.dart.tools.mock.ui.NLSHintHelper;
 import com.google.dart.tools.ui.Messages;
-import com.google.dart.tools.ui.NLSHintHelper;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.Assert;

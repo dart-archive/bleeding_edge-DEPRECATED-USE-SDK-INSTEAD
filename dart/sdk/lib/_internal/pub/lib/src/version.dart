@@ -33,6 +33,27 @@ class Version implements Comparable<Version>, VersionConstraint {
   /// No released version: i.e. "0.0.0".
   static Version get none => new Version(0, 0, 0);
 
+  /// Compares [a] and [b] to see which takes priority over the other.
+  ///
+  /// Returns `1` if [a] takes priority over [b] and `-1` if vice versa. If
+  /// [a] and [b] are equivalent, returns `0`.
+  ///
+  /// Unlike [compareTo], which *orders* versions, this determines which
+  /// version a user is likely to prefer. In particular, it prioritizes
+  /// pre-release versions lower than stable versions, regardless of their
+  /// version numbers.
+  ///
+  /// When used to sort a list, orders in ascending priority so that the
+  /// highest priority version is *last* in the result.
+  static int prioritize(Version a, Version b) {
+    // Sort all prerelease versions after all normal versions. This way
+    // the solver will prefer stable packages over unstable ones.
+    if (a.isPreRelease && !b.isPreRelease) return -1;
+    if (!a.isPreRelease && b.isPreRelease) return 1;
+
+    return a.compareTo(b);
+  }
+
   /// The major version number: "1" in "1.2.3".
   final int major;
 
@@ -182,7 +203,7 @@ class Version implements Comparable<Version>, VersionConstraint {
   }
 
   /// Gets the next patch version number that follows this one.
-  ///
+  ///bed8b33fda6ec81c3ba52274d189bc0661ed12bf
   /// If this version is a pre-release, then it just strips the pre-release
   /// suffix. Otherwise, it increments the patch version.
   Version get nextPatch {
@@ -342,6 +363,7 @@ abstract class VersionConstraint {
         case '>':
           return new VersionRange(min: version, includeMin: false);
       }
+      throw "Unreachable.";
     }
 
     while (true) {
@@ -428,7 +450,7 @@ class VersionRange implements VersionConstraint {
 
   bool get isEmpty => false;
 
-  bool get isAny => !includeMin && !includeMax;
+  bool get isAny => min == null && max == null;
 
   /// Tests if [other] matches falls within this version range.
   bool allows(Version other) {

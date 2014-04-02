@@ -123,7 +123,7 @@ public class RunPublishAction extends RunPubAction {
 
   public static RunPublishAction createPubPublishAction(IWorkbenchWindow window) {
     RunPublishAction action = new RunPublishAction(window);
-    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Publish"));
+    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Publish..."));
     action.setDescription(NLS.bind(
         ActionMessages.RunPubAction_commandDesc,
         RunPubJob.PUBLISH_COMMAND));

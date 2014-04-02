@@ -250,10 +250,15 @@ public class TestTypeProvider implements TypeProvider {
     if (mapType == null) {
       ClassElementImpl mapElement = classElement("Map", "K", "V");
       mapType = mapElement.getType();
+      Type kType = mapElement.getTypeParameters()[0].getType();
+      Type vType = mapElement.getTypeParameters()[1].getType();
       mapElement.setAccessors(new PropertyAccessorElement[] {getterElement(
           "length",
           false,
           getIntType())});
+      mapElement.setMethods(new MethodElement[] {
+          methodElement("[]", vType, getObjectType()),
+          methodElement("[]=", VoidTypeImpl.getInstance(), kType, vType)});
       propagateTypeArguments(mapElement);
     }
     return mapType;
@@ -365,11 +370,12 @@ public class TestTypeProvider implements TypeProvider {
         methodElement("-", numType), methodElement("remainder", numType, numType),
         methodElement("<", boolType, numType), methodElement("<=", boolType, numType),
         methodElement(">", boolType, numType), methodElement(">=", boolType, numType),
-        methodElement("isNaN", boolType), methodElement("isNegative", boolType),
-        methodElement("isInfinite", boolType), methodElement("abs", numType),
-        methodElement("floor", numType), methodElement("ceil", numType),
-        methodElement("round", numType), methodElement("truncate", numType),
-        methodElement("toInt", intType), methodElement("toDouble", doubleType),
+        methodElement("==", boolType, objectType), methodElement("isNaN", boolType),
+        methodElement("isNegative", boolType), methodElement("isInfinite", boolType),
+        methodElement("abs", numType), methodElement("floor", numType),
+        methodElement("ceil", numType), methodElement("round", numType),
+        methodElement("truncate", numType), methodElement("toInt", intType),
+        methodElement("toDouble", doubleType),
         methodElement("toStringAsFixed", stringType, intType),
         methodElement("toStringAsExponential", stringType, intType),
         methodElement("toStringAsPrecision", stringType, intType),

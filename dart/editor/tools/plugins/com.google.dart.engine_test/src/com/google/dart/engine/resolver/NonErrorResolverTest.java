@@ -28,10 +28,10 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library L;",
         "export 'lib1.dart';",
         "export 'lib2.dart';"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class M {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "class N {}"));
     resolve(source);
@@ -44,11 +44,11 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library L;",
         "export 'lib1.dart';",
         "export 'lib2.dart' hide B;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library L1;",
         "class A {}",
         "class B {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library L2;",
         "class B {}",
         "class C {}"));
@@ -62,11 +62,11 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library L;",
         "export 'lib1.dart';",
         "export 'lib2.dart' show C;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library L1;",
         "class A {}",
         "class B {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library L2;",
         "class B {}",
         "class C {}"));
@@ -80,7 +80,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library L;",
         "export 'lib.dart';",
         "export 'lib.dart';"));
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class N {}"));
     resolve(source);
@@ -229,7 +229,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "main() {",
         "  foo.x = true;",
         "}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "bool x = false;"));
     resolve(source);
@@ -572,7 +572,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_constEval_propertyExtraction_fieldStatic_targetType() throws Exception {
-    addSource("/math.dart", createSource(//
+    addNamedSource("/math.dart", createSource(//
         "library math;",
         "const PI = 3.14;"));
     Source source = addSource(createSource(//
@@ -596,7 +596,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_constEval_symbol() throws Exception {
-    addSource("/math.dart", createSource(//
+    addNamedSource("/math.dart", createSource(//
         "library math;",
         "const PI = 3.14;"));
     Source source = addSource(createSource(//
@@ -774,7 +774,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library lib;",
         "import 'lib1.dart' hide B;",
         "A a = new A();"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}",
         "@deprecated",
@@ -839,7 +839,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library L;",
         "export 'lib1.dart';"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;"));
     resolve(source);
     assertNoErrors(source);
@@ -850,7 +850,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library L;",
         "export 'lib1.dart';"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         ""));
     resolve(source);
     assertNoErrors(source);
@@ -872,6 +872,20 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "f(Function a) {",
         "  a(1, 2);",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_extraPositionalArguments_implicitConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<E extends num> {",
+        "  A(E x, E y);",
+        "}",
+        "class B<E extends num> = A<E>;",
+        "void main() {",
+        "   B<int> x = new B<int>(0,0);",
         "}"));
     resolve(source);
     assertNoErrors(source);
@@ -1278,7 +1292,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library test;",
         "import 'lib.dart';",
         "import 'lib.dart';"));
-    addSource("/lib.dart", "library lib;");
+    addNamedSource("/lib.dart", "library lib;");
     resolve(source);
     assertErrors(source, HintCode.UNUSED_IMPORT, HintCode.UNUSED_IMPORT, HintCode.DUPLICATE_IMPORT);
     verify(source);
@@ -1289,7 +1303,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library lib;",
         "import 'part.dart';",
         "A a;"));
-    addSource("/part.dart", createSource(//
+    addNamedSource("/part.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
@@ -1302,7 +1316,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library lib;",
         "import 'part.dart';",
         "A a;"));
-    addSource("/part.dart", createSource(//
+    addNamedSource("/part.dart", createSource(//
         "class A {}"));
     resolve(source);
     assertNoErrors(source);
@@ -1318,10 +1332,10 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  math.test1();",
         "  path.test2();",
         "}"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
         "test1() {}"));
-    addSource("/lib2.dart", createSource(//
+    addNamedSource("/lib2.dart", createSource(//
         "library lib2;",
         "test2() {}"));
     resolve(source);
@@ -1496,7 +1510,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class B extends A {",
         "  _m() {}",
         "}"));
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library L;",
         "class A {",
         "  static var _m;",
@@ -1512,7 +1526,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class B extends A {",
         "  _m() {}",
         "}"));
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library L;",
         "class A {",
         "  static _m() {}",
@@ -1534,7 +1548,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidAnnotation_constantVariable_field_importWithPrefix() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A {",
         "  static const C = 0;",
@@ -1561,7 +1575,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidAnnotation_constantVariable_topLevel_importWithPrefix() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "const C = 0;"));
     Source source = addSource(createSource(//
@@ -1575,7 +1589,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidAnnotation_constConstructor_importWithPrefix() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A {",
         "  const A(int p);",
@@ -1591,7 +1605,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidAnnotation_constConstructor_named_importWithPrefix() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A {",
         "  const A.named(int p);",
@@ -1794,7 +1808,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidOverrideReturnType_returnType_interface() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addNamedSource("/test.dart", createSource(//
         "abstract class A {",
         "  num m();",
         "}",
@@ -1807,7 +1821,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidOverrideReturnType_returnType_interface2() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addNamedSource("/test.dart", createSource(//
         "abstract class A {",
         "  num m();",
         "}",
@@ -1822,7 +1836,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidOverrideReturnType_returnType_mixin() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addNamedSource("/test.dart", createSource(//
         "class A {",
         "  num m() { return 0; }",
         "}",
@@ -1848,7 +1862,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidOverrideReturnType_returnType_sameType() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addNamedSource("/test.dart", createSource(//
         "class A {",
         "  int m() { return 0; }",
         "}",
@@ -1861,7 +1875,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidOverrideReturnType_returnType_superclass() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addNamedSource("/test.dart", createSource(//
         "class A {",
         "  num m() { return 0; }",
         "}",
@@ -1874,7 +1888,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidOverrideReturnType_returnType_superclass2() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addNamedSource("/test.dart", createSource(//
         "class A {",
         "  num m() { return 0; }",
         "}",
@@ -2302,6 +2316,97 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "f() {",
         "  new A();",
         "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get g => 0;",
+        "}",
+        "abstract class B extends A {",
+        "  int get g;",
+        "}",
+        "class C extends B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m(p) {}",
+        "}",
+        "abstract class B extends A {",
+        "  m(p);",
+        "}",
+        "class C extends B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set s(v) {}",
+        "}",
+        "abstract class B extends A {",
+        "  set s(v);",
+        "}",
+        "class C extends B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter() throws Exception {
+    // 17034
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var a;",
+        "}",
+        "abstract class M {",
+        "  get a;",
+        "}",
+        "class B extends A with M {}",
+        "class C extends B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_mixin_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "}",
+        "abstract class M {",
+        "  m();",
+        "}",
+        "class B extends A with M {}",
+        "class C extends B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_mixin_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var a;",
+        "}",
+        "abstract class M {",
+        "  set a(dynamic v);",
+        "}",
+        "class B extends A with M {}",
+        "class C extends B {}"));
     resolve(source);
     assertNoErrors(source);
     verify(source);
@@ -2776,7 +2881,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_prefixCollidesWithTopLevelMembers() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class A {}"));
     Source source = addSource(createSource(//
@@ -2886,6 +2991,75 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertNoErrors(source);
+  }
+
+  public void test_proxy_annotation_superclass() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "class B extends A {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}",
+        "@proxy",
+        "class A {}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_proxy_annotation_superclass_mixin() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "class B extends Object with A {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}",
+        "@proxy",
+        "class A {}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_proxy_annotation_superinterface() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "class B implements A {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}",
+        "@proxy",
+        "class A {}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_proxy_annotation_superinterface_infiniteLoop() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "class C implements A {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}",
+        "class B implements A{}",
+        "class A implements B{}"));
+    resolve(source);
+    // Test is that a stack overflow isn't reached in resolution (previous line), no need to assert
+    // error set.
   }
 
   public void test_recursiveConstructorRedirect() throws Exception {
@@ -3537,7 +3711,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_typeType_class_prefixed() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "class C {}"));
     Source source = addSource(createSource(//
@@ -3564,7 +3738,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_typeType_functionTypeAlias_prefixed() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "typedef F();"));
     Source source = addSource(createSource(//
@@ -3675,7 +3849,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library L;",
         "export 'lib1.dart' hide a;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;"));
     resolve(source);
     assertNoErrors(source);
@@ -3686,7 +3860,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library L;",
         "export 'lib1.dart' show a;"));
-    addSource("/lib1.dart", createSource(//
+    addNamedSource("/lib1.dart", createSource(//
         "library lib1;"));
     resolve(source);
     assertNoErrors(source);
@@ -3758,7 +3932,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_undefinedSetter_importWithPrefix() throws Exception {
-    addSource("/lib.dart", createSource(//
+    addNamedSource("/lib.dart", createSource(//
         "library lib;",
         "set y(int value) {}"));
     Source source = addSource(createSource(//
@@ -3816,7 +3990,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_uriDoesNotExist_dll() throws Exception {
-    addSource("/lib.dll", "");
+    addNamedSource("/lib.dll", "");
     Source source = addSource(createSource(//
     "import 'dart-ext:lib';"));
     resolve(source);
@@ -3824,7 +3998,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_uriDoesNotExist_dylib() throws Exception {
-    addSource("/lib.dylib", "");
+    addNamedSource("/lib.dylib", "");
     Source source = addSource(createSource(//
     "import 'dart-ext:lib';"));
     resolve(source);
@@ -3832,7 +4006,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_uriDoesNotExist_so() throws Exception {
-    addSource("/lib.so", "");
+    addNamedSource("/lib.so", "");
     Source source = addSource(createSource(//
     "import 'dart-ext:lib';"));
     resolve(source);

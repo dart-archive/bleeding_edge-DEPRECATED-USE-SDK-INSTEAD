@@ -82,7 +82,7 @@ static void ThrowNoSuchMethod(const Instance& receiver,
   // Parameter 4 (named arguments): We omit this parameters since we cannot
   // invoke functions with named parameters reflectively (using mirrors).
   if (!function.IsNull()) {
-    const int total_num_parameters = function.NumParameters();
+    const intptr_t total_num_parameters = function.NumParameters();
     const Array& array = Array::Handle(Array::New(total_num_parameters));
     String& param_name = String::Handle();
     for (int i = 0; i < total_num_parameters; i++) {
@@ -129,14 +129,6 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
   const Array& results = Array::Handle(Array::New(non_implicit_param_count));
   const Array& args = Array::Handle(Array::New(9));
 
-  // Return for synthetic functions and getters.
-  if (func.IsGetterFunction() ||
-      func.IsImplicitConstructor() ||
-      func.IsImplicitGetterFunction() ||
-      func.IsImplicitSetterFunction()) {
-    return results.raw();
-  }
-
   Smi& pos = Smi::Handle();
   String& name = String::Handle();
   Instance& param = Instance::Handle();
@@ -149,32 +141,52 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
   // of functions because some have no body, e.g. signature functions.
   EnsureConstructorsAreCompiled(func);
 
-  // Reparse the function for the following information:
-  // * The default value of a parameter.
-  // * Whether a parameters has been deflared as final.
-  // * Any metadata associated with the parameter.
-  const Object& result = Object::Handle(Parser::ParseFunctionParameters(func));
-  if (result.IsError()) {
-    ThrowInvokeError(Error::Cast(result));
-    UNREACHABLE();
+  bool has_extra_parameter_info = true;
+  if (non_implicit_param_count == 0) {
+    has_extra_parameter_info = false;
+  }
+  if (func.IsImplicitConstructor()) {
+    // This covers the default constructor and forwarding constructors.
+    has_extra_parameter_info = false;
+  }
+
+  Array& param_descriptor = Array::Handle();
+  if (has_extra_parameter_info) {
+    // Reparse the function for the following information:
+    // * The default value of a parameter.
+    // * Whether a parameters has been deflared as final.
+    // * Any metadata associated with the parameter.
+    const Object& result =
+        Object::Handle(Parser::ParseFunctionParameters(func));
+    if (result.IsError()) {
+      ThrowInvokeError(Error::Cast(result));
+      UNREACHABLE();
+    }
+    param_descriptor ^= result.raw();
+    ASSERT(param_descriptor.Length() ==
+           (Parser::kParameterEntrySize * non_implicit_param_count));
   }
 
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
   args.SetAt(2, owner_mirror);
 
-  const Array& param_descriptor = Array::Cast(result);
-  ASSERT(param_descriptor.Length() ==
-         (Parser::kParameterEntrySize * non_implicit_param_count));
+  if (!has_extra_parameter_info) {
+    is_final ^= Bool::True().raw();
+    default_value = Object::null();
+    metadata = Object::null();
+  }
+
   for (intptr_t i = 0; i < non_implicit_param_count; i++) {
     pos ^= Smi::New(i);
     name ^= func.ParameterNameAt(implicit_param_count + i);
-    is_final ^= param_descriptor.At(
-        i * Parser::kParameterEntrySize + Parser::kParameterIsFinalOffset);
-    default_value = param_descriptor.At(
-        i * Parser::kParameterEntrySize + Parser::kParameterDefaultValueOffset);
-    metadata = param_descriptor.At(
-        i * Parser::kParameterEntrySize + Parser::kParameterMetadataOffset);
-
+    if (has_extra_parameter_info) {
+      is_final ^= param_descriptor.At(i * Parser::kParameterEntrySize +
+          Parser::kParameterIsFinalOffset);
+      default_value = param_descriptor.At(i * Parser::kParameterEntrySize +
+          Parser::kParameterDefaultValueOffset);
+      metadata = param_descriptor.At(i * Parser::kParameterEntrySize +
+          Parser::kParameterMetadataOffset);
+    }
     ASSERT(default_value.IsNull() || default_value.IsInstance());
 
     // Arguments 0 (referent) and 2 (owner) are the same for all parameters. See
@@ -349,10 +361,12 @@ static RawInstance* CreateClassMirror(const Class& cls,
   const Array& args = Array::Handle(Array::New(8));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
-  // We do not set the names of anonymous mixin applications because the mirrors
+  // Note that the VM does not consider mixin application aliases to be mixin
+  // applications, so this only covers anonymous mixin applications. We do not
+  // set the names of anonymous mixin applications here because the mirrors
   // use a different naming convention than the VM (lib.S with lib.M and S&M
   // respectively).
-  if (!cls.IsAnonymousMixinApplication()) {
+  if (!cls.IsMixinApplication()) {
     args.SetAt(2, String::Handle(cls.Name()));
   }
   args.SetAt(3, owner_mirror);
@@ -375,6 +389,111 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
   return CreateMirror(Symbols::_LocalLibraryMirror(), args);
 }
 
+
+static RawInstance* CreateCombinatorMirror(const Object& identifiers,
+                                           bool is_show) {
+  const Array& args = Array::Handle(Array::New(2));
+  args.SetAt(0, identifiers);
+  args.SetAt(1, Bool::Get(is_show));
+  return CreateMirror(Symbols::_LocalCombinatorMirror(), args);
+}
+
+
+static RawInstance* CreateLibraryDependencyMirror(const Instance& importer,
+                                                  const Namespace& ns,
+                                                  const String& prefix,
+                                                  bool is_import) {
+  const Library& importee = Library::Handle(ns.library());
+  const Instance& importee_mirror =
+      Instance::Handle(CreateLibraryMirror(importee));
+
+  const Array& show_names = Array::Handle(ns.show_names());
+  const Array& hide_names = Array::Handle(ns.hide_names());
+  intptr_t n = show_names.IsNull() ? 0 : show_names.Length();
+  intptr_t m = hide_names.IsNull() ? 0 : hide_names.Length();
+  const Array& combinators = Array::Handle(Array::New(n + m));
+  Object& t = Object::Handle();
+  intptr_t i = 0;
+  for (intptr_t j = 0; j < n; j++) {
+    t = show_names.At(j);
+    t = CreateCombinatorMirror(t, true);
+    combinators.SetAt(i++, t);
+  }
+  for (intptr_t j = 0; j < m; j++) {
+    t = hide_names.At(j);
+    t = CreateCombinatorMirror(t, false);
+    combinators.SetAt(i++, t);
+  }
+
+  Object& metadata = Object::Handle(ns.GetMetadata());
+  if (metadata.IsError()) {
+    ThrowInvokeError(Error::Cast(metadata));
+    UNREACHABLE();
+  }
+
+  const Array& args = Array::Handle(Array::New(6));
+  args.SetAt(0, importer);
+  args.SetAt(1, importee_mirror);
+  args.SetAt(2, combinators);
+  args.SetAt(3, prefix);
+  args.SetAt(4, Bool::Get(is_import));
+  args.SetAt(5, metadata);
+  // is_deferred?
+  return CreateMirror(Symbols::_LocalLibraryDependencyMirror(), args);
+}
+
+
+DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, lib_mirror, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  const Library& lib = Library::Handle(ref.GetLibraryReferent());
+
+  Array& ports = Array::Handle();
+  Namespace& ns = Namespace::Handle();
+  Instance& dep = Instance::Handle();
+  String& prefix = String::Handle();
+  GrowableObjectArray& deps =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+
+  // Unprefixed imports.
+  ports = lib.imports();
+  for (intptr_t i = 0; i < ports.Length(); i++) {
+    ns ^= ports.At(i);
+    if (!ns.IsNull()) {
+      dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true);
+      deps.Add(dep);
+    }
+  }
+
+  // Exports.
+  ports = lib.exports();
+  for (intptr_t i = 0; i < ports.Length(); i++) {
+    ns ^= ports.At(i);
+    dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, false);
+    deps.Add(dep);
+  }
+
+  // Prefixed imports.
+  DictionaryIterator entries(lib);
+  Object& entry = Object::Handle();
+  while (entries.HasNext()) {
+    entry = entries.GetNext();
+    if (entry.IsLibraryPrefix()) {
+      const LibraryPrefix& lib_prefix = LibraryPrefix::Cast(entry);
+      prefix = lib_prefix.name();
+      ports = lib_prefix.imports();
+      for (intptr_t i = 0; i < ports.Length(); i++) {
+        ns ^= ports.At(i);
+        if (!ns.IsNull()) {
+          dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true);
+          deps.Add(dep);
+        }
+      }
+    }
+  }
+
+  return deps.raw();
+}
 
 static RawInstance* CreateTypeMirror(const AbstractType& type) {
   if (type.IsTypeRef()) {
@@ -433,7 +552,7 @@ static RawInstance* CreateMirrorSystem() {
   const GrowableObjectArray& libraries =
       GrowableObjectArray::Handle(isolate->object_store()->libraries());
 
-  const int num_libraries = libraries.Length();
+  const intptr_t num_libraries = libraries.Length();
   const Array& library_mirrors = Array::Handle(Array::New(num_libraries));
   Library& library = Library::Handle();
   Instance& library_mirror = Instance::Handle();
@@ -1209,9 +1328,11 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
       const Class& klass = Class::Cast(entry);
       // We filter out function signature classes and dynamic.
       // TODO(12478): Should not need to filter out dynamic.
+      // Note that the VM does not consider mixin application aliases to be
+      // mixin applications.
       if (!klass.IsCanonicalSignatureClass() &&
           !klass.IsDynamicClass() &&
-          !klass.IsAnonymousMixinApplication()) {
+          !klass.IsMixinApplication()) {
         type = klass.DeclarationType();
         member_mirror = CreateClassMirror(klass,
                                           type,
@@ -1311,7 +1432,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_evalInLibraryWithPrivateKey, 2) {
   Library& ctxt_library = Library::Handle();
   String& library_key = String::Handle();
 
-  if (library_key.IsNull()) {
+  if (private_key.IsNull()) {
     ctxt_library = Library::CoreLibrary();
   } else {
     for (int i = 0; i < num_libraries; i++) {
@@ -1445,23 +1566,6 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_computeType, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ClosureMirror_apply, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(1));
-
-  const Array& args_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
-
-  const Object& result =
-      Object::Handle(DartEntry::InvokeClosure(args, args_descriptor));
-  if (result.IsError()) {
-    ThrowInvokeError(Error::Cast(result));
-    UNREACHABLE();
-  }
-  return result.raw();
-}
-
-
 DEFINE_NATIVE_ENTRY(ClosureMirror_find_in_context, 2) {
   if (!FLAG_support_find_in_context) {
     return Object::empty_array().raw();
@@ -1481,7 +1585,7 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_find_in_context, 2) {
   const bool callable = closure.IsCallable(&function, NULL);
   ASSERT(callable);
 
-  const int parts_len = lookup_parts.Length();
+  const intptr_t parts_len = lookup_parts.Length();
   // Lookup name is always the last part.
   const String& lookup_name = String::Handle(String::RawCast(
       lookup_parts.At(parts_len - 1)));
@@ -1587,7 +1691,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
         UNREACHABLE();
       }
       // Make room for the closure (receiver) in the argument list.
-      int numArgs = args.Length();
+      intptr_t numArgs = args.Length();
       const Array& call_args = Array::Handle(Array::New(numArgs + 1));
       Object& temp = Object::Handle();
       for (int i = 0; i < numArgs; i++) {
@@ -1871,37 +1975,27 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
 
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
-    const String& getter_name =
-        String::Handle(Field::GetterName(function_name));
-    function = library.LookupLocalFunction(getter_name);
-    if (!function.IsNull()) {
-      // Invoke getter.
-      const Object& getter_result = Object::Handle(
-          DartEntry::InvokeFunction(function, Object::empty_array()));
-      if (getter_result.IsError()) {
-        ThrowInvokeError(Error::Cast(getter_result));
-        UNREACHABLE();
-      }
-      // Make room for the closure (receiver) in arguments.
-      int numArgs = args.Length();
-      const Array& call_args = Array::Handle(Array::New(numArgs + 1));
-      Object& temp = Object::Handle();
-      for (int i = 0; i < numArgs; i++) {
-        temp = args.At(i);
-        call_args.SetAt(i + 1, temp);
-      }
-      call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array =
-        Array::Handle(ArgumentsDescriptor::New(call_args.Length(), arg_names));
-      // Call closure.
-      const Object& call_result = Object::Handle(
-          DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
-      if (call_result.IsError()) {
-        ThrowInvokeError(Error::Cast(call_result));
-        UNREACHABLE();
-      }
-      return call_result.raw();
+    const Instance& getter_result =
+        Instance::Handle(InvokeLibraryGetter(library, function_name, true));
+    // Make room for the closure (receiver) in arguments.
+    intptr_t numArgs = args.Length();
+    const Array& call_args = Array::Handle(Array::New(numArgs + 1));
+    Object& temp = Object::Handle();
+    for (int i = 0; i < numArgs; i++) {
+      temp = args.At(i);
+      call_args.SetAt(i + 1, temp);
     }
+    call_args.SetAt(0, getter_result);
+    const Array& call_args_descriptor_array =
+      Array::Handle(ArgumentsDescriptor::New(call_args.Length(), arg_names));
+    // Call closure.
+    const Object& call_result = Object::Handle(
+        DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
+    if (call_result.IsError()) {
+      ThrowInvokeError(Error::Cast(call_result));
+      UNREACHABLE();
+    }
+    return call_result.raw();
   }
 
   const Array& args_descriptor_array =
@@ -2045,6 +2139,12 @@ DEFINE_NATIVE_ENTRY(MethodMirror_source, 1) {
   }
   const Script& script = Script::Handle(func.script());
   const TokenStream& stream = TokenStream::Handle(script.tokens());
+  if (!script.HasSource()) {
+    // When source is not available, avoid printing the whole token stream and
+    // doing expensive position calculations.
+    return stream.GenerateSource(func.token_pos(), func.end_token_pos() + 1);
+  }
+
   const TokenStream::Iterator tkit(stream, func.end_token_pos());
   intptr_t from_line;
   intptr_t from_col;
@@ -2069,6 +2169,41 @@ DEFINE_NATIVE_ENTRY(MethodMirror_source, 1) {
       script.GetSnippet(from_line, from_col, to_line, to_col + last_tok_len));
   ASSERT(!result.IsNull());
   return result.raw();
+}
+
+
+static RawInstance* CreateSourceLocation(const String& uri,
+                                         intptr_t line,
+                                         intptr_t column) {
+  const Array& args = Array::Handle(Array::New(3));
+  args.SetAt(0, uri);
+  args.SetAt(1, Smi::Handle(Smi::New(line)));
+  args.SetAt(2, Smi::Handle(Smi::New(column)));
+  return CreateMirror(Symbols::_SourceLocation(), args);
+}
+
+
+DEFINE_NATIVE_ENTRY(MethodMirror_location, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  const Function& func = Function::Handle(ref.GetFunctionReferent());
+  if (func.IsImplicitConstructor() || func.IsSignatureFunction()) {
+    // These are synthetic methods; they have no source.
+    return Instance::null();
+  }
+  const Script& script = Script::Handle(func.script());
+  const String& uri = String::Handle(script.url());
+  intptr_t from_line = 0;
+  intptr_t from_col = 0;
+  if (script.HasSource()) {
+    script.GetTokenLocation(func.token_pos(), &from_line, &from_col);
+  } else {
+    // Avoid the slow path of printing the token stream when precise source
+    // information is not available.
+    script.GetTokenLocation(func.token_pos(), &from_line, NULL);
+  }
+  // We should always have at least the line number.
+  ASSERT(from_line != 0);
+  return CreateSourceLocation(uri, from_line, from_col);
 }
 
 
@@ -2103,5 +2238,18 @@ DEFINE_NATIVE_ENTRY(VariableMirror_type, 2) {
   const AbstractType& type = AbstractType::Handle(field.type());
   return InstantiateType(type, instantiator);
 }
+
+DEFINE_NATIVE_ENTRY(TypeMirror_subtypeTest, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, a, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, b, arguments->NativeArgAt(1));
+  return Bool::Get(a.IsSubtypeOf(b, NULL)).raw();
+}
+
+DEFINE_NATIVE_ENTRY(TypeMirror_moreSpecificTest, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, a, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, b, arguments->NativeArgAt(1));
+  return Bool::Get(a.IsMoreSpecificThan(b, NULL)).raw();
+}
+
 
 }  // namespace dart

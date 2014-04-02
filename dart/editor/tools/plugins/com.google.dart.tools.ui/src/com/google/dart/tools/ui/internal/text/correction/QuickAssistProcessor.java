@@ -24,16 +24,19 @@ import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.actions.ConvertGetterToMethodAction;
 import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction;
+import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.refactoring.ServiceUtils;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.FormatProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 import java.util.List;
@@ -85,6 +88,7 @@ public class QuickAssistProcessor {
           addProposal_convertGetterToMethodRefactoring();
           addProposal_convertMethodToGetterRefactoring();
           addProposal_renameRefactoring();
+          addProposal_format();
           // ask services
           com.google.dart.engine.services.correction.QuickAssistProcessor serviceProcessor;
           serviceProcessor = CorrectionProcessors.getQuickAssistProcessor();
@@ -93,6 +97,7 @@ public class QuickAssistProcessor {
         }
       });
     }
+    // done
     this.context = null;
     this.editor = null;
     this.selection = null;
@@ -116,6 +121,13 @@ public class QuickAssistProcessor {
     action.update(selection);
     if (action.isEnabled()) {
       proposals.add(new ConvertMethodToGetterRefactoringProposal(action, selection));
+    }
+  }
+
+  private void addProposal_format() {
+    IAction action = editor.getAction(DartEditorActionDefinitionIds.QUICK_FORMAT);
+    if (action != null && action.isEnabled()) {
+      proposals.add(new FormatProposal(action));
     }
   }
 

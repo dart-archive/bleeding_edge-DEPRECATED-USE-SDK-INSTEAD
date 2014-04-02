@@ -47,7 +47,8 @@ def CompileAnalyzer(options, args):
     class_path = options.output_dir + '*;'
   else:
     class_path = options.output_dir + '*'
-  cmd = [GetJavacPath(),
+  javac_path = VerifyJavacGetPath()
+  cmd = [javac_path,
          '-sourcepath', 'foobar',
          '-source', '6',
          '-target', '6',
@@ -91,9 +92,19 @@ def CreateManifestFile(options):
     # version
     print >> output, 'Implementation-Version: %s' % GetDartVersion()
 
+def VerifyJavacGetPath():
+  javac_path = GetJavacPath()
+  try:
+    subprocess.check_output([javac_path, "-version"])
+  except:
+    print "You do not have JDK installed, can't build the analyzer"
+    exit(1)
+  return javac_path
+  
 def GetJavacPath():
   if 'JAVA_HOME' in os.environ:
-    return join(os.environ['JAVA_HOME'], 'bin', 'javac' + GetExecutableExtension())
+    return join(os.environ['JAVA_HOME'], 'bin',
+                'javac' + GetExecutableExtension())
   else:
     return "javac"
 

@@ -17,8 +17,8 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 
-final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE.warning;
-final MessageKind MEMBER_NOT_FOUND = MessageKind.MEMBER_NOT_FOUND.warning;
+final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE;
+final MessageKind MEMBER_NOT_FOUND = MessageKind.MEMBER_NOT_FOUND;
 
 DartType voidType;
 DartType intType;
@@ -58,7 +58,8 @@ main() {
                 testTypeLiteral,
                 testInitializers,
                 testTypePromotionHints,
-                testFunctionCall];
+                testFunctionCall,
+                testCascade];
   for (Function test in tests) {
     setup();
     test();
@@ -151,11 +152,6 @@ testSwitch() {
           warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   analyze("switch (1.5) { case 1: break; case 2: break; }",
           warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
-
-  analyze("switch (null) { case '': break; case 2: break; }",
-          infos: [MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
-                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE],
-          errors: [MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL]);
 }
 
 testOperators() {
@@ -604,14 +600,11 @@ testMethodInvocationsInClass() {
   check(c, "int k = staticMethod('string');");
   check(c, "String k = staticMethod('string');",
         NOT_ASSIGNABLE);
-  check(d, "staticMethod();",
-        MessageKind.MISSING_ARGUMENT);
-  check(d, "staticMethod(1);",
-        NOT_ASSIGNABLE);
-  check(d, "staticMethod('string');");
-  check(d, "int k = staticMethod('string');");
-  check(d, "String k = staticMethod('string');",
-        NOT_ASSIGNABLE);
+  check(d, "staticMethod();", MessageKind.METHOD_NOT_FOUND);
+  check(d, "staticMethod(1);", MessageKind.METHOD_NOT_FOUND);
+  check(d, "staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
+  check(d, "int k = staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
+  check(d, "String k = staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
 
   // Invocation on dynamic variable.
   check(c, "e.foo();");
@@ -1127,7 +1120,7 @@ void testTypeVariableExpressions() {
 
   analyzeIn(method, "{ String typeName = T.toString(); }");
   analyzeIn(method, "{ T.foo; }", MEMBER_NOT_FOUND);
-  analyzeIn(method, "{ T.foo = 0; }", MessageKind.PROPERTY_NOT_FOUND);
+  analyzeIn(method, "{ T.foo = 0; }", MessageKind.SETTER_NOT_FOUND);
   analyzeIn(method, "{ T.foo(); }", MessageKind.METHOD_NOT_FOUND);
   analyzeIn(method, "{ T + 1; }", MessageKind.OPERATOR_NOT_FOUND);
 }
@@ -1536,10 +1529,8 @@ void testGetterSetterInvocation() {
   check("int v = c.overriddenField;");
   check("c.overriddenField = 0;");
   check("int v = c.getterField;");
-  // TODO(johnniwinther): Check write of property without setter.
-  //check("c.getterField = 0;", MessageKind.CANNOT_RESOLVE_SETTER);
-  // TODO(johnniwinther): Check read of property without getter.
-  //check("int v = c.setterField;", MessageKind.CANNOT_RESOLVE_GETTER);
+  check("c.getterField = 0;", MessageKind.SETTER_NOT_FOUND);
+  check("int v = c.setterField;", MessageKind.GETTER_NOT_FOUND);
   check("c.setterField = 0;");
 
   check("int v = gc.overriddenField;");
@@ -1547,15 +1538,13 @@ void testGetterSetterInvocation() {
   check("int v = gc.setterField;");
   check("gc.setterField = 0;");
   check("int v = gc.getterField;");
-  // TODO(johnniwinther): Check write of property without setter.
-  //check("gc.getterField = 0;", MessageKind.CANNOT_RESOLVE_SETTER);
+  check("gc.getterField = 0;", MessageKind.SETTER_NOT_FOUND);
 
   check("int v = sc.overriddenField;");
   check("sc.overriddenField = 0;");
   check("int v = sc.getterField;");
   check("sc.getterField = 0;");
-  // TODO(johnniwinther): Check read of property without getter.
-  //check("int v = sc.setterField;", MessageKind.CANNOT_RESOLVE_GETTER);
+  check("int v = sc.setterField;", MessageKind.GETTER_NOT_FOUND);
   check("sc.setterField = 0;");
 }
 
@@ -1592,7 +1581,7 @@ testTypePromotionHints() {
             if (a is C) {
               var x = a.c;
             }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [MessageKind.NOT_MORE_SPECIFIC_SUBTYPE],
         infos: []);
 
@@ -1601,8 +1590,8 @@ testTypePromotionHints() {
             if (a is C) {
               var x = '${a.c}${a.c}';
             }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning,
-                   MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND,
+                   MessageKind.MEMBER_NOT_FOUND],
         hints: [MessageKind.NOT_MORE_SPECIFIC_SUBTYPE],
         infos: []);
 
@@ -1611,8 +1600,8 @@ testTypePromotionHints() {
             if (a is C) {
               var x = '${a.d}${a.d}'; // Type promotion wouldn't help.
             }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning,
-                   MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND,
+                   MessageKind.MEMBER_NOT_FOUND],
         hints: [],
         infos: []);
 
@@ -1621,7 +1610,7 @@ testTypePromotionHints() {
            if (d is E) { // Suggest E<int>.
              var x = d.e;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
                              {'shownTypeSuggestion': 'E<int>'})],
         infos: []);
@@ -1631,7 +1620,7 @@ testTypePromotionHints() {
            if (d is F) { // Suggest F<int, dynamic>.
              var x = d.f;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
                              {'shownTypeSuggestion': 'F<int, dynamic>'})],
         infos: []);
@@ -1641,7 +1630,7 @@ testTypePromotionHints() {
            if (d is G) { // Suggest G<int>.
              var x = d.f;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
                              {'shownTypeSuggestion': 'G<int>'})],
         infos: []);
@@ -1651,7 +1640,7 @@ testTypePromotionHints() {
            if (f is G) { // Cannot suggest a more specific type.
              var x = f.g;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [MessageKind.NOT_MORE_SPECIFIC],
         infos: []);
 
@@ -1660,7 +1649,7 @@ testTypePromotionHints() {
            if (d is E) {
              var x = d.f; // Type promotion wouldn't help.
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [],
         infos: []);
 
@@ -1670,7 +1659,7 @@ testTypePromotionHints() {
              a = null;
              var x = a.b;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [MessageKind.POTENTIAL_MUTATION],
         infos: [MessageKind.POTENTIAL_MUTATION_HERE]);
 
@@ -1680,7 +1669,7 @@ testTypePromotionHints() {
              a = null;
              var x = a.c; // Type promotion wouldn't help.
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [],
         infos: []);
 
@@ -1690,7 +1679,7 @@ testTypePromotionHints() {
            if (a is B) {
              var x = a.b;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [MessageKind.POTENTIAL_MUTATION_IN_CLOSURE],
         infos: [MessageKind.POTENTIAL_MUTATION_IN_CLOSURE_HERE]);
 
@@ -1700,7 +1689,7 @@ testTypePromotionHints() {
            if (a is B) {
              var x = a.c; // Type promotion wouldn't help.
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        warnings: [MessageKind.MEMBER_NOT_FOUND],
         hints: [],
         infos: []);
 
@@ -1711,7 +1700,7 @@ testTypePromotionHints() {
              var y = a.b;
            }
            a = new A();''',
-      warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+      warnings: [MessageKind.MEMBER_NOT_FOUND],
       hints: [MessageKind.ACCESSED_IN_CLOSURE],
       infos: [MessageKind.ACCESSED_IN_CLOSURE_HERE,
               MessageKind.POTENTIAL_MUTATION_HERE]);
@@ -1723,9 +1712,175 @@ testTypePromotionHints() {
              var y = a.c; // Type promotion wouldn't help.
            }
            a = new A();''',
-      warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+      warnings: [MessageKind.MEMBER_NOT_FOUND],
       hints: [],
       infos: []);
+}
+
+void testCascade() {
+  compiler.parseScript(r'''typedef A AFunc();
+                           typedef Function FuncFunc();
+                           class A {
+                             A a;
+                             B b;
+                             C c;
+                             AFunc afunc() => null;
+                             FuncFunc funcfunc() => null;
+                             C operator [](_) => null;
+                             void operator []=(_, C c) {}
+                           }
+                           class B {
+                             B b;
+                             C c;
+                           }
+                           class C {
+                             C c;
+                             AFunc afunc() => null;
+                           }
+                           ''');
+
+  check(String text, {warnings, hints, infos}) {
+    analyze('{ $text }', warnings: warnings, hints: hints, infos: infos);
+  }
+
+  check('A a = new A()..a;');
+
+  check('A a = new A()..b;');
+
+  check('A a = new A()..a..b;');
+
+  check('A a = new A()..b..c..a;');
+
+  check('B b = new A()..a;',
+        warnings: NOT_ASSIGNABLE);
+
+  check('B b = new A()..b;',
+        warnings: NOT_ASSIGNABLE);
+
+  check('B b = new A().b;');
+
+  check('new A().b..b;');
+
+  check('new A().b..a;',
+        warnings: MEMBER_NOT_FOUND);
+
+  check('B b = new A().b..c;');
+
+  check('C c = new A().b..c;',
+        warnings: NOT_ASSIGNABLE);
+
+  check('A a = new A()..a = new A();');
+
+  check('A a = new A()..b = new B();');
+
+  check('B b = new A()..b = new B();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('A a = new A()..b = new A();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('AFunc a = new C().afunc();');
+
+  check('AFunc a = new C()..afunc();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('C c = new C()..afunc();');
+
+  check('A a = new C().afunc()();');
+
+  check('A a = new C()..afunc()();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('AFunc a = new C()..afunc()();',
+        warnings: NOT_ASSIGNABLE);
+
+
+  check('FuncFunc f = new A().funcfunc();');
+
+  check('A a = new A().funcfunc();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('FuncFunc f = new A()..funcfunc();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('A a = new A()..funcfunc();');
+
+  check('FuncFunc f = new A()..funcfunc()();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('A a = new A()..funcfunc()();');
+
+  check('FuncFunc f = new A()..funcfunc()()();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('A a = new A()..funcfunc()()();');
+
+
+  check('''A a;
+           a = new A()..a = a = new A()..c.afunc();''');
+
+  check('''A a = new A()..b = new B()..c.afunc();''');
+
+  check('''A a = new A()..b = new A()..c.afunc();''',
+           warnings: NOT_ASSIGNABLE);
+
+  check('''A a = new A()..b = new A()..c.afunc()();''',
+           warnings: NOT_ASSIGNABLE);
+
+  check('''A a = new A()..b = new A()..c.afunc()().b;''',
+           warnings: NOT_ASSIGNABLE);
+
+  check('A a = new A().afunc()()[0].afunc();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('C c = new A().afunc()()[0].afunc();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('AFunc a = new A().afunc()()[0].afunc();');
+
+  check('A a = new A()..afunc()()[0].afunc();');
+
+  check('C c = new A()..afunc()()[0].afunc();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('AFunc a = new A()..afunc()()[0].afunc();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('A a = new A().afunc()()[0]..afunc();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('C c = new A().afunc()()[0]..afunc();');
+
+  check('AFunc a = new A().afunc()()[0]..afunc();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('A a = new A()..afunc()()[0]..afunc();');
+
+  check('C c = new A()..afunc()()[0]..afunc();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('AFunc a = new A()..afunc()()[0]..afunc();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('new A()[0] = new A();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('new A()[0] = new C();');
+
+  check('new A().a[0] = new A();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('new A().a[0] = new C();');
+
+  check('new A()..a[0] = new A();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('new A()..a[0] = new C();');
+
+  check('new A()..afunc()()[0] = new A();',
+        warnings: NOT_ASSIGNABLE);
+
+  check('new A()..afunc()()[0] = new C();');
 }
 
 const CLASS_WITH_METHODS = '''
@@ -1903,7 +2058,7 @@ analyze(String text, {errors, warnings, List hints, List infos}) {
   parser.parseStatement(tokens);
   Node node = listener.popNode();
   Element compilationUnit =
-    new CompilationUnitElementX(new Script(null, null), compiler.mainApp);
+    new CompilationUnitElementX(new Script(null, null, null), compiler.mainApp);
   Element function = new FunctionElementX(
       '', ElementKind.FUNCTION, Modifiers.EMPTY, compilationUnit, false);
   TreeElements elements = compiler.resolveNodeStatement(node, function);

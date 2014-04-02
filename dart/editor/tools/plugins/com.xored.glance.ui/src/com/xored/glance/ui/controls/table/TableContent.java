@@ -6,15 +6,15 @@
  ******************************************************************************/
 package com.xored.glance.ui.controls.table;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.ListenerList;
-import org.eclipse.swt.widgets.Table;
-
 import com.xored.glance.ui.controls.decor.IPath;
 import com.xored.glance.ui.controls.decor.IStructContent;
 import com.xored.glance.ui.controls.decor.StructCell;
 import com.xored.glance.ui.sources.ITextBlock;
 import com.xored.glance.ui.sources.ITextSourceListener;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.swt.widgets.Table;
 
 public class TableContent implements IStructContent {
 
@@ -26,19 +26,6 @@ public class TableContent implements IStructContent {
   @Override
   public void addListener(ITextSourceListener listener) {
     listeners.add(listener);
-  }
-
-  @Override
-  public void removeListener(ITextSourceListener listener) {
-    listeners.remove(listener);
-  }
-
-  @Override
-  public ITextSourceListener[] getListeners() {
-    Object[] objects = listeners.getListeners();
-    ITextSourceListener[] listeners = new ITextSourceListener[objects.length];
-    System.arraycopy(objects, 0, listeners, 0, objects.length);
-    return listeners;
   }
 
   @Override
@@ -56,6 +43,14 @@ public class TableContent implements IStructContent {
   }
 
   @Override
+  public ITextSourceListener[] getListeners() {
+    Object[] objects = listeners.getListeners();
+    ITextSourceListener[] listeners = new ITextSourceListener[objects.length];
+    System.arraycopy(objects, 0, listeners, 0, objects.length);
+    return listeners;
+  }
+
+  @Override
   public IPath getPath(ITextBlock block) {
     return null;
   }
@@ -63,6 +58,11 @@ public class TableContent implements IStructContent {
   @Override
   public void index(IProgressMonitor monitor) {
     monitor.done();
+  }
+
+  @Override
+  public void removeListener(ITextSourceListener listener) {
+    listeners.remove(listener);
   }
 
 }

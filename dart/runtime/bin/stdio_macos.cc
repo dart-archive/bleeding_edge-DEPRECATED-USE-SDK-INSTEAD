@@ -11,19 +11,18 @@
 
 #include "bin/stdio.h"
 #include "bin/fdutils.h"
-#include "bin/signal_blocker.h"
+
+#include "platform/signal_blocker.h"
 
 
 namespace dart {
 namespace bin {
 
 int Stdin::ReadByte() {
-  FDUtils::SetBlocking(STDIN_FILENO);
   int c = getchar();
   if (c == EOF) {
     c = -1;
   }
-  FDUtils::SetNonBlocking(STDIN_FILENO);
   return c;
 }
 
@@ -68,13 +67,13 @@ void Stdin::SetLineMode(bool enabled) {
 
 bool Stdout::GetTerminalSize(int size[2]) {
   struct winsize w;
-  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != 0)) {
-    return false;
+  if (NO_RETRY_EXPECTED(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) &&
+      (w.ws_col != 0 || w.ws_row != 0)) {
+    size[0] = w.ws_col;
+    size[1] = w.ws_row;
+    return true;
   }
-  size[0] = w.ws_col;
-  size[1] = w.ws_row;
-  return true;
+  return false;
 }
 
 }  // namespace bin

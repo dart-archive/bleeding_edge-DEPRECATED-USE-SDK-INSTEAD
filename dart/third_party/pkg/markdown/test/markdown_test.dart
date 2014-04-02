@@ -6,9 +6,7 @@
 library markdownTests;
 
 import 'package:unittest/unittest.dart';
-
-// TODO(rnystrom): Use "package:" URL (#4968).
-import '../lib/markdown.dart';
+import 'package:markdown/markdown.dart';
 
 /// Most of these tests are based on observing how showdown behaves:
 /// http://softwaremaniacs.org/playground/showdown-highlight/
@@ -439,7 +437,7 @@ void main() {
         code
         ```
         ''', '''
-        <pre><code>code
+        <pre class="dart"><code>code
         </code></pre>
         ''');
 
@@ -449,6 +447,37 @@ void main() {
         ```
         ''', '''
         <pre><code>&lt;&amp;&gt;
+        </code></pre>
+        ''');
+
+    validate('Pandoc style without language identifier', '''
+        ~~~~~
+        code
+        ~~~~~
+        ''', '''
+        <pre><code>code
+        </code></pre>
+        ''');
+
+    validate('Pandoc style with language identifier', '''
+        ~~~~~dart
+        code
+        ~~~~~
+        ''', '''
+        <pre class="dart"><code>code
+        </code></pre>
+        ''');
+
+    validate('Pandoc style with inner tildes row', '''
+        ~~~~~
+        ~~~
+        code
+        ~~~
+        ~~~~~
+        ''', '''
+        <pre><code>~~~
+        code
+        ~~~
         </code></pre>
         ''');
   });
@@ -833,6 +862,94 @@ void main() {
         ''');
   });
 
+  group('Inline Images', () {
+    validate('image','''
+        ![](http://foo.com/foo.png)
+        ''','''
+        <p>
+          <a href="http://foo.com/foo.png">
+            <img src="http://foo.com/foo.png"></img>
+          </a>
+        </p>
+        ''');
+
+    validate('alternate text','''
+        ![alternate text](http://foo.com/foo.png)
+        ''','''
+        <p>
+          <a href="http://foo.com/foo.png">
+            <img alt="alternate text" src="http://foo.com/foo.png"></img>
+          </a>
+        </p>
+        ''');
+
+    validate('title','''
+        ![](http://foo.com/foo.png "optional title")
+        ''','''
+        <p>
+          <a href="http://foo.com/foo.png" title="optional title">
+            <img src="http://foo.com/foo.png" title="optional title"></img>
+          </a>
+        </p>
+        ''');
+    validate('invalid alt text','''
+        ![`alt`](http://foo.com/foo.png)
+        ''','''
+        <p>
+          <a href="http://foo.com/foo.png">
+            <img src="http://foo.com/foo.png"></img>
+          </a>
+        </p>
+        ''');
+  });
+
+  group('Reference Images', () {
+    validate('image','''
+        ![][foo]
+        [foo]: http://foo.com/foo.png
+        ''','''
+        <p>
+          <a href="http://foo.com/foo.png">
+            <img src="http://foo.com/foo.png"></img>
+          </a>
+        </p>
+        ''');
+
+    validate('alternate text','''
+        ![alternate text][foo]
+        [foo]: http://foo.com/foo.png
+        ''','''
+        <p>
+          <a href="http://foo.com/foo.png">
+            <img alt="alternate text" src="http://foo.com/foo.png"></img>
+          </a>
+        </p>
+        ''');
+
+    validate('title','''
+        ![][foo]
+        [foo]: http://foo.com/foo.png "optional title"
+        ''','''
+        <p>
+          <a href="http://foo.com/foo.png" title="optional title">
+            <img src="http://foo.com/foo.png" title="optional title"></img>
+          </a>
+        </p>
+        ''');
+
+    validate('invalid alt text','''
+        ![`alt`][foo]
+        [foo]: http://foo.com/foo.png "optional title"
+        ''','''
+        <p>
+          <a href="http://foo.com/foo.png" title="optional title">
+            <img src="http://foo.com/foo.png" title="optional title"></img>
+          </a>
+        </p>
+        ''');
+
+  });
+
   group('Resolver', () {
     var nyanResolver = (text) => new Text('~=[,,_${text}_,,]:3');
     validate('simple resolver', '''
@@ -859,6 +976,46 @@ void main() {
     // TODO(amouravski): need more tests here for custom syntaxes, as some
     // things are not quite working properly. The regexps are sometime a little
     // too greedy, I think.
+  });
+
+  group('Inline only', () {
+    validate('simple line', '''
+        This would normally create a paragraph.
+        ''', '''
+        This would normally create a paragraph.
+        ''', inlineOnly: true);
+    validate('strong and em', '''
+        This would _normally_ create a **paragraph**.
+        ''', '''
+        This would <em>normally</em> create a <strong>paragraph</strong>.
+        ''', inlineOnly: true);
+    validate('link', '''
+        This [link](http://www.example.com/) will work normally.
+        ''', '''
+        This <a href="http://www.example.com/">link</a> will work normally.
+        ''', inlineOnly: true);
+    validate('references do not work', '''
+        [This][] shouldn't work, though.
+        ''', '''
+        [This][] shouldn't work, though.
+        ''', inlineOnly: true);
+    validate('less than and ampersand are escaped', '''
+        < &
+        ''', '''
+        &lt; &amp;
+        ''', inlineOnly: true);
+    validate('keeps newlines', '''
+        This paragraph
+        continues after a newline.
+        ''', '''
+        This paragraph
+        continues after a newline.
+        ''', inlineOnly: true);
+    validate('ignores block-level markdown syntax', '''
+        1. This will not be an <ol>.
+        ''', '''
+        1. This will not be an &lt;ol>.
+        ''', inlineOnly: true);
   });
 }
 
@@ -890,33 +1047,33 @@ String cleanUpLiteral(String text) {
   return lines.join('\n');
 }
 
-validate(String description, String markdown, String html,
-         {bool verbose: false, inlineSyntaxes, linkResolver}) {
+void validate(String description, String markdown, String html,
+         {bool verbose: false, inlineSyntaxes, linkResolver,
+          bool inlineOnly: false}) {
   test(description, () {
     markdown = cleanUpLiteral(markdown);
     html = cleanUpLiteral(html);
 
     var result = markdownToHtml(markdown, inlineSyntaxes: inlineSyntaxes,
-        linkResolver: linkResolver);
+        linkResolver: linkResolver, inlineOnly: inlineOnly);
     var passed = compareOutput(html, result);
 
     if (!passed) {
       // Remove trailing newline.
       html = html.substring(0, html.length - 1);
 
-      print('FAIL: $description');
-      print('  expect: ${html.replaceAll("\n", "\n          ")}');
-      print('  actual: ${result.replaceAll("\n", "\n          ")}');
-      print('');
-    }
+      var sb = new StringBuffer();
+      sb.writeln('Expected: ${html.replaceAll("\n", "\n          ")}');
+      sb.writeln('  Actual: ${result.replaceAll("\n", "\n          ")}');
 
-    expect(passed, isTrue, verbose: verbose);
+      fail(sb.toString());
+    }
   });
 }
 
 /// Does a loose comparison of the two strings of HTML. Ignores differences in
 /// newlines and indentation.
-compareOutput(String a, String b) {
+bool compareOutput(String a, String b) {
   int i = 0;
   int j = 0;
 

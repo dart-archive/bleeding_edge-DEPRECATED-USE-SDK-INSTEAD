@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.text.DartPartitions;
 
 import org.eclipse.jface.text.IDocument;
@@ -315,6 +316,9 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
   @Override
   public void setPartialRange(IDocument document, int offset, int length, String contentType,
       int partitionOffset) {
+    if (DartUI.isTooComplexDartDocument(document)) {
+      return;
+    }
     if (DEBUG) {
       System.out.println("setPartialRange(?, " + offset + ", " + length + ", " + contentType + ", "
           + partitionOffset + ")");

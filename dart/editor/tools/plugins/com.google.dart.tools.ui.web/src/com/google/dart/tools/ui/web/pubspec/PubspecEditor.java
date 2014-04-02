@@ -224,9 +224,14 @@ public class PubspecEditor extends FormEditor {
     String contents = null;
     if (input instanceof IFileEditorInput) {
       IFile file = ((IFileEditorInput) input).getFile();
-      contents = getContents(file.getLocation().toFile());
-      editable = true;
-      model = new PubspecModel(file, contents);
+      if (file != null && file.exists()) {
+        contents = getContents(file.getLocation().toFile());
+        editable = true;
+        model = new PubspecModel(file, contents);
+      } else {
+        model = new PubspecModel(contents);
+      }
+
     } else if (input instanceof FileStoreEditorInput) {
       File file = new File(((FileStoreEditorInput) input).getURI());
       if (file.exists()) {

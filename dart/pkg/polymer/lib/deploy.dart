@@ -2,32 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * **Note**: If you already have a `build.dart` in your application, we
- * recommend to use the `package:polymer/builder.dart` library instead.
+/// **Note**: If you already have a `build.dart` in your application, we
+/// recommend to use the `package:polymer/builder.dart` library instead.
 
- * Temporary deploy command used to create a version of the app that can be
- * compiled with dart2js and deployed. Following pub layout conventions, this
- * script will treat any HTML file under a package 'web/' and 'test/'
- * directories as entry points.
- *
- * From an application package you can run deploy by creating a small program
- * as follows:
- *
- *    import "package:polymer/deploy.dart" as deploy;
- *    main() => deploy.main();
- *
- * This library should go away once `pub deploy` can be configured to run
- * barback transformers.
- */
+/// Temporary deploy command used to create a version of the app that can be
+/// compiled with dart2js and deployed. Following pub layout conventions, this
+/// script will treat any HTML file under a package 'web/' and 'test/'
+/// directories as entry points.
+///
+/// From an application package you can run deploy by creating a small program
+/// as follows:
+///
+///    import "package:polymer/deploy.dart" as deploy;
+///    main() => deploy.main();
+///
+/// This library should go away once `pub deploy` can be configured to run
+/// barback transformers.
 library polymer.deploy;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:code_transformers/tests.dart' show testingDartSdkDirectory;
 import 'package:path/path.dart' as path;
-import 'src/build/common.dart' show TransformOptions;
+
+import 'src/build/common.dart' show TransformOptions, phasesForPolymer;
 import 'src/build/runner.dart';
 import 'transformer.dart';
 
@@ -44,7 +43,11 @@ main(List<String> arguments) {
         directlyIncludeJS: args['js'],
         contentSecurityPolicy: args['csp'],
         releaseMode: !args['debug']);
-    options = new BarbackOptions(createDeployPhases(transformOps), outDir);
+    var phases = createDeployPhases(transformOps);
+    options = new BarbackOptions(phases, outDir,
+        // TODO(sigmund): include here also smoke transformer when it's on by
+        // default.
+        packagePhases: {'polymer': phasesForPolymer});
   } else {
     options = _createTestOptions(
         test, outDir, args['js'], args['csp'], !args['debug']);
@@ -59,10 +62,9 @@ main(List<String> arguments) {
       .catchError(_reportErrorAndExit);
 }
 
-createDeployPhases(options) => new PolymerTransformerGroup(options).phases;
-
 BarbackOptions _createTestOptions(String testFile, String outDir,
     bool directlyIncludeJS, bool contentSecurityPolicy, bool releaseMode) {
+
   var testDir = path.normalize(path.dirname(testFile));
 
   // A test must be allowed to import things in the package.
@@ -76,14 +78,29 @@ BarbackOptions _createTestOptions(String testFile, String outDir,
   }
   var packageName = readCurrentPackageFromPubspec(pubspecDir);
 
+  // Find the dart-root so we can include all package dependencies and
+  // transformers from other packages.
+  var pkgDir = path.join(_findDirWithDir(path.absolute(testDir), 'pkg'), 'pkg');
+
   var phases = createDeployPhases(new TransformOptions(
       entryPoints: [path.relative(testFile, from: pubspecDir)],
       directlyIncludeJS: directlyIncludeJS,
       contentSecurityPolicy: contentSecurityPolicy,
-      releaseMode: releaseMode));
+      releaseMode: releaseMode,
+      lint: false), sdkDir: testingDartSdkDirectory);
+  var dirs = {};
+  // Note: we include all packages in pkg/ to keep things simple. Ideally this
+  // should be restricted to the transitive dependencies of this package.
+  _subDirs(pkgDir).forEach((p) { dirs[path.basename(p)] = p; });
+  // Note: packageName may be a duplicate of 'polymer', but that's ok (they
+  // should be the same value).
+  dirs[packageName]= pubspecDir;
   return new BarbackOptions(phases, outDir,
       currentPackage: packageName,
-      packageDirs: {packageName : pubspecDir},
+      packageDirs: dirs,
+      // TODO(sigmund): include here also smoke transformer when it's on by
+      // default.
+      packagePhases: {'polymer': phasesForPolymer},
       transformTests: true);
 }
 
@@ -96,6 +113,20 @@ String _findDirWithFile(String dir, String filename) {
   }
   return dir;
 }
+
+String _findDirWithDir(String dir, String subdir) {
+  while (!new Directory(path.join(dir, subdir)).existsSync()) {
+    var parentDir = path.dirname(dir);
+    // If we reached root and failed to find it, bail.
+    if (parentDir == dir) return null;
+    dir = parentDir;
+  }
+  return dir;
+}
+
+List<String> _subDirs(String dir) =>
+    new Directory(dir).listSync(followLinks: false)
+        .where((d) => d is Directory).map((d) => d.path).toList();
 
 void _reportErrorAndExit(e, trace) {
   print('Uncaught error: $e');
@@ -117,9 +148,8 @@ ArgResults _parseArgs(arguments) {
           'leaves "packages/browser/dart.js" to do the replacement at runtime.',
           defaultsTo: true)
       ..addFlag('debug', help:
-          'run in debug mode. For example, use the debug versions of the \n'
-          'polyfills (shadow_dom.debug.js and custom-elements.debug.js) \n'
-          'instead of the minified versions.',
+          'run in debug mode. For example, use the debug polyfill \n'
+          'web_components/platform.concat.js instead of the minified one.\n',
           defaultsTo: false)
       ..addFlag('csp', help:
           'replaces *.dart with *.dart.precompiled.js to comply with \n'

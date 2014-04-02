@@ -7,17 +7,17 @@ library type_graph_inferrer;
 import 'dart:collection' show Queue, IterableBase;
 import '../dart_types.dart' show DartType, InterfaceType, TypeKind;
 import '../elements/elements.dart';
-import '../tree/tree.dart' show LiteralList, Node;
-import '../ir/ir_nodes.dart' show IrNode;
+import '../tree/tree.dart' as ast show DartString, Node;
+import '../ir/ir_nodes.dart' as ir show Node;
 import '../types/types.dart'
-  show TypeMask, ContainerTypeMask, MapTypeMask, TypesInferrer;
+  show TypeMask, ContainerTypeMask, MapTypeMask, DictionaryTypeMask,
+       ValueTypeMask, TypesInferrer;
 import '../universe/universe.dart' show Selector, TypedSelector, SideEffects;
 import '../dart2jslib.dart' show Compiler, TreeElementMapping;
 import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
 import '../native_handler.dart' as native;
 import '../util/util.dart' show Spannable, Setlet;
 import 'simple_types_inferrer.dart';
-import 'ir_type_inferrer.dart';
 import '../dart2jslib.dart' show invariant, Constant, FunctionConstant;
 
 part 'type_graph_nodes.dart';
@@ -45,15 +45,15 @@ Set<Selector> returnsListElementTypeSet = new Set<Selector>.from(
   ]);
 
 bool returnsListElementType(Selector selector) {
-  return (selector.mask != null)
-         && selector.mask.isContainer
-         && returnsListElementTypeSet.contains(selector.asUntyped);
+  return (selector.mask != null) &&
+         selector.mask.isContainer &&
+         returnsListElementTypeSet.contains(selector.asUntyped);
 }
 
 bool returnsMapValueType(Selector selector) {
-  return (selector.mask != null)
-         && selector.mask.isMap
-         && selector.isIndex();
+  return (selector.mask != null) &&
+         selector.mask.isMap &&
+         selector.isIndex();
 }
 
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
@@ -64,12 +64,12 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       new Map<Element, TypeInformation>();
 
   /// [ListTypeInformation] for allocated lists.
-  final Map<Node, TypeInformation> allocatedLists =
-      new Map<Node, TypeInformation>();
+  final Map<ast.Node, TypeInformation> allocatedLists =
+      new Map<ast.Node, TypeInformation>();
 
   /// [MapTypeInformation] for allocated Maps.
-  final Map<Node, TypeInformation> allocatedMaps =
-      new Map<Node, TypeInformation>();
+  final Map<ast.Node, TypeInformation> allocatedMaps =
+      new Map<ast.Node, TypeInformation>();
 
   /// Closures found during the analysis.
   final Set<TypeInformation> allocatedClosures = new Set<TypeInformation>();
@@ -203,6 +203,12 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
 
   TypeInformation nonNullEmptyType;
 
+
+  TypeInformation stringLiteralType(ast.DartString value) {
+    return new StringLiteralTypeInformation(
+        value, compiler.typesTask.stringType);
+  }
+
   TypeInformation computeLUB(TypeInformation firstType,
                              TypeInformation secondType) {
     if (firstType == null) return secondType;
@@ -236,8 +242,8 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     if (annotation.isVoid) return nullType;
     if (annotation.element == compiler.objectClass) return type;
     TypeMask otherType;
-    if (annotation.kind == TypeKind.TYPEDEF
-        || annotation.kind == TypeKind.FUNCTION) {
+    if (annotation.kind == TypeKind.TYPEDEF ||
+        annotation.kind == TypeKind.FUNCTION) {
       otherType = functionType.type;
     } else if (annotation.kind == TypeKind.TYPE_VARIABLE) {
       // TODO(ngeoffray): Narrow to bound.
@@ -291,15 +297,15 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   }
 
   TypeInformation allocateList(TypeInformation type,
-                               Node node,
+                               ast.Node node,
                                Element enclosing,
                                [TypeInformation elementType, int length]) {
-    bool isTypedArray = (compiler.typedDataClass != null)
-        && type.type.satisfies(compiler.typedDataClass, compiler);
+    bool isTypedArray = (compiler.typedDataClass != null) &&
+        type.type.satisfies(compiler.typedDataClass, compiler);
     bool isConst = (type.type == compiler.typesTask.constListType);
-    bool isFixed = (type.type == compiler.typesTask.fixedListType)
-        || isConst
-        || isTypedArray;
+    bool isFixed = (type.type == compiler.typesTask.fixedListType) ||
+                   isConst ||
+                   isTypedArray;
     bool isElementInferred = isConst || isTypedArray;
 
     int inferredLength = isFixed ? length : null;
@@ -317,40 +323,51 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
         new ListTypeInformation(mask, element, length);
   }
 
-  TypeInformation allocateClosure(Node node, Element element) {
+  TypeInformation allocateClosure(ast.Node node, Element element) {
     TypeInformation result = new ClosureTypeInformation(node, element);
     allocatedClosures.add(result);
     return result;
   }
 
   TypeInformation allocateMap(ConcreteTypeInformation type,
-                              Node node,
+                              ast.Node node,
                               Element element,
-                              [TypeInformation keyType,
-                              TypeInformation valueType]) {
+                              [List<TypeInformation> keyTypes,
+                               List<TypeInformation> valueTypes]) {
+    assert(keyTypes.length == valueTypes.length);
     bool isFixed = (type.type == compiler.typesTask.constMapType);
 
-    // transform the key and value into inferrable type informations
-    KeyInMapTypeInformation inferredKeyType =
-        new KeyInMapTypeInformation(keyType);
-    ValueInMapTypeInformation inferredValueType =
-        new ValueInMapTypeInformation(valueType);
+    TypeMask keyType, valueType;
     if (isFixed) {
-      inferredValueType.inferred = inferredKeyType.inferred = true;
+      keyType = keyTypes.fold(nonNullEmptyType.type,
+          (type, info) => type.union(info.type, compiler));
+      valueType = valueTypes.fold(nonNullEmptyType.type,
+          (type, info) => type.union(info.type, compiler));
+    } else {
+      keyType = valueType = dynamicType.type;
     }
     MapTypeMask mask = new MapTypeMask(type.type,
                                        node,
                                        element,
-                                       isFixed ? keyType.type
-                                               : dynamicType.type,
-                                       isFixed ? valueType.type
-                                               : dynamicType.type);
+                                       keyType,
+                                       valueType);
+
+    TypeInformation keyTypeInfo = new KeyInMapTypeInformation(null);
+    TypeInformation valueTypeInfo = new ValueInMapTypeInformation(null);
+    allocatedTypes.add(keyTypeInfo);
+    allocatedTypes.add(valueTypeInfo);
 
     MapTypeInformation map =
-      new MapTypeInformation(inferredKeyType, inferredValueType, mask);
+        new MapTypeInformation(mask, keyTypeInfo, valueTypeInfo);
 
-    allocatedTypes.add(inferredKeyType);
-    allocatedTypes.add(inferredValueType);
+    for (int i = 0; i < keyTypes.length; ++i) {
+      TypeInformation newType =
+          map.addEntryAssignment(keyTypes[i], valueTypes[i], true);
+      if (newType != null) allocatedTypes.add(newType);
+    }
+
+    if (isFixed) map.markAsInferred();
+
     allocatedMaps[node] = map;
     return map;
   }
@@ -374,14 +391,14 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     return result;
   }
 
-  PhiElementTypeInformation allocatePhi(Node node,
+  PhiElementTypeInformation allocatePhi(ast.Node node,
                                         Element element,
                                         inputType) {
     // Check if [inputType] is a phi for a local updated in
     // the try/catch block [node]. If it is, no need to allocate a new
     // phi.
-    if (inputType is PhiElementTypeInformation
-        && inputType.branchNode == node) {
+    if (inputType is PhiElementTypeInformation &&
+        inputType.branchNode == node) {
       return inputType;
     }
     PhiElementTypeInformation result =
@@ -391,7 +408,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     return result;
   }
 
-  TypeInformation simplifyPhi(Node node,
+  TypeInformation simplifyPhi(ast.Node node,
                               Element element,
                               PhiElementTypeInformation phiType) {
     if (phiType.assignments.length == 1) return phiType.assignments.first;
@@ -479,10 +496,11 @@ class TypeGraphInferrerEngine
   void analyzeListAndEnqueue(ListTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
+
     ListTracerVisitor tracer = new ListTracerVisitor(info, this);
-    if (!tracer.run()) {
-      return;
-    }
+    bool succeeded = tracer.run();
+    if (!succeeded) return;
+
     info.bailedOut = false;
     info.elementType.inferred = true;
     TypeMask fixedListType = compiler.typesTask.fixedListType;
@@ -499,15 +517,24 @@ class TypeGraphInferrerEngine
     if (info.analyzed) return;
     info.analyzed = true;
     MapTracerVisitor tracer = new MapTracerVisitor(info, this);
-    if (!tracer.run()) return;
+
+    bool succeeded = tracer.run();
+    if (!succeeded) return;
+
     info.bailedOut = false;
-    info.keyType.inferred = true;
-    tracer.keyAssignments.forEach(info.keyType.addAssignment);
+    for (int i = 0; i < tracer.keyAssignments.length; ++i) {
+      TypeInformation newType = info.addEntryAssignment(
+          tracer.keyAssignments[i], tracer.valueAssignments[i]);
+      if (newType != null) workQueue.add(newType);
+    }
+    for (TypeInformation map in tracer.mapAssignments) {
+      workQueue.addAll(info.addMapAssignment(map));
+    }
+
+    info.markAsInferred();
     workQueue.add(info.keyType);
-    info.valueType.inferred = true;
-    tracer.valueAssignments.forEach(info.valueType.addAssignment);
-    // Enqueue the map for later refinement
     workQueue.add(info.valueType);
+    workQueue.addAll(info.typeInfoMap.values);
     workQueue.add(info);
   }
 
@@ -523,7 +550,7 @@ class TypeGraphInferrerEngine
       // Force the creation of the [ElementTypeInformation] to ensure it is
       // in the graph.
       types.getInferredTypeOf(element);
-      analyze(element);
+      analyze(element, null);
     });
     compiler.log('Added $addedInGraph elements in inferencing graph.');
 
@@ -573,12 +600,18 @@ class TypeGraphInferrerEngine
       types.allocatedLists.values.forEach((ListTypeInformation info) {
         print('${info.type} '
               'for ${info.originalContainerType.allocationNode} '
-              'at ${info.originalContainerType.allocationElement}');
+              'at ${info.originalContainerType.allocationElement} '
+              'after ${info.refineCount}');
       });
       types.allocatedMaps.values.forEach((MapTypeInformation info) {
         print('${info.type} '
               'for ${(info.type as MapTypeMask).allocationNode} '
-              'at ${(info.type as MapTypeMask).allocationElement}');
+              'at ${(info.type as MapTypeMask).allocationElement} '
+              'after ${info.refineCount}');
+      });
+      analyzedElements.forEach((Element elem) {
+        TypeInformation type = types.getInferredTypeOf(elem);
+        print('${elem} :: ${type} from ${type.assignments} ');
       });
     }
 
@@ -587,17 +620,13 @@ class TypeGraphInferrerEngine
     processLoopInformation();
   }
 
-  void analyze(Element element) {
+  void analyze(Element element, ArgumentsTypes arguments) {
     element = element.implementation;
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-    var visitor;
-    if (compiler.irBuilder.hasIr(element)) {
-      visitor = new IrTypeInferrerVisitor(compiler, element, this);
-    } else {
-      visitor = new SimpleTypeInferrerVisitor(element, compiler, this);
-    }
+    SimpleTypeInferrerVisitor visitor =
+        new SimpleTypeInferrerVisitor(element, compiler, this);
     TypeInformation type;
     compiler.withCurrentElement(element, () {
       type = visitor.run();
@@ -605,18 +634,19 @@ class TypeGraphInferrerEngine
     addedInGraph++;
 
     if (element.isField()) {
-      Node node = element.parseNode(compiler);
+      VariableElement fieldElement = element;
+      ast.Node node = fieldElement.parseNode(compiler);
       if (element.modifiers.isFinal() || element.modifiers.isConst()) {
         // If [element] is final and has an initializer, we record
         // the inferred type.
-        if (node.asSendSet() != null) {
+        if (fieldElement.initializer != null) {
           if (type is! ListTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
             Constant value =
                 compiler.constantHandler.getConstantForVariable(element);
             if (value != null) {
-              if (value.isFunction()) {
+              if (value.isFunction) {
                 FunctionConstant functionConstant = value;
                 type = types.allocateClosure(node, functionConstant.element);
               } else {
@@ -628,7 +658,7 @@ class TypeGraphInferrerEngine
         } else if (!element.isInstanceMember()) {
           recordType(element, types.nullType);
         }
-      } else if (node.asSendSet() == null) {
+      } else if (fieldElement.initializer == null) {
         // Only update types of static fields if there is no
         // assignment. Instance fields are dealt with in the constructor.
         if (Elements.isStaticOrTopLevelField(element)) {
@@ -637,14 +667,14 @@ class TypeGraphInferrerEngine
       } else {
         recordTypeOfNonFinalField(node, element, type);
       }
-      if (Elements.isStaticOrTopLevelField(element)
-          && node.asSendSet() != null
-          && !element.modifiers.isConst()) {
-        var argument = node.asSendSet().arguments.head;
+      if (Elements.isStaticOrTopLevelField(element) &&
+          fieldElement.initializer != null &&
+          !element.modifiers.isConst()) {
+        var argument = fieldElement.initializer;
         // TODO(13429): We could do better here by using the
         // constant handler to figure out if it's a lazy field or not.
-        if (argument.asSend() != null
-            || (argument.asNewExpression() != null && !argument.isConst())) {
+        if (argument.asSend() != null ||
+            (argument.asNewExpression() != null && !argument.isConst())) {
           recordType(element, types.nullType);
         }
       }
@@ -658,8 +688,8 @@ class TypeGraphInferrerEngine
       if (!info.inLoop) return;
       if (info is StaticCallSiteTypeInformation) {
         compiler.world.addFunctionCalledInLoop(info.calledElement);
-      } else if (info.selector.mask != null
-                 && !info.selector.mask.containsAll(compiler)) {
+      } else if (info.selector.mask != null &&
+                 !info.selector.mask.containsAll(compiler)) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
@@ -731,7 +761,7 @@ class TypeGraphInferrerEngine
           types.allocatedClosures.add(info);
         }
         FunctionElement function = callee.implementation;
-        FunctionSignature signature = function.computeSignature(compiler);
+        FunctionSignature signature = function.functionSignature;
         signature.forEachParameter((Element parameter) {
           ElementTypeInformation info = types.getInferredTypeOf(parameter);
           info.giveUp(this, clearAssignments: false);
@@ -740,7 +770,7 @@ class TypeGraphInferrerEngine
       }
     } else {
       FunctionElement function = callee.implementation;
-      FunctionSignature signature = function.computeSignature(compiler);
+      FunctionSignature signature = function.functionSignature;
       int parameterIndex = 0;
       bool visitingRequiredParameter = true;
       signature.forEachParameter((Element parameter) {
@@ -822,9 +852,8 @@ class TypeGraphInferrerEngine
     types.getInferredTypeOf(element).addAssignment(type);
   }
 
-  bool recordType(Element element, TypeInformation type) {
+  void recordType(Element element, TypeInformation type) {
     types.getInferredTypeOf(element).addAssignment(type);
-    return false;
   }
 
   void recordReturnType(Element element, TypeInformation type) {
@@ -865,7 +894,7 @@ class TypeGraphInferrerEngine
     return info;
   }
 
-  TypeInformation registerCalledSelector(Node node,
+  TypeInformation registerCalledSelector(ast.Node node,
                                          Selector selector,
                                          TypeInformation receiverType,
                                          Element caller,
@@ -889,7 +918,7 @@ class TypeGraphInferrerEngine
     return info;
   }
 
-  TypeInformation registerCalledClosure(Node node,
+  TypeInformation registerCalledClosure(ast.Node node,
                                         Selector selector,
                                         TypeInformation closure,
                                         Element caller,
@@ -967,8 +996,8 @@ class TypeGraphInferrerEngine
    */
   TypeInformation typeOfElementWithSelector(Element element,
                                             Selector selector) {
-    if (element.name == Compiler.NO_SUCH_METHOD
-        && selector.name != element.name) {
+    if (element.name == Compiler.NO_SUCH_METHOD &&
+        selector.name != element.name) {
       // An invocation can resolve to a [noSuchMethod], in which case
       // we get the return type of [noSuchMethod].
       return returnTypeOfElement(element);
@@ -993,6 +1022,10 @@ class TypeGraphInferrerEngine
       return returnTypeOfElement(element);
     }
   }
+
+  void recordCapturedLocalRead(Element local) {}
+
+  void recordLocalUpdate(Element local, TypeInformation type) {}
 }
 
 class TypeGraphInferrer implements TypesInferrer {
@@ -1022,12 +1055,12 @@ class TypeGraphInferrer implements TypesInferrer {
     return inferrer.types.getInferredTypeOf(element).type;
   }
 
-  TypeMask getTypeOfNode(Element owner, Node node) {
+  TypeMask getTypeOfNode(Element owner, ast.Node node) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return inferrer.types.allocatedLists[node].type;
   }
 
-  bool isFixedArrayCheckedForGrowable(Node node) {
+  bool isFixedArrayCheckedForGrowable(ast.Node node) {
     if (compiler.disableTypeInference) return true;
     ListTypeInformation info = inferrer.types.allocatedLists[node];
     return info.checksGrowable;
@@ -1050,7 +1083,7 @@ class TypeGraphInferrer implements TypesInferrer {
       MapTypeMask mask = selector.mask;
       TypeMask valueType = mask.valueType;
       return valueType == null ? compiler.typesTask.dynamicType
-                               : valueType.nullable();
+                               : valueType;
     }
 
     TypeMask result = const TypeMask.nonNullEmpty();

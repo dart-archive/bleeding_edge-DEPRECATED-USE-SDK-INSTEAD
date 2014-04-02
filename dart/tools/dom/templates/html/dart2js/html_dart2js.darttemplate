@@ -45,6 +45,7 @@ import 'dart:typed_data';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
 import 'dart:svg' show Matrix;
+import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
@@ -131,3 +132,15 @@ class HtmlElement extends Element native "HTMLElement" {
 // older Chrome versions.
 // Issue #12573.
 abstract class _EntryArray implements List<Entry> native "EntryArray" {}
+
+/**
+ * Spawn a DOM isolate using the given URI in the same window.
+ * This isolate is not concurrent.  It runs on the browser thread
+ * with full access to the DOM.
+ * Note: this API is still evolving and may move to dart:isolate.
+ */
+@Experimental()
+Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
+  // TODO(17738): Implement this.
+  throw new UnimplementedError();
+}

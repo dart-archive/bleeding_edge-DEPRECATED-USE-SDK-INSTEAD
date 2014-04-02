@@ -29,13 +29,22 @@ class Unpickler {
 
   ConstantSystem get constantSystem => compiler.backend.constantSystem;
 
-  IrFunction unpickle(List<int> data) {
+  // A partially constructed expression is one that has a single 'hole' where
+  // there is an expression missing.  Just like the IR builder, the unpickler
+  // represents such an expression by its root and by the 'current' expression
+  // that immediately contains the hole.  If there is no hole (e.g., an
+  // expression in tail position has been seen), then current is null.
+  ir.Expression root;
+  ir.Expression current;
+
+  ir.Function unpickle(List<int> data) {
     this.data = data;
     offset = 0;
     int numEntries = readInt();
     unpickled = new List<Object>(numEntries);
     index = 0;
-    return readNode();
+    root = current = null;
+    return readFunctionNode();
   }
 
   int readByte() {
@@ -67,7 +76,9 @@ class Unpickler {
     } else if (tag == Pickles.STRING_UTF8) {
       return UTF8.decode(bytes);
     } else {
-      compiler.internalError("Unexpected string tag: $tag");
+      compiler.internalError(NO_LOCATION_SPANNABLE,
+                             "Unexpected string tag: $tag");
+      return null;
     }
   }
 
@@ -98,34 +109,59 @@ class Unpickler {
     return result;
   }
 
-  /**
-   * Reads a [IrNode]. Expression nodes are added to the [unpickled] map to
-   * enable unpickling back references.
-   */
-  IrNode readNode() {
-    int tag = readByte();
-    if (Pickles.isExpressionTag(tag)) {
-      return readExpressionNode(tag);
-    } else if (tag == Pickles.NODE_RETURN) {
-      return readReturnNode();
+  void addExpression(ir.Expression expr) {
+    if (root == null) {
+      root = current = expr;
     } else {
-      compiler.internalError("Unexpected entry tag: $tag");
+      current = current.plug(expr);
     }
   }
 
-  IrExpression readExpressionNode(int tag) {
-    int entryIndex = index++;
-    IrExpression result;
-    if (tag == Pickles.NODE_CONST) {
-      result = readConstantNode();
-    } else if (tag == Pickles.NODE_FUNCTION) {
-      result = readFunctionNode();
-    } else if (tag == Pickles.NODE_INVOKE_STATIC) {
-      result = readInvokeStaticNode();
-    } else {
-      compiler.internalError("Unexpected expression entry tag: $tag");
+  // Read a single expression and plug it into the outer context.
+  ir.Expression readExpressionNode() {
+    int tag = readByte();
+    switch (tag) {
+      case Pickles.NODE_CONSTANT:
+        ir.Definition constant = readConstantNode();
+        unpickled[index++] = constant;
+        addExpression(new ir.LetPrim(constant));
+        break;
+      case Pickles.NODE_LET_CONT:
+        ir.Parameter parameter = new ir.Parameter();
+        ir.Continuation continuation = new ir.Continuation(parameter);
+        unpickled[index++] = continuation;
+        ir.Expression body = readDelimitedExpressionNode();
+        unpickled[index++] = parameter;
+        addExpression(new ir.LetCont(continuation, body));
+        break;
+      case Pickles.NODE_INVOKE_STATIC:
+        addExpression(readInvokeStaticNode());
+        current = null;
+        break;
+      case Pickles.NODE_INVOKE_CONTINUATION:
+        addExpression(readInvokeContinuationNode());
+        current = null;
+        break;
+      default:
+        compiler.internalError(NO_LOCATION_SPANNABLE,
+                               "Unexpected expression entry tag: $tag");
+        break;
     }
-    return unpickled[entryIndex] = result;
+  }
+
+  // Iteratively read expressions until an expression in a tail position
+  // (e.g., an invocation) is found.  Do not change the outer context.
+  ir.Expression readDelimitedExpressionNode() {
+    ir.Expression previous_root = root;
+    ir.Expression previous_current = current;
+    root = current = null;
+    do {
+      readExpressionNode();
+    } while (current != null);
+    ir.Expression result = root;
+    root = previous_root;
+    current = previous_current;
+    return result;
   }
 
   Object readBackReference() {
@@ -135,60 +171,45 @@ class Unpickler {
     return unpickled[entryIndex];
   }
 
-  List<IrExpression> readExpressionBackReferenceList() {
+  List<ir.Definition> readBackReferenceList() {
     int length = readInt();
-    List<IrExpression> result = new List<IrExpression>(length);
+    List<ir.Definition> result = new List<ir.Definition>(length);
     for (int i = 0; i < length; i++) {
       result[i] = readBackReference();
     }
     return result;
   }
 
-  List<IrNode> readNodeList() {
-    int length = readInt();
-    List<IrNode> nodes = new List<IrNode>(length);
-    for (int i = 0; i < length; i++) {
-      nodes[i] = readNode();
-    }
-    return nodes;
-  }
-
-  IrFunction readFunctionNode() {
-    var position = readPosition();
+  ir.Function readFunctionNode() {
     int endOffset = readInt();
     int namePosition = readInt();
-    List<IrNode> statements = readNodeList();
-    return new IrFunction(position, endOffset, namePosition, statements);
+    // There is implicitly a return continuation which can be the target of
+    // back references.
+    ir.Continuation continuation = new ir.Continuation.retrn();
+    unpickled[index++] = continuation;
+
+    ir.Expression body = readDelimitedExpressionNode();
+    return new ir.Function(endOffset, namePosition, continuation, body);
   }
 
-  IrConstant readConstantNode() {
-    var position = readPosition();
+  ir.Constant readConstantNode() {
     Constant constant = readConstant();
-    return new IrConstant(position, constant);
+    return new ir.Constant(constant);
   }
 
-  IrReturn readReturnNode() {
-    var position = readPosition();
-    IrExpression value = readBackReference();
-    return new IrReturn(position, value);
-  }
-
-  IrInvokeStatic readInvokeStaticNode() {
-    var position = readPosition();
+  ir.InvokeStatic readInvokeStaticNode() {
     FunctionElement functionElement = readElement();
     Selector selector = readSelector();
-    List<IrExpression> arguments = readExpressionBackReferenceList();
-    return new IrInvokeStatic(position, functionElement, selector, arguments);
+    ir.Continuation continuation = readBackReference();
+    List<ir.Definition> arguments = readBackReferenceList();
+    return new ir.InvokeStatic(functionElement, selector, continuation,
+                               arguments);
   }
 
-  /* int | PositionWithIdentifierName */ readPosition() {
-    if (readByte() == Pickles.POSITION_OFFSET) {
-      return readInt();
-    } else {
-      String sourceName = readString();
-      int offset = readInt();
-      return new PositionWithIdentifierName(offset, sourceName);
-    }
+  ir.InvokeContinuation readInvokeContinuationNode() {
+    ir.Continuation continuation = readBackReference();
+    ir.Definition argument = readBackReference();
+    return new ir.InvokeContinuation(continuation, argument);
   }
 
   Constant readConstant() {
@@ -212,23 +233,27 @@ class Unpickler {
       case Pickles.CONST_NULL:
         return constantSystem.createNull();
       default:
-        compiler.internalError("Unexpected constant tag: $tag");
+        compiler.internalError(NO_LOCATION_SPANNABLE,
+                               "Unexpected constant tag: $tag");
+        return null;
     }
   }
 
-  DartString readDartString(int tag) {
+  ast.DartString readDartString(int tag) {
     switch(tag) {
       case Pickles.CONST_STRING_LITERAL:
-        return new LiteralDartString(readString());
+        return new ast.LiteralDartString(readString());
       case Pickles.CONST_STRING_RAW:
-        return new RawSourceDartString(readString(), readInt());
+        return new ast.RawSourceDartString(readString(), readInt());
       case Pickles.CONST_STRING_ESCAPED:
-        return new EscapedSourceDartString(readString(), readInt());
+        return new ast.EscapedSourceDartString(readString(), readInt());
       case Pickles.CONST_STRING_CONS:
-        return new ConsDartString(
+        return new ast.ConsDartString(
             readDartString(readByte()), readDartString(readByte()));
       default:
-        compiler.internalError("Unexpected dart string tag: $tag");
+        compiler.internalError(NO_LOCATION_SPANNABLE,
+                               "Unexpected dart string tag: $tag");
+        return null;
     }
   }
 }

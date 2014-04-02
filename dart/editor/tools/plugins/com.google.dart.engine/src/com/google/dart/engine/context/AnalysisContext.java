@@ -14,17 +14,22 @@
 package com.google.dart.engine.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.context.TimestampedData;
+import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.Source.ContentReceiver;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.source.LineInfo;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.util.List;
 
@@ -76,6 +81,8 @@ public interface AnalysisContext {
    * (complete with the beginning and ending delimiters), or {@code null} if the element does not
    * have a documentation comment associated with it. This can be a long-running operation if the
    * information needed to access the comment is not cached.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param element the element whose documentation comment is to be returned
    * @return the element's documentation comment
@@ -88,6 +95,8 @@ public interface AnalysisContext {
    * Return an array containing all of the errors associated with the given source. If the errors
    * are not already known then the source will be analyzed in order to determine the errors
    * associated with it.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param source the source whose errors are to be returned
    * @return all of the errors associated with the given source
@@ -100,9 +109,11 @@ public interface AnalysisContext {
   /**
    * Return the element model corresponding to the HTML file defined by the given source. If the
    * element model does not yet exist it will be created. The process of creating an element model
-   * for an HTML file can long-running, depending on the size of the file and the number of
+   * for an HTML file can be long-running, depending on the size of the file and the number of
    * libraries that are defined in it (via script tags) that also need to have a model built for
    * them.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param source the source defining the HTML file whose element model is to be returned
    * @return the element model corresponding to the HTML file defined by the given source
@@ -115,6 +126,8 @@ public interface AnalysisContext {
   /**
    * Return the kind of the given source, computing it's kind if it is not already known. Return
    * {@link SourceKind#UNKNOWN} if the source is not contained in this context.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param source the source whose kind is to be returned
    * @return the kind of the given source
@@ -127,6 +140,8 @@ public interface AnalysisContext {
    * element model does not yet exist it will be created. The process of creating an element model
    * for a library can long-running, depending on the size of the library and the number of
    * libraries that are imported into it that also need to have a model built for them.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param source the source defining the library whose element model is to be returned
    * @return the element model corresponding to the library defined by the given source
@@ -141,6 +156,8 @@ public interface AnalysisContext {
    * recognized kind (neither a Dart nor HTML file). If the line information was not previously
    * known it will be created. The line information is used to map offsets from the beginning of the
    * source to line and column pairs.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param source the source whose line information is to be returned
    * @return the line information for the given source
@@ -149,6 +166,23 @@ public interface AnalysisContext {
    * @see #getLineInfo(Source)
    */
   public LineInfo computeLineInfo(Source source) throws AnalysisException;
+
+  /**
+   * Notifies the context that the client is going to stop using this context.
+   */
+  public void dispose();
+
+  /**
+   * Return {@code true} if the given source exists.
+   * <p>
+   * This method should be used rather than the method {@link Source#exists()} because contexts can
+   * have local overrides of the content of a source that the source is not aware of and a source
+   * with local content is considered to exist even if there is no file on disk.
+   * 
+   * @param source the source whose modification stamp is to be returned
+   * @return {@code true} if the source exists
+   */
+  public boolean exists(Source source);
 
   /**
    * Create a new context in which analysis can be performed. Any sources in the specified container
@@ -168,6 +202,55 @@ public interface AnalysisContext {
    * @return the set of analysis options controlling the behavior of this context
    */
   public AnalysisOptions getAnalysisOptions();
+
+  /**
+   * Return the Angular application that contains the HTML file defined by the given source, or
+   * {@code null} if the source does not represent an HTML file, the Angular application containing
+   * the file has not yet been resolved, or the analysis of the HTML file failed for some reason.
+   * 
+   * @param htmlSource the source defining the HTML file
+   * @return the Angular application that contains the HTML file defined by the given source
+   */
+  public AngularApplication getAngularApplicationWithHtml(Source htmlSource);
+
+  /**
+   * Return the element model corresponding to the compilation unit defined by the given source in
+   * the library defined by the given source, or {@code null} if the element model does not
+   * currently exist or if the library cannot be analyzed for some reason.
+   * 
+   * @param unitSource the source of the compilation unit
+   * @param librarySource the source of the defining compilation unit of the library containing the
+   *          compilation unit
+   * @return the element model corresponding to the compilation unit defined by the given source
+   */
+  public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource);
+
+  /**
+   * Get the contents and timestamp of the given source.
+   * <p>
+   * This method should be used rather than the method {@link Source#getContents()} because contexts
+   * can have local overrides of the content of a source that the source is not aware of.
+   * 
+   * @param source the source whose content is to be returned
+   * @return the contents and timestamp of the source
+   * @throws Exception if the contents of the source could not be accessed
+   */
+  public TimestampedData<CharSequence> getContents(Source source) throws Exception;
+
+  /**
+   * Get the contents of the given source and pass it to the given content receiver.
+   * <p>
+   * This method should be used rather than the method
+   * {@link Source#getContentsToReceiver(ContentReceiver)} because contexts can have local overrides
+   * of the content of a source that the source is not aware of.
+   * 
+   * @param source the source whose content is to be returned
+   * @param receiver the content receiver to which the content of the source will be passed
+   * @throws Exception if the contents of the source could not be accessed
+   */
+  @Deprecated
+  @DartOmit
+  public void getContentsToReceiver(Source source, ContentReceiver receiver) throws Exception;
 
   /**
    * Return the element referenced by the given location, or {@code null} if the element is not
@@ -278,6 +361,15 @@ public interface AnalysisContext {
   public Source[] getLibrariesDependingOn(Source librarySource);
 
   /**
+   * Return the sources for the defining compilation units of any libraries that are referenced from
+   * the given HTML file.
+   * 
+   * @param htmlSource the source for the HTML file
+   * @return the sources for the libraries that are referenced by the given HTML file
+   */
+  public Source[] getLibrariesReferencedFromHtml(Source htmlSource);
+
+  /**
    * Return the element model corresponding to the library defined by the given source, or
    * {@code null} if the element model does not currently exist or if the library cannot be analyzed
    * for some reason.
@@ -306,6 +398,21 @@ public interface AnalysisContext {
    * @see #computeLineInfo(Source)
    */
   public LineInfo getLineInfo(Source source);
+
+  /**
+   * Return the modification stamp for the given source. A modification stamp is a non-negative
+   * integer with the property that if the contents of the source have not been modified since the
+   * last time the modification stamp was accessed then the same value will be returned, but if the
+   * contents of the source have been modified one or more times (even if the net change is zero)
+   * the stamps will be different.
+   * <p>
+   * This method should be used rather than the method {@link Source#getModificationStamp()} because
+   * contexts can have local overrides of the content of a source that the source is not aware of.
+   * 
+   * @param source the source whose modification stamp is to be returned
+   * @return the modification stamp for the source
+   */
+  public long getModificationStamp(Source source);
 
   /**
    * Return an array containing all of the sources known to this context and their resolution state
@@ -370,6 +477,13 @@ public interface AnalysisContext {
   public boolean isClientLibrary(Source librarySource);
 
   /**
+   * Returns {@code true} if this context was disposed using {@link #dispose()}.
+   * 
+   * @return {@code true} if this context was disposed
+   */
+  public boolean isDisposed();
+
+  /**
    * Return {@code true} if the given source is known to be the defining compilation unit of a
    * library that can be run on the server (does not reference 'dart:html', either directly or
    * indirectly).
@@ -396,6 +510,8 @@ public interface AnalysisContext {
   /**
    * Parse a single source to produce an AST structure. The resulting AST structure may or may not
    * be resolved, and may have a slightly different structure depending upon whether it is resolved.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param source the source to be parsed
    * @return the AST structure representing the content of the source
@@ -407,6 +523,8 @@ public interface AnalysisContext {
    * Parse a single HTML source to produce an AST structure. The resulting HTML AST structure may or
    * may not be resolved, and may have a slightly different structure depending upon whether it is
    * resolved.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param source the HTML source to be parsed
    * @return the parse result (not {@code null})
@@ -425,6 +543,8 @@ public interface AnalysisContext {
 
   /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param unitSource the source to be parsed and resolved
    * @param library the library containing the source to be resolved
@@ -440,6 +560,8 @@ public interface AnalysisContext {
    * Parse and resolve a single source within the given context to produce a fully resolved AST.
    * Return the resolved AST structure, or {@code null} if the source could not be either parsed or
    * resolved.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param unitSource the source to be parsed and resolved
    * @param librarySource the source of the defining compilation unit of the library containing the
@@ -454,6 +576,8 @@ public interface AnalysisContext {
 
   /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
    * @param htmlSource the source to be parsed and resolved
    * @return the result of resolving the AST structure representing the content of the source

@@ -37,7 +37,7 @@ public class FunctionDeclarationStatement extends Statement {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitFunctionDeclarationStatement(this);
   }
 
@@ -70,7 +70,7 @@ public class FunctionDeclarationStatement extends Statement {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(functionDeclaration, visitor);
   }
 }

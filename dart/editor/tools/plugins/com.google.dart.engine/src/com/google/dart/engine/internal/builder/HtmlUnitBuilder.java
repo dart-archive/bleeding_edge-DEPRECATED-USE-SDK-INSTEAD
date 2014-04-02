@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.builder;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.HtmlScriptElement;
@@ -98,18 +97,6 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
    * Build the HTML element for the given source.
    * 
    * @param source the source describing the compilation unit
-   * @return the HTML element that was built
-   * @throws AnalysisException if the analysis could not be performed
-   */
-  @VisibleForTesting
-  public HtmlElementImpl buildHtmlElement(Source source) throws AnalysisException {
-    return buildHtmlElement(source, source.getModificationStamp(), context.parseHtmlUnit(source));
-  }
-
-  /**
-   * Build the HTML element for the given source.
-   * 
-   * @param source the source describing the compilation unit
    * @param modificationStamp the modification time of the source for which an element is being
    *          built
    * @param unit the AST structure representing the HTML
@@ -187,7 +174,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
                 htmlSource,
                 scriptSourcePath);
             script.setScriptSource(scriptSource);
-            if (scriptSource == null || !scriptSource.exists()) {
+            if (!context.exists(scriptSource)) {
               reportValueError(
                   HtmlWarningCode.URI_DOES_NOT_EXIST,
                   scriptAttribute,
@@ -291,7 +278,8 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
    * @param length the number of characters to be highlighted
    * @param arguments the arguments used to compose the error message
    */
-  private void reportError(ErrorCode errorCode, int offset, int length, Object... arguments) {
+  private void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
+      Object... arguments) {
     errorListener.onError(new AnalysisError(
         htmlElement.getSource(),
         offset,
@@ -313,6 +301,6 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
       Object... arguments) {
     int offset = attribute.getValueToken().getOffset() + 1;
     int length = attribute.getValueToken().getLength() - 2;
-    reportError(errorCode, offset, length, arguments);
+    reportErrorForOffset(errorCode, offset, length, arguments);
   }
 }

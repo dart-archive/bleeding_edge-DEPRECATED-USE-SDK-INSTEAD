@@ -377,7 +377,7 @@ public class DartObjectImplTest extends EngineTestCase {
     Object result = mapValue().getValue();
     assertInstanceOf(Map.class, result);
     Map map = (Map) result;
-    assertSize(0, map);
+    assertSizeOfMap(0, map);
   }
 
   @SuppressWarnings("rawtypes")
@@ -385,7 +385,7 @@ public class DartObjectImplTest extends EngineTestCase {
     Object result = mapValue(stringValue("key"), stringValue("value")).getValue();
     assertInstanceOf(Map.class, result);
     Map map = (Map) result;
-    assertSize(1, map);
+    assertSizeOfMap(1, map);
   }
 
   public void test_getValue_null() {

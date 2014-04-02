@@ -97,8 +97,8 @@ class ClassFinalizer : public AllStatic {
   // needed during bootstrapping where the classes have been preloaded.
   static void VerifyBootstrapClasses();
 
-  // Resolve the class of the type and the class of the type's type arguments.
-  static void ResolveType(const Class& cls, const AbstractType& type);
+  // Resolve the class of the type, but not the type's type arguments.
+  static void ResolveTypeClass(const Class& cls, const AbstractType& type);
 
   // Resolve the type and target of the redirecting factory.
   static void ResolveRedirectingFactory(const Class& cls,
@@ -120,6 +120,7 @@ class ClassFinalizer : public AllStatic {
   static void CheckForLegalConstClass(const Class& cls);
   static RawClass* ResolveClass(const Class& cls,
                                 const UnresolvedClass& unresolved_class);
+  static void ResolveType(const Class& cls, const AbstractType& type);
   static void ResolveRedirectingFactoryTarget(
       const Class& cls,
       const Function& factory,
@@ -144,7 +145,11 @@ class ClassFinalizer : public AllStatic {
                                     const TypeArguments& arguments,
                                     intptr_t num_uninitialized_arguments,
                                     Error* bound_error,
-                                    GrowableObjectArray* pending_types);
+                                    GrowableObjectArray* pending_types,
+                                    GrowableObjectArray* trail);
+  static void CheckRecursiveType(const Class& cls,
+                                 const Type& type,
+                                 GrowableObjectArray* pending_types);
   static void CheckTypeBounds(const Class& cls, const Type& type);
   static void CheckTypeArgumentBounds(const Class& cls,
                                       const TypeArguments& arguments,

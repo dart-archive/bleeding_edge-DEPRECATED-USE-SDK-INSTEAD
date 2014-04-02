@@ -8,6 +8,7 @@
 #include "bin/file.h"
 
 #include "platform/assert.h"
+#include "platform/globals.h"
 
 #include "vm/dart_api_impl.h"
 #include "vm/stack_frame.h"
@@ -30,6 +31,8 @@ void Benchmark::RunAll(const char* executable) {
   }
 }
 
+// TODO(zra): Remove when tests are ready to enable.
+#if !defined(TARGET_ARCH_ARM64)
 
 //
 // Measure compile of all functions in dart core lib classes.
@@ -501,5 +504,83 @@ BENCHMARK(EnterExitIsolate) {
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
 }
+
+
+static uint8_t message_buffer[64];
+static uint8_t* message_allocator(
+    uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+  return message_buffer;
+}
+
+
+BENCHMARK(SerializeNull) {
+  const Object& null_object = Object::Handle();
+  const intptr_t kLoopCount = 1000000;
+  Isolate* isolate = Isolate::Current();
+  uint8_t* buffer;
+  Timer timer(true, "Serialize Null");
+  timer.Start();
+  for (intptr_t i = 0; i < kLoopCount; i++) {
+    MessageWriter writer(&buffer, &message_allocator);
+    writer.WriteMessage(null_object);
+    intptr_t buffer_len = writer.BytesWritten();
+
+    // Read object back from the snapshot.
+    SnapshotReader reader(buffer, buffer_len, Snapshot::kMessage, isolate);
+    reader.ReadObject();
+  }
+  timer.Stop();
+  int64_t elapsed_time = timer.TotalElapsedTime();
+  benchmark->set_score(elapsed_time);
+}
+
+
+BENCHMARK(SerializeSmi) {
+  const Integer& smi_object = Integer::Handle(Smi::New(42));
+  const intptr_t kLoopCount = 1000000;
+  Isolate* isolate = Isolate::Current();
+  uint8_t* buffer;
+  Timer timer(true, "Serialize Smi");
+  timer.Start();
+  for (intptr_t i = 0; i < kLoopCount; i++) {
+    MessageWriter writer(&buffer, &message_allocator);
+    writer.WriteMessage(smi_object);
+    intptr_t buffer_len = writer.BytesWritten();
+
+    // Read object back from the snapshot.
+    SnapshotReader reader(buffer, buffer_len, Snapshot::kMessage, isolate);
+    reader.ReadObject();
+  }
+  timer.Stop();
+  int64_t elapsed_time = timer.TotalElapsedTime();
+  benchmark->set_score(elapsed_time);
+}
+
+
+BENCHMARK(SimpleMessage) {
+  const Array& array_object = Array::Handle(Array::New(2));
+  array_object.SetAt(0, Integer::Handle(Smi::New(42)));
+  array_object.SetAt(1, Object::Handle());
+  const intptr_t kLoopCount = 1000000;
+  Isolate* isolate = Isolate::Current();
+  uint8_t* buffer;
+  Timer timer(true, "Simple Message");
+  timer.Start();
+  for (intptr_t i = 0; i < kLoopCount; i++) {
+    MessageWriter writer(&buffer, &malloc_allocator);
+    writer.WriteMessage(array_object);
+    intptr_t buffer_len = writer.BytesWritten();
+
+    // Read object back from the snapshot.
+    SnapshotReader reader(buffer, buffer_len, Snapshot::kMessage, isolate);
+    reader.ReadObject();
+    free(buffer);
+  }
+  timer.Stop();
+  int64_t elapsed_time = timer.TotalElapsedTime();
+  benchmark->set_score(elapsed_time);
+}
+
+#endif  // !defined(TARGET_ARCH_ARM64)
 
 }  // namespace dart

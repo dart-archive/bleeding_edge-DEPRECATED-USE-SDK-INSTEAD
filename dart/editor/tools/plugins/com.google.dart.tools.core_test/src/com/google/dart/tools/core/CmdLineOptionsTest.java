@@ -28,34 +28,39 @@ public class CmdLineOptionsTest extends TestCase {
         "org.eclipse.jdt.junit.runtime", "-classNames", "com.google.dart.tools.ui.TestAll",
         "-testApplication", "com.google.dart.tools.deploy.application", "-testpluginname",
         "com.google.dart.tools.ui_test"});
-    assertOptions(options, false, 0, false, 0, false, 0, 0, false);
+    assertOptions(options, false, 0, false, 0, false, 0, 0, false, true);
+  }
+
+  public void test_no_instrumentation() throws Exception {
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--no-instrumentation"});
+    assertOptions(options, false, 0, false, 0, false, 0, 0, false, false);
   }
 
   public void test_parse_autoExit() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--auto-exit"});
-    assertOptions(options, false, 0, true, 0, false, 0, 0, false);
+    assertOptions(options, false, 0, true, 0, false, 0, 0, false, true);
   }
 
   public void test_parse_empty() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {});
-    assertOptions(options, false, 0, false, 0, false, 0, 0, false);
+    assertOptions(options, false, 0, false, 0, false, 0, 0, false, true);
   }
 
   public void test_parse_experimental() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--experimental"});
-    assertOptions(options, false, 0, false, 0, false, 0, 0, true);
+    assertOptions(options, false, 0, false, 0, false, 0, 0, true, true);
   }
 
   public void test_parse_file() {
     File file1 = new File("does-not-exist.dart");
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {file1.getPath()});
-    assertOptions(options, false, 0, false, 0, false, 0, 1, false);
+    assertOptions(options, false, 0, false, 0, false, 0, 1, false, true);
   }
 
   public void test_parse_open() {
     File file1 = new File("does-not-exist.dart");
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--open", file1.getPath()});
-    assertOptions(options, false, 0, false, 1, false, 0, 0, false);
+    assertOptions(options, false, 0, false, 1, false, 0, 0, false, true);
     assertEquals(file1, options.getFiles().get(0));
   }
 
@@ -64,7 +69,7 @@ public class CmdLineOptionsTest extends TestCase {
     File file2 = new File("another.dart");
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {
         "--open", file1.getPath(), file2.getPath()});
-    assertOptions(options, false, 0, false, 2, false, 0, 0, false);
+    assertOptions(options, false, 0, false, 2, false, 0, 0, false, true);
     assertEquals(file1, options.getFiles().get(0));
     assertEquals(file2, options.getFiles().get(1));
   }
@@ -73,14 +78,14 @@ public class CmdLineOptionsTest extends TestCase {
     File file1 = new File("foo").getAbsoluteFile();
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {
         "--package-override-directory", "foo"});
-    assertOptions(options, false, 0, false, 0, false, 0, 0, false);
+    assertOptions(options, false, 0, false, 0, false, 0, 0, false, true);
     assertEquals(file1, options.getPackageOverrideDirectory());
   }
 
   public void test_parse_packageRoot() {
     File file1 = new File("foo").getAbsoluteFile();
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--package-root", "foo"});
-    assertOptions(options, false, 0, false, 0, false, 1, 0, false);
+    assertOptions(options, false, 0, false, 0, false, 1, 0, false, true);
     assertEquals(file1, options.getPackageRoots()[0]);
   }
 
@@ -89,24 +94,24 @@ public class CmdLineOptionsTest extends TestCase {
     File file2 = new File("bar").getAbsoluteFile();
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {
         "--package-root", "foo", "bar"});
-    assertOptions(options, false, 0, false, 0, false, 2, 0, false);
+    assertOptions(options, false, 0, false, 0, false, 2, 0, false, true);
     assertEquals(file1, options.getPackageRoots()[0]);
     assertEquals(file2, options.getPackageRoots()[1]);
   }
 
   public void test_parse_perf() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--perf"});
-    assertOptions(options, true, 0, true, 0, false, 0, 0, false);
+    assertOptions(options, true, 0, true, 0, false, 0, 0, false, true);
   }
 
   public void test_parse_perf_startTime_old() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--perf", "12345"});
-    assertOptions(options, true, 12345, true, 0, false, 0, 0, false);
+    assertOptions(options, true, 12345, true, 0, false, 0, 0, false, true);
   }
 
   public void test_parse_test() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--test"});
-    assertOptions(options, false, 0, false, 0, true, 0, 0, false);
+    assertOptions(options, false, 0, false, 0, true, 0, 0, false, true);
   }
 
   public void test_test_noName_hasOtherOption() {
@@ -128,7 +133,8 @@ public class CmdLineOptionsTest extends TestCase {
   }
 
   private void assertOptions(CmdLineOptions options, boolean perf, int startTime, boolean exitPerf,
-      int fileCount, boolean runTests, int pkgRootCount, int warningCount, boolean experimental) {
+      int fileCount, boolean runTests, int pkgRootCount, int warningCount, boolean experimental,
+      boolean allowInstrumentation) {
     assertNotNull(options);
     assertEquals(perf, options.getMeasurePerformance());
     if (startTime != 0) {
@@ -151,9 +157,10 @@ public class CmdLineOptionsTest extends TestCase {
           msg.print(warning);
         }
       }
-      msg.close(); // suppress Eclipse 3.8 warning
       fail(msg.toString());
+      msg.close(); // suppress Eclipse 3.8 warning
     }
     assertEquals(experimental, options.getExperimental());
+    assertEquals(allowInstrumentation, options.allowInstrumentation());
   }
 }

@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.InterpolationString;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
@@ -50,7 +50,7 @@ public class DartStringDoubleClickSelector extends DartDoubleClickSelector {
         if (selected.indexOf('$') >= 0) {
           CompilationUnitEditor editor = ((CompilationUnitEditor.AdaptedSourceViewer) textViewer).getEditor();
           NodeLocator locator = new NodeLocator(offset);
-          ASTNode node = locator.searchWithin(editor.getInputUnit());
+          AstNode node = locator.searchWithin(editor.getInputUnit());
           if (node instanceof InterpolationString) {
             IRegion strRegion = computeStringRegion(node);
             if (strRegion != null) {

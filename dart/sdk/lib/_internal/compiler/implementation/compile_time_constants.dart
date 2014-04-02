@@ -107,20 +107,19 @@ class ConstantHandler extends CompilerTask {
       }
       pendingVariables.add(element);
 
-      SendSet assignment = node.asSendSet();
+      Expression initializer = element.initializer;
       Constant value;
-      if (assignment == null) {
+      if (initializer == null) {
         // No initial value.
         value = new NullConstant();
       } else {
-        Node right = assignment.arguments.head;
-        value =
-            compileNodeWithDefinitions(right, definitions, isConst: isConst);
+        value = compileNodeWithDefinitions(
+            initializer, definitions, isConst: isConst);
         if (compiler.enableTypeAssertions &&
             value != null &&
             element.isField()) {
-          DartType elementType = element.computeType(compiler);
-          if (elementType.kind == TypeKind.MALFORMED_TYPE && !value.isNull()) {
+          DartType elementType = element.type;
+          if (elementType.kind == TypeKind.MALFORMED_TYPE && !value.isNull) {
             if (isConst) {
               ErroneousElement element = elementType.element;
               compiler.reportFatalError(
@@ -135,7 +134,7 @@ class ConstantHandler extends CompilerTask {
                                           constantType, elementType)) {
               if (isConst) {
                 compiler.reportFatalError(
-                    node, MessageKind.NOT_ASSIGNABLE.error,
+                    node, MessageKind.NOT_ASSIGNABLE,
                     {'fromType': constantType, 'toType': elementType});
               } else {
                 // If the field cannot be lazily initialized, we will throw
@@ -227,8 +226,7 @@ class ConstantHandler extends CompilerTask {
   Constant getInitialValueFor(VariableElement element) {
     Constant initialValue = initialVariableValues[element.declaration];
     if (initialValue == null) {
-      compiler.internalError("No initial value for given element",
-                             element: element);
+      compiler.internalError(element, "No initial value for given element.");
     }
     return initialValue;
   }
@@ -305,7 +303,7 @@ class CompileTimeConstantEvaluator extends Visitor {
       if (!map.containsKey(key)) {
         keys.add(key);
       } else {
-        compiler.reportWarningCode(entry.key, MessageKind.EQUAL_MAP_ENTRY_KEY);
+        compiler.reportWarning(entry.key, MessageKind.EQUAL_MAP_ENTRY_KEY);
       }
       map[key] = evaluateConstant(entry.value);
     }
@@ -313,7 +311,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     bool onlyStringKeys = true;
     Constant protoValue = null;
     for (var key in keys) {
-      if (key.isString()) {
+      if (key.isString) {
         if (key.value == MapConstant.PROTO_PROPERTY) {
           protoValue = map[key];
         }
@@ -378,10 +376,10 @@ class CompileTimeConstantEvaluator extends Visitor {
       DartString expressionString;
       if (expression == null) {
         return signalNotCompileTimeConstant(part.expression);
-      } else if (expression.isNum() || expression.isBool()) {
+      } else if (expression.isNum || expression.isBool) {
         PrimitiveConstant primitive = expression;
         expressionString = new DartString.literal(primitive.value.toString());
-      } else if (expression.isString()) {
+      } else if (expression.isString) {
         PrimitiveConstant primitive = expression;
         expressionString = primitive.value;
       } else {
@@ -396,7 +394,7 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 
   Constant visitLiteralSymbol(LiteralSymbol node) {
-    InterfaceType type = compiler.symbolClass.computeType(compiler);
+    InterfaceType type = compiler.symbolClass.rawType;
     List<Constant> createArguments(_) {
       return [constantSystem.createString(
         new DartString.literal(node.slowNameString))];
@@ -405,17 +403,51 @@ class CompileTimeConstantEvaluator extends Visitor {
         node, type, compiler.symbolConstructor, createArguments);
   }
 
-  Constant makeTypeConstant(Element element) {
-    DartType elementType = element.computeType(compiler).asRaw();
+  Constant makeTypeConstant(TypeDeclarationElement element) {
+    DartType elementType = element.rawType;
     DartType constantType =
         compiler.backend.typeImplementation.computeType(compiler);
     return new TypeConstant(elementType, constantType);
+  }
+
+  /// Returns true if the prefix of the send resolves to a deferred import
+  /// prefix.
+  bool isDeferredUse(Send send) {
+    // We handle:
+    // 1. Send(Send(Send(null, Prefix), className), staticName)
+    // 2. Send(Send(Prefix, Classname), staticName)
+    // 3. Send(Send(null, Prefix), staticName | className)
+    // 4. Send(Send(Prefix), staticName | className)
+    // Nodes of the forms 2,4 occur in metadata.
+    if (send == null) return false;
+    while (send.receiver is Send) {
+      send = send.receiver;
+    }
+    Identifier prefixNode;
+    if (send.receiver is Identifier) {
+      prefixNode = send.receiver;
+    } else if (send.receiver == null &&
+        send.selector is Identifier) {
+      prefixNode = send.selector;
+    }
+    if (prefixNode != null) {
+      Element maybePrefix = elements[prefixNode.asIdentifier()];
+      if (maybePrefix != null && maybePrefix.isPrefix() &&
+          (maybePrefix as PrefixElement).isDeferred) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // TODO(floitsch): provide better error-messages.
   Constant visitSend(Send send) {
     Element element = elements[send];
     if (send.isPropertyAccess) {
+      if (isDeferredUse(send)) {
+        return signalNotCompileTimeConstant(send,
+            message: MessageKind.DEFERRED_COMPILE_TIME_CONSTANT);
+      }
       if (Elements.isStaticOrTopLevelFunction(element)) {
         return new FunctionConstant(element);
       } else if (Elements.isStaticOrTopLevelField(element)) {
@@ -469,7 +501,7 @@ class CompileTimeConstantEvaluator extends Visitor {
           folded = constantSystem.bitNot.fold(receiverConstant);
           break;
         default:
-          compiler.internalError("Unexpected operator.", node: op);
+          compiler.internalError(op, "Unexpected operator.");
           break;
       }
       if (folded == null) return signalNotCompileTimeConstant(send);
@@ -534,7 +566,7 @@ class CompileTimeConstantEvaluator extends Visitor {
           folded = constantSystem.greaterEqual.fold(left, right);
           break;
         case "==":
-          if (left.isPrimitive() && right.isPrimitive()) {
+          if (left.isPrimitive && right.isPrimitive) {
             folded = constantSystem.equal.fold(left, right);
           }
           break;
@@ -542,7 +574,7 @@ class CompileTimeConstantEvaluator extends Visitor {
           folded = constantSystem.identity.fold(left, right);
           break;
         case "!=":
-          if (left.isPrimitive() && right.isPrimitive()) {
+          if (left.isPrimitive && right.isPrimitive) {
             BoolConstant areEquals = constantSystem.equal.fold(left, right);
             if (areEquals == null) {
               folded = null;
@@ -571,11 +603,11 @@ class CompileTimeConstantEvaluator extends Visitor {
     Constant condition = evaluate(node.condition);
     if (condition == null) {
       return null;
-    } else if (!condition.isBool()) {
+    } else if (!condition.isBool) {
       DartType conditionType = condition.computeType(compiler);
       if (isEvaluatingConstant) {
         compiler.reportFatalError(
-            node.condition, MessageKind.NOT_ASSIGNABLE.error,
+            node.condition, MessageKind.NOT_ASSIGNABLE,
             {'fromType': conditionType, 'toType': compiler.boolClass.rawType});
       }
       return null;
@@ -613,7 +645,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     if (!succeeded) {
       compiler.reportFatalError(
           node,
-          MessageKind.INVALID_ARGUMENTS.error, {'methodName': target.name});
+          MessageKind.INVALID_ARGUMENTS, {'methodName': target.name});
     }
     return compiledArguments;
   }
@@ -628,6 +660,14 @@ class CompileTimeConstantEvaluator extends Visitor {
     if (Elements.isUnresolved(constructor)) {
       return signalNotCompileTimeConstant(node);
     }
+
+    // Deferred types can not be used in const instance creation expressions.
+    // Check if the constructor comes from a deferred library.
+    if (isDeferredUse(node.send.selector.asSend())) {
+      return signalNotCompileTimeConstant(node,
+          message: MessageKind.DEFERRED_COMPILE_TIME_CONSTANT_CONSTRUCTION);
+    }
+
     // TODO(ahe): This is nasty: we must eagerly analyze the
     // constructor to ensure the redirectionTarget has been computed
     // correctly.  Find a way to avoid this.
@@ -655,7 +695,7 @@ class CompileTimeConstantEvaluator extends Visitor {
       if (firstArgument is! StringConstant) {
         DartType type = defaultValue.computeType(compiler);
         compiler.reportFatalError(
-            send.arguments.head, MessageKind.NOT_ASSIGNABLE.error,
+            send.arguments.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.stringClass.rawType});
       }
 
@@ -663,7 +703,7 @@ class CompileTimeConstantEvaluator extends Visitor {
           && !(defaultValue is NullConstant || defaultValue is IntConstant)) {
         DartType type = defaultValue.computeType(compiler);
         compiler.reportFatalError(
-            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE.error,
+            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.intClass.rawType});
       }
 
@@ -671,7 +711,7 @@ class CompileTimeConstantEvaluator extends Visitor {
           && !(defaultValue is NullConstant || defaultValue is BoolConstant)) {
         DartType type = defaultValue.computeType(compiler);
         compiler.reportFatalError(
-            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE.error,
+            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.boolClass.rawType});
       }
 
@@ -680,7 +720,7 @@ class CompileTimeConstantEvaluator extends Visitor {
                || defaultValue is StringConstant)) {
         DartType type = defaultValue.computeType(compiler);
         compiler.reportFatalError(
-            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE.error,
+            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.stringClass.rawType});
       }
 
@@ -739,16 +779,16 @@ class CompileTimeConstantEvaluator extends Visitor {
     return node.expression.accept(this);
   }
 
-  error(Node node) {
+  error(Node node, MessageKind message) {
     // TODO(floitsch): get the list of constants that are currently compiled
     // and present some kind of stack-trace.
-    compiler.reportFatalError(
-        node, MessageKind.NOT_A_COMPILE_TIME_CONSTANT);
+    compiler.reportFatalError(node, message);
   }
 
-  Constant signalNotCompileTimeConstant(Node node) {
+  Constant signalNotCompileTimeConstant(Node node,
+      {MessageKind message: MessageKind.NOT_A_COMPILE_TIME_CONSTANT}) {
     if (isEvaluatingConstant) {
-      error(node);
+      error(node, message);
     }
     // Else we don't need to do anything. The final handler is only
     // optimistically trying to compile constants. So it is normal that we
@@ -756,20 +796,6 @@ class CompileTimeConstantEvaluator extends Visitor {
     // Simply return [:null:] which is used to propagate a failing
     // compile-time compilation.
     return null;
-  }
-}
-
-class TryCompileTimeConstantEvaluator extends CompileTimeConstantEvaluator {
-  TryCompileTimeConstantEvaluator(ConstantHandler handler,
-                                  TreeElements elements,
-                                  Compiler compiler)
-      : super(handler, elements, compiler, isConst: true);
-
-  error(Node node) {
-    // Just fail without reporting it anywhere.
-    throw new CompileTimeConstantError(
-        MessageKind.NOT_A_COMPILE_TIME_CONSTANT, const {},
-        compiler.terseDiagnostics);
   }
 }
 
@@ -801,28 +827,30 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     if (Elements.isLocal(element)) {
       Constant constant = definitions[element];
       if (constant == null) {
-        compiler.internalError("Local variable without value", node: send);
+        compiler.internalError(send, "Local variable without value.");
       }
       return constant;
     }
     return super.visitSend(send);
   }
 
-  void potentiallyCheckType(Node node, Element element, Constant constant) {
+  void potentiallyCheckType(Node node,
+                            TypedElement element,
+                            Constant constant) {
     if (compiler.enableTypeAssertions) {
-      DartType elementType = element.computeType(compiler);
+      DartType elementType = element.type;
       DartType constantType = constant.computeType(compiler);
       // TODO(ngeoffray): Handle type parameters.
       if (elementType.element.isTypeVariable()) return;
       if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
         compiler.reportFatalError(
-            node, MessageKind.NOT_ASSIGNABLE.error,
+            node, MessageKind.NOT_ASSIGNABLE,
             {'fromType': elementType, 'toType': constantType});
       }
     }
   }
 
-  void updateFieldValue(Node node, Element element, Constant constant) {
+  void updateFieldValue(Node node, TypedElement element, Constant constant) {
     potentiallyCheckType(node, element, constant);
     fieldValues[element] = constant;
   }
@@ -834,7 +862,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    */
   void assignArgumentsToParameters(List<Constant> arguments) {
     // Assign arguments to parameters.
-    FunctionSignature parameters = constructor.computeSignature(compiler);
+    FunctionSignature parameters = constructor.functionSignature;
     int index = 0;
     parameters.orderedForEachParameter((Element parameter) {
       Constant argument = arguments[index++];
@@ -923,8 +951,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         FunctionElement targetConstructor =
             superClass.lookupConstructor(selector);
         if (targetConstructor == null) {
-          compiler.internalError("no default constructor available",
-                                 node: functionNode);
+          compiler.internalError(functionNode,
+              "No default constructor available.");
         }
         List<Constant> compiledArguments = evaluateArgumentsToConstructor(
             functionNode, selector, const Link<Node>(), targetConstructor);

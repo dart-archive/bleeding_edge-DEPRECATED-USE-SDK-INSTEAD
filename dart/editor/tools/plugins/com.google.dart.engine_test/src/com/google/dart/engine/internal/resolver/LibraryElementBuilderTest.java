@@ -36,13 +36,16 @@ import java.lang.reflect.Method;
 
 public class LibraryElementBuilderTest extends EngineTestCase {
   /**
-   * The source factory used to create {@link Source sources}.
+   * The analysis context used to analyze sources.
    */
-  private SourceFactory sourceFactory;
+  private AnalysisContextImpl context;
 
   @Override
   public void setUp() {
-    sourceFactory = new SourceFactory(new FileUriResolver());
+    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
+        DirectoryBasedDartSdk.getDefaultSdk()), new FileUriResolver());
+    context = new AnalysisContextImpl();
+    context.setSourceFactory(sourceFactory);
   }
 
   public void test_accessorsAcrossFiles() throws Exception {
@@ -91,18 +94,6 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     assertLength(0, unit.getFunctionTypeAliases());
     assertLength(0, unit.getTypes());
     assertLength(0, unit.getTopLevelVariables());
-  }
-
-  public void test_invalidUri_part() throws Exception {
-    Source librarySource = addSource("/lib.dart", createSource(//
-        "library lib;",
-        "",
-        "part '${'a'}.dart';"));
-
-    LibraryElement element = buildLibrary(
-        librarySource,
-        CompileTimeErrorCode.URI_WITH_INTERPOLATION);
-    assertNotNull(element);
   }
 
   public void test_missingLibraryDirectiveWithPart() throws Exception {
@@ -177,8 +168,8 @@ public class LibraryElementBuilderTest extends EngineTestCase {
    * @return the source object representing the added file
    */
   protected Source addSource(String filePath, String contents) {
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
-    sourceFactory.setContents(source, contents);
+    Source source = new FileBasedSource(createFile(filePath));
+    context.setContents(source, contents);
     return source;
   }
 
@@ -218,11 +209,10 @@ public class LibraryElementBuilderTest extends EngineTestCase {
    */
   private LibraryElement buildLibrary(Source librarySource, ErrorCode... expectedErrorCodes)
       throws Exception {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    context.setSourceFactory(new SourceFactory(new DartUriResolver(
-        DirectoryBasedDartSdk.getDefaultSdk()), new FileUriResolver()));
     LibraryResolver resolver = new LibraryResolver(context);
-    LibraryElementBuilder builder = new LibraryElementBuilder(resolver);
+    LibraryElementBuilder builder = new LibraryElementBuilder(
+        resolver.getAnalysisContext(),
+        resolver.getErrorListener());
     Method method = resolver.getClass().getDeclaredMethod(
         "createLibrary",
         new Class[] {Source.class});
@@ -231,7 +221,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     LibraryElement element = builder.buildLibrary(library);
     GatheringErrorListener listener = new GatheringErrorListener();
     listener.addAll(resolver.getErrorListener());
-    listener.assertErrors(expectedErrorCodes);
+    listener.assertErrorsWithCodes(expectedErrorCodes);
     return element;
   }
 }

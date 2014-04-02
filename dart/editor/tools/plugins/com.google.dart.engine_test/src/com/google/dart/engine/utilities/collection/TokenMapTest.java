@@ -16,7 +16,7 @@ package com.google.dart.engine.utilities.collection;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
-import static com.google.dart.engine.scanner.TokenFactory.token;
+import static com.google.dart.engine.scanner.TokenFactory.tokenFromType;
 
 import junit.framework.TestCase;
 
@@ -27,13 +27,13 @@ public class TokenMapTest extends TestCase {
 
   public void test_get_absent() {
     TokenMap tokenMap = new TokenMap();
-    assertNull(tokenMap.get(token(TokenType.AT)));
+    assertNull(tokenMap.get(tokenFromType(TokenType.AT)));
   }
 
   public void test_get_added() {
     TokenMap tokenMap = new TokenMap();
-    Token key = token(TokenType.AT);
-    Token value = token(TokenType.AT);
+    Token key = tokenFromType(TokenType.AT);
+    Token value = tokenFromType(TokenType.AT);
     tokenMap.put(key, value);
     assertSame(value, tokenMap.get(key));
   }

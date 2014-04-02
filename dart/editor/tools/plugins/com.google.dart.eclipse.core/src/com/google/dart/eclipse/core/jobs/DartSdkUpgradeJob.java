@@ -14,6 +14,7 @@
 
 package com.google.dart.eclipse.core.jobs;
 
+import com.google.dart.eclipse.core.DartCorePlugin;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
 
@@ -69,7 +70,12 @@ public class DartSdkUpgradeJob extends Job {
 
   @Override
   protected IStatus run(IProgressMonitor monitor) {
-    IStatus status = DartSdkManager.getManager().upgrade(monitor);
+    String updateLocation = null;
+    if (!DartCorePlugin.getPlugin().isDefaultUpdateChannel()) {
+      updateLocation = DartCorePlugin.getPlugin().getUpdateChannelLocation();
+    }
+
+    IStatus status = DartSdkManager.getManager().upgrade(updateLocation, monitor);
 
     if (!status.isOK()) {
       if (status.getException() != null) {

@@ -16,6 +16,7 @@
 #include "vm/scavenger.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
+#include "vm/tags.h"
 
 
 #define __ assembler->
@@ -26,7 +27,6 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DECLARE_FLAG(int, optimization_counter_threshold);
 
 
 // Input parameters:
@@ -58,6 +58,20 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing runtime code.
   __ movl(CTX, EAX);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ movl(EAX, Address(CTX, Isolate::vm_tag_offset()));
+    __ cmpl(EAX, Immediate(VMTag::kScriptTagId));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing VM code.
+  __ movl(Address(CTX, Isolate::vm_tag_offset()), Immediate(VMTag::kVMTagId));
+
   // Reserve space for arguments and align frame before entering C++ world.
   __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments)));
   if (OS::ActivationFrameAlignment() > 1) {
@@ -74,6 +88,10 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ addl(EAX, Immediate(1 * kWordSize));  // Retval is next to 1st argument.
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
   __ call(ECX);
+
+  // Mark that the isolate is executing Dart code.
+  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -148,6 +166,21 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing native code.
   __ movl(CTX, EDI);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ movl(EDI, Address(CTX, Isolate::vm_tag_offset()));
+    __ cmpl(EDI, Immediate(VMTag::kScriptTagId));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing Native code.
+  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kRuntimeNativeTagId));
+
   // Reserve space for the native arguments structure, the outgoing parameters
   // (pointer to the native arguments structure, the C function entry point)
   // and align frame before entering the C++ world.
@@ -176,6 +209,10 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ Bind(&leaf_call);
   __ call(ECX);
   __ Bind(&done);
+
+  // Mark that the isolate is executing Dart code.
+  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -229,6 +266,21 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing native code.
   __ movl(CTX, EDI);
 
+#if defined(DEBUG)
+  { Label ok;
+    // Check that we are always entering from Dart code.
+    __ movl(EDI, Address(CTX, Isolate::vm_tag_offset()));
+    __ cmpl(EDI, Immediate(VMTag::kScriptTagId));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the isolate is executing Native code.
+  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kRuntimeNativeTagId));
+
   // Reserve space for the native arguments structure, the outgoing parameter
   // (pointer to the native arguments structure) and align frame before
   // entering the C++ world.
@@ -246,6 +298,10 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ leal(EAX, Address(ESP, kWordSize));  // Pointer to the NativeArguments.
   __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
   __ call(ECX);
+
+  // Mark that the isolate is executing Dart code.
+  __ movl(Address(CTX, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -717,38 +773,17 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ j(EQUAL, &not_closure, Assembler::kNearJump);
 
   // EAX is just the signature function. Load the actual closure function.
-  __ movl(ECX, FieldAddress(EDI, Closure::function_offset()));
+  __ movl(EAX, FieldAddress(EDI, Closure::function_offset()));
 
   // Load closure context in CTX; note that CTX has already been preserved.
   __ movl(CTX, FieldAddress(EDI, Closure::context_offset()));
 
-  // Load closure function code in EAX.
-  __ movl(EAX, FieldAddress(ECX, Function::code_offset()));
-  __ cmpl(EAX, raw_null);
-  Label function_compiled;
-  __ j(NOT_EQUAL, &function_compiled, Assembler::kNearJump);
+  // EBX: Code (compiled code or lazy compile stub).
+  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
 
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-
-  __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);  // Preserve read-only function object argument.
-  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ popl(ECX);  // Restore read-only function object argument in ECX.
-  __ popl(EDX);  // Restore arguments descriptor array.
-  // Restore EAX.
-  __ movl(EAX, FieldAddress(ECX, Function::code_offset()));
-
-  // Remove the stub frame as we are about to jump to the closure function.
-  __ LeaveFrame();
-
-  __ Bind(&function_compiled);
-  // EAX: Code.
-  // ECX: Function.
+  // EAX: Function.
   // EDX: Arguments descriptor array.
-
-  __ movl(ECX, FieldAddress(EAX, Code::instructions_offset()));
+  __ movl(ECX, FieldAddress(EBX, Code::instructions_offset()));
   __ addl(ECX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(ECX);
 
@@ -816,11 +851,20 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Load Isolate pointer from Context structure into EDI.
   __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
 
+  // Save the current VMTag on the stack.
+  ASSERT(kSavedVMTagSlotFromEntryFp == -4);
+  __ movl(ECX, Address(EDI, Isolate::vm_tag_offset()));
+  __ pushl(ECX);
+
+  // Mark that the isolate is executing Dart code.
+  __ movl(Address(EDI, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
+
   // Save the top exit frame info. Use EDX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -4);
+  ASSERT(kExitLinkSlotFromEntryFp == -5);
   __ movl(EDX, Address(EDI, Isolate::top_exit_frame_info_offset()));
   __ pushl(EDX);
   __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -832,7 +876,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // EntryFrame::SavedContext reads the context saved in this frame.
   // The constant kSavedContextSlotFromEntryFp must be kept in sync with
   // the code below.
-  ASSERT(kSavedContextSlotFromEntryFp == -5);
+  ASSERT(kSavedContextSlotFromEntryFp == -6);
   __ movl(ECX, Address(EDI, Isolate::top_context_offset()));
   __ pushl(ECX);
 
@@ -891,6 +935,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Uses EDX as a temporary register for this.
   __ popl(EDX);
   __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), EDX);
+
+  // Restore the current VMTag from the stack.
+  __ popl(ECX);
+  __ movl(Address(CTX, Isolate::vm_tag_offset()), ECX);
 
   // Restore C++ ABI callee-saved registers.
   __ popl(EDI);
@@ -1102,14 +1150,12 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 
 // Called for inline allocation of objects.
 // Input parameters:
-//   ESP + 8 : type arguments object (only if class is parameterized).
-//   ESP + 4 : type arguments of instantiator (only if class is parameterized).
+//   ESP + 4 : type arguments object (only if class is parameterized).
 //   ESP : points to return address.
 // Uses EAX, EBX, ECX, EDX, EDI as temporary registers.
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
-  const intptr_t kObjectTypeArgumentsOffset = 2 * kWordSize;
-  const intptr_t kInstantiatorTypeArgumentsOffset = 1 * kWordSize;
+  const intptr_t kObjectTypeArgumentsOffset = 1 * kWordSize;
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // The generated code is different if the class is parameterized.
@@ -1122,45 +1168,15 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const int kInlineInstanceSize = 12;  // In words.
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
-  Label slow_case_with_type_arguments;
+  if (is_cls_parameterized) {
+    __ movl(EDX, Address(ESP, kObjectTypeArgumentsOffset));
+    // EDX: instantiated type arguments.
+  }
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
-    Label slow_case_reload_type_arguments;
-    if (is_cls_parameterized) {
-      // Instantiation of the type arguments vector is only required if an
-      // instantiator is provided (not kNoInstantiator, but may be null).
-      __ movl(EDX, Address(ESP, kObjectTypeArgumentsOffset));
-      __ movl(EDI, Address(ESP, kInstantiatorTypeArgumentsOffset));
-      Label type_arguments_ready;
-      __ cmpl(EDI, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ j(EQUAL, &type_arguments_ready, Assembler::kNearJump);
-      // Lookup instantiator EDI in instantiations array of type arguments EDX
-      // and, if found, use cached instantiated type arguments.
-      __ movl(EAX, FieldAddress(EDX, TypeArguments::instantiations_offset()));
-      __ movl(EBX, FieldAddress(EAX, Array::length_offset()));
-      __ leal(EAX, FieldAddress(EAX, Array::data_offset()));
-      __ leal(EBX, Address(EAX, EBX, TIMES_2, 0));  // EBX is smi.
-      Label loop, found;
-      __ Bind(&loop);
-      __ cmpl(EAX, EBX);
-      __ j(ABOVE_EQUAL, &slow_case_reload_type_arguments);
-      __ movl(EDX, Address(EAX, 0 * kWordSize));  // Cached instantiator.
-      __ cmpl(EDX, EDI);
-      __ j(EQUAL, &found, Assembler::kNearJump);
-      __ cmpl(EDX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ j(EQUAL, &slow_case_reload_type_arguments);
-      __ addl(EAX, Immediate(2 * kWordSize));
-      __ jmp(&loop, Assembler::kNearJump);
-      __ Bind(&found);
-      __ movl(EDX, Address(EAX, 1 * kWordSize));  // Cached instantiated args.
-      __ movl(EDI, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ Bind(&type_arguments_ready);
-      // EDX: instantiated type arguments.
-      // EDI: kNoInstantiator.
-    }
+    Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // EDX: instantiated type arguments (if is_cls_parameterized).
-    // EDI: kNoInstantiator (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
     __ movl(EAX, Address::Absolute(heap->TopAddress()));
     __ leal(EBX, Address(EAX, instance_size));
@@ -1169,9 +1185,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // EBX: potential next object start.
     __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
     if (FLAG_use_slow_path) {
-      __ jmp(&slow_case_with_type_arguments);
+      __ jmp(&slow_case);
     } else {
-      __ j(ABOVE_EQUAL, &slow_case_with_type_arguments);
+      __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movl(Address::Absolute(heap->TopAddress()), EBX);
     __ UpdateAllocationStats(cls.id(), ECX);
@@ -1229,16 +1245,10 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ addl(EAX, Immediate(kHeapObjectTag));
     __ ret();
 
-    __ Bind(&slow_case_reload_type_arguments);
+    __ Bind(&slow_case);
   }
-  if (is_cls_parameterized) {
-    __ movl(EDX, Address(ESP, kObjectTypeArgumentsOffset));
-    __ movl(EDI, Address(ESP, kInstantiatorTypeArgumentsOffset));
-  }
-  __ Bind(&slow_case_with_type_arguments);
   // If is_cls_parameterized:
-  // EDX: new object type arguments (instantiated or not).
-  // EDI: instantiator type arguments or kNoInstantiator.
+  // EDX: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
@@ -1246,166 +1256,13 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ PushObject(cls);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
     __ pushl(EDX);  // Push type arguments of object to be allocated.
-    __ pushl(EDI);  // Push type arguments of instantiator.
   } else {
     __ pushl(raw_null);  // Push null type arguments.
-    __ pushl(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
   }
-  __ CallRuntime(kAllocateObjectRuntimeEntry, 3);  // Allocate object.
-  __ popl(EAX);  // Pop argument (instantiator).
+  __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
   __ popl(EAX);  // Pop argument (type arguments of object).
   __ popl(EAX);  // Pop argument (class of object).
   __ popl(EAX);  // Pop result (newly allocated object).
-  // EAX: new object
-  // Restore the frame pointer.
-  __ LeaveFrame();
-  __ ret();
-}
-
-
-// Called for inline allocation of closures.
-// Input parameters:
-//   ESP + 8 : receiver (null if not an implicit instance closure).
-//   ESP + 4 : type arguments object (null if class is no parameterized).
-//   ESP : points to return address.
-// Uses EAX, EBX, ECX, EDX as temporary registers.
-void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
-                                                const Function& func) {
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  ASSERT(func.IsClosureFunction());
-  ASSERT(!func.IsImplicitStaticClosureFunction());
-  const bool is_implicit_instance_closure =
-      func.IsImplicitInstanceClosureFunction();
-  const Class& cls = Class::ZoneHandle(func.signature_class());
-  const bool has_type_arguments = cls.NumTypeArguments() > 0;
-  const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
-  const intptr_t kReceiverOffset = 2 * kWordSize;
-  const intptr_t closure_size = Closure::InstanceSize();
-  const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
-  if (FLAG_inline_alloc &&
-      Heap::IsAllocatableInNewSpace(closure_size + context_size)) {
-    Label slow_case;
-    Heap* heap = Isolate::Current()->heap();
-    __ movl(EAX, Address::Absolute(heap->TopAddress()));
-    __ leal(EBX, Address(EAX, closure_size));
-    if (is_implicit_instance_closure) {
-      __ movl(ECX, EBX);  // ECX: new context address.
-      __ addl(EBX, Immediate(context_size));
-    }
-    // Check if the allocation fits into the remaining space.
-    // EAX: potential new closure object.
-    // ECX: potential new context object (only if is_implicit_closure).
-    // EBX: potential next object start.
-    __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
-    if (FLAG_use_slow_path) {
-      __ jmp(&slow_case);
-    } else {
-      __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
-    }
-
-    // Successfully allocated the object, now update top to point to
-    // next object start and initialize the object.
-    __ movl(Address::Absolute(heap->TopAddress()), EBX);
-    // EAX: new closure object.
-    // ECX: new context object (only if is_implicit_closure).
-    if (is_implicit_instance_closure) {
-      // This closure allocates a context, update allocation stats.
-      // EBX: context size.
-      __ movl(EBX, Immediate(context_size));
-      // EDX: Clobbered.
-     __ UpdateAllocationStatsWithSize(kContextCid, EBX, EDX);
-    }
-    // The closure allocation is attributed to the signature class.
-    // EDX: Will be clobbered.
-    __ UpdateAllocationStats(cls.id(), EDX);
-
-    // EAX: new closure object.
-    // ECX: new context object (only if is_implicit_closure).
-    // Set the tags.
-    uword tags = 0;
-    tags = RawObject::SizeTag::update(closure_size, tags);
-    tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    __ movl(Address(EAX, Instance::tags_offset()), Immediate(tags));
-
-    // Initialize the function field in the object.
-    // EAX: new closure object.
-    // ECX: new context object (only if is_implicit_closure).
-    __ LoadObject(EDX, func);  // Load function of closure to be allocated.
-    __ movl(Address(EAX, Closure::function_offset()), EDX);
-
-    // Setup the context for this closure.
-    if (is_implicit_instance_closure) {
-      // Initialize the new context capturing the receiver.
-      const Class& context_class = Class::ZoneHandle(Object::context_class());
-      // Set the tags.
-      uword tags = 0;
-      tags = RawObject::SizeTag::update(context_size, tags);
-      tags = RawObject::ClassIdTag::update(context_class.id(), tags);
-      __ movl(Address(ECX, Context::tags_offset()), Immediate(tags));
-
-      // Set number of variables field to 1 (for captured receiver).
-      __ movl(Address(ECX, Context::num_variables_offset()), Immediate(1));
-
-      // Set isolate field to isolate of current context.
-      __ movl(EDX, FieldAddress(CTX, Context::isolate_offset()));
-      __ movl(Address(ECX, Context::isolate_offset()), EDX);
-
-      // Set the parent to null.
-      __ movl(Address(ECX, Context::parent_offset()), raw_null);
-
-      // Initialize the context variable to the receiver.
-      __ movl(EDX, Address(ESP, kReceiverOffset));
-      __ movl(Address(ECX, Context::variable_offset(0)), EDX);
-
-      // Set the newly allocated context in the newly allocated closure.
-      __ addl(ECX, Immediate(kHeapObjectTag));
-      __ movl(Address(EAX, Closure::context_offset()), ECX);
-    } else {
-      __ movl(Address(EAX, Closure::context_offset()), CTX);
-    }
-
-    // Set the type arguments field in the newly allocated closure.
-    __ movl(EDX, Address(ESP, kTypeArgumentsOffset));
-    __ movl(Address(EAX, Closure::type_arguments_offset()), EDX);
-
-    // Done allocating and initializing the instance.
-    // EAX: new object.
-    __ addl(EAX, Immediate(kHeapObjectTag));
-    __ ret();
-
-    __ Bind(&slow_case);
-  }
-  if (has_type_arguments) {
-    __ movl(ECX, Address(ESP, kTypeArgumentsOffset));
-  }
-  if (is_implicit_instance_closure) {
-    __ movl(EAX, Address(ESP, kReceiverOffset));
-  }
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-  __ pushl(raw_null);  // Setup space on stack for return value.
-  __ PushObject(func);
-  if (is_implicit_instance_closure) {
-    __ pushl(EAX);  // Receiver.
-  }
-  if (has_type_arguments) {
-    __ pushl(ECX);  // Push type arguments of closure to be allocated.
-  } else {
-    __ pushl(raw_null);  // Push null type arguments.
-  }
-  if (is_implicit_instance_closure) {
-    __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry, 3);
-    __ popl(EAX);  // Pop argument (type arguments of object).
-    __ popl(EAX);  // Pop receiver.
-  } else {
-    ASSERT(func.IsNonImplicitClosureFunction());
-    __ CallRuntime(kAllocateClosureRuntimeEntry, 2);
-    __ popl(EAX);  // Pop argument (type arguments of object).
-  }
-  __ popl(EAX);  // Pop function object.
-  __ popl(EAX);
   // EAX: new object
   // Restore the frame pointer.
   __ LeaveFrame();
@@ -1630,27 +1487,10 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ Bind(&call_target_function);
   // EAX: Target function.
-  Label is_compiled;
   __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
-  if (FLAG_collect_code) {
-    // If code might be GC'd, then EBX might be null. If it is, recompile.
-    __ cmpl(EBX, raw_null);
-    __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
-    __ EnterStubFrame();
-    __ pushl(EDX);  // Preserve arguments descriptor array.
-    __ pushl(ECX);  // Preserve IC data object.
-    __ pushl(EAX);  // Pass function.
-    __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-    __ popl(EAX);  // Restore function.
-    __ popl(ECX);  // Restore IC data array.
-    __ popl(EDX);  // Restore arguments descriptor array.
-    __ LeaveFrame();
-    __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
-    __ Bind(&is_compiled);
-  }
-  __ movl(EAX, FieldAddress(EBX, Code::instructions_offset()));
-  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(EAX);
+  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
+  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(EBX);
 
   // Instance in EAX, return its class-id in EAX as Smi.
   __ Bind(&get_class_id_as_smi);
@@ -1794,32 +1634,17 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ movl(Address(EBX, count_offset), Immediate(Smi::RawValue(Smi::kMaxValue)));
   __ Bind(&increment_done);
 
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label target_is_compiled;
-  // Get function and call it, if possible.
-  __ movl(EDI, Address(EBX, target_offset));
-  __ movl(EAX, FieldAddress(EDI, Function::code_offset()));
-  __ cmpl(EAX, raw_null);
-  __ j(NOT_EQUAL, &target_is_compiled, Assembler::kNearJump);
-  __ EnterStubFrame();
-  __ pushl(EDI);  // Preserve target function.
-  __ pushl(ECX);  // Preserve IC data object.
-  __ pushl(EDI);  // Pass function.
-  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
-  __ popl(EAX);  // Discard argument.
-  __ popl(ECX);  // Restore IC data object.
-  __ popl(EDI);  // Restore target function.
-  __ LeaveFrame();
-  __ movl(EAX, FieldAddress(EDI, Function::code_offset()));
-
-  __ Bind(&target_is_compiled);
-  // EAX: Target code.
-  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
-  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   // Load arguments descriptor into EDX.
   __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
-  __ jmp(EAX);
+
+  // Get function and call it, if possible.
+  __ movl(EAX, Address(EBX, target_offset));
+  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
+
+  // EBX: Target code.
+  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
+  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(EBX);
 }
 
 
@@ -1830,11 +1655,11 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 }
 
 
-// Stub for calling the CompileFunction runtime call.
-// ECX: IC-Data.
+// Stub for compiling a function and jumping to the compiled code.
+// ECX: IC-Data (for methods).
 // EDX: Arguments descriptor.
 // EAX: Function.
-void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
+void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);  // Preserve IC data object.
@@ -1844,7 +1669,11 @@ void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
   __ popl(ECX);  // Restore IC data array.
   __ popl(EDX);  // Restore arguments descriptor array.
   __ LeaveFrame();
-  __ ret();
+
+  __ movl(EAX, FieldAddress(EAX, Function::code_offset()));
+  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
+  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jmp(EAX);
 }
 
 

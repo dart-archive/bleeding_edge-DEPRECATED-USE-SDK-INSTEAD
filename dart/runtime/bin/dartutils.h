@@ -141,6 +141,7 @@ class DartUtils {
 
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);
+  static bool PostInt64(Dart_Port port_id, int64_t value);
 
   static Dart_Handle GetDartType(const char* library_url,
                                  const char* class_name);
@@ -183,6 +184,9 @@ class DartUtils {
 
   static Dart_Handle FilePathFromUri(Dart_Handle script_uri,
                                      Dart_Handle builtin_lib);
+
+  static Dart_Handle ExtensionPathFromUri(Dart_Handle extension_uri,
+                                          Dart_Handle builtin_lib);
 
   static Dart_Handle ResolveUri(Dart_Handle library_url,
                                 Dart_Handle url,

@@ -42,7 +42,7 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 }
 
 
-bool FlowGraphCompiler::SupportsUnboxedFloat32x4() {
+bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return false;
 }
 
@@ -500,20 +500,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     // type error. A null value is handled prior to executing this inline code.
     return SubtypeTestCache::null();
   }
-  if (TypeCheckAsClassEquality(type)) {
-    const intptr_t type_cid = Class::Handle(type.type_class()).id();
-    const Register kInstanceReg = A0;
-    __ andi(CMPRES1, kInstanceReg, Immediate(kSmiTagMask));
-    if (type_cid == kSmiCid) {
-      __ beq(CMPRES1, ZR, is_instance_lbl);
-    } else {
-      __ beq(CMPRES1, ZR, is_not_instance_lbl);
-      __ LoadClassId(T0, kInstanceReg);
-      __ BranchEqual(T0, type_cid, is_instance_lbl);
-    }
-    __ b(is_not_instance_lbl);
-    return SubtypeTestCache::null();
-  }
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
     // A class equality check is only applicable with a dst type of a
@@ -743,7 +729,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   if (is_optimizing()) return;
   Definition* defn = instr->AsDefinition();
   if ((defn != NULL) && defn->is_used()) {
-    __ Push(defn->locs()->out().reg());
+    __ Push(defn->locs()->out(0).reg());
   }
 }
 
@@ -1334,25 +1320,13 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ sll(T1, T3, 2);
   __ addu(T1, T2, T1);
   __ lw(T0, FieldAddress(T1, base + kWordSize));
+
   __ lw(T1, FieldAddress(T0, Function::code_offset()));
-  if (FLAG_collect_code) {
-    // If we are collecting code, the code object may be null.
-    Label is_compiled;
-    __ BranchNotEqual(T1, reinterpret_cast<int32_t>(Object::null()),
-                      &is_compiled);
-    __ BranchLink(&StubCode::CompileFunctionRuntimeCallLabel());
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
-    RecordSafepoint(locs);
-    __ lw(T1, FieldAddress(T0, Function::code_offset()));
-    __ Bind(&is_compiled);
-  }
-  __ lw(T0, FieldAddress(T1, Code::instructions_offset()));
+  __ lw(T1, FieldAddress(T1, Code::instructions_offset()));
   __ LoadObject(S5, ic_data);
   __ LoadObject(S4, arguments_descriptor);
-  __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jalr(T0);
+  __ AddImmediate(T1, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jalr(T1);
   AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
   AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);

@@ -6,6 +6,7 @@ import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
+import com.google.dart.tools.core.internal.builder.IgnoreResourceFilter;
 import com.google.dart.tools.core.internal.builder.IndexUpdater;
 import com.google.dart.tools.core.internal.builder.ProjectUpdater;
 
@@ -67,8 +68,10 @@ public class WorkspaceDeltaProcessor implements IResourceChangeListener {
                 ProjectUpdater updater = new ProjectUpdater();
                 IndexUpdater indexUpdater = new IndexUpdater(manager.getIndex());
                 DeltaProcessor processor = new DeltaProcessor(project);
-                processor.addDeltaListener(updater);
-                processor.addDeltaListener(indexUpdater);
+                IgnoreResourceFilter filter = new IgnoreResourceFilter();
+                filter.addDeltaListener(updater);
+                filter.addDeltaListener(indexUpdater);
+                processor.addDeltaListener(filter);
                 processor.traverse(delta);
                 updater.applyChanges();
                 AnalysisContext context = manager.getContext(res);

@@ -23,6 +23,8 @@ public interface IDartDebugVariable extends IVariable {
 
   public boolean isLibraryObject();
 
+  public boolean isLocal();
+
   public boolean isStatic();
 
   public boolean isThisObject();

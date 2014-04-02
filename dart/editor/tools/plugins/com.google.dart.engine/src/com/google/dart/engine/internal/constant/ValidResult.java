@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.constant;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.error.ErrorCode;
@@ -53,7 +53,7 @@ public class ValidResult extends EvaluationResultImpl {
    * @return the result of applying boolean conversion to the given value
    */
   @Override
-  public EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, ASTNode node) {
+  public EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, AstNode node) {
     try {
       return valueOf(value.convertToBool(typeProvider));
     } catch (EvaluationException exception) {
@@ -246,7 +246,7 @@ public class ValidResult extends EvaluationResultImpl {
   }
 
   @Override
-  public EvaluationResultImpl performToString(TypeProvider typeProvider, ASTNode node) {
+  public EvaluationResultImpl performToString(TypeProvider typeProvider, AstNode node) {
     try {
       return valueOf(value.performToString(typeProvider));
     } catch (EvaluationException exception) {
@@ -594,7 +594,7 @@ public class ValidResult extends EvaluationResultImpl {
    * @param code the error code indicating the nature of the error
    * @return a result object representing an error associated with the given node
    */
-  private ErrorResult error(ASTNode node, ErrorCode code) {
+  private ErrorResult error(AstNode node, ErrorCode code) {
     return new ErrorResult(node, code);
   }
 

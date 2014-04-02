@@ -15,6 +15,8 @@
 #include "vm/stack_frame_x64.h"
 #elif defined(TARGET_ARCH_ARM)
 #include "vm/stack_frame_arm.h"
+#elif defined(TARGET_ARCH_ARM64)
+#include "vm/stack_frame_arm64.h"
 #elif defined(TARGET_ARCH_MIPS)
 #include "vm/stack_frame_mips.h"
 #else
@@ -286,6 +288,7 @@ class InlinedFunctionsIterator : public ValueObject {
   void SetDone() { index_ = -1; }
 
   intptr_t index_;
+  intptr_t num_materializations_;
   Code& code_;
   DeoptInfo& deopt_info_;
   Function& function_;

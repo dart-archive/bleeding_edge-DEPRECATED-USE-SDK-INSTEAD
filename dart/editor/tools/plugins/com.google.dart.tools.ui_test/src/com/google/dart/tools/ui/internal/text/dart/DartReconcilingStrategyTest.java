@@ -19,7 +19,6 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
@@ -37,7 +36,6 @@ import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.reconciler.DirtyRegion;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.FocusListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -128,7 +126,6 @@ public class DartReconcilingStrategyTest extends TestCase {
   private final class MockEditor implements DartReconcilingEditor {
     private CompilationUnit appliedUnit = null;
     private DisposeListener disposeListener = null;
-    private FocusListener focusListener = null;
 
     @Override
     public void addViewerDisposeListener(DisposeListener listener) {
@@ -136,14 +133,6 @@ public class DartReconcilingStrategyTest extends TestCase {
         throw new RuntimeException("dispose listener already added");
       }
       disposeListener = listener;
-    }
-
-    @Override
-    public void addViewerFocusListener(FocusListener listener) {
-      if (focusListener != null) {
-        throw new RuntimeException("focus listener already added");
-      }
-      focusListener = listener;
     }
 
     @Override
@@ -192,22 +181,11 @@ public class DartReconcilingStrategyTest extends TestCase {
       "class A { foo() => this; }");
 
   MockEditor mockEditor = new MockEditor();
-  ContentCache mockCache = new ContentCache();
-  Source mockSource = new TestSource(mockCache, createFile("/test.dart"), INITIAL_CONTENTS);
+  Source mockSource = new TestSource(createFile("/test.dart"), INITIAL_CONTENTS);
   MockContext mockContext = new MockContext();
   Document mockDocument = new Document(INITIAL_CONTENTS);
   MockAnalysisManager analysisManager = new MockAnalysisManager();
-  List<Source> visibleSources = Arrays.asList(mockSource);
   DartReconcilingStrategy strategy = new DartReconcilingStrategy(mockEditor, analysisManager) {
-    @Override
-    protected List<Source> getVisibleSourcesForContext(AnalysisContext context) {
-      return new ArrayList<Source>(visibleSources);
-    };
-
-    @Override
-    protected void updateAnalysisPriorityOrder(boolean isOpen) {
-      updateAnalysisPriorityOrderOnUiThread(isOpen);
-    };
   };
 
   /**
@@ -217,14 +195,10 @@ public class DartReconcilingStrategyTest extends TestCase {
     mockContext.setContentsForTest(mockSource, INITIAL_CONTENTS);
     mockContext.setAnalysisPriorityOrder(Arrays.asList(new Source[] {mockSource}));
 
-    visibleSources = Arrays.asList();
     mockEditor.getDisposeListener().widgetDisposed(null);
 
-    // Assert reconciler requested background analysis
+    waitForBackgroundThread();
     analysisManager.assertBackgroundAnalysis(1);
-
-    assertEquals(0, mockContext.getPriorityOrder().size());
-    assertNull(mockCache.getContents(mockSource));
   }
 
   /**
@@ -234,8 +208,6 @@ public class DartReconcilingStrategyTest extends TestCase {
     String insertedText = ".";
     int offset = INITIAL_CONTENTS.indexOf("this") + 4;
     assert offset > 5;
-    String newText = INITIAL_CONTENTS.substring(0, offset) + insertedText
-        + INITIAL_CONTENTS.substring(offset);
 
     strategy.initialReconcile();
     mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
@@ -246,9 +218,10 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNotNull(mockEditor.getAppliedCompilationUnit());
 
     mockDocument.replace(offset, 0, insertedText);
+    waitForBackgroundThread();
 
     // assert "." causes immediate update of the context
-    assertEquals(newText, mockCache.getContents(mockSource));
+
     assertNull(mockEditor.getAppliedCompilationUnit());
     analysisManager.assertBackgroundAnalysis(2);
     mockContext.assertSetChangedContentsCount(1, offset, 0, 1);
@@ -263,9 +236,6 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
     mockContext.assertSetContentsCount(0);
-    assertEquals(1, mockContext.getPriorityOrder().size());
-    assertSame(mockSource, mockContext.getPriorityOrder().get(0));
-    assertNotNull(mockEditor.getAppliedCompilationUnit());
     analysisManager.assertBackgroundAnalysis(1);
 
     analysisManager.performAnalysis(null);
@@ -285,10 +255,7 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
     mockContext.assertSetContentsCount(0);
-    assertEquals(1, mockContext.getPriorityOrder().size());
-    assertSame(mockSource, mockContext.getPriorityOrder().get(0));
     assertNotNull(mockEditor.getAppliedCompilationUnit());
-    analysisManager.assertBackgroundAnalysis(1);
   }
 
   /**
@@ -307,7 +274,6 @@ public class DartReconcilingStrategyTest extends TestCase {
    * Assert reconciler lazily sets cached contents and performs resolution
    */
   public void test_initialState() throws Exception {
-    assertNull(mockCache.getContents(mockSource));
     assertNull(mockContext.getResolvedCompilationUnit(mockSource, mockSource));
     assertEquals(0, mockContext.getPriorityOrder().size());
   }
@@ -331,6 +297,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile();
+    waitForBackgroundThread();
 
     assertNull(mockEditor.getAppliedCompilationUnit());
     analysisManager.assertBackgroundAnalysis(2);
@@ -359,6 +326,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile();
+    waitForBackgroundThread();
     mockContext.assertSetChangedContentsCount(1, 0, 10, 0);
     mockContext.assertSetContentsCount(0);
 
@@ -404,6 +372,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, insertedText), new Region(0, 0));
+    waitForBackgroundThread();
 
     mockContext.assertSetChangedContentsCount(1, 0, 0, insertedText.length());
     mockContext.assertSetContentsCount(0);
@@ -432,6 +401,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile(new DirtyRegion(0, 10, DirtyRegion.REMOVE, null), new Region(0, 0));
+    waitForBackgroundThread();
 
     mockContext.assertSetChangedContentsCount(1, 0, 10, 0);
     mockContext.assertSetContentsCount(0);
@@ -474,6 +444,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile(new Region(0, insertedText.length()));
+    waitForBackgroundThread();
 
     mockContext.assertSetChangedContentsCount(1, 0, 0, insertedText.length());
     mockContext.assertSetContentsCount(0);
@@ -499,6 +470,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertNull(mockEditor.getAppliedCompilationUnit());
 
     strategy.reconcile(new Region(0, 10));
+    waitForBackgroundThread();
 
     mockContext.assertSetChangedContentsCount(1, 0, 10, 0);
     mockContext.assertSetContentsCount(0);
@@ -528,10 +500,7 @@ public class DartReconcilingStrategyTest extends TestCase {
   protected void setUp() throws Exception {
     DartSdk sdk = DirectoryBasedDartSdk.getDefaultSdk();
     assertNotNull(sdk);
-    SourceFactory sourceFactory = new SourceFactory(
-        mockCache,
-        new DartUriResolver(sdk),
-        new FileUriResolver());
+    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     mockContext.setSourceFactory(sourceFactory);
     strategy.setDocument(mockDocument);
   }
@@ -542,5 +511,13 @@ public class DartReconcilingStrategyTest extends TestCase {
     if (strategy != null) {
       strategy.dispose();
     }
+  }
+
+  /**
+   * We cannot talk to {@link AnalysisContext} on the UI thread, so we push update/analyze requests
+   * and execute them in background. But in test we want to wait until these requests are executed.
+   */
+  private void waitForBackgroundThread() {
+    DartUpdateSourceHelper.getInstance().waitForEmptyQueue();
   }
 }

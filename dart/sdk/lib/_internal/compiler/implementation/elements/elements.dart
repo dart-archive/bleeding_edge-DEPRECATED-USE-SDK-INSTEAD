@@ -183,7 +183,16 @@ abstract class Element implements Spannable {
   Link<MetadataAnnotation> get metadata;
 
   Node parseNode(DiagnosticListener listener);
-  DartType computeType(Compiler compiler);
+
+  /// Do not use [computeType] outside of the resolver; instead retrieve the
+  /// type from the corresponding field:
+  /// - `type` for fields, variables, type variable, and function elements.
+  /// - `thisType` or `rawType` for [TypeDeclarationElement]s (classes and
+  ///    typedefs), depending on the use case.
+  /// Trying to access a type that has not been computed in resolution is an
+  /// error and calling [computeType] covers that error.
+  /// This method will go away!
+  @deprecated DartType computeType(Compiler compiler);
 
   bool isFunction();
   bool isConstructor();
@@ -222,6 +231,7 @@ abstract class Element implements Spannable {
   bool isTopLevel();
   bool isAssignable();
   bool isNative();
+  bool isDeferredLoaderGetter();
 
   bool impliesType();
 
@@ -268,6 +278,8 @@ abstract class Element implements Spannable {
   FunctionElement get targetConstructor;
 
   void diagnose(Element context, DiagnosticListener listener);
+
+  TreeElements get treeElements;
 
   accept(ElementVisitor visitor);
 }
@@ -320,12 +332,14 @@ class Elements {
       return true;
     }
     return !Elements.isUnresolved(element)
+           && !element.isAmbiguous()
            && !element.isInstanceMember()
            && !element.isPrefix()
            && element.enclosingElement != null
            && (element.enclosingElement.kind == ElementKind.CLASS ||
                element.enclosingElement.kind == ElementKind.COMPILATION_UNIT ||
-               element.enclosingElement.kind == ElementKind.LIBRARY);
+               element.enclosingElement.kind == ElementKind.LIBRARY ||
+               element.enclosingElement.kind == ElementKind.PREFIX);
   }
 
   static bool isInStaticContext(Element element) {
@@ -626,7 +640,7 @@ abstract class WarnOnUseElement extends Element {
 }
 
 abstract class AmbiguousElement extends Element {
-  DualKind get messageKind;
+  MessageKind get messageKind;
   Map get messageArguments;
   Element get existingElement;
   Element get newElement;
@@ -733,6 +747,10 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
 abstract class PrefixElement extends Element {
   void addImport(Element element, Import import, DiagnosticListener listener);
   Element lookupLocalMember(String memberName);
+  /// Is true if this prefix belongs to a deferred import.
+  bool get isDeferred;
+  void markAsDeferred(Import import);
+  Import get deferredImport;
 }
 
 abstract class TypedefElement extends Element
@@ -743,8 +761,6 @@ abstract class TypedefElement extends Element
   FunctionSignature get functionSignature;
   Link<DartType> get typeVariables;
 
-  bool get isResolved;
-
   // TODO(kasperl): Try to get rid of these setters.
   void set alias(DartType value);
   void set functionSignature(FunctionSignature value);
@@ -752,26 +768,20 @@ abstract class TypedefElement extends Element
   void checkCyclicReference(Compiler compiler);
 }
 
-abstract class VariableElement extends Element {
-  VariableListElement get variables;
-
-  // TODO(kasperl): Try to get rid of this.
-  Expression get cachedNode;
+abstract class VariableElement extends Element implements TypedElement {
+  Expression get initializer;
 }
 
 abstract class FieldElement extends VariableElement
     implements ClosureContainer {}
 
-abstract class FieldParameterElement extends VariableElement {
-  VariableElement get fieldElement;
+abstract class ParameterElement extends VariableElement {
+  VariableDefinitions get node;
+  FunctionSignature get functionSignature;
 }
 
-abstract class VariableListElement extends Element {
-  DartType get type;
-  FunctionSignature get functionSignature;
-
-  // TODO(kasperl): Try to get rid of this.
-  void set type(DartType value);
+abstract class FieldParameterElement extends ParameterElement {
+  VariableElement get fieldElement;
 }
 
 /**
@@ -787,7 +797,7 @@ abstract class AbstractFieldElement extends Element {
 }
 
 abstract class FunctionSignature {
-  DartType get returnType;
+  FunctionType get type;
   Link<Element> get requiredParameters;
   Link<Element> get optionalParameters;
 
@@ -808,8 +818,9 @@ abstract class FunctionSignature {
   bool isCompatibleWith(FunctionSignature constructorSignature);
 }
 
-abstract class FunctionElement extends Element implements ClosureContainer {
-  FunctionExpression get cachedNode;
+abstract class FunctionElement extends Element
+    implements TypedElement, ClosureContainer {
+  FunctionExpression get node;
   DartType get type;
   FunctionSignature get functionSignature;
   FunctionElement get redirectionTarget;
@@ -831,11 +842,12 @@ abstract class FunctionElement extends Element implements ClosureContainer {
   void set origin(FunctionElement value);
   void set defaultImplementation(FunctionElement value);
 
-  void setPatch(FunctionElement patchElement);
-  FunctionSignature computeSignature(Compiler compiler);
-  int requiredParameterCount(Compiler compiler);
-  int optionalParameterCount(Compiler compiler);
-  int parameterCount(Compiler compiler);
+  /// Do not use [computeSignature] outside of the resolver; instead retrieve
+  /// the signature through the [functionSignature] field.
+  /// Trying to access a function signature that has not been computed in
+  /// resolution is an error and calling [computeSignature] covers that error.
+  /// This method will go away!
+  @deprecated FunctionSignature computeSignature(Compiler compiler);
 
   FunctionExpression parseNode(DiagnosticListener listener);
 }
@@ -858,6 +870,8 @@ abstract class TypeDeclarationElement extends Element {
    * [computeType].
    */
   Link<DartType> get typeVariables;
+
+  bool get isResolved;
 }
 
 abstract class ClassElement extends TypeDeclarationElement
@@ -887,7 +901,6 @@ abstract class ClassElement extends TypeDeclarationElement
 
   int get supertypeLoadState;
   int get resolutionState;
-  bool get isResolved;
   String get nativeTagInfo;
 
   bool get isMixinApplication;
@@ -896,7 +909,6 @@ abstract class ClassElement extends TypeDeclarationElement
   bool get hasLocalScopeMembers;
 
   // TODO(kasperl): These are bit fishy. Do we really need them?
-  void set thisType(InterfaceType value);
   void set supertype(DartType value);
   void set interfaces(Link<DartType> value);
   void set patch(ClassElement value);
@@ -921,7 +933,7 @@ abstract class ClassElement extends TypeDeclarationElement
   /// Returns `true` if the class hierarchy for this class contains errors.
   bool get hasIncompleteHierarchy;
 
-  ClassElement ensureResolved(Compiler compiler);
+  void ensureResolved(Compiler compiler);
 
   void addMember(Element element, DiagnosticListener listener);
   void addToScope(Element element, DiagnosticListener listener);
@@ -974,6 +986,10 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// Calls [f] with each member of the interface of this class.
   void forEachInterfaceMember(f(MemberSignature member));
+
+  /// Returns the type of the 'call' method in the interface of this class, or
+  /// `null` if the interface has no 'call' method.
+  FunctionType get callType;
 }
 
 abstract class MixinApplicationElement extends ClassElement {
@@ -1013,13 +1029,14 @@ abstract class TargetElement extends Element {
   LabelElement addLabel(Label label, String labelName);
 }
 
-abstract class TypeVariableElement extends Element {
+/// The [Element] for a type variable declaration on a generic class or typedef.
+abstract class TypeVariableElement extends Element implements TypedElement {
+  /// The [type] defined by the type variable.
   TypeVariableType get type;
-  DartType get bound;
 
-  // TODO(kasperl): Try to get rid of these.
-  void set type(TypeVariableType value);
-  void set bound(DartType value);
+  /// The upper bound on the type variable. If not explicitly declared, this is
+  /// `Object`.
+  DartType get bound;
 }
 
 abstract class MetadataAnnotation implements Spannable {
@@ -1037,6 +1054,11 @@ abstract class MetadataAnnotation implements Spannable {
 }
 
 abstract class VoidElement extends Element {}
+
+/// An [Element] that has a type.
+abstract class TypedElement extends Element {
+  DartType get type;
+}
 
 /// A [MemberSignature] is a member of an interface.
 ///

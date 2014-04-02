@@ -6,10 +6,9 @@
  *******************************************************************************/
 package com.xored.glance.ui.controls.items;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import com.xored.glance.ui.sources.ColorManager;
+import com.xored.glance.ui.sources.ITextSourceListener;
+import com.xored.glance.ui.utils.TextUtils;
 
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.text.Region;
@@ -26,9 +25,10 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Listener;
 
-import com.xored.glance.ui.sources.ColorManager;
-import com.xored.glance.ui.sources.ITextSourceListener;
-import com.xored.glance.ui.utils.TextUtils;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Yuri Strot
@@ -49,6 +49,8 @@ public class ItemDecorator implements Listener {
 
   private ListenerList listeners = new ListenerList();
 
+  private boolean disposed;
+
   public ItemDecorator(Composite composite, ItemProvider provider) {
     this(composite, provider, DEFAULT_STYLE);
   }
@@ -63,17 +65,6 @@ public class ItemDecorator implements Listener {
 
   public void addTextSourceListener(ITextSourceListener listener) {
     listeners.add(listener);
-  }
-
-  public void removeTextSourceListener(ITextSourceListener listener) {
-    listeners.remove(listener);
-  }
-
-  public ITextSourceListener[] getListeners() {
-    Object[] objects = listeners.getListeners();
-    ITextSourceListener[] listeners = new ITextSourceListener[objects.length];
-    System.arraycopy(objects, 0, listeners, 0, objects.length);
-    return listeners;
   }
 
   public void blocksChanged(ItemCell[] removed, ItemCell[] added) {
@@ -96,69 +87,34 @@ public class ItemDecorator implements Listener {
     cacheStyles = new HashMap<ItemCell, StyleRange[]>();
   }
 
+  public void dispose() {
+    if (!disposed) {
+      clearStyles();
+      composite.removeListener(SWT.PaintItem, this);
+      composite.removeListener(SWT.EraseItem, this);
+      disposed = true;
+      redraw();
+    }
+  }
+
+  public void erase(Event event) {
+    int style = SWT.BACKGROUND | SWT.FOREGROUND;
+    if (!ColorManager.getInstance().isUseNative()) {
+      style |= SWT.SELECTED | SWT.HOT;
+    }
+
+    event.detail &= ~style;
+  }
+
   public List<ItemCell> getCells() {
     return cells;
   }
 
-  public void setCells(List<ItemCell> cells) {
-    this.cells = cells;
-    for (ItemCell cell : cells) {
-      cell.getItem().addListener(SWT.Dispose, this);
-    }
-    cellSet = new HashSet<ItemCell>(cells);
-  }
-
-  public void setStyles(ItemCell cell, StyleRange[] styles) {
-    if (styles == null)
-      itemToMatches.remove(cell);
-    else
-      itemToMatches.put(cell, styles);
-    cacheStyles.put(cell, calculateStyles(cell));
-  }
-
-  public void redraw() {
-    Rectangle rect = composite.getClientArea();
-    composite.redraw(rect.x, rect.y, rect.width, rect.height, true);
-  }
-
-  public void redraw(ItemCell cell) {
-    Rectangle rect = provider.getBounds(cell.getItem(), cell.getIndex());
-    composite.redraw(rect.x, rect.y, rect.width, rect.height, true);
-  }
-
-  protected TextLayout getTextLayout() {
-    if (textLayout == null) {
-      int orientation = composite.getStyle() & (SWT.LEFT_TO_RIGHT | SWT.RIGHT_TO_LEFT);
-      textLayout = new TextLayout(composite.getDisplay());
-      textLayout.setOrientation(orientation);
-    } else {
-      textLayout.setText("");
-    }
-    return textLayout;
-  }
-
-  protected StyleRange[] getRanges(ItemCell cell) {
-    StyleRange[] ranges = cacheStyles.get(cell);
-    if (ranges == null) {
-      ranges = calculateStyles(cell);
-      cacheStyles.put(cell, ranges);
-    }
-    return ranges;
-  }
-
-  protected StyleRange[] calculateStyles(ItemCell cell) {
-    StyleRange[] cellStyles = cell.getStyles();
-    StyleRange[] matchStyles = itemToMatches.get(cell);
-    if (matchStyles == null || matchStyles.length == 0)
-      return cellStyles;
-    if (cellStyles.length == 0)
-      return matchStyles;
-    Region region = new Region(0, cell.getLength());
-    int size = cellStyles.length + matchStyles.length;
-    TextPresentation presentation = new TextPresentation(region, size);
-    presentation.replaceStyleRanges(cellStyles);
-    presentation.mergeStyleRanges(matchStyles);
-    return TextUtils.getStyles(presentation);
+  public ITextSourceListener[] getListeners() {
+    Object[] objects = listeners.getListeners();
+    ITextSourceListener[] listeners = new ITextSourceListener[objects.length];
+    System.arraycopy(objects, 0, listeners, 0, objects.length);
+    return listeners;
   }
 
   @Override
@@ -177,6 +133,85 @@ public class ItemDecorator implements Listener {
         }
         break;
     }
+  }
+
+  public boolean isDisposed() {
+    return disposed;
+  }
+
+  public void redraw() {
+    Rectangle rect = composite.getClientArea();
+    composite.redraw(rect.x, rect.y, rect.width, rect.height, true);
+  }
+
+  public void redraw(ItemCell cell) {
+    Rectangle rect = provider.getBounds(cell.getItem(), cell.getIndex());
+    composite.redraw(rect.x, rect.y, rect.width, rect.height, true);
+  }
+
+  public void removeTextSourceListener(ITextSourceListener listener) {
+    listeners.remove(listener);
+  }
+
+  public void setCells(List<ItemCell> cells) {
+    this.cells = cells;
+    for (ItemCell cell : cells) {
+      cell.getItem().addListener(SWT.Dispose, this);
+    }
+    cellSet = new HashSet<ItemCell>(cells);
+  }
+
+  public void setStyles(ItemCell cell, StyleRange[] styles) {
+    if (styles == null) {
+      itemToMatches.remove(cell);
+    } else {
+      itemToMatches.put(cell, styles);
+    }
+    cacheStyles.put(cell, calculateStyles(cell));
+  }
+
+  protected StyleRange[] calculateStyles(ItemCell cell) {
+    StyleRange[] cellStyles = cell.getStyles();
+    StyleRange[] matchStyles = itemToMatches.get(cell);
+    if (matchStyles == null || matchStyles.length == 0) {
+      return cellStyles;
+    }
+    if (cellStyles.length == 0) {
+      return matchStyles;
+    }
+    Region region = new Region(0, cell.getLength());
+    int size = cellStyles.length + matchStyles.length;
+    TextPresentation presentation = new TextPresentation(region, size);
+    presentation.replaceStyleRanges(cellStyles);
+    presentation.mergeStyleRanges(matchStyles);
+    return TextUtils.getStyles(presentation);
+  }
+
+  protected StyleRange[] getRanges(ItemCell cell) {
+    StyleRange[] ranges = cacheStyles.get(cell);
+    if (ranges == null) {
+      ranges = calculateStyles(cell);
+      cacheStyles.put(cell, ranges);
+    }
+    return ranges;
+  }
+
+  protected TextLayout getTextLayout() {
+    if (textLayout == null) {
+      int orientation = composite.getStyle() & (SWT.LEFT_TO_RIGHT | SWT.RIGHT_TO_LEFT);
+      textLayout = new TextLayout(composite.getDisplay());
+      textLayout.setOrientation(orientation);
+    } else {
+      textLayout.setText("");
+    }
+    return textLayout;
+  }
+
+  protected void init() {
+    // FIXME
+    composite.addListener(SWT.EraseItem, this);
+    composite.addListener(SWT.PaintItem, this);
+    redraw();
   }
 
   protected void paint(Event event) {
@@ -242,37 +277,5 @@ public class ItemDecorator implements Listener {
     gc.setForeground(oldForeground);
     gc.setBackground(oldBackground);
   }
-
-  public void erase(Event event) {
-    int style = SWT.BACKGROUND | SWT.FOREGROUND;
-    if (!ColorManager.getInstance().isUseNative()) {
-      style |= SWT.SELECTED | SWT.HOT;
-    }
-
-    event.detail &= ~style;
-  }
-
-  protected void init() {
-    // FIXME
-    composite.addListener(SWT.EraseItem, this);
-    composite.addListener(SWT.PaintItem, this);
-    redraw();
-  }
-
-  public void dispose() {
-    if (!disposed) {
-      clearStyles();
-      composite.removeListener(SWT.PaintItem, this);
-      composite.removeListener(SWT.EraseItem, this);
-      disposed = true;
-      redraw();
-    }
-  }
-
-  public boolean isDisposed() {
-    return disposed;
-  }
-
-  private boolean disposed;
 
 }

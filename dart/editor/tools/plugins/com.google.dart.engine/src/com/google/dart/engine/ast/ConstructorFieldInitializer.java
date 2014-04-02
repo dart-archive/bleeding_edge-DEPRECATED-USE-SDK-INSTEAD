@@ -73,7 +73,7 @@ public class ConstructorFieldInitializer extends ConstructorInitializer {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitConstructorFieldInitializer(this);
   }
 
@@ -183,7 +183,7 @@ public class ConstructorFieldInitializer extends ConstructorInitializer {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(fieldName, visitor);
     safelyVisitChild(expression, visitor);
   }

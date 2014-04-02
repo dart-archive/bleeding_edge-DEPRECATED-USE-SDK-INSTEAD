@@ -17,29 +17,24 @@ package com.google.dart.tools.debug.ui.internal.view;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil2;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationDelegate;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.internal.ui.views.console.ProcessConsole;
 import org.eclipse.debug.ui.console.FileLink;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.console.IHyperlink;
 import org.eclipse.ui.console.IPatternMatchListener;
 import org.eclipse.ui.console.PatternMatchEvent;
 import org.eclipse.ui.console.TextConsole;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 // VM exceptions look like:
 //
@@ -60,36 +55,6 @@ import java.net.URL;
  */
 @SuppressWarnings("restriction")
 public class DebuggerPatternMatchListener implements IPatternMatchListener {
-
-  /**
-   * Link in console that opens a browser on the specified URL when clicked
-   */
-  private static class BrowserLink implements IHyperlink {
-
-    private final URL url;
-
-    public BrowserLink(URL url) {
-      this.url = url;
-    }
-
-    @Override
-    public void linkActivated() {
-      try {
-        BrowserLaunchConfigurationDelegate.openBrowser(url.toString());
-      } catch (CoreException e) {
-        DartCore.logInformation("Failed to open " + url, e);
-        Display.getDefault().beep();
-      }
-    }
-
-    @Override
-    public void linkEntered() {
-    }
-
-    @Override
-    public void linkExited() {
-    }
-  }
 
   private static class Location {
     private String filePath;
@@ -126,6 +91,14 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     }
   }
 
+  public static String DARTIUM_PATTERN_1 = "\\((\\S+):(\\d+):(\\d+)\\)";
+  public static String DARTIUM_PATTERN_2 = "\\((\\S+):(\\d+)\\)";
+  public static String UNITTEST_PATTERN = "^  (\\S*\\.dart) (\\d*)";
+
+  private static Pattern dartiumPattern1 = Pattern.compile(DebuggerPatternMatchListener.DARTIUM_PATTERN_1);
+  private static Pattern dartiumPattern2 = Pattern.compile(DebuggerPatternMatchListener.DARTIUM_PATTERN_2);
+  private static Pattern unitTestPattern = Pattern.compile(DebuggerPatternMatchListener.UNITTEST_PATTERN);
+
   private TextConsole console;
 
   public DebuggerPatternMatchListener() {
@@ -157,7 +130,11 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     // (http://127.0.0.1:3030/Users/util/debuggertest/web_test.dart:33:14)
     // http://127.0.0.1:8081
 
-    return "(http://|file://|package:)\\S+";
+    //   cmd.dart 67:13                                        main.<fn>.<fn>
+    //   package:unittest/src/test_case.dart 109:30            _run.<fn>
+    //   dart:async/zone.dart 717                              _rootRunUnary
+
+    return "(\\(.*\\))|(  \\S*.dart .*)";
   }
 
   @Override
@@ -165,38 +142,38 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     if (console == null) {
       return;
     }
+
     try {
-      String match = console.getDocument().get(event.getOffset(), event.getLength());
+      String text = console.getDocument().get(event.getOffset(), event.getLength());
 
-      // Strip extraneous trailing characters
-      int index = match.length() - 1;
-      while (index > 0) {
-        if (Character.isLetterOrDigit(match.charAt(index))) {
-          break;
+      Matcher match = dartiumPattern1.matcher(text);
+
+      if (!match.find()) {
+        match = dartiumPattern2.matcher(text);
+
+        if (!match.find()) {
+          match = unitTestPattern.matcher(text);
+
+          if (!match.find()) {
+            match = null;
+          }
         }
-        index--;
-      }
-      match = match.substring(0, index + 1);
-
-      // Check for reference to line in dart source
-      Location location = parseForLocation(match);
-
-      if (location != null && location.doesExist()) {
-        console.addHyperlink(
-            new FileLink(location.getFile(), null, -1, -1, location.getLine()),
-            event.getOffset(),
-            match.length());
-        return;
       }
 
-      // Check for generic URL
-      URL url = parseForUrl(match);
-      if (url != null) {
-        console.addHyperlink(new BrowserLink(url), event.getOffset(), match.length());
-        return;
+      if (match != null) {
+        Location location = parseForLocation(match.group(1), match.group(2));
+
+        if (location != null && location.doesExist()) {
+          console.addHyperlink(
+              new FileLink(location.getFile(), null, -1, -1, location.getLine()),
+              event.getOffset() + match.start(1),
+              match.end(2) - match.start(1));
+          return;
+        }
       }
     } catch (BadLocationException e) {
       // don't create a hyperlink
+
     }
   }
 
@@ -207,9 +184,8 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
       IProcess process = processConsole.getProcess();
 
       if (process.getLaunch() != null) {
-        ILaunch launch = process.getLaunch();
         DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
-            launch.getLaunchConfiguration());
+            process.getLaunch().getLaunchConfiguration());
 
         return wrapper.getApplicationResource();
       }
@@ -222,41 +198,25 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     return ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(new Path(pathStr));
   }
 
-  private Location parseForLocation(String match) {
-    // (http://127.0.0.1:3030/Users/util/debuggertest/web_test.dart:33:14)
+  private Location parseForLocation(String url, String lineStr) {
+    final String chromeExt = "chrome-extension://";
 
-    int index = -1;
+    int line;
 
-    if (match.indexOf(".dart:") != -1) {
-      index = match.indexOf(".dart:");
-      index += ".dart".length();
-    } else if (match.indexOf(".js:") != -1) {
-      index = match.indexOf(".js:");
-      index += ".js".length();
-    }
-
-    if (index == -1) {
+    try {
+      line = Integer.parseInt(lineStr);
+    } catch (NumberFormatException nfe) {
       return null;
     }
-
-    String url = match.substring(0, index);
-
-    int lineIndex = match.indexOf(':', index + 1);
-
-    if (lineIndex == -1) {
-      return null;
-    }
-
-    String lineStr = match.substring(index + 1, lineIndex);
 
     try {
       String filePath;
-      int line = Integer.parseInt(lineStr);
 
       // /Users/foo/dart/serverapp/serverapp.dart
       // file:///Users/foo/dart/webapp2/webapp2.dart
       // http://0.0.0.0:3030/webapp/webapp.dart
       // package:abc/abc.dart
+      // chrome-extension://kcjgcakhgelcejampmijgkjkadfcncjl/spark.dart
 
       // resolve package: urls to file: urls
       if (DartCore.isPackageSpec(url)) {
@@ -265,6 +225,14 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
 
       if (url == null) {
         return null;
+      }
+
+      // Special case Chrome extension paths.
+      if (url.startsWith(chromeExt)) {
+        url = url.substring(chromeExt.length());
+        if (url.indexOf('/') != -1) {
+          url = url.substring(url.indexOf('/') + 1);
+        }
       }
 
       // Handle both fully absolute path names and http: urls.
@@ -284,36 +252,27 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
         } else {
           return null;
         }
+      } else if (url.indexOf(':') == -1) {
+        // handle relative file path
+        filePath = resolveRelativePath(url);
       } else {
         filePath = new URI(url).getPath();
       }
 
-      return new Location(filePath, line);
-    } catch (NumberFormatException nfe) {
-      return null;
+      // dart:
+      if (filePath == null) {
+        return null;
+      } else {
+        return new Location(filePath, line);
+      }
     } catch (URISyntaxException e) {
       return null;
     }
   }
 
-  private URL parseForUrl(String match) {
-    // http://127.0.0.1:8081
-
-    // references to Dart source should be handled by parseForLocation
-    if (match.startsWith("file:") || match.endsWith(".dart")) {
-      return null;
-    }
-
-    try {
-      return new URL(match);
-    } catch (MalformedURLException e) {
-      return null;
-    }
-  }
-
   private String resolvePackageUri(String url) {
-
     IResource resource = getResource();
+
     if (resource != null) {
       IFile file = DartCore.getProjectManager().resolvePackageUri(resource, url);
 
@@ -327,4 +286,19 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     return null;
   }
 
+  private String resolveRelativePath(String url) {
+    IResource resource = getResource();
+
+    if (resource != null) {
+      IResource file = resource.getParent().findMember(url);
+
+      if (file != null) {
+        return file.getLocation().toPortableString();
+      } else {
+        return null;
+      }
+    }
+
+    return null;
+  }
 }

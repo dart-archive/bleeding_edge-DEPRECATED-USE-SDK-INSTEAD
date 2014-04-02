@@ -17,10 +17,10 @@ package com.google.dart.java2dart.processor;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.MethodInvocation;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.java2dart.Context;
 
-import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
+import static com.google.dart.java2dart.util.AstFactory.methodInvocation;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ public class MathSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         super.visitMethodInvocation(node);

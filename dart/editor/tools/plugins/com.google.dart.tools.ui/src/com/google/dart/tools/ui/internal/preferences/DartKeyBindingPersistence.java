@@ -263,7 +263,9 @@ public class DartKeyBindingPersistence {
     List<Map<String, String>> newBindings;
     newBindings = readKeyBindingsFromStream(new InputSource(reader));
     for (Map<String, String> map : newBindings) {
-      updateKeyBinding(map);
+      if (!map.get(XML_ATTRIBUTE_COMMANDID).equals("Generate JavaScript")) {
+        updateKeyBinding(map);
+      }
     }
 
     try {

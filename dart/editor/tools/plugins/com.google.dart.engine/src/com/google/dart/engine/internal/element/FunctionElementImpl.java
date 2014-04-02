@@ -76,7 +76,7 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
 
   @Override
   public FunctionDeclaration getNode() throws AnalysisException {
-    return getNode(FunctionDeclaration.class);
+    return getNodeMatching(FunctionDeclaration.class);
   }
 
   @Override

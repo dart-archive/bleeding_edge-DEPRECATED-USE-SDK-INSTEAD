@@ -4,22 +4,29 @@
 
 library polymer.test.build.all_phases_test;
 
+import 'package:code_transformers/tests.dart' show testingDartSdkDirectory;
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/script_compactor.dart' show MAIN_HEADER;
 import 'package:polymer/transformer.dart';
+import 'package:smoke/codegen/generator.dart' show DEFAULT_IMPORTS;
 import 'package:unittest/compact_vm_config.dart';
 
 import 'common.dart';
 
 void main() {
   useCompactVMConfiguration();
-  var phases = new PolymerTransformerGroup(new TransformOptions()).phases;
+  var phases = createDeployPhases(new TransformOptions(),
+      sdkDir: testingDartSdkDirectory);
 
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
-    }, {
-      'a|web/test.html': '<!DOCTYPE html><html></html>',
-    });
+    }, {}, [
+      'error: To run a polymer application, you need to call "initPolymer". You'
+      ' can either include a generic script tag that does this for you:\'<'
+      'script type="application/dart">export "package:polymer/init.dart";'
+      '</script>\' or add your own script tag and call that function. Make sure'
+      ' the script tag is placed after all HTML imports.'
+    ]);
 
   testPhases('observable changes', phases, {
       'a|web/test.dart': _sampleObservable('A', 'foo'),
@@ -37,8 +44,7 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$SHADOW_DOM_TAG'
-          '$CUSTOM_ELEMENT_TAG'
+          '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
           '<script src="test.html_bootstrap.dart.js"></script>'
           '</head><body></body></html>',
@@ -46,8 +52,11 @@ void main() {
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'a.dart' as i0;
+          ${DEFAULT_IMPORTS.join('\n')}
 
           void main() {
+            useGeneratedCode(new StaticConfiguration(
+                checkedMode: false));
             configureForDeployment([
               ]);
             i0.main();
@@ -64,17 +73,20 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$SHADOW_DOM_TAG'
-          '$CUSTOM_ELEMENT_TAG'
+          '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
+          '</head><body>'
           '<script src="test.html_bootstrap.dart.js"></script>'
-          '</head><body></body></html>',
+          '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'test.html.0.dart' as i0;
+          ${DEFAULT_IMPORTS.join('\n')}
 
           void main() {
+            useGeneratedCode(new StaticConfiguration(
+                checkedMode: false));
             configureForDeployment([
               ]);
             i0.main();
@@ -83,6 +95,12 @@ void main() {
       'a|web/test.html.0.dart':
           _sampleObservableOutput("B", "bar"),
     });
+
+  const onlyOne = 'warning: Only one "application/dart" script tag per document'
+      ' is allowed.';
+  const moreNotSupported =
+      'warning: more than one Dart script per HTML document is not supported. '
+      'Script will be ignored.';
 
   testPhases('several scripts', phases, {
       'a|web/test.html':
@@ -103,28 +121,37 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$SHADOW_DOM_TAG'
-          '$CUSTOM_ELEMENT_TAG'
+          '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
-          '<script src="test.html_bootstrap.dart.js"></script>'
           '</head><body>'
+          '<script src="test.html_bootstrap.dart.js"></script>'
           '<div></div>'
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'a.dart' as i0;
+          ${DEFAULT_IMPORTS.join('\n')}
 
           void main() {
+            useGeneratedCode(new StaticConfiguration(
+                checkedMode: false));
             configureForDeployment([
               ]);
             i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/a.dart': _sampleObservableOutput('A', 'foo'),
-      'a|web/test.html.0.dart': _sampleObservableOutput("B", "bar"),
-      'a|web/test.html.1.dart': _sampleObservableOutput("C", "car"),
-    });
+    }, [
+      // These should not be emitted multiple times. See:
+      // https://code.google.com/p/dart/issues/detail?id=17197
+      '$onlyOne (web/test.html 0 81)',
+      '$onlyOne (web/test.html 8 27)',
+      '$onlyOne (web/test.html 16 15)',
+      '$moreNotSupported (web/test.html 0 81)',
+      '$moreNotSupported (web/test.html 8 27)',
+      '$moreNotSupported (web/test.html 16 15)'
+    ]);
 
   testPhases('with imports', phases, {
       'a|web/index.html':
@@ -135,31 +162,33 @@ void main() {
       'a|web/b.dart': _sampleObservable('B', 'bar'),
       'a|web/test2.html':
           '<!DOCTYPE html><html><head></head><body>'
-          '<polymer-element>1'
+          '<polymer-element name="x-a">1'
           '<script type="application/dart">'
           '${_sampleObservable("A", "foo")}</script>'
           '</polymer-element></html>',
     }, {
       'a|web/index.html':
           '<!DOCTYPE html><html><head>'
-          '$SHADOW_DOM_TAG'
-          '$CUSTOM_ELEMENT_TAG'
+          '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
-          '</head><body><polymer-element>1</polymer-element>'
+          '</head><body><polymer-element name="x-a">1</polymer-element>'
           '<script src="index.html_bootstrap.dart.js"></script>'
           '</body></html>',
       'a|web/index.html_bootstrap.dart':
           '''$MAIN_HEADER
-          import 'test2.html.0.dart' as i0;
+          import 'index.html.0.dart' as i0;
           import 'b.dart' as i1;
+          ${DEFAULT_IMPORTS.join('\n')}
 
           void main() {
+            useGeneratedCode(new StaticConfiguration(
+                checkedMode: false));
             configureForDeployment([
               ]);
             i1.main();
           }
           '''.replaceAll('\n          ', '\n'),
-      'a|web/test2.html.0.dart': _sampleObservableOutput("A", "foo"),
+      'a|web/index.html.0.dart': _sampleObservableOutput("A", "foo"),
       'a|web/b.dart': _sampleObservableOutput('B', 'bar'),
     });
 }
@@ -167,6 +196,7 @@ void main() {
 String _sampleObservable(String className, String fieldName) => '''
 library ${className}_$fieldName;
 import 'package:observe/observe.dart';
+export 'package:polymer/init.dart';
 
 class $className extends Observable {
   @observable int $fieldName;
@@ -177,7 +207,8 @@ class $className extends Observable {
 String _sampleObservableOutput(String className, String field,
     {bool includeMain: false}) =>
     "library ${className}_$field;\n"
-    "import 'package:observe/observe.dart';\n\n"
+    "import 'package:observe/observe.dart';\n"
+    "export 'package:polymer/init.dart';\n\n"
     "class $className extends ChangeNotifier {\n"
     "  @reflectable @observable int get $field => __\$$field; "
       "int __\$$field; "

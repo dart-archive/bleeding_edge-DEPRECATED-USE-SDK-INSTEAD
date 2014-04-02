@@ -35,6 +35,7 @@ public interface Symbols {
   int TokenGREATERTHAN = 14;
   int TokenDEFUN = 15; // =>
   int TokenAT = 16;
+  int TokenAND = 17; // &&
   // Keywords
   int TokenASSERT = 1000;
   int TokenBREAK = 1001;

@@ -38,7 +38,7 @@ main() {
 
     // Validate the stylesheet was loaded
     if (js.context.hasProperty('ShadowDOMPolyfill')) {
-      final style = document.head.querySelector('style[ShadowCSSShim]');
+      final style = document.head.querySelector('style[shim-shadowdom-css]');
       expect(style.text, contains('\ntd-todos #todoapp {'));
     } else {
       final style = root.querySelector('style');

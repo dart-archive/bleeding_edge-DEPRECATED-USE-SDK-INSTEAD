@@ -16,11 +16,11 @@ public abstract class BaseTextSource implements ITextSource {
   }
 
   @Override
-  public boolean isIndexRequired() {
-    return false;
+  public void init() {
   }
 
   @Override
-  public void init() {
+  public boolean isIndexRequired() {
+    return false;
   }
 }

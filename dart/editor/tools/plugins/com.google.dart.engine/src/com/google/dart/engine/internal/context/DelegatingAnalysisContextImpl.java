@@ -228,15 +228,6 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   }
 
   @Override
-  public Namespace getPublicNamespace(Source source) throws AnalysisException {
-    if (source.isInSystemLibrary()) {
-      return sdkAnalysisContext.getPublicNamespace(source);
-    } else {
-      return super.getPublicNamespace(source);
-    }
-  }
-
-  @Override
   public CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library) {
     if (unitSource.isInSystemLibrary()) {
       return sdkAnalysisContext.getResolvedCompilationUnit(unitSource, library);

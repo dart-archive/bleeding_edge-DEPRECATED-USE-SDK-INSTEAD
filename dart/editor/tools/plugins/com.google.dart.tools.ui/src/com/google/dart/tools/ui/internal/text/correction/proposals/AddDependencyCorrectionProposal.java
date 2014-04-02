@@ -61,7 +61,7 @@ public class AddDependencyCorrectionProposal implements IDartCompletionProposal,
         // prepare IFile
         IResource resource;
         {
-          Source source = new FileBasedSource(null, file);
+          Source source = new FileBasedSource(file);
           resource = DartCore.getProjectManager().getResource(source);
           if (!(resource instanceof IFile)) {
             return;

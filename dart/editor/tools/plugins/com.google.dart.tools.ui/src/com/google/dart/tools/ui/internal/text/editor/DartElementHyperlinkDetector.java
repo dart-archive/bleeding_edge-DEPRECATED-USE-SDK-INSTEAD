@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
@@ -27,7 +27,6 @@ import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
-import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.actions.OpenAction;
@@ -60,7 +59,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
     }
   }
 
-  private Region getWordRegion(ASTNode node) {
+  private Region getWordRegion(AstNode node) {
     if (node instanceof BinaryExpression) {
       Token operator = ((BinaryExpression) node).getOperator();
       return new Region(operator.getOffset(), operator.getLength());
@@ -80,15 +79,15 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
       return null;
     }
 
-    // Get the associated CU (retrying if necessary)
-    CompilationUnit cu = waitForEditorInput(editor, 2000);
+    // Get the associated CU
+    CompilationUnit cu = editor.getInputUnit();
     if (cu == null) {
       return null;
     }
 
     int offset = region.getOffset();
 
-    ASTNode node = new NodeLocator(offset, offset + region.getLength()).searchWithin(cu);
+    AstNode node = new NodeLocator(offset, offset + region.getLength()).searchWithin(cu);
     if (node == null || node instanceof com.google.dart.engine.ast.CompilationUnit
         || node instanceof Directive || node instanceof Declaration
         || node instanceof InstanceCreationExpression || node instanceof PrefixExpression
@@ -96,7 +95,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
       return null;
     }
 
-    Element element = ElementLocator.locate(node, offset);
+    Element element = ElementLocator.locateWithOffset(node, offset);
     if (element != null) {
       IRegion wordRegion = getWordRegion(node);
       return new IHyperlink[] {new DartElementHyperlink(element, wordRegion, new OpenAction(editor))};
@@ -104,21 +103,6 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
 
     return null;
 
-  }
-
-  private CompilationUnit waitForEditorInput(DartEditor editor, int ms) {
-
-    CompilationUnit cu = null;
-
-    long endTime = System.currentTimeMillis() + ms;
-    while (System.currentTimeMillis() < endTime) {
-      cu = editor.getInputUnit();
-      if (cu != null) {
-        return cu;
-      }
-      ExecutionUtils.sleep(5);
-    }
-    return null;
   }
 
 }

@@ -51,7 +51,7 @@ void main() {
                                    {});
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     String mainOutput = outputs['main.js'].mem[0];
-    String deferredOutput = outputs['deferred.js'].mem[0];
+    String deferredOutput = outputs['out_deferred.part.js'].mem[0];
     RegExp re = new RegExp(r"\n.\.A\.\$isA = true;");
     print(deferredOutput);
     Expect.isTrue(re.hasMatch(deferredOutput));
@@ -65,17 +65,19 @@ void main() {
 const Map MEMORY_SOURCE_FILES = const {"main.dart": """
 import "dart:async";
 
-@def import 'lib.dart' show f, A;
+@def import 'lib.dart' as lib show f, A, instance;
 
 const def = const DeferredLibrary("deferred");
 
 void main() {
   def.load().then((_) {
-    print(f(new A<A>()));
+    print(lib.f(lib.instance));
   });
 }
 """, "lib.dart": """
 class A<T> {}
+
+A<A> instance = new A<A>();
 
 bool f (Object o) {
   return o is A<A>;

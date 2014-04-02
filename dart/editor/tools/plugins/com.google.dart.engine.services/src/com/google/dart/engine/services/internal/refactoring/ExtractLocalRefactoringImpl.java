@@ -17,7 +17,7 @@ package com.google.dart.engine.services.internal.refactoring;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -25,7 +25,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringLiteral;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LocalElement;
@@ -214,7 +214,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
   private RefactoringStatus checkSelection() {
     selectionAnalyzer = new ExtractExpressionAnalyzer(selectionRange);
     unitNode.accept(selectionAnalyzer);
-    ASTNode coveringNode = selectionAnalyzer.getCoveringNode();
+    AstNode coveringNode = selectionAnalyzer.getCoveringNode();
     // may be fatal error
     {
       RefactoringStatus status = selectionAnalyzer.getStatus();
@@ -240,7 +240,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
         && !utils.selectionIncludesNonWhitespaceOutsideNode(
             selectionRange,
             selectionAnalyzer.getFirstSelectedNode())) {
-      ASTNode selectedNode = selectionAnalyzer.getFirstSelectedNode();
+      AstNode selectedNode = selectionAnalyzer.getFirstSelectedNode();
       if (selectedNode instanceof Expression) {
         rootExpression = (Expression) selectedNode;
         singleExpression = rootExpression;
@@ -261,12 +261,12 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
   }
 
   /**
-   * @return the {@link ASTNode}s at given {@link SourceRange}s.
+   * @return the {@link AstNode}s at given {@link SourceRange}s.
    */
-  private List<ASTNode> findNodes(List<SourceRange> ranges) {
-    List<ASTNode> nodes = Lists.newArrayList();
+  private List<AstNode> findNodes(List<SourceRange> ranges) {
+    List<AstNode> nodes = Lists.newArrayList();
     for (SourceRange range : ranges) {
-      ASTNode node = new NodeLocator(range.getOffset()).searchWithin(unitNode);
+      AstNode node = new NodeLocator(range.getOffset()).searchWithin(unitNode);
       nodes.add(node);
     }
     return nodes;
@@ -277,9 +277,9 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
    *         all given occurrences.
    */
   private Statement findTargetStatement(List<SourceRange> occurrences) {
-    List<ASTNode> nodes = findNodes(occurrences);
-    List<ASTNode> firstParents = CorrectionUtils.getParents(nodes.get(0));
-    ASTNode commonParent = CorrectionUtils.getNearestCommonAncestor(nodes);
+    List<AstNode> nodes = findNodes(occurrences);
+    List<AstNode> firstParents = CorrectionUtils.getParents(nodes.get(0));
+    AstNode commonParent = CorrectionUtils.getNearestCommonAncestor(nodes);
     if (commonParent instanceof Block) {
       int commonIndex = firstParents.indexOf(commonParent);
       return (Statement) firstParents.get(commonIndex + 1);
@@ -298,7 +298,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
       ExecutionUtils.runIgnore(new RunnableEx() {
         @Override
         public void run() throws Exception {
-          ASTNode enclosingNode = new NodeLocator(selectionStart).searchWithin(unitNode);
+          AstNode enclosingNode = new NodeLocator(selectionStart).searchWithin(unitNode);
           Block enclosingBlock = enclosingNode.getAncestor(Block.class);
           if (enclosingBlock != null) {
             final SourceRange newVariableVisibleRange = rangeStartEnd(
@@ -339,13 +339,13 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
       selectionSource = StringUtils.join(selectionTokens, TOKEN_SEPARATOR);
     }
     // prepare enclosing function
-    ASTNode enclosingFunction;
+    AstNode enclosingFunction;
     {
-      ASTNode selectionNode = new NodeLocator(selectionStart).searchWithin(unitNode);
+      AstNode selectionNode = new NodeLocator(selectionStart).searchWithin(unitNode);
       enclosingFunction = CorrectionUtils.getEnclosingExecutableNode(selectionNode);
     }
     // visit function
-    enclosingFunction.accept(new GeneralizingASTVisitor<Void>() {
+    enclosingFunction.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitBinaryExpression(BinaryExpression node) {
         if (!hasStatements(node)) {
@@ -393,9 +393,9 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
         }
       }
 
-      private boolean hasStatements(ASTNode root) {
+      private boolean hasStatements(AstNode root) {
         final boolean result[] = {false};
-        root.accept(new GeneralizingASTVisitor<Void>() {
+        root.accept(new GeneralizingAstVisitor<Void>() {
           @Override
           public Void visitStatement(Statement node) {
             result[0] = true;

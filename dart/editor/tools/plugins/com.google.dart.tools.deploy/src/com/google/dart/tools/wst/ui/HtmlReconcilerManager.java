@@ -20,9 +20,6 @@ import org.eclipse.jface.text.IDocument;
 import java.util.Map;
 
 public class HtmlReconcilerManager {
-
-  private Map<IDocument, HtmlReconcilerHook> reconcilers = Maps.newHashMap();
-
   private static final HtmlReconcilerManager INSTANCE = new HtmlReconcilerManager();
 
   /**
@@ -34,8 +31,9 @@ public class HtmlReconcilerManager {
     return INSTANCE;
   }
 
+  private final Map<IDocument, HtmlReconcilerHook> reconcilers = Maps.newHashMap();
+
   private HtmlReconcilerManager() {
-    // This is a singleton.
   }
 
   /**

@@ -48,12 +48,12 @@ void main() {
 
     var outputClassLists = compiler.backend.emitter.outputClassLists;
 
-    Expect.equals(mainOutputUnit, outputUnitForElement(foo2));
+    Expect.notEquals(mainOutputUnit, outputUnitForElement(foo2));
   }));
 }
 
 // lib1 imports lib2 deferred. But mainlib never uses DeferredLibrary.
-// Therefore we should not split the program.
+// Test that this case works.
 const Map MEMORY_SOURCE_FILES = const {
   "main.dart":"""
 library mainlib;
@@ -68,12 +68,12 @@ void main() {
 library lib1;
 
 import 'dart:async';
-@def import 'lib2.dart';
+@def import 'lib2.dart' as lib2;
 
 const def = const DeferredLibrary('lib2');
 
 void foo1() {
-  def.load().then((_) => foo2());
+  def.load().then((_) => lib2.foo2());
 }
 """,
   "lib2.dart":"""

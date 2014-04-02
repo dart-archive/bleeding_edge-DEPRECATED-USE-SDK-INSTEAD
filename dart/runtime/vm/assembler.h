@@ -13,7 +13,9 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+#if defined(TARGET_ARCH_ARM) ||                                                \
+    defined(TARGET_ARCH_ARM64) ||                                              \
+    defined(TARGET_ARCH_MIPS)
 DECLARE_FLAG(bool, use_far_branches);
 #endif
 
@@ -52,6 +54,8 @@ class ExternalLabel : public ValueObject {
 class AssemblerFixup : public ZoneAllocated {
  public:
   virtual void Process(const MemoryRegion& region, intptr_t position) = 0;
+
+  virtual bool IsPointerOffset() const = 0;
 
   // It would be ideal if the destructor method could be made private,
   // but the g++ compiler complains when this is subclassed.
@@ -117,6 +121,10 @@ class AssemblerBuffer : public ValueObject {
     fixup->set_position(Size());
     fixup_ = fixup;
   }
+
+  // Count the fixups that produce a pointer offset, without processing
+  // the fixups.
+  intptr_t CountPointerOffsets() const;
 
   // Get the size of the emitted code.
   intptr_t Size() const { return cursor_ - contents_; }
@@ -211,6 +219,8 @@ class AssemblerBuffer : public ValueObject {
 #include "vm/assembler_x64.h"
 #elif defined(TARGET_ARCH_ARM)
 #include "vm/assembler_arm.h"
+#elif defined(TARGET_ARCH_ARM64)
+#include "vm/assembler_arm64.h"
 #elif defined(TARGET_ARCH_MIPS)
 #include "vm/assembler_mips.h"
 #else

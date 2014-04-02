@@ -53,7 +53,7 @@ public class NamespaceBuilder {
    * @param element the export element whose export namespace is to be created
    * @return the export namespace that was created
    */
-  public Namespace createExportNamespace(ExportElement element) {
+  public Namespace createExportNamespaceForDirective(ExportElement element) {
     LibraryElement exportedLibrary = element.getExportedLibrary();
     if (exportedLibrary == null) {
       //
@@ -64,7 +64,7 @@ public class NamespaceBuilder {
     HashMap<String, Element> definedNames = createExportMapping(
         exportedLibrary,
         new HashSet<LibraryElement>());
-    definedNames = apply(definedNames, element.getCombinators());
+    definedNames = applyCombinators(definedNames, element.getCombinators());
     return new Namespace(definedNames);
   }
 
@@ -74,7 +74,7 @@ public class NamespaceBuilder {
    * @param library the library whose export namespace is to be created
    * @return the export namespace that was created
    */
-  public Namespace createExportNamespace(LibraryElement library) {
+  public Namespace createExportNamespaceForLibrary(LibraryElement library) {
     return new Namespace(createExportMapping(library, new HashSet<LibraryElement>()));
   }
 
@@ -84,7 +84,7 @@ public class NamespaceBuilder {
    * @param library the library whose import namespace is to be created
    * @return the import namespace that was created
    */
-  public Namespace createImportNamespace(ImportElement element) {
+  public Namespace createImportNamespaceForDirective(ImportElement element) {
     LibraryElement importedLibrary = element.getImportedLibrary();
     if (importedLibrary == null) {
       //
@@ -95,8 +95,8 @@ public class NamespaceBuilder {
     HashMap<String, Element> definedNames = createExportMapping(
         importedLibrary,
         new HashSet<LibraryElement>());
-    definedNames = apply(definedNames, element.getCombinators());
-    definedNames = apply(definedNames, element.getPrefix());
+    definedNames = applyCombinators(definedNames, element.getCombinators());
+    definedNames = applyPrefix(definedNames, element.getPrefix());
     return new Namespace(definedNames);
   }
 
@@ -106,7 +106,7 @@ public class NamespaceBuilder {
    * @param library the library whose public namespace is to be created
    * @return the public namespace that was created
    */
-  public Namespace createPublicNamespace(LibraryElement library) {
+  public Namespace createPublicNamespaceForLibrary(LibraryElement library) {
     HashMap<String, Element> definedNames = new HashMap<String, Element>();
     addPublicNames(definedNames, library.getDefiningCompilationUnit());
     for (CompilationUnitElement compilationUnit : library.getParts()) {
@@ -121,7 +121,7 @@ public class NamespaceBuilder {
    * @param definedNames the mapping table to which the names in the given namespace are to be added
    * @param namespace the namespace containing the names to be added to this namespace
    */
-  private void addAll(Map<String, Element> definedNames, Map<String, Element> newNames) {
+  private void addAllFromMap(Map<String, Element> definedNames, Map<String, Element> newNames) {
     for (Map.Entry<String, Element> entry : newNames.entrySet()) {
       definedNames.put(entry.getKey(), entry.getValue());
     }
@@ -133,9 +133,9 @@ public class NamespaceBuilder {
    * @param definedNames the mapping table to which the names in the given namespace are to be added
    * @param namespace the namespace containing the names to be added to this namespace
    */
-  private void addAll(Map<String, Element> definedNames, Namespace namespace) {
+  private void addAllFromNamespace(Map<String, Element> definedNames, Namespace namespace) {
     if (namespace != null) {
-      addAll(definedNames, namespace.getDefinedNames());
+      addAllFromMap(definedNames, namespace.getDefinedNames());
     }
   }
 
@@ -182,7 +182,7 @@ public class NamespaceBuilder {
    * @param definedNames the mapping table to which the namespace operations are to be applied
    * @param combinators the combinators to be applied
    */
-  private HashMap<String, Element> apply(HashMap<String, Element> definedNames,
+  private HashMap<String, Element> applyCombinators(HashMap<String, Element> definedNames,
       NamespaceCombinator[] combinators) {
     for (NamespaceCombinator combinator : combinators) {
       if (combinator instanceof HideElementCombinator) {
@@ -204,7 +204,7 @@ public class NamespaceBuilder {
    * @param definedNames the names that were defined before this operation
    * @param prefixElement the element defining the prefix to be added to the names
    */
-  private HashMap<String, Element> apply(HashMap<String, Element> definedNames,
+  private HashMap<String, Element> applyPrefix(HashMap<String, Element> definedNames,
       PrefixElement prefixElement) {
     if (prefixElement != null) {
       String prefix = prefixElement.getName();
@@ -241,11 +241,11 @@ public class NamespaceBuilder {
           HashMap<String, Element> exportedNames = createExportMapping(
               exportedLibrary,
               visitedElements);
-          exportedNames = apply(exportedNames, element.getCombinators());
-          addAll(definedNames, exportedNames);
+          exportedNames = applyCombinators(exportedNames, element.getCombinators());
+          addAllFromMap(definedNames, exportedNames);
         }
       }
-      addAll(
+      addAllFromNamespace(
           definedNames,
           ((InternalAnalysisContext) library.getContext()).getPublicNamespace(library));
       return definedNames;

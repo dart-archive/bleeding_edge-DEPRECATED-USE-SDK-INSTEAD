@@ -223,6 +223,12 @@ public class DartOutlineInformationControl extends PopupDialog implements IInfor
   }
 
   @Override
+  protected void configureShell(Shell shell) {
+    super.configureShell(shell);
+    shell.setText("Outline");
+  }
+
+  @Override
   protected Control createDialogArea(Composite parent) {
     final Tree tree = new Tree(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
     GridDataFactory.create(tree).hintHeightChars(20).grab().fill();

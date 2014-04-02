@@ -1,6 +1,8 @@
-params sutName
+﻿params server, passwd, port
 
-Connect connectionInfo(sutName)
+if the paramCount > 0 then
+	Connect (serverID: server, portNum: port, password: passwd, visible: "No")
+end if
 util.startDartEditor
 RunWithNewResults "do it"
 util.stopDartEditor

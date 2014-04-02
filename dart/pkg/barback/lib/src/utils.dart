@@ -94,6 +94,25 @@ String byteToHex(int byte) {
   return DIGITS[(byte ~/ 16) % 16] + DIGITS[byte % 16];
 }
 
+/// Returns a sentence fragment listing the elements of [iter].
+///
+/// This converts each element of [iter] to a string and separates them with
+/// commas and/or "and" where appropriate.
+String toSentence(Iterable iter) {
+  if (iter.length == 1) return iter.first.toString();
+  return iter.take(iter.length - 1).join(", ") + " and ${iter.last}";
+}
+
+/// Returns [name] if [number] is 1, or the plural of [name] otherwise.
+///
+/// By default, this just adds "s" to the end of [name] to get the plural. If
+/// [plural] is passed, that's used instead.
+String pluralize(String name, int number, {String plural}) {
+  if (number == 1) return name;
+  if (plural != null) return plural;
+  return '${name}s';
+}
+
 /// Converts [input] into a [Uint8List].
 ///
 /// If [input] is a [TypedData], this just returns a view on [input].
@@ -140,10 +159,24 @@ List flatten(Iterable nested) {
 Set unionAll(Iterable<Set> sets) =>
   sets.fold(new Set(), (union, set) => union.union(set));
 
-/// Passes each key/value pair in [map] to [fn] and returns a new [Map] whose
-/// values are the return values of [fn].
-Map mapMapValues(Map map, fn(key, value)) =>
-  new Map.fromIterable(map.keys, value: (key) => fn(key, map[key]));
+/// Creates a new map from [map] with new keys and values.
+///
+/// The return values of [keyFn] are used as the keys and the return values of
+/// [valueFn] are used as the values for the new map.
+Map mapMap(Map map, keyFn(key, value), valueFn(key, value)) =>
+  new Map.fromIterable(map.keys,
+      key: (key) => keyFn(key, map[key]),
+      value: (key) => valueFn(key, map[key]));
+
+/// Creates a new map from [map] with the same keys.
+///
+/// The return values of [fn] are used as the values for the new map.
+Map mapMapValues(Map map, fn(key, value)) => mapMap(map, (key, _) => key, fn);
+
+/// Creates a new map from [map] with the same keys.
+///
+/// The return values of [fn] are used as the keys for the new map.
+Map mapMapKeys(Map map, fn(key, value)) => mapMap(map, fn, (_, value) => value);
 
 /// Returns whether [set1] has exactly the same elements as [set2].
 bool setEquals(Set set1, Set set2) =>

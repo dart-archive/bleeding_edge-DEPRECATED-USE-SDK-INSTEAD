@@ -17,9 +17,17 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/compact_vm_config.dart';
 
 export 'transformer/bad.dart';
+export 'transformer/bad_log.dart';
+export 'transformer/catch_asset_not_found.dart';
 export 'transformer/check_content.dart';
 export 'transformer/check_content_and_rename.dart';
+export 'transformer/conditionally_consume_primary.dart';
 export 'transformer/create_asset.dart';
+export 'transformer/emit_nothing.dart';
+export 'transformer/has_input.dart';
+export 'transformer/lazy_bad.dart';
+export 'transformer/lazy_many_to_one.dart';
+export 'transformer/lazy_rewrite.dart';
 export 'transformer/many_to_one.dart';
 export 'transformer/mock.dart';
 export 'transformer/one_to_many.dart';
@@ -92,10 +100,12 @@ void initGraph([assets,
 
   _provider = new MockProvider(assetMap);
   _barback = new Barback(_provider);
+  // Add a dummy listener to the log so it doesn't print to stdout.
+  _barback.log.listen((_) {});
   _nextBuildResult = 0;
   _nextLog = 0;
 
-  transformers.forEach(_barback.updateTransformers);
+  schedule(() => transformers.forEach(_barback.updateTransformers));
 
   // There should be one successful build after adding all the transformers but
   // before adding any sources.
@@ -246,9 +256,10 @@ Future<LogEntry> _getNextLog(String description) {
 /// Schedules an expectation that the graph will deliver an asset matching
 /// [name] and [contents].
 ///
-/// If [contents] is omitted, defaults to the asset's filename without an
-/// extension (which is the same default that [initGraph] uses).
-void expectAsset(String name, [String contents]) {
+/// [contents] may be a [String] or a [Matcher] that matches a string. If
+/// [contents] is omitted, defaults to the asset's filename without an extension
+/// (which is the same default that [initGraph] uses).
+void expectAsset(String name, [contents]) {
   var id = new AssetId.parse(name);
 
   if (contents == null) {
@@ -259,7 +270,7 @@ void expectAsset(String name, [String contents]) {
     return _barback.getAssetById(id).then((asset) {
       // TODO(rnystrom): Make an actual Matcher class for this.
       expect(asset.id, equals(id));
-      expect(asset.readAsString(), completion(equals(contents)));
+      expect(asset.readAsString(), completion(contents));
     });
   }, "get asset $name");
 }
@@ -283,22 +294,41 @@ void expectNoAsset(String name) {
 /// Schedules an expectation that the graph will output all of the given
 /// assets, and no others.
 ///
-/// [assets] is a list of strings that can be parsed to [AssetID]s.
-void expectAllAssets(Iterable<String> assets) {
-  var expected = assets.map((asset) => new AssetId.parse(asset));
+/// [assets] may be an iterable of asset id strings, in which case this asserts
+/// that the graph outputs exactly the assets with those ids. It may also be a
+/// map from asset id strings to asset contents, in which case the contents must
+/// also match.
+void expectAllAssets(assets) {
+  var expected;
+  var expectedString;
+  if (assets is Map) {
+    expected = mapMapKeys(assets, (key, _) => new AssetId.parse(key));
+    expectedString = expected.toString();
+  } else {
+    expected = assets.map((asset) => new AssetId.parse(asset));
+    expectedString = expected.join(', ');
+  }
 
   schedule(() {
     return _barback.getAllAssets().then((actualAssets) {
       var actualIds = actualAssets.map((asset) => asset.id).toSet();
 
-      for (var id in expected) {
-        expect(actualIds, contains(id));
-        actualIds.remove(id);
+      if (expected is Map) {
+        expected.forEach((id, contents) {
+          expect(actualIds, contains(id));
+          actualIds.remove(id);
+          expect(actualAssets[id].readAsString(), completion(equals(contents)));
+        });
+      } else {
+        for (var id in expected) {
+          expect(actualIds, contains(id));
+          actualIds.remove(id);
+        }
       }
 
       expect(actualIds, isEmpty);
     });
-  }, "get all assets, expecting ${expected.join(', ')}");
+  }, "get all assets, expecting $expectedString");
 }
 
 /// Schedules an expectation that [Barback.getAllAssets] will return a [Future]

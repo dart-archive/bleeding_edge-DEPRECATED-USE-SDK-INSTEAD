@@ -35,7 +35,7 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
-import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.functionElement;
 import static com.google.dart.engine.element.ElementFactory.methodElement;

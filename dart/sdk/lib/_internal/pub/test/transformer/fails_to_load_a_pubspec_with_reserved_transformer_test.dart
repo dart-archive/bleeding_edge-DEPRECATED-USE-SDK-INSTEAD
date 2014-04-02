@@ -4,8 +4,6 @@
 
 library pub_tests;
 
-import 'package:scheduled_test/scheduled_test.dart';
-
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import '../serve/utils.dart';
@@ -27,11 +25,10 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     var pub = startPubServe();
-    expect(pub.nextErrLine(), completion(equals('Error in pubspec for package '
-        '"myapp" loaded from pubspec.yaml:')));
-    expect(pub.nextErrLine(), completion(equals('Invalid transformer '
-       'identifier for "transformers.\$nonexistent": Unsupported built-in '
-       'transformer \$nonexistent.')));
+    pub.stderr.expect(emitsLines(
+        'Error in pubspec for package "myapp" loaded from pubspec.yaml:\n'
+        'Invalid transformer configuration for "transformers.\$nonexistent": '
+            'Unsupported built-in transformer \$nonexistent.'));
     pub.shouldExit(1);
   });
 }

@@ -1,7 +1,6 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
@@ -35,16 +34,10 @@ public class SimpleResourceMapImpl implements ResourceMap {
    */
   protected final AnalysisContext context;
 
-  /**
-   * The common cache used when constructing sources (not {@code null}).
-   */
-  protected final ContentCache contentCache;
-
   public SimpleResourceMapImpl(IContainer container, AnalysisContext context) {
     this.container = container;
     this.containerLocation = container.getLocation();
     this.context = context;
-    this.contentCache = context.getSourceFactory().getContentCache();
   }
 
   @Override
@@ -84,7 +77,7 @@ public class SimpleResourceMapImpl implements ResourceMap {
     if (location == null) {
       return null;
     }
-    return new FileBasedSource(contentCache, location.toFile());
+    return new FileBasedSource(location.toFile());
 
   }
 }

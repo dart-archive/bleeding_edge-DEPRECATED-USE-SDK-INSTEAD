@@ -196,6 +196,7 @@ typedef double fpu_register_t;
 #if !defined(TARGET_ARCH_ARM)
 #if !defined(TARGET_ARCH_X64)
 #if !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_ARM64)
 // No target architecture specified pick the one matching the host architecture.
 #if defined(HOST_ARCH_MIPS)
 #define TARGET_ARCH_MIPS 1
@@ -205,8 +206,11 @@ typedef double fpu_register_t;
 #define TARGET_ARCH_X64 1
 #elif defined(HOST_ARCH_IA32)
 #define TARGET_ARCH_IA32 1
+#elif defined(HOST_ARCH_ARM64)
+#define TARGET_ARCH_ARM64 1
 #else
 #error Automatic target architecture detection failed.
+#endif
 #endif
 #endif
 #endif
@@ -215,7 +219,8 @@ typedef double fpu_register_t;
 
 // Verify that host and target architectures match, we cannot
 // have a 64 bit Dart VM generating 32 bit code or vice-versa.
-#if defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM64)
 #if !defined(ARCH_IS_64_BIT)
 #error Mismatched Host/Target architectures.
 #endif
@@ -246,6 +251,10 @@ typedef double fpu_register_t;
 #define DART_UINT64_C(x) x##ULL
 #endif
 
+// Replace calls to strtoll with _strtoi64 on Windows.
+#ifdef _MSC_VER
+#define strtoll _strtoi64
+#endif
 
 // The following macro works on both 32 and 64-bit platforms.
 // Usage: instead of writing 0x1234567890123456ULL
@@ -325,14 +334,12 @@ const int kNanosecondsPerMillisecond = (kNanosecondsPerMicrosecond *
 const int kNanosecondsPerSecond = (kNanosecondsPerMicrosecond *
                                    kMicrosecondsPerSecond);
 
-// Helpers to round micro second times to human understandable values.
-inline double RoundMicrosecondsToSeconds(int64_t micros) {
-  const int k1M = 1000000;  // Converting us to secs.
-  return static_cast<double>(micros + (k1M >> 1)) / k1M;
+// Helpers to scale micro second times to human understandable values.
+inline double MicrosecondsToSeconds(int64_t micros) {
+  return static_cast<double>(micros) / kMicrosecondsPerSecond;
 }
-inline double RoundMicrosecondsToMilliseconds(int64_t micros) {
-  const int k1K = 1000;  // Conversting us to ms.
-  return static_cast<double>(micros + (k1K >> 1)) / k1K;
+inline double MicrosecondsToMilliseconds(int64_t micros) {
+  return static_cast<double>(micros) / kMicrosecondsPerMillisecond;
 }
 
 // A macro to disallow the copy constructor and operator= functions.
@@ -472,24 +479,12 @@ inline D bit_copy(const S& source) {
 #endif
 
 #if !defined(TARGET_OS_WINDOWS)
-#if !defined(TEMP_FAILURE_RETRY)
-// TEMP_FAILURE_RETRY is defined in unistd.h on some platforms. The
-// definition below is copied from Linux and adapted to avoid lint
-// errors (type long int changed to intptr_t and do/while split on
-// separate lines with body in {}s).
-#define TEMP_FAILURE_RETRY(expression)                                         \
-    ({ intptr_t __result;                                                      \
-       do {                                                                    \
-         __result = (expression);                                              \
-       } while (__result == -1L && errno == EINTR);                            \
-       __result; })
-#endif  // !defined(TEMP_FAILURE_RETRY)
-
-// This is a version of TEMP_FAILURE_RETRY which does not use the value
-// returned from the expression.
-#define VOID_TEMP_FAILURE_RETRY(expression)                                    \
-    (static_cast<void>(TEMP_FAILURE_RETRY(expression)))
-
+#if defined(TEMP_FAILURE_RETRY)
+// TEMP_FAILURE_RETRY is defined in unistd.h on some platforms. We should
+// not use that version, but instead the one in signal_blocker.h, to ensure
+// we disable signal interrupts.
+#undef TEMP_FAILURE_RETRY
+#endif  // defined(TEMP_FAILURE_RETRY)
 #endif  // !defined(TARGET_OS_WINDOWS)
 
 #if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS)

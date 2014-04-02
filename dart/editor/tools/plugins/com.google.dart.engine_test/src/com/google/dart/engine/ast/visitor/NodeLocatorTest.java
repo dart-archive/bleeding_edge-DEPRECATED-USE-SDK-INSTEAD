@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.ast.visitor;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -32,32 +32,27 @@ public class NodeLocatorTest extends ParserTestCase {
 
   public void test_searchWithin_offset() throws Exception {
     CompilationUnit unit = parseCompilationUnit("library myLib;");
-    assertLocate(unit, 10, SimpleIdentifier.class);
+    assertLocate(unit, 10, 10, SimpleIdentifier.class);
   }
 
   public void test_searchWithin_offsetAfterNode() throws Exception {
     CompilationUnit unit = parseCompilationUnit(createSource("class A {}", "class B {}"));
     NodeLocator locator = new NodeLocator(1024, 1024);
-    ASTNode node = locator.searchWithin(unit.getDeclarations().get(0));
+    AstNode node = locator.searchWithin(unit.getDeclarations().get(0));
     assertNull(node);
   }
 
   public void test_searchWithin_offsetBeforeNode() throws Exception {
     CompilationUnit unit = parseCompilationUnit(createSource("class A {}", "class B {}"));
     NodeLocator locator = new NodeLocator(0, 0);
-    ASTNode node = locator.searchWithin(unit.getDeclarations().get(1));
+    AstNode node = locator.searchWithin(unit.getDeclarations().get(1));
     assertNull(node);
-  }
-
-  private void assertLocate(CompilationUnit unit, int offset, Class<?> expectedClass)
-      throws Exception {
-    assertLocate(unit, offset, offset, expectedClass);
   }
 
   private void assertLocate(CompilationUnit unit, int start, int end, Class<?> expectedClass)
       throws Exception {
     NodeLocator locator = new NodeLocator(start, end);
-    ASTNode node = locator.searchWithin(unit);
+    AstNode node = locator.searchWithin(unit);
     assertNotNull(node);
     assertSame(node, locator.getFoundNode());
     assertTrue("Node starts after range", node.getOffset() <= start);

@@ -64,7 +64,7 @@ public class TypeParameter extends Declaration {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitTypeParameter(this);
   }
 
@@ -138,7 +138,7 @@ public class TypeParameter extends Declaration {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(name, visitor);
     safelyVisitChild(bound, visitor);

@@ -10,6 +10,7 @@ import
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
+import 'type_mask_test_helper.dart';
 
 
 String generateTest(String mapAllocation) {
@@ -21,7 +22,7 @@ String anotherKey = 'anotherKey';
 String presetKey = 'presetKey';
 
 class A {
-  var field;
+  final field;
   var nonFinalField;
 
   A(this.field);
@@ -214,21 +215,21 @@ void doTest(String allocation, [String keyElement,
             String valueElement]) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri,
-                             allowErrors: false, allowWarnings: false);
+      expectedErrors: 0, expectedWarnings: 1);
   asyncTest(() => compiler.runCompiler(uri).then((_) {
     var keyType, valueType;
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
     var emptyType = new TypeMask.nonNullEmpty();
-    var aKeyType
-      = typesInferrer.getTypeOfElement(findElement(compiler, 'aKey'));
+    var aKeyType =
+        typesInferrer.getTypeOfElement(findElement(compiler, 'aKey'));
     if (keyElement != null) {
-      keyType
-        = typesInferrer.getTypeOfElement(findElement(compiler, keyElement));
+      keyType =
+          typesInferrer.getTypeOfElement(findElement(compiler, keyElement));
     }
     if (valueElement != null) {
-      valueType
-        = typesInferrer.getTypeOfElement(findElement(compiler, valueElement));
+      valueType =
+          typesInferrer.getTypeOfElement(findElement(compiler, valueElement));
     }
     if (keyType == null) keyType = emptyType;
     if (valueType == null) valueType = emptyType;
@@ -236,12 +237,13 @@ void doTest(String allocation, [String keyElement,
     checkType(String name, keyType, valueType) {
       var element = findElement(compiler, name);
       MapTypeMask mask = typesInferrer.getTypeOfElement(element);
-      Expect.equals(keyType, mask.keyType.simplify(compiler), name);
-      Expect.equals(valueType, mask.valueType.simplify(compiler), name);
+      Expect.equals(keyType, simplify(mask.keyType, compiler), name);
+      Expect.equals(valueType, simplify(mask.valueType, compiler), name);
     }
 
-    K(TypeMask other) => keyType.union(other, compiler).simplify(compiler);
-    V(TypeMask other) => valueType.union(other, compiler).simplify(compiler);
+    K(TypeMask other) => simplify(keyType.union(other, compiler), compiler);
+    V(TypeMask other) =>
+        simplify(valueType.union(other, compiler), compiler).nullable();
 
     checkType('mapInField', K(aKeyType), V(typesTask.numType));
     checkType('mapPassedToMethod', K(aKeyType), V(typesTask.numType));

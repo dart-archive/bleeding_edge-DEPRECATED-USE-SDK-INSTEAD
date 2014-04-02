@@ -6,11 +6,11 @@
  ******************************************************************************/
 package com.xored.glance.ui.controls.tree;
 
-import org.eclipse.core.runtime.ListenerList;
-
 import com.xored.glance.ui.sources.ITextBlock;
 import com.xored.glance.ui.sources.ITextBlockListener;
 import com.xored.glance.ui.sources.TextChangedEvent;
+
+import org.eclipse.core.runtime.ListenerList;
 
 public class TreeItemContent implements ITextBlock {
 
@@ -26,35 +26,9 @@ public class TreeItemContent implements ITextBlock {
     this.column = column;
   }
 
-  public TreeNode getNode() {
-    return node;
-  }
-
-  @Override
-  public String getText() {
-    return text;
-  }
-
-  public void setText(String text) {
-    if (text.equals(this.text))
-      return;
-    int length = text.length();
-    TextChangedEvent event = new TextChangedEvent(0, length, this.text);
-    this.text = text;
-    for (Object object : listeners.getListeners()) {
-      ITextBlockListener listener = (ITextBlockListener) object;
-      listener.textChanged(event);
-    }
-  }
-
   @Override
   public void addTextBlockListener(ITextBlockListener listener) {
     listeners.add(listener);
-  }
-
-  @Override
-  public void removeTextBlockListener(ITextBlockListener listener) {
-    listeners.remove(listener);
   }
 
   @Override
@@ -65,6 +39,33 @@ public class TreeItemContent implements ITextBlock {
       return diff;
     }
     return column - item.column;
+  }
+
+  public TreeNode getNode() {
+    return node;
+  }
+
+  @Override
+  public String getText() {
+    return text;
+  }
+
+  @Override
+  public void removeTextBlockListener(ITextBlockListener listener) {
+    listeners.remove(listener);
+  }
+
+  public void setText(String text) {
+    if (text.equals(this.text)) {
+      return;
+    }
+    int length = text.length();
+    TextChangedEvent event = new TextChangedEvent(0, length, this.text);
+    this.text = text;
+    for (Object object : listeners.getListeners()) {
+      ITextBlockListener listener = (ITextBlockListener) object;
+      listener.textChanged(event);
+    }
   }
 
   @Override

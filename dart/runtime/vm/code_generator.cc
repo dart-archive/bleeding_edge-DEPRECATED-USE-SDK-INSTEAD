@@ -114,9 +114,8 @@ static intptr_t GetCallerLocation() {
 // Allocate a new object.
 // Arg0: class of the object that needs to be allocated.
 // Arg1: type arguments of the object that needs to be allocated.
-// Arg2: type arguments of the instantiator or kNoInstantiator.
 // Return value: newly allocated object.
-DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
+DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
   const Class& cls = Class::CheckedHandle(arguments.ArgAt(0));
   const Instance& instance = Instance::Handle(Instance::New(cls));
   arguments.SetReturn(instance);
@@ -127,48 +126,12 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
   }
   TypeArguments& type_arguments =
       TypeArguments::CheckedHandle(arguments.ArgAt(1));
-  // If no instantiator is provided, set the type arguments and return.
-  if (Object::Handle(arguments.ArgAt(2)).IsSmi()) {
-    ASSERT(Smi::CheckedHandle(arguments.ArgAt(2)).Value() ==
-           StubCode::kNoInstantiator);
-    // Unless null (for a raw type), the type argument vector may be longer than
-    // necessary due to a type optimization reusing the type argument vector of
-    // the instantiator.
-    ASSERT(type_arguments.IsNull() ||
-           (type_arguments.IsInstantiated() &&
-            (type_arguments.Length() >= cls.NumTypeArguments())));
-    instance.SetTypeArguments(type_arguments);  // May be null.
-    return;
-  }
-  // A still uninstantiated type argument vector must have the correct length.
-  ASSERT(!type_arguments.IsInstantiated() &&
-         (type_arguments.Length() == cls.NumTypeArguments()));
-  const TypeArguments& instantiator =
-      TypeArguments::CheckedHandle(arguments.ArgAt(2));
-  ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
-  // Code inlined in the caller should have optimized the case where the
-  // instantiator can be reused as type argument vector.
-  ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
-  if (FLAG_enable_type_checks) {
-    Error& bound_error = Error::Handle();
-    type_arguments =
-        type_arguments.InstantiateAndCanonicalizeFrom(instantiator,
-                                                      &bound_error);
-    if (!bound_error.IsNull()) {
-      // Throw a dynamic type error.
-      const intptr_t location = GetCallerLocation();
-      String& bound_error_message =  String::Handle(
-          String::New(bound_error.ToErrorCString()));
-      Exceptions::CreateAndThrowTypeError(
-          location, Symbols::Empty(), Symbols::Empty(),
-          Symbols::Empty(), bound_error_message);
-      UNREACHABLE();
-    }
-  } else {
-    type_arguments =
-        type_arguments.InstantiateAndCanonicalizeFrom(instantiator, NULL);
-  }
-  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
+  // Unless null (for a raw type), the type argument vector may be longer than
+  // necessary due to a type optimization reusing the type argument vector of
+  // the instantiator.
+  ASSERT(type_arguments.IsNull() ||
+         (type_arguments.IsInstantiated() &&
+          (type_arguments.Length() >= cls.NumTypeArguments())));
   instance.SetTypeArguments(type_arguments);
 }
 
@@ -219,55 +182,27 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
   ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
-  type_arguments =
-      type_arguments.InstantiateAndCanonicalizeFrom(instantiator, NULL);
-  ASSERT(type_arguments.IsInstantiated());
+  if (FLAG_enable_type_checks) {
+    Error& bound_error = Error::Handle();
+    type_arguments =
+        type_arguments.InstantiateAndCanonicalizeFrom(instantiator,
+                                                      &bound_error);
+    if (!bound_error.IsNull()) {
+      // Throw a dynamic type error.
+      const intptr_t location = GetCallerLocation();
+      String& bound_error_message =  String::Handle(
+          String::New(bound_error.ToErrorCString()));
+      Exceptions::CreateAndThrowTypeError(
+          location, Symbols::Empty(), Symbols::Empty(),
+          Symbols::Empty(), bound_error_message);
+      UNREACHABLE();
+    }
+  } else {
+    type_arguments =
+        type_arguments.InstantiateAndCanonicalizeFrom(instantiator, NULL);
+  }
+  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   arguments.SetReturn(type_arguments);
-}
-
-
-// Allocate a new closure.
-// The type argument vector of a closure is always the vector of type parameters
-// of its signature class, i.e. an uninstantiated identity vector. Therefore,
-// the instantiator type arguments can be used as the instantiated closure type
-// arguments and is passed here as the type arguments.
-// Arg0: local function.
-// Arg1: type arguments of the closure (i.e. instantiator).
-// Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
-  ASSERT(function.IsClosureFunction() && !function.IsImplicitClosureFunction());
-  const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments.ArgAt(1));
-  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
-  // The current context was saved in the Isolate structure when entering the
-  // runtime.
-  const Context& context = Context::Handle(isolate->top_context());
-  ASSERT(!context.IsNull());
-  const Instance& closure = Instance::Handle(Closure::New(function, context));
-  Closure::SetTypeArguments(closure, type_arguments);
-  arguments.SetReturn(closure);
-}
-
-
-// Allocate a new implicit instance closure.
-// Arg0: local function.
-// Arg1: receiver object.
-// Arg2: type arguments of the closure.
-// Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
-  ASSERT(function.IsImplicitInstanceClosureFunction());
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(1));
-  const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments.ArgAt(2));
-  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
-  Context& context = Context::Handle();
-  context = Context::New(1);
-  context.SetAt(0, receiver);
-  const Instance& closure = Instance::Handle(Closure::New(function, context));
-  Closure::SetTypeArguments(closure, type_arguments);
-  arguments.SetReturn(closure);
 }
 
 
@@ -666,9 +601,14 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   // target.
   ASSERT(target_code.EntryPoint() !=
          CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code));
-  CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code,
-                                 target_code.EntryPoint());
-  caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
+  const Instructions& instrs =
+      Instructions::Handle(caller_code.instructions());
+  {
+    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code,
+                                   target_code.EntryPoint());
+    caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
+  }
   if (FLAG_trace_patching) {
     OS::PrintErr("PatchStaticCall: patching from %#" Px " to '%s' %#" Px "\n",
         caller_frame->pc(),
@@ -1217,8 +1157,8 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     isolate->message_handler()->HandleOOBMessages();
   }
   if (interrupt_bits & Isolate::kApiInterrupt) {
-    // Signal isolate interrupt  event.
-    Debugger::SignalIsolateEvent(Debugger::kIsolateInterrupted);
+    // Signal isolate interrupt event.
+    Debugger::SignalIsolateInterrupted();
 
     Dart_IsolateInterruptCallback callback = isolate->InterruptCallback();
     if (callback) {
@@ -1279,7 +1219,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
       // code.
       uword optimized_entry =
           Instructions::Handle(optimized_code.instructions()).EntryPoint();
-      function.SetCode(original_code);
+      function.AttachCode(original_code);
       frame->set_pc(optimized_entry);
     }
   }
@@ -1363,9 +1303,13 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(target_function.raw() == target_code.function());
 
   const Code& current_target_code = Code::Handle(target_function.CurrentCode());
-  CodePatcher::PatchStaticCallAt(frame->pc(), caller_code,
-                                 current_target_code.EntryPoint());
-  caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
+  const Instructions& instrs = Instructions::Handle(caller_code.instructions());
+  {
+    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    CodePatcher::PatchStaticCallAt(frame->pc(), caller_code,
+                                   current_target_code.EntryPoint());
+    caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
+  }
   if (FLAG_trace_patching) {
     OS::PrintErr("FixCallersTarget: patching from %#" Px " to '%s' %#" Px "\n",
         frame->pc(),
@@ -1405,7 +1349,12 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   // is not a performance issue).
   uword lazy_deopt_jump = optimized_code.GetLazyDeoptPc();
   ASSERT(lazy_deopt_jump != 0);
-  CodePatcher::InsertCallAt(pc, lazy_deopt_jump);
+  const Instructions& instrs =
+      Instructions::Handle(optimized_code.instructions());
+  {
+    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    CodePatcher::InsertCallAt(pc, lazy_deopt_jump);
+  }
   if (FLAG_trace_patching) {
     const String& name = String::Handle(function.name());
     OS::PrintErr("InsertCallAt: %" Px " to %" Px " for %s\n", pc,

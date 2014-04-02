@@ -87,7 +87,7 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
       }
     }
     if (!function.IsNull()) {
-      const int total_num_parameters = function.NumParameters();
+      const intptr_t total_num_parameters = function.NumParameters();
       const Array& array = Array::Handle(Array::New(total_num_parameters - 1));
       // Skip receiver.
       for (int i = 1; i < total_num_parameters; i++) {
@@ -228,6 +228,14 @@ DEFINE_NATIVE_ENTRY(AbstractType_toString, 1) {
   const AbstractType& type =
       AbstractType::CheckedHandle(arguments->NativeArgAt(0));
   return type.UserVisibleName();
+}
+
+
+DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 1) {
+  const LibraryPrefix& prefix =
+      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+  prefix.LoadLibrary();
+  return Bool::Get(true).raw();
 }
 
 }  // namespace dart

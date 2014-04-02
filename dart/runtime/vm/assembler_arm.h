@@ -64,25 +64,6 @@ class Label : public ValueObject {
 };
 
 
-class CPUFeatures : public AllStatic {
- public:
-  static void InitOnce();
-  static bool double_truncate_round_supported() { return false; }
-  static bool integer_division_supported();
-  static bool neon_supported();
-#if defined(USING_SIMULATOR)
-  static void set_integer_division_supported(bool supported);
-  static void set_neon_supported(bool supported);
-#endif
- private:
-  static bool integer_division_supported_;
-  static bool neon_supported_;
-#if defined(DEBUG)
-  static bool initialized_;
-#endif
-};
-
-
 // Encodes Addressing Mode 1 - Data-processing operands.
 class ShifterOperand : public ValueObject {
  public:
@@ -313,6 +294,11 @@ class Assembler : public ValueObject {
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
+
+  // Count the fixups that produce a pointer offset, without processing
+  // the fixups.  On ARM there are no pointers in code.
+  intptr_t CountPointerOffsets() const { return 0; }
+
   const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
     ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
     return buffer_.pointer_offsets();
@@ -488,6 +474,8 @@ class Assembler : public ValueObject {
   void vmuld(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
   void vmulqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vmulqs(QRegister qd, QRegister qn, QRegister qm);
+  void vshlqi(OperandSize sz, QRegister qd, QRegister qm, QRegister qn);
+  void vshlqu(OperandSize sz, QRegister qd, QRegister qm, QRegister qn);
   void vmlas(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vmlad(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
   void vmlss(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
@@ -505,6 +493,7 @@ class Assembler : public ValueObject {
   void vorrq(QRegister qd, QRegister qn, QRegister qm);
   void vornq(QRegister qd, QRegister qn, QRegister qm);
   void vandq(QRegister qd, QRegister qn, QRegister qm);
+  void vmvnq(QRegister qd, QRegister qm);
 
   void vceqqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vceqqs(QRegister qd, QRegister qn, QRegister qm);
@@ -605,6 +594,8 @@ class Assembler : public ValueObject {
                      DRegister tmpl, DRegister tmpr);
 
   // Load and Store. May clobber IP.
+  void LoadPatchableImmediate(Register rd, int32_t value, Condition cond = AL);
+  void LoadDecodableImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadSImmediate(SRegister sd, float value, Condition cond = AL);
   void LoadDImmediate(DRegister dd, double value,
@@ -664,6 +655,15 @@ class Assembler : public ValueObject {
                       Register base,
                       int32_t offset,
                       Condition cond = AL);
+
+  void LoadMultipleDFromOffset(DRegister first,
+                               intptr_t count,
+                               Register base,
+                               int32_t offset);
+  void StoreMultipleDToOffset(DRegister first,
+                              intptr_t count,
+                              Register base,
+                              int32_t offset);
 
   void Push(Register rd, Condition cond = AL);
   void Pop(Register rd, Condition cond = AL);
@@ -769,6 +769,9 @@ class Assembler : public ValueObject {
 
   int32_t AddObject(const Object& obj);
   int32_t AddExternalLabel(const ExternalLabel* label);
+
+  void BindARMv6(Label* label);
+  void BindARMv7(Label* label);
 
   class CodeComment : public ZoneAllocated {
    public:

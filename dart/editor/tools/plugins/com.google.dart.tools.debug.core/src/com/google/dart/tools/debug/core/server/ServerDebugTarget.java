@@ -27,6 +27,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.IBreakpointManager;
+import org.eclipse.debug.core.IBreakpointManagerListener;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -43,7 +45,8 @@ import java.util.List;
 /**
  * An implementation of IDebugTarget for Dart VM debug connections.
  */
-public class ServerDebugTarget extends ServerDebugElement implements IDebugTarget, VmListener {
+public class ServerDebugTarget extends ServerDebugElement implements IDebugTarget, VmListener,
+    IBreakpointManagerListener {
 
   private static ServerDebugTarget activeTarget;
 
@@ -104,6 +107,11 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   @Override
   public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
     throw new NotYetImplementedException();
+  }
+
+  @Override
+  public void breakpointManagerEnablementChanged(boolean enabled) {
+    setBreakpointsActive(enabled);
   }
 
   @Override
@@ -181,7 +189,12 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public void connectionOpened(VmConnection connection) {
+    IBreakpointManager eclipseBpManager = DebugPlugin.getDefault().getBreakpointManager();
+    eclipseBpManager.addBreakpointManagerListener(this);
 
+    if (!eclipseBpManager.isEnabled()) {
+      setBreakpointsActive(false);
+    }
   }
 
   @Override
@@ -518,6 +531,12 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
       thread.fireTerminateEvent();
     }
+  }
+
+  private void setBreakpointsActive(boolean enabled) {
+    // TODO(devoncarew): we need for the command-line debugger to support enabling / disabling all
+    // breakpoints.
+
   }
 
   private void sleep(int millis) {

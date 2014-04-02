@@ -1,17 +1,14 @@
 library tokenizer_test;
 
 // Note: mirrors used to match the getattr usage in the original test
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:mirrors';
 import 'package:path/path.dart' as pathos;
 import 'package:unittest/unittest.dart';
 import 'package:html5lib/src/char_encodings.dart';
-import 'package:html5lib/src/constants.dart' as constants;
 import 'package:html5lib/src/token.dart';
 import 'package:html5lib/src/tokenizer.dart';
-import 'package:html5lib/src/utils.dart';
 import 'package:utf/utf.dart';
 import 'support.dart';
 
@@ -137,12 +134,10 @@ List normalizeTokens(List tokens) {
 }
 
 
-/**
- * Test whether the test has passed or failed
- *
- * If the ignoreErrorOrder flag is set to true we don't test the relative
- * positions of parse errors and non parse errors.
- */
+/// Test whether the test has passed or failed
+///
+/// If the ignoreErrorOrder flag is set to true we don't test the relative
+/// positions of parse errors and non parse errors.
 void expectTokensMatch(List expectedTokens, List receivedTokens,
     bool ignoreErrorOrder, [bool ignoreErrors = false, String message]) {
 

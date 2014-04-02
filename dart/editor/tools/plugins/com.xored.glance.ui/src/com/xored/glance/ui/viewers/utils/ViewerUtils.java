@@ -6,8 +6,6 @@
  ******************************************************************************/
 package com.xored.glance.ui.viewers.utils;
 
-import java.lang.reflect.Field;
-
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -16,6 +14,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TypedListener;
+
+import java.lang.reflect.Field;
 
 public class ViewerUtils {
 

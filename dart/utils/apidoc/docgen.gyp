@@ -80,6 +80,7 @@
             '--out=<(PRODUCT_DIR)/api_docs/docgen',
             '--json',
             '--include-sdk',
+            '--no-include-dependent-packages',
             '--package-root=<(PRODUCT_DIR)/packages',
             '--exclude-lib=async_helper',
             '--exclude-lib=expect',

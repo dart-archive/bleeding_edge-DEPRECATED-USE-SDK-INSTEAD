@@ -18,7 +18,6 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelStatus;
 import com.google.dart.tools.core.model.DartModelStatusConstants;
 
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
@@ -30,17 +29,6 @@ import org.eclipse.core.runtime.Status;
  */
 public class DartModelStatusImpl extends Status implements DartModelStatus,
     DartModelStatusConstants {
-  /**
-   * The Dart elements associated with the failure (see specification of the status code), or
-   * <code>null</code> if no elements are related to this particular status code.
-   */
-  private DartElement[] elements = DartElement.EMPTY_ARRAY;
-
-  /**
-   * The path related to the failure, or <code>null</code> if no path is involved.
-   */
-  private IPath path;
-
   /**
    * An array containing the children of this status object.
    */
@@ -81,12 +69,10 @@ public class DartModelStatusImpl extends Status implements DartModelStatus,
 
   public DartModelStatusImpl(int code, DartElement element, String message) {
     super(Status.ERROR, DartCore.PLUGIN_ID, code, message, null);
-    elements = new DartElement[] {element};
   }
 
   public DartModelStatusImpl(int code, DartElement[] elements) {
     super(Status.ERROR, DartCore.PLUGIN_ID, code, "DartModelStatus", null); //$NON-NLS-1$
-    this.elements = elements;
   }
 
   /**
@@ -136,16 +122,6 @@ public class DartModelStatusImpl extends Status implements DartModelStatus,
   @Override
   public IStatus[] getChildren() {
     return children;
-  }
-
-  @Override
-  public DartElement[] getElements() {
-    return elements;
-  }
-
-  @Override
-  public IPath getPath() {
-    return path;
   }
 
   @Override

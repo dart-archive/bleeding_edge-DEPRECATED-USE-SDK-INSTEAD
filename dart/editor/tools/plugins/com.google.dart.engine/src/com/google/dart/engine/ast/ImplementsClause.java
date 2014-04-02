@@ -28,7 +28,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public class ImplementsClause extends ASTNode {
+public class ImplementsClause extends AstNode {
   /**
    * The token representing the 'implements' keyword.
    */
@@ -51,7 +51,7 @@ public class ImplementsClause extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitImplementsClause(this);
   }
 
@@ -93,7 +93,7 @@ public class ImplementsClause extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     interfaces.accept(visitor);
   }
 }

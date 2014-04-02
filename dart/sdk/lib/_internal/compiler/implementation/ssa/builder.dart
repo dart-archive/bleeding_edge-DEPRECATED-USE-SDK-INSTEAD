@@ -6,10 +6,10 @@ part of ssa;
 
 /**
  * A special element for the extra parameter taken by intercepted
- * methods. We need to override [Element.computeType] because our
+ * methods. We need to implement [TypedElement.type] because our
  * optimizers may look at its declared type.
  */
-class InterceptedElement extends ElementX {
+class InterceptedElement extends ElementX implements TypedElement {
   final DartType type;
   InterceptedElement(this.type, String name, Element enclosing)
       : super(name, ElementKind.PARAMETER, enclosing);
@@ -35,8 +35,8 @@ class SsaBuilderTask extends CompilerTask {
       Element element = work.element.implementation;
       return compiler.withCurrentElement(element, () {
         HInstruction.idCounter = 0;
-        SsaFromAstBuilder builder =
-            new SsaFromAstBuilder(backend, work, emitter.nativeEmitter);
+        SsaBuilder builder =
+            new SsaBuilder(backend, work, emitter.nativeEmitter);
         HGraph graph;
         ElementKind kind = element.kind;
         if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
@@ -54,13 +54,12 @@ class SsaBuilderTask extends CompilerTask {
             graph = builder.buildLazyInitializer(element);
           }
         } else {
-          compiler.internalErrorOnElement(element,
-                                          'unexpected element kind $kind');
+          compiler.internalError(element, 'Unexpected element kind $kind.');
         }
         assert(graph.isValid());
         if (!identical(kind, ElementKind.FIELD)) {
           FunctionElement function = element;
-          FunctionSignature signature = function.computeSignature(compiler);
+          FunctionSignature signature = function.functionSignature;
           signature.forEachOptionalParameter((Element parameter) {
             // This ensures the default value will be computed.
             Constant constant =
@@ -91,7 +90,7 @@ class SsaBuilderTask extends CompilerTask {
     });
   }
 
-  HGraph compileConstructor(SsaFromAstBuilder builder, CodegenWorkItem work) {
+  HGraph compileConstructor(SsaBuilder builder, CodegenWorkItem work) {
     return builder.buildFactory(work.element);
   }
 }
@@ -114,7 +113,7 @@ class LocalsHandler {
    */
   Map<Element, HInstruction> directLocals;
   Map<Element, Element> redirectionMapping;
-  SsaFromAstMixin builder;
+  SsaBuilder builder;
   ClosureClassMap closureData;
 
   LocalsHandler(this.builder)
@@ -159,7 +158,7 @@ class LocalsHandler {
    * If the scope (function or loop) [node] has captured variables then this
    * method creates a box and sets up the redirections.
    */
-  void enterScope(Node node, Element element) {
+  void enterScope(ast.Node node, Element element) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
     ClosureScope scopeData = closureData.capturingScopes[node];
@@ -223,7 +222,7 @@ class LocalsHandler {
    *
    * Invariant: [function] must be an implementation element.
    */
-  void startFunction(Element element, Expression node) {
+  void startFunction(Element element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
     Compiler compiler = builder.compiler;
     closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
@@ -231,7 +230,7 @@ class LocalsHandler {
 
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
-      FunctionSignature params = functionElement.computeSignature(compiler);
+      FunctionSignature params = functionElement.functionSignature;
       params.orderedForEachParameter((Element parameterElement) {
         if (element.isGenerativeConstructorBody()) {
           ClosureScope scopeData = closureData.capturingScopes[node];
@@ -293,7 +292,7 @@ class LocalsHandler {
       bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
       String name = isInterceptorClass ? 'receiver' : '_';
       Element parameter = new InterceptedElement(
-          cls.computeType(compiler), name, element);
+          cls.thisType, name, element);
       HParameterValue value =
           new HParameterValue(parameter, builder.getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
@@ -305,7 +304,7 @@ class LocalsHandler {
       }
     } else if (isNativeUpgradeFactory) {
       Element parameter = new InterceptedElement(
-          cls.computeType(compiler), 'receiver', element);
+          cls.thisType, 'receiver', element);
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
       HParameterValue value =
@@ -356,13 +355,11 @@ class LocalsHandler {
     if (isAccessedDirectly(element)) {
       if (directLocals[element] == null) {
         if (element.isTypeVariable()) {
-          builder.compiler.internalError(
-              "Runtime type information not available for $element",
-              element: builder.compiler.currentElement);
+          builder.compiler.internalError(builder.compiler.currentElement,
+              "Runtime type information not available for $element.");
         } else {
-          builder.compiler.internalError(
-              "Cannot find value $element",
-              element: element);
+          builder.compiler.internalError(element,
+              "Cannot find value $element.");
         }
       }
       return directLocals[element];
@@ -454,16 +451,16 @@ class LocalsHandler {
    * initializers.
    *
    * The [LocalsHandler] will make the boxes and updates at the right moment.
-   * The builder just needs to call [enterLoopBody] and [enterLoopUpdates] (for
-   * [For] loops) at the correct places. For phi-handling [beginLoopHeader] and
-   * [endLoop] must also be called.
+   * The builder just needs to call [enterLoopBody] and [enterLoopUpdates]
+   * (for [ast.For] loops) at the correct places. For phi-handling
+   * [beginLoopHeader] and [endLoop] must also be called.
    *
    * The correct place for the box depends on the given loop. In most cases
    * the box will be created when entering the loop-body: while, do-while, and
    * for-in (assuming the call to [:next:] is inside the body) can always be
    * constructed this way.
    *
-   * Things are slightly more complicated for [For] loops. If no declared
+   * Things are slightly more complicated for [ast.For] loops. If no declared
    * loop variable is boxed then the loop-body approach works here too. If a
    * loop-variable is boxed we need to introduce a new box for the
    * loop-variable before we enter the initializer so that the initializer
@@ -483,7 +480,7 @@ class LocalsHandler {
    *     print("--");
    *     for (var i = 0; i < 2; i++) fs[i]();
    *
-   * We solve this by emitting the following code (only for [For] loops):
+   * We solve this by emitting the following code (only for [ast.For] loops):
    *  <Create box>    <== move the first box creation outside the loop.
    *  <initializer>;
    *  loop-entry:
@@ -494,7 +491,7 @@ class LocalsHandler {
    *    goto loop-entry;
    *  loop-exit:
    */
-  void startLoop(Node node) {
+  void startLoop(ast.Node node) {
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData == null) return;
     if (scopeData.hasBoxedLoopVariables()) {
@@ -532,7 +529,7 @@ class LocalsHandler {
     });
   }
 
-  void enterLoopBody(Node node) {
+  void enterLoopBody(ast.Node node) {
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData == null) return;
     // If there are no declared boxed loop variables then we did not create the
@@ -542,7 +539,7 @@ class LocalsHandler {
     }
   }
 
-  void enterLoopUpdates(Node node) {
+  void enterLoopUpdates(ast.Node node) {
     // If there are declared boxed loop variables then the updates might have
     // access to the box and we must switch to a new box before executing the
     // updates.
@@ -672,7 +669,7 @@ class JumpHandlerEntry {
 
 
 abstract class JumpHandler {
-  factory JumpHandler(SsaFromAstMixin builder, TargetElement target) {
+  factory JumpHandler(SsaBuilder builder, TargetElement target) {
     return new TargetJumpHandler(builder, target);
   }
   void generateBreak([LabelElement label]);
@@ -696,11 +693,13 @@ class NullJumpHandler implements JumpHandler {
   NullJumpHandler(this.compiler);
 
   void generateBreak([LabelElement label]) {
-    compiler.internalError('generateBreak should not be called');
+    compiler.internalError(CURRENT_ELEMENT_SPANNABLE,
+        'NullJumpHandler.generateBreak should not be called.');
   }
 
   void generateContinue([LabelElement label]) {
-    compiler.internalError('generateContinue should not be called');
+    compiler.internalError(CURRENT_ELEMENT_SPANNABLE,
+        'NullJumpHandler.generateContinue should not be called.');
   }
 
   void forEachBreak(Function ignored) { }
@@ -718,11 +717,11 @@ class NullJumpHandler implements JumpHandler {
 // Continues in loops are implemented as breaks of the body.
 // Continues in switches is currently not handled.
 class TargetJumpHandler implements JumpHandler {
-  final SsaFromAstMixin builder;
+  final SsaBuilder builder;
   final TargetElement target;
   final List<JumpHandlerEntry> jumps;
 
-  TargetJumpHandler(SsaFromAstMixin builder, this.target)
+  TargetJumpHandler(SsaBuilder builder, this.target)
       : this.builder = builder,
         jumps = <JumpHandlerEntry>[] {
     assert(builder.jumpTargets[target] == null);
@@ -749,7 +748,7 @@ class TargetJumpHandler implements JumpHandler {
       continueInstruction = new HContinue.toLabel(label);
       // Switch case continue statements must be handled by the
       // [SwitchCaseJumpHandler].
-      assert(label.target.statement is! SwitchCase);
+      assert(label.target.statement is! ast.SwitchCase);
     }
     LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
     builder.close(continueInstruction);
@@ -804,18 +803,18 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
   /// switch case loop.
   final Map<TargetElement, int> targetIndexMap = new Map<TargetElement, int>();
 
-  SwitchCaseJumpHandler(SsaFromAstMixin builder,
+  SwitchCaseJumpHandler(SsaBuilder builder,
                         TargetElement target,
-                        SwitchStatement node)
+                        ast.SwitchStatement node)
       : super(builder, target) {
     // The switch case indices must match those computed in
     // [SsaFromAstMixin.buildSwitchCaseConstants].
     // Switch indices are 1-based so we can bypass the synthetic loop when no
     // cases match simply by branching on the index (which defaults to null).
     int switchIndex = 1;
-    for (SwitchCase switchCase in node.cases) {
-      for (Node labelOrCase in switchCase.labelsAndCases) {
-        Node label = labelOrCase.asLabel();
+    for (ast.SwitchCase switchCase in node.cases) {
+      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+        ast.Node label = labelOrCase.asLabel();
         if (label != null) {
           LabelElement labelElement = builder.elements[label];
           if (labelElement != null && labelElement.isContinueTarget) {
@@ -882,82 +881,38 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
 }
 
 /**
- * This mixin implements functionality that is shared between [SsaFromIrBuilder]
- * and [SsaFromAstBuilder].
- *
- * The type parameter [N] represents the node type from which the SSA form is
- * built, either [IrNode] or [Node].
- *
- * The following diagram shows the mixin structure of the AST and IR builders
- * and inliners, which is explained in the text below.
- *
- *                                 SsaBuilderMixin
- *                     ___________/   |     |     \_________
- *                    /               |     |               \
- *     SsaBuilderDelegate            /       \            SsaBuilderFields
- *       |     |                    /         \                  /     |
- *       |     |        SsaFromAstMixin      SsaFromIrMixin     /      |
- *       |      \    _____/    |       _____________|____\_____/       |
- *       |       \__/__________|______/______       |     \______      |
- *       |         /           |     /       \      |            \     |
- * SsaFromAstInliner   SsaFromAstBuilder    SsaFromIrInliner   SsaFromIrBuilder
- *
- * The entry point to building an SSA graph is either an [SsaFromAstBuilder] or
- * an [SsaFromIrBuilder]. These builder classes hold the [HGraph] data structure
- * (inherited from [SsaBuilderFields]) into which blocks and instructions are
- * inserted. The visitor methods for IR / AST nodes are defined in the
- * [SsaFromIrMixin] / [SsaFromAstMixin] mixins.
- *
- * When inlining a function invocation of the same kind (SSA function in SSA
- * builder, for example), the state of the builder pushed on the [inliningStack]
- * and the same builder instance continues visiting the inlined function's body.
- *
- * When inlining a function of the other kind, the builder state is also pushed
- * on the inlining stack, and an inliner instance is created.
- *
- * We consider inlining an IR function into an AST builder, which creates an
- * [SsaFromIrInliner]. The IR inliner implements an IR visitor (defined in the
- * [SsaFromIrMixin]) and inserts SSA instructions into the [HGraph] of the
- * AST builder by delegation (inherited from the [SsaBuilderDelegate] mixin).
- * When encountering the [:return:] instruction (inlining is only performed if
- * there is exactly one), the IR inliner updates the [returnElement] field of
- * the AST builder.
- *
- * In the opposite case (inlining an AST function into an IR builder), the AST
- * inliner updates the [emitted] map of the IR builder with the return value.
- *
- * Finally, inlining can be nested. For example, we might start with an AST
- * builder and inline an invocation of an IR function. The IR inliner will
- * then again inline invocations of functions that are in either IR or AST.
- *
- * Note that [SsaBuilderMixin] does not define any fields because the inliner
- * subclasses are implemented using delegation ([SsaBuilderDelegate]). The
- * builder subclasses implement most of the properties as fields by extending
- * [SsaBuilderFields].
+ * This class builds SSA nodes for functions represented in AST.
  */
-abstract class SsaBuilderMixin<N> {
-  Compiler get compiler;
+class SsaBuilder extends ResolvedVisitor {
+  final JavaScriptBackend backend;
+  final ConstantSystem constantSystem;
+  final CodegenWorkItem work;
+  final RuntimeTypes rti;
 
-  JavaScriptBackend get backend;
+  /* This field is used by the native handler. */
+  final NativeEmitter nativeEmitter;
 
-  HGraph get graph;
+  final HGraph graph = new HGraph();
 
   /**
    * The current block to add instructions to. Might be null, if we are
    * visiting dead code, but see [isReachable].
    */
-  HBasicBlock get current;
+  HBasicBlock _current;
 
-  void set current(HBasicBlock block);
+  HBasicBlock get current => _current;
+
+  void set current(c) {
+    isReachable = c != null;
+    _current = c;
+  }
 
   /**
    * The most recently opened block. Has the same value as [current] while
    * the block is open, but unlike [current], it isn't cleared when the
    * current block is closed.
    */
-  HBasicBlock get lastOpenedBlock;
-
-  void set lastOpenedBlock(HBasicBlock block);
+  HBasicBlock lastOpenedBlock;
 
   /**
    * Indicates whether the current block is dead (because it has a throw or a
@@ -966,33 +921,57 @@ abstract class SsaBuilderMixin<N> {
    * abort on statement boundaries, not in the middle of expressions. See
    * isAborted.
    */
-  bool get isReachable;
-
-  void set isReachable(bool value);
+  bool isReachable = true;
 
   /**
    * True if we are visiting the expression of a throw statement.
    */
-  bool get inThrowExpression;
-
-  void set inThrowExpression(bool value);
+  bool inThrowExpression = false;
 
   /**
    * The loop nesting is consulted when inlining a function invocation in
    * [tryInlineMethod]. The inlining heuristics take this information into
    * account.
    */
-  int get loopNesting;
-
-  void set loopNesting(int value);
-
-  List<InliningState> get inliningStack;
+  int loopNesting = 0;
 
   /**
    * This stack contains declaration elements of the functions being built
    * or inlined by this builder.
    */
-  List<Element> get sourceElementStack;
+  final List<Element> sourceElementStack = <Element>[];
+
+  LocalsHandler localsHandler;
+
+  HInstruction rethrowableException;
+
+  HParameterValue lastAddedParameter;
+
+  Map<Element, HInstruction> parameters = <Element, HInstruction>{};
+
+  Map<TargetElement, JumpHandler> jumpTargets = <TargetElement, JumpHandler>{};
+
+  /**
+   * Variables stored in the current activation. These variables are
+   * being updated in try/catch blocks, and should be
+   * accessed indirectly through [HLocalGet] and [HLocalSet].
+   */
+  Map<Element, HLocalValue> activationVariables = <Element, HLocalValue>{};
+
+  // We build the Ssa graph by simulating a stack machine.
+  List<HInstruction> stack = <HInstruction>[];
+
+  SsaBuilder(JavaScriptBackend backend,
+             CodegenWorkItem work,
+             this.nativeEmitter)
+    : this.backend = backend,
+      this.constantSystem = backend.constantSystem,
+      this.work = work,
+      this.rti = backend.rti,
+      super(work.resolutionTree, backend.compiler) {
+    localsHandler = new LocalsHandler(this);
+    sourceElementStack.add(work.element);
+  }
 
   Element get sourceElement => sourceElementStack.last;
 
@@ -1048,11 +1027,9 @@ abstract class SsaBuilderMixin<N> {
     current.add(instruction);
   }
 
-  void addWithPosition(HInstruction instruction, N node) {
+  void addWithPosition(HInstruction instruction, ast.Node node) {
     add(attachPosition(instruction, node));
   }
-
-  HInstruction attachPosition(HInstruction instruction, N node);
 
   SourceFile currentSourceFile() {
     Element element = sourceElement;
@@ -1082,7 +1059,7 @@ abstract class SsaBuilderMixin<N> {
       FunctionElement function,
       Selector selector,
       List<HInstruction> providedArguments,
-      N currentNode) {
+      ast.Node currentNode) {
     assert(invariant(function, function.isImplementation));
     assert(providedArguments != null);
 
@@ -1121,7 +1098,7 @@ abstract class SsaBuilderMixin<N> {
       FunctionElement function,
       List<HInstruction> providedArguments) {
     assert(selector.applies(function, compiler));
-    FunctionSignature signature = function.computeSignature(compiler);
+    FunctionSignature signature = function.functionSignature;
     List<HInstruction> compiledArguments = new List<HInstruction>(
         signature.parameterCount + 1); // Plus one for receiver.
 
@@ -1172,29 +1149,18 @@ abstract class SsaBuilderMixin<N> {
   }
 
   /**
-   * Prepares the state of the builder for inlining an invocaiton of [function].
-   */
-  void enterInlinedMethod(FunctionElement function,
-                          N currentNode,
-                          List<HInstruction> compiledArguments);
-
-  void leaveInlinedMethod();
-
-  /**
    * Try to inline [element] within the currect context of the builder. The
    * insertion point is the state of the builder.
    */
   bool tryInlineMethod(Element element,
                        Selector selector,
                        List<HInstruction> providedArguments,
-                       N currentNode) {
+                       ast.Node currentNode) {
     backend.registerStaticUse(element, compiler.enqueuer.codegen);
 
     // Ensure that [element] is an implementation element.
     element = element.implementation;
     FunctionElement function = element;
-    bool hasIr = compiler.irBuilder.hasIr(function);
-
     bool insideLoop = loopNesting > 0 || graph.calledInLoop;
 
     // Bail out early if the inlining decision is in the cache and we can't
@@ -1286,15 +1252,9 @@ abstract class SsaBuilderMixin<N> {
         useMaxInliningNodes = false;
       }
       bool canInline;
-      if (hasIr) {
-        IrFunction irFunction = compiler.irBuilder.getIr(function);
-        canInline = IrInlineWeeder.canBeInlined(
-            irFunction, maxInliningNodes, useMaxInliningNodes);
-      } else {
-        FunctionExpression functionNode = function.parseNode(compiler);
-        canInline = InlineWeeder.canBeInlined(
-            functionNode, maxInliningNodes, useMaxInliningNodes);
-      }
+      ast.FunctionExpression functionNode = function.parseNode(compiler);
+      canInline = InlineWeeder.canBeInlined(
+          functionNode, maxInliningNodes, useMaxInliningNodes);
       if (canInline) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
       } else {
@@ -1336,10 +1296,6 @@ abstract class SsaBuilderMixin<N> {
     return false;
   }
 
-  void emitReturn(HInstruction value, N node);
-
-  void doInline(FunctionElement function);
-
   inlinedFrom(Element element, f()) {
     assert(element is FunctionElement || element is VariableElement);
     return compiler.withCurrentElement(element, () {
@@ -1358,127 +1314,6 @@ abstract class SsaBuilderMixin<N> {
         message: 'No constant computed for $parameter'));
     return graph.addConstant(constant, compiler);
   }
-
-  /**
-   * In checked mode, generate type tests for the parameters of the inlined
-   * function.
-   */
-  void potentiallyCheckInlinedParameterTypes(FunctionElement function);
-
-  /**
-   * Some dynamic invocations are known to not use default arguments.
-   */
-  bool providedArgumentsKnownToBeComplete(N currentNode);
-}
-
-/**
- * This class defines the abstract properties of [SsaBuilderMixin] as fields.
- * It is mixed into [SsaFromAstBuilder] and [SsaFromIrBuilder].
- */
-abstract class SsaBuilderFields<N> implements SsaBuilderMixin<N> {
-  final HGraph graph = new HGraph();
-
-  HBasicBlock _current;
-
-  HBasicBlock get current => _current;
-
-  void set current(c) {
-    isReachable = c != null;
-    _current = c;
-  }
-
-  HBasicBlock lastOpenedBlock;
-
-  bool isReachable = true;
-
-  bool inThrowExpression = false;
-
-  int loopNesting = 0;
-
-  final List<Element> sourceElementStack = <Element>[];
-}
-
-/**
- * This class defines the abstract properties of [SsaBuilderMixin] by
- * delegation to the [builder], which is either an [SsaFromAstBuilder] or an
- * [SsaFromIrBuilder].
- * It is mixed into [SsaFromAstInliner] and [SsaFromIrInliner].
- */
-abstract class SsaBuilderDelegate<N, M> implements SsaBuilderMixin<N> {
-  SsaBuilderFields<M> get builder;
-
-  Compiler get compiler => builder.compiler;
-
-  JavaScriptBackend get backend => builder.backend;
-
-  Element get sourceElement => builder.sourceElementStack.last;
-
-  HGraph get graph => builder.graph;
-
-  HBasicBlock get current => builder.current;
-
-  void set current(HBasicBlock block) {
-    builder.current = block;
-  }
-
-  HBasicBlock get lastOpenedBlock => builder.lastOpenedBlock;
-
-  void set lastOpenedBlock(HBasicBlock block) {
-    builder.lastOpenedBlock = block;
-  }
-
-  bool get isReachable => builder.isReachable;
-
-  void set isReachable(bool value) {
-    builder.isReachable = value;
-  }
-
-  bool get inThrowExpression => builder.inThrowExpression;
-
-  void set inThrowExpression(bool value) {
-    builder.inThrowExpression = value;
-  }
-
-  int get loopNesting => builder.loopNesting;
-
-  void set loopNesting(int value) {
-    builder.loopNesting = value;
-  }
-
-  List<InliningState> get inliningStack => builder.inliningStack;
-
-  List<Element> get sourceElementStack => builder.sourceElementStack;
-}
-
-/**
- * This class is a tree visitor which builds SSA nodes. It is mixed into
- * [SsaFromAstBuilder] and [SsaFromAstInliner].
- */
-abstract class SsaFromAstMixin
-    implements ResolvedVisitor, SsaBuilderMixin<Node> {
-  CodegenWorkItem get work;
-  ConstantSystem get constantSystem;
-  RuntimeTypes get rti;
-
-  LocalsHandler localsHandler;
-
-  HInstruction rethrowableException;
-
-  HParameterValue lastAddedParameter;
-
-  Map<Element, HInstruction> parameters = <Element, HInstruction>{};
-
-  Map<TargetElement, JumpHandler> jumpTargets = <TargetElement, JumpHandler>{};
-
-  /**
-   * Variables stored in the current activation. These variables are
-   * being updated in try/catch blocks, and should be
-   * accessed indirectly through [HLocalGet] and [HLocalSet].
-   */
-  Map<Element, HLocalValue> activationVariables = <Element, HLocalValue>{};
-
-  // We build the Ssa graph by simulating a stack machine.
-  List<HInstruction> stack = <HInstruction>[];
 
   Element get currentNonClosureClass {
     ClassElement cls = sourceElement.getEnclosingClass();
@@ -1512,14 +1347,14 @@ abstract class SsaFromAstMixin
 
   bool inTryStatement = false;
 
-  Constant getConstantForNode(Node node) {
+  Constant getConstantForNode(ast.Node node) {
     Constant constant = elements.getConstant(node);
     assert(invariant(node, constant != null,
         message: 'No constant computed for $node'));
     return constant;
   }
 
-  HInstruction addConstant(Node node) {
+  HInstruction addConstant(ast.Node node) {
     return graph.addConstant(getConstantForNode(node), compiler);
   }
 
@@ -1568,7 +1403,7 @@ abstract class SsaFromAstMixin
   HGraph buildMethod(FunctionElement functionElement) {
     assert(invariant(functionElement, functionElement.isImplementation));
     graph.calledInLoop = compiler.world.isCalledInLoop(functionElement);
-    FunctionExpression function = functionElement.parseNode(compiler);
+    ast.FunctionExpression function = functionElement.parseNode(compiler);
     assert(function != null);
     assert(!function.modifiers.isExternal());
     assert(elements[function] != null);
@@ -1609,19 +1444,18 @@ abstract class SsaFromAstMixin
     // to be the first parameter.
     graph.entry.addBefore(graph.entry.last, parameter);
     HInstruction value =
-        potentiallyCheckType(parameter, field.computeType(compiler));
+        potentiallyCheckType(parameter, field.type);
     add(new HFieldSet(field, thisInstruction, value));
     return closeFunction();
   }
 
   HGraph buildLazyInitializer(VariableElement variable) {
-    SendSet node = variable.parseNode(compiler);
+    ast.Node node = variable.parseNode(compiler);
     openFunction(variable, node);
-    Link<Node> link = node.arguments;
-    assert(!link.isEmpty && link.tail.isEmpty);
-    visit(link.head);
+    assert(variable.initializer != null);
+    visit(variable.initializer);
     HInstruction value = pop();
-    value = potentiallyCheckType(value, variable.computeType(compiler));
+    value = potentiallyCheckType(value, variable.type);
     closeAndGotoExit(new HReturn(value));
     return closeFunction();
   }
@@ -1636,7 +1470,7 @@ abstract class SsaFromAstMixin
     assert(constructor.isGenerativeConstructor());
     assert(invariant(constructor, constructor.isImplementation));
     if (constructor.isSynthesized) return null;
-    FunctionExpression node = constructor.parseNode(compiler);
+    ast.FunctionExpression node = constructor.parseNode(compiler);
     // If we know the body doesn't have any code, we don't generate it.
     if (!node.hasBody()) return null;
     if (node.hasEmptyBody()) return null;
@@ -1690,85 +1524,65 @@ abstract class SsaFromAstMixin
    */
   void setupStateForInlining(FunctionElement function,
                              List<HInstruction> compiledArguments) {
-    bool hasIr = compiler.irBuilder.hasIr(function);
     localsHandler = new LocalsHandler(this);
-    if (hasIr) {
-      // If the inlined function is in IR, the inliner will not use the locals
-      // handler of this class. However, it will use the [returnElement].
-      // When creating the [returnElement] (see below), the invocation of
-      // [updateLocal] requires [closureData] to be non-null.
-      localsHandler.closureData =
-          new ClosureClassMap(null, null, null, new ThisElement(function));
-    } else {
-      localsHandler.closureData =
-          compiler.closureToClassMapper.computeClosureToClassMapping(
-              function, function.parseNode(compiler), elements);
-    }
+    localsHandler.closureData =
+        compiler.closureToClassMapper.computeClosureToClassMapping(
+            function, function.parseNode(compiler), elements);
     // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
     returnElement = new VariableElementX.synthetic("result",
         ElementKind.VARIABLE, function);
     localsHandler.updateLocal(returnElement,
         graph.addConstantNull(compiler));
 
-    // If the inlined function is in IR, the [SsaFromIrInliner] will use the
-    // the [returnElement]. The remaining state of this AST builder is not used
-    // and does need to be set up.
-    if (!hasIr) {
-      inTryStatement = false; // TODO(lry): why? Document.
+    inTryStatement = false; // TODO(lry): why? Document.
 
-      int argumentIndex = 0;
-      if (function.isInstanceMember()) {
-        localsHandler.updateLocal(localsHandler.closureData.thisElement,
-            compiledArguments[argumentIndex++]);
-      }
-
-      FunctionSignature signature = function.computeSignature(compiler);
-      signature.orderedForEachParameter((Element parameter) {
-        HInstruction argument = compiledArguments[argumentIndex++];
-        localsHandler.updateLocal(parameter, argument);
-      });
-
-      ClassElement enclosing = function.getEnclosingClass();
-      if ((function.isConstructor() || function.isGenerativeConstructorBody())
-          && backend.classNeedsRti(enclosing)) {
-        enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
-          HInstruction argument = compiledArguments[argumentIndex++];
-          localsHandler.updateLocal(typeVariable.element, argument);
-        });
-      }
-      assert(argumentIndex == compiledArguments.length);
-
-      elements = compiler.enqueuer.resolution.getCachedElements(function);
-      assert(elements != null);
-      returnType = signature.returnType;
-      stack = <HInstruction>[];
+    int argumentIndex = 0;
+    if (function.isInstanceMember()) {
+      localsHandler.updateLocal(localsHandler.closureData.thisElement,
+          compiledArguments[argumentIndex++]);
     }
+
+    FunctionSignature signature = function.functionSignature;
+    signature.orderedForEachParameter((Element parameter) {
+      HInstruction argument = compiledArguments[argumentIndex++];
+      localsHandler.updateLocal(parameter, argument);
+    });
+
+    ClassElement enclosing = function.getEnclosingClass();
+    if ((function.isConstructor() || function.isGenerativeConstructorBody())
+        && backend.classNeedsRti(enclosing)) {
+      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
+        HInstruction argument = compiledArguments[argumentIndex++];
+        localsHandler.updateLocal(typeVariable.element, argument);
+      });
+    }
+    assert(argumentIndex == compiledArguments.length);
+
+    elements = compiler.enqueuer.resolution.getCachedElements(function);
+    assert(elements != null);
+    returnType = signature.type.returnType;
+    stack = <HInstruction>[];
   }
 
   void restoreState(AstInliningState state) {
     localsHandler = state.oldLocalsHandler;
     returnElement = state.oldReturnElement;
-    if (state.irInliner == null) {
-      // These fields only need to be restored if the function that was inlined
-      // is in AST form, see [setupStateForInlining] above.
-      inTryStatement = state.inTryStatement;
-      elements = state.oldElements;
-      returnType = state.oldReturnType;
-      assert(stack.isEmpty);
-      stack = state.oldStack;
-    }
+    inTryStatement = state.inTryStatement;
+    elements = state.oldElements;
+    returnType = state.oldReturnType;
+    assert(stack.isEmpty);
+    stack = state.oldStack;
   }
 
   /**
    * Run this builder on the body of the [function] to be inlined.
    */
   void visitInlinedFunction(FunctionElement function) {
-    assert(!compiler.irBuilder.hasIr(function));
     potentiallyCheckInlinedParameterTypes(function);
     if (function.isGenerativeConstructor()) {
       buildFactory(function);
     } else {
-      FunctionExpression functionNode = function.parseNode(compiler);
+      ast.FunctionExpression functionNode = function.parseNode(compiler);
       functionNode.body.accept(this);
     }
   }
@@ -1786,7 +1600,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  bool providedArgumentsKnownToBeComplete(Node currentNode) {
+  bool providedArgumentsKnownToBeComplete(ast.Node currentNode) {
     /* When inlining the iterator methods generated for a [:for-in:] loop, the
      * [currentNode] is the [ForIn] tree. The compiler-generated iterator
      * invocations are known to have fully specified argument lists, no default
@@ -1796,11 +1610,15 @@ abstract class SsaFromAstMixin
     return currentNode.asForIn() != null;
   }
 
+  /**
+   * In checked mode, generate type tests for the parameters of the inlined
+   * function.
+   */
   void potentiallyCheckInlinedParameterTypes(FunctionElement function) {
-    FunctionSignature signature = function.computeSignature(compiler);
-    signature.orderedForEachParameter((Element parameter) {
+    FunctionSignature signature = function.functionSignature;
+    signature.orderedForEachParameter((ParameterElement parameter) {
       HInstruction argument = localsHandler.readLocal(parameter);
-      potentiallyCheckType(argument, parameter.computeType(compiler));
+      potentiallyCheckType(argument, parameter.type);
     });
   }
 
@@ -1855,7 +1673,7 @@ abstract class SsaFromAstMixin
       }
 
       int index = 0;
-      FunctionSignature params = callee.computeSignature(compiler);
+      FunctionSignature params = callee.functionSignature;
       params.orderedForEachParameter((Element parameter) {
         HInstruction argument = compiledArguments[index++];
         // Because we are inlining the initializer, we must update
@@ -1875,7 +1693,7 @@ abstract class SsaFromAstMixin
       TreeElements oldElements = elements;
       elements = compiler.enqueuer.resolution.getCachedElements(callee);
       ClosureClassMap oldClosureData = localsHandler.closureData;
-      Node node = callee.parseNode(compiler);
+      ast.Node node = callee.parseNode(compiler);
       ClosureClassMap newClosureData =
           compiler.closureToClassMapper.computeClosureToClassMapping(
               callee, node, elements);
@@ -1923,22 +1741,22 @@ abstract class SsaFromAstMixin
           constructor);
       return;
     }
-    FunctionExpression functionNode = constructor.parseNode(compiler);
+    ast.FunctionExpression functionNode = constructor.parseNode(compiler);
 
     bool foundSuperOrRedirect = false;
     if (functionNode.initializers != null) {
-      Link<Node> initializers = functionNode.initializers.nodes;
-      for (Link<Node> link = initializers; !link.isEmpty; link = link.tail) {
-        assert(link.head is Send);
-        if (link.head is !SendSet) {
+      Link<ast.Node> initializers = functionNode.initializers.nodes;
+      for (Link<ast.Node> link = initializers; !link.isEmpty; link = link.tail) {
+        assert(link.head is ast.Send);
+        if (link.head is !ast.SendSet) {
           // A super initializer or constructor redirection.
           foundSuperOrRedirect = true;
-          Send call = link.head;
-          assert(Initializers.isSuperConstructorCall(call) ||
-                 Initializers.isConstructorRedirect(call));
+          ast.Send call = link.head;
+          assert(ast.Initializers.isSuperConstructorCall(call) ||
+                 ast.Initializers.isConstructorRedirect(call));
           FunctionElement target = elements[call].implementation;
           Selector selector = elements.getSelector(call);
-          Link<Node> arguments = call.arguments;
+          Link<ast.Node> arguments = call.arguments;
           List<HInstruction> compiledArguments = new List<HInstruction>();
           inlinedFrom(constructor, () {
             addStaticSendArgumentsToList(selector,
@@ -1953,8 +1771,8 @@ abstract class SsaFromAstMixin
                                 constructor);
         } else {
           // A field initializer.
-          SendSet init = link.head;
-          Link<Node> arguments = init.arguments;
+          ast.SendSet init = link.head;
+          Link<ast.Node> arguments = init.arguments;
           assert(!arguments.isEmpty && arguments.tail.isEmpty);
           inlinedFrom(constructor, () {
             visit(arguments.head);
@@ -1977,10 +1795,11 @@ abstract class SsaFromAstMixin
         // TODO(johnniwinther): Should we find injected constructors as well?
         FunctionElement target = superClass.lookupConstructor(selector);
         if (target == null) {
-          compiler.internalError("no default constructor available");
+          compiler.internalError(superClass,
+              "No default constructor available.");
         }
         List<HInstruction> arguments = <HInstruction>[];
-        selector.addArgumentsToList(const Link<Node>(),
+        selector.addArgumentsToList(const Link<ast.Node>(),
                                     arguments,
                                     target.implementation,
                                     null,
@@ -2005,19 +1824,19 @@ abstract class SsaFromAstMixin
                               Map<Element, HInstruction> fieldValues) {
     assert(invariant(classElement, classElement.isImplementation));
     classElement.forEachInstanceField(
-        (ClassElement enclosingClass, Element member) {
+        (ClassElement enclosingClass, VariableElement member) {
           compiler.withCurrentElement(member, () {
-            TreeElements definitions = compiler.analyzeElement(member);
-            Node node = member.parseNode(compiler);
-            SendSet assignment = node.asSendSet();
-            if (assignment == null) {
+            TreeElements definitions = member.treeElements;
+            ast.Node node = member.parseNode(compiler);
+            ast.Expression initializer = member.initializer;
+            if (initializer == null) {
               // Unassigned fields of native classes are not initialized to
               // prevent overwriting pre-initialized native properties.
               if (!Elements.isNativeOrExtendsNative(classElement)) {
                 fieldValues[member] = graph.addConstantNull(compiler);
               }
             } else {
-              Node right = assignment.arguments.head;
+              ast.Node right = initializer;
               TreeElements savedElements = elements;
               elements = definitions;
               // In case the field initializer uses closures, run the
@@ -2047,7 +1866,7 @@ abstract class SsaFromAstMixin
         functionElement.getEnclosingClass().implementation;
     bool isNativeUpgradeFactory =
         Elements.isNativeOrExtendsNative(classElement);
-    FunctionExpression function = functionElement.parseNode(compiler);
+    ast.FunctionExpression function = functionElement.parseNode(compiler);
     // Note that constructors (like any other static function) do not need
     // to deal with optional arguments. It is the callers job to provide all
     // arguments as if they were positional.
@@ -2064,7 +1883,7 @@ abstract class SsaFromAstMixin
     buildFieldInitializers(classElement, fieldValues);
 
     // Compile field-parameters such as [:this.x:].
-    FunctionSignature params = functionElement.computeSignature(compiler);
+    FunctionSignature params = functionElement.functionSignature;
     params.orderedForEachParameter((Element element) {
       if (element.kind == ElementKind.FIELD_PARAMETER) {
         // If the [element] is a field-parameter then
@@ -2085,7 +1904,7 @@ abstract class SsaFromAstMixin
     List<Element> fields = <Element>[];
 
     classElement.forEachInstanceField(
-        (ClassElement enclosingClass, Element member) {
+        (ClassElement enclosingClass, VariableElement member) {
           HInstruction value = fieldValues[member];
           if (value == null) {
             // Uninitialized native fields are pre-initialized by the native
@@ -2093,13 +1912,20 @@ abstract class SsaFromAstMixin
             assert(isNativeUpgradeFactory);
           } else {
             fields.add(member);
-            constructorArguments.add(
-                potentiallyCheckType(value, member.computeType(compiler)));
+            DartType type = member.type;
+            if (enclosingClass.isMixinApplication) {
+              // TODO(johnniwinther): Add a member-like abstraction for fields
+              // that normalizes this.
+              type = type.substByContext(
+                  enclosingClass.thisType.asInstanceOf(
+                      member.enclosingElement));
+            }
+            constructorArguments.add(potentiallyCheckType(value, type));
           }
         },
         includeSuperAndInjectedMembers: true);
 
-    InterfaceType type = classElement.computeType(compiler);
+    InterfaceType type = classElement.thisType;
     TypeMask ssaType = new TypeMask.nonNullExact(classElement.declaration);
     List<DartType> instantiatedTypes;
     addInlinedInstantiation(type);
@@ -2209,8 +2035,7 @@ abstract class SsaFromAstMixin
       List bodyCallInputs = <HInstruction>[];
       if (isNativeUpgradeFactory) {
         if (interceptor == null) {
-          Constant constant = new InterceptorConstant(
-              classElement.computeType(compiler));
+          Constant constant = new InterceptorConstant(classElement.thisType);
           interceptor = graph.addConstant(constant, compiler);
         }
         bodyCallInputs.add(interceptor);
@@ -2218,11 +2043,11 @@ abstract class SsaFromAstMixin
       bodyCallInputs.add(newObject);
       TreeElements elements =
           compiler.enqueuer.resolution.getCachedElements(constructor);
-      Node node = constructor.parseNode(compiler);
+      ast.Node node = constructor.parseNode(compiler);
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
 
-      FunctionSignature functionSignature = body.computeSignature(compiler);
+      FunctionSignature functionSignature = body.functionSignature;
       // Provide the parameters to the generative constructor body.
       functionSignature.orderedForEachParameter((parameter) {
         // If [parameter] is boxed, it will be a field in the box passed as the
@@ -2273,7 +2098,7 @@ abstract class SsaFromAstMixin
    *
    * Invariant: [functionElement] must be the implementation element.
    */
-  void openFunction(Element element, Expression node) {
+  void openFunction(Element element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
@@ -2298,13 +2123,13 @@ abstract class SsaFromAstMixin
 
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
-      FunctionSignature signature = functionElement.computeSignature(compiler);
+      FunctionSignature signature = functionElement.functionSignature;
 
       // Put the type checks in the first successor of the entry,
       // because that is where the type guards will also be inserted.
       // This way we ensure that a type guard will dominate the type
       // check.
-      signature.orderedForEachParameter((Element parameterElement) {
+      signature.orderedForEachParameter((ParameterElement parameterElement) {
         if (element.isGenerativeConstructorBody()) {
           ClosureScope scopeData =
               localsHandler.closureData.capturingScopes[node];
@@ -2318,11 +2143,11 @@ abstract class SsaFromAstMixin
         }
         HInstruction newParameter = potentiallyCheckType(
             localsHandler.directLocals[parameterElement],
-            parameterElement.computeType(compiler));
+            parameterElement.type);
         localsHandler.directLocals[parameterElement] = newParameter;
       });
 
-      returnType = signature.returnType;
+      returnType = signature.type.returnType;
     } else {
       // Otherwise it is a lazy initializer which does not have parameters.
       assert(element is VariableElement);
@@ -2370,12 +2195,12 @@ abstract class SsaFromAstMixin
     return other;
   }
 
-  void assertIsSubtype(Node node, DartType subtype, DartType supertype,
+  void assertIsSubtype(ast.Node node, DartType subtype, DartType supertype,
                        String message) {
     HInstruction subtypeInstruction = analyzeTypeArgument(subtype);
     HInstruction supertypeInstruction = analyzeTypeArgument(supertype);
     HInstruction messageInstruction =
-        graph.addConstantString(new DartString.literal(message), compiler);
+        graph.addConstantString(new ast.DartString.literal(message), compiler);
     Element element = backend.getAssertIsSubtype();
     var inputs = <HInstruction>[subtypeInstruction, supertypeInstruction,
                                 messageInstruction];
@@ -2397,7 +2222,7 @@ abstract class SsaFromAstMixin
     stack.add(instruction);
   }
 
-  void pushWithPosition(HInstruction instruction, Node node) {
+  void pushWithPosition(HInstruction instruction, ast.Node node) {
     push(attachPosition(instruction, node));
   }
 
@@ -2414,7 +2239,7 @@ abstract class SsaFromAstMixin
     if (compiler.enableTypeAssertions) {
       return potentiallyCheckType(
           value,
-          compiler.boolClass.computeType(compiler),
+          compiler.boolClass.rawType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
     HInstruction result = new HBoolify(value, backend.boolType);
@@ -2422,20 +2247,20 @@ abstract class SsaFromAstMixin
     return result;
   }
 
-  HInstruction attachPosition(HInstruction target, Node node) {
+  HInstruction attachPosition(HInstruction target, ast.Node node) {
     if (node != null) {
       target.sourcePosition = sourceFileLocationForBeginToken(node);
     }
     return target;
   }
 
-  SourceFileLocation sourceFileLocationForBeginToken(Node node) =>
+  SourceFileLocation sourceFileLocationForBeginToken(ast.Node node) =>
       sourceFileLocationForToken(node, node.getBeginToken());
 
-  SourceFileLocation sourceFileLocationForEndToken(Node node) =>
+  SourceFileLocation sourceFileLocationForEndToken(ast.Node node) =>
       sourceFileLocationForToken(node, node.getEndToken());
 
-  SourceFileLocation sourceFileLocationForToken(Node node, Token token) {
+  SourceFileLocation sourceFileLocationForToken(ast.Node node, Token token) {
     SourceFile sourceFile = currentSourceFile();
     SourceFileLocation location =
         new TokenSourceFileLocation(sourceFile, token);
@@ -2443,32 +2268,37 @@ abstract class SsaFromAstMixin
     return location;
   }
 
-  void visit(Node node) {
+  void visit(ast.Node node) {
     if (node != null) node.accept(this);
   }
 
-  visitBlock(Block node) {
+  visitBlock(ast.Block node) {
     assert(!isAborted());
     if (!isReachable) return;  // This can only happen when inlining.
-    for (Link<Node> link = node.statements.nodes;
+    for (Link<ast.Node> link = node.statements.nodes;
          !link.isEmpty;
          link = link.tail) {
       visit(link.head);
       if (!isReachable) {
         // The block has been aborted by a return or a throw.
-        if (!stack.isEmpty) compiler.cancel('non-empty instruction stack');
+        if (!stack.isEmpty) {
+          compiler.internalError(node, 'Non-empty instruction stack.');
+        }
         return;
       }
     }
     assert(!current.isClosed());
-    if (!stack.isEmpty) compiler.cancel('non-empty instruction stack');
+    if (!stack.isEmpty) {
+      compiler.internalError(node, 'Non-empty instruction stack.');
+    }
   }
 
-  visitClassNode(ClassNode node) {
-    compiler.internalError('visitClassNode should not be called', node: node);
+  visitClassNode(ast.ClassNode node) {
+    compiler.internalError(node,
+        'SsaBuilder.visitClassNode should not be called.');
   }
 
-  visitThrowExpression(Expression expression) {
+  visitThrowExpression(ast.Expression expression) {
     bool old = inThrowExpression;
     try {
       inThrowExpression = true;
@@ -2478,9 +2308,9 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitExpressionStatement(ExpressionStatement node) {
+  visitExpressionStatement(ast.ExpressionStatement node) {
     if (!isReachable) return;
-    Throw throwExpression = node.expression.asThrow();
+    ast.Throw throwExpression = node.expression.asThrow();
     if (throwExpression != null && inliningStack.isEmpty) {
       visitThrowExpression(throwExpression.expression);
       handleInTryStatement();
@@ -2496,7 +2326,7 @@ abstract class SsaFromAstMixin
    * is closed with an [HGoto] and replaced by the newly created block.
    * Also notifies the locals handler that we're entering a loop.
    */
-  JumpHandler beginLoopHeader(Node node) {
+  JumpHandler beginLoopHeader(ast.Node node) {
     assert(!isAborted());
     HBasicBlock previousBlock = close(new HGoto());
 
@@ -2575,7 +2405,7 @@ abstract class SsaFromAstMixin
   // For while loops, initializer and update are null.
   // The condition function must return a boolean result.
   // None of the functions must leave anything on the stack.
-  void handleLoop(Node loop,
+  void handleLoop(ast.Node loop,
                   void initialize(),
                   HInstruction condition(),
                   void update(),
@@ -2766,12 +2596,12 @@ abstract class SsaFromAstMixin
     loopNesting--;
   }
 
-  visitFor(For node) {
+  visitFor(ast.For node) {
     assert(isReachable);
     assert(node.body != null);
     void buildInitializer() {
       if (node.initializer == null) return;
-      Node initializer = node.initializer;
+      ast.Node initializer = node.initializer;
       if (initializer != null) {
         visit(initializer);
         if (initializer.asExpression() != null) {
@@ -2787,7 +2617,7 @@ abstract class SsaFromAstMixin
       return popBoolified();
     }
     void buildUpdate() {
-      for (Expression expression in node.update) {
+      for (ast.Expression expression in node.update) {
         visit(expression);
         assert(!isAborted());
         // The result of the update instruction isn't used, and can just
@@ -2801,7 +2631,7 @@ abstract class SsaFromAstMixin
     handleLoop(node, buildInitializer, buildCondition, buildUpdate, buildBody);
   }
 
-  visitWhile(While node) {
+  visitWhile(ast.While node) {
     assert(isReachable);
     HInstruction buildCondition() {
       visit(node.condition);
@@ -2814,7 +2644,7 @@ abstract class SsaFromAstMixin
                () { visit(node.body); });
   }
 
-  visitDoWhile(DoWhile node) {
+  visitDoWhile(ast.DoWhile node) {
     assert(isReachable);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     localsHandler.startLoop(node);
@@ -2947,7 +2777,7 @@ abstract class SsaFromAstMixin
     loopNesting--;
   }
 
-  visitFunctionExpression(FunctionExpression node) {
+  visitFunctionExpression(ast.FunctionExpression node) {
     ClosureClassMap nestedClosureData =
         compiler.closureToClassMapper.getMappingForNestedFunction(node);
     assert(nestedClosureData != null);
@@ -2982,22 +2812,22 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  visitFunctionDeclaration(ast.FunctionDeclaration node) {
     assert(isReachable);
     visit(node.function);
     localsHandler.updateLocal(elements[node], pop());
   }
 
-  visitIdentifier(Identifier node) {
+  visitIdentifier(ast.Identifier node) {
     if (node.isThis()) {
       stack.add(localsHandler.readThis());
     } else {
-      compiler.internalError("SsaFromAstMixin.visitIdentifier on non-this",
-                             node: node);
+      compiler.internalError(node,
+          "SsaFromAstMixin.visitIdentifier on non-this.");
     }
   }
 
-  visitIf(If node) {
+  visitIf(ast.If node) {
     assert(isReachable);
     handleIf(node,
              () => visit(node.condition),
@@ -3005,13 +2835,13 @@ abstract class SsaFromAstMixin
              node.elsePart != null ? () => visit(node.elsePart) : null);
   }
 
-  void handleIf(Node diagnosticNode,
+  void handleIf(ast.Node diagnosticNode,
                 void visitCondition(), void visitThen(), void visitElse()) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, diagnosticNode);
     branchBuilder.handleIf(visitCondition, visitThen, visitElse);
   }
 
-  void visitLogicalAndOr(Send node, Operator op) {
+  void visitLogicalAndOr(ast.Send node, ast.Operator op) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
     branchBuilder.handleLogicalAndOrWithLeftNode(
         node.receiver,
@@ -3019,15 +2849,15 @@ abstract class SsaFromAstMixin
         isAnd: ("&&" == op.source));
   }
 
-  void visitLogicalNot(Send node) {
-    assert(node.argumentsNode is Prefix);
+  void visitLogicalNot(ast.Send node) {
+    assert(node.argumentsNode is ast.Prefix);
     visit(node.receiver);
     HNot not = new HNot(popBoolified(), backend.boolType);
     pushWithPosition(not, node);
   }
 
-  void visitUnary(Send node, Operator op) {
-    assert(node.argumentsNode is Prefix);
+  void visitUnary(ast.Send node, ast.Operator op) {
+    assert(node.argumentsNode is ast.Prefix);
     visit(node.receiver);
     assert(!identical(op.token.kind, PLUS_TOKEN));
     HInstruction operand = pop();
@@ -3047,10 +2877,10 @@ abstract class SsaFromAstMixin
   }
 
   void visitBinary(HInstruction left,
-                   Operator op,
+                   ast.Operator op,
                    HInstruction right,
                    Selector selector,
-                   Send send) {
+                   ast.Send send) {
     switch (op.source) {
       case "===":
         pushWithPosition(
@@ -3069,7 +2899,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  HInstruction generateInstanceSendReceiver(Send send) {
+  HInstruction generateInstanceSendReceiver(ast.Send send) {
     assert(Elements.isInstanceSend(send, elements));
     if (send.receiver == null) {
       return localsHandler.readThis();
@@ -3090,7 +2920,7 @@ abstract class SsaFromAstMixin
    * Returns a set of interceptor classes that contain the given
    * [selector].
    */
-  void generateInstanceGetterWithCompiledReceiver(Send send,
+  void generateInstanceGetterWithCompiledReceiver(ast.Send send,
                                                   Selector selector,
                                                   HInstruction receiver) {
     assert(Elements.isInstanceSend(send, elements));
@@ -3098,8 +2928,10 @@ abstract class SsaFromAstMixin
     pushInvokeDynamic(send, selector, [receiver]);
   }
 
-  void generateGetter(Send send, Element element) {
-    if (Elements.isStaticOrTopLevelField(element)) {
+  void generateGetter(ast.Send send, Element element) {
+    if (element != null && element.isForeign(compiler)) {
+      visitForeignGetter(send);
+    } else if (Elements.isStaticOrTopLevelField(element)) {
       Constant value;
       if (element.isField() && !element.isAssignable()) {
         // A static final or const. Get its constant value and inline it if
@@ -3151,17 +2983,17 @@ abstract class SsaFromAstMixin
       // An erroneous element indicates an unresolved static getter.
       generateThrowNoSuchMethod(send,
                                 getTargetName(element, 'get'),
-                                argumentNodes: const Link<Node>());
+                                argumentNodes: const Link<ast.Node>());
     } else {
       stack.add(localsHandler.readLocal(element));
     }
   }
 
-  void generateInstanceSetterWithCompiledReceiver(Send send,
+  void generateInstanceSetterWithCompiledReceiver(ast.Send send,
                                                   HInstruction receiver,
                                                   HInstruction value,
                                                   {Selector selector,
-                                                   Node location}) {
+                                                   ast.Node location}) {
     assert(send == null || Elements.isInstanceSend(send, elements));
     if (selector == null) {
       assert(send != null);
@@ -3177,10 +3009,10 @@ abstract class SsaFromAstMixin
     stack.add(value);
   }
 
-  void generateNonInstanceSetter(SendSet send,
+  void generateNonInstanceSetter(ast.SendSet send,
                                  Element element,
                                  HInstruction value,
-                                 {Node location}) {
+                                 {ast.Node location}) {
     assert(send == null || !Elements.isInstanceSend(send, elements));
     if (location == null) {
       assert(send != null);
@@ -3191,8 +3023,9 @@ abstract class SsaFromAstMixin
         pushInvokeStatic(location, element, <HInstruction>[value]);
         pop();
       } else {
+        VariableElement field = element;
         value =
-            potentiallyCheckType(value, element.computeType(compiler));
+            potentiallyCheckType(value, field.type);
         addWithPosition(new HStaticStore(element, value), location);
       }
       stack.add(value);
@@ -3261,8 +3094,8 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitOperatorSend(Send node) {
-    Operator op = node.selector;
+  visitOperatorSend(ast.Send node) {
+    ast.Operator op = node.selector;
     if ("[]" == op.source) {
       visitDynamicSend(node);
     } else if ("&&" == op.source ||
@@ -3270,7 +3103,7 @@ abstract class SsaFromAstMixin
       visitLogicalAndOr(node, op);
     } else if ("!" == op.source) {
       visitLogicalNot(node);
-    } else if (node.argumentsNode is Prefix) {
+    } else if (node.argumentsNode is ast.Prefix) {
       visitUnary(node, op);
     } else if ("is" == op.source) {
       visitIsSend(node);
@@ -3296,7 +3129,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  void visitIsSend(Send node) {
+  void visitIsSend(ast.Send node) {
     visit(node.receiver);
     HInstruction expression = pop();
     bool isNot = node.isIsNotCheck;
@@ -3310,7 +3143,7 @@ abstract class SsaFromAstMixin
     push(instruction);
   }
 
-  HInstruction buildIsNode(Node node, DartType type, HInstruction expression) {
+  HInstruction buildIsNode(ast.Node node, DartType type, HInstruction expression) {
     type = type.unalias(compiler);
     if (type.kind == TypeKind.FUNCTION) {
       List arguments = [buildFunctionType(type), expression];
@@ -3364,13 +3197,13 @@ abstract class SsaFromAstMixin
     return pop();
   }
 
-  void addDynamicSendArgumentsToList(Send node, List<HInstruction> list) {
+  void addDynamicSendArgumentsToList(ast.Send node, List<HInstruction> list) {
     Selector selector = elements.getSelector(node);
     if (selector.namedArgumentCount == 0) {
       addGenericSendArgumentsToList(node.arguments, list);
     } else {
       // Visit positional arguments and add them to the list.
-      Link<Node> arguments = node.arguments;
+      Link<ast.Node> arguments = node.arguments;
       int positionalArgumentCount = selector.positionalArgumentCount;
       for (int i = 0;
            i < positionalArgumentCount;
@@ -3405,12 +3238,12 @@ abstract class SsaFromAstMixin
    * Invariant: [element] must be an implementation element.
    */
   bool addStaticSendArgumentsToList(Selector selector,
-                                    Link<Node> arguments,
+                                    Link<ast.Node> arguments,
                                     FunctionElement element,
                                     List<HInstruction> list) {
     assert(invariant(element, element.isImplementation));
 
-    HInstruction compileArgument(Node argument) {
+    HInstruction compileArgument(ast.Node argument) {
       visit(argument);
       return pop();
     }
@@ -3423,14 +3256,14 @@ abstract class SsaFromAstMixin
                                        compiler);
   }
 
-  void addGenericSendArgumentsToList(Link<Node> link, List<HInstruction> list) {
+  void addGenericSendArgumentsToList(Link<ast.Node> link, List<HInstruction> list) {
     for (; !link.isEmpty; link = link.tail) {
       visit(link.head);
       list.add(pop());
     }
   }
 
-  visitDynamicSend(Send node) {
+  visitDynamicSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
 
     List<HInstruction> inputs = <HInstruction>[];
@@ -3445,7 +3278,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitClosureSend(Send node) {
+  visitClosureSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
     assert(node.receiver == null);
     Element element = elements[node];
@@ -3466,14 +3299,14 @@ abstract class SsaFromAstMixin
         node);
   }
 
-  void handleForeignJs(Send node) {
-    Link<Node> link = node.arguments;
+  void handleForeignJs(ast.Send node) {
+    Link<ast.Node> link = node.arguments;
     // If the invoke is on foreign code, don't visit the first
     // argument, which is the type, and the second argument,
     // which is the foreign code.
     if (link.isEmpty || link.tail.isEmpty) {
-      compiler.cancel('At least two arguments expected',
-                      node: node.argumentsNode);
+      compiler.internalError(node.argumentsNode,
+          'At least two arguments expected.');
     }
     native.NativeBehavior nativeBehavior =
         compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
@@ -3486,13 +3319,21 @@ abstract class SsaFromAstMixin
     push(new HForeign(nativeBehavior.codeAst, ssaType, inputs,
                       effects: nativeBehavior.sideEffects,
                       nativeBehavior: nativeBehavior));
-    return;
   }
 
-  void handleForeignJsCurrentIsolateContext(Send node) {
+  void handleJsStringConcat(ast.Send node) {
+    List<HInstruction> inputs = <HInstruction>[];
+    addGenericSendArgumentsToList(node.arguments, inputs);
+    if (inputs.length != 2) {
+      compiler.internalError(node.argumentsNode, 'Two arguments expected.');
+    }
+    push(new HStringConcat(inputs[0], inputs[1], node, backend.stringType));
+  }
+
+  void handleForeignJsCurrentIsolateContext(ast.Send node) {
     if (!node.arguments.isEmpty) {
-      compiler.cancel(
-          'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT', node: node);
+      compiler.internalError(node,
+          'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT.');
     }
 
     if (!compiler.hasIsolateSupport()) {
@@ -3508,16 +3349,54 @@ abstract class SsaFromAstMixin
       // Leg's isolate.
       Element element = compiler.isolateHelperLibrary.find('_currentIsolate');
       if (element == null) {
-        compiler.cancel(
-            'Isolate library and compiler mismatch', node: node);
+        compiler.internalError(node,
+            'Isolate library and compiler mismatch.');
       }
       pushInvokeStatic(null, element, [], backend.dynamicType);
     }
   }
 
-  void handleForeignJsGetName(Send node) {
-    List<Node> arguments = node.arguments.toList();
-    Node argument;
+  void handleForeingJsGetFlag(ast.Send node) {
+    List<ast.Node> arguments = node.arguments.toList();
+     ast.Node argument;
+     switch (arguments.length) {
+     case 0:
+       compiler.reportError(
+           node, MessageKind.GENERIC,
+           {'text': 'Error: Expected one argument to JS_GET_FLAG.'});
+       return;
+     case 1:
+       argument = arguments[0];
+       break;
+     default:
+       for (int i = 1; i < arguments.length; i++) {
+         compiler.reportError(
+             arguments[i], MessageKind.GENERIC,
+             {'text': 'Error: Extra argument to JS_GET_FLAG.'});
+       }
+       return;
+     }
+     ast.LiteralString string = argument.asLiteralString();
+     if (string == null) {
+       compiler.reportError(
+           argument, MessageKind.GENERIC,
+           {'text': 'Error: Expected a literal string.'});
+     }
+     String name = string.dartString.slowToString();
+     bool value = false;
+     if (name == 'MUST_RETAIN_METADATA') {
+       value = backend.mustRetainMetadata;
+     } else {
+       compiler.reportError(
+           node, MessageKind.GENERIC,
+           {'text': 'Error: Unknown internal flag "$name".'});
+     }
+     stack.add(graph.addConstantBool(value, compiler));
+  }
+
+  void handleForeignJsGetName(ast.Send node) {
+    List<ast.Node> arguments = node.arguments.toList();
+    ast.Node argument;
     switch (arguments.length) {
     case 0:
       compiler.reportError(
@@ -3535,7 +3414,7 @@ abstract class SsaFromAstMixin
       }
       return;
     }
-    LiteralString string = argument.asLiteralString();
+    ast.LiteralString string = argument.asLiteralString();
     if (string == null) {
       compiler.reportError(
           argument, MessageKind.GENERIC,
@@ -3547,11 +3426,11 @@ abstract class SsaFromAstMixin
                 argument, string.dartString.slowToString())));
   }
 
-  void handleJsInterceptorConstant(Send node) {
+  void handleJsInterceptorConstant(ast.Send node) {
     // Single argument must be a TypeConstant which is converted into a
     // InterceptorConstant.
     if (!node.arguments.isEmpty && node.arguments.tail.isEmpty) {
-      Node argument = node.arguments.head;
+      ast.Node argument = node.arguments.head;
       visit(argument);
       HInstruction argumentInstruction = pop();
       if (argumentInstruction is HConstant) {
@@ -3570,8 +3449,8 @@ abstract class SsaFromAstMixin
     stack.add(graph.addConstantNull(compiler));
   }
 
-  void handleForeignJsCallInIsolate(Send node) {
-    Link<Node> link = node.arguments;
+  void handleForeignJsCallInIsolate(ast.Send node) {
+    Link<ast.Node> link = node.arguments;
     if (!compiler.hasIsolateSupport()) {
       // If the isolate library is not used, we just invoke the
       // closure.
@@ -3584,8 +3463,8 @@ abstract class SsaFromAstMixin
       // Call a helper method from the isolate library.
       Element element = compiler.isolateHelperLibrary.find('_callInIsolate');
       if (element == null) {
-        compiler.cancel(
-            'Isolate library and compiler mismatch', node: node);
+        compiler.internalError(node,
+            'Isolate library and compiler mismatch.');
       }
       List<HInstruction> inputs = <HInstruction>[];
       addGenericSendArgumentsToList(link, inputs);
@@ -3593,28 +3472,26 @@ abstract class SsaFromAstMixin
     }
   }
 
-  FunctionSignature handleForeignRawFunctionRef(Send node, String name) {
+  FunctionSignature handleForeignRawFunctionRef(ast.Send node, String name) {
     if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
-      compiler.cancel('"$name" requires exactly one argument',
-                      node: node.argumentsNode);
+      compiler.internalError(node.argumentsNode,
+          '"$name" requires exactly one argument.');
     }
-    Node closure = node.arguments.head;
+    ast.Node closure = node.arguments.head;
     Element element = elements[closure];
     if (!Elements.isStaticOrTopLevelFunction(element)) {
-      compiler.cancel(
-          '"$name" requires a static or top-level method',
-          node: closure);
+      compiler.internalError(closure,
+          '"$name" requires a static or top-level method.');
     }
     FunctionElement function = element;
     // TODO(johnniwinther): Try to eliminate the need to distinguish declaration
     // and implementation signatures. Currently it is need because the
     // signatures have different elements for parameters.
     FunctionElement implementation = function.implementation;
-    FunctionSignature params = implementation.computeSignature(compiler);
+    FunctionSignature params = implementation.functionSignature;
     if (params.optionalParameterCount != 0) {
-      compiler.cancel(
-          '"$name" does not handle closure with optional parameters',
-          node: closure);
+      compiler.internalError(closure,
+          '"$name" does not handle closure with optional parameters.');
     }
 
     compiler.enqueuer.codegen.registerStaticUse(element);
@@ -3624,17 +3501,17 @@ abstract class SsaFromAstMixin
     return params;
   }
 
-  void handleForeignDartClosureToJs(Send node, String name) {
+  void handleForeignDartClosureToJs(ast.Send node, String name) {
     // TODO(ahe): This implements DART_CLOSURE_TO_JS and should probably take
     // care to wrap the closure in another closure that saves the current
     // isolate.
     handleForeignRawFunctionRef(node, name);
   }
 
-  void handleForeignSetCurrentIsolate(Send node) {
+  void handleForeignSetCurrentIsolate(ast.Send node) {
     if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
-      compiler.cancel('Exactly one argument required',
-                      node: node.argumentsNode);
+      compiler.internalError(node.argumentsNode,
+          'Exactly one argument required.');
     }
     visit(node.arguments.head);
     String isolateName = backend.namer.currentIsolate;
@@ -3646,10 +3523,9 @@ abstract class SsaFromAstMixin
                       effects: sideEffects));
   }
 
-  void handleForeignCreateIsolate(Send node) {
+  void handleForeignCreateIsolate(ast.Send node) {
     if (!node.arguments.isEmpty) {
-      compiler.cancel('Too many arguments',
-                      node: node.argumentsNode);
+      compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
     String constructorName = backend.namer.isolateName;
     push(new HForeign(js.js("new $constructorName()"),
@@ -3657,9 +3533,9 @@ abstract class SsaFromAstMixin
                       <HInstruction>[]));
   }
 
-  void handleForeignDartObjectJsConstructorFunction(Send node) {
+  void handleForeignDartObjectJsConstructorFunction(ast.Send node) {
     if (!node.arguments.isEmpty) {
-      compiler.cancel('Too many arguments', node: node.argumentsNode);
+      compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
     String jsClassReference = backend.namer.isolateAccess(compiler.objectClass);
     push(new HForeign(new js.LiteralString(jsClassReference),
@@ -3667,16 +3543,16 @@ abstract class SsaFromAstMixin
                       <HInstruction>[]));
   }
 
-  void handleForeignJsCurrentIsolate(Send node) {
+  void handleForeignJsCurrentIsolate(ast.Send node) {
     if (!node.arguments.isEmpty) {
-      compiler.cancel('Too many arguments', node: node.argumentsNode);
+      compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
     push(new HForeign(new js.LiteralString(backend.namer.currentIsolate),
                       backend.dynamicType,
                       <HInstruction>[]));
   }
 
-  visitForeignSend(Send node) {
+  visitForeignSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
     String name = selector.name;
     if (name == 'JS') {
@@ -3736,16 +3612,35 @@ abstract class SsaFromAstMixin
       handleForeignJsCurrentIsolate(node);
     } else if (name == 'JS_GET_NAME') {
       handleForeignJsGetName(node);
+    } else if (name == 'JS_GET_FLAG') {
+      handleForeingJsGetFlag(node);
     } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(compiler));
     } else if (name == 'JS_INTERCEPTOR_CONSTANT') {
       handleJsInterceptorConstant(node);
+    } else if (name == 'JS_STRING_CONCAT') {
+      handleJsStringConcat(node);
     } else {
       throw "Unknown foreign: ${selector}";
     }
   }
 
-  generateSuperNoSuchMethodSend(Send node,
+  visitForeignGetter(ast.Send node) {
+    Element element = elements[node];
+    // Until now we only handle these as getters.
+    invariant(node, element.isDeferredLoaderGetter());
+    FunctionElement deferredLoader = element;
+    Element loadFunction = compiler.loadLibraryFunction;
+    PrefixElement prefixElement = deferredLoader.enclosingElement;
+    String loadId = compiler.deferredLoadTask
+        .importDeferName[prefixElement.deferredImport];
+    var inputs = [graph.addConstantString(
+        new ast.DartString.literal(loadId), compiler)];
+    push(new HInvokeStatic(loadFunction, inputs, backend.nonNullType,
+                           targetCanThrow: false));
+  }
+
+  generateSuperNoSuchMethodSend(ast.Send node,
                                 Selector selector,
                                 List<HInstruction> arguments) {
     String name = selector.name;
@@ -3764,11 +3659,11 @@ abstract class SsaFromAstMixin
     if (selector.isSetter()) publicName += '=';
 
     Constant nameConstant = constantSystem.createString(
-        new DartString.literal(publicName));
+        new ast.DartString.literal(publicName));
 
     String internalName = backend.namer.invocationName(selector);
     Constant internalNameConstant =
-        constantSystem.createString(new DartString.literal(internalName));
+        constantSystem.createString(new ast.DartString.literal(internalName));
 
     Element createInvocationMirror = backend.getCreateInvocationMirror();
     var argumentsInstruction = buildLiteralList(arguments);
@@ -3777,7 +3672,7 @@ abstract class SsaFromAstMixin
     var argumentNames = new List<HInstruction>();
     for (String argumentName in selector.namedArguments) {
       Constant argumentNameConstant =
-          constantSystem.createString(new DartString.literal(argumentName));
+          constantSystem.createString(new ast.DartString.literal(argumentName));
       argumentNames.add(graph.addConstant(argumentNameConstant, compiler));
     }
     var argumentNamesInstruction = buildLiteralList(argumentNames);
@@ -3799,7 +3694,7 @@ abstract class SsaFromAstMixin
     push(buildInvokeSuper(compiler.noSuchMethodSelector, element, inputs));
   }
 
-  visitSuperSend(Send node) {
+  visitSuperSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
     if (Elements.isUnresolved(element)) {
@@ -3867,7 +3762,7 @@ abstract class SsaFromAstMixin
       // segmentation of '$'.
       String substitutionNameString = backend.namer.getNameForRti(cls);
       HInstruction substitutionName = graph.addConstantString(
-          new LiteralDartString(substitutionNameString), compiler);
+          new ast.LiteralDartString(substitutionNameString), compiler);
       pushInvokeStatic(null,
                        backend.getGetRuntimeTypeArgument(),
                        [target, substitutionName, index],
@@ -3936,8 +3831,9 @@ abstract class SsaFromAstMixin
     } else {
       // TODO(ngeoffray): Match the VM behavior and throw an
       // exception at runtime.
-      compiler.cancel('Unimplemented unresolved type variable',
-                      element: type.element);
+      compiler.internalError(type.element,
+          'Unimplemented unresolved type variable.');
+      return null;
     }
   }
 
@@ -3964,7 +3860,7 @@ abstract class SsaFromAstMixin
   }
 
   HInstruction handleListConstructor(InterfaceType type,
-                                     Node currentNode,
+                                     ast.Node currentNode,
                                      HInstruction newObject) {
     if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
       return newObject;
@@ -4010,8 +3906,8 @@ abstract class SsaFromAstMixin
     return pop();
   }
 
-  handleNewSend(NewExpression node) {
-    Send send = node.send;
+  handleNewSend(ast.NewExpression node) {
+    ast.Send send = node.send;
     bool isFixedList = false;
     bool isFixedListConstructorCall =
         Elements.isFixedListConstructorCall(elements[send], send, compiler);
@@ -4185,7 +4081,7 @@ abstract class SsaFromAstMixin
 
   /// In checked mode checks the [type] of [node] to be well-bounded. The method
   /// returns [:true:] if an error can be statically determined.
-  bool checkTypeVariableBounds(NewExpression node, InterfaceType type) {
+  bool checkTypeVariableBounds(ast.NewExpression node, InterfaceType type) {
     if (!compiler.enableTypeAssertions) return false;
 
     Map<DartType, Set<DartType>> seenChecksMap =
@@ -4247,10 +4143,10 @@ abstract class SsaFromAstMixin
     visitStaticSend(node);
   }
 
-  visitStaticSend(Send node) {
+  visitStaticSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
-    if (element.isForeign(compiler)) {
+    if (element.isForeign(compiler) && element.isFunction()) {
       visitForeignSend(node);
       return;
     }
@@ -4294,12 +4190,12 @@ abstract class SsaFromAstMixin
   }
 
   HConstant addConstantString(String string) {
-    DartString dartString = new DartString.literal(string);
+    ast.DartString dartString = new ast.DartString.literal(string);
     Constant constant = constantSystem.createString(dartString);
     return graph.addConstant(constant, compiler);
   }
 
-  visitTypeReferenceSend(Send node) {
+  visitTypeReferenceSend(ast.Send node) {
     Element element = elements[node];
     if (element.isClass() || element.isTypedef()) {
       // TODO(karlklose): add type representation
@@ -4311,8 +4207,8 @@ abstract class SsaFromAstMixin
         stack.add(addConstant(node));
       }
     } else if (element.isTypeVariable()) {
-      HInstruction value =
-          addTypeVariableReference(element.computeType(compiler));
+      TypeVariableElement typeVariable = element;
+      HInstruction value = addTypeVariableReference(typeVariable.type);
       pushInvokeStatic(node,
                        backend.getRuntimeTypeToString(),
                        [value],
@@ -4337,44 +4233,44 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitGetterSend(Send node) {
+  visitGetterSend(ast.Send node) {
     generateGetter(node, elements[node]);
   }
 
   // TODO(antonm): migrate rest of SsaFromAstMixin to internalError.
-  internalError(String reason, {Node node}) {
-    compiler.internalError(reason, node: node);
+  internalError(String reason, {ast.Node node}) {
+    compiler.internalError(node, reason);
   }
 
-  void generateError(Node node, String message, Element helper) {
+  void generateError(ast.Node node, String message, Element helper) {
     HInstruction errorMessage = addConstantString(message);
     pushInvokeStatic(node, helper, [errorMessage]);
   }
 
-  void generateRuntimeError(Node node, String message) {
+  void generateRuntimeError(ast.Node node, String message) {
     generateError(node, message, backend.getThrowRuntimeError());
   }
 
-  void generateTypeError(Node node, String message) {
+  void generateTypeError(ast.Node node, String message) {
     generateError(node, message, backend.getThrowTypeError());
   }
 
-  void generateAbstractClassInstantiationError(Node node, String message) {
+  void generateAbstractClassInstantiationError(ast.Node node, String message) {
     generateError(node,
                   message,
                   backend.getThrowAbstractClassInstantiationError());
   }
 
-  void generateThrowNoSuchMethod(Node diagnosticNode,
+  void generateThrowNoSuchMethod(ast.Node diagnosticNode,
                                  String methodName,
-                                 {Link<Node> argumentNodes,
+                                 {Link<ast.Node> argumentNodes,
                                   List<HInstruction> argumentValues,
                                   List<String> existingArguments}) {
     Element helper = backend.getThrowNoSuchMethod();
     Constant receiverConstant =
-        constantSystem.createString(new DartString.empty());
+        constantSystem.createString(new ast.DartString.empty());
     HInstruction receiver = graph.addConstant(receiverConstant, compiler);
-    DartString dartString = new DartString.literal(methodName);
+    ast.DartString dartString = new ast.DartString.literal(methodName);
     Constant nameConstant = constantSystem.createString(dartString);
     HInstruction name = graph.addConstant(nameConstant, compiler);
     if (argumentValues == null) {
@@ -4392,7 +4288,7 @@ abstract class SsaFromAstMixin
       List<HInstruction> existingNames = <HInstruction>[];
       for (String name in existingArguments) {
         HInstruction nameConstant =
-            graph.addConstantString(new DartString.literal(name), compiler);
+            graph.addConstantString(new ast.DartString.literal(name), compiler);
         existingNames.add(nameConstant);
       }
       existingNamesList = buildLiteralList(existingNames);
@@ -4410,11 +4306,11 @@ abstract class SsaFromAstMixin
    * method with a wrong number of arguments or mismatching named optional
    * arguments.
    */
-  void generateWrongArgumentCountError(Node diagnosticNode,
+  void generateWrongArgumentCountError(ast.Node diagnosticNode,
                                        FunctionElement function,
-                                       Link<Node> argumentNodes) {
+                                       Link<ast.Node> argumentNodes) {
     List<String> existingArguments = <String>[];
-    FunctionSignature signature = function.computeSignature(compiler);
+    FunctionSignature signature = function.functionSignature;
     signature.forEachParameter((Element parameter) {
       existingArguments.add(parameter.name);
     });
@@ -4424,7 +4320,7 @@ abstract class SsaFromAstMixin
                               existingArguments: existingArguments);
   }
 
-  visitNewExpression(NewExpression node) {
+  visitNewExpression(ast.NewExpression node) {
     Element element = elements[node.send];
     final bool isSymbolConstructor = element == compiler.symbolConstructor;
     if (!Elements.isErroneousElement(element)) {
@@ -4433,7 +4329,7 @@ abstract class SsaFromAstMixin
     }
     if (Elements.isErroneousElement(element)) {
       ErroneousElement error = element;
-      if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR.error) {
+      if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
         generateThrowNoSuchMethod(node.send,
                                   getTargetName(error, 'constructor'),
                                   argumentNodes: node.send.arguments);
@@ -4454,10 +4350,10 @@ abstract class SsaFromAstMixin
     }
   }
 
-  void pushInvokeDynamic(Node node,
+  void pushInvokeDynamic(ast.Node node,
                          Selector selector,
                          List<HInstruction> arguments,
-                         {Node location}) {
+                         {ast.Node location}) {
     if (location == null) location = node;
 
     // We prefer to not inline certain operations on indexables,
@@ -4530,7 +4426,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  void pushInvokeStatic(Node location,
+  void pushInvokeStatic(ast.Node location,
                         Element element,
                         List<HInstruction> arguments,
                         [TypeMask type]) {
@@ -4590,9 +4486,9 @@ abstract class SsaFromAstMixin
     return instruction;
   }
 
-  void handleComplexOperatorSend(SendSet node,
+  void handleComplexOperatorSend(ast.SendSet node,
                                  HInstruction receiver,
-                                 Link<Node> arguments) {
+                                 Link<ast.Node> arguments) {
     HInstruction rhs;
     if (node.isPrefix || node.isPostfix) {
       rhs = graph.addConstantInt(1, compiler);
@@ -4605,15 +4501,15 @@ abstract class SsaFromAstMixin
                 elements.getOperatorSelectorInComplexSendSet(node), node);
   }
 
-  visitSendSet(SendSet node) {
+  visitSendSet(ast.SendSet node) {
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType()) {
-      Identifier selector = node.selector;
+      ast.Identifier selector = node.selector;
       generateThrowNoSuchMethod(node, selector.source,
                                 argumentNodes: node.arguments);
       return;
     }
-    Operator op = node.assignmentOperator;
+    ast.Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
       HInstruction result;
       List<HInstruction> setterInputs = <HInstruction>[];
@@ -4623,7 +4519,7 @@ abstract class SsaFromAstMixin
       } else {
         Element getter = elements[node.selector];
         List<HInstruction> getterInputs = <HInstruction>[];
-        Link<Node> arguments = node.arguments;
+        Link<ast.Node> arguments = node.arguments;
         if (node.isIndex) {
           // If node is of the from [:super.foo[0] += 2:], the send has
           // two arguments: the index and the left hand side. We get
@@ -4674,7 +4570,7 @@ abstract class SsaFromAstMixin
       } else {
         visit(node.receiver);
         HInstruction receiver = pop();
-        Link<Node> arguments = node.arguments;
+        Link<ast.Node> arguments = node.arguments;
         HInstruction index;
         if (node.isIndex) {
           visit(arguments.head);
@@ -4702,7 +4598,7 @@ abstract class SsaFromAstMixin
         }
       }
     } else if ("=" == op.source) {
-      Link<Node> link = node.arguments;
+      Link<ast.Node> link = node.arguments;
       assert(!link.isEmpty && link.tail.isEmpty);
       if (Elements.isInstanceSend(node, elements)) {
         HInstruction receiver = generateInstanceSendReceiver(node);
@@ -4713,7 +4609,7 @@ abstract class SsaFromAstMixin
         generateNonInstanceSetter(node, element, pop());
       }
     } else if (identical(op.source, "is")) {
-      compiler.internalError("is-operator as SendSet", node: op);
+      compiler.internalError(op, "is-operator as SendSet.");
     } else {
       assert("++" == op.source || "--" == op.source ||
              node.assignmentOperator.source.endsWith("="));
@@ -4723,7 +4619,7 @@ abstract class SsaFromAstMixin
       Element getter = elements[node.selector];
 
       if (!Elements.isUnresolved(getter) && getter.impliesType()) {
-        Identifier selector = node.selector;
+        ast.Identifier selector = node.selector;
         generateThrowNoSuchMethod(node, selector.source,
                                   argumentNodes: node.arguments);
         return;
@@ -4752,29 +4648,29 @@ abstract class SsaFromAstMixin
     }
   }
 
-  void visitLiteralInt(LiteralInt node) {
+  void visitLiteralInt(ast.LiteralInt node) {
     stack.add(graph.addConstantInt(node.value, compiler));
   }
 
-  void visitLiteralDouble(LiteralDouble node) {
+  void visitLiteralDouble(ast.LiteralDouble node) {
     stack.add(graph.addConstantDouble(node.value, compiler));
   }
 
-  void visitLiteralBool(LiteralBool node) {
+  void visitLiteralBool(ast.LiteralBool node) {
     stack.add(graph.addConstantBool(node.value, compiler));
   }
 
-  void visitLiteralString(LiteralString node) {
+  void visitLiteralString(ast.LiteralString node) {
     stack.add(graph.addConstantString(node.dartString, compiler));
   }
 
-  void visitLiteralSymbol(LiteralSymbol node) {
+  void visitLiteralSymbol(ast.LiteralSymbol node) {
     stack.add(addConstant(node));
     compiler.enqueuer.codegen.registerConstSymbol(
         node.slowNameString, elements);
   }
 
-  void visitStringJuxtaposition(StringJuxtaposition node) {
+  void visitStringJuxtaposition(ast.StringJuxtaposition node) {
     if (!node.isInterpolation) {
       // This is a simple string with no interpolations.
       stack.add(graph.addConstantString(node.dartString, compiler));
@@ -4785,36 +4681,38 @@ abstract class SsaFromAstMixin
     stack.add(stringBuilder.result);
   }
 
-  void visitLiteralNull(LiteralNull node) {
+  void visitLiteralNull(ast.LiteralNull node) {
     stack.add(graph.addConstantNull(compiler));
   }
 
-  visitNodeList(NodeList node) {
-    for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
+  visitNodeList(ast.NodeList node) {
+    for (Link<ast.Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       if (isAborted()) {
-        compiler.reportWarning(link.head, 'dead code');
+        compiler.reportWarning(link.head,
+            MessageKind.GENERIC, {'text': 'dead code'});
       } else {
         visit(link.head);
       }
     }
   }
 
-  void visitParenthesizedExpression(ParenthesizedExpression node) {
+  void visitParenthesizedExpression(ast.ParenthesizedExpression node) {
     visit(node.expression);
   }
 
-  visitOperator(Operator node) {
+  visitOperator(ast.Operator node) {
     // Operators are intercepted in their surrounding Send nodes.
-    compiler.internalError('visitOperator should not be called', node: node);
+    compiler.internalError(node,
+        'SsaBuilder.visitOperator should not be called.');
   }
 
-  visitCascade(Cascade node) {
+  visitCascade(ast.Cascade node) {
     visit(node.expression);
     // Remove the result and reveal the duplicated receiver on the stack.
     pop();
   }
 
-  visitCascadeReceiver(CascadeReceiver node) {
+  visitCascadeReceiver(ast.CascadeReceiver node) {
     visit(node.expression);
     dup();
   }
@@ -4827,18 +4725,18 @@ abstract class SsaFromAstMixin
     open(newBlock);
   }
 
-  visitRethrow(Rethrow node) {
+  visitRethrow(ast.Rethrow node) {
     HInstruction exception = rethrowableException;
     if (exception == null) {
       exception = graph.addConstantNull(compiler);
-      compiler.internalError(
-          'rethrowableException should not be null', node: node);
+      compiler.internalError(node,
+          'rethrowableException should not be null.');
     }
     handleInTryStatement();
     closeAndGotoExit(new HThrow(exception, isRethrow: true));
   }
 
-  visitReturn(Return node) {
+  visitReturn(ast.Return node) {
     if (identical(node.getBeginToken().stringValue, 'native')) {
       native.handleSsaNative(this, node.expression);
       return;
@@ -4889,7 +4787,7 @@ abstract class SsaFromAstMixin
     emitReturn(value, node);
   }
 
-  visitThrow(Throw node) {
+  visitThrow(ast.Throw node) {
     visitThrowExpression(node.expression);
     if (isReachable) {
       handleInTryStatement();
@@ -4898,29 +4796,29 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitTypeAnnotation(TypeAnnotation node) {
-    compiler.internalError('visiting type annotation in SSA builder',
-                           node: node);
+  visitTypeAnnotation(ast.TypeAnnotation node) {
+    compiler.internalError(node,
+        'Visiting type annotation in SSA builder.');
   }
 
-  visitVariableDefinitions(VariableDefinitions node) {
+  visitVariableDefinitions(ast.VariableDefinitions node) {
     assert(isReachable);
-    for (Link<Node> link = node.definitions.nodes;
+    for (Link<ast.Node> link = node.definitions.nodes;
          !link.isEmpty;
          link = link.tail) {
-      Node definition = link.head;
-      if (definition is Identifier) {
+      ast.Node definition = link.head;
+      if (definition is ast.Identifier) {
         HInstruction initialValue = graph.addConstantNull(compiler);
         localsHandler.updateLocal(elements[definition], initialValue);
       } else {
-        assert(definition is SendSet);
+        assert(definition is ast.SendSet);
         visitSendSet(definition);
         pop();  // Discard value.
       }
     }
   }
 
-  HInstruction setRtiIfNeeded(HInstruction object, Node node) {
+  HInstruction setRtiIfNeeded(HInstruction object, ast.Node node) {
     InterfaceType type = elements.getType(node);
     if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
@@ -4934,14 +4832,14 @@ abstract class SsaFromAstMixin
     return callSetRuntimeTypeInfo(type.element, arguments, object);
   }
 
-  visitLiteralList(LiteralList node) {
+  visitLiteralList(ast.LiteralList node) {
     HInstruction instruction;
 
     if (node.isConst()) {
       instruction = addConstant(node);
     } else {
       List<HInstruction> inputs = <HInstruction>[];
-      for (Link<Node> link = node.elements.nodes;
+      for (Link<ast.Node> link = node.elements.nodes;
            !link.isEmpty;
            link = link.tail) {
         visit(link.head);
@@ -4958,34 +4856,34 @@ abstract class SsaFromAstMixin
     stack.add(instruction);
   }
 
-  visitConditional(Conditional node) {
+  visitConditional(ast.Conditional node) {
     SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
     brancher.handleConditional(() => visit(node.condition),
                                () => visit(node.thenExpression),
                                () => visit(node.elseExpression));
   }
 
-  visitStringInterpolation(StringInterpolation node) {
+  visitStringInterpolation(ast.StringInterpolation node) {
     StringBuilderVisitor stringBuilder = new StringBuilderVisitor(this, node);
     stringBuilder.visit(node);
     stack.add(stringBuilder.result);
   }
 
-  visitStringInterpolationPart(StringInterpolationPart node) {
+  visitStringInterpolationPart(ast.StringInterpolationPart node) {
     // The parts are iterated in visitStringInterpolation.
-    compiler.internalError('visitStringInterpolation should not be called',
-                           node: node);
+    compiler.internalError(node,
+      'SsaBuilder.visitStringInterpolation should not be called.');
   }
 
-  visitEmptyStatement(EmptyStatement node) {
+  visitEmptyStatement(ast.EmptyStatement node) {
     // Do nothing, empty statement.
   }
 
-  visitModifiers(Modifiers node) {
-    compiler.unimplemented('SsaFromAstMixin.visitModifiers', node: node);
+  visitModifiers(ast.Modifiers node) {
+    compiler.unimplemented(node, 'SsaFromAstMixin.visitModifiers.');
   }
 
-  visitBreakStatement(BreakStatement node) {
+  visitBreakStatement(ast.BreakStatement node) {
     assert(!isAborted());
     handleInTryStatement();
     TargetElement target = elements[node];
@@ -5000,7 +4898,7 @@ abstract class SsaFromAstMixin
     }
   }
 
-  visitContinueStatement(ContinueStatement node) {
+  visitContinueStatement(ast.ContinueStatement node) {
     handleInTryStatement();
     TargetElement target = elements[node];
     assert(target != null);
@@ -5024,13 +4922,13 @@ abstract class SsaFromAstMixin
    * to distinguish the synthetized loop created for a switch statement with
    * continue statements from simple switch statements.
    */
-  JumpHandler createJumpHandler(Statement node, {bool isLoopJump}) {
+  JumpHandler createJumpHandler(ast.Statement node, {bool isLoopJump}) {
     TargetElement element = elements[node];
     if (element == null || !identical(element.statement, node)) {
       // No breaks or continues to this node.
       return new NullJumpHandler(compiler);
     }
-    if (isLoopJump && node is SwitchStatement) {
+    if (isLoopJump && node is ast.SwitchStatement) {
       // Create a special jump handler for loops created for switch statements
       // with continue statements.
       return new SwitchCaseJumpHandler(this, element, node);
@@ -5038,7 +4936,7 @@ abstract class SsaFromAstMixin
     return new JumpHandler(this, element);
   }
 
-  visitForIn(ForIn node) {
+  visitForIn(ast.ForIn node) {
     // Generate a structure equivalent to:
     //   Iterator<E> $iter = <iterable>.iterator;
     //   while ($iter.moveNext()) {
@@ -5064,7 +4962,7 @@ abstract class SsaFromAstMixin
       Selector call = elements.getCurrentSelector(node);
       pushInvokeDynamic(node, call, [iterator]);
 
-      Node identifier = node.declaredIdentifier;
+      ast.Node identifier = node.declaredIdentifier;
       Element variable = elements[identifier];
       Selector selector = elements.getSelector(identifier);
 
@@ -5089,14 +4987,14 @@ abstract class SsaFromAstMixin
     handleLoop(node, buildInitializer, buildCondition, () {}, buildBody);
   }
 
-  visitLabel(Label node) {
-    compiler.internalError('SsaFromAstMixin.visitLabel', node: node);
+  visitLabel(ast.Label node) {
+    compiler.internalError(node, 'SsaFromAstMixin.visitLabel.');
   }
 
-  visitLabeledStatement(LabeledStatement node) {
-    Statement body = node.statement;
-    if (body is Loop
-        || body is SwitchStatement
+  visitLabeledStatement(ast.LabeledStatement node) {
+    ast.Statement body = node.statement;
+    if (body is ast.Loop
+        || body is ast.SwitchStatement
         || Elements.isUnusedLabel(node, elements)) {
       // Loops and switches handle their own labels.
       visit(body);
@@ -5135,13 +5033,13 @@ abstract class SsaFromAstMixin
     handler.close();
   }
 
-  visitLiteralMap(LiteralMap node) {
+  visitLiteralMap(ast.LiteralMap node) {
     if (node.isConst()) {
       stack.add(addConstant(node));
       return;
     }
     List<HInstruction> inputs = <HInstruction>[];
-    for (Link<Node> link = node.entries.nodes;
+    for (Link<ast.Node> link = node.entries.nodes;
          !link.isEmpty;
          link = link.tail) {
       visit(link.head);
@@ -5155,21 +5053,21 @@ abstract class SsaFromAstMixin
     stack.add(setRtiIfNeeded(pop(), node));
   }
 
-  visitLiteralMapEntry(LiteralMapEntry node) {
+  visitLiteralMapEntry(ast.LiteralMapEntry node) {
     visit(node.value);
     visit(node.key);
   }
 
-  visitNamedArgument(NamedArgument node) {
+  visitNamedArgument(ast.NamedArgument node) {
     visit(node.expression);
   }
 
-  Map<CaseMatch, Constant> buildSwitchCaseConstants(SwitchStatement node) {
-    Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
-    for (SwitchCase switchCase in node.cases) {
-      for (Node labelOrCase in switchCase.labelsAndCases) {
-        if (labelOrCase is CaseMatch) {
-          CaseMatch match = labelOrCase;
+  Map<ast.CaseMatch, Constant> buildSwitchCaseConstants(ast.SwitchStatement node) {
+    Map<ast.CaseMatch, Constant> constants = new Map<ast.CaseMatch, Constant>();
+    for (ast.SwitchCase switchCase in node.cases) {
+      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+        if (labelOrCase is ast.CaseMatch) {
+          ast.CaseMatch match = labelOrCase;
           Constant constant = getConstantForNode(match.expression);
           constants[labelOrCase] = constant;
         }
@@ -5178,18 +5076,18 @@ abstract class SsaFromAstMixin
     return constants;
   }
 
-  visitSwitchStatement(SwitchStatement node) {
-    Map<CaseMatch,Constant> constants = buildSwitchCaseConstants(node);
+  visitSwitchStatement(ast.SwitchStatement node) {
+    Map<ast.CaseMatch, Constant> constants = buildSwitchCaseConstants(node);
 
     // The switch case indices must match those computed in
     // [SwitchCaseJumpHandler].
     bool hasContinue = false;
-    Map<SwitchCase, int> caseIndex = new Map<SwitchCase, int>();
+    Map<ast.SwitchCase, int> caseIndex = new Map<ast.SwitchCase, int>();
     int switchIndex = 1;
     bool hasDefault = false;
-    for (SwitchCase switchCase in node.cases) {
-      for (Node labelOrCase in switchCase.labelsAndCases) {
-        Node label = labelOrCase.asLabel();
+    for (ast.SwitchCase switchCase in node.cases) {
+      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+        ast.Node label = labelOrCase.asLabel();
         if (label != null) {
           LabelElement labelElement = elements[label];
           if (labelElement != null && labelElement.isContinueTarget) {
@@ -5216,26 +5114,26 @@ abstract class SsaFromAstMixin
    * Builds a simple switch statement which does not handle uses of continue
    * statements to labeled switch cases.
    */
-  void buildSimpleSwitchStatement(SwitchStatement node,
-                                  Map<CaseMatch, Constant> constants) {
+  void buildSimpleSwitchStatement(ast.SwitchStatement node,
+                                  Map<ast.CaseMatch, Constant> constants) {
     JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
     HInstruction buildExpression() {
       visit(node.expression);
       return pop();
     }
-    Iterable<Constant> getConstants(SwitchCase switchCase) {
+    Iterable<Constant> getConstants(ast.SwitchCase switchCase) {
       List<Constant> constantList = <Constant>[];
-      for (Node labelOrCase in switchCase.labelsAndCases) {
-        if (labelOrCase is CaseMatch) {
+      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+        if (labelOrCase is ast.CaseMatch) {
           constantList.add(constants[labelOrCase]);
         }
       }
       return constantList;
     }
-    bool isDefaultCase(SwitchCase switchCase) {
+    bool isDefaultCase(ast.SwitchCase switchCase) {
       return switchCase.isDefaultCase;
     }
-    void buildSwitchCase(SwitchCase node) {
+    void buildSwitchCase(ast.SwitchCase node) {
       visit(node.statements);
     }
     handleSwitch(node,
@@ -5252,9 +5150,9 @@ abstract class SsaFromAstMixin
    * Builds a switch statement that can handle arbitrary uses of continue
    * statements to labeled switch cases.
    */
-  void buildComplexSwitchStatement(SwitchStatement node,
-                                   Map<CaseMatch, Constant> constants,
-                                   Map<SwitchCase, int> caseIndex,
+  void buildComplexSwitchStatement(ast.SwitchStatement node,
+                                   Map<ast.CaseMatch, Constant> constants,
+                                   Map<ast.SwitchCase, int> caseIndex,
                                    bool hasDefault) {
     // If the switch statement has switch cases targeted by continue
     // statements we create the following encoding:
@@ -5300,21 +5198,21 @@ abstract class SsaFromAstMixin
       visit(node.expression);
       return pop();
     }
-    Iterable<Constant> getConstants(SwitchCase switchCase) {
+    Iterable<Constant> getConstants(ast.SwitchCase switchCase) {
       List<Constant> constantList = <Constant>[];
       if (switchCase != null) {
-        for (Node labelOrCase in switchCase.labelsAndCases) {
-          if (labelOrCase is CaseMatch) {
+        for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+          if (labelOrCase is ast.CaseMatch) {
             constantList.add(constants[labelOrCase]);
           }
         }
       }
       return constantList;
     }
-    bool isDefaultCase(SwitchCase switchCase) {
+    bool isDefaultCase(ast.SwitchCase switchCase) {
       return switchCase == null || switchCase.isDefaultCase;
     }
-    void buildSwitchCase(SwitchCase switchCase) {
+    void buildSwitchCase(ast.SwitchCase switchCase) {
       if (switchCase != null) {
         // Generate 'target = i; break;' for switch case i.
         int index = caseIndex[switchCase];
@@ -5343,10 +5241,10 @@ abstract class SsaFromAstMixin
       HInstruction buildExpression() {
         return localsHandler.readLocal(switchTarget);
       }
-      Iterable<Constant> getConstants(SwitchCase switchCase) {
+      Iterable<Constant> getConstants(ast.SwitchCase switchCase) {
         return <Constant>[constantSystem.createInt(caseIndex[switchCase])];
       }
-      void buildSwitchCase(SwitchCase switchCase) {
+      void buildSwitchCase(ast.SwitchCase switchCase) {
         visit(switchCase.statements);
         if (!isAborted()) {
           // Ensure that we break the loop if the case falls through. (This
@@ -5392,21 +5290,21 @@ abstract class SsaFromAstMixin
    *
    * [jumpHandler] is the [JumpHandler] for the created switch statement.
    * [buildExpression] creates the switch expression.
-   * [switchCases] must be either an [Iterable] of [SwitchCase] nodes or
-   *   a [Link] or a [NodeList] of [SwitchCase] nodes.
+   * [switchCases] must be either an [Iterable] of [ast.SwitchCase] nodes or
+   *   a [Link] or a [ast.NodeList] of [ast.SwitchCase] nodes.
    * [getConstants] returns the set of constants for a switch case.
    * [isDefaultCase] returns [:true:] if the provided switch case should be
    *   considered default for the created switch statement.
    * [buildSwitchCase] creates the statements for the switch case.
    */
-  void handleSwitch(Node errorNode,
+  void handleSwitch(ast.Node errorNode,
                     JumpHandler jumpHandler,
                     HInstruction buildExpression(),
                     var switchCases,
-                    Iterable<Constant> getConstants(SwitchCase switchCase),
-                    bool isDefaultCase(SwitchCase switchCase),
-                    void buildSwitchCase(SwitchCase switchCase)) {
-    Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
+                    Iterable<Constant> getConstants(ast.SwitchCase switchCase),
+                    bool isDefaultCase(ast.SwitchCase switchCase),
+                    void buildSwitchCase(ast.SwitchCase switchCase)) {
+    Map<ast.CaseMatch, Constant> constants = new Map<ast.CaseMatch, Constant>();
 
     HBasicBlock expressionStart = openNewBlock();
     HInstruction expression = buildExpression();
@@ -5421,10 +5319,10 @@ abstract class SsaFromAstMixin
     List<HStatementInformation> statements = <HStatementInformation>[];
     bool hasDefault = false;
     Element getFallThroughErrorElement = backend.getFallThroughError();
-    HasNextIterator<Node> caseIterator =
-        new HasNextIterator<Node>(switchCases.iterator);
+    HasNextIterator<ast.Node> caseIterator =
+        new HasNextIterator<ast.Node>(switchCases.iterator);
     while (caseIterator.hasNext) {
-      SwitchCase switchCase = caseIterator.next();
+      ast.SwitchCase switchCase = caseIterator.next();
       HBasicBlock block = graph.addNewBlock();
       for (Constant constant in getConstants(switchCase)) {
         HConstant hConstant = graph.addConstant(constant, compiler);
@@ -5519,15 +5417,15 @@ abstract class SsaFromAstMixin
     jumpHandler.close();
   }
 
-  visitSwitchCase(SwitchCase node) {
-    compiler.internalError('SsaFromAstMixin.visitSwitchCase');
+  visitSwitchCase(ast.SwitchCase node) {
+    compiler.internalError(node, 'SsaFromAstMixin.visitSwitchCase.');
   }
 
-  visitCaseMatch(CaseMatch node) {
-    compiler.internalError('SsaFromAstMixin.visitCaseMatch');
+  visitCaseMatch(ast.CaseMatch node) {
+    compiler.internalError(node, 'SsaFromAstMixin.visitCaseMatch.');
   }
 
-  visitTryStatement(TryStatement node) {
+  visitTryStatement(ast.TryStatement node) {
     // Save the current locals. The catch block and the finally block
     // must not reuse the existing locals handler. None of the variables
     // that have been defined in the body-block will be used, but for
@@ -5575,19 +5473,19 @@ abstract class SsaFromAstMixin
       pushInvokeStatic(node, backend.getExceptionUnwrapper(), [exception]);
       HInvokeStatic unwrappedException = pop();
       tryInstruction.exception = exception;
-      Link<Node> link = node.catchBlocks.nodes;
+      Link<ast.Node> link = node.catchBlocks.nodes;
 
-      void pushCondition(CatchBlock catchBlock) {
+      void pushCondition(ast.CatchBlock catchBlock) {
         if (catchBlock.onKeyword != null) {
           DartType type = elements.getType(catchBlock.type);
           if (type == null) {
-            compiler.internalError('On with no type', node: catchBlock.type);
+            compiler.internalError(catchBlock.type, 'On with no type.');
           }
           HInstruction condition =
               buildIsNode(catchBlock.type, type, unwrappedException);
           push(condition);
         } else {
-          VariableDefinitions declaration = catchBlock.formals.nodes.head;
+          ast.VariableDefinitions declaration = catchBlock.formals.nodes.head;
           HInstruction condition = null;
           if (declaration.type == null) {
             condition = graph.addConstantBool(true, compiler);
@@ -5599,7 +5497,7 @@ abstract class SsaFromAstMixin
             // condition.
             DartType type = elements.getType(declaration.type);
             if (type == null) {
-              compiler.cancel('Catch with unresolved type', node: catchBlock);
+              compiler.internalError(catchBlock, 'Catch with unresolved type.');
             }
             condition = buildIsNode(declaration.type, type, unwrappedException);
             push(condition);
@@ -5608,13 +5506,13 @@ abstract class SsaFromAstMixin
       }
 
       void visitThen() {
-        CatchBlock catchBlock = link.head;
+        ast.CatchBlock catchBlock = link.head;
         link = link.tail;
         if (catchBlock.exception != null) {
           localsHandler.updateLocal(elements[catchBlock.exception],
                                     unwrappedException);
         }
-        Node trace = catchBlock.trace;
+        ast.Node trace = catchBlock.trace;
         if (trace != null) {
           pushInvokeStatic(trace, backend.getTraceFromException(), [exception]);
           HInstruction traceInstruction = pop();
@@ -5627,14 +5525,14 @@ abstract class SsaFromAstMixin
         if (link.isEmpty) {
           closeAndGotoExit(new HThrow(exception, isRethrow: true));
         } else {
-          CatchBlock newBlock = link.head;
+          ast.CatchBlock newBlock = link.head;
           handleIf(node,
                    () { pushCondition(newBlock); },
                    visitThen, visitElse);
         }
       }
 
-      CatchBlock firstBlock = link.head;
+      ast.CatchBlock firstBlock = link.head;
       handleIf(node, () { pushCondition(firstBlock); }, visitThen, visitElse);
       if (!isAborted()) endCatchBlock = close(new HGoto());
 
@@ -5719,66 +5617,28 @@ abstract class SsaFromAstMixin
     inTryStatement = oldInTryStatement;
   }
 
-  visitCatchBlock(CatchBlock node) {
+  visitCatchBlock(ast.CatchBlock node) {
     visit(node.block);
   }
 
-  visitTypedef(Typedef node) {
-    compiler.unimplemented('SsaFromAstMixin.visitTypedef', node: node);
+  visitTypedef(ast.Typedef node) {
+    compiler.unimplemented(node, 'SsaFromAstMixin.visitTypedef.');
   }
 
-  visitTypeVariable(TypeVariable node) {
-    compiler.internalError('SsaFromAstMixin.visitTypeVariable');
-  }
-}
-
-/**
- * This class builds SSA nodes for functions represented in AST.
- */
-class SsaFromAstBuilder extends ResolvedVisitor with
-    SsaBuilderMixin<Node>,
-    SsaFromAstMixin,
-    SsaBuilderFields<Node> {
-  final Compiler compiler;
-  final JavaScriptBackend backend;
-  final ConstantSystem constantSystem;
-  final CodegenWorkItem work;
-  final RuntimeTypes rti;
-
-  /* This field is used by the native handler. */
-  final NativeEmitter nativeEmitter;
-
-  SsaFromAstBuilder(JavaScriptBackend backend,
-                    CodegenWorkItem work,
-                    this.nativeEmitter)
-    : this.backend = backend,
-      this.compiler = backend.compiler,
-      this.constantSystem = backend.constantSystem,
-      this.work = work,
-      this.rti = backend.rti,
-      super(work.resolutionTree, backend.compiler) {
-    localsHandler = new LocalsHandler(this);
-    sourceElementStack.add(work.element);
+  visitTypeVariable(ast.TypeVariable node) {
+    compiler.internalError(node, 'SsaFromAstMixin.visitTypeVariable.');
   }
 
   /**
    * This method is invoked before inlining the body of [function] into this
-   * [SsaFromAstBuilder]. The inlined function can be either in AST or IR.
-   *
-   * The method is also invoked from the [SsaFromIrInliner], that is, if we
-   * are currently inlining an IR function and encounter a function invocation
-   * that should be inlined.
+   * [SsaBuilder].
    */
   void enterInlinedMethod(FunctionElement function,
-                          Node _,
+                          ast.Node _,
                           List<HInstruction> compiledArguments) {
-    SsaFromIrInliner irInliner;
-    if (compiler.irBuilder.hasIr(function)) {
-      irInliner = new SsaFromIrInliner(this, function, compiledArguments);
-    }
     AstInliningState state = new AstInliningState(
         function, returnElement, returnType, elements, stack, localsHandler,
-        inTryStatement, irInliner);
+        inTryStatement);
     inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the
@@ -5795,15 +5655,10 @@ class SsaFromAstBuilder extends ResolvedVisitor with
   }
 
   void doInline(FunctionElement function) {
-    if (compiler.irBuilder.hasIr(function)) {
-      AstInliningState state = inliningStack.last;
-      state.irInliner.visitInlinedFunction(function);
-    } else {
-      visitInlinedFunction(function);
-    }
+    visitInlinedFunction(function);
   }
 
-  void emitReturn(HInstruction value, Node node) {
+  void emitReturn(HInstruction value, ast.Node node) {
     if (inliningStack.isEmpty) {
       closeAndGotoExit(attachPosition(new HReturn(value), node));
     } else {
@@ -5813,81 +5668,13 @@ class SsaFromAstBuilder extends ResolvedVisitor with
 }
 
 /**
- * This class inlines an AST function into an [SsaFromIrBuilder].
- */
-class SsaFromAstInliner extends ResolvedVisitor with
-    SsaBuilderMixin<Node>,
-    SsaFromAstMixin,
-    SsaBuilderDelegate<Node, IrNode> {
-  final SsaFromIrBuilder builder;
-
-  SsaFromAstInliner.internal(SsaFromIrBuilder builder)
-    : this.builder = builder,
-      super(builder.work.resolutionTree, builder.compiler);
-
-  factory SsaFromAstInliner(SsaFromIrBuilder builder,
-                            FunctionElement function,
-                            List<HInstruction> compiledArguments) {
-    SsaFromAstInliner result = new SsaFromAstInliner.internal(builder);
-    result.setupStateForInlining(function, compiledArguments);
-    return result;
-  }
-
-  ConstantSystem get constantSystem => builder.backend.constantSystem;
-  RuntimeTypes get rti => builder.backend.rti;
-  CodegenWorkItem get work => builder.work;
-
-  void emitReturn(HInstruction value, Node node) {
-    IrInliningState state = inliningStack.last;
-    builder.emitted[state.invokeNode] = value;
-  }
-
-  void enterInlinedMethod(FunctionElement function,
-                          Node currentNode,
-                          List<HInstruction> compiledArguments) {
-    // At this point we are inside the [SsaFromAstInliner] (inlining an AST
-    // function into an IR builder), and we encounter a function invocation that
-    // should be inlined.
-    // When inlining into an IR builder (which is what we are doing here), the
-    // returned value is stored in the builder's [emitted] map using the
-    // function invocation's IrNode as key.
-    // Since we are currently inlining an AST function, the invocation node is
-    // an AST node. A synthetic [IrInlinedInvocationDummy] is added to the
-    // [emitted] map to hold the result of the inlined function.
-    IrNode invokeNode = new IrInlinedInvocationDummy();
-    builder.enterInlinedMethod(function, invokeNode, compiledArguments);
-  }
-
-  void leaveInlinedMethod() {
-    IrInliningState state = inliningStack.last;
-    assert(state.invokeNode is IrInlinedInvocationDummy);
-    HInstruction result = builder.emitted.remove(state.invokeNode);
-    if (result == null) {
-      // When the inlined function is in AST form, it might not have an explicit
-      // [:return:] statement, and the result value might be undefined.
-      assert(!compiler.irBuilder.hasIr(state.function));
-      result = graph.addConstantNull(compiler);
-    }
-    assert(result != null);
-    stack.add(result);
-    builder.leaveInlinedMethod();
-  }
-
-  void doInline(FunctionElement function) {
-    builder.doInline(function);
-  }
-}
-
-/**
  * Visitor that handles generation of string literals (LiteralString,
  * StringInterpolation), and otherwise delegates to the given visitor for
  * non-literal subexpressions.
- * TODO(lrn): Consider whether to handle compile time constant int/boolean
- * expressions as well.
  */
-class StringBuilderVisitor extends Visitor {
-  final SsaFromAstMixin builder;
-  final Node diagnosticNode;
+class StringBuilderVisitor extends ast.Visitor {
+  final SsaBuilder builder;
+  final ast.Node diagnosticNode;
 
   /**
    * The string value generated so far.
@@ -5896,44 +5683,77 @@ class StringBuilderVisitor extends Visitor {
 
   StringBuilderVisitor(this.builder, this.diagnosticNode);
 
-  void visit(Node node) {
+  Compiler get compiler => builder.compiler;
+
+  void visit(ast.Node node) {
     node.accept(this);
   }
 
-  visitNode(Node node) {
-    builder.compiler.internalError('unexpected node', node: node);
+  visitNode(ast.Node node) {
+    builder.compiler.internalError(node, 'Unexpected node.');
   }
 
-  void visitExpression(Node node) {
+  void visitExpression(ast.Node node) {
     node.accept(builder);
     HInstruction expression = builder.pop();
-    if (!expression.isConstantString()) {
-      expression = new HStringify(expression, node, builder.backend.stringType);
-      builder.add(expression);
+
+    // We want to use HStringify when:
+    //   1. The value is known to be a primitive type, because it might get
+    //      constant-folded and codegen has some tricks with JavaScript
+    //      conversions.
+    //   2. The value can be primitive, because the library stringifier has
+    //      fast-path code for most primitives.
+    if (expression.canBePrimitive(compiler)) {
+      append(stringify(node, expression));
+      return;
     }
-    result = (result == null) ? expression : concat(result, expression);
+
+    // If the `toString` method is guaranteed to return a string we can call it
+    // directly.
+    Selector selector =
+        new TypedSelector(expression.instructionType,
+            new Selector.call('toString', null, 0));
+    TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
+    if (type.containsOnlyString(compiler)) {
+      builder.pushInvokeDynamic(node, selector, <HInstruction>[expression]);
+      append(builder.pop());
+      return;
+    }
+
+    append(stringify(node, expression));
   }
 
-  void visitStringInterpolation(StringInterpolation node) {
+  void visitStringInterpolation(ast.StringInterpolation node) {
     node.visitChildren(this);
   }
 
-  void visitStringInterpolationPart(StringInterpolationPart node) {
+  void visitStringInterpolationPart(ast.StringInterpolationPart node) {
     visit(node.expression);
     visit(node.string);
   }
 
-  void visitStringJuxtaposition(StringJuxtaposition node) {
+  void visitStringJuxtaposition(ast.StringJuxtaposition node) {
     node.visitChildren(this);
   }
 
-  void visitNodeList(NodeList node) {
+  void visitNodeList(ast.NodeList node) {
      node.visitChildren(this);
+  }
+
+  void append(HInstruction expression) {
+    result = (result == null) ? expression : concat(result, expression);
   }
 
   HInstruction concat(HInstruction left, HInstruction right) {
     HInstruction instruction = new HStringConcat(
         left, right, diagnosticNode, builder.backend.stringType);
+    builder.add(instruction);
+    return instruction;
+  }
+
+  HInstruction stringify(ast.Node node, HInstruction expression) {
+    HInstruction instruction =
+        new HStringify(expression, node, builder.backend.stringType);
     builder.add(instruction);
     return instruction;
   }
@@ -5943,7 +5763,7 @@ class StringBuilderVisitor extends Visitor {
  * This class visits the method that is a candidate for inlining and
  * finds whether it is too difficult to inline.
  */
-class InlineWeeder extends Visitor {
+class InlineWeeder extends ast.Visitor {
   // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
   static const INLINING_NODES_OUTSIDE_LOOP = 18;
   static const INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR = 3;
@@ -5958,7 +5778,7 @@ class InlineWeeder extends Visitor {
 
   InlineWeeder(this.maxInliningNodes, this.useMaxInliningNodes);
 
-  static bool canBeInlined(FunctionExpression functionExpression,
+  static bool canBeInlined(ast.FunctionExpression functionExpression,
                            int maxInliningNodes,
                            bool useMaxInliningNodes) {
     InlineWeeder weeder =
@@ -5978,11 +5798,11 @@ class InlineWeeder extends Visitor {
     }
   }
 
-  void visit(Node node) {
+  void visit(ast.Node node) {
     if (node != null) node.accept(this);
   }
 
-  void visitNode(Node node) {
+  void visitNode(ast.Node node) {
     if (!registerNode()) return;
     if (seenReturn) {
       tooDifficult = true;
@@ -5991,34 +5811,34 @@ class InlineWeeder extends Visitor {
     }
   }
 
-  void visitFunctionExpression(Node node) {
+  void visitFunctionExpression(ast.Node node) {
     if (!registerNode()) return;
     tooDifficult = true;
   }
 
-  void visitFunctionDeclaration(Node node) {
+  void visitFunctionDeclaration(ast.Node node) {
     if (!registerNode()) return;
     tooDifficult = true;
   }
 
-  void visitSend(Send node) {
+  void visitSend(ast.Send node) {
     if (!registerNode()) return;
     node.visitChildren(this);
   }
 
-  visitLoop(Node node) {
+  visitLoop(ast.Node node) {
     // It's actually not difficult to inline a method with a loop, but
     // our measurements show that it's currently better to not inline a
     // method that contains a loop.
     tooDifficult = true;
   }
 
-  void visitRethrow(Rethrow node) {
+  void visitRethrow(ast.Rethrow node) {
     if (!registerNode()) return;
     tooDifficult = true;
   }
 
-  void visitReturn(Return node) {
+  void visitReturn(ast.Return node) {
     if (!registerNode()) return;
     if (seenReturn
         || identical(node.getBeginToken().stringValue, 'native')
@@ -6030,12 +5850,12 @@ class InlineWeeder extends Visitor {
     seenReturn = true;
   }
 
-  void visitTryStatement(Node node) {
+  void visitTryStatement(ast.Node node) {
     if (!registerNode()) return;
     tooDifficult = true;
   }
 
-  void visitThrow(Throw node) {
+  void visitThrow(ast.Throw node) {
     if (!registerNode()) return;
     // For now, we don't want to handle throw after a return even if
     // it is in an "if".
@@ -6061,7 +5881,6 @@ class AstInliningState extends InliningState {
   final List<HInstruction> oldStack;
   final LocalsHandler oldLocalsHandler;
   final bool inTryStatement;
-  final SsaFromIrInliner irInliner;
 
   AstInliningState(FunctionElement function,
                    this.oldReturnElement,
@@ -6069,16 +5888,7 @@ class AstInliningState extends InliningState {
                    this.oldElements,
                    this.oldStack,
                    this.oldLocalsHandler,
-                   this.inTryStatement,
-                   this.irInliner): super(function);
-}
-
-class IrInliningState extends InliningState {
-  final IrNode invokeNode;
-  final SsaFromAstInliner astInliner;
-
-  IrInliningState(FunctionElement function, this.invokeNode, this.astInliner)
-    : super(function);
+                   this.inTryStatement): super(function);
 }
 
 class SsaBranch {
@@ -6092,8 +5902,8 @@ class SsaBranch {
 }
 
 class SsaBranchBuilder {
-  final SsaFromAstMixin builder;
-  final Node diagnosticNode;
+  final SsaBuilder builder;
+  final ast.Node diagnosticNode;
 
   SsaBranchBuilder(this.builder, [this.diagnosticNode]);
 
@@ -6101,7 +5911,7 @@ class SsaBranchBuilder {
 
   void checkNotAborted() {
     if (builder.isAborted()) {
-      compiler.unimplemented("aborted control flow", node: diagnosticNode);
+      compiler.unimplemented(diagnosticNode, "aborted control flow");
     }
   }
 
@@ -6235,7 +6045,7 @@ class SsaBranchBuilder {
     builder.stack.add(result);
   }
 
-  void handleLogicalAndOrWithLeftNode(Node left,
+  void handleLogicalAndOrWithLeftNode(ast.Node left,
                                       void visitRight(),
                                       {bool isAnd}) {
     // This method is similar to [handleLogicalAndOr] but optimizes the case
@@ -6252,13 +6062,13 @@ class SsaBranchBuilder {
     //   }
     //   result = phi(t3, false);
 
-    Send send = left.asSend();
+    ast.Send send = left.asSend();
     if (send != null &&
         (isAnd ? send.isLogicalAnd : send.isLogicalOr)) {
-      Node newLeft = send.receiver;
-      Link<Node> link = send.argumentsNode.nodes;
+      ast.Node newLeft = send.receiver;
+      Link<ast.Node> link = send.argumentsNode.nodes;
       assert(link.tail.isEmpty);
-      Node middle = link.head;
+      ast.Node middle = link.head;
       handleLogicalAndOrWithLeftNode(
           newLeft,
           () => handleLogicalAndOrWithLeftNode(middle, visitRight,
@@ -6320,18 +6130,18 @@ class SsaBranchBuilder {
   }
 }
 
-class TypeBuilder implements DartTypeVisitor<dynamic, SsaFromAstMixin> {
+class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   void visitType(DartType type, _) {
     throw 'Internal error $type';
   }
 
-  void visitVoidType(VoidType type, SsaFromAstMixin builder) {
+  void visitVoidType(VoidType type, SsaBuilder builder) {
     ClassElement cls = builder.compiler.findHelper('VoidRuntimeType');
     builder.push(new HVoidType(type, new TypeMask.exact(cls)));
   }
 
   void visitTypeVariableType(TypeVariableType type,
-                             SsaFromAstMixin builder) {
+                             SsaBuilder builder) {
     ClassElement cls = builder.compiler.findHelper('RuntimeType');
     TypeMask instructionType = new TypeMask.subclass(cls);
     if (!builder.sourceElement.enclosingElement.isClosure() &&
@@ -6345,7 +6155,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaFromAstMixin> {
     }
   }
 
-  void visitFunctionType(FunctionType type, SsaFromAstMixin builder) {
+  void visitFunctionType(FunctionType type, SsaBuilder builder) {
     type.returnType.accept(this, builder);
     HInstruction returnType = builder.pop();
     List<HInstruction> inputs = <HInstruction>[returnType];
@@ -6362,7 +6172,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaFromAstMixin> {
 
     Link<DartType> namedParameterTypes = type.namedParameterTypes;
     for (String name in type.namedParameters) {
-      DartString dartString = new DartString.literal(name);
+      ast.DartString dartString = new ast.DartString.literal(name);
       inputs.add(
           builder.graph.addConstantString(dartString, builder.compiler));
       namedParameterTypes.head.accept(this, builder);
@@ -6374,19 +6184,19 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaFromAstMixin> {
     builder.push(new HFunctionType(inputs, type, new TypeMask.exact(cls)));
   }
 
-  void visitMalformedType(MalformedType type, SsaFromAstMixin builder) {
+  void visitMalformedType(MalformedType type, SsaBuilder builder) {
     visitDynamicType(builder.compiler.types.dynamicType, builder);
   }
 
-  void visitStatementType(StatementType type, SsaFromAstMixin builder) {
+  void visitStatementType(StatementType type, SsaBuilder builder) {
     throw 'not implemented visitStatementType($type)';
   }
 
-  void visitGenericType(GenericType type, SsaFromAstMixin builder) {
+  void visitGenericType(GenericType type, SsaBuilder builder) {
     throw 'not implemented visitGenericType($type)';
   }
 
-  void visitInterfaceType(InterfaceType type, SsaFromAstMixin builder) {
+  void visitInterfaceType(InterfaceType type, SsaBuilder builder) {
     List<HInstruction> inputs = <HInstruction>[];
     for (DartType typeArgument in type.typeArguments) {
       typeArgument.accept(this, builder);
@@ -6401,13 +6211,13 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaFromAstMixin> {
     builder.push(new HInterfaceType(inputs, type, new TypeMask.exact(cls)));
   }
 
-  void visitTypedefType(TypedefType type, SsaFromAstMixin builder) {
+  void visitTypedefType(TypedefType type, SsaBuilder builder) {
     DartType unaliased = type.unalias(builder.compiler);
     if (unaliased is TypedefType) throw 'unable to unalias $type';
     unaliased.accept(this, builder);
   }
 
-  void visitDynamicType(DynamicType type, SsaFromAstMixin builder) {
+  void visitDynamicType(DynamicType type, SsaBuilder builder) {
     ClassElement cls = builder.compiler.findHelper('DynamicRuntimeType');
     builder.push(new HDynamicType(type, new TypeMask.exact(cls)));
   }

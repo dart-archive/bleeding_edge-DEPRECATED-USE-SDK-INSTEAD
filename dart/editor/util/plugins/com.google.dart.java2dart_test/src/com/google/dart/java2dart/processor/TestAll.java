@@ -31,6 +31,7 @@ public class TestAll {
     suite.addTestSuite(GuavaSemanticProcessorTest.class);
     suite.addTestSuite(JUnitSemanticProcessorTest.class);
     suite.addTestSuite(EngineSemanticProcessorTest.class);
+    suite.addTestSuite(EngineAnnotationProcessorTest.class);
     return suite;
   }
 }

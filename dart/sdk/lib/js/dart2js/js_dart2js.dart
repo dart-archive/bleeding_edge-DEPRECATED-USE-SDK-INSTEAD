@@ -4,7 +4,7 @@
 
 /**
  * Support for interoperating with JavaScript.
- * 
+ *
  * This library provides access to JavaScript objects from Dart, allowing
  * Dart code to get and set properties, and call methods of JavaScript objects
  * and invoke JavaScript functions. The library takes care of converting
@@ -27,14 +27,14 @@
  * global function `alert()`:
  *
  *     import 'dart:js';
- *     
+ *
  *     main() => context.callMethod('alert', ['Hello from Dart!']);
  *
  * This example shows how to create a [JsObject] from a JavaScript constructor
  * and access its properties:
  *
  *     import 'dart:js';
- *     
+ *
  *     main() {
  *       var object = new JsObject(context['Object']);
  *       object['greeting'] = 'Hello';
@@ -44,7 +44,7 @@
  *     }
  *
  * ## Proxying and automatic conversion
- * 
+ *
  * When setting properties on a JsObject or passing arguments to a Javascript
  * method or function, Dart objects are automatically converted or proxied to
  * JavaScript objects. When accessing JavaScript properties, or when a Dart
@@ -80,7 +80,7 @@
  * `a` and `b` defined:
  *
  *     var jsMap = new JsObject.jsify({'a': 1, 'b': 2});
- * 
+ *
  * This expression creates a JavaScript array:
  *
  *     var jsArray = new JsObject.jsify([1, 2, 3]);
@@ -94,7 +94,8 @@ import 'dart:typed_data' show TypedData;
 
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
 import 'dart:_interceptors' show JavaScriptObject, UnknownJavaScriptObject;
-import 'dart:_js_helper' show Primitives, convertDartClosureToJS;
+import 'dart:_js_helper' show Primitives, convertDartClosureToJS,
+    getIsolateAffinityTag;
 
 final JsObject context = _wrapToDart(Primitives.computeGlobalThis());
 
@@ -165,7 +166,7 @@ class JsObject {
    * Use this constructor only if you wish to get access to JavaScript
    * properties attached to a browser host object, such as a Node or Blob, that
    * is normally automatically converted into a native Dart object.
-   * 
+   *
    * An exception will be thrown if [object] either is `null` or has the type
    * `bool`, `num`, or `String`.
    */
@@ -232,7 +233,7 @@ class JsObject {
     }
     return _convertToDart(JS('', '#[#]', _jsObject, property));
   }
-  
+
   /**
    * Sets the value associated with [property] on the proxied JavaScript
    * object.
@@ -369,12 +370,12 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     }
   }
 
-  _checkRange(int start, int end) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
+  static _checkRange(int start, int end, int length) {
+    if (start < 0 || start > length) {
+      throw new RangeError.range(start, 0, length);
     }
-    if (end < start || end > this.length) {
-      throw new RangeError.range(end, start, this.length);
+    if (end < start || end > length) {
+      throw new RangeError.range(end, start, length);
     }
   }
 
@@ -398,7 +399,15 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     super[index] = value;
   }
 
-  int get length => super['length'];
+  int get length {
+    // Check the length honours the List contract.
+    var len = JS('', '#.length', _jsObject);
+    // JavaScript arrays have lengths which are unsigned 32-bit integers.
+    if (JS('bool', 'typeof # === "number" && (# >>> 0) === #', len, len, len)) {
+      return JS('int', '#', len);
+    }
+    throw new StateError('Bad JsArray length');
+  }
 
   void set length(int length) { super['length'] = length; }
 
@@ -410,7 +419,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   }
 
   void addAll(Iterable<E> iterable) {
-    var list = (JS('bool', '# instanceof Array', iterable)) 
+    var list = (JS('bool', '# instanceof Array', iterable))
         ? iterable
         : new List.from(iterable);
     callMethod('push', list);
@@ -432,12 +441,12 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   }
 
   void removeRange(int start, int end) {
-    _checkRange(start, end);
+    _checkRange(start, end, length);
     callMethod('splice', [start, end - start]);
   }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    _checkRange(start, end);
+    _checkRange(start, end, length);
     int length = end - start;
     if (length == 0) return;
     if (skipCount < 0) throw new ArgumentError(skipCount);
@@ -451,8 +460,10 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 }
 
 // property added to a Dart object referencing its JS-side DartObject proxy
-const _DART_OBJECT_PROPERTY_NAME = r'_$dart_dartObject';
-const _DART_CLOSURE_PROPERTY_NAME = r'_$dart_dartClosure';
+final String _DART_OBJECT_PROPERTY_NAME =
+    getIsolateAffinityTag(r'_$dart_dartObject');
+final String _DART_CLOSURE_PROPERTY_NAME =
+    getIsolateAffinityTag(r'_$dart_dartClosure');
 
 // property added to a JS object referencing its Dart-side JsObject proxy
 const _JS_OBJECT_PROPERTY_NAME = r'_$dart_jsObject';
@@ -480,11 +491,15 @@ Object _getOwnProperty(o, String name) {
 
 bool _isLocalObject(o) => JS('bool', '# instanceof Object', o);
 
+// The shared constructor function for proxies to Dart objects in JavaScript.
+final _dartProxyCtor = JS('', 'function DartObject(o) { this.o = o; }');
+
 dynamic _convertToJS(dynamic o) {
   if (o == null) {
     return null;
-  } else if (o is String || o is num || o is bool
-      || o is Blob || o is Event || o is KeyRange || o is ImageData
+  } else if (o is String || o is num || o is bool) {
+    return o;
+  } else if (o is Blob || o is Event || o is KeyRange || o is ImageData
       || o is Node || o is TypedData || o is Window) {
     return o;
   } else if (o is DateTime) {
@@ -499,8 +514,9 @@ dynamic _convertToJS(dynamic o) {
       return jsFunction;
     });
   } else {
+    var ctor = _dartProxyCtor;
     return _getJsProxy(o, _JS_OBJECT_PROPERTY_NAME,
-        (o) => JS('', 'new DartObject(#)', o));
+        (o) => JS('', 'new #(#)', ctor, o));
   }
 }
 
@@ -527,9 +543,9 @@ Object _convertToDart(o) {
     // long line: dart2js doesn't allow string concatenation in the JS() form
     return JS('Blob|Event|KeyRange|ImageData|Node|TypedData|Window', '#', o);
   } else if (JS('bool', '# instanceof Date', o)) {
-    var ms = JS('num', '#.getMilliseconds()', o);
+    var ms = JS('num', '#.getTime()', o);
     return new DateTime.fromMillisecondsSinceEpoch(ms);
-  } else if (JS('bool', '#.constructor === DartObject', o)) {
+  } else if (JS('bool', '#.constructor === #', o, _dartProxyCtor)) {
     return JS('', '#.o', o);
   } else {
     return _wrapToDart(o);

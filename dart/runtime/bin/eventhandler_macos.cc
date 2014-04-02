@@ -34,105 +34,69 @@ static const int kShutdownId = -2;
 
 
 bool SocketData::HasReadEvent() {
-  return !IsClosedRead() && ((mask_ & (1 << kInEvent)) != 0);
+  return (mask_ & (1 << kInEvent)) != 0;
 }
 
 
 bool SocketData::HasWriteEvent() {
-  return !IsClosedWrite() && ((mask_ & (1 << kOutEvent)) != 0);
+  return (mask_ & (1 << kOutEvent)) != 0;
 }
 
 
 // Unregister the file descriptor for a SocketData structure with kqueue.
 static void RemoveFromKqueue(intptr_t kqueue_fd_, SocketData* sd) {
+  if (!sd->tracked_by_kqueue()) return;
   static const intptr_t kMaxChanges = 2;
-  intptr_t changes = 0;
   struct kevent events[kMaxChanges];
-  if (sd->read_tracked_by_kqueue()) {
-    EV_SET(events + changes, sd->fd(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
-    ++changes;
-    sd->set_read_tracked_by_kqueue(false);
-  }
-  if (sd->write_tracked_by_kqueue()) {
-    EV_SET(events + changes, sd->fd(), EVFILT_WRITE, EV_DELETE, 0, 0, sd);
-    ++changes;
-    sd->set_write_tracked_by_kqueue(false);
-  }
-  if (changes > 0) {
-    ASSERT(changes <= kMaxChanges);
-    int status =
-      TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
-    if (status == -1) {
-      const int kBufferSize = 1024;
-      char error_message[kBufferSize];
-      strerror_r(errno, error_message, kBufferSize);
-      FATAL1("Failed deleting events from kqueue: %s\n", error_message);
-    }
-  }
+  EV_SET(events, sd->fd(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
+  VOID_NO_RETRY_EXPECTED(kevent(kqueue_fd_, events, 1, NULL, 0, NULL));
+  EV_SET(events, sd->fd(), EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+  VOID_NO_RETRY_EXPECTED(kevent(kqueue_fd_, events, 1, NULL, 0, NULL));
+  sd->set_tracked_by_kqueue(false);
 }
 
 
 // Update the kqueue registration for SocketData structure to reflect
 // the events currently of interest.
-static void UpdateKqueue(intptr_t kqueue_fd_, SocketData* sd) {
+static void AddToKqueue(intptr_t kqueue_fd_, SocketData* sd) {
+  ASSERT(!sd->tracked_by_kqueue());
   static const intptr_t kMaxChanges = 2;
   intptr_t changes = 0;
   struct kevent events[kMaxChanges];
-  // Only report events once and wait for them to be re-enabled after the
-  // event has been handled by the Dart code. This is done by using EV_ONESHOT.
-  if (sd->port() != 0) {
-    // Register or unregister READ filter if needed.
-    if (sd->HasReadEvent()) {
-      if (!sd->read_tracked_by_kqueue()) {
-        EV_SET(events + changes,
-               sd->fd(),
-               EVFILT_READ,
-               EV_ADD | EV_ONESHOT,
-               0,
-               0,
-               sd);
-        ++changes;
-        sd->set_read_tracked_by_kqueue(true);
-      }
-    } else if (sd->read_tracked_by_kqueue()) {
-      EV_SET(events + changes, sd->fd(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
-      ++changes;
-      sd->set_read_tracked_by_kqueue(false);
-    }
-    // Register or unregister WRITE filter if needed.
-    if (sd->HasWriteEvent()) {
-      if (!sd->write_tracked_by_kqueue()) {
-        EV_SET(events + changes,
-               sd->fd(),
-               EVFILT_WRITE,
-               EV_ADD | EV_ONESHOT,
-               0,
-               0,
-               sd);
-        ++changes;
-        sd->set_write_tracked_by_kqueue(true);
-      }
-    } else if (sd->write_tracked_by_kqueue()) {
-      EV_SET(events + changes, sd->fd(), EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-      ++changes;
-      sd->set_write_tracked_by_kqueue(false);
-    }
+  // Register or unregister READ filter if needed.
+  if (sd->HasReadEvent()) {
+    EV_SET(events + changes,
+           sd->fd(),
+           EVFILT_READ,
+           EV_ADD | EV_CLEAR,
+           0,
+           0,
+           sd);
+    ++changes;
   }
-  if (changes > 0) {
-    ASSERT(changes <= kMaxChanges);
-    int status =
-      TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
-    if (status == -1) {
-      // kQueue does not accept the file descriptor. It could be due to
-      // already closed file descriptor, or unuspported devices, such
-      // as /dev/null. In such case, mark the file descriptor as closed,
-      // so dart will handle it accordingly.
-      sd->set_write_tracked_by_kqueue(false);
-      sd->set_read_tracked_by_kqueue(false);
-      sd->ShutdownRead();
-      sd->ShutdownWrite();
-      DartUtils::PostInt32(sd->port(), 1 << kCloseEvent);
-    }
+  // Register or unregister WRITE filter if needed.
+  if (sd->HasWriteEvent()) {
+    EV_SET(events + changes,
+           sd->fd(),
+           EVFILT_WRITE,
+           EV_ADD | EV_CLEAR,
+           0,
+           0,
+           sd);
+    ++changes;
+  }
+  ASSERT(changes > 0);
+  ASSERT(changes <= kMaxChanges);
+  int status =
+      NO_RETRY_EXPECTED(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
+  if (status == -1) {
+    // kQueue does not accept the file descriptor. It could be due to
+    // already closed file descriptor, or unuspported devices, such
+    // as /dev/null. In such case, mark the file descriptor as closed,
+    // so dart will handle it accordingly.
+    DartUtils::PostInt32(sd->port(), 1 << kCloseEvent);
+  } else {
+    sd->set_tracked_by_kqueue(true);
   }
 }
 
@@ -140,7 +104,7 @@ static void UpdateKqueue(intptr_t kqueue_fd_, SocketData* sd) {
 EventHandlerImplementation::EventHandlerImplementation()
     : socket_map_(&HashMap::SamePointerValue, 16) {
   intptr_t result;
-  result = TEMP_FAILURE_RETRY(pipe(interrupt_fds_));
+  result = NO_RETRY_EXPECTED(pipe(interrupt_fds_));
   if (result != 0) {
     FATAL("Pipe creation failed");
   }
@@ -149,7 +113,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   FDUtils::SetCloseOnExec(interrupt_fds_[1]);
   shutdown_ = false;
 
-  kqueue_fd_ = TEMP_FAILURE_RETRY(kqueue());
+  kqueue_fd_ = NO_RETRY_EXPECTED(kqueue());
   if (kqueue_fd_ == -1) {
     FATAL("Failed creating kqueue");
   }
@@ -157,7 +121,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   // Register the interrupt_fd with the kqueue.
   struct kevent event;
   EV_SET(&event, interrupt_fds_[0], EVFILT_READ, EV_ADD, 0, 0, NULL);
-  int status = TEMP_FAILURE_RETRY(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
+  int status = NO_RETRY_EXPECTED(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
   if (status == -1) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
@@ -227,40 +191,34 @@ void EventHandlerImplementation::HandleInterruptFd() {
       if ((msg[i].data & (1 << kShutdownReadCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kShutdownReadCommand));
         // Close the socket for reading.
-        sd->ShutdownRead();
-        UpdateKqueue(kqueue_fd_, sd);
+        shutdown(sd->fd(), SHUT_RD);
       } else if ((msg[i].data & (1 << kShutdownWriteCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kShutdownWriteCommand));
         // Close the socket for writing.
-        sd->ShutdownWrite();
-        UpdateKqueue(kqueue_fd_, sd);
+        shutdown(sd->fd(), SHUT_WR);
       } else if ((msg[i].data & (1 << kCloseCommand)) != 0) {
         ASSERT(msg[i].data == (1 << kCloseCommand));
         // Close the socket and free system resources.
         RemoveFromKqueue(kqueue_fd_, sd);
         intptr_t fd = sd->fd();
-        if (fd == STDOUT_FILENO) {
-          // If stdout, redirect fd to /dev/null.
-          int null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_WRONLY));
-          ASSERT(null_fd >= 0);
-          VOID_TEMP_FAILURE_RETRY(dup2(null_fd, STDOUT_FILENO));
-          VOID_TEMP_FAILURE_RETRY(close(null_fd));
-        } else {
-          sd->Close();
-        }
+        VOID_TEMP_FAILURE_RETRY(close(fd));
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
         DartUtils::PostInt32(msg[i].dart_port, 1 << kDestroyedEvent);
-      } else {
-        if ((msg[i].data & (1 << kInEvent)) != 0 && sd->IsClosedRead()) {
-          DartUtils::PostInt32(msg[i].dart_port, 1 << kCloseEvent);
-        } else {
-          // Setup events to wait for.
-          ASSERT((msg[i].data > 0) && (msg[i].data < kIntptrMax));
-          sd->SetPortAndMask(msg[i].dart_port,
-                             static_cast<intptr_t>(msg[i].data));
-          UpdateKqueue(kqueue_fd_, sd);
+      } else if ((msg[i].data & (1 << kReturnTokenCommand)) != 0) {
+        int count = msg[i].data & ((1 << kReturnTokenCommand) - 1);
+        for (int i = 0; i < count; i++) {
+          if (sd->ReturnToken()) {
+            AddToKqueue(kqueue_fd_, sd);
+          }
         }
+      } else {
+        // Setup events to wait for.
+        ASSERT((msg[i].data > 0) && (msg[i].data < kIntptrMax));
+        ASSERT(sd->port() == 0);
+        sd->SetPortAndMask(msg[i].dart_port,
+                           static_cast<intptr_t>(msg[i].data));
+        AddToKqueue(kqueue_fd_, sd);
       }
     }
   }
@@ -269,12 +227,17 @@ void EventHandlerImplementation::HandleInterruptFd() {
 #ifdef DEBUG_KQUEUE
 static void PrintEventMask(intptr_t fd, struct kevent* event) {
   Log::Print("%d ", static_cast<int>(fd));
+  Log::Print("filter=0x%x:", event->filter);
   if (event->filter == EVFILT_READ) Log::Print("EVFILT_READ ");
   if (event->filter == EVFILT_WRITE) Log::Print("EVFILT_WRITE ");
   Log::Print("flags: %x: ", event->flags);
   if ((event->flags & EV_EOF) != 0) Log::Print("EV_EOF ");
   if ((event->flags & EV_ERROR) != 0) Log::Print("EV_ERROR ");
+  if ((event->flags & EV_CLEAR) != 0) Log::Print("EV_CLEAR ");
+  if ((event->flags & EV_ADD) != 0) Log::Print("EV_ADD ");
+  if ((event->flags & EV_DELETE) != 0) Log::Print("EV_DELETE ");
   Log::Print("- fflags: %d ", event->fflags);
+  Log::Print("- data: %ld ", event->data);
   Log::Print("(available %d) ",
       static_cast<int>(FDUtils::AvailableBytes(fd)));
   Log::Print("\n");
@@ -306,30 +269,20 @@ intptr_t EventHandlerImplementation::GetEvents(struct kevent* event,
   } else {
     // Prioritize data events over close and error events.
     if (event->filter == EVFILT_READ) {
-      if (FDUtils::AvailableBytes(sd->fd()) != 0) {
-         event_mask = (1 << kInEvent);
-      } else if ((event->flags & EV_EOF) != 0) {
-        if (event->fflags != 0) {
-          event_mask |= (1 << kErrorEvent);
-        } else {
-          event_mask |= (1 << kCloseEvent);
-        }
-        sd->MarkClosedRead();
-      }
-    } else if (event->filter == EVFILT_WRITE) {
+      event_mask = (1 << kInEvent);
       if ((event->flags & EV_EOF) != 0) {
         if (event->fflags != 0) {
-          event_mask |= (1 << kErrorEvent);
+          event_mask = (1 << kErrorEvent);
         } else {
           event_mask |= (1 << kCloseEvent);
         }
-        // If the receiver closed for reading, close for writing,
-        // update the registration with kqueue, and do not report a
-        // write event.
-        sd->MarkClosedWrite();
-        UpdateKqueue(kqueue_fd_, sd);
-      } else {
-        event_mask |= (1 << kOutEvent);
+      }
+    } else if (event->filter == EVFILT_WRITE) {
+      event_mask |= (1 << kOutEvent);
+      if ((event->flags & EV_EOF) != 0) {
+        if (event->fflags != 0) {
+          event_mask = (1 << kErrorEvent);
+        }
       }
     } else {
       UNREACHABLE();
@@ -355,13 +308,12 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
       interrupt_seen = true;
     } else {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].udata);
-      sd->set_write_tracked_by_kqueue(false);
-      sd->set_read_tracked_by_kqueue(false);
       intptr_t event_mask = GetEvents(events + i, sd);
-      if (event_mask == 0) {
-        // Event not handled, re-add to kqueue.
-        UpdateKqueue(kqueue_fd_, sd);
-      } else {
+      if (event_mask != 0) {
+        if (!sd->IsListeningSocket() && sd->TakeToken()) {
+          // Took last token, remove from epoll.
+          RemoveFromKqueue(kqueue_fd_, sd);
+        }
         Dart_Port port = sd->port();
         ASSERT(port != 0);
         DartUtils::PostInt32(port, event_mask);
@@ -419,12 +371,10 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
       ts.tv_nsec = (millis32 - (secs * 1000)) * 1000000;
       timeout = &ts;
     }
-    intptr_t result = TEMP_FAILURE_RETRY(kevent(handler_impl->kqueue_fd_,
-                                                NULL,
-                                                0,
-                                                events,
-                                                kMaxEvents,
-                                                timeout));
+    // We have to use TEMP_FAILURE_RETRY for mac, as kevent can modify the
+    // current sigmask.
+    intptr_t result = TEMP_FAILURE_RETRY(
+        kevent(handler_impl->kqueue_fd_, NULL, 0, events, kMaxEvents, timeout));
     if (result == -1) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];

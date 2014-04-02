@@ -18,12 +18,19 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Platform;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Debug/Tracing options for the {@link DartCore} plugin.
  * 
  * @coverage dart.tools.core
  */
 public class DartCoreDebug {
+
+  // Sparse map of all settings automatically built by calls to isOptionTrue()
+
+  public static final Map<String, String> SPARSE_OPTION_MAP = new HashMap<String, String>(30);
 
   // Debugging / Tracing options  
 
@@ -57,10 +64,12 @@ public class DartCoreDebug {
   public static final boolean ENABLE_ALT_KEY_BINDINGS = isOptionTrue("experimental/altKeyBindings");
   public static final boolean ENABLE_TESTS_VIEW = isOptionTrue("experimental/testsView");
   public static final boolean ENABLE_FORMATTER = isOptionTrue("experimental/formatter");
+  public static final boolean ENABLE_NEW_FEEDBACK = isOptionTrue("experimental/feedback");
   public static final boolean ENABLE_THEMES = true; //isOptionTrue("experimental/themes");
   public static final boolean ENABLE_TAB_COLORING = isOptionTrue("experimental/tabColors");
   public static final boolean ENABLE_HTML_VALIDATION = isOptionTrue("experimental/validateHtml");
   public static final boolean ENABLE_PUB_SERVE_LAUNCH = true;//isOptionTrue("experimental/pubserve");
+  public static final boolean ENABLE_MOBILE = isOptionTrue("experimental/mobile");
 
   // Verify that dartc has not been specified and that the new analyzer is not explicitly disabled
   public static final boolean ENABLE_NEW_ANALYSIS = true;
@@ -112,7 +121,6 @@ public class DartCoreDebug {
 
     instrumentation.metric("DISABLE_DARTIUM_DEBUGGER", DISABLE_DARTIUM_DEBUGGER);
     instrumentation.metric("DISABLE_CLI_DEBUGGER", DISABLE_CLI_DEBUGGER);
-
   }
 
   /**
@@ -130,6 +138,9 @@ public class DartCoreDebug {
     String value = Platform.getDebugOption(option);
     if (value == null) {
       value = DartCore.getUserDefinedProperty(option);
+    }
+    if (value != null && !"false".equals(value)) {
+      SPARSE_OPTION_MAP.put(optionSuffix, value);
     }
     return StringUtils.equalsIgnoreCase(value, expected);
   }

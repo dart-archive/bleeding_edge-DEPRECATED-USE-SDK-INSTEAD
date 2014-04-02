@@ -18,7 +18,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.ui.CodeTemplateContextType;
+import com.google.dart.tools.mock.ui.CodeTemplateContextType;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUIMessages;

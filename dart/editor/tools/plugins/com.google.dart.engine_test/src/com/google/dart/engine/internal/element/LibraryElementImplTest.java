@@ -22,8 +22,8 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.source.SourceFactory;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
 import static com.google.dart.engine.element.ElementFactory.compilationUnit;
 import static com.google.dart.engine.element.ElementFactory.exportFor;
 import static com.google.dart.engine.element.ElementFactory.importFor;
@@ -75,8 +75,8 @@ public class LibraryElementImplTest extends EngineTestCase {
     AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = library(context, "test");
     CompilationUnitElement unitLib = library.getDefiningCompilationUnit();
-    CompilationUnitElementImpl unitA = compilationUnit(context, "unit_a.dart");
-    CompilationUnitElementImpl unitB = compilationUnit(context, "unit_b.dart");
+    CompilationUnitElementImpl unitA = compilationUnit("unit_a.dart");
+    CompilationUnitElementImpl unitB = compilationUnit("unit_b.dart");
     library.setParts(new CompilationUnitElement[] {unitA, unitB});
     assertEqualsIgnoreOrder(
         new CompilationUnitElement[] {unitLib, unitA, unitB},
@@ -148,9 +148,7 @@ public class LibraryElementImplTest extends EngineTestCase {
     context.setSourceFactory(new SourceFactory());
     LibraryElement library = ElementFactory.library(context, "foo");
 
-    context.getSourceFactory().setContents(
-        library.getDefiningCompilationUnit().getSource(),
-        "sdfsdff");
+    context.setContents(library.getDefiningCompilationUnit().getSource(), "sdfsdff");
 
     // Assert that we are not up to date if the target has an old time stamp.
     assertFalse(library.isUpToDate(0));

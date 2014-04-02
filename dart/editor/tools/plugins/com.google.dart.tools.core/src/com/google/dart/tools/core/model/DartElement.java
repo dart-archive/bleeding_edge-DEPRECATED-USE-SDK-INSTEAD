@@ -18,9 +18,6 @@ import com.google.dart.tools.core.DartCore;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.jobs.ISchedulingRule;
-
-import java.util.List;
 
 /**
  * The interface <code>DartElement</code> defines the behavior of objects representing some element
@@ -117,8 +114,7 @@ public interface DartElement extends IAdaptable {
   public static int FUNCTION_TYPE_ALIAS = 15;
 
   /**
-   * A constant representing a class type alias. A Dart element with this type can be safely cast to
-   * {@link DartClassTypeAlias}.
+   * A constant representing a class type alias.
    */
   public static int CLASS_TYPE_ALIAS = 18;
 
@@ -172,16 +168,6 @@ public interface DartElement extends IAdaptable {
    * @throws DartModelException if the children of the element cannot be determined
    */
   public DartElement[] getChildren() throws DartModelException;
-
-  /**
-   * Return the children of this element which are of type <code>elementClass</code>.
-   * 
-   * @param elementClass the class of element to be returned
-   * @return this element's children of type elementClass
-   * @throws DartModelException if the children of the element cannot be determined
-   */
-  public <E extends DartElement> List<E> getChildrenOfType(Class<E> elementClass)
-      throws DartModelException;
 
   /**
    * Return the resource that corresponds directly to this element, or <code>null</code> if there is
@@ -267,29 +253,12 @@ public interface DartElement extends IAdaptable {
   public IPath getPath();
 
   /**
-   * Return the primary element (whose compilation unit is the primary compilation unit) this
-   * working copy element was created from, or this element if it is a descendant of a primary
-   * compilation unit or if it is not a descendant of a working copy (e.g. it is a binary member).
-   * The returned element may or may not exist.
-   * 
-   * @return the primary element this working copy element was created from, or this element
-   */
-  public DartElement getPrimaryElement();
-
-  /**
    * Return the innermost resource enclosing this element, or <code>null</code> if this element is
    * not enclosed in a resource. This is a handle-only method.
    * 
    * @return the innermost resource enclosing this element
    */
   public IResource getResource();
-
-  /**
-   * Return the scheduling rule associated with this Dart element. This is a handle-only method.
-   * 
-   * @return the scheduling rule associated with this Dart element
-   */
-  public ISchedulingRule getSchedulingRule();
 
   /**
    * Return the smallest underlying resource that contains this element, or <code>null</code> if
@@ -300,13 +269,6 @@ public interface DartElement extends IAdaptable {
    *           accessing its underlying resource
    */
   public IResource getUnderlyingResource() throws DartModelException;
-
-  /**
-   * Return <code>true</code> if this element is a part of the SDK.
-   * 
-   * @return <code>true</code> if this element is a part of the SDK
-   */
-  public boolean isInSdk();
 
   /**
    * Return <code>true</code> if this Dart element is read-only. An element is read-only if its
@@ -321,26 +283,4 @@ public interface DartElement extends IAdaptable {
    * @return <code>true</code> if this element is read-only
    */
   public boolean isReadOnly();
-
-  /**
-   * Return <code>true</code> if the structure of this element is known. For example, for a
-   * compilation unit that has syntax errors, <code>false</code> is returned. If the structure of an
-   * element is unknown, navigations will return reasonable defaults. For example,
-   * <code>getChildren</code> for a compilation unit with syntax errors will return a collection of
-   * the children that could be parsed.
-   * <p>
-   * Note: This does not imply anything about consistency with the underlying resource/buffer
-   * contents.
-   * </p>
-   * 
-   * @return <code>true</code> if the structure of this element is known
-   * @throws DartModelException if this element does not exist or if an exception occurs while
-   *           accessing its corresponding resource
-   */
-  public boolean isStructureKnown() throws DartModelException;
-
-  /**
-   * Visit hierarchy of {@link DartElement}s starting form this one.
-   */
-  void accept(DartElementVisitor visitor) throws DartModelException;
 }

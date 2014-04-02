@@ -40,6 +40,7 @@ import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.internal.builder.DeltaAdapter;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.ResourceDeltaEvent;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
 
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
@@ -48,6 +49,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -56,13 +58,13 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import static org.eclipse.core.resources.IResource.PROJECT;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -209,6 +211,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
         if (path.equals(key) || path.isPrefixOf(key)) {
           AnalysisContext context = entry.getValue().getContext();
           stopWorkers(context);
+          context.dispose();
           index.removeContext(context);
           iter.remove();
         }
@@ -217,11 +220,31 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       // Reset the state if discarding the entire project
       if (projectResource.equals(container)) {
         stopWorkers(defaultContext);
+        defaultContext.dispose();
         index.removeContext(defaultContext);
         defaultContext = null;
         defaultResourceMap = null;
       }
     }
+  }
+
+  @Override
+  public PubFolder[] getContainedPubFolders(IContainer container) {
+    if (!getResource().equals(container.getProject())) {
+      throw new IllegalArgumentException();
+    }
+    ArrayList<PubFolder> result = new ArrayList<PubFolder>();
+    IPath prefix = container.getFullPath();
+    synchronized (pubFolders) {
+      initialize();
+      for (Entry<IPath, PubFolder> entry : pubFolders.entrySet()) {
+        IPath pubPath = entry.getKey();
+        if (prefix.segmentCount() < pubPath.segmentCount() && prefix.isPrefixOf(pubPath)) {
+          result.add(entry.getValue());
+        }
+      }
+    }
+    return result.toArray(new PubFolder[result.size()]);
   }
 
   @Override
@@ -238,33 +261,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       initialize();
       return defaultContext;
     }
-  }
-
-  @Override
-  public Source[] getLaunchableClientLibrarySources() {
-    AnalysisContext[] contexts;
-    synchronized (pubFolders) {
-      contexts = getAnalysisContexts();
-    }
-    List<Source> sources = new ArrayList<Source>();
-    for (AnalysisContext context : contexts) {
-      sources.addAll(Arrays.asList(context.getLaunchableClientLibrarySources()));
-    }
-    return sources.toArray(new Source[sources.size()]);
-  }
-
-  @Override
-  public Source[] getLaunchableServerLibrarySources() {
-    AnalysisContext[] contexts;
-    synchronized (pubFolders) {
-      initialize();
-      contexts = getAnalysisContexts();
-    }
-    List<Source> sources = new ArrayList<Source>();
-    for (AnalysisContext context : contexts) {
-      sources.addAll(Arrays.asList(context.getLaunchableServerLibrarySources()));
-    }
-    return sources.toArray(new Source[sources.size()]);
   }
 
   @Override
@@ -311,7 +307,9 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     if (source == null) {
       return null;
     }
-    IPath path = new Path(source.getFullName());
+    String pathName = source.getFullName();
+    String pathNameFS = FileUtilities.getFileSystemCase(pathName);
+    IPath path = new Path(pathNameFS);
     IPath projPath = getResourceLocation();
     if (projPath != null && projPath.isPrefixOf(path)) {
       IPath relPath = path.removeFirstSegments(projPath.segmentCount());
@@ -326,23 +324,22 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     synchronized (pubFolders) {
       for (PubFolder pubFolder : getPubFolders()) {
         AnalysisContext folderContext = pubFolder.getContext();
-        if (folderContext instanceof InstrumentedAnalysisContextImpl) {
-          folderContext = ((InstrumentedAnalysisContextImpl) folderContext).getBasis();
-        }
         if (folderContext == context) {
+          return pubFolder;
+        }
+        if (folderContext instanceof InstrumentedAnalysisContextImpl
+            && ((InstrumentedAnalysisContextImpl) folderContext).getBasis() == context) {
           return pubFolder;
         }
       }
     }
 
-    if (defaultContext instanceof InstrumentedAnalysisContextImpl) {
-      if (((InstrumentedAnalysisContextImpl) defaultContext).getBasis() == context) {
-        return defaultResourceMap;
-      }
-    } else {
-      if (defaultContext == context) {
-        return defaultResourceMap;
-      }
+    if (defaultContext == context) {
+      return defaultResourceMap;
+    }
+    if (defaultContext instanceof InstrumentedAnalysisContextImpl
+        && ((InstrumentedAnalysisContextImpl) defaultContext).getBasis() == context) {
+      return defaultResourceMap;
     }
     return null;
   }
@@ -458,6 +455,43 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     if (source != null && map != null) {
       IFile resource = map.getResource(source);
       if (resource != null) {
+        // linked files do not resolve to canonical paths. So find if it is
+        // a self referenced package and get the resource in lib instead.
+        if (DartCore.isWindows()) {
+          int index = 0;
+          IPath path = resource.getFullPath();
+          while (index < path.segmentCount()
+              && !path.segment(index).equals(PACKAGES_DIRECTORY_NAME)) {
+            index++;
+          }
+          if (index != path.segmentCount()) {
+            String packageName = path.segment(index + 1);
+            if (packageName.equals(DartCore.getSelfLinkedPackageName(resource))) {
+              // src/app/packages/app/mylib.dart => /src/app/lib/mylib.dart
+              IPath newPath = path.uptoSegment(index).append("lib").append(
+                  path.removeFirstSegments(index + 2));
+              IResource libResource = ResourcesPlugin.getWorkspace().getRoot().findMember(newPath);
+              if (libResource != null) {
+                return new FileInfo(libResource.getLocation().toFile(), (IFile) libResource);
+              }
+
+            } else {
+              // check if the package is open in the workspace, if so return resource from that 
+              // project instead of read only packages resource
+              // src/app/packages/mypackage/mylib.dart => /src/mypackage/lib/mylib.dart
+              String projectPath = getPubFolderPath(packageName);
+              if (projectPath != null) {
+                IPath newPath = new Path(projectPath).append("lib").append(
+                    path.removeFirstSegments(index + 2));
+                IResource libResource = ResourcesPlugin.getWorkspace().getRoot().findMember(newPath);
+                if (libResource != null) {
+                  return new FileInfo(libResource.getLocation().toFile(), (IFile) libResource);
+                }
+              }
+            }
+          }
+        }
+
         return new FileInfo(new File(source.getFullName()), resource);
       }
     }
@@ -604,9 +638,10 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     } else if (sdk instanceof DirectoryBasedDartSdk) {
       // TODO(keertip): replace PackageUriResolver with explicit one at a later stage
       // for now use this only when there is no pubspec or package root
-      pkgResolver = new ExplicitPackageUriResolver(
-          (DirectoryBasedDartSdk) sdk,
-          container.getLocation().toFile());
+      IPath location = container.getLocation();
+      if (location != null) {
+        pkgResolver = new ExplicitPackageUriResolver((DirectoryBasedDartSdk) sdk, location.toFile());
+      }
     }
     return pkgResolver;
   }
@@ -639,6 +674,31 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       PubFolder pubFolder = pubFolders.get(path.removeLastSegments(count));
       if (pubFolder != null) {
         return pubFolder;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Check if there is a project in the workspace for the given package name, if present return the
+   * project path.
+   * 
+   * @param packageName, the package to look for
+   * @return the path to project or {@code null}
+   */
+  private String getPubFolderPath(String packageName) {
+    for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+      PubFolder[] folders = DartCore.getProjectManager().getProject(project).getPubFolders();
+      for (PubFolder pubFolder : folders) {
+        try {
+          if (pubFolder.getPubspec().getName().equals(packageName)) {
+            return pubFolder.getResource().getFullPath().toString();
+          }
+        } catch (CoreException e) {
+          DartCore.logError(e);
+        } catch (IOException e) {
+          DartCore.logError(e);
+        }
       }
     }
     return null;

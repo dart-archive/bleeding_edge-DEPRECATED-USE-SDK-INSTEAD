@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.refactoring.actions;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
@@ -49,7 +49,7 @@ public class RenameDartElementAction extends AbstractRefactoringAction {
    */
   private static Element getElementToRename(DartSelection selection) {
     Element element = getSelectionElement(selection);
-    ASTNode node = getSelectionNode(selection);
+    AstNode node = getSelectionNode(selection);
     // 'library x;' or 'part of x;'
     if (node != null) {
       Directive directive = node.getAncestor(Directive.class);

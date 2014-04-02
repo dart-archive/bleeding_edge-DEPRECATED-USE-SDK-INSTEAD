@@ -70,7 +70,7 @@ public class MethodInvocation extends Expression {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitMethodInvocation(this);
   }
 
@@ -133,7 +133,7 @@ public class MethodInvocation extends Expression {
    */
   public Expression getRealTarget() {
     if (isCascaded()) {
-      ASTNode ancestor = getParent();
+      AstNode ancestor = getParent();
       while (!(ancestor instanceof CascadeExpression)) {
         if (ancestor == null) {
           return target;
@@ -205,7 +205,7 @@ public class MethodInvocation extends Expression {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(target, visitor);
     safelyVisitChild(methodName, visitor);
     safelyVisitChild(argumentList, visitor);

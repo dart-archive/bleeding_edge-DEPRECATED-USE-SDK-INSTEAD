@@ -107,8 +107,7 @@ class Utf8Encoder extends Converter<String, List<int>> {
    * The converter works more efficiently if the given [sink] is a
    * [ByteConversionSink].
    */
-  StringConversionSink startChunkedConversion(
-      ChunkedConversionSink<List<int>> sink) {
+  StringConversionSink startChunkedConversion(Sink<List<int>> sink) {
     if (sink is! ByteConversionSink) {
       sink = new ByteConversionSink.from(sink);
     }
@@ -332,8 +331,7 @@ class Utf8Decoder extends Converter<List<int>, String> {
    * The converter works more efficiently if the given [sink] is a
    * [StringConversionSink].
    */
-  ByteConversionSink startChunkedConversion(
-      ChunkedConversionSink<String> sink) {
+  ByteConversionSink startChunkedConversion(Sink<String> sink) {
     StringConversionSink stringSink;
     if (sink is StringConversionSink) {
       stringSink = sink;
@@ -422,9 +420,23 @@ class _Utf8Decoder {
     int value = _value;
     int expectedUnits = _expectedUnits;
     int extraUnits = _extraUnits;
+    int singleBytesCount = 0;
     _value = 0;
     _expectedUnits = 0;
     _extraUnits = 0;
+
+    void addSingleBytes(int from, int to) {
+      assert(singleBytesCount > 0);
+      assert(from >= startIndex && from <= endIndex);
+      assert(to >= startIndex && to <= endIndex);
+      if (from == 0 && to == codeUnits.length) {
+        _stringSink.write(new String.fromCharCodes(codeUnits));
+      } else {
+        _stringSink.write(
+            new String.fromCharCodes(codeUnits.sublist(from, to)));
+      }
+      singleBytesCount = 0;
+    }
 
     int i = startIndex;
     loop: while (true) {
@@ -481,6 +493,10 @@ class _Utf8Decoder {
         // https://codereview.chromium.org/22929022/diff/1/sdk/lib/convert/utf.dart?column_width=80
         if (unit < 0) {
           // TODO(floitsch): should this be unit <= 0 ?
+          if (singleBytesCount > 0) {
+            int to = i - 1;
+            addSingleBytes(to - singleBytesCount, to);
+          }
           if (!_allowMalformed) {
             throw new FormatException(
                 "Negative UTF-8 code unit: -0x${(-unit).toRadixString(16)}");
@@ -488,8 +504,12 @@ class _Utf8Decoder {
           _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
         } else if (unit <= _ONE_BYTE_LIMIT) {
           _isFirstCharacter = false;
-          _stringSink.writeCharCode(unit);
+          singleBytesCount++;
         } else {
+          if (singleBytesCount > 0) {
+            int to = i - 1;
+            addSingleBytes(to - singleBytesCount, to);
+          }
           if ((unit & 0xE0) == 0xC0) {
             value = unit & 0x1F;
             expectedUnits = extraUnits = 1;
@@ -517,6 +537,9 @@ class _Utf8Decoder {
         }
       }
       break loop;
+    }
+    if (singleBytesCount > 0) {
+      addSingleBytes(i - singleBytesCount, endIndex);
     }
     if (expectedUnits > 0) {
       _value = value;

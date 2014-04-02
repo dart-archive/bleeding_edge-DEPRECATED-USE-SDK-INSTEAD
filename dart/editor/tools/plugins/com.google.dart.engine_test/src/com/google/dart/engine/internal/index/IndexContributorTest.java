@@ -945,10 +945,11 @@ public class IndexContributorTest extends AbstractDartTest {
             "// filler filler filler filler filler filler filler filler filler filler",
             "library lib;",
             "var myVar;",
-            "myFunction() {}"));
+            "myFunction() {}",
+            "myToHide() {}"));
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'Lib.dart';",
+        "import 'Lib.dart' show myVar, myFunction hide myToHide;",
         "main() {",
         "  myVar = 1;",
         "  myFunction();",
@@ -977,6 +978,22 @@ public class IndexContributorTest extends AbstractDartTest {
         importElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, findOffset("print(0);"), ""));
+    // no references from import combinators
+    assertNoRecordedRelation(
+        relations,
+        importElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(testUnitElement, findOffset("myVar, "), ""));
+    assertNoRecordedRelation(
+        relations,
+        importElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(testUnitElement, findOffset("myFunction hide"), ""));
+    assertNoRecordedRelation(
+        relations,
+        importElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(testUnitElement, findOffset("myToHide;"), ""));
   }
 
   public void test_isReferencedBy_ImportElement_withPrefix() throws Exception {
@@ -1136,6 +1153,35 @@ public class IndexContributorTest extends AbstractDartTest {
     // index
     index.visitCompilationUnit(testUnit);
     // no exception
+  }
+
+  public void test_isReferencedBy_ImportElement_withPrefix_wrongInvocation() throws Exception {
+    verifyNoTestUnitErrors = false;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' as m;",
+        "main() {",
+        "  m();",
+        "}",
+        "");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // should be no exceptions
+  }
+
+  public void test_isReferencedBy_ImportElement_withPrefix_wrongPrefixedIdentifier()
+      throws Exception {
+    verifyNoTestUnitErrors = false;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' as m;",
+        "main() {",
+        "  x.m;",
+        "}",
+        "");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // should be no exceptions
   }
 
   public void test_isReferencedBy_LabelElement() throws Exception {
@@ -1357,6 +1403,38 @@ public class IndexContributorTest extends AbstractDartTest {
         consA_foo,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, findOffset(".foo(); // marker-main-2"), ".foo"));
+  }
+
+  public void test_isReferencedByQualified_ConstructorElement_classTypeAlias() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A implements B {",
+        "  A() {}",
+        "  A.named() {}",
+        "}",
+        "class B = A;",
+        "main() {",
+        "  new B(); // marker-main-1",
+        "  new B.named(); // marker-main-2",
+        "}",
+        "");
+    // set elements
+    Element mainElement = findElement("main() {");
+    ConstructorElement consA = findNode("A()", ConstructorDeclaration.class).getElement();
+    ConstructorElement consA_named = findNode("A.named()", ConstructorDeclaration.class).getElement();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(relations, consA, IndexConstants.IS_REFERENCED_BY, new ExpectedLocation(
+        mainElement,
+        findOffset("(); // marker-main-1"),
+        ""));
+    assertRecordedRelation(
+        relations,
+        consA_named,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, findOffset(".named(); // marker-main-2"), ".named"));
   }
 
   public void test_isReferencedByQualified_FieldElement() throws Exception {

@@ -117,7 +117,7 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   ASSERT(raw_memory != NULL);
   ASSERT(kHeaderSize == sizeof(Snapshot));
   ASSERT(kLengthIndex == length_offset());
-  ASSERT((kSnapshotFlagIndex * sizeof(int32_t)) == kind_offset());
+  ASSERT((kSnapshotFlagIndex * sizeof(int64_t)) == kind_offset());
   ASSERT((kHeapObjectTag & kInlined));
   // The kWatchedBit and kMarkBit are only set during GC operations. This
   // allows the two low bits in the header to be used for snapshotting.
@@ -148,18 +148,18 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
     : BaseReader(buffer, size),
       kind_(kind),
       isolate_(isolate),
-      cls_(Class::Handle()),
-      obj_(Object::Handle()),
-      array_(Array::Handle()),
-      field_(Field::Handle()),
-      str_(String::Handle()),
-      library_(Library::Handle()),
-      type_(AbstractType::Handle()),
-      type_arguments_(TypeArguments::Handle()),
-      tokens_(Array::Handle()),
-      stream_(TokenStream::Handle()),
-      data_(ExternalTypedData::Handle()),
-      error_(UnhandledException::Handle()),
+      cls_(Class::Handle(isolate)),
+      obj_(Object::Handle(isolate)),
+      array_(Array::Handle(isolate)),
+      field_(Field::Handle(isolate)),
+      str_(String::Handle(isolate)),
+      library_(Library::Handle(isolate)),
+      type_(AbstractType::Handle(isolate)),
+      type_arguments_(TypeArguments::Handle(isolate)),
+      tokens_(Array::Handle(isolate)),
+      stream_(TokenStream::Handle(isolate)),
+      data_(ExternalTypedData::Handle(isolate)),
+      error_(UnhandledException::Handle(isolate)),
       backward_references_((kind == Snapshot::kFull) ?
                            kNumInitialReferencesInFullSnapshot :
                            kNumInitialReferences) {
@@ -380,6 +380,11 @@ void SnapshotReader::ReadFullSnapshot() {
     }
   }
 
+  // Validate the class table.
+#if defined(DEBUG)
+  isolate->ValidateClassTable();
+#endif
+
   // Setup native resolver for bootstrap impl.
   Bootstrap::SetupNativeResolver();
 }
@@ -472,8 +477,8 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id) {
   Instance fake;
   obj->ptr()->handle_vtable_ = fake.vtable();
   cls_ = obj;
-  cls_.set_id(kIllegalCid);
-  isolate()->RegisterClass(cls_);
+  cls_.set_id(class_id);
+  isolate()->RegisterClassAt(class_id, cls_);
   return cls_.raw();
 }
 
@@ -593,7 +598,7 @@ RawLibrary* SnapshotReader::NewLibrary() {
 
 
 RawLibraryPrefix* SnapshotReader::NewLibraryPrefix() {
-  ALLOC_NEW_OBJECT(LibraryPrefix, Object::library_prefix_class());
+  ALLOC_NEW_OBJECT(LibraryPrefix, object_store()->library_prefix_class());
 }
 
 
@@ -723,6 +728,15 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
     ErrorHandle()->set_exception(exception);
     Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
   }
+#if defined(DEBUG)
+  // Zap the uninitialized memory area.
+  uword current = address;
+  uword end = address + size;
+  while (current < end) {
+    *reinterpret_cast<intptr_t*>(current) = kZapUninitializedWord;
+    current += kWordSize;
+  }
+#endif  // defined(DBEUG)
   // Make sure to initialize the last word, as this can be left untouched in
   // case the object deserialized has an alignment tail.
   *reinterpret_cast<RawObject**>(address + size - kWordSize) = Object::null();
@@ -749,6 +763,9 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   }
   if (object_id == kEmptyArrayObject) {
     return Object::empty_array().raw();
+  }
+  if (object_id == kZeroArrayObject) {
+    return Object::zero_array().raw();
   }
   if (object_id == kDynamicType) {
     return Object::dynamic_type();
@@ -949,6 +966,12 @@ void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
     return;
   }
 
+  // Check if it is a singleton zero array object.
+  if (rawobj == Object::zero_array().raw()) {
+    WriteVMIsolateObject(kZeroArrayObject);
+    return;
+  }
+
   // Check if it is a singleton dyanmic Type object.
   if (rawobj == Object::dynamic_type()) {
     WriteVMIsolateObject(kDynamicType);
@@ -1102,6 +1125,12 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
   ASSERT(ClassFinalizer::AllClassesFinalized());
+
+  // Ensure the class table is valid.
+#if defined(DEBUG)
+  isolate->ValidateClassTable();
+#endif
+
 
   // Setup for long jump in case there is an exception while writing
   // the snapshot.

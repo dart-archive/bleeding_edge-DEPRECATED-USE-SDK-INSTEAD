@@ -188,8 +188,8 @@ build system.  The PDE build system has to run under Eclipse.
         <copy todir="${samples.out.dir}">
             <fileset dir="${build.source.root}/samples">
                 <include name="dartiverse_search/**"/>
-                
                 <include name="sunflower/**"/>
+                <include name="pop_pop_win/**"/>
 
                 <!-- the READMEs are out of date -->
                 <exclude name="**/README"/>
@@ -203,14 +203,12 @@ build system.  The PDE build system has to run under Eclipse.
             <fileset dir="${build.source.root}/samples/third_party">
                 <include name="todomvc/**"/>
                 <include name="angular_todo/**"/>
-                <include name="pop-pop-win/**"/>
                 <exclude name="**/tool/"/>
                 <exclude name="**/.git/"/>
                 <exclude name="**/.gitignore"/>
                 <exclude name="**/test/"/>
                 <exclude name="**/app_package/"/>
                 <exclude name="**/resouce/"/>
-               
             </fileset>
         </copy>
 
@@ -242,7 +240,7 @@ build system.  The PDE build system has to run under Eclipse.
     <target name="installSdk" unless="build.dart.sdk" depends="setOS">
         <echoProperty propertyname="build.dart.sdk"/>
 
-        <get src="http://gsdview.appspot.com/dart-archive/channels/be/raw/latest/sdk/dartsdk-${osfamily}-ia32-release.zip"
+        <get src="http://storage.googleapis.com/dart-archive/channels/be/raw/latest/sdk/dartsdk-${osfamily}-ia32-release.zip"
              dest="${build.dart.sdk.zip}"
              usetimestamp="true" />
 

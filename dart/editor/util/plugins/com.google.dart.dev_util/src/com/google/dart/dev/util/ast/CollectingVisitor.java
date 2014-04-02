@@ -13,22 +13,22 @@
  */
 package com.google.dart.dev.util.ast;
 
-import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CollectingVisitor extends GeneralizingASTVisitor<Void> {
+public class CollectingVisitor extends GeneralizingAstVisitor<Void> {
 
-  private final List<ASTNode> nodes = new ArrayList<ASTNode>();
+  private final List<AstNode> nodes = new ArrayList<AstNode>();
 
-  public List<ASTNode> getNodes() {
+  public List<AstNode> getNodes() {
     return nodes;
   }
 
   @Override
-  public Void visitNode(ASTNode node) {
+  public Void visitNode(AstNode node) {
     nodes.add(node);
     return null;
   }

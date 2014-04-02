@@ -17,6 +17,7 @@ package com.google.dart.engine.index;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,7 @@ public interface MemoryIndexStore extends IndexStore {
    * @param input the {@link InputStream} from which this index will be read
    * @throws IOException if the index could not be read (for example because of version mismatch)
    */
+  @DartOmit
   void readIndex(AnalysisContext context, InputStream input) throws IOException;
 
   /**
@@ -46,5 +48,6 @@ public interface MemoryIndexStore extends IndexStore {
    * @param output the {@link OutputStream} to which this index will be written
    * @throws IOException if the index could not be written
    */
+  @DartOmit
   void writeIndex(AnalysisContext context, OutputStream output) throws IOException;
 }

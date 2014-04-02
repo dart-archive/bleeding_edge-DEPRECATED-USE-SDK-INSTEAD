@@ -20,6 +20,11 @@ public interface CompletionProposal {
   int RELEVANCE_DEFAULT = 10;
   int RELEVANCE_HIGH = 20;
 
+  /**
+   * This character is used to specify location of the cursor after completion.
+   */
+  char CURSOR_MARKER = 0x2758;
+
   void applyPartitionOffset(int partitionOffset);
 
   String getCompletion();

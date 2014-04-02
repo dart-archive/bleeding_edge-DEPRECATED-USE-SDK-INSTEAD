@@ -155,9 +155,11 @@ public interface ClassElement extends Element {
   public InterfaceType getSupertype();
 
   /**
-   * Return an array containing all of the toolkit specific objects attached to this class.
+   * Return an array containing all of the toolkit specific objects associated with this class. The
+   * array will be empty if the class does not have any toolkit specific objects or if the
+   * compilation unit containing the class has not yet had toolkit references resolved.
    * 
-   * @return the toolkit objects attached to this class
+   * @return the toolkit objects associated with this class
    */
   public ToolkitObjectElement[] getToolkitObjects();
 
@@ -201,6 +203,13 @@ public interface ClassElement extends Element {
   public boolean hasReferenceToSuper();
 
   /**
+   * Return {@code true} if this class declares a static member.
+   * 
+   * @return {@code true} if this class declares a static member
+   */
+  public boolean hasStaticMember();
+
+  /**
    * Return {@code true} if this class is abstract. A class is abstract if it has an explicit
    * {@code abstract} modifier. Note, that this definition of <i>abstract</i> is different from
    * <i>has unimplemented members</i>.
@@ -208,6 +217,14 @@ public interface ClassElement extends Element {
    * @return {@code true} if this class is abstract
    */
   public boolean isAbstract();
+
+  /**
+   * Return {@code true} if this class {@link #isProxy()}, or if it inherits the proxy annotation
+   * from a supertype.
+   * 
+   * @return {@code true} if this class defines or inherits a proxy
+   */
+  public boolean isOrInheritsProxy();
 
   /**
    * Return {@code true} if this element has an annotation of the form '@proxy'.

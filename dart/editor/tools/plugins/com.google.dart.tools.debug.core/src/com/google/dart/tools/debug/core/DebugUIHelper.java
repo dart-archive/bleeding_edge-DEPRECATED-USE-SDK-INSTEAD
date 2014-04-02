@@ -36,7 +36,7 @@ public abstract class DebugUIHelper {
     }
 
     @Override
-    public void showDevtoolsDisconnectError(String title, DartiumDebugTarget target) {
+    public void handleDevtoolsDisconnect(DartiumDebugTarget target) {
       // no-op
 
     }
@@ -104,7 +104,7 @@ public abstract class DebugUIHelper {
 
   public abstract void activateApplication(File application, String name);
 
-  public abstract void showDevtoolsDisconnectError(String title, DartiumDebugTarget target);
+  public abstract void handleDevtoolsDisconnect(DartiumDebugTarget target);
 
   public abstract void showError(String title, String message);
 

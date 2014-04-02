@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.scope;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -119,7 +119,18 @@ public abstract class Scope {
    * @return the element with which the given identifier is associated
    */
   public Element lookup(Identifier identifier, LibraryElement referencingLibrary) {
-    return lookup(identifier, identifier.getName(), referencingLibrary);
+    return internalLookup(identifier, identifier.getName(), referencingLibrary);
+  }
+
+  /**
+   * Add the given element to this scope without checking for duplication or hiding.
+   * 
+   * @param name the name of the element to be added
+   * @param element the element to be added to this scope
+   */
+  protected void defineNameWithoutChecking(String name, Element element) {
+    definedNames.put(name, element);
+    hasName = true;
   }
 
   /**
@@ -129,17 +140,6 @@ public abstract class Scope {
    */
   protected void defineWithoutChecking(Element element) {
     definedNames.put(getName(element), element);
-    hasName = true;
-  }
-
-  /**
-   * Add the given element to this scope without checking for duplication or hiding.
-   * 
-   * @param name the name of the element to be added
-   * @param element the element to be added to this scope
-   */
-  protected void defineWithoutChecking(String name, Element element) {
-    definedNames.put(name, element);
     hasName = true;
   }
 
@@ -178,7 +178,7 @@ public abstract class Scope {
    * @param identifier the identifier whose source is to be returned
    * @return the source that contains the given identifier
    */
-  protected final Source getSource(ASTNode node) {
+  protected final Source getSource(AstNode node) {
     CompilationUnit unit = node.getAncestor(CompilationUnit.class);
     if (unit != null) {
       CompilationUnitElement unitElement = unit.getElement();
@@ -188,6 +188,20 @@ public abstract class Scope {
     }
     return null;
   }
+
+  /**
+   * Return the element with which the given name is associated, or {@code null} if the name is not
+   * defined within this scope.
+   * 
+   * @param identifier the identifier node to lookup element for, used to report correct kind of a
+   *          problem and associate problem with
+   * @param name the name associated with the element to be returned
+   * @param referencingLibrary the library that contains the reference to the name, used to
+   *          implement library-level privacy
+   * @return the element with which the given name is associated
+   */
+  protected abstract Element internalLookup(Identifier identifier, String name,
+      LibraryElement referencingLibrary);
 
   /**
    * Return the element with which the given name is associated, or {@code null} if the name is not
@@ -205,20 +219,6 @@ public abstract class Scope {
     }
     return null;
   }
-
-  /**
-   * Return the element with which the given name is associated, or {@code null} if the name is not
-   * defined within this scope.
-   * 
-   * @param identifier the identifier node to lookup element for, used to report correct kind of a
-   *          problem and associate problem with
-   * @param name the name associated with the element to be returned
-   * @param referencingLibrary the library that contains the reference to the name, used to
-   *          implement library-level privacy
-   * @return the element with which the given name is associated
-   */
-  protected abstract Element lookup(Identifier identifier, String name,
-      LibraryElement referencingLibrary);
 
   /**
    * Return the name that will be used to look up the given element.

@@ -14,7 +14,7 @@
 
 package com.google.dart.engine.html.ast;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
@@ -52,7 +52,7 @@ public class HtmlUnitUtils {
         @Override
         public Void visitXmlAttributeNode(XmlAttributeNode node) {
           Token nameToken = node.getNameToken();
-          if (nameToken.getOffset() <= offset && offset < nameToken.getEnd()) {
+          if (nameToken.getOffset() <= offset && offset <= nameToken.getEnd()) {
             result[0] = node;
             throw new FoundAttributeNodeError();
           }
@@ -79,7 +79,7 @@ public class HtmlUnitUtils {
    * Returns the {@link Element} of the {@link Expression} in the given {@link HtmlUnit}, enclosing
    * the given offset.
    */
-  public static Element getElement(HtmlUnit htmlUnit, int offset) {
+  public static Element getElementAtOffset(HtmlUnit htmlUnit, int offset) {
     Expression expression = getExpression(htmlUnit, offset);
     return getElement(expression);
   }
@@ -96,6 +96,33 @@ public class HtmlUnitUtils {
       }
     }
     return element;
+  }
+
+  /**
+   * Returns the {@link XmlTagNode} that is part of the given {@link HtmlUnit} and encloses the
+   * given offset.
+   */
+  public static XmlTagNode getEnclosingTagNode(HtmlUnit htmlUnit, final int offset) {
+    if (htmlUnit == null) {
+      return null;
+    }
+    final XmlTagNode[] result = {null};
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
+        @Override
+        public Void visitXmlTagNode(XmlTagNode node) {
+          if (node.getOffset() <= offset && offset < node.getEnd()) {
+            result[0] = node;
+            super.visitXmlTagNode(node);
+            throw new FoundTagNodeError();
+          }
+          return null;
+        }
+      });
+    } catch (FoundTagNodeError e) {
+      return result[0];
+    }
+    return null;
   }
 
   /**
@@ -119,31 +146,6 @@ public class HtmlUnitUtils {
           }
         }
       });
-//      htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
-//        @Override
-//        public Void visitXmlAttributeNode(XmlAttributeNode node) {
-//          findExpression(offset, result, node.getExpressions());
-//          return super.visitXmlAttributeNode(node);
-//        }
-//        
-//        @Override
-//        public Void visitXmlTagNode(XmlTagNode node) {
-//          findExpression(offset, result, node.getExpressions());
-//          return super.visitXmlTagNode(node);
-//        }
-//        
-//        private void findExpression(final int offset, final Expression[] result,
-//            EmbeddedExpression[] expressions) throws FoundExpressionError {
-//          for (EmbeddedExpression embeddedExpression : expressions) {
-//            Expression expression = embeddedExpression.getExpression();
-//            Expression at = getExpressionAt(expression, offset);
-//            if (at != null) {
-//              result[0] = at;
-//              throw new FoundExpressionError();
-//            }
-//          }
-//        }
-//      });
     } catch (FoundExpressionError e) {
       return result[0];
     }
@@ -151,40 +153,36 @@ public class HtmlUnitUtils {
   }
 
   /**
-   * Returns the {@link XmlTagNode} that is part of the given {@link HtmlUnit} and encloses the
-   * given offset.
+   * Returns the {@link XmlTagNode} that is part of the given {@link HtmlUnit} and its open or
+   * closing tag name encloses the given offset.
    */
-  public static XmlTagNode getTagNode(HtmlUnit htmlUnit, final int offset) {
-    if (htmlUnit == null) {
+  public static XmlTagNode getTagNode(HtmlUnit htmlUnit, int offset) {
+    XmlTagNode node = getEnclosingTagNode(htmlUnit, offset);
+    // do we have an enclosing tag at all?
+    if (node == null) {
       return null;
     }
-    final XmlTagNode[] result = {null};
-    try {
-      htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
-        @Override
-        public Void visitXmlTagNode(XmlTagNode node) {
-          super.visitXmlTagNode(node);
-          Token tagToken = node.getTagToken();
-          if (tagToken.getOffset() <= offset && offset < tagToken.getEnd()) {
-            result[0] = node;
-            throw new FoundTagNodeError();
-          }
-          return null;
-        }
-      });
-    } catch (FoundTagNodeError e) {
-      return result[0];
+    // is "offset" in the open tag?
+    Token openTag = node.getTagToken();
+    if (openTag.getOffset() <= offset && offset <= openTag.getEnd()) {
+      return node;
     }
+    // is "offset" in the open tag?
+    Token closeTag = node.getClosingTag();
+    if (closeTag != null && closeTag.getOffset() <= offset && offset <= closeTag.getEnd()) {
+      return node;
+    }
+    // not on a tag name
     return null;
   }
 
   /**
-   * Returns the {@link Expression} that is part of the given root {@link ASTNode} and encloses the
+   * Returns the {@link Expression} that is part of the given root {@link AstNode} and encloses the
    * given offset.
    */
-  private static Expression getExpressionAt(ASTNode root, int offset) {
-    if (root.getOffset() <= offset && offset < root.getEnd()) {
-      ASTNode dartNode = new NodeLocator(offset).searchWithin(root);
+  private static Expression getExpressionAt(AstNode root, int offset) {
+    if (root.getOffset() <= offset && offset <= root.getEnd()) {
+      AstNode dartNode = new NodeLocator(offset).searchWithin(root);
       if (dartNode instanceof Expression) {
         return (Expression) dartNode;
       }

@@ -261,6 +261,12 @@ public class BrowserManager {
       }
     }
 
+    if (!restart) {
+      if (enableDebugging != DartiumDebugTarget.getActiveTarget().getEnableBreakpoints()) {
+        restart = true;
+      }
+    }
+
     CoreLaunchUtils.removeTerminatedLaunches();
 
     if (!restart) {
@@ -683,7 +689,7 @@ public class BrowserManager {
         launchConfig,
         browserLocation,
         url,
-        enableDebugging,
+        true,
         devToolsPortNumber);
     builder.command(arguments);
     builder.redirectErrorStream(true);

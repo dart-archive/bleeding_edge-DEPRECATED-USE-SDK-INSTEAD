@@ -19,7 +19,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.analysis.model.Project;
 
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.FocusListener;
 
 /**
  * Interface used by {@link DartReconcilingStrategy} to interact with the editor.
@@ -32,13 +31,6 @@ public interface DartReconcilingEditor {
    * @param listener the listener to be notified (not {@code null})
    */
   void addViewerDisposeListener(DisposeListener listener);
-
-  /**
-   * Add a listener to be notified when the editor's view gains or looses focus.
-   * 
-   * @param listener the listener to be notified (not <code>null</code>)
-   */
-  void addViewerFocusListener(FocusListener listener);
 
   /**
    * Update the editor to use the specified compilation unit.

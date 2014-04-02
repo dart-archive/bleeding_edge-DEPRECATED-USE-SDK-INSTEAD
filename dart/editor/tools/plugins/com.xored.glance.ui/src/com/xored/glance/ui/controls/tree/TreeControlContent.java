@@ -6,11 +6,7 @@
  ******************************************************************************/
 package com.xored.glance.ui.controls.tree;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import com.xored.glance.ui.sources.ConfigurationManager;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.SWT;
@@ -19,7 +15,11 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
-import com.xored.glance.ui.sources.ConfigurationManager;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class TreeControlContent extends TreeContent {
 
@@ -85,60 +85,6 @@ public class TreeControlContent extends TreeContent {
     });
   }
 
-  private void expand(final LinkedList<TreeItem> items, final IProgressMonitor monitor) {
-    if (tree == null || tree.isDisposed())
-      return;
-    final Display display = tree.getDisplay();
-    BusyIndicatorUtils.withoutIndicator(display, new Runnable() {
-      @Override
-      public void run() {
-        int maxIndexingDepth = ConfigurationManager.getInstance().getMaxIndexingDepth();
-        int level = 1;
-        TreeItem lastInLevel = items.getLast();
-        monitor.beginTask("1/" + maxIndexingDepth, items.size());
-        while (true) {
-          if (tree == null || tree.isDisposed()
-              || (maxIndexingDepth >= 0 && level >= maxIndexingDepth))
-            return;
-          if (monitor.isCanceled())
-            return;
-          TreeItem item = items.poll();
-          if (item == null)
-            return;
-          try {
-            if (item.isDisposed())
-              continue;
-            if (!item.getExpanded()) {
-              Event event = new Event();
-              event.item = item;
-              event.type = SWT.Expand;
-              event.widget = item.getParent();
-              event.display = display;
-              event.widget.notifyListeners(SWT.Expand, event);
-            }
-            TreeItem[] kids = item.getItems();
-            TreeItemContent content = getContent(item);
-            if (content != null) {
-              collectCells(content.getNode(), item.getItems());
-            }
-            for (TreeItem child : kids) {
-              items.addLast(child);
-            }
-            while (display.readAndDispatch());
-          } finally {
-            monitor.worked(1);
-            if (item == lastInLevel && items.size() > 0) {
-              lastInLevel = items.getLast();
-              level++;
-              int total = items.size();
-              monitor.beginTask(level + "/?", total);
-            }
-          }
-        }
-      }
-    });
-  }
-
   private void collectCells(TreeNode node, TreeItem[] items) {
     if (items.length > 0) {
       int columns = items[0].getParent().getColumnCount();
@@ -167,6 +113,67 @@ public class TreeControlContent extends TreeContent {
         node.add(nodes.toArray(new TreeNode[nodes.size()]));
       }
     }
+  }
+
+  private void expand(final LinkedList<TreeItem> items, final IProgressMonitor monitor) {
+    if (tree == null || tree.isDisposed()) {
+      return;
+    }
+    final Display display = tree.getDisplay();
+    BusyIndicatorUtils.withoutIndicator(display, new Runnable() {
+      @Override
+      public void run() {
+        int maxIndexingDepth = ConfigurationManager.getInstance().getMaxIndexingDepth();
+        int level = 1;
+        TreeItem lastInLevel = items.getLast();
+        monitor.beginTask("1/" + maxIndexingDepth, items.size());
+        while (true) {
+          if (tree == null || tree.isDisposed()
+              || (maxIndexingDepth >= 0 && level >= maxIndexingDepth)) {
+            return;
+          }
+          if (monitor.isCanceled()) {
+            return;
+          }
+          TreeItem item = items.poll();
+          if (item == null) {
+            return;
+          }
+          try {
+            if (item.isDisposed()) {
+              continue;
+            }
+            if (!item.getExpanded()) {
+              Event event = new Event();
+              event.item = item;
+              event.type = SWT.Expand;
+              event.widget = item.getParent();
+              event.display = display;
+              event.widget.notifyListeners(SWT.Expand, event);
+            }
+            TreeItem[] kids = item.getItems();
+            TreeItemContent content = getContent(item);
+            if (content != null) {
+              collectCells(content.getNode(), item.getItems());
+            }
+            for (TreeItem child : kids) {
+              items.addLast(child);
+            }
+            while (display.readAndDispatch()) {
+              ;
+            }
+          } finally {
+            monitor.worked(1);
+            if (item == lastInLevel && items.size() > 0) {
+              lastInLevel = items.getLast();
+              level++;
+              int total = items.size();
+              monitor.beginTask(level + "/?", total);
+            }
+          }
+        }
+      }
+    });
   }
 
   private TreeItemContent getContent(TreeItem item) {

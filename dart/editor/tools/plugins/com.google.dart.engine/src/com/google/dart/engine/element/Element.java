@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.element;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
@@ -140,7 +140,9 @@ public interface Element {
   public ElementLocation getLocation();
 
   /**
-   * Return an array containing all of the metadata associated with this element.
+   * Return an array containing all of the metadata associated with this element. The array will be
+   * empty if the element does not have any metadata or if the library containing this element has
+   * not yet been resolved.
    * 
    * @return the metadata associated with this element
    */
@@ -163,15 +165,17 @@ public interface Element {
   public int getNameOffset();
 
   /**
-   * Return the resolved {@link ASTNode} node that declares this {@link Element}.
+   * Return the resolved {@link AstNode} node that declares this {@link Element}.
    * <p>
    * This method is expensive, because resolved AST might be evicted from cache, so parsing and
    * resolving will be performed.
+   * <p>
+   * <b>Note:</b> This method cannot be used in an async environment.
    * 
-   * @return the resolved {@link ASTNode}, maybe {@code null} if {@link Element} is synthetic or
+   * @return the resolved {@link AstNode}, maybe {@code null} if {@link Element} is synthetic or
    *         isn't contained in a compilation unit, such as a {@link LibraryElement}.
    */
-  public ASTNode getNode() throws AnalysisException;
+  public AstNode getNode() throws AnalysisException;
 
   /**
    * Return the source that contains this element, or {@code null} if this element is not contained
@@ -209,6 +213,13 @@ public interface Element {
    * @return {@code true} if this element is deprecated
    */
   public boolean isDeprecated();
+
+  /**
+   * Return {@code true} if this element has an annotation of the form '@override'.
+   * 
+   * @return {@code true} if this element is overridden
+   */
+  public boolean isOverride();
 
   /**
    * Return {@code true} if this element is private. Private elements are visible only within the

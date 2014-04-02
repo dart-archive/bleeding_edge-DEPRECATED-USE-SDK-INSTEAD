@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
@@ -222,28 +221,6 @@ public class OverrideIndicatorLabelDecorator implements ILabelDecorator, ILightw
 //      }
 //    }
     return 0;
-  }
-
-  @SuppressWarnings("unused")
-  private int findInHierarchyWithAST(DartUnit astRoot, Method method) throws DartModelException {
-    DartX.todo();
-//    DartNode node = NodeFinder.perform(astRoot, method.getNameRange());
-//    if (node instanceof SimpleName
-//        && node.getParent() instanceof FunctionDeclaration) {
-//      IFunctionBinding binding = ((FunctionDeclaration) node.getParent()).resolveBinding();
-//      if (binding != null) {
-//        IFunctionBinding defining = Bindings.findOverriddenMethod(binding, true);
-//        if (defining != null) {
-//          if (JdtFlags.isAbstract(defining)) {
-//            return DartElementImageDescriptor.IMPLEMENTS;
-//          } else {
-//            return DartElementImageDescriptor.OVERRIDES;
-//          }
-//        }
-//        return 0;
-//      }
-//    }
-    return -1;
   }
 
   private ImageDescriptorRegistry getRegistry() {

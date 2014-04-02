@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.SourceContainer;
@@ -40,11 +39,10 @@ public class CompositeSourceContainerTest extends TestCase {
     File file3 = createFile("/dir2/folder/some3.dart");
     File file4 = createFile("/dir2/folder2/some4.dart");
 
-    ContentCache contentCache = new ContentCache();
-    FileBasedSource source1 = new FileBasedSource(contentCache, file1);
-    FileBasedSource source2 = new FileBasedSource(contentCache, file2);
-    FileBasedSource source3 = new FileBasedSource(contentCache, file3);
-    FileBasedSource source4 = new FileBasedSource(contentCache, file4);
+    FileBasedSource source1 = new FileBasedSource(file1);
+    FileBasedSource source2 = new FileBasedSource(file2);
+    FileBasedSource source3 = new FileBasedSource(file3);
+    FileBasedSource source4 = new FileBasedSource(file4);
 
     List<SourceContainer> containers = new ArrayList<SourceContainer>();
     containers.add(new DirectoryBasedSourceContainer(dir1));

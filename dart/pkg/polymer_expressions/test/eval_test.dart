@@ -15,6 +15,7 @@ import 'package:polymer_expressions/filter.dart';
 import 'package:polymer_expressions/parser.dart';
 import 'package:unittest/unittest.dart';
 import 'package:observe/observe.dart';
+import 'package:observe/mirrors_used.dart'; // make test smaller.
 
 main() {
   reflectClass(Object); // suppress unused import warning
@@ -294,7 +295,7 @@ main() {
 
     test("should a field from the parent's model", () {
       var parent = new Scope(variables: {'a': 'A', 'b': 'B'});
-      var child = new Scope(variables: {'a': 'a'}, parent: parent);
+      var child = parent.childScope('a', 'a');
       expect(child['a'], 'a');
       expect(parent['a'], 'A');
       expect(child['b'], 'B');

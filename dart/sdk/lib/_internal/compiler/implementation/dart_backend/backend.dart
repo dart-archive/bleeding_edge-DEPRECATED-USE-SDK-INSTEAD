@@ -12,108 +12,6 @@ class ElementAst {
   final TreeElements treeElements;
 
   ElementAst(this.ast, this.treeElements);
-
-  factory ElementAst.rewrite(compiler, ast, treeElements, stripAsserts) {
-    final rewriter =
-        new FunctionBodyRewriter(compiler, treeElements, stripAsserts);
-    return new ElementAst(rewriter.visit(ast), rewriter.cloneTreeElements);
-  }
-
-  ElementAst.forClassLike(this.ast)
-      : this.treeElements = new TreeElementMapping(null);
-}
-
-// TODO(ahe): This class should not subclass [TreeElementMapping], if
-// anything, it should implement TreeElements.
-class AggregatedTreeElements extends TreeElementMapping {
-  final List<TreeElements> treeElements;
-
-  AggregatedTreeElements() : treeElements = <TreeElements>[], super(null);
-
-  Element operator[](Node node) {
-    final result = super[node];
-    return result != null ? result : getFirstNotNullResult((e) => e[node]);
-  }
-
-  Selector getSelector(Send send) {
-    final result = super.getSelector(send);
-    return result != null ?
-        result : getFirstNotNullResult((e) => e.getSelector(send));
-  }
-
-  DartType getType(Node node) {
-    final result = super.getType(node);
-    return result != null ?
-        result : getFirstNotNullResult((e) => e.getType(node));
-  }
-
-  getFirstNotNullResult(f(TreeElements element)) {
-    for (final element in treeElements) {
-      final result = f(element);
-      if (result != null) return result;
-    }
-
-    return null;
-  }
-}
-
-class VariableListAst extends ElementAst {
-  VariableListAst(ast) : super(ast, new AggregatedTreeElements());
-
-  add(VariableElement element, TreeElements treeElements) {
-    AggregatedTreeElements e = this.treeElements;
-    e[element.cachedNode] = element;
-    e.treeElements.add(treeElements);
-  }
-}
-
-class FunctionBodyRewriter extends CloningVisitor {
-  final Compiler compiler;
-  final bool stripAsserts;
-
-  FunctionBodyRewriter(this.compiler, originalTreeElements, this.stripAsserts)
-      : super(originalTreeElements);
-
-  visitBlock(Block block) {
-    shouldOmit(Statement statement) {
-      if (statement is EmptyStatement) return true;
-      ExpressionStatement expressionStatement =
-          statement.asExpressionStatement();
-      if (expressionStatement != null) {
-        Send send = expressionStatement.expression.asSend();
-        if (send != null) {
-          Element element = originalTreeElements[send];
-          if (stripAsserts && identical(element, compiler.assertMethod)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    rewriteStatement(Statement statement) {
-      Block block = statement.asBlock();
-      if (block != null) {
-        Link statements = block.statements.nodes;
-        if (!statements.isEmpty && statements.tail.isEmpty) {
-          Statement single = statements.head;
-          bool isDeclaration =
-              single is VariableDefinitions || single is FunctionDeclaration;
-          if (!isDeclaration) return single;
-        }
-      }
-      return statement;
-    }
-
-    NodeList statements = block.statements;
-    LinkBuilder<Statement> builder = new LinkBuilder<Statement>();
-    for (Statement statement in statements.nodes) {
-      if (!shouldOmit(statement)) {
-        builder.addLast(visit(rewriteStatement(statement)));
-      }
-    }
-    return new Block(rewriteNodeList(statements, builder.toLink()));
-  }
 }
 
 class DartBackend extends Backend {
@@ -158,17 +56,17 @@ class DartBackend extends Backend {
    */
   bool isSafeToRemoveTypeDeclarations(
       Map<ClassElement, Set<Element>> classMembers) {
+    ClassElement typeErrorElement = compiler.coreLibrary.find('TypeError');
+    if (classMembers.containsKey(typeErrorElement) ||
+        compiler.resolverWorld.isChecks.any(
+            (DartType type) => type.element == typeErrorElement)) {
+      return false;
+    }
     Set<DartType> processedTypes = new Set<DartType>();
     List<DartType> workQueue = new List<DartType>();
     workQueue.addAll(
         classMembers.keys.map((classElement) => classElement.thisType));
     workQueue.addAll(compiler.resolverWorld.isChecks);
-    Element typeErrorElement =
-        compiler.coreLibrary.find('TypeError');
-    DartType typeErrorType = typeErrorElement.computeType(compiler);
-    if (workQueue.indexOf(typeErrorType) != -1) {
-      return false;
-    }
 
     while (!workQueue.isEmpty) {
       DartType type = workQueue.removeLast();
@@ -319,7 +217,22 @@ class DartBackend extends Backend {
 
     final elementAsts = new Map<Element, ElementAst>();
 
-    parse(element) => element.parseNode(compiler);
+    ElementAst parse(Element element, TreeElements treeElements) {
+      Node node;
+      if (!compiler.irBuilder.hasIr(element)) {
+        node = element.parseNode(compiler);
+      } else {
+        ir.Function function = compiler.irBuilder.getIr(element);
+        tree.Builder builder = new tree.Builder(compiler);
+        tree.Expression expr = function.accept(builder);
+        treeElements = new TreeElementMapping(element);
+        tree.Unnamer unnamer = new tree.Unnamer();
+        expr = unnamer.unname(expr);
+        tree.Emitter emitter = new tree.Emitter();
+        node = emitter.emit(element, treeElements, expr);
+      }
+      return new ElementAst(node, treeElements);
+    }
 
     Set<Element> topLevelElements = new Set<Element>();
     Map<ClassElement, Set<Element>> classMembers =
@@ -328,11 +241,14 @@ class DartBackend extends Backend {
     // Build all top level elements to emit and necessary class members.
     var newTypedefElementCallback, newClassElementCallback;
 
-    processElement(element, elementAst) {
-      new ReferencedElementCollector(
-          compiler,
-          element, elementAst.treeElements,
-          newTypedefElementCallback, newClassElementCallback).collect();
+    void processElement(Element element, ElementAst elementAst) {
+      ReferencedElementCollector collector =
+          new ReferencedElementCollector(compiler,
+                                         element,
+                                         elementAst,
+                                         newTypedefElementCallback,
+                                         newClassElementCallback);
+      collector.collect();
       elementAsts[element] = elementAst;
     }
 
@@ -344,14 +260,15 @@ class DartBackend extends Backend {
 
     addClass(classElement) {
       addTopLevel(classElement,
-                  new ElementAst.forClassLike(parse(classElement)));
+                  new ElementAst(classElement.parseNode(compiler),
+                                 classElement.treeElements));
       classMembers.putIfAbsent(classElement, () => new Set());
     }
 
     newTypedefElementCallback = (TypedefElement element) {
       if (!shouldOutput(element)) return;
-      addTopLevel(element,
-                  new ElementAst.forClassLike(parse(element)));
+      addTopLevel(element, new ElementAst(element.parseNode(compiler),
+                                          element.treeElements));
     };
     newClassElementCallback = (ClassElement classElement) {
       if (!shouldOutput(classElement)) return;
@@ -364,15 +281,7 @@ class DartBackend extends Backend {
     });
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element) || treeElements == null) return;
-      var elementAst = new ElementAst.rewrite(
-          compiler, parse(element), treeElements, stripAsserts);
-      if (element.isField()) {
-        final list = (element as VariableElement).variables;
-        elementAst = elementAsts.putIfAbsent(
-            list, () => new VariableListAst(parse(list)));
-        (elementAst as VariableListAst).add(element, treeElements);
-        element = list;
-      }
+      ElementAst elementAst = parse(element, treeElements);
 
       if (element.isMember()) {
         ClassElement enclosingClass = element.getEnclosingClass();
@@ -409,14 +318,8 @@ class DartBackend extends Backend {
       SynthesizedConstructorElementX constructor =
           new SynthesizedConstructorElementX(
               classElement.name, null, classElement, false);
-      constructor.type = new FunctionType(
-          constructor,
-          compiler.types.voidType,
-          const Link<DartType>(),
-          const Link<DartType>(),
-          const Link<String>(),
-          const Link<DartType>()
-          );
+      constructor.typeCache =
+          new FunctionType(constructor, compiler.types.voidType);
       constructor.cachedNode = new FunctionExpression(
           new Send(classNode.name, synthesizedIdentifier),
           new NodeList(new StringToken.fromString(OPEN_PAREN_INFO, '(', -1),
@@ -472,7 +375,9 @@ class DartBackend extends Backend {
       // TODO(antonm): Ideally XML should be a separate backend.
       // TODO(antonm): obey renames and minification, at least as an option.
       StringBuffer sb = new StringBuffer();
-      outputElement(element) { sb.write(parse(element).toDebugString()); }
+      outputElement(element) {
+        sb.write(element.parseNode(compiler).toDebugString());
+      }
 
       // Emit XML for AST instead of the program.
       for (final topLevel in sortedTopLevels) {
@@ -505,7 +410,11 @@ class DartBackend extends Backend {
 
     final unparser = new EmitterUnparser(renames);
     emitCode(unparser, imports, topLevelNodes, memberNodes);
-    compiler.assembledCode = unparser.result;
+    String assembledCode = unparser.result;
+    compiler.outputProvider('', 'dart')
+        ..add(assembledCode)
+        ..close();
+    compiler.assembledCode = assembledCode;
 
     // Output verbose info about size ratio of resulting bundle to all
     // referenced non-platform sources.
@@ -602,26 +511,26 @@ class EmitterUnparser extends Unparser {
  */
 class ReferencedElementCollector extends Visitor {
   final Compiler compiler;
-  final Element rootElement;
-  final TreeElements treeElements;
+  final Element element;
+  final ElementAst elementAst;
   final newTypedefElementCallback;
   final newClassElementCallback;
 
   ReferencedElementCollector(this.compiler,
-                             Element rootElement,
-                             this.treeElements,
+                             this.element,
+                             this.elementAst,
                              this.newTypedefElementCallback,
-                             this.newClassElementCallback)
-      : this.rootElement =
-          rootElement is VariableElement ? rootElement.variables : rootElement;
+                             this.newClassElementCallback);
 
   visitNode(Node node) {
     node.visitChildren(this);
   }
 
   visitTypeAnnotation(TypeAnnotation typeAnnotation) {
-    // We call [resolveReturnType] to allow having 'void'.
-    final type = compiler.resolveReturnType(rootElement, typeAnnotation);
+    TreeElements treeElements = elementAst.treeElements;
+    final DartType type = treeElements.getType(typeAnnotation);
+    assert(invariant(typeAnnotation, type != null,
+        message: "Missing type for type annotation: $treeElements."));
     Element typeElement = type.element;
     if (typeElement.isTypedef()) newTypedefElementCallback(typeElement);
     if (typeElement.isClass()) newClassElementCallback(typeElement);
@@ -629,8 +538,8 @@ class ReferencedElementCollector extends Visitor {
   }
 
   void collect() {
-    compiler.withCurrentElement(rootElement, () {
-      rootElement.parseNode(compiler).accept(this);
+    compiler.withCurrentElement(element, () {
+      elementAst.ast.accept(this);
     });
   }
 }

@@ -6,45 +6,27 @@
  ******************************************************************************/
 package com.xored.glance.ui.controls.tree;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.ListenerList;
-
 import com.xored.glance.ui.controls.decor.IPath;
 import com.xored.glance.ui.controls.decor.IStructContent;
 import com.xored.glance.ui.controls.decor.StructCell;
 import com.xored.glance.ui.sources.ITextBlock;
 import com.xored.glance.ui.sources.ITextSourceListener;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.ListenerList;
+
+import java.util.HashSet;
+import java.util.Set;
+
 public abstract class TreeContent extends TreeNode implements IStructContent {
 
   private ListenerList listeners = new ListenerList();
 
+  private Set<TreeItemContent> blocks = new HashSet<TreeItemContent>();
+
   public TreeContent() {
     super(null);
     index = new int[0];
-  }
-
-  public abstract TreeItemContent getContent(TreeCell cell);
-
-  @Override
-  public abstract void index(IProgressMonitor monitor);
-
-  @Override
-  public void dispose() {
-  }
-
-  @Override
-  public final ITextBlock getContent(StructCell cell) {
-    return getContent((TreeCell) cell);
-  }
-
-  @Override
-  public IPath getPath(ITextBlock block) {
-    TreeItemContent content = (TreeItemContent) block;
-    return new TreePath(content.getNode());
   }
 
   @Override
@@ -53,9 +35,20 @@ public abstract class TreeContent extends TreeNode implements IStructContent {
   }
 
   @Override
-  public void removeListener(ITextSourceListener listener) {
-    listeners.remove(listener);
+  public void dispose() {
   }
+
+  @Override
+  public ITextBlock[] getBlocks() {
+    return blocks.toArray(new TreeItemContent[0]);
+  }
+
+  @Override
+  public final ITextBlock getContent(StructCell cell) {
+    return getContent((TreeCell) cell);
+  }
+
+  public abstract TreeItemContent getContent(TreeCell cell);
 
   @Override
   public ITextSourceListener[] getListeners() {
@@ -66,8 +59,17 @@ public abstract class TreeContent extends TreeNode implements IStructContent {
   }
 
   @Override
-  public ITextBlock[] getBlocks() {
-    return blocks.toArray(new TreeItemContent[0]);
+  public IPath getPath(ITextBlock block) {
+    TreeItemContent content = (TreeItemContent) block;
+    return new TreePath(content.getNode());
+  }
+
+  @Override
+  public abstract void index(IProgressMonitor monitor);
+
+  @Override
+  public void removeListener(ITextSourceListener listener) {
+    listeners.remove(listener);
   }
 
   void changed(TreeItemContent[] removed, TreeItemContent[] added) {
@@ -81,7 +83,5 @@ public abstract class TreeContent extends TreeNode implements IStructContent {
       listener.blocksChanged(removed, added);
     }
   }
-
-  private Set<TreeItemContent> blocks = new HashSet<TreeItemContent>();
 
 }

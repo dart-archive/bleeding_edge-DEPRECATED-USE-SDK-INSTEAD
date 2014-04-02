@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.dartium.DartiumDebugValue.ValueCallback;
 import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
 import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
@@ -67,6 +68,38 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
 
   protected ServerDebugValue(ServerDebugTarget target) {
     super(target);
+  }
+
+  public void computeDetail(final ValueCallback callback) {
+    if (value == null) {
+      callback.detailComputed(getValueString_impl());
+    } else if (value.isPrimitive() || value.isNull()
+        || !DartDebugCorePlugin.getPlugin().getInvokeToString()) {
+      try {
+        // If the value is a primitive type, just return the display string.
+        callback.detailComputed(getDisplayString());
+      } catch (DebugException e) {
+        callback.detailComputed(null);
+      }
+    } else {
+      // Otherwise try and call the toString() method of the object.
+      try {
+        getConnection().callToString(value, new VmCallback<VmValue>() {
+          @Override
+          public void handleResult(VmResult<VmValue> result) {
+            if (result.isError()) {
+              callback.detailComputed(result.getError());
+            } else {
+              callback.detailComputed(stripQuotes(result.getResult().getText()));
+            }
+          }
+        });
+      } catch (IOException e) {
+        DartDebugCorePlugin.logError(e);
+
+        callback.detailComputed(null);
+      }
+    }
   }
 
   @Override
@@ -366,6 +399,8 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
   private String getValueString_impl() {
     if (valueRetriever != null) {
       return valueRetriever.getDisplayName();
+    } else if (value == null) {
+      return "null";
     } else {
       return value.getText();
     }
@@ -379,4 +414,11 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     return str;
   }
 
+  private String stripQuotes(String str) {
+    if (str.length() > 1 && str.startsWith("\"") && str.endsWith("\"")) {
+      return str.substring(1, str.length() - 1);
+    } else {
+      return str;
+    }
+  }
 }

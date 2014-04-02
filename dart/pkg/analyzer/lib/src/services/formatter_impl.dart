@@ -137,15 +137,17 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 
     var formattedSource = formatter.writer.toString();
 
-    checkTokenStreams(startToken, tokenize(formattedSource));
+    checkTokenStreams(startToken, tokenize(formattedSource),
+                      allowTransforms: options.codeTransforms);
 
     return new FormattedSource(formattedSource, formatter.selection);
   }
 
-  checkTokenStreams(Token t1, Token t2) =>
-      new TokenStreamComparator(lineInfo, t1, t2).verifyEquals();
+  checkTokenStreams(Token t1, Token t2, {allowTransforms: false}) =>
+      new TokenStreamComparator(lineInfo, t1, t2, transforms: allowTransforms).
+          verifyEquals();
 
-  ASTNode parse(CodeKind kind, Token start) {
+  AstNode parse(CodeKind kind, Token start) {
 
     var parser = new Parser(null, this);
 
@@ -185,8 +187,10 @@ class TokenStreamComparator {
 
   final LineInfo lineInfo;
   Token token1, token2;
+  bool allowTransforms;
 
-  TokenStreamComparator(this.lineInfo, this.token1, this.token2);
+  TokenStreamComparator(this.lineInfo, this.token1, this.token2,
+      {transforms: false}) : this.allowTransforms = transforms;
 
   /// Verify that these two token streams are equal.
   verifyEquals() {
@@ -274,10 +278,23 @@ class TokenStreamComparator {
         return true;
       }
     }
-    // Advance past synthetic { } tokens
-    if (isOPEN_CURLY_BRACKET(token2) || isCLOSE_CURLY_BRACKET(token2)) {
-      token2 = token2.next;
-      return checkTokens();
+
+    // Transform-related special casing
+    if (allowTransforms) {
+
+      // Advance past empty statements
+      if (isSEMICOLON(token1)) {
+        // TODO whitelist
+        token1 = token1.next;
+        return checkTokens();
+      }
+
+      // Advance past synthetic { } tokens
+      if (isOPEN_CURLY_BRACKET(token2) || isCLOSE_CURLY_BRACKET(token2)) {
+        token2 = token2.next;
+        return checkTokens();
+      }
+
     }
 
     return false;
@@ -285,15 +302,12 @@ class TokenStreamComparator {
 
 }
 
-// Cached parser for testing token types.
-final tokenTester = new Parser(null,null);
+/// Test for token type.
+bool tokenIs(Token token, TokenType type) =>
+    token != null && token.type == type;
 
 /// Test if this token is an EOF token.
 bool isEOF(Token token) => tokenIs(token, TokenType.EOF);
-
-/// Test for token type.
-bool tokenIs(Token token, TokenType type) =>
-    token != null && tokenTester.matches4(token, type);
 
 /// Test if this token is a GT token.
 bool isGT(Token token) => tokenIs(token, TokenType.GT);
@@ -326,7 +340,7 @@ bool isSEMICOLON(Token token) =>
 
 
 /// An AST visitor that drives formatting heuristics.
-class SourceVisitor implements ASTVisitor {
+class SourceVisitor implements AstVisitor {
 
   static final OPEN_CURLY = syntheticToken(TokenType.OPEN_CURLY_BRACKET, '{');
   static final CLOSE_CURLY = syntheticToken(TokenType.CLOSE_CURLY_BRACKET, '}');
@@ -722,7 +736,9 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitEmptyStatement(EmptyStatement node) {
-    token(node.semicolon);
+    if (!codeTransforms || node.parent is! Block) {
+      token(node.semicolon);
+    }
   }
 
   visitExportDirective(ExportDirective node) {
@@ -908,7 +924,11 @@ class SourceVisitor implements ASTVisitor {
       space();
       token(node.elseKeyword);
       space();
-      printAsBlock(node.elseStatement);
+      if (node.elseStatement is IfStatement) {
+        visit(node.elseStatement);
+      } else {
+        printAsBlock(node.elseStatement);
+      }
     } else {
       visit(node.thenStatement);
     }
@@ -1318,7 +1338,32 @@ class SourceVisitor implements ASTVisitor {
     visitNodes(node.metadata, followedBy: newlines);
     modifier(node.keyword);
     visitNode(node.type, followedBy: space);
-    visitCommaSeparatedNodes(node.variables);
+
+    var variables = node.variables;
+    // Decls with initializers get their own lines (dartbug.com/16849)
+    if (variables.any((v) => (v.initializer != null))) {
+      var size = variables.length;
+      if (size > 0) {
+        var variable;
+        for (var i = 0; i < size; i++) {
+          variable = variables[i];
+          if (i > 0) {
+            var comma = variable.beginToken.previous;
+            token(comma);
+            newlines();
+          }
+          if (i == 1) {
+            indent(2);
+          }
+          variable.accept(this);
+        }
+        if (size > 1) {
+          unindent(2);
+        }
+      }
+    } else {
+      visitCommaSeparatedNodes(node.variables);
+    }
   }
 
   visitVariableDeclarationStatement(VariableDeclarationStatement node) {
@@ -1347,7 +1392,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   /// Safely visit the given [node].
-  visit(ASTNode node) {
+  visit(AstNode node) {
     if (node != null) {
       node.accept(this);
     }
@@ -1364,7 +1409,7 @@ class SourceVisitor implements ASTVisitor {
 
   /// Visit a list of [nodes] if not null, optionally separated and/or preceded
   /// and followed by the given functions.
-  visitNodes(NodeList<ASTNode> nodes, {precededBy(): null,
+  visitNodes(NodeList<AstNode> nodes, {precededBy(): null,
       separatedBy() : null, followedBy(): null}) {
     if (nodes != null) {
       var size = nodes.length;
@@ -1386,7 +1431,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   /// Visit a comma-separated list of [nodes] if not null.
-  visitCommaSeparatedNodes(NodeList<ASTNode> nodes, {followedBy(): null}) {
+  visitCommaSeparatedNodes(NodeList<AstNode> nodes, {followedBy(): null}) {
     //TODO(pquitslund): handle this more neatly
     if (followedBy == null) {
       followedBy = space;
@@ -1411,7 +1456,7 @@ class SourceVisitor implements ASTVisitor {
 
   /// Visit a [node], and if not null, optionally preceded or followed by the
   /// specified functions.
-  visitNode(ASTNode node, {precededBy(): null, followedBy(): null}) {
+  visitNode(AstNode node, {precededBy(): null, followedBy(): null}) {
     if (node != null) {
       if (precededBy != null) {
         precededBy();
@@ -1649,15 +1694,15 @@ class SourceVisitor implements ASTVisitor {
       countNewlinesBetween(last, current) > 0 ? 0 : current.offset - last.end;
 
   /// Count the blanks between these two nodes.
-  int countBlankLinesBetween(ASTNode lastNode, ASTNode currentNode) =>
+  int countBlankLinesBetween(AstNode lastNode, AstNode currentNode) =>
       countNewlinesBetween(lastNode.endToken, currentNode.beginToken);
 
   /// Count newlines preceeding this [node].
-  int countPrecedingNewlines(ASTNode node) =>
+  int countPrecedingNewlines(AstNode node) =>
       countNewlinesBetween(node.beginToken.previous, node.beginToken);
 
   /// Count newlines succeeding this [node].
-  int countSucceedingNewlines(ASTNode node) => node == null ? 0 :
+  int countSucceedingNewlines(AstNode node) => node == null ? 0 :
       countNewlinesBetween(node.endToken, node.endToken.next);
 
   /// Count the blanks between these two tokens.

@@ -14,7 +14,7 @@
 
 package com.google.dart.engine.services.util;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.Statement;
@@ -40,12 +40,12 @@ public class SelectionAnalyzerTest extends AbstractDartTest {
     }
 
     @Override
-    protected void handleSelectionEndsIn(ASTNode node) {
+    protected void handleSelectionEndsIn(AstNode node) {
       super.handleSelectionEndsIn(node);
     }
 
     @Override
-    protected void handleSelectionStartsIn(ASTNode node) {
+    protected void handleSelectionStartsIn(AstNode node) {
       super.handleSelectionStartsIn(node);
     }
 

@@ -3,6 +3,12 @@
  */
 package com.xored.glance.internal.ui.sources;
 
+import com.xored.glance.internal.ui.GlancePlugin;
+import com.xored.glance.ui.sources.ITextSourceDescriptor;
+
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.Platform;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -10,21 +16,33 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.Platform;
-
-import com.xored.glance.internal.ui.GlancePlugin;
-import com.xored.glance.ui.sources.ITextSourceDescriptor;
-
 /**
  * @author Yuri Strot
  */
 public class TextSourceManager {
 
+  private final static String ATTR_PRIORITY = "priority";
+
+  private final static String ATTR_CLASS = "class";
+
+  private final static String EXT_SOURCES = GlancePlugin.PLUGIN_ID + ".sources";
+
+  private final static String EXT_EXCLUDED_SOURCES = GlancePlugin.PLUGIN_ID + ".excludedSources";
+
+  private static TextSourceManager instance;
+
   public static TextSourceManager getInstance() {
-    if (instance == null)
+    if (instance == null) {
       instance = new TextSourceManager();
+    }
     return instance;
+  }
+
+  private TextSourceListener listener;
+
+  private ITextSourceDescriptor[] descriptors;
+
+  private TextSourceManager() {
   }
 
   public void addSourceProviderListener(ISourceProviderListener listener) {
@@ -32,19 +50,12 @@ public class TextSourceManager {
     getListener().addSourceProviderListener(listener);
   }
 
-  public void removeSourceProviderListener(ISourceProviderListener listener) {
-    getListener().removeSourceProviderListener(listener);
-  }
-
   public TextSourceMaker getSource() {
     return getListener().getSelection();
   }
 
-  private TextSourceListener getListener() {
-    if (listener == null) {
-      listener = new TextSourceListener(getDescriptors());
-    }
-    return listener;
+  public void removeSourceProviderListener(ISourceProviderListener listener) {
+    getListener().removeSourceProviderListener(listener);
   }
 
   private ITextSourceDescriptor[] getDescriptors() {
@@ -96,28 +107,23 @@ public class TextSourceManager {
     return descriptors;
   }
 
+  private TextSourceListener getListener() {
+    if (listener == null) {
+      listener = new TextSourceListener(getDescriptors());
+    }
+    return listener;
+  }
+
   private int toInt(String priority) {
     try {
-      if (priority == null || priority.length() == 0)
+      if (priority == null || priority.length() == 0) {
         return 1;
+      }
       return Integer.parseInt(priority);
     } catch (Exception e) {
       GlancePlugin.log(e);
     }
     return 1;
   }
-
-  private TextSourceManager() {
-  }
-
-  private final static String ATTR_PRIORITY = "priority";
-  private final static String ATTR_CLASS = "class";
-  private final static String EXT_SOURCES = GlancePlugin.PLUGIN_ID + ".sources";
-  private final static String EXT_EXCLUDED_SOURCES = GlancePlugin.PLUGIN_ID + ".excludedSources";
-
-  private static TextSourceManager instance;
-
-  private TextSourceListener listener;
-  private ITextSourceDescriptor[] descriptors;
 
 }

@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 
@@ -27,6 +28,12 @@ import com.google.dart.engine.source.SourceKind;
  * @coverage dart.engine
  */
 public interface DartEntry extends SourceEntry {
+  /**
+   * The data descriptor representing the errors reported during Angular resolution.
+   */
+  public static final DataDescriptor<AnalysisError[]> ANGULAR_ERRORS = new DataDescriptor<AnalysisError[]>(
+      "DartEntry.ANGULAR_ERRORS");
+
   /**
    * The data descriptor representing the list of libraries that contain this compilation unit.
    */
@@ -113,10 +120,22 @@ public interface DartEntry extends SourceEntry {
       "DartEntry.RESOLVED_UNIT");
 
   /**
+   * The data descriptor representing the token stream.
+   */
+  public static final DataDescriptor<AnalysisError[]> SCAN_ERRORS = new DataDescriptor<AnalysisError[]>(
+      "DartEntry.SCAN_ERRORS");
+
+  /**
    * The data descriptor representing the source kind.
    */
   public static final DataDescriptor<SourceKind> SOURCE_KIND = new DataDescriptor<SourceKind>(
       "DartEntry.SOURCE_KIND");
+
+  /**
+   * The data descriptor representing the token stream.
+   */
+  public static final DataDescriptor<Token> TOKEN_STREAM = new DataDescriptor<Token>(
+      "DartEntry.TOKEN_STREAM");
 
   /**
    * The data descriptor representing the errors resulting from verifying the source.
@@ -157,7 +176,7 @@ public interface DartEntry extends SourceEntry {
    *          context for the data
    * @return the value of the data represented by the given descriptor and library
    */
-  public CacheState getState(DataDescriptor<?> descriptor, Source librarySource);
+  public CacheState getStateInLibrary(DataDescriptor<?> descriptor, Source librarySource);
 
   /**
    * Return the value of the data represented by the given descriptor in the context of the given
@@ -168,7 +187,7 @@ public interface DartEntry extends SourceEntry {
    *          context for the data
    * @return the value of the data represented by the given descriptor and library
    */
-  public <E> E getValue(DataDescriptor<E> descriptor, Source librarySource);
+  public <E> E getValueInLibrary(DataDescriptor<E> descriptor, Source librarySource);
 
   @Override
   public DartEntryImpl getWritableCopy();
@@ -182,6 +201,15 @@ public interface DartEntry extends SourceEntry {
    * @return {@code true} if the data is marked as being invalid
    */
   public boolean hasInvalidData(DataDescriptor<?> descriptor);
+
+  /**
+   * Return {@code true} if this entry has an AST structure that can be resolved (even if it needs
+   * to be copied).
+   * 
+   * @return {@code true} if the method {@link DartEntryImpl#getResolvableCompilationUnit()} will
+   *         return a non-{@code null} result
+   */
+  public boolean hasResolvableCompilationUnit();
 
   /**
    * Return {@code true} if this data is safe to use in refactoring.

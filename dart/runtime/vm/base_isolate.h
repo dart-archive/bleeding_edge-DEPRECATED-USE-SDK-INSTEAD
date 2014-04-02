@@ -95,18 +95,16 @@ class BaseIsolate {
   }
 
 #if defined(DEBUG)
-  void set_reusable_handle_scope_active(bool value) {
-    reusable_handle_scope_active_ = value;
-  }
-
-  bool reusable_handle_scope_active() {
-    return reusable_handle_scope_active_;
-  }
-#endif
-
-#if defined(DEBUG)
   static void AssertCurrent(BaseIsolate* isolate);
 #endif
+
+  uword vm_tag() const {
+    return vm_tag_;
+  }
+
+  void set_vm_tag(uword tag) {
+    vm_tag_ = tag;
+  }
 
  protected:
   BaseIsolate()
@@ -116,9 +114,9 @@ class BaseIsolate {
         top_handle_scope_(NULL),
         no_handle_scope_depth_(0),
         no_gc_scope_depth_(0),
-        reusable_handle_scope_active_(false),
 #endif
-        no_callback_scope_depth_(0)
+        no_callback_scope_depth_(0),
+        vm_tag_(0)
   {}
 
   ~BaseIsolate() {
@@ -131,9 +129,9 @@ class BaseIsolate {
   HandleScope* top_handle_scope_;
   int32_t no_handle_scope_depth_;
   int32_t no_gc_scope_depth_;
-  bool reusable_handle_scope_active_;
 #endif
   int32_t no_callback_scope_depth_;
+  uword vm_tag_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BaseIsolate);

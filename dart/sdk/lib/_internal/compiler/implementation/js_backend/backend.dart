@@ -55,7 +55,6 @@ class FunctionInlineCache {
 
 class JavaScriptBackend extends Backend {
   SsaBuilderTask builder;
-  SsaFromIrBuilderTask fromIrBuilder;
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
@@ -142,7 +141,12 @@ class JavaScriptBackend extends Backend {
   Map<ClassElement, ClassElement> implementationClasses;
 
   Element getNativeInterceptorMethod;
+  bool needToInitializeIsolateAffinityTag = false;
   bool needToInitializeDispatchProperty = false;
+
+  /// Holds the method "getIsolateAffinityTag" when dart:_js_helper has been
+  /// loaded.
+  FunctionElement getIsolateAffinityTagMarker;
 
   final Namer namer;
 
@@ -293,7 +297,6 @@ class JavaScriptBackend extends Backend {
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     builder = new SsaBuilderTask(this);
-    fromIrBuilder = new SsaFromIrBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
     typeVariableHandler = new TypeVariableHandler(this);
@@ -637,8 +640,7 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  Constant registerCompileTimeConstant(Constant constant,
-                                       TreeElements elements) {
+  void registerCompileTimeConstant(Constant constant, TreeElements elements) {
     registerCompileTimeConstantInternal(constant, elements);
     for (Constant dependency in constant.getDependencies()) {
       registerCompileTimeConstant(dependency, elements);
@@ -650,14 +652,14 @@ class JavaScriptBackend extends Backend {
     DartType type = constant.computeType(compiler);
     registerInstantiatedConstantType(type, elements);
 
-    if (constant.isFunction()) {
+    if (constant.isFunction) {
       FunctionConstant function = constant;
       compiler.enqueuer.codegen.registerGetOfStaticFunction(function.element);
-    } else if (constant.isInterceptor()) {
+    } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstant interceptor = constant;
       registerInstantiatedConstantType(interceptor.dispatchedType, elements);
-    } else if (constant.isType()) {
+    } else if (constant.isType) {
       TypeConstant typeConstant = constant;
       registerTypeLiteral(typeConstant.representedType.element,
           compiler.enqueuer.codegen, elements);
@@ -802,6 +804,7 @@ class JavaScriptBackend extends Backend {
     TreeElements elements = compiler.globalDependencies;
     enqueue(enqueuer, getNativeInterceptorMethod, elements);
     enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, elements);
+    needToInitializeIsolateAffinityTag = true;
     needToInitializeDispatchProperty = true;
   }
 
@@ -1157,9 +1160,7 @@ class JavaScriptBackend extends Backend {
         compiler.enqueuer.codegen.registerStaticUse(getCyclicThrowHelper());
       }
     }
-    HGraph graph = compiler.irBuilder.hasIr(element)
-        ? fromIrBuilder.build(work)
-        : builder.build(work);
+    HGraph graph = builder.build(work);
     optimizer.optimize(work, graph);
     jsAst.Expression code = generator.generateCode(work, graph);
     generatedCode[element] = code;
@@ -1553,6 +1554,16 @@ class JavaScriptBackend extends Backend {
       mustPreserveNames = true;
     } else if (element == preserveMetadataMarker) {
       mustRetainMetadata = true;
+    } else if (element == getIsolateAffinityTagMarker) {
+      needToInitializeIsolateAffinityTag = true;
+    } else if (element.isDeferredLoaderGetter()) {
+      // TODO(sigurdm): Create a function registerLoadLibraryAccess.
+      if (compiler.loadLibraryFunction == null) {
+        compiler.loadLibraryFunction =
+            compiler.findHelper("_loadLibraryWrapper");
+        enqueueInResolution(compiler.loadLibraryFunction,
+                            compiler.globalDependencies);
+      }
     }
     customElementsAnalysis.registerStaticUse(element, enqueuer);
   }
@@ -1613,6 +1624,9 @@ class JavaScriptBackend extends Backend {
     } else if (uri == Uri.parse('dart:_js_names')) {
       preserveNamesMarker =
           library.find('preserveNames');
+    } else if (uri == Uri.parse('dart:_js_helper')) {
+      getIsolateAffinityTagMarker =
+          library.find('getIsolateAffinityTag');
     }
     return new Future.value();
   }
@@ -1814,42 +1828,47 @@ class JavaScriptBackend extends Backend {
     bool hasNoSideEffects = false;
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
-      if (!metadata.value.isConstructedObject()) continue;
+      if (!metadata.value.isConstructedObject) continue;
       ObjectConstant value = metadata.value;
       ClassElement cls = value.type.element;
       if (cls == noInlineClass) {
         hasNoInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHere(element, "Cannot inline");
+          compiler.reportHint(element,
+              MessageKind.GENERIC,
+              {'text': "Cannot inline"});
         }
         inlineCache.markAsNonInlinable(element);
       } else if (cls == noThrowsClass) {
         hasNoThrows = true;
         if (!Elements.isStaticOrTopLevelFunction(element)) {
-          compiler.internalErrorOnElement(
-              element,
+          compiler.internalError(element,
               "@NoThrows() is currently limited to top-level"
               " or static functions");
         }
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHere(element, "Cannot throw");
+          compiler.reportHint(element,
+              MessageKind.GENERIC,
+              {'text': "Cannot throw"});
         }
         compiler.world.registerCannotThrow(element);
       } else if (cls == noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHere(element, "Has no side effects");
+          compiler.reportHint(element,
+              MessageKind.GENERIC,
+              {'text': "Has no side effects"});
         }
         compiler.world.registerSideEffectsFree(element);
       }
     }
     if (hasNoThrows && !hasNoInline) {
-      compiler.internalErrorOnElement(
-          element, "@NoThrows() should always be combined with @NoInline");
+      compiler.internalError(element,
+          "@NoThrows() should always be combined with @NoInline.");
     }
     if (hasNoSideEffects && !hasNoInline) {
-      compiler.internalErrorOnElement(
-          element, "@NoSideEffects() should always be combined with @NoInline");
+      compiler.internalError(element,
+          "@NoSideEffects() should always be combined with @NoInline.");
     }
   }
 
@@ -1868,53 +1887,3 @@ class Dependency {
   const Dependency(this.constant, this.user);
 }
 
-/// Used to copy metadata to the the actual constant handler.
-class ConstantCopier implements ConstantVisitor {
-  final ConstantHandler target;
-
-  ConstantCopier(this.target);
-
-  void copy(/* Constant or List<Constant> */ value) {
-    if (value is Constant) {
-      target.compiledConstants.add(value);
-    } else {
-      target.compiledConstants.addAll(value);
-    }
-  }
-
-  void visitFunction(FunctionConstant constant) => copy(constant);
-
-  void visitNull(NullConstant constant) => copy(constant);
-
-  void visitInt(IntConstant constant) => copy(constant);
-
-  void visitDouble(DoubleConstant constant) => copy(constant);
-
-  void visitTrue(TrueConstant constant) => copy(constant);
-
-  void visitFalse(FalseConstant constant) => copy(constant);
-
-  void visitString(StringConstant constant) => copy(constant);
-
-  void visitType(TypeConstant constant) => copy(constant);
-
-  void visitInterceptor(InterceptorConstant constant) => copy(constant);
-
-  void visitDummyReceiver(DummyReceiverConstant constant) => copy(constant);
-
-  void visitList(ListConstant constant) {
-    copy(constant.entries);
-    copy(constant);
-  }
-  void visitMap(MapConstant constant) {
-    copy(constant.keys);
-    copy(constant.values);
-    copy(constant.protoValue);
-    copy(constant);
-  }
-
-  void visitConstructed(ConstructedConstant constant) {
-    copy(constant.fields);
-    copy(constant);
-  }
-}

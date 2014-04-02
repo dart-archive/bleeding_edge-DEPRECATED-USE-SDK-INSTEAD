@@ -526,6 +526,6 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
     assertTrue(refactoring.shouldReportUnsafeRefactoringSource(analysisContext, testSource));
     assertFalse(refactoring.shouldReportUnsafeRefactoringSource(
         analysisContext,
-        new FileBasedSource(sourceFactory.getContentCache(), new File("other.dart"))));
+        new FileBasedSource(new File("other.dart"))));
   }
 }

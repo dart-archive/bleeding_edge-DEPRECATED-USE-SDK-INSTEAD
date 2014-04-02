@@ -20,8 +20,10 @@ import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.Edit;
 import com.google.dart.engine.services.change.MergeCompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.correction.ChangeCorrectionProposal;
 import com.google.dart.engine.services.correction.CorrectionImage;
 import com.google.dart.engine.services.correction.CorrectionKind;
+import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.LinkedPositionProposal;
 import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.services.status.RefactoringStatus;
@@ -31,6 +33,7 @@ import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.refactoring.ServiceUtils;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
 
@@ -39,6 +42,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.ltk.core.refactoring.TextEditBasedChangeGroup;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.text.edits.MultiTextEdit;
@@ -82,6 +87,22 @@ public class ServiceUtilsTest extends AbstractDartTest {
     assertEquals("My composite change", ltkChange.getName());
     org.eclipse.ltk.core.refactoring.Change[] ltkChanges = ltkChange.getChildren();
     assertThat(ltkChanges).hasSize(2);
+  }
+
+  public void test_toLTK_Change_CompositeChange_noFile() throws Exception {
+    Source source = new FileBasedSource(new File("no-such-file.dart"));
+    SourceChange sourceChangeA = new SourceChange("My change A", source);
+    SourceChange sourceChangeB = new SourceChange("My change B", source);
+    CompositeChange compositeChange = new CompositeChange(
+        "My composite change",
+        sourceChangeA,
+        sourceChangeB);
+    // toLTK
+    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils.toLTK(compositeChange);
+    org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = (org.eclipse.ltk.core.refactoring.CompositeChange) ltkChange_;
+    assertEquals("My composite change", ltkChange.getName());
+    org.eclipse.ltk.core.refactoring.Change[] ltkChanges = ltkChange.getChildren();
+    assertThat(ltkChanges).isEmpty();
   }
 
   public void test_toLTK_Change_MergeCompositeChange() throws Exception {
@@ -143,7 +164,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
   }
 
   public void test_toLTK_Change_SourceChange_externalFile() throws Exception {
-    FileBasedSource source = new FileBasedSource(null, FileUtilities2.createFile("/some/path"));
+    FileBasedSource source = new FileBasedSource(FileUtilities2.createFile("/some/path"));
     // fill SourceChange
     SourceChange sourceChange = new SourceChange("My change", source);
     sourceChange.addEdit(new Edit(10, 1, "a"));
@@ -200,6 +221,26 @@ public class ServiceUtilsTest extends AbstractDartTest {
     assertEquals("b", ((ReplaceEdit) textEdits[1]).getText());
   }
 
+  /**
+   * It is OK to apply more than one insert {@link Edit} with the same offset.
+   * <p>
+   * For example Quick Fix "Implement Missing Overrides" inserts several method declarations.
+   */
+  public void test_toLTK_SourceChange_twoInserts() throws Exception {
+    Source source = createTestFileSource();
+    // fill SourceChange
+    SourceChange sourceChange = new SourceChange("My change", source);
+    sourceChange.addEdit(new Edit(2, 0, "a"));
+    sourceChange.addEdit(new Edit(2, 0, "b"));
+    // toLTK
+    TextFileChange ltkChange = ServiceUtils.toLTK(sourceChange);
+    TextEdit textEdit = ltkChange.getEdit();
+    // apply
+    Document document = new Document("01234");
+    textEdit.apply(document);
+    assertEquals("01ab234", document.get());
+  }
+
   public void test_toLTK_SourceChange_withGroups() throws Exception {
     Source source = createTestFileSource();
     // fill SourceChange
@@ -234,6 +275,34 @@ public class ServiceUtilsTest extends AbstractDartTest {
         ltkEntries[0].getSeverity());
   }
 
+  public void test_toUI_ChangeCorrectionProposal() throws Exception {
+    Source source = createTestFileSource();
+    // fill SourceChange
+    SourceChange sourceChange = new SourceChange("My change", source);
+    sourceChange.addEdit(new Edit(10, 1, "a"));
+    sourceChange.addEdit(new Edit(20, 1, "a"));
+    sourceChange.addEdit(new Edit(30, 3, "b"));
+    // create ChangeCorrectionProposal
+    CorrectionProposal proposal = new ChangeCorrectionProposal(
+        sourceChange,
+        CorrectionKind.QA_ADD_TYPE_ANNOTATION);
+    //
+    com.google.dart.tools.ui.internal.text.correction.proposals.ChangeCorrectionProposal uiProposal = (com.google.dart.tools.ui.internal.text.correction.proposals.ChangeCorrectionProposal) ServiceUtils.toUI(proposal);
+    ReflectionUtils.invokeMethod(uiProposal, "getChange()");
+    CompilationUnitChange ltkChange = (CompilationUnitChange) uiProposal.getChange();
+    assertEquals("My change", ltkChange.getName());
+  }
+
+  public void test_toUI_ChangeCorrectionProposal_noFile() throws Exception {
+    Source source = new FileBasedSource(new File("no-such-file.dart"));
+    SourceChange sourceChange = new SourceChange("My change", source);
+    CorrectionProposal proposal = new ChangeCorrectionProposal(
+        sourceChange,
+        CorrectionKind.QA_ADD_TYPE_ANNOTATION);
+    ICompletionProposal uiProposal = ServiceUtils.toUI(proposal);
+    assertNull(uiProposal);
+  }
+
   public void test_toUI_LinkedCorrectionProposal() throws Exception {
     Source source = createTestFileSource();
     // fill SourceChange
@@ -259,8 +328,18 @@ public class ServiceUtilsTest extends AbstractDartTest {
     }
     //
     LinkedCorrectionProposal uiProposal = ServiceUtils.toUI(proposal);
-    com.google.dart.tools.core.refactoring.CompilationUnitChange ltkChange = (CompilationUnitChange) uiProposal.getChange();
+    CompilationUnitChange ltkChange = (CompilationUnitChange) uiProposal.getChange();
     assertEquals("My linked change", ltkChange.getName());
+  }
+
+  public void test_toUI_LinkedCorrectionProposal_noFile() throws Exception {
+    Source source = new FileBasedSource(new File("no-such-file.dart"));
+    SourceChange sourceChange = new SourceChange("My change", source);
+    SourceCorrectionProposal proposal = new SourceCorrectionProposal(
+        sourceChange,
+        CorrectionKind.QA_ADD_TYPE_ANNOTATION);
+    LinkedCorrectionProposal uiProposal = ServiceUtils.toUI(proposal);
+    assertNull(uiProposal);
   }
 
   /**
@@ -268,7 +347,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
    */
   private Source createFileSource(IFile file) {
     File ioFile = file.getLocation().toFile();
-    return new FileBasedSource(null, ioFile, UriKind.FILE_URI);
+    return new FileBasedSource(ioFile, UriKind.FILE_URI);
   }
 
   /**

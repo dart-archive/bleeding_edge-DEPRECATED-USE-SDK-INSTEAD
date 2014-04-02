@@ -72,7 +72,8 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * <li>Otherwise none of the members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> is inherited.
    * </ol>
    */
-  INCONSISTENT_METHOD_INHERITANCE("'%s' is inherited by at least two interfaces inconsistently"),
+  INCONSISTENT_METHOD_INHERITANCE(
+      "'%s' is inherited by at least two interfaces inconsistently, from %s"),
 
   /**
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does not have an
@@ -307,7 +308,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   private StaticTypeWarningCode(String message) {
-    this.message = message;
+    this(message, null);
   }
 
   /**

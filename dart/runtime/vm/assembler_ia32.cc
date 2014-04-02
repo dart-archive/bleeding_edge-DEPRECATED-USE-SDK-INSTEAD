@@ -7,6 +7,7 @@
 
 #include "vm/assembler.h"
 #include "vm/code_generator.h"
+#include "vm/cpu.h"
 #include "vm/heap.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
@@ -16,60 +17,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
-DEFINE_FLAG(bool, use_sse41, true, "Use SSE 4.1 if available");
 DECLARE_FLAG(bool, inline_alloc);
-
-
-bool CPUFeatures::sse2_supported_ = false;
-bool CPUFeatures::sse4_1_supported_ = false;
-#ifdef DEBUG
-bool CPUFeatures::initialized_ = false;
-#endif
-
-
-bool CPUFeatures::sse2_supported() {
-  DEBUG_ASSERT(initialized_);
-  return sse2_supported_;
-}
-
-
-bool CPUFeatures::sse4_1_supported() {
-  DEBUG_ASSERT(initialized_);
-  return sse4_1_supported_ && FLAG_use_sse41;
-}
-
-
-#define __ assembler.
-
-void CPUFeatures::InitOnce() {
-  Assembler assembler;
-  __ pushl(EBP);
-  __ pushl(EBX);
-  __ movl(EBP, ESP);
-  // Get feature information in ECX:EDX and return it in EDX:EAX.
-  __ movl(EAX, Immediate(1));
-  __ cpuid();
-  __ movl(EAX, EDX);
-  __ movl(EDX, ECX);
-  __ movl(ESP, EBP);
-  __ popl(EBX);
-  __ popl(EBP);
-  __ ret();
-
-  const Code& code =
-      Code::Handle(Code::FinalizeCode("DetectCPUFeatures", &assembler));
-  Instructions& instructions = Instructions::Handle(code.instructions());
-  typedef uint64_t (*DetectCPUFeatures)();
-  uint64_t features =
-      reinterpret_cast<DetectCPUFeatures>(instructions.EntryPoint())();
-  sse2_supported_ = (features & kSSE2BitMask) != 0;
-  sse4_1_supported_ = (features & kSSE4_1BitMask) != 0;
-#ifdef DEBUG
-  initialized_ = true;
-#endif
-}
-
-#undef __
 
 
 class DirectCallRelocation : public AssemblerFixup {
@@ -80,6 +28,8 @@ class DirectCallRelocation : public AssemblerFixup {
     int32_t delta = region.start() + position + sizeof(int32_t);
     region.Store<int32_t>(position, pointer - delta);
   }
+
+  virtual bool IsPointerOffset() const { return false; }
 };
 
 
@@ -971,6 +921,17 @@ void Assembler::cvtpd2ps(XmmRegister dst, XmmRegister src) {
 }
 
 
+void Assembler::shufpd(XmmRegister dst, XmmRegister src, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0xC6);
+  EmitXmmRegisterOperand(dst, src);
+  ASSERT(imm.is_uint8());
+  EmitUint8(imm.value());
+}
+
+
 void Assembler::subsd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
@@ -1220,7 +1181,7 @@ void Assembler::andpd(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::pextrd(Register dst, XmmRegister src, const Immediate& imm) {
-  ASSERT(CPUFeatures::sse4_1_supported());
+  ASSERT(TargetCPUFeatures::sse4_1_supported());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
   EmitUint8(0x0F);
@@ -1233,7 +1194,7 @@ void Assembler::pextrd(Register dst, XmmRegister src, const Immediate& imm) {
 
 
 void Assembler::pmovsxdq(XmmRegister dst, XmmRegister src) {
-  ASSERT(CPUFeatures::sse4_1_supported());
+  ASSERT(TargetCPUFeatures::sse4_1_supported());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
   EmitUint8(0x0F);
@@ -1244,7 +1205,7 @@ void Assembler::pmovsxdq(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::pcmpeqq(XmmRegister dst, XmmRegister src) {
-  ASSERT(CPUFeatures::sse4_1_supported());
+  ASSERT(TargetCPUFeatures::sse4_1_supported());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
   EmitUint8(0x0F);
@@ -1264,7 +1225,7 @@ void Assembler::pxor(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
-  ASSERT(CPUFeatures::sse4_1_supported());
+  ASSERT(TargetCPUFeatures::sse4_1_supported());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
   EmitUint8(0x0F);
@@ -2381,21 +2342,35 @@ void Assembler::Bind(Label* label) {
 }
 
 
+static void ComputeCounterAddressesForCid(intptr_t cid,
+                                          Heap::Space space,
+                                          Address* count_address,
+                                          Address* size_address) {
+  ASSERT(cid < kNumPredefinedCids);
+  Isolate* isolate = Isolate::Current();
+  ClassTable* class_table = isolate->class_table();
+  const uword class_heap_stats_table_address =
+      class_table->PredefinedClassHeapStatsTableAddress();
+  const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+  const uword count_field_offset = (space == Heap::kNew) ?
+    ClassHeapStats::allocated_since_gc_new_space_offset() :
+    ClassHeapStats::allocated_since_gc_old_space_offset();
+  const uword size_field_offset = (space == Heap::kNew) ?
+    ClassHeapStats::allocated_size_since_gc_new_space_offset() :
+    ClassHeapStats::allocated_size_since_gc_old_space_offset();
+  *count_address = Address::Absolute(
+      class_heap_stats_table_address + class_offset + count_field_offset);
+  *size_address = Address::Absolute(
+      class_heap_stats_table_address + class_offset + size_field_offset);
+}
+
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Register temp_reg,
                                       Heap::Space space) {
   ASSERT(cid > 0);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
   if (cid < kNumPredefinedCids) {
-    const uword class_heap_stats_table_address =
-        class_table->PredefinedClassHeapStatsTableAddress();
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    const Address& count_address = Address::Absolute(
-        class_heap_stats_table_address + class_offset + count_field_offset);
+    Address count_address(kNoRegister, 0), size_address(kNoRegister, 0);
+    ComputeCounterAddressesForCid(cid, space, &count_address, &size_address);
     incl(count_address);
   } else {
     ASSERT(temp_reg != kNoRegister);
@@ -2404,6 +2379,7 @@ void Assembler::UpdateAllocationStats(intptr_t cid,
       ClassHeapStats::allocated_since_gc_new_space_offset() :
       ClassHeapStats::allocated_since_gc_old_space_offset();
     // temp_reg gets address of class table pointer.
+    ClassTable* class_table = Isolate::Current()->class_table();
     movl(temp_reg, Address::Absolute(class_table->ClassStatsTableAddress()));
     // Increment allocation count.
     incl(Address(temp_reg, class_offset + count_field_offset));
@@ -2416,39 +2392,24 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
                                               Register temp_reg,
                                               Heap::Space space) {
   ASSERT(cid > 0);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
-  if (cid < kNumPredefinedCids) {
-    const uword class_heap_stats_table_address =
-        class_table->PredefinedClassHeapStatsTableAddress();
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    const uword size_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_size_since_gc_old_space_offset();
-    const Address& count_address = Address::Absolute(
-        class_heap_stats_table_address + class_offset + count_field_offset);
-    const Address& size_address = Address::Absolute(
-        class_heap_stats_table_address + class_offset + size_field_offset);
-    incl(count_address);
-    addl(size_address, size_reg);
-  } else {
-    ASSERT(temp_reg != kNoRegister);
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    const uword size_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_size_since_gc_old_space_offset();
-    // temp_reg gets address of class table pointer.
-    movl(temp_reg, Address::Absolute(class_table->ClassStatsTableAddress()));
-    // Increment allocation count.
-    incl(Address(temp_reg, class_offset + count_field_offset));
-    addl(Address(temp_reg, class_offset + size_field_offset), size_reg);
-  }
+  ASSERT(cid < kNumPredefinedCids);
+  Address count_address(kNoRegister, 0), size_address(kNoRegister, 0);
+  ComputeCounterAddressesForCid(cid, space, &count_address, &size_address);
+  incl(count_address);
+  addl(size_address, size_reg);
+}
+
+
+void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
+                                              intptr_t size_in_bytes,
+                                              Register temp_reg,
+                                              Heap::Space space) {
+  ASSERT(cid > 0);
+  ASSERT(cid < kNumPredefinedCids);
+  Address count_address(kNoRegister, 0), size_address(kNoRegister, 0);
+  ComputeCounterAddressesForCid(cid, space, &count_address, &size_address);
+  incl(count_address);
+  addl(size_address, Immediate(size_in_bytes));
 }
 
 

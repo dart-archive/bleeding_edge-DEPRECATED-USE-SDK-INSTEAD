@@ -17,6 +17,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProcessor;
+import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartTextTools;
 import com.google.dart.tools.ui.text.IColorManager;
 
@@ -139,6 +140,7 @@ public class ContentAssistPreference {
     assistant.enableColoredLabels(true);
 
     configureJavaProcessor(assistant, store);
+    configureStringProcessor(assistant, store);
     DartX.todo("dartdoc");
     // configureJavaDocProcessor(assistant, store);
   }
@@ -218,6 +220,14 @@ public class ContentAssistPreference {
     jcp.restrictProposalsToMatchingCases(enabled);
   }
 
+  private static void configureStringProcessor(ContentAssistant assistant, IPreferenceStore store) {
+    DartCompletionProcessor processor = getStringProcessor(assistant);
+    if (processor == null) {
+      return;
+    }
+    processor.setCompletionProposalAutoActivationCharacters(new char[] {':'});
+  }
+
   private static Color getColor(IPreferenceStore store, String key) {
     DartTextTools textTools = DartToolsPlugin.getDefault().getDartTextTools();
     return getColor(store, key, textTools.getColorManager());
@@ -238,6 +248,14 @@ public class ContentAssistPreference {
 
   private static DartCompletionProcessor getJavaProcessor(ContentAssistant assistant) {
     IContentAssistProcessor p = assistant.getContentAssistProcessor(IDocument.DEFAULT_CONTENT_TYPE);
+    if (p instanceof DartCompletionProcessor) {
+      return (DartCompletionProcessor) p;
+    }
+    return null;
+  }
+
+  private static DartCompletionProcessor getStringProcessor(ContentAssistant assistant) {
+    IContentAssistProcessor p = assistant.getContentAssistProcessor(DartPartitions.DART_STRING);
     if (p instanceof DartCompletionProcessor) {
       return (DartCompletionProcessor) p;
     }

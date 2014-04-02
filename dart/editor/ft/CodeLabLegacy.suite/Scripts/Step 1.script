@@ -5,7 +5,7 @@ TypeText downArrow,downArrow,downArrow,downArrow
 Run "check problems"
 (* Don't bother running it now.
 util.selectContextMenuItem "index.html", "Run in Dartium"
-WaitFor 10,"browser right arrow button"
+util.xWaitFor 10,"browser right arrow button"
 *)
 DoubleClick "lib expando"
 TypeText downArrow
@@ -24,7 +24,7 @@ util.newline
 put (325,300) into TopLeft
 put (700,550) into BottomRight
 set the SearchRectangle to (TopLeft,BottomRight)
-Click (Text:"Mark the class",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",ValidCharacters:"*",Contrast:"yes")
+Click (Text:"Mark the class", CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",ValidCharacters:"*",Contrast:"yes")
 set the SearchRectangle to ()
 
 TypeText downArrow, rightArrow, upArrow
@@ -43,7 +43,7 @@ end repeat
 TypeText deleteKey,deleteKey
 
 util.saveFile
-Wait 10
+util.xWait 10
 
 DoubleClick (Text:"index.html",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",ValidCharacters:"*")
 util.activateEditor
@@ -56,15 +56,15 @@ util.newline
 TypeText "{{activeDocument.wordCount}}"
 
 util.saveFile
-Wait 10
+util.xWait 10
 
 Click "run button"
-WaitFor 10,"browser right arrow button"
+util.xWaitFor 10,"browser right arrow button"
 Click (Text:"Try typing",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",ValidCharacters:"*",dpi:94)
 TypeText downArrow
 util.newline
 TypeText "Lorem ipsum dolor sit amet"
-WaitFor 2, "10words"
+util.xWaitFor 2, "10words"
 
 util.exitChromium
 util.selectContextMenuItem "io-2013-codelab", "Close Folder"

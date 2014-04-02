@@ -23,7 +23,7 @@ import com.google.dart.tools.ui.internal.text.editor.DartSelection;
  * 
  * @coverage dart.editor.ui.correction
  */
-public class ConvertMethodToGetterRefactoringProposal extends AbstractActionProposal {
+public class ConvertMethodToGetterRefactoringProposal extends AbstractSelectionActionProposal {
   public ConvertMethodToGetterRefactoringProposal(ConvertMethodToGetterAction action,
       DartSelection selection) {
     super(action, CorrectionMessages.ConvertMethodToGetterRefactoringProposal_name, selection);

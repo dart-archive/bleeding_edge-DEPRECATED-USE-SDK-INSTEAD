@@ -24,6 +24,8 @@ import com.google.dart.tools.ui.internal.text.editor.SemanticHighlighting;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.Highlighting;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightings;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
+import com.google.dart.tools.ui.internal.util.RunnableObject;
+import com.google.dart.tools.ui.internal.util.TimeboxUtils;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartTextTools;
 import com.google.dart.tools.ui.text.IColorManager;
@@ -58,6 +60,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("restriction")
 public class LineStyleProviderForDart extends AbstractLineStyleProvider implements
@@ -123,16 +126,12 @@ public class LineStyleProviderForDart extends AbstractLineStyleProvider implemen
     {
       int offset = typedRegion.getOffset();
       int length = typedRegion.getLength();
-      EmbeddedDartReconcilerHook reconciler = DartReconcilerManager.getInstance().reconcilerFor(
-          document);
-      if (reconciler != null) {
-        CompilationUnit unit = reconciler.getParsedUnit(offset, length, document);
-        if (unit != null) {
-          SemanticHighlightingEngine engine = new SemanticHighlightingEngine(
-              semanticHighlightings,
-              highlightings);
-          engine.analyze(getDocument(), offset, unit, positions);
-        }
+      CompilationUnit unit = getParsedUnitTimeboxed(document, offset, length);
+      if (unit != null) {
+        SemanticHighlightingEngine engine = new SemanticHighlightingEngine(
+            semanticHighlightings,
+            highlightings);
+        engine.analyze(getDocument(), offset, unit, positions);
       }
     }
 
@@ -197,6 +196,21 @@ public class LineStyleProviderForDart extends AbstractLineStyleProvider implemen
     stores.add(EditorsUI.getPreferenceStore());
 
     return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
+  }
+
+  private CompilationUnit getParsedUnitTimeboxed(final IStructuredDocument document,
+      final int offset, final int length) {
+    DartReconcilerManager manager = DartReconcilerManager.getInstance();
+    final EmbeddedDartReconcilerHook reconciler = manager.reconcilerFor(document);
+    if (reconciler == null) {
+      return null;
+    }
+    return TimeboxUtils.runObject(new RunnableObject<CompilationUnit>() {
+      @Override
+      public CompilationUnit runObject() {
+        return reconciler.getParsedUnit(offset, length, document);
+      }
+    }, null, 200, TimeUnit.MILLISECONDS);
   }
 
   // Copied from SemanticHighlightingManager

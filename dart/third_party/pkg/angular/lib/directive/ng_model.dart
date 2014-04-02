@@ -10,60 +10,79 @@ part of angular.directive;
  * knows how to (in)validate the model and the form in which it is declared
  * (to be implemented)
  */
-@NgDirective(
-    selector: '[ng-model]')
-class NgModel extends NgControl {
+@NgDirective(selector: '[ng-model]')
+class NgModel extends NgControl implements NgAttachAware {
   final NgForm _form;
-  final dom.Element _element;
-  final Scope _scope;
+  final AstParser _parser;
 
-  Getter getter = ([_]) => null;
-  Setter setter = (_, [__]) => null;
+  BoundGetter getter = ([_]) => null;
+  BoundSetter setter = (_, [__]) => null;
 
+  var _lastValue;
   String _exp;
-  String _name;
+  final _validators = <NgValidatable>[];
 
-  final List<_NgModelValidator> _validators = new List<_NgModelValidator>();
-  final Map<String, bool> currentErrors = new Map<String, bool>();
-
-  Function _removeWatch = () => null;
+  Watch _removeWatch;
   bool _watchCollection;
-
   Function render = (value) => null;
 
-  NgModel(this._scope, NodeAttrs attrs, [dom.Element this._element, NgForm this._form]) {
-    _exp = 'ng-model=${attrs["ng-model"]}';
+  NgModel(Scope _scope, dom.Element _element, Injector injector,
+      NgForm this._form, this._parser, NodeAttrs attrs)
+      : super(_scope, _element, injector)
+  {
+    _exp = attrs["ng-model"];
     watchCollection = false;
-
-    _form.addControl(this);
-    pristine = true;
   }
 
-  get element => _element;
+  process(value, [_]) {
+    validate();
+    _scope.rootScope.domWrite(() => render(value));
+  }
+
+  attach() {
+    watchCollection = false;
+    _scope.on('resetNgModel').listen((e) => reset());
+  }
+
+  reset() {
+    untouched = true;
+    modelValue = _lastValue;
+  }
 
   @NgAttr('name')
   get name => _name;
   set name(value) {
     _name = value;
-    _form.addControl(this);
+    _parentControl.addControl(this);
   }
 
+  // TODO(misko): could we get rid of watch collection, and just always watch the collection?
   get watchCollection => _watchCollection;
   set watchCollection(value) {
     if (_watchCollection == value) return;
     _watchCollection = value;
-    _removeWatch();
+    if (_removeWatch!=null) _removeWatch.remove();
     if (_watchCollection) {
-      _removeWatch = _scope.$watchCollection((s) => getter(), (value) => render(value), _exp);
-    } else {
-      _removeWatch = _scope.$watch((s) => getter(), (value) => render(value), _exp);
+      _removeWatch = _scope.watch(
+          _parser(_exp, collection: true),
+          (changeRecord, _) {
+            var value = changeRecord is CollectionChangeRecord ? changeRecord.iterable: changeRecord;
+            process(value);
+          });
+    } else if (_exp != null) {
+      _removeWatch = _scope.watch(_exp, process);
     }
   }
 
+  // TODO(misko): getters/setters need to go. We need AST here.
   @NgCallback('ng-model')
   set model(BoundExpression boundExpression) {
     getter = boundExpression;
     setter = boundExpression.assign;
+
+    _scope.rootScope.runAsync(() {
+      _lastValue = modelValue;
+    });
   }
 
   // TODO(misko): right now viewValue and modelValue are the same,
@@ -80,46 +99,23 @@ class NgModel extends NgControl {
    * Executes a validation on the form against each of the validation present on the model.
    */
   validate() {
-    if(validators.length > 0) {
+    if (validators.isNotEmpty) {
       validators.forEach((validator) {
-        setValidity(validator.name, validator.isValid());
+        setValidity(validator.name, validator.isValid(viewValue));
       });
     } else {
       valid = true;
     }
   }
 
-  /**
-   * Sets the validity status of the given errorType on the model. Depending on if
-   * valid or invalid, the matching CSS classes will be added/removed on the input
-   * element associated with the model. If any errors exist on the model then invalid
-   * will be set to true otherwise valid will be set to true.
-   *
-   * * [errorType] - The name of the error (e.g. required, url, number, etc...).
-   * * [isValid] - Whether or not the given error is valid or not (false would mean the error is real).
-   */
-  setValidity(String errorType, bool isValid) {
-    if(isValid) {
-      if(currentErrors.containsKey(errorType)) {
-        currentErrors.remove(errorType);
-      }
-      if(valid != true && currentErrors.isEmpty) {
-        valid = true;
-      }
-    } else if(!currentErrors.containsKey(errorType)) {
-      currentErrors[errorType] = true;
-      invalid = true;
-    }
-
-    if(_form != null) {
-      _form.setValidity(this, errorType, isValid);
-    }
+  setValidity(String name, bool valid) {
+    this.updateControlValidity(this, name, valid);
   }
 
   /**
    * Registers a validator into the model to consider when running validate().
    */
-  addValidator(_NgModelValidator v) {
+  addValidator(NgValidatable v) {
     validators.add(v);
     validate();
   }
@@ -127,16 +123,9 @@ class NgModel extends NgControl {
   /**
    * De-registers a validator from the model.
    */
-  removeValidator(_NgModelValidator v) {
+  removeValidator(NgValidatable v) {
     validators.remove(v);
     validate();
-  }
-
-  /**
-   * Removes the model from the control/form.
-   */
-  destroy() {
-    _form.removeControl(this);
   }
 }
 
@@ -145,26 +134,30 @@ class NgModel extends NgControl {
  *
  *     <input type="checkbox" ng-model="flag">
  *
- * This creates a two way databinding between the boolean expression specified in
- * ng-model and the checkbox input element in the DOM.  If the ng-model value is
- * falsy (i.e. one of `false`, `null`, and `0`), then the checkbox is unchecked.
- * Otherwise, it is checked.  Likewise, when the checkbox is checked, the model
- * value is set to true.  When unchecked, it is set to false.
- *
- * The AngularJS style ng-true-value / ng-false-value is not supported.
+ * This creates a two way databinding between the boolean expression specified
+ * in ng-model and the checkbox input element in the DOM.  If the ng-model value
+ * is falsy (i.e. one of `false`, `null`, and `0`), then the checkbox is
+ * unchecked. Otherwise, it is checked.  Likewise, when the checkbox is checked,
+ * the model value is set to true.  When unchecked, it is set to false.
  */
 @NgDirective(selector: 'input[type=checkbox][ng-model]')
 class InputCheckboxDirective {
-  dom.InputElement inputElement;
-  NgModel ngModel;
-  Scope scope;
+  final dom.InputElement inputElement;
+  final NgModel ngModel;
+  final NgTrueValue ngTrueValue;
+  final NgFalseValue ngFalseValue;
+  final Scope scope;
 
-  InputCheckboxDirective(dom.Element this.inputElement, this.ngModel, this.scope) {
+  InputCheckboxDirective(dom.Element this.inputElement, this.ngModel,
+                         this.scope, this.ngTrueValue, this.ngFalseValue) {
     ngModel.render = (value) {
-      inputElement.checked = value == null ? false : toBool(value);
+      inputElement.checked = ngTrueValue.isValue(inputElement, value);
     };
     inputElement.onChange.listen((value) {
-      scope.$apply(() => ngModel.viewValue = inputElement.checked);
+      ngModel.dirty = true;
+      ngModel.viewValue = inputElement.checked
+        ? ngTrueValue.readValue(inputElement)
+        : ngFalseValue.readValue(inputElement);
     });
   }
 }
@@ -172,7 +165,7 @@ class InputCheckboxDirective {
 /**
  * Usage:
  *
- *     <input type="text|number|url|password|email" ng-model="myModel">
+ *     <input type="text|url|password|email" ng-model="myModel">
  *     <textarea ng-model="myModel"></textarea>
  *
  * This creates a two-way binding between any string-based input element
@@ -187,38 +180,105 @@ class InputCheckboxDirective {
 @NgDirective(selector: 'input[type=password][ng-model]')
 @NgDirective(selector: 'input[type=url][ng-model]')
 @NgDirective(selector: 'input[type=email][ng-model]')
-@NgDirective(selector: 'input[type=number][ng-model]')
+@NgDirective(selector: 'input[type=search][ng-model]')
 class InputTextLikeDirective {
-  dom.Element inputElement;
-  NgModel ngModel;
-  Scope scope;
+  final dom.Element inputElement;
+  final NgModel ngModel;
+  final Scope scope;
   String _inputType;
 
   get typedValue => (inputElement as dynamic).value;
-  set typedValue(value) => (inputElement as dynamic).value = (value == null) ? '' : value.toString();
+  set typedValue(value) => (inputElement as dynamic).value = (value == null) ?
+      '' :
+      value.toString();
 
-  InputTextLikeDirective(dom.Element this.inputElement, NgModel this.ngModel, Scope this.scope) {
+  InputTextLikeDirective(this.inputElement, this.ngModel, this.scope) {
     ngModel.render = (value) {
       if (value == null) value = '';
 
       var currentValue = typedValue;
-      if (value != currentValue && !(value is num && currentValue is num && value.isNaN && currentValue.isNaN)) {
+      if (value != currentValue && !(value is num && currentValue is num &&
+          value.isNaN && currentValue.isNaN)) {
         typedValue =  value;
       }
     };
-    inputElement.onChange.listen(relaxFnArgs(processValue));
-    inputElement.onKeyDown.listen((e) {
-      new async.Timer(Duration.ZERO, processValue);
-      scope.$skipAutoDigest();
-    });
+    inputElement
+        ..onChange.listen(processValue)
+        ..onInput.listen(processValue)
+        ..onBlur.listen((e) {
+          if (ngModel.touched == null || ngModel.touched == false) {
+            ngModel.touched = true;
+          }
+        });
+  }
+
+  processValue([_]) {
+    var value = typedValue;
+    if (value != ngModel.viewValue) {
+      ngModel.dirty = true;
+      ngModel.viewValue = value;
+    }
+    ngModel.validate();
+  }
+}
+
+/**
+ * Usage:
+ *
+ *     <input type="number|range" ng-model="myModel">
+ *
+ * Model:
+ *
+ *     num myModel;
+ *
+ * This creates a two-way binding between the input and the named model property
+ * (e.g., myModel in the example above). When processing the input, its value is
+ * read as a [num], via the [dom.InputElement.valueAsNumber] field. If the input
+ * text does not represent a number, then the model is appropriately set to
+ * [double.NAN]. Setting the model property to [null] will clear the input.
+ * Setting the model to [double.NAN] will have no effect (input will be left
+ * unchanged).
+ */
+@NgDirective(selector: 'input[type=number][ng-model]')
+@NgDirective(selector: 'input[type=range][ng-model]')
+class InputNumberLikeDirective {
+  final dom.InputElement inputElement;
+  final NgModel ngModel;
+  final Scope scope;
+
+  num get typedValue => inputElement.valueAsNumber;
+  void set typedValue(num value) {
+    // [chalin, 2014-02-16] This post
+    // http://lists.whatwg.org/pipermail/whatwg-whatwg.org/2010-January/024829.html
+    // suggests that setting `valueAsNumber` to null should clear the field, but
+    // it does not. [TODO: put BUG/ISSUE number here].  We implement a
+    // workaround by setting `value`. Clean-up once the bug is fixed.
+    if (value == null) {
+      inputElement.value = null;
+    } else {
+      inputElement.valueAsNumber = value;
+    }
+  }
+
+  InputNumberLikeDirective(dom.Element this.inputElement, this.ngModel, this.scope) {
+    ngModel.render = (value) {
+      if (value != typedValue
+          && (value == null || value is num && !value.isNaN)) {
+        typedValue = value;
+      }
+    };
+    inputElement
+        ..onChange.listen(relaxFnArgs(processValue))
+        ..onInput.listen(relaxFnArgs(processValue));
   }
 
   processValue() {
-    ngModel.validate();
-    var value = typedValue;
+    num value = typedValue;
     if (value != ngModel.viewValue) {
-      scope.$apply(() => ngModel.viewValue = value);
+      ngModel.dirty = true;
+      scope.eval(() => ngModel.viewValue = value);
     }
+    ngModel.validate();
   }
 }
 
@@ -230,7 +290,7 @@ class _UidCounter {
   List charCodes = [CHAR_0, CHAR_0, CHAR_0];
 
   String next() {
-    for (int i = charCodes.length-1; i >= 0; i--) {
+    for (int i = charCodes.length - 1; i >= 0; i--) {
       int code = charCodes[i];
       if (code == CHAR_9) {
         charCodes[i] = CHAR_A;
@@ -249,6 +309,66 @@ class _UidCounter {
 
 final _uidCounter = new _UidCounter();
 
+/**
+ * Use `ng-value` directive with `<input type="radio">` or `<option>` to
+ * allow binding to values other then strings. This is needed since the
+ * `value` attribute on DOM element `<input type="radio" value="foo">` can
+ * only be a string. With `ng-value` one can bind to any object.
+ */
+@NgDirective(selector: '[ng-value]')
+class NgValue {
+  final dom.Element element;
+  @NgOneWay('ng-value')
+  var value;
+
+  NgValue(this.element);
+
+  readValue(dom.Element element) {
+    assert(this.element == null || element == this.element);
+    return this.element == null ? (element as dynamic).value : value;
+  }
+}
+
+/**
+ * `ng-true-value` allows you to select any expression to be set to
+ * `ng-model` when checkbox is selected on `<input type="checkbox">`.
+ */
+@NgDirective(selector: '[ng-true-value]')
+class NgTrueValue {
+  final dom.Element element;
+  @NgOneWay('ng-true-value')
+  var value;
+
+  NgTrueValue(this.element);
+
+  readValue(dom.Element element) {
+    assert(this.element == null || element == this.element);
+    return this.element == null ? true : value;
+  }
+
+  isValue(dom.Element element, value) {
+    assert(this.element == null || element == this.element);
+    return this.element == null ? toBool(value) : value == this.value;
+  }
+}
+
+/**
+ * `ng-false-value` allows you to select any expression to be set to
+ * `ng-model` when checkbox is deselected<input type="checkbox">`.
+ */
+@NgDirective(selector: '[ng-false-value]')
+class NgFalseValue {
+  final dom.Element element;
+  @NgOneWay('ng-false-value')
+  var value;
+
+  NgFalseValue(this.element);
+
+  readValue(dom.Element element) {
+    assert(this.element == null || element == this.element);
+    return this.element == null ? false : value;
+  }
+}
 
 /**
  * Usage:
@@ -268,23 +388,25 @@ final _uidCounter = new _UidCounter();
  */
 @NgDirective(selector: 'input[type=radio][ng-model]')
 class InputRadioDirective {
-  dom.RadioButtonInputElement radioButtonElement;
-  NgModel ngModel;
-  Scope scope;
+  final dom.RadioButtonInputElement radioButtonElement;
+  final NgModel ngModel;
+  final NgValue ngValue;
+  final Scope scope;
 
   InputRadioDirective(dom.Element this.radioButtonElement, this.ngModel,
-                      this.scope, NodeAttrs attrs) {
+                      this.scope, this.ngValue, NodeAttrs attrs) {
     // If there's no "name" set, we'll set a unique name.  This ensures
     // less surprising behavior about which radio buttons are grouped together.
     if (attrs['name'] == '' || attrs['name'] == null) {
       attrs["name"] = _uidCounter.next();
     }
-    ngModel.render = (String value) {
-      radioButtonElement.checked = (value == radioButtonElement.value);
+    ngModel.render = (value) {
+      radioButtonElement.checked = (value == ngValue.readValue(radioButtonElement));
     };
     radioButtonElement.onClick.listen((_) {
       if (radioButtonElement.checked) {
-        scope.$apply(() => ngModel.viewValue = radioButtonElement.value);
+        ngModel.dirty = true;
+        ngModel.viewValue = ngValue.readValue(radioButtonElement);
       }
     });
   }
@@ -302,10 +424,12 @@ class InputRadioDirective {
  */
 @NgDirective(selector: '[contenteditable][ng-model]')
 class ContentEditableDirective extends InputTextLikeDirective {
-  ContentEditableDirective(dom.Element inputElement, NgModel ngModel, Scope scope):
-      super(inputElement, ngModel, scope);
+  ContentEditableDirective(dom.Element inputElement, NgModel ngModel,
+                           Scope scope)
+      : super(inputElement, ngModel, scope);
 
   // The implementation is identical to InputTextLikeDirective but use innerHtml instead of value
   get typedValue => (inputElement as dynamic).innerHtml;
-  set typedValue(String value) => (inputElement as dynamic).innerHtml = (value == null) ? '' : value;
+  set typedValue(String value) =>
+      (inputElement as dynamic).innerHtml = (value == null) ? '' : value;
 }

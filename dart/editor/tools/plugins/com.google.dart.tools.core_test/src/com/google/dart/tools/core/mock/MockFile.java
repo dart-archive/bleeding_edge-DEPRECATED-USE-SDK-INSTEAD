@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.core.mock;
 
+import com.google.dart.engine.internal.context.TimestampedData;
+import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.CallList.Call;
 import com.google.dart.tools.core.DartCore;
 
@@ -90,6 +93,32 @@ public class MockFile extends MockResource implements IFile {
    */
   public void assertMarkersNotDeleted() {
     getMarkerCallList().assertNoCall(newDeleteMarkerCall());
+  }
+
+  /**
+   * Answer a source representing this file
+   * 
+   * @return a source, not {@code null}
+   */
+  public Source asSource() {
+    return new FileBasedSource(toFile()) {
+      @Override
+      public boolean equals(Object object) {
+        return object instanceof Source && getFullName().equals(((Source) object).getFullName());
+      }
+
+      @Override
+      public boolean exists() {
+        return MockFile.this.exists();
+      }
+
+      @Override
+      public TimestampedData<CharSequence> getContents() throws Exception {
+        return new TimestampedData<CharSequence>(
+            getModificationStamp(),
+            MockFile.this.getContentsAsString());
+      }
+    };
   }
 
   @Override

@@ -13,6 +13,12 @@
  */
 package com.google.dart.tools.core.mock;
 
+import com.google.dart.engine.source.DirectoryBasedSourceContainer;
+import com.google.dart.engine.source.SourceContainer;
+
+import static com.google.dart.tools.core.DartCore.isDartLikeFileName;
+import static com.google.dart.tools.core.DartCore.isHtmlLikeFileName;
+
 import org.eclipse.core.resources.FileInfoMatcherDescription;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -106,6 +112,15 @@ public abstract class MockContainer extends MockResource implements IContainer {
     return folder;
   }
 
+  /**
+   * Answer a source container representing this container
+   * 
+   * @return a container, not {@code null}
+   */
+  public SourceContainer asSourceContainer() {
+    return new DirectoryBasedSourceContainer(toFile());
+  }
+
   @Override
   public IResourceFilterDescription createFilter(int type,
       FileInfoMatcherDescription matcherDescription, int updateFlags, IProgressMonitor monitor)
@@ -147,6 +162,47 @@ public abstract class MockContainer extends MockResource implements IContainer {
   @Override
   public IResource findMember(String name, boolean includePhantoms) {
     return null;
+  }
+
+  /**
+   * Return an array of all *.dart and *.html files contained directly or indirectly by the receiver
+   * excluding hidden files and files in hidden folders.
+   */
+  public IResource[] getAllDartAndHtmlFiles() {
+    ArrayList<IResource> result = new ArrayList<IResource>();
+    for (IResource res : getAllFiles()) {
+      String name = res.getName();
+      if (isDartLikeFileName(name) || isHtmlLikeFileName(name)) {
+        result.add(res);
+      }
+    }
+    return result.toArray(new IResource[result.size()]);
+  }
+
+  /**
+   * Return an array of all files contained directly or indirectly by the receiver excluding hidden
+   * files and files in hidden folders.
+   */
+  public IResource[] getAllFiles() {
+    ArrayList<IResource> result = new ArrayList<IResource>();
+    ArrayList<MockContainer> todo = new ArrayList<MockContainer>();
+    todo.add(this);
+    while (!todo.isEmpty()) {
+      ArrayList<MockResource> resources = todo.remove(0).children;
+      if (resources != null) {
+        for (MockResource res : resources) {
+          if (res.getName().startsWith(".")) {
+            continue;
+          }
+          if (res instanceof MockContainer) {
+            todo.add((MockContainer) res);
+          } else {
+            result.add(res);
+          }
+        }
+      }
+    }
+    return result.toArray(new IResource[result.size()]);
   }
 
   @Override

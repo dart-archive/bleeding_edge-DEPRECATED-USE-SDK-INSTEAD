@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library single_library_test;
 
 import 'dart:io';
@@ -48,8 +52,9 @@ main() {
       var fileName = path.join(temporaryDir.path, 'temp.dart');
       var file = new File(fileName);
       file.writeAsStringSync(DART_LIBRARY);
-      getMirrorSystem([new Uri.file(fileName)])
-        .then(expectAsync1((mirrorSystem) {
+
+      return getMirrorSystem([new Uri.file(fileName)], false)
+        .then((mirrorSystem) {
           var testLibraryUri = new Uri.file(path.absolute(fileName),
                                             windows: Platform.isWindows);
           var library = new Library(mirrorSystem.libraries[testLibraryUri]);
@@ -107,7 +112,7 @@ main() {
           expect(classDocComment, 'test.A');
 
           // Test for linking to parameter [A]
-          var method = Indexable.getDocgenObject(
+          var method = getDocgenObject(
               classMirror.declarations[dart2js_util.symbolOf('doThis')]);
           var methodParameterDocComment = method.fixReference(
               'A').children.first.text;
@@ -121,7 +126,7 @@ main() {
           // Testing something with no reference
           var libraryDocComment = method.fixReference('foobar').text;
           expect(libraryDocComment, 'foobar');
-        })).whenComplete(() => temporaryDir.deleteSync(recursive: true));
+        }).whenComplete(() => temporaryDir.deleteSync(recursive: true));
     });
   });
 }

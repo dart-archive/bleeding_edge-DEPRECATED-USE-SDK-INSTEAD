@@ -25,7 +25,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * @coverage dart.engine.ast
  */
-public class Label extends ASTNode {
+public class Label extends AstNode {
   /**
    * The label being associated with the statement.
    */
@@ -48,7 +48,7 @@ public class Label extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitLabel(this);
   }
 
@@ -99,7 +99,7 @@ public class Label extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(label, visitor);
   }
 }

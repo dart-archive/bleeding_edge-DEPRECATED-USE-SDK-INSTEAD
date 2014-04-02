@@ -13,9 +13,9 @@
  */
 package com.google.dart.engine.services.util;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -27,11 +27,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class NameOccurrencesFinder extends RecursiveASTVisitor<Void> {
+public class NameOccurrencesFinder extends RecursiveAstVisitor<Void> {
 
-  public static Collection<ASTNode> findIn(SimpleIdentifier ident, ASTNode root) {
+  public static Collection<AstNode> findIn(SimpleIdentifier ident, AstNode root) {
     if (ident == null || ident.getBestElement() == null) {
-      return new HashSet<ASTNode>(0);
+      return new HashSet<AstNode>(0);
     }
     NameOccurrencesFinder finder = new NameOccurrencesFinder(ident.getBestElement());
     root.accept(finder);
@@ -43,7 +43,7 @@ public class NameOccurrencesFinder extends RecursiveASTVisitor<Void> {
   private Element target3;
   private Element target4;
 
-  private Set<ASTNode> matches;
+  private Set<AstNode> matches;
 
   private NameOccurrencesFinder(Element source) {
     this.target = source;
@@ -79,6 +79,8 @@ public class NameOccurrencesFinder extends RecursiveASTVisitor<Void> {
           FieldFormalParameterElement fieldInit = (FieldFormalParameterElement) param;
           this.target2 = fieldInit.getField();
         }
+      default:
+        break;
     }
     if (target2 == null) {
       target2 = target;
@@ -89,10 +91,10 @@ public class NameOccurrencesFinder extends RecursiveASTVisitor<Void> {
     if (target4 == null) {
       target4 = target;
     }
-    this.matches = new HashSet<ASTNode>();
+    this.matches = new HashSet<AstNode>();
   }
 
-  public Collection<ASTNode> getMatches() {
+  public Collection<AstNode> getMatches() {
     return matches;
   }
 
@@ -126,11 +128,13 @@ public class NameOccurrencesFinder extends RecursiveASTVisitor<Void> {
           match(fieldInit.getField(), node);
         }
         break;
+      default:
+        break;
     }
     return null;
   }
 
-  private void match(Element element, ASTNode node) {
+  private void match(Element element, AstNode node) {
     if (target == element || target2 == element || target3 == element || target4 == element) {
       matches.add(node);
     }

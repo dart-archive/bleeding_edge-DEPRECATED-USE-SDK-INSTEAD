@@ -4,25 +4,25 @@
 
 library dart2js.ir_builder;
 
-import 'ir_nodes.dart';
+import 'ir_nodes.dart' as ir;
 import '../elements/elements.dart';
-import '../elements/modelx.dart' show FunctionElementX;
 import '../dart2jslib.dart';
+import '../dart_types.dart';
 import '../source_file.dart';
-import '../tree/tree.dart';
+import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token;
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../dart_backend/dart_backend.dart' show DartBackend;
 import 'ir_pickler.dart' show Unpickler, IrConstantPool;
 
 /**
- * This task iterates through all resolved elements and builds [IrNode]s. The
+ * This task iterates through all resolved elements and builds [ir.Node]s. The
  * nodes are stored in the [nodes] map and accessible through [hasIr] and
  * [getIr].
  *
  * The functionality of the IrNodes is added gradually, therefore elements might
  * have an IR or not, depending on the language features that are used. For
- * elements that do have an IR, the tree [Node]s and the [Token]s are not used
- * in the rest of the compilation. This is ensured by setting the element's
+ * elements that do have an IR, the tree [ast.Node]s and the [Token]s are not
+ * used in the rest of the compilation. This is ensured by setting the element's
  * cached tree to [:null:] and also breaking the token stream to crash future
  * attempts to parse.
  *
@@ -32,7 +32,7 @@ import 'ir_pickler.dart' show Unpickler, IrConstantPool;
  * re-implemented to work directly on the IR.
  */
 class IrBuilderTask extends CompilerTask {
-  final Map<Element, IrNode> nodes = new Map<Element, IrNode>();
+  final Map<Element, ir.Function> nodes = <Element, ir.Function>{};
 
   IrBuilderTask(Compiler compiler) : super(compiler);
 
@@ -40,7 +40,7 @@ class IrBuilderTask extends CompilerTask {
 
   bool hasIr(Element element) => nodes.containsKey(element.implementation);
 
-  IrNode getIr(Element element) => nodes[element.implementation];
+  ir.Function getIr(Element element) => nodes[element.implementation];
 
   void buildNodes() {
     if (!irEnabled()) return;
@@ -52,38 +52,37 @@ class IrBuilderTask extends CompilerTask {
           element = element.implementation;
 
           SourceFile sourceFile = elementSourceFile(element);
-          IrNodeBuilderVisitor visitor =
-              new IrNodeBuilderVisitor(elementsMapping, compiler, sourceFile);
-          IrNode irNode;
+          IrBuilder builder =
+              new IrBuilder(elementsMapping, compiler, sourceFile);
+          ir.Function function;
           ElementKind kind = element.kind;
           if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
             // TODO(lry): build ir for constructors.
+          } else if (element.isDeferredLoaderGetter()) {
+            // TODO(sigurdm): Build ir for deferred loader functions.
           } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
               kind == ElementKind.FUNCTION ||
               kind == ElementKind.GETTER ||
               kind == ElementKind.SETTER) {
-            irNode = visitor.buildMethod(element);
+            function = builder.buildFunction(element);
           } else if (kind == ElementKind.FIELD) {
             // TODO(lry): build ir for lazy initializers of static fields.
           } else {
-            compiler.internalErrorOnElement(element,
-                'unexpected element kind $kind');
+            compiler.internalError(element, 'Unexpected element kind $kind.');
           }
 
-          if (irNode != null) {
+          if (function != null) {
             assert(() {
               // In host-checked mode, serialize and de-serialize the IrNode.
               LibraryElement library = element.declaration.getLibrary();
               IrConstantPool constantPool = IrConstantPool.forLibrary(library);
-              List<int> data = irNode.pickle(constantPool);
-              irNode = new Unpickler(compiler, constantPool).unpickle(data);
+              List<int> data = function.pickle(constantPool);
+              function = new Unpickler(compiler, constantPool).unpickle(data);
               return true;
             });
-            nodes[element] = irNode;
-            unlinkTreeAndToken(element);
+            nodes[element] = function;
           }
         }
-        ensureIr(element);
       });
     });
   }
@@ -91,7 +90,7 @@ class IrBuilderTask extends CompilerTask {
   bool irEnabled() {
     // TODO(lry): support checked-mode checks.
     if (compiler.enableTypeAssertions ||
-        compiler.backend is !JavaScriptBackend ||
+        compiler.backend is !DartBackend ||
         compiler.enableConcreteTypeInference) {
       return false;
     }
@@ -104,19 +103,20 @@ class IrBuilderTask extends CompilerTask {
     if (function == null) return false;
 
     // TODO(lry): support functions with parameters.
-    FunctionSignature signature = function.computeSignature(compiler);
+    FunctionSignature signature = function.functionSignature;
     if (signature.parameterCount > 0) return false;
 
-    // TODO(lry): support intercepted methods. Then the dependency on
-    // JavaScriptBackend will go away.
-    JavaScriptBackend backend = compiler.backend;
-    if (backend.isInterceptedMethod(element)) return false;
+    SupportedTypeVerifier typeVerifier = new SupportedTypeVerifier();
+    if (!signature.type.returnType.accept(typeVerifier, null)) return false;
+
+    // TODO(kmillikin): support getters and setters and static class members.
+    // With the current Dart Tree emitter they just require recognizing them
+    // and generating the correct syntax.
+    if (element.isGetter() || element.isSetter()) return false;
+    if (element.enclosingElement.isClass()) return false;
 
     // TODO(lry): support native functions (also in [visitReturn]).
     if (function.isNative()) return false;
-
-    // Methods annotated @IrRepresentation(false).
-    if (enforceAstRepresentation(function)) return false;
 
     return true;
   }
@@ -125,59 +125,6 @@ class IrBuilderTask extends CompilerTask {
     bool result = false;
     assert((result = true));
     return result;
-  }
-
-  bool enforceAstRepresentation(Element element) {
-    return irRepresentationValue(element, false);
-  }
-
-  bool enforceIrRepresentation(Element element) {
-    return irRepresentationValue(element, true);
-  }
-
-  /**
-   * In host-checked mode, the @IrRepresentation annotation can be used to
-   * enforce the internal representation of a function.
-   */
-  bool irRepresentationValue(Element element, bool expected) {
-    if (!inCheckedMode || compiler.backend is !JavaScriptBackend) return false;
-    JavaScriptBackend backend = compiler.backend;
-    for (MetadataAnnotation metadata in element.metadata) {
-      if (metadata.value == null ||
-          !metadata.value.isConstructedObject()) {
-        continue;
-      }
-      ObjectConstant value = metadata.value;
-      ClassElement cls = value.type.element;
-      if (cls == backend.irRepresentationClass) {
-        ConstructedConstant classConstant = value;
-        BoolConstant constant = classConstant.fields[0];
-        return constant.value == expected;
-      }
-    }
-    return false;
-  }
-
-  void ensureIr(Element element) {
-    // If no IR was built for [element], ensure it is not annotated
-    // @IrRepresentation(true).
-    if (inCheckedMode &&
-        !compiler.irBuilder.hasIr(element) &&
-        enforceIrRepresentation(element)) {
-      compiler.reportFatalError(
-          element,
-          MessageKind.GENERIC,
-          {'text': "Error: cannot build IR for $element."});
-    }
-  }
-
-  void unlinkTreeAndToken(element) {
-    // Ensure the function signature has been computed (requires the AST).
-    assert(element is !FunctionElementX || element.functionSignature != null);
-    if (inCheckedMode) {
-      element.beginToken.next = null;
-      element.cachedNode = null;
-    }
   }
 
   SourceFile elementSourceFile(Element element) {
@@ -194,188 +141,249 @@ class IrBuilderTask extends CompilerTask {
  * to the [builder] and return the last added statement for trees that represent
  * an expression.
  */
-class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
+class IrBuilder extends ResolvedVisitor<ir.Definition> {
   final SourceFile sourceFile;
+  ir.Continuation returnContinuation = null;
 
-  IrNodeBuilderVisitor(
-      TreeElements elements,
-      Compiler compiler,
-      this.sourceFile)
-    : super(elements, compiler);
+  // The IR builder maintains a context, which is an expression with a hole in
+  // it.  The hole represents the focus where new expressions can be added.
+  // The context is implemented by 'root' which is the root of the expression
+  // and 'current' which is the expression that immediately contains the hole.
+  // Not all expressions have a hole (e.g., invocations, which always occur in
+  // tail position, do not have a hole).  Expressions with a hole have a plug
+  // method.
+  //
+  // Conceptually, visiting a statement takes a context as input and returns
+  // either a new context or else an expression without a hole if all
+  // control-flow paths through the statement have exited.  An expression
+  // without a hole is represented by a (root, current) pair where root is the
+  // expression and current is null.
+  //
+  // Conceptually again, visiting an expression takes a context as input and
+  // returns either a pair of a new context and a definition denoting
+  // the expression's value, or else an expression without a hole if all
+  // control-flow paths through the expression have exited.
+  //
+  // We do not pass and return contexts, rather we use the current context
+  // (root, current) as the visitor state and mutate current.  Visiting a
+  // statement returns null; visiting an expression optionally returns the
+  // definition denoting its value.
+  ir.Expression root = null;
+  ir.Expression current = null;
 
-  IrBuilder builder;
+  IrBuilder(TreeElements elements, Compiler compiler, this.sourceFile)
+      : super(elements, compiler);
 
   /**
-   * Builds the [IrFunction] for a function element. In case the function
+   * Builds the [ir.Function] for a function element. In case the function
    * uses features that cannot be expressed in the IR, this function returns
    * [:null:].
    */
-  IrFunction buildMethod(FunctionElement functionElement) {
-    return nullIfGiveup(() => buildMethodInternal(functionElement));
+  ir.Function buildFunction(FunctionElement functionElement) {
+    return nullIfGiveup(() => buildFunctionInternal(functionElement));
   }
 
-  IrFunction buildMethodInternal(FunctionElement functionElement) {
+  ir.Function buildFunctionInternal(FunctionElement functionElement) {
     assert(invariant(functionElement, functionElement.isImplementation));
-    FunctionExpression function = functionElement.parseNode(compiler);
+    ast.FunctionExpression function = functionElement.parseNode(compiler);
     assert(function != null);
     assert(!function.modifiers.isExternal());
     assert(elements[function] != null);
 
+    returnContinuation = new ir.Continuation.retrn();
+    root = current = null;
+    function.body.accept(this);
+    ensureReturn(function);
     int endPosition = function.getEndToken().charOffset;
     int namePosition = elements[function].position().charOffset;
-    IrFunction result = new IrFunction(
-        nodePosition(function), endPosition, namePosition, <IrNode>[]);
-    builder = new IrBuilder(this);
-    builder.enterBlock();
-    if (function.hasBody()) {
-      function.body.accept(this);
-      ensureReturn(function);
-      result.statements
-        ..addAll(builder.constants.values)
-        ..addAll(builder.block.statements);
-    }
-    builder.exitBlock();
-    return result;
+    return
+        new ir.Function(endPosition, namePosition, returnContinuation, root);
   }
 
   ConstantSystem get constantSystem => compiler.backend.constantSystem;
 
-  /* int | PositionWithIdentifierName */ nodePosition(Node node) {
-    Token token = node.getBeginToken();
-    if (token.isIdentifier()) {
-      return new PositionWithIdentifierName(token.charOffset, token.value);
-    } else {
-      return token.charOffset;
+  bool get isOpen => root == null || current != null;
+
+  // Plug an expression into the 'hole' in the context being accumulated.  The
+  // empty context (just a hole) is represented by root (and current) being
+  // null.  Since the hole in the current context is filled by this function,
+  // the new hole must be in the newly added expression---which becomes the
+  // new value of current.
+  void add(ir.Expression expr) {
+    if (root == null) {
+      root = current = expr;
+    } else if (current != null) {
+      current = current.plug(expr);
     }
   }
-
-  bool get blockReturns => builder.block.hasReturn;
 
   /**
    * Add an explicit [:return null:] for functions that don't have a return
    * statement on each branch. This includes functions with an empty body,
    * such as [:foo(){ }:].
    */
-  void ensureReturn(FunctionExpression node) {
-    if (blockReturns) return;
-    IrConstant nullValue =
-        builder.addConstant(constantSystem.createNull(), node);
-    builder.addStatement(new IrReturn(nodePosition(node), nullValue));
+  void ensureReturn(ast.FunctionExpression node) {
+    if (!isOpen) return;
+    ir.Constant constant = new ir.Constant(constantSystem.createNull());
+    add(new ir.LetPrim(constant));
+    add(new ir.InvokeContinuation(returnContinuation, constant));
+    current = null;
   }
 
-  IrNode visitBlock(Block node) {
-    for (Node n in node.statements.nodes) {
+  ir.Definition visitEmptyStatement(ast.EmptyStatement node) {
+    assert(isOpen);
+    return null;
+  }
+
+  ir.Definition visitBlock(ast.Block node) {
+    assert(isOpen);
+    for (var n in node.statements.nodes) {
       n.accept(this);
-      if (blockReturns) return null;
+      if (!isOpen) return null;
     }
+    return null;
   }
 
-  IrNode visitReturn(Return node) {
-    assert(!blockReturns);
-    IrExpression value;
+  // Build(Return)    = let val x = null in InvokeContinuation(return, x)
+  // Build(Return(e)) = C[InvokeContinuation(return, x)]
+  //   where (C, x) = Build(e)
+  ir.Definition visitReturn(ast.Return node) {
+    assert(isOpen);
     // TODO(lry): support native returns.
-    if (node.beginToken.value == 'native') giveup();
+    if (node.beginToken.value == 'native') return giveup();
+    ir.Definition value;
     if (node.expression == null) {
-      value = builder.addConstant(constantSystem.createNull(), node);
+      value = new ir.Constant(constantSystem.createNull());
+      add(new ir.LetPrim(value));
     } else {
       value = node.expression.accept(this);
+      if (!isOpen) return null;
     }
-    builder.addStatement(new IrReturn(nodePosition(node), value));
-    builder.block.hasReturn = true;
+    add(new ir.InvokeContinuation(returnContinuation, value));
+    current = null;
+    return null;
   }
 
-  IrConstant visitLiteralBool(LiteralBool node) {
-    return builder.addConstant(constantSystem.createBool(node.value), node);
+  // For all simple literals:
+  // Build(Literal(c)) = (let val x = Constant(c) in [], x)
+  ir.Definition visitLiteralBool(ast.LiteralBool node) {
+    assert(isOpen);
+    ir.Constant constant =
+        new ir.Constant(constantSystem.createBool(node.value));
+    add(new ir.LetPrim(constant));
+    return constant;
   }
 
-  IrConstant visitLiteralDouble(LiteralDouble node) {
-    return builder.addConstant(constantSystem.createDouble(node.value), node);
+  ir.Definition visitLiteralDouble(ast.LiteralDouble node) {
+    assert(isOpen);
+    ir.Constant constant =
+        new ir.Constant(constantSystem.createDouble(node.value));
+    add(new ir.LetPrim(constant));
+    return constant;
   }
 
-  IrConstant visitLiteralInt(LiteralInt node) {
-    return builder.addConstant(constantSystem.createInt(node.value), node);
+  ir.Definition visitLiteralInt(ast.LiteralInt node) {
+    assert(isOpen);
+    ir.Constant constant =
+        new ir.Constant(constantSystem.createInt(node.value));
+    add(new ir.LetPrim(constant));
+    return constant;
   }
 
-  IrConstant visitLiteralString(LiteralString node) {
-    Constant value = constantSystem.createString(node.dartString);
-    return builder.addConstant(value, node);
+
+  ir.Definition visitLiteralNull(ast.LiteralNull node) {
+    assert(isOpen);
+    ir.Constant constant = new ir.Constant(constantSystem.createNull());
+    add(new ir.LetPrim(constant));
+    return constant;
   }
 
-  IrConstant visitLiteralNull(LiteralNull node) {
-    return builder.addConstant(constantSystem.createNull(), node);
+  // TODO(kmillikin): other literals.  Strings require quoting and escaping
+  // in the Dart backend.
+  //   LiteralString
+  //   LiteralList
+  //   LiteralMap
+  //   LiteralMapEntry
+  //   LiteralSymbol
+
+  ir.Definition visitAssert(ast.Send node) {
+    return giveup();
   }
 
-//  TODO(lry): other literals.
-//  IrNode visitLiteralList(LiteralList node) => visitExpression(node);
-//  IrNode visitLiteralMap(LiteralMap node) => visitExpression(node);
-//  IrNode visitLiteralMapEntry(LiteralMapEntry node) => visitNode(node);
-//  IrNode visitLiteralSymbol(LiteralSymbol node) => visitExpression(node);
-
-  IrNode visitAssert(Send node) {
-    giveup();
+  ir.Definition visitClosureSend(ast.Send node) {
+    return giveup();
   }
 
-  IrNode visitClosureSend(Send node) {
-    giveup();
+  ir.Definition visitDynamicSend(ast.Send node) {
+    return giveup();
   }
 
-  IrNode visitDynamicSend(Send node) {
-    giveup();
+  ir.Definition visitGetterSend(ast.Send node) {
+    return giveup();
   }
 
-  IrNode visitGetterSend(Send node) {
-    giveup();
+  ir.Definition visitOperatorSend(ast.Send node) {
+    return giveup();
   }
 
-  IrNode visitOperatorSend(Send node) {
-    giveup();
-  }
-
-  IrNode visitStaticSend(Send node) {
-    Selector selector = elements.getSelector(node);
+  // Build(StaticSend(f, a...)) = C[InvokeStatic(f, x...)]
+  //   where (C, x...) = BuildList(a...)
+  ir.Definition visitStaticSend(ast.Send node) {
+    assert(isOpen);
     Element element = elements[node];
-
     // TODO(lry): support static fields. (separate IR instruction?)
-    if (element.isField() || element.isGetter()) giveup();
+    if (element.isField() || element.isGetter()) return giveup();
     // TODO(lry): support constructors / factory calls.
-    if (element.isConstructor()) giveup();
+    if (element.isConstructor()) return giveup();
     // TODO(lry): support foreign functions.
-    if (element.isForeign(compiler)) giveup();
+    if (element.isForeign(compiler)) return giveup();
     // TODO(lry): for elements that could not be resolved emit code to throw a
     // [NoSuchMethodError].
-    if (element.isErroneous()) giveup();
-    // TODO(lry): support named arguments
-    if (selector.namedArgumentCount != 0) giveup();
+    if (element.isErroneous()) return giveup();
+    // TODO(lry): generate IR for object identicality.
+    if (element == compiler.identicalFunction) giveup();
 
-    List<IrExpression> arguments = <IrExpression>[];
+    Selector selector = elements.getSelector(node);
+    // TODO(lry): support named arguments
+    if (selector.namedArgumentCount != 0) return giveup();
+
+    // TODO(kmillikin): support a receiver: A.m().
+    if (node.receiver != null) return giveup();
+
+    List arguments = [];
     // TODO(lry): support default arguments, need support for locals.
     bool succeeded = selector.addArgumentsToList(
         node.arguments, arguments, element.implementation,
-        (node) => node.accept(this), (node) => giveup(), compiler);
+        // Guard against visiting arguments after an argument expression throws.
+        (node) => isOpen ? node.accept(this) : null,
+        (node) => giveup(),
+        compiler);
     if (!succeeded) {
       // TODO(lry): generate code to throw a [WrongArgumentCountError].
-      giveup();
+      return giveup();
     }
-    // TODO(lry): generate IR for object identicality.
-    if (element == compiler.identicalFunction) giveup();
-    IrInvokeStatic result = builder.addStatement(
-        new IrInvokeStatic(nodePosition(node), element, selector, arguments));
-    return result;
+    if (!isOpen) return null;
+    ir.Parameter v = new ir.Parameter();
+    ir.Continuation k = new ir.Continuation(v);
+    ir.Expression invoke =
+        new ir.InvokeStatic(element, selector, k, arguments);
+    add(new ir.LetCont(k, invoke));
+    return v;
   }
 
-  IrNode visitSuperSend(Send node) {
-    giveup();
+  ir.Definition visitSuperSend(ast.Send node) {
+    return giveup();
   }
 
-  IrNode visitTypeReferenceSend(Send node) {
-    giveup();
+  ir.Definition visitTypeReferenceSend(ast.Send node) {
+    return giveup();
   }
 
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
 
-  IrNode giveup() => throw ABORT_IRNODE_BUILDER;
+  ir.Definition giveup() => throw ABORT_IRNODE_BUILDER;
 
-  IrNode nullIfGiveup(IrNode action()) {
+  ir.Function nullIfGiveup(ir.Function action()) {
     try {
       return action();
     } catch(e) {
@@ -384,41 +392,22 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
     }
   }
 
-  void internalError(String reason, {Node node}) {
+  void internalError(String reason, {ast.Node node}) {
     giveup();
   }
 }
 
-class IrBuilder {
-  final IrNodeBuilderVisitor visitor;
-  IrBuilder(this.visitor);
+// Verify that types are ones that can be reconstructed by the type emitter.
+class SupportedTypeVerifier extends DartTypeVisitor<bool, Null> {
+  bool visitType(DartType type, Null _) => false;
 
-  List<BlockBuilder> blockBuilders = <BlockBuilder>[];
+  bool visitVoidType(VoidType type, Null _) => true;
 
-  BlockBuilder get block => blockBuilders.last;
+  // Currently, InterfaceType and TypedefType are supported so long as they
+  // do not have type parameters.  They are subclasses of GenericType.
+  bool visitGenericType(GenericType type, Null _) => !type.isGeneric;
 
-  Map<Constant, IrConstant> constants = <Constant, IrConstant>{};
-
-  IrConstant addConstant(Constant value, Node node) {
-    return constants.putIfAbsent(
-      value, () => new IrConstant(visitor.nodePosition(node), value));
-  }
-
-  IrNode addStatement(IrNode statement) {
-    block.statements.add(statement);
-    return statement;
-  }
-
-  void enterBlock() {
-    blockBuilders.add(new BlockBuilder());
-  }
-
-  void exitBlock() {
-    blockBuilders.removeLast();
-  }
-}
-
-class BlockBuilder {
-  List<IrNode> statements = <IrNode>[];
-  bool hasReturn = false;
+  // DynamicType is a subclass of InterfaceType, but it is not currently
+  // supported.
+  bool visitDynamicType(DynamicType type, Null _) => false;
 }

@@ -49,7 +49,9 @@ class FlatTypeMask implements TypeMask {
   bool get isUnion => false;
   bool get isContainer => false;
   bool get isMap => false;
+  bool get isDictionary => false;
   bool get isForwarding => false;
+  bool get isValue => false;
 
   // TODO(kasperl): Get rid of these. They should not be a visible
   // part of the implementation because they make it hard to add
@@ -64,8 +66,6 @@ class FlatTypeMask implements TypeMask {
   TypeMask nonNullable() {
     return isNullable ? new FlatTypeMask.internal(base, flags & ~1) : this;
   }
-
-  TypeMask simplify(Compiler compiler) => this;
 
   bool contains(ClassElement type, Compiler compiler) {
     assert(type.isDeclaration);
@@ -606,10 +606,7 @@ class FlatTypeMask implements TypeMask {
     Set<ClassElement> subtypes = compiler.world.subtypesOf(y);
     if (subtypes != null && subtypes.contains(x)) return true;
     if (y != compiler.functionClass) return false;
-    // TODO(johnniwinther): Clean this up (function inheritance).
-    Member member =
-        x.lookupInterfaceMember(const PublicName(Compiler.CALL_OPERATOR_NAME));
-    return member != null && member.isMethod;
+    return x.callType != null;
   }
 
   static Set<ClassElement> commonContainedClasses(FlatTypeMask x,

@@ -24,18 +24,20 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
+import com.google.dart.engine.source.SourceFactory;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
 
 public class LibraryScopeTest extends ResolverTestCase {
   public void test_creation_empty() {
-    LibraryElement definingLibrary = createTestLibrary();
+    LibraryElement definingLibrary = createDefaultTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
     new LibraryScope(definingLibrary, errorListener);
   }
 
   public void test_creation_nonEmpty() {
     AnalysisContext context = new AnalysisContextImpl();
+    context.setSourceFactory(new SourceFactory());
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl(identifier(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
@@ -50,7 +52,7 @@ public class LibraryScopeTest extends ResolverTestCase {
   }
 
   public void test_getErrorListener() throws Exception {
-    LibraryElement definingLibrary = createTestLibrary();
+    LibraryElement definingLibrary = createDefaultTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
     LibraryScope scope = new LibraryScope(definingLibrary, errorListener);
     assertEquals(errorListener, scope.getErrorListener());

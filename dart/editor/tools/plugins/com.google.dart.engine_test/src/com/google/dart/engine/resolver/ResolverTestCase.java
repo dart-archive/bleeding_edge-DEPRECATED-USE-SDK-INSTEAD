@@ -32,20 +32,14 @@ import com.google.dart.engine.internal.resolver.ResolutionVerifier;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import junit.framework.AssertionFailedError;
 
 public class ResolverTestCase extends EngineTestCase {
-  /**
-   * The source factory used to create {@link Source sources}.
-   */
-  private SourceFactory sourceFactory;
-
   /**
    * The analysis context used to parse the compilation units being resolved.
    */
@@ -57,28 +51,28 @@ public class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * Add a source file to the content provider.
-   * 
-   * @param contents the contents to be returned by the content provider for the specified file
-   * @return the source object representing the added file
-   */
-  protected Source addSource(String contents) {
-    return addSource("/test.dart", contents);
-  }
-
-  /**
    * Add a source file to the content provider. The file path should be absolute.
    * 
    * @param filePath the path of the file being added
    * @param contents the contents to be returned by the content provider for the specified file
    * @return the source object representing the added file
    */
-  protected Source addSource(String filePath, String contents) {
+  protected Source addNamedSource(String filePath, String contents) {
     Source source = cacheSource(filePath, contents);
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
+    changeSet.addedSource(source);
     analysisContext.applyChanges(changeSet);
     return source;
+  }
+
+  /**
+   * Add a source file to the content provider.
+   * 
+   * @param contents the contents to be returned by the content provider for the specified file
+   * @return the source object representing the added file
+   */
+  protected Source addSource(String contents) {
+    return addNamedSource("/test.dart", contents);
   }
 
   /**
@@ -98,7 +92,7 @@ public class ResolverTestCase extends EngineTestCase {
     for (AnalysisError error : analysisContext.computeErrors(source)) {
       errorListener.onError(error);
     }
-    errorListener.assertErrors(expectedErrorCodes);
+    errorListener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
   /**
@@ -121,8 +115,8 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the cached file
    */
   protected Source cacheSource(String filePath, String contents) {
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
-    sourceFactory.setContents(source, contents);
+    Source source = new FileBasedSource(createFile(filePath));
+    analysisContext.setContents(source, contents);
     return source;
   }
 
@@ -132,7 +126,7 @@ public class ResolverTestCase extends EngineTestCase {
    * 
    * @return the library element that was created
    */
-  protected LibraryElementImpl createTestLibrary() {
+  protected LibraryElementImpl createDefaultTestLibrary() {
     return createTestLibrary(new AnalysisContextImpl(), "test");
   }
 
@@ -152,13 +146,13 @@ public class ResolverTestCase extends EngineTestCase {
       ClassElementImpl type = new ClassElementImpl(identifier(typeName));
       String fileName = typeName + ".dart";
       CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-      compilationUnit.setSource(createSource(fileName));
+      compilationUnit.setSource(createNamedSource(fileName));
       compilationUnit.setTypes(new ClassElement[] {type});
       sourcedCompilationUnits[i] = compilationUnit;
     }
     String fileName = libraryName + ".dart";
     CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-    compilationUnit.setSource(createSource(fileName));
+    compilationUnit.setSource(createNamedSource(fileName));
 
     LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));
     library.setDefiningCompilationUnit(compilationUnit);
@@ -168,10 +162,6 @@ public class ResolverTestCase extends EngineTestCase {
 
   protected AnalysisContext getAnalysisContext() {
     return analysisContext;
-  }
-
-  protected SourceFactory getSourceFactory() {
-    return sourceFactory;
   }
 
   /**
@@ -190,13 +180,12 @@ public class ResolverTestCase extends EngineTestCase {
    */
   protected void reset() {
     analysisContext = AnalysisContextFactory.contextWithCore();
-    sourceFactory = analysisContext.getSourceFactory();
   }
 
   /**
    * Given a library and all of its parts, resolve the contents of the library and the contents of
    * the parts. This assumes that the sources for the library and its parts have already been added
-   * to the content provider using the method {@link #addSource(String, String)}.
+   * to the content provider using the method {@link #addNamedSource(String, String)}.
    * 
    * @param librarySource the source for the compilation unit that defines the library
    * @return the element representing the resolved library
@@ -242,11 +231,9 @@ public class ResolverTestCase extends EngineTestCase {
    * @param fileName the name of the file for which a source is to be created
    * @return the source that was created
    */
-  private FileBasedSource createSource(String fileName) {
-    FileBasedSource source = new FileBasedSource(
-        sourceFactory.getContentCache(),
-        createFile(fileName));
-    sourceFactory.setContents(source, "");
+  private FileBasedSource createNamedSource(String fileName) {
+    FileBasedSource source = new FileBasedSource(createFile(fileName));
+    analysisContext.setContents(source, "");
     return source;
   }
 }

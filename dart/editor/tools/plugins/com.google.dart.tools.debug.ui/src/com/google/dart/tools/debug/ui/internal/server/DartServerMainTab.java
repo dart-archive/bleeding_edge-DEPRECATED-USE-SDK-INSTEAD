@@ -14,9 +14,8 @@
 
 package com.google.dart.tools.debug.ui.internal.server;
 
-import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.LightweightModel;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.AppSelectionDialog;
@@ -63,18 +62,8 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     private Set<IResource> serverLibraries = new HashSet<IResource>();
 
     public ServerAppResourceFilter() {
-      ProjectManager manager = DartCore.getProjectManager();
-
-      // TODO(devoncarew): this currently returns an empty list
-      Source[] librarySources = manager.getLaunchableServerLibrarySources();
-
-      for (Source source : librarySources) {
-        IResource resource = manager.getResource(source);
-
-        if (resource != null) {
-          serverLibraries.add(resource);
-        }
-      }
+      serverLibraries.addAll(LightweightModel.getModel().getServerLaunchTargets(
+          ResourcesPlugin.getWorkspace().getRoot()));
     }
 
     @Override

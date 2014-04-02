@@ -14,10 +14,10 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.Combinator;
@@ -51,6 +51,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
@@ -90,7 +91,7 @@ public class SemanticHighlightings {
   private static class AnnotationHighlighting extends DefaultSemanticHighlighting {
     @Override
     public List<SourceRange> consumesMulti(SemanticToken token) {
-      ASTNode node = token.getNode();
+      AstNode node = token.getNode();
       if (node instanceof Annotation) {
         Annotation annotation = (Annotation) node;
         List<SourceRange> positions = Lists.newArrayList();
@@ -150,7 +151,7 @@ public class SemanticHighlightings {
     public List<SourceRange> consumesMulti(SemanticToken token) {
       List<SourceRange> result = null;
       // prepare ASTNode
-      ASTNode node = token.getNode();
+      AstNode node = token.getNode();
       // typedef
       if (node instanceof TypeAlias) {
         TypeAlias typeAlias = (TypeAlias) node;
@@ -413,13 +414,6 @@ public class SemanticHighlightings {
       return false;
     }
 
-    protected List<SourceRange> addPosition(List<SourceRange> positions, ASTNode node) {
-      if (node != null) {
-        return addPosition(positions, rangeNode(node));
-      }
-      return positions;
-    }
-
     protected List<SourceRange> addPosition(List<SourceRange> positions, SourceRange range) {
       if (positions == null) {
         positions = Lists.newArrayList();
@@ -456,7 +450,7 @@ public class SemanticHighlightings {
 
     @Override
     public boolean consumes(SemanticToken token) {
-      ASTNode node = token.getNode();
+      AstNode node = token.getNode();
       if (node instanceof StringLiteral && node.getParent() instanceof ImportDirective) {
         ImportDirective importDirective = (ImportDirective) node.getParent();
         ImportElement importElement = importDirective.getElement();
@@ -508,7 +502,7 @@ public class SemanticHighlightings {
     @Override
     public List<SourceRange> consumesMulti(SemanticToken token) {
       List<SourceRange> result = null;
-      ASTNode node = token.getNode();
+      AstNode node = token.getNode();
       if (node instanceof LibraryDirective) {
         LibraryDirective directive = (LibraryDirective) node;
         result = addPosition(result, directive.getKeyword());
@@ -670,10 +664,33 @@ public class SemanticHighlightings {
     }
   }
 
+  private static class FunctionTypeAliasHighlighting extends DefaultSemanticHighlighting {
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      SimpleIdentifier node = token.getNodeIdentifier();
+      return node.getStaticElement() instanceof FunctionTypeAliasElement;
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_functionTypeAlias;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return FUNCTION_TYPE_ALIAS;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
+
   private static class GetterDeclarationHighlighting extends MethodDeclarationHighlighting {
     @Override
     public boolean consumes(SemanticToken token) {
-      ASTNode node = token.getNode();
+      AstNode node = token.getNode();
       {
         MethodDeclaration method = getParentMethod(node);
         if (method != null && method.isGetter()) {
@@ -789,7 +806,7 @@ public class SemanticHighlightings {
   }
 
   private static class MethodDeclarationHighlighting extends DefaultSemanticHighlighting {
-    static FunctionDeclaration getParentFunction(ASTNode node) {
+    static FunctionDeclaration getParentFunction(AstNode node) {
       if (node.getParent() instanceof FunctionDeclaration) {
         FunctionDeclaration method = (FunctionDeclaration) node.getParent();
         if (method.getName() == node) {
@@ -799,7 +816,7 @@ public class SemanticHighlightings {
       return null;
     }
 
-    static MethodDeclaration getParentMethod(ASTNode node) {
+    static MethodDeclaration getParentMethod(AstNode node) {
       if (node.getParent() instanceof MethodDeclaration) {
         MethodDeclaration method = (MethodDeclaration) node.getParent();
         if (method.getName() == node) {
@@ -811,7 +828,7 @@ public class SemanticHighlightings {
 
     @Override
     public boolean consumes(SemanticToken token) {
-      ASTNode node = token.getNode();
+      AstNode node = token.getNode();
       {
         MethodDeclaration method = getParentMethod(node);
         if (method != null) {
@@ -875,7 +892,7 @@ public class SemanticHighlightings {
   private static class NumberHighlighting extends DefaultSemanticHighlighting {
     @Override
     public boolean consumes(SemanticToken token) {
-      ASTNode node = token.getNode();
+      AstNode node = token.getNode();
       return node instanceof IntegerLiteral || node instanceof DoubleLiteral;
     }
 
@@ -932,7 +949,7 @@ public class SemanticHighlightings {
   private static class SetterDeclarationHighlighting extends MethodDeclarationHighlighting {
     @Override
     public boolean consumes(SemanticToken token) {
-      ASTNode node = token.getNode();
+      AstNode node = token.getNode();
       {
         MethodDeclaration method = getParentMethod(node);
         if (method != null && method.isSetter()) {
@@ -1001,7 +1018,7 @@ public class SemanticHighlightings {
   private static class StaticMethodDeclarationHighlighting extends MethodDeclarationHighlighting {
     @Override
     public boolean consumes(SemanticToken token) {
-      ASTNode node = token.getNode();
+      AstNode node = token.getNode();
       MethodDeclaration method = getParentMethod(node);
       return method != null && method.isStatic();
     }
@@ -1216,6 +1233,11 @@ public class SemanticHighlightings {
   public static final String CLASS = "class"; //$NON-NLS-1$
 
   /**
+   * A named preference part that controls the highlighting of function type aliases (typedefs).
+   */
+  public static final String FUNCTION_TYPE_ALIAS = "functionTypeAlias"; //$NON-NLS-1$
+
+  /**
    * A named preference part that controls the highlighting of import prefix.
    */
   public static final String IMPORT_PREFIX = "importPrefix"; //$NON-NLS-1$
@@ -1343,7 +1365,8 @@ public class SemanticHighlightings {
           new DeprecatedElementHighlighting(), new GetterDeclarationHighlighting(),
           new SetterDeclarationHighlighting(), new AnnotationHighlighting(),
           new StaticFieldHighlighting(), new FieldHighlighting(), new DynamicTypeHighlighting(),
-          new ClassHighlighting(), new TypeVariableHighlighting(), new NumberHighlighting(),
+          new ClassHighlighting(), new FunctionTypeAliasHighlighting(),
+          new TypeVariableHighlighting(), new NumberHighlighting(),
           new LocalVariableDeclarationHighlighting(), new LocalVariableHighlighting(),
           new ParameterHighlighting(), new StaticMethodDeclarationHighlighting(),
           new StaticMethodHighlighting(), new ConstructorHighlighting(),

@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.InterpolationExpression;
 import com.google.dart.engine.ast.InterpolationString;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -329,12 +329,13 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
     IDocument document = textViewer.getDocument();
 
     IRegion region = fPairMatcher.match(document, offset);
+
     if (region != null && region.getLength() >= 2) {
       textViewer.setSelectedRange(region.getOffset() + 1, region.getLength() - 2);
-    } else {
+    } else if (textViewer instanceof CompilationUnitEditor.AdaptedSourceViewer) {
       CompilationUnitEditor editor = ((CompilationUnitEditor.AdaptedSourceViewer) textViewer).getEditor();
       NodeLocator locator = new NodeLocator(offset);
-      ASTNode node = locator.searchWithin(editor.getInputUnit());
+      AstNode node = locator.searchWithin(editor.getInputUnit());
       if (node instanceof SimpleIdentifier) {
         region = new Region(node.getOffset(), node.getLength());
       } else if (node instanceof InterpolationString) {
@@ -348,6 +349,9 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
         region = selectWord(document, offset);
       }
       textViewer.setSelectedRange(region.getOffset(), region.getLength());
+    } else {
+      region = selectWord(document, offset);
+      textViewer.setSelectedRange(region.getOffset(), region.getLength());
     }
   }
 
@@ -357,7 +361,7 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
     fWordDetector.setSourceVersion(version);
   }
 
-  protected IRegion computeStringRegion(ASTNode node) {
+  protected IRegion computeStringRegion(AstNode node) {
     int start = node.getOffset();
     int originalStart = start;
     int end = node.getEnd();
@@ -379,7 +383,7 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
     return null; // should not happen
   }
 
-  protected void selectExpression(ASTNode node, ITextViewer textViewer) {
+  protected void selectExpression(AstNode node, ITextViewer textViewer) {
     textViewer.setSelectedRange(node.getOffset(), node.getLength());
   }
 

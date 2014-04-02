@@ -57,7 +57,7 @@ public class OperationQueueTest extends EngineTestCase {
     queue.enqueue(notQueryOperation);
     // test operations - first notQuery
     List<IndexOperation> operations = queue.getOperations();
-    assertExactElements(operations, notQueryOperation, isQueryOperation);
+    assertExactElementsInList(operations, notQueryOperation, isQueryOperation);
   }
 
   public void test_enqueue_removeSource() throws Exception {
@@ -81,7 +81,7 @@ public class OperationQueueTest extends EngineTestCase {
     // test operations
     {
       List<IndexOperation> operations = queue.getOperations();
-      assertExactElements(
+      assertExactElementsInList(
           operations,
           notQueryOperation,
           notQueryOperation_toRemove,
@@ -95,14 +95,14 @@ public class OperationQueueTest extends EngineTestCase {
     // test operations
     {
       List<IndexOperation> operations = queue.getOperations();
-      assertExactElements(operations, notQueryOperation, removeOperation, isQueryOperation);
+      assertExactElementsInList(operations, notQueryOperation, removeOperation, isQueryOperation);
     }
   }
 
   public void test_new() throws Exception {
     OperationQueue queue = new OperationQueue();
     assertEquals(0, queue.size());
-    assertSize(0, queue.getOperations());
+    assertSizeOfList(0, queue.getOperations());
   }
 
   public void test_setProcessQueries() throws Exception {

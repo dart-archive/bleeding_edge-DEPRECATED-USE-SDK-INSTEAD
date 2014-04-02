@@ -7,23 +7,37 @@ class Item {
   String text;
   bool done;
 
-  Item([String this.text = '', bool this.done = false]);
+  Item([this.text = '', this.done = false]);
 
   bool get isEmpty => text.isEmpty;
 
-  clone() => new Item(text, done);
+  Item clone() => new Item(text, done);
 
-  clear() {
+  void clear() {
     text = '';
     done = false;
   }
 }
 
-// In 'server mode', this class fetches items from the server.
-class ServerController {
-  Http _http;
 
-  ServerController(Http this._http);
+// ServerController interface. Logic in main.dart determines which
+// implementation we should use.
+abstract class ServerController {
+  init(TodoController todo);
+}
+
+
+// An implementation of ServerController that does nothing.
+class NoServerController implements ServerController {
+  init(TodoController todo) { }
+}
+
+
+// An implementation of ServerController that fetches items from
+// the server over HTTP.
+class HttpServerController implements ServerController {
+  final Http _http;
+  HttpServerController(this._http);
 
   init(TodoController todo) {
     _http(method: 'GET', url: '/todos').then((HttpResponse data) {
@@ -34,20 +48,12 @@ class ServerController {
   }
 }
 
-// An implementation of ServerController that does nothing.
-// Logic in main.dart determines which implementation we should
-// use.
-class NoServerController implements ServerController {
-  init(TodoController todo) { }
-}
 
-
-@NgDirective(
-  selector: '[todo-controller]',
-  publishAs: 'todo'
-)
+@NgController(
+    selector: '[todo-controller]',
+    publishAs: 'todo')
 class TodoController {
-  List<Item> items;
+  var items = <Item>[];
   Item newItem;
 
   TodoController(ServerController serverController) {
@@ -62,33 +68,24 @@ class TodoController {
   }
 
   // workaround for https://github.com/angular/angular.dart/issues/37
-  dynamic operator [](String key) {
-    if (key == 'newItem') {
-      return newItem;
-    }
-    return null;
-  }
+  dynamic operator [](String key) => key == 'newItem' ? newItem : null;
 
-  add() {
+  void add() {
     if (newItem.isEmpty) return;
 
     items.add(newItem.clone());
     newItem.clear();
   }
 
-  markAllDone() {
+  void markAllDone() {
     items.forEach((item) => item.done = true);
   }
 
-  archiveDone() {
+  void archiveDone() {
     items.removeWhere((item) => item.done);
   }
 
-  String classFor(Item item) {
-    return item.done ? 'done' : '';
-  }
+  String classFor(Item item) => item.done ? 'done' : '';
 
-  int remaining() {
-    return items.where((item) => !item.done).length;
-  }
+  int remaining() => items.fold(0, (count, item) => count += item.done ? 0 : 1);
 }

@@ -27,7 +27,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public class TypeArgumentList extends ASTNode {
+public class TypeArgumentList extends AstNode {
   /**
    * The left bracket.
    */
@@ -57,7 +57,7 @@ public class TypeArgumentList extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitTypeArgumentList(this);
   }
 
@@ -117,7 +117,7 @@ public class TypeArgumentList extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     arguments.accept(visitor);
   }
 }

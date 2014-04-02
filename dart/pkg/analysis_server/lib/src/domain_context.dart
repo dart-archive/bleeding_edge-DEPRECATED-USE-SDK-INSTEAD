@@ -4,11 +4,10 @@
 
 library domain.context;
 
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-import 'analysis_server.dart';
-import 'protocol.dart';
 
 /**
  * Instances of the class [ContextDomainHandler] implement a [RequestHandler]
@@ -21,6 +20,11 @@ class ContextDomainHandler implements RequestHandler {
   static const String APPLY_CHANGES_NAME = 'context.applyChanges';
 
   /**
+   * The name of the context.getFixes request.
+   */
+  static const String GET_FIXES_NAME = 'context.getFixes';
+
+  /**
    * The name of the context.setOptions request.
    */
   static const String SET_OPTIONS_NAME = 'context.setOptions';
@@ -29,6 +33,11 @@ class ContextDomainHandler implements RequestHandler {
    * The name of the context.setPrioritySources request.
    */
   static const String SET_PRIORITY_SOURCES_NAME = 'context.setPrioritySources';
+
+  /**
+   * The name of the added parameter.
+   */
+  static const String ADDED_PARAM = "added";
 
   /**
    * The name of the changes parameter.
@@ -41,9 +50,19 @@ class ContextDomainHandler implements RequestHandler {
   static const String CONTEXT_ID_PARAM = 'contextId';
 
   /**
+   * The name of the modified parameter.
+   */
+  static const String MODIFIED_PARAM = "modified";
+
+  /**
    * The name of the options parameter.
    */
   static const String OPTIONS_PARAM = 'options';
+
+  /**
+   * The name of the removed parameter.
+   */
+  static const String REMOVED_PARAM = "removed";
 
   /**
    * The name of the sources parameter.
@@ -96,6 +115,8 @@ class ContextDomainHandler implements RequestHandler {
       String requestName = request.method;
       if (requestName == APPLY_CHANGES_NAME) {
         return applyChanges(request);
+      } else if (requestName == GET_FIXES_NAME) {
+        return getFixes(request);
       } else if (requestName == SET_OPTIONS_NAME) {
         return setOptions(request);
       } else if (requestName == SET_PRIORITY_SOURCES_NAME) {
@@ -115,17 +136,55 @@ class ContextDomainHandler implements RequestHandler {
   Response applyChanges(Request request) {
     AnalysisContext context = getAnalysisContext(request);
     Map<String, Object> changesData = request.getRequiredParameter(CHANGES_PARAM);
-    ChangeSet changeSet = createChangeSet(changesData);
+    ChangeSet changeSet = createChangeSet(
+        request,
+        context.sourceFactory,
+        changesData);
 
     context.applyChanges(changeSet);
+    Response response = new Response(request.id);
+    return response;
   }
 
   /**
-   * Convert the given JSON object into a [ChangeSet].
+   * Convert the given JSON object into a [ChangeSet], using the given
+   * [sourceFactory] to convert the embedded strings into sources.
    */
-  ChangeSet createChangeSet(Map<String, Object> jsonData) {
+  ChangeSet createChangeSet(Request request, SourceFactory sourceFactory, Map<String, Object> jsonData) {
+    ChangeSet changeSet = new ChangeSet();
+    convertSources(request, sourceFactory, jsonData[ADDED_PARAM], (Source source) {
+      changeSet.addedSource(source);
+    });
+    convertSources(request, sourceFactory, jsonData[MODIFIED_PARAM], (Source source) {
+      changeSet.changedSource(source);
+    });
+    convertSources(request, sourceFactory, jsonData[REMOVED_PARAM], (Source source) {
+      changeSet.removedSource(source);
+    });
+    return changeSet;
+  }
+
+  /**
+   * If the given [sources] is a list of strings, use the given [sourceFactory]
+   * to convert each string into a source and pass the source to the given
+   * [handler]. Otherwise, throw an exception indicating that the data in the
+   * request was not valid.
+   */
+  void convertSources(Request request, SourceFactory sourceFactory, Object sources, void handler(Source source)) {
+    if (sources is! List<String>) {
+      throw new RequestFailure(new Response(request.id, new RequestError(1, 'Invalid sources')));
+    }
+    convertToSources(sourceFactory, sources).forEach(handler);
+  }
+
+  /**
+   * Return the list of fixes that are available for problems related to the
+   * given error in the specified context.
+   */
+  Response getFixes(Request request) {
     // TODO(brianwilkerson) Implement this.
-    return null;
+    Response response = new Response(request.id);
+    return response;
   }
 
   /**
@@ -136,6 +195,8 @@ class ContextDomainHandler implements RequestHandler {
     AnalysisContext context = getAnalysisContext(request);
 
     context.analysisOptions = createAnalysisOptions(request);
+    Response response = new Response(request.id);
+    return response;
   }
 
   /**
@@ -175,6 +236,8 @@ class ContextDomainHandler implements RequestHandler {
     List<Source> sources = convertToSources(context.sourceFactory, sourcesData);
 
     context.analysisPriorityOrder = sources;
+    Response response = new Response(request.id);
+    return response;
   }
 
   /**

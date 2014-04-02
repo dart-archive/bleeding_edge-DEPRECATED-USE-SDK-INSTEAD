@@ -21,6 +21,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
 import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularHasAttributeSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularTagSelectorElement;
@@ -52,6 +53,53 @@ public class AngularRenameRefactoringTest extends AngularTest {
   private SearchEngine searchEngine;
   private RenameRefactoring refactoring;
   private Change refactoringChange;
+
+  public void test_angular_renameAttributeSelector() throws Exception {
+    contextHelper.addSource("/my_template.html", createSource(//
+        "    <div>",
+        "      {{ctrl.field}}",
+        "    </div>"));
+    addMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@NgDirective(",
+        "    selector: '[my-dir]',",
+        "    map: const {'my-dir' : '@field'})",
+        "class MyDirective {",
+        "  String field;",
+        "}"));
+    addIndexSource(createHtmlWithAngular("<div my-dir/>"));
+    contextHelper.runTasks();
+    resolveMain();
+    resolveIndex();
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularHasAttributeSelectorElement selector = findMainElement("my-dir");
+    prepareRenameChange(selector, "new-name");
+    // check results
+    assertIndexChangeResult(createHtmlWithAngular("<div new-name/>"));
+    assertMainChangeResult(mainContent.replace("my-dir", "new-name"));
+  }
+
+  public void test_angular_renameAttributeSelector_whenRenameProperty() throws Exception {
+    resolveMainSource(createSource(//
+        "import 'angular.dart';",
+        "",
+        "@NgDirective(",
+        "    selector: '[test]',",
+        "    map: const {'test' : '@field'})",
+        "class MyDirective {",
+        "  set field(value) {}",
+        "}"));
+    resolveIndex(createHtmlWithAngular("<div test='null'/>"));
+    indexUnit(indexUnit);
+    // prepare refactoring
+    AngularPropertyElement property = findMainElement(ElementKind.ANGULAR_PROPERTY, "test");
+    prepareRenameChange(property, "newName");
+    // check results
+    assertIndexChangeResult(createHtmlWithAngular("<div newName='null'/>"));
+    assertMainChangeResult(mainContent.replace("test", "newName"));
+  }
 
   public void test_angular_renameComponentDecl() throws Exception {
     contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
@@ -254,26 +302,6 @@ public class AngularRenameRefactoringTest extends AngularTest {
     assertMainChangeResult(mainContent.replace("'test' :", "'newName' :"));
   }
 
-  public void test_angular_renameProperty_inDirective() throws Exception {
-    resolveMainSource(createSource(//
-        "import 'angular.dart';",
-        "",
-        "@NgDirective(",
-        "    selector: '[test]',",
-        "    map: const {'test' : '@field'})",
-        "class MyDirective {",
-        "  set field(value) {}",
-        "}"));
-    resolveIndex(createHtmlWithAngular("<div test='null'/>"));
-    indexUnit(indexUnit);
-    // prepare refactoring
-    AngularPropertyElement property = findMainElement(ElementKind.ANGULAR_PROPERTY, "test");
-    prepareRenameChange(property, "newName");
-    // check results
-    assertIndexChangeResult(createHtmlWithAngular("<div newName='null'/>"));
-    assertMainChangeResult(mainContent.replace("'test' :", "'newName' :"));
-  }
-
   public void test_angular_renameScopeProperty() throws Exception {
     addMainSource(createSource("",//
         "import 'angular.dart';",
@@ -285,7 +313,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
         "class MyComponent {",
         "  String field;",
         "  MyComponent(Scope scope) {",
-        "    scope['test'] = 'abc';",
+        "    scope.context['test'] = 'abc';",
         "  }",
         "}"));
     contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
@@ -315,8 +343,8 @@ public class AngularRenameRefactoringTest extends AngularTest {
         "class MyComponent {",
         "  String field;",
         "  MyComponent(Scope scope) {",
-        "    scope['existingScopeProperty'] = 42;",
-        "    scope['test'] = 'abc';",
+        "    scope.context['existingScopeProperty'] = 42;",
+        "    scope.context['test'] = 'abc';",
         "  }",
         "}"));
     contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
@@ -499,11 +527,11 @@ public class AngularRenameRefactoringTest extends AngularTest {
   }
 
   private void assertIndexChangeResult(String expected) throws Exception {
-    assertChangeResult(refactoringChange, indexSource, expected);
+    assertChangeResult(context, refactoringChange, indexSource, expected);
   }
 
   private void assertMainChangeResult(String expected) throws Exception {
-    assertChangeResult(refactoringChange, mainSource, expected);
+    assertChangeResult(context, refactoringChange, mainSource, expected);
   }
 
   private void createRenameRefactoring(Element element) {

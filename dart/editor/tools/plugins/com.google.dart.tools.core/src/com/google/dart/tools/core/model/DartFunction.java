@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.model;
 
-import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * The interface <code>DartFunction</code> defines the behavior of elements representing the
@@ -23,43 +22,6 @@ import com.google.dart.engine.utilities.source.SourceRange;
  */
 public interface DartFunction extends CompilationUnitElement, ParentElement, SourceReference {
   /**
-   * The function main
-   */
-  public static String MAIN = "main";
-
-  /**
-   * Return an array containing the full names of the parameter types for this function, or an empty
-   * array if this function does not have any parameters. In the case where the type of a parameter
-   * is a function type, this method will return a string that contains both the types and names of
-   * the function's parameters.
-   * 
-   * @return an array containing the full names of the parameter types for this function
-   * @throws DartModelException if the names of the parameter types cannot be accessed
-   */
-  public String[] getFullParameterTypeNames() throws DartModelException;
-
-  /**
-   * Return an array containing all of the local variables and parameters defined for this function,
-   * or an empty array if this function does not have any local variables or parameters.
-   * 
-   * @return an array containing the local variables and parameters defined for this function
-   * @throws DartModelException if the local variables and parameters cannot be accessed
-   */
-  public DartVariableDeclaration[] getLocalVariables() throws DartModelException;
-
-  /**
-   * @return the {@link SourceRange} of the close character optional parameters declaration,
-   *         <code>]</code> or <code>}</code>. May be <code>null</code> if no optional parameters.
-   */
-  public SourceRange getOptionalParametersClosingGroupChar() throws DartModelException;
-
-  /**
-   * @return the {@link SourceRange} of the open character optional parameters declaration,
-   *         <code>[</code> or <code>{</code>. May be <code>null</code> if no optional parameters.
-   */
-  public SourceRange getOptionalParametersOpeningGroupChar() throws DartModelException;
-
-  /**
    * Return an array containing the names of the parameters for this function, or an empty array if
    * this function does not have any parameters.
    * 
@@ -67,16 +29,6 @@ public interface DartFunction extends CompilationUnitElement, ParentElement, Sou
    * @throws DartModelException if the names of the parameters cannot be accessed
    */
   public String[] getParameterNames() throws DartModelException;
-
-  /**
-   * @return the {@link SourceRange} of close paren in parameters declaration.
-   */
-  public SourceRange getParametersCloseParen() throws DartModelException;
-
-  /**
-   * @return the {@link SourceRange} of open paren in parameters declaration.
-   */
-  public SourceRange getParametersOpenParen() throws DartModelException;
 
   /**
    * Return an array containing the names of the parameter types for this function, or an empty
@@ -99,35 +51,11 @@ public interface DartFunction extends CompilationUnitElement, ParentElement, Sou
   public String getReturnTypeName() throws DartModelException;
 
   /**
-   * @return the {@link SourceRange} in which this local function is visible, undefined if not
-   *         {@link #isLocal()} or has no name.
-   */
-  public SourceRange getVisibleRange() throws DartModelException;
-
-  /**
    * Return <code>true</code> if this function is declared as a getter.
    * 
    * @return <code>true</code> if this function is declared as a getter
    */
   public boolean isGetter();
-
-  /**
-   * @return <code>true</code> if this function is global (defined at the top-level of a compilation
-   *         unit)
-   */
-  public boolean isGlobal();
-
-  /**
-   * @return <code>true</code> if this function is local to a method or function
-   */
-  public boolean isLocal();
-
-  /**
-   * Returns whether this function is an entry point.
-   * 
-   * @return whether this function is an entry point
-   */
-  public boolean isMain();
 
   /**
    * Return <code>true</code> if this function is declared as a setter.

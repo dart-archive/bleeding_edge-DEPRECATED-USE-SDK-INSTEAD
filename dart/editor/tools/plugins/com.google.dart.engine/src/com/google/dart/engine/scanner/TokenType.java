@@ -40,7 +40,7 @@ public enum TokenType {
   /**
    * The type of the token that marks the end of the input.
    */
-  EOF(null, "") {
+  EOF(NO_CLASS, "") {
     @Override
     public String toString() {
       return "-eof-";
@@ -60,31 +60,31 @@ public enum TokenType {
   AMPERSAND(BITWISE_AND_OPERATOR, "&"),
   AMPERSAND_AMPERSAND(LOGICAL_AND_OPERATOR, "&&"),
   AMPERSAND_EQ(ASSIGNMENT_OPERATOR, "&="),
-  AT(null, "@"),
+  AT(NO_CLASS, "@"),
   BANG(UNARY_PREFIX_OPERATOR, "!"),
   BANG_EQ(EQUALITY_OPERATOR, "!="),
 //  BANG_EQ_EQ(EQUALITY_OPERATOR, "!=="),
   BAR(BITWISE_OR_OPERATOR, "|"),
   BAR_BAR(LOGICAL_OR_OPERATOR, "||"),
   BAR_EQ(ASSIGNMENT_OPERATOR, "|="),
-  COLON(null, ":"),
-  COMMA(null, ","),
+  COLON(NO_CLASS, ":"),
+  COMMA(NO_CLASS, ","),
   CARET(BITWISE_XOR_OPERATOR, "^"),
   CARET_EQ(ASSIGNMENT_OPERATOR, "^="),
-  CLOSE_CURLY_BRACKET(null, "}"),
-  CLOSE_PAREN(null, ")"),
-  CLOSE_SQUARE_BRACKET(null, "]"),
+  CLOSE_CURLY_BRACKET(NO_CLASS, "}"),
+  CLOSE_PAREN(NO_CLASS, ")"),
+  CLOSE_SQUARE_BRACKET(NO_CLASS, "]"),
   EQ(ASSIGNMENT_OPERATOR, "="),
   EQ_EQ(EQUALITY_OPERATOR, "=="),
 //  EQ_EQ_EQ(EQUALITY_OPERATOR, "==="),
-  FUNCTION(null, "=>"),
+  FUNCTION(NO_CLASS, "=>"),
   GT(RELATIONAL_OPERATOR, ">"),
   GT_EQ(RELATIONAL_OPERATOR, ">="),
   GT_GT(SHIFT_OPERATOR, ">>"),
   GT_GT_EQ(ASSIGNMENT_OPERATOR, ">>="),
 //  GT_GT_GT(SHIFT_OPERATOR, ">>>"),
 //  GT_GT_GT_EQ(ASSIGNMENT_OPERATOR, ">>>="),
-  HASH(null, "#"),
+  HASH(NO_CLASS, "#"),
   INDEX(UNARY_POSTFIX_OPERATOR, "[]"),
   INDEX_EQ(UNARY_POSTFIX_OPERATOR, "[]="),
   IS(RELATIONAL_OPERATOR, "is"),
@@ -95,7 +95,7 @@ public enum TokenType {
   MINUS(ADDITIVE_OPERATOR, "-"),
   MINUS_EQ(ASSIGNMENT_OPERATOR, "-="),
   MINUS_MINUS(UNARY_PREFIX_OPERATOR, "--"),
-  OPEN_CURLY_BRACKET(null, "{"),
+  OPEN_CURLY_BRACKET(NO_CLASS, "{"),
   OPEN_PAREN(UNARY_POSTFIX_OPERATOR, "("),
   OPEN_SQUARE_BRACKET(UNARY_POSTFIX_OPERATOR, "["),
   PERCENT(MULTIPLICATIVE_OPERATOR, "%"),
@@ -106,22 +106,22 @@ public enum TokenType {
   PLUS_EQ(ASSIGNMENT_OPERATOR, "+="),
   PLUS_PLUS(UNARY_PREFIX_OPERATOR, "++"),
   QUESTION(CONDITIONAL_OPERATOR, "?"),
-  SEMICOLON(null, ";"),
+  SEMICOLON(NO_CLASS, ";"),
   SLASH(MULTIPLICATIVE_OPERATOR, "/"),
   SLASH_EQ(ASSIGNMENT_OPERATOR, "/="),
   STAR(MULTIPLICATIVE_OPERATOR, "*"),
   STAR_EQ(ASSIGNMENT_OPERATOR, "*="),
-  STRING_INTERPOLATION_EXPRESSION(null, "${"),
-  STRING_INTERPOLATION_IDENTIFIER(null, "$"),
+  STRING_INTERPOLATION_EXPRESSION(NO_CLASS, "${"),
+  STRING_INTERPOLATION_IDENTIFIER(NO_CLASS, "$"),
   TILDE(UNARY_PREFIX_OPERATOR, "~"),
   TILDE_SLASH(MULTIPLICATIVE_OPERATOR, "~/"),
   TILDE_SLASH_EQ(ASSIGNMENT_OPERATOR, "~/="),
 
   // The following are not currently tokens in Dart, but are reserved for future use.
 
-  BACKPING(null, "`"),
-  BACKSLASH(null, "\\"),
-  PERIOD_PERIOD_PERIOD(null, "...");
+  BACKPING(NO_CLASS, "`"),
+  BACKSLASH(NO_CLASS, "\\"),
+  PERIOD_PERIOD_PERIOD(NO_CLASS, "...");
 
   /**
    * The class of the token.
@@ -139,7 +139,7 @@ public enum TokenType {
   }
 
   private TokenType(TokenClass tokenClass, String lexeme) {
-    this.tokenClass = tokenClass == null ? NO_CLASS : tokenClass;
+    this.tokenClass = tokenClass;
     this.lexeme = lexeme;
   }
 

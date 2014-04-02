@@ -15,8 +15,8 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -31,12 +31,13 @@ import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -126,6 +127,7 @@ public class LightNodeElements {
       return offset1 - offset2;
     }
   }
+
   /**
    * {@link ITreeContentProvider} for {@link LightNodeElement}s in {@link CompilationUnit}.
    */
@@ -171,7 +173,8 @@ public class LightNodeElements {
         return;
       }
       // create elements
-      for (CompilationUnitMember unitMember : unit.getDeclarations()) {
+      NodeList<CompilationUnitMember> unitDeclarations = unit.getDeclarations();
+      for (CompilationUnitMember unitMember : unitDeclarations) {
         if (unitMember instanceof TopLevelVariableDeclaration) {
           TopLevelVariableDeclaration topVarDecl = (TopLevelVariableDeclaration) unitMember;
           List<VariableDeclaration> variables = topVarDecl.getVariables().getVariables();
@@ -187,10 +190,16 @@ public class LightNodeElements {
             elements.add(element);
           }
         }
+        if (elements.size() > MAX_UNIT_MEMBER_COUNT) {
+          elements.add(new LightNodeElement(contextFile, null, unit, unit, String.format(
+              MAX_CHILDREN_TEXT,
+              MAX_UNIT_MEMBER_COUNT,
+              unitDeclarations.size())));
+          break;
+        }
       }
     }
   }
-
   /**
    * {@link LabelProvider} for {@link LightNodeElement}.
    */
@@ -198,7 +207,7 @@ public class LightNodeElements {
     private static final Point SIZE = new Point(22, 16);
     private static final ImageDescriptorRegistry registry = DartToolsPlugin.getImageDescriptorRegistry();
 
-    private static ImageDescriptor getBaseImageDescriptor(ASTNode node, boolean isPrivate) {
+    private static ImageDescriptor getBaseImageDescriptor(AstNode node, boolean isPrivate) {
       if (node instanceof ClassDeclaration) {
         return isPrivate ? DartPluginImages.DESC_DART_CLASS_PRIVATE
             : DartPluginImages.DESC_DART_CLASS_PUBLIC;
@@ -219,7 +228,7 @@ public class LightNodeElements {
       return null;
     }
 
-    private static ImageDescriptor getImageDescriptor(ASTNode node, boolean isPrivate) {
+    private static ImageDescriptor getImageDescriptor(AstNode node, boolean isPrivate) {
       ImageDescriptor base = getBaseImageDescriptor(node, isPrivate);
       if (base == null) {
         return null;
@@ -260,7 +269,7 @@ public class LightNodeElements {
     public Image getImage(Object o) {
       LightNodeElement element = (LightNodeElement) o;
       boolean isPrivate = element.isPrivate();;
-      ASTNode node = element.getNode();
+      AstNode node = element.getNode();
       ImageDescriptor descriptor = getImageDescriptor(node, isPrivate);
       if (descriptor != null) {
         return registry.get(descriptor);
@@ -273,7 +282,7 @@ public class LightNodeElements {
       StyledString styledString = new StyledString(getText(obj));
       // prepare object elements
       LightNodeElement lightElement = (LightNodeElement) obj;
-      ASTNode node = lightElement.getNode();
+      AstNode node = lightElement.getNode();
       // prepare parameters
       FormalParameterList parameters = null;
       TypeName returnType = null;
@@ -318,21 +327,35 @@ public class LightNodeElements {
     }
   }
 
-  public static final ViewerComparator NAME_COMPARATOR = new NameComparator();
-  public static final ViewerComparator POSITION_COMPARATOR = new PositionComparator();
-  private static final IStyledLabelProvider LABEL_PROVIDER = new NodeLabelProvider();
+  /**
+   * The maximum number of children we want to show in any compilation unit.
+   */
+  private static final int MAX_UNIT_MEMBER_COUNT = 750;
 
   /**
-   * @return the {@link LightNodeElement} for given {@link ASTNode}, may be <code>null</code> if
+   * The maximum number of children we want to show in any class.
+   */
+  private static final int MAX_CLASS_MEMBER_COUNT = 250;
+
+  /**
+   * The text to show if there are too many children.
+   */
+  private static final String MAX_CHILDREN_TEXT = "<First %d of %d children are displayed>";
+
+  public static final ViewerComparator NAME_COMPARATOR = new NameComparator();
+  public static final ViewerComparator POSITION_COMPARATOR = new PositionComparator();
+
+  /**
+   * @return the {@link LightNodeElement} for given {@link AstNode}, may be <code>null</code> if
    *         given is not declaration and does not have reasonable declaration child.
    */
-  public static LightNodeElement createLightNodeElement(IFile contextFile, ASTNode node) {
+  public static LightNodeElement createLightNodeElement(IFile contextFile, AstNode node) {
     if (node == null) {
       return null;
     }
     // prepare "childNode"
-    ASTNode childNode = null;
-    ASTNode parentNode = null;
+    AstNode childNode = null;
+    AstNode parentNode = null;
     if (childNode == null) {
       FunctionDeclaration function = node.getAncestor(FunctionDeclaration.class);
       if (function != null) {
@@ -429,7 +452,7 @@ public class LightNodeElements {
    * @return the new label provider instance to use for displaying {@link LightNodeElement}s.
    */
   public static IBaseLabelProvider newLabelProvider() {
-    return new DelegatingStyledCellLabelProvider(LABEL_PROVIDER);
+    return new DelegatingStyledCellLabelProvider(new NodeLabelProvider());
   }
 
   /**
@@ -448,11 +471,11 @@ public class LightNodeElements {
   }
 
   private static void addLocalFunctions(final IFile contextFile, final LightNodeElement parent,
-      ASTNode in) {
+      AstNode in) {
     if (in == null) {
       return;
     }
-    in.accept(new RecursiveASTVisitor<Void>() {
+    in.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitAssignmentExpression(AssignmentExpression node) {
         return null;
@@ -487,7 +510,7 @@ public class LightNodeElements {
   }
 
   private static LightNodeElement createLightNodeElement(final IFile contextFile,
-      LightNodeElement parent, ASTNode node, boolean withChildren) {
+      LightNodeElement parent, AstNode node, boolean withChildren) {
     // VariableDeclaration
     if (node instanceof VariableDeclaration) {
       VariableDeclaration variable = (VariableDeclaration) node;
@@ -537,7 +560,8 @@ public class LightNodeElements {
           nameNode,
           nameNode.getName());
       if (withChildren) {
-        for (ClassMember classMember : classDeclaration.getMembers()) {
+        NodeList<ClassMember> classMembers = classDeclaration.getMembers();
+        for (ClassMember classMember : classMembers) {
           if (classMember instanceof FieldDeclaration) {
             FieldDeclaration fieldDeclaration = (FieldDeclaration) classMember;
             List<VariableDeclaration> fields = fieldDeclaration.getFields().getVariables();
@@ -546,6 +570,15 @@ public class LightNodeElements {
             }
           } else {
             createLightNodeElement(contextFile, classElement, classMember, true);
+          }
+          if (classElement.children.size() > MAX_CLASS_MEMBER_COUNT) {
+            new LightNodeElement(
+                contextFile,
+                classElement,
+                classDeclaration,
+                classDeclaration.getName(),
+                String.format(MAX_CHILDREN_TEXT, MAX_CLASS_MEMBER_COUNT, classMembers.size()));
+            break;
           }
         }
       }

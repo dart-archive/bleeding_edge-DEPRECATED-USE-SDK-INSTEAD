@@ -134,7 +134,7 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
     } else {
       file = fileLocation.toFile();
     }
-    return new FileBasedSource(contentCache, file);
+    return new FileBasedSource(file);
   }
 
   /**

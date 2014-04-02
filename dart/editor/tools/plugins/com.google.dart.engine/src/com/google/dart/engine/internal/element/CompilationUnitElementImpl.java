@@ -29,6 +29,8 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.element.angular.AngularViewElement;
+import com.google.dart.engine.internal.element.angular.AngularViewElementImpl;
 import com.google.dart.engine.source.Source;
 
 import java.util.Map;
@@ -39,7 +41,8 @@ import java.util.Map;
  * 
  * @coverage dart.engine.element
  */
-public class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitElement {
+public class CompilationUnitElementImpl extends UriReferencedElementImpl implements
+    CompilationUnitElement {
   /**
    * An empty array of compilation unit elements.
    */
@@ -82,10 +85,9 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   private TopLevelVariableElement[] variables = TopLevelVariableElementImpl.EMPTY_ARRAY;
 
   /**
-   * The URI that is specified by the "part" directive in the enclosing library, or {@code null} if
-   * this is the defining compilation unit of a library.
+   * An array containing all of the Angular views contained in this compilation unit.
    */
-  private String uri;
+  private AngularViewElement[] angularViews = AngularViewElement.EMPTY_ARRAY;
 
   /**
    * Initialize a newly created compilation unit element to have the given name.
@@ -111,6 +113,11 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   @Override
   public PropertyAccessorElement[] getAccessors() {
     return accessors;
+  }
+
+  @Override
+  public AngularViewElement[] getAngularViews() {
+    return angularViews;
   }
 
   @Override
@@ -198,11 +205,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   }
 
   @Override
-  public String getUri() {
-    return uri;
-  }
-
-  @Override
   public int hashCode() {
     return source.hashCode();
   }
@@ -218,6 +220,18 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
       ((PropertyAccessorElementImpl) accessor).setEnclosingElement(this);
     }
     this.accessors = accessors;
+  }
+
+  /**
+   * Set the Angular views defined in this compilation unit.
+   * 
+   * @param angularViews the Angular views defined in this compilation unit
+   */
+  public void setAngularViews(AngularViewElement[] angularViews) {
+    for (AngularViewElement view : angularViews) {
+      ((AngularViewElementImpl) view).setEnclosingElement(this);
+    }
+    this.angularViews = angularViews;
   }
 
   /**
@@ -277,15 +291,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
     this.types = types;
   }
 
-  /**
-   * Set the URI that is specified by the "part" directive in the enclosing library.
-   * 
-   * @param uri the URI that is specified by the "part" directive in the enclosing library.
-   */
-  public void setUri(String uri) {
-    this.uri = uri;
-  }
-
   @Override
   public void visitChildren(ElementVisitor<?> visitor) {
     super.visitChildren(visitor);
@@ -294,6 +299,7 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
     safelyVisitChildren(typeAliases, visitor);
     safelyVisitChildren(types, visitor);
     safelyVisitChildren(variables, visitor);
+    safelyVisitChildren(angularViews, visitor);
   }
 
   @Override

@@ -751,7 +751,8 @@ CompileType ConstantInstr::ComputeType() const {
         value().GetClassId(),
         AbstractType::ZoneHandle(Instance::Cast(value()).GetType()));
   } else {
-    return CompileType::Dynamic();
+    // Type info for non-instance objects.
+    return CompileType::FromCid(value().GetClassId());
   }
 }
 
@@ -929,15 +930,6 @@ CompileType CreateArrayInstr::ComputeType() const {
 }
 
 
-CompileType CreateClosureInstr::ComputeType() const {
-  const Function& fun = function();
-  const Class& signature_class = Class::Handle(fun.signature_class());
-  return CompileType::FromAbstractType(
-      Type::ZoneHandle(signature_class.SignatureType()),
-      CompileType::kNonNullable);
-}
-
-
 CompileType AllocateObjectInstr::ComputeType() const {
   if (!closure_function().IsNull()) {
     ASSERT(cls().raw() == closure_function().signature_class());
@@ -987,11 +979,6 @@ CompileType LoadFieldInstr::ComputeType() const {
 
   ASSERT(!Field::IsExternalizableCid(result_cid_));
   return CompileType::FromCid(result_cid_);
-}
-
-
-CompileType* StoreVMFieldInstr::ComputeInitialType() const {
-  return value()->Type();
 }
 
 
@@ -1145,6 +1132,54 @@ CompileType Float32x4ToInt32x4Instr::ComputeType() const {
 }
 
 
+CompileType Simd64x2ShuffleInstr::ComputeType() const {
+  if ((op_kind() == MethodRecognizer::kFloat64x2GetX) ||
+      (op_kind() == MethodRecognizer::kFloat64x2GetY)) {
+    return CompileType::FromCid(kDoubleCid);
+  }
+  UNREACHABLE();
+  return CompileType::FromCid(kDoubleCid);
+}
+
+
+CompileType Float64x2ZeroInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat64x2Cid);
+}
+
+
+CompileType Float64x2SplatInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat64x2Cid);
+}
+
+
+CompileType Float64x2ConstructorInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat64x2Cid);
+}
+
+
+CompileType Float32x4ToFloat64x2Instr::ComputeType() const {
+  return CompileType::FromCid(kFloat64x2Cid);
+}
+
+
+CompileType Float64x2ToFloat32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float64x2ZeroArgInstr::ComputeType() const {
+  if (op_kind() == MethodRecognizer::kFloat64x2GetSignMask) {
+    return CompileType::Int();
+  }
+  return CompileType::FromCid(kFloat64x2Cid);
+}
+
+
+CompileType Float64x2OneArgInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat64x2Cid);
+}
+
+
 CompileType Int32x4BoolConstructorInstr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
 }
@@ -1172,6 +1207,11 @@ CompileType Int32x4ToFloat32x4Instr::ComputeType() const {
 
 CompileType BinaryInt32x4OpInstr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
+}
+
+
+CompileType BinaryFloat64x2OpInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat64x2Cid);
 }
 
 
@@ -1205,6 +1245,16 @@ CompileType BoxFloat32x4Instr::ComputeType() const {
 }
 
 
+CompileType UnboxFloat64x2Instr::ComputeType() const {
+  return CompileType::FromCid(kFloat64x2Cid);
+}
+
+
+CompileType BoxFloat64x2Instr::ComputeType() const {
+  return CompileType::FromCid(kFloat64x2Cid);
+}
+
+
 CompileType UnboxInt32x4Instr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
 }
@@ -1221,6 +1271,17 @@ CompileType SmiToDoubleInstr::ComputeType() const {
 
 
 CompileType DoubleToDoubleInstr::ComputeType() const {
+  return CompileType::FromCid(kDoubleCid);
+}
+
+
+CompileType FloatToDoubleInstr::ComputeType() const {
+  return CompileType::FromCid(kDoubleCid);
+}
+
+
+CompileType DoubleToFloatInstr::ComputeType() const {
+  // Type is double when converted back.
   return CompileType::FromCid(kDoubleCid);
 }
 

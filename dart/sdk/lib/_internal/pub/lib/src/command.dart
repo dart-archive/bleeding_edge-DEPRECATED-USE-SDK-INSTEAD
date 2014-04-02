@@ -12,6 +12,7 @@ import 'package:path/path.dart' as path;
 
 import 'command/build.dart';
 import 'command/cache.dart';
+import 'command/deps.dart';
 import 'command/get.dart';
 import 'command/help.dart';
 import 'command/lish.dart';
@@ -21,6 +22,7 @@ import 'command/upgrade.dart';
 import 'command/uploader.dart';
 import 'command/version.dart';
 import 'entrypoint.dart';
+import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
 import 'system_cache.dart';
 import 'utils.dart';
@@ -47,6 +49,7 @@ abstract class PubCommand {
     buffer.writeln();
     buffer.writeln('Global options:');
     buffer.writeln(pubArgParser.getUsage());
+    buffer.writeln();
     buffer.write(_listCommands(mainCommands));
     buffer.writeln();
     buffer.writeln(
@@ -59,7 +62,7 @@ abstract class PubCommand {
   /// [commands].
   static void usageErrorWithCommands(Map<String, PubCommand> commands,
                                 String message) {
-    throw new UsageException("$message\n${_listCommands(commands)}");
+    throw new UsageException(message, _listCommands(commands));
   }
 
   /// Writes [commands] in a nicely formatted list to [buffer].
@@ -81,11 +84,10 @@ abstract class PubCommand {
     var isSubcommand = commands != mainCommands;
 
     var buffer = new StringBuffer();
-    buffer.writeln();
     buffer.writeln('Available ${isSubcommand ? "sub" : ""}commands:');
     for (var name in names) {
       buffer.writeln('  ${padRight(name, length)}   '
-          '${commands[name].description}');
+          '${commands[name].description.split("\n").first}');
     }
 
     return buffer.toString();
@@ -178,19 +180,41 @@ abstract class PubCommand {
     // Leaf commands should override this and non-leaf commands should never
     // call it.
     assert(false);
+    return null;
   }
 
   /// Displays usage information for this command.
+  ///
+  /// If [description] is omitted, defaults to the command's description.
   void printUsage([String description]) {
     if (description == null) description = this.description;
     log.message('$description\n\n${_getUsage()}');
   }
 
   // TODO(rnystrom): Use this in other places handle usage failures.
-  /// Throw an [ApplicationException] for a usage error of this command with
+  /// Throw a [UsageException] for a usage error of this command with
   /// [message].
   void usageError(String message) {
-    throw new UsageException("$message\n\n${_getUsage()}");
+    throw new UsageException(message, _getUsage());
+  }
+
+  /// Throw a [DataException] with [message] to indicate that the command has
+  /// failed because of invalid input data.
+  ///
+  /// This will report the error and cause pub to exit with [exit_codes.DATA].
+  void dataError(String message) {
+    throw new DataException(message);
+  }
+
+  /// Parses a user-supplied integer [intString] named [name].
+  ///
+  /// If the parsing fails, prints a usage message and exits.
+  int parseInt(String intString, String name) {
+    try {
+      return int.parse(intString);
+    } on FormatException catch (_) {
+      usageError('Could not parse $name "$intString".');
+    }
   }
 
   /// Generates a string of usage information for this command.
@@ -200,8 +224,8 @@ abstract class PubCommand {
 
     var commandUsage = commandParser.getUsage();
     if (!commandUsage.isEmpty) {
-      buffer.write('\n');
-      buffer.write(commandUsage);
+      buffer.writeln();
+      buffer.writeln(commandUsage);
     }
 
     if (subcommands.isNotEmpty) {
@@ -219,6 +243,7 @@ _initCommands() {
     'cache': new CacheCommand(),
     'get': new GetCommand(),
     'help': new HelpCommand(),
+    'deps': new DepsCommand(),
     'list-package-dirs': new ListPackageDirsCommand(),
     'publish': new LishCommand(),
     'serve': new ServeCommand(),

@@ -24,12 +24,7 @@ import com.google.dart.engine.element.NamespaceCombinator;
  * 
  * @coverage dart.engine.element
  */
-public class ExportElementImpl extends ElementImpl implements ExportElement {
-  /**
-   * The URI that is specified by this directive.
-   */
-  private String uri;
-
+public class ExportElementImpl extends UriReferencedElementImpl implements ExportElement {
   /**
    * The library that is exported from this library by this export directive.
    */
@@ -45,7 +40,7 @@ public class ExportElementImpl extends ElementImpl implements ExportElement {
    * Initialize a newly created export element.
    */
   public ExportElementImpl() {
-    super(null);
+    super(null, -1);
   }
 
   @Override
@@ -68,11 +63,6 @@ public class ExportElementImpl extends ElementImpl implements ExportElement {
     return ElementKind.EXPORT;
   }
 
-  @Override
-  public String getUri() {
-    return uri;
-  }
-
   /**
    * Set the combinators that were specified as part of the export directive to the given array of
    * combinators.
@@ -91,15 +81,6 @@ public class ExportElementImpl extends ElementImpl implements ExportElement {
    */
   public void setExportedLibrary(LibraryElement exportedLibrary) {
     this.exportedLibrary = exportedLibrary;
-  }
-
-  /**
-   * Set the URI that is specified by this directive.
-   * 
-   * @param uri the URI that is specified by this directive.
-   */
-  public void setUri(String uri) {
-    this.uri = uri;
   }
 
   @Override

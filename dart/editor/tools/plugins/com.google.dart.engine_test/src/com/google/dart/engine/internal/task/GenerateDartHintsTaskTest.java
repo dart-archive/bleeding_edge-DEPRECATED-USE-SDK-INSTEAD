@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.ChangeSet;
@@ -23,7 +24,6 @@ import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 
 import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
@@ -31,18 +31,8 @@ import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 import java.util.HashMap;
 
 public class GenerateDartHintsTaskTest extends EngineTestCase {
-  /**
-   * The source factory associated with the analysis context.
-   */
-  private SourceFactory sourceFactory;
-
-  /**
-   * The change set to which sources will be added.
-   */
-  private ChangeSet changeSet;
-
   public void test_accept() throws AnalysisException {
-    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null);
+    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null, null);
     assertTrue(task.accept(new TestTaskVisitor<Boolean>() {
       @Override
       public Boolean visitGenerateDartHintsTask(GenerateDartHintsTask task)
@@ -53,38 +43,53 @@ public class GenerateDartHintsTaskTest extends EngineTestCase {
   }
 
   public void test_getException() {
-    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null);
+    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null, null);
     assertNull(task.getException());
   }
 
   public void test_getHintMap() {
-    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null);
+    GenerateDartHintsTask task = new GenerateDartHintsTask(null, null, null);
     assertNull(task.getHintMap());
   }
 
   public void test_getLibraryElement() {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     LibraryElement element = library(context, "lib");
-    GenerateDartHintsTask task = new GenerateDartHintsTask(context, element);
+    GenerateDartHintsTask task = new GenerateDartHintsTask(context, null, element);
     assertSame(element, task.getLibraryElement());
   }
 
   public void test_perform() throws AnalysisException {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-    sourceFactory = context.getSourceFactory();
-    changeSet = new ChangeSet();
-    final Source librarySource = cacheSource("/test.dart", createSource(//
+    ChangeSet changeSet = new ChangeSet();
+    final Source librarySource = new FileBasedSource(createFile("/test.dart"));
+    changeSet.addedSource(librarySource);
+    Source unusedSource = new FileBasedSource(createFile("/unused.dart"));
+    changeSet.addedSource(unusedSource);
+    final Source partSource = new FileBasedSource(createFile("/part.dart"));
+    changeSet.addedSource(partSource);
+    context.applyChanges(changeSet);
+
+    context.setContents(librarySource, createSource(//
         "library lib;",
         "import 'unused.dart';",
         "part 'part.dart';"));
-    cacheSource("/unused.dart", createSource(//
+    context.setContents(unusedSource, createSource(//
         "library unused;"));
-    final Source partSource = cacheSource("/part.dart", createSource(//
+    context.setContents(partSource, createSource(//
         "part of lib;"));
-    context.applyChanges(changeSet);
 
+    @SuppressWarnings("unchecked")
+    TimestampedData<CompilationUnit>[] units = new TimestampedData[2];
+    units[0] = new TimestampedData<CompilationUnit>(
+        context.getModificationStamp(librarySource),
+        context.resolveCompilationUnit(librarySource, librarySource));
+    units[1] = new TimestampedData<CompilationUnit>(
+        context.getModificationStamp(partSource),
+        context.resolveCompilationUnit(partSource, librarySource));
     GenerateDartHintsTask task = new GenerateDartHintsTask(
         context,
+        units,
         context.computeLibraryElement(librarySource));
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
@@ -96,26 +101,11 @@ public class GenerateDartHintsTaskTest extends EngineTestCase {
         }
         assertNotNull(task.getLibraryElement());
         HashMap<Source, TimestampedData<AnalysisError[]>> hintMap = task.getHintMap();
-        assertSize(2, hintMap);
+        assertSizeOfMap(2, hintMap);
         assertLength(1, hintMap.get(librarySource).getData());
         assertLength(0, hintMap.get(partSource).getData());
         return true;
       }
     });
-  }
-
-  /**
-   * Cache the source file content in the source factory but don't add the source to the analysis
-   * context. The file path should be absolute.
-   * 
-   * @param filePath the path of the file being cached
-   * @param contents the contents to be returned by the content provider for the specified file
-   * @return the source object representing the cached file
-   */
-  protected Source cacheSource(String filePath, String contents) {
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
-    sourceFactory.setContents(source, contents);
-    changeSet.added(source);
-    return source;
   }
 }

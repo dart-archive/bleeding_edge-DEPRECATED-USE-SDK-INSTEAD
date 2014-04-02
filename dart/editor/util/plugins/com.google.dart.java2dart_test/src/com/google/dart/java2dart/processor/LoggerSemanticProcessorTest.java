@@ -28,7 +28,7 @@ public class LoggerSemanticProcessorTest extends SemanticProcessorTest {
     runProcessor();
     assertFormattedSource(//
         "class Test {",
-        "  static Logger LOGGER = new Logger('Test');",
+        "  static Logger _LOGGER = new Logger('Test');",
         "}");
   }
 

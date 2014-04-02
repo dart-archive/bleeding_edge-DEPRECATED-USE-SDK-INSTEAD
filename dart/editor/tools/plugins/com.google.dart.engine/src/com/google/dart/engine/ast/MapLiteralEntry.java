@@ -26,7 +26,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * @coverage dart.engine.ast
  */
-public class MapLiteralEntry extends ASTNode {
+public class MapLiteralEntry extends AstNode {
   /**
    * The expression computing the key with which the value will be associated.
    */
@@ -56,7 +56,7 @@ public class MapLiteralEntry extends ASTNode {
   }
 
   @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
+  public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitMapLiteralEntry(this);
   }
 
@@ -127,7 +127,7 @@ public class MapLiteralEntry extends ASTNode {
   }
 
   @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
+  public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(key, visitor);
     safelyVisitChild(value, visitor);
   }

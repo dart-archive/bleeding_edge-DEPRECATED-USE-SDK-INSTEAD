@@ -61,8 +61,7 @@ public enum ResolverErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   private ResolverErrorCode(ErrorType type, String message) {
-    this.type = type;
-    this.message = message;
+    this(type, message, null);
   }
 
   /**

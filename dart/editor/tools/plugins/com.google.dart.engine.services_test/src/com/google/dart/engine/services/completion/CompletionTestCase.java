@@ -22,11 +22,19 @@ import java.util.Collection;
 import java.util.List;
 
 public class CompletionTestCase extends ResolverTestCase {
+  /**
+   * Replaces "!" with the {@link CompletionProposal#CURSOR_MARKER}.
+   */
+  protected static String resultWithCursor(String result) {
+    return result.replace('!', CompletionProposal.CURSOR_MARKER);
+  }
+
   protected static String src(String... parts) {
     return Joiner.on('\n').join(parts);
   }
 
   protected Index index;
+
   protected SearchEngine searchEngine;
 
   @Override

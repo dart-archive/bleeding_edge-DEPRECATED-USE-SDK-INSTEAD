@@ -30,7 +30,8 @@ public class TestAll {
     suite.addTest(com.google.dart.tools.core.dart2js.TestAll.suite());
     //suite.addTest(com.google.dart.tools.core.formatter.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.generator.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.snapshot.TestAll.suite());
+    // The code under test is no longer used, and causes dartbug.com/17587.
+    //suite.addTest(com.google.dart.tools.core.snapshot.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.html.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.TestAll.suite());
     //suite.addTest(com.google.dart.tools.core.model.TestAll.suite());

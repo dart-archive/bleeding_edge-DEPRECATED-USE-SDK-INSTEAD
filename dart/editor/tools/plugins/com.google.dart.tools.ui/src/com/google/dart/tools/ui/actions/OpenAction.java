@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
@@ -40,7 +40,7 @@ public class OpenAction extends AbstractDartSelectionAction {
    */
   private static boolean isValidSelection(DartSelection selection) {
     // if we are already on declaration, we don't need to open anything
-    ASTNode node = getSelectionNode(selection);
+    AstNode node = getSelectionNode(selection);
     if (node instanceof SimpleIdentifier) {
       if (((SimpleIdentifier) node).inDeclarationContext()) {
         return false;
@@ -77,7 +77,7 @@ public class OpenAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    ASTNode node = getSelectionNode(selection);
+    AstNode node = getSelectionNode(selection);
     Element element = getSelectionElement(selection);
     // if are on get FieldFormalParameter, open field instead
     if (node.getParent() instanceof FieldFormalParameter

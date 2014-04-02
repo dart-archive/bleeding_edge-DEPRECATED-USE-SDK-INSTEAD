@@ -317,24 +317,6 @@ class Label : public ValueObject {
 };
 
 
-class CPUFeatures : public AllStatic {
- public:
-  static void InitOnce();
-  // x64 always has at least SSE2.
-  static bool sse2_supported() { return true; }
-  static bool sse4_1_supported();
-  static bool double_truncate_round_supported() { return sse4_1_supported(); }
-
- private:
-  static const uint64_t kSSE4_1BitMask = static_cast<uint64_t>(1) << 51;
-
-  static bool sse4_1_supported_;
-#ifdef DEBUG
-  static bool initialized_;
-#endif
-};
-
-
 class Assembler : public ValueObject {
  public:
   explicit Assembler(bool use_far_branches = false);
@@ -471,6 +453,7 @@ class Assembler : public ValueObject {
   void sqrtpd(XmmRegister dst);
   void cvtps2pd(XmmRegister dst, XmmRegister src);
   void cvtpd2ps(XmmRegister dst, XmmRegister src);
+  void shufpd(XmmRegister dst, XmmRegister src, const Immediate& mask);
 
   void comisd(XmmRegister a, XmmRegister b);
   void cvtsi2sd(XmmRegister a, Register b);
@@ -770,6 +753,13 @@ class Assembler : public ValueObject {
 
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
+
+  // Count the fixups that produce a pointer offset, without processing
+  // the fixups.
+  intptr_t CountPointerOffsets() const {
+    return buffer_.CountPointerOffsets();
+  }
+
   const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
   }

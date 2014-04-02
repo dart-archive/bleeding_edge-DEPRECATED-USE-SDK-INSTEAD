@@ -133,6 +133,9 @@ public class PubPackageManager {
       } catch (UnknownHostException e) {
         // No internet connection... just exit
         break;
+      } catch (IOException e) {
+        // server error ... just exit
+        break;
       }
       BufferedReader br = new BufferedReader(new InputStreamReader(is));
       try {

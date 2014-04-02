@@ -100,6 +100,11 @@ public class VmConnection {
     listeners.add(listener);
   }
 
+  public void callToString(final VmValue object, final VmCallback<VmValue> callback)
+      throws IOException {
+    evaluateObject(object.getIsolate(), object, "toString()", callback);
+  }
+
   public void close() throws IOException {
     if (socket != null) {
       socket.close();
@@ -1041,7 +1046,7 @@ public class VmConnection {
     if (object.has("result")) {
       JSONObject jsonResult = object.getJSONObject("result");
 
-      result.setResult(VmVariable.createFrom(isolate, jsonResult.optJSONArray("globals"), true));
+      result.setResult(VmVariable.createFrom(isolate, jsonResult.optJSONArray("globals"), false));
     }
 
     return result;

@@ -23,7 +23,7 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -221,6 +221,45 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_entryPoint_exported() throws Exception {
+    addNamedSource("/two.dart", createSource(//
+        "library two;",
+        "main() {}"));
+    Source source = addNamedSource("/one.dart", createSource(//
+        "library one;",
+        "export 'two.dart';"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    FunctionElement main = library.getEntryPoint();
+    assertNotNull(main);
+    assertNotSame(library, main.getLibrary());
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_entryPoint_local() throws Exception {
+    Source source = addNamedSource("/one.dart", createSource(//
+        "library one;",
+        "main() {}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    FunctionElement main = library.getEntryPoint();
+    assertNotNull(main);
+    assertSame(library, main.getLibrary());
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_entryPoint_none() throws Exception {
+    Source source = addNamedSource("/one.dart", createSource(//
+        "library one;"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    assertNull(library.getEntryPoint());
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_extractedMethodAsConstant() throws Exception {
     Source source = addSource(createSource(//
         "abstract class Comparable<T> {",
@@ -316,14 +355,14 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_import_hide() throws Exception {
-    addSource("lib1.dart", createSource(//
+    addNamedSource("lib1.dart", createSource(//
         "library lib1;",
         "set foo(value) {}",
         "class A {}"));
-    addSource("lib2.dart", createSource(//
+    addNamedSource("lib2.dart", createSource(//
         "library lib2;",
         "set foo(value) {}"));
-    Source source = addSource("lib3.dart", createSource(//
+    Source source = addNamedSource("lib3.dart", createSource(//
         "import 'lib1.dart' hide foo;",
         "import 'lib2.dart';",
         "",
@@ -337,12 +376,12 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_import_prefix() throws Exception {
-    addSource("/two.dart", createSource(//
+    addNamedSource("/two.dart", createSource(//
         "library two;",
         "f(int x) {",
         "  return x * x;",
         "}"));
-    Source source = addSource("/one.dart", createSource(//
+    Source source = addNamedSource("/one.dart", createSource(//
         "library one;",
         "import 'two.dart' as _two;",
         "main() {",
@@ -354,10 +393,10 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_import_spaceInUri() throws Exception {
-    addSource("sub folder/lib.dart", createSource(//
+    addNamedSource("sub folder/lib.dart", createSource(//
         "library lib;",
         "foo() {}"));
-    Source source = addSource("app.dart", createSource(//
+    Source source = addNamedSource("app.dart", createSource(//
         "import 'sub folder/lib.dart';",
         "",
         "main() {",
@@ -523,7 +562,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertNotNull(unit);
     final boolean[] found = {false};
     final AnalysisException[] thrownException = new AnalysisException[1];
-    unit.accept(new RecursiveASTVisitor<Void>() {
+    unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
         if (node.getName().equals("myVar") && node.getParent() instanceof MethodInvocation) {

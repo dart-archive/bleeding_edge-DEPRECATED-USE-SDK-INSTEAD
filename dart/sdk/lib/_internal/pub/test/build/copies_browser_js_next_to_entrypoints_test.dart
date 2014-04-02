@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
+import 'utils.dart';
 
 main() {
   initConfig();
@@ -17,40 +16,11 @@ main() {
     // timeout to cope with that.
     currentSchedule.timeout *= 3;
 
-    serve([
-      d.dir('api', [
-        d.dir('packages', [
-          d.file('browser', JSON.encode({
-            'versions': [packageVersionApiMap(packageMap('browser', '1.0.0'))]
-          })),
-          d.dir('browser', [
-            d.dir('versions', [
-              d.file('1.0.0', JSON.encode(
-                  packageVersionApiMap(
-                      packageMap('browser', '1.0.0'),
-                      full: true)))
-            ])
-          ])
-        ])
-      ]),
-      d.dir('packages', [
-        d.dir('browser', [
-          d.dir('versions', [
-            d.tar('1.0.0.tar.gz', [
-              d.file('pubspec.yaml', yaml(packageMap("browser", "1.0.0"))),
-              d.dir('lib', [
-                d.file('dart.js', 'contents of dart.js'),
-                d.file('interop.js', 'contents of interop.js')
-              ])
-            ])
-          ])
-        ])
-      ])
-    ]);
+    serveBrowserPackage();
 
     d.dir(appPath, [
       d.appPubspec({"browser": "1.0.0"}),
-      d.dir('example', [
+      d.dir('foo', [
         d.file('file.dart', 'void main() => print("hello");'),
         d.dir('subdir', [
           d.file('subfile.dart', 'void main() => print("subhello");')
@@ -66,15 +36,14 @@ main() {
 
     pubGet();
 
-    schedulePub(args: ["build", "--all"],
-        output: new RegExp(r"Built 20 files!"));
+    schedulePub(args: ["build", "foo", "web"],
+        output: new RegExp(r'Built 16 files to "build".'));
 
     d.dir(appPath, [
       d.dir('build', [
-        d.dir('example', [
+        d.dir('foo', [
           d.matcherFile('file.dart.js', isNot(isEmpty)),
           d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
-          d.matcherFile('file.dart.js.map', isNot(isEmpty)),
           d.dir('packages', [d.dir('browser', [
             d.file('dart.js', 'contents of dart.js'),
             d.file('interop.js', 'contents of interop.js')
@@ -86,13 +55,11 @@ main() {
             ])]),
             d.matcherFile('subfile.dart.js', isNot(isEmpty)),
             d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
-            d.matcherFile('subfile.dart.js.map', isNot(isEmpty))
           ])
         ]),
         d.dir('web', [
           d.matcherFile('file.dart.js', isNot(isEmpty)),
           d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
-          d.matcherFile('file.dart.js.map', isNot(isEmpty)),
           d.dir('packages', [d.dir('browser', [
             d.file('dart.js', 'contents of dart.js'),
             d.file('interop.js', 'contents of interop.js')
@@ -103,8 +70,7 @@ main() {
               d.file('interop.js', 'contents of interop.js')
             ])]),
             d.matcherFile('subfile.dart.js', isNot(isEmpty)),
-            d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
-            d.matcherFile('subfile.dart.js.map', isNot(isEmpty))
+            d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty))
           ])
         ])
       ])

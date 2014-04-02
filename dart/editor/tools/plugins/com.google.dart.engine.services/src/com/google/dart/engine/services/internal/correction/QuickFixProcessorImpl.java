@@ -19,8 +19,10 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
+import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -28,12 +30,15 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorInitializer;
+import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -42,6 +47,7 @@ import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.TypeName;
@@ -73,7 +79,9 @@ import com.google.dart.engine.error.ErrorProperty;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
+import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.SdkLibrary;
 import com.google.dart.engine.services.assist.AssistContext;
@@ -158,6 +166,21 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
+  /**
+   * Described location for newly created {@link ConstructorDeclaration}.
+   */
+  private static class NewConstructorLocation {
+    final String prefix;
+    final int offset;
+    final String suffix;
+
+    public NewConstructorLocation(String prefix, int offset, String suffix) {
+      this.prefix = prefix;
+      this.offset = offset;
+      this.suffix = suffix;
+    }
+  }
+
   private static final CorrectionProposal[] NO_PROPOSALS = {};
 
   /**
@@ -207,7 +230,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
    * @return the "package" {@link URI}, may be {@code null}.
    */
   private static URI findPackageUri(AnalysisContext context, File file) {
-    Source fileSource = new FileBasedSource(null, file);
+    Source fileSource = new FileBasedSource(file);
     return context.getSourceFactory().restoreUri(fileSource);
   }
 
@@ -226,9 +249,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   /**
    * @return <code>true</code> if given {@link DartNode} could be type name.
    */
-  private static boolean mayBeTypeIdentifier(ASTNode node) {
+  private static boolean mayBeTypeIdentifier(AstNode node) {
     if (node instanceof SimpleIdentifier) {
-      ASTNode parent = node.getParent();
+      AstNode parent = node.getParent();
       if (parent instanceof TypeName) {
         return true;
       }
@@ -252,96 +275,20 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private LibraryElement unitLibraryElement;
   private File unitFile;
   private File unitLibraryFile;
+
   private File unitLibraryFolder;
+  private AstNode node;
 
-//  private SourceRange proposalEndRange = null;
-
-  private ASTNode node;
-  private ASTNode coveredNode;
-
+  private AstNode coveredNode;
   private int selectionOffset;
   private int selectionLength;
+
   private CorrectionUtils utils;
 
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
-
-  // TODO(scheglov) implement this
-//  private void addFix_createConstructor() {
-//    DartNewExpression newExpression = null;
-//    DartNode nameNode = null;
-//    String namePrefix = null;
-//    String name = null;
-//    // prepare "new X()"
-//    if (node instanceof DartIdentifier && node.getParent().getParent() instanceof DartNewExpression) {
-//      newExpression = (DartNewExpression) node.getParent().getParent();
-//      // default constructor
-//      if (node.getParent() instanceof DartTypeNode) {
-//        namePrefix = ((DartIdentifier) node).getName();
-//        name = "";
-//      }
-//      // named constructor
-//      if (node.getParent() instanceof DartPropertyAccess) {
-//        DartPropertyAccess constructorNameNode = (DartPropertyAccess) node.getParent();
-//        nameNode = constructorNameNode.getName();
-//        namePrefix = constructorNameNode.getQualifier().toSource() + ".";
-//        name = constructorNameNode.getName().getName();
-//      }
-//    }
-//    // prepare environment
-//    String eol = utils.getEndOfLine();
-//    String prefix = "  ";
-//    CompilationUnit targetUnit;
-//    SourceRange range;
-//    {
-//      ClassElement targetElement = (ClassElement) newExpression.getType().getElement();
-//      {
-//        SourceInfo targetSourceInfo = targetElement.getSourceInfo();
-//        Source targetSource = targetSourceInfo.getSource();
-//        IResource targetResource = ResourceUtil.getResource(targetSource);
-//        targetUnit = (CompilationUnit) DartCore.create(targetResource);
-//      }
-//      range = SourceRangeFactory.forStartLength(
-//          targetElement.getOpenBraceOffset() + "{".length(),
-//          0);
-//    }
-//    // build source
-//    SourceBuilder sb = new SourceBuilder(range);
-//    {
-//      sb.append(eol);
-//      sb.append(prefix);
-//      // append name
-//      {
-//        sb.append(namePrefix);
-//        if (name != null) {
-//          sb.startPosition("NAME");
-//          sb.append(name);
-//          sb.endPosition();
-//        }
-//      }
-//      addFix_unresolvedMethodCreate_parameters(sb, newExpression);
-//      sb.append(") {" + eol + prefix + "}");
-//      sb.append(eol);
-//    }
-//    // insert source
-//    addReplaceEdit(range, sb.toString());
-//    // add linked positions
-//    // TODO(scheglov) disabled, caused exception in old model, don't know why
-////    if (Objects.equal(targetUnit, unit) && nameNode != null) {
-////      addLinkedPosition("NAME", TrackedPositions.forNode(nameNode));
-////    }
-//    addLinkedPositions(sb);
-//    // add proposal
-//    {
-//      String msg = Messages.format(
-//          CorrectionMessages.QuickFixProcessor_createConstructor,
-//          namePrefix + name);
-//      addUnitCorrectionProposal(targetUnit, TextFileChange.FORCE_SAVE, msg, OBJ_CONSTRUCTOR_IMG);
-//    }
-//  }
-
   private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
-
   private final Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
+  private SourceRange endRange = null;
 
   @Override
   public CorrectionProposal[] computeProposals(AssistContext context, AnalysisError problem)
@@ -377,7 +324,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
     // prepare CorrectionUtils
     utils = new CorrectionUtils(unit);
-    node = utils.findNode(selectionOffset, ASTNode.class);
+    node = utils.findNode(selectionOffset, AstNode.class);
     coveredNode = new NodeLocator(selectionOffset, selectionOffset + selectionLength).searchWithin(unit);
     //
     final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
@@ -413,6 +360,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (errorCode == HintCode.UNNECESSARY_CAST) {
         addFix_removeUnnecessaryCast();
       }
+      if (errorCode == HintCode.UNUSED_IMPORT) {
+        addFix_removeUnusedImport();
+      }
       if (errorCode == ParserErrorCode.EXPECTED_TOKEN) {
         addFix_insertSemicolon();
       }
@@ -421,6 +371,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
       if (errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER) {
         addFix_makeEnclosingClassAbstract();
+      }
+      if (errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS) {
+        addFix_createConstructor_insteadOfSyntheticDefault();
+      }
+      if (errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR) {
+        addFix_createConstructor_named();
       }
       if (errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
           || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO
@@ -434,6 +390,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         Object property = errorWithProperties.getProperty(ErrorProperty.UNIMPLEMENTED_METHODS);
         ExecutableElement[] missingOverrides = (ExecutableElement[]) property;
         addFix_createMissingOverrides(missingOverrides);
+        addFix_createNoSuchMethod();
       }
       if (errorCode == StaticWarningCode.UNDEFINED_CLASS) {
         addFix_importLibrary_withType();
@@ -492,8 +449,11 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == HintCode.DIVISION_OPTIMIZATION
         || errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL || errorCode == HintCode.TYPE_CHECK_IS_NULL
         || errorCode == HintCode.UNNECESSARY_CAST || errorCode == ParserErrorCode.EXPECTED_TOKEN
+        || errorCode == HintCode.UNUSED_IMPORT
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
         || errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+        || errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS
+        || errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR
         || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
         || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO
         || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE
@@ -568,6 +528,132 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       // add proposal
       addUnitCorrectionProposal(CorrectionKind.QF_CREATE_CLASS, name);
     }
+  }
+
+  private void addFix_createConstructor_insteadOfSyntheticDefault() throws Exception {
+    TypeName typeName = null;
+    ConstructorName constructorName = null;
+    InstanceCreationExpression instanceCreation = null;
+    if (node instanceof SimpleIdentifier) {
+      if (node.getParent() instanceof TypeName) {
+        typeName = (TypeName) node.getParent();
+        if (typeName.getName() == node && typeName.getParent() instanceof ConstructorName) {
+          constructorName = (ConstructorName) typeName.getParent();
+          // should be synthetic default constructor
+          {
+            ConstructorElement constructorElement = constructorName.getStaticElement();
+            if (constructorElement == null || !constructorElement.isDefaultConstructor()
+                || !constructorElement.isSynthetic()) {
+              return;
+            }
+          }
+          // prepare InstanceCreationExpression
+          if (constructorName.getParent() instanceof InstanceCreationExpression) {
+            instanceCreation = (InstanceCreationExpression) constructorName.getParent();
+            if (instanceCreation.getConstructorName() != constructorName) {
+              return;
+            }
+          }
+        }
+      }
+    }
+    // do we have enough information?
+    if (instanceCreation == null) {
+      return;
+    }
+    // prepare environment
+    String eol = utils.getEndOfLine();
+    // prepare target
+    Type targetType = typeName.getType();
+    if (!(targetType instanceof InterfaceType)) {
+      return;
+    }
+    ClassElement targetElement = (ClassElement) targetType.getElement();
+    Source targetSource = targetElement.getSource();
+    ClassDeclaration targetClass = targetElement.getNode();
+    NewConstructorLocation targetLocation = prepareNewConstructorLocation(targetClass, eol);
+    // build method source
+    SourceBuilder sb = new SourceBuilder(targetLocation.offset);
+    {
+      String indent = "  ";
+      sb.append(targetLocation.prefix);
+      sb.append(indent);
+      sb.append(targetElement.getName());
+      addFix_undefinedMethod_create_parameters(sb, instanceCreation.getArgumentList());
+      sb.append(") {" + eol + indent + "}");
+      sb.append(targetLocation.suffix);
+    }
+    // insert source
+    addInsertEdit(sb);
+    // add linked positions
+    addLinkedPositions(sb);
+    // add proposal
+    addUnitCorrectionProposal(targetSource, CorrectionKind.QF_CREATE_CONSTRUCTOR, constructorName);
+  }
+
+  private void addFix_createConstructor_named() throws Exception {
+    SimpleIdentifier name = null;
+    ConstructorName constructorName = null;
+    InstanceCreationExpression instanceCreation = null;
+    if (node instanceof SimpleIdentifier) {
+      // name
+      name = (SimpleIdentifier) node;
+      if (name.getParent() instanceof ConstructorName) {
+        constructorName = (ConstructorName) name.getParent();
+        if (constructorName.getName() == name) {
+          // Type.name
+          if (constructorName.getParent() instanceof InstanceCreationExpression) {
+            instanceCreation = (InstanceCreationExpression) constructorName.getParent();
+            // new Type.name()
+            if (instanceCreation.getConstructorName() != constructorName) {
+              return;
+            }
+          }
+        }
+      }
+    }
+    // do we have enough information?
+    if (instanceCreation == null) {
+      return;
+    }
+    // prepare environment
+    String eol = utils.getEndOfLine();
+    // prepare target interface type
+    Type targetType = constructorName.getType().getType();
+    if (!(targetType instanceof InterfaceType)) {
+      return;
+    }
+    ClassElement targetElement = (ClassElement) targetType.getElement();
+    Source targetSource = targetElement.getSource();
+    ClassDeclaration targetClass = targetElement.getNode();
+    NewConstructorLocation targetLocation = prepareNewConstructorLocation(targetClass, eol);
+    // build method source
+    SourceBuilder sb = new SourceBuilder(targetLocation.offset);
+    {
+      String indent = "  ";
+      sb.append(targetLocation.prefix);
+      sb.append(indent);
+      sb.append(targetElement.getName());
+      sb.append(".");
+      // append name
+      {
+        sb.startPosition("NAME");
+        sb.append(name.getName());
+        sb.endPosition();
+      }
+      addFix_undefinedMethod_create_parameters(sb, instanceCreation.getArgumentList());
+      sb.append(") {" + eol + indent + "}");
+      sb.append(targetLocation.suffix);
+    }
+    // insert source
+    addInsertEdit(sb);
+    // add linked positions
+    if (Objects.equal(targetSource, source)) {
+      addLinkedPosition("NAME", sb, rangeNode(name));
+    }
+    addLinkedPositions(sb);
+    // add proposal
+    addUnitCorrectionProposal(targetSource, CorrectionKind.QF_CREATE_CONSTRUCTOR, constructorName);
   }
 
   /**
@@ -679,12 +765,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         argumentsBuffer.append(parameterName);
       }
       // add proposal
-      int insertOffset = targetClassNode.getLeftBracket().getEnd();
-      SourceBuilder sb = new SourceBuilder(insertOffset);
+      String eol = utils.getEndOfLine();
+      NewConstructorLocation targetLocation = prepareNewConstructorLocation(targetClassNode, eol);
+      SourceBuilder sb = new SourceBuilder(targetLocation.offset);
       {
-        String eol = utils.getEndOfLine();
         String indent = utils.getIndent(1);
-        sb.append(eol);
+        sb.append(targetLocation.prefix);
         sb.append(indent);
         sb.append(targetClassName);
         if (!constructorName.isEmpty()) {
@@ -703,9 +789,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         sb.append("(");
         sb.append(argumentsBuffer);
         sb.append(");");
-        if (!targetClassNode.getMembers().isEmpty()) {
-          sb.append(eol);
-        }
+        sb.append(targetLocation.suffix);
       }
       addInsertEdit(sb);
       // add proposal
@@ -838,6 +922,35 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     sb.append(eol);
     // done
     addInsertEdit(insertOffset, sb.toString());
+    // maybe set end range
+    if (endRange == null) {
+      endRange = rangeStartLength(insertOffset, 0);
+    }
+  }
+
+  private void addFix_createNoSuchMethod() throws Exception {
+    ClassDeclaration targetClass = (ClassDeclaration) node.getParent();
+    // prepare environment
+    String eol = utils.getEndOfLine();
+    String prefix = utils.getIndent(1);
+    int insertOffset = targetClass.getEnd() - 1;
+    // prepare source
+    SourceBuilder sb = new SourceBuilder(insertOffset);
+    {
+      // insert empty line before existing member
+      if (!targetClass.getMembers().isEmpty()) {
+        sb.append(eol);
+      }
+      // append method
+      sb.append(prefix);
+      sb.append("noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);");
+      sb.append(eol);
+    }
+    // done
+    addInsertEdit(sb);
+    endRange = rangeStartLength(insertOffset, 0);
+    // add proposal
+    addUnitCorrectionProposal(CorrectionKind.QF_CREATE_NO_SUCH_METHOD);
   }
 
   private void addFix_createPart() throws Exception {
@@ -1126,6 +1239,18 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     addUnitCorrectionProposal(CorrectionKind.QF_REMOVE_UNNECASSARY_CAST);
   }
 
+  private void addFix_removeUnusedImport() {
+    // prepare ImportDirective
+    ImportDirective importDirective = node.getAncestor(ImportDirective.class);
+    if (importDirective == null) {
+      return;
+    }
+    // remove the whole line with import
+    addRemoveEdit(utils.getLinesRange(rangeNode(importDirective)));
+    // done
+    addUnitCorrectionProposal(CorrectionKind.QF_REMOVE_UNUSED_IMPORT);
+  }
+
   private void addFix_undefinedClass_useSimilar() {
     if (mayBeTypeIdentifier(node)) {
       String name = ((SimpleIdentifier) node).getName();
@@ -1177,7 +1302,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     String eol = utils.getEndOfLine();
     int insertOffset;
     String sourcePrefix;
-    ASTNode enclosingMember = node.getAncestor(CompilationUnitMember.class);
+    AstNode enclosingMember = node.getAncestor(CompilationUnitMember.class);
     insertOffset = enclosingMember.getEnd();
     sourcePrefix = eol + eol;
     // build method source
@@ -1203,7 +1328,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         sb.append(name);
         sb.endPosition();
       }
-      addFix_undefinedMethod_create_parameters(sb, invocation);
+      addFix_undefinedMethod_create_parameters(sb, invocation.getArgumentList());
       sb.append(") {" + eol + "}");
     }
     // insert source
@@ -1316,7 +1441,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
           sb.append(name);
           sb.endPosition();
         }
-        addFix_undefinedMethod_create_parameters(sb, invocation);
+        addFix_undefinedMethod_create_parameters(sb, invocation.getArgumentList());
         sb.append(") {" + eol + prefix + "}");
         sb.append(sourceSuffix);
       }
@@ -1336,8 +1461,19 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
    * @return the possible return {@link Type}, may be <code>null</code> if can not be identified.
    */
   private Type addFix_undefinedMethod_create_getReturnType(MethodInvocation invocation) {
-    if (invocation.getParent() instanceof VariableDeclaration) {
-      VariableDeclaration variableDeclaration = (VariableDeclaration) invocation.getParent();
+    AstNode parent = invocation.getParent();
+    // myFunction();
+    if (parent instanceof ExpressionStatement) {
+      return VoidTypeImpl.getInstance();
+    }
+    // return myFunction();
+    if (parent instanceof ReturnStatement) {
+      ExecutableElement executable = CorrectionUtils.getEnclosingExecutableElement(invocation);
+      return executable != null ? executable.getReturnType() : null;
+    }
+    // int v = myFunction();
+    if (parent instanceof VariableDeclaration) {
+      VariableDeclaration variableDeclaration = (VariableDeclaration) parent;
       if (variableDeclaration.getInitializer() == invocation) {
         VariableElement variableElement = variableDeclaration.getElement();
         if (variableElement != null) {
@@ -1345,15 +1481,53 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         }
       }
     }
+    // v = myFunction();
+    if (parent instanceof AssignmentExpression) {
+      AssignmentExpression assignment = (AssignmentExpression) parent;
+      if (assignment.getRightHandSide() == invocation) {
+        if (assignment.getOperator().getType() == TokenType.EQ) {
+          // v = myFunction();
+          Expression lhs = assignment.getLeftHandSide();
+          if (lhs != null) {
+            return lhs.getBestType();
+          }
+        } else {
+          // v += myFunction();
+          MethodElement method = assignment.getBestElement();
+          if (method != null) {
+            ParameterElement[] parameters = method.getParameters();
+            if (parameters.length == 1) {
+              return parameters[0].getType();
+            }
+          }
+        }
+      }
+    }
+    // v + myFunction();
+    if (parent instanceof BinaryExpression) {
+      BinaryExpression binary = (BinaryExpression) parent;
+      MethodElement method = binary.getBestElement();
+      if (method != null) {
+        if (binary.getRightOperand() == invocation) {
+          ParameterElement[] parameters = method.getParameters();
+          return parameters.length == 1 ? parameters[0].getType() : null;
+        }
+      }
+    }
+    // foo( myFunction() );
+    if (parent instanceof ArgumentList) {
+      ParameterElement parameter = invocation.getBestParameterElement();
+      return parameter != null ? parameter.getType() : null;
+    }
+    // we don't know
     return null;
   }
 
-  private void addFix_undefinedMethod_create_parameters(SourceBuilder sb,
-      MethodInvocation invocation) {
+  private void addFix_undefinedMethod_create_parameters(SourceBuilder sb, ArgumentList argumentList) {
     // append parameters
     sb.append("(");
     Set<String> excluded = Sets.newHashSet();
-    List<Expression> arguments = invocation.getArgumentList().getArguments();
+    List<Expression> arguments = argumentList.getArguments();
     for (int i = 0; i < arguments.size(); i++) {
       Expression argument = arguments.get(i);
       // append separator
@@ -1414,7 +1588,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   }
 
   private void addFix_useEffectiveIntegerDivision() throws Exception {
-    for (ASTNode n = node; n != null; n = n.getParent()) {
+    for (AstNode n = node; n != null; n = n.getParent()) {
       if (n instanceof MethodInvocation && n.getOffset() == selectionOffset
           && n.getLength() == selectionLength) {
         MethodInvocation invocation = (MethodInvocation) n;
@@ -1698,9 +1872,8 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       SourceCorrectionProposal proposal = new SourceCorrectionProposal(change, kind, arguments);
       proposal.setLinkedPositions(linkedPositions);
       proposal.setLinkedPositionProposals(linkedPositionProposals);
+      proposal.setEndRange(endRange);
       // done
-      proposal.setLinkedPositions(linkedPositions);
-      proposal.setLinkedPositionProposals(linkedPositionProposals);
       proposals.add(proposal);
     }
     // reset
@@ -1808,7 +1981,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         Source source = parameter.getSource();
         String sourceContent = sourceContentMap.get(source);
         if (sourceContent == null) {
-          sourceContent = CorrectionUtils.getSourceContent(source);
+          sourceContent = CorrectionUtils.getSourceContent(parameter.getContext(), source);
           sourceContentMap.put(source, sourceContent);
         }
         String valueSource = sourceContent.substring(valueRange.getOffset(), valueRange.getEnd());
@@ -1841,6 +2014,27 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     return false;
   }
 
+  private NewConstructorLocation prepareNewConstructorLocation(ClassDeclaration classDeclaration,
+      String eol) {
+    List<ClassMember> members = classDeclaration.getMembers();
+    // find the last field/constructor
+    ClassMember lastFieldOrConstructor = null;
+    for (ClassMember member : members) {
+      if (member instanceof FieldDeclaration || member instanceof ConstructorDeclaration) {
+        lastFieldOrConstructor = member;
+      } else {
+        break;
+      }
+    }
+    // after the field/constructor
+    if (lastFieldOrConstructor != null) {
+      return new NewConstructorLocation(eol + eol, lastFieldOrConstructor.getEnd(), "");
+    }
+    // at the beginning of the class
+    String suffix = members.isEmpty() ? "" : eol;
+    return new NewConstructorLocation(eol, classDeclaration.getLeftBracket().getEnd(), suffix);
+  }
+
   /**
    * Removes any {@link ParenthesizedExpression} enclosing the given {@link Expression}.
    * 
@@ -1865,7 +2059,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     linkedPositions.clear();
     positionStopEdits.clear();
     linkedPositionProposals.clear();
-//    proposalEndRange = null;
+    endRange = null;
   }
 
   private void updateFinderWithClassMembers(final ClosestElementFinder finder,

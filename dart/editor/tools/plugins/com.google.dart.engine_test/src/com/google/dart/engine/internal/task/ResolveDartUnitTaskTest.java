@@ -19,6 +19,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
@@ -77,7 +78,7 @@ public class ResolveDartUnitTaskTest extends EngineTestCase {
     LibraryElementImpl element = library(context, "lib");
     final Source source = new TestSource() {
       @Override
-      public void getContents(ContentReceiver receiver) throws Exception {
+      public TimestampedData<CharSequence> getContents() throws Exception {
         throw new IOException();
       }
     };
@@ -93,7 +94,7 @@ public class ResolveDartUnitTaskTest extends EngineTestCase {
   }
 
   public void xtest_perform_library() throws AnalysisException {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    final InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     LibraryElementImpl libraryElement = library(context, "lib");
     CompilationUnitElementImpl unitElement = (CompilationUnitElementImpl) libraryElement.getDefiningCompilationUnit();
     ClassElementImpl classElement = classElement("A");
@@ -103,7 +104,7 @@ public class ResolveDartUnitTaskTest extends EngineTestCase {
     classElement.setConstructors(new ConstructorElement[] {constructorElement});
     unitElement.setTypes(new ClassElement[] {classElement});
     final Source source = unitElement.getSource();
-    context.getSourceFactory().getContentCache().setContents(source, createSource(//
+    context.setContents(source, createSource(//
         "library lib;",
         "class A {}"));
     ResolveDartUnitTask task = new ResolveDartUnitTask(context, source, libraryElement);
@@ -115,7 +116,7 @@ public class ResolveDartUnitTaskTest extends EngineTestCase {
           throw exception;
         }
         assertSame(source, task.getLibrarySource());
-        assertEquals(source.getModificationStamp(), task.getModificationTime());
+        assertEquals(context.getModificationStamp(source), task.getModificationTime());
         assertNotNull(task.getResolvedUnit());
         assertSame(source, task.getSource());
         return true;

@@ -6,11 +6,10 @@ library analysis.server;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/analysis_logger.dart';
+import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
-
-import 'analysis_logger.dart';
-import 'channel.dart';
-import 'protocol.dart';
 
 /**
  * Instances of the class [AnalysisServer] implement a server that listens on a
@@ -36,7 +35,7 @@ class AnalysisServer {
    * The channel from which requests are received and to which responses should
    * be sent.
    */
-  CommunicationChannel channel;
+  final ServerCommunicationChannel channel;
 
   /**
    * A flag indicating whether the server is running.
@@ -64,11 +63,10 @@ class AnalysisServer {
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    */
-  AnalysisServer(CommunicationChannel channel) {
+  AnalysisServer(this.channel) {
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
-    this.channel = channel;
-    this.channel.listen(handleRequest, onError: error, onDone: done);
+    channel.listen(handleRequest, onDone: done, onError: error);
   }
 
   /**
@@ -93,7 +91,7 @@ class AnalysisServer {
    * There was an error related to the socket from which requests are being
    * read.
    */
-  void error() {
+  void error(argument) {
     running = false;
   }
 
@@ -103,9 +101,14 @@ class AnalysisServer {
   void handleRequest(Request request) {
     int count = handlers.length;
     for (int i = 0; i < count; i++) {
-      Response response = handlers[i].handleRequest(request);
-      if (response != null) {
-        channel.sendResponse(response);
+      try {
+        Response response = handlers[i].handleRequest(request);
+        if (response != null) {
+          channel.sendResponse(response);
+          return;
+        }
+      } on RequestFailure catch (exception) {
+        channel.sendResponse(exception.response);
         return;
       }
     }
@@ -137,8 +140,8 @@ class AnalysisServer {
     if (contextWorkQueue.isEmpty) {
       running = false;
     } else {
-      Timer.run(() {
-        performTask();
+      new Future(performTask).catchError((ex, st) {
+        AnalysisEngine.instance.logger.logError("${ex}\n${st}");
       });
     }
   }
@@ -163,8 +166,8 @@ class AnalysisServer {
   void run() {
     if (!running) {
       running = true;
-      Timer.run(() {
-        performTask();
+      new Future(performTask).catchError((exception, stackTrace) {
+        AnalysisEngine.instance.logger.logError(exception);
       });
     }
   }

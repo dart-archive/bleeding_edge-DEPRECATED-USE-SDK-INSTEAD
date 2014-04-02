@@ -22,9 +22,9 @@ import com.google.dart.engine.utilities.general.TimeCounter;
  */
 public class PerformanceStatistics {
   /**
-   * The {@link TimeCounter} for time spent in Angular analysis.
+   * The {@link TimeCounter} for time spent in reading files.
    */
-  public static final TimeCounter angular = new TimeCounter();
+  public static final TimeCounter io = new TimeCounter();
 
   /**
    * The {@link TimeCounter} for time spent in scanning.
@@ -40,6 +40,16 @@ public class PerformanceStatistics {
    * The {@link TimeCounter} for time spent in resolving.
    */
   public static final TimeCounter resolve = new TimeCounter();
+
+  /**
+   * The {@link TimeCounter} for time spent in Angular analysis.
+   */
+  public static final TimeCounter angular = new TimeCounter();
+
+  /**
+   * The {@link TimeCounter} for time spent in Polymer analysis.
+   */
+  public static final TimeCounter polymer = new TimeCounter();
 
   /**
    * The {@link TimeCounter} for time spent in error verifier.

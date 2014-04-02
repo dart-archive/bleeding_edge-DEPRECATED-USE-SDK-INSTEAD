@@ -15,7 +15,7 @@
 package com.google.dart.java2dart.processor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -36,28 +36,28 @@ import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.JavaUtils;
 
-import static com.google.dart.java2dart.util.ASTFactory.argumentList;
-import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
-import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
-import static com.google.dart.java2dart.util.ASTFactory.booleanLiteral;
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
-import static com.google.dart.java2dart.util.ASTFactory.integer;
-import static com.google.dart.java2dart.util.ASTFactory.interpolationExpression;
-import static com.google.dart.java2dart.util.ASTFactory.interpolationString;
-import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
-import static com.google.dart.java2dart.util.ASTFactory.namedExpression;
-import static com.google.dart.java2dart.util.ASTFactory.prefixExpression;
-import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
-import static com.google.dart.java2dart.util.ASTFactory.string;
-import static com.google.dart.java2dart.util.ASTFactory.thisExpression;
-import static com.google.dart.java2dart.util.ASTFactory.typeName;
+import static com.google.dart.java2dart.util.AstFactory.argumentList;
+import static com.google.dart.java2dart.util.AstFactory.assignmentExpression;
+import static com.google.dart.java2dart.util.AstFactory.binaryExpression;
+import static com.google.dart.java2dart.util.AstFactory.booleanLiteral;
+import static com.google.dart.java2dart.util.AstFactory.identifier;
+import static com.google.dart.java2dart.util.AstFactory.instanceCreationExpression;
+import static com.google.dart.java2dart.util.AstFactory.integer;
+import static com.google.dart.java2dart.util.AstFactory.interpolationExpression;
+import static com.google.dart.java2dart.util.AstFactory.interpolationString;
+import static com.google.dart.java2dart.util.AstFactory.methodInvocation;
+import static com.google.dart.java2dart.util.AstFactory.namedExpression;
+import static com.google.dart.java2dart.util.AstFactory.prefixExpression;
+import static com.google.dart.java2dart.util.AstFactory.propertyAccess;
+import static com.google.dart.java2dart.util.AstFactory.string;
+import static com.google.dart.java2dart.util.AstFactory.thisExpression;
+import static com.google.dart.java2dart.util.AstFactory.typeName;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
 import org.apache.commons.lang3.StringUtils;
@@ -103,7 +103,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitAsExpression(AsExpression node) {
         super.visitAsExpression(node);
@@ -114,8 +114,8 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         if (JavaUtils.isTypeNamed(expressionTypeBinding, "double")) {
           if (JavaUtils.isTypeNamed(targetTypeBinding, "int")
               || JavaUtils.isTypeNamed(targetTypeBinding, "long")) {
-            ASTNode nodeToReplace = node;
-            ASTNode parent = node.getParent();
+            AstNode nodeToReplace = node;
+            AstNode parent = node.getParent();
             if (parent instanceof ParenthesizedExpression) {
               nodeToReplace = parent;
             }
@@ -331,7 +331,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
         }
         if (name.equals("equals") && args.size() == 1) {
-          ASTNode parent = node.getParent();
+          AstNode parent = node.getParent();
           if (target == null) {
             target = thisExpression();
           }

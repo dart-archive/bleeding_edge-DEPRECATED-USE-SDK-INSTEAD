@@ -15,9 +15,9 @@ package com.google.dart.tools.ui.internal.refactoring.reorg;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.NamingConventions;
@@ -300,8 +300,8 @@ public class RenameLinkedMode {
 
       fOriginalName = nameNode.getName();
       final int pos = nameNode.getOffset();
-      final List<ASTNode> sameNodes = Lists.newArrayList();
-      nameNode.getRoot().accept(new RecursiveASTVisitor<Void>() {
+      final List<AstNode> sameNodes = Lists.newArrayList();
+      nameNode.getRoot().accept(new RecursiveAstVisitor<Void>() {
         @Override
         public Void visitSimpleIdentifier(SimpleIdentifier node) {
           Element element = node.getBestElement();
@@ -315,9 +315,9 @@ public class RenameLinkedMode {
 
       //TODO: copied from LinkedNamesAssistProposal#apply(..):
       // sort for iteration order, starting with the node @ offset
-      Collections.sort(sameNodes, new Comparator<ASTNode>() {
+      Collections.sort(sameNodes, new Comparator<AstNode>() {
         @Override
-        public int compare(ASTNode o1, ASTNode o2) {
+        public int compare(AstNode o1, AstNode o2) {
           return rank(o1) - rank(o2);
         }
 
@@ -328,7 +328,7 @@ public class RenameLinkedMode {
          * @param node the node to compute the rank for
          * @return the rank of the node with respect to the invocation offset
          */
-        private int rank(ASTNode node) {
+        private int rank(AstNode node) {
           int relativeRank = node.getOffset() + node.getLength() - pos;
           if (relativeRank < 0) {
             return Integer.MAX_VALUE + relativeRank;
@@ -338,7 +338,7 @@ public class RenameLinkedMode {
         }
       });
       for (int i = 0; i < sameNodes.size(); i++) {
-        ASTNode elem = sameNodes.get(i);
+        AstNode elem = sameNodes.get(i);
         LinkedPosition linkedPosition = new LinkedPosition(
             document,
             elem.getOffset(),
@@ -501,7 +501,7 @@ public class RenameLinkedMode {
     if (context == null) {
       return;
     }
-    ASTNode selectedNode = context.getCoveredNode();
+    AstNode selectedNode = context.getCoveredNode();
     if (!(selectedNode instanceof SimpleIdentifier)) {
       return;
     }

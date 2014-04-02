@@ -122,6 +122,14 @@ public class ProjectUtils {
           if (status.isOK() && projectType != ProjectType.NONE) {
             createProjectContent(newProjectHandle, projectType);
           }
+
+          try {
+            IProjectUtilities.configurePackagesFilter(newProjectHandle);
+          } catch (CoreException e) {
+            DartCore.logError(
+                "Could not set package filter on folder " + newProjectHandle.getName(),
+                e);
+          }
         } catch (OperationCanceledException e) {
           try {
             newProjectHandle.close(new NullProgressMonitor());
@@ -181,12 +189,6 @@ public class ProjectUtils {
     } finally {
       shell.removeShellListener(shellListener);
     }
-    try {
-      IProjectUtilities.configurePackagesFilter(newProjectHandle);
-    } catch (CoreException e) {
-      DartCore.logError("Could not set package filter on folder " + newProjectHandle.getName(), e);
-    }
-
     return newProjectHandle;
   }
 

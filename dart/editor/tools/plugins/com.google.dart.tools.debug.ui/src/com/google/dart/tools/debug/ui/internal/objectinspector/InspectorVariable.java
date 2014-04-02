@@ -74,6 +74,11 @@ public class InspectorVariable extends DebugElement implements IDartDebugVariabl
   }
 
   @Override
+  public boolean isLocal() {
+    return false;
+  }
+
+  @Override
   public boolean isStatic() {
     return false;
   }

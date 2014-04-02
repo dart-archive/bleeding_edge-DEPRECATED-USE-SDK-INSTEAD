@@ -3,27 +3,56 @@
  */
 package com.xored.glance.internal.ui.sources;
 
-import org.eclipse.swt.widgets.Control;
-
 import com.xored.glance.ui.sources.ITextSource;
 import com.xored.glance.ui.sources.ITextSourceDescriptor;
+
+import org.eclipse.swt.widgets.Control;
 
 /**
  * @author Yuri Strot
  */
 public class TextSourceMaker {
 
+  private ITextSourceDescriptor description;
+
+  private Control control;
+
   public TextSourceMaker(ITextSourceDescriptor description, Control control) {
     this.description = description;
     this.control = control;
   }
 
-  public boolean isValid() {
-    return description == null ? false : description.isValid(control);
-  }
-
   public ITextSource create() {
     return description == null ? null : description.createSource(control);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    TextSourceMaker other = (TextSourceMaker) obj;
+    if (control == null) {
+      if (other.control != null) {
+        return false;
+      }
+    } else if (!control.equals(other.control)) {
+      return false;
+    }
+    if (description == null) {
+      if (other.description != null) {
+        return false;
+      }
+    } else if (!description.equals(other.description)) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -42,29 +71,8 @@ public class TextSourceMaker {
     return result;
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    TextSourceMaker other = (TextSourceMaker) obj;
-    if (control == null) {
-      if (other.control != null)
-        return false;
-    } else if (!control.equals(other.control))
-      return false;
-    if (description == null) {
-      if (other.description != null)
-        return false;
-    } else if (!description.equals(other.description))
-      return false;
-    return true;
+  public boolean isValid() {
+    return description == null ? false : description.isValid(control);
   }
-
-  private ITextSourceDescriptor description;
-  private Control control;
 
 }

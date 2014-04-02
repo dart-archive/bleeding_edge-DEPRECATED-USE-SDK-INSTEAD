@@ -26,6 +26,11 @@ import java.util.List;
  * {@link NgDirectiveProcessor} describes any <code>NgDirective</code> annotation instance.
  */
 abstract class NgDirectiveProcessor extends NgProcessor {
+  protected static boolean hasValue(XmlAttributeNode attribute) {
+    com.google.dart.engine.html.scanner.Token valueToken = attribute.getValueToken();
+    return valueToken != null && !valueToken.isSynthetic();
+  }
+
   protected static AngularRawXmlExpression newAngularRawXmlExpression(AngularExpression e) {
     return new AngularRawXmlExpression(e);
   }
@@ -37,19 +42,19 @@ abstract class NgDirectiveProcessor extends NgProcessor {
   protected AngularExpression parseAngularExpression(AngularHtmlUnitResolver resolver,
       XmlAttributeNode attribute) {
     Token token = scanAttribute(resolver, attribute);
-    return resolver.parseAngularExpression(token);
+    return resolver.parseAngularExpressionInToken(token);
   }
 
   protected Expression parseDartExpression(AngularHtmlUnitResolver resolver,
       XmlAttributeNode attribute) {
     Token token = scanAttribute(resolver, attribute);
-    return resolver.parseDartExpression(token);
+    return resolver.parseDartExpressionInToken(token);
   }
 
   /**
    * Sets single {@link AngularExpression} for {@link XmlAttributeNode}.
    */
-  protected final void setExpression(XmlAttributeNode attribute, AngularExpression expression) {
+  protected final void setAngularExpression(XmlAttributeNode attribute, AngularExpression expression) {
     setExpression(attribute, newAngularRawXmlExpression(expression));
   }
 
@@ -58,10 +63,6 @@ abstract class NgDirectiveProcessor extends NgProcessor {
    */
   protected final void setExpression(XmlAttributeNode attribute, Expression expression) {
     setExpression(attribute, newRawXmlExpression(expression));
-  }
-
-  protected void setExpressions(XmlAttributeNode attribute, List<XmlExpression> xmlExpressions) {
-    attribute.setExpressions(xmlExpressions.toArray(new XmlExpression[xmlExpressions.size()]));
   }
 
 //  /**
@@ -74,6 +75,10 @@ abstract class NgDirectiveProcessor extends NgProcessor {
 //    }
 //    attribute.setExpressions(embExpressions.toArray(new EmbeddedExpression[embExpressions.size()]));
 //  }
+
+  protected void setExpressions(XmlAttributeNode attribute, List<XmlExpression> xmlExpressions) {
+    attribute.setExpressions(xmlExpressions.toArray(new XmlExpression[xmlExpressions.size()]));
+  }
 
   private Token scanAttribute(AngularHtmlUnitResolver resolver, XmlAttributeNode attribute) {
     int offset = attribute.getValueToken().getOffset() + 1;

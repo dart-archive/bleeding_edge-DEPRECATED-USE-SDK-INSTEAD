@@ -16,32 +16,32 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.parser.ParserTestCase;
 import com.google.dart.engine.scanner.TokenType;
 
-import static com.google.dart.engine.ast.ASTFactory.argumentDefinitionTest;
-import static com.google.dart.engine.ast.ASTFactory.assignmentExpression;
-import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
-import static com.google.dart.engine.ast.ASTFactory.catchClause;
-import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.classTypeAlias;
-import static com.google.dart.engine.ast.ASTFactory.constructorDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.declaredIdentifier;
-import static com.google.dart.engine.ast.ASTFactory.emptyStatement;
-import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
-import static com.google.dart.engine.ast.ASTFactory.functionDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.integer;
-import static com.google.dart.engine.ast.ASTFactory.label;
-import static com.google.dart.engine.ast.ASTFactory.labeledStatement;
-import static com.google.dart.engine.ast.ASTFactory.list;
-import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.namedExpression;
-import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
-import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
-import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
-import static com.google.dart.engine.ast.ASTFactory.simpleFormalParameter;
-import static com.google.dart.engine.ast.ASTFactory.typeAlias;
-import static com.google.dart.engine.ast.ASTFactory.typeName;
-import static com.google.dart.engine.ast.ASTFactory.typeParameter;
-import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
+import static com.google.dart.engine.ast.AstFactory.argumentDefinitionTest;
+import static com.google.dart.engine.ast.AstFactory.assignmentExpression;
+import static com.google.dart.engine.ast.AstFactory.binaryExpression;
+import static com.google.dart.engine.ast.AstFactory.catchClause;
+import static com.google.dart.engine.ast.AstFactory.classDeclaration;
+import static com.google.dart.engine.ast.AstFactory.classTypeAlias;
+import static com.google.dart.engine.ast.AstFactory.constructorDeclaration;
+import static com.google.dart.engine.ast.AstFactory.declaredIdentifier;
+import static com.google.dart.engine.ast.AstFactory.emptyStatement;
+import static com.google.dart.engine.ast.AstFactory.fieldFormalParameter;
+import static com.google.dart.engine.ast.AstFactory.functionDeclaration;
+import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.integer;
+import static com.google.dart.engine.ast.AstFactory.label;
+import static com.google.dart.engine.ast.AstFactory.labeledStatement;
+import static com.google.dart.engine.ast.AstFactory.list;
+import static com.google.dart.engine.ast.AstFactory.methodDeclaration;
+import static com.google.dart.engine.ast.AstFactory.namedExpression;
+import static com.google.dart.engine.ast.AstFactory.postfixExpression;
+import static com.google.dart.engine.ast.AstFactory.prefixExpression;
+import static com.google.dart.engine.ast.AstFactory.propertyAccess;
+import static com.google.dart.engine.ast.AstFactory.simpleFormalParameter;
+import static com.google.dart.engine.ast.AstFactory.typeAlias;
+import static com.google.dart.engine.ast.AstFactory.typeName;
+import static com.google.dart.engine.ast.AstFactory.typeParameter;
+import static com.google.dart.engine.ast.AstFactory.variableDeclaration;
 
 public class SimpleIdentifierTest extends ParserTestCase {
   private enum AssignmentKind {
@@ -217,6 +217,9 @@ public class SimpleIdentifierTest extends ParserTestCase {
       case PROPERTY_RIGHT:
         expression = propertyAccess(identifier("_"), identifier);
         break;
+      case NONE:
+        // Nothing to add.
+        break;
     }
     switch (assignment) {
       case BINARY:
@@ -246,6 +249,9 @@ public class SimpleIdentifierTest extends ParserTestCase {
       case SIMPLE_RIGHT:
         assignmentExpression(identifier("_"), TokenType.EQ, expression);
         break;
+      case NONE:
+        // Nothing to add.
+        break;
     }
     return identifier;
   }
@@ -256,9 +262,9 @@ public class SimpleIdentifierTest extends ParserTestCase {
    * @param identifier the identifier in the AST structure being traversed
    * @return the root of the AST structure containing the identifier
    */
-  private ASTNode topMostNode(SimpleIdentifier identifier) {
-    ASTNode child = identifier;
-    ASTNode parent = identifier.getParent();
+  private AstNode topMostNode(SimpleIdentifier identifier) {
+    AstNode child = identifier;
+    AstNode parent = identifier.getParent();
     while (parent != null) {
       child = parent;
       parent = parent.getParent();

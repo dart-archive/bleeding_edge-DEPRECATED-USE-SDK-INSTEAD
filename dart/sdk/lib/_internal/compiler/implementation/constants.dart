@@ -17,35 +17,36 @@ abstract class ConstantVisitor<R> {
   R visitConstructed(ConstructedConstant constant);
   R visitType(TypeConstant constant);
   R visitInterceptor(InterceptorConstant constant);
-  R visitDummyReceiver(DummyReceiverConstant constant);
+  R visitDummy(DummyConstant constant);
 }
 
 abstract class Constant {
   const Constant();
 
-  bool isNull() => false;
-  bool isBool() => false;
-  bool isTrue() => false;
-  bool isFalse() => false;
-  bool isInt() => false;
-  bool isDouble() => false;
-  bool isNum() => false;
-  bool isString() => false;
-  bool isList() => false;
-  bool isMap() => false;
-  bool isConstructedObject() => false;
-  bool isFunction() => false;
+  bool get isNull => false;
+  bool get isBool => false;
+  bool get isTrue => false;
+  bool get isFalse => false;
+  bool get isInt => false;
+  bool get isDouble => false;
+  bool get isNum => false;
+  bool get isString => false;
+  bool get isList => false;
+  bool get isMap => false;
+  bool get isConstructedObject => false;
+  bool get isFunction => false;
   /** Returns true if the constant is null, a bool, a number or a string. */
-  bool isPrimitive() => false;
+  bool get isPrimitive => false;
   /** Returns true if the constant is a list, a map or a constructed object. */
-  bool isObject() => false;
-  bool isType() => false;
-  bool isSentinel() => false;
-  bool isInterceptor() => false;
-  bool isDummyReceiver() => false;
+  bool get isObject => false;
+  bool get isType => false;
+  bool get isInterceptor => false;
+  bool get isDummy => false;
 
-  bool isNaN() => false;
-  bool isMinusZero() => false;
+  bool get isNaN => false;
+  bool get isMinusZero => false;
+  bool get isZero => false;
+  bool get isOne => false;
 
   // TODO(johnniwinther): Replace with a 'type' getter.
   DartType computeType(Compiler compiler);
@@ -62,7 +63,7 @@ class FunctionConstant extends Constant {
 
   FunctionConstant(this.element);
 
-  bool isFunction() => true;
+  bool get isFunction => true;
 
   bool operator ==(var other) {
     if (other is !FunctionConstant) return false;
@@ -90,7 +91,7 @@ class FunctionConstant extends Constant {
 abstract class PrimitiveConstant extends Constant {
   get value;
   const PrimitiveConstant();
-  bool isPrimitive() => true;
+  bool get isPrimitive => true;
 
   bool operator ==(var other) {
     if (other is !PrimitiveConstant) return false;
@@ -113,7 +114,7 @@ class NullConstant extends PrimitiveConstant {
 
   factory NullConstant() => const NullConstant._internal();
   const NullConstant._internal();
-  bool isNull() => true;
+  bool get isNull => true;
   get value => null;
 
   DartType computeType(Compiler compiler) {
@@ -134,7 +135,7 @@ class NullConstant extends PrimitiveConstant {
 abstract class NumConstant extends PrimitiveConstant {
   num get value;
   const NumConstant();
-  bool isNum() => true;
+  bool get isNum => true;
 }
 
 class IntConstant extends NumConstant {
@@ -158,13 +159,15 @@ class IntConstant extends NumConstant {
     }
   }
   const IntConstant._internal(this.value);
-  bool isInt() => true;
+  bool get isInt => true;
   bool isUInt31() => value >= 0 && value < (1 << 31);
   bool isUInt32() => value >= 0 && value < (1 << 32);
   bool isPositive() => value >= 0;
+  bool get isZero => value == 0;
+  bool get isOne => value == 1;
 
   DartType computeType(Compiler compiler) {
-    return compiler.intClass.computeType(compiler);
+    return compiler.intClass.rawType;
   }
 
   ti.TypeMask computeMask(Compiler compiler) {
@@ -208,16 +211,26 @@ class DoubleConstant extends NumConstant {
     }
   }
   const DoubleConstant._internal(this.value);
-  bool isDouble() => true;
-  bool isNaN() => value.isNaN;
+  bool get isDouble => true;
+  bool get isNaN => value.isNaN;
   // We need to check for the negative sign since -0.0 == 0.0.
-  bool isMinusZero() => value == 0.0 && value.isNegative;
+  bool get isMinusZero => value == 0.0 && value.isNegative;
+  bool get isZero => value == 0.0;
+  bool get isOne => value == 1.0;
 
   DartType computeType(Compiler compiler) {
-    return compiler.doubleClass.computeType(compiler);
+    return compiler.doubleClass.rawType;
   }
 
   ti.TypeMask computeMask(Compiler compiler) {
+    // We have to distinguish -0.0 from 0, but for all practical purposes
+    // -0.0 is an integer.
+    // TODO(17235): this kind of special casing should only happen in the
+    // backend.
+    if (isMinusZero && compiler.backend.constantSystem.isInt(this)) {
+      return compiler.typesTask.uint31Type;
+    }
+    assert(!compiler.backend.constantSystem.isInt(this));
     return compiler.typesTask.doubleType;
   }
 
@@ -245,10 +258,10 @@ abstract class BoolConstant extends PrimitiveConstant {
     return value ? new TrueConstant() : new FalseConstant();
   }
   const BoolConstant._internal();
-  bool isBool() => true;
+  bool get isBool => true;
 
   DartType computeType(Compiler compiler) {
-    return compiler.boolClass.computeType(compiler);
+    return compiler.boolClass.rawType;
   }
 
   ti.TypeMask computeMask(Compiler compiler) {
@@ -263,7 +276,7 @@ class TrueConstant extends BoolConstant {
 
   factory TrueConstant() => const TrueConstant._internal();
   const TrueConstant._internal() : super._internal();
-  bool isTrue() => true;
+  bool get isTrue => true;
 
   FalseConstant negate() => new FalseConstant();
 
@@ -281,7 +294,7 @@ class FalseConstant extends BoolConstant {
 
   factory FalseConstant() => const FalseConstant._internal();
   const FalseConstant._internal() : super._internal();
-  bool isFalse() => true;
+  bool get isFalse => true;
 
   TrueConstant negate() => new TrueConstant();
 
@@ -304,10 +317,10 @@ class StringConstant extends PrimitiveConstant {
   StringConstant(DartString value)
       : this.value = value,
         this.hashCode = value.slowToString().hashCode;
-  bool isString() => true;
+  bool get isString => true;
 
   DartType computeType(Compiler compiler) {
-    return compiler.stringClass.computeType(compiler);
+    return compiler.stringClass.rawType;
   }
 
   ti.TypeMask computeMask(Compiler compiler) {
@@ -335,7 +348,7 @@ abstract class ObjectConstant extends Constant {
 
   ObjectConstant(this.type);
 
-  bool isObject() => true;
+  bool get isObject => true;
 
   DartType computeType(Compiler compiler) => type;
 }
@@ -346,7 +359,7 @@ class TypeConstant extends ObjectConstant {
 
   TypeConstant(this.representedType, type) : super(type);
 
-  bool isType() => true;
+  bool get isType => true;
 
   bool operator ==(other) {
     return other is TypeConstant && representedType == other.representedType;
@@ -373,7 +386,7 @@ class ListConstant extends ObjectConstant {
       : this.entries = entries,
         hashCode = _computeHash(type, entries),
         super(type);
-  bool isList() => true;
+  bool get isList => true;
 
   static int _computeHash(DartType type, List<Constant> entries) {
     // TODO(floitsch): create a better hash.
@@ -449,7 +462,7 @@ class MapConstant extends ObjectConstant {
       : this.values = values,
         this.hashCode = computeHash(type, values),
         super(type);
-  bool isMap() => true;
+  bool get isMap => true;
 
   static int computeHash(DartType type, List<Constant> values) {
     // TODO(floitsch): create a better hash.
@@ -515,7 +528,7 @@ class InterceptorConstant extends Constant {
 
   InterceptorConstant(this.dispatchedType);
 
-  bool isInterceptor() => true;
+  bool get isInterceptor => true;
 
   bool operator ==(other) {
     return other is InterceptorConstant
@@ -535,19 +548,19 @@ class InterceptorConstant extends Constant {
   }
 
   String toString() {
-    return 'InterceptorConstant(${Error.safeToString(dispatchedType)})';
+    return 'InterceptorConstant(${dispatchedType.getStringAsDeclared("o")})';
   }
 }
 
-class DummyReceiverConstant extends Constant {
+class DummyConstant extends Constant {
   final ti.TypeMask typeMask;
 
-  DummyReceiverConstant(this.typeMask);
+  DummyConstant(this.typeMask);
 
-  bool isDummyReceiver() => true;
+  bool get isDummy => true;
 
   bool operator ==(other) {
-    return other is DummyReceiverConstant
+    return other is DummyConstant
         && typeMask == other.typeMask;
   }
 
@@ -555,14 +568,14 @@ class DummyReceiverConstant extends Constant {
 
   List<Constant> getDependencies() => const <Constant>[];
 
-  accept(ConstantVisitor visitor) => visitor.visitDummyReceiver(this);
+  accept(ConstantVisitor visitor) => visitor.visitDummy(this);
 
   DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 
   ti.TypeMask computeMask(Compiler compiler) => typeMask;
 
   String toString() {
-    return 'DummyReceiverConstant($typeMask)';
+    return 'DummyConstant($typeMask)';
   }
 }
 
@@ -576,7 +589,7 @@ class ConstructedConstant extends ObjectConstant {
       super(type) {
     assert(type != null);
   }
-  bool isConstructedObject() => true;
+  bool get isConstructedObject => true;
 
   static int computeHash(DartType type, List<Constant> fields) {
     // TODO(floitsch): create a better hash.

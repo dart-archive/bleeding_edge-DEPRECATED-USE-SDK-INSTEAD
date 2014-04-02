@@ -31,6 +31,8 @@ class Universe {
    */
   final Set<FunctionElement> staticFunctionsNeedingGetter =
       new Set<FunctionElement>();
+  final Set<FunctionElement> methodsNeedingSuperGetter =
+      new Set<FunctionElement>();
   final Map<String, Set<Selector>> invokedNames =
       new Map<String, Set<Selector>>();
   final Map<String, Set<Selector>> invokedGetters =
@@ -192,7 +194,7 @@ class Selector {
         return new Selector.indexSet();
       }
       FunctionSignature signature =
-          element.asFunctionElement().computeSignature(compiler);
+          element.asFunctionElement().functionSignature;
       int arity = signature.parameterCount;
       List<String> namedArguments = null;
       if (signature.optionalParametersAreNamed) {
@@ -405,7 +407,7 @@ class Selector {
     assert(invariant(element, element.isImplementation));
     if (!this.applies(element, compiler)) return false;
 
-    FunctionSignature parameters = element.computeSignature(compiler);
+    FunctionSignature parameters = element.functionSignature;
     parameters.forEachRequiredParameter((element) {
       list.add(compileArgument(arguments.head));
       arguments = arguments.tail;
@@ -463,7 +465,7 @@ class Selector {
       compileConstant(Element element),
       Compiler compiler) {
 
-    FunctionSignature signature = caller.computeSignature(compiler);
+    FunctionSignature signature = caller.functionSignature;
     Map mapping = new Map();
 
     // TODO(ngeoffray): This is a hack that fakes up AST nodes, so
@@ -476,10 +478,9 @@ class Selector {
         builder.addLast(node);
       });
       if (signature.optionalParametersAreNamed) {
-        signature.forEachOptionalParameter((Element element) {
-          Node node = element.parseNode(compiler);
-          mapping[node] = element;
-          builder.addLast(new NamedArgument(null, null, node));
+        signature.forEachOptionalParameter((ParameterElement element) {
+          mapping[element.initializer] = element;
+          builder.addLast(new NamedArgument(null, null, element.initializer));
         });
       } else {
         signature.forEachOptionalParameter((Element element) {
@@ -491,7 +492,9 @@ class Selector {
       return builder.toLink();
     }
 
-    internalCompileArgument(Node node) => compileArgument(mapping[node]);
+    internalCompileArgument(Node node) {
+      return compileArgument(mapping[node]);
+    }
 
     Link<Node> nodes = computeCallNodesFromParameters();
 

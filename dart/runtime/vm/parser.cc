@@ -28,6 +28,7 @@
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/tags.h"
 #include "vm/timer.h"
 #include "vm/zone.h"
 
@@ -123,6 +124,22 @@ void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
   ASSERT(node_sequence_ == NULL);
   ASSERT(node_sequence != NULL);
   node_sequence_ = node_sequence;
+}
+
+
+void ParsedFunction::AddDeferredPrefix(const LibraryPrefix& prefix) {
+  ASSERT(prefix.is_deferred_load());
+  ASSERT(!prefix.is_loaded());
+  if (deferred_prefixes_ == NULL) {
+    deferred_prefixes_ =
+        &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
+  }
+  for (intptr_t i = 0; i < deferred_prefixes_->Length(); i++) {
+    if (deferred_prefixes_->At(i) == prefix.raw()) {
+      return;
+    }
+  }
+  deferred_prefixes_->Add(prefix);
 }
 
 
@@ -353,8 +370,10 @@ void Parser::SetPosition(intptr_t position) {
 
 void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
-  ASSERT(Isolate::Current()->long_jump_base()->IsSafeToJump());
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->long_jump_base()->IsSafeToJump());
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
+  VMTagScope tagScope(isolate, VMTag::kCompileTagId);
   Parser parser(script, library, 0);
   parser.ParseTopLevel();
 }
@@ -380,8 +399,8 @@ Token::Kind Parser::LookaheadToken(int num_tokens) {
 
 
 String* Parser::CurrentLiteral() const {
-  String& result = String::ZoneHandle();
-  result = tokens_iterator_.CurrentLiteral();
+  String& result =
+      String::ZoneHandle(isolate_, tokens_iterator_.CurrentLiteral());
   return &result;
 }
 
@@ -702,8 +721,9 @@ static bool HasReturnNode(SequenceNode* seq) {
 
 void Parser::ParseClass(const Class& cls) {
   if (!cls.is_synthesized_class()) {
-    TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
     Isolate* isolate = Isolate::Current();
+    VMTagScope tagScope(isolate, VMTag::kCompileTagId);
+    TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
     ASSERT(isolate->long_jump_base()->IsSafeToJump());
     const Script& script = Script::Handle(isolate, cls.script());
     const Library& lib = Library::Handle(isolate, cls.library());
@@ -760,8 +780,10 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
 
 
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Isolate* isolate = Isolate::Current();
+  VMTagScope tagScope(isolate, VMTag::kCompileTagId);
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
+  CompilerStats::num_functions_compiled++;
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
@@ -792,9 +814,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       break;
     case RawFunction::kImplicitStaticFinalGetter:
       node_sequence = parser.ParseStaticFinalGetter(func);
+      CompilerStats::num_implicit_final_getters++;
       break;
     case RawFunction::kStaticInitializer:
       node_sequence = parser.ParseStaticInitializer(func);
+      CompilerStats::num_static_initializer_funcs++;
       break;
     case RawFunction::kMethodExtractor:
       node_sequence = parser.ParseMethodExtractor(func);
@@ -881,6 +905,13 @@ RawArray* Parser::EvaluateMetadata() {
     intptr_t expr_pos = TokenPos();
     if (!IsIdentifier()) {
       ExpectIdentifier("identifier expected");
+    }
+    // Reject expressions with deferred library prefix eagerly.
+    Object& obj = Object::Handle(library_.LookupLocalObject(*CurrentLiteral()));
+    if (!obj.IsNull() && obj.IsLibraryPrefix()) {
+      if (LibraryPrefix::Cast(obj).is_deferred_load()) {
+        ErrorMsg("Metadata must be compile-time constant");
+      }
     }
     AstNode* expr = NULL;
     if ((LookaheadToken(1) == Token::kLPAREN) ||
@@ -3405,22 +3436,19 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     if (has_initializer) {
       ConsumeToken();
       init_value = Object::sentinel().raw();
-      // For static const fields and static final non-const fields, the
-      // initialization expression will be parsed through the
-      // kImplicitStaticFinalGetter method invocation/compilation.
+      // For static fields, the initialization expression will be parsed
+      // through the kImplicitStaticFinalGetter method invocation/compilation.
       // For instance fields, the expression is parsed when a constructor
       // is compiled.
-      // For static const fields and static final non-const fields with very
-      // simple initializer expressions (e.g. a literal number or string), we
-      // optimize away the kImplicitStaticFinalGetter and initialize the field
-      // here. However, the class finalizer will check the value type for
+      // For static fields with very simple initializer expressions
+      // (e.g. a literal number or string), we optimize away the
+      // kImplicitStaticFinalGetter and initialize the field here.
+      // However, the class finalizer will check the value type for
       // assignability once the declared field type can be resolved. If the
       // value is not assignable (assuming checked mode and disregarding actual
       // mode), the field value is reset and a kImplicitStaticFinalGetter is
       // created at finalization time.
-
-      if (field->has_static && (field->has_const || field->has_final) &&
-          (LookaheadToken(1) == Token::kSEMICOLON)) {
+      if (field->has_static && (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(*field->type, &init_value);
       }
       SkipExpr();
@@ -3787,6 +3815,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
 
 
 void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
+                                   const Class& toplevel_class,
                                    intptr_t metadata_pos) {
   TRACE_PARSER("ParseClassDeclaration");
   bool is_patch = false;
@@ -3889,7 +3918,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     cls.set_is_abstract();
   }
   if (metadata_pos >= 0) {
-    library_.AddClassMetadata(cls, metadata_pos);
+    library_.AddClassMetadata(cls, toplevel_class, metadata_pos);
   }
 
   const bool is_mixin_declaration = (CurrentToken() == Token::kASSIGN);
@@ -3966,6 +3995,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
 
 void Parser::ParseClassDefinition(const Class& cls) {
   TRACE_PARSER("ParseClassDefinition");
+  CompilerStats::num_classes_compiled++;
   set_current_class(cls);
   is_top_level_ = true;
   String& class_name = String::Handle(cls.Name());
@@ -4087,6 +4117,7 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
 
 void Parser::ParseMixinAppAlias(
     const GrowableObjectArray& pending_classes,
+    const Class& toplevel_class,
     intptr_t metadata_pos) {
   TRACE_PARSER("ParseMixinAppAlias");
   const intptr_t classname_pos = TokenPos();
@@ -4139,7 +4170,7 @@ void Parser::ParseMixinAppAlias(
   ExpectSemicolon();
   pending_classes.Add(mixin_application, Heap::kOld);
   if (metadata_pos >= 0) {
-    library_.AddClassMetadata(mixin_application, metadata_pos);
+    library_.AddClassMetadata(mixin_application, toplevel_class, metadata_pos);
   }
 }
 
@@ -4185,6 +4216,7 @@ bool Parser::IsMixinAppAlias() {
 
 
 void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
+                          const Class& toplevel_class,
                           intptr_t metadata_pos) {
   TRACE_PARSER("ParseTypedef");
   ExpectToken(Token::kTYPEDEF);
@@ -4193,7 +4225,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
     if (FLAG_warn_mixin_typedef) {
       Warning("deprecated mixin application typedef");
     }
-    ParseMixinAppAlias(pending_classes, metadata_pos);
+    ParseMixinAppAlias(pending_classes, toplevel_class, metadata_pos);
     return;
   }
 
@@ -4300,7 +4332,9 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   ASSERT(!function_type_alias.is_finalized());
   pending_classes.Add(function_type_alias, Heap::kOld);
   if (metadata_pos >= 0) {
-    library_.AddClassMetadata(function_type_alias, metadata_pos);
+    library_.AddClassMetadata(function_type_alias,
+                              toplevel_class,
+                              metadata_pos);
   }
 }
 
@@ -4580,7 +4614,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
       ConsumeToken();
       Instance& field_value = Instance::Handle(Object::sentinel().raw());
       bool has_simple_literal = false;
-      if ((is_const || is_final) && (LookaheadToken(1) == Token::kSEMICOLON)) {
+      if (LookaheadToken(1) == Token::kSEMICOLON) {
         has_simple_literal = IsSimpleLiteral(type, &field_value);
       }
       SkipExpr();
@@ -4855,20 +4889,6 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
 }
 
 
-class DartApiScope : public StackResource {
- public:
-  explicit DartApiScope(Isolate* isolate) : StackResource(isolate) {
-    Dart_EnterScope();
-  }
-  ~DartApiScope() {
-    Dart_ExitScope();
-  }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(DartApiScope);
-};
-
-
 RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                          intptr_t token_pos,
                                          const String& url) {
@@ -4885,7 +4905,7 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
   // Block class finalization attempts when calling into the library
   // tag handler.
   isolate()->BlockClassFinalization();
-  DartApiScope api_scope(isolate());
+  Api::Scope api_scope(isolate());
   Dart_Handle result = handler(tag,
                                Api::NewHandle(isolate(), library_.raw()),
                                Api::NewHandle(isolate(), url.raw()));
@@ -4939,7 +4959,7 @@ void Parser::ParseIdentList(GrowableObjectArray* names) {
 }
 
 
-void Parser::ParseLibraryImportExport() {
+void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
   bool is_import = (CurrentToken() == Token::kIMPORT);
   bool is_export = (CurrentToken() == Token::kEXPORT);
   ASSERT(is_import || is_export);
@@ -4953,19 +4973,32 @@ void Parser::ParseLibraryImportExport() {
   if (url.Length() == 0) {
     ErrorMsg("library url expected");
   }
+  bool is_deferred_import = false;
+  if (is_import && (IsLiteral("deferred"))) {
+    is_deferred_import = true;
+    ConsumeToken();
+    CheckToken(Token::kAS, "'as' expected");
+  }
   String& prefix = String::Handle();
+  intptr_t prefix_pos = 0;
   if (is_import && (CurrentToken() == Token::kAS)) {
     ConsumeToken();
+    prefix_pos = TokenPos();
     prefix = ExpectIdentifier("prefix identifier expected")->raw();
   }
 
   Array& show_names = Array::Handle();
   Array& hide_names = Array::Handle();
-  if (IsLiteral("show") || IsLiteral("hide")) {
+  if (is_deferred_import || IsLiteral("show") || IsLiteral("hide")) {
     GrowableObjectArray& show_list =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     GrowableObjectArray& hide_list =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
+    // Libraries imported through deferred import automatically hide
+    // the name 'loadLibrary'.
+    if (is_deferred_import) {
+      hide_list.Add(Symbols::LoadLibrary());
+    }
     for (;;) {
       if (IsLiteral("show")) {
         ConsumeToken();
@@ -4993,6 +5026,7 @@ void Parser::ParseLibraryImportExport() {
   Library& library = Library::Handle(Library::LookupLibrary(canon_url));
   if (library.IsNull()) {
     // Call the library tag handler to load the library.
+    // TODO(hausner): do not load eagerly if import is deferred.
     CallLibraryTagHandler(Dart_kImportTag, import_pos, canon_url);
     // If the library tag handler succeded without registering the
     // library we create an empty library to import.
@@ -5002,8 +5036,13 @@ void Parser::ParseLibraryImportExport() {
       library.Register();
     }
   }
-  const Namespace& ns =
-    Namespace::Handle(Namespace::New(library, show_names, hide_names));
+
+  Namespace& ns =
+      Namespace::Handle(Namespace::New(library, show_names, hide_names));
+  if (metadata_pos >= 0) {
+    ns.AddMetadata(metadata_pos, current_class());
+  }
+
   if (is_import) {
     // Ensure that private dart:_ libraries are only imported into dart:
     // libraries.
@@ -5013,14 +5052,25 @@ void Parser::ParseLibraryImportExport() {
       ErrorMsg(import_pos, "private library is not accessible");
     }
     if (prefix.IsNull() || (prefix.Length() == 0)) {
+      ASSERT(!is_deferred_import);
       library_.AddImport(ns);
     } else {
       LibraryPrefix& library_prefix = LibraryPrefix::Handle();
       library_prefix = library_.LookupLocalLibraryPrefix(prefix);
       if (!library_prefix.IsNull()) {
+        // Check that prefix names of deferred import clauses are
+        // unique.
+        if (!is_deferred_import && library_prefix.is_deferred_load()) {
+          ErrorMsg(prefix_pos,
+                   "prefix '%s' already used in a deferred import clause",
+                   prefix.ToCString());
+        }
+        if (is_deferred_import) {
+          ErrorMsg(prefix_pos, "prefix of deferred import must be uniqe");
+        }
         library_prefix.AddImport(ns);
       } else {
-        library_prefix = LibraryPrefix::New(prefix, ns);
+        library_prefix = LibraryPrefix::New(prefix, ns, is_deferred_import);
         library_.AddObject(library_prefix, prefix);
       }
     }
@@ -5076,7 +5126,7 @@ void Parser::ParseLibraryDefinition() {
   }
   while ((CurrentToken() == Token::kIMPORT) ||
       (CurrentToken() == Token::kEXPORT)) {
-    ParseLibraryImportExport();
+    ParseLibraryImportExport(metadata_pos);
     rewind_pos = TokenPos();
     metadata_pos = SkipMetadata();
   }
@@ -5144,17 +5194,17 @@ void Parser::ParseTopLevel() {
     set_current_class(cls);  // No current class.
     intptr_t metadata_pos = SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
-      ParseClassDeclaration(pending_classes, metadata_pos);
+      ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
       set_current_class(toplevel_class);
-      ParseTypedef(pending_classes, metadata_pos);
+      ParseTypedef(pending_classes, toplevel_class, metadata_pos);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDeclaration(pending_classes, metadata_pos);
+      ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
     } else if (is_patch_source() && IsLiteral("patch") &&
                (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDeclaration(pending_classes, metadata_pos);
+      ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
     } else {
       set_current_class(toplevel_class);
       if (IsVariableDeclaration()) {
@@ -5347,8 +5397,9 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
   NativeFunction native_function = NativeEntry::ResolveNative(
       library, native_name, num_params, &auto_setup_scope);
   if (native_function == NULL) {
-    ErrorMsg(native_pos, "native function '%s' cannot be found",
-        native_name.ToCString());
+    ErrorMsg(native_pos,
+             "native function '%s' (%" Pd " arguments) cannot be found",
+             native_name.ToCString(), func.NumParameters());
   }
   func.SetIsNativeAutoSetupScope(auto_setup_scope);
 
@@ -5840,8 +5891,7 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
   // resolved at class finalization time, and if the type of the literal is one
   // of int, double, String, or bool, then preset the field with the value and
   // perform the type check (in checked mode only) at finalization time.
-  if (type.IsTypeParameter() ||
-      (type.arguments() != TypeArguments::null())) {
+  if (type.IsTypeParameter() || (type.arguments() != TypeArguments::null())) {
     // Type parameters are always resolved eagerly by the parser and never
     // resolved later by the class finalizer. Therefore, we know here that if
     // 'type' is not a type parameter (an unresolved type will not get resolved
@@ -7607,9 +7657,15 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT) ||
              (op_kind == Token::kAS)) &&
             type.IsMalformedOrMalbounded()) {
-          // Note that a type error is thrown even if the tested value is null
-          // in a type test or in a type cast.
-          return ThrowTypeError(type_pos, type);
+          // Note that a type error is thrown in a type test or in
+          // a type cast even if the tested value is null.
+          // We need to evaluate the left operand for potential
+          // side effects.
+          LetNode* let = new LetNode(left_operand->token_pos());
+          let->AddNode(left_operand);
+          let->AddNode(ThrowTypeError(type_pos, type));
+          left_operand = let;
+          break;  // Type checks and casts can't be chained.
         }
       }
       if (Token::IsRelationalOperator(op_kind)
@@ -7871,13 +7927,15 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
     if (name.IsNull()) {
       ErrorMsg(left_pos, "expression is not assignable");
     }
-    result = ThrowNoSuchMethodError(original->token_pos(),
-                                    *target_cls,
-                                    name,
-                                    NULL,  // No arguments.
-                                    InvocationMirror::kStatic,
-                                    InvocationMirror::kSetter,
-                                    NULL);  // No existing function.
+    result = ThrowNoSuchMethodError(
+        original->token_pos(),
+        *target_cls,
+        name,
+        NULL,  // No arguments.
+        InvocationMirror::kStatic,
+        original->IsLoadLocalNode() ?
+            InvocationMirror::kLocalVar : InvocationMirror::kSetter,
+        NULL);  // No existing function.
   } else if (result->IsStoreIndexedNode() ||
              result->IsInstanceSetterNode() ||
              result->IsStaticSetterNode() ||
@@ -8567,6 +8625,14 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       } else {
         // Left is not a primary node; this must be a closure call.
         AstNode* closure = left;
+        if (parsing_metadata_) {
+            // Compiling closure calls involves saving the current context based
+            // on the current function, and metadata has no current function.
+            // Fail early rather than limping along only to discover later that
+            // we parsed something that isn't a compile-time constant.
+            ErrorMsg(closure->token_pos(),
+              "expression is not a valid compile-time constant");
+        }
         selector = ParseClosureCall(closure);
       }
     } else {
@@ -8844,12 +8910,13 @@ RawInstance* Parser::TryCanonicalize(const Instance& instance,
 AstNode* Parser::RunStaticFieldInitializer(const Field& field,
                                            intptr_t field_ref_pos) {
   ASSERT(field.is_static());
-  const Class& field_owner = Class::ZoneHandle(field.owner());
-  const String& field_name = String::ZoneHandle(field.name());
-  const String& getter_name = String::Handle(Field::GetterName(field_name));
-  const Function& getter =
-      Function::Handle(field_owner.LookupStaticFunction(getter_name));
-  const Instance& value = Instance::Handle(field.value());
+  const Class& field_owner = Class::ZoneHandle(isolate(), field.owner());
+  const String& field_name = String::ZoneHandle(isolate(), field.name());
+  const String& getter_name = String::Handle(isolate(),
+                                             Field::GetterName(field_name));
+  const Function& getter = Function::Handle(
+      isolate(), field_owner.LookupStaticFunction(getter_name));
+  const Instance& value = Instance::Handle(isolate(), field.value());
   if (value.raw() == Object::transition_sentinel().raw()) {
     if (field.is_const()) {
       ErrorMsg("circular dependency while initializing static field '%s'",
@@ -8869,15 +8936,18 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
     if (field.is_const()) {
       field.set_value(Object::transition_sentinel());
       const int kNumArguments = 0;  // no arguments.
-      const Function& func =
-          Function::Handle(Resolver::ResolveStatic(field_owner,
-                                                   getter_name,
-                                                   kNumArguments,
-                                                   Object::empty_array()));
+      const Function& func = Function::Handle(
+          isolate(), Resolver::ResolveStatic(field_owner,
+                                             getter_name,
+                                             kNumArguments,
+                                             Object::empty_array()));
       ASSERT(!func.IsNull());
       ASSERT(func.kind() == RawFunction::kImplicitStaticFinalGetter);
-      Object& const_value = Object::Handle(
-          DartEntry::InvokeFunction(func, Object::empty_array()));
+      Object& const_value = Object::Handle(isolate());
+      {
+        PAUSETIMERSCOPE(isolate(), time_compilation);
+        const_value = DartEntry::InvokeFunction(func, Object::empty_array());
+      }
       if (const_value.IsError()) {
         const Error& error = Error::Cast(const_value);
         if (error.IsUnhandledException()) {
@@ -8931,8 +9001,9 @@ RawObject* Parser::EvaluateConstConstructorCall(
   // Constructors have 2 extra arguments: rcvr and construction phase.
   const int kNumExtraArgs = constructor.IsFactory() ? 1 : 2;
   const int num_arguments = arguments->length() + kNumExtraArgs;
-  const Array& arg_values = Array::Handle(Array::New(num_arguments));
-  Instance& instance = Instance::Handle();
+  const Array& arg_values = Array::Handle(isolate(),
+                                          Array::New(num_arguments));
+  Instance& instance = Instance::Handle(isolate());
   if (!constructor.IsFactory()) {
     instance = Instance::New(type_class, Heap::kOld);
     if (!type_arguments.IsNull()) {
@@ -8955,13 +9026,14 @@ RawObject* Parser::EvaluateConstConstructorCall(
     ASSERT(arg->IsLiteralNode());
     arg_values.SetAt((i + kNumExtraArgs), arg->AsLiteralNode()->literal());
   }
-  const Array& args_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(num_arguments,
-                                             arguments->names()));
-  const Object& result =
-      Object::Handle(DartEntry::InvokeFunction(constructor,
-                                               arg_values,
-                                               args_descriptor));
+  const Array& args_descriptor = Array::Handle(
+      isolate(), ArgumentsDescriptor::New(num_arguments, arguments->names()));
+  Object& result = Object::Handle(isolate());
+  {
+    PAUSETIMERSCOPE(isolate(), time_compilation);
+    result = DartEntry::InvokeFunction(
+        constructor, arg_values, args_descriptor);
+  }
   if (result.IsError()) {
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as
@@ -9001,11 +9073,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   }
   if (local != NULL) {
     if (node != NULL) {
-      if (local->IsConst()) {
-        *node = new LiteralNode(ident_pos, *local->ConstValue());
-      } else {
-        *node = new LoadLocalNode(ident_pos, local);
-      }
+      *node = new LoadLocalNode(ident_pos, local);
     }
     return true;
   }
@@ -9181,14 +9249,20 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
                                            const String& ident) {
   TRACE_PARSER("ResolveIdentInPrefixScope");
   HANDLESCOPE(isolate());
-  Object& obj = Object::Handle(prefix.LookupObject(ident));
+  Object& obj = Object::Handle();
+  if (prefix.is_loaded()) {
+    obj = prefix.LookupObject(ident);
+  } else {
+    // Remember that this function depends on an import prefix of an
+    // unloaded deferred library. Note that parsed_function() can be
+    // NULL when parsing expressions outside the scope of a function.
+    if (parsed_function() != NULL) {
+      parsed_function()->AddDeferredPrefix(prefix);
+    }
+  }
   if (obj.IsNull()) {
     // Unresolved prefixed primary identifier.
-    String& qualified_name = String::ZoneHandle(prefix.name());
-    qualified_name = String::Concat(qualified_name, Symbols::Dot());
-    qualified_name = String::Concat(qualified_name, ident);
-    qualified_name = Symbols::New(qualified_name);
-    return new PrimaryNode(ident_pos, qualified_name);
+    return NULL;
   } else if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
     return new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
@@ -9296,7 +9370,8 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
 // Parses type = [ident "."] ident ["<" type { "," type } ">"], then resolve and
 // finalize it according to the given type finalization mode.
 RawAbstractType* Parser::ParseType(
-    ClassFinalizer::FinalizationKind finalization) {
+    ClassFinalizer::FinalizationKind finalization,
+    bool allow_deferred_type) {
   TRACE_PARSER("ParseType");
   CheckToken(Token::kIDENT, "type name expected");
   QualIdent type_name;
@@ -9320,6 +9395,18 @@ RawAbstractType* Parser::ParseType(
           script_,
           type_name.ident_pos,
           "using '%s' in this context is invalid",
+          type_name.ident->ToCString());
+    }
+    if ((type_name.lib_prefix != NULL) &&
+        type_name.lib_prefix->is_deferred_load() &&
+        !allow_deferred_type) {
+      ParseTypeArguments(ClassFinalizer::kIgnore);
+      return ClassFinalizer::NewFinalizedMalformedType(
+          Error::Handle(),  // No previous error.
+          script_,
+          type_name.ident_pos,
+          "using deferred type '%s.%s' is invalid",
+          String::Handle(type_name.lib_prefix->name()).ToCString(),
           type_name.ident->ToCString());
     }
   }
@@ -9880,8 +9967,10 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     ErrorMsg("type name expected");
   }
   intptr_t type_pos = TokenPos();
+  // Can't allocate const objects of a deferred type.
+  const bool allow_deferred_type = !is_const;
   AbstractType& type = AbstractType::Handle(
-      ParseType(ClassFinalizer::kCanonicalizeWellFormed));
+      ParseType(ClassFinalizer::kCanonicalizeWellFormed, allow_deferred_type));
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
   if (!type.IsMalformed() && (type.IsTypeParameter() || type.IsDynamicType())) {
@@ -10129,28 +10218,31 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
 
 
 String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
-  const Class& cls =
-      Class::Handle(Library::LookupCoreClass(Symbols::StringBase()));
+  const Class& cls = Class::Handle(
+      isolate(), Library::LookupCoreClass(Symbols::StringBase()));
   ASSERT(!cls.IsNull());
-  const Function& func =
-      Function::Handle(cls.LookupStaticFunction(
-          Library::PrivateCoreLibName(Symbols::Interpolate())));
+  const Function& func = Function::Handle(isolate(), cls.LookupStaticFunction(
+      Library::PrivateCoreLibName(Symbols::Interpolate())));
   ASSERT(!func.IsNull());
 
   // Build the array of literal values to interpolate.
-  const Array& value_arr = Array::Handle(Array::New(values.length()));
+  const Array& value_arr = Array::Handle(isolate(),
+                                         Array::New(values.length()));
   for (int i = 0; i < values.length(); i++) {
     ASSERT(values[i]->IsLiteralNode());
     value_arr.SetAt(i, values[i]->AsLiteralNode()->literal());
   }
 
   // Build argument array to pass to the interpolation function.
-  const Array& interpolate_arg = Array::Handle(Array::New(1));
+  const Array& interpolate_arg = Array::Handle(isolate(), Array::New(1));
   interpolate_arg.SetAt(0, value_arr);
 
   // Call interpolation function.
-  String& concatenated = String::ZoneHandle();
-  concatenated ^= DartEntry::InvokeFunction(func, interpolate_arg);
+  String& concatenated = String::ZoneHandle(isolate());
+  {
+    PAUSETIMERSCOPE(isolate(), time_compilation);
+    concatenated ^= DartEntry::InvokeFunction(func, interpolate_arg);
+  }
   if (concatenated.IsUnhandledException()) {
     ErrorMsg("Exception thrown in Parser::Interpolate");
   }
@@ -10264,6 +10356,7 @@ AstNode* Parser::ParsePrimary() {
     CloseBlock();
   } else if (IsIdentifier()) {
     QualIdent qual_ident;
+    intptr_t qual_ident_pos = TokenPos();
     ParseQualIdent(&qual_ident);
     if (qual_ident.lib_prefix == NULL) {
       if (!ResolveIdentInLocalScope(qual_ident.ident_pos,
@@ -10294,30 +10387,42 @@ AstNode* Parser::ParsePrimary() {
       // Note: unlike in the case of an unqualified identifier, do not
       // interpret the unresolved identifier as an instance method or
       // instance getter call when compiling an instance method.
-      // TODO(hausner): Ideally we should generate the NoSuchMethodError
-      // later, when we know more about how the unresolved name is used.
-      // For example, we don't know yet whether the unresolved name
-      // refers to a getter or a setter. However, it is more awkward
-      // to distinuish four NoSuchMethodError cases all over the place
-      // in the parser. The four cases are: prefixed vs non-prefixed
-      // name, static vs dynamic context in which the unresolved name
-      // is used. We cheat a little here by looking at the next token
-      // to determine whether we have an unresolved method call or
-      // field access.
-      if (primary->IsPrimaryNode() &&
-          primary->AsPrimaryNode()->primary().IsString()) {
-        InvocationMirror::Type call_type =
-            CurrentToken() == Token::kLPAREN ?
-               InvocationMirror::kMethod : InvocationMirror::kGetter;
-        const String& unresolved_name =
-            String::Cast(primary->AsPrimaryNode()->primary());
-        primary = ThrowNoSuchMethodError(primary->token_pos(),
-                                        current_class(),
-                                        unresolved_name,
-                                        NULL,  // No arguments.
-                                        InvocationMirror::kTopLevel,
-                                        call_type,
-                                        NULL);  // No existing function.
+      if (primary == NULL) {
+        if (qual_ident.lib_prefix->is_deferred_load() &&
+            qual_ident.ident->Equals(Symbols::LoadLibrary())) {
+          // Hack Alert: recognize special 'loadLibrary' call on the
+          // prefix object. The prefix is the primary. Rewind parser and
+          // let ParseSelectors() handle the loadLibrary call.
+          SetPosition(qual_ident_pos);
+          ConsumeToken();  // Prefix name.
+          primary = new LiteralNode(qual_ident_pos, *qual_ident.lib_prefix);
+        } else {
+          // TODO(hausner): Ideally we should generate the NoSuchMethodError
+          // later, when we know more about how the unresolved name is used.
+          // For example, we don't know yet whether the unresolved name
+          // refers to a getter or a setter. However, it is more awkward
+          // to distinuish four NoSuchMethodError cases all over the place
+          // in the parser. The four cases are: prefixed vs non-prefixed
+          // name, static vs dynamic context in which the unresolved name
+          // is used. We cheat a little here by looking at the next token
+          // to determine whether we have an unresolved method call or
+          // field access.
+          String& qualified_name =
+              String::ZoneHandle(qual_ident.lib_prefix->name());
+          qualified_name = String::Concat(qualified_name, Symbols::Dot());
+          qualified_name = String::Concat(qualified_name, *qual_ident.ident);
+          qualified_name = Symbols::New(qualified_name);
+          InvocationMirror::Type call_type =
+              CurrentToken() == Token::kLPAREN ?
+                  InvocationMirror::kMethod : InvocationMirror::kGetter;
+          primary = ThrowNoSuchMethodError(qual_ident_pos,
+                                           current_class(),
+                                           qualified_name,
+                                           NULL,  // No arguments.
+                                           InvocationMirror::kTopLevel,
+                                           call_type,
+                                           NULL);  // No existing function.
+        }
       }
     }
     ASSERT(primary != NULL);

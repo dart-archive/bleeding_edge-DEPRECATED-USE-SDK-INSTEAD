@@ -30,7 +30,7 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
-import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.functionElement;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
@@ -176,13 +176,13 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     classE.setInterfaces(new InterfaceType[] {classB.getType(), classD.getType()});
     // D
     Set<InterfaceType> superinterfacesOfD = InterfaceTypeImpl.computeSuperinterfaceSet(classD.getType());
-    assertSize(3, superinterfacesOfD);
+    assertSizeOfSet(3, superinterfacesOfD);
     assertTrue(superinterfacesOfD.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfD.contains(classA.getType()));
     assertTrue(superinterfacesOfD.contains(classC.getType()));
     // E
     Set<InterfaceType> superinterfacesOfE = InterfaceTypeImpl.computeSuperinterfaceSet(classE.getType());
-    assertSize(5, superinterfacesOfE);
+    assertSizeOfSet(5, superinterfacesOfE);
     assertTrue(superinterfacesOfE.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfE.contains(classA.getType()));
     assertTrue(superinterfacesOfE.contains(classB.getType()));
@@ -199,13 +199,13 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     classE.setInterfaces(new InterfaceType[] {classD.getType()});
     // D
     Set<InterfaceType> superinterfacesOfD = InterfaceTypeImpl.computeSuperinterfaceSet(classD.getType());
-    assertSize(3, superinterfacesOfD);
+    assertSizeOfSet(3, superinterfacesOfD);
     assertTrue(superinterfacesOfD.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfD.contains(classA.getType()));
     assertTrue(superinterfacesOfD.contains(classC.getType()));
     // E
     Set<InterfaceType> superinterfacesOfE = InterfaceTypeImpl.computeSuperinterfaceSet(classE.getType());
-    assertSize(5, superinterfacesOfE);
+    assertSizeOfSet(5, superinterfacesOfE);
     assertTrue(superinterfacesOfE.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfE.contains(classA.getType()));
     assertTrue(superinterfacesOfE.contains(classB.getType()));
@@ -219,7 +219,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     classA.setSupertype(classB.getType());
 
     Set<InterfaceType> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(classB.getType());
-    assertSize(2, superinterfacesOfB);
+    assertSizeOfSet(2, superinterfacesOfB);
   }
 
   public void test_computeSuperinterfaceSet_singleInterfacePath() {
@@ -230,16 +230,16 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     classC.setInterfaces(new InterfaceType[] {classB.getType()});
     // A
     Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(classA.getType());
-    assertSize(1, superinterfacesOfA);
+    assertSizeOfSet(1, superinterfacesOfA);
     assertTrue(superinterfacesOfA.contains(ElementFactory.getObject().getType()));
     // B
     Set<InterfaceType> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(classB.getType());
-    assertSize(2, superinterfacesOfB);
+    assertSizeOfSet(2, superinterfacesOfB);
     assertTrue(superinterfacesOfB.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfB.contains(classA.getType()));
     // C
     Set<InterfaceType> superinterfacesOfC = InterfaceTypeImpl.computeSuperinterfaceSet(classC.getType());
-    assertSize(3, superinterfacesOfC);
+    assertSizeOfSet(3, superinterfacesOfC);
     assertTrue(superinterfacesOfC.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfC.contains(classA.getType()));
     assertTrue(superinterfacesOfC.contains(classB.getType()));
@@ -258,16 +258,16 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classC = classElement("C", classB.getType());
     // A
     Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(classA.getType());
-    assertSize(1, superinterfacesOfA);
+    assertSizeOfSet(1, superinterfacesOfA);
     assertTrue(superinterfacesOfA.contains(ElementFactory.getObject().getType()));
     // B
     Set<InterfaceType> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(classB.getType());
-    assertSize(2, superinterfacesOfB);
+    assertSizeOfSet(2, superinterfacesOfB);
     assertTrue(superinterfacesOfB.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfB.contains(classA.getType()));
     // C
     Set<InterfaceType> superinterfacesOfC = InterfaceTypeImpl.computeSuperinterfaceSet(classC.getType());
-    assertSize(3, superinterfacesOfC);
+    assertSizeOfSet(3, superinterfacesOfC);
     assertTrue(superinterfacesOfC.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfC.contains(classA.getType()));
     assertTrue(superinterfacesOfC.contains(classB.getType()));

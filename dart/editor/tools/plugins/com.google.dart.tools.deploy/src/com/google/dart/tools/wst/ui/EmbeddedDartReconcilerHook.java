@@ -255,14 +255,12 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     try {
       String code = document.get(offset, length);
       File tempFile = new File(file.getParentFile(), file.getName() + offset + "p.dart");
-      Source source = new FileBasedSource(
-          analysisContext.getSourceFactory().getContentCache(),
-          tempFile);
+      Source source = new FileBasedSource(tempFile);
       analysisContext.setContents(source, code);
       parsedUnit = analysisContext.parseCompilationUnit(source);
       analysisContext.setContents(source, null);
       ChangeSet changeSet = new ChangeSet();
-      changeSet.removed(source);
+      changeSet.removedSource(source);
       analysisContext.applyChanges(changeSet);
     } catch (BadLocationException ex) {
       Activator.logError(ex);
@@ -301,9 +299,7 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
     try {
       String code = document.get(offset, length);
       File tempFile = new File(file.getParentFile(), file.getName() + offset + "r.dart");
-      Source source = new FileBasedSource(
-          analysisContext.getSourceFactory().getContentCache(),
-          tempFile);
+      Source source = new FileBasedSource(tempFile);
       analysisContext.setContents(source, code);
       LibraryElement library = analysisContext.computeLibraryElement(source);
       resolvedUnit = analysisContext.resolveCompilationUnit(source, library);
@@ -316,7 +312,7 @@ public class EmbeddedDartReconcilerHook implements ISourceValidator, IValidator 
           errorInfo.getErrors());
       analysisContext.setContents(source, null);
       ChangeSet changeSet = new ChangeSet();
-      changeSet.removed(source);
+      changeSet.removedSource(source);
       analysisContext.applyChanges(changeSet);
     } catch (AnalysisException ex) {
       Activator.logError(ex);

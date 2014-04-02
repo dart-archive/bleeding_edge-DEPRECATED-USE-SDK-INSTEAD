@@ -35,7 +35,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.constant.DartObject;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -72,7 +72,7 @@ import java.util.HashSet;
  * 
  * @coverage dart.engine.resolver
  */
-public class ConstantVerifier extends RecursiveASTVisitor<Void> {
+public class ConstantVerifier extends RecursiveAstVisitor<Void> {
   /**
    * The error reporter by which errors will be reported.
    */
@@ -126,13 +126,13 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
       ConstructorElement constructorElement = (ConstructorElement) element;
       // should 'const' constructor
       if (!constructorElement.isConst()) {
-        errorReporter.reportError(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node);
+        errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node);
         return null;
       }
       // should have arguments
       ArgumentList argumentList = node.getArguments();
       if (argumentList == null) {
-        errorReporter.reportError(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node);
+        errorReporter.reportErrorForNode(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node);
         return null;
       }
       // arguments should be constants
@@ -159,7 +159,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    validateConstantArguments(node);
+    validateInstanceCreationArguments(node);
     return super.visitInstanceCreationExpression(node);
   }
 
@@ -210,7 +210,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     }
     if (reportEqualKeys) {
       for (Expression key : invalidKeys) {
-        errorReporter.reportError(StaticWarningCode.EQUAL_KEYS_IN_MAP, key);
+        errorReporter.reportErrorForNode(StaticWarningCode.EQUAL_KEYS_IN_MAP, key);
       }
     }
     return null;
@@ -271,9 +271,9 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
             || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL
             || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_INT
             || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) {
-          errorReporter.reportError(dataErrorCode, data.getNode());
+          errorReporter.reportErrorForNode(dataErrorCode, data.getNode());
         } else {
-          errorReporter.reportError(errorCode, data.getNode());
+          errorReporter.reportErrorForNode(errorCode, data.getNode());
         }
       }
     }
@@ -309,23 +309,6 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
       }
       validate(argument, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
     }
-  }
-
-  /**
-   * Validate that if the passed instance creation is 'const' then all its arguments are constant
-   * expressions.
-   * 
-   * @param node the instance creation evaluate
-   */
-  private void validateConstantArguments(InstanceCreationExpression node) {
-    if (!node.isConst()) {
-      return;
-    }
-    ArgumentList argumentList = node.getArgumentList();
-    if (argumentList == null) {
-      return;
-    }
-    validateConstantArguments(argumentList);
   }
 
   /**
@@ -441,5 +424,22 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
         validateInitializerInvocationArguments(parameterElements, invocation.getArgumentList());
       }
     }
+  }
+
+  /**
+   * Validate that if the passed instance creation is 'const' then all its arguments are constant
+   * expressions.
+   * 
+   * @param node the instance creation evaluate
+   */
+  private void validateInstanceCreationArguments(InstanceCreationExpression node) {
+    if (!node.isConst()) {
+      return;
+    }
+    ArgumentList argumentList = node.getArgumentList();
+    if (argumentList == null) {
+      return;
+    }
+    validateConstantArguments(argumentList);
   }
 }

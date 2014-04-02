@@ -15,13 +15,13 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.HighlightedPosition;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.Highlighting;
@@ -50,18 +50,17 @@ import java.util.concurrent.TimeUnit;
  * Semantic highlighting reconciler - Background thread implementation.
  */
 public class SemanticHighlightingReconciler implements IDartReconcilingListener, ITextInputListener {
-
   /**
    * Collects positions from the AST.
    */
-  private class PositionCollector extends GeneralizingASTVisitor<Void> {
+  private class PositionCollector extends GeneralizingAstVisitor<Void> {
     /**
      * Cache tokens for performance.
      */
     private final SemanticToken token = new SemanticToken();
 
     @Override
-    public Void visitNode(ASTNode node) {
+    public Void visitNode(AstNode node) {
       processNode(token, node);
       return super.visitNode(node);
     }
@@ -204,19 +203,19 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
 
   /**
    * The semantic highlighting presenter - cache for background thread, only valid during
-   * {@link #reconciled(DartUnit, boolean, IProgressMonitor)}
+   * {@link #reconciled(boolean, IProgressMonitor)}
    */
   private SemanticHighlightingPresenter fJobPresenter;
 
   /**
    * Semantic highlightings - cache for background thread, only valid during
-   * {@link #reconciled(DartUnit, boolean, IProgressMonitor)}
+   * {@link #reconciled(boolean, IProgressMonitor)}
    */
   private SemanticHighlighting[] fJobSemanticHighlightings;
 
   /**
    * Highlightings - cache for background thread, only valid during
-   * {@link #reconciled(DartUnit, boolean, IProgressMonitor)}
+   * {@link #reconciled(boolean, IProgressMonitor)}
    */
   private Highlighting[] fJobHighlightings;
 
@@ -333,7 +332,16 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     fPresenter = null;
   }
 
-  private final void processNode(SemanticToken token, ASTNode node) {
+  private boolean canReconcilePositions() {
+    ISourceViewer viewer = fSourceViewer;
+    if (viewer == null) {
+      return false;
+    }
+    IDocument document = viewer.getDocument();
+    return !DartUI.isTooComplexDartDocument(document);
+  }
+
+  private final void processNode(SemanticToken token, AstNode node) {
     ISourceViewer sourceViewer = this.fSourceViewer;
     if (sourceViewer == null) {
       return;
@@ -394,7 +402,9 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     Arrays.sort(removedPositions, positionsComparator);
     removedPositionsDeleted = new boolean[removedPositions.length];
 
-    unit.accept(fCollector);
+    if (canReconcilePositions()) {
+      unit.accept(fCollector);
+    }
 
     // copy removedPositions and removedPositionsDeleted into fRemovedPositions
     fRemovedPositions = new ArrayList<Position>(removedPositions.length);

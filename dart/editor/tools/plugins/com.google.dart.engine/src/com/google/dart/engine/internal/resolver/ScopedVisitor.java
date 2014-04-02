@@ -13,12 +13,14 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
@@ -44,8 +46,11 @@ import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
-import com.google.dart.engine.ast.visitor.UnifyingASTVisitor;
+import com.google.dart.engine.ast.visitor.UnifyingAstVisitor;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -69,7 +74,7 @@ import com.google.dart.engine.source.Source;
  * 
  * @coverage dart.engine.resolver
  */
-public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
+public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
   /**
    * The element for the library containing the compilation unit being visited.
    */
@@ -153,6 +158,22 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
     this.source = source;
     this.errorListener = errorListener;
     this.nameScope = nameScope;
+    this.typeProvider = typeProvider;
+  }
+
+  /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * 
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  public ScopedVisitor(ResolvableLibrary library, Source source, TypeProvider typeProvider) {
+    this.definingLibrary = library.getLibraryElement();
+    this.source = source;
+    LibraryScope libraryScope = library.getLibraryScope();
+    this.errorListener = libraryScope.getErrorListener();
+    this.nameScope = libraryScope;
     this.typeProvider = typeProvider;
   }
 
@@ -242,9 +263,17 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
 
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
+    ClassElement classElement = node.getElement();
     Scope outerScope = nameScope;
     try {
-      nameScope = new ClassScope(nameScope, node.getElement());
+      if (classElement == null) {
+        AnalysisEngine.getInstance().getLogger().logInformation(
+            "Missing element for constructor " + node.getName().getName() + " in "
+                + getDefiningLibrary().getSource().getFullName(),
+            new Exception());
+      } else {
+        nameScope = new ClassScope(nameScope, classElement);
+      }
       visitClassDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
@@ -266,9 +295,23 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
 
   @Override
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+    ConstructorElement constructorElement = node.getElement();
     Scope outerScope = nameScope;
     try {
-      nameScope = new FunctionScope(nameScope, node.getElement());
+      if (constructorElement == null) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Missing element for constructor ");
+        builder.append(node.getReturnType().getName());
+        if (node.getName() != null) {
+          builder.append(".");
+          builder.append(node.getName().getName());
+        }
+        builder.append(" in ");
+        builder.append(getDefiningLibrary().getSource().getFullName());
+        AnalysisEngine.getInstance().getLogger().logInformation(builder.toString(), new Exception());
+      } else {
+        nameScope = new FunctionScope(nameScope, constructorElement);
+      }
       super.visitConstructorDeclaration(node);
     } finally {
       nameScope = outerScope;
@@ -344,16 +387,23 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
 
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
-    ExecutableElement function = node.getElement();
+    ExecutableElement functionElement = node.getElement();
     Scope outerScope = nameScope;
     try {
-      nameScope = new FunctionScope(nameScope, function);
+      if (functionElement == null) {
+        AnalysisEngine.getInstance().getLogger().logInformation(
+            "Missing element for top-level function " + node.getName().getName() + " in "
+                + getDefiningLibrary().getSource().getFullName(),
+            new Exception());
+      } else {
+        nameScope = new FunctionScope(nameScope, functionElement);
+      }
       super.visitFunctionDeclaration(node);
     } finally {
       nameScope = outerScope;
     }
-    if (!(function.getEnclosingElement() instanceof CompilationUnitElement)) {
-      nameScope.define(function);
+    if (!(functionElement.getEnclosingElement() instanceof CompilationUnitElement)) {
+      nameScope.define(functionElement);
     }
     return null;
   }
@@ -368,7 +418,21 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
       try {
         ExecutableElement functionElement = node.getElement();
         if (functionElement == null) {
-          // TODO(brianwilkerson) Report this internal error
+          StringBuilder builder = new StringBuilder();
+          builder.append("Missing element for function ");
+          AstNode parent = node.getParent();
+          while (parent != null) {
+            if (parent instanceof Declaration) {
+              Element parentElement = ((Declaration) parent).getElement();
+              builder.append(parentElement == null ? "<unknown> " : (parentElement.getName() + " "));
+            }
+            parent = parent.getParent();
+          }
+          builder.append("in ");
+          builder.append(getDefiningLibrary().getSource().getFullName());
+          AnalysisEngine.getInstance().getLogger().logInformation(
+              builder.toString(),
+              new Exception());
         } else {
           nameScope = new FunctionScope(nameScope, functionElement);
         }
@@ -415,7 +479,15 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
   public Void visitMethodDeclaration(MethodDeclaration node) {
     Scope outerScope = nameScope;
     try {
-      nameScope = new FunctionScope(nameScope, node.getElement());
+      ExecutableElement methodElement = node.getElement();
+      if (methodElement == null) {
+        AnalysisEngine.getInstance().getLogger().logInformation(
+            "Missing element for method " + node.getName().getName() + " in "
+                + getDefiningLibrary().getSource().getFullName(),
+            new Exception());
+      } else {
+        nameScope = new FunctionScope(nameScope, methodElement);
+      }
       super.visitMethodDeclaration(node);
     } finally {
       nameScope = outerScope;
@@ -527,7 +599,7 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportError(ErrorCode errorCode, ASTNode node, Object... arguments) {
+  protected void reportErrorForNode(ErrorCode errorCode, AstNode node, Object... arguments) {
     errorListener.onError(new AnalysisError(
         source,
         node.getOffset(),
@@ -544,7 +616,8 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
    * @param length the length of the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportError(ErrorCode errorCode, int offset, int length, Object... arguments) {
+  protected void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
+      Object... arguments) {
     errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
   }
 
@@ -555,7 +628,7 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportError(ErrorCode errorCode, Token token, Object... arguments) {
+  protected void reportErrorForToken(ErrorCode errorCode, Token token, Object... arguments) {
     errorListener.onError(new AnalysisError(
         source,
         token.getOffset(),
@@ -569,7 +642,7 @@ public abstract class ScopedVisitor extends UnifyingASTVisitor<Void> {
    * 
    * @param node the node to be visited
    */
-  protected void safelyVisit(ASTNode node) {
+  protected void safelyVisit(AstNode node) {
     if (node != null) {
       node.accept(this);
     }

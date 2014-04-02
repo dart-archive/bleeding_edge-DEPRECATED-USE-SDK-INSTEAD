@@ -37,8 +37,6 @@ import 'java_core.dart';
  * arguments and records the time at which the method is called so that the time to complete the
  * save operation can be calculated. The `log` method tells the builder that all of the data
  * has been collected and that the resulting information should be logged.
- *
- * @coverage dart.engine.utilities
  */
 class Instrumentation {
   /**
@@ -104,34 +102,47 @@ class Instrumentation {
 }
 
 class InstrumentationBuilder_Instrumentation_NULL_INSTRUMENTATION_BUILDER implements InstrumentationBuilder {
+  @override
   InstrumentationBuilder data(String name, bool value) => this;
 
+  @override
   InstrumentationBuilder data2(String name, int value) => this;
 
+  @override
   InstrumentationBuilder data3(String name, String value) => this;
 
+  @override
   InstrumentationBuilder data4(String name, List<String> value) => this;
 
+  @override
   InstrumentationLevel get instrumentationLevel => InstrumentationLevel.OFF;
 
+  @override
   void log() {
   }
 
+  @override
   void log2(int minTimeToLong) {
   }
 
+  @override
   InstrumentationBuilder metric(String name, bool value) => this;
 
+  @override
   InstrumentationBuilder metric2(String name, int value) => this;
 
+  @override
   InstrumentationBuilder metric3(String name, String value) => this;
 
+  @override
   InstrumentationBuilder metric4(String name, List<String> value) => this;
 
+  @override
   InstrumentationBuilder record(Exception exception) => this;
 }
 
 class InstrumentationLogger_Instrumentation_NULL_LOGGER implements InstrumentationLogger {
+  @override
   InstrumentationBuilder createBuilder(String name) => Instrumentation._NULL_INSTRUMENTATION_BUILDER;
 }
 
@@ -140,8 +151,6 @@ class InstrumentationLogger_Instrumentation_NULL_LOGGER implements Instrumentati
  * about an operation that has occurred and record that data through an instrumentation logger.
  *
  * For an example of using objects that implement this interface, see [Instrumentation].
- *
- * @coverage dart.engine.utilities
  */
 abstract class InstrumentationBuilder {
   /**
@@ -272,20 +281,18 @@ abstract class InstrumentationBuilder {
  * The instrumentation recording level representing (1) recording [EVERYTHING] recording of
  * all instrumentation data, (2) recording only [METRICS] information, or (3) recording
  * turned [OFF] in which case nothing is recorded.
- *
- * @coverage dart.engine.utilities
  */
 class InstrumentationLevel extends Enum<InstrumentationLevel> {
   /** Recording all instrumented information */
-  static final InstrumentationLevel EVERYTHING = new InstrumentationLevel('EVERYTHING', 0);
+  static const InstrumentationLevel EVERYTHING = const InstrumentationLevel('EVERYTHING', 0);
 
   /** Recording only metrics */
-  static final InstrumentationLevel METRICS = new InstrumentationLevel('METRICS', 1);
+  static const InstrumentationLevel METRICS = const InstrumentationLevel('METRICS', 1);
 
   /** Nothing recorded */
-  static final InstrumentationLevel OFF = new InstrumentationLevel('OFF', 2);
+  static const InstrumentationLevel OFF = const InstrumentationLevel('OFF', 2);
 
-  static final List<InstrumentationLevel> values = [EVERYTHING, METRICS, OFF];
+  static const List<InstrumentationLevel> values = const [EVERYTHING, METRICS, OFF];
 
   static InstrumentationLevel fromString(String str) {
     if (str == "EVERYTHING") {
@@ -300,7 +307,7 @@ class InstrumentationLevel extends Enum<InstrumentationLevel> {
     throw new IllegalArgumentException("Unrecognised InstrumentationLevel");
   }
 
-  InstrumentationLevel(String name, int ordinal) : super(name, ordinal);
+  const InstrumentationLevel(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -308,8 +315,6 @@ class InstrumentationLevel extends Enum<InstrumentationLevel> {
  * instrumentation data.
  *
  * For an example of using objects that implement this interface, see [Instrumentation].
- *
- * @coverage dart.engine.utilities
  */
 abstract class InstrumentationLogger {
   /**

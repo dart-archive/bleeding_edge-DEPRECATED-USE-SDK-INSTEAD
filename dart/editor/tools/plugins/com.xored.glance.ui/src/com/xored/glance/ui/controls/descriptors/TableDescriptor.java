@@ -3,12 +3,12 @@
  */
 package com.xored.glance.ui.controls.descriptors;
 
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Table;
-
 import com.xored.glance.ui.controls.table.TableSource;
 import com.xored.glance.ui.sources.ITextSource;
 import com.xored.glance.ui.sources.ITextSourceDescriptor;
+
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Table;
 
 /**
  * @author Yuri Strot

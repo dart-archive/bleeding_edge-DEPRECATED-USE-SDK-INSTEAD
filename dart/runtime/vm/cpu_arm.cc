@@ -6,12 +6,14 @@
 
 #if defined(TARGET_ARCH_ARM)
 
+#include "vm/cpu.h"
+#include "vm/cpuinfo.h"
+#include "vm/simulator.h"
+
 #if defined(HOST_ARCH_ARM)
 #include <sys/syscall.h>  /* NOLINT */
 #include <unistd.h>  /* NOLINT */
 #endif
-
-#include "vm/cpu.h"
 
 namespace dart {
 
@@ -47,6 +49,85 @@ const char* CPU::Id() {
 #endif  // !defined(HOST_ARCH_ARM)
   "arm";
 }
+
+
+bool HostCPUFeatures::integer_division_supported_ = false;
+bool HostCPUFeatures::neon_supported_ = false;
+const char* HostCPUFeatures::hardware_ = NULL;
+ARMVersion HostCPUFeatures::arm_version_ = ARMvUnknown;
+#if defined(DEBUG)
+bool HostCPUFeatures::initialized_ = false;
+#endif
+
+
+#if defined(HOST_ARCH_ARM)
+void HostCPUFeatures::InitOnce() {
+  CpuInfo::InitOnce();
+  hardware_ = CpuInfo::GetCpuModel();
+  // Check for ARMv6 or ARMv7. It can be in either the Processor or
+  // Model information fields.
+  if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv6") ||
+      CpuInfo::FieldContains(kCpuInfoModel, "ARMv6")) {
+    arm_version_ = ARMv6;
+  } else {
+    ASSERT(CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv7") ||
+           CpuInfo::FieldContains(kCpuInfoModel, "ARMv7"));
+    arm_version_ = ARMv7;
+  }
+  // Has floating point unit.
+  ASSERT(CpuInfo::FieldContains(kCpuInfoFeatures, "vfp"));
+  // Has integer division.
+  bool is_krait = CpuInfo::FieldContains(kCpuInfoHardware, "QCT APQ8064");
+  if (is_krait) {
+    // Special case for Qualcomm Krait CPUs in Nexus 4 and 7.
+    integer_division_supported_ = true;
+  } else {
+    integer_division_supported_ =
+        CpuInfo::FieldContains(kCpuInfoFeatures, "idiva");
+  }
+  neon_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "neon");
+#if defined(DEBUG)
+  initialized_ = true;
+#endif
+}
+
+
+void HostCPUFeatures::Cleanup() {
+  DEBUG_ASSERT(initialized_);
+#if defined(DEBUG)
+  initialized_ = false;
+#endif
+  ASSERT(hardware_ != NULL);
+  free(const_cast<char*>(hardware_));
+  hardware_ = NULL;
+  CpuInfo::Cleanup();
+}
+
+#else
+
+void HostCPUFeatures::InitOnce() {
+  CpuInfo::InitOnce();
+  hardware_ = CpuInfo::GetCpuModel();
+  integer_division_supported_ = true;
+  neon_supported_ = true;
+  arm_version_ = ARMv7;
+#if defined(DEBUG)
+  initialized_ = true;
+#endif
+}
+
+
+void HostCPUFeatures::Cleanup() {
+  DEBUG_ASSERT(initialized_);
+#if defined(DEBUG)
+  initialized_ = false;
+#endif
+  ASSERT(hardware_ != NULL);
+  free(const_cast<char*>(hardware_));
+  hardware_ = NULL;
+  CpuInfo::Cleanup();
+}
+#endif  // defined(HOST_ARCH_ARM)
 
 }  // namespace dart
 

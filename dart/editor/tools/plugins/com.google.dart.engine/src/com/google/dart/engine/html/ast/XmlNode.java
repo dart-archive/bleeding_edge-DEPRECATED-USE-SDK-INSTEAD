@@ -18,7 +18,10 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.html.ast.visitor.ToSourceVisitor;
 import com.google.dart.engine.html.ast.visitor.XmlVisitor;
 import com.google.dart.engine.html.scanner.Token;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
+import com.google.dart.engine.utilities.translation.DartOmit;
+import com.google.dart.engine.utilities.translation.DartOptional;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -148,24 +151,6 @@ public abstract class XmlNode {
   public abstract void visitChildren(XmlVisitor<?> visitor);
 
   /**
-   * Make this node the parent of the given child nodes.
-   * 
-   * @param children the nodes that will become the children of this node
-   * @return the nodes that were made children of this node
-   */
-  protected <T extends XmlNode> List<T> becomeParentOf(List<T> children) {
-    if (children != null) {
-      for (Iterator<T> iter = children.iterator(); iter.hasNext();) {
-        XmlNode node = iter.next(); // Java 7 access rules require a temp of a concrete type.
-        node.setParent(this);
-      }
-      // This will create ArrayList for exactly given number of elements.
-      return new ArrayList<T>(children);
-    }
-    return children;
-  }
-
-  /**
    * Make this node the parent of the given child node.
    * 
    * @param child the node that will become a child of this node
@@ -177,6 +162,42 @@ public abstract class XmlNode {
       node.setParent(this);
     }
     return child;
+  }
+
+  /**
+   * Make this node the parent of the given child nodes.
+   * 
+   * @param children the nodes that will become the children of this node
+   * @return the nodes that were made children of this node
+   */
+  @DartOmit
+  protected final <T extends XmlNode> List<T> becomeParentOfAll(List<T> children) {
+    return becomeParentOfAll(children, null);
+  }
+
+  /**
+   * Make this node the parent of the given child nodes.
+   * 
+   * @param children the nodes that will become the children of this node
+   * @param ifEmpty the (empty) nodes to return if "children" is empty
+   * @return the nodes that were made children of this node
+   */
+  protected final <T extends XmlNode> List<T> becomeParentOfAll(List<T> children,
+      @DartOptional(kind = ParameterKind.NAMED) List<T> ifEmpty) {
+    if (children == null || children.isEmpty()) {
+      if (ifEmpty != null) {
+        return ifEmpty;
+      }
+    }
+    if (children != null) {
+      for (Iterator<T> iter = children.iterator(); iter.hasNext();) {
+        XmlNode node = iter.next(); // Java 7 access rules require a temp of a concrete type.
+        node.setParent(this);
+      }
+      // This will create ArrayList for exactly given number of elements.
+      return new ArrayList<T>(children);
+    }
+    return children;
   }
 
   /**

@@ -7,17 +7,13 @@ library polymer_expressions.eval;
 import 'dart:async';
 import 'dart:collection';
 
-@MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
-    override: 'polymer_expressions.eval')
-import 'dart:mirrors';
-
 import 'package:observe/observe.dart';
+import 'package:smoke/smoke.dart' as smoke;
 
 import 'async.dart';
 import 'expression.dart';
 import 'filter.dart';
 import 'visitor.dart';
-import 'src/mirrors.dart';
 
 final _BINARY_OPERATORS = {
   '+':  (a, b) => a + b,
@@ -142,100 +138,134 @@ void assign(Expression expr, Object value, Scope scope) {
   if (isIndex) {
     o[property] = value;
   } else {
-    reflect(o).setField(new Symbol(property), value);
+    smoke.write(o, smoke.nameToSymbol(property), value);
   }
+}
+
+
+/**
+ * A scope in polymer expressions that can map names to objects. Scopes contain
+ * a set of named variables and a unique model object. The scope structure
+ * is then used to lookup names using the `[]` operator. The lookup first
+ * searches for the name in local variables, then in global variables,
+ * and then finally looks up the name as a property in the model.
+ */
+abstract class Scope implements Indexable<String, Object> {
+  Scope._();
+
+  /** Create a scope containing a [model] and all of [variables]. */
+  factory Scope({Object model, Map<String, Object> variables}) {
+    var scope = new _ModelScope(model);
+    return variables == null ? scope
+        : new _GlobalsScope(new Map<String, Object>.from(variables), scope);
+  }
+
+  /** Return the unique model in this scope. */
+  Object get model;
+
+  /**
+   * Lookup the value of [name] in the current scope. If [name] is 'this', then
+   * we return the [model]. For any other name, this finds the first variable
+   * matching [name] or, if none exists, the property [name] in the [model].
+   */
+  Object operator [](String name);
+
+  operator []=(String name, Object value) {
+    throw new UnsupportedError('[]= is not supported in Scope.');
+  }
+
+  /**
+   * Returns whether [name] is defined in [model], that is, a lookup
+   * would not find a variable with that name, but there is a non-null model
+   * where we can look it up as a property.
+   */
+  bool _isModelProperty(String name);
+
+  /** Create a new scope extending this scope with an additional variable. */
+  Scope childScope(String name, Object value) =>
+      new _LocalVariableScope(name, value, this);
 }
 
 /**
- * A mapping of names to objects. Scopes contain a set of named [variables] and
- * a single [model] object (which can be thought of as the "this" reference).
- * Names are currently looked up in [variables] first, then the [model].
- *
- * Scopes can be nested by giving them a [parent]. If a name in not found in a
- * Scope, it will look for it in it's parent.
+ * A scope that looks up names in a model object. This kind of scope has no
+ * parent scope because all our lookup operations stop when we reach the model
+ * object. Any variables added in scope or global variables are added as child
+ * scopes.
  */
-class Scope {
-  final Scope parent;
+class _ModelScope extends Scope {
   final Object model;
-  // TODO(justinfagnani): disallow adding/removing names
-  final ObservableMap<String, Object> _variables;
-  InstanceMirror __modelMirror;
 
-  Scope({this.model, Map<String, Object> variables, this.parent})
-      : _variables = new ObservableMap.from(variables == null ? {} : variables);
-
-  InstanceMirror get _modelMirror {
-    if (__modelMirror != null) return __modelMirror;
-    __modelMirror = reflect(model);
-    return __modelMirror;
-  }
+  _ModelScope(this.model) : super._();
 
   Object operator[](String name) {
-    if (name == 'this') {
-      return model;
-    } else if (_variables.containsKey(name)) {
-      return _convert(_variables[name]);
-    } else if (model != null) {
-      var symbol = new Symbol(name);
-      var classMirror = _modelMirror.type;
-      var memberMirror = getMemberMirror(classMirror, symbol);
-      // TODO(jmesserly): simplify once dartbug.com/13002 is fixed.
-      // This can just be "if memberMirror != null" and delete the Method class.
-      if (memberMirror is VariableMirror ||
-          (memberMirror is MethodMirror && memberMirror.isGetter)) {
-        return _convert(_modelMirror.getField(symbol).reflectee);
-      } else if (memberMirror is MethodMirror) {
-        return new Method(_modelMirror, symbol);
-      }
-    }
-    if (parent != null) {
-      return _convert(parent[name]);
-    } else {
+    if (name == 'this') return model;
+    var symbol = smoke.nameToSymbol(name);
+    if (model == null || symbol == null) {
       throw new EvalException("variable '$name' not found");
     }
+    return _convert(smoke.read(model, symbol));
   }
 
-  Object ownerOf(String name) {
-    if (name == 'this') {
-      // we could return the Scope if it were Observable, but since assigning
-      // a model to a template destroys and recreates the instance, it doesn't
-      // seem neccessary
-      return null;
-    } else if (_variables.containsKey(name)) {
-      return _variables;
-    } else {
-      var symbol = new Symbol(name);
-      var classMirror = _modelMirror.type;
-      if (getMemberMirror(classMirror, symbol) != null) {
-        return model;
-      }
-    }
-    if (parent != null) {
-      return parent.ownerOf(name);
+  Object _isModelProperty(String name) => name != 'this';
+}
+
+/**
+ * A scope that holds a reference to a single variable. Polymer expressions
+ * introduce variables to the scope one at a time. Each time a variable is
+ * added, a new [_LocalVariableScope] is created.
+ */
+class _LocalVariableScope extends Scope {
+  final Scope parent;
+  final String varName;
+  // TODO(sigmund,justinfagnani): make this @observable?
+  final Object value;
+
+  _LocalVariableScope(this.varName, this.value, this.parent) : super._() {
+    if (varName == 'this') {
+      throw new EvalException("'this' cannot be used as a variable name.");
     }
   }
 
-  bool contains(String name) {
-    if (_variables.containsKey(name)) {
-      return true;
-    } else {
-      var symbol = new Symbol(name);
-      var classMirror = _modelMirror.type;
-      if (getMemberMirror(classMirror, symbol) != null) {
-        return true;
-      }
-    }
-    if (parent != null) {
-      return parent.contains(name);
-    }
-    return false;
+  Object get model => parent != null ? parent.model : null;
+
+  Object operator[](String name) {
+    if (varName == name) return _convert(value);
+    if (parent != null) return parent[name];
+    throw new EvalException("variable '$name' not found");
+  }
+
+  bool _isModelProperty(String name) {
+    if (varName == name) return false;
+    return parent == null ? false : parent._isModelProperty(name);
   }
 }
 
-Object _convert(v) {
-  if (v is Stream) return new StreamBinding(v);
-  return v;
+/** A scope that holds a reference to a global variables. */
+class _GlobalsScope extends Scope {
+  final _ModelScope parent;
+  final Map<String, Object> variables;
+
+  _GlobalsScope(this.variables, this.parent) : super._() {
+    if (variables.containsKey('this')) {
+      throw new EvalException("'this' cannot be used as a variable name.");
+    }
+  }
+
+  Object get model => parent != null ? parent.model : null;
+
+  Object operator[](String name) {
+    if (variables.containsKey(name)) return _convert(variables[name]);
+    if (parent != null) return parent[name];
+    throw new EvalException("variable '$name' not found");
+  }
+
+  bool _isModelProperty(String name) {
+    if (variables.containsKey(name)) return false;
+    return parent == null ? false : parent._isModelProperty(name);
+  }
 }
+
+Object _convert(v) => v is Stream ? new StreamBinding(v) : v;
 
 abstract class ExpressionObserver<E extends Expression> implements Expression {
   final E _expr;
@@ -478,16 +508,15 @@ class IdentifierObserver extends ExpressionObserver<Identifier>
   _updateSelf(Scope scope) {
     _value = scope[value];
 
-    var owner = scope.ownerOf(value);
-    if (owner is Observable) {
-      var symbol = new Symbol(value);
-      _subscription = (owner as Observable).changes.listen((changes) {
-        if (changes.any(
-            (c) => c is PropertyChangeRecord && c.name == symbol)) {
-          _invalidate(scope);
-        }
-      });
-    }
+    if (!scope._isModelProperty(value)) return;
+    var model = scope.model;
+    if (model is! Observable) return;
+    var symbol = smoke.nameToSymbol(value);
+    _subscription = (model as Observable).changes.listen((changes) {
+      if (changes.any((c) => c is PropertyChangeRecord && c.name == symbol)) {
+        _invalidate(scope);
+      }
+    });
   }
 
   accept(Visitor v) => v.visitIdentifier(this);
@@ -590,9 +619,8 @@ class GetterObserver extends ExpressionObserver<Getter> implements Getter {
       _value = null;
       return;
     }
-    var mirror = reflect(receiverValue);
-    var symbol = new Symbol(_expr.name);
-    _value = mirror.getField(symbol).reflectee;
+    var symbol = smoke.nameToSymbol(_expr.name);
+    _value = smoke.read(receiverValue, symbol);
 
     if (receiverValue is Observable) {
       _subscription = (receiverValue as Observable).changes.listen((changes) {
@@ -657,11 +685,10 @@ class InvokeObserver extends ExpressionObserver<Invoke> implements Invoke {
       // changed? listen to the scope to see if the top-level method has
       // changed?
       assert(receiverValue is Function);
-      _value = call(receiverValue, args);
+      _value = _convert(Function.apply(receiverValue, args));
     } else {
-      var mirror = reflect(receiverValue);
-      var symbol = new Symbol(_expr.method);
-      _value = mirror.invoke(symbol, args, null).reflectee;
+      var symbol = smoke.nameToSymbol(_expr.method);
+      _value = smoke.invoke(receiverValue, symbol, args);
 
       if (receiverValue is Observable) {
         _subscription = (receiverValue as Observable).changes.listen(
@@ -706,20 +733,6 @@ class InObserver extends ExpressionObserver<InExpression>
 
 _toBool(v) => (v == null) ? false : v;
 
-/** Call a [Function] or a [Method]. */
-// TODO(jmesserly): remove this once dartbug.com/13002 is fixed.
-// Just inline `_convert(Function.apply(...))` to the call site.
-Object call(Object receiver, List args) {
-  var result;
-  if (receiver is Method) {
-    Method method = receiver;
-    result = method.mirror.invoke(method.symbol, args, null).reflectee;
-  } else {
-    result = Function.apply(receiver, args, null);
-  }
-  return _convert(result);
-}
-
 /**
  * A comprehension declaration ("a in b"). [identifier] is the loop variable
  * that's added to the scope during iteration. [iterable] is the set of
@@ -731,20 +744,6 @@ class Comprehension {
 
   Comprehension(this.identifier, Iterable iterable)
       : iterable = (iterable != null) ? iterable : const [];
-}
-
-/** A method on a model object in a [Scope]. */
-class Method {
-  final InstanceMirror mirror;
-  final Symbol symbol;
-
-  Method(this.mirror, this.symbol);
-
-  /**
-   * Support for calling single argument methods like [Filter]s.
-   * This does not work for calls that need to pass more than one argument.
-   */
-  call(arg0) => mirror.invoke(symbol, [arg0], null).reflectee;
 }
 
 class EvalException implements Exception {

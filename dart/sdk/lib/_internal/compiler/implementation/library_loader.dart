@@ -223,6 +223,8 @@ class LibraryLoaderTask extends LibraryLoader {
   String get name => 'LibraryLoader';
   List onLibraryLoadedCallbacks = [];
 
+  final Map<Uri, LibraryElement> libraryResourceUriMap =
+      new Map<Uri, LibraryElement>();
   final Map<String, LibraryElement> libraryNames =
       new Map<String, LibraryElement>();
 
@@ -277,7 +279,7 @@ class LibraryLoaderTask extends LibraryLoader {
 
     bool importsDartCore = false;
     var libraryDependencies = new LinkBuilder<LibraryDependency>();
-    Uri base = library.entryCompilationUnit.script.uri;
+    Uri base = library.entryCompilationUnit.script.readableUri;
 
     // TODO(rnystrom): Remove .toList() here if #11523 is fixed.
     return Future.forEach(library.tags.reverse().toList(), (LibraryTag tag) {
@@ -295,11 +297,10 @@ class LibraryLoaderTask extends LibraryLoader {
         } else if (tag.isLibraryName) {
           tagState = checkTag(TagState.LIBRARY, tag);
           if (library.libraryTag != null) {
-            compiler.cancel("duplicated library declaration", node: tag);
+            compiler.internalError(tag, "Duplicated library declaration.");
           } else {
             library.libraryTag = tag;
           }
-          checkDuplicatedLibraryName(library);
         } else if (tag.isPart) {
           Part part = tag;
           StringNode uri = part.uri;
@@ -307,11 +308,12 @@ class LibraryLoaderTask extends LibraryLoader {
           tagState = checkTag(TagState.SOURCE, part);
           return scanPart(part, resolvedUri, library);
         } else {
-          compiler.internalError("Unhandled library tag.", node: tag);
+          compiler.internalError(tag, "Unhandled library tag.");
         }
       });
     }).then((_) {
       return compiler.withCurrentElement(library, () {
+        checkDuplicatedLibraryName(library);
         // Apply patch, if any.
         if (library.isPlatformLibrary) {
           return patchDartLibrary(handler, library, library.canonicalUri.path);
@@ -337,22 +339,41 @@ class LibraryLoaderTask extends LibraryLoader {
   }
 
   void checkDuplicatedLibraryName(LibraryElement library) {
+    Uri resourceUri = library.entryCompilationUnit.script.resourceUri;
     LibraryName tag = library.libraryTag;
-    if (tag != null) {
+    LibraryElement existing =
+        libraryResourceUriMap.putIfAbsent(resourceUri, () => library);
+    if (!identical(existing, library)) {
+      if (tag != null) {
+        compiler.withCurrentElement(library, () {
+          compiler.reportWarning(tag.name,
+              MessageKind.DUPLICATED_LIBRARY_RESOURCE,
+              {'libraryName': tag.name,
+               'resourceUri': resourceUri,
+               'canonicalUri1': library.canonicalUri,
+               'canonicalUri2': existing.canonicalUri});
+        });
+      } else {
+        compiler.reportHint(library,
+            MessageKind.DUPLICATED_RESOURCE,
+            {'resourceUri': resourceUri,
+             'canonicalUri1': library.canonicalUri,
+             'canonicalUri2': existing.canonicalUri});
+      }
+    } else if (tag != null) {
       String name = library.getLibraryOrScriptName();
-      LibraryElement existing =
-          libraryNames.putIfAbsent(name, () => library);
+      existing = libraryNames.putIfAbsent(name, () => library);
       if (!identical(existing, library)) {
-        Uri uri = library.entryCompilationUnit.script.uri;
-        compiler.reportMessage(
-            compiler.spanFromSpannable(tag.name, uri),
-            MessageKind.DUPLICATED_LIBRARY_NAME.error({'libraryName': name}),
-            api.Diagnostic.WARNING);
-        Uri existingUri = existing.entryCompilationUnit.script.uri;
-        compiler.reportMessage(
-            compiler.spanFromSpannable(existing.libraryTag.name, existingUri),
-            MessageKind.DUPLICATED_LIBRARY_NAME.error({'libraryName': name}),
-            api.Diagnostic.WARNING);
+        compiler.withCurrentElement(library, () {
+          compiler.reportWarning(tag.name,
+              MessageKind.DUPLICATED_LIBRARY_NAME,
+              {'libraryName': name});
+        });
+        compiler.withCurrentElement(existing, () {
+          compiler.reportWarning(existing.libraryTag.name,
+              MessageKind.DUPLICATED_LIBRARY_NAME,
+              {'libraryName': name});
+        });
       }
     }
   }
@@ -392,18 +413,21 @@ class LibraryLoaderTask extends LibraryLoader {
     if (!resolvedUri.isAbsolute) throw new ArgumentError(resolvedUri);
     Uri readableUri = compiler.translateResolvedUri(library, resolvedUri, part);
     if (readableUri == null) return new Future.value();
-    return compiler.readScript(readableUri, library, part).
-        then((Script sourceScript) {
-          if (sourceScript == null) return;
-          CompilationUnitElement unit =
-              new CompilationUnitElementX(sourceScript, library);
-          compiler.withCurrentElement(unit, () {
-            compiler.scanner.scan(unit);
-            if (unit.partTag == null) {
-              compiler.reportError(unit, MessageKind.MISSING_PART_OF_TAG);
-            }
+    return compiler.withCurrentElement(library, () {
+      return compiler.readScript(part, readableUri).
+          then((Script sourceScript) {
+            if (sourceScript == null) return;
+
+            CompilationUnitElement unit =
+                new CompilationUnitElementX(sourceScript, library);
+            compiler.withCurrentElement(unit, () {
+              compiler.scanner.scan(unit);
+              if (unit.partTag == null) {
+                compiler.reportError(unit, MessageKind.MISSING_PART_OF_TAG);
+              }
+            });
           });
-        });
+    });
   }
 
   /**
@@ -414,7 +438,7 @@ class LibraryLoaderTask extends LibraryLoader {
   Future registerLibraryFromTag(LibraryDependencyHandler handler,
                                 LibraryElement library,
                                 LibraryDependency tag) {
-    Uri base = library.entryCompilationUnit.script.uri;
+    Uri base = library.entryCompilationUnit.script.readableUri;
     Uri resolvedUri = base.resolve(tag.uri.dartString.slowToString());
     return createLibrary(handler, library, resolvedUri, tag.uri, resolvedUri)
         .then((LibraryElement loadedLibrary) {
@@ -434,8 +458,10 @@ class LibraryLoaderTask extends LibraryLoader {
   // TODO(johnniwinther): Remove [canonicalUri] and make [resolvedUri] the
   // canonical uri when [Compiler.scanBuiltinLibrary] is removed.
   Future<LibraryElement> createLibrary(LibraryDependencyHandler handler,
-                               LibraryElement importingLibrary,
-                               Uri resolvedUri, Node node, Uri canonicalUri) {
+                                       LibraryElement importingLibrary,
+                                       Uri resolvedUri,
+                                       Node node,
+                                       Uri canonicalUri) {
     // TODO(johnniwinther): Create erroneous library elements for missing
     // libraries.
     Uri readableUri =
@@ -448,27 +474,29 @@ class LibraryLoaderTask extends LibraryLoader {
     if (library != null) {
       return new Future.value(library);
     }
-    return compiler.readScript(readableUri, importingLibrary, node)
-        .then((Script script) {
-          if (script == null) return null;
-          LibraryElement element = new LibraryElementX(script, canonicalUri);
-          compiler.withCurrentElement(element, () {
-            handler.registerNewLibrary(element);
-            native.maybeEnableNative(compiler, element);
-            if (canonicalUri != null) {
-              compiler.libraries[canonicalUri.toString()] = element;
-            }
-            compiler.scanner.scanLibrary(element);
-          });
-          return processLibraryTags(handler, element).then((_) {
+    return compiler.withCurrentElement(importingLibrary, () {
+      return compiler.readScript(node, readableUri)
+          .then((Script script) {
+            if (script == null) return null;
+            LibraryElement element = new LibraryElementX(script, canonicalUri);
             compiler.withCurrentElement(element, () {
-              handler.registerLibraryExports(element);
-              onLibraryLoadedCallbacks.add(
-                  () => compiler.onLibraryLoaded(element, resolvedUri));
+              handler.registerNewLibrary(element);
+              native.maybeEnableNative(compiler, element);
+              if (canonicalUri != null) {
+                compiler.libraries[canonicalUri.toString()] = element;
+              }
+              compiler.scanner.scanLibrary(element);
             });
-            return element;
+            return processLibraryTags(handler, element).then((_) {
+              compiler.withCurrentElement(element, () {
+                handler.registerLibraryExports(element);
+                onLibraryLoadedCallbacks.add(
+                    () => compiler.onLibraryLoaded(element, resolvedUri));
+              });
+              return element;
+            });
           });
-        });
+    });
   }
 
   // TODO(johnniwinther): Remove this method when 'js_helper' is handled by
@@ -534,6 +562,15 @@ class ImportLink {
         if (combinatorFilter.exclude(element)) return;
         prefixElement.addImport(element, import, compiler);
       });
+      if (import.isDeferred) {
+        prefixElement.addImport(
+            new DeferredLoaderGetterElementX(prefixElement),
+            import, compiler);
+        // TODO(sigurdm): When we remove support for the annotation based
+        // syntax the [PrefixElement] constructor should receive this
+        // information.
+        prefixElement.markAsDeferred(import);
+      }
     } else {
       importedLibrary.forEachExport((Element element) {
         compiler.withCurrentElement(importingLibrary, () {

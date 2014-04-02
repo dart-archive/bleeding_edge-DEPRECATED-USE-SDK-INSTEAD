@@ -13,10 +13,12 @@ import com.xored.glance.ui.sources.Match;
  */
 public interface ISearchListener {
 
-  public void firstFound(Match match);
-
   public void allFound(Match[] matches);
 
   public void finished();
+
+  public void firstFound(Match match);
+
+  public void setMatchIndex(int index);
 
 }

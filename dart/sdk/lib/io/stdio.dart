@@ -202,6 +202,36 @@ class StdoutException implements IOException {
 }
 
 
+class _StdConsumer implements StreamConsumer<List<int>> {
+  final _file;
+
+  _StdConsumer(int fd) : _file = _File._openStdioSync(fd);
+
+  Future addStream(Stream<List<int>> stream) {
+    var completer = new Completer();
+    var sub;
+    sub = stream.listen(
+        (data) {
+          try {
+            _file.writeFromSync(data);
+          } catch (e, s) {
+            sub.cancel();
+            completer.completeError(e, s);
+          }
+        },
+        onError: completer.completeError,
+        onDone: completer.complete,
+        cancelOnError: true);
+    return completer.future;
+  }
+
+  Future close() {
+    _file.closeSync();
+    return new Future.value();
+  }
+}
+
+
 class _StdSink implements IOSink {
   final IOSink _sink;
 
@@ -273,8 +303,12 @@ IOSink get stderr {
 StdioType stdioType(object) {
   if (object is _StdStream) {
     object = object._stream;
-  } else if (object is _StdSink) {
-    object = object._sink;
+  } else if (object == stdout || object == stderr) {
+    switch (_StdIOUtils._getStdioHandleType(object == stdout ? 1 : 2)) {
+      case _STDIO_HANDLE_TYPE_TERMINAL: return StdioType.TERMINAL;
+      case _STDIO_HANDLE_TYPE_PIPE: return StdioType.PIPE;
+      case _STDIO_HANDLE_TYPE_FILE:  return StdioType.FILE;
+    }
   }
   if (object is _FileStream) {
     return StdioType.FILE;
@@ -303,4 +337,5 @@ class _StdIOUtils {
   external static _getStdioOutputStream(int fd);
   external static Stdin _getStdioInputStream();
   external static int _socketType(nativeSocket);
+  external static _getStdioHandleType(int fd);
 }

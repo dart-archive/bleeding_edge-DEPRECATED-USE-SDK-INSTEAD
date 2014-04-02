@@ -1,0 +1,14 @@
+﻿{
+    EPVersionNumber = 1403101909;
+    Schedules =     (
+    );
+    ScriptMetaData =     {
+        exec =         {
+        };
+    };
+    helperSuitesInfo =     (
+                {
+            filePath = "./Samples.suite";
+        }
+    );
+}

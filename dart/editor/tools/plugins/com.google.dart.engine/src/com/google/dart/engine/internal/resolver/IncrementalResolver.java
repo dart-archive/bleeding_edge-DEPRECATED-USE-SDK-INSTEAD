@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -80,8 +80,8 @@ public class IncrementalResolver {
    * @param node the root of the AST structure to be resolved
    * @throws AnalysisException if the node could not be resolved
    */
-  public void resolve(ASTNode node) throws AnalysisException {
-    ASTNode rootNode = findResolutionRoot(node);
+  public void resolve(AstNode node) throws AnalysisException {
+    AstNode rootNode = findResolutionRoot(node);
     Scope scope = ScopeBuilder.scopeFor(rootNode, errorListener);
     if (elementModelChanged(rootNode.getParent())) {
       throw new AnalysisException("Cannot resolve node: element model changed");
@@ -99,7 +99,7 @@ public class IncrementalResolver {
    * @param node the node being tested
    * @return {@code true} if the given node can be resolved independently of any other nodes
    */
-  private boolean canBeResolved(ASTNode node) {
+  private boolean canBeResolved(AstNode node) {
     return node instanceof ClassDeclaration || node instanceof ClassTypeAlias
         || node instanceof CompilationUnit || node instanceof ConstructorDeclaration
         || node instanceof FunctionDeclaration || node instanceof FunctionTypeAlias
@@ -113,7 +113,7 @@ public class IncrementalResolver {
    * @return {@code true} if the element model defined by the given node has changed
    * @throws AnalysisException if the correctness of the element model cannot be determined
    */
-  private boolean elementModelChanged(ASTNode node) throws AnalysisException {
+  private boolean elementModelChanged(AstNode node) throws AnalysisException {
     Element element = getElement(node);
     if (element == null) {
       throw new AnalysisException("Cannot resolve node: a " + node.getClass().getSimpleName()
@@ -131,9 +131,9 @@ public class IncrementalResolver {
    * @return the smallest AST node that can be resolved independently of any other nodes
    * @throws AnalysisException if there is no such node
    */
-  private ASTNode findResolutionRoot(ASTNode node) throws AnalysisException {
-    ASTNode result = node;
-    ASTNode parent = result.getParent();
+  private AstNode findResolutionRoot(AstNode node) throws AnalysisException {
+    AstNode result = node;
+    AstNode parent = result.getParent();
     while (parent != null && !canBeResolved(parent)) {
       result = parent;
       parent = result.getParent();
@@ -151,7 +151,7 @@ public class IncrementalResolver {
    * @param node the node defining the element to be returned
    * @return the element defined by the given node
    */
-  private Element getElement(ASTNode node) {
+  private Element getElement(AstNode node) {
     if (node instanceof Declaration) {
       return ((Declaration) node).getElement();
     } else if (node instanceof CompilationUnit) {
@@ -160,7 +160,7 @@ public class IncrementalResolver {
     return null;
   }
 
-  private void resolveReferences(ASTNode node, Scope scope) {
+  private void resolveReferences(AstNode node, Scope scope) {
     ResolverVisitor visitor = new ResolverVisitor(
         definingLibrary,
         source,
@@ -175,7 +175,7 @@ public class IncrementalResolver {
     }
   }
 
-  private void resolveTypes(ASTNode node, Scope scope) {
+  private void resolveTypes(AstNode node, Scope scope) {
     TypeResolverVisitor visitor = new TypeResolverVisitor(
         definingLibrary,
         source,
@@ -185,7 +185,7 @@ public class IncrementalResolver {
     node.accept(visitor);
   }
 
-  private void resolveVariables(ASTNode node, Scope scope) {
+  private void resolveVariables(AstNode node, Scope scope) {
     VariableResolverVisitor visitor = new VariableResolverVisitor(
         definingLibrary,
         source,

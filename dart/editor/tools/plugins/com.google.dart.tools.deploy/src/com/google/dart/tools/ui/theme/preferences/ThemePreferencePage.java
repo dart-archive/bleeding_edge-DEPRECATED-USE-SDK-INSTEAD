@@ -107,10 +107,14 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
   private static String readFile(File file) throws IOException {
     Reader in = new BufferedReader(new FileReader(file));
     StringBuilder sb = new StringBuilder();
-    char[] chars = new char[1 << 11];
-    int length;
-    while ((length = in.read(chars)) > 0) {
-      sb.append(chars, 0, length);
+    try {
+      char[] chars = new char[1 << 11];
+      int length;
+      while ((length = in.read(chars)) > 0) {
+        sb.append(chars, 0, length);
+      }
+    } finally {
+      in.close();
     }
     return sb.toString();
   }
@@ -142,12 +146,14 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
   private CompilationUnitEditor editor;
   private DartSourceViewer sourceViewer;
   private WorkbenchPage page;
+  private boolean updating;
 
   /**
    * Creates a new color theme preference page.
    */
   public ThemePreferencePage() {
     setPreferenceStore(globalPreferences());
+    updating = false;
   }
 
   @Override
@@ -158,6 +164,9 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
   public boolean performCancel() {
     if (!DartCoreDebug.ENABLE_THEMES) {
       return true;
+    }
+    while (updating) {
+      waitALittle();
     }
     colorThemeManager.undoPreview();
 
@@ -178,6 +187,9 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
   public boolean performOk() {
     if (!DartCoreDebug.ENABLE_THEMES) {
       return true;
+    }
+    while (updating) {
+      waitALittle();
     }
     try {
       if (editor != null) {
@@ -327,7 +339,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
     previewViewer = getSourceViewer(previewComp); //new SourceViewer(previewComp, null, SWT.BORDER | SWT.V_SCROLL /*| SWT.H_SCROLL */);
-    previewViewer.getTextWidget().setSelection(166, 195); // TODO(messick): This is fragile.
+    previewViewer.getTextWidget().setSelection(173, 210); // TODO(messick): This is fragile.
     previewViewer.setEditable(false);
 
     Control control = previewViewer.getControl();
@@ -409,23 +421,36 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
       // TODO(messick): Fix this awkward UX
       themeDetails.setVisible(false);
     } else {
-      authorLabel.setText("Created by " + theme.getAuthor());
-      String website = theme.getWebsite();
-      if (website == null || website.length() == 0) {
-        websiteLink.setVisible(false);
-      } else {
-        websiteLink.setText("<a>" + website + "</a>"); // $NON-NLS-1$ // $NON-NLS-2$
-        for (Listener listener : websiteLink.getListeners(SWT.Selection)) {
-          websiteLink.removeListener(SWT.Selection, listener);
+      try {
+        updating = true;
+        authorLabel.setText("Created by " + theme.getAuthor());
+        String website = theme.getWebsite();
+        if (website == null || website.length() == 0) {
+          websiteLink.setVisible(false);
+        } else {
+          websiteLink.setText("<a>" + website + "</a>"); // $NON-NLS-1$ // $NON-NLS-2$
+          for (Listener listener : websiteLink.getListeners(SWT.Selection)) {
+            websiteLink.removeListener(SWT.Selection, listener);
+          }
+          setLinkTarget(websiteLink, website);
+          websiteLink.setVisible(true);
         }
-        setLinkTarget(websiteLink, website);
-        websiteLink.setVisible(true);
+        themeDetails.setVisible(true);
+        colorThemeManager.previewTheme(theme.getName());
+        editor.reconciled(true, new NullProgressMonitor());
+        authorLabel.pack();
+        websiteLink.pack();
+      } finally {
+        updating = false;
       }
-      themeDetails.setVisible(true);
-      colorThemeManager.previewTheme(theme.getName()); // TODO(messick): Update only preview, not entire world!
-      editor.reconciled(editor.getAST(), true, new NullProgressMonitor());
-      authorLabel.pack();
-      websiteLink.pack();
+    }
+  }
+
+  private void waitALittle() {
+    try {
+      Thread.sleep(500);
+    } catch (InterruptedException e) {
+      // ignore it
     }
   }
 }

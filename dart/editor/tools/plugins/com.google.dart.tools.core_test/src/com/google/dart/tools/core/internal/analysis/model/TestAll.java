@@ -21,6 +21,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(CompositeSourceContainerTest.class);
     suite.addTestSuite(ProjectImplTest.class);
+    suite.addTestSuite(ProjectManagerIgnoreListenerTest.class);
     suite.addTestSuite(ProjectManagerImplTest.class);
     suite.addTestSuite(PubFolderImplTest.class);
     suite.addTestSuite(PubResourceMapImplTest.class);

@@ -1083,7 +1083,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
   RETHROW_OUTSIDE_CATCH("rethrow must be inside of a catch clause"),
 
   /**
-   * 13.11 Return: It is a compile-time error if a return statement of the form <i>return e;</i>
+   * 13.12 Return: It is a compile-time error if a return statement of the form <i>return e;</i>
    * appears in a generative constructor.
    */
   RETURN_IN_GENERATIVE_CONSTRUCTOR("Constructors cannot return a value"),
@@ -1255,7 +1255,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   private CompileTimeErrorCode(String message) {
-    this.message = message;
+    this(message, null);
   }
 
   /**

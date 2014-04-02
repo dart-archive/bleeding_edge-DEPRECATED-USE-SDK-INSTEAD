@@ -7,14 +7,6 @@
  *******************************************************************************/
 package org.eclipse.wst.xml.ui.internal.contentassist;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.Vector;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
@@ -27,6 +19,7 @@ import org.eclipse.wst.sse.core.internal.provisional.text.ITextRegion;
 import org.eclipse.wst.sse.core.internal.provisional.text.ITextRegionContainer;
 import org.eclipse.wst.sse.ui.contentassist.CompletionProposalInvocationContext;
 import org.eclipse.wst.sse.ui.contentassist.ICompletionProposalComputer;
+import org.eclipse.wst.sse.ui.contentassist.StructuredContentAssistProcessor;
 import org.eclipse.wst.sse.ui.internal.contentassist.ContentAssistUtils;
 import org.eclipse.wst.xml.core.internal.provisional.document.IDOMDocument;
 import org.eclipse.wst.xml.core.internal.provisional.document.IDOMModel;
@@ -37,6 +30,14 @@ import org.eclipse.wst.xml.ui.internal.XMLUIMessages;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Vector;
 
 /**
  * <p>
@@ -112,6 +113,11 @@ public abstract class AbstractXMLCompletionProposalComputer implements ICompleti
 
     IStructuredDocumentRegion sdRegion = getStructuredDocumentRegion(documentPosition);
     ITextRegion completionRegion = getCompletionRegion(documentPosition, node);
+
+    // Disable HTML completion in {{ }}
+    if (StructuredContentAssistProcessor.isInMustache(textViewer.getDocument(), documentPosition)) {
+      return new ArrayList(0);
+    }
 
     String matchString = getMatchString(sdRegion, completionRegion, documentPosition);
 

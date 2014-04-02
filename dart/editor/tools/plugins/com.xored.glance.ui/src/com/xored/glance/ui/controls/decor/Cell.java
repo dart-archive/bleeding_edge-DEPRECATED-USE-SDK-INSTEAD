@@ -14,6 +14,12 @@ public abstract class Cell {
     this.column = column;
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    Cell cell = (Cell) obj;
+    return cell.getElement().equals(this.getElement()) && cell.column == column;
+  }
+
   public int getColumn() {
     return column;
   }
@@ -21,12 +27,6 @@ public abstract class Cell {
   @Override
   public int hashCode() {
     return getElement().hashCode() ^ column;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    Cell cell = (Cell) obj;
-    return cell.getElement().equals(this.getElement()) && cell.column == column;
   }
 
   @Override

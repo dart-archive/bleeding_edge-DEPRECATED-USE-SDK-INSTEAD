@@ -23,26 +23,26 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.JavaUtils;
 
-import static com.google.dart.java2dart.util.ASTFactory.blockFunctionBody;
-import static com.google.dart.java2dart.util.ASTFactory.expressionStatement;
-import static com.google.dart.java2dart.util.ASTFactory.extendsClause;
-import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
-import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
-import static com.google.dart.java2dart.util.ASTFactory.methodDeclaration;
-import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
-import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
-import static com.google.dart.java2dart.util.ASTFactory.string;
-import static com.google.dart.java2dart.util.ASTFactory.typeName;
-import static com.google.dart.java2dart.util.ASTFactory.variableDeclaration;
-import static com.google.dart.java2dart.util.ASTFactory.variableDeclarationList;
-import static com.google.dart.java2dart.util.ASTFactory.variableDeclarationStatement;
+import static com.google.dart.java2dart.util.AstFactory.blockFunctionBody;
+import static com.google.dart.java2dart.util.AstFactory.expressionStatement;
+import static com.google.dart.java2dart.util.AstFactory.extendsClause;
+import static com.google.dart.java2dart.util.AstFactory.formalParameterList;
+import static com.google.dart.java2dart.util.AstFactory.functionExpression;
+import static com.google.dart.java2dart.util.AstFactory.identifier;
+import static com.google.dart.java2dart.util.AstFactory.instanceCreationExpression;
+import static com.google.dart.java2dart.util.AstFactory.methodDeclaration;
+import static com.google.dart.java2dart.util.AstFactory.methodInvocation;
+import static com.google.dart.java2dart.util.AstFactory.propertyAccess;
+import static com.google.dart.java2dart.util.AstFactory.string;
+import static com.google.dart.java2dart.util.AstFactory.typeName;
+import static com.google.dart.java2dart.util.AstFactory.variableDeclaration;
+import static com.google.dart.java2dart.util.AstFactory.variableDeclarationList;
+import static com.google.dart.java2dart.util.AstFactory.variableDeclarationStatement;
 
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
@@ -79,7 +79,7 @@ public class JUnitSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new GeneralizingAstVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
         ITypeBinding typeBinding = context.getNodeTypeBinding(node);

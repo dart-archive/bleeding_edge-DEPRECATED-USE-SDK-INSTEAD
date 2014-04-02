@@ -17,9 +17,8 @@
  */
 library custom_element;
 
-import 'dart:async';
 import 'dart:html';
-import 'src/custom_tag_name.dart';
+import 'dart:async';
 
 /**
  * *Deprecated* -- do not use. Extend [HtmlElement] and use
@@ -120,7 +119,7 @@ class CustomElement implements Element {
       host.getAttributeNS(namespaceUri, localName);
 
   @deprecated
-  String setAttributeNS(
+  void setAttributeNS(
       String namespaceUri, String localName, String value) {
     host.setAttributeNS(namespaceUri, localName, value);
   }
@@ -144,7 +143,7 @@ class CustomElement implements Element {
   /**
    * Replaces this node with another node.
    */
-  Node replaceWith(Node otherNode) { host.replaceWith(otherNode); }
+  Node replaceWith(Node otherNode) => host.replaceWith(otherNode);
 
   /**
    * Removes this node from the DOM.
@@ -249,8 +248,6 @@ class CustomElement implements Element {
     host.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
 
-  InputMethodContext get inputMethodContext => host.inputMethodContext;
-
   bool get isContentEditable => host.isContentEditable;
 
   String get lang => host.lang;
@@ -305,12 +302,6 @@ class CustomElement implements Element {
   CssStyleDeclaration get style => host.style;
 
   String get tagName => host.tagName;
-
-  String get pseudo => host.pseudo;
-
-  void set pseudo(String value) {
-    host.pseudo = value;
-  }
 
   // Note: we are not polyfilling the shadow root here. This will be fixed when
   // we migrate to the JS Shadow DOM polyfills. You can still use getShadowRoot
@@ -439,9 +430,8 @@ class CustomElement implements Element {
 
   void appendHtml(String html) => host.appendHtml(html);
 
-  String get regionOverset => host.regionOverset;
-
-  List<Range> getRegionFlowRanges() => host.getRegionFlowRanges();
+  Animation animate(List<Map> keyframes, [num duration]) =>
+      host.animate(keyframes, duration);
 
   // TODO(jmesserly): rename "created" to "onCreated".
   void onCreated() => created();
@@ -480,6 +470,7 @@ class CustomElement implements Element {
   Stream<Event> get onFullscreenError => host.onFullscreenError;
   Stream<Event> get onPaste => host.onPaste;
   Stream<Event> get onReset => host.onReset;
+  Stream<Event> get onResize => host.onResize;
   Stream<Event> get onScroll => host.onScroll;
   Stream<Event> get onSearch => host.onSearch;
   Stream<Event> get onSelect => host.onSelect;
