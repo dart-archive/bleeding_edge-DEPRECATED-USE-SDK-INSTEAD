@@ -235,6 +235,13 @@ public class IgnoreResourceFilterTest extends TestCase {
     Mockito.verifyNoMoreInteractions(listener);
   }
 
+  public void testSourceContainerRemoved_null() throws Exception {
+    SourceContainerDeltaEvent event = newSourceContainerDeltaEvent_nullResource();
+    ignoreManager.addToIgnores(project.getFolder("web"));
+    newTarget().sourceContainerRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
   public void testSourceContainerRemoved_unignored() throws Exception {
     SourceContainerDeltaEvent event = newSourceContainerDeltaEvent();
     ignoreManager.addToIgnores(event.getResource().getLocation());
@@ -254,6 +261,13 @@ public class IgnoreResourceFilterTest extends TestCase {
   public void testSourceRemoved_ignored() throws Exception {
     SourceDeltaEvent event = newSourceDeltaEvent();
     ignoreManager.addToIgnores(event.getResource().getLocation());
+    newTarget().sourceRemoved(event);
+    Mockito.verifyNoMoreInteractions(listener);
+  }
+
+  public void testSourceRemoved_null() throws Exception {
+    SourceDeltaEvent event = newSourceDeltaEvent_nullResource();
+    ignoreManager.addToIgnores(project.getFolder("web").getFile("other.dart"));
     newTarget().sourceRemoved(event);
     Mockito.verifyNoMoreInteractions(listener);
   }
@@ -306,10 +320,22 @@ public class IgnoreResourceFilterTest extends TestCase {
     return event;
   }
 
+  private SourceContainerDeltaEvent newSourceContainerDeltaEvent_nullResource() {
+    SourceContainerDeltaEvent event = Mockito.mock(SourceContainerDeltaEvent.class);
+    Mockito.when(event.getResource()).thenReturn(null);
+    return event;
+  }
+
   private SourceDeltaEvent newSourceDeltaEvent() {
     IFile file = project.getFolder("web").getFile("other.dart");
     SourceDeltaEvent event = Mockito.mock(SourceDeltaEvent.class);
     Mockito.when(event.getResource()).thenReturn(file);
+    return event;
+  }
+
+  private SourceDeltaEvent newSourceDeltaEvent_nullResource() {
+    SourceDeltaEvent event = Mockito.mock(SourceDeltaEvent.class);
+    Mockito.when(event.getResource()).thenReturn(null);
     return event;
   }
 

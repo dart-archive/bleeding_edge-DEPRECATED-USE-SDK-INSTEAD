@@ -16,6 +16,8 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
+import org.eclipse.core.resources.IResource;
+
 /**
  * A delta listener that filters out sources specified by {@link DartIgnoreManager} and broadcasts
  * any remaining changes to its own listeners. For performance, this filter caches information about
@@ -128,6 +130,12 @@ public class IgnoreResourceFilter extends DeltaBroadcaster implements DeltaListe
    * @return {@code true} if the event should be forwarded
    */
   private boolean shouldForward(ResourceDeltaEvent event) {
-    return !hasIgnores || ignoreManager.isAnalyzed(event.getResource().getLocation());
+    if (hasIgnores) {
+      IResource res = event.getResource();
+      if (res == null || ignoreManager.isIgnored(res.getLocation())) {
+        return false;
+      }
+    }
+    return true;
   }
 }
