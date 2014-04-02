@@ -44,6 +44,9 @@ import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.element.angular.AngularViewElement;
+import com.google.dart.engine.element.polymer.PolymerAttributeElement;
+import com.google.dart.engine.element.polymer.PolymerTagDartElement;
+import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
 
 /**
  * Instances of the class {@code SimpleElementVisitor} implement an element visitor that will do
@@ -181,6 +184,21 @@ public class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   @Override
   public R visitParameterElement(ParameterElement element) {
+    return null;
+  }
+
+  @Override
+  public R visitPolymerAttributeElement(PolymerAttributeElement element) {
+    return null;
+  }
+
+  @Override
+  public R visitPolymerTagDartElement(PolymerTagDartElement element) {
+    return null;
+  }
+
+  @Override
+  public R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) {
     return null;
   }
 

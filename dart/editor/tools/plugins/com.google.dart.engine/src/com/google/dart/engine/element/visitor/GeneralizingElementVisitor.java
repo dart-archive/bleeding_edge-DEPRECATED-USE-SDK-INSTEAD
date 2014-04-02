@@ -53,6 +53,10 @@ import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 import com.google.dart.engine.element.angular.AngularViewElement;
+import com.google.dart.engine.element.polymer.PolymerAttributeElement;
+import com.google.dart.engine.element.polymer.PolymerElement;
+import com.google.dart.engine.element.polymer.PolymerTagDartElement;
+import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
 
 /**
  * Instances of the class {@code GeneralizingElementVisitor} implement an element visitor that will
@@ -272,6 +276,25 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   @Override
   public R visitParameterElement(ParameterElement element) {
     return visitLocalElement(element);
+  }
+
+  @Override
+  public R visitPolymerAttributeElement(PolymerAttributeElement element) {
+    return visitPolymerElement(element);
+  }
+
+  public R visitPolymerElement(PolymerElement element) {
+    return visitToolkitObjectElement(element);
+  }
+
+  @Override
+  public R visitPolymerTagDartElement(PolymerTagDartElement element) {
+    return visitPolymerElement(element);
+  }
+
+  @Override
+  public R visitPolymerTagHtmlElement(PolymerTagHtmlElement element) {
+    return visitPolymerElement(element);
   }
 
   @Override
