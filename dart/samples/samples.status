@@ -54,3 +54,6 @@ build_dart: Skip
 
 [ $arch == arm ]
 sample_extension/test/sample_extension_test: Skip # Issue 14705
+
+[ $arch == simarm64 ]
+*: Skip
