@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.actions;
 
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CodeAssistElement;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -73,19 +72,8 @@ public class SelectionConverter {
   public static DartElement[] codeResolve(DartEditor editor, DartElement input,
       ITextSelection selection) throws DartModelException {
     if (input instanceof CodeAssistElement) {
-      DartElement[] elements;
-      if (input instanceof CompilationUnit) {
-        DartModelUtil.reconcile((CompilationUnit) input);
-        elements = ((CompilationUnit) input).codeSelect(
-            editor == null ? null : editor.getAST(),
-            selection.getOffset() + selection.getLength(),
-            0,
-            DefaultWorkingCopyOwner.getInstance());
-      } else {
-        elements = ((CodeAssistElement) input).codeSelect(
-            selection.getOffset() + selection.getLength(),
-            0);
-      }
+      DartElement[] elements = ((CodeAssistElement) input).codeSelect(selection.getOffset()
+          + selection.getLength(), 0);
       if (elements.length > 0) {
         return elements;
       }

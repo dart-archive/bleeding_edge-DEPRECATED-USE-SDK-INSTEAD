@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
@@ -23,15 +21,12 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
-import com.google.dart.tools.ui.IWorkingCopyManager;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.GenerateActionGroup;
@@ -702,280 +697,12 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
    * Remembers additional data for a given offset to be able restore it later.
    */
   private class RememberedOffset {
-    /** Remembered line for the given offset */
-    private int fLine;
-    /** Remembered column for the given offset */
-    private int fColumn;
-    /** Remembered Dart element for the given offset */
-    private Object /*Element*/fElement;
-    /** Remembered Java element line for the given offset */
-    private int fElementLine;
-
-    /**
-     * Clears the stored position
-     */
-    public void clear() {
-      fLine = -1;
-      fColumn = -1;
-      fElement = null;
-      fElementLine = -1;
-    }
-
-    /**
-     * Return Dart element recomputed from stored visual properties.
-     * 
-     * @return Dart element
-     */
-    public Object /*Element*/getElement() {
-      if (fElement == null) {
-        return null;
-      }
-
-      return findElement(fElement);
-    }
-
-    /**
-     * Return offset recomputed from stored visual properties.
-     * 
-     * @return Offset in the document
-     */
-    public int getOffset() {
-
-      Object /*Element*/newElement = getElement();
-
-      int offset = getRememberedOffset(newElement);
-
-      if (offset == -1 || newElement != null && !containsOffset(newElement, offset)
-          && (offset == 0 || !containsOffset(newElement, offset - 1))) {
-        return -1;
-      }
-
-      return offset;
-    }
-
-    /**
-     * Return offset recomputed from stored visual properties.
-     * 
-     * @param newElement Enclosing element
-     * @return Offset in the document
-     */
-    public int getRememberedOffset(Object /*Element*/newElement) {
-
-      if (newElement instanceof DartElement) {
-
-        try {
-          IDocument document = getSourceViewer().getDocument();
-          int newElementLine = getElementLine(document, newElement);
-          int newLine = fLine;
-          if (newElementLine != -1 && fElementLine != -1) {
-            newLine += newElementLine - fElementLine;
-          }
-
-          if (newLine < 0 || newLine >= document.getNumberOfLines()) {
-            return -1;
-          }
-          int maxColumn = document.getLineLength(newLine);
-          String lineDelimiter = document.getLineDelimiter(newLine);
-          if (lineDelimiter != null) {
-            maxColumn = maxColumn - lineDelimiter.length();
-          }
-          int offset;
-          if (fColumn > maxColumn) {
-            offset = document.getLineOffset(newLine) + maxColumn;
-          } else {
-            offset = document.getLineOffset(newLine) + fColumn;
-          }
-
-          return offset;
-        } catch (BadLocationException e) {
-          // should not happen
-          DartToolsPlugin.log(e);
-          return -1;
-        } catch (DartModelException e) {
-          // should not happen
-          DartToolsPlugin.log(e.getStatus());
-          return -1;
-        }
-      }
-
-      //TODO (pquitslund): implement for new elements
-      return -1;
-
-    }
-
-    /**
-     * Returns the offset used to reveal the given element based on the given selection offset.
-     * 
-     * @param element the element
-     * @param offset the selection offset
-     * @return the offset to reveal the given element based on the given selection offset
-     */
-    public int getRevealOffset(Object /*Element*/element, int offset) {
-
-      //TODO (pquitslund): implement restore for new elements
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        return -1;
-      }
-
-      if (element == null || offset == -1) {
-        return -1;
-      }
-
-      if (containsOffset(element, offset)) {
-        if (offset > 0) {
-          DartElement alternateElement = (DartElement) getElementAt(offset, false);
-          if (((DartElement) element).getHandleIdentifier().equals(
-              alternateElement.getParent().getHandleIdentifier())) {
-            return offset - 1; // Solves test case 2 from
-                               // https://bugs.eclipse.org/bugs/show_bug.cgi?id=47727#c3
-          }
-        }
-        return offset;
-      } else if (offset > 0 && containsOffset(element, offset - 1)) {
-        return offset - 1; // Solves test case 1 from
-                           // https://bugs.eclipse.org/bugs/show_bug.cgi?id=47727#c3
-      }
-
-      return -1;
-    }
-
     /**
      * Store visual properties of the given offset.
      * 
      * @param offset Offset in the document
      */
     public void setOffset(int offset) {
-      try {
-        IDocument document = getSourceViewer().getDocument();
-        fLine = document.getLineOfOffset(offset);
-        fColumn = offset - document.getLineOffset(fLine);
-        fElement = getElementAt(offset, true);
-        fElementLine = getElementLine(document, fElement);
-      } catch (BadLocationException e) {
-        // should not happen
-        DartToolsPlugin.log(e);
-        clear();
-      } catch (DartModelException e) {
-        // should not happen
-        DartToolsPlugin.log(e.getStatus());
-        clear();
-      }
-    }
-
-    /**
-     * Does the given Dart element contain the given offset?
-     * 
-     * @param element Dart element
-     * @param offset Offset
-     * @return <code>true</code> iff the Dart element contains the offset
-     */
-    private boolean containsOffset(Object /*Element*/element, int offset) {
-      int elementOffset = getOffset(element);
-      int elementLength = getLength(element);
-      return elementOffset > -1 && elementLength > -1 ? offset >= elementOffset
-          && offset < elementOffset + elementLength : false;
-    }
-
-    /**
-     * Returns the updated Dart element for the old Dart element.
-     * 
-     * @param element Old Dart element
-     * @return Updated Dart element
-     */
-    private Object /*Element*/findElement(Object /*Element*/element) {
-
-      if (element == null) {
-        return null;
-      }
-
-      if (element instanceof DartElement) {
-
-        IWorkingCopyManager manager = DartToolsPlugin.getDefault().getWorkingCopyManager();
-        CompilationUnit unit = manager.getWorkingCopy(getEditorInput());
-
-        if (unit != null) {
-          try {
-            DartModelUtil.reconcile(unit);
-            DartElement[] findings = unit.findElements((DartElement) element);
-            if (findings != null && findings.length > 0) {
-              return findings[0];
-            }
-
-          } catch (DartModelException x) {
-            DartToolsPlugin.log(x.getStatus());
-            // nothing found, be tolerant and go on
-          }
-        }
-      }
-
-      //TODO (pquitslund): implement find element for new elements 
-
-      return null;
-    }
-
-    /**
-     * Computes the element line of a java element (the start of the element, or the line with the
-     * element's name range).
-     * 
-     * @param document the displayed document for line information
-     * @param element the Dart element, may be <code>null</code>
-     * @return the element's start line, or -1
-     * @throws BadLocationException
-     * @throws DartModelException
-     */
-    private int getElementLine(IDocument document, Object /*Element*/element)
-        throws BadLocationException, DartModelException {
-      if (element instanceof TypeMember) {
-        SourceRange range = ((TypeMember) element).getNameRange();
-        if (range != null) {
-          return document.getLineOfOffset(range.getOffset());
-        }
-      }
-      int elementOffset = getOffset(element);
-      if (elementOffset != -1) {
-        return document.getLineOfOffset(elementOffset);
-      }
-      return -1;
-    }
-
-    /**
-     * Returns the length of the given Dart element.
-     * 
-     * @param element Dart element
-     * @return Length of the given Dart element
-     */
-    private int getLength(Object /*Element*/element) {
-      if (element instanceof SourceReference) {
-        SourceReference sr = (SourceReference) element;
-        try {
-          SourceRange srcRange = sr.getSourceRange();
-          if (srcRange != null) {
-            return srcRange.getLength();
-          }
-        } catch (DartModelException e) {
-        }
-      }
-      return -1;
-    }
-
-    /**
-     * Returns the offset of the given Dart element.
-     * 
-     * @param element Dart element
-     * @return Offset of the given Dart element
-     */
-    private int getOffset(Object /*Element*/element) {
-      if (element instanceof SourceReference) {
-        SourceReference sr = (SourceReference) element;
-        try {
-          SourceRange srcRange = sr.getSourceRange();
-          if (srcRange != null) {
-            return srcRange.getOffset();
-          }
-        } catch (DartModelException e) {
-        }
-      }
-      return -1;
     }
 
   }
@@ -1229,10 +956,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
    */
   @Override
   public void aboutToBeReconciled() {
-
-    // Notify AST provider
-    DartToolsPlugin.getDefault().getASTProvider().aboutToBeReconciled(getInputDartElement());
-
     // Notify listeners
     Object[] listeners = fReconcilingListeners_OLD.getListeners();
     for (int i = 0, length = listeners.length; i < length; ++i) {
@@ -1419,7 +1142,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   }
 
   @Override
-  public void reconciled(DartUnit ast, boolean forced, IProgressMonitor progressMonitor) {
+  public void reconciled(boolean forced, IProgressMonitor progressMonitor) {
     AutoSaveHelper.reconciled(getEditorInput(), getSourceViewer(), getTextSelectionRange());
 
     // see: https://bugs.eclipse.org/bugs/show_bug.cgi?id=58245
@@ -1428,23 +1151,13 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       return;
     }
 
-    //external compilation units that are recreated from mementos
-    //do not have AST associated, in which case we need to fetch them
-    if (ast == null) {
-      try {
-        ast = getAST();
-      } catch (Throwable th) {
-        DartToolsPlugin.log(th);
-      }
-    }
-
     // Always notify AST provider
-    dartPlugin.getASTProvider().reconciled(ast, getInputDartElement(), progressMonitor);
+    dartPlugin.getASTProvider().reconciled(getInputDartElement(), progressMonitor);
 
     // Notify listeners
     Object[] listeners = fReconcilingListeners_OLD.getListeners();
     for (int i = 0, length = listeners.length; i < length; ++i) {
-      ((IDartReconcilingListener_OLD) listeners[i]).reconciled(ast, forced, progressMonitor);
+      ((IDartReconcilingListener_OLD) listeners[i]).reconciled(forced, progressMonitor);
     }
 
     // Update Outline page selection

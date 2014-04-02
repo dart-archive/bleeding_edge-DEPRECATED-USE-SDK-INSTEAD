@@ -13,19 +13,11 @@
  */
 package com.google.dart.tools.mock.ui;
 
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.ui.internal.text.dart.ImportRewrite;
 
 /**
  * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
  */
 public class ContextSensitiveImportRewriteContext {
-  public ContextSensitiveImportRewriteContext(CompilationUnit cu, int invocationOffset,
-      ImportRewrite rewrite) {
-  }
-
-  public ContextSensitiveImportRewriteContext(DartUnit cu, int invocationOffset,
-      ImportRewrite rewrite) {
+  private ContextSensitiveImportRewriteContext() {
   }
 }

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.mock.ui;
 
-import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Field;
 
@@ -27,8 +26,7 @@ public class GetterSetterUtil {
     return "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
   }
 
-  public static String getGetterStub(Field field, String getterName, boolean addComments,
-      Modifiers modifiers) {
+  public static String getGetterStub(Field field, String getterName, boolean addComments) {
     String fieldType = null;
     try {
       fieldType = field.getTypeName();
@@ -50,8 +48,7 @@ public class GetterSetterUtil {
     return "set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
   }
 
-  public static String getSetterStub(Field field, String setterName, boolean addComments,
-      Modifiers modifiers) {
+  public static String getSetterStub(Field field, String setterName, boolean addComments) {
     String fieldType = null;
     try {
       fieldType = field.getTypeName();

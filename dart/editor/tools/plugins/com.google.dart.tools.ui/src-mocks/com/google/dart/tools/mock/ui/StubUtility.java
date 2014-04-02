@@ -13,17 +13,11 @@
  */
 package com.google.dart.tools.mock.ui;
 
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.internal.text.dart.ImportRewrite;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.preferences.IScopeContext;
-import org.eclipse.core.runtime.preferences.InstanceScope;
 
 /**
  * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
@@ -32,35 +26,6 @@ public class StubUtility {
   public static ImportRewrite createImportRewrite(CompilationUnit compilationUnit, boolean b)
       throws CoreException {
     return new ImportRewrite(compilationUnit, b);
-  }
-
-  public static ImportRewrite createImportRewrite(CompilationUnit compilationUnit, DartUnit ast,
-      boolean b) throws CoreException {
-    return new ImportRewrite(compilationUnit, ast, b);
-  }
-
-  public static String getLineDelimiterPreference(IProject project) {
-    IScopeContext[] scopeContext;
-    if (project != null) {
-      // project preference
-      scopeContext = new IScopeContext[] {new ProjectScope(project)};
-      String lineDelimiter = Platform.getPreferencesService().getString(
-          Platform.PI_RUNTIME,
-          Platform.PREF_LINE_SEPARATOR,
-          null,
-          scopeContext);
-      if (lineDelimiter != null) {
-        return lineDelimiter;
-      }
-    }
-    // workspace preference
-    scopeContext = new IScopeContext[] {InstanceScope.INSTANCE};
-    String platformDefault = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-    return Platform.getPreferencesService().getString(
-        Platform.PI_RUNTIME,
-        Platform.PREF_LINE_SEPARATOR,
-        platformDefault,
-        scopeContext);
   }
 
   public static String getMethodBodyContent(boolean isConstructor, DartProject dartProject,

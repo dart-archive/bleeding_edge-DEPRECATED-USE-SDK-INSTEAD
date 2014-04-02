@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.callhierarchy;
 
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -82,24 +80,6 @@ public class CallHierarchy {
 
   public static boolean isPossibleInputElement(Object element) {
     return element instanceof CompilationUnitElement;
-  }
-
-  static DartUnit getCompilationUnitNode(CompilationUnitElement member, boolean resolveBindings) {
-    CompilationUnit typeRoot = member.getCompilationUnit();
-    try {
-      if (typeRoot.exists() && typeRoot.getBuffer() != null) {
-        if (resolveBindings) {
-          //return DartCompilerUtilities.resolveUnit(typeRoot);
-          return null;
-        } else {
-          //return DartCompilerUtilities.parseUnit(typeRoot);
-          return null;
-        }
-      }
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e);
-    }
-    return null;
   }
 
   /**

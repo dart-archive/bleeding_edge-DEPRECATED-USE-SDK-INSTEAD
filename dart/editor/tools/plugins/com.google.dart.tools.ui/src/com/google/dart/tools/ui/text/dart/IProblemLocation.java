@@ -14,8 +14,6 @@
 package com.google.dart.tools.ui.text.dart;
 
 import com.google.dart.compiler.ErrorCode;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartUnit;
 
 /**
  * Problem information for quick fix and quick assist processors.
@@ -28,22 +26,7 @@ import com.google.dart.compiler.ast.DartUnit;
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
 public interface IProblemLocation {
-
-  /**
-   * Convenience method to evaluate the AST node covered by this problem.
-   * 
-   * @param astRoot The root node of the current AST
-   * @return Returns the node that is covered by the location of the problem
-   */
-  DartNode getCoveredNode(DartUnit astRoot);
-
-  /**
-   * Convenience method to evaluate the AST node covering this problem.
-   * 
-   * @param astRoot The root node of the current AST
-   * @return Returns the node that covers the location of the problem
-   */
-  DartNode getCoveringNode(DartUnit astRoot);
+  // TODO(brianwilkerson) There are no implementations of this interface, so it should be removed.
 
   /**
    * Returns the length of the problem.

@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
 
@@ -26,7 +24,6 @@ import org.eclipse.jface.text.IDocument;
  */
 public final class SemanticToken {
 
-  private DartNode nodeOld;
   private AstNode node;
   private IDocument document;
 
@@ -43,7 +40,6 @@ public final class SemanticToken {
    * Clears this token.
    */
   public void clear() {
-    nodeOld = null;
     document = null;
   }
 
@@ -59,20 +55,6 @@ public final class SemanticToken {
    */
   public SimpleIdentifier getNodeIdentifier() {
     return (SimpleIdentifier) node;
-  }
-
-  /**
-   * @return the {@link DartIdentifier}.
-   */
-  public DartIdentifier getNodeIdentifierOld() {
-    return (DartIdentifier) nodeOld;
-  }
-
-  /**
-   * @return the {@link DartNode}.
-   */
-  public DartNode getNodeOld() {
-    return nodeOld;
   }
 
   /**
@@ -97,18 +79,5 @@ public final class SemanticToken {
   public void update(AstNode node) {
     clear();
     this.node = node;
-  }
-
-  /**
-   * Update this token with the given AST node.
-   * <p>
-   * NOTE: Allowed to be used by {@link SemanticHighlightingReconciler} only.
-   * </p>
-   * 
-   * @param node the {@link DartNode}
-   */
-  void update(DartNode node) {
-    clear();
-    this.nodeOld = node;
   }
 }

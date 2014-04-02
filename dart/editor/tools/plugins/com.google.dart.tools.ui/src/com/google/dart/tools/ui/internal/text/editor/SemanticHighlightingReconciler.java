@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -204,19 +203,19 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
 
   /**
    * The semantic highlighting presenter - cache for background thread, only valid during
-   * {@link #reconciled(DartUnit, boolean, IProgressMonitor)}
+   * {@link #reconciled(boolean, IProgressMonitor)}
    */
   private SemanticHighlightingPresenter fJobPresenter;
 
   /**
    * Semantic highlightings - cache for background thread, only valid during
-   * {@link #reconciled(DartUnit, boolean, IProgressMonitor)}
+   * {@link #reconciled(boolean, IProgressMonitor)}
    */
   private SemanticHighlighting[] fJobSemanticHighlightings;
 
   /**
    * Highlightings - cache for background thread, only valid during
-   * {@link #reconciled(DartUnit, boolean, IProgressMonitor)}
+   * {@link #reconciled(boolean, IProgressMonitor)}
    */
   private Highlighting[] fJobHighlightings;
 

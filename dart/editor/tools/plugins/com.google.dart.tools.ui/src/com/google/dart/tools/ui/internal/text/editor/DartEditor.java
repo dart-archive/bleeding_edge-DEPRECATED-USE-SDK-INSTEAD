@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -86,9 +85,7 @@ import com.google.dart.tools.ui.internal.text.functions.DartWordIterator;
 import com.google.dart.tools.ui.internal.text.functions.DocumentCharacterIterator;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.DartUIHelp;
-import com.google.dart.tools.ui.internal.viewsupport.ISelectionListenerWithAST;
 import com.google.dart.tools.ui.internal.viewsupport.IViewPartInputProvider;
-import com.google.dart.tools.ui.internal.viewsupport.SelectionListenerWithASTManager;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 import com.google.dart.tools.ui.text.DartTextTools;
@@ -220,7 +217,6 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.osgi.service.prefs.BackingStoreException;
 
 import java.io.File;
-import java.lang.ref.SoftReference;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.text.CharacterIterator;
@@ -1443,71 +1439,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
-  /**
-   * Instances of the class <code>ASTCache</code> maintain an AST structure corresponding to the
-   * contents of an editor's document.
-   */
-  private static class ASTCache {
-    /**
-     * The time at which the cache was last cleared.
-     */
-    private long clearTime;
-
-    /**
-     * The AST corresponding to the contents of the editor's document, or <code>null</code> if the
-     * AST structure has not been accessed since the last time the cache was cleared.
-     */
-    private SoftReference<DartUnit> cachedAST;
-
-    /**
-     * Initialize a newly created class to be empty.
-     */
-    public ASTCache() {
-      clearTime = 0L;
-      cachedAST = null;
-    }
-
-    /**
-     * Clear the contents of this cache.
-     */
-    public void clear() {
-      synchronized (this) {
-        clearTime = System.nanoTime();
-        cachedAST = null;
-      }
-    }
-
-    /**
-     * Return the AST structure held in this cache, or <code>null</code> if the AST structure needs
-     * to be created.
-     * 
-     * @return the AST structure held in this cache
-     */
-    public DartUnit getAST() {
-      synchronized (this) {
-        if (cachedAST != null) {
-          return cachedAST.get();
-        }
-      }
-      return null;
-    }
-
-    /**
-     * Set the AST structure held in this cache to the given AST structure provided that the cache
-     * has not been cleared since the time at which the AST structure was created.
-     * 
-     * @param creationTime the time at which the AST structure was created (in nanoseconds)
-     * @param ast the AST structure that is to be cached
-     */
-    public void setAST(long creationTime, DartUnit ast) {
-      synchronized (this) {
-        if (creationTime > clearTime) {
-          cachedAST = new SoftReference<DartUnit>(ast);
-        }
-      }
-    }
-  }
-
   private class DartSelectionProvider extends SelectionProvider {
     private final Map<ISelectionChangedListener, ISelectionChangedListener> listeners = Maps.newHashMap();
 
@@ -1887,7 +1818,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * The internal shell activation listener for updating occurrences.
    */
   private ActivationListener fActivationListener = new ActivationListener();
-  private ISelectionListenerWithAST fPostSelectionListenerWithAST; /* obsolete */
   private ISelectionChangedListener occurrencesResponder;
   private OccurrencesFinderJob fOccurrencesFinderJob;
   /** The occurrences finder job canceler */
@@ -1928,25 +1858,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @see ITextViewer#getSelectedRange()
    */
   private Point fCachedSelectedRange;
-
-  /**
-   * A document listener that will clear the AST cache when the contents of the document change.
-   */
-  private final IDocumentListener astCacheClearer = new IDocumentListener() {
-    @Override
-    public void documentAboutToBeChanged(DocumentEvent event) {
-    }
-
-    @Override
-    public void documentChanged(DocumentEvent event) {
-      astCache.clear();
-    }
-  };
-
-  /**
-   * The cache used to maintain the AST corresponding to the contents of this editor's document.
-   */
-  private final ASTCache astCache = new ASTCache();
 
   private OpenCallHierarchyAction openCallHierarchy;
 
@@ -2303,20 +2214,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   /**
-   * Return the AST structure corresponding to the current contents of this editor's document, or
-   * <code>null</code> if the AST structure cannot be created.
-   * 
-   * @return the AST structure corresponding to the current contents of this editor's document
-   */
-  public DartUnit getAST() {
-    DartUnit ast;
-    synchronized (astCache) {
-      ast = astCache.getAST();
-    }
-    return ast;
-  }
-
-  /**
    * Returns the cached selected range, which allows to query it from a non-UI thread.
    * <p>
    * The result might be outdated if queried from a non-UI thread.</em>
@@ -2611,15 +2508,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     int offset = element.getNameOffset();
     int length = element.getDisplayName().length();
     selectAndReveal(offset, length);
-  }
-
-  /**
-   * Sets the AST resolved at the given moment of time.
-   */
-  public void setAST(long creaitonTime, DartUnit ast) {
-    synchronized (astCache) {
-      astCache.setAST(creaitonTime, ast);
-    }
   }
 
   public void setPreferences(IPreferenceStore store) {
@@ -3177,23 +3065,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     // ensure source viewer decoration support has been created and configured
     getSourceViewerDecorationSupport(viewer);
-    //
-    // Add the required listeners so that changes to the document will cause the AST structure to be
-    // flushed.
-    //
-    viewer.addTextInputListener(new ITextInputListener() {
-      @Override
-      public void inputDocumentAboutToBeChanged(IDocument oldInput, IDocument newInput) {
-      }
-
-      @Override
-      public void inputDocumentChanged(IDocument oldInput, IDocument newInput) {
-        if (newInput != null) {
-          newInput.addDocumentListener(astCacheClearer);
-        }
-        astCache.clear();
-      }
-    });
 
     // track text selection range
     viewer.getTextWidget().addCaretListener(new CaretListener() {
@@ -3210,11 +3081,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     });
 
     EditorUtility.addGTKPasteHack(viewer);
-
-    IDocument document = getDocumentProvider().getDocument(null);
-    if (document != null) {
-      document.addDocumentListener(astCacheClearer);
-    }
 
     return viewer;
   }
@@ -4160,12 +4026,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       fOccurrencesFinderJobCanceler = null;
     }
 
-    if (fPostSelectionListenerWithAST != null) {
-      SelectionListenerWithASTManager.getDefault().removeListener(
-          this,
-          fPostSelectionListenerWithAST);
-      fPostSelectionListenerWithAST = null;
-    }
     if (occurrencesResponder != null) {
       getSelectionProvider().removeSelectionChangedListener(occurrencesResponder);
       occurrencesResponder = null;
@@ -4352,20 +4212,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 //      fOccurrencesFinderJob.setSystem(true);
 //      fOccurrencesFinderJob.schedule();
     fOccurrencesFinderJob.run(new NullProgressMonitor());
-  }
-
-  /**
-   * Updates the occurrences annotations based on the current selection.
-   * 
-   * @param selection the text selection
-   * @param astRoot the compilation unit AST
-   */
-  protected void updateOccurrenceAnnotations(ITextSelection selection, DartUnit astRoot) {
-
-    //TODO (pquitslund): support occurence annotations for analysis engine elements
-
-    return;
-
   }
 
   @Override

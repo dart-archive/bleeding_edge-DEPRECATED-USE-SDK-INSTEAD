@@ -107,10 +107,14 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
   private static String readFile(File file) throws IOException {
     Reader in = new BufferedReader(new FileReader(file));
     StringBuilder sb = new StringBuilder();
-    char[] chars = new char[1 << 11];
-    int length;
-    while ((length = in.read(chars)) > 0) {
-      sb.append(chars, 0, length);
+    try {
+      char[] chars = new char[1 << 11];
+      int length;
+      while ((length = in.read(chars)) > 0) {
+        sb.append(chars, 0, length);
+      }
+    } finally {
+      in.close();
     }
     return sb.toString();
   }
@@ -433,7 +437,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
         }
         themeDetails.setVisible(true);
         colorThemeManager.previewTheme(theme.getName());
-        editor.reconciled(editor.getAST(), true, new NullProgressMonitor());
+        editor.reconciled(true, new NullProgressMonitor());
         authorLabel.pack();
         websiteLink.pack();
       } finally {

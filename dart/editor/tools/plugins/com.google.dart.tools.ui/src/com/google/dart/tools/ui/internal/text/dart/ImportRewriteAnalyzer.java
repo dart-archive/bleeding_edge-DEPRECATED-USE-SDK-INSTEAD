@@ -14,10 +14,6 @@
 
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.compiler.ast.DartDirective;
-import com.google.dart.compiler.ast.DartImportDirective;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
@@ -26,7 +22,6 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
 import org.eclipse.text.edits.DeleteEdit;
 import org.eclipse.text.edits.InsertEdit;
 import org.eclipse.text.edits.MultiTextEdit;
@@ -326,15 +321,6 @@ public class ImportRewriteAnalyzer {
     return len;
   }
 
-  private static int getFirstTypeBeginPos(DartUnit root) {
-    List<DartNode> types = root.getTopLevelNodes();
-    if (!types.isEmpty()) {
-      return types.get(0).getSourceInfo().getOffset();
-    }
-    return -1;
-  }
-
-  private final DartUnit ast;
   private final CompilationUnit cu;
 
   private final List<String> importsCreated;
@@ -349,17 +335,12 @@ public class ImportRewriteAnalyzer {
 
   private String[] importOrder = new String[] {"dart", "package", "library"};
 
-  public ImportRewriteAnalyzer(DartUnit ast, CompilationUnit cu, boolean restoreExistingImports,
+  public ImportRewriteAnalyzer(CompilationUnit cu, boolean restoreExistingImports,
       boolean useContextToFilterImplicitImports) {
-    this.ast = ast;
     this.cu = cu;
     this.importsCreated = new ArrayList<String>();
     this.flags = 0;
-    this.replaceRange = evaluateReplaceRange(ast);
-
-    if (restoreExistingImports) {
-      addExistingImports(ast);
-    }
+    this.replaceRange = null;
 
     PackageEntry[] order = new PackageEntry[importOrder.length];
     for (int i = 0; i < order.length; i++) {
@@ -368,16 +349,6 @@ public class ImportRewriteAnalyzer {
     }
 
     addPreferenceOrderHolders(order);
-  }
-
-  public void addImport(DartImportDirective directive) {
-    String typeContainerName = getQualifier(directive);
-    DirectiveDeclEntry decl = new DirectiveDeclEntry(
-        typeContainerName.length(),
-        getFullName(directive),
-        getPrefix(directive),
-        null);
-    sortIn(typeContainerName, decl);
   }
 
   public void addImport(String fullName) {
@@ -406,11 +377,6 @@ public class ImportRewriteAnalyzer {
       System.out.println(buffer.toString());
 
       int currPos = importsStart;
-
-      List<DartImportDirective> imports = getImports(ast);
-      for (DartImportDirective directive : imports) {
-        addImport(directive);
-      }
 
       if ((this.flags & F_NEEDS_LEADING_DELIM) != 0) {
         // new import container
@@ -488,57 +454,6 @@ public class ImportRewriteAnalyzer {
 
   }
 
-  private void addExistingImports(DartUnit root) {
-    List<DartImportDirective> imports = getImports(root);
-
-    if (imports.isEmpty()) {
-      return;
-    }
-    PackageEntry currPackage = null;
-
-    DartImportDirective curr = imports.get(0);
-    int currOffset = curr.getSourceInfo().getOffset();
-    int currLength = curr.getSourceInfo().getLength();
-    int currEndLine = curr.getSourceInfo().getLine();
-
-    for (int i = 1; i < imports.size(); i++) {
-      String name = getFullName(curr);
-      String prefix = getPrefix(curr);
-      String packName = getQualifier(curr);
-      if (currPackage == null || currPackage.compareTo(packName) != 0) {
-        currPackage = new PackageEntry(packName, null);
-        this.packageEntries.add(currPackage);
-      }
-
-      DartImportDirective next = imports.get(i);
-      int nextOffset = next.getSourceInfo().getOffset();
-      int nextLength = next.getSourceInfo().getLength();
-      int nextOffsetLine = next.getSourceInfo().getLine();
-
-      currPackage.add(new DirectiveDeclEntry(packName.length(), name, prefix, new Region(
-          currOffset,
-          currLength)));
-      currOffset = nextOffset;
-      currLength = nextLength;
-      curr = next;
-
-      currEndLine = nextOffsetLine;
-    }
-
-    String name = getFullName(curr);
-    String prefix = getPrefix(curr);
-    String packName = getQualifier(curr);
-    if (currPackage == null || currPackage.compareTo(packName) != 0) {
-      currPackage = new PackageEntry(packName, null);
-      this.packageEntries.add(currPackage);
-    }
-    int length = this.replaceRange.getOffset() + this.replaceRange.getLength()
-        - curr.getSourceInfo().getOffset();
-    currPackage.add(new DirectiveDeclEntry(packName.length(), name, prefix, new Region(
-        curr.getSourceInfo().getOffset(),
-        length)));
-  }
-
   private void addPreferenceOrderHolders(PackageEntry[] preferenceOrder) {
 
     PackageEntry[] lastAssigned = new PackageEntry[preferenceOrder.length];
@@ -581,25 +496,6 @@ public class ImportRewriteAnalyzer {
       }
     }
 
-  }
-
-  private IRegion evaluateReplaceRange(DartUnit root) {
-    List<DartImportDirective> imports = getImports(root);
-    if (!imports.isEmpty()) {
-      DartImportDirective first = imports.get(0);
-      DartImportDirective last = imports.get(imports.size() - 1);
-
-      int startPos = first.getSourceInfo().getOffset();
-      int endPos = last.getSourceInfo().getEnd();
-      int endLine = last.getSourceInfo().getLine();
-      int firstTypePos = getFirstTypeBeginPos(root);
-      if (firstTypePos != -1 && firstTypePos < endPos) {
-        endPos = firstTypePos;
-      }
-
-      return new Region(startPos, endPos - startPos);
-    }
-    return null;
   }
 
   private PackageEntry findBestMatch(String newName) {
@@ -676,21 +572,6 @@ public class ImportRewriteAnalyzer {
     return -1;
   }
 
-  private String getFullName(DartImportDirective directive) {
-    return directive.getLibraryUri().getValue();
-  }
-
-  private List<DartImportDirective> getImports(DartUnit root) {
-    List<DartDirective> directives = root.getDirectives();
-    List<DartImportDirective> imports = new ArrayList<DartImportDirective>();
-    for (DartDirective directive : directives) {
-      if (directive instanceof DartImportDirective) {
-        imports.add((DartImportDirective) directive);
-      }
-    }
-    return imports;
-  }
-
   private String getNewImportString(String importName, String prefix, String lineDelim) {
     StringBuffer buf = new StringBuffer();
     buf.append("#import('"); //$NON-NLS-1$
@@ -706,25 +587,6 @@ public class ImportRewriteAnalyzer {
     this.importsCreated.add(importName);
 
     return buf.toString();
-  }
-
-  private String getPrefix(DartImportDirective directive) {
-    if (directive.getPrefix() != null) {
-      return directive.getPrefix().getName();
-    } else if (directive.getOldPrefix() != null) {
-      return directive.getOldPrefix().toString();
-    }
-    return null;
-  }
-
-  private String getQualifier(DartImportDirective directive) {
-    String string = directive.getLibraryUri().toString();
-    if (string.indexOf("dart:") != -1) {
-      return "dart";
-    } else if (string.indexOf("package:") != -1) {
-      return "package";
-    }
-    return "library";
   }
 
   private void removeAndInsertNew(Buffer buffer, int contentOffset, int contentEnd,
