@@ -288,11 +288,6 @@ public class AngularCompilationUnitBuilder {
   private ClassElementImpl classElement;
 
   /**
-   * The {@link ToolkitObjectElement}s to set for {@link #classElement}.
-   */
-  private List<ToolkitObjectElement> classToolkitObjects = Lists.newArrayList();
-
-  /**
    * The {@link Annotation} that is currently being analyzed.
    */
   private Annotation annotation;
@@ -321,7 +316,6 @@ public class AngularCompilationUnitBuilder {
       if (unitMember instanceof ClassDeclaration) {
         this.classDeclaration = (ClassDeclaration) unitMember;
         this.classElement = (ClassElementImpl) classDeclaration.getElement();
-        this.classToolkitObjects.clear();
         // process annotations
         NodeList<Annotation> annotations = classDeclaration.getMetadata();
         for (Annotation annotation : annotations) {
@@ -350,11 +344,6 @@ public class AngularCompilationUnitBuilder {
             parseNgDirective();
             continue;
           }
-        }
-        // set toolkit objects
-        if (!classToolkitObjects.isEmpty()) {
-          List<ToolkitObjectElement> objects = classToolkitObjects;
-          classElement.setToolkitObjects(objects.toArray(new ToolkitObjectElement[objects.size()]));
         }
       }
     }
@@ -470,7 +459,7 @@ public class AngularCompilationUnitBuilder {
       element.setStyleUriOffset(styleUriOffset);
       element.setProperties(parseNgComponentProperties());
       element.setScopeProperties(parseScopeProperties());
-      classToolkitObjects.add(element);
+      classElement.addToolkitObjects(element);
     }
   }
 
@@ -630,7 +619,7 @@ public class AngularCompilationUnitBuilder {
       int nameOffset = getStringArgumentOffset(PUBLISH_AS);
       AngularControllerElementImpl element = new AngularControllerElementImpl(name, nameOffset);
       element.setSelector(selector);
-      classToolkitObjects.add(element);
+      classElement.addToolkitObjects(element);
     }
   }
 
@@ -655,7 +644,7 @@ public class AngularCompilationUnitBuilder {
       AngularDirectiveElementImpl element = new AngularDirectiveElementImpl(offset);
       element.setSelector(selector);
       element.setProperties(parseNgComponentProperties());
-      classToolkitObjects.add(element);
+      classElement.addToolkitObjects(element);
     }
   }
 
@@ -670,7 +659,7 @@ public class AngularCompilationUnitBuilder {
     if (isValid) {
       String name = getStringArgument(NAME);
       int nameOffset = getStringArgumentOffset(NAME);
-      classToolkitObjects.add(new AngularFilterElementImpl(name, nameOffset));
+      classElement.addToolkitObjects(new AngularFilterElementImpl(name, nameOffset));
     }
   }
 

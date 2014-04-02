@@ -31,6 +31,8 @@ import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -108,6 +110,16 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
     return visitor.visitClassElement(this);
+  }
+
+  /**
+   * Set the toolkit specific information objects attached to this class.
+   * 
+   * @param toolkitObjects the toolkit objects attached to this class
+   */
+  public void addToolkitObjects(ToolkitObjectElement toolkitObject) {
+    ((ToolkitObjectElementImpl) toolkitObject).setEnclosingElement(this);
+    toolkitObjects = ArrayUtils.add(toolkitObjects, toolkitObject);
   }
 
   @Override
@@ -537,18 +549,6 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   public void setSupertype(InterfaceType supertype) {
     this.supertype = supertype;
-  }
-
-  /**
-   * Set the toolkit specific information objects attached to this class.
-   * 
-   * @param toolkitObjects the toolkit objects attached to this class
-   */
-  public void setToolkitObjects(ToolkitObjectElement[] toolkitObjects) {
-    for (ToolkitObjectElement toolkitObject : toolkitObjects) {
-      ((ToolkitObjectElementImpl) toolkitObject).setEnclosingElement(this);
-    }
-    this.toolkitObjects = toolkitObjects;
   }
 
   /**

@@ -38,6 +38,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.internal.builder.AngularCompilationUnitBuilder;
+import com.google.dart.engine.internal.builder.PolymerCompilationUnitBuilder;
 import com.google.dart.engine.internal.constant.ConstantValueComputer;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
@@ -825,6 +826,16 @@ public class LibraryResolver {
       for (Source source : library.getCompilationUnitSources()) {
         CompilationUnit ast = library.getAST(source);
         new AngularCompilationUnitBuilder(errorListener, source, ast).build();
+      }
+    } finally {
+      timeCounter.stop();
+    }
+    // Polymer
+    timeCounter = PerformanceStatistics.polymer.start();
+    try {
+      for (Source source : library.getCompilationUnitSources()) {
+        CompilationUnit ast = library.getAST(source);
+        new PolymerCompilationUnitBuilder(ast).build();
       }
     } finally {
       timeCounter.stop();

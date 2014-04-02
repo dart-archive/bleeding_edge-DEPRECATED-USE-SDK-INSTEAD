@@ -1,6 +1,7 @@
 package com.google.dart.engine.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.source.FileBasedSource;
@@ -33,6 +34,10 @@ public class AnalysisContextHelper {
     }
     context.setContents(source, code);
     return source;
+  }
+
+  public CompilationUnitElement getDefiningUnitElement(Source source) throws Exception {
+    return context.getCompilationUnitElement(source, source);
   }
 
   public CompilationUnit resolveDefiningUnit(Source source) throws Exception {

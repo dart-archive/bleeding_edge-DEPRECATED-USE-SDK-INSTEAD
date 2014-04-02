@@ -220,6 +220,7 @@ public class AnalyzerMain {
     long errorsTime = PerformanceStatistics.errors.getResult();
     long hintsTime = PerformanceStatistics.hints.getResult();
     long angularTime = PerformanceStatistics.angular.getResult();
+    long polymerTime = PerformanceStatistics.polymer.getResult();
     System.out.println("io:" + ioTime);
     System.out.println("scan:" + scanTime);
     System.out.println("parse:" + parseTime);
@@ -227,8 +228,10 @@ public class AnalyzerMain {
     System.out.println("errors:" + errorsTime);
     System.out.println("hints:" + hintsTime);
     System.out.println("angular:" + angularTime);
+    System.out.println("polymer:" + polymerTime);
     System.out.println("other:"
-        + (totalTime - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime + angularTime)));
+        + (totalTime - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
+            + angularTime + polymerTime)));
     System.out.println("total:" + totalTime);
   }
 
