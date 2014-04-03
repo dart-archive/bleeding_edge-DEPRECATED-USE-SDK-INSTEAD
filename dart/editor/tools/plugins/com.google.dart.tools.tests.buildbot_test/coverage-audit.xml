@@ -6,6 +6,7 @@
     <include prefix="com/google/dart/eclipse/core/" source="/com.google.dart.eclipse.core/src/"/>
   </directory>
   <directory path="${dart.editor.path}/tools/plugins/com.google.dart.eclipse.ui/bin">
+    <include prefix="com/google/dart/eclipse/preferences/" source="/com.google.dart.eclipse.ui/src/"/>
     <include prefix="com/google/dart/eclipse/ui/" source="/com.google.dart.eclipse.ui/src/"/>
     <include prefix="com/google/dart/eclipse/wizards/" source="/com.google.dart.eclipse.ui/src/"/>
   </directory>
@@ -29,7 +30,9 @@
     <!-- Not all packages in this plugin will be tested -->
     <include prefix="com/google/dart/tools/deploy/" source="/com.google.dart.tools.deploy/src/"/>
     <!-- Any package with prefix com.google.dart.tools.ui must have a suffix to distinguish it from UI plugin src -->
+    <include prefix="com/google/dart/tools/ui/console/" source="/com.google.dart.tools.deploy/src/"/>
     <include prefix="com/google/dart/tools/ui/omni/" source="/com.google.dart.tools.deploy/src/"/>
+    <include prefix="com/google/dart/tools/ui/presentation/" source="/com.google.dart.tools.deploy/src/"/>
     <include prefix="com/google/dart/tools/ui/watchdog/" source="/com.google.dart.tools.deploy/src/"/>
     <include prefix="com/google/dart/tools/wst/ui/" source="/com.google.dart.tools.deploy/src/"/>
   </directory>
@@ -38,15 +41,13 @@
     <include prefix="com/google/dart/tools/search2/" source="/com.google.dart.tools.search/src/"/>
   </directory>
   <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.ui/bin">
-    <include prefix="com/google/dart/tools/xui" source="/com.google.dart.tools.ui/src-mocks/"/>
-  </directory>
-  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.ui/bin">
     <include prefix="com/google/dart/tools/internal/" source="/com.google.dart.tools.ui/src/"/>
     <include prefix="com/google/dart/tools/ui/" source="/com.google.dart.tools.ui/src/"/>
     <include prefix="com/google/protobuf/" source="/com.google.dart.tools.ui/src/"/>
   </directory>
   <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.ui/bin">
     <include prefix="com/google/dart/core/" source="/com.google.dart.tools.ui/src-mocks/"/>
+    <include prefix="com/google/dart/tools/mock/ui" source="/com.google.dart.tools.ui/src-mocks/"/>
   </directory>
   <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.update.core/bin">
     <include prefix="com/google/dart/tools/update/core/" source="/com.google.dart.tools.update.core/src/"/>
