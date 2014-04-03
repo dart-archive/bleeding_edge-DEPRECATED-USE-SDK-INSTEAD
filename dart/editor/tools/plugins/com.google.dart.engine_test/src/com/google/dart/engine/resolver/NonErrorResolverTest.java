@@ -1440,6 +1440,57 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_inconsistentMethodInheritance_overrideTrumpsInherits_getter() throws Exception {
+    // 16134
+    Source source = addSource(createSource(//
+        "class B<S> {",
+        "  S get g => null;",
+        "}",
+        "abstract class I<U> {",
+        "  U get g => null;",
+        "}",
+        "class C extends B<double> implements I<int> {",
+        "  num get g => null;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_inconsistentMethodInheritance_overrideTrumpsInherits_method() throws Exception {
+    // 16134
+    Source source = addSource(createSource(//
+        "class B<S> {",
+        "  m(S s) => null;",
+        "}",
+        "abstract class I<U> {",
+        "  m(U u) => null;",
+        "}",
+        "class C extends B<double> implements I<int> {",
+        "  m(num n) => null;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_inconsistentMethodInheritance_overrideTrumpsInherits_setter() throws Exception {
+    // 16134
+    Source source = addSource(createSource(//
+        "class B<S> {",
+        "  set t(S s) {}",
+        "}",
+        "abstract class I<U> {",
+        "  set t(U u) {}",
+        "}",
+        "class C extends B<double> implements I<int> {",
+        "  set t(num n) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_inconsistentMethodInheritance_simple() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",

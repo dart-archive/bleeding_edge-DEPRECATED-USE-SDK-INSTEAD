@@ -868,19 +868,37 @@ public class InheritanceManager {
           } else {
             if (subtypesOfAllOtherTypesIndexes.isEmpty()) {
               //
+              // Determine if the current class has a method or accessor with the member name, if it
+              // does then then this class does not "inherit" from any of the supertypes.
+              // See issue 16134.
+              //
+              boolean classHasMember = false;
+              if (allMethods) {
+                classHasMember = classElt.getMethod(key) != null;
+              } else {
+                PropertyAccessorElement[] accessors = classElt.getAccessors();
+                for (int i = 0; i < accessors.length; i++) {
+                  if (accessors[i].getName().equals(key)) {
+                    classHasMember = true;
+                  }
+                }
+              }
+              //
               // Example: class A inherited only 2 method named 'm'. One has the function type
               // '() -> int' and one has the function type '() -> String'. Since neither is a subtype
               // of the other, we create a warning, and have this class inherit nothing.
               //
-              String firstTwoFuntionTypesStr = executableElementTypes[0].toString() + ", "
-                  + executableElementTypes[1].toString();
-              reportError(
-                  classElt,
-                  classElt.getNameOffset(),
-                  classElt.getDisplayName().length(),
-                  StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
-                  key,
-                  firstTwoFuntionTypesStr);
+              if (!classHasMember) {
+                String firstTwoFuntionTypesStr = executableElementTypes[0].toString() + ", "
+                    + executableElementTypes[1].toString();
+                reportError(
+                    classElt,
+                    classElt.getNameOffset(),
+                    classElt.getDisplayName().length(),
+                    StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+                    key,
+                    firstTwoFuntionTypesStr);
+              }
             } else {
               //
               // Example: class A inherits 2 methods named 'm'. One has the function type
