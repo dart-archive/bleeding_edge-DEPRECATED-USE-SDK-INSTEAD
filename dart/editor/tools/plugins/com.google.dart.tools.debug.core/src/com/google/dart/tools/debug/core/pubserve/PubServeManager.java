@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.pubserve.PubConnection.PubConnectionListener;
@@ -66,8 +67,6 @@ public class PubServeManager {
     }
   }
 
-  public static final String PORT_NUMBER = "4031";
-
   private static final String SERVE_COMMAND = "serve";
 
   private static final String LOCAL_HOST_ADDR = "127.0.0.1";
@@ -89,6 +88,7 @@ public class PubServeManager {
   private MessageConsole console;
   private PubConnection pubConnection;
   private IContainer workingDir;
+  private String portNo;
 
   /**
    * This starts a websocket connection with pub and if successful, sends a "assetIdToUrl" command
@@ -105,10 +105,7 @@ public class PubServeManager {
     } else {
 
       try {
-        pubConnection = new PubConnection(new URI(NLS.bind(
-            WEBSOCKET_URL,
-            LOCAL_HOST_ADDR,
-            PORT_NUMBER)));
+        pubConnection = new PubConnection(new URI(NLS.bind(WEBSOCKET_URL, LOCAL_HOST_ADDR, portNo)));
 
         pubConnection.addConnectionListener(new PubConnectionListener() {
           @Override
@@ -212,8 +209,9 @@ public class PubServeManager {
       args.add(pubFile.getAbsolutePath());
     }
     args.add(SERVE_COMMAND);
-    args.add("--port");
-    args.add(PORT_NUMBER);
+    args.add("--admin-port");
+    portNo = Integer.toString(NetUtils.findUnusedPort(0));
+    args.add(portNo);
     args.add("--hostname");
     args.add(LOCAL_HOST_ADDR);
     return args;

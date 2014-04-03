@@ -19,6 +19,7 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
+import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 
 import org.eclipse.core.resources.IResource;
@@ -51,28 +52,31 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
 
   private static RuntimeProcess eclipseProcess;
 
-  @Override
-  public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch launch,
-      IProgressMonitor monitor, InstrumentationBuilder instrumentation) throws CoreException {
+  protected static ILaunch launch;
 
-    if (!ILaunchManager.RUN_MODE.equals(mode)) {
-      throw new CoreException(DartDebugCorePlugin.createErrorStatus("Execution mode '" + mode
-          + "' is not supported."));
-    }
+  protected static DartLaunchConfigWrapper launchConfig;
 
-    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
+  private static PubCallback<String> pubConnectionCallback = new PubCallback<String>() {
 
-    // If we're in the process of launching Dartium, don't allow a second launch to occur.
-    if (launchSemaphore.tryAcquire()) {
+    @Override
+    public void handleResult(PubResult<String> result) {
+      if (result.isError()) {
+        DebugUIHelper.getHelper().showError(
+            "Launch Error",
+            "Pub serve communication error: " + result.getErrorMessage());
+        return;
+      }
+
       try {
-        launchImpl(launchConfig, mode, launch, monitor);
-      } finally {
-        launchSemaphore.release();
+        String launchUrl = result.getResult();
+        launchInDartium(launchUrl, launch, launchConfig);
+      } catch (CoreException e) {
+        DartDebugCorePlugin.logError(e);
       }
     }
-  }
+  };
 
-  private void dispose() {
+  private static void dispose() {
     if (eclipseProcess != null) {
       try {
         eclipseProcess.terminate();
@@ -83,40 +87,8 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
     }
   }
 
-  private void launchImpl(DartLaunchConfigWrapper launchConfig, String mode, ILaunch launch,
-      IProgressMonitor monitor) throws CoreException {
-
-    launchConfig.markAsLaunched();
-
-    // Launch the browser - show errors if we couldn't.
-    IResource resource = null;
-
-    resource = launchConfig.getApplicationResource();
-    if (resource == null) {
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartDebugCorePlugin.PLUGIN_ID,
-          "HTML file could not be found"));
-    }
-
-    // launch pub serve
-    PubServeManager manager = PubServeManager.getManager();
-
-    if (!manager.startPubServe(launchConfig)) {
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartDebugCorePlugin.PLUGIN_ID,
-          "Could not start pub serve\n" + manager.getStdErrorString()));
-    }
-
-    String url = "http://localhost:" + PubServeManager.PORT_NUMBER;
-
-    launchInDartium(url + "/" + resource.getName(), launch, launchConfig, monitor);
-
-  }
-
-  private void launchInDartium(final String url, ILaunch launch,
-      DartLaunchConfigWrapper launchConfig, IProgressMonitor monitor) throws CoreException {
+  private static void launchInDartium(final String url, ILaunch launch,
+      DartLaunchConfigWrapper launchConfig) throws CoreException {
 
     // close a running instance of Dartium, if any
     dispose();
@@ -169,7 +141,6 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
     processAttributes.put(IProcess.ATTR_PROCESS_TYPE, programName);
 
     if (javaProcess != null) {
-      monitor.beginTask("Dartium", IProgressMonitor.UNKNOWN);
 
       eclipseProcess = new RuntimeProcess(launch, javaProcess, launchConfig.getApplicationName()
           + " (" + new Date() + ")", processAttributes);
@@ -183,6 +154,62 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
 
       throw new CoreException(
           DartDebugCorePlugin.createErrorStatus("Error starting Dartium browser"));
+    }
+
+  }
+
+  @Override
+  public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch rlaunch,
+      IProgressMonitor monitor, InstrumentationBuilder instrumentation) throws CoreException {
+
+    if (!ILaunchManager.RUN_MODE.equals(mode)) {
+      throw new CoreException(DartDebugCorePlugin.createErrorStatus("Execution mode '" + mode
+          + "' is not supported."));
+    }
+
+    launch = rlaunch;
+    launchConfig = new DartLaunchConfigWrapper(configuration);
+
+    // If we're in the process of launching Dartium, don't allow a second launch to occur.
+    if (launchSemaphore.tryAcquire()) {
+      try {
+        launchImpl(mode, monitor);
+      } finally {
+        launchSemaphore.release();
+      }
+    }
+  }
+
+  private void launchImpl(String mode, IProgressMonitor monitor) throws CoreException {
+
+    launchConfig.markAsLaunched();
+
+    // Launch the browser - show errors if we couldn't.
+    IResource resource = null;
+
+    resource = launchConfig.getApplicationResource();
+    if (resource == null) {
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          "HTML file could not be found"));
+    }
+
+    // launch pub serve
+    PubServeManager manager = PubServeManager.getManager();
+
+    if (!manager.startPubServe(launchConfig)) {
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          "Could not start pub serve\n" + manager.getStdErrorString()));
+    }
+
+    if (!manager.connectToPub(pubConnectionCallback)) {
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          "Could not connect to pub\n"));
     }
 
   }

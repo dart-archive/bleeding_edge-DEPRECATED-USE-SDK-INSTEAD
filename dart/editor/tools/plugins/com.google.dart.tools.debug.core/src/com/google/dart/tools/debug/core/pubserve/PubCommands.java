@@ -18,6 +18,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A class to encapsulate the available pub protocol commands.
@@ -37,15 +39,19 @@ public class PubCommands {
    * @throws IOException
    */
   public void pathToUrl(String path, final PubCallback<String> callback) throws IOException {
-    // { "command": "pathToUrls", "path": "web/index.html" }
+    // { "method": "pathToUrls", "path": "web/index.html" }
     // ==>{ "urls": ["http://localhost:8080/index.html"] }
 
     try {
       JSONObject request = new JSONObject();
 
-      request.put("command", "pathToUrls");
+      request.put("jsonrpc", "2.0");
 
-      request.put("path", path);
+      request.put("method", "pathToUrls");
+
+      Map<String, String> map = new HashMap<String, String>();
+      map.put("path", path);
+      request.put("params", map);
 
       connection.sendRequest(request, new PubConnection.Callback() {
         @Override
@@ -65,14 +71,18 @@ public class PubCommands {
    * If successful, it returns a map containing the URL that can be used to access the directory.
    */
   public void serveDirectory(String path, final PubCallback<String> callback) throws IOException {
-    // { "command": "serveDirectory","path": "example/awesome" } 
+    // { "method": "serveDirectory","path": "example/awesome" } 
     // ==> {  "url": "http://localhost:8083" } 
     try {
       JSONObject request = new JSONObject();
 
-      request.put("command", "serveDirectory");
+      request.put("jsonrpc", "2.0");
 
-      request.put("path", path);
+      request.put("method", "serveDirectory");
+
+      Map<String, String> map = new HashMap<String, String>();
+      map.put("path", path);
+      request.put("params", map);
 
       connection.sendRequest(request, new PubConnection.Callback() {
         @Override
@@ -98,15 +108,20 @@ public class PubCommands {
    * @throws IOException
    */
   public void urlToAssetId(String url, final PubCallback<PubAsset> callback) throws IOException {
-    // {"command": "urlToAssetId", "uri": "<relative uri path>"}
+    // {"method": "urlToAssetId", "uri": "<relative uri path>"}
     // ==> {"package": "<package>", "path": "<path>"}
 
     try {
       JSONObject request = new JSONObject();
 
-      request.put("command", "urlToAssetId");
+      request.put("jsonrpc", "2.0");
 
-      request.put("url", url);
+      request.put("method", "urlToAssetId");
+
+      Map<String, String> map = new HashMap<String, String>();
+      map.put("url", url);
+
+      request.put("params", map);
 
       connection.sendRequest(request, new PubConnection.Callback() {
         @Override
@@ -123,27 +138,32 @@ public class PubCommands {
     PubResult<String> result = PubResult.createFrom(obj);
 
     //TODO(keertip): return multiple urls
-    if (obj.has("urls")) {
-      result.setResult(obj.getJSONArray("urls").getString(0));
+    if (obj.has("result")) {
+      JSONObject jsonObj = (JSONObject) obj.get("result");
+      if (jsonObj.has("urls")) {
+        result.setResult(jsonObj.getJSONArray("urls").getString(0));
+      }
     }
-
     return result;
   }
 
   private PubResult<String> convertServeDirectoryResult(JSONObject obj) throws JSONException {
     PubResult<String> result = PubResult.createFrom(obj);
-
-    if (obj.has("url")) {
-      result.setResult(obj.getString("url"));
+    if (obj.has("result")) {
+      JSONObject resObj = (JSONObject) obj.get("result");
+      if (resObj.has("url")) {
+        result.setResult(resObj.getString("url"));
+      }
     }
-
     return result;
   }
 
   private PubResult<PubAsset> convertUrlToAssetResult(JSONObject obj) throws JSONException {
     PubResult<PubAsset> result = PubResult.createFrom(obj);
-    result.setResult(PubAsset.createFrom(obj));
-
+    if (obj.has("result")) {
+      JSONObject resObj = (JSONObject) obj.get("result");
+      result.setResult(PubAsset.createFrom(resObj));
+    }
     return result;
   }
 

@@ -35,11 +35,12 @@ import java.util.concurrent.TimeUnit;
 
 public class PubConnectionTest extends TestCase {
 
-//  pub ==> {"id":1,"path":"web/foo.html","command":"assetIdToUrls"}
-//  pub <== {"id":1,"urls":["http://127.0.0.1:54118/foo.html"]}
-//  pub ==> {"id":2,"command":"urlToAssetId","url":"http://127.0.0.1:53894/foo.html"}
-//  pub <== {"error":"\"127.0.0.1:53894\" is not being served by pub.","code":"NOT_SERVED"}
-//  pub <== {"id":2,"path":"web/foo.html","package":"foo"}
+//  pub ==> {"id":1,"method":"pathToUrls","params":{"path":"web/foo.html"},"jsonrpc":"2.0"}
+//  pub <== {"id":1,"result":{"urls":["http://127.0.0.1:8080/foo.html"]},"jsonrpc":"2.0"}
+//  pub ==> {"id":2,"method":"urlToAssetId","params":{"url":"http://127.0.0.1:8080/foo.html"},"jsonrpc":"2.0"}
+//  pub <== {"id":2,"result":{"path":"web/foo.html","package":"foo"},"jsonrpc":"2.0"}
+//  pub ==> {"id":3,"method":"serveDirectory","params":{"path":"test"},"jsonrpc":"2.0"}
+//  pub <== {"id":3,"result":{"url":"http://127.0.0.1:8081"},"jsonrpc":"2.0"}
 
   private PubCallback<String> serveDirectoryCallback = new PubCallback<String>() {
 
@@ -96,17 +97,17 @@ public class PubConnectionTest extends TestCase {
     }
 
     latch = new CountDownLatch(1);
-    command.urlToAssetId("http://127.0.0.1:" + port + "/foo.html", urlToAssestCallback);
+    command.urlToAssetId("http://127.0.0.1:8080/foo.html", urlToAssestCallback);
     if (!latch.await(3000, TimeUnit.MILLISECONDS)) {
       throw new Exception("No response from pub command urlToAssestId");
     }
 
     // TODO(keertip): get test passing and enable
-//    latch = new CountDownLatch(1);
-//    command.serveDirectory("test", serveDirectoryCallback);
-//    if (!latch.await(3000, TimeUnit.MILLISECONDS)) {
-//      throw new Exception("No response from pub command serveDirectory");
-//    }
+    latch = new CountDownLatch(1);
+    command.serveDirectory("test", serveDirectoryCallback);
+    if (!latch.await(3000, TimeUnit.MILLISECONDS)) {
+      throw new Exception("No response from pub command serveDirectory");
+    }
 
   }
 
@@ -174,10 +175,10 @@ public class PubConnectionTest extends TestCase {
     try {
       testProject.dispose();
     } catch (Exception e) {
+      processDestroy();
       fail("Exception while deleting test project");
-    } finally {
-      process.destroy();
     }
+    processDestroy();
 
   }
 
@@ -187,7 +188,7 @@ public class PubConnectionTest extends TestCase {
     List<String> args = new ArrayList<String>();
     args.add(pubFile.getAbsolutePath());
     args.add("serve");
-    args.add("--port");
+    args.add("--admin-port");
     port = Integer.toString(NetUtils.findUnusedPort(8080));
     args.add(port);
     args.add("--hostname");
@@ -209,10 +210,9 @@ public class PubConnectionTest extends TestCase {
       }
       in.close();
     } catch (IOException ioe) {
-      fail("IOException while reading pub serve stream");
-    } finally {
       in.close();
       process.destroy();
+      fail("IOException while reading pub serve stream");
     }
   }
 
