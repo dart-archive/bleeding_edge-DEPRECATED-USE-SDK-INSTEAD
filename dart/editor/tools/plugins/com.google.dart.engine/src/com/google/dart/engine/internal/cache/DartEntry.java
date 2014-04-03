@@ -35,6 +35,12 @@ public interface DartEntry extends SourceEntry {
       "DartEntry.ANGULAR_ERRORS");
 
   /**
+   * The data descriptor representing the errors reported while building an element model.
+   */
+  public static final DataDescriptor<AnalysisError[]> BUILD_ELEMENT_ERRORS = new DataDescriptor<AnalysisError[]>(
+      "DartEntry.BUILD_ELEMENT_ERRORS");
+
+  /**
    * The data descriptor representing the list of libraries that contain this compilation unit.
    */
   public static final DataDescriptor<Source[]> CONTAINING_LIBRARIES = new DataDescriptor<Source[]>(
