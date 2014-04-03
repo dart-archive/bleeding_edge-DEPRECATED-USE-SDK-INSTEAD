@@ -1047,6 +1047,12 @@ public class ErrorParserTest extends ParserTestCase {
     assertNotNull(unit);
   }
 
+  public void test_missingPrefixInDeferredImport() throws Exception {
+    parseCompilationUnit(
+        "import 'foo.dart' deferred;",
+        ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT);
+  }
+
   public void test_missingStatement() throws Exception {
     parseStatement("is", ParserErrorCode.MISSING_STATEMENT);
   }

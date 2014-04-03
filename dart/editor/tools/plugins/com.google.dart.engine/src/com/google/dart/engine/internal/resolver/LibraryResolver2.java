@@ -281,6 +281,7 @@ public class LibraryResolver2 {
                 importElement.setUriEnd(uriLiteral.getEnd());
               }
               importElement.setUri(uriContent);
+              importElement.setDeferred(importDirective.getDeferredToken() != null);
               importElement.setCombinators(buildCombinators(importDirective));
               LibraryElement importedLibraryElement = importedLibrary.getLibraryElement();
               if (importedLibraryElement != null) {

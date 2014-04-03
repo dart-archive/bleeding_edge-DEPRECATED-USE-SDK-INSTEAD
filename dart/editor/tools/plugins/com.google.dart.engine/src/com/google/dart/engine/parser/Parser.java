@@ -4103,11 +4103,17 @@ public class Parser {
   private ImportDirective parseImportDirective(CommentAndMetadata commentAndMetadata) {
     Token importKeyword = expectKeyword(Keyword.IMPORT);
     StringLiteral libraryUri = parseStringLiteral();
+    Token deferredToken = null;
     Token asToken = null;
     SimpleIdentifier prefix = null;
+    if (matchesKeyword(Keyword.DEFERRED)) {
+      deferredToken = getAndAdvance();
+    }
     if (matchesKeyword(Keyword.AS)) {
       asToken = getAndAdvance();
       prefix = parseSimpleIdentifier();
+    } else if (deferredToken != null) {
+      reportErrorForCurrentToken(ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT);
     }
     List<Combinator> combinators = parseCombinators();
     Token semicolon = expectSemicolon();
@@ -4116,6 +4122,7 @@ public class Parser {
         commentAndMetadata.getMetadata(),
         importKeyword,
         libraryUri,
+        deferredToken,
         asToken,
         prefix,
         combinators,

@@ -31,6 +31,11 @@ public enum Modifier {
   CONST,
 
   /**
+   * Indicates that the import element represents a deferred library.
+   */
+  DEFERRED,
+
+  /**
    * Indicates that the modifier 'factory' was applied to the element.
    */
   FACTORY,

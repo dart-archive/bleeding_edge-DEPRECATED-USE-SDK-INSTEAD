@@ -27,6 +27,7 @@ import java.util.List;
  * <pre>
  * importDirective ::=
  *     {@link Annotation metadata} 'import' {@link StringLiteral libraryUri} ('as' identifier)? {@link Combinator combinator}* ';'
+ *   | {@link Annotation metadata} 'import' {@link StringLiteral libraryUri} 'deferred' 'as' identifier {@link Combinator combinator}* ';'
  * </pre>
  * 
  * @coverage dart.engine.ast
@@ -130,6 +131,11 @@ public class ImportDirective extends NamespaceDirective {
   };
 
   /**
+   * The token representing the 'deferred' token, or {@code null} if the imported is not deferred.
+   */
+  private Token deferredToken;
+
+  /**
    * The token representing the 'as' token, or {@code null} if the imported names are not prefixed.
    */
   private Token asToken;
@@ -147,15 +153,17 @@ public class ImportDirective extends NamespaceDirective {
    * @param metadata the annotations associated with the directive
    * @param keyword the token representing the 'import' keyword
    * @param libraryUri the URI of the library being imported
+   * @param deferredToken the token representing the 'deferred' token
    * @param asToken the token representing the 'as' token
    * @param prefix the prefix to be used with the imported names
    * @param combinators the combinators used to control how names are imported
    * @param semicolon the semicolon terminating the directive
    */
   public ImportDirective(Comment comment, List<Annotation> metadata, Token keyword,
-      StringLiteral libraryUri, Token asToken, SimpleIdentifier prefix,
+      StringLiteral libraryUri, Token deferredToken, Token asToken, SimpleIdentifier prefix,
       List<Combinator> combinators, Token semicolon) {
     super(comment, metadata, keyword, libraryUri, combinators, semicolon);
+    this.deferredToken = deferredToken;
     this.asToken = asToken;
     this.prefix = becomeParentOf(prefix);
   }
@@ -173,6 +181,16 @@ public class ImportDirective extends NamespaceDirective {
    */
   public Token getAsToken() {
     return asToken;
+  }
+
+  /**
+   * Return the token representing the 'deferred' token, or {@code null} if the imported is not
+   * deferred.
+   * 
+   * @return the token representing the 'deferred' token
+   */
+  public Token getDeferredToken() {
+    return deferredToken;
   }
 
   @Override
@@ -206,6 +224,15 @@ public class ImportDirective extends NamespaceDirective {
    */
   public void setAsToken(Token asToken) {
     this.asToken = asToken;
+  }
+
+  /**
+   * Set the token representing the 'deferred' token to the given token.
+   * 
+   * @param deferredToken the token representing the 'deferred' token
+   */
+  public void setDeferredToken(Token deferredToken) {
+    this.deferredToken = deferredToken;
   }
 
   /**

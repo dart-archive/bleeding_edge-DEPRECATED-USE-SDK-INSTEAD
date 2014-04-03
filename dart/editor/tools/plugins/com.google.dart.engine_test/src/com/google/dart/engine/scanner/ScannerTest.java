@@ -282,6 +282,10 @@ public class ScannerTest extends TestCase {
     assertKeywordToken("default");
   }
 
+  public void test_keyword_deferred() throws Exception {
+    assertKeywordToken("deferred");
+  }
+
   public void test_keyword_do() throws Exception {
     assertKeywordToken("do");
   }

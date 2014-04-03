@@ -603,6 +603,7 @@ public final class AstFactory {
         metadata,
         tokenFromKeyword(Keyword.IMPORT),
         string(uri),
+        null,
         prefix == null ? null : tokenFromKeyword(Keyword.AS),
         prefix == null ? null : identifier(prefix),
         list(combinators),

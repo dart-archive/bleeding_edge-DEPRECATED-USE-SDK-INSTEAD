@@ -295,6 +295,19 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
+  public boolean hasLoadLibraryFunction() {
+    if (definingCompilationUnit.hasLoadLibraryFunction()) {
+      return true;
+    }
+    for (int i = 0; i < parts.length; i++) {
+      if (parts[i].hasLoadLibraryFunction()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public boolean isAngularHtml() {
     return isAngularHtml;
   }

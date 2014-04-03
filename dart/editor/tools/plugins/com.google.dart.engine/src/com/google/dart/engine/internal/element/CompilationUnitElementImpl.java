@@ -209,6 +209,16 @@ public class CompilationUnitElementImpl extends UriReferencedElementImpl impleme
     return source.hashCode();
   }
 
+  @Override
+  public boolean hasLoadLibraryFunction() {
+    for (int i = 0; i < functions.length; i++) {
+      if (functions[i].getName().equals(FunctionElement.LOAD_LIBRARY_NAME)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Set the top-level accessors (getters and setters) contained in this compilation unit to the
    * given accessors.

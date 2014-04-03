@@ -725,6 +725,7 @@ public final class AstFactory {
         metadata,
         token(Keyword.IMPORT),
         string(uri),
+        null,
         prefix == null ? null : token(Keyword.AS),
         prefix == null ? null : identifier(prefix),
         list(combinators),

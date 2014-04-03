@@ -565,6 +565,7 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
         cloneNodeList(node.getMetadata()),
         mapToken(node.getKeyword()),
         cloneNode(node.getUri()),
+        mapToken(node.getDeferredToken()),
         mapToken(node.getAsToken()),
         cloneNode(node.getPrefix()),
         cloneNodeList(node.getCombinators()),

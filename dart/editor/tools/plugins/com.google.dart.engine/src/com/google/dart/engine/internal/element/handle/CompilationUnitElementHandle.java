@@ -113,6 +113,11 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   }
 
   @Override
+  public boolean hasLoadLibraryFunction() {
+    return getActualElement().hasLoadLibraryFunction();
+  }
+
+  @Override
   protected CompilationUnitElement getActualElement() {
     return (CompilationUnitElement) super.getActualElement();
   }

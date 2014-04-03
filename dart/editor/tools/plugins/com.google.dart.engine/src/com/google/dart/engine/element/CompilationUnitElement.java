@@ -96,4 +96,13 @@ public interface CompilationUnitElement extends Element, UriReferencedElement {
    * @return the classes contained in this compilation unit
    */
   public ClassElement[] getTypes();
+
+  /**
+   * Return {@code true} if this compilation unit defines a top-level function named
+   * {@code loadLibrary}.
+   * 
+   * @return {@code true} if this compilation unit defines a top-level function named
+   *         {@code loadLibrary}
+   */
+  public boolean hasLoadLibraryFunction();
 }

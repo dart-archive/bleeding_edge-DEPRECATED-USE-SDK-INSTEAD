@@ -480,6 +480,7 @@ public class AstCloner implements AstVisitor<AstNode> {
         cloneNodeList(node.getMetadata()),
         node.getKeyword(),
         cloneNode(node.getUri()),
+        node.getDeferredToken(),
         node.getAsToken(),
         cloneNode(node.getPrefix()),
         cloneNodeList(node.getCombinators()),

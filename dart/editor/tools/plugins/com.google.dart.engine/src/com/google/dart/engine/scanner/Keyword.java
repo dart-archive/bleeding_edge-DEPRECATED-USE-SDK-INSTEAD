@@ -59,6 +59,7 @@ public enum Keyword {
   // Pseudo keywords:
   ABSTRACT("abstract", true),
   AS("as", true),
+  DEFERRED("deferred", true),
   DYNAMIC("dynamic", true),
   EXPORT("export", true),
   EXTERNAL("external", true),

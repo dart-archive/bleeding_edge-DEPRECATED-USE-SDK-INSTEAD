@@ -76,6 +76,11 @@ public class ImportElementHandle extends ElementHandle implements ImportElement 
   }
 
   @Override
+  public boolean isDeferred() {
+    return getActualElement().isDeferred();
+  }
+
+  @Override
   protected ImportElement getActualElement() {
     return (ImportElement) super.getActualElement();
   }

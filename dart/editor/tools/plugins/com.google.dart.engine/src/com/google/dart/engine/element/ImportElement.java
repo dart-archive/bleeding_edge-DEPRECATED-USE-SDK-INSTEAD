@@ -56,4 +56,11 @@ public interface ImportElement extends Element, UriReferencedElement {
    * @return the offset of the prefix of this import
    */
   public int getPrefixOffset();
+
+  /**
+   * Return {@code true} if this import is for a deferred library.
+   * 
+   * @return {@code true} if this import is for a deferred library
+   */
+  public boolean isDeferred();
 }

@@ -23,6 +23,11 @@ import com.google.dart.engine.context.AnalysisException;
  */
 public interface FunctionElement extends ExecutableElement, LocalElement {
   /**
+   * The name of the synthetic function defined for libraries that are deferred.
+   */
+  public static final String LOAD_LIBRARY_NAME = "loadLibrary"; //$NON-NLS-1$
+
+  /**
    * Return the resolved {@link FunctionDeclaration} node that declares this {@link FunctionElement}
    * .
    * <p>

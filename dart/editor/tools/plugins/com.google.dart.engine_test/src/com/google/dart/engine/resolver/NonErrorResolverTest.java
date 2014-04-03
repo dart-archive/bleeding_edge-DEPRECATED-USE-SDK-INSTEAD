@@ -1287,6 +1287,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_importDeferredLibraryWithLoadFunction() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "f() {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as lib1;",
+        "main() { lib1.f(); }"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_importDuplicatedLibraryName() throws Exception {
     Source source = addSource(createSource(//
         "library test;",
@@ -3329,6 +3342,27 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class _InvertedCodec<T2, S2> extends Codec<T2, S2> {",
         "  _InvertedCodec(Codec<S2, T2> codec);",
         "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_sharedDeferredPrefix() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "f1() {}"));
+    addNamedSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "f2() {}"));
+    addNamedSource("/lib3.dart", createSource(//
+        "library lib3;",
+        "f3() {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as lib1;",
+        "import 'lib2.dart' as lib;",
+        "import 'lib3.dart' as lib;",
+        "main() { lib1.f1(); lib.f2(); lib.f3(); }"));
     resolve(source);
     assertNoErrors(source);
     verify(source);

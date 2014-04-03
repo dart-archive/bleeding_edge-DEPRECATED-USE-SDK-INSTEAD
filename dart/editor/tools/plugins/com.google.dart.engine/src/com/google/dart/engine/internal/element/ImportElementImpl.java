@@ -88,6 +88,11 @@ public class ImportElementImpl extends UriReferencedElementImpl implements Impor
     return prefixOffset;
   }
 
+  @Override
+  public boolean isDeferred() {
+    return hasModifier(Modifier.DEFERRED);
+  }
+
   /**
    * Set the combinators that were specified as part of the import directive to the given array of
    * combinators.
@@ -96,6 +101,15 @@ public class ImportElementImpl extends UriReferencedElementImpl implements Impor
    */
   public void setCombinators(NamespaceCombinator[] combinators) {
     this.combinators = combinators;
+  }
+
+  /**
+   * Set whether this import is for a deferred library to correspond to the given value.
+   * 
+   * @param isDeferred {@code true} if this import is for a deferred library
+   */
+  public void setDeferred(boolean isDeferred) {
+    setModifier(Modifier.DEFERRED, isDeferred);
   }
 
   /**

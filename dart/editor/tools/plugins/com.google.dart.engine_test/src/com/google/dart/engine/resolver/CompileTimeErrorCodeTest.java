@@ -1688,6 +1688,20 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_importDeferredLibraryWithLoadFunction() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "loadLibrary() {}",
+        "f() {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as lib1;",
+        "main() { lib1.f(); }"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION);
+    verify(source);
+  }
+
   public void test_importInternalLibrary() throws Exception {
     Source source = addSource(createSource(//
     "import 'dart:_interceptors';"));
@@ -3374,6 +3388,23 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_sharedDeferredPrefix() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "f1() {}"));
+    addNamedSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "f2() {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as lib;",
+        "import 'lib2.dart' as lib;",
+        "main() { lib.f1(); lib.f2(); }"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.SHARED_DEFERRED_PREFIX);
     verify(source);
   }
 

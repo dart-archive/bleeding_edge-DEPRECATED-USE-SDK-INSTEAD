@@ -113,6 +113,13 @@ public interface LibraryElement extends Element {
   public boolean hasExtUri();
 
   /**
+   * Return {@code true} if this library defines a top-level function named {@code loadLibrary}.
+   * 
+   * @return {@code true} if this library defines a top-level function named {@code loadLibrary}
+   */
+  public boolean hasLoadLibraryFunction();
+
+  /**
    * Return {@code true} if this library is created for Angular analysis. If this library has not
    * yet had toolkit references resolved, then {@code false} will be returned.
    * 

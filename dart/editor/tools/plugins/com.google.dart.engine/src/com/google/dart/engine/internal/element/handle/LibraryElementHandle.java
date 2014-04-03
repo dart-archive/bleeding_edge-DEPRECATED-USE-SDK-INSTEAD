@@ -104,6 +104,11 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   }
 
   @Override
+  public boolean hasLoadLibraryFunction() {
+    return getActualElement().hasLoadLibraryFunction();
+  }
+
+  @Override
   public boolean isAngularHtml() {
     return getActualElement().isAngularHtml();
   }

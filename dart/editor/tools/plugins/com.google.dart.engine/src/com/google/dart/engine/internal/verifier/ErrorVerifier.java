@@ -36,6 +36,7 @@ import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.DefaultFormalParameter;
+import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
@@ -106,6 +107,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.MultiplyInheritedExecutableElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
@@ -572,6 +574,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   @Override
+  public Void visitCompilationUnit(CompilationUnit node) {
+    checkForDeferredPrefixCollisions(node);
+    return super.visitCompilationUnit(node);
+  }
+
+  @Override
   public Void visitConditionalExpression(ConditionalExpression node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitConditionalExpression(node);
@@ -784,6 +792,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (importElement != null) {
       checkForImportDuplicateLibraryName(node, importElement);
       checkForImportInternalLibrary(node, importElement);
+      if (importElement.isDeferred()) {
+        checkForLoadLibraryFunction(node, importElement);
+      }
     }
     return super.visitImportDirective(node);
   }
@@ -2907,6 +2918,47 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
+   * This verifies that any deferred imports in the given compilation unit have a unique prefix.
+   * 
+   * @param node the compilation unit containing the imports to be checked
+   * @return {@code true} if an error was generated
+   * @see CompileTimeErrorCode#SHARED_DEFERRED_PREFIX
+   */
+  private boolean checkForDeferredPrefixCollisions(CompilationUnit node) {
+    boolean foundError = false;
+    NodeList<Directive> directives = node.getDirectives();
+    int count = directives.size();
+    if (count > 0) {
+      HashMap<PrefixElement, ArrayList<ImportDirective>> prefixToDirectivesMap = new HashMap<PrefixElement, ArrayList<ImportDirective>>();
+      for (int i = 0; i < count; i++) {
+        Directive directive = directives.get(i);
+        if (directive instanceof ImportDirective) {
+          ImportDirective importDirective = (ImportDirective) directive;
+          SimpleIdentifier prefix = importDirective.getPrefix();
+          if (prefix != null) {
+            Element element = prefix.getStaticElement();
+            if (element instanceof PrefixElement) {
+              PrefixElement prefixElement = (PrefixElement) element;
+              ArrayList<ImportDirective> elements = prefixToDirectivesMap.get(prefixElement);
+              if (elements == null) {
+                elements = new ArrayList<ImportDirective>();
+                prefixToDirectivesMap.put(prefixElement, elements);
+              }
+              elements.add(importDirective);
+            }
+          }
+        }
+      }
+      for (ArrayList<ImportDirective> imports : prefixToDirectivesMap.values()) {
+        if (hasDeferredPrefixCollision(imports)) {
+          foundError = true;
+        }
+      }
+    }
+    return foundError;
+  }
+
+  /**
    * This verifies that the enclosing class does not have an instance member with the given name of
    * the static member.
    * 
@@ -3778,6 +3830,29 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           errorCode);
     }
     return hasProblems;
+  }
+
+  /**
+   * Check that the imported library does not define a loadLibrary function.
+   * 
+   * @param node the import directive to evaluate
+   * @param importElement the {@link ImportElement} retrieved from the node
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION
+   */
+  private boolean checkForLoadLibraryFunction(ImportDirective node, ImportElement importElement) {
+    LibraryElement importedLibrary = importElement.getImportedLibrary();
+    if (importedLibrary == null) {
+      return false;
+    }
+    if (importedLibrary.hasLoadLibraryFunction()) {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
+          node,
+          importedLibrary.getName());
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -5408,6 +5483,31 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * Given a list of directives that have the same prefix, generate an error if there is more than
+   * one import and any of those imports is deferred.
+   * 
+   * @param directives the list of directives that have the same prefix
+   * @return {@code true} if an error was generated
+   * @see CompileTimeErrorCode#SHARED_DEFERRED_PREFIX
+   */
+  private boolean hasDeferredPrefixCollision(ArrayList<ImportDirective> directives) {
+    boolean foundError = false;
+    int count = directives.size();
+    if (count > 1) {
+      for (int i = 0; i < count; i++) {
+        Token deferredToken = directives.get(i).getDeferredToken();
+        if (deferredToken != null) {
+          errorReporter.reportErrorForToken(
+              CompileTimeErrorCode.SHARED_DEFERRED_PREFIX,
+              deferredToken);
+          foundError = true;
+        }
+      }
+    }
+    return foundError;
   }
 
   /**

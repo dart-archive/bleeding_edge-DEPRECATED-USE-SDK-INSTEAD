@@ -3048,6 +3048,20 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(clause.getKeyword());
   }
 
+  public void test_parseImportDirective_deferred() throws Exception {
+    ImportDirective directive = parse(
+        "parseImportDirective",
+        new Object[] {emptyCommentAndMetadata()},
+        "import 'lib/lib.dart' deferred as a;");
+    assertNotNull(directive.getKeyword());
+    assertNotNull(directive.getUri());
+    assertNotNull(directive.getDeferredToken());
+    assertNotNull(directive.getAsToken());
+    assertNotNull(directive.getPrefix());
+    assertSizeOfList(0, directive.getCombinators());
+    assertNotNull(directive.getSemicolon());
+  }
+
   public void test_parseImportDirective_hide() throws Exception {
     ImportDirective directive = parse(
         "parseImportDirective",
@@ -3055,6 +3069,7 @@ public class SimpleParserTest extends ParserTestCase {
         "import 'lib/lib.dart' hide A, B;");
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getUri());
+    assertNull(directive.getDeferredToken());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
     assertSizeOfList(1, directive.getCombinators());
@@ -3068,6 +3083,7 @@ public class SimpleParserTest extends ParserTestCase {
         "import 'lib/lib.dart';");
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getUri());
+    assertNull(directive.getDeferredToken());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
     assertSizeOfList(0, directive.getCombinators());
@@ -3081,6 +3097,7 @@ public class SimpleParserTest extends ParserTestCase {
         "import 'lib/lib.dart' as a;");
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getUri());
+    assertNull(directive.getDeferredToken());
     assertNotNull(directive.getAsToken());
     assertNotNull(directive.getPrefix());
     assertSizeOfList(0, directive.getCombinators());
@@ -3094,6 +3111,7 @@ public class SimpleParserTest extends ParserTestCase {
         "import 'lib/lib.dart' as a hide A show B;");
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getUri());
+    assertNull(directive.getDeferredToken());
     assertNotNull(directive.getAsToken());
     assertNotNull(directive.getPrefix());
     assertSizeOfList(2, directive.getCombinators());
@@ -3107,6 +3125,7 @@ public class SimpleParserTest extends ParserTestCase {
         "import 'lib/lib.dart' as a show B hide A;");
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getUri());
+    assertNull(directive.getDeferredToken());
     assertNotNull(directive.getAsToken());
     assertNotNull(directive.getPrefix());
     assertSizeOfList(2, directive.getCombinators());
@@ -3120,6 +3139,7 @@ public class SimpleParserTest extends ParserTestCase {
         "import 'lib/lib.dart' show A, B;");
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getUri());
+    assertNull(directive.getDeferredToken());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
     assertSizeOfList(1, directive.getCombinators());

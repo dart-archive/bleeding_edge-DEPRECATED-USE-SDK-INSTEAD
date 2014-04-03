@@ -547,6 +547,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
   IMPLICIT_THIS_REFERENCE_IN_INITIALIZER("Only static members can be accessed in initializers"),
 
   /**
+   * Speculative.
+   */
+  IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION(
+      "The library '%s' defines a top-level function named 'loadLibrary' and therefore cannot be deferred"),
+
+  /**
    * SDK implementation libraries can be imported only by other SDK libraries.
    * 
    * @param uri the uri pointing to a library
@@ -1087,6 +1093,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * appears in a generative constructor.
    */
   RETURN_IN_GENERATIVE_CONSTRUCTOR("Constructors cannot return a value"),
+
+  /**
+   * Speculative.
+   */
+  SHARED_DEFERRED_PREFIX(
+      "The prefix of a deferred import cannot be used in other import directives"),
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
