@@ -74,7 +74,7 @@ public class ParserTestCase extends EngineTestCase {
    * @param methodName the name of the parse method that should be invoked to parse the source
    * @param objects the values of the arguments to the method
    * @param source the source to be parsed by the parse method
-   * @param errorCodes the error codes of the errors that should be generated
+   * @param errors the errors that should be generated
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is {@code null} or the errors produced while
