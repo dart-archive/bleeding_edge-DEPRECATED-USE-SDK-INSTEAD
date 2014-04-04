@@ -10,7 +10,6 @@ import 'dart:html';
 import 'dart:math' as Math;
 
 import '../base/base.dart';
-import '../util/utilslib.dart';
 
 part 'BezierPhysics.dart';
 part 'FxUtil.dart';

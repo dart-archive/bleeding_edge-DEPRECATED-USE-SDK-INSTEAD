@@ -5,7 +5,6 @@
 library view_tests;
 
 import 'dart:html';
-import '../../../swarm_ui_lib/base/base.dart';
 import '../../../swarm_ui_lib/view/view.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';

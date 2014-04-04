@@ -11,7 +11,6 @@ import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 import '../swarmlib.dart';
 import '../swarm_ui_lib/base/base.dart';
-import '../swarm_ui_lib/view/view.dart';
 import '../swarm_ui_lib/util/utilslib.dart';
 
 // TODO(jmesserly): these would probably be easier to debug if they were written
@@ -151,9 +150,9 @@ void _serialInvokeAsync(List closures) {
       closures[i]();
       i++;
       if (i < length) {
-        Timer.run(expectAsync0(invokeNext));
+        Timer.run(expectAsync(invokeNext));
       }
     }
-    Timer.run(expectAsync0(invokeNext));
+    Timer.run(expectAsync(invokeNext));
   }
 }

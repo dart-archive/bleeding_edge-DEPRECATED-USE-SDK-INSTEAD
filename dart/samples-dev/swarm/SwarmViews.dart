@@ -573,14 +573,14 @@ class ToggleButton extends View {
   }
 
   String get state {
-    final currentState = node.innerHTML;
+    final currentState = node.innerHtml;
     assert(states.indexOf(currentState, 0) >= 0);
     return currentState;
   }
 
   void set state(String state) {
     assert(states.indexOf(state, 0) >= 0);
-    node.innerHTML = state;
+    node.innerHtml = state;
     onChanged.fire(null);
   }
 

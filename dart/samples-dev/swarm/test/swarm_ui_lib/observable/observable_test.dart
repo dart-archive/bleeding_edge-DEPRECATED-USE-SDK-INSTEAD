@@ -4,7 +4,6 @@
 
 library observable_tests;
 
-import 'dart:html';
 import '../../../swarm_ui_lib/observable/observable.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';

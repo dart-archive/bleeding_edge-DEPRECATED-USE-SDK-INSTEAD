@@ -39,7 +39,7 @@ void _onLoad() {
     for (String ex in GridExamples.styles.keys) {
       html.write('<div><a href="?q=$ex">Grid Example $ex</a></div>');
     }
-    document.body.innerHTML = html.toString();
+    document.body.innerHtml = html.toString();
   }
 }
 
