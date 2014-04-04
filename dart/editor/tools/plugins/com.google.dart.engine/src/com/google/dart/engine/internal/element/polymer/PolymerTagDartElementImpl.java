@@ -40,6 +40,7 @@ public class PolymerTagDartElementImpl extends PolymerElementImpl implements Pol
    */
   public PolymerTagDartElementImpl(String name, int nameOffset) {
     super(name, nameOffset);
+    // TODO(scheglov) why do we resolve Dart library when HTML is saved?
   }
 
   @Override

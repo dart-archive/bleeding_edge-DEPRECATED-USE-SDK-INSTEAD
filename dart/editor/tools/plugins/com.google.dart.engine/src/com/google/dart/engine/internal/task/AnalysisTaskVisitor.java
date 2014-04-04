@@ -86,6 +86,24 @@ public interface AnalysisTaskVisitor<E> {
   public E visitParseHtmlTask(ParseHtmlTask task) throws AnalysisException;
 
   /**
+   * Visit a {@link PolymerBuildHtmlTask}.
+   * 
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  public E visitPolymerBuildHtmlTask(PolymerBuildHtmlTask task) throws AnalysisException;
+
+  /**
+   * Visit a {@link PolymerResolveHtmlTask}.
+   * 
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  public E visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task) throws AnalysisException;
+
+  /**
    * Visit a {@link ResolveAngularComponentTemplateTask}.
    * 
    * @param task the task to be visited

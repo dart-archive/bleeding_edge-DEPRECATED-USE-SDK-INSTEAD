@@ -97,6 +97,18 @@ public interface HtmlEntry extends SourceEntry {
       "HtmlEntry.RESOLUTION_ERRORS");
 
   /**
+   * The data descriptor representing the status of Polymer elements in the source.
+   */
+  public static final DataDescriptor<AnalysisError[]> POLYMER_BUILD_ERRORS = new DataDescriptor<AnalysisError[]>(
+      "HtmlEntry.POLYMER_BUILD_ERRORS");
+
+  /**
+   * The data descriptor representing the errors reported during Polymer resolution.
+   */
+  public static final DataDescriptor<AnalysisError[]> POLYMER_RESOLUTION_ERRORS = new DataDescriptor<AnalysisError[]>(
+      "HtmlEntry.POLYMER_RESOLUTION_ERRORS");
+
+  /**
    * Return all of the errors associated with the compilation unit that are currently cached.
    * 
    * @return all of the errors associated with the compilation unit

@@ -19,6 +19,8 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.HtmlScriptElement;
+import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
+import com.google.dart.engine.internal.element.polymer.PolymerTagHtmlElementImpl;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -41,6 +43,11 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
    * The scripts contained in or referenced from script tags in the HTML file.
    */
   private HtmlScriptElement[] scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
+
+  /**
+   * The {@link PolymerTagHtmlElement}s defined in the HTML file.
+   */
+  private PolymerTagHtmlElement[] polymerTags = PolymerTagHtmlElement.EMPTY_ARRAY;
 
   /**
    * The source that corresponds to this HTML file.
@@ -101,6 +108,11 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
   }
 
   @Override
+  public PolymerTagHtmlElement[] getPolymerTags() {
+    return polymerTags;
+  }
+
+  @Override
   public HtmlScriptElement[] getScripts() {
     return scripts;
   }
@@ -123,13 +135,28 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
   }
 
   /**
+   * Set the {@link PolymerTagHtmlElement}s defined in the HTML file.
+   */
+  public void setPolymerTags(PolymerTagHtmlElement[] polymerTags) {
+    if (polymerTags.length == 0) {
+      this.polymerTags = PolymerTagHtmlElement.EMPTY_ARRAY;
+      return;
+    }
+    for (PolymerTagHtmlElement tag : polymerTags) {
+      ((PolymerTagHtmlElementImpl) tag).setEnclosingElement(this);
+    }
+    this.polymerTags = polymerTags;
+  }
+
+  /**
    * Set the scripts contained in the HTML file to the given scripts.
    * 
    * @param scripts the scripts
    */
   public void setScripts(HtmlScriptElement[] scripts) {
     if (scripts.length == 0) {
-      scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
+      this.scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
+      return;
     }
     for (HtmlScriptElement script : scripts) {
       ((HtmlScriptElementImpl) script).setEnclosingElement(this);
@@ -150,6 +177,7 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
   public void visitChildren(ElementVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(scripts, visitor);
+    safelyVisitChildren(polymerTags, visitor);
   }
 
   @Override

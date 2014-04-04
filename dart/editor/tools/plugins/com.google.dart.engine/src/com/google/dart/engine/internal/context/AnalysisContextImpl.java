@@ -73,6 +73,8 @@ import com.google.dart.engine.internal.task.GetContentTask;
 import com.google.dart.engine.internal.task.IncrementalAnalysisTask;
 import com.google.dart.engine.internal.task.ParseDartTask;
 import com.google.dart.engine.internal.task.ParseHtmlTask;
+import com.google.dart.engine.internal.task.PolymerBuildHtmlTask;
+import com.google.dart.engine.internal.task.PolymerResolveHtmlTask;
 import com.google.dart.engine.internal.task.ResolveAngularComponentTemplateTask;
 import com.google.dart.engine.internal.task.ResolveAngularEntryHtmlTask;
 import com.google.dart.engine.internal.task.ResolveDartLibraryCycleTask;
@@ -154,6 +156,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     @Override
     public HtmlEntry visitParseHtmlTask(ParseHtmlTask task) throws AnalysisException {
       return recordParseHtmlTaskResults(task);
+    }
+
+    @Override
+    public HtmlEntry visitPolymerBuildHtmlTask(PolymerBuildHtmlTask task) throws AnalysisException {
+      return recordPolymerBuildHtmlTaskResults(task);
+    }
+
+    @Override
+    public HtmlEntry visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task)
+        throws AnalysisException {
+      return recordPolymerResolveHtmlTaskResults(task);
     }
 
     @Override
@@ -2867,6 +2880,52 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Create a {@link PolymerBuildHtmlTask} for the given source, marking the Polymer elements as
+   * being in-process.
+   * 
+   * @param source the source whose content is to be processed
+   * @param htmlEntry the entry for the source
+   * @return task data representing the created task
+   */
+  private TaskData createPolymerBuildHtmlTask(Source source, HtmlEntry htmlEntry) {
+    if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
+      return createResolveHtmlTask(source, htmlEntry);
+    }
+    HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+    htmlCopy.setState(HtmlEntry.POLYMER_BUILD_ERRORS, CacheState.IN_PROCESS);
+    cache.put(source, htmlCopy);
+    return new TaskData(new PolymerBuildHtmlTask(
+        this,
+        source,
+        htmlCopy.getModificationTime(),
+        htmlEntry.getValue(SourceEntry.LINE_INFO),
+        htmlCopy.getValue(HtmlEntry.RESOLVED_UNIT)), false);
+  }
+
+  /**
+   * Create a {@link PolymerResolveHtmlTask} for the given source, marking the Polymer errors as
+   * being in-process.
+   * 
+   * @param source the source whose content is to be resolved
+   * @param htmlEntry the entry for the source
+   * @return task data representing the created task
+   */
+  private TaskData createPolymerResolveHtmlTask(Source source, HtmlEntry htmlEntry) {
+    if (htmlEntry.getState(HtmlEntry.RESOLVED_UNIT) != CacheState.VALID) {
+      return createResolveHtmlTask(source, htmlEntry);
+    }
+    HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+    htmlCopy.setState(HtmlEntry.POLYMER_RESOLUTION_ERRORS, CacheState.IN_PROCESS);
+    cache.put(source, htmlCopy);
+    return new TaskData(new PolymerResolveHtmlTask(
+        this,
+        source,
+        htmlCopy.getModificationTime(),
+        htmlEntry.getValue(SourceEntry.LINE_INFO),
+        htmlCopy.getValue(HtmlEntry.RESOLVED_UNIT)), false);
+  }
+
+  /**
    * Create a {@link ResolveAngularComponentTemplateTask} for the given source, marking the angular
    * errors as being in-process.
    * 
@@ -3597,6 +3656,23 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           return createResolveAngularComponentTemplateTask(source, htmlEntry);
         }
       }
+      //
+      // Polymer support
+      //
+      if (options.getAnalyzePolymer()) {
+        // Build elements.
+        CacheState polymerBuildErrorsState = htmlEntry.getState(HtmlEntry.POLYMER_BUILD_ERRORS);
+        if (polymerBuildErrorsState == CacheState.INVALID
+            || (isPriority && polymerBuildErrorsState == CacheState.FLUSHED)) {
+          return createPolymerBuildHtmlTask(source, htmlEntry);
+        }
+        // Resolve references.
+        CacheState polymerResolutionErrorsState = htmlEntry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS);
+        if (polymerResolutionErrorsState == CacheState.INVALID
+            || (isPriority && polymerResolutionErrorsState == CacheState.FLUSHED)) {
+          return createPolymerResolveHtmlTask(source, htmlEntry);
+        }
+      }
     }
     return new TaskData(null, false);
   }
@@ -3838,6 +3914,21 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               return;
             }
           }
+        }
+      }
+      // Polymer
+      if (options.getAnalyzePolymer()) {
+        // Elements building.
+        CacheState polymerBuildErrorsState = htmlEntry.getState(HtmlEntry.POLYMER_BUILD_ERRORS);
+        if (polymerBuildErrorsState == CacheState.INVALID
+            || (isPriority && polymerBuildErrorsState == CacheState.FLUSHED)) {
+          sources.add(source);
+        }
+        // Resolution.
+        CacheState polymerResolutionErrorsState = htmlEntry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS);
+        if (polymerResolutionErrorsState == CacheState.INVALID
+            || (isPriority && polymerResolutionErrorsState == CacheState.FLUSHED)) {
+          sources.add(source);
         }
       }
     }
@@ -4670,6 +4761,160 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
           htmlCopy.setState(HtmlEntry.RESOLVED_UNIT, CacheState.ERROR);
           htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
+        }
+        htmlCopy.setException(thrownException);
+        cache.put(source, htmlCopy);
+        htmlEntry = htmlCopy;
+      }
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    return htmlEntry;
+  }
+
+  /**
+   * Record the results produced by performing a {@link PolymerBuildHtmlTask}. If the results were
+   * computed from data that is now out-of-date, then the results will not be recorded.
+   * 
+   * @param task the task that was performed
+   * @throws AnalysisException if the results could not be recorded
+   */
+  private HtmlEntry recordPolymerBuildHtmlTaskResults(PolymerBuildHtmlTask task)
+      throws AnalysisException {
+    Source source = task.getSource();
+    AnalysisException thrownException = task.getException();
+    HtmlEntry htmlEntry = null;
+    synchronized (cacheLock) {
+      SourceEntry sourceEntry = cache.get(source);
+      if (sourceEntry == null) {
+        throw new ObsoleteSourceAnalysisException(source);
+      } else if (!(sourceEntry instanceof HtmlEntry)) {
+        // This shouldn't be possible because we should never have performed the task if the source
+        // didn't represent an HTML file, but check to be safe.
+        throw new AnalysisException(
+            "Internal error: attempting to resolve non-HTML file as an HTML file: "
+                + source.getFullName());
+      }
+      htmlEntry = (HtmlEntry) sourceEntry;
+      long sourceTime = getModificationStamp(source);
+      long resultTime = task.getModificationTime();
+      if (sourceTime == resultTime) {
+        if (htmlEntry.getModificationTime() != sourceTime) {
+          // The source has changed without the context being notified. Simulate notification.
+          sourceChanged(source);
+          htmlEntry = getReadableHtmlEntry(source);
+          if (htmlEntry == null) {
+            throw new AnalysisException("An HTML file became a non-HTML file: "
+                + source.getFullName());
+          }
+        }
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        if (thrownException == null) {
+          htmlCopy.setValue(HtmlEntry.POLYMER_BUILD_ERRORS, task.getErrors());
+          // notify about errors
+          ChangeNoticeImpl notice = getNotice(source);
+          notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
+        } else {
+          htmlCopy.recordResolutionError();
+        }
+        htmlCopy.setException(thrownException);
+        cache.put(source, htmlCopy);
+        htmlEntry = htmlCopy;
+      } else {
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        if (thrownException == null || resultTime >= 0L) {
+          //
+          // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+          // will be re-analyzed using the up-to-date sources.
+          //
+          htmlCopy.invalidateAllInformation();
+          htmlCopy.setModificationTime(sourceTime);
+          cache.removedAst(source);
+        } else {
+          //
+          // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+          // cache so that we won't attempt to re-analyze the sources until there's a good chance
+          // that we'll be able to do so without error.
+          //
+          htmlCopy.recordResolutionError();
+        }
+        htmlCopy.setException(thrownException);
+        cache.put(source, htmlCopy);
+        htmlEntry = htmlCopy;
+      }
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    return htmlEntry;
+  }
+
+  /**
+   * Record the results produced by performing a {@link PolymerResolveHtmlTask}. If the results were
+   * computed from data that is now out-of-date, then the results will not be recorded.
+   * 
+   * @param task the task that was performed
+   * @throws AnalysisException if the results could not be recorded
+   */
+  private HtmlEntry recordPolymerResolveHtmlTaskResults(PolymerResolveHtmlTask task)
+      throws AnalysisException {
+    Source source = task.getSource();
+    AnalysisException thrownException = task.getException();
+    HtmlEntry htmlEntry = null;
+    synchronized (cacheLock) {
+      SourceEntry sourceEntry = cache.get(source);
+      if (sourceEntry == null) {
+        throw new ObsoleteSourceAnalysisException(source);
+      } else if (!(sourceEntry instanceof HtmlEntry)) {
+        // This shouldn't be possible because we should never have performed the task if the source
+        // didn't represent an HTML file, but check to be safe.
+        throw new AnalysisException(
+            "Internal error: attempting to resolve non-HTML file as an HTML file: "
+                + source.getFullName());
+      }
+      htmlEntry = (HtmlEntry) sourceEntry;
+      long sourceTime = getModificationStamp(source);
+      long resultTime = task.getModificationTime();
+      if (sourceTime == resultTime) {
+        if (htmlEntry.getModificationTime() != sourceTime) {
+          // The source has changed without the context being notified. Simulate notification.
+          sourceChanged(source);
+          htmlEntry = getReadableHtmlEntry(source);
+          if (htmlEntry == null) {
+            throw new AnalysisException("An HTML file became a non-HTML file: "
+                + source.getFullName());
+          }
+        }
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        if (thrownException == null) {
+          htmlCopy.setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, task.getErrors());
+          // notify about errors
+          ChangeNoticeImpl notice = getNotice(source);
+          notice.setErrors(htmlCopy.getAllErrors(), htmlCopy.getValue(SourceEntry.LINE_INFO));
+        } else {
+          htmlCopy.recordResolutionError();
+        }
+        htmlCopy.setException(thrownException);
+        cache.put(source, htmlCopy);
+        htmlEntry = htmlCopy;
+      } else {
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        if (thrownException == null || resultTime >= 0L) {
+          //
+          // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+          // will be re-analyzed using the up-to-date sources.
+          //
+          htmlCopy.invalidateAllInformation();
+          htmlCopy.setModificationTime(sourceTime);
+          cache.removedAst(source);
+        } else {
+          //
+          // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+          // cache so that we won't attempt to re-analyze the sources until there's a good chance
+          // that we'll be able to do so without error.
+          //
+          htmlCopy.recordResolutionError();
         }
         htmlCopy.setException(thrownException);
         cache.put(source, htmlCopy);

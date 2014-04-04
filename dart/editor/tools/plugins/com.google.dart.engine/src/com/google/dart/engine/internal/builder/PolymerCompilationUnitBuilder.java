@@ -15,6 +15,7 @@
 package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.ast.Annotation;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
@@ -23,6 +24,7 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.polymer.PolymerElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.polymer.PolymerTagDartElementImpl;
 
@@ -36,6 +38,23 @@ import java.util.List;
  */
 public class PolymerCompilationUnitBuilder {
   private static final String CUSTOM_TAG = "CustomTag";
+
+  public static Element getElement(AstNode node, int offset) {
+    // maybe node is not SimpleStringLiteral
+    if (!(node instanceof SimpleStringLiteral)) {
+      return null;
+    }
+    SimpleStringLiteral literal = (SimpleStringLiteral) node;
+    // maybe has PolymerElement
+    {
+      Element element = literal.getToolkitElement();
+      if (element instanceof PolymerElement) {
+        return element;
+      }
+    }
+    // no Element
+    return null;
+  }
 
   /**
    * The compilation unit with built Dart element models.
@@ -113,7 +132,9 @@ public class PolymerCompilationUnitBuilder {
         SimpleStringLiteral nameLiteral = (SimpleStringLiteral) nameExpression;
         String name = nameLiteral.getValue();
         int nameOffset = nameLiteral.getValueOffset();
-        classElement.addToolkitObjects(new PolymerTagDartElementImpl(name, nameOffset));
+        PolymerTagDartElementImpl element = new PolymerTagDartElementImpl(name, nameOffset);
+        classElement.addToolkitObjects(element);
+        nameLiteral.setToolkitElement(element);
       }
     }
   }

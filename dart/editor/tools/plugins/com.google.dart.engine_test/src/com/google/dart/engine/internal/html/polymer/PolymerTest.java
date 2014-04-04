@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextHelper;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.polymer.PolymerTagDartElement;
 import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
@@ -37,17 +38,25 @@ abstract public class PolymerTest extends EngineTestCase {
   }
 
   protected final AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-
   protected AnalysisContext context;
+
   protected Source tagDartSource;
   protected String tagDartContents;
+  protected Source tagHtmlSource;
+  protected String tagHtmlContents;
   protected CompilationUnitElement tagDartUnitElement;
+  protected HtmlElement tagHtmlUnitElement;
   protected PolymerTagDartElement tagDartElement;
   protected PolymerTagHtmlElement tagHtmlElement;
 
   protected final void addTagDartSource(String contents) {
     tagDartContents = contents;
     tagDartSource = contextHelper.addSource("/my-element.dart", contents);
+  }
+
+  protected final void addTagHtmlSource(String contents) {
+    tagHtmlContents = contents;
+    tagHtmlSource = contextHelper.addSource("/my-element.html", contents);
   }
 
   /**
@@ -58,16 +67,34 @@ abstract public class PolymerTest extends EngineTestCase {
     return findOffset(tagDartContents, search);
   }
 
+  /**
+   * @return the offset of given <code>search</code> string in {@link #tagHtmlContents}. Fails test
+   *         if not found.
+   */
+  protected final int findTagHtmlOffset(String search) {
+    return findOffset(tagHtmlContents, search);
+  }
+
   protected final void resolveTagDart() throws Exception {
     contextHelper.runTasks();
     tagDartUnitElement = contextHelper.getDefiningUnitElement(tagDartSource);
-    // try to find PolymerTagDartElement
+    // try to find a PolymerTagDartElement
     for (ClassElement classElement : tagDartUnitElement.getTypes()) {
       for (ToolkitObjectElement toolkitObject : classElement.getToolkitObjects()) {
         if (toolkitObject instanceof PolymerTagDartElement) {
           tagDartElement = (PolymerTagDartElement) toolkitObject;
         }
       }
+    }
+  }
+
+  protected final void resolveTagHtml() throws Exception {
+    contextHelper.runTasks();
+    tagHtmlUnitElement = context.getHtmlElement(tagHtmlSource);
+    // try to find a PolymerTagHtmlElement
+    PolymerTagHtmlElement[] polymerTags = tagHtmlUnitElement.getPolymerTags();
+    if (polymerTags.length != 0) {
+      tagHtmlElement = polymerTags[0];
     }
   }
 

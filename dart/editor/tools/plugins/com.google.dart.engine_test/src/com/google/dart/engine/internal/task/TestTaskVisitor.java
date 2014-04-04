@@ -67,6 +67,18 @@ public class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
   }
 
   @Override
+  public E visitPolymerBuildHtmlTask(PolymerBuildHtmlTask task) throws AnalysisException {
+    Assert.fail("Unexpectedly invoked visitPolymerBuildHtmlTask");
+    return null;
+  }
+
+  @Override
+  public E visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task) throws AnalysisException {
+    Assert.fail("Unexpectedly invoked visitPolymerResolveHtmlTask");
+    return null;
+  }
+
+  @Override
   public E visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task)
       throws AnalysisException {
     Assert.fail("Unexpectedly invoked visitResolveAngularComponentTemplateTask");

@@ -42,6 +42,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.builder.AngularCompilationUnitBuilder;
+import com.google.dart.engine.internal.builder.PolymerCompilationUnitBuilder;
 
 /**
  * Instances of the class {@code ElementLocator} locate the {@link Element Dart model element}
@@ -228,6 +229,13 @@ public class ElementLocator {
     // try to get Angular specific Element
     {
       Element element = AngularCompilationUnitBuilder.getElement(node, offset);
+      if (element != null) {
+        return element;
+      }
+    }
+    // try to get Polymer specific Element
+    {
+      Element element = PolymerCompilationUnitBuilder.getElement(node, offset);
       if (element != null) {
         return element;
       }

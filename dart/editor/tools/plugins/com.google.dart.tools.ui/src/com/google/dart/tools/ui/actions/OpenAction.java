@@ -18,6 +18,8 @@ import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldFormalParameterElement;
+import com.google.dart.engine.element.polymer.PolymerTagDartElement;
+import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -104,6 +106,12 @@ public class OpenAction extends AbstractDartSelectionAction {
   }
 
   private void openElement(Element element) {
+    // TODO(scheglov) generalize or just remove after playing
+    if (element instanceof PolymerTagDartElement) {
+      element = ((PolymerTagDartElement) element).getHtmlElement();
+    } else if (element instanceof PolymerTagHtmlElement) {
+      element = ((PolymerTagHtmlElement) element).getDartElement();
+    }
     // no element - beep
     if (element == null) {
       IEditorStatusLine statusLine = (IEditorStatusLine) editor.getAdapter(IEditorStatusLine.class);

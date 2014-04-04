@@ -15,6 +15,7 @@ package com.google.dart.engine.html.ast;
 
 import com.google.dart.engine.html.ast.visitor.XmlVisitor;
 import com.google.dart.engine.html.scanner.Token;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 /**
  * Instances of {@code XmlAttributeNode} represent name/value pairs owned by an {@link XmlTagNode}.
@@ -123,6 +124,22 @@ public class XmlAttributeNode extends XmlNode {
       }
     }
     return text;
+  }
+
+  /**
+   * Answer the offset of the value after the leading quote.
+   * 
+   * @return the offset of the value, or {@code -1} if the value is not specified
+   */
+  public int getTextOffset() {
+    if (value == null) {
+      return -1;
+    }
+    String text = value.getLexeme();
+    if (StringUtilities.startsWithChar(text, '"') || StringUtilities.startsWithChar(text, '\'')) {
+      return value.getOffset() + 1;
+    }
+    return value.getOffset();
   }
 
   /**

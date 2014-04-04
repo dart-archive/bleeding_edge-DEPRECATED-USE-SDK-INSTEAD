@@ -45,19 +45,6 @@ public class PolymerCompilationUnitBuilderTest extends PolymerTest {
         "class MyElement {",
         "}",
         ""));
-    // TODO(scheglov) reuse it later
-//    contextHelper.addSource("/my-element.html", createSource(//
-//        "<!DOCTYPE html>",
-//        "",
-//        "<polymer-element name='my-example'>",
-//        "  <template>",
-//        "    <div>",
-//        "      Hello!",
-//        "    </div>",
-//        "  </template>",
-//        "  <script type='application/dart' src='my-element.dart'></script>",
-//        "</polymer-element>",
-//        ""));
     resolveTagDart();
     assertNotNull(tagDartElement);
     assertEquals("my-element", tagDartElement.getName());

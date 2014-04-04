@@ -62,7 +62,12 @@ public enum ErrorType {
   /**
    * Angular specific semantic problems.
    */
-  ANGULAR(ErrorSeverity.INFO);
+  ANGULAR(ErrorSeverity.INFO),
+
+  /**
+   * Polymer specific semantic problems.
+   */
+  POLYMER(ErrorSeverity.INFO);
 
   /**
    * The severity of this type of error.

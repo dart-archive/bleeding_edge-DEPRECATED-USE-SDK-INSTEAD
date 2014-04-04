@@ -25,6 +25,11 @@ package com.google.dart.engine.element.polymer;
  */
 public interface PolymerTagHtmlElement extends PolymerElement {
   /**
+   * An empty array of {@link PolymerTagHtmlElement}s.
+   */
+  PolymerTagHtmlElement[] EMPTY_ARRAY = new PolymerTagHtmlElement[0];
+
+  /**
    * Return an array containing all of the attributes declared by this tag.
    */
   PolymerAttributeElement[] getAttributes();

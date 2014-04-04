@@ -33,6 +33,13 @@ public interface AnalysisOptions {
   public boolean getAnalyzeFunctionBodies();
 
   /**
+   * Return {@code true} if analysis is to analyze Polymer.
+   * 
+   * @return {@code true} if analysis is to analyze Polymer
+   */
+  public boolean getAnalyzePolymer();
+
+  /**
    * Return the maximum number of sources for which AST structures should be kept in the cache.
    * 
    * @return the maximum number of sources for which AST structures should be kept in the cache

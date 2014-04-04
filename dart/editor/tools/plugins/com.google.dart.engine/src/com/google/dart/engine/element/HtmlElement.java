@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
+
 /**
  * The interface {@code HtmlElement} defines the behavior of elements representing an HTML file.
  * 
@@ -24,6 +26,14 @@ public interface HtmlElement extends Element {
    * {@code null} if not an Angular file.
    */
   public CompilationUnitElement getAngularCompilationUnit();
+
+  /**
+   * Return an array containing all of the {@link PolymerTagHtmlElement}s defined in the HTML file.
+   * 
+   * @return the {@link PolymerTagHtmlElement}s elements in the HTML file (not {@code null},
+   *         contains no {@code null}s)
+   */
+  public PolymerTagHtmlElement[] getPolymerTags();
 
   /**
    * Return an array containing all of the script elements contained in the HTML file. This includes

@@ -145,6 +145,28 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   private AnalysisError[] hints = AnalysisError.NO_ERRORS;
 
   /**
+   * The state of the Polymer elements.
+   */
+  private CacheState polymerBuildErrorsState = CacheState.INVALID;
+
+  /**
+   * The hints produced while performing Polymer HTML elements building, or an empty array if the
+   * error are not currently cached.
+   */
+  private AnalysisError[] polymerBuildErrors = AnalysisError.NO_ERRORS;
+
+  /**
+   * The state of the Polymer resolution errors.
+   */
+  private CacheState polymerResolutionErrorsState = CacheState.INVALID;
+
+  /**
+   * The hints produced while performing Polymer resolution, or an empty array if the error are not
+   * currently cached.
+   */
+  private AnalysisError[] polymerResolutionErrors = AnalysisError.NO_ERRORS;
+
+  /**
    * Initialize a newly created cache entry to be empty.
    */
   public HtmlEntryImpl() {
@@ -191,6 +213,16 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     }
     if (hints != null) {
       for (AnalysisError error : hints) {
+        errors.add(error);
+      }
+    }
+    if (polymerBuildErrors != null) {
+      for (AnalysisError error : polymerBuildErrors) {
+        errors.add(error);
+      }
+    }
+    if (polymerResolutionErrors != null) {
+      for (AnalysisError error : polymerResolutionErrors) {
         errors.add(error);
       }
     }
@@ -242,6 +274,10 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       return resolutionErrorsState;
     } else if (descriptor == HINTS) {
       return hintsState;
+    } else if (descriptor == POLYMER_BUILD_ERRORS) {
+      return polymerBuildErrorsState;
+    } else if (descriptor == POLYMER_RESOLUTION_ERRORS) {
+      return polymerResolutionErrorsState;
     }
     return super.getState(descriptor);
   }
@@ -271,6 +307,10 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       return (E) resolutionErrors;
     } else if (descriptor == HINTS) {
       return (E) hints;
+    } else if (descriptor == POLYMER_BUILD_ERRORS) {
+      return (E) polymerBuildErrors;
+    } else if (descriptor == POLYMER_RESOLUTION_ERRORS) {
+      return (E) polymerResolutionErrors;
     }
     return super.getValue(descriptor);
   }
@@ -308,6 +348,12 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
     angularErrors = AnalysisError.NO_ERRORS;
     angularErrorsState = CacheState.INVALID;
+
+    polymerBuildErrors = AnalysisError.NO_ERRORS;
+    polymerBuildErrorsState = CacheState.INVALID;
+
+    polymerResolutionErrors = AnalysisError.NO_ERRORS;
+    polymerResolutionErrorsState = CacheState.INVALID;
 
     element = null;
     elementState = CacheState.INVALID;
@@ -347,6 +393,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     setState(HtmlEntry.ELEMENT, CacheState.ERROR);
     setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.ERROR);
     setState(HtmlEntry.HINTS, CacheState.ERROR);
+    setState(HtmlEntry.POLYMER_BUILD_ERRORS, CacheState.ERROR);
+    setState(HtmlEntry.POLYMER_RESOLUTION_ERRORS, CacheState.ERROR);
   }
 
   @Override
@@ -384,6 +432,12 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     } else if (descriptor == HINTS) {
       hints = updatedValue(state, hints, AnalysisError.NO_ERRORS);
       hintsState = state;
+    } else if (descriptor == POLYMER_BUILD_ERRORS) {
+      polymerBuildErrors = updatedValue(state, polymerBuildErrors, null);
+      polymerBuildErrorsState = state;
+    } else if (descriptor == POLYMER_RESOLUTION_ERRORS) {
+      polymerResolutionErrors = updatedValue(state, polymerResolutionErrors, null);
+      polymerResolutionErrorsState = state;
     } else {
       super.setState(descriptor, state);
     }
@@ -424,6 +478,12 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     } else if (descriptor == HINTS) {
       hints = (AnalysisError[]) value;
       hintsState = CacheState.VALID;
+    } else if (descriptor == POLYMER_BUILD_ERRORS) {
+      polymerBuildErrors = (AnalysisError[]) value;
+      polymerBuildErrorsState = CacheState.VALID;
+    } else if (descriptor == POLYMER_RESOLUTION_ERRORS) {
+      polymerResolutionErrors = (AnalysisError[]) value;
+      polymerResolutionErrorsState = CacheState.VALID;
     } else {
       super.setValue(descriptor, value);
     }
@@ -449,12 +509,16 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     resolvedUnit = other.resolvedUnit;
     referencedLibrariesState = other.referencedLibrariesState;
     referencedLibraries = other.referencedLibraries;
-    resolutionErrors = other.resolutionErrors;
     resolutionErrorsState = other.resolutionErrorsState;
+    resolutionErrors = other.resolutionErrors;
     elementState = other.elementState;
     element = other.element;
-    hints = other.hints;
     hintsState = other.hintsState;
+    hints = other.hints;
+    polymerBuildErrorsState = other.polymerBuildErrorsState;
+    polymerBuildErrors = other.polymerBuildErrors;
+    polymerResolutionErrorsState = other.polymerResolutionErrorsState;
+    polymerResolutionErrors = other.polymerResolutionErrors;
   }
 
   @Override
@@ -463,7 +527,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
         || resolvedUnitState == CacheState.ERROR || parseErrorsState == CacheState.ERROR
         || resolutionErrorsState == CacheState.ERROR
         || referencedLibrariesState == CacheState.ERROR || elementState == CacheState.ERROR
-        || angularErrorsState == CacheState.ERROR || hintsState == CacheState.ERROR;
+        || angularErrorsState == CacheState.ERROR || hintsState == CacheState.ERROR
+        || polymerBuildErrorsState == CacheState.ERROR
+        || polymerResolutionErrorsState == CacheState.ERROR;
   }
 
   @Override
@@ -490,5 +556,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     builder.append(angularEntryState);
     builder.append("; angularErrors = ");
     builder.append(angularErrorsState);
+    builder.append("; polymerBuildErrors = ");
+    builder.append(polymerBuildErrorsState);
+    builder.append("; polymerResolutionErrors = ");
+    builder.append(polymerResolutionErrorsState);
   }
 }

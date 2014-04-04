@@ -14,21 +14,21 @@
 package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
-import com.google.dart.engine.internal.element.angular.AngularApplication;
-import com.google.dart.engine.internal.html.angular.AngularHtmlUnitResolver;
+import com.google.dart.engine.internal.html.polymer.PolymerHtmlUnitResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
- * Instances of the class {@code ResolveAngularComponentTemplateTask} resolve HTML template
- * referenced by {@link AngularComponentElement}.
+ * Instances of the class {@code PolymerResolveHtmlTask} performs Polymer specific HTML file
+ * resolution.
+ * <p>
+ * TODO(scheglov) implement it
  */
-public class ResolveAngularComponentTemplateTask extends AnalysisTask {
+public class PolymerResolveHtmlTask extends AnalysisTask {
   /**
    * The source to be resolved.
    */
@@ -37,32 +37,22 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
   /**
    * The time at which the contents of the source were last modified.
    */
-  private long modificationTime;
+  private final long modificationTime;
+
+  /**
+   * The line information associated with the source.
+   */
+  private final LineInfo lineInfo;
 
   /**
    * The HTML unit to be resolved.
    */
-  private HtmlUnit unit;
-
-  /**
-   * The {@link AngularComponentElement} to resolve template for.
-   */
-  private final AngularComponentElement component;
-
-  /**
-   * The Angular application to resolve in context of.
-   */
-  private final AngularApplication application;
-
-  /**
-   * The {@link HtmlUnit} that was resolved by this task.
-   */
-  private HtmlUnit resolvedUnit;
+  private final HtmlUnit unit;
 
   /**
    * The resolution errors that were discovered while resolving the source.
    */
-  private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
+  private AnalysisError[] errors = AnalysisError.NO_ERRORS;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -71,23 +61,19 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
    * @param source the source to be resolved
    * @param modificationTime the time at which the contents of the source were last modified
    * @param unit the HTML unit to be resolved
-   * @param component the component that uses this HTML template, not {@code null}
-   * @param application the Angular application to resolve in context of
    */
-  public ResolveAngularComponentTemplateTask(InternalAnalysisContext context, Source source,
-      long modificationTime, HtmlUnit unit, AngularComponentElement component,
-      AngularApplication application) {
+  public PolymerResolveHtmlTask(InternalAnalysisContext context, Source source,
+      long modificationTime, LineInfo lineInfo, HtmlUnit unit) {
     super(context);
     this.source = source;
     this.modificationTime = modificationTime;
+    this.lineInfo = lineInfo;
     this.unit = unit;
-    this.component = component;
-    this.application = application;
   }
 
   @Override
   public <E> E accept(AnalysisTaskVisitor<E> visitor) throws AnalysisException {
-    return visitor.visitResolveAngularComponentTemplateTask(this);
+    return visitor.visitPolymerResolveHtmlTask(this);
   }
 
   /**
@@ -100,17 +86,8 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
     return modificationTime;
   }
 
-  public AnalysisError[] getResolutionErrors() {
-    return resolutionErrors;
-  }
-
-  /**
-   * Return the {@link HtmlUnit} that was resolved by this task.
-   * 
-   * @return the {@link HtmlUnit} that was resolved by this task
-   */
-  public HtmlUnit getResolvedUnit() {
-    return resolvedUnit;
+  public AnalysisError[] getErrors() {
+    return errors;
   }
 
   /**
@@ -124,32 +101,19 @@ public class ResolveAngularComponentTemplateTask extends AnalysisTask {
 
   @Override
   protected String getTaskDescription() {
-    return "resolve as Angular template " + source;
+    return "resolve as Polymer " + source.getFullName();
   }
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    //
-    // Prepare for resolution.
-    //
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    LineInfo lineInfo = getContext().getLineInfo(source);
-    //
-    // Perform resolution.
-    //
-    if (application != null) {
-      AngularHtmlUnitResolver resolver = new AngularHtmlUnitResolver(
-          getContext(),
-          errorListener,
-          source,
-          lineInfo,
-          unit);
-      resolver.resolveComponentTemplate(application, component);
-      resolvedUnit = unit;
-    }
-    //
-    // Remember the errors.
-    //
-    resolutionErrors = errorListener.getErrorsForSource(source);
+    PolymerHtmlUnitResolver resolver = new PolymerHtmlUnitResolver(
+        getContext(),
+        errorListener,
+        source,
+        lineInfo,
+        unit);
+    resolver.resolveUnit();
+    errors = errorListener.getErrorsForSource(source);
   }
 }

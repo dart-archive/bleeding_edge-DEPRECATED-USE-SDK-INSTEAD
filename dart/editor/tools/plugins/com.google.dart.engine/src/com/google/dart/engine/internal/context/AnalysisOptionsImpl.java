@@ -69,6 +69,11 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean analyzeAngular = true;
 
   /**
+   * A flag indicating whether analysis is to analyze Polymer.
+   */
+  private boolean analyzePolymer = true;
+
+  /**
    * Initialize a newly created set of analysis options to have their default values.
    */
   public AnalysisOptionsImpl() {
@@ -95,6 +100,11 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   @Override
   public boolean getAnalyzeFunctionBodies() {
     return analyzeFunctionBodies;
+  }
+
+  @Override
+  public boolean getAnalyzePolymer() {
+    return analyzePolymer;
   }
 
   @Override
@@ -143,6 +153,15 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    */
   public void setAnalyzeFunctionBodies(boolean analyzeFunctionBodies) {
     this.analyzeFunctionBodies = analyzeFunctionBodies;
+  }
+
+  /**
+   * Set whether analysis is to analyze Polymer.
+   * 
+   * @param analyzePolymer {@code true} if analysis is to analyze Polymer
+   */
+  public void setAnalyzePolymer(boolean analyzePolymer) {
+    this.analyzePolymer = analyzePolymer;
   }
 
   /**

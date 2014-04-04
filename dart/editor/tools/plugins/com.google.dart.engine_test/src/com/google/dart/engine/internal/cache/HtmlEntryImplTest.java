@@ -18,6 +18,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AngularCode;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.HtmlWarningCode;
+import com.google.dart.engine.error.PolymerCode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.element.HtmlElementImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
@@ -47,10 +48,18 @@ public class HtmlEntryImplTest extends EngineTestCase {
         source,
         AngularCode.INVALID_REPEAT_SYNTAX,
         "-")});
+    entry.setValue(HtmlEntry.POLYMER_BUILD_ERRORS, new AnalysisError[] {new AnalysisError(
+        source,
+        PolymerCode.INVALID_ATTRIBUTE,
+        "-")});
+    entry.setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, new AnalysisError[] {new AnalysisError(
+        source,
+        PolymerCode.INVALID_ATTRIBUTE,
+        "-")});
     entry.setValue(HtmlEntry.HINTS, new AnalysisError[] {new AnalysisError(
         source,
         HintCode.DEAD_CODE)});
-    assertLength(4, entry.getAllErrors());
+    assertLength(6, entry.getAllErrors());
   }
 
   public void test_getWritableCopy() {
@@ -67,6 +76,8 @@ public class HtmlEntryImplTest extends EngineTestCase {
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.ANGULAR_COMPONENT));
     assertSame(CacheState.INVALID, entry.getState(HtmlEntry.ANGULAR_ENTRY));
     assertSame(CacheState.INVALID, entry.getState(HtmlEntry.ANGULAR_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS));
     assertSame(CacheState.INVALID, entry.getState(HtmlEntry.ELEMENT));
     assertSame(CacheState.INVALID, entry.getState(HtmlEntry.HINTS));
     assertSame(CacheState.VALID, entry.getState(SourceEntry.LINE_INFO));
@@ -98,6 +109,14 @@ public class HtmlEntryImplTest extends EngineTestCase {
 
   public void test_setState_parseErrors() {
     setState(HtmlEntry.PARSE_ERRORS);
+  }
+
+  public void test_setState_polymerBuildErrors() {
+    setState(HtmlEntry.POLYMER_BUILD_ERRORS);
+  }
+
+  public void test_setState_polymerResolutionErrors() {
+    setState(HtmlEntry.POLYMER_RESOLUTION_ERRORS);
   }
 
   public void test_setState_referencedLibraries() {
@@ -148,6 +167,20 @@ public class HtmlEntryImplTest extends EngineTestCase {
         "-")});
   }
 
+  public void test_setValue_polymerBuildErrors() {
+    setValue(HtmlEntry.POLYMER_BUILD_ERRORS, new AnalysisError[] {new AnalysisError(
+        null,
+        PolymerCode.INVALID_ATTRIBUTE,
+        "-")});
+  }
+
+  public void test_setValue_polymerResolutionErrors() {
+    setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, new AnalysisError[] {new AnalysisError(
+        null,
+        PolymerCode.INVALID_ATTRIBUTE,
+        "-")});
+  }
+
   public void test_setValue_referencedLibraries() {
     setValue(HtmlEntry.REFERENCED_LIBRARIES, new Source[] {new TestSource()});
   }
@@ -167,6 +200,8 @@ public class HtmlEntryImplTest extends EngineTestCase {
     entry.setValue(SourceEntry.LINE_INFO, null);
     entry.setValue(HtmlEntry.PARSE_ERRORS, null);
     entry.setValue(HtmlEntry.PARSED_UNIT, null);
+    entry.setValue(HtmlEntry.POLYMER_BUILD_ERRORS, null);
+    entry.setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, null);
     entry.setValue(HtmlEntry.REFERENCED_LIBRARIES, null);
     entry.setValue(HtmlEntry.RESOLUTION_ERRORS, null);
 
@@ -176,6 +211,8 @@ public class HtmlEntryImplTest extends EngineTestCase {
     assertSame(CacheState.VALID, entry.getState(SourceEntry.LINE_INFO));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.PARSE_ERRORS));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.PARSED_UNIT));
+    assertSame(CacheState.VALID, entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS));
+    assertSame(CacheState.VALID, entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.REFERENCED_LIBRARIES));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.RESOLUTION_ERRORS));
     return entry;
