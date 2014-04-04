@@ -52,6 +52,10 @@ build_dart: Skip
 # Skip until we stabilize language tests.
 *: Skip
 
+[ $compiler == dart2js && $mode == debug ]
+polymer_intl/test/polymer_intl_test: Pass, Timeout
+searchable_list/test/demo_app_test: Pass, Timeout
+
 [ $arch == arm ]
 sample_extension/test/sample_extension_test: Skip # Issue 14705
 
