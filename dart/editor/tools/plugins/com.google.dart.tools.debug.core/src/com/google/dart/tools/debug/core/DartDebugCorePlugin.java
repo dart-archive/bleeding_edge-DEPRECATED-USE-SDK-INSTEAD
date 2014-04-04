@@ -31,8 +31,6 @@ import org.eclipse.debug.core.IDebugEventSetListener;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
-import java.io.IOException;
-
 /**
  * The plugin activator for the com.google.dart.tools.debug.core plugin.
  */
@@ -372,17 +370,6 @@ public class DartDebugCorePlugin extends Plugin {
 
     super.start(context);
 
-    // Start the embedded web server up (use a separate thread so we don't delay application startup).
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          ResourceServerManager.getServer();
-        } catch (IOException e) {
-          logError(e);
-        }
-      }
-    }).start();
   }
 
   @Override
