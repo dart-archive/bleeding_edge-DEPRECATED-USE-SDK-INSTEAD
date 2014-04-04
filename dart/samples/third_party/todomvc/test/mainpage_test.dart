@@ -17,8 +17,8 @@ import 'utils.dart';
 /**
  * This test runs the TodoMVC app and checks the state of the initial page.
  */
+@initMethod
 main() {
-  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

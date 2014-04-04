@@ -8,7 +8,9 @@ library todomvc.test.markdone_shadow_test;
 // a web test.
 import 'dart:html';
 import 'markdone_test.dart' as markdone_test;
+import 'package:polymer/polymer.dart' show initMethod;
 
+@initMethod
 main() {
   // Make analyzer happy by using dart:html.
   document.querySelector('body');
