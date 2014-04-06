@@ -408,17 +408,3 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
     return isPubLib(container.getParent());
   }
 }
-
-interface DartBreakpointManager {
-
-  public void connect() throws IOException;
-
-  public void dispose(boolean deleteAll);
-
-  public DartBreakpoint getBreakpointFor(WebkitLocation location);
-
-  public void handleBreakpointResolved(WebkitBreakpoint breakpoint);
-
-  public void handleGlobalObjectCleared();
-
-}

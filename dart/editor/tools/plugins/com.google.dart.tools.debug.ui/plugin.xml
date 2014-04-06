@@ -932,5 +932,49 @@
          </action>
       </objectContribution>
    </extension -->
+
+   <!-- Code coverage -->
+   <extension
+         point="org.eclipse.ui.editors.annotationTypes">
+      <type
+            markerSeverity="0"
+            markerType="com.google.dart.tools.debug.core.coverageText"
+            name="com.google.dart.tools.debug.ui.coverageText"
+            />
+      <type
+            markerSeverity="0"
+            markerType="com.google.dart.tools.debug.core.coverageOverview"
+            name="com.google.dart.tools.debug.ui.coverageOverview"
+            />
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="com.google.dart.tools.debug.ui.coverageText"
+            colorPreferenceKey="coverageText.color.key"
+            colorPreferenceValue="255,236,236"
+            highlightPreferenceKey="coverageText.highlight.key"
+            highlightPreferenceValue="true"
+            presentationLayer="0"
+            label="Coverage: text"
+            overviewRulerPreferenceKey="coverageText.overview.key"
+            overviewRulerPreferenceValue="false"
+            textPreferenceKey="coverageText.text.key"
+            textPreferenceValue="true"
+            textStylePreferenceKey="coverageText.style.key"
+            textStylePreferenceValue="BOX"/>
+      <specification
+            annotationType="com.google.dart.tools.debug.ui.coverageOverview"
+            colorPreferenceKey="coverageOverview.color.key"
+            colorPreferenceValue="236,102,102"
+            highlightPreferenceKey="coverageOverview.highlight.key"
+            highlightPreferenceValue="false"
+            presentationLayer="0"
+            label="Coverage: overview"
+            overviewRulerPreferenceKey="coverageOverview.overview.key"
+            overviewRulerPreferenceValue="true"
+            textPreferenceKey="coverageOverview.text.key"
+            textPreferenceValue="false"/>
+   </extension>
       
 </plugin>

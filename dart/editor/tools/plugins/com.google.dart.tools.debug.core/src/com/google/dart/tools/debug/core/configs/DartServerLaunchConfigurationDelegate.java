@@ -21,6 +21,7 @@ import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
+import com.google.dart.tools.debug.core.coverage.CoverageManager;
 import com.google.dart.tools.debug.core.server.ServerDebugTarget;
 import com.google.dart.tools.debug.core.server.ServerRemoteProcess;
 import com.google.dart.tools.debug.core.util.CoreLaunchUtils;
@@ -165,6 +166,12 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
       commandsList.add("--debug:" + connectionPort);
     }
 
+    String coverageTempDir = null;
+    if (DartCoreDebug.ENABLE_COVERAGE) {
+      coverageTempDir = CoverageManager.createTempDir();
+      commandsList.add("--coverage_dir=" + coverageTempDir);
+    }
+
     File packageRoot = packageRootProvider.getPackageRoot(launchConfig.getProject());
     if (packageRoot != null) {
       String packageRootString = packageRoot.getAbsolutePath();
@@ -188,6 +195,12 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
 
     try {
       runtimeProcess = processBuilder.start();
+      if (coverageTempDir != null) {
+        CoverageManager.registerProcess(
+            coverageTempDir,
+            launchConfig.getApplicationName(),
+            runtimeProcess);
+      }
     } catch (IOException ioe) {
       throw new CoreException(new Status(
           IStatus.ERROR,

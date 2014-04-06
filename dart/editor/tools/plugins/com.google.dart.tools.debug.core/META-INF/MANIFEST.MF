@@ -7,6 +7,7 @@ Bundle-Version: 0.0.0.qualifier
 Bundle-Activator: com.google.dart.tools.debug.core.DartDebugCorePlugin
 Bundle-Vendor: %providerName
 Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.core.filebuffers,
  org.eclipse.debug.core,
  com.google.dart.tools.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
@@ -14,6 +15,7 @@ Bundle-ActivationPolicy: lazy
 Export-Package: com.google.dart.tools.debug.core,
  com.google.dart.tools.debug.core.breakpoints,
  com.google.dart.tools.debug.core.configs,
+ com.google.dart.tools.debug.core.coverage;x-friends:="com.google.dart.tools.debug.core_test",
  com.google.dart.tools.debug.core.dartium;x-friends:="com.google.dart.tools.debug.ui,com.google.dart.tools.debug.core_test",
  com.google.dart.tools.debug.core.expr,
  com.google.dart.tools.debug.core.pubserve,

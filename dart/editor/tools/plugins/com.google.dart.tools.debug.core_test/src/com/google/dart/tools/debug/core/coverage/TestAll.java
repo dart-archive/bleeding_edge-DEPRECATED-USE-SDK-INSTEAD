@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2014, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.tools.debug.core;
+package com.google.dart.tools.debug.core.coverage;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -20,13 +20,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    //suite.addTest(com.google.dart.tools.debug.core.configs.TestAll.suite());
-    suite.addTest(com.google.dart.tools.debug.core.coverage.TestAll.suite());
-    suite.addTest(com.google.dart.tools.debug.core.dartium.TestAll.suite());
-    suite.addTest(com.google.dart.tools.debug.core.pubserve.TestAll.suite());
-    //suite.addTest(com.google.dart.tools.debug.core.server.TestAll.suite());
-    suite.addTest(com.google.dart.tools.debug.core.sourcemaps.TestAll.suite());
-    suite.addTest(com.google.dart.tools.debug.core.util.TestAll.suite());
+    suite.addTestSuite(CoverageManagerTest.class);
     return suite;
   }
 }

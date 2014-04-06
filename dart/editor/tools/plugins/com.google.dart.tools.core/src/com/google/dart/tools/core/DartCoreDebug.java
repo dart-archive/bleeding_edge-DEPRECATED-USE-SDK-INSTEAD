@@ -70,6 +70,7 @@ public class DartCoreDebug {
   public static final boolean ENABLE_HTML_VALIDATION = isOptionTrue("experimental/validateHtml");
   public static final boolean ENABLE_PUB_SERVE_LAUNCH = true;//isOptionTrue("experimental/pubserve");
   public static final boolean ENABLE_MOBILE = isOptionTrue("experimental/mobile");
+  public static final boolean ENABLE_COVERAGE = isOptionTrue("experimental/coverage");
 
   // Verify that dartc has not been specified and that the new analyzer is not explicitly disabled
   public static final boolean ENABLE_NEW_ANALYSIS = true;

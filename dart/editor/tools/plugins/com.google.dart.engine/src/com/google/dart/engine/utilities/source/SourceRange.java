@@ -146,6 +146,15 @@ public final class SourceRange {
     return new SourceRange(offset + delta, length);
   }
 
+  /**
+   * @return the minimal {@link SourceRange} that cover this and the given {@link SourceRange}s.
+   */
+  public SourceRange getUnion(SourceRange other) {
+    int newOffset = Math.min(offset, other.offset);
+    int newEnd = Math.max(offset + length, other.offset + other.length);
+    return new SourceRange(newOffset, newEnd - newOffset);
+  }
+
   @Override
   public int hashCode() {
     return 31 * offset + length;

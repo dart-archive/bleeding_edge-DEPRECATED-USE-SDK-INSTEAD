@@ -113,6 +113,14 @@ public class SourceRangeTest extends TestCase {
     assertEquals(new SourceRange(4, 3), r.getTranslated(-1));
   }
 
+  public void test_getUnion() throws Exception {
+    assertEquals(new SourceRange(10, 15), new SourceRange(10, 10).getUnion(new SourceRange(15, 10)));
+    assertEquals(new SourceRange(10, 15), new SourceRange(15, 10).getUnion(new SourceRange(10, 10)));
+    // "other" is covered/covers
+    assertEquals(new SourceRange(10, 10), new SourceRange(10, 10).getUnion(new SourceRange(15, 2)));
+    assertEquals(new SourceRange(10, 10), new SourceRange(15, 2).getUnion(new SourceRange(10, 10)));
+  }
+
   public void test_intersects() throws Exception {
     SourceRange r = new SourceRange(5, 3);
     // null
