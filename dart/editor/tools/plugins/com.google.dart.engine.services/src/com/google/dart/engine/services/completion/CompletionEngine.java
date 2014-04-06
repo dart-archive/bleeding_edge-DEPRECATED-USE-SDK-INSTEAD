@@ -415,10 +415,15 @@ public class CompletionEngine {
 
     private boolean inPrivateLibrary(InterfaceType type) {
       LibraryElement lib = type.getElement().getLibrary();
-      if (!(lib.getName().startsWith("_") || type.getDisplayName().startsWith("_"))) {
+      if (!lib.getName().startsWith("_")) {
         return false;
       }
-      return lib != getCurrentLibrary();
+      // allow completion in the same library
+      if (lib == getCurrentLibrary()) {
+        return false;
+      }
+      // eliminate types defined in private libraries
+      return true;
     }
 
     private void mergeName(Element element) {

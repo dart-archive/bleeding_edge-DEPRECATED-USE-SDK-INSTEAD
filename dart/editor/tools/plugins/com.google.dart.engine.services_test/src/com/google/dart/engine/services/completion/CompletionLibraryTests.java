@@ -80,6 +80,28 @@ public class CompletionLibraryTests extends CompletionTestCase {
         "1-LN10");
   }
 
+  public void test_memberOfPrivateClass_otherLibrary() throws Exception {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    sources.add(addNamedSource(//
+        "/lib.dart",
+        src(//
+            "library lib;",
+            "class _A {",
+            "  foo() {}",
+            "}",
+            "class A extends _A {",
+            "}",
+            "")));
+    test(//
+        src(//
+            "import 'lib.dart';",
+            "main(A a) {",
+            "  a.!1",
+            "}"),
+        sources,
+        "1+foo");
+  }
+
   public void test_noPrivateElement_otherLibrary_constructor() throws Exception {
     ArrayList<Source> sources = new ArrayList<Source>();
     sources.add(addNamedSource(//
