@@ -23,20 +23,6 @@ import java.io.IOException;
 /**
  * Represents the Dart SDK...
  * 
- * <pre>
- *    dart-sdk/
- *       bin/
- *          dart[.exe]  <-- VM   
- *          Chromium/   <-- Dartium
- *       lib/
- *          core/
- *             core.dart
- *             ... other core library files ...
- *          ... other libraries ...
- *       util/
- *          ... Dart utilities ...
- * </pre>
- * 
  * @coverage dart.tools.core.model
  */
 public class DartSdk {

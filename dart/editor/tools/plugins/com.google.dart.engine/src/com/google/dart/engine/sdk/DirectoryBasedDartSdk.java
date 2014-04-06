@@ -37,7 +37,21 @@ import java.net.URI;
 
 /**
  * Instances of the class {@code DirectoryBasedDartSdk} represent a Dart SDK installed in a
- * specified directory.
+ * specified directory. Typical Dart SDK layout is something like...
+ * 
+ * <pre>
+ *    dart-sdk/
+ *       bin/
+ *          dart[.exe]  <-- VM
+ *       lib/
+ *          core/
+ *             core.dart
+ *             ... other core library files ...
+ *          ... other libraries ...
+ *       util/
+ *          ... Dart utilities ...
+ *    Chromium/   <-- Dartium typically exists in a sibling directory
+ * </pre>
  * 
  * @coverage dart.engine.sdk
  */
@@ -208,7 +222,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
       @DartOptional(defaultValue = "false") boolean useDart2jsPaths) {
     this.sdkDirectory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
-    initializeLibraryMap(useDart2jsPaths);
+    libraryMap = initialLibraryMap(useDart2jsPaths);
     analysisContext = new AnalysisContextImpl();
     analysisContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
     String[] uris = getUris();
@@ -407,6 +421,25 @@ public class DirectoryBasedDartSdk implements DartSdk {
   }
 
   /**
+   * Read all of the configuration files to initialize the library maps.
+   * 
+   * @param useDart2jsPaths {@code true} if the dart2js path should be used when it is available
+   * @return the initialized library map
+   */
+  protected LibraryMap initialLibraryMap(boolean useDart2jsPaths) {
+    File librariesFile = new File(new File(getLibraryDirectory(), INTERNAL_DIR), LIBRARIES_FILE);
+    try {
+      String contents = FileUtilities.getContents(librariesFile);
+      return new SdkLibrariesReader(useDart2jsPaths).readFromFile(librariesFile, contents);
+    } catch (Exception exception) {
+      AnalysisEngine.getInstance().getLogger().logError(
+          "Could not initialize the library map from " + librariesFile.getAbsolutePath(),
+          exception);
+      return new LibraryMap();
+    }
+  }
+
+  /**
    * Ensure that the dart VM is executable. If it is not, make it executable and log that it was
    * necessary for us to do so.
    */
@@ -446,24 +479,6 @@ public class DirectoryBasedDartSdk implements DartSdk {
       return VM_EXECUTABLE_NAME_WIN;
     } else {
       return VM_EXECUTABLE_NAME;
-    }
-  }
-
-  /**
-   * Read all of the configuration files to initialize the library maps.
-   * 
-   * @param useDart2jsPaths {@code true} if the dart2js path should be used when it is available
-   */
-  private void initializeLibraryMap(boolean useDart2jsPaths) {
-    File librariesFile = new File(new File(getLibraryDirectory(), INTERNAL_DIR), LIBRARIES_FILE);
-    try {
-      String contents = FileUtilities.getContents(librariesFile);
-      libraryMap = new SdkLibrariesReader(useDart2jsPaths).readFromFile(librariesFile, contents);
-    } catch (Exception exception) {
-      AnalysisEngine.getInstance().getLogger().logError(
-          "Could not initialize the library map from " + librariesFile.getAbsolutePath(),
-          exception);
-      libraryMap = new LibraryMap();
     }
   }
 
