@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 
@@ -32,6 +33,7 @@ import java.util.Properties;
  * @coverage dart.tools.core
  */
 public class CompilationUnitChange extends TextFileChange {
+  private Object wstUndoManager;
 
   public CompilationUnitChange(String name, IFile file) {
     super(name, file);
@@ -59,5 +61,26 @@ public class CompilationUnitChange extends TextFileChange {
     }
     // continue validation
     return super.isValid(monitor);
+  }
+
+  @Override
+  protected IDocument acquireDocument(IProgressMonitor pm) throws CoreException {
+    IDocument document = super.acquireDocument(pm);
+    // TODO(scheglov) disable WST undo manager, we need ReflectionUtils
+//    if (document != null
+//        && document.getClass().getName().startsWith("org.eclipse.wst.sse.core.internal.text.")) {
+//      wstUndoManager = ReflectionUtils.getField(document, "wstUndoManager");
+//      ReflectionUtils.setField(document, "fUndoManager", null);
+//    }
+    return document;
+  }
+
+  @Override
+  protected void releaseDocument(IDocument document, IProgressMonitor pm) throws CoreException {
+    // TODO(scheglov) disable WST undo manager
+//    if (wstUndoManager != null) {
+//      ReflectionUtils.setField(document, "fUndoManager", wstUndoManager);
+//    }
+    super.releaseDocument(document, pm);
   }
 }

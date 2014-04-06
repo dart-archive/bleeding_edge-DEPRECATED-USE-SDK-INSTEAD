@@ -17,9 +17,13 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
+import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -350,8 +354,24 @@ public final class RefactoringExecutionStarter {
 //  	new RefactoringStarter().activate(wizard, shell, RefactoringMessages.OpenRefactoringWizardAction_refactoring, RefactoringSaveHelper.SAVE_REFACTORING);
 //  }
 
-  public static void startRenameRefactoring(Element element, final Shell shell)
-      throws CoreException {
+  public static boolean startRenameRefactoring(Element element) {
+    if (!RefactoringUtils.waitReadyForRefactoring()) {
+      return false;
+    }
+    try {
+      Shell shell = DartToolsPlugin.getActiveWorkbenchShell();
+      startRenameRefactoring(element, shell);
+      return true;
+    } catch (Throwable e) {
+      ExceptionHandler.handle(
+          e,
+          RefactoringMessages.RenameDartElementAction_name,
+          RefactoringMessages.RenameDartElementAction_exception);
+      return false;
+    }
+  }
+
+  public static void startRenameRefactoring(Element element, Shell shell) throws CoreException {
     RenameRefactoring refactoring = RefactoringFactory.createRenameRefactoring(
         DartCore.getProjectManager().newSearchEngine(),
         element);

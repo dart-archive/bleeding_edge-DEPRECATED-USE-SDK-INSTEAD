@@ -32,46 +32,64 @@ import org.eclipse.jface.text.hyperlink.AbstractHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 
 public class ElementHyperlinkDetector extends AbstractHyperlinkDetector {
+  public static ElementRegion getElementRegion(HtmlUnit htmlUnit, int offset) {
+    Element element;
+    Region region;
+    // try attribute
+    {
+      XmlAttributeNode attrNode = HtmlUnitUtils.getAttributeNode(htmlUnit, offset);
+      if (attrNode != null) {
+        element = attrNode.getElement();
+        Token nameToken = attrNode.getNameToken();
+        region = new Region(nameToken.getOffset(), nameToken.getLength());
+        if (element != null) {
+          return new ElementRegion(element, region);
+        }
+        return null;
+      }
+    }
+    // try tag
+    {
+      XmlTagNode tagNode = HtmlUnitUtils.getTagNode(htmlUnit, offset);
+      if (tagNode != null) {
+        element = tagNode.getElement();
+        Token tagToken = tagNode.getTagToken();
+        region = new Region(tagToken.getOffset(), tagToken.getLength());
+        if (element != null) {
+          return new ElementRegion(element, region);
+        }
+        return null;
+      }
+    }
+    // try expression
+    {
+      Expression expression = HtmlUnitUtils.getExpression(htmlUnit, offset);
+      if (expression != null) {
+        element = HtmlUnitUtils.getElementToOpen(htmlUnit, expression);
+        region = new Region(expression.getOffset(), expression.getLength());
+        if (element != null) {
+          return new ElementRegion(element, region);
+        }
+        return null;
+      }
+    }
+    // no region
+    return null;
+  }
+
   @Override
   public IHyperlink[] detectHyperlinks(ITextViewer textViewer, IRegion region,
       boolean canShowMultipleHyperlinks) {
-    HtmlUnit parseHtmlUnit = getHtmlUnit(textViewer);
-    if (parseHtmlUnit == null) {
+    HtmlUnit htmlUnit = getHtmlUnit(textViewer);
+    if (htmlUnit == null) {
       return null;
     }
     // prepare target Expression and Element
     int offset = region.getOffset();
-    Element element = null;
-    Region linkRegion = null;
-    // try attribute
-    if (element == null) {
-      XmlAttributeNode attrNode = HtmlUnitUtils.getAttributeNode(parseHtmlUnit, offset);
-      if (attrNode != null) {
-        element = attrNode.getElement();
-        Token nameToken = attrNode.getNameToken();
-        linkRegion = new Region(nameToken.getOffset(), nameToken.getLength());
-      }
-    }
-    // try tag
-    if (element == null) {
-      XmlTagNode tagNode = HtmlUnitUtils.getTagNode(parseHtmlUnit, offset);
-      if (tagNode != null) {
-        element = tagNode.getElement();
-        Token tagToken = tagNode.getTagToken();
-        linkRegion = new Region(tagToken.getOffset(), tagToken.getLength());
-      }
-    }
-    // try expression
-    if (element == null) {
-      Expression expression = HtmlUnitUtils.getExpression(parseHtmlUnit, offset);
-      if (expression != null) {
-        element = HtmlUnitUtils.getElementToOpen(parseHtmlUnit, expression);
-        linkRegion = new Region(expression.getOffset(), expression.getLength());
-      }
-    }
+    ElementRegion elementRegion = getElementRegion(htmlUnit, offset);
     // create Element hyperlink
-    if (element != null && linkRegion != null) {
-      return new IHyperlink[] {new ElementHyperlink(linkRegion, element)};
+    if (elementRegion != null) {
+      return new IHyperlink[] {new ElementHyperlink(elementRegion.region, elementRegion.element)};
     }
     return null;
   }

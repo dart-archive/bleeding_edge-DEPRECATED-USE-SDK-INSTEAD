@@ -27,7 +27,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.google.dart.tools.search,
  com.google.dart.engine
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: com.google.dart.tools.internal.corext.refactoring;x-friends:="com.google.dart.tools.ui_test",
+Export-Package: com.google.dart.tools.internal.corext.refactoring;x-friends:="com.google.dart.tools.ui_test,com.google.dart.tools.deploy",
  com.google.dart.tools.internal.corext.refactoring.code;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.internal.corext.refactoring.rename;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.internal.corext.refactoring.util;x-friends:="com.google.dart.tools.ui_test,com.google.dart.tools.ui.swtbot_test,com.google.dart.tools.deploy",
@@ -46,7 +46,7 @@ Export-Package: com.google.dart.tools.internal.corext.refactoring;x-friends:="co
  com.google.dart.tools.ui.internal.preferences,
  com.google.dart.tools.ui.internal.problemsview,
  com.google.dart.tools.ui.internal.projects;x-friends:="com.google.dart.tools.deploy,com.google.dart.eclipse.ui",
- com.google.dart.tools.ui.internal.refactoring;x-friends:="com.google.dart.tools.ui_test",
+ com.google.dart.tools.ui.internal.refactoring;x-friends:="com.google.dart.tools.ui_test,com.google.dart.tools.deploy",
  com.google.dart.tools.ui.internal.refactoring.actions;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.text.correction;x-friends:="com.google.dart.tools.deploy,com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.text.correction.proposals;x-friends:="com.google.dart.tools.ui_test",

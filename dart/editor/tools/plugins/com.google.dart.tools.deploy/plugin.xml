@@ -867,5 +867,70 @@
      </proposalComputer>
   </extension>
 
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            name="Refactor - Dart HTML"
+            description="Dart HTML refactoring actions"
+            id="com.google.dart.tools.wst.ui.category.refactoring"/>
+      <command
+            categoryId="com.google.dart.tools.wst.ui.category.refactoring"
+            description="Change the name of an element."
+            id="com.google.dart.tools.wst.ui.rename"
+            name="Rename">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            commandId="com.google.dart.tools.wst.ui.rename"
+            class="com.google.dart.tools.wst.ui.handlers.RenameHandler">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            platform="win32"
+            commandId="com.google.dart.tools.wst.ui.rename"
+            contextId="org.eclipse.wst.html.core.htmlsource"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M2+M3+R"/>
+      <key
+            platform="gtk"
+            commandId="com.google.dart.tools.wst.ui.rename"
+            contextId="org.eclipse.wst.html.core.htmlsource"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M2+M3+R"/>
+      <key
+            platform="carbon"
+            commandId="com.google.dart.tools.wst.ui.rename"
+            contextId="org.eclipse.wst.html.core.htmlsource"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="COMMAND+ALT+R"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="menu:org.eclipse.ui.main.menu?after=edit">
+         <menu
+               id="com.google.dart.tools.wst.ui.refactoring.menu"
+               label="Refactor">
+            <command
+                  commandId="com.google.dart.tools.wst.ui.rename"
+                  label="Rename..."
+                  style="push">
+            </command>
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="activeEditorId">
+                  <equals
+                        value="org.eclipse.wst.html.core.htmlsource.source">
+                  </equals>
+               </with>
+            </visibleWhen>
+         </menu>
+      </menuContribution>
+   </extension>
 
 </plugin>
