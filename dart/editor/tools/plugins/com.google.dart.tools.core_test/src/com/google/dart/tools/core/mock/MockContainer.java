@@ -56,6 +56,7 @@ public abstract class MockContainer extends MockResource implements IContainer {
     }
   }
 
+  @Override
   public void accept(IResourceProxyVisitor visitor, int depth, int memberFlags)
       throws CoreException {
     accept(visitor, memberFlags);
@@ -84,6 +85,14 @@ public abstract class MockContainer extends MockResource implements IContainer {
     }
     if (children == null) {
       children = new ArrayList<MockResource>();
+    } else {
+      String name = child.getName();
+      for (MockResource res : children) {
+        if (res.getName().equals(name)) {
+          throw new RuntimeException(getClass().getSimpleName()
+              + " already contains child with name " + name);
+        }
+      }
     }
     children.add(child);
     return child;

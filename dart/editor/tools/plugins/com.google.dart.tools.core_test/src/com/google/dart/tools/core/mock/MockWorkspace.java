@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.mock;
 
+import org.eclipse.core.internal.resources.ProjectDescription;
 import org.eclipse.core.resources.IBuildConfiguration;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFilterMatcherDescriptor;
@@ -216,9 +217,12 @@ public class MockWorkspace implements IWorkspace {
     return null;
   }
 
+  @SuppressWarnings("restriction")
   @Override
   public IProjectDescription newProjectDescription(String projectName) {
-    return null;
+    ProjectDescription description = new ProjectDescription();
+    description.setName(projectName);
+    return description;
   }
 
   @Override

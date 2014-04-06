@@ -87,6 +87,13 @@ public class MockProject extends MockContainer implements IProject {
   @Override
   public void create(IProjectDescription description, IProgressMonitor monitor)
       throws CoreException {
+    if (description != null) {
+      IPath location = description.getLocation();
+      if (location != null) {
+        this.location = location;
+      }
+    }
+    ((MockContainer) getParent()).add(this);
   }
 
   @Override

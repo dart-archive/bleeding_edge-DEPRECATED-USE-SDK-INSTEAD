@@ -15,12 +15,9 @@ package com.google.dart.eclipse.wizards;
 
 import com.google.dart.eclipse.DartEclipseUI;
 import com.google.dart.eclipse.ui.internal.DartPerspective;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.internal.resources.ProjectDescription;
-import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResourceStatus;
@@ -54,31 +51,13 @@ import java.lang.reflect.InvocationTargetException;
 @SuppressWarnings("restriction")
 public class ProjectUtils {
 
-  public static void addProjectDescription(IProjectDescription description) {
-    description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
-    ICommand command = description.newCommand();
-    command.setBuilderName(DartCore.DART_BUILDER_ID);
-    description.setBuildSpec(new ICommand[] {command});
-  }
-
   public static IProject createNewProject(String projectName, String projectLocation,
       final IRunnableContext runnableContext, final Shell shell) {
 
     IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-
-    final IProjectDescription description = new ProjectDescription();
-    description.setName(projectName);
-
-    if (projectLocation != null
-        && !projectLocation.startsWith(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString())) {
-      description.setLocation(new Path(projectLocation));
-    }
-
-    addProjectDescription(description);
-
-    String name = description.getName();
-
-    final IProject project = root.getProject(name);
+    final IProjectDescription description = IProjectUtilities.newDartProjectDescription(root,
+        projectName, projectLocation != null ? new Path(projectLocation) : null);
+    final IProject project = root.getProject(description.getName());
 
     // create the new project operation
     IRunnableWithProgress op = new IRunnableWithProgress() {

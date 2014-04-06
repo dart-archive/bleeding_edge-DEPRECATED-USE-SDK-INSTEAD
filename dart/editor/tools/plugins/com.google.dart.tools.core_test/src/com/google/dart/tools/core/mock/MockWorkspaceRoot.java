@@ -31,8 +31,7 @@ public class MockWorkspaceRoot extends MockContainer implements IWorkspaceRoot {
   private final MockWorkspace workspace;
 
   public MockWorkspaceRoot() {
-    super(null, "/");
-    this.workspace = null;
+    this(new MockWorkspace());
   }
 
   public MockWorkspaceRoot(MockWorkspace workspace) {

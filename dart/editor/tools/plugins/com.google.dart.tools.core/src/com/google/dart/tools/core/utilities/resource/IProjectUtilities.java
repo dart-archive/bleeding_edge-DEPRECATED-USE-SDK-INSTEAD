@@ -13,12 +13,17 @@
  */
 package com.google.dart.tools.core.utilities.resource;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.refresh.DartPackagesFolderMatcher;
 
 import org.eclipse.core.resources.FileInfoMatcherDescription;
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResourceFilterDescription;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 /**
@@ -36,6 +41,28 @@ public final class IProjectUtilities {
     project.createFilter(IResourceFilterDescription.EXCLUDE_ALL
         | IResourceFilterDescription.FOLDERS | IResourceFilterDescription.FILES
         | IResourceFilterDescription.INHERITABLE, matcher, 0, new NullProgressMonitor());
+  }
+
+  /**
+   * Answer a description for a new Dart project.
+   * 
+   * @param root the workspace root, not {@code null}
+   * @param projectName the name of the project, not {@code null}
+   * @param projectLocation the location where all project files will be stored, or {@code null} if
+   *          the files should be stored in the default location in the workspace.
+   * @return the project description, not {@code null}
+   */
+  public static IProjectDescription newDartProjectDescription(IWorkspaceRoot root,
+      String projectName, IPath projectLocation) {
+    final IProjectDescription description = root.getWorkspace().newProjectDescription(projectName);
+    if (projectLocation != null && !root.getLocation().isPrefixOf(projectLocation)) {
+      description.setLocation(projectLocation);
+    }
+    description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
+    ICommand command = description.newCommand();
+    command.setBuilderName(DartCore.DART_BUILDER_ID);
+    description.setBuildSpec(new ICommand[] {command});
+    return description;
   }
 
   /**

@@ -13,11 +13,16 @@
  */
 package com.google.dart.tools.core.utilities.resource;
 
+import com.google.dart.tools.core.mock.MockWorkspaceRoot;
+
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.FileInfoMatcherDescription;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -34,5 +39,23 @@ public class IProjectUtilitiesTest extends TestCase {
         any(FileInfoMatcherDescription.class),
         anyInt(),
         any(IProgressMonitor.class));
+  }
+
+  public void test_newProjectDescription() throws Exception {
+    MockWorkspaceRoot root = new MockWorkspaceRoot();
+    IProjectDescription description = IProjectUtilities.newDartProjectDescription(root, "foo", null);
+    assertNotNull(description);
+    assertEquals("foo", description.getName());
+    assertNull(description.getLocation());
+  }
+
+  @SuppressWarnings("deprecation")
+  public void test_newProjectDescription_outsideWorkspace() throws Exception {
+    MockWorkspaceRoot root = new MockWorkspaceRoot();
+    IPath loc = new Path("/some/other/place");
+    IProjectDescription description = IProjectUtilities.newDartProjectDescription(root, "foo", loc);
+    assertNotNull(description);
+    assertEquals("foo", description.getName());
+    assertFalse(root.getLocation().isPrefixOf(description.getLocation()));
   }
 }
