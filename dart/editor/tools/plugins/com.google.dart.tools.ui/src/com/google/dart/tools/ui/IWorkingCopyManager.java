@@ -33,8 +33,6 @@ import org.eclipse.ui.IEditorInput;
  * extension interfaces are used to provide a means of evolution. The following extension interfaces
  * exist:
  * <ul>
- * <li> {@link com.google.dart.tools.ui.IWorkingCopyManagerExtension} since version 2.1 introducing
- * API to set and remove the working copy for a given editor input.</li>
  * </ul>
  * </p>
  * <p>
@@ -46,7 +44,6 @@ import org.eclipse.ui.IEditorInput;
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  * 
  * @see DartUI#getWorkingCopyManager()
- * @see com.google.dart.tools.ui.IWorkingCopyManagerExtension
  */
 public interface IWorkingCopyManager {
 

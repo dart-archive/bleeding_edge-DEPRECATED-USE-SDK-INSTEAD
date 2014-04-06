@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
-import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager_OLD;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 
 import org.eclipse.core.resources.IFile;
@@ -31,12 +30,6 @@ import org.eclipse.ltk.core.refactoring.participants.DeleteParticipant;
  * @coverage dart.editor.ui.refactoring.core
  */
 public class DeleteResourceParticipant extends DeleteParticipant {
-
-  @SuppressWarnings("unused")
-  private final TextChangeManager_OLD changeManager = new TextChangeManager_OLD(true);
-  @SuppressWarnings("unused")
-  private IFile file;
-
   @Override
   public RefactoringStatus checkConditions(IProgressMonitor pm, CheckConditionsContext context)
       throws OperationCanceledException {
@@ -46,14 +39,7 @@ public class DeleteResourceParticipant extends DeleteParticipant {
   @Override
   public Change createChange(final IProgressMonitor pm) throws CoreException,
       OperationCanceledException {
-    // TODO(scheglov) implement for new engine
     return null;
-//    return ExecutionUtils.runObjectCore(new RunnableObjectEx<Change>() {
-//      @Override
-//      public Change runObject() throws Exception {
-//        return createChangeEx(pm);
-//      }
-//    });
   }
 
   @Override
@@ -64,67 +50,8 @@ public class DeleteResourceParticipant extends DeleteParticipant {
   @Override
   protected boolean initialize(Object element) {
     if (element instanceof IFile) {
-      file = (IFile) element;
       return true;
     }
     return false;
   }
-
-//  private void addReferenceRemove(SearchMatch match) throws Exception {
-//    CompilationUnit unit = match.getElement().getAncestor(CompilationUnit.class);
-//    DartUnit unitNode = DartCompilerUtilities.resolveUnit(unit);
-//    for (DartDirective directive : unitNode.getDirectives()) {
-//      SourceRange directiveRange = SourceRangeFactory.create(directive);
-//      if (SourceRangeUtils.intersects(directiveRange, match.getSourceRange())) {
-//        String source = unit.getSource();
-//        int begin = directiveRange.getOffset();
-//        int end = begin + directiveRange.getLength();
-//        // skip trailing spaces
-//        while (end < source.length()) {
-//          char c = source.charAt(end);
-//          if (c != ' ' && c != '\t') {
-//            break;
-//          }
-//          end++;
-//        }
-//        // skip one EOL
-//        if (end < source.length() && source.charAt(end) == '\r') {
-//          end++;
-//        }
-//        if (end < source.length() && source.charAt(end) == '\n') {
-//          end++;
-//        }
-//        // remove directive
-//        TextEdit edit = new ReplaceEdit(begin, end - begin, "");
-//        addTextEdit(unit, RefactoringMessages.DeleteResourceParticipant_remove_reference, edit);
-//      }
-//    }
-//  }
-
-//  private void addTextEdit(CompilationUnit unit, String groupName, TextEdit textEdit) {
-//    if (unit.getResource() != null) {
-//      TextChange change = changeManager.get(unit);
-//      TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
-//    }
-//  }
-
-//  /**
-//   * Implementation of {@link #createChange(IProgressMonitor)} which can throw any exception.
-//   */
-//  private Change createChangeEx(IProgressMonitor pm) throws Exception {
-//    // remove references
-//    SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
-//    List<SearchMatch> references = searchEngine.searchReferences(file, null, null, pm);
-//    for (SearchMatch match : references) {
-//      addReferenceRemove(match);
-//    }
-//    // return as single CompositeChange
-//    TextChange[] changes = changeManager.getAllChanges();
-//    if (changes.length != 0) {
-//      return new CompositeChange(getName(), changes);
-//    } else {
-//      return null;
-//    }
-//  }
-
 }

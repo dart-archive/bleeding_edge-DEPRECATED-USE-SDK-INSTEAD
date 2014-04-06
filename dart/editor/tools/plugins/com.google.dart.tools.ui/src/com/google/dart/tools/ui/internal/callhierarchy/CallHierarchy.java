@@ -24,12 +24,9 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.internal.util.StringMatcher;
 
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -123,34 +120,6 @@ public class CallHierarchy {
     IPreferenceStore settings = DartToolsPlugin.getDefault().getPreferenceStore();
 
     return settings.getString(PREF_FILTERS_LIST);
-  }
-
-  public Collection<DartElement> getImplementingMethods(Method method) {
-    if (isSearchUsingImplementorsEnabled()) {
-      DartElement[] result = Implementors.getInstance().searchForImplementors(
-          new DartElement[] {method},
-          new NullProgressMonitor());
-
-      if ((result != null) && (result.length > 0)) {
-        return Arrays.asList(result);
-      }
-    }
-
-    return new ArrayList<DartElement>(0);
-  }
-
-  public Collection<DartElement> getInterfaceMethods(Method method) {
-    if (isSearchUsingImplementorsEnabled()) {
-      DartElement[] result = Implementors.getInstance().searchForInterfaces(
-          new DartElement[] {method},
-          new NullProgressMonitor());
-
-      if ((result != null) && (result.length > 0)) {
-        return Arrays.asList(result);
-      }
-    }
-
-    return new ArrayList<DartElement>(0);
   }
 
   public SearchScope getSearchScope() {

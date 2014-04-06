@@ -15,21 +15,19 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.IWorkingCopyManager;
-import com.google.dart.tools.ui.IWorkingCopyManagerExtension;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IEditorInput;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * This working copy manager works together with a given compilation unit document provider and
  * additionally offers to "overwrite" the working copy provided by this document provider.
  */
-public class WorkingCopyManager implements IWorkingCopyManager, IWorkingCopyManagerExtension {
+public class WorkingCopyManager implements IWorkingCopyManager {
 
   private final ICompilationUnitDocumentProvider fDocumentProvider;
   private Map<IEditorInput, CompilationUnit> fMap;
@@ -83,24 +81,6 @@ public class WorkingCopyManager implements IWorkingCopyManager, IWorkingCopyMana
     }
 
     return null;
-  }
-
-  @Override
-  public void removeWorkingCopy(IEditorInput input) {
-    fMap.remove(input);
-    if (fMap.isEmpty()) {
-      fMap = null;
-    }
-  }
-
-  @Override
-  public void setWorkingCopy(IEditorInput input, CompilationUnit workingCopy) {
-    if (fDocumentProvider.getDocument(input) != null) {
-      if (fMap == null) {
-        fMap = new HashMap<IEditorInput, CompilationUnit>();
-      }
-      fMap.put(input, workingCopy);
-    }
   }
 
   @Override
