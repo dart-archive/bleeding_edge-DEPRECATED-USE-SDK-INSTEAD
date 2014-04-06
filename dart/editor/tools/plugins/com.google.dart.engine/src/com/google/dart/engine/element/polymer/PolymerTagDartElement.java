@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.element.polymer;
 
+import com.google.dart.engine.element.ClassElement;
+
 /**
  * The interface {@code PolymerTagDartElement} defines a Polymer custom tag in Dart.
  * 
@@ -23,6 +25,13 @@ package com.google.dart.engine.element.polymer;
  * @coverage dart.engine.element
  */
 public interface PolymerTagDartElement extends PolymerElement {
+  /**
+   * Return the {@link ClassElement} that is associated with this Polymer custom tag. Not
+   * {@code null}, because {@link PolymerTagDartElement}s are created for {@link ClassElement}s
+   * marked with the {@code @CustomTag} annotation.
+   */
+  ClassElement getClassElement();
+
   /**
    * Return the {@link PolymerTagHtmlElement} part of this Polymer custom tag. Maybe {@code null} if
    * it has not been resolved yet or there are no corresponding Dart part defined.

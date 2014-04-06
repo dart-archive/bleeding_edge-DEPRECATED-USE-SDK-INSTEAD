@@ -17,7 +17,14 @@ package com.google.dart.engine.error;
  * The enumeration {@code PolymerCode} defines Polymer specific problems.
  */
 public enum PolymerCode implements ErrorCode {
-  INVALID_ATTRIBUTE("Invalid attribute name '%s'");
+  ATTRIBUTE_FIELD_NOT_PUBLISHED("Field '%s' in '%s' must be @published"),
+  DUPLICATE_ATTRIBUTE_DEFINITION("The attribute '%s' is already defined"),
+  EMPTY_ATTRIBUTES("Empty 'attributes' attribute is useless"),
+  INVALID_ATTRIBUTE_NAME("'%s' is not a valid name for a custom element attribute"),
+  INVALID_TAG_NAME("'%s' is not a valid name for a custom element"),
+  MISSING_TAG_NAME(
+      "Missing tag name of the custom element. Please include an attribute like name='your-tag-name'"),
+  UNDEFINED_ATTRIBUTE_FIELD("There is no such field '%s' in '%s'");
 
   /**
    * The template used to create the message to be displayed for this error.

@@ -50,11 +50,11 @@ public class HtmlEntryImplTest extends EngineTestCase {
         "-")});
     entry.setValue(HtmlEntry.POLYMER_BUILD_ERRORS, new AnalysisError[] {new AnalysisError(
         source,
-        PolymerCode.INVALID_ATTRIBUTE,
+        PolymerCode.INVALID_ATTRIBUTE_NAME,
         "-")});
     entry.setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, new AnalysisError[] {new AnalysisError(
         source,
-        PolymerCode.INVALID_ATTRIBUTE,
+        PolymerCode.INVALID_ATTRIBUTE_NAME,
         "-")});
     entry.setValue(HtmlEntry.HINTS, new AnalysisError[] {new AnalysisError(
         source,
@@ -170,14 +170,14 @@ public class HtmlEntryImplTest extends EngineTestCase {
   public void test_setValue_polymerBuildErrors() {
     setValue(HtmlEntry.POLYMER_BUILD_ERRORS, new AnalysisError[] {new AnalysisError(
         null,
-        PolymerCode.INVALID_ATTRIBUTE,
+        PolymerCode.INVALID_ATTRIBUTE_NAME,
         "-")});
   }
 
   public void test_setValue_polymerResolutionErrors() {
     setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, new AnalysisError[] {new AnalysisError(
         null,
-        PolymerCode.INVALID_ATTRIBUTE,
+        PolymerCode.INVALID_ATTRIBUTE_NAME,
         "-")});
   }
 

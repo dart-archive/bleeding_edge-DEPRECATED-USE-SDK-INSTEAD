@@ -132,7 +132,10 @@ public class PolymerCompilationUnitBuilder {
         SimpleStringLiteral nameLiteral = (SimpleStringLiteral) nameExpression;
         String name = nameLiteral.getValue();
         int nameOffset = nameLiteral.getValueOffset();
-        PolymerTagDartElementImpl element = new PolymerTagDartElementImpl(name, nameOffset);
+        PolymerTagDartElementImpl element = new PolymerTagDartElementImpl(
+            name,
+            nameOffset,
+            classElement);
         classElement.addToolkitObjects(element);
         nameLiteral.setToolkitElement(element);
       }

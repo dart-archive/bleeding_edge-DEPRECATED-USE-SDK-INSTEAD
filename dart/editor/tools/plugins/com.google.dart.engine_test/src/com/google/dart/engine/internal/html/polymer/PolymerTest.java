@@ -16,13 +16,20 @@ package com.google.dart.engine.internal.html.polymer;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextHelper;
+import com.google.dart.engine.context.AnalysisErrorInfo;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.polymer.PolymerTagDartElement;
 import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.source.Source;
+
+import junit.framework.AssertionFailedError;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -57,6 +64,39 @@ abstract public class PolymerTest extends EngineTestCase {
   protected final void addTagHtmlSource(String contents) {
     tagHtmlContents = contents;
     tagHtmlSource = contextHelper.addSource("/my-element.html", contents);
+  }
+
+  /**
+   * Assert that the number of errors reported against the given source matches the number of errors
+   * that are given and that they have the expected error codes. The order in which the errors were
+   * gathered is ignored.
+   * 
+   * @param source the source against which the errors should have been reported
+   * @param expectedErrorCodes the error codes of the errors that should have been reported
+   * @throws AnalysisException if the reported errors could not be computed
+   * @throws AssertionFailedError if a different number of errors have been reported than were
+   *           expected
+   */
+  protected final void assertErrors(Source source, ErrorCode... expectedErrorCodes) {
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    AnalysisErrorInfo errorsInfo = context.getErrors(source);
+    for (AnalysisError error : errorsInfo.getErrors()) {
+      errorListener.onError(error);
+    }
+    errorListener.assertErrorsWithCodes(expectedErrorCodes);
+  }
+
+  protected final void assertNoErrorsTag() {
+    assertNoErrorsTagDart();
+    assertNoErrorsTagHtml();
+  }
+
+  protected final void assertNoErrorsTagDart() {
+    assertErrors(tagDartSource);
+  }
+
+  protected final void assertNoErrorsTagHtml() {
+    assertErrors(tagHtmlSource);
   }
 
   /**
@@ -115,6 +155,16 @@ abstract public class PolymerTest extends EngineTestCase {
             "  final String tagName;",
             "  const CustomTag(this.tagName);",
             "}",
+            "",
+            "class ObservableProperty {",
+            "  const ObservableProperty();",
+            "}",
+            "const ObservableProperty observable = const ObservableProperty();",
+            "",
+            "class PublishedProperty extends ObservableProperty {",
+            "  const PublishedProperty();",
+            "}",
+            "const published = const PublishedProperty();",
             ""));
   }
 }

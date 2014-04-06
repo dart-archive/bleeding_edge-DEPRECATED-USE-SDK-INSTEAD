@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.internal.element.polymer;
 
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.polymer.PolymerTagDartElement;
@@ -25,6 +26,11 @@ import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
  * @coverage dart.engine.element
  */
 public class PolymerTagDartElementImpl extends PolymerElementImpl implements PolymerTagDartElement {
+  /**
+   * The {@link ClassElement} that is associated with this Polymer custom tag.
+   */
+  private final ClassElement classElement;
+
   /**
    * The {@link PolymerTagHtmlElement} part of this Polymer custom tag. Maybe {@code null} if it has
    * not been resolved yet or there are no corresponding Dart part defined.
@@ -38,14 +44,20 @@ public class PolymerTagDartElementImpl extends PolymerElementImpl implements Pol
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  public PolymerTagDartElementImpl(String name, int nameOffset) {
+  public PolymerTagDartElementImpl(String name, int nameOffset, ClassElement classElement) {
     super(name, nameOffset);
+    this.classElement = classElement;
     // TODO(scheglov) why do we resolve Dart library when HTML is saved?
   }
 
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
     return visitor.visitPolymerTagDartElement(this);
+  }
+
+  @Override
+  public ClassElement getClassElement() {
+    return classElement;
   }
 
   @Override
