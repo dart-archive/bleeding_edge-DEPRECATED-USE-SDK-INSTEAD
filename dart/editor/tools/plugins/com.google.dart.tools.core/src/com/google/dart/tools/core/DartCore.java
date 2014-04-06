@@ -1171,7 +1171,7 @@ public class DartCore extends Plugin implements DartSdkListener {
       }
     }
 
-    instrumentationLogErrorImpl(message, exception);
+    instrumentationLogInfoImpl(message, exception);
   }
 
   /**
@@ -1356,25 +1356,47 @@ public class DartCore extends Plugin implements DartSdkListener {
     }
   }
 
+  /**
+   * Record an error
+   */
   private static void instrumentationLogErrorImpl(String message, Throwable exception) {
-    if (instrumentationLogErrorEnabled) {
+    instrumentationLogImpl(message, exception, "LogError");
+  }
 
-      InstrumentationBuilder instrumentation = Instrumentation.builder("DartCore.LogError");
+  /**
+   * Internal instrumentation message delivery implementation
+   * 
+   * @param message optional message to be delivered
+   * @param exception optional exception to be delivered
+   * @param messageType message type, common values LogError/LogMessage
+   */
+  private static void instrumentationLogImpl(String message, Throwable exception, String messageType) {
+    if (instrumentationLogErrorEnabled) {
+      InstrumentationBuilder instrumentation = Instrumentation.builder("DartCore." + messageType);
       try {
         instrumentation.data("Log_Message", message != null ? message : "null");
         instrumentation.data("Log_Exception", exception != null ? exception.toString() : "null");
-
         if (exception != null) {
           instrumentation.record(exception);
         }
-
       } catch (Exception e) {
         instrumentationLogErrorEnabled = false;
         logErrorImpl("Instrumentation failed to log error", exception);
       } finally {
         instrumentation.log();
       }
+
     }
+
+  }
+
+  /**
+   * Record an 'informational exception'
+   */
+  private static void instrumentationLogInfoImpl(String message, Throwable exception) {
+
+    instrumentationLogImpl(message, exception, "LogInfo");
+
   }
 
   /**
