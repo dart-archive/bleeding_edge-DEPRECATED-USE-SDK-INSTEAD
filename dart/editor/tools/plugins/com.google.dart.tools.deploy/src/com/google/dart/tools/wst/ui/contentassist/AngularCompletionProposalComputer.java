@@ -22,7 +22,6 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.deploy.Activator;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -84,8 +83,6 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
   private ITextViewer viewer;
   private IStructuredDocument document;
   private int offset;
-  private AnalysisContext analysisContext;
-  private Source source;
   private HtmlUnit htmlUnit;
   private HtmlElement htmlElement;
   private AngularApplication application;
@@ -404,14 +401,8 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
     return offset > tagRegion.getStartOffset() + textRegion.getTextEnd();
   }
 
-  private boolean isSourceResolvedAsAngular() {
-    return analysisContext.getAngularApplicationWithHtml(source) != null;
-  }
-
   private void prepareResolution() {
     HtmlReconcilerHook reconciler = HtmlReconcilerManager.getInstance().reconcilerFor(document);
-    analysisContext = reconciler.getContext();
-    source = reconciler.getSource();
     htmlUnit = reconciler.getResolvedUnit();
     application = reconciler.getApplication();
     if (htmlUnit != null) {
@@ -423,10 +414,8 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
     long start = System.currentTimeMillis();
     while (System.currentTimeMillis() - start < 300) {
       prepareResolution();
-      if (htmlUnit != null && htmlElement != null) {
-        if (isSourceResolvedAsAngular()) {
-          return true;
-        }
+      if (htmlUnit != null && htmlElement != null && application != null) {
+        return true;
       }
       Thread.yield();
     }
