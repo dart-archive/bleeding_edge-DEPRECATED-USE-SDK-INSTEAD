@@ -496,9 +496,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     try {
       isInNativeClass = node.getNativeClause() != null;
       enclosingClass = node.getElement();
-      WithClause withClause = node.getWithClause();
-      ImplementsClause implementsClause = node.getImplementsClause();
       ExtendsClause extendsClause = node.getExtendsClause();
+      ImplementsClause implementsClause = node.getImplementsClause();
+      WithClause withClause = node.getWithClause();
       checkForBuiltInIdentifierAsName(
           node.getName(),
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
@@ -512,7 +512,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         if (!checkForImplementsDisallowedClass(implementsClause)
             && !checkForExtendsDisallowedClass(extendsClause)
             && !checkForAllMixinErrorCodes(withClause)) {
-          checkForNonAbstractClassInheritsAbstractMember(node);
+          checkForNonAbstractClassInheritsAbstractMember(node.getName());
           checkForInconsistentMethodInheritance();
           checkForRecursiveInterfaceInheritance(enclosingClass);
           checkForConflictingGetterAndMethod();
@@ -549,14 +549,19 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     checkForBuiltInIdentifierAsName(
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-    checkForExtendsDisallowedClassInTypeAlias(node);
-    checkForImplementsDisallowedClass(node.getImplementsClause());
-    checkForAllMixinErrorCodes(node.getWithClause());
+
     ClassElement outerClassElement = enclosingClass;
     try {
       enclosingClass = node.getElement();
-      checkForRecursiveInterfaceInheritance(node.getElement());
-      checkForTypeAliasCannotReferenceItself_mixin(node);
+      // Only check for all of the inheritance logic around clauses if there isn't an error code
+      // such as "Cannot extend double" already on the class.
+      if (!checkForExtendsDisallowedClassInTypeAlias(node)
+          && !checkForImplementsDisallowedClass(node.getImplementsClause())
+          && !checkForAllMixinErrorCodes(node.getWithClause())) {
+        checkForRecursiveInterfaceInheritance(node.getElement());
+        checkForTypeAliasCannotReferenceItself_mixin(node);
+        checkForNonAbstractClassInheritsAbstractMember(node.getName());
+      }
     } finally {
       enclosingClass = outerClassElement;
     }
@@ -4246,7 +4251,8 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * This checks that passed class declaration overrides all members required by its superclasses
    * and interfaces.
    * 
-   * @param node the {@link ClassDeclaration} to evaluate
+   * @param classNameNode the {@link SimpleIdentifier} to be used if there is a violation, this is
+   *          either the named from the {@link ClassDeclaration} or from the {@link ClassTypeAlias}.
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
    * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO
@@ -4254,7 +4260,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR
    * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS
    */
-  private boolean checkForNonAbstractClassInheritsAbstractMember(ClassDeclaration node) {
+  private boolean checkForNonAbstractClassInheritsAbstractMember(SimpleIdentifier classNameNode) {
     if (enclosingClass.isAbstract()) {
       return false;
     }
@@ -4263,8 +4269,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     // Store in local sets the set of all method and accessor names
     //
     MethodElement[] methods = enclosingClass.getMethods();
-    PropertyAccessorElement[] accessors = enclosingClass.getAccessors();
-    HashSet<String> methodsInEnclosingClass = new HashSet<String>();
     for (MethodElement method : methods) {
       String methodName = method.getName();
       // If the enclosing class declares the method noSuchMethod(), then return.
@@ -4274,11 +4278,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       if (methodName.equals(ElementResolver.NO_SUCH_METHOD_METHOD_NAME)) {
         return false;
       }
-      methodsInEnclosingClass.add(methodName);
-    }
-    HashSet<String> accessorsInEnclosingClass = new HashSet<String>();
-    for (PropertyAccessorElement accessor : accessors) {
-      accessorsInEnclosingClass.add(accessor.getName());
     }
 
     HashSet<ExecutableElement> missingOverrides = new HashSet<ExecutableElement>();
@@ -4384,25 +4383,25 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (stringMembersArray.length == 1) {
       analysisError = errorReporter.newErrorWithProperties(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          node.getName(),
+          classNameNode,
           stringMembersArray[0]);
     } else if (stringMembersArray.length == 2) {
       analysisError = errorReporter.newErrorWithProperties(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
-          node.getName(),
+          classNameNode,
           stringMembersArray[0],
           stringMembersArray[1]);
     } else if (stringMembersArray.length == 3) {
       analysisError = errorReporter.newErrorWithProperties(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
-          node.getName(),
+          classNameNode,
           stringMembersArray[0],
           stringMembersArray[1],
           stringMembersArray[2]);
     } else if (stringMembersArray.length == 4) {
       analysisError = errorReporter.newErrorWithProperties(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
-          node.getName(),
+          classNameNode,
           stringMembersArray[0],
           stringMembersArray[1],
           stringMembersArray[2],
@@ -4410,7 +4409,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     } else {
       analysisError = errorReporter.newErrorWithProperties(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
-          node.getName(),
+          classNameNode,
           stringMembersArray[0],
           stringMembersArray[1],
           stringMembersArray[2],
@@ -5676,7 +5675,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   /**
    * Return {@code true} iff the passed {@link ClassElement} has a method, getter or setter that
    * matches the name of the passed {@link ExecutableElement} in either the class itself, or one of
-   * its' mixins.
+   * its' mixins that is concrete.
    * <p>
    * By "match", only the name of the member is tested to match, it does not have to equal or be a
    * subtype of the passed executable element, this is due to the specific use where this method is
@@ -5691,14 +5690,14 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     String executableName = executableElt.getName();
     if (executableElt instanceof MethodElement) {
       foundElt = classElt.getMethod(executableName);
-      if (foundElt != null) {
+      if (foundElt != null && !((MethodElement) foundElt).isAbstract()) {
         return true;
       }
       InterfaceType[] mixins = classElt.getMixins();
       for (int i = 0; i < mixins.length && foundElt == null; i++) {
         foundElt = mixins[i].getMethod(executableName);
       }
-      if (foundElt != null) {
+      if (foundElt != null && !((MethodElement) foundElt).isAbstract()) {
         return true;
       }
     } else if (executableElt instanceof PropertyAccessorElement) {
@@ -5709,7 +5708,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       if (foundElt == null && propertyAccessorElement.isSetter()) {
         foundElt = classElt.getSetter(executableName);
       }
-      if (foundElt != null) {
+      if (foundElt != null && !((PropertyAccessorElement) foundElt).isAbstract()) {
         return true;
       }
       InterfaceType[] mixins = classElt.getMixins();
@@ -5719,7 +5718,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           foundElt = mixins[i].getSetter(executableName);
         }
       }
-      if (foundElt != null) {
+      if (foundElt != null && !((PropertyAccessorElement) foundElt).isAbstract()) {
         return true;
       }
     }

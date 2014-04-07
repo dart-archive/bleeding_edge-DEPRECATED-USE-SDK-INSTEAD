@@ -358,6 +358,7 @@ public class TestTypeProvider implements TypeProvider {
     //
     // Force the referenced types to be cached.
     //
+    getObjectType();
     getBoolType();
     getStringType();
     //

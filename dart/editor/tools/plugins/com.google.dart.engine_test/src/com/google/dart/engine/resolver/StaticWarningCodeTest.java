@@ -2033,6 +2033,49 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface()
+      throws Exception {
+    // 15979
+    Source source = addSource(createSource(//
+        "abstract class M {}",
+        "abstract class A {}",
+        "abstract class I {",
+        "  m();",
+        "}",
+        "class B = A with M implements I;"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_mixin()
+      throws Exception {
+    // 15979
+    Source source = addSource(createSource(//
+        "abstract class M {",
+        "  m();",
+        "}",
+        "abstract class A {}",
+        "class B = A with M;"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass()
+      throws Exception {
+    // 15979
+    Source source = addSource(createSource(//
+        "class M {}",
+        "abstract class A {",
+        "  m();",
+        "}",
+        "class B = A with M;"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
   public void test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation()
       throws Exception {
     // 15028
