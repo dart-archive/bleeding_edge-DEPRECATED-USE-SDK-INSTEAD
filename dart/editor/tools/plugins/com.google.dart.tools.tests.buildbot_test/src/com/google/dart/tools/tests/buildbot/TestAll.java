@@ -14,8 +14,8 @@
 
 package com.google.dart.tools.tests.buildbot;
 
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import junit.framework.Test;
@@ -60,7 +60,7 @@ public class TestAll {
 
   private static void initSdk() {
     if (DartSdkManager.getManager().hasSdk()) {
-      DartSdk sdk = DartSdkManager.getManager().getSdk();
+      DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
 
       System.setProperty("com.google.dart.sdk", sdk.getDirectory().toString());
     }

@@ -26,7 +26,7 @@ public class DartSdkManagerTest extends TestCase {
   }
 
   public void test_noSdk() {
-    DirectoryBasedDartSdk sdk = DartSdkManager.NO_SDK;
+    DirectoryBasedDartSdk sdk = DartSdkManager.NONE;
     assertEquals(0, sdk.getUris().length);
     assertEquals(0, sdk.getSdkLibraries().length);
     assertNull(sdk.getSdkLibrary("dart:core"));

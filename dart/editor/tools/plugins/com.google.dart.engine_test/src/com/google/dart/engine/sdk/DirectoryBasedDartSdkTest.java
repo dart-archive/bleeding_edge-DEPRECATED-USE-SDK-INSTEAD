@@ -44,6 +44,22 @@ public class DirectoryBasedDartSdkTest extends TestCase {
 //    assertTrue(directory.exists());
 //  }
 
+  public void test_getDart2JsExecutable() {
+    DirectoryBasedDartSdk sdk = createDartSdk();
+    File executable = sdk.getDart2JsExecutable();
+    assertNotNull(executable);
+    assertTrue(executable.exists());
+    assertTrue(executable.canExecute());
+  }
+
+  public void test_getDartFmtExecutable() {
+    DirectoryBasedDartSdk sdk = createDartSdk();
+    File executable = sdk.getDartFmtExecutable();
+    assertNotNull(executable);
+    assertTrue(executable.exists());
+    assertTrue(executable.canExecute());
+  }
+
   public void test_getDirectory() {
     DirectoryBasedDartSdk sdk = createDartSdk();
     File directory = sdk.getDirectory();
@@ -62,6 +78,14 @@ public class DirectoryBasedDartSdkTest extends TestCase {
     File directory = sdk.getLibraryDirectory();
     assertNotNull(directory);
     assertTrue(directory.exists());
+  }
+
+  public void test_getPubExecutable() {
+    DirectoryBasedDartSdk sdk = createDartSdk();
+    File executable = sdk.getPubExecutable();
+    assertNotNull(executable);
+    assertTrue(executable.exists());
+    assertTrue(executable.canExecute());
   }
 
   public void test_getSdkVersion() {

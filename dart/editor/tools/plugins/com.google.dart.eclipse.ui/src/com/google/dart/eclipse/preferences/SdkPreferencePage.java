@@ -15,7 +15,7 @@
 package com.google.dart.eclipse.preferences;
 
 import com.google.dart.eclipse.core.jobs.DartSdkUpgradeJob;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.model.DartSdkListener;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
@@ -67,7 +67,7 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
   }
 
   @Override
-  public void sdkUpdated(DartSdk sdk) {
+  public void sdkUpdated(DirectoryBasedDartSdk sdk) {
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
@@ -149,7 +149,7 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
   protected void updateSDKInfo() {
 
     //TODO (pquitslund): update to use "new" SDK object
-    DartSdk sdk = DartSdkManager.getManager().getSdk();
+    DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
 
     if (sdk == null || sdk.getDirectory() == null) {
       sdkInstallLocationLabel.setText("");
@@ -168,7 +168,7 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
     File dartiumDir = null;
     File dartiumFile = null;
 
-    DartSdk sdk = DartSdkManager.getManager().getSdk();
+    DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
 
     if (sdk != null) {
       dartiumDir = sdk.getDartiumWorkingDirectory();

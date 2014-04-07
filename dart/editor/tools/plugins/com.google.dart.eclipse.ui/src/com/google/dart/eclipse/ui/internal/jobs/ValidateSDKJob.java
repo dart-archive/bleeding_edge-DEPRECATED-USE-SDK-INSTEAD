@@ -13,7 +13,7 @@
  */
 package com.google.dart.eclipse.ui.internal.jobs;
 
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -38,7 +38,7 @@ public class ValidateSDKJob extends Job {
   @Override
   protected IStatus run(IProgressMonitor monitor) {
 
-    DartSdk sdk = DartSdkManager.getManager().getSdk();
+    DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
 
     if (sdk == null) {
       handeMissingSDK();
@@ -61,8 +61,7 @@ public class ValidateSDKJob extends Job {
       public void run() {
         //TODO(pquitslund): add correct SDK download link
         //TODO(pquitslund): migrate to a control that supports hyperlinks/selectable text
-        MessageDialog.openWarning(
-            PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+        MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
             UIJobMessages.ValidateSDKJob_missing_sdk_popup_title,
             NLS.bind(UIJobMessages.ValidateSDKJob_missing_sdk_desc, getEclipseHome()));
       }

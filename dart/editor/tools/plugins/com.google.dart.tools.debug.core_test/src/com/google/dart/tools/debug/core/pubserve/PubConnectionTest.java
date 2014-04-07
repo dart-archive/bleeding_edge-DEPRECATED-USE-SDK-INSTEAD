@@ -14,8 +14,8 @@
 
 package com.google.dart.tools.debug.core.pubserve;
 
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.generator.WebAppSample;
-import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.test.util.PlainTestProject;
 import com.google.dart.tools.core.utilities.net.NetUtils;
@@ -183,7 +183,7 @@ public class PubConnectionTest extends TestCase {
   }
 
   private List<String> buildPubServeCommand() {
-    DartSdk sdk = DartSdkManager.getManager().getSdk();
+    DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
     File pubFile = sdk.getPubExecutable();
     List<String> args = new ArrayList<String>();
     args.add(pubFile.getAbsolutePath());

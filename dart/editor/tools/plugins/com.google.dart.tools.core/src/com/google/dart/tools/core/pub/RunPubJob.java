@@ -1,10 +1,10 @@
 package com.google.dart.tools.core.pub;
 
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
-import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IContainer;
@@ -122,7 +122,7 @@ public class RunPubJob extends Job {
     ProcessRunner runner = null;
     try {
       // Build the process description to run pub
-      DartSdk sdk = DartSdkManager.getManager().getSdk();
+      DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
       File pubFile = sdk.getPubExecutable();
 
       ProcessBuilder builder = new ProcessBuilder();

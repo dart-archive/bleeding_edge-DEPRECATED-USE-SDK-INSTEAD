@@ -291,7 +291,7 @@ public class InstallUpdateAction extends Action {
 
     terminateRunningDartLaunches();
 
-    File dartium = DartSdkManager.getManager().getSdk().getDartiumDir(installTarget);
+    File dartium = DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory(installTarget);
     try {
       UpdateUtils.delete(dartium, mon.newChild(2));
     } catch (Throwable th) {

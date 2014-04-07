@@ -73,7 +73,7 @@ public class DartSdkManager {
   /**
    * A special instance of {@link com.google.dart.engine.sdk.DartSdk} representing missing SDK.
    */
-  public static final DirectoryBasedDartSdk NO_SDK = new DirectoryBasedDartSdk(new File(
+  public static final DirectoryBasedDartSdk NONE = new DirectoryBasedDartSdk(new File(
       getEclipseInstallationDirectory(),
       "no-dart-sdk")) {
     @Override
@@ -83,16 +83,6 @@ public class DartSdkManager {
   };
 
   private static final String SDK_DIR_NAME = "dart-sdk";
-
-  /**
-   * A special Dart SDK instance signifying that no SDK is installed.
-   */
-  private static DartSdk NONE = new DartSdk(null) {
-    @Override
-    public File getDirectory() {
-      return null;
-    }
-  };
 
   private static DartSdkManager manager = new DartSdkManager();
 
@@ -150,10 +140,7 @@ public class DartSdkManager {
     return null;
   }
 
-  private DartSdk oldSdk;
-
-  // To replace the oldSdk
-  private DirectoryBasedDartSdk newSdk;
+  private DirectoryBasedDartSdk sdk;
 
   private List<DartSdkListener> listeners = new ArrayList<DartSdkListener>();
 
@@ -165,25 +152,8 @@ public class DartSdkManager {
     listeners.add(lisener);
   }
 
-  /**
-   * Get a handle on the "new" SDK.
-   * <p>
-   * This will eventually replace {@link #getSdk()}.
-   */
-  public com.google.dart.engine.sdk.DartSdk getNewSdk() {
-    if (newSdk == null) {
-      File sdkDir = getSdk().getDirectory();
-      if (sdkDir == null) {
-        newSdk = NO_SDK;
-      } else {
-        newSdk = new DirectoryBasedDartSdk(sdkDir);
-      }
-    }
-    return newSdk;
-  }
-
-  public DartSdk getSdk() {
-    return oldSdk;
+  public DirectoryBasedDartSdk getSdk() {
+    return sdk;
   }
 
   public boolean hasSdk() {
@@ -374,14 +344,19 @@ public class DartSdkManager {
           + " but does not exist: " + sdkDir);
       sdkDir = null;
     }
+    if (sdkDir == null) {
+      sdkDir = getDefaultPluginsSdkDirectory();
+      if (!sdkDir.exists()) {
+        sdkDir = getDefaultEditorSdkDirectory();
+        if (!sdkDir.exists()) {
+          sdkDir = null;
+        }
+      }
+    }
     if (sdkDir != null) {
-      oldSdk = new DartSdk(sdkDir);
-    } else if (getDefaultPluginsSdkDirectory().exists()) {
-      oldSdk = new DartSdk(getDefaultPluginsSdkDirectory());
-    } else if (getDefaultEditorSdkDirectory().exists()) {
-      oldSdk = new DartSdk(getDefaultEditorSdkDirectory());
+      sdk = new DirectoryBasedDartSdk(sdkDir);
     } else {
-      oldSdk = NONE;
+      sdk = NONE;
     }
   }
 
@@ -455,11 +430,7 @@ public class DartSdkManager {
       unzipNewSDK(newSdk, mon.newChild(10));
 
       // swap out the new sdk for the old
-      if (oldSdk != null) {
-        oldSdk.dispose();
-        oldSdk = null;
-      }
-
+      this.sdk = null;
       initSdk();
 
       // send upgrade notifications

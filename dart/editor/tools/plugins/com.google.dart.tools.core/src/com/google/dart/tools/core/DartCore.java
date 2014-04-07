@@ -15,6 +15,7 @@ package com.google.dart.tools.core;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
@@ -36,7 +37,6 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkListener;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
@@ -639,7 +639,7 @@ public class DartCore extends Plugin implements DartSdkListener {
       if (projectManager == null) {
         projectManager = new ProjectManagerImpl(
             ResourcesPlugin.getWorkspace().getRoot(),
-            DartSdkManager.getManager().getNewSdk(),
+            DartSdkManager.getManager().getSdk(),
             DartIgnoreManager.getInstance());
       }
     }
@@ -1550,7 +1550,7 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   @Override
-  public void sdkUpdated(DartSdk sdk) {
+  public void sdkUpdated(DirectoryBasedDartSdk sdk) {
     Job job = new CleanLibrariesJob();
 
     job.schedule();

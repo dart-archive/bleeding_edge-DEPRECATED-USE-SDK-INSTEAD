@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.core.pub;
 
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
-import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -69,7 +69,7 @@ public class RunPubCacheListJob extends Job {
   }
 
   protected List<String> buildCacheListCommand() {
-    DartSdk sdk = DartSdkManager.getManager().getSdk();
+    DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
     File pubFile = sdk.getPubExecutable();
     List<String> args = new ArrayList<String>();
     args.add(pubFile.getAbsolutePath());

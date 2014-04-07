@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.builder.AbstractBuildVisitor;
 import com.google.dart.tools.core.builder.BuildEvent;
@@ -23,7 +24,6 @@ import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.CleanEvent;
 import com.google.dart.tools.core.builder.CleanVisitor;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
-import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.pub.IPackageRootProvider;
 import com.google.dart.tools.core.snapshot.SnapshotCompilationServer;
@@ -319,7 +319,7 @@ public class BuildDartParticipant implements BuildParticipant {
 
     //TODO (danrubel): Older build.dart may rely on DART_SDK env var... so leave for now
     Map<String, String> env = builder.environment();
-    DartSdk sdk = DartSdkManager.getManager().getSdk();
+    DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
     env.put("DART_SDK", sdk.getDirectory().getAbsolutePath());
 
     builder.command(args);

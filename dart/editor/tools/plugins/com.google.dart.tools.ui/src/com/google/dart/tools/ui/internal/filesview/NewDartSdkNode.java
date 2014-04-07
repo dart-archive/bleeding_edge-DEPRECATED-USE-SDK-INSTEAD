@@ -106,7 +106,7 @@ class NewDartSdkNode extends DartSdkNode {
       if (!DartSdkManager.getManager().hasSdk()) {
         libFile = null;
       } else {
-        SdkLibrary[] systemLibraries = DartSdkManager.getManager().getNewSdk().getSdkLibraries();
+        SdkLibrary[] systemLibraries = DartSdkManager.getManager().getSdk().getSdkLibraries();
         //TODO (pquitslund): fix how we're getting the SDK directory
         File sdkDirectory = DartSdkManager.getManager().getSdk().getDirectory();
         IFileSystem fileSystem = EFS.getLocalFileSystem();

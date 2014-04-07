@@ -13,6 +13,9 @@
  */
 package com.google.dart.engine.utilities.io;
 
+import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.utilities.logging.Logger;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -25,6 +28,28 @@ import java.io.Reader;
  * @coverage dart.engine.utilities
  */
 public final class FileUtilities {
+
+  /**
+   * Ensure that the given file exists and is executable. If it exists but is not executable, then
+   * make it executable and log that it was necessary for us to do so.
+   * 
+   * @return {@code true} if the file exists and is executable, else {@code false}.
+   */
+  public static boolean ensureExecutable(File file) {
+    if (file == null || !file.exists()) {
+      return false;
+    }
+    if (!file.canExecute()) {
+      Logger logger = AnalysisEngine.getInstance().getLogger();
+      if (!makeExecutable(file)) {
+        logger.logError(file + " cannot be made executable");
+        return false;
+      }
+      logger.logError(file + " was not executable");
+    }
+    return true;
+  }
+
   /**
    * Return the contents of the given file, interpreted as a string.
    * 

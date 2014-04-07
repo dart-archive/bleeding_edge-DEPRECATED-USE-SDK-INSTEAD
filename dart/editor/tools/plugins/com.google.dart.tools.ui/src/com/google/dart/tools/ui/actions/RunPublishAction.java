@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
-import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.pub.PubMessages;
 import com.google.dart.tools.core.pub.RunPubJob;
@@ -162,7 +162,7 @@ public class RunPublishAction extends RunPubAction {
   }
 
   private List<String> buildPublishCommand(String arg) {
-    DartSdk sdk = DartSdkManager.getManager().getSdk();
+    DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
     File pubFile = sdk.getPubExecutable();
     List<String> args = new ArrayList<String>();
     args.add(pubFile.getAbsolutePath());

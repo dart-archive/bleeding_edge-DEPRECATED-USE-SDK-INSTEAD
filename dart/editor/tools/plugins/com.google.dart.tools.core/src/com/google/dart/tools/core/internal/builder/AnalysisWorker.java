@@ -353,7 +353,7 @@ public class AnalysisWorker {
       }
       sdk = context.getSourceFactory().getDartSdk();
     }
-    boolean hasSdk = sdk != DartSdkManager.NO_SDK;
+    boolean hasSdk = sdk != DartSdkManager.NONE;
     markerManager.queueHasDartSdk(contextManager.getResource(), hasSdk);
     if (!hasSdk) {
       return;

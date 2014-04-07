@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.core.model;
 
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+
 /**
  * An interface to listen for SDK changes.
  * 
@@ -22,6 +24,6 @@ package com.google.dart.tools.core.model;
  */
 public interface DartSdkListener {
 
-  public void sdkUpdated(DartSdk sdk);
+  public void sdkUpdated(DirectoryBasedDartSdk sdk);
 
 }
