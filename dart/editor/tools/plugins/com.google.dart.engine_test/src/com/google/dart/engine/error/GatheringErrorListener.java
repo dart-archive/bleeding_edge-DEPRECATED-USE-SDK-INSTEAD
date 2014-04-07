@@ -432,6 +432,6 @@ public class GatheringErrorListener implements AnalysisErrorListener {
         return true;
       }
     }
-    return true;
+    return false;
   }
 }

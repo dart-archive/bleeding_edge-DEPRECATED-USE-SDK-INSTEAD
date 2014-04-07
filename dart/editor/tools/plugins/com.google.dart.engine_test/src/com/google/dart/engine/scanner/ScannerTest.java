@@ -222,7 +222,7 @@ public class ScannerTest extends TestCase {
   }
 
   public void test_illegalChar_cyrillicLetter_middle() throws Exception {
-    assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "Shche\u0433lov");
+    assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 5, "Shche\u0433lov");
   }
 
   public void test_illegalChar_cyrillicLetter_start() throws Exception {
