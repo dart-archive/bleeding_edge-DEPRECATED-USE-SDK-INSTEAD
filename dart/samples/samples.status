@@ -5,6 +5,9 @@
 [ $use_public_packages == false && $use_repository_packages == false]
 pop_pop_win: Skip # Require packages
 
+[ $use_public_packages ]
+polymer_intl: Fail # Issue 18059
+
 [ $browser ]
 # Skip tests that uses dart:io
 build_dart: Skip
