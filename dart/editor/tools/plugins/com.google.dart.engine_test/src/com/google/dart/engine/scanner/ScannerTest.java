@@ -39,6 +39,17 @@ public class ScannerTest extends TestCase {
     }
   }
 
+  public void fail_incomplete_string_interpolation() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=18073
+    assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        9,
+        "\"foo ${bar",
+        new StringToken(TokenType.STRING, "\"foo ", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "${", 5),
+        new StringToken(TokenType.IDENTIFIER, "bar", 7));
+  }
+
   public void test_ampersand() throws Exception {
     assertToken(TokenType.AMPERSAND, "&");
   }
@@ -858,6 +869,28 @@ public class ScannerTest extends TestCase {
   }
 
   /**
+   * Assert that scanning the given source produces an error with the given code, and also produces
+   * the given tokens.
+   * 
+   * @param expectedError the error that should be produced
+   * @param expectedOffset the string offset that should be associated with the error
+   * @param source the source to be scanned to produce the error
+   * @param expectedTokens the tokens that are expected to be in the source
+   */
+  private void assertErrorAndTokens(ScannerErrorCode expectedError, int expectedOffset,
+      String source, Token... expectedTokens) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Token token = scanWithListener(source, listener);
+    listener.assertErrors(new AnalysisError(
+        null,
+        expectedOffset,
+        1,
+        expectedError,
+        (int) source.charAt(expectedOffset)));
+    checkTokens(token, expectedTokens);
+  }
+
+  /**
    * Assert that when scanned the given source contains a single keyword token with the same lexeme
    * as the original source.
    * 
@@ -963,7 +996,12 @@ public class ScannerTest extends TestCase {
    */
   private void assertTokens(String source, Token... expectedTokens) {
     Token token = scan(source);
-    assertNotNull(token);
+    checkTokens(token, expectedTokens);
+  }
+
+  private void checkTokens(Token firstToken, Token... expectedTokens) {
+    assertNotNull(firstToken);
+    Token token = firstToken;
     for (int i = 0; i < expectedTokens.length; i++) {
       Token expectedToken = expectedTokens[i];
       assertEquals("Wrong type for token " + i, expectedToken.getType(), token.getType());
