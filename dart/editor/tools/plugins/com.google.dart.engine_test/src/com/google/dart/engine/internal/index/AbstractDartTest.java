@@ -200,9 +200,7 @@ public class AbstractDartTest extends TestCase {
   protected String testCode;
   protected Source testSource;
   protected CompilationUnit testUnit;
-
   protected CompilationUnitElement testUnitElement;
-
   protected LibraryElement testLibraryElement;
 
   /**
@@ -407,6 +405,12 @@ public class AbstractDartTest extends TestCase {
       }
       analysisContext.applyChanges(changeSet);
     }
+    // clear fields
+    testCode = null;
+    testSource = null;
+    testUnit = null;
+    testUnitElement = null;
+    testLibraryElement = null;
     // continue
     super.tearDown();
   }

@@ -121,19 +121,17 @@ abstract public class AngularTest extends EngineTestCase {
     return offset;
   }
 
-  protected final AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-
+  protected AnalysisContextHelper contextHelper = new AnalysisContextHelper();
   protected AnalysisContext context;
+
   protected String mainContent;
   protected Source mainSource;
   protected CompilationUnit mainUnit;
-
   protected CompilationUnitElement mainUnitElement;
   protected String indexContent;
   protected Source indexSource;
   protected HtmlUnit indexUnit;
   protected HtmlElement indexHtmlUnit;
-
   protected CompilationUnitElement indexDartUnitElement;
 
   /**
@@ -362,6 +360,25 @@ abstract public class AngularTest extends EngineTestCase {
     super.setUp();
     configureForAngular(contextHelper);
     context = contextHelper.context;
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    contextHelper = null;
+    context = null;
+    // main
+    mainContent = null;
+    mainSource = null;
+    mainUnit = null;
+    mainUnitElement = null;
+    // index
+    indexContent = null;
+    indexSource = null;
+    indexUnit = null;
+    indexHtmlUnit = null;
+    indexDartUnitElement = null;
+    // super
+    super.tearDown();
   }
 
   /**

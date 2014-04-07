@@ -208,6 +208,12 @@ public class ResolverTestCase extends EngineTestCase {
     return analysisContext.resolveCompilationUnit(source, library);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    analysisContext = null;
+    super.tearDown();
+  }
+
   /**
    * Verify that all of the identifiers in the compilation units associated with the given sources
    * have been resolved.

@@ -251,6 +251,8 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   @Override
   protected void tearDown() throws Exception {
     index.stop();
+    index = null;
+    searchEngine = null;
     super.tearDown();
   }
 }

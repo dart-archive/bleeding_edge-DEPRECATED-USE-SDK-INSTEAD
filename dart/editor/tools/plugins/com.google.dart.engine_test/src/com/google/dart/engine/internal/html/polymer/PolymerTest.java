@@ -44,7 +44,7 @@ abstract public class PolymerTest extends EngineTestCase {
     return offset;
   }
 
-  protected final AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+  protected AnalysisContextHelper contextHelper = new AnalysisContextHelper();
   protected AnalysisContext context;
 
   protected Source tagDartSource;
@@ -143,6 +143,21 @@ abstract public class PolymerTest extends EngineTestCase {
     super.setUp();
     configureForPolymer(contextHelper);
     context = contextHelper.context;
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    contextHelper = null;
+    context = null;
+    tagDartSource = null;
+    tagDartContents = null;
+    tagHtmlSource = null;
+    tagHtmlContents = null;
+    tagDartUnitElement = null;
+    tagHtmlUnitElement = null;
+    tagDartElement = null;
+    tagHtmlElement = null;
+    super.tearDown();
   }
 
   private void configureForPolymer(AnalysisContextHelper contextHelper) {
