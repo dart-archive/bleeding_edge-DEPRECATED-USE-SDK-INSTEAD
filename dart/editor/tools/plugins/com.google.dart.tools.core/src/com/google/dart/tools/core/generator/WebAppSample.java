@@ -24,7 +24,7 @@ import java.util.List;
 public class WebAppSample extends AbstractSample {
 
   public WebAppSample() {
-    super("Web application", "Create a sample web application with Pub support");
+    super("Sample web application", "Create a sample web application with Pub support");
 
     List<String[]> templates = new ArrayList<String[]>();
 

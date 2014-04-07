@@ -26,7 +26,7 @@ public class PolymerSample extends AbstractSample {
 
   public PolymerSample() {
     super(
-        "Web application (using the polymer library)",
+        "Sample web application (using the polymer library)",
         "Create a sample web application using the Polymer (polymer) library");
 
     List<String[]> templates = new ArrayList<String[]>();
@@ -34,10 +34,8 @@ public class PolymerSample extends AbstractSample {
     templates.add(new String[] {
         "pubspec.yaml",
         "name: {name}\ndescription: A sample Polymer application\n"
-            + "dependencies:\n    polymer: any\n"
-            + "transformers:\n- polymer:\n"
-            + "    entry_points: web/{name.lower}.html\n"
-            });
+            + "dependencies:\n    polymer: any\n" + "transformers:\n- polymer:\n"
+            + "    entry_points: web/{name.lower}.html\n"});
     templates.add(new String[] {"build.dart", "@webui/build.dart"});
     templates.add(new String[] {"web/{name.lower}.html", "@webui/webapp.html"});
     templates.add(new String[] {"web/{name.lower}.css", "@webui/webapp.css"});

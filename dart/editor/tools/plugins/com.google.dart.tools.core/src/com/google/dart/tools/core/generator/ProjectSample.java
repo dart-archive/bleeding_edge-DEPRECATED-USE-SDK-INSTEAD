@@ -25,7 +25,7 @@ import java.util.List;
 public class ProjectSample extends AbstractSample {
 
   public ProjectSample() {
-    super("Project Template", "Create a project structure with Pub support");
+    super("Web Application", "Create a web application with Pub support");
 
     List<String[]> templates = new ArrayList<String[]>();
 
