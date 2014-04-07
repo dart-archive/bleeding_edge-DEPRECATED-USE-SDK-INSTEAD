@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.type.InterfaceType;
@@ -102,15 +103,16 @@ public class OverrideIndicatorManager {
     }
 
     private MethodElement findOveriddenMethod(MethodElement methodElement) {
-      Element parent = methodElement;
-      while (parent != null && !(parent instanceof ClassElement)) {
-        parent = parent.getEnclosingElement();
-      }
-      if (parent == null) {
+      if (methodElement.isStatic()) {
         return null;
       }
+      // prepare enclosing ClassElement
+      if (!(methodElement.getEnclosingElement() instanceof ClassElement)) {
+        return null;
+      }
+      ClassElement classElement = methodElement.getEnclosingElement();
+      // check super classes
       String methodName = methodElement.getDisplayName();
-      ClassElement classElement = (ClassElement) parent;
       List<InterfaceType> queue = new LinkedList<InterfaceType>();
       addSupertypesToQueue(queue, classElement);
       while (!queue.isEmpty()) {
@@ -126,10 +128,10 @@ public class OverrideIndicatorManager {
       return null;
     }
 
-    private Element findOverriddenElement(ExecutableElement methodElement) {
-      switch (methodElement.getKind()) {
-        case METHOD:
-          return findOveriddenMethod((MethodElement) methodElement);
+    private Element findOverriddenElement(ExecutableElement element) {
+      ElementKind kind = element.getKind();
+      if (kind == ElementKind.METHOD) {
+        return findOveriddenMethod((MethodElement) element);
       }
       return null;
     }
