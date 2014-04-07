@@ -144,7 +144,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
   /**
    * The name of the file containing the Dartium executable on Macintosh.
    */
-  private static final String DARTIUM_EXECUTABLE_NAME_MAC = "Contents/MacOS/Chromium"; //$NON-NLS-1$
+  private static final String DARTIUM_EXECUTABLE_NAME_MAC = "Chromium.app/Contents/MacOS/Chromium"; //$NON-NLS-1$
 
   /**
    * The name of the file containing the Dartium executable on Windows.
@@ -348,8 +348,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
    * @return the directory where dartium can be found
    */
   public File getDartiumWorkingDirectory(File installDir) {
-    return new File(installDir, OSUtilities.isMac() ? DARTIUM_DIRECTORY_NAME_MAC
-        : DARTIUM_DIRECTORY_NAME);
+    return new File(installDir, DARTIUM_DIRECTORY_NAME);
   }
 
   /**
