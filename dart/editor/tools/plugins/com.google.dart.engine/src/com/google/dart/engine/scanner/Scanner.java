@@ -802,11 +802,6 @@ public class Scanner {
         next = bigSwitch(next);
       }
     }
-    if (next == -1) {
-      return next;
-    }
-    next = reader.advance();
-    beginToken();
     return next;
   }
 
