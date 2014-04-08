@@ -13,9 +13,9 @@ class DromaeoTransformer extends Transformer {
 
   /// The index.html file and the tests/dom-*-html.html files are the ones we
   /// apply this transform to.
-  Future<bool> isPrimary(Asset asset) {
+  Future<bool> isPrimary(AssetId id) {
     var reg = new RegExp('(tests/dom-.+-html\.html\$)|(index\.html\$)');
-    return new Future.value(reg.hasMatch(asset.id.path));
+    return new Future.value(reg.hasMatch(id.path));
   }
 
   Future apply(Transform transform) {

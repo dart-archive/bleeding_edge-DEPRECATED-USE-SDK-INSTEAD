@@ -6,7 +6,7 @@ description: >
  Dromaeo test suite, written in Dart.
 dependencies:
   browser_controller: ">=0.00.1-dev <0.0.2"
-  barback: ">=0.11.1 <0.11.2"
+  barback: ">=0.13.0 <0.14.0"
   browser: ">=0.10.0 <0.10.1"
 environment:
   sdk: any
