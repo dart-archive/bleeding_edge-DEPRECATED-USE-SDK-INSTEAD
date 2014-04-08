@@ -220,7 +220,8 @@ public class Activator extends AbstractUIPlugin {
       cleanupJob.cancel();
     }
 
-    UpdateCore.getUpdateManager().stop();
+    UpdateCore.stopUpdateManager();
+
   }
 
 }

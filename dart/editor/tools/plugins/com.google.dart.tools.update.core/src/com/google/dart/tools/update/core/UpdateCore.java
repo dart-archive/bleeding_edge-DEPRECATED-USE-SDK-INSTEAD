@@ -305,6 +305,16 @@ public class UpdateCore extends Plugin {
     }
   }
 
+  /**
+   * Stop the update manager.
+   */
+  public static void stopUpdateManager() {
+    // Don't try and stop before initialization (dartbug.com/17107)
+    if (PLUGIN != null) {
+      UpdateCore.getUpdateManager().stop();
+    }
+  }
+
   private static ResourceBundle getResourceBundle() {
     if (PLUGIN == null) {
       throw new IllegalStateException("update checks are only valid post bundle activation");
