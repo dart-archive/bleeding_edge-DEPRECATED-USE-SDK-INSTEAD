@@ -112,6 +112,18 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       IInformationControlExtension2 {
     private static final Point SIZE_CONSTRAINTS = new Point(10000, 10000);
 
+    private static boolean isGridVisible(AnnotationsSection section) {
+      return section.section.getVisible();
+    }
+
+    private static boolean isGridVisible(DocSection section) {
+      return section.section.getVisible();
+    }
+
+    private static boolean isGridVisible(TextSection section) {
+      return section.section.getVisible();
+    }
+
     private static void setGridVisible(AnnotationsSection section, boolean visible) {
       setGridVisible(section.section, visible);
     }
@@ -183,7 +195,6 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
       if (!(input instanceof HoverInfo)) {
         return;
       }
-      hasContents = true;
       HoverInfo hoverInfo = (HoverInfo) input;
       AstNode node = hoverInfo.node;
       Element element = hoverInfo.element;
@@ -270,6 +281,14 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
           problemsSection.setAnnotations(annotations);
         }
       }
+      // update 'hasContents' flag
+      hasContents |= isGridVisible(elementSection);
+      hasContents |= isGridVisible(librarySection);
+      hasContents |= isGridVisible(problemsSection);
+      hasContents |= isGridVisible(docSection);
+      hasContents |= isGridVisible(staticTypeSection);
+      hasContents |= isGridVisible(propagatedTypeSection);
+      hasContents |= isGridVisible(parameterSection);
       // Layout and pack.
       Shell shell = getShell();
       shell.layout(true, true);
