@@ -1567,6 +1567,24 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "}"));
   }
 
+  public void test_replaceWithConstInstanceCreation() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  const A();",
+        "}",
+        "const a = new A();");
+    assert_runProcessor(
+        CorrectionKind.QF_USE_CONST,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  const A();",
+            "}",
+            "const a = const A();"));
+  }
+
   public void test_undefinedClass_useSimilar_fromThisLibrary() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",

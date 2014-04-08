@@ -330,6 +330,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
     try {
       ErrorCode errorCode = problem.getErrorCode();
+      if (errorCode == CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE) {
+        addFix_replaceWithConstInstanceCreation();
+      }
       if (errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT) {
         addFix_createConstructorSuperExplicit();
       }
@@ -441,7 +444,8 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   public boolean hasFix(AnalysisError problem) {
     ErrorCode errorCode = problem.getErrorCode();
 //    System.out.println(errorCode.getClass() + " " + errorCode);
-    return errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
+    return errorCode == CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+        || errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
         || errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
         || errorCode == CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
         || errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION
@@ -1249,6 +1253,14 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     addRemoveEdit(utils.getLinesRange(rangeNode(importDirective)));
     // done
     addUnitCorrectionProposal(CorrectionKind.QF_REMOVE_UNUSED_IMPORT);
+  }
+
+  private void addFix_replaceWithConstInstanceCreation() throws Exception {
+    if (coveredNode instanceof InstanceCreationExpression) {
+      InstanceCreationExpression instanceCreation = (InstanceCreationExpression) coveredNode;
+      addReplaceEdit(rangeToken(instanceCreation.getKeyword()), "const");
+      addUnitCorrectionProposal(CorrectionKind.QF_USE_CONST);
+    }
   }
 
   private void addFix_undefinedClass_useSimilar() {

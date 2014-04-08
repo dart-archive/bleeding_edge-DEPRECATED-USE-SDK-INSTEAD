@@ -68,6 +68,7 @@ public enum CorrectionKind {
   QF_REMOVE_UNNECASSARY_CAST(50, "Remove unnecessary cast"),
   QF_REMOVE_UNUSED_IMPORT(50, "Remove unused import"),
   QF_REPLACE_BOOLEAN_WITH_BOOL(50, "Replace 'boolean' with 'bool'"),
+  QF_USE_CONST(50, "Change to constant"),
   QF_USE_EFFECTIVE_INTEGER_DIVISION(50, "Use effective integer division ~/"),
   QF_USE_EQ_EQ_NULL(50, "Use == null instead of 'is Null'"),
   QF_USE_NOT_EQ_NULL(50, "Use != null instead of 'is! Null'");
