@@ -194,6 +194,29 @@ public class AnalyzerMain {
 
     formatter.startAnalysis();
 
+    if (options.getWarmPerf()) {
+      long startTime = System.currentTimeMillis();
+      AnalyzerImpl analyzer = newAnalyzer(options);
+      analyzer.analyze(sourceFile, errors, lineInfoMap);
+      showPerformanceResults(startTime, "-cold");
+
+      for (int i = 0; i < 8; i++) {
+        analyzer = newAnalyzer(options);
+        analyzer.analyze(sourceFile, errors, lineInfoMap);
+      }
+
+      PerformanceStatistics.reset();
+      startTime = System.currentTimeMillis();
+      analyzer = newAnalyzer(options);
+      ErrorSeverity status = analyzer.analyze(sourceFile, errors, lineInfoMap);
+      formatter.formatErrors(errors);
+      if (status.equals(ErrorSeverity.WARNING) && options.getWarningsAreFatal()) {
+        status = ErrorSeverity.ERROR;
+      }
+      showPerformanceResults(startTime, "");
+      return status;
+    }
+
     long startTime = System.currentTimeMillis();
     AnalyzerImpl analyzer = newAnalyzer(options);
     ErrorSeverity status = analyzer.analyze(sourceFile, errors, lineInfoMap);
@@ -205,13 +228,13 @@ public class AnalyzerMain {
     }
 
     if (options.getPerf()) {
-      showPerformanceResults(startTime);
+      showPerformanceResults(startTime, "");
     }
 
     return status;
   }
 
-  protected void showPerformanceResults(long startTime) {
+  protected void showPerformanceResults(long startTime, String suffix) {
     long totalTime = System.currentTimeMillis() - startTime;
     long ioTime = PerformanceStatistics.io.getResult();
     long scanTime = PerformanceStatistics.scan.getResult();
@@ -221,18 +244,20 @@ public class AnalyzerMain {
     long hintsTime = PerformanceStatistics.hints.getResult();
     long angularTime = PerformanceStatistics.angular.getResult();
     long polymerTime = PerformanceStatistics.polymer.getResult();
-    System.out.println("io:" + ioTime);
-    System.out.println("scan:" + scanTime);
-    System.out.println("parse:" + parseTime);
-    System.out.println("resolve:" + resolveTime);
-    System.out.println("errors:" + errorsTime);
-    System.out.println("hints:" + hintsTime);
-    System.out.println("angular:" + angularTime);
-    System.out.println("polymer:" + polymerTime);
-    System.out.println("other:"
+    System.out.println("io" + suffix + ":" + ioTime);
+    System.out.println("scan" + suffix + ":" + scanTime);
+    System.out.println("parse" + suffix + ":" + parseTime);
+    System.out.println("resolve" + suffix + ":" + resolveTime);
+    System.out.println("errors" + suffix + ":" + errorsTime);
+    System.out.println("hints" + suffix + ":" + hintsTime);
+    System.out.println("angular" + suffix + ":" + angularTime);
+    System.out.println("polymer" + suffix + ":" + polymerTime);
+    System.out.println("other"
+        + suffix
+        + ":"
         + (totalTime - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
             + angularTime + polymerTime)));
-    System.out.println("total:" + totalTime);
+    System.out.println("tota" + suffix + "l:" + totalTime);
   }
 
   private void showUsage(PrintStream out) {

@@ -46,8 +46,8 @@ public class BackgroundAnalyzerPerformanceTest extends AnalyzerMain {
   }
 
   @Override
-  protected void showPerformanceResults(long startTime) {
-    super.showPerformanceResults(startTime);
+  protected void showPerformanceResults(long startTime, String suffix) {
+    super.showPerformanceResults(startTime, suffix);
     Collection<PerformanceMonitor> allMonitors = analyzer.getPerformanceMonitors();
     TreeSet<PerformanceMonitor> sortedMonitors = new TreeSet<PerformanceMonitor>(
         new Comparator<PerformanceMonitor>() {

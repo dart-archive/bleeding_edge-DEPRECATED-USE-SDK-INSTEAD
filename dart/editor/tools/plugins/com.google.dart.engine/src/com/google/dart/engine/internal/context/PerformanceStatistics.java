@@ -24,40 +24,54 @@ public class PerformanceStatistics {
   /**
    * The {@link TimeCounter} for time spent in reading files.
    */
-  public static final TimeCounter io = new TimeCounter();
+  public static TimeCounter io = new TimeCounter();
 
   /**
    * The {@link TimeCounter} for time spent in scanning.
    */
-  public static final TimeCounter scan = new TimeCounter();
+  public static TimeCounter scan = new TimeCounter();
 
   /**
    * The {@link TimeCounter} for time spent in parsing.
    */
-  public static final TimeCounter parse = new TimeCounter();
+  public static TimeCounter parse = new TimeCounter();
 
   /**
    * The {@link TimeCounter} for time spent in resolving.
    */
-  public static final TimeCounter resolve = new TimeCounter();
+  public static TimeCounter resolve = new TimeCounter();
 
   /**
    * The {@link TimeCounter} for time spent in Angular analysis.
    */
-  public static final TimeCounter angular = new TimeCounter();
+  public static TimeCounter angular = new TimeCounter();
 
   /**
    * The {@link TimeCounter} for time spent in Polymer analysis.
    */
-  public static final TimeCounter polymer = new TimeCounter();
+  public static TimeCounter polymer = new TimeCounter();
 
   /**
    * The {@link TimeCounter} for time spent in error verifier.
    */
-  public static final TimeCounter errors = new TimeCounter();
+  public static TimeCounter errors = new TimeCounter();
 
   /**
    * The {@link TimeCounter} for time spent in hints generator.
    */
-  public static final TimeCounter hints = new TimeCounter();
+  public static TimeCounter hints = new TimeCounter();
+
+  /**
+   * Reset all of the time counters to zero.
+   */
+  public static void reset() {
+    io = new TimeCounter();
+    scan = new TimeCounter();
+    parse = new TimeCounter();
+    resolve = new TimeCounter();
+    angular = new TimeCounter();
+    polymer = new TimeCounter();
+    errors = new TimeCounter();
+    hints = new TimeCounter();
+  }
 }

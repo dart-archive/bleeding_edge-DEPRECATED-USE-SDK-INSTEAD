@@ -189,6 +189,10 @@ public class AnalyzerOptions {
   @Option(name = "--diagnostic-colors")
   private boolean diagnosticColors = false; // ignored for now
 
+  @Option(name = "--warm-perf")
+  // usage = "Print both cold and warm performance statistics") // don't show in help
+  private boolean warmPerf = false;
+
   @Argument
   private final String sourceFile = null;
 
@@ -275,6 +279,13 @@ public class AnalyzerOptions {
    */
   public boolean getUsePackageMap() {
     return usePackageMap;
+  }
+
+  /**
+   * @return whether both cold and warm performance statistics should be printed
+   */
+  public boolean getWarmPerf() {
+    return warmPerf;
   }
 
   /**
