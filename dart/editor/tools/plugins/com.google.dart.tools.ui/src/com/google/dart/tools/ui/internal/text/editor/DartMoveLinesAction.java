@@ -13,13 +13,12 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.text.editor.IndentUtil.IndentResult;
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
+import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DocumentCommand;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.IRewriteTarget;
@@ -34,7 +33,6 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.LineRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -53,10 +51,10 @@ public class DartMoveLinesAction extends TextEditorAction {
   private static final class SharedState {
     /** The compilation unit editor that all four actions operate on. */
     public CompilationUnitEditor fEditor;
-    /**
-     * The indent token shared by all four actions.
-     */
-    public IndentResult fResult = null;
+//    /**
+//     * The indent token shared by all four actions.
+//     */
+//    public IndentResult fResult = null;
     /**
      * Set to true before modifying the document, to false after.
      */
@@ -115,7 +113,7 @@ public class DartMoveLinesAction extends TextEditorAction {
         target.endCompoundChange();
       }
 
-      fResult = null;
+//      fResult = null;
       fEditInProgress = false;
     }
   }
@@ -235,88 +233,72 @@ public class DartMoveLinesAction extends TextEditorAction {
         return;
       }
 
-      // get the content to be moved around: the moving (selected) area and the
-// skipped line
+      // get the content to be moved around: the moving (selected) area and the skipped line
       String moving = movingArea.getText();
       String skipped = skippedLine.getText();
       if (moving == null || skipped == null || document.getLength() == 0) {
         return;
       }
 
+      // prepare selections
+      ILineRange selectionBefore = getLineRange(document, movingArea);
+      ILineRange selectionAfter;
+      fSharedState.beginCompoundEdit();
+
       String delim;
-      String insertion;
-      int offset;
       if (fUpwards) {
         delim = document.getLineDelimiter(skippedLine.getEndLine());
-        if (fCopy) {
+        if (delim == null) {
           delim = TextUtilities.getDefaultLineDelimiter(document);
-          insertion = moving + delim;
-          offset = movingArea.getOffset();
+        }
+        if (fCopy) {
+          int targetOffset = movingArea.getOffset();
+          DocumentCommand command = customizePasteCommand(viewer, document, moving, targetOffset);
+          command.text += delim;
+          executeCommand(document, command);
+          selectionAfter = selectionBefore;
         } else {
-          Assert.isNotNull(delim);
-          insertion = moving + delim + skipped;
-          offset = skippedLine.getOffset();
+          int targetOffset = skippedLine.getOffset();
+          DocumentCommand command = customizePasteCommand(viewer, document, moving, targetOffset);
+          command.text += delim + skipped;
+          command.length = moving.length() + delim.length() + skipped.length();
+          executeCommand(document, command);
+          selectionAfter = new LineRange(
+              selectionBefore.getStartLine() - 1,
+              selectionBefore.getNumberOfLines());
         }
       } else {
         delim = document.getLineDelimiter(movingArea.getEndLine());
+        if (delim == null) {
+          delim = TextUtilities.getDefaultLineDelimiter(document);
+        }
         if (fCopy) {
-          if (delim == null) {
-            delim = TextUtilities.getDefaultLineDelimiter(document);
-            insertion = delim + moving;
-          } else {
-            insertion = moving + delim;
-          }
-          offset = skippedLine.getOffset();
+          int targetOffset = movingArea.getOffset() + movingArea.getLength() + delim.length();
+          DocumentCommand command = customizePasteCommand(viewer, document, moving, targetOffset);
+          command.text += delim;
+          executeCommand(document, command);
+          selectionAfter = new LineRange(selectionBefore.getStartLine()
+              + selectionBefore.getNumberOfLines(), selectionBefore.getNumberOfLines());
         } else {
-          Assert.isNotNull(delim);
-          insertion = skipped + delim + moving;
-          offset = movingArea.getOffset();
+          int targetOffset = skippedLine.getOffset() + skippedLine.getLength() + delim.length();
+          DocumentCommand command = customizePasteCommand(viewer, document, moving, targetOffset);
+          command.offset = movingArea.getOffset();
+          command.length = moving.length() + delim.length() + skipped.length();
+          command.text = skipped + delim + command.text;
+          executeCommand(document, command);
+          selectionAfter = new LineRange(
+              selectionBefore.getStartLine() + 1,
+              selectionBefore.getNumberOfLines());
         }
       }
-      int lenght = fCopy ? 0 : insertion.length();
-
-      // modify the document
-      ILineRange selectionBefore = getLineRange(document, movingArea);
-
-      if (fCopy) {
-        fSharedState.endCompoundEdit();
-      }
-      fSharedState.beginCompoundEdit();
-//      fSharedState.fIsChanging = true;
-
-      document.replace(offset, lenght, insertion);
-
-      ILineRange selectionAfter;
-      if (fUpwards && fCopy) {
-        selectionAfter = selectionBefore;
-      } else if (fUpwards) {
-        selectionAfter = new LineRange(
-            selectionBefore.getStartLine() - 1,
-            selectionBefore.getNumberOfLines());
-      } else if (fCopy) {
-        selectionAfter = new LineRange(selectionBefore.getStartLine()
-            + selectionBefore.getNumberOfLines(), selectionBefore.getNumberOfLines());
-      } else {
-        selectionAfter = new LineRange(
-            selectionBefore.getStartLine() + 1,
-            selectionBefore.getNumberOfLines());
-      }
-
-      fSharedState.fResult = IndentUtil.indentLines(
-          document,
-          selectionAfter,
-          getProject(),
-          fSharedState.fResult);
 
       // move the selection along
       IRegion region = getRegion(document, selectionAfter);
       selectAndReveal(viewer, region.getOffset(), region.getLength());
-
     } catch (BadLocationException x) {
       // won't happen without concurrent modification - bail out
       return;
     } finally {
-//      fSharedState.fIsChanging = false;
       if (fCopy) {
         fSharedState.endCompoundEdit();
       }
@@ -398,6 +380,23 @@ public class DartMoveLinesAction extends TextEditorAction {
     return false;
   }
 
+  private DocumentCommand customizePasteCommand(ISourceViewer viewer, IDocument document,
+      String moving, int offset2) {
+    DartAutoIndentStrategy strategy = new DartAutoIndentStrategy(null, viewer);
+    DocumentCommand command = new DocumentCommand() {
+    };
+    command.caretOffset = -1;
+    command.doit = true;
+    command.offset = offset2;
+    command.text = moving;
+    strategy.customizeDocumentCommand(document, command);
+    return command;
+  }
+
+  private void executeCommand(IDocument document, DocumentCommand command) {
+    ReflectionUtils.invokeMethod(command, "execute(org.eclipse.jface.text.IDocument)", document);
+  }
+
   private ILineRange getLineRange(IDocument document, ITextSelection selection)
       throws BadLocationException {
     final int offset = selection.getOffset();
@@ -443,15 +442,15 @@ public class DartMoveLinesAction extends TextEditorAction {
     return new TextSelection(document, low, high - low);
   }
 
-  private DartProject getProject() {
-    IEditorInput editorInput = fSharedState.fEditor.getEditorInput();
-    CompilationUnit unit = DartToolsPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(
-        editorInput);
-    if (unit != null) {
-      return unit.getDartProject();
-    }
-    return null;
-  }
+//  private DartProject getProject() {
+//    IEditorInput editorInput = fSharedState.fEditor.getEditorInput();
+//    CompilationUnit unit = DartToolsPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(
+//        editorInput);
+//    if (unit != null) {
+//      return unit.getDartProject();
+//    }
+//    return null;
+//  }
 
   private IRegion getRegion(IDocument document, ILineRange lineRange) throws BadLocationException {
     final int startLine = lineRange.getStartLine();
