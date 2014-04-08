@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypedLiteral;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.Token;
 
@@ -481,6 +482,17 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_expectedInterpolationIdentifier() throws Exception {
     parse("parseStringLiteral", "'$x$'", ParserErrorCode.MISSING_IDENTIFIER);
+  }
+
+  public void test_expectedInterpolationIdentifier_emptyString() throws Exception {
+    // The scanner inserts an empty string token between the two $'s; we need to make sure that the
+    // MISSING_IDENTIFIER error that is generated has a nonzero width so that it will show up in
+    // the editor UI.
+    parse( //
+        "parseStringLiteral",
+        new Object[] {},
+        "'$$foo'",
+        new AnalysisError(null, 2, 1, ParserErrorCode.MISSING_IDENTIFIER));
   }
 
   public void test_expectedStringLiteral() throws Exception {

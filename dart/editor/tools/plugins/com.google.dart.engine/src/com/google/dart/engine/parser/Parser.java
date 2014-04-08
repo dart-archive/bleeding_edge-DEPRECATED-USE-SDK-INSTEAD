@@ -5850,7 +5850,7 @@ public class Parser {
     reportError(new AnalysisError(
         source,
         token.getOffset(),
-        token.getLength(),
+        Math.max(token.getLength(), 1),
         errorCode,
         arguments));
   }
