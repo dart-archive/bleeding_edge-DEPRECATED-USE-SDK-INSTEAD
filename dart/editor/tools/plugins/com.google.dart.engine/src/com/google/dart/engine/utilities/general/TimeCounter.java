@@ -14,6 +14,11 @@
 
 package com.google.dart.engine.utilities.general;
 
+import com.google.common.collect.Lists;
+import com.google.dart.engine.AnalysisEngine;
+
+import java.util.LinkedList;
+
 /**
  * Helper for measuring how much time is spent doing some operation. Each call to
  * {@link #recordElapsedNanos(long)} or each pair of calls to {@link #start()} and
@@ -31,17 +36,31 @@ public class TimeCounter {
      * time to the counter.
      */
     public void stop() {
-      synchronized (TimeCounter.this) {
-        recordElapsedNanos(System.nanoTime() - startTime);
-      }
+      recordElapsedNanos(System.nanoTime() - startTime);
     }
   }
 
+  private static final ThreadLocal<LinkedList<TimeCounter>> stacks = new ThreadLocal<LinkedList<TimeCounter>>();
   public static final int NANOS_PER_MILLI = 1000 * 1000;
 
+  /**
+   * Returns the stack of {@link TimeCounter} started on the current {@link Thread} and not stopped
+   * yet.
+   */
+  private static LinkedList<TimeCounter> getCountersStack() {
+    LinkedList<TimeCounter> stack = stacks.get();
+    if (stack == null) {
+      stack = Lists.newLinkedList();
+      stacks.set(stack);
+    }
+    return stack;
+  }
+
   private long totalTime = 0L;
+  private long correctionTime = 0L;
   private long maxInterval = 0L;
   private long minInterval = Long.MAX_VALUE;
+
   private int intervalCount = 0;
 
   /**
@@ -98,8 +117,21 @@ public class TimeCounter {
    * 
    * @param delta the number of nanoseconds
    */
-  public void recordElapsedNanos(long delta) {
-    totalTime += delta;
+  public synchronized void recordElapsedNanos(long delta) {
+    // apply correction to the other counters on the thread stack
+    LinkedList<TimeCounter> stack = getCountersStack();
+    TimeCounter removed = stack.removeFirst();
+    if (removed != this) {
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Unexpected TimeCounter instance stack in " + Thread.currentThread(),
+          new IllegalStateException());
+    }
+    for (TimeCounter timeCounter : stack) {
+      timeCounter.correctionTime += delta;
+    }
+    // update statistics
+    totalTime += delta - correctionTime;
+    correctionTime = 0;
     intervalCount++;
     minInterval = Math.min(minInterval, delta);
     maxInterval = Math.max(maxInterval, delta);
@@ -110,7 +142,8 @@ public class TimeCounter {
    * 
    * @return the {@link TimeCounterHandle} that should be used to stop counting.
    */
-  public TimeCounterHandle start() {
+  public synchronized TimeCounterHandle start() {
+    getCountersStack().addFirst(this);
     return new TimeCounterHandle();
   }
 }
