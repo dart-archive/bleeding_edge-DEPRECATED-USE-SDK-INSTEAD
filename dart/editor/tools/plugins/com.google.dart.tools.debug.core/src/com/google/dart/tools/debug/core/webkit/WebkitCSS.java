@@ -15,7 +15,6 @@
 package com.google.dart.tools.debug.core.webkit;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
-import com.google.dart.tools.debug.core.webkit.WebkitConnection.Callback;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection.NotificationHandler;
 
 import org.json.JSONArray;
@@ -24,6 +23,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 // TODO(devoncarew): review and add new css methods to this file
@@ -52,9 +52,9 @@ public class WebkitCSS extends WebkitDomain {
     /**
      * Called when a style sheet is added.
      * 
-     * @param styleSheetId
+     * @param styleSheet
      */
-    public void styleSheetAdded(String styleSheetId);
+    public void styleSheetAdded(WebkitStyleSheetRef styleSheet);
 
     /**
      * Called when the given style sheet changes.
@@ -78,6 +78,7 @@ public class WebkitCSS extends WebkitDomain {
   private static final String MEDIA_QUERY_RESULT_CHANGED = "CSS.mediaQueryResultChanged";
 
   private List<CSSListener> listeners = new ArrayList<WebkitCSS.CSSListener>();
+  private List<WebkitStyleSheetRef> styleSheets = Collections.synchronizedList(new ArrayList<WebkitStyleSheetRef>());
 
   /**
    * @param connection
@@ -103,20 +104,6 @@ public class WebkitCSS extends WebkitDomain {
 
   public void enable() throws IOException {
     sendSimpleCommand("CSS.enable");
-  }
-
-  public void getAllStyleSheets(final WebkitCallback<WebkitStyleSheetRef[]> callback)
-      throws IOException {
-    if (callback == null) {
-      throw new IllegalArgumentException("callback is required");
-    }
-
-    sendSimpleCommand("CSS.getAllStyleSheets", new Callback() {
-      @Override
-      public void handleResult(JSONObject result) throws JSONException {
-        callback.handleResult(convertGetAllStyleSheetsResult(result));
-      }
-    });
   }
 
   public void getStyleSheet(String styleSheetId, final WebkitCallback<WebkitStyleSheet> callback)
@@ -171,6 +158,10 @@ public class WebkitCSS extends WebkitDomain {
     }
   }
 
+  public List<WebkitStyleSheetRef> getStyleSheets() {
+    return styleSheets;
+  }
+
   public void getStyleSheetText(String styleSheetId, final WebkitCallback<String> callback)
       throws IOException {
     try {
@@ -221,10 +212,15 @@ public class WebkitCSS extends WebkitDomain {
       // {"method":"CSS.styleSheetAdded","params":{"header":{"title":"","frameId":"69818.1",
       // "sourceURL":"http://127.0.0.1:3030/Users/devoncarew/dart/todomvc-47/web/out/index.html",
       // "origin":"regular","styleSheetId":"7","disabled":false}}}
-      String styleSheetId = params.getJSONObject("header").getString("styleSheetId");
+
+      WebkitStyleSheetRef styleSheet = WebkitStyleSheetRef.createFrom(params.getJSONObject("header"));
+
+      styleSheets.add(styleSheet);
+
+      //String styleSheetId = params.getJSONObject("header").getString("styleSheetId");
 
       for (CSSListener listener : listeners) {
-        listener.styleSheetAdded(styleSheetId);
+        listener.styleSheetAdded(styleSheet);
       }
     } else if (method.equals(STYLE_SHEET_CHANGED)) {
       String styleSheetId = params.getString("styleSheetId");
@@ -247,30 +243,9 @@ public class WebkitCSS extends WebkitDomain {
     }
   }
 
-  private WebkitResult<WebkitStyleSheetRef[]> convertGetAllStyleSheetsResult(JSONObject object)
-      throws JSONException {
-    // "result":{"headers":[]}
-
-    //"result":{
-    //  "headers":[
-    //             {"title":"","styleSheetId":"1", ...},
-    //             {"title":"","styleSheetId":"2", ...}
-    //  ]
-    //}
-
-    WebkitResult<WebkitStyleSheetRef[]> result = WebkitResult.createFrom(object);
-
-    result.setResult(new WebkitStyleSheetRef[0]);
-
-    if (object.has("result")) {
-      JSONObject obj = object.getJSONObject("result");
-
-      if (obj.has("headers")) {
-        result.setResult(WebkitStyleSheetRef.createFrom(obj.getJSONArray("headers")));
-      }
-    }
-
-    return result;
+  void frameStartedLoading() {
+    // Clear out our cached style sheet information.
+    styleSheets.clear();
   }
 
   private WebkitResult<WebkitStyleSheet> convertGetStyleSheetResult(JSONObject object)

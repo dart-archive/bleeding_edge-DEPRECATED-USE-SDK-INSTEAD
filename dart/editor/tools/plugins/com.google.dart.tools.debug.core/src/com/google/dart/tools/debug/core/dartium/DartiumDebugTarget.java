@@ -331,8 +331,6 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     connection.getPage().addPageListener(new WebkitPage.PageListenerAdapter() {
       @Override
       public void loadEventFired(int timestamp) {
-        cssScriptManager.handleLoadEventFired();
-
         if (htmlScriptManager != null) {
           htmlScriptManager.handleLoadEventFired();
         }

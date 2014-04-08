@@ -18,16 +18,12 @@ import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.util.ResourceChangeManager;
 import com.google.dart.tools.debug.core.util.ResourceChangeParticipant;
-import com.google.dart.tools.debug.core.webkit.WebkitCallback;
-import com.google.dart.tools.debug.core.webkit.WebkitResult;
 import com.google.dart.tools.debug.core.webkit.WebkitStyleSheetRef;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,8 +33,6 @@ import java.util.List;
  */
 class CssScriptManager implements ResourceChangeParticipant {
   private DartiumDebugTarget target;
-
-  private List<WebkitStyleSheetRef> styleSheets = Collections.synchronizedList(new ArrayList<WebkitStyleSheetRef>());
 
   public CssScriptManager(DartiumDebugTarget target) {
     this.target = target;
@@ -61,7 +55,9 @@ class CssScriptManager implements ResourceChangeParticipant {
       String fileUrl = target.getResourceResolver().getUrlForResource(file);
 
       if (fileUrl != null) {
-        for (WebkitStyleSheetRef ref : styleSheets) {
+        List<WebkitStyleSheetRef> scripts = target.getConnection().getCSS().getStyleSheets();
+
+        for (WebkitStyleSheetRef ref : scripts) {
           if (fileUrl.equals(ref.getSourceURL())) {
             uploadNewSource(ref, file);
           }
@@ -73,32 +69,6 @@ class CssScriptManager implements ResourceChangeParticipant {
   @Override
   public void handleFileRemoved(IFile file) {
 
-  }
-
-  public void handleLoadEventFired() {
-    // Flush everything.
-    styleSheets.clear();
-
-    // Re-load the list of scripts.
-    try {
-      target.getConnection().getCSS().getAllStyleSheets(
-          new WebkitCallback<WebkitStyleSheetRef[]>() {
-            @Override
-            public void handleResult(WebkitResult<WebkitStyleSheetRef[]> result) {
-              handleStyleSheetResults(result);
-            }
-          });
-    } catch (IOException e) {
-      DartDebugCorePlugin.logError(e);
-    }
-  }
-
-  private void handleStyleSheetResults(WebkitResult<WebkitStyleSheetRef[]> result) {
-    if (!result.isError()) {
-      for (WebkitStyleSheetRef ref : result.getResult()) {
-        styleSheets.add(ref);
-      }
-    }
   }
 
   private void uploadNewSource(WebkitStyleSheetRef ref, IFile file) {

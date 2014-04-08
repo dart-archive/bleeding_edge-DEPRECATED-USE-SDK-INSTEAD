@@ -272,6 +272,8 @@ public class WebkitPage extends WebkitDomain {
     } else if (method.equals(PAGE_FRAMESTARTEDLOADING)) {
       // {"method":"Page.frameStartedLoading","params":{"frameId":"48490.1"}}
 
+      connection.getCSS().frameStartedLoading();
+
       String frameId = params.getString("frameId");
 
       for (PageListener listener : listeners) {
