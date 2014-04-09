@@ -1408,11 +1408,12 @@ public class IndexContributorTest extends AbstractDartTest {
   public void test_isReferencedByQualified_ConstructorElement_classTypeAlias() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "class M {}",
         "class A implements B {",
         "  A() {}",
         "  A.named() {}",
         "}",
-        "class B = A;",
+        "class B = A with M;",
         "main() {",
         "  new B(); // marker-main-1",
         "  new B.named(); // marker-main-2",

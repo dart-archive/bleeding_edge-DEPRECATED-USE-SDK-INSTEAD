@@ -1120,7 +1120,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_extendsDisallowedClass_classTypeAlias_bool() throws Exception {
     Source source = addSource(createSource(//
-    "class C = bool;"));
+        "class M {}",
+        "class C = bool with M;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
@@ -1128,7 +1129,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_extendsDisallowedClass_classTypeAlias_double() throws Exception {
     Source source = addSource(createSource(//
-    "class C = double;"));
+        "class M {}",
+        "class C = double with M;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
@@ -1136,7 +1138,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_extendsDisallowedClass_classTypeAlias_int() throws Exception {
     Source source = addSource(createSource(//
-    "class C = int;"));
+        "class M {}",
+        "class C = int with M;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
@@ -1144,7 +1147,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_extendsDisallowedClass_classTypeAlias_Null() throws Exception {
     Source source = addSource(createSource(//
-    "class C = Null;"));
+        "class M {}",
+        "class C = Null with M;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
@@ -1152,7 +1156,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_extendsDisallowedClass_classTypeAlias_num() throws Exception {
     Source source = addSource(createSource(//
-    "class C = num;"));
+        "class M {}",
+        "class C = num with M;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
@@ -1160,7 +1165,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_extendsDisallowedClass_classTypeAlias_String() throws Exception {
     Source source = addSource(createSource(//
-    "class C = String;"));
+        "class M {}",
+        "class C = String with M;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
@@ -1486,7 +1492,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_implementsDisallowedClass_classTypeAlias_bool() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
-        "class C = A implements bool;"));
+        "class M {}",
+        "class C = A with M implements bool;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
@@ -1495,7 +1502,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_implementsDisallowedClass_classTypeAlias_double() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
-        "class C = A implements double;"));
+        "class M {}",
+        "class C = A with M implements double;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
@@ -1504,7 +1512,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_implementsDisallowedClass_classTypeAlias_int() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
-        "class C = A implements int;"));
+        "class M {}",
+        "class C = A with M implements int;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
@@ -1513,7 +1522,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_implementsDisallowedClass_classTypeAlias_Null() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
-        "class C = A implements Null;"));
+        "class M {}",
+        "class C = A with M implements Null;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
@@ -1522,7 +1532,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_implementsDisallowedClass_classTypeAlias_num() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
-        "class C = A implements num;"));
+        "class M {}",
+        "class C = A with M implements num;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
@@ -1531,7 +1542,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_implementsDisallowedClass_classTypeAlias_String() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
-        "class C = A implements String;"));
+        "class M {}",
+        "class C = A with M implements String;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
@@ -1540,7 +1552,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_implementsDisallowedClass_classTypeAlias_String_num() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
-        "class C = A implements String, num;"));
+        "class M {}",
+        "class C = A with M implements String, num;"));
     resolve(source);
     assertErrors(
         source,
@@ -1569,8 +1582,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_implementsNonClass_typeAlias() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
+        "class M {}",
         "int B;",
-        "class C = A implements B;"));
+        "class C = A with M implements B;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
     verify(source);

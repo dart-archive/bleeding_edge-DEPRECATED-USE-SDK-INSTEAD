@@ -883,7 +883,8 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class A<E extends num> {",
         "  A(E x, E y);",
         "}",
-        "class B<E extends num> = A<E>;",
+        "class M {}",
+        "class B<E extends num> = A<E> with M;",
         "void main() {",
         "   B<int> x = new B<int>(0,0);",
         "}"));

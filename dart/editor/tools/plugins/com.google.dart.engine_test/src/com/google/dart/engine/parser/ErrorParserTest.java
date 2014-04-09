@@ -516,7 +516,7 @@ public class ErrorParserTest extends ParserTestCase {
     parse(
         "parseClassTypeAlias",
         new Object[] {emptyCommentAndMetadata(), null, token},
-        "A = B",
+        "A = B with C",
         ParserErrorCode.EXPECTED_TOKEN);
   }
 
@@ -1112,6 +1112,10 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_mixedParameterGroups_positionalNamed() throws Exception {
     parse("parseFormalParameterList", "(a, [b], {c})", ParserErrorCode.MIXED_PARAMETER_GROUPS);
+  }
+
+  public void test_mixin_application_lacks_with_clause() throws Exception {
+    parseCompilationUnit("class Foo = Bar;", ParserErrorCode.EXPECTED_TOKEN);
   }
 
   public void test_multipleExtendsClauses() throws Exception {

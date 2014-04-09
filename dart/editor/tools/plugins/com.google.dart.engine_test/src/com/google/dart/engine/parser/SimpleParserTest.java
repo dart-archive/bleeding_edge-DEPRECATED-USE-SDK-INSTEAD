@@ -1209,30 +1209,16 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(constructor.getBody());
   }
 
-  public void test_parseClassTypeAlias() throws Exception {
-    Token token = tokenFromKeyword(Keyword.CLASS);
-    ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
-        emptyCommentAndMetadata(), null, token}, "A = B;");
-    assertNotNull(classTypeAlias.getKeyword());
-    assertEquals("A", classTypeAlias.getName().getName());
-    assertNotNull(classTypeAlias.getEquals());
-    assertNull(classTypeAlias.getAbstractKeyword());
-    assertNotNull("B", classTypeAlias.getSuperclass().getName().getName());
-    assertNull(classTypeAlias.getWithClause());
-    assertNull(classTypeAlias.getImplementsClause());
-    assertNotNull(classTypeAlias.getSemicolon());
-  }
-
   public void test_parseClassTypeAlias_abstract() throws Exception {
     Token token = tokenFromKeyword(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
-        emptyCommentAndMetadata(), null, token}, "A = abstract B;");
+        emptyCommentAndMetadata(), null, token}, "A = abstract B with C;");
     assertNotNull(classTypeAlias.getKeyword());
     assertEquals("A", classTypeAlias.getName().getName());
     assertNotNull(classTypeAlias.getEquals());
     assertNotNull(classTypeAlias.getAbstractKeyword());
     assertNotNull("B", classTypeAlias.getSuperclass().getName().getName());
-    assertNull(classTypeAlias.getWithClause());
+    assertNotNull(classTypeAlias.getWithClause());
     assertNull(classTypeAlias.getImplementsClause());
     assertNotNull(classTypeAlias.getSemicolon());
   }
@@ -1240,13 +1226,13 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseClassTypeAlias_implements() throws Exception {
     Token token = tokenFromKeyword(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
-        emptyCommentAndMetadata(), null, token}, "A = B implements C;");
+        emptyCommentAndMetadata(), null, token}, "A = B with C implements D;");
     assertNotNull(classTypeAlias.getKeyword());
     assertEquals("A", classTypeAlias.getName().getName());
     assertNotNull(classTypeAlias.getEquals());
     assertNull(classTypeAlias.getAbstractKeyword());
     assertNotNull("B", classTypeAlias.getSuperclass().getName().getName());
-    assertNull(classTypeAlias.getWithClause());
+    assertNotNull(classTypeAlias.getWithClause());
     assertNotNull(classTypeAlias.getImplementsClause());
     assertNotNull(classTypeAlias.getSemicolon());
   }

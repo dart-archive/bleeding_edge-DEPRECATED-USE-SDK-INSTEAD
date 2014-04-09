@@ -2805,6 +2805,8 @@ public class Parser {
     WithClause withClause = null;
     if (matchesKeyword(Keyword.WITH)) {
       withClause = parseWithClause();
+    } else {
+      reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, Keyword.WITH.getSyntax());
     }
     ImplementsClause implementsClause = null;
     if (matchesKeyword(Keyword.IMPLEMENTS)) {
