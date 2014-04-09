@@ -340,7 +340,7 @@ class ResourceServerHandler implements Runnable {
 
         sendResponse(response);
       } else {
-        sendResponse(createNotAllowedResponse());
+        // do nothing
       }
 
       socket.close();
@@ -689,24 +689,26 @@ class ResourceServerHandler implements Runnable {
       return true;
     }
 
-    // do not pop up dialog for remote connection
-    return true;
+    if (!RemoteConnectionPreferenceManager.getManager().canConnectRemote()) {
+      return false;
+    }
+
     // User-Agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/536.8 (KHTML, like Gecko) Chrome/20.0.1110.0 (Dart) Safari/536.8
-//    if (DartDebugCorePlugin.getPlugin().getUserAgentManager() != null) {
-//      String userAgent = header.getHeaderKey(USER_AGENT);
-//
-//      boolean allowed = DartDebugCorePlugin.getPlugin().getUserAgentManager().allowUserAgent(
-//          remoteAddress,
-//          userAgent);
-//
-//      if (allowed) {
-//        resourceServer.loadingContentFrom(remoteAddress.getHostAddress(), userAgent);
-//      }
-//
-//      return allowed;
-//    }
-//
-//    return false;
+    if (DartDebugCorePlugin.getPlugin().getUserAgentManager() != null) {
+      String userAgent = header.getHeaderKey(USER_AGENT);
+
+      boolean allowed = DartDebugCorePlugin.getPlugin().getUserAgentManager().allowUserAgent(
+          remoteAddress,
+          userAgent);
+
+      if (allowed) {
+        resourceServer.loadingContentFrom(remoteAddress.getHostAddress(), userAgent);
+      }
+
+      return allowed;
+    }
+
+    return false;
   }
 
   private boolean isConnectionReset(IOException ioe) {
@@ -728,13 +730,13 @@ class ResourceServerHandler implements Runnable {
     return false;
   }
 
-//  private boolean isFileJsArtifact(File javaFile) {
-//    return javaFile.getName().endsWith(".dart.js");
-//  }
-
   private boolean isLocalAddress(InetAddress address) {
     return address.isAnyLocalAddress() || address.isLoopbackAddress();
   }
+
+//  private boolean isFileJsArtifact(File javaFile) {
+//    return javaFile.getName().endsWith(".dart.js");
+//  }
 
   private boolean isSpecialResource(String path) {
     for (String[] resourceInfo : embeddedResources) {

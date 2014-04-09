@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.mobile.AndroidSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
+import com.google.dart.tools.debug.core.util.RemoteConnectionPreferenceManager;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -59,6 +60,8 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
   private Text androidSdkText;
 
+  private Button remoteConnectButton;
+
   /**
    * Create a new preference page.
    */
@@ -82,6 +85,9 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
         defaultBrowserButton.getSelection(),
         browserNameText.getText().trim(),
         browserArgumentText.getText().trim());
+
+    RemoteConnectionPreferenceManager.getManager().setAllowRemoteConnectionPreference(
+        remoteConnectButton.getSelection());
 
     if (DartCoreDebug.ENABLE_MOBILE) {
       AndroidSdkManager.getManager().setSdkLocationPreference(androidSdkText.getText().trim());
@@ -122,6 +128,8 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     GridDataFactory.swtDefaults().span(2, 1).applyTo(invokeToStringButton);
 
     createBrowserConfig(composite, labelWidth);
+
+    createRemoteConnectionConfig(composite);
 
     if (DartCoreDebug.ENABLE_MOBILE) {
       createAndroidSdkConfig(composite, labelWidth);
@@ -210,6 +218,18 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
         browserArgumentText);
 
     initFromPrefs();
+  }
+
+  private void createRemoteConnectionConfig(Composite composite) {
+    Group remoteGroup = new Group(composite, SWT.NONE);
+    remoteGroup.setText("Remote Connection");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(remoteGroup);
+    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(remoteGroup);
+    ((GridLayout) remoteGroup.getLayout()).marginBottom = 5;
+
+    remoteConnectButton = new Button(remoteGroup, SWT.CHECK);
+    remoteConnectButton.setText("Allow connections from non-localhost address");
+    remoteConnectButton.setSelection(RemoteConnectionPreferenceManager.getManager().getAllowRemoteConnectionPrefs());
   }
 
   private void handleBrowserConfigBrowseButton() {
