@@ -13,9 +13,7 @@
  */
 package com.google.dart.engine.utilities.collection;
 
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 
 /**
@@ -26,7 +24,7 @@ public class MultipleMapIterator<K, V> implements MapIterator<K, V> {
   /**
    * The iterators used to access the entries.
    */
-  private Iterator<Entry<K, V>>[] iterators;
+  private MapIterator<K, V>[] iterators;
 
   /**
    * The index of the iterator currently being used to access the entries.
@@ -34,9 +32,9 @@ public class MultipleMapIterator<K, V> implements MapIterator<K, V> {
   private int iteratorIndex = -1;
 
   /**
-   * The current entry, or {@code null} if there is no current entry.
+   * The current iterator, or {@code null} if there is no current iterator.
    */
-  private Entry<K, V> currentEntry;
+  private MapIterator<K, V> currentIterator;
 
   /**
    * Initialize a newly created iterator to return the entries from the given maps.
@@ -46,62 +44,58 @@ public class MultipleMapIterator<K, V> implements MapIterator<K, V> {
   @SuppressWarnings("unchecked")
   public MultipleMapIterator(Map<K, V>[] maps) {
     int count = maps.length;
-    iterators = new Iterator[count];
+    iterators = new MapIterator[count];
     for (int i = 0; i < count; i++) {
-      iterators[i] = maps[i].entrySet().iterator();
+      iterators[i] = new SingleMapIterator<K, V>(maps[i]);
     }
   }
 
   @Override
   public K getKey() {
-    if (currentEntry == null) {
+    if (currentIterator == null) {
       throw new NoSuchElementException();
     }
-    return currentEntry.getKey();
+    return currentIterator.getKey();
   }
 
   @Override
   public V getValue() {
-    if (currentEntry == null) {
+    if (currentIterator == null) {
       throw new NoSuchElementException();
     }
-    return currentEntry.getValue();
+    return currentIterator.getValue();
   }
 
   @Override
   public boolean moveNext() {
     if (iteratorIndex < 0) {
       if (iterators.length == 0) {
-        currentEntry = null;
+        currentIterator = null;
         return false;
       }
       if (advanceToNextIterator()) {
-        currentEntry = iterators[iteratorIndex].next();
         return true;
       } else {
-        currentEntry = null;
+        currentIterator = null;
         return false;
       }
     }
-    Iterator<Entry<K, V>> iterator = iterators[iteratorIndex];
-    if (iterator.hasNext()) {
-      currentEntry = iterator.next();
+    if (currentIterator.moveNext()) {
       return true;
     } else if (advanceToNextIterator()) {
-      currentEntry = iterators[iteratorIndex].next();
       return true;
     } else {
-      currentEntry = null;
+      currentIterator = null;
       return false;
     }
   }
 
   @Override
   public void setValue(V newValue) {
-    if (currentEntry == null) {
+    if (currentIterator == null) {
       throw new NoSuchElementException();
     }
-    currentEntry.setValue(newValue);
+    currentIterator.setValue(newValue);
   }
 
   /**
@@ -112,9 +106,14 @@ public class MultipleMapIterator<K, V> implements MapIterator<K, V> {
    */
   private boolean advanceToNextIterator() {
     iteratorIndex++;
-    while (iteratorIndex < iterators.length && !iterators[iteratorIndex].hasNext()) {
+    while (iteratorIndex < iterators.length) {
+      MapIterator<K, V> iterator = iterators[iteratorIndex];
+      if (iterator.moveNext()) {
+        currentIterator = iterator;
+        return true;
+      }
       iteratorIndex++;
     }
-    return iteratorIndex < iterators.length;
+    return false;
   }
 }
