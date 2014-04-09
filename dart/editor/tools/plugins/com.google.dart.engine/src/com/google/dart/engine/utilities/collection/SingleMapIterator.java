@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.utilities.collection;
 
+import com.google.dart.engine.utilities.translation.DartOmit;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,6 +24,7 @@ import java.util.NoSuchElementException;
  * Instances of the class {@code SingleMapIterator} implement an iterator that can be used to access
  * the entries in a single map.
  */
+@DartOmit
 public class SingleMapIterator<K, V> implements MapIterator<K, V> {
   /**
    * Returns a new {@link SingleMapIterator} instance for the given {@link Map}.

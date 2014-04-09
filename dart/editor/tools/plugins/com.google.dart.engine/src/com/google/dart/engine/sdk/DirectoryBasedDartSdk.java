@@ -28,6 +28,7 @@ import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.translation.DartBlockBody;
+import com.google.dart.engine.utilities.translation.DartExpressionBody;
 import com.google.dart.engine.utilities.translation.DartOmit;
 import com.google.dart.engine.utilities.translation.DartOptional;
 
@@ -571,6 +572,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
    * @param file the binary file
    * @return the file if it exists and is executable, else {@code null}
    */
+  @DartExpressionBody("file.isExecutable() ? file : null")
   private File verifyExecutable(File file) {
     return FileUtilities.ensureExecutable(file) ? file : null;
   }

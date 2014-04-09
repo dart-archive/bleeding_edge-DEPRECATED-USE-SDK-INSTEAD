@@ -199,6 +199,7 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/error"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/hint"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/html/angular"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/html/polymer"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/index"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/object"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/parser"));
@@ -225,6 +226,15 @@ public class MainEngine {
     context.addSourceFile(new File(
         engineFolder,
         "com/google/dart/engine/utilities/collection/ListUtilities.java"));
+    context.addSourceFile(new File(
+        engineFolder,
+        "com/google/dart/engine/utilities/collection/MapIterator.java"));
+    context.addSourceFile(new File(
+        engineFolder,
+        "com/google/dart/engine/utilities/collection/MultipleMapIterator.java"));
+    context.addSourceFile(new File(
+        engineFolder,
+        "com/google/dart/engine/utilities/collection/SingleMapIterator.java"));
     context.addSourceFile(new File(
         engineFolder,
         "com/google/dart/engine/utilities/collection/TokenMap.java"));
@@ -295,9 +305,11 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildUtilitiesCollectionLibrary();
-      Files.write(
-          getFormattedSource(library),
-          new File(targetFolder + "/utilities_collection.dart"),
+      File file = new File(targetFolder + "/utilities_collection.dart");
+      Files.write(getFormattedSource(library), file, Charsets.UTF_8);
+      Files.append(
+          Files.toString(new File("resources/utilities_collection_include.dart"), Charsets.UTF_8),
+          file,
           Charsets.UTF_8);
     }
     {
@@ -403,6 +415,7 @@ public class MainEngine {
       File astFile = new File(targetFolder + "/ast.dart");
       String source = getFormattedSource(library);
       source = source.replace("AngularCompilationUnitBuilder.getElement(node, offset);", "null;");
+      source = source.replace("PolymerCompilationUnitBuilder.getElement(node, offset);", "null;");
       Files.write(source, astFile, Charsets.UTF_8);
       Files.append(
           Files.toString(new File("resources/ast_include.dart"), Charsets.UTF_8),
@@ -651,8 +664,7 @@ public class MainEngine {
         importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
     unit.getDirectives().add(
         importDirective("utilities_dart.dart", null, importShowCombinator("ParameterKind")));
-    unit.getDirectives().add(
-        importDirective("utilities_collection.dart", null, importShowCombinator("DirectedGraph")));
+    unit.getDirectives().add(importDirective("utilities_collection.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "constant/") || isEnginePath(file, "internal/constant/")
@@ -765,7 +777,7 @@ public class MainEngine {
       if (isEnginePath(file, "AnalysisEngine.java") || isEnginePath(file, "utilities/logging/")
           || isEnginePath(file, "context/") || isEnginePath(file, "internal/cache/")
           || isEnginePath(file, "internal/context/") || isEnginePath(file, "internal/html/angular")
-          || isEnginePath(file, "internal/task/")) {
+          || isEnginePath(file, "internal/html/polymer") || isEnginePath(file, "internal/task/")) {
         unit.getDeclarations().add(member);
       }
     }
@@ -853,6 +865,7 @@ public class MainEngine {
             importShowCombinator("Namespace", "NamespaceBuilder")));
     unit.getDirectives().add(importDirective("engine.dart", null));
     unit.getDirectives().add(importDirective("html.dart", "ht"));
+    unit.getDirectives().add(importDirective("utilities_collection.dart", null));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (file.getName().contains("MemoryIndexReader")
@@ -987,6 +1000,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("scanner.dart", "sc"));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
     unit.getDirectives().add(importDirective("utilities_general.dart", null));
+    unit.getDirectives().add(importDirective("utilities_collection.dart", null));
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(
         importDirective("parser.dart", null, importShowCombinator("Parser", "ParserErrorCode")));
@@ -1035,6 +1049,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "resolver.dart", null));
     unit.getDirectives().add(importDirective(src_package + "engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "utilities_collection.dart", null));
     unit.getDirectives().add(
         importDirective(src_package + "sdk.dart", null, importShowCombinator("DartSdk")));
     unit.getDirectives().add(
@@ -1250,6 +1265,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "utilities_collection.dart", null));
     unit.getDirectives().add(importDirective(src_package + "source.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
