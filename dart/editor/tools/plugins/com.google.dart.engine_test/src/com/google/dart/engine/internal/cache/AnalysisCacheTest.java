@@ -16,34 +16,31 @@ package com.google.dart.engine.internal.cache;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
+import com.google.dart.engine.utilities.collection.MapIterator;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Map.Entry;
 
 public class AnalysisCacheTest extends EngineTestCase {
   public void test_creation() {
     assertNotNull(new AnalysisCache(8, null));
   }
 
-  public void test_entrySet() {
-    AnalysisCache cache = new AnalysisCache(8, null);
-    TestSource source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
-    cache.put(source, entry);
-    Collection<Entry<Source, SourceEntry>> result = cache.entrySet();
-    assertCollectionSize(1, result);
-    Map.Entry<Source, SourceEntry> mapEntry = result.iterator().next();
-    assertSame(source, mapEntry.getKey());
-    assertSame(entry, mapEntry.getValue());
-  }
-
   public void test_get() {
     AnalysisCache cache = new AnalysisCache(8, null);
     TestSource source = new TestSource();
     assertNull(cache.get(source));
+  }
+
+  public void test_iterator() {
+    AnalysisCache cache = new AnalysisCache(8, null);
+    TestSource source = new TestSource();
+    DartEntryImpl entry = new DartEntryImpl();
+    cache.put(source, entry);
+    MapIterator<Source, SourceEntry> iterator = cache.iterator();
+    assertTrue(iterator.moveNext());
+    assertSame(source, iterator.getKey());
+    assertSame(entry, iterator.getValue());
+    assertFalse(iterator.moveNext());
   }
 
   public void test_put_noFlush() {
@@ -88,8 +85,9 @@ public class AnalysisCacheTest extends EngineTestCase {
 
   private void assertNonFlushedCount(int expectedCount, AnalysisCache cache) {
     int nonFlushedCount = 0;
-    for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-      if (entry.getValue().getState(DartEntry.PARSED_UNIT) != CacheState.FLUSHED) {
+    MapIterator<Source, SourceEntry> iterator = cache.iterator();
+    while (iterator.moveNext()) {
+      if (iterator.getValue().getState(DartEntry.PARSED_UNIT) != CacheState.FLUSHED) {
         nonFlushedCount++;
       }
     }

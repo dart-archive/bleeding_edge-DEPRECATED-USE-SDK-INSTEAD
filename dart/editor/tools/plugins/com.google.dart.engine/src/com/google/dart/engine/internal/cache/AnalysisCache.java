@@ -14,11 +14,11 @@
 package com.google.dart.engine.internal.cache;
 
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.collection.MapIterator;
+import com.google.dart.engine.utilities.collection.SingleMapIterator;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 /**
  * Instances of the class {@code AnalysisCache} implement an LRU cache of information related to
@@ -81,16 +81,6 @@ public class AnalysisCache {
   }
 
   /**
-   * Return a collection containing all of the map entries mapping sources to cache entries. Clients
-   * should not modify the returned collection.
-   * 
-   * @return a collection containing all of the map entries mapping sources to cache entries
-   */
-  public Collection<Entry<Source, SourceEntry>> entrySet() {
-    return sourceMap.entrySet();
-  }
-
-  /**
    * Return the entry associated with the given source.
    * 
    * @param source the source whose entry is to be returned
@@ -98,6 +88,15 @@ public class AnalysisCache {
    */
   public SourceEntry get(Source source) {
     return sourceMap.get(source);
+  }
+
+  /**
+   * Return an iterator returning all of the map entries mapping sources to cache entries.
+   * 
+   * @return an iterator returning all of the map entries mapping sources to cache entries
+   */
+  public MapIterator<Source, SourceEntry> iterator() {
+    return new SingleMapIterator<Source, SourceEntry>(sourceMap);
   }
 
   /**

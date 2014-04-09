@@ -93,6 +93,7 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.collection.DirectedGraph;
 import com.google.dart.engine.utilities.collection.ListUtilities;
+import com.google.dart.engine.utilities.collection.MapIterator;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
@@ -104,7 +105,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -995,9 +995,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         // only re-analyze those libraries.
 //        logInformation("Added Dart sources, invalidating all resolution information");
         ArrayList<Source> sourcesToInvalidate = new ArrayList<Source>();
-        for (Map.Entry<Source, SourceEntry> mapEntry : cache.entrySet()) {
-          Source source = mapEntry.getKey();
-          SourceEntry sourceEntry = mapEntry.getValue();
+        MapIterator<Source, SourceEntry> iterator = cache.iterator();
+        while (iterator.moveNext()) {
+          Source source = iterator.getKey();
+          SourceEntry sourceEntry = iterator.getValue();
           if (!source.isInSystemLibrary() && sourceEntry instanceof DartEntry) {
             sourcesToInvalidate.add(source);
           }
@@ -1235,11 +1236,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
     synchronized (cacheLock) {
       // Move sources in the specified directory to the new context
-      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        Source source = entry.getKey();
+      MapIterator<Source, SourceEntry> iterator = cache.iterator();
+      while (iterator.moveNext()) {
+        Source source = iterator.getKey();
+        SourceEntry sourceEntry = iterator.getValue();
         if (container.contains(source)) {
           sourcesToRemove.add(source);
-          newContext.addSourceInfo(source, entry.getValue().getWritableCopy());
+          newContext.addSourceInfo(source, sourceEntry.getWritableCopy());
         }
       }
 
@@ -1381,24 +1384,26 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       switch (sourceKind) {
         case LIBRARY:
         default:
-          for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-            SourceEntry sourceEntry = entry.getValue();
+          MapIterator<Source, SourceEntry> iterator = cache.iterator();
+          while (iterator.moveNext()) {
+            SourceEntry sourceEntry = iterator.getValue();
             if (sourceEntry.getKind() == SourceKind.HTML) {
               Source[] referencedLibraries = ((HtmlEntry) sourceEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
               if (contains(referencedLibraries, source)) {
-                htmlSources.add(entry.getKey());
+                htmlSources.add(iterator.getKey());
               }
             }
           }
           break;
         case PART:
           Source[] librarySources = getLibrariesContaining(source);
-          for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-            SourceEntry sourceEntry = entry.getValue();
+          MapIterator<Source, SourceEntry> partIterator = cache.iterator();
+          while (partIterator.moveNext()) {
+            SourceEntry sourceEntry = partIterator.getValue();
             if (sourceEntry.getKind() == SourceKind.HTML) {
               Source[] referencedLibraries = ((HtmlEntry) sourceEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
               if (containsAny(referencedLibraries, librarySources)) {
-                htmlSources.add(entry.getKey());
+                htmlSources.add(partIterator.getKey());
               }
             }
           }
@@ -1431,9 +1436,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     // either directly or indirectly.
     ArrayList<Source> sources = new ArrayList<Source>();
     synchronized (cacheLock) {
-      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        Source source = entry.getKey();
-        SourceEntry sourceEntry = entry.getValue();
+      MapIterator<Source, SourceEntry> iterator = cache.iterator();
+      while (iterator.moveNext()) {
+        Source source = iterator.getKey();
+        SourceEntry sourceEntry = iterator.getValue();
         if (sourceEntry.getKind() == SourceKind.LIBRARY && !source.isInSystemLibrary()) {
 //          DartEntry dartEntry = (DartEntry) sourceEntry;
 //          if (dartEntry.getValue(DartEntry.IS_LAUNCHABLE) && dartEntry.getValue(DartEntry.IS_CLIENT)) {
@@ -1451,9 +1457,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     // directly or indirectly.
     ArrayList<Source> sources = new ArrayList<Source>();
     synchronized (cacheLock) {
-      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        Source source = entry.getKey();
-        SourceEntry sourceEntry = entry.getValue();
+      MapIterator<Source, SourceEntry> iterator = cache.iterator();
+      while (iterator.moveNext()) {
+        Source source = iterator.getKey();
+        SourceEntry sourceEntry = iterator.getValue();
         if (sourceEntry.getKind() == SourceKind.LIBRARY && !source.isInSystemLibrary()) {
 //          DartEntry dartEntry = (DartEntry) sourceEntry;
 //          if (dartEntry.getValue(DartEntry.IS_LAUNCHABLE) && !dartEntry.getValue(DartEntry.IS_CLIENT)) {
@@ -1478,18 +1485,19 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public Source[] getLibrariesDependingOn(Source librarySource) {
     synchronized (cacheLock) {
       ArrayList<Source> dependentLibraries = new ArrayList<Source>();
-      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        SourceEntry sourceEntry = entry.getValue();
+      MapIterator<Source, SourceEntry> iterator = cache.iterator();
+      while (iterator.moveNext()) {
+        SourceEntry sourceEntry = iterator.getValue();
         if (sourceEntry.getKind() == SourceKind.LIBRARY) {
           if (contains(
               ((DartEntry) sourceEntry).getValue(DartEntry.EXPORTED_LIBRARIES),
               librarySource)) {
-            dependentLibraries.add(entry.getKey());
+            dependentLibraries.add(iterator.getKey());
           }
           if (contains(
               ((DartEntry) sourceEntry).getValue(DartEntry.IMPORTED_LIBRARIES),
               librarySource)) {
-            dependentLibraries.add(entry.getKey());
+            dependentLibraries.add(iterator.getKey());
           }
         }
       }
@@ -1582,11 +1590,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public Source[] getRefactoringUnsafeSources() {
     ArrayList<Source> sources = new ArrayList<Source>();
     synchronized (cacheLock) {
-      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        SourceEntry sourceEntry = entry.getValue();
+      MapIterator<Source, SourceEntry> iterator = cache.iterator();
+      while (iterator.moveNext()) {
+        SourceEntry sourceEntry = iterator.getValue();
         if (sourceEntry instanceof DartEntry) {
           if (!((DartEntry) sourceEntry).isRefactoringSafe()) {
-            sources.add(entry.getKey());
+            sources.add(iterator.getKey());
           }
         }
       }
@@ -1647,8 +1656,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       //
       // Look for non-priority sources that need to be analyzed.
       //
-      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        getSourcesNeedingProcessing(entry.getKey(), entry.getValue(), false, hintsEnabled, sources);
+      MapIterator<Source, SourceEntry> iterator = cache.iterator();
+      while (iterator.moveNext()) {
+        getSourcesNeedingProcessing(
+            iterator.getKey(),
+            iterator.getValue(),
+            false,
+            hintsEnabled,
+            sources);
       }
     }
     return new ArrayList<Source>(sources);
@@ -1659,12 +1674,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     boolean hintsEnabled = options.getHint();
     AnalysisContentStatisticsImpl statistics = new AnalysisContentStatisticsImpl();
     synchronized (cacheLock) {
-      for (Entry<Source, SourceEntry> mapEntry : cache.entrySet()) {
-        statistics.addSource(mapEntry.getKey());
-        SourceEntry entry = mapEntry.getValue();
-        if (entry instanceof DartEntry) {
-          Source source = mapEntry.getKey();
-          DartEntry dartEntry = (DartEntry) entry;
+      MapIterator<Source, SourceEntry> iterator = cache.iterator();
+      while (iterator.moveNext()) {
+        SourceEntry sourceEntry = iterator.getValue();
+        if (sourceEntry instanceof DartEntry) {
+          Source source = iterator.getKey();
+          DartEntry dartEntry = (DartEntry) sourceEntry;
           SourceKind kind = dartEntry.getValue(DartEntry.SOURCE_KIND);
           // get library independent values
           statistics.putCacheItem(dartEntry, SourceEntry.LINE_INFO);
@@ -1697,8 +1712,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               }
             }
           }
-        } else if (entry instanceof HtmlEntry) {
-          HtmlEntry htmlEntry = (HtmlEntry) entry;
+        } else if (sourceEntry instanceof HtmlEntry) {
+          HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
           statistics.putCacheItem(htmlEntry, SourceEntry.LINE_INFO);
           statistics.putCacheItem(htmlEntry, HtmlEntry.PARSE_ERRORS);
           statistics.putCacheItem(htmlEntry, HtmlEntry.PARSED_UNIT);
@@ -1754,12 +1769,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
     synchronized (cacheLock) {
       // TODO(brianwilkerson) This does not lock against the other context's cacheLock.
-      for (Map.Entry<Source, SourceEntry> entry : ((AnalysisContextImpl) context).cache.entrySet()) {
-        Source newSource = entry.getKey();
+      MapIterator<Source, SourceEntry> iterator = cache.iterator();
+      while (iterator.moveNext()) {
+        Source newSource = iterator.getKey();
         SourceEntry existingEntry = getReadableSourceEntry(newSource);
         if (existingEntry == null) {
           // TODO(brianwilkerson) Decide whether we really need to copy the info.
-          cache.put(newSource, entry.getValue().getWritableCopy());
+          cache.put(newSource, iterator.getValue().getWritableCopy());
         } else {
           // TODO(brianwilkerson) Decide whether/how to merge the entries.
         }
@@ -2317,8 +2333,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param container the source container containing the sources to be added to the list
    */
   private void addSourcesInContainer(ArrayList<Source> sources, SourceContainer container) {
-    for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-      Source source = entry.getKey();
+    MapIterator<Source, SourceEntry> iterator = cache.iterator();
+    while (iterator.moveNext()) {
+      Source source = iterator.getKey();
       if (container.contains(source)) {
         sources.add(source);
       }
@@ -3792,9 +3809,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private Source[] getSources(SourceKind kind) {
     ArrayList<Source> sources = new ArrayList<Source>();
     synchronized (cacheLock) {
-      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        if (entry.getValue().getKind() == kind) {
-          sources.add(entry.getKey());
+      MapIterator<Source, SourceEntry> iterator = cache.iterator();
+      while (iterator.moveNext()) {
+        if (iterator.getValue().getKind() == kind) {
+          sources.add(iterator.getKey());
         }
       }
     }
@@ -3941,19 +3959,20 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private void invalidateAllResolutionInformation() {
     HashMap<Source, Source[]> oldPartMap = new HashMap<Source, Source[]>();
-    for (Map.Entry<Source, SourceEntry> mapEntry : cache.entrySet()) {
-      Source source = mapEntry.getKey();
-      SourceEntry sourceEntry = mapEntry.getValue();
+    MapIterator<Source, SourceEntry> iterator = cache.iterator();
+    while (iterator.moveNext()) {
+      Source source = iterator.getKey();
+      SourceEntry sourceEntry = iterator.getValue();
       if (sourceEntry instanceof HtmlEntry) {
         HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
         htmlCopy.invalidateAllResolutionInformation();
-        mapEntry.setValue(htmlCopy);
+        iterator.setValue(htmlCopy);
       } else if (sourceEntry instanceof DartEntry) {
         DartEntry dartEntry = (DartEntry) sourceEntry;
         oldPartMap.put(source, dartEntry.getValue(DartEntry.INCLUDED_PARTS));
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         dartCopy.invalidateAllResolutionInformation();
-        mapEntry.setValue(dartCopy);
+        iterator.setValue(dartCopy);
         workManager.add(source, SourcePriority.UNKNOWN);
       }
     }
@@ -5563,9 +5582,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     ArrayList<Source> changedSources = new ArrayList<Source>();
     ArrayList<Source> missingSources = new ArrayList<Source>();
     synchronized (cacheLock) {
-      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-        Source source = entry.getKey();
-        SourceEntry sourceEntry = entry.getValue();
+      MapIterator<Source, SourceEntry> iterator = cache.iterator();
+      while (iterator.moveNext()) {
+        Source source = iterator.getKey();
+        SourceEntry sourceEntry = iterator.getValue();
         long sourceTime = getModificationStamp(source);
         if (sourceTime != sourceEntry.getModificationTime()) {
           changedSources.add(source);

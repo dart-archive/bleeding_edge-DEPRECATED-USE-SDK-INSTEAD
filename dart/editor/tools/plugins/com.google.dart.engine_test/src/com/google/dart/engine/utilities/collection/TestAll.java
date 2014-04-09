@@ -26,6 +26,8 @@ public class TestAll {
     suite.addTestSuite(IntListTest.class);
     suite.addTestSuite(IntStackTest.class);
     suite.addTestSuite(ListUtilitiesTest.class);
+    suite.addTestSuite(MultipleMapIteratorTest.class);
+    suite.addTestSuite(SingleMapIteratorTest.class);
     return suite;
   }
 }
