@@ -25,6 +25,15 @@ import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.ast.AstComparator;
 
 public class IncrementalParserTest extends EngineTestCase {
+  public void fail_replace_identifier_with_functionLiteral_in_initializer() {
+    // Function literals aren't allowed inside initializers; incremental parsing needs to gather
+    // the appropriate context.
+    //
+    // "class A { var a; A(b) : a = b ? b : 0 { } }"
+    // "class A { var a; A(b) : a = b ? () {} : 0 { } }"
+    assertParse("class A { var a; A(b) : a = b ? ", "b", "() {}", " : 0 { } }");
+  }
+
   public void test_delete_everything() {
     // "f() => a + b;"
     // ""

@@ -18,11 +18,13 @@ import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.EmptyStatement;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.IsExpression;
@@ -418,6 +420,21 @@ public class RecoveryParserTest extends ParserTestCase {
     Expression syntheticExpression = result.get(3);
     assertInstanceOf(SimpleIdentifier.class, syntheticExpression);
     assertTrue(syntheticExpression.isSynthetic());
+  }
+
+  public void test_functionExpression_in_ConstructorFieldInitializer() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(
+        "class A { A() : a = (){}; var v; }",
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.UNEXPECTED_TOKEN);
+    // Make sure we recovered and parsed "var v" correctly
+    ClassDeclaration declaration = (ClassDeclaration) unit.getDeclarations().get(0);
+    NodeList<ClassMember> members = declaration.getMembers();
+    ClassMember fieldDecl = members.get(1);
+    assertInstanceOf(FieldDeclaration.class, fieldDecl);
+    NodeList<VariableDeclaration> vars = ((FieldDeclaration) fieldDecl).getFields().getVariables();
+    assertSizeOfList(1, vars);
+    assertEquals("v", vars.get(0).getName().getName());
   }
 
   public void test_incomplete_topLevelVariable() throws Exception {

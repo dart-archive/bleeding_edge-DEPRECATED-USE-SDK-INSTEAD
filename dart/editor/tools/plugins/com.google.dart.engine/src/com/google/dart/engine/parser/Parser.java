@@ -108,6 +108,12 @@ public class Parser {
    */
   private boolean inSwitch = false;
 
+  /**
+   * A flag indicating whether the parser is currently in a constructor field initializer, with no
+   * intervening parens, braces, or brackets.
+   */
+  private boolean inInitializer = false;
+
   private static final String HIDE = "hide"; //$NON-NLS-1$
   private static final String OF = "of"; //$NON-NLS-1$
   private static final String ON = "on"; //$NON-NLS-1$
@@ -278,28 +284,34 @@ public class Parser {
     // Even though unnamed arguments must all appear before any named arguments, we allow them to
     // appear in any order so that we can recover faster.
     //
-    Expression argument = parseArgument();
-    arguments.add(argument);
-    boolean foundNamedArgument = argument instanceof NamedExpression;
-    boolean generatedError = false;
-    while (optional(TokenType.COMMA)) {
-      argument = parseArgument();
+    boolean wasInInitializer = inInitializer;
+    inInitializer = false;
+    try {
+      Expression argument = parseArgument();
       arguments.add(argument);
-      if (foundNamedArgument) {
-        if (!generatedError && !(argument instanceof NamedExpression)) {
-          // Report the error, once, but allow the arguments to be in any order in the AST.
-          reportErrorForCurrentToken(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
-          generatedError = true;
+      boolean foundNamedArgument = argument instanceof NamedExpression;
+      boolean generatedError = false;
+      while (optional(TokenType.COMMA)) {
+        argument = parseArgument();
+        arguments.add(argument);
+        if (foundNamedArgument) {
+          if (!generatedError && !(argument instanceof NamedExpression)) {
+            // Report the error, once, but allow the arguments to be in any order in the AST.
+            reportErrorForCurrentToken(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
+            generatedError = true;
+          }
+        } else if (argument instanceof NamedExpression) {
+          foundNamedArgument = true;
         }
-      } else if (argument instanceof NamedExpression) {
-        foundNamedArgument = true;
       }
+      // TODO(brianwilkerson) Recovery: Look at the left parenthesis to see whether there is a
+      // matching right parenthesis. If there is, then we're more likely missing a comma and should
+      // go back to parsing arguments.
+      Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+      return new ArgumentList(leftParenthesis, arguments, rightParenthesis);
+    } finally {
+      inInitializer = wasInInitializer;
     }
-    // TODO(brianwilkerson) Recovery: Look at the left parenthesis to see whether there is a
-    // matching right parenthesis. If there is, then we're more likely missing a comma and should
-    // go back to parsing arguments.
-    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
-    return new ArgumentList(leftParenthesis, arguments, rightParenthesis);
   }
 
   /**
@@ -1968,6 +1980,10 @@ public class Parser {
    * @return {@code true} if the given token appears to be the beginning of a function expression
    */
   private boolean isFunctionExpression(Token startToken) {
+    // Function expressions aren't allowed in initializer lists.
+    if (inInitializer) {
+      return false;
+    }
     Token afterParameters = skipFormalParameterList(startToken);
     if (afterParameters == null) {
       return false;
@@ -2428,9 +2444,15 @@ public class Parser {
   private Expression parseAssignableSelector(Expression prefix, boolean optional) {
     if (matches(TokenType.OPEN_SQUARE_BRACKET)) {
       Token leftBracket = getAndAdvance();
-      Expression index = parseExpression();
-      Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
-      return new IndexExpression(prefix, leftBracket, index, rightBracket);
+      boolean wasInInitializer = inInitializer;
+      inInitializer = false;
+      try {
+        Expression index = parseExpression();
+        Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
+        return new IndexExpression(prefix, leftBracket, index, rightBracket);
+      } finally {
+        inInitializer = wasInInitializer;
+      }
     } else if (matches(TokenType.PERIOD)) {
       Token period = getAndAdvance();
       return new PropertyAccess(prefix, period, parseSimpleIdentifier());
@@ -2541,10 +2563,16 @@ public class Parser {
       functionName = parseSimpleIdentifier();
     } else if (currentToken.getType() == TokenType.OPEN_SQUARE_BRACKET) {
       Token leftBracket = getAndAdvance();
-      Expression index = parseExpression();
-      Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
-      expression = new IndexExpression(period, leftBracket, index, rightBracket);
-      period = null;
+      boolean wasInInitializer = inInitializer;
+      inInitializer = false;
+      try {
+        Expression index = parseExpression();
+        Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
+        expression = new IndexExpression(period, leftBracket, index, rightBracket);
+        period = null;
+      } finally {
+        inInitializer = wasInInitializer;
+      }
     } else {
       reportErrorForToken(
           ParserErrorCode.MISSING_IDENTIFIER,
@@ -3302,20 +3330,26 @@ public class Parser {
     }
     SimpleIdentifier fieldName = parseSimpleIdentifier();
     Token equals = expect(TokenType.EQ);
-    Expression expression = parseConditionalExpression();
-    TokenType tokenType = currentToken.getType();
-    if (tokenType == TokenType.PERIOD_PERIOD) {
-      List<Expression> cascadeSections = new ArrayList<Expression>();
-      while (tokenType == TokenType.PERIOD_PERIOD) {
-        Expression section = parseCascadeSection();
-        if (section != null) {
-          cascadeSections.add(section);
+    boolean wasInInitializer = inInitializer;
+    inInitializer = true;
+    try {
+      Expression expression = parseConditionalExpression();
+      TokenType tokenType = currentToken.getType();
+      if (tokenType == TokenType.PERIOD_PERIOD) {
+        List<Expression> cascadeSections = new ArrayList<Expression>();
+        while (tokenType == TokenType.PERIOD_PERIOD) {
+          Expression section = parseCascadeSection();
+          if (section != null) {
+            cascadeSections.add(section);
+          }
+          tokenType = currentToken.getType();
         }
-        tokenType = currentToken.getType();
+        expression = new CascadeExpression(expression, cascadeSections);
       }
-      expression = new CascadeExpression(expression, cascadeSections);
+      return new ConstructorFieldInitializer(keyword, period, fieldName, equals, expression);
+    } finally {
+      inInitializer = wasInInitializer;
     }
-    return new ConstructorFieldInitializer(keyword, period, fieldName, equals, expression);
   }
 
   /**
@@ -4270,16 +4304,22 @@ public class Parser {
     if (matches(TokenType.CLOSE_SQUARE_BRACKET)) {
       return new ListLiteral(modifier, typeArguments, leftBracket, null, getAndAdvance());
     }
-    List<Expression> elements = new ArrayList<Expression>();
-    elements.add(parseExpression());
-    while (optional(TokenType.COMMA)) {
-      if (matches(TokenType.CLOSE_SQUARE_BRACKET)) {
-        return new ListLiteral(modifier, typeArguments, leftBracket, elements, getAndAdvance());
-      }
+    boolean wasInInitializer = inInitializer;
+    inInitializer = false;
+    try {
+      List<Expression> elements = new ArrayList<Expression>();
       elements.add(parseExpression());
+      while (optional(TokenType.COMMA)) {
+        if (matches(TokenType.CLOSE_SQUARE_BRACKET)) {
+          return new ListLiteral(modifier, typeArguments, leftBracket, elements, getAndAdvance());
+        }
+        elements.add(parseExpression());
+      }
+      Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
+      return new ListLiteral(modifier, typeArguments, leftBracket, elements, rightBracket);
+    } finally {
+      inInitializer = wasInInitializer;
     }
-    Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
-    return new ListLiteral(modifier, typeArguments, leftBracket, elements, rightBracket);
   }
 
   /**
@@ -4353,15 +4393,21 @@ public class Parser {
     if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
       return new MapLiteral(modifier, typeArguments, leftBracket, entries, getAndAdvance());
     }
-    entries.add(parseMapLiteralEntry());
-    while (optional(TokenType.COMMA)) {
-      if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
-        return new MapLiteral(modifier, typeArguments, leftBracket, entries, getAndAdvance());
-      }
+    boolean wasInInitializer = inInitializer;
+    inInitializer = false;
+    try {
       entries.add(parseMapLiteralEntry());
+      while (optional(TokenType.COMMA)) {
+        if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
+          return new MapLiteral(modifier, typeArguments, leftBracket, entries, getAndAdvance());
+        }
+        entries.add(parseMapLiteralEntry());
+      }
+      Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
+      return new MapLiteral(modifier, typeArguments, leftBracket, entries, rightBracket);
+    } finally {
+      inInitializer = wasInInitializer;
     }
-    Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
-    return new MapLiteral(modifier, typeArguments, leftBracket, entries, rightBracket);
   }
 
   /**
@@ -4977,9 +5023,15 @@ public class Parser {
         return parseFunctionExpression();
       }
       Token leftParenthesis = getAndAdvance();
-      Expression expression = parseExpression();
-      Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
-      return new ParenthesizedExpression(leftParenthesis, expression, rightParenthesis);
+      boolean wasInInitializer = inInitializer;
+      inInitializer = false;
+      try {
+        Expression expression = parseExpression();
+        Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+        return new ParenthesizedExpression(leftParenthesis, expression, rightParenthesis);
+      } finally {
+        inInitializer = wasInInitializer;
+      }
     } else if (matches(TokenType.LT)) {
       return parseListOrMapLiteral(null);
     } else if (matches(TokenType.QUESTION)) {

@@ -152,6 +152,51 @@ public class SimpleParserTest extends ParserTestCase {
     assertTrue(literal.isSynthetic());
   }
 
+  public void test_function_literal_allowed_at_toplevel() throws Exception {
+    parseCompilationUnit("var x = () {};");
+  }
+
+  public void test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer()
+      throws Exception {
+    parseCompilationUnit("class C { C() : a = f(() {}); }");
+  }
+
+  public void test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer()
+      throws Exception {
+    parseCompilationUnit("class C { C() : a = x[() {}]; }");
+  }
+
+  public void test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer()
+      throws Exception {
+    parseCompilationUnit("class C { C() : a = [() {}]; }");
+  }
+
+  public void test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer()
+      throws Exception {
+    parseCompilationUnit("class C { C() : a = {'key': () {}}; }");
+  }
+
+  public void test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer()
+      throws Exception {
+    parseCompilationUnit("class C { C() : a = (() {}); }");
+  }
+
+  public void test_function_literal_disallowed_in_StringInterpolation_in_ConstructorFieldInitializer()
+      throws Exception {
+    // TODO: fix this if the VM and dart2js decide to start accepting this syntax
+    // (dartbug.com/18102).
+
+    // Note: recovery isn't very good inside string interpolation so we expect a lot of errors
+    // (dartbug.com/946)
+    parseCompilationUnit(
+        "class C { C() : a = \"${(){}}\"; }",
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.MISSING_IDENTIFIER);
+  }
+
   public void test_isFunctionDeclaration_nameButNoReturn_block() throws Exception {
     assertTrue(isFunctionDeclaration("f() {}"));
   }
@@ -1996,6 +2041,21 @@ public class SimpleParserTest extends ParserTestCase {
 //        Token.class, Token.class, SimpleIdentifier.class, Token.class,
 //        SimpleIdentifier.class, FormalParameterList.class}, new Object[] {emptyCommentAndMetadata(),
 //        null, null, null, null, null, null}, "");
+  }
+
+  public void test_parseConstructor_with_pseudo_function_literal() throws Exception {
+    // "(b) {}" should not be misinterpreted as a function literal even though it looks like one.
+    ClassMember classMember = parse("parseClassMember", new Object[] {"C"}, "C() : a = (b) {}");
+    assertInstanceOf(ConstructorDeclaration.class, classMember);
+    ConstructorDeclaration constructor = (ConstructorDeclaration) classMember;
+    NodeList<ConstructorInitializer> initializers = constructor.getInitializers();
+    assertSizeOfList(1, initializers);
+    ConstructorInitializer initializer = initializers.get(0);
+    assertInstanceOf(ConstructorFieldInitializer.class, initializer);
+    assertInstanceOf(
+        ParenthesizedExpression.class,
+        ((ConstructorFieldInitializer) initializer).getExpression());
+    assertInstanceOf(BlockFunctionBody.class, constructor.getBody());
   }
 
   public void test_parseConstructorFieldInitializer_qualified() throws Exception {
