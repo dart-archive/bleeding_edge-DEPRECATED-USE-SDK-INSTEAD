@@ -19,9 +19,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -80,6 +80,8 @@ import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
 import com.google.dart.engine.services.util.HierarchyUtils;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.collection.MapIterator;
+import com.google.dart.engine.utilities.collection.SingleMapIterator;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getExpressionParentPrecedence;
@@ -95,7 +97,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -698,8 +699,8 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       AstNode contextNode, Expression targetExpression, List<Expression> arguments) {
     // prepare edits to replace parameters with arguments
     List<Edit> edits = Lists.newArrayList();
-    for (Entry<ParameterElement, List<ParameterOccurrence>> entry : part.parameters.entrySet()) {
-      ParameterElement parameter = entry.getKey();
+    for (MapIterator<ParameterElement, List<ParameterOccurrence>> iter = SingleMapIterator.forMap(part.parameters); iter.moveNext();) {
+      ParameterElement parameter = iter.getKey();
       // prepare argument
       Expression argument = null;
       for (Expression arg : arguments) {
@@ -714,7 +715,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       int argumentPrecedence = getExpressionPrecedence(argument);
       String argumentSource = utils.getText(argument);
       // replace all occurrences of this parameter
-      for (ParameterOccurrence occurrence : entry.getValue()) {
+      for (ParameterOccurrence occurrence : iter.getValue()) {
         SourceRange range = occurrence.range;
         // prepare argument source to apply at this occurrence
         String occurrenceArgumentSource;
@@ -728,9 +729,9 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       }
     }
     // replace static field "qualifier" with invocation target
-    for (Entry<String, List<SourceRange>> entry : part.staticFieldQualifiers.entrySet()) {
-      String className = entry.getKey();
-      for (SourceRange range : entry.getValue()) {
+    for (MapIterator<String, List<SourceRange>> iter = SingleMapIterator.forMap(part.staticFieldQualifiers); iter.moveNext();) {
+      String className = iter.getKey();
+      for (SourceRange range : iter.getValue()) {
         edits.add(new Edit(range, className + "."));
       }
     }
@@ -743,8 +744,8 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     }
     // prepare edits to replace conflicting variables
     Set<String> conflictingNames = getNamesConflictingWithLocal(utils.getUnit(), contextNode);
-    for (Entry<VariableElement, List<SourceRange>> entry : part.variables.entrySet()) {
-      String originalName = entry.getKey().getDisplayName();
+    for (MapIterator<VariableElement, List<SourceRange>> iter = SingleMapIterator.forMap(part.variables); iter.moveNext();) {
+      String originalName = iter.getKey().getDisplayName();
       // prepare unique name
       String uniqueName;
       {
@@ -757,7 +758,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       }
       // update references, if name was change
       if (!StringUtils.equals(uniqueName, originalName)) {
-        for (SourceRange range : entry.getValue()) {
+        for (SourceRange range : iter.getValue()) {
           edits.add(new Edit(range, uniqueName));
         }
       }

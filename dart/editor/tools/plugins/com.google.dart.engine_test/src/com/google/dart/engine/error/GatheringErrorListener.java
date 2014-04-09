@@ -15,6 +15,8 @@ package com.google.dart.engine.error;
 
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.collection.MapIterator;
+import com.google.dart.engine.utilities.collection.SingleMapIterator;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.source.LineInfo;
 
@@ -24,7 +26,6 @@ import junit.framework.AssertionFailedError;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Instances of the class {@code GatheringErrorListener} implement an error listener that collects
@@ -154,9 +155,9 @@ public class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compare the expected and actual number of each type of error.
     //
-    for (Map.Entry<ErrorCode, Integer> entry : expectedCounts.entrySet()) {
-      ErrorCode code = entry.getKey();
-      int expectedCount = entry.getValue().intValue();
+    for (MapIterator<ErrorCode, Integer> iter = SingleMapIterator.forMap(expectedCounts); iter.moveNext();) {
+      ErrorCode code = iter.getKey();
+      int expectedCount = iter.getValue().intValue();
       int actualCount;
       ArrayList<AnalysisError> list = errorsByCode.remove(code);
       if (list == null) {
@@ -180,9 +181,9 @@ public class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Check that there are no more errors in the actual-errors map, otherwise, record message.
     //
-    for (Map.Entry<ErrorCode, ArrayList<AnalysisError>> entry : errorsByCode.entrySet()) {
-      ErrorCode code = entry.getKey();
-      ArrayList<AnalysisError> actualErrors = entry.getValue();
+    for (MapIterator<ErrorCode, ArrayList<AnalysisError>> iter = SingleMapIterator.forMap(errorsByCode); iter.moveNext();) {
+      ErrorCode code = iter.getKey();
+      ArrayList<AnalysisError> actualErrors = iter.getValue();
       int actualCount = actualErrors.size();
       if (builder.length() == 0) {
         builder.append("Expected ");

@@ -24,11 +24,12 @@ import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.DirectedGraph;
+import com.google.dart.engine.utilities.collection.MapIterator;
+import com.google.dart.engine.utilities.collection.SingleMapIterator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Instances of the class {@code ConstantValueComputer} compute the values of constant variables in
@@ -83,11 +84,11 @@ public class ConstantValueComputer {
    */
   public void computeValues() {
     declarationMap = constantFinder.getVariableMap();
-    for (Map.Entry<VariableElement, VariableDeclaration> entry : declarationMap.entrySet()) {
-      VariableElement element = entry.getKey();
+    for (MapIterator<VariableElement, VariableDeclaration> iter = SingleMapIterator.forMap(declarationMap); iter.moveNext();) {
+      VariableElement element = iter.getKey();
       ReferenceFinder referenceFinder = new ReferenceFinder(element, referenceGraph);
       referenceGraph.addNode(element);
-      entry.getValue().getInitializer().accept(referenceFinder);
+      iter.getValue().getInitializer().accept(referenceFinder);
     }
     while (!referenceGraph.isEmpty()) {
       VariableElement element = referenceGraph.removeSink();

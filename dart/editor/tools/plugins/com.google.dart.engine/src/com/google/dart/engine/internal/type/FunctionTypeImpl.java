@@ -24,15 +24,15 @@ import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.internal.element.member.ParameterMember;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.collection.MapIterator;
+import com.google.dart.engine.utilities.collection.SingleMapIterator;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -58,14 +58,12 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (secondTypes.size() != firstTypes.size()) {
       return false;
     }
-    Iterator<Map.Entry<String, Type>> firstIterator = firstTypes.entrySet().iterator();
-    Iterator<Map.Entry<String, Type>> secondIterator = secondTypes.entrySet().iterator();
-    while (firstIterator.hasNext()) {
-      Map.Entry<String, Type> firstEntry = firstIterator.next();
-      Map.Entry<String, Type> secondEntry = secondIterator.next();
-      if (!firstEntry.getKey().equals(secondEntry.getKey())
-          || !((TypeImpl) firstEntry.getValue()).internalEquals(
-              secondEntry.getValue(),
+    MapIterator<String, Type> firstIterator = SingleMapIterator.forMap(firstTypes);
+    MapIterator<String, Type> secondIterator = SingleMapIterator.forMap(secondTypes);
+    while (firstIterator.moveNext() && secondIterator.moveNext()) {
+      if (!firstIterator.getKey().equals(secondIterator.getKey())
+          || !((TypeImpl) firstIterator.getValue()).internalEquals(
+              secondIterator.getValue(),
               visitedElementPairs)) {
         return false;
       }
@@ -148,15 +146,15 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
           needsComma = false;
         }
         builder.append("{");
-        for (Map.Entry<String, Type> entry : namedParameterTypes.entrySet()) {
+        for (MapIterator<String, Type> iter = SingleMapIterator.forMap(namedParameterTypes); iter.moveNext();) {
           if (needsComma) {
             builder.append(", ");
           } else {
             needsComma = true;
           }
-          builder.append(entry.getKey());
+          builder.append(iter.getKey());
           builder.append(": ");
-          builder.append(entry.getValue().getDisplayName());
+          builder.append(iter.getValue().getDisplayName());
         }
         builder.append("}");
         needsComma = true;
@@ -343,14 +341,16 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
       // Loop through each element in S verifying that T has a matching parameter name and that the
       // corresponding type is more specific then the type in S.
-      Iterator<Entry<String, Type>> iteratorS = namedTypesS.entrySet().iterator();
-      while (iteratorS.hasNext()) {
-        Entry<String, Type> entryS = iteratorS.next();
-        Type typeT = namedTypesT.get(entryS.getKey());
+      MapIterator<String, Type> iteratorS = SingleMapIterator.forMap(namedTypesS);
+      while (iteratorS.moveNext()) {
+        Type typeT = namedTypesT.get(iteratorS.getKey());
         if (typeT == null) {
           return false;
         }
-        if (!((TypeImpl) typeT).isMoreSpecificThan(entryS.getValue(), withDynamic, visitedTypePairs)) {
+        if (!((TypeImpl) typeT).isMoreSpecificThan(
+            iteratorS.getValue(),
+            withDynamic,
+            visitedTypePairs)) {
           return false;
         }
       }
@@ -482,15 +482,15 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         needsComma = false;
       }
       builder.append("{");
-      for (Map.Entry<String, Type> entry : namedParameterTypes.entrySet()) {
+      for (MapIterator<String, Type> iter = SingleMapIterator.forMap(namedParameterTypes); iter.moveNext();) {
         if (needsComma) {
           builder.append(", ");
         } else {
           needsComma = true;
         }
-        builder.append(entry.getKey());
+        builder.append(iter.getKey());
         builder.append(": ");
-        ((TypeImpl) entry.getValue()).appendTo(builder);
+        ((TypeImpl) iter.getValue()).appendTo(builder);
       }
       builder.append("}");
       needsComma = true;
@@ -597,14 +597,13 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
       // Loop through each element in S verifying that T has a matching parameter name and that the
       // corresponding type is assignable to the type in S.
-      Iterator<Entry<String, Type>> iteratorS = namedTypesS.entrySet().iterator();
-      while (iteratorS.hasNext()) {
-        Entry<String, Type> entryS = iteratorS.next();
-        Type typeT = namedTypesT.get(entryS.getKey());
+      MapIterator<String, Type> iteratorS = SingleMapIterator.forMap(namedTypesS);
+      while (iteratorS.moveNext()) {
+        Type typeT = namedTypesT.get(iteratorS.getKey());
         if (typeT == null) {
           return false;
         }
-        if (!((TypeImpl) typeT).isAssignableTo(entryS.getValue(), visitedTypePairs)) {
+        if (!((TypeImpl) typeT).isAssignableTo(iteratorS.getValue(), visitedTypePairs)) {
           return false;
         }
       }

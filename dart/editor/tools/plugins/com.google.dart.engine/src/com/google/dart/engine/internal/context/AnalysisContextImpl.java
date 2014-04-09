@@ -94,6 +94,7 @@ import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.collection.DirectedGraph;
 import com.google.dart.engine.utilities.collection.ListUtilities;
 import com.google.dart.engine.utilities.collection.MapIterator;
+import com.google.dart.engine.utilities.collection.SingleMapIterator;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
@@ -1845,9 +1846,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     synchronized (cacheLock) {
       Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
-      for (Map.Entry<Source, LibraryElement> entry : elementMap.entrySet()) {
-        Source librarySource = entry.getKey();
-        LibraryElement library = entry.getValue();
+      for (MapIterator<Source, LibraryElement> iter = SingleMapIterator.forMap(elementMap); iter.moveNext();) {
+        Source librarySource = iter.getKey();
+        LibraryElement library = iter.getValue();
         //
         // Cache the element in the library's info.
         //
@@ -4423,9 +4424,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       throw thrownException;
     }
-    for (Map.Entry<Source, TimestampedData<AnalysisError[]>> entry : hintMap.entrySet()) {
-      Source unitSource = entry.getKey();
-      TimestampedData<AnalysisError[]> results = entry.getValue();
+    for (MapIterator<Source, TimestampedData<AnalysisError[]>> iter = SingleMapIterator.forMap(hintMap); iter.moveNext();) {
+      Source unitSource = iter.getKey();
+      TimestampedData<AnalysisError[]> results = iter.getValue();
       synchronized (cacheLock) {
         SourceEntry sourceEntry = cache.get(unitSource);
         if (!(sourceEntry instanceof DartEntry)) {
@@ -5428,9 +5429,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param oldPartMap the table containing the parts associated with each library
    */
   private void removeFromPartsUsingMap(HashMap<Source, Source[]> oldPartMap) {
-    for (Map.Entry<Source, Source[]> entry : oldPartMap.entrySet()) {
-      Source librarySource = entry.getKey();
-      Source[] oldParts = entry.getValue();
+    for (MapIterator<Source, Source[]> iter = SingleMapIterator.forMap(oldPartMap); iter.moveNext();) {
+      Source librarySource = iter.getKey();
+      Source[] oldParts = iter.getValue();
       for (int i = 0; i < oldParts.length; i++) {
         Source partSource = oldParts[i];
         if (!partSource.equals(librarySource)) {

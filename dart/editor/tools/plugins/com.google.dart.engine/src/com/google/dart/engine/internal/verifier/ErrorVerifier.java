@@ -147,6 +147,8 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
+import com.google.dart.engine.utilities.collection.MapIterator;
+import com.google.dart.engine.utilities.collection.SingleMapIterator;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.engine.utilities.general.StringUtilities;
@@ -157,7 +159,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -1276,9 +1277,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     }
 
     // Visit all of the states in the map to ensure that none were never initialized.
-    for (Entry<FieldElement, INIT_STATE> entry : fieldElementsMap.entrySet()) {
-      if (entry.getValue() == INIT_STATE.NOT_INIT) {
-        FieldElement fieldElement = entry.getKey();
+    for (MapIterator<FieldElement, INIT_STATE> iter = SingleMapIterator.forMap(fieldElementsMap); iter.moveNext();) {
+      if (iter.getValue() == INIT_STATE.NOT_INIT) {
+        FieldElement fieldElement = iter.getKey();
         if (fieldElement.isConst()) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_NOT_INITIALIZED,
@@ -1500,23 +1501,22 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     }
 
     // SWC.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE & SWC.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES
-    Iterator<Entry<String, Type>> overriddenNamedPTIterator = overriddenNamedPT.entrySet().iterator();
-    while (overriddenNamedPTIterator.hasNext()) {
-      Entry<String, Type> overriddenNamedPTEntry = overriddenNamedPTIterator.next();
-      Type overridingType = overridingNamedPT.get(overriddenNamedPTEntry.getKey());
+    MapIterator<String, Type> overriddenNamedPTIterator = SingleMapIterator.forMap(overriddenNamedPT);
+    while (overriddenNamedPTIterator.moveNext()) {
+      Type overridingType = overridingNamedPT.get(overriddenNamedPTIterator.getKey());
       if (overridingType == null) {
         // Error, this is never reached- INVALID_OVERRIDE_NAMED would have been created above if
         // this could be reached.
         continue;
       }
-      if (!overriddenNamedPTEntry.getValue().isAssignableTo(overridingType)) {
+      if (!overriddenNamedPTIterator.getValue().isAssignableTo(overridingType)) {
         // lookup the parameter for the error to select
         ParameterElement parameterToSelect = null;
         AstNode parameterLocationToSelect = null;
         for (int i = 0; i < parameters.length; i++) {
           ParameterElement parameter = parameters[i];
           if (parameter.getParameterKind() == ParameterKind.NAMED
-              && overriddenNamedPTEntry.getKey().equals(parameter.getName())) {
+              && overriddenNamedPTIterator.getKey().equals(parameter.getName())) {
             parameterToSelect = parameter;
             parameterLocationToSelect = parameterLocations[i];
             break;
@@ -1527,7 +1527,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
               StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE,
               parameterLocationToSelect,
               overridingType.getDisplayName(),
-              overriddenNamedPTEntry.getValue().getDisplayName(),
+              overriddenNamedPTIterator.getValue().getDisplayName(),
               overriddenExecutable.getEnclosingElement().getDisplayName());
           return true;
         }
@@ -1919,9 +1919,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     // check exported names
     Namespace namespace = new NamespaceBuilder().createExportNamespaceForDirective(exportElement);
     Map<String, Element> definedNames = namespace.getDefinedNames();
-    for (Entry<String, Element> definedEntry : definedNames.entrySet()) {
-      String name = definedEntry.getKey();
-      Element element = definedEntry.getValue();
+    for (MapIterator<String, Element> iter = SingleMapIterator.forMap(definedNames); iter.moveNext();) {
+      String name = iter.getKey();
+      Element element = iter.getValue();
       Element prevElement = exportedElements.get(name);
       if (element != null && prevElement != null && !prevElement.equals(element)) {
         errorReporter.reportErrorForNode(

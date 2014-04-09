@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -378,9 +377,9 @@ public class DirectedGraph<N> {
       "}",//
       "return null;"})
   private N findSink() {
-    for (Map.Entry<N, HashSet<N>> entry : edges.entrySet()) {
-      if (entry.getValue().isEmpty()) {
-        return entry.getKey();
+    for (MapIterator<N, HashSet<N>> iter = SingleMapIterator.forMap(edges); iter.moveNext();) {
+      if (iter.getValue().isEmpty()) {
+        return iter.getKey();
       }
     }
     return null;

@@ -24,6 +24,13 @@ import java.util.NoSuchElementException;
  */
 public class SingleMapIterator<K, V> implements MapIterator<K, V> {
   /**
+   * Returns a new {@link SingleMapIterator} instance for the given {@link Map}.
+   */
+  public static <K, V> SingleMapIterator<K, V> forMap(Map<K, V> map) {
+    return new SingleMapIterator<K, V>(map);
+  }
+
+  /**
    * The iterator used to access the entries.
    */
   private Iterator<Entry<K, V>> iterator;

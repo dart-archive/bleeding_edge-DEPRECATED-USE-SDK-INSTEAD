@@ -13,6 +13,9 @@
  */
 package com.google.dart.engine.internal.object;
 
+import com.google.dart.engine.utilities.collection.MapIterator;
+import com.google.dart.engine.utilities.collection.SingleMapIterator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,9 +64,9 @@ public class MapState extends InstanceState {
     } else if (count == 0) {
       return true;
     }
-    for (Map.Entry<DartObjectImpl, DartObjectImpl> entry : entries.entrySet()) {
-      DartObjectImpl key = entry.getKey();
-      DartObjectImpl value = entry.getValue();
+    for (MapIterator<DartObjectImpl, DartObjectImpl> iter = SingleMapIterator.forMap(entries); iter.moveNext();) {
+      DartObjectImpl key = iter.getKey();
+      DartObjectImpl value = iter.getValue();
       DartObjectImpl otherValue = otherElements.get(key);
       if (!value.equals(otherValue)) {
         return false;
@@ -80,9 +83,9 @@ public class MapState extends InstanceState {
   @Override
   public Map<Object, Object> getValue() {
     HashMap<Object, Object> result = new HashMap<Object, Object>();
-    for (Map.Entry<DartObjectImpl, DartObjectImpl> entry : entries.entrySet()) {
-      DartObjectImpl key = entry.getKey();
-      DartObjectImpl value = entry.getValue();
+    for (MapIterator<DartObjectImpl, DartObjectImpl> iter = SingleMapIterator.forMap(entries); iter.moveNext();) {
+      DartObjectImpl key = iter.getKey();
+      DartObjectImpl value = iter.getValue();
       if (!key.hasExactValue() || !value.hasExactValue()) {
         return null;
       }
@@ -93,8 +96,8 @@ public class MapState extends InstanceState {
 
   @Override
   public boolean hasExactValue() {
-    for (Map.Entry<DartObjectImpl, DartObjectImpl> entry : entries.entrySet()) {
-      if (!entry.getKey().hasExactValue() || !entry.getValue().hasExactValue()) {
+    for (MapIterator<DartObjectImpl, DartObjectImpl> iter = SingleMapIterator.forMap(entries); iter.moveNext();) {
+      if (!iter.getKey().hasExactValue() || !iter.getValue().hasExactValue()) {
         return false;
       }
     }
