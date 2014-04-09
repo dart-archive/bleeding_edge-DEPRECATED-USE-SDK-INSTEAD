@@ -93,6 +93,16 @@ public enum HintCode implements ErrorCode {
       "When compiled to JS, this test might return false when the left hand side is a double"),
 
   /**
+   * This hint is generated anywhere where the {@link StaticTypeWarningCode#INVALID_ASSIGNMENT}
+   * would have been generated, if we used propagated information for the warnings.
+   * 
+   * @param rhsTypeName the name of the right hand side type
+   * @param lhsTypeName the name of the left hand side type
+   * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
+   */
+  INVALID_ASSIGNMENT("A value of type '%s' cannot be assigned to a variable of type '%s'"),
+
+  /**
    * Generate a hint for methods or functions that have a return type, but do not have a non-void
    * return statement on all branches. At the end of methods or functions with no return, Dart
    * implicitly returns {@code null}, avoiding these implicit returns is considered a best practice.

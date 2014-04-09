@@ -51,10 +51,12 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
+import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.InterfaceType;
@@ -135,10 +137,11 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operatorType = node.getOperator().getType();
-    if (operatorType != TokenType.EQ) {
-      checkForDeprecatedMemberUse(node.getBestElement(), node);
-    } else {
+    if (operatorType == TokenType.EQ) {
       checkForUseOfVoidResult(node.getRightHandSide());
+      checkForInvalidAssignment(node.getLeftHandSide(), node.getRightHandSide());
+    } else {
+      checkForDeprecatedMemberUse(node.getBestElement(), node);
     }
     return super.visitAssignmentExpression(node);
   }
@@ -240,6 +243,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
   @Override
   public Void visitVariableDeclaration(VariableDeclaration node) {
     checkForUseOfVoidResult(node.getInitializer());
+    checkForInvalidAssignment(node.getName(), node.getInitializer());
     return super.visitVariableDeclaration(node);
   }
 
@@ -509,6 +513,45 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
           errorReporter.reportErrorForNode(HintCode.DIVISION_OPTIMIZATION, methodInvocation);
           return true;
         }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed left hand side and right hand side represent a valid assignment.
+   * <p>
+   * This method corresponds to ErrorVerifier.checkForInvalidAssignment.
+   * 
+   * @param lhs the left hand side expression
+   * @param rhs the right hand side expression
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see HintCode#INVALID_ASSIGNMENT
+   */
+  private boolean checkForInvalidAssignment(Expression lhs, Expression rhs) {
+    if (lhs == null || rhs == null) {
+      return false;
+    }
+    VariableElement leftElement = ErrorVerifier.getVariableElement(lhs);
+    Type leftType = (leftElement == null) ? ErrorVerifier.getStaticType(lhs)
+        : leftElement.getType();
+    Type staticRightType = ErrorVerifier.getStaticType(rhs);
+    if (!staticRightType.isAssignableTo(leftType)) {
+      // The warning was generated on this rhs
+      return false;
+    }
+    // Test for, and then generate the hint
+    Type bestRightType = rhs.getBestType();
+    if (leftType != null && bestRightType != null) {
+      if (!bestRightType.isAssignableTo(leftType)) {
+        String leftName = leftType.getDisplayName();
+        String rightName = bestRightType.getDisplayName();
+        if (leftName.equals(rightName)) {
+          leftName = ErrorVerifier.getExtendedDisplayName(leftType);
+          rightName = ErrorVerifier.getExtendedDisplayName(bestRightType);
+        }
+        errorReporter.reportErrorForNode(HintCode.INVALID_ASSIGNMENT, rhs, rightName, leftName);
+        return true;
       }
     }
     return false;

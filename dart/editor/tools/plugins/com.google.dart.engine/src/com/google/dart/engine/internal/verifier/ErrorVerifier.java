@@ -180,6 +180,56 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
+   * Return a display name for the given type that includes the path to the compilation unit in
+   * which the type is defined.
+   * 
+   * @param type the type for which an extended display name is to be returned
+   * @return a display name that can help distiguish between two types with the same name
+   */
+  public static String getExtendedDisplayName(Type type) {
+    Element element = type.getElement();
+    if (element != null) {
+      Source source = element.getSource();
+      if (source != null) {
+        return type.getDisplayName() + " (" + source.getFullName() + ")";
+      }
+    }
+    return type.getDisplayName();
+  }
+
+  /**
+   * Return the static type of the given expression that is to be used for type analysis.
+   * 
+   * @param expression the expression whose type is to be returned
+   * @return the static type of the given expression
+   */
+  public static Type getStaticType(Expression expression) {
+    Type type = expression.getStaticType();
+    if (type == null) {
+      // TODO(brianwilkerson) This should never happen.
+      return DynamicTypeImpl.getInstance();
+    }
+    return type;
+  }
+
+  /**
+   * Return the variable element represented by the given expression, or {@code null} if there is no
+   * such element.
+   * 
+   * @param expression the expression whose element is to be returned
+   * @return the variable element represented by the expression
+   */
+  public static VariableElement getVariableElement(Expression expression) {
+    if (expression instanceof Identifier) {
+      Element element = ((Identifier) expression).getStaticElement();
+      if (element instanceof VariableElement) {
+        return (VariableElement) element;
+      }
+    }
+    return null;
+  }
+
+  /**
    * The error reporter by which errors will be reported.
    */
   private ErrorReporter errorReporter;
@@ -188,11 +238,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * The current library that is being analyzed.
    */
   private LibraryElement currentLibrary;
-
-  /**
-   * The type representing the type 'dynamic'.
-   */
-  private final Type dynamicType;
 
   /**
    * The type representing the type 'bool'.
@@ -407,7 +452,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     isInInstanceVariableInitializer = false;
     isInConstructorInitializer = false;
     isInStaticMethod = false;
-    dynamicType = typeProvider.getDynamicType();
     boolType = typeProvider.getBoolType();
     intType = typeProvider.getIntType();
     DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = new InterfaceType[] {
@@ -429,8 +473,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
-    Token operator = node.getOperator();
-    TokenType operatorType = operator.getType();
+    TokenType operatorType = node.getOperator().getType();
     if (operatorType == TokenType.EQ) {
       checkForInvalidAssignment(node.getLeftHandSide(), node.getRightHandSide());
     } else {
@@ -3663,8 +3706,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     VariableElement leftElement = getVariableElement(lhs);
     Type leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.getType();
     Type staticRightType = getStaticType(rhs);
-    boolean isStaticAssignable = staticRightType.isAssignableTo(leftType);
-    if (!isStaticAssignable) {
+    if (!staticRightType.isAssignableTo(leftType)) {
       String leftName = leftType.getDisplayName();
       String rightName = staticRightType.getDisplayName();
       if (leftName.equals(rightName)) {
@@ -3678,17 +3720,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           leftName);
       return true;
     }
-    // TODO(brianwilkerson) Define a hint corresponding to the warning and report it if appropriate.
-//    Type propagatedRightType = rhs.getPropagatedType();
-//    boolean isPropagatedAssignable = propagatedRightType.isAssignableTo(leftType);
-//    if (!isStaticAssignable && !isPropagatedAssignable) {
-//      errorReporter.reportError(
-//          StaticTypeWarningCode.INVALID_ASSIGNMENT,
-//          rhs,
-//          staticRightType.getDisplayName(),
-//          leftType.getDisplayName());
-//      return true;
-//    }
     return false;
   }
 
@@ -5403,24 +5434,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * Return a display name for the given type that includes the path to the compilation unit in
-   * which the type is defined.
-   * 
-   * @param type the type for which an extended display name is to be returned
-   * @return a display name that can help distiguish between two types with the same name
-   */
-  private String getExtendedDisplayName(Type type) {
-    Element element = type.getElement();
-    if (element != null) {
-      Source source = element.getSource();
-      if (source != null) {
-        return type.getDisplayName() + " (" + source.getFullName() + ")";
-      }
-    }
-    return type.getDisplayName();
-  }
-
-  /**
    * Returns the Type (return type) for a given getter.
    * 
    * @param propertyAccessorElement
@@ -5450,38 +5463,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return null;
     }
     return setterParameters[0].getType();
-  }
-
-  /**
-   * Return the static type of the given expression that is to be used for type analysis.
-   * 
-   * @param expression the expression whose type is to be returned
-   * @return the static type of the given expression
-   */
-  private Type getStaticType(Expression expression) {
-    Type type = expression.getStaticType();
-    if (type == null) {
-      // TODO(brianwilkerson) This should never happen.
-      return dynamicType;
-    }
-    return type;
-  }
-
-  /**
-   * Return the variable element represented by the given expression, or {@code null} if there is no
-   * such element.
-   * 
-   * @param expression the expression whose element is to be returned
-   * @return the variable element represented by the expression
-   */
-  private VariableElement getVariableElement(Expression expression) {
-    if (expression instanceof Identifier) {
-      Element element = ((Identifier) expression).getStaticElement();
-      if (element instanceof VariableElement) {
-        return (VariableElement) element;
-      }
-    }
-    return null;
   }
 
   /**

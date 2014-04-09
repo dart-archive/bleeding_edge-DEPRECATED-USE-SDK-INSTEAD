@@ -718,6 +718,77 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAssignment_instanceVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int x;",
+        "}",
+        "f(var y) {",
+        "  A a;",
+        "  if(y is String) {",
+        "    a.x = y;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
+  public void test_invalidAssignment_localVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "f(var y) {",
+        "  if(y is String) {",
+        "    int x = y;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
+  public void test_invalidAssignment_message() throws Exception {
+    // The implementation of HintCode.INVALID_ASSIGNMENT assumes that
+    // StaticTypeWarningCode.INVALID_ASSIGNMENT has the same message.
+    assertEquals(
+        HintCode.INVALID_ASSIGNMENT.getMessage(),
+        StaticTypeWarningCode.INVALID_ASSIGNMENT.getMessage());
+  }
+
+  public void test_invalidAssignment_staticVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static int x;",
+        "}",
+        "f(var y) {",
+        "  if(y is String) {",
+        "    A.x = y;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
+  public void test_invalidAssignment_variableDeclaration() throws Exception {
+    // 17971
+    Source source = addSource(createSource(//
+        "class Point {",
+        "  final num x, y;",
+        "  Point(this.x, this.y);",
+        "  Point operator +(Point other) {",
+        "    return new Point(x+other.x, y+other.y);",
+        "  }",
+        "}",
+        "main() {",
+        "  var p1 = new Point(0, 0);",
+        "  var p2 = new Point(10, 10);",
+        "  int n = p1 + p2;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
   public void test_isDouble() throws Exception {
     Source source = addSource(createSource(//
     "var v = 1 is double;"));
