@@ -26,7 +26,6 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.HideCombinator;
-import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
@@ -46,7 +45,6 @@ import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -59,7 +57,6 @@ import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
-import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
 
@@ -71,15 +68,9 @@ import com.google.dart.engine.type.TypeParameterType;
  */
 public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
 
-  private static final String GETTER = "getter";
-
   private static final String HASHCODE_GETTER_NAME = "hashCode";
 
-  private static final String METHOD = "method";
-
   private static final String NULL_TYPE_NAME = "Null";
-
-  private static final String SETTER = "setter";
 
   private static final String TO_INT_METHOD_NAME = "toInt";
 
@@ -620,81 +611,6 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
             classElement.getDisplayName());
         return true;
       }
-    }
-    return false;
-  }
-
-  /**
-   * Checks that if the passed method declaration is private, it does not override a private member
-   * in a superclass.
-   * 
-   * @param node the method declaration to check
-   * @return {@code true} if and only if a hint code is generated on the passed node
-   * @see HintCode#OVERRIDDING_PRIVATE_MEMBER
-   */
-  @SuppressWarnings("unused")
-  private boolean checkForOverridingPrivateMember(MethodDeclaration node) {
-    // If not in an enclosing class, return false
-    if (enclosingClass == null) {
-      return false;
-    }
-    // If the member is not private, return false
-    if (!Identifier.isPrivateName(node.getName().getName())) {
-      return false;
-    }
-    // Get the element of the member, if null, return false
-    ExecutableElement executableElement = node.getElement();
-    if (executableElement == null) {
-      return false;
-    }
-    // Loop through all of the superclasses looking for a matching method or accessor
-    // TODO(jwren) If the HintGenerator needs or has easy access to the InheritanceManager in the
-    // future then this could be refactored down to be more readable, however, since we are only
-    // looking through super classes (and not the entire interface graph) there is no pressing need
-    String elementName = executableElement.getName();
-    boolean isGetterOrSetter = executableElement instanceof PropertyAccessorElement;
-    InterfaceType superType = enclosingClass.getSupertype();
-    if (superType == null) {
-      return false;
-    }
-    ClassElement classElement = superType.getElement();
-    while (classElement != null) {
-      if (!enclosingClass.getLibrary().equals(classElement.getLibrary())) {
-        if (isGetterOrSetter) {
-          PropertyAccessorElement overriddenAccessor = null;
-          PropertyAccessorElement[] accessors = classElement.getAccessors();
-          for (PropertyAccessorElement propertyAccessorElement : accessors) {
-            if (elementName.equals(propertyAccessorElement.getName())) {
-              overriddenAccessor = propertyAccessorElement;
-              break;
-            }
-          }
-          if (overriddenAccessor != null) {
-            String memberType = ((PropertyAccessorElement) executableElement).isGetter() ? GETTER
-                : SETTER;
-            errorReporter.reportErrorForNode(
-                HintCode.OVERRIDDING_PRIVATE_MEMBER,
-                node.getName(),
-                memberType,
-                executableElement.getDisplayName(),
-                classElement.getDisplayName());
-            return true;
-          }
-        } else {
-          MethodElement overriddenMethod = classElement.getMethod(elementName);
-          if (overriddenMethod != null) {
-            errorReporter.reportErrorForNode(
-                HintCode.OVERRIDDING_PRIVATE_MEMBER,
-                node.getName(),
-                METHOD,
-                executableElement.getDisplayName(),
-                classElement.getDisplayName());
-            return true;
-          }
-        }
-      }
-      superType = classElement.getSupertype();
-      classElement = superType != null ? superType.getElement() : null;
     }
     return false;
   }

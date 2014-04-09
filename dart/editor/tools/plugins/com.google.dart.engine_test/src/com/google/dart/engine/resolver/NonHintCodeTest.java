@@ -266,19 +266,6 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_overriddingPrivateMember_sameLibrary() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  _m(int x) => 0;",
-        "}",
-        "class B extends A {",
-        "  _m(int x) => 0;",
-        "}"));
-    resolve(source);
-    assertNoErrors(source);
-    verify(source);
-  }
-
   public void test_overrideEqualsButNotHashCode() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

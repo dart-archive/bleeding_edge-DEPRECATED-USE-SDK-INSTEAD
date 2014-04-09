@@ -129,19 +129,6 @@ public enum HintCode implements ErrorCode {
   OVERRIDE_ON_NON_OVERRIDING_SETTER("Setter does not override an inherited setter"),
 
   /**
-   * It is not in best practice to declare a private method that happens to override the method in a
-   * superclass- depending on where the superclass is (either in the same library, or out of the
-   * same library), behavior can be different.
-   * 
-   * @param memberType this is either "method", "getter" or "setter"
-   * @param memberName some private member name
-   * @param className the class name where the member is overriding the functionality
-   */
-  // This was determined to not be a good hint, see: dartbug.com/16029
-  OVERRIDDING_PRIVATE_MEMBER(
-      "The %s '%s' does not override the definition from '%s' because it is private and in a different library"),
-
-  /**
    * Hint for classes that override equals, but not hashCode.
    * 
    * @param className the name of the current class
