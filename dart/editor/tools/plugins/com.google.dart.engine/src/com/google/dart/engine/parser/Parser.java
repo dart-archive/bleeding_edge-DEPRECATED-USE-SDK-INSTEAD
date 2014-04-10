@@ -5281,9 +5281,15 @@ public class Parser {
     while (hasMore) {
       if (matches(TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         Token openToken = getAndAdvance();
-        Expression expression = parseExpression();
-        Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
-        elements.add(new InterpolationExpression(openToken, expression, rightBracket));
+        boolean wasInInitializer = inInitializer;
+        inInitializer = false;
+        try {
+          Expression expression = parseExpression();
+          Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
+          elements.add(new InterpolationExpression(openToken, expression, rightBracket));
+        } finally {
+          inInitializer = wasInInitializer;
+        }
       } else {
         Token openToken = getAndAdvance();
         Expression expression = null;

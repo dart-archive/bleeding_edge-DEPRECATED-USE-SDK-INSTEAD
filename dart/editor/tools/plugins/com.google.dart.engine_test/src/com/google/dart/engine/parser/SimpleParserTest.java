@@ -181,20 +181,9 @@ public class SimpleParserTest extends ParserTestCase {
     parseCompilationUnit("class C { C() : a = (() {}); }");
   }
 
-  public void test_function_literal_disallowed_in_StringInterpolation_in_ConstructorFieldInitializer()
+  public void test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer()
       throws Exception {
-    // TODO: fix this if the VM and dart2js decide to start accepting this syntax
-    // (dartbug.com/18102).
-
-    // Note: recovery isn't very good inside string interpolation so we expect a lot of errors
-    // (dartbug.com/946)
-    parseCompilationUnit(
-        "class C { C() : a = \"${(){}}\"; }",
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.EXPECTED_TOKEN,
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.MISSING_IDENTIFIER);
+    parseCompilationUnit("class C { C() : a = \"${(){}}\"; }");
   }
 
   public void test_isFunctionDeclaration_nameButNoReturn_block() throws Exception {
