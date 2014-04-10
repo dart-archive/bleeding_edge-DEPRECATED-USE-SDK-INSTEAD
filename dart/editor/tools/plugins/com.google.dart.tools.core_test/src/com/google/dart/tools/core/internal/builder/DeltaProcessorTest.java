@@ -29,6 +29,9 @@ import org.eclipse.core.resources.IResource;
 
 import static org.eclipse.core.resources.IResourceDelta.ADDED;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class DeltaProcessorTest extends AbstractDartCoreTest {
 
@@ -383,12 +386,15 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
 
     DeltaProcessor processor = new DeltaProcessor(project);
     ProjectUpdater updater = new ProjectUpdater();
+    DeltaListener mockListener = mock(DeltaListener.class);
     processor.addDeltaListener(updater);
+    processor.addDeltaListener(mockListener);
     processor.traverse(delta);
     updater.applyChanges();
 
     project.assertDiscardContextsIn(projectContainer);
     project.assertNoCalls();
+    verify(mockListener).visitContext(any(ResourceDeltaEvent.class));
   }
 
   public void test_traverse_pubspecAdded() throws Exception {

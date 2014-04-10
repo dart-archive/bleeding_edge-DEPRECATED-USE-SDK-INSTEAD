@@ -325,8 +325,10 @@ public class DeltaProcessor extends DeltaBroadcaster {
             // Cache the context and traverse child resource changes
             return setContextFor((IContainer) resource);
           case REMOVED:
-            event.setResource(resource, null, null);
-            listener.sourceContainerRemoved(event);
+            if (setContextFor((IContainer) resource)) {
+              event.setResource(resource, null, null);
+              listener.sourceContainerRemoved(event);
+            }
             return false;
           default:
             return false;
