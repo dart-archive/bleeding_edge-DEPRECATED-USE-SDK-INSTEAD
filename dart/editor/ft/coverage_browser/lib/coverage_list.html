@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2014, Google Inc. Please see the AUTHORS file for details.
+     All rights reserved. Use of this source code is governed by a BSD-style
+     license that can be found in the LICENSE file. -->
+
+<link rel="import" href="path_input.html">
+<link rel="import" href="coverage_item.html">
+
+<polymer-element name="cov-list">
+  <template>
+    <link rel="stylesheet" href="coverage_list.css">
+    <section id="main">
+      <header id="header">
+        <label>Path to coverage data:</label>
+        <input type="file" is="path-input" id="new-path"
+            multiple on-change="{{addFileAction}}">
+        <button label="Export" on-click="{{exportDataAction}}">Export</button>
+      </header>
+      <ul id="coverage-list">
+        <template repeat="{{model.items}}">
+          <li is="cov-item" data="{{}}"></li>
+        </template>
+      </ul>
+    </section>
+  </template>
+  <script type="application/dart" src="coverage_list.dart"></script>
+</polymer-element>

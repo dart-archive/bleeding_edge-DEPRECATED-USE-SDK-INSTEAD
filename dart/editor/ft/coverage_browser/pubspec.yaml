@@ -1,0 +1,13 @@
+name: coverage_browser
+version: 0.1.0-dev
+description: Code coverage browser
+environment:
+  sdk: '>=1.2.0 <2.0.0'
+dependencies:
+  petitparser: '>=1.1.1 <2.0.0'
+  polymer: '>=0.10.0-pre.1 <=0.10.0-pre.6'
+dev_dependencies:
+  unittest: '>=0.10.0 <0.11.0'
+transformers:
+- polymer:
+    entry_points: web/index.html

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2014, Google Inc. Please see the AUTHORS file for details.
+     All rights reserved. Use of this source code is governed by a BSD-style
+     license that can be found in the LICENSE file. -->
+
+<html>
+  <head>
+  	<meta charset="utf-8">
+  	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coverage Tests</title>
+  </head>
+ 
+  <body>   
+    <p id="text"></p>
+    <script type="application/dart">
+    import 'package:unittest/html_enhanced_config.dart' as cfg;
+    import 'coverage_test.dart' as cov;
+
+    /// Display test results in the browser.
+    main() {
+      cfg.useHtmlEnhancedConfiguration();
+      cov.main();
+    }
+    </script>
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>

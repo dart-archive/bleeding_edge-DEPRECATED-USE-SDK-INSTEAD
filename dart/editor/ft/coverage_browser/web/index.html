@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2014, Google Inc. Please see the AUTHORS file for details.
+     All rights reserved. Use of this source code is governed by a BSD-style
+     license that can be found in the LICENSE file. -->
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Coverage browser</title>
+    <link rel="import" href="packages/polymer/polymer.html">
+    <link rel="import" href="../lib/coverage_list.html">
+    <link rel="import" href="../lib/coverage_model.html">
+    <script type="application/dart"> export 'package:polymer/init.dart';</script>
+  </head>
+  <body>
+    <header>
+      <h1>Coverage browser</h1>
+    </header>
+    <cov-model id="model"></cov-model>
+    <cov-list modelId="model"></cov-list>
+  </body>
+</html>
