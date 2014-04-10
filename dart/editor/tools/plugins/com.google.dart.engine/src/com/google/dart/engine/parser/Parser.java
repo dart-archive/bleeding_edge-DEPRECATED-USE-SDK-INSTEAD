@@ -2826,9 +2826,6 @@ public class Parser {
       typeParameters = parseTypeParameterList();
     }
     Token equals = expect(TokenType.EQ);
-    if (matchesKeyword(Keyword.ABSTRACT)) {
-      abstractKeyword = getAndAdvance();
-    }
     TypeName superclass = parseTypeName();
     WithClause withClause = null;
     if (matchesKeyword(Keyword.WITH)) {

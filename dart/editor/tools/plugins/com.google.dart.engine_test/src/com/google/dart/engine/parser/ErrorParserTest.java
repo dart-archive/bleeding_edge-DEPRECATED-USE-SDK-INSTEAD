@@ -244,6 +244,17 @@ public class ErrorParserTest extends ParserTestCase {
     parseStatement("() {for (; x;) {break;}};");
   }
 
+  public void test_classTypeAlias_abstractAfterEq() throws Exception {
+    // This syntax has been removed from the language in favor of "abstract class A = B with C;"
+    // (issue 18098).
+    parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "class A = abstract B with C;",
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN);
+  }
+
   public void test_constAndFinal() throws Exception {
     parse(
         "parseClassMember",
@@ -344,15 +355,11 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_deprecatedClassTypeAlias() throws Exception {
-    parseCompilationUnit(
-        "typedef C = abstract S with M;",
-        ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS);
+    parseCompilationUnit("typedef C = S with M;", ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS);
   }
 
   public void test_deprecatedClassTypeAlias_withGeneric() throws Exception {
-    parseCompilationUnit(
-        "typedef C<T> = abstract S<T> with M;",
-        ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS);
+    parseCompilationUnit("typedef C<T> = S<T> with M;", ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS);
   }
 
   public void test_directiveAfterDeclaration_classBeforeDirective() throws Exception {

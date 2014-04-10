@@ -1244,9 +1244,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseClassTypeAlias_abstract() throws Exception {
-    Token token = tokenFromKeyword(Keyword.CLASS);
+    Token classToken = tokenFromKeyword(Keyword.CLASS);
+    Token abstractToken = tokenFromKeyword(Keyword.ABSTRACT);
     ClassTypeAlias classTypeAlias = parse("parseClassTypeAlias", new Object[] {
-        emptyCommentAndMetadata(), null, token}, "A = abstract B with C;");
+        emptyCommentAndMetadata(), abstractToken, classToken}, "A = B with C;");
     assertNotNull(classTypeAlias.getKeyword());
     assertEquals("A", classTypeAlias.getName().getName());
     assertNotNull(classTypeAlias.getEquals());
@@ -1874,7 +1875,7 @@ public class SimpleParserTest extends ParserTestCase {
     ClassTypeAlias typeAlias = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
-        "class C = abstract S with M;");
+        "abstract class C = S with M;");
     assertNotNull(typeAlias.getKeyword());
     assertEquals("C", typeAlias.getName().getName());
     assertNull(typeAlias.getTypeParameters());
