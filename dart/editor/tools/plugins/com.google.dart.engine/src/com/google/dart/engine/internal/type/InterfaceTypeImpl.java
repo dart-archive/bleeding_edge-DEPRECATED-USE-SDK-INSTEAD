@@ -33,7 +33,6 @@ import com.google.dart.engine.type.TypeParameterType;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -139,15 +138,14 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   private static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type,
       HashSet<InterfaceType> set) {
     Element element = type.getElement();
-    if (element != null && element instanceof ClassElement) {
-      ClassElement classElement = (ClassElement) element;
-      InterfaceType[] superinterfaces = classElement.getInterfaces();
+    if (element != null) {
+      InterfaceType[] superinterfaces = type.getInterfaces();
       for (InterfaceType superinterface : superinterfaces) {
         if (set.add(superinterface)) {
           computeSuperinterfaceSet(superinterface, set);
         }
       }
-      InterfaceType supertype = classElement.getSupertype();
+      InterfaceType supertype = type.getSuperclass();
       if (supertype != null) {
         if (set.add(supertype)) {
           computeSuperinterfaceSet(supertype, set);
@@ -159,27 +157,15 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   /**
    * Return the intersection of the given sets of types, where intersection is based on the equality
-   * of the elements of the types rather than on the equality of the types themselves. In cases
-   * where two non-equal types have equal elements, which only happens when the class is
-   * parameterized, the type that is added to the intersection is the base type with type arguments
-   * that are the least upper bound of the type arguments of the two types.
+   * of the types themselves.
    * 
    * @param first the first set of types to be intersected
    * @param second the second set of types to be intersected
    * @return the intersection of the given sets of types
    */
   private static InterfaceType[] intersection(Set<InterfaceType> first, Set<InterfaceType> second) {
-    HashMap<ClassElement, InterfaceType> firstMap = new HashMap<ClassElement, InterfaceType>();
-    for (InterfaceType firstType : first) {
-      firstMap.put(firstType.getElement(), firstType);
-    }
-    Set<InterfaceType> result = new HashSet<InterfaceType>();
-    for (InterfaceType secondType : second) {
-      InterfaceType firstType = firstMap.get(secondType.getElement());
-      if (firstType != null) {
-        result.add(leastUpperBound(firstType, secondType));
-      }
-    }
+    Set<InterfaceType> result = new HashSet<InterfaceType>(first);
+    result.retainAll(second);
     return result.toArray(new InterfaceType[result.size()]);
   }
 

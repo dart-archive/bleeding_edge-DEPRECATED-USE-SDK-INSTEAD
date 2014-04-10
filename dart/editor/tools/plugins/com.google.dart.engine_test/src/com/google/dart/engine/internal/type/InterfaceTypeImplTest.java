@@ -164,6 +164,89 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertEquals(3, InterfaceTypeImpl.computeLongestInheritancePathToObject(classC.getType()));
   }
 
+  public void test_computeSuperinterfaceSet_genericInterfacePath() {
+    //
+    //  A
+    //  | implements
+    //  B<T>
+    //  | implements
+    //  C<T>
+    //
+    //  D
+    //
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", "T");
+    ClassElementImpl classC = classElement("C", "T");
+    ClassElement classD = classElement("D");
+    InterfaceType typeA = classA.getType();
+    classB.setInterfaces(new InterfaceType[] {typeA});
+    InterfaceTypeImpl typeBT = new InterfaceTypeImpl(classB);
+    Type typeT = classC.getType().getTypeArguments()[0];
+    typeBT.setTypeArguments(new Type[] {typeT});
+    classC.setInterfaces(new InterfaceType[] {typeBT});
+    // A
+    Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(typeA);
+    assertSizeOfSet(1, superinterfacesOfA);
+    InterfaceType typeObject = ElementFactory.getObject().getType();
+    assertTrue(superinterfacesOfA.contains(typeObject));
+    // B<D>
+    InterfaceTypeImpl typeBD = new InterfaceTypeImpl(classB);
+    typeBD.setTypeArguments(new Type[] {classD.getType()});
+    Set<InterfaceType> superinterfacesOfBD = InterfaceTypeImpl.computeSuperinterfaceSet(typeBD);
+    assertSizeOfSet(2, superinterfacesOfBD);
+    assertTrue(superinterfacesOfBD.contains(typeObject));
+    assertTrue(superinterfacesOfBD.contains(typeA));
+    // C<D>
+    InterfaceTypeImpl typeCD = new InterfaceTypeImpl(classC);
+    typeCD.setTypeArguments(new Type[] {classD.getType()});
+    Set<InterfaceType> superinterfacesOfCD = InterfaceTypeImpl.computeSuperinterfaceSet(typeCD);
+    assertSizeOfSet(3, superinterfacesOfCD);
+    assertTrue(superinterfacesOfCD.contains(typeObject));
+    assertTrue(superinterfacesOfCD.contains(typeA));
+    assertTrue(superinterfacesOfCD.contains(typeBD));
+  }
+
+  public void test_computeSuperinterfaceSet_genericSuperclassPath() {
+    //
+    //  A
+    //  |
+    //  B<T>
+    //  |
+    //  C<T>
+    //
+    //  D
+    //
+    ClassElement classA = classElement("A");
+    InterfaceType typeA = classA.getType();
+    ClassElement classB = classElement("B", typeA, "T");
+    ClassElementImpl classC = classElement("C", "T");
+    InterfaceTypeImpl typeBT = new InterfaceTypeImpl(classB);
+    Type typeT = classC.getType().getTypeArguments()[0];
+    typeBT.setTypeArguments(new Type[] {typeT});
+    classC.setSupertype(typeBT);
+    ClassElement classD = classElement("D");
+    // A
+    Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(typeA);
+    assertSizeOfSet(1, superinterfacesOfA);
+    InterfaceType typeObject = ElementFactory.getObject().getType();
+    assertTrue(superinterfacesOfA.contains(typeObject));
+    // B<D>
+    InterfaceTypeImpl typeBD = new InterfaceTypeImpl(classB);
+    typeBD.setTypeArguments(new Type[] {classD.getType()});
+    Set<InterfaceType> superinterfacesOfBD = InterfaceTypeImpl.computeSuperinterfaceSet(typeBD);
+    assertSizeOfSet(2, superinterfacesOfBD);
+    assertTrue(superinterfacesOfBD.contains(typeObject));
+    assertTrue(superinterfacesOfBD.contains(typeA));
+    // C<D>
+    InterfaceTypeImpl typeCD = new InterfaceTypeImpl(classC);
+    typeCD.setTypeArguments(new Type[] {classD.getType()});
+    Set<InterfaceType> superinterfacesOfCD = InterfaceTypeImpl.computeSuperinterfaceSet(typeCD);
+    assertSizeOfSet(3, superinterfacesOfCD);
+    assertTrue(superinterfacesOfCD.contains(typeObject));
+    assertTrue(superinterfacesOfCD.contains(typeA));
+    assertTrue(superinterfacesOfCD.contains(typeBD));
+  }
+
   public void test_computeSuperinterfaceSet_multipleInterfacePaths() {
     ClassElementImpl classA = classElement("A");
     ClassElementImpl classB = classElement("B");
@@ -626,9 +709,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType doubleType = typeProvider.getDoubleType();
     InterfaceType listOfIntType = listType.substitute(new Type[] {intType});
     InterfaceType listOfDoubleType = listType.substitute(new Type[] {doubleType});
-    assertEquals(
-        listType.substitute(new Type[] {typeProvider.getDynamicType()}),
-        listOfIntType.getLeastUpperBound(listOfDoubleType));
+    assertEquals(typeProvider.getObjectType(), listOfIntType.getLeastUpperBound(listOfDoubleType));
   }
 
   public void test_getLeastUpperBound_typeParameters_same() {
