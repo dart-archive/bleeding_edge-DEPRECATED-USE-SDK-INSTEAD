@@ -574,7 +574,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * @param expressionSource the expression source code that is the unexpected type
    * @param expectedType the name of the expected type
    */
-  INCONSISTENT_CASE_EXPRESSION_TYPES("Case expressions must have the same types, '%s' is not a %s'"),
+  INCONSISTENT_CASE_EXPRESSION_TYPES(
+      "Case expressions must have the same types, '%s' is not a '%s'"),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
