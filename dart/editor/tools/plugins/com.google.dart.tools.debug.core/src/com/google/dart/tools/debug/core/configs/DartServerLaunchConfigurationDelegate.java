@@ -311,6 +311,7 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     }
   }
 
+  @SuppressWarnings("deprecation")
   private void terminateSameLaunches(ILaunch currentLaunch) {
     ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
 

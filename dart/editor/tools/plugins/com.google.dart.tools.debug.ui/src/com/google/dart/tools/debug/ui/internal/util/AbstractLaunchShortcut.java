@@ -260,6 +260,7 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    * @param config
    * @return whether the launch configuration is used to launch the given resource
    */
+  @SuppressWarnings("deprecation")
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
     DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
 

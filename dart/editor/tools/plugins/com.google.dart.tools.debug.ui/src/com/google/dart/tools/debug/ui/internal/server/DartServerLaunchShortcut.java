@@ -203,6 +203,7 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
     LaunchUtils.launch(config, mode);
   }
 
+  @SuppressWarnings("deprecation")
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
     DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
     IResource appResource = launchWrapper.getApplicationResource();

@@ -76,6 +76,7 @@ public class HttpUrlConnector {
     return statusText;
   }
 
+  @SuppressWarnings("deprecation")
   private void connect() throws IOException {
     // host == null is a valid option
     Socket socket = new Socket(host, port);

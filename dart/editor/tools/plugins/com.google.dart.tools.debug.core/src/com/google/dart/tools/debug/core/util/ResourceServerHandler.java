@@ -504,6 +504,7 @@ class ResourceServerHandler implements Runnable {
     return response;
   }
 
+  @SuppressWarnings("unused")
   private HttpResponse createNotAllowedResponse() {
     HttpResponse response = new HttpResponse();
 
@@ -622,11 +623,11 @@ class ResourceServerHandler implements Runnable {
       extension = extension.toLowerCase();
 
       if (contentMappings.containsKey(extension)) {
-        return contentMappings.get(extension);
+        return serverHtmlAsUtf8(contentMappings.get(extension));
       }
 
       if (extraMappings.containsKey(extension)) {
-        return extraMappings.get(extension);
+        return serverHtmlAsUtf8(extraMappings.get(extension));
       }
     }
 
@@ -889,6 +890,8 @@ class ResourceServerHandler implements Runnable {
       out.write(temp);
     }
 
+    f.close();
+
     return out.toByteArray();
   }
 
@@ -977,6 +980,14 @@ class ResourceServerHandler implements Runnable {
     return null;
   }
 
+  private String serverHtmlAsUtf8(String mimeType) {
+    if (TYPE_HTML.equals(mimeType) || TYPE_DART.equals(mimeType)) {
+      return mimeType + "; charset=utf-8";
+    } else {
+      return mimeType;
+    }
+  }
+
   private String stripQuotes(String str) {
     if (str.length() > 1 && str.startsWith("\"") && str.endsWith("\"")) {
       str = str.substring(1, str.length() - 1);
@@ -989,5 +1000,4 @@ class ResourceServerHandler implements Runnable {
       return str;
     }
   }
-
 }

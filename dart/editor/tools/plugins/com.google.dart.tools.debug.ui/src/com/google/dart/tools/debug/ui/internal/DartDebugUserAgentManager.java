@@ -167,6 +167,8 @@ public class DartDebugUserAgentManager implements IUserAgentManager {
 
           line = reader.readLine();
         }
+
+        reader.close();
       } catch (IOException ioe) {
         DartUtil.logError(ioe);
       }
