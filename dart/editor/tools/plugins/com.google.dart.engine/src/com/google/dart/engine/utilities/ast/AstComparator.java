@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2013, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -24,12 +24,12 @@ import com.google.dart.engine.utilities.general.ObjectUtilities;
 public class AstComparator implements AstVisitor<Boolean> {
   /**
    * Return {@code true} if the two AST nodes are equal.
-   *
+   * 
    * @param first the first node being compared
    * @param second the second node being compared
    * @return {@code true} if the two AST nodes are equal
    */
-  public static boolean equalUnits(CompilationUnit first, CompilationUnit second) {
+  public static boolean equalNodes(AstNode first, AstNode second) {
     AstComparator comparator = new AstComparator();
     return comparator.isEqualNodes(first, second);
   }
@@ -948,7 +948,7 @@ public class AstComparator implements AstVisitor<Boolean> {
   /**
    * Return {@code true} if the given lists of AST nodes have the same size and corresponding
    * elements are equal.
-   *
+   * 
    * @param first the first node being compared
    * @param second the second node being compared
    * @return {@code true} if the given AST nodes have the same size and corresponding elements are
@@ -974,7 +974,7 @@ public class AstComparator implements AstVisitor<Boolean> {
 
   /**
    * Return {@code true} if the given AST nodes have the same structure.
-   *
+   * 
    * @param first the first node being compared
    * @param second the second node being compared
    * @return {@code true} if the given AST nodes have the same structure
@@ -994,7 +994,7 @@ public class AstComparator implements AstVisitor<Boolean> {
   /**
    * Return {@code true} if the given arrays of tokens have the same length and corresponding
    * elements are equal.
-   *
+   * 
    * @param first the first node being compared
    * @param second the second node being compared
    * @return {@code true} if the given arrays of tokens have the same length and corresponding
@@ -1006,7 +1006,7 @@ public class AstComparator implements AstVisitor<Boolean> {
       return false;
     }
     for (int i = 0; i < length; i++) {
-      if (isEqualTokens(first[i], second[i])) {
+      if (!isEqualTokens(first[i], second[i])) {
         return false;
       }
     }
@@ -1015,7 +1015,7 @@ public class AstComparator implements AstVisitor<Boolean> {
 
   /**
    * Return {@code true} if the given tokens have the same structure.
-   *
+   * 
    * @param first the first node being compared
    * @param second the second node being compared
    * @return {@code true} if the given tokens have the same structure
@@ -1025,6 +1025,8 @@ public class AstComparator implements AstVisitor<Boolean> {
       return second == null;
     } else if (second == null) {
       return false;
+    } else if (first == second) {
+      return true;
     }
     return first.getOffset() == second.getOffset() && first.getLength() == second.getLength()
         && first.getLexeme().equals(second.getLexeme());

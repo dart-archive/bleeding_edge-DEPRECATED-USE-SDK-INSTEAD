@@ -24,6 +24,8 @@ public class TestAll {
     suite.addTestSuite(AnalysisContextImplTest.class);
     suite.addTestSuite(AnalysisOptionsImplTest.class);
     suite.addTestSuite(IncrementalAnalysisCacheTest.class);
+    suite.addTestSuite(InstrumentedAnalysisContextImplTest.class);
+    suite.addTestSuite(WorkManagerTest.class);
     return suite;
   }
 }

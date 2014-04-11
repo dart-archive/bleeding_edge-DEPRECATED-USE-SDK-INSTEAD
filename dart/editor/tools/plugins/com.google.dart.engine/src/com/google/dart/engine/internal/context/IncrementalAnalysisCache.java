@@ -150,7 +150,7 @@ public class IncrementalAnalysisCache {
   public static IncrementalAnalysisCache verifyStructure(IncrementalAnalysisCache cache,
       Source source, CompilationUnit unit) {
     if (cache != null && unit != null && cache.source.equals(source)) {
-      if (!AstComparator.equalUnits(cache.resolvedUnit, unit)) {
+      if (!AstComparator.equalNodes(cache.resolvedUnit, unit)) {
         return null;
       }
     }

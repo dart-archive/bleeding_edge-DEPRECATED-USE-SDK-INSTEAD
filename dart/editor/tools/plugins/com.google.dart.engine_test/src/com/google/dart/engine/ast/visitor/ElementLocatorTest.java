@@ -16,19 +16,24 @@ package com.google.dart.engine.ast.visitor;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.internal.index.AbstractDartTest;
 import com.google.dart.engine.resolver.ResolverTestCase;
@@ -45,61 +50,56 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ElementLocatorTest extends ResolverTestCase {
-  private static int getOffsetOfMatch(String contents, String pattern, int matchIndex) {
-
-    if (matchIndex == 0) {
-      return contents.indexOf(pattern);
-    }
-
-    Matcher matcher = Pattern.compile(pattern).matcher(contents);
-    int count = 0;
-    while (matcher.find()) {
-      if (count == matchIndex) {
-        return matcher.start();
-      }
-      ++count;
-    }
-
-    return -1;
+  public void fail_locate_ExportDirective() throws Exception {
+    AstNode id = findNodeIn("export", "export 'dart:core';");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(ImportElement.class, element);
   }
 
-  public void test_arrayAccess() throws Exception {
-    AstNode id = findNodeIndexedIn("\\[", 1, //
+  public void fail_locate_Identifier_libraryDirective() throws Exception {
+    AstNode id = findNodeIn("foo", "library foo.bar;");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(LibraryElement.class, element);
+  }
+
+  public void fail_locate_Identifier_partOfDirective() throws Exception {
+    // Can't resolve the library element without the library declaration.
+//    AstNode id = findNodeIn("foo", "part of foo.bar;");
+//    Element element = ElementLocator.locate(id);
+//    assertInstanceOf(LibraryElement.class, element);
+    fail("Test this case");
+  }
+
+  public void test_locate_AssignmentExpression() throws Exception {
+    AstNode id = findNodeIn("+=", //
+        "int x = 0;",
         "void main() {",
-        "  List x = [1, 2];",
-        "  var y = x[0];",
+        "  x += 1;",
         "}");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(MethodElement.class, element);
   }
 
-  public void test_binaryOp() throws Exception {
+  public void test_locate_BinaryExpression() throws Exception {
     AstNode id = findNodeIn("+", "var x = 3 + 4;");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(MethodElement.class, element);
   }
 
-  public void test_classElement() throws Exception {
-    AstNode id = findNodeIn("A", "class A { }");
+  public void test_locate_ClassDeclaration() throws Exception {
+    AstNode id = findNodeIn("class", "class A { }");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(ClassElement.class, element);
   }
 
-  public void test_compilationUnit() throws Exception {
+  public void test_locate_CompilationUnit() throws Exception {
     CompilationUnit cu = resolveContents("// only comment");
     assertNotNull(cu.getElement());
     Element element = ElementLocator.locate(cu);
     assertSame(cu.getElement(), element);
   }
 
-  public void test_compilationUnitElement_part() throws Exception {
-    addNamedSource("/foo.dart", "part of app;");
-    AstNode id = findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
-    Element element = ElementLocator.locate(id);
-    assertInstanceOf(CompilationUnitElement.class, element);
-  }
-
-  public void test_ConstructorDeclaration() throws Exception {
+  public void test_locate_ConstructorDeclaration() throws Exception {
     AstNode id = findNodeIndexedIn("bar", 0, //
         "class A {",
         "  A.bar() {}",
@@ -109,23 +109,69 @@ public class ElementLocatorTest extends ResolverTestCase {
     assertInstanceOf(ConstructorElement.class, element);
   }
 
-  public void test_fieldElement() throws Exception {
+  public void test_locate_FunctionDeclaration() throws Exception {
+    AstNode id = findNodeIn("f", "int f() => 3;");
+    FunctionDeclaration declaration = id.getAncestor(FunctionDeclaration.class);
+    Element element = ElementLocator.locate(declaration);
+    assertInstanceOf(FunctionElement.class, element);
+  }
+
+  public void test_locate_Identifier_className() throws Exception {
+    AstNode id = findNodeIn("A", "class A { }");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(ClassElement.class, element);
+  }
+
+  public void test_locate_Identifier_constructor_named() throws Exception {
+    AstNode id = findNodeIndexedIn("bar", 0, //
+        "class A {",
+        "  A.bar() {}",
+        "}");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(ConstructorElement.class, element);
+  }
+
+  public void test_locate_Identifier_constructor_unnamed() throws Exception {
+    AstNode id = findNodeIndexedIn("A", 1, //
+        "class A {",
+        "  A() {}",
+        "}");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(ConstructorElement.class, element);
+  }
+
+  public void test_locate_Identifier_fieldName() throws Exception {
     AstNode id = findNodeIn("x", "class A { var x; }");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(FieldElement.class, element);
   }
 
-  public void test_functionElement() throws Exception {
-    AstNode id = findNodeIndexedIn("bar", 1, //
-        "int bar() => 42;",
+  public void test_locate_Identifier_propertAccess() throws Exception {
+    AstNode id = findNodeIn("length", //
         "void main() {",
-        " var f = bar();",
+        " int x = 'foo'.length;",
         "}");
     Element element = ElementLocator.locate(id);
-    assertInstanceOf(FunctionElement.class, element);
+    assertInstanceOf(PropertyAccessorElement.class, element);
   }
 
-  public void test_InstanceCreationExpression() throws Exception {
+  public void test_locate_ImportDirective() throws Exception {
+    AstNode id = findNodeIn("import", "import 'dart:core';");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(ImportElement.class, element);
+  }
+
+  public void test_locate_IndexExpression() throws Exception {
+    AstNode id = findNodeIndexedIn("\\[", 1, //
+        "void main() {",
+        "  List x = [1, 2];",
+        "  var y = x[0];",
+        "}");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(MethodElement.class, element);
+  }
+
+  public void test_locate_InstanceCreationExpression() throws Exception {
     AstNode node = findNodeIndexedIn("A(", 0, //
         "class A {}",
         "void main() {",
@@ -135,7 +181,7 @@ public class ElementLocatorTest extends ResolverTestCase {
     assertInstanceOf(ConstructorElement.class, element);
   }
 
-  public void test_InstanceCreationExpression_type_prefixedIdentifier() throws Exception {
+  public void test_locate_InstanceCreationExpression_type_prefixedIdentifier() throws Exception {
     // prepare: new pref.A()
     SimpleIdentifier identifier = identifier("A");
     PrefixedIdentifier prefixedIdentifier = identifier("pref", identifier);
@@ -151,7 +197,7 @@ public class ElementLocatorTest extends ResolverTestCase {
     assertSame(constructorElement, element);
   }
 
-  public void test_InstanceCreationExpression_type_simpleIdentifier() throws Exception {
+  public void test_locate_InstanceCreationExpression_type_simpleIdentifier() throws Exception {
     // prepare: new A()
     SimpleIdentifier identifier = identifier("A");
     InstanceCreationExpression creation = instanceCreationExpression(
@@ -166,21 +212,23 @@ public class ElementLocatorTest extends ResolverTestCase {
     assertSame(constructorElement, element);
   }
 
-  public void test_libraryElement_export() throws Exception {
-    addNamedSource("/foo.dart", "library foo;");
-    AstNode id = findNodeIn("'foo.dart'", "export 'foo.dart';");
+  public void test_locate_LibraryDirective() throws Exception {
+    AstNode id = findNodeIn("library", "library foo;");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(LibraryElement.class, element);
   }
 
-  public void test_libraryElement_import() throws Exception {
-    addNamedSource("/foo.dart", "library foo; class A {}");
-    AstNode id = findNodeIn("'foo.dart'", "import 'foo.dart'; class B extends A {}");
-    Element element = ElementLocator.locate(id);
-    assertInstanceOf(LibraryElement.class, element);
+  public void test_locate_MethodDeclaration() throws Exception {
+    AstNode id = findNodeIn("m", //
+        "class A {",
+        "  void m() {}",
+        "}");
+    MethodDeclaration declaration = id.getAncestor(MethodDeclaration.class);
+    Element element = ElementLocator.locate(declaration);
+    assertInstanceOf(MethodElement.class, element);
   }
 
-  public void test_methodElement() throws Exception {
+  public void test_locate_MethodInvocation_method() throws Exception {
     AstNode id = findNodeIndexedIn("bar", 1, //
         "class A {",
         "  int bar() => 42;",
@@ -192,8 +240,9 @@ public class ElementLocatorTest extends ResolverTestCase {
     assertInstanceOf(MethodElement.class, element);
   }
 
-  public void test_MethodInvocation() throws Exception {
-    String contents = createSource("foo(x) {}", //
+  public void test_locate_MethodInvocation_topLevel() throws Exception {
+    String contents = createSource(//
+        "foo(x) {}",
         "void main() {",
         " foo(0);",
         "}");
@@ -206,25 +255,71 @@ public class ElementLocatorTest extends ResolverTestCase {
     assertInstanceOf(FunctionElement.class, element);
   }
 
-  public void test_postfixOp() throws Exception {
+  public void test_locate_PostfixExpression() throws Exception {
     AstNode id = findNodeIn("++", "int addOne(int x) => x++;");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(MethodElement.class, element);
   }
 
-  public void test_prefixOp() throws Exception {
+  public void test_locate_PrefixedIdentifier() throws Exception {
+    AstNode id = findNodeIn("int", //
+        "import 'dart:core' as core;",
+        "core.int value;");
+    PrefixedIdentifier identifier = id.getAncestor(PrefixedIdentifier.class);
+    Element element = ElementLocator.locate(identifier);
+    assertInstanceOf(ClassElement.class, element);
+  }
+
+  public void test_locate_PrefixExpression() throws Exception {
     AstNode id = findNodeIn("++", "int addOne(int x) => ++x;");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(MethodElement.class, element);
   }
 
-  public void test_propertAccessElement() throws Exception {
-    AstNode id = findNodeIn("length", //
-        "void main() {",
-        " int x = 'foo'.length;",
-        "}");
+  public void test_locate_StringLiteral_exportUri() throws Exception {
+    addNamedSource("/foo.dart", "library foo;");
+    AstNode id = findNodeIn("'foo.dart'", "export 'foo.dart';");
     Element element = ElementLocator.locate(id);
-    assertInstanceOf(PropertyAccessorElement.class, element);
+    assertInstanceOf(LibraryElement.class, element);
+  }
+
+  public void test_locate_StringLiteral_expression() throws Exception {
+    AstNode id = findNodeIn("abc", "var x = 'abc';");
+    Element element = ElementLocator.locate(id);
+    assertNull(element);
+  }
+
+  public void test_locate_StringLiteral_importUri() throws Exception {
+    addNamedSource("/foo.dart", "library foo; class A {}");
+    AstNode id = findNodeIn("'foo.dart'", "import 'foo.dart'; class B extends A {}");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(LibraryElement.class, element);
+  }
+
+  public void test_locate_StringLiteral_partUri() throws Exception {
+    addNamedSource("/foo.dart", "part of app;");
+    AstNode id = findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(CompilationUnitElement.class, element);
+  }
+
+  public void test_locate_VariableDeclaration() throws Exception {
+    AstNode id = findNodeIn("x", "var x = 'abc';");
+    VariableDeclaration declaration = id.getAncestor(VariableDeclaration.class);
+    Element element = ElementLocator.locate(declaration);
+    assertInstanceOf(TopLevelVariableElement.class, element);
+  }
+
+  public void test_locateWithOffset_BinaryExpression() throws Exception {
+    AstNode id = findNodeIn("+", "var x = 3 + 4;");
+    Element element = ElementLocator.locateWithOffset(id, 0);
+    assertInstanceOf(MethodElement.class, element);
+  }
+
+  public void test_locateWithOffset_StringLiteral() throws Exception {
+    AstNode id = findNodeIn("abc", "var x = 'abc';");
+    Element element = ElementLocator.locateWithOffset(id, 1);
+    assertNull(element);
   }
 
   @Override
@@ -264,6 +359,21 @@ public class ElementLocatorTest extends ResolverTestCase {
     int start = getOffsetOfMatch(contents, nodePattern, index);
     int end = start + nodePattern.length();
     return new NodeLocator(start, end).searchWithin(cu);
+  }
+
+  private int getOffsetOfMatch(String contents, String pattern, int matchIndex) {
+    if (matchIndex == 0) {
+      return contents.indexOf(pattern);
+    }
+    Matcher matcher = Pattern.compile(pattern).matcher(contents);
+    int count = 0;
+    while (matcher.find()) {
+      if (count == matchIndex) {
+        return matcher.start();
+      }
+      ++count;
+    }
+    return -1;
   }
 
   /**

@@ -15,10 +15,13 @@
 package com.google.dart.engine.html;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.html.scanner.TokenType;
+
+import java.util.ArrayList;
 
 /**
  * Utility methods to create HTML nodes.
@@ -32,6 +35,45 @@ public class HtmlFactory {
     return new XmlAttributeNode(nameToken, equalsToken, valueToken);
   }
 
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public static <E> ArrayList<E> list(E... elements) {
+    ArrayList<E> elementList = new ArrayList();
+    for (E element : elements) {
+      elementList.add(element);
+    }
+    return elementList;
+  }
+
+  public static HtmlScriptTagNode scriptTag(XmlAttributeNode... attributes) {
+    return new HtmlScriptTagNode(
+        ltToken(),
+        stringToken("script"),
+        list(attributes),
+        sgtToken(),
+        null,
+        null,
+        null,
+        null);
+  }
+
+  public static HtmlScriptTagNode scriptTagWithContent(String contents,
+      XmlAttributeNode... attributes) {
+    Token attributeEnd = gtToken();
+    Token contentToken = stringToken(contents);
+    attributeEnd.setNext(contentToken);
+    Token contentEnd = ltsToken();
+    contentToken.setNext(contentEnd);
+    return new HtmlScriptTagNode(
+        ltToken(),
+        stringToken("script"),
+        list(attributes),
+        attributeEnd,
+        null,
+        contentEnd,
+        stringToken("script"),
+        gtToken());
+  }
+
   public static XmlTagNode tagNode(String name, XmlAttributeNode... attributes) {
     return new XmlTagNode(
         ltToken(),
@@ -42,6 +84,14 @@ public class HtmlFactory {
         null,
         null,
         null);
+  }
+
+  private static Token gtToken() {
+    return new Token(TokenType.GT, 0);
+  }
+
+  private static Token ltsToken() {
+    return new Token(TokenType.LT_SLASH, 0);
   }
 
   private static Token ltToken() {

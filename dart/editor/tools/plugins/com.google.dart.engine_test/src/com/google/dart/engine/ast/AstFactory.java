@@ -183,7 +183,7 @@ public final class AstFactory {
         exceptionType,
         exceptionParameter == null ? null : tokenFromKeyword(Keyword.CATCH),
         exceptionParameter == null ? null : tokenFromType(TokenType.OPEN_PAREN),
-        identifier(exceptionParameter),
+        exceptionParameter == null ? null : identifier(exceptionParameter),
         stackTraceParameter == null ? null : tokenFromType(TokenType.COMMA),
         stackTraceParameter == null ? null : identifier(stackTraceParameter),
         exceptionParameter == null ? null : tokenFromType(TokenType.CLOSE_PAREN),

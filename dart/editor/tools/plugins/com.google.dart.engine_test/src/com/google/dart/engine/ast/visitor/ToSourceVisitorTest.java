@@ -27,6 +27,7 @@ import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.ImportDirective;
@@ -43,7 +44,9 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import static com.google.dart.engine.ast.AstFactory.*;
+import static com.google.dart.engine.scanner.TokenFactory.tokenFromKeyword;
 import static com.google.dart.engine.scanner.TokenFactory.tokenFromString;
+import static com.google.dart.engine.scanner.TokenFactory.tokenFromType;
 
 public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitAdjacentStrings() {
@@ -701,10 +704,21 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("A this.a", fieldFormalParameter(null, typeName("A"), "a"));
   }
 
-  public void test_visitForEachStatement() {
+  public void test_visitForEachStatement_declared() {
     assertSource(
         "for (a in b) {}",
         forEachStatement(declaredIdentifier("a"), identifier("b"), block()));
+  }
+
+  public void test_visitForEachStatement_variable() {
+    assertSource("for (a in b) {}", new ForEachStatement(
+        tokenFromKeyword(Keyword.FOR),
+        tokenFromType(TokenType.OPEN_PAREN),
+        identifier("a"),
+        tokenFromKeyword(Keyword.IN),
+        identifier("b"),
+        tokenFromType(TokenType.CLOSE_PAREN),
+        block()));
   }
 
   public void test_visitFormalParameterList_empty() {

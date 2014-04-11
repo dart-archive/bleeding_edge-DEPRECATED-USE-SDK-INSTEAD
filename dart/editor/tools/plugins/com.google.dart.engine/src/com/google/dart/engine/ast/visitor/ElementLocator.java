@@ -131,11 +131,7 @@ public class ElementLocator {
           }
         }
       }
-      Element element = node.getBestElement();
-      if (element == null) {
-        element = node.getStaticElement();
-      }
-      return element;
+      return node.getBestElement();
     }
 
     @Override

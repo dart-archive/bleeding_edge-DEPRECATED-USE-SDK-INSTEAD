@@ -805,7 +805,7 @@ public class AstCloner implements AstVisitor<AstNode> {
   }
 
   @Override
-  public AstNode visitSymbolLiteral(SymbolLiteral node) {
+  public SymbolLiteral visitSymbolLiteral(SymbolLiteral node) {
     return new SymbolLiteral(node.getPoundSign(), node.getComponents());
   }
 

@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
+import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
@@ -846,6 +847,14 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_getSourceFactory() {
     assertSame(sourceFactory, context.getSourceFactory());
+  }
+
+  public void test_getStatistics() {
+    AnalysisContentStatistics statistics = context.getStatistics();
+    assertNotNull(statistics);
+    assertLength(0, statistics.getCacheRows());
+    assertLength(0, statistics.getExceptions());
+    assertLength(0, statistics.getSources());
   }
 
   public void test_isClientLibrary_dart() throws Exception {
