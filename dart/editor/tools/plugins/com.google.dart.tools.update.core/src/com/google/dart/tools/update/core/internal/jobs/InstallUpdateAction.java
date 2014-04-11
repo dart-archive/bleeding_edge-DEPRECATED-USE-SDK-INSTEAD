@@ -108,6 +108,10 @@ public class InstallUpdateAction extends Action {
         return false;
       }
 
+      if (name.equals("editor.properties")) { //$NON-NLS-1$
+        return true;
+      }
+
       return false;
     }
   };
