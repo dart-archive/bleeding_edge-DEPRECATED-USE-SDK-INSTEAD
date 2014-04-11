@@ -88,13 +88,12 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -321,9 +320,9 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
       importElementsMap.put(importElement, elements);
     }
     // use import namespace to choose correct one
-    for (MapIterator<ImportElement, Set<Element>> iter = SingleMapIterator.forMap(importElementsMap); iter.moveNext();) {
-      if (iter.getValue().contains(usedElement)) {
-        return iter.getKey();
+    for (Entry<ImportElement, Set<Element>> entry : importElementsMap.entrySet()) {
+      if (entry.getValue().contains(usedElement)) {
+        return entry.getKey();
       }
     }
     // not found

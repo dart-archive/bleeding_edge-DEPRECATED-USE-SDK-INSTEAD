@@ -38,8 +38,6 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
@@ -47,6 +45,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -789,9 +788,9 @@ public class InheritanceManager {
     //
     // Loop through the entries in the unionMap, adding them to the resultMap appropriately.
     //
-    for (MapIterator<String, ArrayList<ExecutableElement>> iter = SingleMapIterator.forMap(unionMap); iter.moveNext();) {
-      String key = iter.getKey();
-      ArrayList<ExecutableElement> list = iter.getValue();
+    for (Entry<String, ArrayList<ExecutableElement>> entry : unionMap.entrySet()) {
+      String key = entry.getKey();
+      ArrayList<ExecutableElement> list = entry.getValue();
       int numOfEltsWithMatchingNames = list.size();
       if (numOfEltsWithMatchingNames == 1) {
         //

@@ -17,8 +17,8 @@ package com.google.dart.engine.services.internal.correction;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -83,8 +83,6 @@ import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.ast.ScopedNameFinder;
-import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -133,6 +131,7 @@ import java.net.URI;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -1585,20 +1584,17 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     }
     // positions
     Map<String, List<SourceRange>> builderPositions = builder.getLinkedPositions();
-    MapIterator<String, List<SourceRange>> positionsIter = SingleMapIterator.forMap(builderPositions);
-    while (positionsIter.moveNext()) {
-      String groupId = positionsIter.getKey();
-      for (SourceRange position : positionsIter.getValue()) {
+    for (Entry<String, List<SourceRange>> entry : builderPositions.entrySet()) {
+      String groupId = entry.getKey();
+      for (SourceRange position : entry.getValue()) {
         addLinkedPosition(groupId, position);
         positionStopEdits.put(position, edit);
       }
     }
     // proposals for positions
-    Map<String, List<LinkedPositionProposal>> builderProposals = builder.getLinkedProposals();
-    MapIterator<String, List<LinkedPositionProposal>> proposalsIter = SingleMapIterator.forMap(builderProposals);
-    while (proposalsIter.moveNext()) {
-      String group = proposalsIter.getKey();
-      for (LinkedPositionProposal proposal : proposalsIter.getValue()) {
+    for (Entry<String, List<LinkedPositionProposal>> entry : builder.getLinkedProposals().entrySet()) {
+      String group = entry.getKey();
+      for (LinkedPositionProposal proposal : entry.getValue()) {
         addLinkedPositionProposal(group, proposal);
       }
     }

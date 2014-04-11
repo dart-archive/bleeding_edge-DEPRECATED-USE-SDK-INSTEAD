@@ -61,8 +61,6 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 
 import static com.google.dart.engine.ast.AstFactory.adjacentStrings;
@@ -1040,8 +1038,8 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
       assertSizeOfMap(0, namedTypes);
     } else {
       assertSizeOfMap(expectedNamedTypes.size(), namedTypes);
-      for (MapIterator<String, Type> iter = SingleMapIterator.forMap(expectedNamedTypes); iter.moveNext();) {
-        assertSame(iter.getValue(), namedTypes.get(iter.getKey()));
+      for (Map.Entry<String, Type> entry : expectedNamedTypes.entrySet()) {
+        assertSame(entry.getValue(), namedTypes.get(entry.getKey()));
       }
     }
 

@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Instances of the class {@code RecordingErrorListener} implement an error listener that will
@@ -56,14 +57,14 @@ public class RecordingErrorListener implements AnalysisErrorListener {
    * @return an array of errors (not {@code null}, contains no {@code null}s)
    */
   public AnalysisError[] getErrors() {
-    Collection<HashSet<AnalysisError>> errorsSets = errors.values();
-    int numEntries = errorsSets.size();
+    Collection<Entry<Source, HashSet<AnalysisError>>> entrySet = errors.entrySet();
+    int numEntries = entrySet.size();
     if (numEntries == 0) {
       return NO_ERRORS;
     }
     ArrayList<AnalysisError> resultList = new ArrayList<AnalysisError>(numEntries);
-    for (HashSet<AnalysisError> errorsSet : errorsSets) {
-      resultList.addAll(errorsSet);
+    for (Entry<Source, HashSet<AnalysisError>> entry : entrySet) {
+      resultList.addAll(entry.getValue());
     }
     return resultList.toArray(new AnalysisError[resultList.size()]);
   }

@@ -16,13 +16,12 @@ package com.google.dart.engine.integration;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
 
 import junit.framework.Assert;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Instances of the class {@code ContainingLibrariesVerifier} verify that the list of containing
@@ -78,9 +77,9 @@ public class ContainingLibrariesVerifier {
    * @param context the context whose state is being tested
    */
   public void assertValid(AnalysisContext context) {
-    for (MapIterator<Source, ArrayList<Source>> iter = SingleMapIterator.forMap(expectedValues); iter.moveNext();) {
-      Source source = iter.getKey();
-      ArrayList<Source> expectedLibraries = iter.getValue();
+    for (Map.Entry<Source, ArrayList<Source>> entry : expectedValues.entrySet()) {
+      Source source = entry.getKey();
+      ArrayList<Source> expectedLibraries = entry.getValue();
       Source[] actualLibraries = context.getLibrariesContaining(source);
       int actualCount = actualLibraries.length;
       Assert.assertEquals(expectedLibraries.size(), actualCount);

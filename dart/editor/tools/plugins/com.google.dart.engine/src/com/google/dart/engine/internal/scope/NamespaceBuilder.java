@@ -28,8 +28,6 @@ import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ShowElementCombinator;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
-import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -124,8 +122,8 @@ public class NamespaceBuilder {
    * @param namespace the namespace containing the names to be added to this namespace
    */
   private void addAllFromMap(Map<String, Element> definedNames, Map<String, Element> newNames) {
-    for (MapIterator<String, Element> iter = SingleMapIterator.forMap(newNames); iter.moveNext();) {
-      definedNames.put(iter.getKey(), iter.getValue());
+    for (Map.Entry<String, Element> entry : newNames.entrySet()) {
+      definedNames.put(entry.getKey(), entry.getValue());
     }
   }
 
@@ -211,8 +209,8 @@ public class NamespaceBuilder {
     if (prefixElement != null) {
       String prefix = prefixElement.getName();
       HashMap<String, Element> newNames = new HashMap<String, Element>(definedNames.size());
-      for (MapIterator<String, Element> iter = SingleMapIterator.forMap(definedNames); iter.moveNext();) {
-        newNames.put(prefix + "." + iter.getKey(), iter.getValue());
+      for (Map.Entry<String, Element> entry : definedNames.entrySet()) {
+        newNames.put(prefix + "." + entry.getKey(), entry.getValue());
       }
       return newNames;
     } else {

@@ -15,8 +15,6 @@ package com.google.dart.engine.utilities.general;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
 
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
@@ -26,6 +24,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 /**
  * The class {@code MemoryUtilities} defines utility methods related to memory usage.
@@ -95,13 +94,13 @@ public final class MemoryUtilities {
     public void addMemory(MemoryUsage usageData) {
       totalSize += usageData.totalSize;
       totalCount += usageData.totalCount;
-      for (MapIterator<Class<?>, Accumulator> iter = SingleMapIterator.forMap(usageData.classUsageMap); iter.moveNext();) {
-        Class<?> usedClass = iter.getKey();
+      for (Map.Entry<Class<?>, Accumulator> entry : usageData.classUsageMap.entrySet()) {
+        Class<?> usedClass = entry.getKey();
         Accumulator accumulator = classUsageMap.get(usedClass);
         if (accumulator == null) {
-          classUsageMap.put(usedClass, iter.getValue());
+          classUsageMap.put(usedClass, entry.getValue());
         } else {
-          accumulator.addMemory(iter.getValue());
+          accumulator.addMemory(entry.getValue());
         }
       }
     }

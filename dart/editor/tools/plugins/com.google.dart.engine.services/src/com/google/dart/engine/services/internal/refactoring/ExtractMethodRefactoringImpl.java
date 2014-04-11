@@ -18,8 +18,8 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -56,8 +56,6 @@ import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
@@ -66,6 +64,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -796,10 +795,9 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           Occurrence occurrence = new Occurrence(nodeRange, selectionRange.intersects(nodeRange));
           occurrences.add(occurrence);
           // prepare mapping of parameter names to the occurrence variables
-          MapIterator<String, String> iter = SingleMapIterator.forMap(nodePattern.originalToPatternNames);
-          while (iter.moveNext()) {
-            String patternName = iter.getValue();
-            String originalName = iter.getKey();
+          for (Entry<String, String> entry : nodePattern.originalToPatternNames.entrySet()) {
+            String patternName = entry.getValue();
+            String originalName = entry.getKey();
             String selectionName = patternToSelectionName.get(patternName);
             occurrence.parameterOldToOccurrenceName.put(selectionName, originalName);
           }

@@ -18,11 +18,10 @@ import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.ast.visitor.XmlVisitor;
-import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Instances of the class {@code HtmlTagInfoBuilder} gather information about the tags used in one
@@ -70,9 +69,9 @@ public class HtmlTagInfoBuilder implements XmlVisitor<Void> {
   public HtmlTagInfo getTagInfo() {
     String[] allTags = tagSet.toArray(new String[tagSet.size()]);
     HashMap<String, String[]> classToTagsMap = new HashMap<String, String[]>(idMap.size());
-    for (MapIterator<String, HashSet<String>> iter = SingleMapIterator.forMap(classMap); iter.moveNext();) {
-      HashSet<String> tags = iter.getValue();
-      classToTagsMap.put(iter.getKey(), tags.toArray(new String[tags.size()]));
+    for (Map.Entry<String, HashSet<String>> entry : classMap.entrySet()) {
+      HashSet<String> tags = entry.getValue();
+      classToTagsMap.put(entry.getKey(), tags.toArray(new String[tags.size()]));
     }
     return new HtmlTagInfo(allTags, idMap, classToTagsMap);
   }

@@ -18,10 +18,9 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Instances of the class {@code TypeOverrideManager} manage the ability to override the type of an
@@ -58,8 +57,8 @@ public class TypeOverrideManager {
      * @param overrides the overrides to be applied
      */
     public void applyOverrides(HashMap<Element, Type> overrides) {
-      for (MapIterator<Element, Type> iter = SingleMapIterator.forMap(overrides); iter.moveNext();) {
-        overridenTypes.put(iter.getKey(), iter.getValue());
+      for (Map.Entry<Element, Type> entry : overrides.entrySet()) {
+        overridenTypes.put(entry.getKey(), entry.getValue());
       }
     }
 

@@ -103,8 +103,6 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
@@ -130,6 +128,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -1701,20 +1700,16 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
    */
   private void addLinkedPositions(SourceBuilder builder) {
     // positions
-    Map<String, List<SourceRange>> builderPositions = builder.getLinkedPositions();
-    MapIterator<String, List<SourceRange>> positionsIter = SingleMapIterator.forMap(builderPositions);
-    while (positionsIter.moveNext()) {
-      String group = positionsIter.getKey();
-      for (SourceRange position : positionsIter.getValue()) {
+    for (Entry<String, List<SourceRange>> linkedEntry : builder.getLinkedPositions().entrySet()) {
+      String group = linkedEntry.getKey();
+      for (SourceRange position : linkedEntry.getValue()) {
         addLinkedPosition(group, position);
       }
     }
     // proposals for positions
-    Map<String, List<LinkedPositionProposal>> builderProposals = builder.getLinkedProposals();
-    MapIterator<String, List<LinkedPositionProposal>> proposalsIter = SingleMapIterator.forMap(builderProposals);
-    while (proposalsIter.moveNext()) {
-      String group = proposalsIter.getKey();
-      for (LinkedPositionProposal proposal : proposalsIter.getValue()) {
+    for (Entry<String, List<LinkedPositionProposal>> entry : builder.getLinkedProposals().entrySet()) {
+      String group = entry.getKey();
+      for (LinkedPositionProposal proposal : entry.getValue()) {
         addLinkedPositionProposal(group, proposal);
       }
     }

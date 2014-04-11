@@ -25,8 +25,6 @@ import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.resolver.ResolutionVerifier;
 import com.google.dart.engine.internal.resolver.StaticTypeVerifier;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import junit.framework.Assert;
@@ -36,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 /**
  * The abstract class {@code LibraryAnalysisTest} defines utility methods useful for integration
@@ -179,9 +178,9 @@ public abstract class LibraryAnalysisTest extends TestCase {
         }
         int countWidth = Integer.toString(maxCount).length();
         String format = "%0" + countWidth + "d" + " %s";
-        for (MapIterator<String, Integer> iter = SingleMapIterator.forMap(counts); iter.moveNext();) {
+        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
           writer.println();
-          writer.printf(format, iter.getValue(), iter.getKey());
+          writer.printf(format, entry.getValue(), entry.getKey());
         }
       } else {
 //        Collections.sort(errorList, AnalysisError.FILE_COMPARATOR);
