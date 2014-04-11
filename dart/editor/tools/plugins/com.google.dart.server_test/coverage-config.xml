@@ -1,0 +1,5 @@
+<config>
+  <directory path="${dart.editor.path}/tools/plugins/com.google.dart.server/bin">
+    <include prefix="com/google/dart/server/" source="/com.google.dart.server/src/"/>
+  </directory>
+</config>
