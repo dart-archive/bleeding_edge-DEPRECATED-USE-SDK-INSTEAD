@@ -15,11 +15,9 @@
 package com.google.dart.tools.debug.ui.internal.view;
 
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
-import com.google.dart.tools.debug.ui.internal.DartUtil;
+import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.jface.action.Action;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 
 /**
  * An action to show the Expressions view.
@@ -32,12 +30,7 @@ public class ShowExpressionsAction extends Action {
 
   @Override
   public synchronized void run() {
-    try {
-      PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
-          "org.eclipse.debug.ui.ExpressionView");
-    } catch (PartInitException e) {
-      DartUtil.logError(e);
-    }
+    DartToolsPlugin.showView("org.eclipse.debug.ui.ExpressionView");
   }
 
 }

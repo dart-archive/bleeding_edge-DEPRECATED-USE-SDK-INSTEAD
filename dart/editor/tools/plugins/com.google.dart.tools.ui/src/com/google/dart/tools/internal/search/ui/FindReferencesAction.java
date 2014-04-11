@@ -74,7 +74,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
    */
   public static void searchNameUses(final String name) {
     try {
-      SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
+      SearchView view = (SearchView) DartToolsPlugin.showView(SearchView.ID);
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
         @Override
         protected boolean canUseFilterPotential() {
@@ -202,7 +202,10 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
       final SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
       final Element searchElement = element;
       final String searchName = name;
-      SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
+      SearchView view = (SearchView) DartToolsPlugin.showView(SearchView.ID);
+      if (view == null) {
+        return;
+      }
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
         @Override
         protected void beforeRefresh() {

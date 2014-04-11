@@ -22,6 +22,7 @@ import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
 import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
+import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -49,8 +50,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ListDialog;
 
@@ -139,12 +138,7 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
         Display.getDefault().asyncExec(new Runnable() {
           @Override
           public void run() {
-            try {
-              IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-              window.getActivePage().showView(DebuggerView.ID);
-            } catch (PartInitException ex) {
-              DartDebugUIPlugin.logError(ex);
-            }
+            DartToolsPlugin.showView(DebuggerView.ID);
           }
         });
       } catch (CoreException ce) {

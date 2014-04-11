@@ -17,6 +17,7 @@ import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.hover.DartDebugHover;
 import com.google.dart.tools.debug.ui.internal.util.DebuggerEditorInput;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartHover;
 import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
 
@@ -251,7 +252,7 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
           }
         }
       } else {
-        window.getActivePage().showView(DebuggerView.ID);
+        DartToolsPlugin.showView(DebuggerView.ID);
       }
     } catch (PartInitException e) {
       DartUtil.logError(e);

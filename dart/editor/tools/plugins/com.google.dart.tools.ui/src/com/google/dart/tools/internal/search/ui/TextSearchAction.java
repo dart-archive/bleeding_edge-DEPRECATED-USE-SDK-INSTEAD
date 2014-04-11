@@ -14,9 +14,7 @@
 package com.google.dart.tools.internal.search.ui;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.Action;
 import org.eclipse.swt.widgets.Shell;
 
@@ -34,11 +32,9 @@ public class TextSearchAction extends Action {
 
   @Override
   public void run() {
-    try {
-      SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
+    SearchView view = (SearchView) DartToolsPlugin.showView(SearchView.ID);
+    if (view != null) {
       view.showPage(new TextSearchPage(view, "Searching for text...", searchText));
-    } catch (CoreException e) {
-      ExceptionHandler.handle(e, getText(), "Exception during search.");
     }
   }
 }

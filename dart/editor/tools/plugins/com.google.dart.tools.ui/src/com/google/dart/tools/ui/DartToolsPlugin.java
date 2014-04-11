@@ -39,10 +39,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -54,6 +56,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -392,6 +395,21 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     }
   }
 
+  public static IViewPart showView(String id) {
+    try {
+      return DartToolsPlugin.getActivePage().showView(id);
+    } catch (Throwable e) {
+      ErrorDialog.openError(
+          getActiveWorkbenchShell(),
+          "Unable to show view",
+          "Usually this happens when workspace is corrupted." + "\n\nPlease remove file\n\n"
+              + Platform.getLocation()
+              + "/.metadata/.plugins/org.eclipse.ui.workbench/workbench.xml",
+          createErrorStatus(id, e));
+      return null;
+    }
+  }
+
   /* package */static void initializeAfterLoad(IProgressMonitor monitor) {
     DartX.notYet();
     // OpenTypeHistory.getInstance().checkConsistency(monitor);
@@ -403,15 +421,15 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   @SuppressWarnings("unused")
   private ContextTypeRegistry contextTypeRegistry;
 
-  /**
-   * The code template context type registry for the java editor.
-   */
-  private ContextTypeRegistry codeTemplateContextTypeRegistry;
-
 //  @Deprecated
 //  private static IPreferenceStore getDeprecatedWorkbenchPreferenceStore() {
 //    return PlatformUI.getWorkbench().getPreferenceStore();
 //  }
+
+  /**
+   * The code template context type registry for the java editor.
+   */
+  private ContextTypeRegistry codeTemplateContextTypeRegistry;
 
   /**
    * The template store for the java editor.
@@ -431,8 +449,8 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   }
 
   private TypeFilter typeFilter;
-
   private WorkingCopyManager workingCopyManager;
+
   @Deprecated
   private ICompilationUnitDocumentProvider compilationUnitDocumentProvider;
 
@@ -457,21 +475,21 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   static {
     DartX.todo();
   }
-
   private MembersOrderPreferenceCache membersOrderPreferenceCache;
+
+  //private IPropertyChangeListener fFontPropertyChangeListener;
+
   /**
    * Property change listener on this plugin's preference store.
    */
   private IPropertyChangeListener propertyChangeListener;
 
-  //private IPropertyChangeListener fFontPropertyChangeListener;
-
   static {
     DartX.todo("hover");
   }
-
   @SuppressWarnings("unused")
   private/* JavaEditorTextHoverDescriptor */Object[] dartEditorTextHoverDescriptors;
+
   /**
    * The AST provider.
    */
