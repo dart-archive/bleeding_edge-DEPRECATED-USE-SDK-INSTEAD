@@ -103,8 +103,9 @@ public class AnalyzerOptions {
       }
       if (arg.indexOf('=') != -1) {
         String[] strs = arg.split("=");
-        result.add(strs[0]);
-        result.add(strs[1]);
+        for (int i = 0; i < strs.length; i++) {
+          result.add(strs[i]);
+        }
       } else {
         result.add(arg);
       }

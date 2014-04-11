@@ -52,6 +52,12 @@ public class AnalyzerOptionsTest extends TestCase {
     assertTrue(options.getShowSdkWarnings());
   }
 
+  public void test_processArgs_17234() {
+    // 17234 verifies that a NPE isn't encountered when there is no value after "="
+    AnalyzerOptions options = AnalyzerOptions.createFromArgs(new String[] {"--format="});
+    assertNotNull(options);
+  }
+
   public void test_undocumentedFlags() throws Exception {
     ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
     PrintStream writer = new PrintStream(bytesOut);
