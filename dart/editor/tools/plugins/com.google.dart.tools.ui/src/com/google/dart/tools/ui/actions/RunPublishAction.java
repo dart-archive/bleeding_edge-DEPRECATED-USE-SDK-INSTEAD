@@ -139,7 +139,10 @@ public class RunPublishAction extends RunPubAction {
     if (container.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
 
       MessageConsole console = DartCore.getConsole();
-      console.printSeparator(NLS.bind(PubMessages.RunPubJob_running, RunPubJob.PUBLISH_COMMAND));
+      console.printSeparator(NLS.bind(
+          PubMessages.RunPubJob_running,
+          RunPubJob.PUBLISH_COMMAND,
+          container.getLocation().toOSString()));
 
       // use publish --dry-run to do just validation on the package and do not upload.
       List<String> args = buildPublishCommand("--dry-run"); //$NON-NLS-1$

@@ -102,10 +102,11 @@ public class RunPubJob extends Job {
   @Override
   public IStatus run(IProgressMonitor monitor) {
     MessageConsole console = DartCore.getConsole();
+    String path = container.getLocation().toOSString();
     if (autorun) {
-      console.printSeparator(NLS.bind(PubMessages.RunPubJob_auto_running, command));
+      console.printSeparator(NLS.bind(PubMessages.RunPubJob_auto_running, command, path));
     } else {
-      console.printSeparator(NLS.bind(PubMessages.RunPubJob_running, command));
+      console.printSeparator(NLS.bind(PubMessages.RunPubJob_running, command, path));
     }
     IStatus status = runSilent(monitor);
     console.println(status.getMessage());
