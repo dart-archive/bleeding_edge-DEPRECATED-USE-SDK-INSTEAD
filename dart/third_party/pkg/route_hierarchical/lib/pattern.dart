@@ -37,6 +37,10 @@ class _MultiPattern extends Pattern {
     }
     return _allMatches.expand((x) => x);
   }
+
+  Match matchAsPrefix(String string, [int start = 0]) {
+    throw new UnimplementedError('matchAsPrefix is not implemented');
+  }
 }
 
 /**

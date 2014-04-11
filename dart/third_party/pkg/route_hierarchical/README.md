@@ -1,8 +1,8 @@
 Route
 =====
 
-Route is a client + server routing library for Dart that helps make building
-single-page web apps and using `HttpServer` easier.
+Route is a client routing library for Dart that helps make building
+single-page web apps.
 
 Installation
 ------------
@@ -27,7 +27,7 @@ consider a blog with a home page and an article page. The article URL has the
 form /article/1234. It can matched by the following template:
 `/article/:articleId`.
 
-Client Routing
+Router
 --------------
 
 Router is a stateful object that contains routes and can perform URL routing
@@ -145,49 +145,3 @@ router.go('user.article.edit', {
 
 If "go" is invoked on child routers, the router can automatically reconstruct
 and generate the new URL from the state in the parent routers.
-
-Server Routing
---------------
-
-On the server, route gives you a utility function to match `HttpRequest`s
-against `UrlPatterns`.
-
-```dart
-import 'urls.dart';
-import 'package:route_hierarchical/server.dart';
-import 'package:route_hierarchical/pattern.dart';
-
-HttpServer.bind('0.0.0.0', 8888).then((server) {
-  var router = new Router(server)
-    ..filter(matchesAny(allUrls), authFilter)
-    ..serve(homeUrl).listen(serverHome)
-    ..serve(articleUrl, method: 'GET').listen(serveArticle);
-});
-
-Future<bool> authFilter(req) {
-  return getUser(getUserIdCookie(req)).then((user) {
-    if (user != null) {
-      return true;
-    }
-    redirectToLoginPage(req);
-    return false;
-  });
-}
-
-serveArcticle(req) {
-  var articleId = articleUrl.parse(req.path)[0];
-  // retrieve article data and respond
-}
-```
-
-Further Goals
--------------
-
- * Integration with Web UI so that the changing of UI views can happen
-   automatically.
- * Handling different HTTP methods to help implement REST APIs.
- * Automatic generation of REST URLs from a single URL pattern, similar to Ruby
-   on Rails
- * Helpers for nested views and key-value URL schemes common with complex apps.
- * [Done] ~~Server-side routing for the dart:io v2 HttpServer~~
- * [Done] ~~IE 9 support~~

@@ -1,11 +1,11 @@
 library url_matcher;
 
-import 'package:unittest/matcher.dart';
+import 'src/utils.dart';
 
 /**
  * A reversible URL matcher interface.
  */
-abstract class UrlMatcher {
+abstract class UrlMatcher extends Comparable {
 
   /**
    * Attempts to match a given URL. If match is successul then returns an
@@ -23,6 +23,14 @@ abstract class UrlMatcher {
    * Returns a list of named parameters in the URL.
    */
   List<String> urlParameterNames();
+
+  /**
+   * Return a value which is:
+   * * negative if this matcher should be tested before another.
+   * * zero if this matcher and another can be tested in no particular order.
+   * * positive if this matcher should be tested after another.
+   */
+  int compareTo(UrlMatcher other) => 0;
 }
 
 /**
@@ -46,8 +54,10 @@ class UrlMatch {
       return false;
     }
     return o.match == match && o.tail == tail &&
-        equals(o.parameters, 1).matches(parameters, null);
+        mapsShallowEqual(o.parameters, parameters);
   }
+
+  int get hashCode => 13 + match.hashCode + tail.hashCode + parameters.hashCode;
 
   String toString() {
     return '{$match, $tail, $parameters}';

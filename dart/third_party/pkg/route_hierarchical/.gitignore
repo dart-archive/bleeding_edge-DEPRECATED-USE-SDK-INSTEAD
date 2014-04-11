@@ -1,4 +1,10 @@
 packages
 pubspec.lock
 .buildlog
-example/full/out
+build/
+/node_modules/
+/test/out/
+/npm-debug.log
+.DS_Store
+dart-sdk
+dartium

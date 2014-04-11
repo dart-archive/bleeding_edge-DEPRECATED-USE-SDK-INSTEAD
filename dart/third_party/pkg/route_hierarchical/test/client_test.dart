@@ -1,40 +1,207 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library route.client_test;
+
 import 'dart:async';
+import 'dart:html';
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/mock.dart';
+import 'package:mock/mock.dart';
 import 'package:route_hierarchical/client.dart';
 import 'package:route_hierarchical/url_pattern.dart';
 
-import 'mocks.dart';
+import 'util/mocks.dart';
 
 main() {
   unittestConfiguration.timeout = new Duration(seconds: 1);
 
   test('paths are routed to routes added with addRoute', () {
-    Router router = new Router();
+    var router = new Router();
     router.root.addRoute(
         name: 'foo',
         path: '/foo',
-        enter: expectAsync1((RouteEvent e) {
+        enter: expectAsync((RouteEvent e) {
           expect(e.path, '/foo');
-          expect(router.root.getRoute('foo').isActive, isTrue);
+          expect(router.root.findRoute('foo').isActive, isTrue);
         }));
     return router.route('/foo');
   });
 
+  group('use a longer path first', () {
+
+    test('add a longer path first', () {
+      Router router = new Router();
+      router.root
+        ..addRoute(
+          name: 'foobar',
+          path: '/foo/bar',
+          enter: expectAsync((RouteEvent e) {
+            expect(e.path, '/foo/bar');
+            expect(router.root.findRoute('foobar').isActive, isTrue);
+          }))
+        ..addRoute(
+          name: 'foo',
+          path: '/foo',
+          enter: (e) => fail('should invoke /foo/bar'));
+      return router.route('/foo/bar');
+    });
+
+    test('add a longer path last', () {
+      Router router = new Router();
+      router.root
+        ..addRoute(
+          name: 'foo',
+          path: '/foo',
+          enter: (e) => fail('should invoke /foo/bar'))
+        ..addRoute(
+          name: 'foobar',
+          path: '/foo/bar',
+          enter: expectAsync((RouteEvent e) {
+            expect(e.path, '/foo/bar');
+            expect(router.root.findRoute('foobar').isActive, isTrue);
+          }));
+      return router.route('/foo/bar');
+    });
+
+    test('add paths with a param', () {
+      Router router = new Router();
+      router.root
+        ..addRoute(
+          name: 'foo',
+          path: '/foo',
+          enter: (e) => fail('should invoke /foo/bar'))
+        ..addRoute(
+          name: 'fooparam',
+          path: '/foo/:param',
+          enter: expectAsync((RouteEvent e) {
+            expect(e.path, '/foo/bar');
+            expect(router.root.findRoute('fooparam').isActive, isTrue);
+          }));
+      return router.route('/foo/bar');
+    });
+
+    test('add paths with a parametalized parent', () {
+      Router router = new Router();
+      router.root
+        ..addRoute(
+          name: 'paramaddress',
+          path: '/:zzzzzz/address',
+          enter: expectAsync((RouteEvent e) {
+            expect(e.path, '/foo/address');
+            expect(router.root.findRoute('paramaddress').isActive, isTrue);
+          }))
+        ..addRoute(
+          name: 'param_add',
+          path: '/:aaaaaa/add',
+          enter: (e) => fail('should invoke /foo/address'));
+      return router.route('/foo/address');
+    });
+
+    test('add paths with a first param and one without', () {
+      Router router = new Router();
+      router.root
+        ..addRoute(
+          name: 'fooparam',
+          path: '/:param/foo',
+          enter: expectAsync((RouteEvent e) {
+            expect(e.path, '/bar/foo');
+            expect(router.root.findRoute('fooparam').isActive, isTrue);
+          }))
+        ..addRoute(
+          name: 'bar',
+          path: '/bar',
+          enter: (e) => fail('should enter fooparam'));
+      return router.route('/bar/foo');
+    });
+
+    test('add paths with a first param and one without 2', () {
+      Router router = new Router();
+      router.root
+        ..addRoute(
+          name: 'paramfoo',
+          path: '/:param/foo',
+          enter: (e) => fail('should enter barfoo'))
+        ..addRoute(
+          name: 'barfoo',
+          path: '/bar/foo',
+          enter: expectAsync((RouteEvent e) {
+            expect(e.path, '/bar/foo');
+            expect(router.root.findRoute('barfoo').isActive, isTrue);
+          }))
+        ;
+      return router.route('/bar/foo');
+    });
+
+    test('add paths with a second param and one without', () {
+      Router router = new Router();
+      router.root
+        ..addRoute(
+          name: 'bazparamfoo',
+          path: '/baz/:param/foo',
+          enter: (e) => fail('should enter bazbarfoo'))
+        ..addRoute(
+          name: 'bazbarfoo',
+          path: '/baz/bar/foo',
+          enter: expectAsync((RouteEvent e) {
+            expect(e.path, '/baz/bar/foo');
+            expect(router.root.findRoute('bazbarfoo').isActive, isTrue);
+          }))
+        ;
+      return router.route('/baz/bar/foo');
+    });
+
+    test('add paths with a first param and a second param', () {
+      Router router = new Router();
+      router.root
+        ..addRoute(
+          name: 'parambarfoo',
+          path: '/:param/bar/foo',
+          enter: (e) => fail('should enter bazparamfoo'))
+        ..addRoute(
+          name: 'bazparamfoo',
+          path: '/baz/:param/foo',
+          enter: expectAsync((RouteEvent e) {
+            expect(e.path, '/baz/bar/foo');
+            expect(router.root.findRoute('bazparamfoo').isActive, isTrue);
+          }))
+        ;
+      return router.route('/baz/bar/foo');
+    });
+
+    test('add paths with two params and a param', () {
+      Router router = new Router();
+      router.root
+        ..addRoute(
+          name: 'param1param2foo',
+          path: '/:param1/:param2/foo',
+          enter: (e) => fail('should enter bazparamfoo'))
+        ..addRoute(
+          name: 'param1barfoo',
+          path: '/:param1/bar/foo',
+          enter: expectAsync((RouteEvent e) {
+            expect(e.path, '/baz/bar/foo');
+            expect(router.root.findRoute('param1barfoo').isActive, isTrue);
+          }))
+        ;
+      return router.route('/baz/bar/foo');
+    });
+  });
+
   group('hierarchical routing', () {
 
-    _testParentChild(
+    void _testParentChild(
         Pattern parentPath,
         Pattern childPath,
         String expectedParentPath,
         String expectedChildPath,
         String testPath) {
-      Router router = new Router();
+      var router = new Router();
       router.root.addRoute(
           name: 'parent',
           path: parentPath,
-          enter: expectAsync1((RouteEvent e) {
+          enter: expectAsync((RouteEvent e) {
             expect(e.path, expectedParentPath);
             expect(e.route, isNotNull);
             expect(e.route.name, 'parent');
@@ -43,7 +210,7 @@ main() {
             child.addRoute(
                 name: 'child',
                 path: childPath,
-                enter: expectAsync1((RouteEvent e) {
+                enter: expectAsync((RouteEvent e) {
                   expect(e.path, expectedChildPath);
                 }));
           });
@@ -73,7 +240,7 @@ main() {
   group('leave', () {
 
     test('should leave previous route and enter new', () {
-      Map<String, int> counters = <String, int>{
+      var counters = <String, int>{
         'fooPreEnter': 0,
         'fooEnter': 0,
         'fooLeave': 0,
@@ -84,24 +251,24 @@ main() {
         'bazEnter': 0,
         'bazLeave': 0
       };
-      Router router = new Router();
+      var router = new Router();
       router.root
         ..addRoute(path: '/foo',
             name: 'foo',
-            preEnter: (RouteEvent e) => counters['fooPreEnter']++,
-            enter: (RouteEvent e) => counters['fooEnter']++,
-            leave: (RouteEvent e) => counters['fooLeave']++,
+            preEnter: (_) => counters['fooPreEnter']++,
+            enter: (_) => counters['fooEnter']++,
+            leave: (_) => counters['fooLeave']++,
             mount: (Route route) => route
               ..addRoute(path: '/bar',
                   name: 'bar',
-                  preEnter: (RouteEvent e) => counters['barPreEnter']++,
-                  enter: (RouteEvent e) => counters['barEnter']++,
-                  leave: (RouteEvent e) => counters['barLeave']++)
+                  preEnter: (_) => counters['barPreEnter']++,
+                  enter: (_) => counters['barEnter']++,
+                  leave: (_) => counters['barLeave']++)
               ..addRoute(path: '/baz',
                   name: 'baz',
-                  preEnter: (RouteEvent e) => counters['bazPreEnter']++,
-                  enter: (RouteEvent e) => counters['bazEnter']++,
-                  leave: (RouteEvent e) => counters['bazLeave']++));
+                  preEnter: (_) => counters['bazPreEnter']++,
+                  enter: (_) => counters['bazEnter']++,
+                  leave: (_) => counters['bazLeave']++));
 
       expect(counters, {
         'fooPreEnter': 0,
@@ -115,7 +282,7 @@ main() {
         'bazLeave': 0
       });
 
-      router.route('/foo/bar').then(expectAsync1((_) {
+      router.route('/foo/bar').then(expectAsync((_) {
         expect(counters, {
           'fooPreEnter': 1,
           'fooEnter': 1,
@@ -128,7 +295,7 @@ main() {
           'bazLeave': 0
         });
 
-        router.route('/foo/baz').then(expectAsync1((_) {
+        router.route('/foo/baz').then(expectAsync((_) {
           expect(counters, {
             'fooPreEnter': 1,
             'fooEnter': 1,
@@ -144,12 +311,12 @@ main() {
       }));
     });
 
-    _testAllowLeave(bool allowLeave) {
-      Completer<bool> completer = new Completer<bool>();
+    void _testAllowLeave(bool allowLeave) {
+      var completer = new Completer<bool>();
       bool barEntered = false;
       bool bazEntered = false;
 
-      Router router = new Router();
+      var router = new Router();
       router.root
         ..addRoute(name: 'foo', path: '/foo',
             mount: (Route child) => child
@@ -159,10 +326,10 @@ main() {
               ..addRoute(name: 'baz', path: '/baz',
                   enter: (RouteEnterEvent e) => bazEntered = true));
 
-      router.route('/foo/bar').then(expectAsync1((_) {
+      router.route('/foo/bar').then(expectAsync((_) {
         expect(barEntered, true);
         expect(bazEntered, false);
-        router.route('/foo/baz').then(expectAsync1((_) {
+        router.route('/foo/baz').then(expectAsync((_) {
           expect(bazEntered, allowLeave);
         }));
         completer.complete(allowLeave);
@@ -180,11 +347,11 @@ main() {
 
   group('preEnter', () {
 
-    _testAllowEnter(bool allowEnter) {
-      Completer<bool> completer = new Completer<bool>();
+    void _testAllowEnter(bool allowEnter) {
+      var completer = new Completer<bool>();
       bool barEntered = false;
 
-      Router router = new Router();
+      var router = new Router();
       router.root
         ..addRoute(name: 'foo', path: '/foo',
             mount: (Route child) => child
@@ -193,7 +360,7 @@ main() {
                   preEnter: (RoutePreEnterEvent e) =>
                       e.allowEnter(completer.future)));
 
-      router.route('/foo/bar').then(expectAsync1((_) {
+      router.route('/foo/bar').then(expectAsync((_) {
         expect(barEntered, allowEnter);
       }));
       completer.complete(allowEnter);
@@ -206,18 +373,95 @@ main() {
     test('should veto navigation', () {
       _testAllowEnter(false);
     });
+
+    test('should allow prevent leaving on parameter changes', () {
+      var counters = <String, int>{
+          'fooPreEnter': 0,
+          'fooEnter': 0,
+          'fooLeave': 0,
+          'barPreEnter': 0,
+          'barEnter': 0,
+          'barLeave': 0
+      };
+      var router = new Router();
+      router.root
+        ..addRoute(path: r'/foo/:param',
+            name: 'foo',
+            preEnter: (_) => counters['fooPreEnter']++,
+            enter: (_) => counters['fooEnter']++,
+            leave: (_) => counters['fooLeave']++,
+            dontLeaveOnParamChanges: true)
+        ..addRoute(path: '/bar',
+              name: 'bar',
+              preEnter: (_) => counters['barPreEnter']++,
+              enter: (_) => counters['barEnter']++,
+              leave: (_) => counters['barLeave']++);
+
+      expect(counters, {
+          'fooPreEnter': 0,
+          'fooEnter': 0,
+          'fooLeave': 0,
+          'barPreEnter': 0,
+          'barEnter': 0,
+          'barLeave': 0
+      });
+
+      router.route('/foo/bar').then(expectAsync((_) {
+        expect(counters, {
+            'fooPreEnter': 1,
+            'fooEnter': 1,
+            'fooLeave': 0,
+            'barPreEnter': 0,
+            'barEnter': 0,
+            'barLeave': 0
+        });
+
+        router.route('/foo/bar').then(expectAsync((_) {
+          expect(counters, {
+              'fooPreEnter': 1,
+              'fooEnter': 1,
+              'fooLeave': 0,
+              'barPreEnter': 0,
+              'barEnter': 0,
+              'barLeave': 0
+          });
+
+          router.route('/foo/baz').then(expectAsync((_) {
+            expect(counters, {
+                'fooPreEnter': 2,
+                'fooEnter': 2,
+                'fooLeave': 0,
+                'barPreEnter': 0,
+                'barEnter': 0,
+                'barLeave': 0
+            });
+
+            router.route('/bar').then(expectAsync((_) {
+              expect(counters, {
+                  'fooPreEnter': 2,
+                  'fooEnter': 2,
+                  'fooLeave': 1,
+                  'barPreEnter': 1,
+                  'barEnter': 1,
+                  'barLeave': 0
+              });
+            }));
+          }));
+        }));
+      }));
+    });
   });
 
   group('Default route', () {
 
-    _testHeadTail(String path, String expectFoo, String expectBar) {
-      Router router = new Router();
+    void _testHeadTail(String path, String expectFoo, String expectBar) {
+      var router = new Router();
       router.root
         ..addRoute(
             name: 'foo',
             path: '/foo',
             defaultRoute: true,
-            enter: expectAsync1((RouteEvent e) {
+            enter: expectAsync((RouteEvent e) {
               expect(e.path, expectFoo);
             }),
             mount: (child) => child
@@ -225,7 +469,7 @@ main() {
                   name: 'bar',
                   path: '/bar',
                   defaultRoute: true,
-                  enter: expectAsync1((RouteEvent e) =>
+                  enter: expectAsync((RouteEvent e) =>
                       expect(e.path, expectBar))));
 
       router.route(path);
@@ -252,14 +496,14 @@ main() {
     });
 
     test('should follow default routes', () {
-      Map<String, int> counters = <String, int>{
+      var counters = <String, int>{
         'list_entered': 0,
         'article_123_entered': 0,
         'article_123_view_entered': 0,
         'article_123_edit_entered': 0
       };
 
-      Router router = new Router();
+      var router = new Router();
       router.root
         ..addRoute(
             name: 'articles',
@@ -327,15 +571,12 @@ main() {
 
   group('go', () {
 
-    test('shoud location.assign/replace when useFragment=true', () {
-      MockWindow mockWindow = new MockWindow();
-      Router router = new Router(useFragment: true, windowImpl: mockWindow);
-      router.root
-        ..addRoute(
-            name: 'articles',
-            path: '/articles');
+    test('shoud use location.assign/.replace when useFragment=true', () {
+      var mockWindow = new MockWindow();
+      var router = new Router(useFragment: true, windowImpl: mockWindow);
+      router.root.addRoute(name: 'articles', path: '/articles');
 
-      router.go('articles', {}).then(expectAsync1((_) {
+      router.go('articles', {}).then(expectAsync((_) {
         var mockLocation = mockWindow.location;
 
         mockLocation.getLogs(callsTo('assign', anything))
@@ -345,7 +586,7 @@ main() {
         mockLocation.getLogs(callsTo('replace', anything))
             .verify(happenedExactly(0));
 
-        router.go('articles', {}, replace: true).then(expectAsync1((_) {
+        router.go('articles', {}, replace: true).then(expectAsync((_) {
           mockLocation.getLogs(callsTo('replace', anything))
               .verify(happenedExactly(1));
           expect(mockLocation.getLogs(callsTo('replace', anything)).last.args,
@@ -356,15 +597,12 @@ main() {
       }));
     });
 
-    test('shoud history.push/replaceState when useFragment=false', () {
-      MockWindow mockWindow = new MockWindow();
-      Router router = new Router(useFragment: false, windowImpl: mockWindow);
-      router.root
-        ..addRoute(
-            name: 'articles',
-            path: '/articles');
+    test('shoud use history.push/.replaceState when useFragment=false', () {
+      var mockWindow = new MockWindow();
+      var router = new Router(useFragment: false, windowImpl: mockWindow);
+      router.root.addRoute(name: 'articles', path: '/articles');
 
-      router.go('articles', {}).then(expectAsync1((_) {
+      router.go('articles', {}).then(expectAsync((_) {
         var mockHistory = mockWindow.history;
 
         mockHistory.getLogs(callsTo('pushState', anything))
@@ -374,7 +612,7 @@ main() {
         mockHistory.getLogs(callsTo('replaceState', anything))
             .verify(happenedExactly(0));
 
-        router.go('articles', {}, replace: true).then(expectAsync1((_) {
+        router.go('articles', {}, replace: true).then(expectAsync((_) {
           mockHistory.getLogs(callsTo('replaceState', anything))
               .verify(happenedExactly(1));
           expect(mockHistory.getLogs(callsTo('replaceState', anything)).last.args,
@@ -386,8 +624,8 @@ main() {
     });
 
     test('should work with hierarchical go', () {
-      MockWindow mockWindow = new MockWindow();
-      Router router = new Router(windowImpl: mockWindow);
+      var mockWindow = new MockWindow();
+      var router = new Router(windowImpl: mockWindow);
       router.root
         ..addRoute(
             name: 'a',
@@ -397,9 +635,9 @@ main() {
                   name: 'b',
                   path: '/:bar'));
 
-      var routeA = router.root.getRoute('a');
+      var routeA = router.root.findRoute('a');
 
-      router.go('a.b', {}).then(expectAsync1((_) {
+      router.go('a.b', {}).then(expectAsync((_) {
         var mockHistory = mockWindow.history;
 
         mockHistory.getLogs(callsTo('pushState', anything))
@@ -407,34 +645,33 @@ main() {
         expect(mockHistory.getLogs(callsTo('pushState', anything)).last.args,
             [null, '', '/null/null']);
 
-        router.go('a.b', {'foo': 'aaaa', 'bar': 'bbbb'}).then(expectAsync1((_) {
+        router.go('a.b', {'foo': 'aaaa', 'bar': 'bbbb'}).then(expectAsync((_) {
           mockHistory.getLogs(callsTo('pushState', anything))
               .verify(happenedExactly(2));
           expect(mockHistory.getLogs(callsTo('pushState', anything)).last.args,
               [null, '', '/aaaa/bbbb']);
 
           router.go('b', {'bar': 'bbbb'}, startingFrom: routeA)
-              .then(expectAsync1((_) {
+              .then(expectAsync((_) {
                 mockHistory.getLogs(callsTo('pushState', anything))
                    .verify(happenedExactly(3));
                 expect(
                     mockHistory.getLogs(callsTo('pushState')).last.args,
                     [null, '', '/aaaa/bbbb']);
               }));
-
         }));
       }));
 
     });
 
     test('should attempt to reverse default routes', () {
-      Map<String, int> counters = <String, int>{
+      var counters = <String, int>{
         'aEnter': 0,
         'bEnter': 0
       };
 
-      MockWindow mockWindow = new MockWindow();
-      Router router = new Router(windowImpl: mockWindow);
+      var mockWindow = new MockWindow();
+      var router = new Router(windowImpl: mockWindow);
       router.root
         ..addRoute(
             name: 'a',
@@ -459,7 +696,7 @@ main() {
           'bEnter': 1
         });
 
-        var routeA = router.root.getRoute('a');
+        var routeA = router.root.findRoute('a');
         router.go('b', {'bar': 'bbb'}, startingFrom: routeA).then((_) {
           var mockHistory = mockWindow.history;
 
@@ -476,8 +713,8 @@ main() {
   group('url', () {
 
     test('should reconstruct url', () {
-      MockWindow mockWindow = new MockWindow();
-      Router router = new Router(windowImpl: mockWindow);
+      var mockWindow = new MockWindow();
+      var router = new Router(windowImpl: mockWindow);
       router.root
         ..addRoute(
             name: 'a',
@@ -489,7 +726,7 @@ main() {
                   defaultRoute: true,
                   path: '/:bar'));
 
-      var routeA = router.root.getRoute('a');
+      var routeA = router.root.findRoute('a');
 
       router.route('').then((_) {
         expect(router.url('a.b'), '/null/null');
@@ -514,12 +751,12 @@ main() {
 
   });
 
-  group('getRoute', () {
+  group('findRoute', () {
 
     test('should return correct routes', () {
       Route routeFoo, routeBar, routeBaz, routeQux, routeAux;
 
-      Router router = new Router();
+      var router = new Router();
       router.root
         ..addRoute(
             name: 'foo',
@@ -542,17 +779,17 @@ main() {
                         path: '/:aux',
                         mount: (child) => routeAux = child)));
 
-      expect(router.root.getRoute('foo'), same(routeFoo));
-      expect(router.root.getRoute('foo.bar'), same(routeBar));
-      expect(routeFoo.getRoute('bar'), same(routeBar));
-      expect(router.root.getRoute('foo.bar.baz'), same(routeBaz));
-      expect(router.root.getRoute('foo.qux'), same(routeQux));
-      expect(router.root.getRoute('foo.qux.aux'), same(routeAux));
-      expect(routeQux.getRoute('aux'), same(routeAux));
-      expect(routeFoo.getRoute('qux.aux'), same(routeAux));
+      expect(router.root.findRoute('foo'), same(routeFoo));
+      expect(router.root.findRoute('foo.bar'), same(routeBar));
+      expect(routeFoo.findRoute('bar'), same(routeBar));
+      expect(router.root.findRoute('foo.bar.baz'), same(routeBaz));
+      expect(router.root.findRoute('foo.qux'), same(routeQux));
+      expect(router.root.findRoute('foo.qux.aux'), same(routeAux));
+      expect(routeQux.findRoute('aux'), same(routeAux));
+      expect(routeFoo.findRoute('qux.aux'), same(routeAux));
 
-      expect(router.root.getRoute('baz'), isNull);
-      expect(router.root.getRoute('foo.baz'), isNull);
+      expect(router.root.findRoute('baz'), isNull);
+      expect(router.root.findRoute('foo.baz'), isNull);
     });
 
   });
@@ -560,12 +797,12 @@ main() {
   group('route', () {
 
     test('should parse query', () {
-      Router router = new Router();
+      var router = new Router();
       router.root
         ..addRoute(
             name: 'foo',
             path: '/:foo',
-            enter: expectAsync1((RouteEvent e) {
+            enter: expectAsync((RouteEvent e) {
               expect(e.parameters, {
                 'foo': '123',
                 'a': 'b',
@@ -580,7 +817,7 @@ main() {
     group('isActive', () {
 
       test('should currectly identify active/inactive routes', () {
-        Router router = new Router();
+        var router = new Router();
         router.root
           ..addRoute(
               name: 'foo',
@@ -635,7 +872,7 @@ main() {
     group('parameters', () {
 
       test('should return path parameters for routes', () {
-        Router router = new Router();
+        var router = new Router();
         router.root
           ..addRoute(
               name: 'foo',
@@ -680,7 +917,7 @@ main() {
   group('activePath', () {
 
     test('should currectly identify active path', () {
-      Router router = new Router();
+      var router = new Router();
       router.root
         ..addRoute(
             name: 'foo',
@@ -723,7 +960,66 @@ main() {
 
   });
 
+  group('listen', () {
+
+    group('fragment', () {
+
+      test('shoud route current hash on listen', () {
+        var mockWindow = new MockWindow();
+        var mockHashChangeController = new StreamController<Event>(sync: true);
+
+        mockWindow.when(callsTo('get onHashChange'))
+            .alwaysReturn(mockHashChangeController.stream);
+        mockWindow.location.when(callsTo('get hash')).alwaysReturn('#/foo');
+        var router = new Router(useFragment: true, windowImpl: mockWindow);
+        router.root.addRoute(name: 'foo', path: '/foo');
+        router.onRouteStart.listen(expectAsync((RouteStartEvent start) {
+          start.completed.then(expectAsync((_) {
+            expect(router.findRoute('foo').isActive, isTrue);
+          }));
+        }, count: 1));
+        router.listen(ignoreClick: true);
+      });
+
+    });
+
+    group('pushState', () {
+
+      testInit(mockWindow, [count = 1]) {
+        mockWindow.location.when(callsTo('get hash')).alwaysReturn('');
+        mockWindow.location.when(callsTo('get pathname')).alwaysReturn('/foo');
+        var router = new Router(useFragment: false, windowImpl: mockWindow);
+        router.root.addRoute(name: 'foo', path: '/foo');
+        router.onRouteStart.listen(expectAsync((RouteStartEvent start) {
+          start.completed.then(expectAsync((_) {
+            expect(router.findRoute('foo').isActive, isTrue);
+          }));
+        }, count: count));
+        router.listen(ignoreClick: true);
+      }
+
+      test('shoud route current path on listen with pop', () {
+        var mockWindow = new MockWindow();
+        var mockPopStateController = new StreamController<Event>(sync: true);
+        mockWindow.when(callsTo('get onPopState'))
+            .alwaysReturn(mockPopStateController.stream);
+        testInit(mockWindow, 2);
+        mockPopStateController.add(null);
+      });
+
+      test('shoud route current path on listen without pop', () {
+        var mockWindow = new MockWindow();
+        var mockPopStateController = new StreamController<Event>(sync: true);
+        mockWindow.when(callsTo('get onPopState'))
+            .alwaysReturn(mockPopStateController.stream);
+        testInit(mockWindow);
+      });
+
+    });
+
+  });
+
 }
 
-/// An alias for Router.root.getRoute(path)
-r(Router router, String path) => router.root.getRoute(path);
+/// An alias for Router.root.findRoute(path)
+r(Router router, String path) => router.root.findRoute(path);

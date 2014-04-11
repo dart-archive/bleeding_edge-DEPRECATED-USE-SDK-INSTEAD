@@ -1,4 +1,4 @@
-library url_template_test;
+library route.url_template_test;
 
 import 'package:unittest/unittest.dart';
 import 'package:route_hierarchical/url_template.dart';

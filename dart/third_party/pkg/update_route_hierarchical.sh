@@ -8,5 +8,5 @@ set -e
 
 source update.sh
 
-update "route_hierarchical" "https://github.com/dart-lang/route.git" \
-    "experimental_hierarchical"
+update "route_hierarchical" "https://github.com/angular/route.dart.git" \
+    "master"

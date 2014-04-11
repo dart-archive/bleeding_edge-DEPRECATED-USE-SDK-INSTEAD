@@ -9,7 +9,7 @@ import 'url_matcher.dart';
 // From the PatternCharacter rule here:
 // http://ecma-international.org/ecma-262/5.1/#sec-15.10
 // removed '( and ')' since we'll never escape them when not in a group
-final _specialChars = new RegExp(r'[\^\$\.\|\+\[\]\{\}]');
+final _specialChars = new RegExp(r'[$.|+[\]{}^]');
 
 UrlPattern urlPattern(String p) => new UrlPattern(p);
 
@@ -284,11 +284,23 @@ class UrlPattern implements UrlMatcher, Pattern {
     _regex = new RegExp(sb.toString());
   }
 
-  _setBasePattern(String basePattern) {
+  void _setBasePattern(String basePattern) {
     if (_hasFragment == true) {
       throw new ArgumentError('multiple # characters');
     }
     _hasFragment = true;
     _baseRegex = new RegExp('$basePattern\$');
+  }
+
+  Match matchAsPrefix(String string, [int start = 0]) {
+    throw new UnimplementedError('matchAsPrefix is not implemented');
+  }
+
+  List<String> urlParameterNames() {
+    throw new UnimplementedError('urlParameterNames is not implemented');
+  }
+
+  int compareTo(UrlMatcher another) {
+    throw new UnimplementedError('compareTo is not implemented');
   }
 }
