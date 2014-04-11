@@ -18,6 +18,8 @@ import 'coverage_data.dart';
 class CoverageModel extends PolymerElement {
   @published
   ObservableList<CoverageData> items;
+  @published
+  int overallPercentage;
   Map<String, CoverageData> allItemsMap = new HashMap<String, CoverageData>();
 
   factory CoverageModel() => new Element.tag('cov-model');
@@ -25,12 +27,16 @@ class CoverageModel extends PolymerElement {
 
   void ready() {
     async((_) {
-      if (items == null) items = new ObservableList<CoverageData>();
+      if (items == null) {
+        items = new ObservableList<CoverageData>();
+        overallPercentage = 0;
+      }
     });
   }
 
   void clear() {
     items.clear();
+    allItemsMap.clear();
   }
 
   /// Add data from [map] to the model.
@@ -42,5 +48,14 @@ class CoverageModel extends PolymerElement {
     for (var name in names) {
       items.add(allItemsMap[name]);
     }
+    _updatePercentage();
+  }
+
+  void _updatePercentage() {
+    int n = 0;
+    for (var map in allItemsMap.values) {
+      n += map.percentCovered;
+    }
+    overallPercentage = n == 0 ? 0 : (n / allItemsMap.length).round();
   }
 }

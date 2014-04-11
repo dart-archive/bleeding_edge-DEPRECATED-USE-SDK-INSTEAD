@@ -16,6 +16,8 @@
         <input type="file" is="path-input" id="new-path"
             multiple on-change="{{addFileAction}}">
         <button label="Export" on-click="{{exportDataAction}}">Export</button>
+        <label>Overall percentage:</label>
+        <label>{{model.overallPercentage}}</label>
       </header>
       <ul id="coverage-list">
         <template repeat="{{model.items}}">

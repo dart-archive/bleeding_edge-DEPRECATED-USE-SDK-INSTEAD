@@ -33,7 +33,8 @@ class CoverageData extends Observable {
       var x = _instrumentedLines.length;
       var y = data._instrumentedLines.length;
       if (x != 0 && x != ins.length || y != 0 && y != ins.length) {
-        throw new Exception("Discrepency in instrumented lines for $className");
+        // Not throwing an exception because lines change with each CL commit
+        print("Discrepency in instrumented lines for $className");
       }
     }
     _instrumentedLines = ins;

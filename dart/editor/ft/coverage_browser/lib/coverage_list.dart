@@ -57,7 +57,8 @@ class CoverageList extends PolymerElement {
           ..write(data.percentCovered)
           ..writeln();
     }
-    // TODO(messick) Find a way to export that string.
+    InputElement text = document.querySelector('#output');
+    text.setRangeText(buffer.toString());
   }
 
   void _handleError(evt) => print("error $evt");

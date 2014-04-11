@@ -33,6 +33,7 @@ void merge(Map<String, CoverageData> dest, Map<String, CoverageData> src) {
     }
     destData.merge(srcData);
   }
+  _mergeClasses(dest);
 }
 
 Map<String, CoverageData> _buildMap(List<XmlNode> nodes) {
@@ -54,4 +55,27 @@ Map<String, CoverageData> _buildMap(List<XmlNode> nodes) {
 List<num> _extractLineInfoFromXml(XmlElement node) {
   var linesString = node.attributes[0].value;
   return numlist.parseNumericList(linesString);
+}
+
+/// Merge nested class data into the data for the class
+void _mergeClasses(Map<String, CoverageData> map) {
+  var deletions = new List<String>();
+  // Iterate over a copy of the keys so we can add elements if needed
+  for (var name in map.keys.toList()) {
+    var n = name.indexOf('\$');
+    if (n < 0) continue;
+    var className = name.substring(0, n);
+    if (map[className] == null) {
+      // Interfaces may have an initializer for static fields
+      var cov = map[name];
+      var c = new CoverageData(className, cov.instrumentedLines, cov.visitedLines);
+      map[className] = c;
+    } else {
+      map[className].merge(map[name]);
+    }
+    deletions.add(name);
+  }
+  for (var name in deletions) {
+    map.remove(name);
+  }
 }
