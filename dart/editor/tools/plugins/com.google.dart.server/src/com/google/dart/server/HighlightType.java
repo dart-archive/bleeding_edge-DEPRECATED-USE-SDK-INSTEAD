@@ -11,17 +11,21 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core.server;
+package com.google.dart.server;
 
 /**
- * The interface {@code NavigationRegion} defines the behavior of objects representing a list of
- * elements with which a source region is associated.
+ * The enumeration {@code HighlightType} defines the kinds of highlighting that can be associated
+ * with a region of text.
  */
-public interface NavigationRegion extends SourceRegion {
-  /**
-   * Return the identifiers of the elements associated with the region.
-   * 
-   * @return the identifiers of the elements associated with the region
-   */
-  public NavigationTarget[] getTargets();
+public enum HighlightType {
+  COMMENT_BLOCK,
+  COMMENT_DOCUMENTATION,
+  COMMENT_END_OF_LINE,
+  KEYWORD,
+  LITERAL_BOOLEAN,
+  LITERAL_DOUBLE,
+  LITERAL_INTEGER,
+  LITERAL_LIST,
+  LITERAL_MAP,
+  LITERAL_STRING;
 }

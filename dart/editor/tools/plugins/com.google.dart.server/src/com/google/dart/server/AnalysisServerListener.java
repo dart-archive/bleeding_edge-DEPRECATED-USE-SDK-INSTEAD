@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core.server;
+package com.google.dart.server;
 
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.source.Source;

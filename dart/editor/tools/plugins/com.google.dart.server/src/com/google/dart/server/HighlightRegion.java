@@ -11,24 +11,17 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core.server;
+package com.google.dart.server;
 
 /**
- * The interface {@code SourceRegion} defines the behavior of objects representing a range of
- * characters within a {@link Source}.
+ * The interface {@code HighlightRegion} defines the behavior of objects representing a particular
+ * syntactic or semantic meaning associated with a source region.
  */
-public interface SourceRegion {
+public interface HighlightRegion extends SourceRegion {
   /**
-   * Return the length of the region.
+   * Return the type of highlight associated with the region.
    * 
-   * @return the length of the region
+   * @return the type of highlight associated with the region
    */
-  public int getLength();
-
-  /**
-   * Return the offset to the beginning of the region.
-   * 
-   * @return the offset to the beginning of the region
-   */
-  public int getOffset();
+  public HighlightType getType();
 }
