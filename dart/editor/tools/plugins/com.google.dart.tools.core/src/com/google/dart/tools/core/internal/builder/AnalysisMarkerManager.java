@@ -86,19 +86,28 @@ public class AnalysisMarkerManager {
         return;
       }
 
+      // Show errors first, then warnings, followed by everything else
+      // while limiting the total number of markers added to MAX_ERROR_COUNT
       int errorCount = 0;
+      errorCount = showErrors(errorCount, ErrorSeverity.ERROR, IMarker.SEVERITY_ERROR);
+      errorCount = showErrors(errorCount, ErrorSeverity.WARNING, IMarker.SEVERITY_WARNING);
+      errorCount = showErrors(errorCount, ErrorSeverity.INFO, IMarker.SEVERITY_INFO);
+
+      if (errorCount >= MAX_ERROR_COUNT) {
+        IMarker marker = resource.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);
+        marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
+        marker.setAttribute(IMarker.LINE_NUMBER, 1);
+        marker.setAttribute(IMarker.MESSAGE, "There are more then " + MAX_ERROR_COUNT
+            + " errors; not showing any more...");
+      }
+    }
+
+    private int showErrors(int errorCount, ErrorSeverity errorSeverity, int markerSeverity)
+        throws CoreException {
 
       for (AnalysisError error : errors) {
         ErrorCode errorCode = error.getErrorCode();
-        int severity;
-        ErrorSeverity errorSeverity = errorCode.getErrorSeverity();
-        if (errorSeverity == ErrorSeverity.ERROR) {
-          severity = IMarker.SEVERITY_ERROR;
-        } else if (errorSeverity == ErrorSeverity.WARNING) {
-          severity = IMarker.SEVERITY_WARNING;
-        } else if (errorSeverity == ErrorSeverity.INFO) {
-          severity = IMarker.SEVERITY_INFO;
-        } else {
+        if (errorCode.getErrorSeverity() != errorSeverity) {
           continue;
         }
 
@@ -106,10 +115,9 @@ public class AnalysisMarkerManager {
         boolean isHint = errorCode.getType() == ErrorType.HINT;
 
         String markerType = DartCore.DART_PROBLEM_MARKER_TYPE;
-
         if (errorCode.getType() == ErrorType.ANGULAR) {
           markerType = DartCore.ANGULAR_WARNING_MARKER_TYPE;
-          severity = IMarker.SEVERITY_WARNING;
+          markerSeverity = IMarker.SEVERITY_WARNING;
         } else if (errorCode.getType() == ErrorType.TODO) {
           markerType = DartCore.DART_TASK_MARKER_TYPE;
         } else if (isHint) {
@@ -117,7 +125,7 @@ public class AnalysisMarkerManager {
         }
 
         IMarker marker = resource.createMarker(markerType);
-        marker.setAttribute(IMarker.SEVERITY, severity);
+        marker.setAttribute(IMarker.SEVERITY, markerSeverity);
         marker.setAttribute(IMarker.CHAR_START, error.getOffset());
         marker.setAttribute(IMarker.CHAR_END, error.getOffset() + error.getLength());
         marker.setAttribute(IMarker.LINE_NUMBER, lineNum);
@@ -129,17 +137,11 @@ public class AnalysisMarkerManager {
         }
 
         errorCount++;
-
         if (errorCount >= MAX_ERROR_COUNT) {
-          marker = resource.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);
-          marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
-          marker.setAttribute(IMarker.LINE_NUMBER, 1);
-          marker.setAttribute(IMarker.MESSAGE, "There are more then " + MAX_ERROR_COUNT
-              + " errors; not showing any more...");
-
           break;
         }
       }
+      return errorCount;
     }
   }
 

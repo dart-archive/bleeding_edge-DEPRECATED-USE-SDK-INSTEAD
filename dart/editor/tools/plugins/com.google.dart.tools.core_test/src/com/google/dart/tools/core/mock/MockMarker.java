@@ -23,6 +23,7 @@ public class MockMarker implements IMarker {
 
   private final MockResource resource;
   private final String type;
+  private int severity;
 
   public MockMarker(MockResource resource, String type) {
     this.resource = resource;
@@ -46,6 +47,9 @@ public class MockMarker implements IMarker {
 
   @Override
   public Object getAttribute(String attributeName) throws CoreException {
+    if (IMarker.SEVERITY.equals(attributeName)) {
+      return severity;
+    }
     return null;
   }
 
@@ -56,6 +60,9 @@ public class MockMarker implements IMarker {
 
   @Override
   public int getAttribute(String attributeName, int defaultValue) {
+    if (IMarker.SEVERITY.equals(attributeName)) {
+      return severity;
+    }
     return 0;
   }
 
@@ -105,6 +112,9 @@ public class MockMarker implements IMarker {
 
   @Override
   public void setAttribute(String attributeName, int value) throws CoreException {
+    if (IMarker.SEVERITY.equals(attributeName)) {
+      severity = value;
+    }
   }
 
   @Override
