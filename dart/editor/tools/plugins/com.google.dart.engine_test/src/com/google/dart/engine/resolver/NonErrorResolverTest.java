@@ -23,6 +23,38 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class NonErrorResolverTest extends ResolverTestCase {
+  public void fail_invocationOfNonFunction_proxyOnFunctionClass() throws Exception {
+    // 16078
+    //
+    // The fix would seem to be to add this code to change the else-if block in
+    // ElementResolver.isExecutableType() to
+    //
+    // ClassElement classElement = ((InterfaceType) type).getElement();
+    // if (type.isSubtypeOf(resolver.getTypeProvider().getFunctionType()) && classElement.isProxy()) {
+    //   return false;
+    // }
+    // MethodElement methodElement = classElement.lookUpMethod(CALL_METHOD_NAME, definingLibrary);
+    // return methodElement != null;
+    //
+    // However, the call to isProxy() will always returns false since the metadata hasn't been set
+    // yet on Functor.
+    //
+    Source source = addSource(createSource(//
+        "@proxy",
+        "class Functor implements Function {",
+        "  noSuchMethod(inv) {",
+        "    return 42;",
+        "  }",
+        "}",
+        "main() {",
+        "  Functor f = new Functor();",
+        "  f();",
+        "}"));
+    resolve(source);
+    assertErrors(source);
+    verify(source);
+  }
+
   public void test_ambiguousExport() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
@@ -1132,6 +1164,27 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  void call() {}",
         "}",
         "class D extends C {", // implements indirectly
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_functionWithoutCall_doesNotImplementFunction() throws Exception {
+    Source source = addSource(createSource(//
+    "class A {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_functionWithoutCall_withNoSuchMethod() throws Exception {
+    // 16078
+    Source source = addSource(createSource(//
+        "class A implements Function {",
+        "  noSuchMethod(inv) {",
+        "    return 42;",
+        "  }",
         "}"));
     resolve(source);
     assertNoErrors(source);

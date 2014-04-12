@@ -5391,6 +5391,10 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (!classElement.getType().isSubtypeOf(typeProvider.getFunctionType())) {
       return false;
     }
+    // If there is a noSuchMethod method, then don't report the warning, see dartbug.com/16078
+    if (classElement.getMethod(ElementResolver.NO_SUCH_METHOD_METHOD_NAME) != null) {
+      return false;
+    }
     ExecutableElement callMethod = inheritanceManager.lookupMember(classElement, "call");
     if (callMethod == null || !(callMethod instanceof MethodElement)
         || ((MethodElement) callMethod).isAbstract()) {
