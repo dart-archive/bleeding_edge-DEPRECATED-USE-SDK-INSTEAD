@@ -93,6 +93,7 @@ import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
+import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
@@ -189,6 +190,13 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
           msg = fQuickAssistAssistant.showPossibleQuickAssists();
           setStatusLineErrorMessage(msg);
           return;
+        case CUT:
+          boolean success = doCut_fix18161();
+          if (success) {
+            return;
+          }
+          // use default implementation from ProjectionViewer
+          break;
       }
 
       super.doOperation(operation);
@@ -235,6 +243,36 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     @Override
     protected int getEmptySelectionChangedEventDelay() {
       return 10; // reduced from 500 to speed up mark occurrences
+    }
+
+    /**
+     * This method fixes https://code.google.com/p/dart/issues/detail?id=18161
+     * <p>
+     * We need to copy implementation form {@link ProjectionViewer} because of
+     * <p>
+     * https://bugs.eclipse.org/bugs/show_bug.cgi?id=75222
+     */
+    private boolean doCut_fix18161() {
+      ITextSelection selection = (ITextSelection) getSelection();
+      if (selection.getLength() == 0) {
+        copyMarkedRegion(true);
+        return true;
+      } else {
+        StyledText textWidget = getTextWidget();
+        try {
+          ReflectionUtils.invokeMethod(
+              this,
+              "copyToClipboard(org.eclipse.jface.text.ITextSelection,boolean,org.eclipse.swt.custom.StyledText)",
+              selection,
+              true,
+              textWidget);
+          Point range = textWidget.getSelectionRange();
+          fireSelectionChanged(range.x, range.y);
+          return true;
+        } catch (Throwable e) {
+          return false;
+        }
+      }
     }
   }
 
