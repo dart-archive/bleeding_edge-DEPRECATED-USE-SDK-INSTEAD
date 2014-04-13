@@ -216,20 +216,14 @@ public class LightweightModel {
    * Return the source kind for the given file.
    */
   public SourceKind getSourceKind(IFile file) {
-    try {
-      String value = file.getPersistentProperty(SOURCE_KIND);
+    String value = getPersistentProperty(file, SOURCE_KIND);
+    if (value != null) {
+      try {
+        return SourceKind.valueOf(value);
+      } catch (IllegalArgumentException ex) {
 
-      if (value != null) {
-        try {
-          return SourceKind.valueOf(value);
-        } catch (IllegalArgumentException ex) {
-
-        }
       }
-    } catch (CoreException e) {
-      DartCore.logError(e);
     }
-
     return SourceKind.UNKNOWN;
   }
 
@@ -238,11 +232,8 @@ public class LightweightModel {
    * a browser.
    */
   public boolean isClientLibrary(IFile file) {
-    try {
-      return "true".equals(file.getPersistentProperty(CLIENT_LIBRARY));
-    } catch (CoreException e) {
-      return false;
-    }
+    String value = getPersistentProperty(file, CLIENT_LIBRARY);
+    return "true".equals(value);
   }
 
   /**
@@ -250,11 +241,8 @@ public class LightweightModel {
    * the server.
    */
   public boolean isServerLibrary(IFile file) {
-    try {
-      return "true".equals(file.getPersistentProperty(SERVER_LIBRARY));
-    } catch (CoreException e) {
-      return false;
-    }
+    String value = getPersistentProperty(file, SERVER_LIBRARY);
+    return "true".equals(value);
   }
 
   /**
@@ -262,7 +250,7 @@ public class LightweightModel {
    */
   protected void setFileProperty(IFile file, QualifiedName property, boolean newValue)
       throws CoreException {
-    boolean currentValue = "true".equals(file.getPersistentProperty(property));
+    boolean currentValue = "true".equals(getPersistentProperty(file, property));
 
     if (currentValue != newValue) {
       file.setPersistentProperty(property, Boolean.toString(newValue));
@@ -283,7 +271,7 @@ public class LightweightModel {
    */
   protected void setFileProperty(IFile file, QualifiedName property, String newValue)
       throws CoreException {
-    String currentValue = file.getPersistentProperty(property);
+    String currentValue = getPersistentProperty(file, property);
 
     if (currentValue != newValue) {
       if (currentValue == null) {
@@ -314,21 +302,33 @@ public class LightweightModel {
     }
   }
 
-  private IFile getResource(IFile file, QualifiedName qualifiedName) {
-    try {
-      String value = file.getPersistentProperty(qualifiedName);
-
-      if (value != null) {
-        IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(value);
-
-        if (resource instanceof IFile) {
-          return (IFile) resource;
-        }
-      }
-    } catch (CoreException e) {
-      DartCore.logError(e);
+  /**
+   * Returns the value of the persistent property of the given {@link IFile}, identified by the
+   * given key, or {@code null} if the {@link IFile} does not exists, has no such property or any
+   * exception happens.
+   */
+  private String getPersistentProperty(IFile file, QualifiedName name) {
+    if (file == null) {
+      return null;
     }
+    if (!file.exists()) {
+      return null;
+    }
+    try {
+      return file.getPersistentProperty(name);
+    } catch (CoreException e) {
+      return null;
+    }
+  }
 
+  private IFile getResource(IFile file, QualifiedName qualifiedName) {
+    String value = getPersistentProperty(file, qualifiedName);
+    if (value != null) {
+      IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(value);
+      if (resource instanceof IFile) {
+        return (IFile) resource;
+      }
+    }
     return null;
   }
 
