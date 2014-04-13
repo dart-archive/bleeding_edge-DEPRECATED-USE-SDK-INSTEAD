@@ -496,8 +496,13 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       Token filterToken = tokens.get(i);
       Token barToken = filterToken;
       filterToken = filterToken.getNext();
-      // TODO(scheglov) report missing identifier
-      SimpleIdentifier name = (SimpleIdentifier) parseDartExpressionInToken(filterToken);
+      // parse name
+      Expression nameExpression = parseDartExpressionInToken(filterToken);
+      if (!(nameExpression instanceof SimpleIdentifier)) {
+        reportErrorForNode(AngularCode.INVALID_FILTER_NAME, nameExpression);
+        continue;
+      }
+      SimpleIdentifier name = (SimpleIdentifier) nameExpression;
       filterToken = name.getEndToken().getNext();
       // parse arguments
       List<AngularFilterArgument> arguments = Lists.newArrayList();

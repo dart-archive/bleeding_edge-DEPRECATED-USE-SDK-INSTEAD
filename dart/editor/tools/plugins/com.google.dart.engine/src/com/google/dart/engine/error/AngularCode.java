@@ -18,6 +18,7 @@ package com.google.dart.engine.error;
  */
 public enum AngularCode implements ErrorCode {
   CANNOT_PARSE_SELECTOR("The selector '%s' cannot be parsed"),
+  INVALID_FILTER_NAME("Filter name must be a simple identifier"),
   INVALID_PROPERTY_KIND(
       "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'"),
   INVALID_PROPERTY_FIELD("Unknown property field '%s'"),

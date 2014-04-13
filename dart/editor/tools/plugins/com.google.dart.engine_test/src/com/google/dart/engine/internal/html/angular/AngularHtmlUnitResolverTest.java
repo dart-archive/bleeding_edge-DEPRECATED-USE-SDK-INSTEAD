@@ -715,6 +715,12 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertResolvedIdentifier("uppercase");
   }
 
+  public void test_resolveExpression_withFilter_notSimpleIdentifier() throws Exception {
+    addMyController();
+    resolveIndex(createHtmlWithMyController("{{ctrl.field | not.supported}}"));
+    assertErrors(indexSource, AngularCode.INVALID_FILTER_NAME);
+  }
+
   public void test_scopeProperties() throws Exception {
     addMainSource(createSource("",//
         "import 'angular.dart';",
