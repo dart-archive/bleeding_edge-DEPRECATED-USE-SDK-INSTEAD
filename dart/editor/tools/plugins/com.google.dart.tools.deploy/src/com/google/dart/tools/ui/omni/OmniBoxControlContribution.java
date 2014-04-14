@@ -29,6 +29,8 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackAdapter;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -422,6 +424,20 @@ public class OmniBoxControlContribution {
       @Override
       public void focusLost(FocusEvent e) {
         handleFocusLost();
+      }
+    });
+
+    // close popup when Editor lost focus
+    textControl.getShell().addShellListener(new ShellAdapter() {
+      @Override
+      public void shellDeactivated(ShellEvent e) {
+        Shell activeShell = Display.getCurrent().getActiveShell();
+        if (activeShell == null) {
+          if (popup != null) {
+            popup.close();
+            popup = null;
+          }
+        }
       }
     });
   }
