@@ -183,7 +183,7 @@
             name="Dart Editor">
          <property
                name="windowImages"
-               value="icons/dart_16_16.gif,icons/dart_32_32.gif,icons/dart_48_48.gif,icons/dart_64_64.gif,icons/dart_128_128.gif">
+               value="icons/dart_16x16x32.png,icons/dart_32x32x32.png,icons/dart_48x48x32.png,icons/dart_64x64x32.png,icons/dart_128x128x32.png">
          </property>
          <property
                name="aboutText"
