@@ -26,6 +26,7 @@ public class TestAll {
     suite.addTestSuite(ExplicitPackageUriResolverTest.class);
     suite.addTestSuite(FileUriResolverTest.class);
     suite.addTestSuite(PackageUriResolverTest.class);
+    suite.addTestSuite(RelativeFileResolverTest.class);
     suite.addTestSuite(DirectoryBasedSourceContainerTest.class);
     suite.addTestSuite(SourceFactoryTest.class);
     suite.addTestSuite(FileBasedSourceTest.class);

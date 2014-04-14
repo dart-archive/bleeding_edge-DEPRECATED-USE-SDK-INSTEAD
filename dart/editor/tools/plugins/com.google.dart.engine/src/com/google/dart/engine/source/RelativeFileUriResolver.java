@@ -69,7 +69,8 @@ public class RelativeFileUriResolver extends UriResolver {
   @Override
   public Source resolveAbsolute(URI uri) {
     String rootPath = rootDirectory.toURI().getPath();
-    if (uri.getPath().startsWith(rootPath)) {
+    String uriPath = uri.getPath();
+    if (uriPath != null && uriPath.startsWith(rootPath)) {
       String filePath = uri.getPath().substring(rootPath.length());
       for (File dir : relativeDirectories) {
         File file = new File(dir, filePath);
