@@ -2652,11 +2652,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // change, this loop will eventually terminate.
       //
       LibraryElement library = computeLibraryElement(librarySource);
+      CompilationUnit unit = resolveCompilationUnit(unitSource, library);
+      if (unit == null) {
+        throw new AnalysisException("Could not resolve compilation unit "
+            + unitSource.getFullName() + " in " + librarySource.getFullName());
+      }
       dartEntry = (DartEntry) new GenerateDartErrorsTask(
           this,
           unitSource,
           dartEntry.getModificationTime(),
-          resolveCompilationUnit(unitSource, library),
+          unit,
           library).perform(resultRecorder);
       state = dartEntry.getStateInLibrary(descriptor, librarySource);
     }
@@ -2831,6 +2836,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return createResolveDartLibraryTask(librarySource, libraryEntry);
     }
     CompilationUnit unit = unitEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
+    if (unit == null) {
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Entry has VALID state for RESOLVED_UNIT but null value for " + unitSource.getFullName()
+              + " in " + librarySource.getFullName(),
+          new AnalysisException());
+      DartEntryImpl dartCopy = unitEntry.getWritableCopy();
+      dartCopy.recordResolutionError();
+      cache.put(unitSource, dartCopy);
+      return new TaskData(null, false);
+    }
     LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
     DartEntryImpl dartCopy = unitEntry.getWritableCopy();
     dartCopy.setStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.IN_PROCESS);
