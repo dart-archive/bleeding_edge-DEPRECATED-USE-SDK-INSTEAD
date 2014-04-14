@@ -20,7 +20,7 @@ import com.google.dart.server.AnalysisServer;
 /**
  * An operation for {@link AnalysisServer#applyChanges(String, ChangeSet)}.
  */
-public class ApplyChangesOperation implements ContextServerOperation, MergeableOperation {
+public class ApplyChangesOperation implements ContextServerOperation {
   private final String contextId;
   private final ChangeSet changeSet;
 
@@ -37,12 +37,6 @@ public class ApplyChangesOperation implements ContextServerOperation, MergeableO
   @Override
   public ServerOperationPriority getPriority() {
     return ServerOperationPriority.CONTEXT_CHANGE;
-  }
-
-  @Override
-  public boolean mergeWith(ServerOperation operation) {
-    // TODO(scheglov) implement and use ChangeSet.merge()
-    return false;
   }
 
   @Override

@@ -19,8 +19,6 @@ import com.google.dart.server.AnalysisServer;
 
 /**
  * An operation for {@link AnalysisServer#setContents(String, Source, String)}.
- * <p>
- * TODO(scheglov) move into ChangeSet
  */
 public class SetContentsOperation implements ContextServerOperation, MergeableOperation {
   private final String contextId;

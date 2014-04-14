@@ -19,8 +19,17 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(ApplyChangesOperationTest.class);
     suite.addTestSuite(BroadcastAnalysisServerListenerTest.class);
+    suite.addTestSuite(CreateContextOperationTest.class);
+    suite.addTestSuite(DeleteContextOperationTest.class);
     suite.addTestSuite(LocalAnalysisServerImplTest.class);
+    suite.addTestSuite(PerformAnalysisOperationTest.class);
+    suite.addTestSuite(ServerOperationQueueTest.class);
+    suite.addTestSuite(SetContentsOperationTest.class);
+    suite.addTestSuite(SetOptionsOperationTest.class);
+    suite.addTestSuite(SetPrioritySourcesOperationTest.class);
+    suite.addTestSuite(ShutdownOperationTest.class);
     return suite;
   }
 }

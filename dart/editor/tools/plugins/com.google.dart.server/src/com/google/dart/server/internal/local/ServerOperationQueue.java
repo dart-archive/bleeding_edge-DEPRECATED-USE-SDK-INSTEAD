@@ -58,7 +58,10 @@ public class ServerOperationQueue {
       if (operation instanceof MergeableOperation) {
         for (ServerOperation existingOperation : operationQueue) {
           if (existingOperation instanceof MergeableOperation) {
-            ((MergeableOperation) existingOperation).mergeWith(operation);
+            boolean merged = ((MergeableOperation) existingOperation).mergeWith(operation);
+            if (merged) {
+              return;
+            }
           }
         }
       }
@@ -101,9 +104,11 @@ public class ServerOperationQueue {
   }
 
   /**
-   * Returns the next operation to perform.
+   * Returns the next operation to perform or {@code null} if timeout happens.
+   * 
+   * @param timeout the maximum time to wait in milliseconds, if {@code 0} then wait infinitely
    */
-  public ServerOperation take() {
+  public ServerOperation take(long timeout) {
     synchronized (operationsLock) {
       while (true) {
         for (LinkedList<ServerOperation> operationQueue : operationQueues) {
@@ -111,9 +116,18 @@ public class ServerOperationQueue {
             return operationQueue.removeFirst();
           }
         }
+        // wait for "queue is updated" notification
+        long waitStart = System.currentTimeMillis();
         try {
-          operationsLock.wait();
+          operationsLock.wait(timeout);
         } catch (InterruptedException e) {
+        } finally {
+          if (timeout != 0) {
+            timeout -= System.currentTimeMillis() - waitStart;
+            if (timeout <= 0) {
+              return null;
+            }
+          }
         }
       }
     }

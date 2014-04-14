@@ -42,8 +42,11 @@ public class SetOptionsOperation implements ContextServerOperation, MergeableOpe
   @Override
   public boolean mergeWith(ServerOperation operation) {
     if (operation instanceof SetOptionsOperation) {
-      options = ((SetOptionsOperation) operation).options;
-      return true;
+      SetOptionsOperation other = (SetOptionsOperation) operation;
+      if (contextId.equals(other.contextId)) {
+        options = ((SetOptionsOperation) operation).options;
+        return true;
+      }
     }
     return false;
   }

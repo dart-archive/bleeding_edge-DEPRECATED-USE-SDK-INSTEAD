@@ -55,7 +55,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
     @Override
     public void run() {
       while (true) {
-        ServerOperation operation = operationQueue.take();
+        ServerOperation operation = operationQueue.take(0);
         if (test_paused) {
           Thread.yield();
           continue;
@@ -64,6 +64,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
           break;
         }
         operation.performOperation(LocalAnalysisServerImpl.this);
+        test_queueIsEmptyAfterPerformOperation = operationQueue.isEmpty();
       }
     }
   }
@@ -82,6 +83,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    * multiple threads.
    */
   private boolean test_paused;
+
+  /**
+   * This is used only for testing purposes and allows tests to wait until all operations are
+   * executed.
+   */
+  private boolean test_queueIsEmptyAfterPerformOperation;
 
   /**
    * The unique ID for the next context.
@@ -278,7 +285,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
 
   @VisibleForTesting
   public void test_waitForWorkerComplete() {
-    while (!operationQueue.isEmpty()) {
+    while (!operationQueue.isEmpty() || !test_queueIsEmptyAfterPerformOperation) {
       Thread.yield();
     }
   }

@@ -14,27 +14,20 @@
 
 package com.google.dart.server.internal.local;
 
-import com.google.dart.engine.context.AnalysisOptions;
-import com.google.dart.server.AnalysisServer;
+import junit.framework.TestCase;
 
-/**
- * An operation for {@link AnalysisServer#setOptions(String, AnalysisOptions)}.
- */
-public class ShutdownOperation implements ServerOperation {
-  /**
-   * The unique instance of this class.
-   */
-  public static final ShutdownOperation INSTANCE = new ShutdownOperation();
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
-  private ShutdownOperation() {
-  }
+public class DeleteContextOperationTest extends TestCase {
+  private LocalAnalysisServerImpl server = mock(LocalAnalysisServerImpl.class);
 
-  @Override
-  public ServerOperationPriority getPriority() {
-    return ServerOperationPriority.SHUTDOWN;
-  }
-
-  @Override
-  public void performOperation(LocalAnalysisServerImpl server) {
+  public void test_perform() throws Exception {
+    DeleteContextOperation operation = new DeleteContextOperation("id");
+    assertSame(ServerOperationPriority.SERVER, operation.getPriority());
+    // perform
+    operation.performOperation(server);
+    verify(server, times(1)).internalDeleteContext("id");
   }
 }
