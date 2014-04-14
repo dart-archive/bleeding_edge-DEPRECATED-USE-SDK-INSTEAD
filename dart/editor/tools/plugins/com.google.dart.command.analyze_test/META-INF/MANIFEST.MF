@@ -9,4 +9,3 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: com.google.dart.command.analyze,
  com.google.dart.thirdparty_test,
  com.google.dart.engine_test
-Export-Package: com.google.dart.command.analyze
