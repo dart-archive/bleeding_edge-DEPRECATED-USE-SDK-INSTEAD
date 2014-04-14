@@ -17,7 +17,6 @@ package com.google.dart.server.internal.local;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisOptions;
@@ -34,11 +33,8 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 
 import java.io.File;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -47,19 +43,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @coverage dart.server.local
  */
 public class LocalAnalysisServerImpl implements AnalysisServer {
-  /**
-   * Information about the {@link AnalysisContext} and its ID.
-   */
-  private static class AnalysisContextInfo {
-    final String id;
-    final AnalysisContext context;
-
-    public AnalysisContextInfo(String id, AnalysisContext context) {
-      this.id = id;
-      this.context = context;
-    }
-  }
-
   /**
    * The local analysis server worker.
    */
@@ -72,60 +55,22 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
     @Override
     public void run() {
       while (true) {
-        // prepare context
-        AnalysisContextInfo contextInfo;
-        synchronized (contextWorkQueue) {
-          while (contextWorkQueue.isEmpty()) {
-            try {
-              contextWorkQueue.wait();
-            } catch (InterruptedException e) {
-            }
-          }
-          contextInfo = contextWorkQueue.getFirst();
-        }
-        // maybe paused
+        ServerOperation operation = operationQueue.take();
         if (test_paused) {
-          Uninterruptibles.sleepUninterruptibly(1, TimeUnit.MILLISECONDS);
+          Thread.yield();
           continue;
         }
-        // stop signal
-        if (contextInfo == SHUTDOWN_OBJECT) {
+        if (operation == ShutdownOperation.INSTANCE) {
           break;
         }
-        // perform analysis
-        performAnalysis(contextInfo);
-        synchronized (contextWorkQueue) {
-          contextWorkQueue.removeFirst();
-          contextWorkQueue.notifyAll();
-        }
-      }
-    }
-
-    /**
-     * Performs analysis in the given {@link AnalysisContext}.
-     */
-    private void performAnalysis(AnalysisContextInfo contextInfo) {
-      while (true) {
-        AnalysisResult result = contextInfo.context.performAnalysisTask();
-        ChangeNotice[] notices = result.getChangeNotices();
-        if (notices == null) {
-          return;
-        }
-        // notify about errors
-        List<AnalysisServerListener> listenersCopy = Lists.newArrayList(listeners);
-        for (ChangeNotice changeNotice : notices) {
-          for (AnalysisServerListener listener : listenersCopy) {
-            listener.computedErrors(
-                contextInfo.id,
-                changeNotice.getSource(),
-                changeNotice.getErrors());
-          }
-        }
+        operation.performOperation(LocalAnalysisServerImpl.this);
       }
     }
   }
 
   private static final String VERSION = "0.0.1";
+
+  private final ServerOperationQueue operationQueue = new ServerOperationQueue();
 
   /**
    * The worker thread.
@@ -139,11 +84,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   private boolean test_paused;
 
   /**
-   * This object is used as a signal that the worker thread should stop.
-   */
-  private static final AnalysisContextInfo SHUTDOWN_OBJECT = new AnalysisContextInfo(null, null);
-
-  /**
    * The unique ID for the next context.
    */
   private final AtomicInteger nextId = new AtomicInteger();
@@ -152,11 +92,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    * A table mapping context id's to the analysis contexts associated with them.
    */
   private final Map<String, AnalysisContext> contextMap = Maps.newHashMap();
-
-  /**
-   * A queue of the analysis contexts for which analysis work needs to be performed.
-   */
-  private final LinkedList<AnalysisContextInfo> contextWorkQueue = Lists.newLinkedList();
 
   /**
    * The listeners that will receive notification when new analysis results become available.
@@ -178,48 +113,130 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void applyChanges(String contextId, ChangeSet changeSet) {
-    AnalysisContext context = getAnalysisContext(contextId);
-    if (context != null) {
-      context.applyChanges(changeSet);
-      addContextToWorkQueue(contextId, context);
-    }
+    operationQueue.add(new ApplyChangesOperation(contextId, changeSet));
   }
 
   @Override
   public String createContext(String name, String sdkDirectory, Map<String, String> packageMap) {
+    String contextId = name + "-" + nextId.getAndIncrement();
+    operationQueue.add(new CreateContextOperation(contextId, sdkDirectory, packageMap));
+    return contextId;
+  }
+
+  @Override
+  public void deleteContext(String contextId) {
+    operationQueue.add(new DeleteContextOperation(contextId));
+  }
+
+  /**
+   * Implementation for {@link #applyChanges(String, ChangeSet)}.
+   */
+  public void internalApplyChanges(String contextId, ChangeSet changeSet) {
+    AnalysisContext context = getAnalysisContext(contextId);
+    if (context == null) {
+      reportListenerError();
+      return;
+    }
+    context.applyChanges(changeSet);
+    schedulePerformAnalysisOperation(contextId);
+  }
+
+  /**
+   * Implementation for {@link #createContext(String, String, Map)}.
+   */
+  public void internalCreateContext(String contextId, String sdkDirectory,
+      Map<String, String> packageMap) {
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
     DartSdk sdk = new DirectoryBasedDartSdk(new File(sdkDirectory));
     // TODO(scheglov) PackageUriResolver
     SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     context.setSourceFactory(sourceFactory);
     // add context
-    String contextId = name + "-" + nextId.getAndIncrement();
     synchronized (contextMap) {
       contextMap.put(contextId, context);
     }
-    addContextToWorkQueue(contextId, context);
-    return contextId;
+    schedulePerformAnalysisOperation(contextId);
   }
 
-  @Override
-  public void deleteContext(String contextId) {
-    // prepare context
+  /**
+   * Implementation for {@link #deleteContext(String)}.
+   */
+  public void internalDeleteContext(String contextId) {
     AnalysisContext context;
     synchronized (contextMap) {
       context = contextMap.remove(contextId);
     }
     if (context == null) {
+      reportListenerError();
       return;
     }
-    // remove the context from the work queue
-    synchronized (contextWorkQueue) {
-      for (Iterator<AnalysisContextInfo> iter = contextWorkQueue.iterator(); iter.hasNext();) {
-        AnalysisContextInfo contextInfo = iter.next();
-        if (contextInfo.id.equals(contextId)) {
-          iter.remove();
+    operationQueue.removeWithContextId(contextId);
+  }
+
+  /**
+   * Performs analysis in the given {@link AnalysisContext}.
+   */
+  public void internalPerformAnalysis(String contextId) {
+    while (true) {
+      AnalysisContext context = getAnalysisContext(contextId);
+      if (context == null) {
+        reportListenerError();
+        return;
+      }
+      AnalysisResult result = context.performAnalysisTask();
+      ChangeNotice[] notices = result.getChangeNotices();
+      if (notices == null) {
+        return;
+      }
+      // schedule analysis again
+      schedulePerformAnalysisOperation(contextId);
+      // notify about errors
+      List<AnalysisServerListener> listenersCopy = Lists.newArrayList(listeners);
+      for (ChangeNotice changeNotice : notices) {
+        for (AnalysisServerListener listener : listenersCopy) {
+          listener.computedErrors(contextId, changeNotice.getSource(), changeNotice.getErrors());
         }
       }
     }
+  }
+
+  /**
+   * Implementation for {@link #setContents(String, Source, String)}.
+   */
+  public void internalSetContents(String contextId, Source source, String contents) {
+    AnalysisContext context = getAnalysisContext(contextId);
+    if (context == null) {
+      reportListenerError();
+      return;
+    }
+    context.setContents(source, contents);
+    schedulePerformAnalysisOperation(contextId);
+  }
+
+  /**
+   * Implementation for {@link #setOptions(String, AnalysisOptions)}.
+   */
+  public void internalSetOptions(String contextId, AnalysisOptions options) {
+    AnalysisContext context = getAnalysisContext(contextId);
+    if (context == null) {
+      reportListenerError();
+      return;
+    }
+    context.setAnalysisOptions(options);
+    schedulePerformAnalysisOperation(contextId);
+  }
+
+  /**
+   * Implementation for {@link #setPrioritySources(String, Source[])}.
+   */
+  public void internalSetPrioritySources(String contextId, Source[] sources) {
+    AnalysisContext context = getAnalysisContext(contextId);
+    if (context == null) {
+      reportListenerError();
+      return;
+    }
+    context.setAnalysisPriorityOrder(Lists.newArrayList(sources));
+    schedulePerformAnalysisOperation(contextId);
   }
 
   @Override
@@ -229,37 +246,22 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void setContents(String contextId, Source source, String contents) {
-    AnalysisContext context = getAnalysisContext(contextId);
-    if (context != null) {
-      context.setContents(source, contents);
-      addContextToWorkQueue(contextId, context);
-    }
+    operationQueue.add(new SetContentsOperation(contextId, source, contents));
   }
 
   @Override
   public void setOptions(String contextId, AnalysisOptions options) {
-    AnalysisContext context = getAnalysisContext(contextId);
-    if (context != null) {
-      context.setAnalysisOptions(options);
-      addContextToWorkQueue(contextId, context);
-    }
+    operationQueue.add(new SetOptionsOperation(contextId, options));
   }
 
   @Override
   public void setPrioritySources(String contextId, Source[] sources) {
-    AnalysisContext context = getAnalysisContext(contextId);
-    if (context != null) {
-      context.setAnalysisPriorityOrder(Lists.newArrayList(sources));
-      addContextToWorkQueue(contextId, context);
-    }
+    operationQueue.add(new SetPrioritySourcesOperation(contextId, sources));
   }
 
   @Override
   public void shutdown() {
-    synchronized (contextWorkQueue) {
-      contextWorkQueue.addFirst(SHUTDOWN_OBJECT);
-      contextWorkQueue.notify();
-    }
+    operationQueue.add(ShutdownOperation.INSTANCE);
   }
 
   @VisibleForTesting
@@ -276,13 +278,8 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
 
   @VisibleForTesting
   public void test_waitForWorkerComplete() {
-    synchronized (contextWorkQueue) {
-      while (!contextWorkQueue.isEmpty()) {
-        try {
-          contextWorkQueue.wait();
-        } catch (InterruptedException e) {
-        }
-      }
+    while (!operationQueue.isEmpty()) {
+      Thread.yield();
     }
   }
 
@@ -292,22 +289,22 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   }
 
   /**
-   * Add the given {@link AnalysisContext} to the {@link #contextWorkQueue}.
-   */
-  private void addContextToWorkQueue(String contextId, AnalysisContext context) {
-    AnalysisContextInfo contextInfo = new AnalysisContextInfo(contextId, context);
-    synchronized (contextWorkQueue) {
-      contextWorkQueue.addLast(contextInfo);
-      contextWorkQueue.notify();
-    }
-  }
-
-  /**
    * Returns the {@link AnalysisContext} for the given identifier, maybe {@code null}.
    */
   private AnalysisContext getAnalysisContext(String contextId) {
     synchronized (contextMap) {
       return contextMap.get(contextId);
     }
+  }
+
+  // TODO(scheglov) implement, think out a name for it
+  private void reportListenerError() {
+  }
+
+  /**
+   * Schedules analysis for the given context.
+   */
+  private void schedulePerformAnalysisOperation(String contextId) {
+    operationQueue.add(new PerformAnalysisOperation(contextId));
   }
 }

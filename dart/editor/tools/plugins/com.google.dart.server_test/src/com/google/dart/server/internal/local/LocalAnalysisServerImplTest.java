@@ -115,6 +115,7 @@ public class LocalAnalysisServerImplTest extends TestCase {
     String id = createContext("test");
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     server.setOptions(id, options);
+    server.test_waitForWorkerComplete();
   }
 
   public void test_setOptions_noContext() throws Exception {
@@ -130,6 +131,7 @@ public class LocalAnalysisServerImplTest extends TestCase {
     // set one priority source
     Source source = addSource(id, "/test.dart", "");
     server.setPrioritySources(id, new Source[] {source});
+    server.test_waitForWorkerComplete();
   }
 
   public void test_setPrioritySources_noContext() throws Exception {
