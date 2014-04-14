@@ -14,6 +14,7 @@
 package com.google.dart.engine.source;
 
 import com.google.dart.engine.utilities.io.FileUtilities2;
+import com.google.dart.engine.utilities.os.OSUtilities;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
@@ -48,16 +49,19 @@ public class RelativeFileResolverTest extends TestCase {
   }
 
   public void test_resolve_file() throws Exception {
-    File root = FileUtilities2.createTempDir("/does/not/exist");
-    File directory = FileUtilities2.createTempDir("/does/not/exist/relative");
+    // TODO(keertip): fix test on windows
+    if (!OSUtilities.isWindows()) {
+      File root = FileUtilities2.createTempDir("/does/not/exist");
+      File directory = FileUtilities2.createTempDir("/does/not/exist/relative");
 
-    File testFile = new File(directory, "exist.dart");
-    testFile.createNewFile();
-    URI uri = new URI("file", null, root.getPath() + File.separator + "exist.dart", null, null);
-    UriResolver resolver = new RelativeFileUriResolver(root, directory);
-    Source result = resolver.resolveAbsolute(uri);
-    assertNotNull(result);
-    assertEquals(testFile.getAbsolutePath(), result.getFullName());
+      File testFile = new File(directory, "exist.dart");
+      testFile.createNewFile();
+      URI uri = new URI("file", null, root.getPath() + File.separator + "exist.dart", null, null);
+      UriResolver resolver = new RelativeFileUriResolver(root, directory);
+      Source result = resolver.resolveAbsolute(uri);
+      assertNotNull(result);
+      assertEquals(testFile.getAbsolutePath(), result.getFullName());
+    }
   }
 
   public void test_resolve_nonFile() throws Exception {
