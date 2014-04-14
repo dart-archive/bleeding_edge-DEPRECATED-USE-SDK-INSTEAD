@@ -43,6 +43,7 @@ public class DartPerspective implements IPerspectiveFactory {
 
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void createInitialLayout(IPageLayout layout) {
     String editorArea = layout.getEditorArea();
@@ -57,11 +58,8 @@ public class DartPerspective implements IPerspectiveFactory {
     topLeft.addPlaceholder(IPageLayout.ID_RES_NAV);
 
     // Bottom left: Property Sheet view
-    IPlaceholderFolderLayout propertiesfolder = layout.createPlaceholderFolder(
-        BL,
-        IPageLayout.BOTTOM,
-        0.50f,
-        TL);
+    IPlaceholderFolderLayout propertiesfolder = layout.createPlaceholderFolder(BL,
+        IPageLayout.BOTTOM, 0.50f, TL);
     propertiesfolder.addPlaceholder(IPageLayout.ID_PROP_SHEET);
     //propertiesfolder.addPlaceholder(DartUI.ID_DARTUNIT_VIEW);
 

@@ -108,11 +108,6 @@ public class DirectoryBasedDartSdk implements DartSdk {
   private static final String BIN_DIRECTORY_NAME = "bin"; //$NON-NLS-1$
 
   /**
-   * The name of the directory on Mac that contains dartium.
-   */
-  private static final String DARTIUM_DIRECTORY_NAME_MAC = "Chromium.app"; //$NON-NLS-1$
-
-  /**
    * The name of the directory on non-Mac that contains dartium.
    */
   private static final String DARTIUM_DIRECTORY_NAME = "chromium"; //$NON-NLS-1$

@@ -474,15 +474,13 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
 
     for (final ILaunchConfigurationType configType : manager.getLaunchConfigurationTypes()) {
-      // remove chrome app and pub serve launch icons from toolbar, unless user has opted in
-      if (!configType.getIdentifier().contains("pubServe")
-          && !configType.getIdentifier().contains("chromeApp")) {
+      // Remove pub serve launch icons from toolbar, unless user has opted in.
+      if (!configType.getIdentifier().contains("pubServe")) {
         CreateLaunchAction action = new CreateLaunchAction(this, configType);
         toolBarManager.add(action);
       } else {
-        if ((configType.getIdentifier().contains("pubServe") && DartCoreDebug.ENABLE_PUB_SERVE_LAUNCH)
-            || (configType.getIdentifier().contains("chromeApp") && DartCoreDebug.ENABLE_CHROME_APP_LAUNCH_CONFIG)) {
-
+        if (configType.getIdentifier().contains("pubServe")
+            && DartCoreDebug.ENABLE_PUB_SERVE_LAUNCH) {
           CreateLaunchAction action = new CreateLaunchAction(this, configType);
           toolBarManager.add(action);
         }

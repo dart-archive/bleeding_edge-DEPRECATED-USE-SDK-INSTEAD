@@ -39,7 +39,6 @@ public class DartCoreDebug {
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
   public static final boolean VERBOSE = isOptionTrue("debug/verbose");
   public static final boolean LOGGING_DEBUGGER = isOptionTrue("logging/debugger");
-  public static final boolean ENABLE_CHROME_APP_LAUNCH_CONFIG = isOptionTrue("launch/chromeApp");
 
   public static final boolean TRACE_ARTIFACT_PROVIDER = isOptionTrue("trace/artifactProvider");
   public static final boolean TRACE_INDEX_CONTRIBUTOR = isOptionTrue("trace/index/contributor");

@@ -42,12 +42,6 @@ public class INIRewriter {
     list.add(value);
   }
 
-  public static void insertAfter(List<String> list, String key, String value) {
-    int index = list.indexOf(key);
-    list.add(index + 1, value);
-
-  }
-  
   public static void insertAfter(List<String> list, String key, List<String> orig) {
 
     int length = getLengthOfFlag(orig, key);
@@ -56,6 +50,12 @@ public class INIRewriter {
     for (int i = 1; i <= length; i++) {
       list.add(index + i, orig.get(origIndex + i));
     }
+  }
+
+  public static void insertAfter(List<String> list, String key, String value) {
+    int index = list.indexOf(key);
+    list.add(index + 1, value);
+
   }
 
   public static void insertBefore(List<String> list, String key, String value) {
@@ -114,6 +114,8 @@ public class INIRewriter {
     while ((line = reader.readLine()) != null) {
       lines.add(line.trim());
     }
+
+    reader.close();
 
     return lines;
   }
