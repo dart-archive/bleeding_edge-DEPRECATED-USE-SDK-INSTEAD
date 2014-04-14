@@ -55,6 +55,9 @@ public class TestAll {
     // Web
 //    suite.addTest(com.google.dart.tools.ui.web.TestAll.suite());
 
+    // Command-line analyzer
+    suite.addTest(com.google.dart.command.analyze.TestAll.suite());
+
     return suite;
   }
 
