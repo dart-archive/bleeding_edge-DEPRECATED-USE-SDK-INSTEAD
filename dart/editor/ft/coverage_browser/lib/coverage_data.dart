@@ -27,9 +27,9 @@ class CoverageData extends Observable {
   }
 
   /// Merge the [data] with this instance.
-  void merge(CoverageData data) {
+  void merge(CoverageData data, bool checkValidity) {
     var ins = _mergeList(_instrumentedLines, data._instrumentedLines);
-    if (ins.length != 0) {
+    if (checkValidity && ins.length != 0) {
       var x = _instrumentedLines.length;
       var y = data._instrumentedLines.length;
       if (x != 0 && x != ins.length || y != 0 && y != ins.length) {

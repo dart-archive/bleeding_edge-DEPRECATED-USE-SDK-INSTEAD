@@ -36,6 +36,7 @@ class CoverageList extends PolymerElement {
     // Displaying two or three is really slow, but parsing isn't the problem.
     if (_newPath.files.isNotEmpty) {
       model.clear();
+      model.filesToAdd = _newPath.files.length;
       for (var file in _newPath.files) {
         var reader = new FileReader();
         reader.onError.listen(_handleError);
@@ -55,6 +56,10 @@ class CoverageList extends PolymerElement {
           ..write(data.className)
           ..write(',')
           ..write(data.percentCovered)
+          ..write(',')
+          ..write(data.instrumentedLines.length)
+          ..write(',')
+          ..write(data.visitedLines.length)
           ..writeln();
     }
     InputElement text = document.querySelector('#output');
@@ -66,6 +71,6 @@ class CoverageList extends PolymerElement {
   void _handleLoad(evt) {
     String xml = evt.target.result;
     var map = cov.processXml(xml);
-    model.addMap(map);
+    model.addData(map);
   }
 }

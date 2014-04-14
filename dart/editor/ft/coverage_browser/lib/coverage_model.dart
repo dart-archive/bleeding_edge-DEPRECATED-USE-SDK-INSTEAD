@@ -21,6 +21,8 @@ class CoverageModel extends PolymerElement {
   @published
   int overallPercentage;
   Map<String, CoverageData> allItemsMap = new HashMap<String, CoverageData>();
+  int filesToAdd;
+  int filesAdded;
 
   factory CoverageModel() => new Element.tag('cov-model');
   CoverageModel.created(): super.created();
@@ -37,12 +39,23 @@ class CoverageModel extends PolymerElement {
   void clear() {
     items.clear();
     allItemsMap.clear();
+    filesToAdd = 0;
+    filesAdded = 0;
   }
 
   /// Add data from [map] to the model.
-  void addMap(Map map) {
-    items.clear();
+  void addData(Map map) {
+    if (filesToAdd == 0) {
+      throw new Exception("Need to set file counter");
+    }
     cov.merge(allItemsMap, map);
+    if (++filesAdded == filesToAdd) {
+      _refresh();
+    }
+  }
+
+  void _refresh() {
+    items.clear();
     var names = new List.from(allItemsMap.keys);
     names.sort();
     for (var name in names) {

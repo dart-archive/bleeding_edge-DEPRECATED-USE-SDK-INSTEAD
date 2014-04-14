@@ -24,6 +24,7 @@ Map<String, CoverageData> processXml(String xml) {
 
 /// Destructively merge the [src] coverage map into the [dest] coverage map.
 void merge(Map<String, CoverageData> dest, Map<String, CoverageData> src) {
+  _mergeClasses(src);
   for (var srcData in src.values) {
     String className = srcData.className;
     var destData = dest[className];
@@ -31,7 +32,7 @@ void merge(Map<String, CoverageData> dest, Map<String, CoverageData> src) {
       destData = new CoverageData(className, [], []);
       dest[className] = destData;
     }
-    destData.merge(srcData);
+    destData.merge(srcData, true);
   }
   _mergeClasses(dest);
 }
@@ -71,7 +72,7 @@ void _mergeClasses(Map<String, CoverageData> map) {
       var c = new CoverageData(className, cov.instrumentedLines, cov.visitedLines);
       map[className] = c;
     } else {
-      map[className].merge(map[name]);
+      map[className].merge(map[name], false);
     }
     deletions.add(name);
   }
