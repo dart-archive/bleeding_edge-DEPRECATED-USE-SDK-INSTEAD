@@ -14,6 +14,8 @@
 
 package com.google.dart.server.internal.local;
 
+import com.google.dart.server.AnalysisServerError;
+import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 
 import junit.framework.TestCase;
@@ -27,56 +29,67 @@ public class BroadcastAnalysisServerListenerTest extends TestCase {
   private AnalysisServerListener listenerA = mock(AnalysisServerListener.class);
   private AnalysisServerListener listenerB = mock(AnalysisServerListener.class);
 
-  public void test_addAnalysisServerListener() throws Exception {
-    broadcast.addAnalysisServerListener(listenerA);
-    broadcast.addAnalysisServerListener(listenerB);
+  public void test_addAnalysisServerListener_ignoreDuplicate() throws Exception {
+    broadcast.addListener(listenerA);
+    broadcast.addListener(listenerA);
+    broadcast.computedErrors(null, null, null);
+    verify(listenerA, times(1)).computedErrors(null, null, null);
+  }
+
+  public void test_addListener() throws Exception {
+    broadcast.addListener(listenerA);
+    broadcast.addListener(listenerB);
     broadcast.computedErrors(null, null, null);
     verify(listenerA, times(1)).computedErrors(null, null, null);
     verify(listenerB, times(1)).computedErrors(null, null, null);
   }
 
-  public void test_addAnalysisServerListener_ignoreDuplicate() throws Exception {
-    broadcast.addAnalysisServerListener(listenerA);
-    broadcast.addAnalysisServerListener(listenerA);
-    broadcast.computedErrors(null, null, null);
-    verify(listenerA, times(1)).computedErrors(null, null, null);
-  }
-
   public void test_computedErrors() throws Exception {
-    broadcast.addAnalysisServerListener(listenerA);
-    broadcast.addAnalysisServerListener(listenerB);
+    broadcast.addListener(listenerA);
+    broadcast.addListener(listenerB);
     broadcast.computedErrors(null, null, null);
     verify(listenerA, times(1)).computedErrors(null, null, null);
     verify(listenerB, times(1)).computedErrors(null, null, null);
   }
 
   public void test_computedHighlights() throws Exception {
-    broadcast.addAnalysisServerListener(listenerA);
-    broadcast.addAnalysisServerListener(listenerB);
+    broadcast.addListener(listenerA);
+    broadcast.addListener(listenerB);
     broadcast.computedHighlights(null, null, null);
     verify(listenerA, times(1)).computedHighlights(null, null, null);
     verify(listenerB, times(1)).computedHighlights(null, null, null);
   }
 
   public void test_computedNavigation() throws Exception {
-    broadcast.addAnalysisServerListener(listenerA);
-    broadcast.addAnalysisServerListener(listenerB);
+    broadcast.addListener(listenerA);
+    broadcast.addListener(listenerB);
     broadcast.computedNavigation(null, null, null);
     verify(listenerA, times(1)).computedNavigation(null, null, null);
     verify(listenerB, times(1)).computedNavigation(null, null, null);
   }
 
   public void test_computedOutline() throws Exception {
-    broadcast.addAnalysisServerListener(listenerA);
-    broadcast.addAnalysisServerListener(listenerB);
+    broadcast.addListener(listenerA);
+    broadcast.addListener(listenerB);
     broadcast.computedOutline(null, null, null);
     verify(listenerA, times(1)).computedOutline(null, null, null);
     verify(listenerB, times(1)).computedOutline(null, null, null);
   }
 
-  public void test_removeAnalysisServerListener() throws Exception {
-    broadcast.addAnalysisServerListener(listenerA);
-    broadcast.removeAnalysisServerListener(listenerA);
+  public void test_onServerError() throws Exception {
+    broadcast.addListener(listenerA);
+    broadcast.addListener(listenerB);
+    AnalysisServerError error = new AnalysisServerError(
+        AnalysisServerErrorCode.DISCONNECTED,
+        "Connection lost");
+    broadcast.onServerError(error);
+    verify(listenerA, times(1)).onServerError(error);
+    verify(listenerB, times(1)).onServerError(error);
+  }
+
+  public void test_removeListener() throws Exception {
+    broadcast.addListener(listenerA);
+    broadcast.removeListener(listenerA);
     broadcast.computedErrors(null, null, null);
     verify(listenerA, times(0)).computedErrors(null, null, null);
   }

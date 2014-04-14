@@ -16,6 +16,8 @@ package com.google.dart.server;
 /**
  * The interface {@code HighlightRegion} defines the behavior of objects representing a particular
  * syntactic or semantic meaning associated with a source region.
+ * 
+ * @coverage dart.server
  */
 public interface HighlightRegion extends SourceRegion {
   /**

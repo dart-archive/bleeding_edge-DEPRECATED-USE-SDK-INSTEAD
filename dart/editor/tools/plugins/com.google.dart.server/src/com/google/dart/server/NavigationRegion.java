@@ -16,6 +16,8 @@ package com.google.dart.server;
 /**
  * The interface {@code NavigationRegion} defines the behavior of objects representing a list of
  * elements with which a source region is associated.
+ * 
+ * @coverage dart.server
  */
 public interface NavigationRegion extends SourceRegion {
   /**

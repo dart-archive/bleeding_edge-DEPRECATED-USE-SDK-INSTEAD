@@ -12,19 +12,15 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server;
 
-/**
- * The enumeration {@code ServerOperationPriority} defines the priority levels used to organize
- * {@link ServerOperation}s in an optimal order. A smaller ordinal value equates to a higher
- * priority.
- * 
- * @coverage dart.server.local
- */
-public enum ServerOperationPriority {
-  SHUTDOWN,
-  SERVER,
-  CONTEXT_CHANGE,
-  CONTEXT_ANALYSIS,
-  REFACTORING
+import junit.framework.TestCase;
+
+public class AnalysisServerErrorTest extends TestCase {
+  public void test_getMessage() throws Exception {
+    AnalysisServerError error = new AnalysisServerError(
+        AnalysisServerErrorCode.INVALID_CONTEXT_ID,
+        "my-id");
+    assertEquals("Cannot find a context with the id 'my-id'", error.getMessage());
+  }
 }

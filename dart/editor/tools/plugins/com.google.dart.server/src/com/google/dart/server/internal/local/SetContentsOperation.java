@@ -19,6 +19,8 @@ import com.google.dart.server.AnalysisServer;
 
 /**
  * An operation for {@link AnalysisServer#setContents(String, Source, String)}.
+ * 
+ * @coverage dart.server.local
  */
 public class SetContentsOperation implements ContextServerOperation, MergeableOperation {
   private final String contextId;

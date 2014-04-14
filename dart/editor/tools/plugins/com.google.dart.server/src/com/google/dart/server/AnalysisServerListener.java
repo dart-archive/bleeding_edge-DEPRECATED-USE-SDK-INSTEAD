@@ -19,6 +19,8 @@ import com.google.dart.engine.source.Source;
 /**
  * The interface {@code AnalysisServerListener} defines the behavior of objects that listen for
  * results from an analysis server.
+ * 
+ * @coverage dart.server
  */
 public interface AnalysisServerListener {
   /**
@@ -63,4 +65,11 @@ public interface AnalysisServerListener {
    * @param outline the outline associated with the source
    */
   public void computedOutline(String contextId, Source source, Outline outline);
+
+  /**
+   * An error happened in the {@link AnalysisServer}.
+   * 
+   * @param error the error to report
+   */
+  public void onServerError(AnalysisServerError error);
 }

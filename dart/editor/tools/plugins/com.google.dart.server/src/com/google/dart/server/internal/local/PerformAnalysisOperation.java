@@ -16,6 +16,8 @@ package com.google.dart.server.internal.local;
 
 /**
  * Instances of {@link PerformAnalysisOperation} perform a single analysis task.
+ * 
+ * @coverage dart.server.local
  */
 public class PerformAnalysisOperation implements ContextServerOperation, MergeableOperation {
   private final String contextId;

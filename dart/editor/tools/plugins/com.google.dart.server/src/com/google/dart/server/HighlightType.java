@@ -16,6 +16,8 @@ package com.google.dart.server;
 /**
  * The enumeration {@code HighlightType} defines the kinds of highlighting that can be associated
  * with a region of text.
+ * 
+ * @coverage dart.server
  */
 public enum HighlightType {
   COMMENT_BLOCK,

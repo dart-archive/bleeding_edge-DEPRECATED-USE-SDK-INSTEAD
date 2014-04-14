@@ -19,6 +19,8 @@ import com.google.dart.server.AnalysisServer;
 
 /**
  * An operation for {@link AnalysisServer#setPrioritySources(String, Source[])}.
+ * 
+ * @coverage dart.server.local
  */
 public class SetPrioritySourcesOperation implements ContextServerOperation, MergeableOperation {
   private final String contextId;

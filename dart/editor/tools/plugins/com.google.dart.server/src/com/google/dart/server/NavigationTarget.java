@@ -18,6 +18,8 @@ import com.google.dart.engine.source.Source;
 /**
  * The interface {@code NavigationTarget} defines the behavior of objects that provide information
  * about the target of a navigation region.
+ * 
+ * @coverage dart.server
  */
 public interface NavigationTarget {
   /**

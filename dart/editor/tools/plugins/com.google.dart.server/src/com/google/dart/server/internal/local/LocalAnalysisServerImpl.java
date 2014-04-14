@@ -30,10 +30,11 @@ import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.AnalysisServerError;
+import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -63,7 +64,13 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
         if (operation == ShutdownOperation.INSTANCE) {
           break;
         }
-        operation.performOperation(LocalAnalysisServerImpl.this);
+        try {
+          operation.performOperation(LocalAnalysisServerImpl.this);
+        } catch (AnalysisServerErrorException serverException) {
+          onServerError(serverException.error);
+        } catch (Throwable e) {
+          onServerError(AnalysisServerErrorCode.EXCEPTION, e.getMessage());
+        }
         test_queueIsEmptyAfterPerformOperation = operationQueue.isEmpty();
       }
     }
@@ -101,9 +108,9 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   private final Map<String, AnalysisContext> contextMap = Maps.newHashMap();
 
   /**
-   * The listeners that will receive notification when new analysis results become available.
+   * The listener that will receive notification when new analysis results become available.
    */
-  private final List<AnalysisServerListener> listeners = Lists.newArrayList();
+  private final BroadcastAnalysisServerListener listener = new BroadcastAnalysisServerListener();
 
   public LocalAnalysisServerImpl() {
     thread = new LocalAnalysisServerThread();
@@ -112,10 +119,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void addAnalysisServerListener(AnalysisServerListener listener) {
-    if (listeners.contains(listener)) {
-      return;
-    }
-    listeners.add(listener);
+    this.listener.addListener(listener);
   }
 
   @Override
@@ -140,10 +144,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    */
   public void internalApplyChanges(String contextId, ChangeSet changeSet) {
     AnalysisContext context = getAnalysisContext(contextId);
-    if (context == null) {
-      reportListenerError();
-      return;
-    }
     context.applyChanges(changeSet);
     schedulePerformAnalysisOperation(contextId);
   }
@@ -159,9 +159,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
     SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     context.setSourceFactory(sourceFactory);
     // add context
-    synchronized (contextMap) {
-      contextMap.put(contextId, context);
-    }
+    contextMap.put(contextId, context);
     schedulePerformAnalysisOperation(contextId);
   }
 
@@ -169,12 +167,9 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    * Implementation for {@link #deleteContext(String)}.
    */
   public void internalDeleteContext(String contextId) {
-    AnalysisContext context;
-    synchronized (contextMap) {
-      context = contextMap.remove(contextId);
-    }
+    AnalysisContext context = contextMap.remove(contextId);
     if (context == null) {
-      reportListenerError();
+      onServerError(AnalysisServerErrorCode.INVALID_CONTEXT_ID, contextId);
       return;
     }
     operationQueue.removeWithContextId(contextId);
@@ -186,10 +181,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   public void internalPerformAnalysis(String contextId) {
     while (true) {
       AnalysisContext context = getAnalysisContext(contextId);
-      if (context == null) {
-        reportListenerError();
-        return;
-      }
       AnalysisResult result = context.performAnalysisTask();
       ChangeNotice[] notices = result.getChangeNotices();
       if (notices == null) {
@@ -198,11 +189,8 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
       // schedule analysis again
       schedulePerformAnalysisOperation(contextId);
       // notify about errors
-      List<AnalysisServerListener> listenersCopy = Lists.newArrayList(listeners);
       for (ChangeNotice changeNotice : notices) {
-        for (AnalysisServerListener listener : listenersCopy) {
-          listener.computedErrors(contextId, changeNotice.getSource(), changeNotice.getErrors());
-        }
+        listener.computedErrors(contextId, changeNotice.getSource(), changeNotice.getErrors());
       }
     }
   }
@@ -212,10 +200,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    */
   public void internalSetContents(String contextId, Source source, String contents) {
     AnalysisContext context = getAnalysisContext(contextId);
-    if (context == null) {
-      reportListenerError();
-      return;
-    }
     context.setContents(source, contents);
     schedulePerformAnalysisOperation(contextId);
   }
@@ -225,10 +209,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    */
   public void internalSetOptions(String contextId, AnalysisOptions options) {
     AnalysisContext context = getAnalysisContext(contextId);
-    if (context == null) {
-      reportListenerError();
-      return;
-    }
     context.setAnalysisOptions(options);
     schedulePerformAnalysisOperation(contextId);
   }
@@ -238,17 +218,13 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    */
   public void internalSetPrioritySources(String contextId, Source[] sources) {
     AnalysisContext context = getAnalysisContext(contextId);
-    if (context == null) {
-      reportListenerError();
-      return;
-    }
     context.setAnalysisPriorityOrder(Lists.newArrayList(sources));
     schedulePerformAnalysisOperation(contextId);
   }
 
   @Override
   public void removeAnalysisServerListener(AnalysisServerListener listener) {
-    listeners.remove(listener);
+    this.listener.removeListener(listener);
   }
 
   @Override
@@ -272,10 +248,13 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   }
 
   @VisibleForTesting
+  public void test_addOperation(ServerOperation operation) {
+    operationQueue.add(operation);
+  }
+
+  @VisibleForTesting
   public void test_pingListeners() {
-    for (AnalysisServerListener listener : listeners) {
-      listener.computedErrors(null, null, null);
-    }
+    listener.computedErrors(null, null, null);
   }
 
   @VisibleForTesting
@@ -299,13 +278,31 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    * Returns the {@link AnalysisContext} for the given identifier, maybe {@code null}.
    */
   private AnalysisContext getAnalysisContext(String contextId) {
-    synchronized (contextMap) {
-      return contextMap.get(contextId);
+    AnalysisContext context = contextMap.get(contextId);
+    if (context == null) {
+      throw new AnalysisServerErrorException(AnalysisServerErrorCode.INVALID_CONTEXT_ID, contextId);
     }
+    return context;
   }
 
-  // TODO(scheglov) implement, think out a name for it
-  private void reportListenerError() {
+  /**
+   * Reports an error to the {@link #listener}.
+   * 
+   * @param error the error to report
+   */
+  private void onServerError(AnalysisServerError error) {
+    listener.onServerError(error);
+  }
+
+  /**
+   * Reports an error to the {@link #listener}.
+   * 
+   * @param errorCode the error code to be associated with this error
+   * @param arguments the arguments used to build the error message
+   */
+  private void onServerError(AnalysisServerErrorCode errorCode, Object... arguments) {
+    AnalysisServerError error = new AnalysisServerError(errorCode, arguments);
+    onServerError(error);
   }
 
   /**

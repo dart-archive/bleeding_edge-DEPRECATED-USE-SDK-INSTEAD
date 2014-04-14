@@ -14,29 +14,19 @@
 
 package com.google.dart.server.internal.local;
 
-import com.google.dart.engine.context.AnalysisOptions;
-import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.AnalysisServerError;
+import com.google.dart.server.AnalysisServerErrorCode;
 
 /**
- * An operation for {@link AnalysisServer#setOptions(String, AnalysisOptions)}.
+ * The exception {@code AnalysisServerException} is thrown by a server to report an
+ * {@link AnalysisServerError}.
  * 
  * @coverage dart.server.local
  */
-public class ShutdownOperation implements ServerOperation {
-  /**
-   * The unique instance of this class.
-   */
-  public static final ShutdownOperation INSTANCE = new ShutdownOperation();
+public final class AnalysisServerErrorException extends RuntimeException {
+  public final AnalysisServerError error;
 
-  private ShutdownOperation() {
-  }
-
-  @Override
-  public ServerOperationPriority getPriority() {
-    return ServerOperationPriority.SHUTDOWN;
-  }
-
-  @Override
-  public void performOperation(LocalAnalysisServerImpl server) {
+  public AnalysisServerErrorException(AnalysisServerErrorCode errorCode, Object... arguments) {
+    error = new AnalysisServerError(errorCode, arguments);
   }
 }

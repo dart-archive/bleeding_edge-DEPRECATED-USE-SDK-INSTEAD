@@ -18,6 +18,8 @@ import com.google.dart.engine.element.ElementKind;
 /**
  * The interface {@code Outline} defines the behavior of objects that represent an outline for a
  * single source.
+ * 
+ * @coverage dart.server
  */
 public interface Outline {
   /**

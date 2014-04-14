@@ -19,6 +19,8 @@ import com.google.dart.server.AnalysisServer;
 
 /**
  * An operation for {@link AnalysisServer#applyChanges(String, ChangeSet)}.
+ * 
+ * @coverage dart.server.local
  */
 public class ApplyChangesOperation implements ContextServerOperation {
   private final String contextId;

@@ -22,6 +22,8 @@ import java.util.Map;
 /**
  * The interface {@code AnalysisServer} defines the behavior of objects that interface to an
  * analysis server.
+ * 
+ * @coverage dart.server
  */
 public interface AnalysisServer {
   /**

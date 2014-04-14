@@ -17,6 +17,7 @@ package com.google.dart.server.internal.local;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
@@ -39,7 +40,7 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
    * 
    * @param listener the listener to be added
    */
-  public void addAnalysisServerListener(AnalysisServerListener listener) {
+  public void addListener(AnalysisServerListener listener) {
     synchronized (listeners) {
       if (listeners.contains(listener)) {
         return;
@@ -76,13 +77,20 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
     }
   }
 
+  @Override
+  public void onServerError(AnalysisServerError error) {
+    for (AnalysisServerListener listener : getListeners()) {
+      listener.onServerError(error);
+    }
+  }
+
   /**
    * Remove the given listener from the list of listeners that will receive notification when new
    * analysis results become available.
    * 
    * @param listener the listener to be removed
    */
-  public void removeAnalysisServerListener(AnalysisServerListener listener) {
+  public void removeListener(AnalysisServerListener listener) {
     synchronized (listeners) {
       listeners.remove(listener);
     }

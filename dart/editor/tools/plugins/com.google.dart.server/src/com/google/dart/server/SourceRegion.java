@@ -16,6 +16,8 @@ package com.google.dart.server;
 /**
  * The interface {@code SourceRegion} defines the behavior of objects representing a range of
  * characters within a {@link Source}.
+ * 
+ * @coverage dart.server
  */
 public interface SourceRegion {
   /**

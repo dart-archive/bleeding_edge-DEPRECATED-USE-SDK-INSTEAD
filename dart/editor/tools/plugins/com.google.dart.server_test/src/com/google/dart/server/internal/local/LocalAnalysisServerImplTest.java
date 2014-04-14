@@ -21,16 +21,19 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import junit.framework.TestCase;
 
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
@@ -63,7 +66,10 @@ public class LocalAnalysisServerImplTest extends TestCase {
 
   public void test_applyChanges_noContext() throws Exception {
     addSource("no-such-context", "/test.dart", "");
-    // ignored
+    server.test_waitForWorkerComplete();
+    serverListener.assertServerErrorsWithCodes(
+        AnalysisServerErrorCode.INVALID_CONTEXT_ID,
+        AnalysisServerErrorCode.INVALID_CONTEXT_ID);
   }
 
   public void test_createContext() throws Exception {
@@ -76,7 +82,8 @@ public class LocalAnalysisServerImplTest extends TestCase {
 
   public void test_deleteContext_noContext() throws Exception {
     server.deleteContext("no-such-context");
-    // ignored
+    server.test_waitForWorkerComplete();
+    serverListener.assertServerErrorsWithCodes(AnalysisServerErrorCode.INVALID_CONTEXT_ID);
   }
 
   public void test_deleteContext_stopAnalysis() throws Exception {
@@ -91,6 +98,15 @@ public class LocalAnalysisServerImplTest extends TestCase {
     server.test_setPaused(false);
     server.test_waitForWorkerComplete();
     serverListener.assertErrorsWithCodes(source);
+  }
+
+  public void test_exceptionInOperation() throws Exception {
+    ServerOperation operation = mock(ServerOperation.class);
+    when(operation.getPriority()).thenReturn(ServerOperationPriority.CONTEXT_CHANGE);
+    doThrow(new Error()).when(operation).performOperation(server);
+    server.test_addOperation(operation);
+    server.test_waitForWorkerComplete();
+    serverListener.assertServerErrorsWithCodes(AnalysisServerErrorCode.EXCEPTION);
   }
 
   public void test_getVersion() throws Exception {
@@ -121,7 +137,8 @@ public class LocalAnalysisServerImplTest extends TestCase {
   public void test_setOptions_noContext() throws Exception {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     server.setOptions("no-such-context", options);
-    // ignored
+    server.test_waitForWorkerComplete();
+    serverListener.assertServerErrorsWithCodes(AnalysisServerErrorCode.INVALID_CONTEXT_ID);
   }
 
   public void test_setPrioritySources() throws Exception {
@@ -136,7 +153,8 @@ public class LocalAnalysisServerImplTest extends TestCase {
 
   public void test_setPrioritySources_noContext() throws Exception {
     server.setPrioritySources("no-such-context", Source.EMPTY_ARRAY);
-    // ignored
+    server.test_waitForWorkerComplete();
+    serverListener.assertServerErrorsWithCodes(AnalysisServerErrorCode.INVALID_CONTEXT_ID);
   }
 
   @Override
