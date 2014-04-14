@@ -726,7 +726,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
      * @param dartEntry the entry associated with the source
      */
     private void ensureResolvableCompilationUnit(Source source, DartEntry dartEntry) {
-      if (!dartEntry.hasResolvableCompilationUnit()) {
+      // The entry will be null if the source represents a non-Dart file.
+      if (dartEntry != null && !dartEntry.hasResolvableCompilationUnit()) {
         if (taskData == null) {
           taskData = createParseDartTask(source, dartEntry);
         }
