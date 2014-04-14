@@ -101,6 +101,20 @@ public abstract class CachePartition {
   }
 
   /**
+   * Return a table mapping the sources known to the context to the information known about the
+   * source.
+   * <p>
+   * <b>Note:</b> This method is only visible for use by {@link AnalysisCache} and should not be
+   * used for any other purpose.
+   * 
+   * @return a table mapping the sources known to the context to the information known about the
+   *         source
+   */
+  public Map<Source, SourceEntry> getMap() {
+    return sourceMap;
+  }
+
+  /**
    * Return an iterator returning all of the map entries mapping sources to cache entries.
    * 
    * @return an iterator returning all of the map entries mapping sources to cache entries
@@ -177,20 +191,6 @@ public abstract class CachePartition {
       }
     }
     recentlyUsed.add(source);
-  }
-
-  /**
-   * Return a table mapping the sources known to the context to the information known about the
-   * source.
-   * <p>
-   * <b>Note:</b> This method is only visible for use by {@link AnalysisCache} and should not be
-   * used for any other purpose.
-   * 
-   * @return a table mapping the sources known to the context to the information known about the
-   *         source
-   */
-  Map<Source, SourceEntry> getMap() {
-    return sourceMap;
   }
 
   /**
