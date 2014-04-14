@@ -53,7 +53,7 @@ public class RelativeFileResolverTest extends TestCase {
 
     File testFile = new File(directory, "exist.dart");
     testFile.createNewFile();
-    URI uri = new URI("file", null, root.getPath() + "/exist.dart", null, null);
+    URI uri = new URI("file", null, root.getPath() + File.separator + "exist.dart", null, null);
     UriResolver resolver = new RelativeFileUriResolver(root, directory);
     Source result = resolver.resolveAbsolute(uri);
     assertNotNull(result);
