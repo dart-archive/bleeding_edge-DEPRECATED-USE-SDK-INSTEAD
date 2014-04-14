@@ -102,7 +102,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
    * {@link AnalysisContextImpl} as the basis context.
    */
   public InstrumentedAnalysisContextImpl() {
-    this(new DelegatingAnalysisContextImpl());
+    this(new AnalysisContextImpl());
   }
 
   /**

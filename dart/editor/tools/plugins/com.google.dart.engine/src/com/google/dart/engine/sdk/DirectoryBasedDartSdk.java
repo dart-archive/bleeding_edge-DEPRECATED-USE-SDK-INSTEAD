@@ -263,14 +263,6 @@ public class DirectoryBasedDartSdk implements DartSdk {
       @DartOptional(defaultValue = "false") boolean useDart2jsPaths) {
     this.sdkDirectory = sdkDirectory.getAbsoluteFile();
     libraryMap = initialLibraryMap(useDart2jsPaths);
-    analysisContext = new AnalysisContextImpl();
-    analysisContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
-    String[] uris = getUris();
-    ChangeSet changeSet = new ChangeSet();
-    for (String uri : uris) {
-      changeSet.addedSource(analysisContext.getSourceFactory().forUri(uri));
-    }
-    analysisContext.applyChanges(changeSet);
   }
 
   @Override
@@ -280,6 +272,16 @@ public class DirectoryBasedDartSdk implements DartSdk {
 
   @Override
   public AnalysisContext getContext() {
+    if (analysisContext == null) {
+      analysisContext = new AnalysisContextImpl();
+      analysisContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
+      String[] uris = getUris();
+      ChangeSet changeSet = new ChangeSet();
+      for (String uri : uris) {
+        changeSet.addedSource(analysisContext.getSourceFactory().forUri(uri));
+      }
+      analysisContext.applyChanges(changeSet);
+    }
     return analysisContext;
   }
 

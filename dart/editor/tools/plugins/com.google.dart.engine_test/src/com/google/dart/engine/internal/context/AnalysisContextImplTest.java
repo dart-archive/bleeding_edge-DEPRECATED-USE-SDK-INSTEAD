@@ -1113,7 +1113,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_resolveCompilationUnit_sourceChangeDuringResolution() throws Exception {
-    context = new DelegatingAnalysisContextImpl() {
+    context = new AnalysisContextImpl() {
       @Override
       protected DartEntry recordResolveDartLibraryTaskResults(ResolveDartLibraryTask task)
           throws AnalysisException {
@@ -1183,10 +1183,9 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_setChangedContents_libraryWithPart() throws Exception {
-    context = AnalysisContextFactory.contextWithCore();
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.setIncremental(true);
-    context.setAnalysisOptions(options);
+    context = AnalysisContextFactory.contextWithCoreAndOptions(options);
     sourceFactory = context.getSourceFactory();
     String oldCode = createSource(//
         "library lib;",

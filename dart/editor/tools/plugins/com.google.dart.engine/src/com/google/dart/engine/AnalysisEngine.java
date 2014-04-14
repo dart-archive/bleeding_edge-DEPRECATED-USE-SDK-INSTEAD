@@ -14,7 +14,8 @@
 package com.google.dart.engine;
 
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.internal.context.DelegatingAnalysisContextImpl;
+import com.google.dart.engine.internal.cache.PartitionManager;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.io.FileUtilities;
@@ -89,6 +90,11 @@ public final class AnalysisEngine {
   private Logger logger = Logger.NULL;
 
   /**
+   * The partition manager being used to manage the shared partitions.
+   */
+  private PartitionManager partitionManager = new PartitionManager();
+
+  /**
    * Prevent the creation of instances of this class.
    */
   private AnalysisEngine() {
@@ -105,9 +111,9 @@ public final class AnalysisEngine {
     // If instrumentation is ignoring data, return an uninstrumented analysis context.
     //
     if (Instrumentation.isNullLogger()) {
-      return new DelegatingAnalysisContextImpl();
+      return new AnalysisContextImpl();
     }
-    return new InstrumentedAnalysisContextImpl(new DelegatingAnalysisContextImpl());
+    return new InstrumentedAnalysisContextImpl(new AnalysisContextImpl());
   }
 
   /**
@@ -117,6 +123,15 @@ public final class AnalysisEngine {
    */
   public Logger getLogger() {
     return logger;
+  }
+
+  /**
+   * Return the partition manager being used to manage the shared partitions.
+   * 
+   * @return the partition manager being used to manage the shared partitions
+   */
+  public PartitionManager getPartitionManager() {
+    return partitionManager;
   }
 
   /**

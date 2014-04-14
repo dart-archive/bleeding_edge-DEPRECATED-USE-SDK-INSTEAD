@@ -42,6 +42,7 @@ import com.google.dart.engine.element.angular.AngularHasTemplateElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.cache.AnalysisCache;
+import com.google.dart.engine.internal.cache.CachePartition;
 import com.google.dart.engine.internal.cache.CacheRetentionPolicy;
 import com.google.dart.engine.internal.cache.CacheState;
 import com.google.dart.engine.internal.cache.DartEntry;
@@ -52,6 +53,7 @@ import com.google.dart.engine.internal.cache.HtmlEntryImpl;
 import com.google.dart.engine.internal.cache.RetentionPriority;
 import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.internal.cache.SourceEntryImpl;
+import com.google.dart.engine.internal.cache.UniversalCachePartition;
 import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
@@ -883,9 +885,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private Source coreLibrarySource;
 
   /**
+   * The partition that contains analysis results that are not shared with other contexts.
+   */
+  private CachePartition privatePartition;
+
+  /**
    * A table mapping the sources known to the context to the information known about the source.
    */
-  private final AnalysisCache cache;
+  private AnalysisCache cache;
 
   /**
    * An array containing sources for which data should not be flushed.
@@ -920,7 +927,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * content.</li>
    * </ul>
    */
-  private Object cacheLock = new Object();
+  private static Object cacheLock = new Object();
 
   /**
    * The object used to record the results of performing an analysis task.
@@ -949,7 +956,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public AnalysisContextImpl() {
     super();
     resultRecorder = new AnalysisTaskResultRecorder();
-    cache = new AnalysisCache(AnalysisOptionsImpl.DEFAULT_CACHE_SIZE, new ContextRetentionPolicy());
+    privatePartition = new UniversalCachePartition(
+        AnalysisOptionsImpl.DEFAULT_CACHE_SIZE,
+        new ContextRetentionPolicy());
+    cache = createCacheFromSourceFactory(null);
   }
 
   @Override
@@ -1855,6 +1865,24 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         if (dartEntry != null) {
           DartEntryImpl dartCopy = dartEntry.getWritableCopy();
           recordElementData(dartCopy, library, library.getSource(), htmlSource);
+          dartCopy.setValue(DartEntry.SCAN_ERRORS, AnalysisError.NO_ERRORS);
+          dartCopy.setValue(DartEntry.PARSE_ERRORS, AnalysisError.NO_ERRORS);
+          dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+          dartCopy.setValueInLibrary(
+              DartEntry.BUILD_ELEMENT_ERRORS,
+              librarySource,
+              AnalysisError.NO_ERRORS);
+          dartCopy.setValueInLibrary(
+              DartEntry.RESOLUTION_ERRORS,
+              librarySource,
+              AnalysisError.NO_ERRORS);
+          dartCopy.setStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource, CacheState.FLUSHED);
+          dartCopy.setValueInLibrary(
+              DartEntry.VERIFICATION_ERRORS,
+              librarySource,
+              AnalysisError.NO_ERRORS);
+          dartCopy.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
+          dartCopy.setValueInLibrary(DartEntry.HINTS, librarySource, AnalysisError.NO_ERRORS);
           cache.put(librarySource, dartCopy);
         }
       }
@@ -1894,7 +1922,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       int cacheSize = options.getCacheSize();
       if (this.options.getCacheSize() != cacheSize) {
         this.options.setCacheSize(cacheSize);
-        cache.setMaxCacheSize(cacheSize);
+        //cache.setMaxCacheSize(cacheSize);
+        privatePartition.setMaxCacheSize(cacheSize);
         //
         // Cap the size of the priority list to being less than the cache size. Failure to do so can
         // result in an infinite loop in performAnalysisTask() because re-caching one AST structure
@@ -1917,7 +1946,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       generateSdkErrors = options.getGenerateSdkErrors();
 
       if (needsRecompute) {
-        invalidateAllResolutionInformation();
+        invalidateAllLocalResolutionInformation();
       }
     }
   }
@@ -2023,7 +2052,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       factory.setContext(this);
       sourceFactory = factory;
       coreLibrarySource = sourceFactory.forUri(DartSdk.DART_CORE);
-      invalidateAllResolutionInformation();
+
+      cache = createCacheFromSourceFactory(factory);
+
+      invalidateAllLocalResolutionInformation();
     }
   }
 
@@ -2761,6 +2793,24 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return false;
+  }
+
+  /**
+   * Create an analysis cache based on the given source factory.
+   * 
+   * @param factory the source factory containing the information needed to create the cache
+   * @return the cache that was created
+   */
+  private AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
+    if (factory == null) {
+      return new AnalysisCache(new CachePartition[] {privatePartition});
+    }
+    DartSdk sdk = factory.getDartSdk();
+    if (sdk == null) {
+      return new AnalysisCache(new CachePartition[] {privatePartition});
+    }
+    return new AnalysisCache(new CachePartition[] {
+        AnalysisEngine.getInstance().getPartitionManager().forSdk(sdk), privatePartition});
   }
 
   /**
@@ -3957,9 +4007,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * <p>
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
    */
-  private void invalidateAllResolutionInformation() {
+  private void invalidateAllLocalResolutionInformation() {
     HashMap<Source, Source[]> oldPartMap = new HashMap<Source, Source[]>();
-    MapIterator<Source, SourceEntry> iterator = cache.iterator();
+    MapIterator<Source, SourceEntry> iterator = privatePartition.iterator();
     while (iterator.moveNext()) {
       Source source = iterator.getKey();
       SourceEntry sourceEntry = iterator.getValue();

@@ -324,10 +324,9 @@ public class ElementLocatorTest extends ResolverTestCase {
 
   @Override
   protected void reset() {
-    super.reset();
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.setHint(false);
-    getAnalysisContext().setAnalysisOptions(analysisOptions);
+    resetWithOptions(analysisOptions);
   }
 
   /**

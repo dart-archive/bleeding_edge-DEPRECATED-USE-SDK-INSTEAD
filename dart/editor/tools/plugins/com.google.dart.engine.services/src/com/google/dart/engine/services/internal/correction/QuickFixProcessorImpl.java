@@ -1082,14 +1082,13 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     AnalysisContext context = unitLibraryElement.getContext();
     {
       DartSdk sdk = context.getSourceFactory().getDartSdk();
-      AnalysisContext sdkContext = sdk.getContext();
       SdkLibrary[] sdkLibraries = sdk.getSdkLibraries();
       for (SdkLibrary sdkLibrary : sdkLibraries) {
-        SourceFactory sdkSourceFactory = sdkContext.getSourceFactory();
+        SourceFactory sdkSourceFactory = context.getSourceFactory();
         String libraryUri = sdkLibrary.getShortName();
         Source librarySource = sdkSourceFactory.resolveUri(null, libraryUri);
         // prepare LibraryElement
-        LibraryElement libraryElement = sdkContext.getLibraryElement(librarySource);
+        LibraryElement libraryElement = context.getLibraryElement(librarySource);
         if (libraryElement == null) {
           continue;
         }

@@ -2285,7 +2285,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
    * Prepares {@link #error} and checks that {@link QuickFixProcessor#hasFix(AnalysisError)}.
    */
   private void prepareProblemWithFix(String... lines) throws Exception {
-    parseTestUnit(makeSource(lines));
+    parseTestUnit(lines);
     prepareProblemWithFix();
   }
 }

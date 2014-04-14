@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -180,6 +181,16 @@ public class ResolverTestCase extends EngineTestCase {
    */
   protected void reset() {
     analysisContext = AnalysisContextFactory.contextWithCore();
+  }
+
+  /**
+   * In the rare cases we want to group several tests into single "test_" method, so need a way to
+   * reset test instance to reuse it.
+   * 
+   * @param options the analysis options for the context
+   */
+  protected void resetWithOptions(AnalysisOptions options) {
+    analysisContext = AnalysisContextFactory.contextWithCoreAndOptions(options);
   }
 
   /**

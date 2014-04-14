@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine;
 
+import com.google.dart.engine.internal.cache.PartitionManager;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.engine.utilities.logging.TestLogger;
 
@@ -35,6 +36,12 @@ public class AnalysisEngineTest extends EngineTestCase {
     assertEquals(logger, engine.getLogger());
     engine.setLogger(defaultLogger);
     assertEquals(defaultLogger, engine.getLogger());
+  }
+
+  public void test_getPartitionManager() {
+    AnalysisEngine engine = AnalysisEngine.getInstance();
+    PartitionManager manager = engine.getPartitionManager();
+    assertNotNull(manager);
   }
 
   public void test_isDartFileName_false() {

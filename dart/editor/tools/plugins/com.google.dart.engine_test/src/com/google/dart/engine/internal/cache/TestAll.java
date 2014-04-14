@@ -24,6 +24,9 @@ public class TestAll {
     suite.addTestSuite(AnalysisCacheTest.class);
     suite.addTestSuite(DartEntryImplTest.class);
     suite.addTestSuite(HtmlEntryImplTest.class);
+    suite.addTestSuite(PartitionManagerTest.class);
+    suite.addTestSuite(SdkCachePartitionTest.class);
+    suite.addTestSuite(UniversalCachePartitionTest.class);
     return suite;
   }
 }

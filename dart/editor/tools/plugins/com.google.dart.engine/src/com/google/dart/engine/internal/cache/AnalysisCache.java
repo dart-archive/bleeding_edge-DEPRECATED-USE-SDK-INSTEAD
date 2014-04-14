@@ -15,10 +15,9 @@ package com.google.dart.engine.internal.cache;
 
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.MapIterator;
-import com.google.dart.engine.utilities.collection.SingleMapIterator;
+import com.google.dart.engine.utilities.collection.MultipleMapIterator;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Instances of the class {@code AnalysisCache} implement an LRU cache of information related to
@@ -26,40 +25,20 @@ import java.util.HashMap;
  */
 public class AnalysisCache {
   /**
-   * A table mapping the sources known to the context to the information known about the source.
+   * An array containing the partitions of which this cache is comprised.
    */
-  private final HashMap<Source, SourceEntry> sourceMap = new HashMap<Source, SourceEntry>();
+  private CachePartition[] partitions;
 
   /**
-   * The maximum number of sources for which AST structures should be kept in the cache.
-   */
-  private int maxCacheSize;
-
-  /**
-   * The policy used to determine which pieces of data to remove from the cache.
-   */
-  private CacheRetentionPolicy retentionPolicy;
-
-  /**
-   * A list containing the most recently accessed sources with the most recently used at the end of
-   * the list. When more sources are added than the maximum allowed then the least recently used
-   * source will be removed and will have it's cached AST structure flushed.
-   */
-  private ArrayList<Source> recentlyUsed;
-
-  /**
-   * Initialize a newly created cache to maintain at most the given number of AST structures in the
-   * cache.
+   * Initialize a newly created cache to have the given partitions. The partitions will be searched
+   * in the order in which they appear in the array, so the most specific partition (usually an
+   * {@link SdkCachePartition}) should be first and the most general (usually a
+   * {@link UniversalCachePartition}) last.
    * 
-   * @param maxCacheSize the maximum number of sources for which AST structures should be kept in
-   *          the cache
-   * @param retentionPolicy the policy used to determine which pieces of data to remove from the
-   *          cache
+   * @param partitions the partitions for the newly created cache
    */
-  public AnalysisCache(int maxCacheSize, CacheRetentionPolicy retentionPolicy) {
-    this.maxCacheSize = maxCacheSize;
-    this.retentionPolicy = retentionPolicy;
-    recentlyUsed = new ArrayList<Source>(maxCacheSize);
+  public AnalysisCache(CachePartition[] partitions) {
+    this.partitions = partitions;
   }
 
   /**
@@ -68,16 +47,13 @@ public class AnalysisCache {
    * @param source the source whose AST was accessed
    */
   public void accessedAst(Source source) {
-    if (recentlyUsed.remove(source)) {
-      recentlyUsed.add(source);
-      return;
-    }
-    while (recentlyUsed.size() >= maxCacheSize) {
-      if (!flushAstFromCache()) {
-        break;
+    int count = partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (partitions[i].contains(source)) {
+        partitions[i].accessedAst(source);
+        return;
       }
     }
-    recentlyUsed.add(source);
   }
 
   /**
@@ -87,7 +63,13 @@ public class AnalysisCache {
    * @return the entry associated with the given source
    */
   public SourceEntry get(Source source) {
-    return sourceMap.get(source);
+    int count = partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (partitions[i].contains(source)) {
+        return partitions[i].get(source);
+      }
+    }
+    return null;
   }
 
   /**
@@ -95,8 +77,14 @@ public class AnalysisCache {
    * 
    * @return an iterator returning all of the map entries mapping sources to cache entries
    */
+  @SuppressWarnings("unchecked")
   public MapIterator<Source, SourceEntry> iterator() {
-    return new SingleMapIterator<Source, SourceEntry>(sourceMap);
+    int count = partitions.length;
+    Map<Source, SourceEntry>[] maps = new Map[count];
+    for (int i = 0; i < count; i++) {
+      maps[i] = partitions[i].getMap();
+    }
+    return new MultipleMapIterator<Source, SourceEntry>(maps);
   }
 
   /**
@@ -107,7 +95,13 @@ public class AnalysisCache {
    */
   public void put(Source source, SourceEntry entry) {
     ((SourceEntryImpl) entry).fixExceptionState();
-    sourceMap.put(source, entry);
+    int count = partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (partitions[i].contains(source)) {
+        partitions[i].put(source, entry);
+        return;
+      }
+    }
   }
 
   /**
@@ -116,8 +110,13 @@ public class AnalysisCache {
    * @param source the source to be removed
    */
   public void remove(Source source) {
-    recentlyUsed.remove(source);
-    sourceMap.remove(source);
+    int count = partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (partitions[i].contains(source)) {
+        partitions[i].remove(source);
+        return;
+      }
+    }
   }
 
   /**
@@ -126,19 +125,11 @@ public class AnalysisCache {
    * @param source the source whose AST was removed
    */
   public void removedAst(Source source) {
-    recentlyUsed.remove(source);
-  }
-
-  /**
-   * Set the maximum size of the cache to the given size.
-   * 
-   * @param size the maximum number of sources for which AST structures should be kept in the cache
-   */
-  public void setMaxCacheSize(int size) {
-    maxCacheSize = size;
-    while (recentlyUsed.size() > maxCacheSize) {
-      if (!flushAstFromCache()) {
-        break;
+    int count = partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (partitions[i].contains(source)) {
+        partitions[i].removedAst(source);
+        return;
       }
     }
   }
@@ -149,7 +140,12 @@ public class AnalysisCache {
    * @return the number of sources that are mapped to cache entries
    */
   public int size() {
-    return sourceMap.size();
+    int size = 0;
+    int count = partitions.length;
+    for (int i = 0; i < count; i++) {
+      size += partitions[i].size();
+    }
+    return size;
   }
 
   /**
@@ -158,66 +154,12 @@ public class AnalysisCache {
    * @param source the source whose AST was stored
    */
   public void storedAst(Source source) {
-    if (recentlyUsed.contains(source)) {
-      return;
-    }
-    while (recentlyUsed.size() >= maxCacheSize) {
-      if (!flushAstFromCache()) {
-        break;
+    int count = partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (partitions[i].contains(source)) {
+        partitions[i].storedAst(source);
+        return;
       }
     }
-    recentlyUsed.add(source);
-  }
-
-  /**
-   * Attempt to flush one AST structure from the cache.
-   * 
-   * @return {@code true} if a structure was flushed
-   */
-  private boolean flushAstFromCache() {
-    Source removedSource = removeAstToFlush();
-    if (removedSource == null) {
-      return false;
-    }
-    SourceEntry sourceEntry = sourceMap.get(removedSource);
-    if (sourceEntry instanceof HtmlEntry) {
-      HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
-      htmlCopy.flushAstStructures();
-      sourceMap.put(removedSource, htmlCopy);
-    } else if (sourceEntry instanceof DartEntry) {
-      DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
-      dartCopy.flushAstStructures();
-      sourceMap.put(removedSource, dartCopy);
-    }
-    return true;
-  }
-
-  /**
-   * Remove and return one source from the list of recently used sources whose AST structure can be
-   * flushed from the cache. The source that will be returned will be the source that has been
-   * unreferenced for the longest period of time but that is not a priority for analysis.
-   * <p>
-   * It is possible for there to be no AST that can be flushed, in which case {@code null} will be
-   * returned. This happens, for example, if the context is reserving the AST's needed to resolve a
-   * cycle of libraries and the number of AST's being reserved is larger than the current cache
-   * size.
-   * 
-   * @return the source that was removed
-   */
-  private Source removeAstToFlush() {
-    int sourceToRemove = -1;
-    for (int i = 0; i < recentlyUsed.size(); i++) {
-      Source source = recentlyUsed.get(i);
-      RetentionPriority priority = retentionPolicy.getAstPriority(source, sourceMap.get(source));
-      if (priority == RetentionPriority.LOW) {
-        return recentlyUsed.remove(i);
-      } else if (priority == RetentionPriority.MEDIUM && sourceToRemove < 0) {
-        sourceToRemove = i;
-      }
-    }
-    if (sourceToRemove < 0) {
-      return null;
-    }
-    return recentlyUsed.remove(sourceToRemove);
   }
 }

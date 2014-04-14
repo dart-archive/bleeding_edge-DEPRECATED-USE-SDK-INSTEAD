@@ -22,17 +22,18 @@ import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class AnalysisCacheTest extends EngineTestCase {
   public void test_creation() {
-    assertNotNull(new AnalysisCache(8, null));
+    assertNotNull(new AnalysisCache(new CachePartition[0]));
   }
 
   public void test_get() {
-    AnalysisCache cache = new AnalysisCache(8, null);
+    AnalysisCache cache = new AnalysisCache(new CachePartition[0]);
     TestSource source = new TestSource();
     assertNull(cache.get(source));
   }
 
   public void test_iterator() {
-    AnalysisCache cache = new AnalysisCache(8, null);
+    CachePartition partition = new UniversalCachePartition(8, new DefaultRetentionPolicy());
+    AnalysisCache cache = new AnalysisCache(new CachePartition[] {partition});
     TestSource source = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
     cache.put(source, entry);
@@ -44,7 +45,8 @@ public class AnalysisCacheTest extends EngineTestCase {
   }
 
   public void test_put_noFlush() {
-    AnalysisCache cache = new AnalysisCache(8, null);
+    CachePartition partition = new UniversalCachePartition(8, new DefaultRetentionPolicy());
+    AnalysisCache cache = new AnalysisCache(new CachePartition[] {partition});
     TestSource source = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
     cache.put(source, entry);
@@ -52,12 +54,13 @@ public class AnalysisCacheTest extends EngineTestCase {
   }
 
   public void test_setMaxCacheSize() {
-    AnalysisCache cache = new AnalysisCache(8, new CacheRetentionPolicy() {
+    CachePartition partition = new UniversalCachePartition(8, new CacheRetentionPolicy() {
       @Override
       public RetentionPriority getAstPriority(Source source, SourceEntry sourceEntry) {
         return RetentionPriority.LOW;
       }
     });
+    AnalysisCache cache = new AnalysisCache(new CachePartition[] {partition});
     int size = 6;
     for (int i = 0; i < size; i++) {
       Source source = new TestSource(createFile("/test" + i + ".dart"), "");
@@ -68,12 +71,13 @@ public class AnalysisCacheTest extends EngineTestCase {
     }
     assertNonFlushedCount(size, cache);
     int newSize = size - 2;
-    cache.setMaxCacheSize(newSize);
+    partition.setMaxCacheSize(newSize);
     assertNonFlushedCount(newSize, cache);
   }
 
   public void test_size() {
-    AnalysisCache cache = new AnalysisCache(8, null);
+    CachePartition partition = new UniversalCachePartition(8, new DefaultRetentionPolicy());
+    AnalysisCache cache = new AnalysisCache(new CachePartition[] {partition});
     int size = 4;
     for (int i = 0; i < size; i++) {
       Source source = new TestSource(createFile("/test" + i + ".dart"), "");

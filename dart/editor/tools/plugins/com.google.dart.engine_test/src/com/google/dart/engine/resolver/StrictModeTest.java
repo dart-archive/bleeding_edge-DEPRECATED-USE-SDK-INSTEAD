@@ -41,10 +41,9 @@ public class StrictModeTest extends ResolverTestCase {
 
   @Override
   public void setUp() {
-    super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.setHint(false);
-    getAnalysisContext().setAnalysisOptions(options);
+    resetWithOptions(options);
   }
 
   public void test_assert_is() throws Exception {
