@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.text.dart;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
-import com.google.dart.tools.core.internal.completion.InternalCompletionProposal;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartProject;
@@ -26,7 +25,6 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.completion.DartCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.DartMethodCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.GetterSetterCompletionProposal;
-import com.google.dart.tools.ui.internal.text.completion.InlineFunctionCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.LazyDartCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.LazyDartTypeCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.MethodDeclarationCompletionProposal;
@@ -680,29 +678,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
             relevance,
             fSuggestedMethodNames,
             fDartProposals);
-      }
-      if (proposal instanceof InternalCompletionProposal) {
-        String prefix = String.valueOf(proposal.getName());
-        int completionStart = proposal.getReplaceStart();
-        int completionEnd = proposal.getReplaceEnd();
-        int relevance = computeRelevance(proposal);
-        CompilationUnit cu = enclosingElement.getAncestor(CompilationUnit.class);
-        InternalCompletionProposal prop = (InternalCompletionProposal) proposal;
-        char[][] paramNames = prop.getParameterNames();
-        char[][] paramTypes = prop.getParameterTypeNames();
-        if (paramNames != null && paramTypes != null) {
-          InlineFunctionCompletionProposal.evaluateProposals(
-              cu,
-              prefix,
-              paramNames,
-              paramTypes,
-              completionStart,
-              completionEnd - completionStart,
-              prop.getReplaceEndIdentifier() - completionStart,
-              relevance + 2,
-              fSuggestedMethodNames,
-              fDartProposals);
-        }
       }
     } catch (CoreException e) {
       DartToolsPlugin.log(e);
