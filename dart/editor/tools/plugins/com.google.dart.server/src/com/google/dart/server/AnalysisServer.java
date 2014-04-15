@@ -73,6 +73,8 @@ public interface AnalysisServer {
   public void removeAnalysisServerListener(AnalysisServerListener listener);
 
   /**
+   * TODO(scheglov) Temporary API.
+   * <p>
    * Set the contents of the given source to the given contents and mark the source as having
    * changed. This has the effect of overriding the default contents of the source. If the contents
    * are {@code null} the override is removed so that the default contents will be returned.
@@ -82,6 +84,17 @@ public interface AnalysisServer {
    * @param contents the new contents of the source
    */
   public void setContents(String contextId, Source source, String contents);
+
+  /**
+   * TODO(scheglov) Temporary API. Update to a multi-kind subscription with source filters.
+   * <p>
+   * Set the sources to receive the given kind of notification for.
+   * 
+   * @param contextId the identifier of the context to which the priority sources are to be applied
+   * @param kind the notification kind to change subscription for
+   * @param sources the sources to receive the given kind of notification
+   */
+  public void setNotificationSources(String contextId, NotificationKind kind, Source[] sources);
 
   /**
    * Set the options controlling analysis within a context to the given set of options.
@@ -95,7 +108,7 @@ public interface AnalysisServer {
    * Set the priority sources in the specified context to the sources in the given array.
    * 
    * @param contextId the identifier of the context to which the priority sources are to be applied
-   * @param sources the options to be applied
+   * @param sources the sources to be given priority over other sources
    */
   public void setPrioritySources(String contextId, Source[] sources);
 

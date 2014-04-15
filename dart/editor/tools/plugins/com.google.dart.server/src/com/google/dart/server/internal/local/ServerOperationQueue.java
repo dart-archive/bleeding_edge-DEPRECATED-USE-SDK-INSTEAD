@@ -36,6 +36,11 @@ public class ServerOperationQueue {
    */
   private final Object operationsLock = new Object();
 
+  /**
+   * The last taken {@link ServerOperation} that hasn't been yet completed.
+   */
+  private ServerOperation lastOperation;
+
   @SuppressWarnings("unchecked")
   public ServerOperationQueue() {
     int queueCount = ServerOperationPriority.values().length;
@@ -72,10 +77,13 @@ public class ServerOperationQueue {
   }
 
   /**
-   * Returns {@code true} if there are no {@link ServerOperation} in this queue.
+   * Returns {@code true} if there are no queued or incomplete {@link ServerOperation}s.
    */
   public boolean isEmpty() {
     synchronized (operationsLock) {
+      if (lastOperation != null) {
+        return false;
+      }
       for (LinkedList<ServerOperation> operationQueue : operationQueues) {
         if (!operationQueue.isEmpty()) {
           return false;
@@ -83,6 +91,15 @@ public class ServerOperationQueue {
       }
     }
     return true;
+  }
+
+  /**
+   * Marks the last {@link ServerOperation} returned from {@link #take(long)} as completed.
+   */
+  public void markLastOperationCompleted() {
+    synchronized (operationsLock) {
+      lastOperation = null;
+    }
   }
 
   /**
@@ -113,7 +130,8 @@ public class ServerOperationQueue {
       while (true) {
         for (LinkedList<ServerOperation> operationQueue : operationQueues) {
           if (!operationQueue.isEmpty()) {
-            return operationQueue.removeFirst();
+            lastOperation = operationQueue.removeFirst();
+            return lastOperation;
           }
         }
         // wait for "queue is updated" notification

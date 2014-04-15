@@ -27,9 +27,11 @@ public class TestAll {
     suite.addTestSuite(PerformAnalysisOperationTest.class);
     suite.addTestSuite(ServerOperationQueueTest.class);
     suite.addTestSuite(SetContentsOperationTest.class);
+    suite.addTestSuite(SetNotificationSourcesOperationTest.class);
     suite.addTestSuite(SetOptionsOperationTest.class);
     suite.addTestSuite(SetPrioritySourcesOperationTest.class);
     suite.addTestSuite(ShutdownOperationTest.class);
+    suite.addTest(com.google.dart.server.internal.local.computer.TestAll.suite());
     return suite;
   }
 }

@@ -11,21 +11,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+package com.google.dart.server.internal.local.computer;
 
-package com.google.dart.server.internal.local;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
-/**
- * The enumeration {@code ServerOperationPriority} defines the priority levels used to organize
- * {@link ServerOperation}s in an optimal order. A smaller ordinal value equates to a higher
- * priority.
- * 
- * @coverage dart.server.local
- */
-public enum ServerOperationPriority {
-  SHUTDOWN,
-  SERVER,
-  CONTEXT_CHANGE,
-  CONTEXT_NOTIFICATION,
-  CONTEXT_ANALYSIS,
-  REFACTORING
+public class TestAll {
+  public static Test suite() {
+    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(DartUnitNavigationComputerTest.class);
+    return suite;
+  }
 }

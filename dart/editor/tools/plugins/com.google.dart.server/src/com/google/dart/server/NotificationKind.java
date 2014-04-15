@@ -11,21 +11,17 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
-package com.google.dart.server.internal.local;
+package com.google.dart.server;
 
 /**
- * The enumeration {@code ServerOperationPriority} defines the priority levels used to organize
- * {@link ServerOperation}s in an optimal order. A smaller ordinal value equates to a higher
- * priority.
+ * The enumeration {@code NotificationKind} defines the kinds of notification clients may subscribe
+ * for.
  * 
- * @coverage dart.server.local
+ * @coverage dart.server
  */
-public enum ServerOperationPriority {
-  SHUTDOWN,
-  SERVER,
-  CONTEXT_CHANGE,
-  CONTEXT_NOTIFICATION,
-  CONTEXT_ANALYSIS,
-  REFACTORING
+public enum NotificationKind {
+  ERRORS,
+  HIGHLIGHT,
+  NAVIGATION,
+  OUTLINE;
 }

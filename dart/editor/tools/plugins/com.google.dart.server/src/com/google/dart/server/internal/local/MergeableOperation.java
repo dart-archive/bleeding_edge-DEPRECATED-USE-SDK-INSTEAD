@@ -17,6 +17,8 @@ package com.google.dart.server.internal.local;
 /**
  * The interface {@link MergeableOperation} is an {@link ServerOperation}s which can be merged with
  * (and into) other {@link ServerOperation}s.
+ * 
+ * @coverage dart.server.local
  */
 public interface MergeableOperation extends ServerOperation {
   /**

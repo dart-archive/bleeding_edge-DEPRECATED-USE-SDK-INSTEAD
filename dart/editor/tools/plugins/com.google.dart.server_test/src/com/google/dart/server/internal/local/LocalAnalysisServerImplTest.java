@@ -14,19 +14,12 @@
 
 package com.google.dart.server.internal.local;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
-import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
-import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
-
-import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
-
-import junit.framework.TestCase;
+import com.google.dart.server.NotificationKind;
 
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -35,12 +28,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Map;
-
-public class LocalAnalysisServerImplTest extends TestCase {
-  private LocalAnalysisServerImpl server = new LocalAnalysisServerImpl();
-  private TestAnalysisServerListener serverListener = new TestAnalysisServerListener();
-
+public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
   public void test_addAnalysisServerListener() throws Exception {
     AnalysisServerListener listener = mock(AnalysisServerListener.class);
     server.addAnalysisServerListener(listener);
@@ -127,6 +115,75 @@ public class LocalAnalysisServerImplTest extends TestCase {
     reset(listener);
   }
 
+  public void test_setNotificationSources_afterPerformAnalysis() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", makeSource(//
+        "main() {",
+        "  int vvv = 123;",
+        "  print(vvv);",
+        "}"));
+    // for analysis complete
+    server.test_waitForWorkerComplete();
+    // no navigation yet
+    serverListener.assertNavigationRegions(contextId, source).isEmpty();
+    // request navigation
+    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {source});
+    server.test_waitForWorkerComplete();
+    // validate that there are results
+    serverListener.assertNavigationRegions(contextId, source).isNotEmpty();
+  }
+
+  public void test_setNotificationSources_afterPerformAnalysis_changeSourceList() throws Exception {
+    String contextId = createContext("test");
+    Source sourceA = addSource(contextId, "/testA.dart", makeSource(//
+        "main() {",
+        "  int aaa = 111;",
+        "  print(aaa);",
+        "}"));
+    Source sourceB = addSource(contextId, "/testB.dart", makeSource(//
+        "main() {",
+        "  int bbb = 222;",
+        "  print(bbb);",
+        "}"));
+    // for analysis complete
+    server.test_waitForWorkerComplete();
+    // request regions only for "A"
+    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {sourceA});
+    server.test_waitForWorkerComplete();
+    serverListener.assertNavigationRegions(contextId, sourceA).isNotEmpty();
+    // request regions only for "B"
+    serverListener.clearNavigationRegions();
+    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {sourceB});
+    server.test_waitForWorkerComplete();
+    serverListener.assertNavigationRegions(contextId, sourceA).isEmpty();
+    serverListener.assertNavigationRegions(contextId, sourceB).isNotEmpty();
+  }
+
+  public void test_setNotificationSources_beforePerformAnalysis() throws Exception {
+    String contextId = createContext("test");
+    server.test_setPaused(true);
+    Source source = addSource(contextId, "/test.dart", makeSource(//
+        "main() {",
+        "  int vvv = 123;",
+        "  print(vvv);",
+        "}"));
+    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {source});
+    server.test_setPaused(false);
+    server.test_waitForWorkerComplete();
+    // validate that there are results
+    serverListener.assertNavigationRegions(contextId, source).isNotEmpty();
+  }
+
+  public void test_setNotificationSources_noContext() throws Exception {
+    Source source = mock(Source.class);
+    server.setNotificationSources(
+        "no-such-context",
+        NotificationKind.NAVIGATION,
+        new Source[] {source});
+    server.test_waitForWorkerComplete();
+    serverListener.assertServerErrorsWithCodes(AnalysisServerErrorCode.INVALID_CONTEXT_ID);
+  }
+
   public void test_setOptions() throws Exception {
     String id = createContext("test");
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -155,36 +212,5 @@ public class LocalAnalysisServerImplTest extends TestCase {
     server.setPrioritySources("no-such-context", Source.EMPTY_ARRAY);
     server.test_waitForWorkerComplete();
     serverListener.assertServerErrorsWithCodes(AnalysisServerErrorCode.INVALID_CONTEXT_ID);
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    server.addAnalysisServerListener(serverListener);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    server.shutdown();
-    server = null;
-    super.tearDown();
-  }
-
-  private Source addSource(String contextId, String fileName, String contents) {
-    Source source = new FileBasedSource(createFile(fileName));
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source);
-    server.applyChanges(contextId, changeSet);
-    server.setContents(contextId, source, contents);
-    return source;
-  }
-
-  /**
-   * Creates some test context and returns its identifier.
-   */
-  private String createContext(String name) {
-    String sdkPath = DirectoryBasedDartSdk.getDefaultSdkDirectory().getAbsolutePath();
-    Map<String, String> packagesMap = ImmutableMap.of("analyzer", "some/path");
-    return server.createContext(name, sdkPath, packagesMap);
   }
 }

@@ -16,6 +16,8 @@ package com.google.dart.server.internal.local;
 
 /**
  * {@link ContextServerOperation}s are {@link ServerOperation} which work with an analysis context.
+ * 
+ * @coverage dart.server.local
  */
 public interface ContextServerOperation extends ServerOperation {
   /**

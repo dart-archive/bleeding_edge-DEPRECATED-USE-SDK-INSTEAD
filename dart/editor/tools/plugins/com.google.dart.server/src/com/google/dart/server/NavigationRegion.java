@@ -21,6 +21,11 @@ package com.google.dart.server;
  */
 public interface NavigationRegion extends SourceRegion {
   /**
+   * An empty array of navigation regions.
+   */
+  NavigationRegion[] EMPTY_ARRAY = new NavigationRegion[0];
+
+  /**
    * Return the identifiers of the elements associated with the region.
    * 
    * @return the identifiers of the elements associated with the region

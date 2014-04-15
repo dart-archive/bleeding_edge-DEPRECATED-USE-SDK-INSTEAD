@@ -43,6 +43,7 @@ public class ServerOperationQueueTest extends TestCase {
     queue.add(mergeableOperationA);
     queue.add(mergeableOperationB);
     assertSame(mergeableOperationA, takeSafely());
+    queue.markLastOperationCompleted();
     assertTrue(queue.isEmpty());
   }
 
@@ -51,14 +52,22 @@ public class ServerOperationQueueTest extends TestCase {
     queue.add(operationB);
     assertSame(operationA, takeSafely());
     assertSame(operationB, takeSafely());
+    queue.markLastOperationCompleted();
     assertTrue(queue.isEmpty());
   }
 
   public void test_isEmpty() throws Exception {
+    // empty initially
     assertTrue(queue.isEmpty());
+    // has 1 operation
     queue.add(operationA);
     assertFalse(queue.isEmpty());
+    // take an operation
     assertSame(operationA, takeSafely());
+    // but it is not complete yet
+    assertFalse(queue.isEmpty());
+    // do complete the last operation
+    queue.markLastOperationCompleted();
     assertTrue(queue.isEmpty());
   }
 

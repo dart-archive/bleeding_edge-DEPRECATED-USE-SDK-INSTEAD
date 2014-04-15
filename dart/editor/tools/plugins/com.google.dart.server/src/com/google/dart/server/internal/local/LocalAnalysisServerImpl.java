@@ -15,10 +15,14 @@
 package com.google.dart.server.internal.local;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
@@ -33,9 +37,13 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.NotificationKind;
+import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -57,9 +65,8 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
     public void run() {
       while (true) {
         ServerOperation operation = operationQueue.take(0);
-        if (test_paused) {
+        while (test_paused) {
           Thread.yield();
-          continue;
         }
         if (operation == ShutdownOperation.INSTANCE) {
           break;
@@ -71,12 +78,17 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
         } catch (Throwable e) {
           onServerError(AnalysisServerErrorCode.EXCEPTION, e.getMessage());
         }
-        test_queueIsEmptyAfterPerformOperation = operationQueue.isEmpty();
+        operationQueue.markLastOperationCompleted();
       }
     }
   }
 
   private static final String VERSION = "0.0.1";
+
+  /**
+   * A table mapping SDK directories to the corresponding {@link DartSdk} instances.
+   */
+  private static final Map<String, DartSdk> sdkMap = Maps.newHashMap();
 
   private final ServerOperationQueue operationQueue = new ServerOperationQueue();
 
@@ -92,12 +104,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   private boolean test_paused;
 
   /**
-   * This is used only for testing purposes and allows tests to wait until all operations are
-   * executed.
-   */
-  private boolean test_queueIsEmptyAfterPerformOperation;
-
-  /**
    * The unique ID for the next context.
    */
   private final AtomicInteger nextId = new AtomicInteger();
@@ -106,6 +112,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    * A table mapping context id's to the analysis contexts associated with them.
    */
   private final Map<String, AnalysisContext> contextMap = Maps.newHashMap();
+
+  /**
+   * A table mapping context id's to the subscriptions for notifications associated with them.
+   */
+  private final Map<String, Map<NotificationKind, Set<Source>>> notificationMap = Maps.newHashMap();
 
   /**
    * The listener that will receive notification when new analysis results become available.
@@ -154,7 +165,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   public void internalCreateContext(String contextId, String sdkDirectory,
       Map<String, String> packageMap) {
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
-    DartSdk sdk = new DirectoryBasedDartSdk(new File(sdkDirectory));
+    DartSdk sdk = getSdk(sdkDirectory);
     // TODO(scheglov) PackageUriResolver
     SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     context.setSourceFactory(sourceFactory);
@@ -164,10 +175,35 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   }
 
   /**
+   * Sends one of the {@link NotificationKind}s.
+   */
+  public void internalDartUnitNotification(String contextId, Source source, NotificationKind kind,
+      CompilationUnit unit) {
+    switch (kind) {
+      case ERRORS:
+        // TODO(scheglov)
+        break;
+      case HIGHLIGHT:
+        // TODO(scheglov)
+        break;
+      case NAVIGATION:
+        listener.computedNavigation(
+            contextId,
+            source,
+            new DartUnitNavigationComputer(unit).compute());
+        break;
+      case OUTLINE:
+        // TODO(scheglov)
+        break;
+    }
+  }
+
+  /**
    * Implementation for {@link #deleteContext(String)}.
    */
   public void internalDeleteContext(String contextId) {
     AnalysisContext context = contextMap.remove(contextId);
+    notificationMap.remove(contextId);
     if (context == null) {
       onServerError(AnalysisServerErrorCode.INVALID_CONTEXT_ID, contextId);
       return;
@@ -188,9 +224,29 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
       }
       // schedule analysis again
       schedulePerformAnalysisOperation(contextId);
-      // notify about errors
+      // send notifications
+      Map<NotificationKind, Set<Source>> notifications = notificationMap.get(contextId);
       for (ChangeNotice changeNotice : notices) {
-        listener.computedErrors(contextId, changeNotice.getSource(), changeNotice.getErrors());
+        Source source = changeNotice.getSource();
+        // notify about errors
+        listener.computedErrors(contextId, source, changeNotice.getErrors());
+        // schedule computable notifications
+        if (notifications != null) {
+          for (Entry<NotificationKind, Set<Source>> entry : notifications.entrySet()) {
+            NotificationKind notificationKind = entry.getKey();
+            Set<Source> notificationSources = entry.getValue();
+            if (notificationSources.contains(source)) {
+              CompilationUnit dartUnit = changeNotice.getCompilationUnit();
+              if (dartUnit != null) {
+                operationQueue.add(new DartUnitNotificationOperation(
+                    contextId,
+                    source,
+                    notificationKind,
+                    dartUnit));
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -202,6 +258,44 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
     AnalysisContext context = getAnalysisContext(contextId);
     context.setContents(source, contents);
     schedulePerformAnalysisOperation(contextId);
+  }
+
+  /**
+   * Implementation for {@link #setNotificationSources(String, NotificationKind, Source[])}.
+   */
+  public void internalSetNotificationSources(String contextId, NotificationKind kind,
+      Source[] sources) {
+    AnalysisContext analysisContext = getAnalysisContext(contextId);
+    Map<NotificationKind, Set<Source>> notifications = notificationMap.get(contextId);
+    if (notifications == null) {
+      notifications = Maps.newHashMap();
+      notificationMap.put(contextId, notifications);
+    }
+    // prepare new sources to send notifications for
+    Set<Source> oldSourceSet = notifications.get(kind);
+    Set<Source> newSourceSet = ImmutableSet.copyOf(sources);
+    Set<Source> newSources;
+    if (oldSourceSet == null) {
+      newSources = newSourceSet;
+    } else {
+      newSources = Sets.difference(newSourceSet, oldSourceSet);
+    }
+    // ...schedule notification operations for these new sources
+    for (Source unitSource : newSources) {
+      Source[] librarySources = analysisContext.getLibrariesContaining(unitSource);
+      if (librarySources.length != 0) {
+        Source librarySource = librarySources[0];
+        try {
+          CompilationUnit unit = analysisContext.resolveCompilationUnit(unitSource, librarySource);
+          if (unit != null) {
+            operationQueue.add(new DartUnitNotificationOperation(contextId, unitSource, kind, unit));
+          }
+        } catch (AnalysisException e) {
+          // TODO(scheglov) allow throwing exceptions from operations
+        }
+      }
+    }
+    notifications.put(kind, newSourceSet);
   }
 
   /**
@@ -230,6 +324,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   @Override
   public void setContents(String contextId, Source source, String contents) {
     operationQueue.add(new SetContentsOperation(contextId, source, contents));
+  }
+
+  @Override
+  public void setNotificationSources(String contextId, NotificationKind kind, Source[] sources) {
+    operationQueue.add(new SetNotificationSourcesOperation(contextId, kind, sources));
   }
 
   @Override
@@ -264,7 +363,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
 
   @VisibleForTesting
   public void test_waitForWorkerComplete() {
-    while (!operationQueue.isEmpty() || !test_queueIsEmptyAfterPerformOperation) {
+    while (!operationQueue.isEmpty()) {
       Thread.yield();
     }
   }
@@ -283,6 +382,15 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
       throw new AnalysisServerErrorException(AnalysisServerErrorCode.INVALID_CONTEXT_ID, contextId);
     }
     return context;
+  }
+
+  private DartSdk getSdk(String directory) {
+    DartSdk sdk = sdkMap.get(directory);
+    if (sdk == null) {
+      sdk = new DirectoryBasedDartSdk(new File(directory));
+      sdkMap.put(directory, sdk);
+    }
+    return sdk;
   }
 
   /**

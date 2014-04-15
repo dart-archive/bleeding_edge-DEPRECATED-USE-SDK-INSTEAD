@@ -25,7 +25,9 @@ import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.NavigationTarget;
 import com.google.dart.server.Outline;
+import com.google.dart.server.internal.local.asserts.NavigationRegionsAssert;
 
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
@@ -39,6 +41,7 @@ import java.util.Map;
 public class TestAnalysisServerListener implements AnalysisServerListener {
   private final Map<Source, AnalysisError[]> sourcesErrors = Maps.newHashMap();
   private final List<AnalysisServerError> serverErrors = Lists.newArrayList();
+  private final Map<String, Map<Source, NavigationRegion[]>> navigationMap = Maps.newHashMap();
 
   /**
    * Assert that the number of errors that have been gathered matches the number of errors that are
@@ -50,7 +53,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    * @throws AssertionFailedError if a different number of errors have been gathered than were
    *           expected
    */
-  public void assertErrorsWithCodes(Source source, ErrorCode... expectedErrorCodes) {
+  public synchronized void assertErrorsWithCodes(Source source, ErrorCode... expectedErrorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
     AnalysisError[] errors = sourcesErrors.get(source);
     if (errors != null) {
@@ -62,6 +65,13 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   /**
+   * Returns {@link NavigationRegionsAssert} for the given context and {@link Source}.
+   */
+  public NavigationRegionsAssert assertNavigationRegions(String contextId, Source source) {
+    return new NavigationRegionsAssert(getNavigationRegions(contextId, source));
+  }
+
+  /**
    * Assert that the number of {@link #serverErrors} that have been gathered matches the number of
    * errors that are given and that they have the expected error codes. The order in which the
    * errors were gathered is ignored.
@@ -70,7 +80,8 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    * @throws AssertionFailedError if a different number of errors have been gathered than were
    *           expected
    */
-  public void assertServerErrorsWithCodes(AnalysisServerErrorCode... expectedErrorCodes) {
+  public synchronized void assertServerErrorsWithCodes(
+      AnalysisServerErrorCode... expectedErrorCodes) {
     StringBuilder builder = new StringBuilder();
     //
     // Verify that the expected error codes have a non-empty message.
@@ -152,28 +163,54 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
     }
   }
 
+  /**
+   * Removes all of reported {@link NavigationRegion}s.
+   */
+  public void clearNavigationRegions() {
+    navigationMap.clear();
+  }
+
   @Override
-  public void computedErrors(String contextId, Source source, AnalysisError[] errors) {
+  public synchronized void computedErrors(String contextId, Source source, AnalysisError[] errors) {
     sourcesErrors.put(source, errors);
   }
 
   @Override
-  public void computedHighlights(String contextId, Source source, HighlightRegion[] highlights) {
+  public synchronized void computedHighlights(String contextId, Source source,
+      HighlightRegion[] highlights) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void computedNavigation(String contextId, Source source, NavigationRegion[] targets) {
-    throw new UnsupportedOperationException();
+  public synchronized void computedNavigation(String contextId, Source source,
+      NavigationRegion[] targets) {
+    Map<Source, NavigationRegion[]> navigations = navigationMap.get(contextId);
+    if (navigations == null) {
+      navigations = Maps.newHashMap();
+      navigationMap.put(contextId, navigations);
+    }
+    navigations.put(source, targets);
   }
 
   @Override
-  public void computedOutline(String contextId, Source source, Outline outline) {
+  public synchronized void computedOutline(String contextId, Source source, Outline outline) {
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * Returns {@link NavigationTarget} for the given context and {@link Source}, maybe {@code null}
+   * if have not been ever notified.
+   */
+  public synchronized NavigationRegion[] getNavigationRegions(String contextId, Source source) {
+    Map<Source, NavigationRegion[]> navigations = navigationMap.get(contextId);
+    if (navigations == null) {
+      return null;
+    }
+    return navigations.get(source);
+  }
+
   @Override
-  public void onServerError(AnalysisServerError error) {
+  public synchronized void onServerError(AnalysisServerError error) {
     serverErrors.add(error);
   }
 }
