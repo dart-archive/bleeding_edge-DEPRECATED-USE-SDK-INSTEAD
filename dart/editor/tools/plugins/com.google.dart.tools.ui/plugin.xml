@@ -124,17 +124,6 @@
    <!-- Dart completions -->
    <extension
       point="com.google.dart.tools.ui.dartCompletionProposalComputer"
-      id="DartTypeCompletionProposalComputer">
-      <dartCompletionProposalComputer 
-         class="com.google.dart.tools.ui.internal.text.dart.DartTypeCompletionProposalComputer"
-         categoryId="com.google.dart.tools.ui.javaTypeProposalCategory">
-         <partition type="__dftl_partition_content_type"/>
-      <partition type="__dart_string"/>
-      <partition type="__dart_multiline_string"/>
-      </dartCompletionProposalComputer>
-   </extension>
-   <extension
-      point="com.google.dart.tools.ui.dartCompletionProposalComputer"
       id="DartNoTypeCompletionProposalComputer">
       <dartCompletionProposalComputer 
          class="com.google.dart.tools.ui.internal.text.dart.DartNoTypeCompletionProposalComputer"
