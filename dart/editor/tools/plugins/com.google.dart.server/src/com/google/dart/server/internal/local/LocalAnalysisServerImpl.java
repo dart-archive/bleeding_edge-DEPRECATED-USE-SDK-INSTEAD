@@ -38,6 +38,7 @@ import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.NotificationKind;
+import com.google.dart.server.SourceSet;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
 
 import java.io.File;
@@ -344,6 +345,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   @Override
   public void shutdown() {
     operationQueue.add(ShutdownOperation.INSTANCE);
+  }
+
+  @Override
+  public void subscribe(String contextId, Map<NotificationKind, SourceSet> subscriptions) {
+    // TODO(scheglov) implement it
   }
 
   @VisibleForTesting

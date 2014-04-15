@@ -118,6 +118,17 @@ public interface AnalysisServer {
   public void shutdown();
 
   /**
+   * Updates subscriptions for one or more notifications.
+   * <p>
+   * The source sets associated with notification kinds that are not included in the map are not
+   * changed.
+   * 
+   * @param contextId the identifier of the context for which the subscriptions are to be updated
+   * @param subscriptions a table mapping notification kinds to the source sets
+   */
+  public void subscribe(String contextId, Map<NotificationKind, SourceSet> subscriptions);
+
+  /**
    * Return the version number of the analysis server.
    * 
    * @return the version number of the analysis server
