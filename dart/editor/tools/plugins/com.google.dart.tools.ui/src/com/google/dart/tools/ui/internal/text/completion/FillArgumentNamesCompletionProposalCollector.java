@@ -14,8 +14,6 @@
 package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.tools.core.completion.CompletionProposal;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.text.dart.CompletionProposalCollector;
@@ -36,7 +34,7 @@ public final class FillArgumentNamesCompletionProposalCollector extends Completi
   private final boolean fIsGuessArguments;
 
   public FillArgumentNamesCompletionProposalCollector(DartContentAssistInvocationContext context) {
-    super(context.getCompilationUnit(), false);
+    super(null, false);
     setInvocationContext(context);
     IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
     fIsGuessArguments = preferenceStore.getBoolean(PreferenceConstants.CODEASSIST_GUESS_METHOD_ARGUMENTS);
@@ -53,37 +51,9 @@ public final class FillArgumentNamesCompletionProposalCollector extends Completi
       case CompletionProposal.CONSTRUCTOR_INVOCATION:
 //      case CompletionProposal.METHOD_REF_WITH_CASTED_RECEIVER:
         return createMethodReferenceProposal(proposal);
-      case CompletionProposal.TYPE_REF:
-        return createTypeProposal(proposal);
       default:
         return super.createDartCompletionProposal(proposal);
     }
-  }
-
-  @SuppressWarnings("deprecation")
-  IDartCompletionProposal createTypeProposal(CompletionProposal typeProposal) {
-    final CompilationUnit cu = getCompilationUnit();
-    if (cu == null || getContext() != null && getContext().isInJavadoc()) {
-      return super.createDartCompletionProposal(typeProposal);
-    }
-
-    DartProject project = cu.getDartProject();
-    if (!shouldProposeGenerics(project)) {
-      return super.createDartCompletionProposal(typeProposal);
-    }
-
-    char[] completion = typeProposal.getCompletion();
-    // don't add parameters for import-completions nor for proposals with an empty completion
-    // (e.g. inside the type argument list)
-    if (completion.length > 0
-        && (completion[completion.length - 1] == ';' || completion[completion.length - 1] == '.')) {
-      return super.createDartCompletionProposal(typeProposal);
-    }
-
-    LazyDartCompletionProposal newProposal = new LazyGenericTypeProposal(
-        typeProposal,
-        getInvocationContext());
-    return newProposal;
   }
 
   @SuppressWarnings("deprecation")
@@ -104,17 +74,5 @@ public final class FillArgumentNamesCompletionProposalCollector extends Completi
       proposal = new FilledArgumentNamesMethodProposal(methodProposal, getInvocationContext());
     }
     return proposal;
-  }
-
-  /**
-   * Returns <code>true</code> if generic proposals should be allowed, <code>false</code> if not.
-   * Note that even though code (in a library) may be referenced that uses generics, it is still
-   * possible that the current source does not allow generics.
-   * 
-   * @param project the Dart project
-   * @return <code>true</code> if the generic proposals should be allowed, <code>false</code> if not
-   */
-  private final boolean shouldProposeGenerics(DartProject project) {
-    return true;
   }
 }
