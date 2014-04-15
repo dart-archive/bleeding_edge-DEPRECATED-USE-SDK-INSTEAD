@@ -74,8 +74,7 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
     NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
     validator.hasRegion(source, "- 1;", 1).isInSdk().hasLength(1);
     validator.hasRegion(source, "+ 2;", 1).isInSdk().hasLength(1);
-    // TODO(scheglov) reports length 6, probably because of "unary-" name
-//    validator.hasRegion(source, "-v; // unary", 1).isInSdk().hasLength(1);
+    validator.hasRegion(source, "-v; // unary", 1).isInSdk().hasLength(1);
     validator.hasRegion(source, "--v;", 2).isInSdk().hasLength(1);
     validator.hasRegion(source, "++v;", 2).isInSdk().hasLength(1);
     validator.hasRegion(source, "--; // mm", 2).isInSdk().hasLength(1);

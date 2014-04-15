@@ -58,6 +58,15 @@ public class MethodElementImpl extends ExecutableElementImpl implements MethodEl
   }
 
   @Override
+  public String getDisplayName() {
+    String displayName = super.getDisplayName();
+    if ("unary-".equals(displayName)) {
+      return "-";
+    }
+    return displayName;
+  }
+
+  @Override
   public ClassElement getEnclosingElement() {
     return (ClassElement) super.getEnclosingElement();
   }
