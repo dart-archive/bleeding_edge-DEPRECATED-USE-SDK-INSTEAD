@@ -1345,23 +1345,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     //     PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
     //     DartHelpContextIds.REMOVE_BLOCK_COMMENT_ACTION);
 
-    //     action = new
-    //     IndentAction(DartEditorMessages.getBundleForConstructedKeys(),
-    //            "Indent.", this, false); //$NON-NLS-1$
-    //     action.setActionDefinitionId(IJavaEditorActionDefinitionIds.INDENT);
-    //        setAction("Indent", action); //$NON-NLS-1$
-    //        markAsStateDependentAction("Indent", true); //$NON-NLS-1$
-    //        markAsSelectionDependentAction("Indent", true); //$NON-NLS-1$
-    //     PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
-    //     DartHelpContextIds.INDENT_ACTION);
-
-    //     action = new
-    //     IndentAction(DartEditorMessages.getBundleForConstructedKeys(),
-    //            "Indent.", this, true); //$NON-NLS-1$
-    //        setAction("IndentOnTab", action); //$NON-NLS-1$
-    //        markAsStateDependentAction("IndentOnTab", true); //$NON-NLS-1$
-    //        markAsSelectionDependentAction("IndentOnTab", true); //$NON-NLS-1$
-
     // override the text editor actions with indenting move line actions
     DartMoveLinesAction[] moveLinesActions = DartMoveLinesAction.createMoveCopyActionSet(
         DartEditorMessages.getBundleForConstructedKeys(),
