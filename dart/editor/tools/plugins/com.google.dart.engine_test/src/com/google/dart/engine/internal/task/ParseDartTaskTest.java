@@ -17,13 +17,10 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
-import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.TestSource;
-
-import java.io.IOException;
 
 public class ParseDartTaskTest extends EngineTestCase {
   public void test_accept() throws AnalysisException {
@@ -74,12 +71,8 @@ public class ParseDartTaskTest extends EngineTestCase {
   }
 
   public void test_perform_exception() throws AnalysisException {
-    final Source source = new TestSource() {
-      @Override
-      public TimestampedData<CharSequence> getContents() throws Exception {
-        throw new IOException();
-      }
-    };
+    final TestSource source = new TestSource();
+    source.setGenerateExceptionOnRead(true);
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
     ParseDartTask task = new ParseDartTask(context, source, 0L, null, null);

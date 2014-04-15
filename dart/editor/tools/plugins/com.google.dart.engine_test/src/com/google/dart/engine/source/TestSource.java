@@ -18,6 +18,7 @@ import com.google.dart.engine.internal.context.TimestampedData;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Instances of the class {@code TestSource} implement a source object that can be used for testing
@@ -28,6 +29,22 @@ public class TestSource extends FileBasedSource {
    * The contents of the file represented by this source.
    */
   private String contents;
+
+  /**
+   * The modification stamp associated with this source.
+   */
+  private long modificationStamp;
+
+  /**
+   * A flag indicating whether an exception should be generated when an attempt is made to access
+   * the contents of this source.
+   */
+  private boolean generateExceptionOnRead = false;
+
+  /**
+   * The number of times that the contents of this source have been requested.
+   */
+  private int readCount = 0;
 
   /**
    * Initialize a newly created source object.
@@ -46,6 +63,7 @@ public class TestSource extends FileBasedSource {
   public TestSource(File file, String contents) {
     super(file);
     this.contents = contents;
+    modificationStamp = System.currentTimeMillis();
   }
 
   /**
@@ -58,12 +76,51 @@ public class TestSource extends FileBasedSource {
   }
 
   @Override
+  public long getModificationStamp() {
+    return modificationStamp;
+  }
+
+  /**
+   * The number of times that the contents of this source have been requested.
+   */
+  public int getReadCount() {
+    return readCount;
+  }
+
+  /**
+   * Set the contents of this source to the given contents. This has the side-effect of updating the
+   * modification stamp of the source.
+   * 
+   * @param contents the new contents of this source
+   */
+  public void setContents(String contents) {
+    this.contents = contents;
+    modificationStamp = System.currentTimeMillis();
+  }
+
+  /**
+   * A flag indicating whether an exception should be generated when an attempt is made to access
+   * the contents of this source.
+   */
+  public void setGenerateExceptionOnRead(boolean generate) {
+    generateExceptionOnRead = generate;
+  }
+
+  @Override
   protected TimestampedData<CharSequence> getContentsFromFile() throws Exception {
-    return new TimestampedData<CharSequence>(0L, contents);
+    readCount++;
+    if (generateExceptionOnRead) {
+      throw new IOException("I/O Exception while getting the contents of " + getFullName());
+    }
+    return new TimestampedData<CharSequence>(modificationStamp, contents);
   }
 
   @Override
   protected void getContentsFromFileToReceiver(ContentReceiver receiver) throws Exception {
-    receiver.accept(contents, 0L);
+    readCount++;
+    if (generateExceptionOnRead) {
+      throw new IOException("I/O Exception while getting the contents of " + getFullName());
+    }
+    receiver.accept(contents, modificationStamp);
   }
 }

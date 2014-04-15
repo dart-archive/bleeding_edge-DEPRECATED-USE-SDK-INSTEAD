@@ -174,7 +174,11 @@ public class ParseHtmlTaskTest extends EngineTestCase {
       throws Exception {
     final InternalAnalysisContext context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
-    ParseHtmlTask task = new ParseHtmlTask(context, source, 0L, contents);
+    ParseHtmlTask task = new ParseHtmlTask(
+        context,
+        source,
+        context.getModificationStamp(source),
+        contents);
     Logger oldLogger = AnalysisEngine.getInstance().getLogger();
     try {
       AnalysisEngine.getInstance().setLogger(testLogger);

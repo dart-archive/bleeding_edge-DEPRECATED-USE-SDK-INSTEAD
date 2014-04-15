@@ -19,7 +19,6 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
-import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
@@ -30,8 +29,6 @@ import com.google.dart.engine.source.TestSource;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
 import static com.google.dart.engine.element.ElementFactory.library;
-
-import java.io.IOException;
 
 public class ResolveDartUnitTaskTest extends EngineTestCase {
   public void test_accept() throws AnalysisException {
@@ -76,12 +73,8 @@ public class ResolveDartUnitTaskTest extends EngineTestCase {
   public void test_perform_exception() throws AnalysisException {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     LibraryElementImpl element = library(context, "lib");
-    final Source source = new TestSource() {
-      @Override
-      public TimestampedData<CharSequence> getContents() throws Exception {
-        throw new IOException();
-      }
-    };
+    final TestSource source = new TestSource();
+    source.setGenerateExceptionOnRead(true);
     ((CompilationUnitElementImpl) element.getDefiningCompilationUnit()).setSource(source);
     ResolveDartUnitTask task = new ResolveDartUnitTask(context, source, element);
     task.perform(new TestTaskVisitor<Boolean>() {

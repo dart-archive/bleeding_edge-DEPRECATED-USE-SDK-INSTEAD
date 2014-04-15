@@ -53,7 +53,6 @@ import com.google.dart.engine.utilities.source.LineInfo;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -403,7 +402,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_computeResolvableCompilationUnit_exception() throws Exception {
-    Source source = addSourceWithException("/test.dart");
+    TestSource source = addSourceWithException("/test.dart");
     try {
       context.computeResolvableCompilationUnit(source);
       fail("Expected AnalysisException");
@@ -1055,18 +1054,15 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_performAnalysisTask_IOException() throws Exception {
-    addSourceWithException("/test.dart");
-    //
-    // Simulate a typical analysis worker.
-    //
-    int maxCount = 25;
+    TestSource source = addSourceWithException("/test.dart", "library test;");
+    source.setGenerateExceptionOnRead(false);
+    analyzeAll_assertFinished();
+    assertEquals(1, source.getReadCount());
+    source.setGenerateExceptionOnRead(true);
+    changeSource(source, "");
     context.performAnalysisTask();
-    for (int count = 0; count < maxCount; count++) {
-      if (context.performAnalysisTask().getChangeNotices() == null) {
-        return;
-      }
-    }
-    fail("Did not finish analysis after " + maxCount + " iterations");
+    assertNull(context.performAnalysisTask().getChangeNotices());
+    assertEquals(2, source.getReadCount());
   }
 
   public void test_performAnalysisTask_missingPart() throws Exception {
@@ -1335,13 +1331,13 @@ public class AnalysisContextImplTest extends EngineTestCase {
     return source;
   }
 
-  private Source addSourceWithException(String fileName) {
-    Source source = new FileBasedSource(createFile(fileName)) {
-      @Override
-      public TimestampedData<CharSequence> getContents() throws Exception {
-        throw new IOException("I/O Exception while getting the contents of " + getFullName());
-      }
-    };
+  private TestSource addSourceWithException(String fileName) {
+    return addSourceWithException(fileName, "");
+  }
+
+  private TestSource addSourceWithException(String fileName, String contents) {
+    TestSource source = new TestSource(createFile(fileName), contents);
+    source.setGenerateExceptionOnRead(true);
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(source);
     context.applyChanges(changeSet);
@@ -1349,16 +1345,32 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   /**
-   * Performs up to {@code 512} analysis tasks and asserts that that was enough.
+   * Perform analysis tasks up to 512 times and asserts that that was enough.
    */
   private void analyzeAll_assertFinished() {
-    for (int i = 0; i < 512; i++) {
+    analyzeAll_assertFinished(512);
+  }
+
+  /**
+   * Perform analysis tasks up to the given number of times and asserts that that was enough.
+   * 
+   * @param maxIterations the maximum number of tasks to perform
+   */
+  private void analyzeAll_assertFinished(int maxIterations) {
+    for (int i = 0; i < maxIterations; i++) {
       ChangeNotice[] notice = context.performAnalysisTask().getChangeNotices();
       if (notice == null) {
         return;
       }
     }
     fail("performAnalysisTask failed to terminate after analyzing all sources");
+  }
+
+  private void changeSource(TestSource source, String contents) {
+    source.setContents(contents);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.changedSource(source);
+    context.applyChanges(changeSet);
   }
 
   /**
