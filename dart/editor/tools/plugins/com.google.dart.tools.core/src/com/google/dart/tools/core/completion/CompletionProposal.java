@@ -15,7 +15,6 @@ package com.google.dart.tools.core.completion;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.completion.InternalCompletionProposal;
 import com.google.dart.tools.core.model.DartProject;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -638,7 +637,7 @@ public class CompletionProposal {
    * @return a new completion proposal
    */
   public static CompletionProposal create(int kind, int completionOffset) {
-    return new InternalCompletionProposal(kind, completionOffset);
+    return null;
   }
 
   public void applyPartitionOffset(int partitionOffset) {
