@@ -114,7 +114,7 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
 
   @Override
   protected PubResourceMapImpl newTarget() {
-    PubResourceMapImpl resMap = new PubResourceMapImpl(pubContainer, context);
+    PubResourceMapImpl resMap = new PubResourceMapImpl(pubContainer, context, contextId);
     resMap.setSelfPackageName("myapp");
     return resMap;
   }

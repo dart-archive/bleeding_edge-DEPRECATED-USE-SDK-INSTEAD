@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2013, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -43,7 +43,7 @@ import java.util.List;
 
 /**
  * Represents a project or folder within a project containing a pubspec file.
- *
+ * 
  * @coverage dart.tools.core.model
  */
 public class PubFolderImpl extends PubResourceMapImpl implements PubFolder {
@@ -63,9 +63,9 @@ public class PubFolderImpl extends PubResourceMapImpl implements PubFolder {
    */
   private UriResolver pkgResolver;
 
-  public PubFolderImpl(
-      IContainer container, AnalysisContext context, DartSdk sdk, UriResolver pkgResolver) {
-    super(container, context);
+  public PubFolderImpl(IContainer container, AnalysisContext context, String contextId,
+      DartSdk sdk, UriResolver pkgResolver) {
+    super(container, context, contextId);
     this.sdk = sdk;
     this.pkgResolver = pkgResolver;
   }

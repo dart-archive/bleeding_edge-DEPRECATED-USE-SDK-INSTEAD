@@ -36,6 +36,13 @@ public interface ResourceMap {
   AnalysisContext getContext();
 
   /**
+   * Answer the ID of analysis context associated with the receiver.
+   * 
+   * @return the ID of analysis context (not {@code null})
+   */
+  String getContextId();
+
+  /**
    * Answer the root container associated with the receiver.
    * 
    * @return the container (not {@code null})

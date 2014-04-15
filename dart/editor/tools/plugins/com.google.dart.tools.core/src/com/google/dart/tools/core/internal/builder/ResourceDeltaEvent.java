@@ -32,6 +32,13 @@ public interface ResourceDeltaEvent {
   AnalysisContext getContext();
 
   /**
+   * Answer the ID of context in which the resource should be analyzed
+   * 
+   * @return the ID of context (not {@code null})
+   */
+  String getContextId();
+
+  /**
    * Answer the project in which the resource resides
    * 
    * @return the project (not {@code null})

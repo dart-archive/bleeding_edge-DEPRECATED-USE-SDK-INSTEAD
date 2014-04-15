@@ -13,12 +13,14 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
+import com.google.common.base.Objects;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.analysis.model.InvertedSourceContainer;
@@ -63,10 +65,16 @@ public class DeltaProcessor extends DeltaBroadcaster {
     private Source source;
     private SourceContainer sourceContainer;
     private AnalysisContext packagesRemovedFromContext;
+    private String packagesRemovedFromContextId;
 
     @Override
     public AnalysisContext getContext() {
       return context;
+    }
+
+    @Override
+    public String getContextId() {
+      return contextId;
     }
 
     @Override
@@ -161,10 +169,17 @@ public class DeltaProcessor extends DeltaBroadcaster {
       this.source = null;
       PubFolder pubFolder = getPubFolder();
       this.sourceContainer = pubFolder == null ? null : pubFolder.getInvertedSourceContainer();
-      if (packagesRemovedFromContext == context) {
-        return false;
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        if (Objects.equal(packagesRemovedFromContextId, contextId)) {
+          return false;
+        }
+        this.packagesRemovedFromContextId = contextId;
+      } else {
+        if (packagesRemovedFromContext == context) {
+          return false;
+        }
+        this.packagesRemovedFromContext = context;
       }
-      this.packagesRemovedFromContext = context;
       return true;
     }
 
@@ -210,6 +225,7 @@ public class DeltaProcessor extends DeltaBroadcaster {
   private final Project project;
   private PubFolder pubFolder;
   private AnalysisContext context;
+  private String contextId;
   private Event event;
 
   /**
@@ -600,10 +616,18 @@ public class DeltaProcessor extends DeltaBroadcaster {
     if (container.getType() == PROJECT || pubFolder != newPubFolder) {
       pubFolder = newPubFolder;
       if (pubFolder != null) {
-        context = pubFolder.getContext();
+        if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+          contextId = pubFolder.getContextId();
+        } else {
+          context = pubFolder.getContext();
+        }
         event.setResource(pubFolder.getResource(), null, null);
       } else {
-        context = project.getDefaultContext();
+        if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+          contextId = project.getDefaultContextId();
+        } else {
+          context = project.getDefaultContext();
+        }
         event.setResource(project.getResource(), null, null);
       }
       listener.visitContext(event);

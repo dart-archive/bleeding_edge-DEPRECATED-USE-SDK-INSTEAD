@@ -37,6 +37,7 @@ public class SimpleResourceMapImplTest extends TestCase {
   protected MockProject projectContainer;
   protected File projectDir;
   protected MockContext context;
+  protected String contextId;
   protected MockContainer pubContainer;
 
   public void test_getContext() {
@@ -73,7 +74,7 @@ public class SimpleResourceMapImplTest extends TestCase {
   }
 
   protected SimpleResourceMapImpl newTarget() {
-    return new SimpleResourceMapImpl(pubContainer, context);
+    return new SimpleResourceMapImpl(pubContainer, context, contextId);
   }
 
   @Override

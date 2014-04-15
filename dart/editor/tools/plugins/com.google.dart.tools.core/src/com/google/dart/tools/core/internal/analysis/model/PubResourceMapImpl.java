@@ -52,8 +52,8 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
    */
   private String canonicalContainerPath;
 
-  public PubResourceMapImpl(IContainer container, AnalysisContext context) {
-    super(container, context);
+  public PubResourceMapImpl(IContainer container, AnalysisContext context, String contextId) {
+    super(container, context, contextId);
     packagesFolder = container.getFolder(new Path(DartCore.PACKAGES_DIRECTORY_NAME));
     packagesLocation = container.getLocation().append(DartCore.PACKAGES_DIRECTORY_NAME);
     try {

@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 
 import org.eclipse.core.resources.IContainer;
@@ -35,17 +36,28 @@ import java.util.Map.Entry;
  */
 public class ProjectUpdater implements DeltaListener {
   private HashMap<AnalysisContext, ChangeSet> contextChangeMap = new HashMap<AnalysisContext, ChangeSet>();
+  private HashMap<String, ChangeSet> contextChangeMapNew = new HashMap<String, ChangeSet>();
   private ChangeSet currentChanges;
 
   /**
    * Apply change sets to the associated contexts.
    */
   public void applyChanges() {
-    for (Entry<AnalysisContext, ChangeSet> entry : contextChangeMap.entrySet()) {
-      AnalysisContext context = entry.getKey();
-      ChangeSet changeSet = entry.getValue();
-      if (!changeSet.isEmpty()) {
-        context.applyChanges(changeSet);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      for (Entry<String, ChangeSet> entry : contextChangeMapNew.entrySet()) {
+        String contextId = entry.getKey();
+        ChangeSet changeSet = entry.getValue();
+        if (!changeSet.isEmpty()) {
+          DartCore.getAnalysisServer().applyChanges(contextId, changeSet);
+        }
+      }
+    } else {
+      for (Entry<AnalysisContext, ChangeSet> entry : contextChangeMap.entrySet()) {
+        AnalysisContext context = entry.getKey();
+        ChangeSet changeSet = entry.getValue();
+        if (!changeSet.isEmpty()) {
+          context.applyChanges(changeSet);
+        }
       }
     }
   }
@@ -119,11 +131,20 @@ public class ProjectUpdater implements DeltaListener {
 
   @Override
   public void visitContext(ResourceDeltaEvent event) {
-    AnalysisContext context = event.getContext();
-    currentChanges = contextChangeMap.get(context);
-    if (currentChanges == null) {
-      currentChanges = new ChangeSet();
-      contextChangeMap.put(context, currentChanges);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      String contextId = event.getContextId();
+      currentChanges = contextChangeMapNew.get(contextId);
+      if (currentChanges == null) {
+        currentChanges = new ChangeSet();
+        contextChangeMapNew.put(contextId, currentChanges);
+      }
+    } else {
+      AnalysisContext context = event.getContext();
+      currentChanges = contextChangeMap.get(context);
+      if (currentChanges == null) {
+        currentChanges = new ChangeSet();
+        contextChangeMap.put(context, currentChanges);
+      }
     }
   }
 }

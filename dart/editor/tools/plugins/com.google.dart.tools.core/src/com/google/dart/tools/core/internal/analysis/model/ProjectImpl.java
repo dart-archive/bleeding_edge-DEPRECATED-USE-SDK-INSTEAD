@@ -77,6 +77,9 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
   public static class AnalysisContextFactory {
     public AnalysisContext createContext() {
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        throw new IllegalStateException("This method cannot be used with Analysis Server enabled.");
+      }
       return AnalysisEngine.getInstance().createAnalysisContext();
     }
 
@@ -152,6 +155,13 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   private AnalysisContext defaultContext;
 
   /**
+   * The ID of default analysis context for this project or {@code null} if not yet initialized.
+   * Synchronize against {@link #pubFolders} and call {@link #initialize()} before accessing this
+   * field.
+   */
+  private String defaultContextId;
+
+  /**
    * The default resource map for this project (not {@code null}). This resource map is only used if
    * no pubspec or package root is defined.
    */
@@ -209,20 +219,36 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
         Entry<IPath, PubFolder> entry = iter.next();
         IPath key = entry.getKey();
         if (path.equals(key) || path.isPrefixOf(key)) {
-          AnalysisContext context = entry.getValue().getContext();
-          stopWorkers(context);
-          context.dispose();
-          index.removeContext(context);
+          if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+            // TODO(scheglov) Analysis Server
+            String contextId = entry.getValue().getContextId();
+//            stopWorkers(contextId);
+            DartCore.getAnalysisServer().deleteContext(contextId);
+//            index.removeContext(contextId);
+          } else {
+            AnalysisContext context = entry.getValue().getContext();
+            stopWorkers(context);
+            context.dispose();
+            index.removeContext(context);
+          }
           iter.remove();
         }
       }
 
       // Reset the state if discarding the entire project
       if (projectResource.equals(container)) {
-        stopWorkers(defaultContext);
-        defaultContext.dispose();
-        index.removeContext(defaultContext);
-        defaultContext = null;
+        if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+          // TODO(scheglov) Analysis Server
+//          stopWorkers(defaultContext);
+          DartCore.getAnalysisServer().deleteContext(defaultContextId);
+//          index.removeContext(defaultContext);
+          defaultContextId = null;
+        } else {
+          stopWorkers(defaultContext);
+          defaultContext.dispose();
+          index.removeContext(defaultContext);
+          defaultContext = null;
+        }
         defaultResourceMap = null;
       }
     }
@@ -260,6 +286,14 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     synchronized (pubFolders) {
       initialize();
       return defaultContext;
+    }
+  }
+
+  @Override
+  public String getDefaultContextId() {
+    synchronized (pubFolders) {
+      initialize();
+      return defaultContextId;
     }
   }
 
@@ -372,11 +406,22 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       // Create and cache a new pub folder
       DartSdk sdk = getSdk();
       UriResolver pkgResolver = getPackageUriResolver(container, sdk, true);
-      PubFolderImpl pubFolder = new PubFolderImpl(
-          container,
-          createContext(container, sdk),
-          sdk,
-          pkgResolver);
+      PubFolderImpl pubFolder;
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        pubFolder = new PubFolderImpl(
+            container,
+            null,
+            createContextId(container, sdk),
+            sdk,
+            pkgResolver);
+      } else {
+        pubFolder = new PubFolderImpl(
+            container,
+            createContext(container, sdk),
+            null,
+            sdk,
+            pkgResolver);
+      }
       pubFolders.put(container.getFullPath(), pubFolder);
 
       // If this is the project, then adjust the context source factory
@@ -556,6 +601,34 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   /**
+   * Answer the ID of a context for the specified container, creating one if necessary. Must
+   * synchronize against {@link #pubFolders} before calling this method and either call
+   * {@link #initialize()} or check that {@link #isInitialized()} returns {@code true}.
+   * 
+   * @param container the container with sources to be analyzed (not {@code null})
+   * @param sdk the Dart SDK to use when initializing the context (not {@code null})
+   * @return the ID of context (not {@code null})
+   */
+  private String createContextId(IContainer container, DartSdk sdk) {
+    if (container.equals(projectResource)) {
+      return defaultContextId;
+    }
+    // TODO(scheglov) Analysis Server
+    throw new UnsupportedOperationException();
+//    AnalysisContext context;
+//    IPath location = container.getLocation();
+//    if (location != null) {
+//      // TODO(scheglov)
+//      SourceContainer sourceContainer = new DirectoryBasedSourceContainer(location.toFile());
+//      context = defaultContext.extractContext(sourceContainer);
+//    } else {
+//      logNoLocation(container);
+//      context = factory.createContext();
+//    }
+//    return initContext(context, container, sdk, getPackageUriResolver(container, sdk, true));
+  }
+
+  /**
    * Create pub folders for any pubspec files found within the specified container. Must synchronize
    * against {@link #pubFolders} before calling this method and either call {@link #initialize()} or
    * check that {@link #isInitialized()} returns {@code true}.
@@ -573,11 +646,21 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
         if (getParentPubFolder(path) == null) {
           DartSdk sdk = getSdk();
           UriResolver pkgResolver = getPackageUriResolver(container, sdk, true);
-          pubFolders.put(path, new PubFolderImpl(
-              container,
-              createContext(container, sdk),
-              sdk,
-              pkgResolver));
+          if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+            pubFolders.put(path, new PubFolderImpl(
+                container,
+                null,
+                createContextId(container, sdk),
+                sdk,
+                pkgResolver));
+          } else {
+            pubFolders.put(path, new PubFolderImpl(
+                container,
+                createContext(container, sdk),
+                null,
+                sdk,
+                pkgResolver));
+          }
         }
       }
     });
@@ -762,12 +845,28 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     }
     boolean hasPubspec = projectResource.getFile(PUBSPEC_FILE_NAME).exists();
     defaultPackageResolver = getPackageUriResolver(projectResource, getSdk(), hasPubspec);
-    defaultContext = initContext(
-        factory.createContext(),
-        projectResource,
-        getSdk(),
-        defaultPackageResolver);
-    defaultResourceMap = new SimpleResourceMapImpl(projectResource, defaultContext);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      // TODO(scheglov) Analysis Server: packages map
+      String sdkPath = ((DirectoryBasedDartSdk) getSdk()).getDirectory().getAbsolutePath();
+      defaultContextId = DartCore.getAnalysisServer().createContext(
+          projectResource.getName(),
+          sdkPath,
+          null);
+      defaultResourceMap = new SimpleResourceMapImpl(
+          projectResource,
+          defaultContext,
+          defaultContextId);
+    } else {
+      defaultContext = initContext(
+          factory.createContext(),
+          projectResource,
+          getSdk(),
+          defaultPackageResolver);
+      defaultResourceMap = new SimpleResourceMapImpl(
+          projectResource,
+          defaultContext,
+          defaultContextId);
+    }
     createPubFolders(projectResource);
   }
 
@@ -778,7 +877,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * @return {@code true} if initialized, else {@code false}
    */
   private boolean isInitialized() {
-    return defaultContext != null;
+    return defaultContext != null || defaultContextId != null;
   }
 
   private void logNoLocation(IContainer container) {

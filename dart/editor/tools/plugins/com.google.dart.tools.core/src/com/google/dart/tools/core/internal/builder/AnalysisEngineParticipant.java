@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -122,13 +123,15 @@ public class AnalysisEngineParticipant implements BuildParticipant {
     }
 
     // Perform analysis on each context in the project
-    if (project != null) {
-      // TODO We probably don't need this null check if the visitor above covers all cases.
-      for (PubFolder pubFolder : project.getPubFolders()) {
-        analyzeContext(pubFolder.getContext(), monitor);
-      }
-      if (project.getPubFolder(project.getResource()) == null) {
-        analyzeContext(project.getDefaultContext(), monitor);
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      if (project != null) {
+        // TODO We probably don't need this null check if the visitor above covers all cases.
+        for (PubFolder pubFolder : project.getPubFolders()) {
+          analyzeContext(pubFolder.getContext(), monitor);
+        }
+        if (project.getPubFolder(project.getResource()) == null) {
+          analyzeContext(project.getDefaultContext(), monitor);
+        }
       }
     }
 

@@ -30,19 +30,30 @@ public class SimpleResourceMapImpl implements ResourceMap {
   private final IPath containerLocation;
 
   /**
-   * THe analysis context containing all sources in the map (not {@code null}).
+   * The analysis context containing all sources in the map (not {@code null}).
    */
   protected final AnalysisContext context;
 
-  public SimpleResourceMapImpl(IContainer container, AnalysisContext context) {
+  /**
+   * The ID of context containing all sources in the map (not {@code null}).
+   */
+  protected final String contextId;
+
+  public SimpleResourceMapImpl(IContainer container, AnalysisContext context, String contextId) {
     this.container = container;
     this.containerLocation = container.getLocation();
     this.context = context;
+    this.contextId = contextId;
   }
 
   @Override
   public AnalysisContext getContext() {
     return context;
+  }
+
+  @Override
+  public String getContextId() {
+    return contextId;
   }
 
   @Override

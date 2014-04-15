@@ -111,7 +111,9 @@ public class AnalysisMarkerManager {
           continue;
         }
 
-        int lineNum = lineInfo.getLocation(error.getOffset()).getLineNumber();
+        // TODO(scheglov) Analysis Server: restore LineInfo
+        int lineNum = lineInfo != null ? lineInfo.getLocation(error.getOffset()).getLineNumber()
+            : -1;
         boolean isHint = errorCode.getType() == ErrorType.HINT;
 
         String markerType = DartCore.DART_PROBLEM_MARKER_TYPE;

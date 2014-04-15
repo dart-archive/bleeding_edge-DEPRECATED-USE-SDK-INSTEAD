@@ -72,9 +72,8 @@ public class PubFolderImplTest extends PubResourceMapImplTest {
   protected PubFolderImpl newTarget() {
     pubContainer.getMockFile(DartCore.PUBSPEC_FILE_NAME).setContents(
         pubspecYamlString.replace("name: web_components", "name: myapp"));
-    return new PubFolderImpl(pubContainer, context, expectedSdk, new PackageUriResolver(new File(
-        pubContainer.toFile(),
-        PACKAGES_DIRECTORY_NAME)));
+    return new PubFolderImpl(pubContainer, context, contextId, expectedSdk, new PackageUriResolver(
+        new File(pubContainer.toFile(), PACKAGES_DIRECTORY_NAME)));
   }
 
   @Override
