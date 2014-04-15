@@ -23,6 +23,28 @@ import static org.mockito.Mockito.verify;
 public class PerformAnalysisOperationTest extends TestCase {
   private LocalAnalysisServerImpl server = mock(LocalAnalysisServerImpl.class);
 
+  public void test_getPriority() throws Exception {
+    ServerOperation operation;
+    {
+      operation = new PerformAnalysisOperation("id", false, false);
+      assertSame(ServerOperationPriority.CONTEXT_ANALYSIS, operation.getPriority());
+    }
+    {
+      operation = new PerformAnalysisOperation("id", false, true);
+      assertSame(ServerOperationPriority.CONTEXT_ANALYSIS_CONTINUE, operation.getPriority());
+    }
+    {
+      operation = new PerformAnalysisOperation("id", true, false);
+      assertSame(ServerOperationPriority.CONTEXT_ANALYSIS_PRIORITY, operation.getPriority());
+    }
+    {
+      operation = new PerformAnalysisOperation("id", true, true);
+      assertSame(
+          ServerOperationPriority.CONTEXT_ANALYSIS_PRIORITY_CONTINUE,
+          operation.getPriority());
+    }
+  }
+
   public void test_mergeWith_false_differentContext() throws Exception {
     PerformAnalysisOperation operationA = new PerformAnalysisOperation("id-A");
     PerformAnalysisOperation operationB = new PerformAnalysisOperation("id-B");

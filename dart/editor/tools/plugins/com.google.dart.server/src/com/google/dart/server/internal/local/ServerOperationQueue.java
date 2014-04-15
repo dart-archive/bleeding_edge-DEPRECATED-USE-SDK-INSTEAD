@@ -51,7 +51,7 @@ public class ServerOperationQueue {
   }
 
   /**
-   * Add the given operation to this queue. The exact position in the queue depends on the priority
+   * Adds the given operation to this queue. The exact position in the queue depends on the priority
    * of the given operation relative to the priorities of the other operations in the queue. If
    * there is already an operation with which this one can be merge, it will be merged.
    */

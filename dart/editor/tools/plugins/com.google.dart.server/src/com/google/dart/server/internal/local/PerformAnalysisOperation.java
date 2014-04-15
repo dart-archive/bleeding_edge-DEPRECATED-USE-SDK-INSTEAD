@@ -21,9 +21,17 @@ package com.google.dart.server.internal.local;
  */
 public class PerformAnalysisOperation implements ContextServerOperation, MergeableOperation {
   private final String contextId;
+  private final boolean isPriority;
+  private final boolean isContinue;
 
   public PerformAnalysisOperation(String contextId) {
+    this(contextId, false, false);
+  }
+
+  public PerformAnalysisOperation(String contextId, boolean isPriority, boolean isContinue) {
     this.contextId = contextId;
+    this.isPriority = isPriority;
+    this.isContinue = isContinue;
   }
 
   @Override
@@ -33,7 +41,18 @@ public class PerformAnalysisOperation implements ContextServerOperation, Mergeab
 
   @Override
   public ServerOperationPriority getPriority() {
-    return ServerOperationPriority.CONTEXT_ANALYSIS;
+    if (isPriority) {
+      if (isContinue) {
+        return ServerOperationPriority.CONTEXT_ANALYSIS_PRIORITY_CONTINUE;
+      } else {
+        return ServerOperationPriority.CONTEXT_ANALYSIS_PRIORITY;
+      }
+    }
+    if (isContinue) {
+      return ServerOperationPriority.CONTEXT_ANALYSIS_CONTINUE;
+    } else {
+      return ServerOperationPriority.CONTEXT_ANALYSIS;
+    }
   }
 
   @Override

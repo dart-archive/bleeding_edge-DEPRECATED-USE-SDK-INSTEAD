@@ -14,6 +14,7 @@
 
 package com.google.dart.server.internal.local;
 
+import com.google.common.collect.Lists;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
@@ -21,12 +22,15 @@ import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.NotificationKind;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.List;
 
 public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
   public void test_addAnalysisServerListener() throws Exception {
@@ -199,13 +203,27 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
   }
 
   public void test_setPrioritySources() throws Exception {
-    String id = createContext("test");
-    // no priority sources
-    server.setPrioritySources(id, Source.EMPTY_ARRAY);
-    // set one priority source
-    Source source = addSource(id, "/test.dart", "");
-    server.setPrioritySources(id, new Source[] {source});
+    String contextA = createContext("testA");
+    String contextB = createContext("testB");
+    String contextC = createContext("testC");
     server.test_waitForWorkerComplete();
+    server.test_setPaused(true);
+    // add sources
+    addSource(contextA, "/testA.dart", "");
+    Source sourceB = addSource(contextB, "/testB.dart", "");
+    addSource(contextC, "/testC.dart", "");
+    server.setPrioritySources(contextB, new Source[] {sourceB});
+    // resume
+    List<String> analyzedContexts = Lists.newArrayList();
+    server.test_setAnalyzedContexts(analyzedContexts);
+    server.test_setPaused(false);
+    server.test_waitForWorkerComplete();
+    // check that "B" was analyzed first
+    int aIndex = analyzedContexts.indexOf(contextA);
+    int bIndex = analyzedContexts.indexOf(contextB);
+    int cIndex = analyzedContexts.indexOf(contextC);
+    assertThat(bIndex).isLessThan(aIndex);
+    assertThat(bIndex).isLessThan(cIndex);
   }
 
   public void test_setPrioritySources_noContext() throws Exception {

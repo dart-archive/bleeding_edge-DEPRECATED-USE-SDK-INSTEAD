@@ -42,6 +42,7 @@ import com.google.dart.server.SourceSet;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -105,6 +106,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   private boolean test_paused;
 
   /**
+   * This is used only for testing purposes and allows tests to check the order of operations.
+   */
+  private List<String> test_analyzedContexts;
+
+  /**
    * The unique ID for the next context.
    */
   private final AtomicInteger nextId = new AtomicInteger();
@@ -113,6 +119,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    * A table mapping context id's to the analysis contexts associated with them.
    */
   private final Map<String, AnalysisContext> contextMap = Maps.newHashMap();
+
+  /**
+   * A set of context id's with priority sources.
+   */
+  private final Set<String> priorityContexts = Sets.newHashSet();
 
   /**
    * A table mapping context id's to the subscriptions for notifications associated with them.
@@ -157,7 +168,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   public void internalApplyChanges(String contextId, ChangeSet changeSet) {
     AnalysisContext context = getAnalysisContext(contextId);
     context.applyChanges(changeSet);
-    schedulePerformAnalysisOperation(contextId);
+    schedulePerformAnalysisOperation(contextId, false);
   }
 
   /**
@@ -172,7 +183,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
     context.setSourceFactory(sourceFactory);
     // add context
     contextMap.put(contextId, context);
-    schedulePerformAnalysisOperation(contextId);
+    schedulePerformAnalysisOperation(contextId, false);
   }
 
   /**
@@ -216,35 +227,36 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    * Performs analysis in the given {@link AnalysisContext}.
    */
   public void internalPerformAnalysis(String contextId) {
-    while (true) {
-      AnalysisContext context = getAnalysisContext(contextId);
-      AnalysisResult result = context.performAnalysisTask();
-      ChangeNotice[] notices = result.getChangeNotices();
-      if (notices == null) {
-        return;
-      }
-      // schedule analysis again
-      schedulePerformAnalysisOperation(contextId);
-      // send notifications
-      Map<NotificationKind, Set<Source>> notifications = notificationMap.get(contextId);
-      for (ChangeNotice changeNotice : notices) {
-        Source source = changeNotice.getSource();
-        // notify about errors
-        listener.computedErrors(contextId, source, changeNotice.getErrors());
-        // schedule computable notifications
-        if (notifications != null) {
-          for (Entry<NotificationKind, Set<Source>> entry : notifications.entrySet()) {
-            NotificationKind notificationKind = entry.getKey();
-            Set<Source> notificationSources = entry.getValue();
-            if (notificationSources.contains(source)) {
-              CompilationUnit dartUnit = changeNotice.getCompilationUnit();
-              if (dartUnit != null) {
-                operationQueue.add(new DartUnitNotificationOperation(
-                    contextId,
-                    source,
-                    notificationKind,
-                    dartUnit));
-              }
+    if (test_analyzedContexts != null) {
+      test_analyzedContexts.add(contextId);
+    }
+    AnalysisContext context = getAnalysisContext(contextId);
+    AnalysisResult result = context.performAnalysisTask();
+    ChangeNotice[] notices = result.getChangeNotices();
+    if (notices == null) {
+      return;
+    }
+    // schedule analysis again
+    schedulePerformAnalysisOperation(contextId, true);
+    // send notifications
+    Map<NotificationKind, Set<Source>> notifications = notificationMap.get(contextId);
+    for (ChangeNotice changeNotice : notices) {
+      Source source = changeNotice.getSource();
+      // notify about errors
+      listener.computedErrors(contextId, source, changeNotice.getErrors());
+      // schedule computable notifications
+      if (notifications != null) {
+        for (Entry<NotificationKind, Set<Source>> entry : notifications.entrySet()) {
+          NotificationKind notificationKind = entry.getKey();
+          Set<Source> notificationSources = entry.getValue();
+          if (notificationSources.contains(source)) {
+            CompilationUnit dartUnit = changeNotice.getCompilationUnit();
+            if (dartUnit != null) {
+              operationQueue.add(new DartUnitNotificationOperation(
+                  contextId,
+                  source,
+                  notificationKind,
+                  dartUnit));
             }
           }
         }
@@ -258,7 +270,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   public void internalSetContents(String contextId, Source source, String contents) {
     AnalysisContext context = getAnalysisContext(contextId);
     context.setContents(source, contents);
-    schedulePerformAnalysisOperation(contextId);
+    schedulePerformAnalysisOperation(contextId, false);
   }
 
   /**
@@ -305,7 +317,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   public void internalSetOptions(String contextId, AnalysisOptions options) {
     AnalysisContext context = getAnalysisContext(contextId);
     context.setAnalysisOptions(options);
-    schedulePerformAnalysisOperation(contextId);
+    schedulePerformAnalysisOperation(contextId, false);
   }
 
   /**
@@ -314,7 +326,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   public void internalSetPrioritySources(String contextId, Source[] sources) {
     AnalysisContext context = getAnalysisContext(contextId);
     context.setAnalysisPriorityOrder(Lists.newArrayList(sources));
-    schedulePerformAnalysisOperation(contextId);
+    schedulePerformAnalysisOperation(contextId, false);
   }
 
   @Override
@@ -340,6 +352,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   @Override
   public void setPrioritySources(String contextId, Source[] sources) {
     operationQueue.add(new SetPrioritySourcesOperation(contextId, sources));
+    if (sources.length != 0) {
+      priorityContexts.add(contextId);
+    } else {
+      priorityContexts.remove(contextId);
+    }
   }
 
   @Override
@@ -360,6 +377,13 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   @VisibleForTesting
   public void test_pingListeners() {
     listener.computedErrors(null, null, null);
+  }
+
+  /**
+   * Sets the {@link List} to record analyzed contexts into.
+   */
+  public void test_setAnalyzedContexts(List<String> analyzedContexts) {
+    test_analyzedContexts = analyzedContexts;
   }
 
   @VisibleForTesting
@@ -421,8 +445,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
 
   /**
    * Schedules analysis for the given context.
+   * 
+   * @param isContinue is {@code true} if the new operation is continuation of analysis of the same
+   *          contexts which was analyzed before.
    */
-  private void schedulePerformAnalysisOperation(String contextId) {
-    operationQueue.add(new PerformAnalysisOperation(contextId));
+  private void schedulePerformAnalysisOperation(String contextId, boolean isContinue) {
+    boolean isPriority = priorityContexts.contains(contextId);
+    operationQueue.add(new PerformAnalysisOperation(contextId, isPriority, isContinue));
   }
 }
