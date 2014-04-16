@@ -26,7 +26,6 @@ import java.util.List;
  * A lightweight representation of a VM library. See also VmLibrary.
  */
 public class VmLibraryRef implements Comparable<VmLibraryRef> {
-
   static List<VmLibraryRef> createFrom(JSONArray arr) throws JSONException {
     if (arr == null) {
       return Collections.emptyList();
@@ -71,9 +70,23 @@ public class VmLibraryRef implements Comparable<VmLibraryRef> {
     return url;
   }
 
+  /**
+   * Returns whether this library ref is for the 'dart:async' library.
+   */
+  public boolean isAsync() {
+    return "dart:async".equals(url);
+  }
+
+  /**
+   * Returns whether this library ref is for an internal Dart library.
+   */
+  public boolean isInternal() {
+    return "dart:_internal".equals(url) || "dart:builtin".equals(url)
+        || "dart:nativewrappers".equals(url);
+  }
+
   @Override
   public String toString() {
     return "[" + id + "," + url + "]";
   }
-
 }

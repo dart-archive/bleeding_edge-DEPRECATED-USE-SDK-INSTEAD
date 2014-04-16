@@ -171,10 +171,12 @@ public class VmConnection {
         try {
           if (!result.isError()) {
             for (VmLibraryRef ref : result.getResult()) {
-              try {
-                setLibraryProperties(isolate, ref.getId(), true);
-              } catch (IOException e) {
+              if (!ref.isInternal() && !ref.isAsync()) {
+                try {
+                  setLibraryProperties(isolate, ref.getId(), true);
+                } catch (IOException e) {
 
+                }
               }
             }
           }
