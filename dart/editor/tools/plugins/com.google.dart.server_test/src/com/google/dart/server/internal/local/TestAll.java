@@ -23,6 +23,7 @@ public class TestAll {
     suite.addTest(com.google.dart.server.internal.local.operation.TestAll.suite());
     suite.addTestSuite(BroadcastAnalysisServerListenerTest.class);
     suite.addTestSuite(LocalAnalysisServerImplTest.class);
+    suite.addTestSuite(SourceSetBasedProviderTest.class);
     return suite;
   }
 }
