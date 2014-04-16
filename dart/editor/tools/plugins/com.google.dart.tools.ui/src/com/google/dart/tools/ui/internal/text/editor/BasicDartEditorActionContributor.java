@@ -67,7 +67,6 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
 
   private RetargetTextEditorAction fRemoveOccurrenceAnnotationsAction;
 
-  private RetargetTextEditorAction fOpenCallHierarchy;
   private RetargetTextEditorAction findDeclarations;
   private RetargetTextEditorAction findOverrides;
   private RetargetTextEditorAction findReferences;
@@ -102,11 +101,6 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
         DartEditorMessages.getBundleForConstructedKeys(),
         "OpenHierarchy."); //$NON-NLS-1$
     fOpenHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
-
-    fOpenCallHierarchy = new RetargetTextEditorAction(
-        DartEditorMessages.getBundleForConstructedKeys(),
-        "OpenCallHierarchy."); //$NON-NLS-1$
-    fOpenCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY);
 
     findDeclarations = new RetargetTextEditorAction(
         DartEditorMessages.getBundleForConstructedKeys(),
@@ -178,7 +172,6 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
       navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, findDeclarations);
       navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, findReferences);
       navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, findOverrides);
-      navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, fOpenCallHierarchy);
       navigateMenu.appendToGroup(IWorkbenchActionConstants.SHOW_EXT, fShowOutline);
       navigateMenu.appendToGroup(IWorkbenchActionConstants.SHOW_EXT, fOpenHierarchy);
     }
@@ -249,9 +242,6 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
         textEditor,
         GotoMatchingBracketAction.GOTO_MATCHING_BRACKET));
     fShowOutline.setAction(getAction(textEditor, DartEditorActionDefinitionIds.SHOW_OUTLINE));
-    fOpenCallHierarchy.setAction(getAction(
-        textEditor,
-        DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY));
     findDeclarations.setAction(getAction(
         textEditor,
         DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE));

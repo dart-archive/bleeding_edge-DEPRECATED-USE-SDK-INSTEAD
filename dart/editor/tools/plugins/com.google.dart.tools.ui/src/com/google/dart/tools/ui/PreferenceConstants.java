@@ -16,6 +16,7 @@ package com.google.dart.tools.ui;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.mock.ui.IIncludePathEntry;
 import com.google.dart.tools.ui.internal.text.IJavaThemeConstants;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightings;
 import com.google.dart.tools.ui.text.IDartColorConstants;
@@ -93,16 +94,6 @@ public class PreferenceConstants {
    * @see #APPEARANCE_PKG_NAME_PATTERN_FOR_PKG_VIEW
    */
   public static final String APPEARANCE_COMPRESS_PACKAGE_NAMES = "com.google.dart.tools.ui.compresspackagenames";//$NON-NLS-1$
-
-  /**
-   * A named preference that holds the methods or types whose methods are by default expanded with
-   * constructors in the Call Hierarchy.
-   * <p>
-   * Value is of type <code>String</code>: semicolon separated list of fully qualified type names
-   * appended with ".*" or "." + method name.
-   * </p>
-   */
-  public static final String PREF_DEFAULT_EXPAND_WITH_CONSTRUCTORS_MEMBERS = "CallHierarchy.defaultExpandWithConstructorsMembers"; //$NON-NLS-1$
 
   /**
    * A named preference that defines how member elements are ordered by the JavaScript views using
@@ -3662,8 +3653,6 @@ public class PreferenceConstants {
             new RGB(63, 127, 95)));
     store.setDefault(PreferenceConstants.PROPERTIES_FILE_COLORING_COMMENT_BOLD, false);
     store.setDefault(PreferenceConstants.PROPERTIES_FILE_COLORING_COMMENT_ITALIC, false);
-
-    store.setDefault(PreferenceConstants.PREF_DEFAULT_EXPAND_WITH_CONSTRUCTORS_MEMBERS, ""); //$NON-NLS-1$
 
     // semantic highlighting
     SemanticHighlightings.initDefaults(store);

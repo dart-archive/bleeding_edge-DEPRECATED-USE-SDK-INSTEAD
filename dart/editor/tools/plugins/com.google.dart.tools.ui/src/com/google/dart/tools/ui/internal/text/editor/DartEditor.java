@@ -55,7 +55,6 @@ import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.actions.ShowSelectionLabelAction;
-import com.google.dart.tools.ui.callhierarchy.OpenCallHierarchyAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
@@ -1862,8 +1861,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private Point fCachedSelectedRange;
 
-  private OpenCallHierarchyAction openCallHierarchy;
-
   private ShowSelectionLabelAction showSelectionLabel = new ShowSelectionLabelAction();
 
   private SelectionProvider selectionProvider = new DartSelectionProvider();
@@ -2787,13 +2784,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     Action action = new GotoMatchingBracketAction(this);
     action.setActionDefinitionId(DartEditorActionDefinitionIds.GOTO_MATCHING_BRACKET);
     setAction(GotoMatchingBracketAction.GOTO_MATCHING_BRACKET, action);
-
-    openCallHierarchy = new OpenCallHierarchyAction(this);
-    openCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY);
-    setAction(DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY, openCallHierarchy); //$NON-NLS-1$
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(
-        action,
-        DartHelpContextIds.CALL_HIERARCHY_VIEW);
 
     action = new TextOperationAction(
         DartEditorMessages.getBundleForConstructedKeys(),

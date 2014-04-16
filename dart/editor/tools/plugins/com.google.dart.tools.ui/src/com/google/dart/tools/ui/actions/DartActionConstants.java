@@ -59,12 +59,6 @@ public class DartActionConstants {
   public static final String OPEN_TYPE_HIERARCHY = "com.google.dart.tools.ui.actions.OpenTypeHierarchy"; //$NON-NLS-1$
 
   /**
-   * Navigate menu: name of standard Open Call Hierarchy global action (value
-   * <code>"com.google.dart.tools.ui.actions.OpenCallHierarchy"</code>).
-   */
-  public static final String OPEN_CALL_HIERARCHY = "com.google.dart.tools.ui.actions.OpenCallHierarchy"; //$NON-NLS-1$
-
-  /**
    * Navigate menu: name of standard Open External Javadoc global action (value
    * <code>"com.google.dart.tools.ui.actions.OpenExternalJavaDoc"</code>).
    */

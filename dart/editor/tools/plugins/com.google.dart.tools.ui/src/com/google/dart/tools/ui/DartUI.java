@@ -149,12 +149,6 @@ public final class DartUI {
   public static final String ID_PROBLEMS = "com.google.dart.tools.ui.ProblemsView"; //$NON-NLS-1$
 
   /**
-   * The view part id of the Call Hierarchy view (value
-   * <code>"com.google.dart.tools.ui.callhierarchy.view"</code>).
-   */
-  public static final String ID_CALL_HIERARCHY = "com.google.dart.tools.ui.callhierarchy.view"; //$NON-NLS-1$
-
-  /**
    * The view part id of the type hierarchy part (value
    * <code>"com.google.dart.tools.ui.TypeHierarchy"</code>).
    * <p>

@@ -278,27 +278,6 @@
             id="com.google.dart.tools.ui.dart">
       </category>
 
-      <!-- removed pending rethink/rewrite using new model
-      <view
-            allowMultiple="false"
-            category="com.google.dart.tools.ui.dart"
-            class="com.google.dart.tools.ui.internal.appsview.AppsView"
-            icon="icons/full/dart16/app_icon.png"
-            id="com.google.dart.tools.ui.AppsView"
-            name="Apps"
-            restorable="true">
-      </view>
-      -->
-
-      <view
-            name="%callHierarchyViewName"
-            icon="$nl$/icons/full/eview16/call_hierarchy.gif"
-            category="com.google.dart.tools.ui.dart"
-            class="com.google.dart.tools.ui.callhierarchy.CallHierarchyViewPart"
-            allowMultiple="true"
-            id="com.google.dart.tools.ui.callhierarchy.view">
-      </view>
-
       <view
             name="%classHierarchyViewName"
             icon="$nl$/icons/full/eview16/class_hi.gif"
@@ -1180,18 +1159,6 @@
             description="%ActionDefinition.openTypeHierarchy.description"
             categoryId="org.eclipse.ui.category.navigate"
             id="com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy">
-      </command>
-      <command
-            name="%ActionDefinition.openCallHierarchy.name"
-            description="%ActionDefinition.openCallHierarchy.description"
-            categoryId="org.eclipse.ui.category.navigate"
-            id="com.google.dart.tools.ui.edit.text.open.call.hierarchy">
-      </command>
-      <command
-            name="%ActionDefinition.openCallHierarchy.name"
-            description="%ActionDefinition.openCallHierarchy.description"
-            categoryId="org.eclipse.ui.category.navigate"
-            id="com.google.dart.tools.ui.edit.text.analyze.call.hierarchy">
       </command>
       <command
             name="%ActionDefinition.gotoType.name"
