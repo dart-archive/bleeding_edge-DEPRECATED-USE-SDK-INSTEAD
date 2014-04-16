@@ -154,6 +154,16 @@ public class SourceSetBasedProviderTest extends TestCase {
     assertNewSourcesEqualTo(sourceB);
   }
 
+  public void test_computeNewSources_null_2_LIST() throws Exception {
+    when(sourceSetB.getKind()).thenReturn(SourceSetKind.LIST);
+    // null -> [A] => [A]
+    when(sourceSetB.getSources()).thenReturn(new Source[] {sourceA});
+    assertSetIsEqualTo(newProviderB().computeNewSources(null), sourceA);
+    // null -> [A, B] => [A, B]
+    when(sourceSetB.getSources()).thenReturn(new Source[] {sourceA, sourceB});
+    assertSetIsEqualTo(newProviderB().computeNewSources(null), sourceA, sourceB);
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -172,8 +182,12 @@ public class SourceSetBasedProviderTest extends TestCase {
   private void assertNewSourcesEqualTo(Source... expected) {
     SourceSetBaseProvider providerA = newProviderA();
     SourceSetBaseProvider providerB = newProviderB();
-    Set<Source> expectedSet = ImmutableSet.copyOf(expected);
-    Set<Source> actualSet = providerA.computeNewSources(providerB);
+    Set<Source> actualSet = providerB.computeNewSources(providerA);
+    assertSetIsEqualTo(actualSet, expected);
+  }
+
+  private <T> void assertSetIsEqualTo(Set<T> actualSet, T... expected) {
+    Set<T> expectedSet = ImmutableSet.copyOf(expected);
     assertThat(actualSet).isEqualTo(expectedSet);
   }
 

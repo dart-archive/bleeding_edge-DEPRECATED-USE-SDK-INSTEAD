@@ -65,12 +65,13 @@ public class SourceSetBaseProvider {
   }
 
   /**
-   * Returns {@link Source}s which are allowed by the given new provider, but aren't by this one.
+   * Returns {@link Source}s which have not been allowed by the given old provider, but are allowed
+   * by this one.
    */
-  public Set<Source> computeNewSources(SourceSetBaseProvider newProvider) {
+  public Set<Source> computeNewSources(SourceSetBaseProvider oldProvider) {
     Set<Source> result = Sets.newHashSet();
     for (Source source : knownSources) {
-      if (newProvider.apply(source) && !apply(source)) {
+      if (apply(source) && (oldProvider == null || !oldProvider.apply(source))) {
         result.add(source);
       }
     }

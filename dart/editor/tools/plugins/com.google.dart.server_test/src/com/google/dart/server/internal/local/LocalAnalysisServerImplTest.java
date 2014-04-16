@@ -14,6 +14,7 @@
 
 package com.google.dart.server.internal.local;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
@@ -21,6 +22,8 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.NotificationKind;
+import com.google.dart.server.internal.local.computer.TestKindSourceSet;
+import com.google.dart.server.internal.local.computer.TestListSourceSet;
 import com.google.dart.server.internal.local.operation.ServerOperation;
 import com.google.dart.server.internal.local.operation.ServerOperationPriority;
 
@@ -47,15 +50,6 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
     server.test_pingListeners();
     verify(listener, times(1)).computedErrors(null, null, null);
     reset(listener);
-  }
-
-  public void test_applyChanges_errors() throws Exception {
-    String contextId = createContext("test");
-    Source sourceA = addSource(contextId, "/testA.dart", "library testA");
-    Source sourceB = addSource(contextId, "/testB.dart", "class {}");
-    server.test_waitForWorkerComplete();
-    serverListener.assertErrorsWithCodes(sourceA, ParserErrorCode.EXPECTED_TOKEN);
-    serverListener.assertErrorsWithCodes(sourceB, ParserErrorCode.MISSING_IDENTIFIER);
   }
 
   public void test_applyChanges_noContext() throws Exception {
@@ -146,75 +140,6 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
     reset(listener);
   }
 
-  public void test_setNotificationSources_afterPerformAnalysis() throws Exception {
-    String contextId = createContext("test");
-    Source source = addSource(contextId, "/test.dart", makeSource(//
-        "main() {",
-        "  int vvv = 123;",
-        "  print(vvv);",
-        "}"));
-    // for analysis complete
-    server.test_waitForWorkerComplete();
-    // no navigation yet
-    serverListener.assertNavigationRegions(contextId, source).isEmpty();
-    // request navigation
-    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {source});
-    server.test_waitForWorkerComplete();
-    // validate that there are results
-    serverListener.assertNavigationRegions(contextId, source).isNotEmpty();
-  }
-
-  public void test_setNotificationSources_afterPerformAnalysis_changeSourceList() throws Exception {
-    String contextId = createContext("test");
-    Source sourceA = addSource(contextId, "/testA.dart", makeSource(//
-        "main() {",
-        "  int aaa = 111;",
-        "  print(aaa);",
-        "}"));
-    Source sourceB = addSource(contextId, "/testB.dart", makeSource(//
-        "main() {",
-        "  int bbb = 222;",
-        "  print(bbb);",
-        "}"));
-    // for analysis complete
-    server.test_waitForWorkerComplete();
-    // request regions only for "A"
-    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {sourceA});
-    server.test_waitForWorkerComplete();
-    serverListener.assertNavigationRegions(contextId, sourceA).isNotEmpty();
-    // request regions only for "B"
-    serverListener.clearNavigationRegions();
-    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {sourceB});
-    server.test_waitForWorkerComplete();
-    serverListener.assertNavigationRegions(contextId, sourceA).isEmpty();
-    serverListener.assertNavigationRegions(contextId, sourceB).isNotEmpty();
-  }
-
-  public void test_setNotificationSources_beforePerformAnalysis() throws Exception {
-    String contextId = createContext("test");
-    server.test_setPaused(true);
-    Source source = addSource(contextId, "/test.dart", makeSource(//
-        "main() {",
-        "  int vvv = 123;",
-        "  print(vvv);",
-        "}"));
-    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {source});
-    server.test_setPaused(false);
-    server.test_waitForWorkerComplete();
-    // validate that there are results
-    serverListener.assertNavigationRegions(contextId, source).isNotEmpty();
-  }
-
-  public void test_setNotificationSources_noContext() throws Exception {
-    Source source = mock(Source.class);
-    server.setNotificationSources(
-        "no-such-context",
-        NotificationKind.NAVIGATION,
-        new Source[] {source});
-    server.test_waitForWorkerComplete();
-    serverListener.assertServerErrorsWithCodes(AnalysisServerErrorCode.INVALID_CONTEXT_ID);
-  }
-
   public void test_setOptions() throws Exception {
     String id = createContext("test");
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -255,6 +180,92 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
 
   public void test_setPrioritySources_noContext() throws Exception {
     server.setPrioritySources("no-such-context", Source.EMPTY_ARRAY);
+    server.test_waitForWorkerComplete();
+    serverListener.assertServerErrorsWithCodes(AnalysisServerErrorCode.INVALID_CONTEXT_ID);
+  }
+
+  public void test_subscribe_afterPerformAnalysis() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", makeSource(//
+        "main() {",
+        "  int vvv = 123;",
+        "  print(vvv);",
+        "}"));
+    // for analysis complete
+    server.test_waitForWorkerComplete();
+    // no navigation yet
+    serverListener.assertNavigationRegions(contextId, source).isEmpty();
+    // request navigation
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(source)));
+    server.test_waitForWorkerComplete();
+    // validate that there are results
+    serverListener.assertNavigationRegions(contextId, source).isNotEmpty();
+  }
+
+  public void test_subscribe_afterPerformAnalysis_changeSourceList() throws Exception {
+    String contextId = createContext("test");
+    Source sourceA = addSource(contextId, "/testA.dart", makeSource(//
+        "main() {",
+        "  int aaa = 111;",
+        "  print(aaa);",
+        "}"));
+    Source sourceB = addSource(contextId, "/testB.dart", makeSource(//
+        "main() {",
+        "  int bbb = 222;",
+        "  print(bbb);",
+        "}"));
+    // for analysis complete
+    server.test_waitForWorkerComplete();
+    // request regions only for "A"
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(sourceA)));
+    server.test_waitForWorkerComplete();
+    serverListener.assertNavigationRegions(contextId, sourceA).isNotEmpty();
+    // request regions only for "B"
+    serverListener.clearNavigationRegions();
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(sourceB)));
+    server.test_waitForWorkerComplete();
+    serverListener.assertNavigationRegions(contextId, sourceA).isEmpty();
+    serverListener.assertNavigationRegions(contextId, sourceB).isNotEmpty();
+  }
+
+  public void test_subscribe_beforePerformAnalysis() throws Exception {
+    String contextId = createContext("test");
+    server.test_setPaused(true);
+    Source source = addSource(contextId, "/test.dart", makeSource(//
+        "main() {",
+        "  int vvv = 123;",
+        "  print(vvv);",
+        "}"));
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(source)));
+    server.test_setPaused(false);
+    server.test_waitForWorkerComplete();
+    // validate that there are results
+    serverListener.assertNavigationRegions(contextId, source).isNotEmpty();
+  }
+
+  public void test_subscribe_ERRORS() throws Exception {
+    String contextId = createContext("test");
+    server.subscribe(contextId, ImmutableMap.of(NotificationKind.ERRORS, TestKindSourceSet.ALL));
+    Source sourceA = addSource(contextId, "/testA.dart", "library testA");
+    Source sourceB = addSource(contextId, "/testB.dart", "class {}");
+    server.test_waitForWorkerComplete();
+    serverListener.assertErrorsWithCodes(sourceA, ParserErrorCode.EXPECTED_TOKEN);
+    serverListener.assertErrorsWithCodes(sourceB, ParserErrorCode.MISSING_IDENTIFIER);
+  }
+
+  public void test_subscribe_noContext() throws Exception {
+    Source source = mock(Source.class);
+    server.subscribe(
+        "no-such-context",
+        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(source)));
     server.test_waitForWorkerComplete();
     serverListener.assertServerErrorsWithCodes(AnalysisServerErrorCode.INVALID_CONTEXT_ID);
   }

@@ -14,31 +14,25 @@
 
 package com.google.dart.server.internal.local.operation;
 
-import com.google.dart.engine.source.Source;
-import com.google.dart.server.AnalysisServer;
+import com.google.dart.engine.context.ChangeNotice;
+import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
- * An operation for
- * {@link AnalysisServer#setNotificationSources(String, NotificationKind, Source[])}.
+ * An operation for sending a notification to {@link AnalysisServerListener}.
  * 
  * @coverage dart.server.local
  */
-public class SetNotificationSourcesOperation implements ContextServerOperation, MergeableOperation {
+public class NotificationOperation implements ServerOperation {
   private final String contextId;
+  private final ChangeNotice changeNotice;
   private final NotificationKind kind;
-  private Source[] sources;
 
-  public SetNotificationSourcesOperation(String contextId, NotificationKind kind, Source[] sources) {
+  public NotificationOperation(String contextId, ChangeNotice changeNotice, NotificationKind kind) {
     this.contextId = contextId;
+    this.changeNotice = changeNotice;
     this.kind = kind;
-    this.sources = sources;
-  }
-
-  @Override
-  public String getContextId() {
-    return contextId;
   }
 
   @Override
@@ -47,19 +41,7 @@ public class SetNotificationSourcesOperation implements ContextServerOperation, 
   }
 
   @Override
-  public boolean mergeWith(ServerOperation operation) {
-    if (operation instanceof SetNotificationSourcesOperation) {
-      SetNotificationSourcesOperation other = (SetNotificationSourcesOperation) operation;
-      if (contextId.equals(other.contextId) && kind == other.kind) {
-        sources = other.sources;
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalSetNotificationSources(contextId, kind, sources);
+    server.internalNotification(contextId, changeNotice, kind);
   }
 }

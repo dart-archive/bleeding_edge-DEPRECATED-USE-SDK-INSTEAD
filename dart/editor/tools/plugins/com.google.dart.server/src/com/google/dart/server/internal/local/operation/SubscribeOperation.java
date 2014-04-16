@@ -14,29 +14,31 @@
 
 package com.google.dart.server.internal.local.operation;
 
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.source.Source;
-import com.google.dart.server.AnalysisServerListener;
+import com.google.common.collect.Maps;
+import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.NotificationKind;
+import com.google.dart.server.SourceSet;
 import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
+import java.util.Map;
+
 /**
- * An operation for sending a notification to {@link AnalysisServerListener}.
+ * An operation for {@link AnalysisServer#subscribe(String, java.util.Map)}.
  * 
  * @coverage dart.server.local
  */
-public class DartUnitNotificationOperation implements ServerOperation {
+public class SubscribeOperation implements ContextServerOperation, MergeableOperation {
   private final String contextId;
-  private final Source source;
-  private final NotificationKind kind;
-  private CompilationUnit unit;
+  private Map<NotificationKind, SourceSet> subscriptions;
 
-  public DartUnitNotificationOperation(String contextId, Source source, NotificationKind kind,
-      CompilationUnit unit) {
+  public SubscribeOperation(String contextId, Map<NotificationKind, SourceSet> subscriptions) {
     this.contextId = contextId;
-    this.source = source;
-    this.kind = kind;
-    this.unit = unit;
+    this.subscriptions = subscriptions;
+  }
+
+  @Override
+  public String getContextId() {
+    return contextId;
   }
 
   @Override
@@ -45,7 +47,20 @@ public class DartUnitNotificationOperation implements ServerOperation {
   }
 
   @Override
+  public boolean mergeWith(ServerOperation operation) {
+    if (operation instanceof SubscribeOperation) {
+      SubscribeOperation other = (SubscribeOperation) operation;
+      if (contextId.equals(other.contextId)) {
+        subscriptions = Maps.newHashMap(subscriptions);
+        subscriptions.putAll(other.subscriptions);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalDartUnitNotification(contextId, source, kind, unit);
+    server.internalSubscribe(contextId, subscriptions);
   }
 }

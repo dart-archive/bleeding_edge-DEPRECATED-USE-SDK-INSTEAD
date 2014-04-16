@@ -14,6 +14,7 @@
 
 package com.google.dart.server.internal.local.computer;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.internal.local.AbstractLocalServerTest;
@@ -27,7 +28,9 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
         "  int vvv = 123;",
         "  print(vvv);",
         "}"));
-    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {source});
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(source)));
     server.test_waitForWorkerComplete();
     // validate
     NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
@@ -43,7 +46,9 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
         "  int vvv = 123;",
         "  print(noo);",
         "}"));
-    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {source});
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(source)));
     server.test_waitForWorkerComplete();
     // validate
     NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
@@ -68,7 +73,9 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
         "  v *= 5;",
         "  v /= 6;",
         "}"));
-    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {source});
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(source)));
     server.test_waitForWorkerComplete();
     // validate
     NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
@@ -94,7 +101,9 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
         "  v[1] = 1; // []=",
         "  v[2] += 2;",
         "}"));
-    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {source});
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(source)));
     server.test_waitForWorkerComplete();
     // validate
     NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
@@ -113,7 +122,9 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
         "  v[1] = 1; // []=",
         "  v[2] += 2;",
         "}"));
-    server.setNotificationSources(contextId, NotificationKind.NAVIGATION, new Source[] {source});
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(source)));
     server.test_waitForWorkerComplete();
     // validate
     NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);

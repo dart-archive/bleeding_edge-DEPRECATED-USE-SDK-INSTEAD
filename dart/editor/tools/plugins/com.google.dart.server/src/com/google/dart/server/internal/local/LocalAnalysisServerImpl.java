@@ -15,7 +15,6 @@
 package com.google.dart.server.internal.local;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -26,6 +25,7 @@ import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.internal.context.ChangeNoticeImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
@@ -41,15 +41,15 @@ import com.google.dart.server.SourceSet;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
 import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
-import com.google.dart.server.internal.local.operation.DartUnitNotificationOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
+import com.google.dart.server.internal.local.operation.NotificationOperation;
 import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
 import com.google.dart.server.internal.local.operation.ServerOperation;
 import com.google.dart.server.internal.local.operation.ServerOperationQueue;
-import com.google.dart.server.internal.local.operation.SetNotificationSourcesOperation;
 import com.google.dart.server.internal.local.operation.SetOptionsOperation;
 import com.google.dart.server.internal.local.operation.SetPrioritySourcesOperation;
 import com.google.dart.server.internal.local.operation.ShutdownOperation;
+import com.google.dart.server.internal.local.operation.SubscribeOperation;
 
 import java.io.File;
 import java.util.List;
@@ -131,6 +131,16 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   private final Map<String, AnalysisContext> contextMap = Maps.newHashMap();
 
   /**
+   * A table mapping context id's to the sources known in the associated contexts.
+   */
+  private final Map<String, Set<Source>> contextKnownSourcesMap = Maps.newHashMap();
+
+  /**
+   * A table mapping context id's to the sources explicitly added to the associated contexts.
+   */
+  private final Map<String, Set<Source>> contextAddedSourcesMap = Maps.newHashMap();
+
+  /**
    * A set of context id's with priority sources.
    */
   private final Set<String> priorityContexts = Sets.newHashSet();
@@ -138,7 +148,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   /**
    * A table mapping context id's to the subscriptions for notifications associated with them.
    */
-  private final Map<String, Map<NotificationKind, Set<Source>>> notificationMap = Maps.newHashMap();
+  private final Map<String, Map<NotificationKind, SourceSetBaseProvider>> notificationMap = Maps.newHashMap();
 
   /**
    * The listener that will receive notification when new analysis results become available.
@@ -177,6 +187,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    */
   public void internalApplyChanges(String contextId, ChangeSet changeSet) throws Exception {
     AnalysisContext context = getAnalysisContext(contextId);
+    getSourcesMap(contextId, contextAddedSourcesMap).addAll(changeSet.getAddedSources());
     context.applyChanges(changeSet);
     schedulePerformAnalysisOperation(contextId, false);
   }
@@ -197,40 +208,47 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   }
 
   /**
-   * Sends one of the {@link NotificationKind}s.
-   */
-  public void internalDartUnitNotification(String contextId, Source source, NotificationKind kind,
-      CompilationUnit unit) throws Exception {
-    switch (kind) {
-      case ERRORS:
-        // TODO(scheglov)
-        break;
-      case HIGHLIGHT:
-        // TODO(scheglov)
-        break;
-      case NAVIGATION:
-        listener.computedNavigation(
-            contextId,
-            source,
-            new DartUnitNavigationComputer(unit).compute());
-        break;
-      case OUTLINE:
-        // TODO(scheglov)
-        break;
-    }
-  }
-
-  /**
    * Implementation for {@link #deleteContext(String)}.
    */
   public void internalDeleteContext(String contextId) throws Exception {
     AnalysisContext context = contextMap.remove(contextId);
+    contextKnownSourcesMap.remove(contextId);
+    contextAddedSourcesMap.remove(contextId);
     notificationMap.remove(contextId);
     if (context == null) {
       onServerError(AnalysisServerErrorCode.INVALID_CONTEXT_ID, contextId);
       return;
     }
     operationQueue.removeWithContextId(contextId);
+  }
+
+  /**
+   * Sends one of the {@link NotificationKind}s.
+   */
+  public void internalNotification(String contextId, ChangeNotice changeNotice,
+      NotificationKind kind) throws Exception {
+    Source source = changeNotice.getSource();
+    switch (kind) {
+      case ERRORS:
+        listener.computedErrors(contextId, source, changeNotice.getErrors());
+        break;
+      case HIGHLIGHT:
+        // TODO(scheglov)
+        break;
+      case NAVIGATION: {
+        CompilationUnit dartUnit = changeNotice.getCompilationUnit();
+        if (dartUnit != null) {
+          listener.computedNavigation(
+              contextId,
+              source,
+              new DartUnitNavigationComputer(dartUnit).compute());
+        }
+        break;
+      }
+      case OUTLINE:
+        // TODO(scheglov)
+        break;
+    }
   }
 
   /**
@@ -241,71 +259,32 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
       test_analyzedContexts.add(contextId);
     }
     AnalysisContext context = getAnalysisContext(contextId);
+    Set<Source> knownSources = getSourcesMap(contextId, contextKnownSourcesMap);
+    // prepare results
     AnalysisResult result = context.performAnalysisTask();
     ChangeNotice[] notices = result.getChangeNotices();
     if (notices == null) {
       return;
     }
-    // schedule analysis again
-    schedulePerformAnalysisOperation(contextId, true);
-    // send notifications
-    Map<NotificationKind, Set<Source>> notifications = notificationMap.get(contextId);
+    // remember known sources
     for (ChangeNotice changeNotice : notices) {
       Source source = changeNotice.getSource();
-      // notify about errors
-      listener.computedErrors(contextId, source, changeNotice.getErrors());
-      // schedule computable notifications
-      if (notifications != null) {
-        for (Entry<NotificationKind, Set<Source>> entry : notifications.entrySet()) {
-          NotificationKind notificationKind = entry.getKey();
-          Set<Source> notificationSources = entry.getValue();
-          if (notificationSources.contains(source)) {
-            CompilationUnit dartUnit = changeNotice.getCompilationUnit();
-            if (dartUnit != null) {
-              operationQueue.add(new DartUnitNotificationOperation(
-                  contextId,
-                  source,
-                  notificationKind,
-                  dartUnit));
-            }
-          }
+      knownSources.add(source);
+    }
+    // schedule analysis again
+    schedulePerformAnalysisOperation(contextId, true);
+    // schedule notifications
+    Map<NotificationKind, SourceSetBaseProvider> notifications = notificationMap.get(contextId);
+    for (Entry<NotificationKind, SourceSetBaseProvider> entry : notifications.entrySet()) {
+      NotificationKind notificationKind = entry.getKey();
+      SourceSetBaseProvider sourceProvider = entry.getValue();
+      for (ChangeNotice changeNotice : notices) {
+        Source source = changeNotice.getSource();
+        if (sourceProvider.apply(source)) {
+          operationQueue.add(new NotificationOperation(contextId, changeNotice, notificationKind));
         }
       }
     }
-  }
-
-  /**
-   * Implementation for {@link #setNotificationSources(String, NotificationKind, Source[])}.
-   */
-  public void internalSetNotificationSources(String contextId, NotificationKind kind,
-      Source[] sources) throws Exception {
-    AnalysisContext analysisContext = getAnalysisContext(contextId);
-    Map<NotificationKind, Set<Source>> notifications = notificationMap.get(contextId);
-    if (notifications == null) {
-      notifications = Maps.newHashMap();
-      notificationMap.put(contextId, notifications);
-    }
-    // prepare new sources to send notifications for
-    Set<Source> oldSourceSet = notifications.get(kind);
-    Set<Source> newSourceSet = ImmutableSet.copyOf(sources);
-    Set<Source> newSources;
-    if (oldSourceSet == null) {
-      newSources = newSourceSet;
-    } else {
-      newSources = Sets.difference(newSourceSet, oldSourceSet);
-    }
-    // ...schedule notification operations for these new sources
-    for (Source unitSource : newSources) {
-      Source[] librarySources = analysisContext.getLibrariesContaining(unitSource);
-      if (librarySources.length != 0) {
-        Source librarySource = librarySources[0];
-        CompilationUnit unit = analysisContext.resolveCompilationUnit(unitSource, librarySource);
-        if (unit != null) {
-          operationQueue.add(new DartUnitNotificationOperation(contextId, unitSource, kind, unit));
-        }
-      }
-    }
-    notifications.put(kind, newSourceSet);
   }
 
   /**
@@ -326,14 +305,50 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
     schedulePerformAnalysisOperation(contextId, false);
   }
 
-  @Override
-  public void removeAnalysisServerListener(AnalysisServerListener listener) {
-    this.listener.removeListener(listener);
+  /**
+   * Implementation for {@link #subscribe(String, Map)}.
+   */
+  public void internalSubscribe(String contextId, Map<NotificationKind, SourceSet> subscriptions)
+      throws Exception {
+    AnalysisContext analysisContext = getAnalysisContext(contextId);
+    Set<Source> knownSources = getSourcesMap(contextId, contextKnownSourcesMap);
+    Set<Source> addedSources = getSourcesMap(contextId, contextAddedSourcesMap);
+    Map<NotificationKind, SourceSetBaseProvider> notifications = notificationMap.get(contextId);
+    if (notifications == null) {
+      notifications = Maps.newHashMap();
+      notificationMap.put(contextId, notifications);
+    }
+    // prepare new sources to send notifications for
+    for (Entry<NotificationKind, SourceSet> entry : subscriptions.entrySet()) {
+      NotificationKind kind = entry.getKey();
+      SourceSet sourceSet = entry.getValue();
+      SourceSetBaseProvider oldProvider = notifications.get(kind);
+      SourceSetBaseProvider newProvider = new SourceSetBaseProvider(
+          sourceSet,
+          knownSources,
+          addedSources);
+      // schedule notification operations for new sources
+      Set<Source> newSources = newProvider.computeNewSources(oldProvider);
+      for (Source unitSource : newSources) {
+        Source[] librarySources = analysisContext.getLibrariesContaining(unitSource);
+        if (librarySources.length != 0) {
+          Source librarySource = librarySources[0];
+          CompilationUnit unit = analysisContext.resolveCompilationUnit(unitSource, librarySource);
+          if (unit != null) {
+            ChangeNoticeImpl changeNotice = new ChangeNoticeImpl(unitSource);
+            changeNotice.setCompilationUnit(unit);
+            operationQueue.add(new NotificationOperation(contextId, changeNotice, kind));
+          }
+        }
+      }
+      // put new provider
+      notifications.put(kind, newProvider);
+    }
   }
 
   @Override
-  public void setNotificationSources(String contextId, NotificationKind kind, Source[] sources) {
-    operationQueue.add(new SetNotificationSourcesOperation(contextId, kind, sources));
+  public void removeAnalysisServerListener(AnalysisServerListener listener) {
+    this.listener.removeListener(listener);
   }
 
   @Override
@@ -358,7 +373,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void subscribe(String contextId, Map<NotificationKind, SourceSet> subscriptions) {
-    // TODO(scheglov) implement it
+    operationQueue.add(new SubscribeOperation(contextId, subscriptions));
   }
 
   @VisibleForTesting
@@ -413,6 +428,18 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
       sdkMap.put(directory, sdk);
     }
     return sdk;
+  }
+
+  /**
+   * Returns an existing or just added {@link Source} set associated with the given context.
+   */
+  private Set<Source> getSourcesMap(String contextId, Map<String, Set<Source>> contextSourcesMap) {
+    Set<Source> sources = contextSourcesMap.get(contextId);
+    if (sources == null) {
+      sources = Sets.newHashSet();
+      contextSourcesMap.put(contextId, sources);
+    }
+    return sources;
   }
 
   /**

@@ -24,10 +24,10 @@ public class TestAll {
     suite.addTestSuite(DeleteContextOperationTest.class);
     suite.addTestSuite(PerformAnalysisOperationTest.class);
     suite.addTestSuite(ServerOperationQueueTest.class);
-    suite.addTestSuite(SetNotificationSourcesOperationTest.class);
     suite.addTestSuite(SetOptionsOperationTest.class);
     suite.addTestSuite(SetPrioritySourcesOperationTest.class);
     suite.addTestSuite(ShutdownOperationTest.class);
+    suite.addTestSuite(SubscribeOperationTest.class);
     return suite;
   }
 }
