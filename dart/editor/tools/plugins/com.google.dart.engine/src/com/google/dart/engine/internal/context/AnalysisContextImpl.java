@@ -996,6 +996,21 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       for (Source source : changeSet.getChangedSources()) {
         sourceChanged(source);
       }
+      for (Map.Entry<Source, String> entry : changeSet.getChangedContents().entrySet()) {
+        setContents(entry.getKey(), entry.getValue());
+      }
+      for (Map.Entry<Source, ChangeSet.ContentChange> entry : changeSet.getChangedRanges().entrySet()) {
+        ChangeSet.ContentChange change = entry.getValue();
+        setChangedContents(
+            entry.getKey(),
+            change.getContents(),
+            change.getOffset(),
+            change.getOldLength(),
+            change.getNewLength());
+      }
+      for (Source source : changeSet.getDeletedSources()) {
+        sourceDeleted(source);
+      }
       for (Source source : removedSources) {
         sourceRemoved(source);
       }
@@ -5611,6 +5626,37 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
    * @param source the source that has been deleted
+   */
+  private void sourceDeleted(Source source) {
+    SourceEntry sourceEntry = cache.get(source);
+    if (sourceEntry instanceof HtmlEntry) {
+      HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
+      invalidateAngularResolution(htmlCopy);
+      htmlCopy.recordContentError();
+      cache.put(source, htmlCopy);
+    } else if (sourceEntry instanceof DartEntry) {
+      HashSet<Source> libraries = new HashSet<Source>();
+      for (Source librarySource : getLibrariesContaining(source)) {
+        libraries.add(librarySource);
+        for (Source dependentLibrary : getLibrariesDependingOn(librarySource)) {
+          libraries.add(dependentLibrary);
+        }
+      }
+      for (Source librarySource : libraries) {
+        invalidateLibraryResolution(librarySource);
+      }
+      DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
+      dartCopy.recordContentError();
+      cache.put(source, dartCopy);
+    }
+    workManager.remove(source);
+    removeFromPriorityOrder(source);
+  }
+
+  /**
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param source the source that has been removed
    */
   private void sourceRemoved(Source source) {
     SourceEntry sourceEntry = cache.get(source);
