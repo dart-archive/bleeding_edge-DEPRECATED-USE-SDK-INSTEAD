@@ -12,23 +12,24 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
-import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
- * An operation for {@link AnalysisServer#applyChanges(String, ChangeSet)}.
+ * An operation for {@link AnalysisServer#setOptions(String, AnalysisOptions)}.
  * 
  * @coverage dart.server.local
  */
-public class ApplyChangesOperation implements ContextServerOperation {
+public class SetOptionsOperation implements ContextServerOperation, MergeableOperation {
   private final String contextId;
-  private final ChangeSet changeSet;
+  private AnalysisOptions options;
 
-  public ApplyChangesOperation(String contextId, ChangeSet changeSet) {
+  public SetOptionsOperation(String contextId, AnalysisOptions options) {
     this.contextId = contextId;
-    this.changeSet = changeSet;
+    this.options = options;
   }
 
   @Override
@@ -42,7 +43,19 @@ public class ApplyChangesOperation implements ContextServerOperation {
   }
 
   @Override
+  public boolean mergeWith(ServerOperation operation) {
+    if (operation instanceof SetOptionsOperation) {
+      SetOptionsOperation other = (SetOptionsOperation) operation;
+      if (contextId.equals(other.contextId)) {
+        options = ((SetOptionsOperation) operation).options;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalApplyChanges(contextId, changeSet);
+    server.internalSetOptions(contextId, options);
   }
 }

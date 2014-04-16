@@ -12,29 +12,32 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
-import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisOptions;
+import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
- * Instances of the class {@link AnalysisContext} delete an existing context in the server.
+ * An operation for {@link AnalysisServer#setOptions(String, AnalysisOptions)}.
  * 
  * @coverage dart.server.local
  */
-public class DeleteContextOperation implements ServerOperation {
-  private final String contextId;
+public class ShutdownOperation implements ServerOperation {
+  /**
+   * The unique instance of this class.
+   */
+  public static final ShutdownOperation INSTANCE = new ShutdownOperation();
 
-  public DeleteContextOperation(String contextId) {
-    this.contextId = contextId;
+  private ShutdownOperation() {
   }
 
   @Override
   public ServerOperationPriority getPriority() {
-    return ServerOperationPriority.SERVER;
+    return ServerOperationPriority.SHUTDOWN;
   }
 
   @Override
-  public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalDeleteContext(contextId);
+  public void performOperation(LocalAnalysisServerImpl server) {
   }
 }

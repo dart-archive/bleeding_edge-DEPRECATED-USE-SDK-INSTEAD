@@ -12,32 +12,21 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
 import com.google.dart.engine.context.AnalysisContext;
-
-import java.util.Map;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
- * Instances of the class {@link AnalysisContext} create a new analysis context in the server.
+ * Instances of the class {@link AnalysisContext} delete an existing context in the server.
  * 
  * @coverage dart.server.local
  */
-public class CreateContextOperation implements ContextServerOperation {
+public class DeleteContextOperation implements ServerOperation {
   private final String contextId;
-  private final String sdkDirectory;
-  private final Map<String, String> packageMap;
 
-  public CreateContextOperation(String contextId, String sdkDirectory,
-      Map<String, String> packageMap) {
+  public DeleteContextOperation(String contextId) {
     this.contextId = contextId;
-    this.sdkDirectory = sdkDirectory;
-    this.packageMap = packageMap;
-  }
-
-  @Override
-  public String getContextId() {
-    return contextId;
   }
 
   @Override
@@ -47,6 +36,6 @@ public class CreateContextOperation implements ContextServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalCreateContext(contextId, sdkDirectory, packageMap);
+    server.internalDeleteContext(contextId);
   }
 }

@@ -12,23 +12,28 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
-import com.google.dart.engine.context.AnalysisOptions;
-import com.google.dart.server.AnalysisServer;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
+
+import java.util.Map;
 
 /**
- * An operation for {@link AnalysisServer#setOptions(String, AnalysisOptions)}.
+ * Instances of the class {@link AnalysisContext} create a new analysis context in the server.
  * 
  * @coverage dart.server.local
  */
-public class SetOptionsOperation implements ContextServerOperation, MergeableOperation {
+public class CreateContextOperation implements ContextServerOperation {
   private final String contextId;
-  private AnalysisOptions options;
+  private final String sdkDirectory;
+  private final Map<String, String> packageMap;
 
-  public SetOptionsOperation(String contextId, AnalysisOptions options) {
+  public CreateContextOperation(String contextId, String sdkDirectory,
+      Map<String, String> packageMap) {
     this.contextId = contextId;
-    this.options = options;
+    this.sdkDirectory = sdkDirectory;
+    this.packageMap = packageMap;
   }
 
   @Override
@@ -38,23 +43,11 @@ public class SetOptionsOperation implements ContextServerOperation, MergeableOpe
 
   @Override
   public ServerOperationPriority getPriority() {
-    return ServerOperationPriority.CONTEXT_CHANGE;
-  }
-
-  @Override
-  public boolean mergeWith(ServerOperation operation) {
-    if (operation instanceof SetOptionsOperation) {
-      SetOptionsOperation other = (SetOptionsOperation) operation;
-      if (contextId.equals(other.contextId)) {
-        options = ((SetOptionsOperation) operation).options;
-        return true;
-      }
-    }
-    return false;
+    return ServerOperationPriority.SERVER;
   }
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalSetOptions(contextId, options);
+    server.internalCreateContext(contextId, sdkDirectory, packageMap);
   }
 }

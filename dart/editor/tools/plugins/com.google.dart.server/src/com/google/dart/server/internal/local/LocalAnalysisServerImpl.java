@@ -39,6 +39,17 @@ import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
+import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
+import com.google.dart.server.internal.local.operation.CreateContextOperation;
+import com.google.dart.server.internal.local.operation.DartUnitNotificationOperation;
+import com.google.dart.server.internal.local.operation.DeleteContextOperation;
+import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
+import com.google.dart.server.internal.local.operation.ServerOperation;
+import com.google.dart.server.internal.local.operation.ServerOperationQueue;
+import com.google.dart.server.internal.local.operation.SetNotificationSourcesOperation;
+import com.google.dart.server.internal.local.operation.SetOptionsOperation;
+import com.google.dart.server.internal.local.operation.SetPrioritySourcesOperation;
+import com.google.dart.server.internal.local.operation.ShutdownOperation;
 
 import java.io.File;
 import java.util.List;

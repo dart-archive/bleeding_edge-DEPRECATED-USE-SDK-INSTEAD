@@ -12,31 +12,16 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
-
-import com.google.dart.engine.context.AnalysisOptions;
-import com.google.dart.server.AnalysisServer;
+package com.google.dart.server.internal.local.operation;
 
 /**
- * An operation for {@link AnalysisServer#setOptions(String, AnalysisOptions)}.
+ * {@link ContextServerOperation}s are {@link ServerOperation} which work with an analysis context.
  * 
  * @coverage dart.server.local
  */
-public class ShutdownOperation implements ServerOperation {
+public interface ContextServerOperation extends ServerOperation {
   /**
-   * The unique instance of this class.
+   * Returns the identifier of the analysis context this operation works with.
    */
-  public static final ShutdownOperation INSTANCE = new ShutdownOperation();
-
-  private ShutdownOperation() {
-  }
-
-  @Override
-  public ServerOperationPriority getPriority() {
-    return ServerOperationPriority.SHUTDOWN;
-  }
-
-  @Override
-  public void performOperation(LocalAnalysisServerImpl server) {
-  }
+  String getContextId();
 }

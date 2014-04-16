@@ -12,7 +12,9 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
+
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
  * Instances of {@link PerformAnalysisOperation} perform a single analysis task.

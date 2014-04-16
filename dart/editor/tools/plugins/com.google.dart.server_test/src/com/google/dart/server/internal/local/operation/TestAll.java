@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -19,10 +19,15 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(com.google.dart.server.internal.local.computer.TestAll.suite());
-    suite.addTest(com.google.dart.server.internal.local.operation.TestAll.suite());
-    suite.addTestSuite(BroadcastAnalysisServerListenerTest.class);
-    suite.addTestSuite(LocalAnalysisServerImplTest.class);
+    suite.addTestSuite(ApplyChangesOperationTest.class);
+    suite.addTestSuite(CreateContextOperationTest.class);
+    suite.addTestSuite(DeleteContextOperationTest.class);
+    suite.addTestSuite(PerformAnalysisOperationTest.class);
+    suite.addTestSuite(ServerOperationQueueTest.class);
+    suite.addTestSuite(SetNotificationSourcesOperationTest.class);
+    suite.addTestSuite(SetOptionsOperationTest.class);
+    suite.addTestSuite(SetPrioritySourcesOperationTest.class);
+    suite.addTestSuite(ShutdownOperationTest.class);
     return suite;
   }
 }

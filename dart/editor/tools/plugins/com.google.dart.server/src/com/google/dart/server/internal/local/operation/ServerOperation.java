@@ -11,7 +11,9 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
+
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
  * The class {@link ServerOperation} defines the behavior of objects used to perform operations on a

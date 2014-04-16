@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;

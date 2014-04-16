@@ -12,9 +12,11 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
+import com.google.dart.server.internal.local.operation.DeleteContextOperation;
+import com.google.dart.server.internal.local.operation.ServerOperationPriority;
 
 import junit.framework.TestCase;
 
@@ -22,18 +24,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.util.Map;
-
-public class CreateContextOperationTest extends TestCase {
+public class DeleteContextOperationTest extends TestCase {
   private LocalAnalysisServerImpl server = mock(LocalAnalysisServerImpl.class);
 
   public void test_perform() throws Exception {
-    Map<String, String> packageMap = ImmutableMap.of("pkg-1", "dir-1");
-    CreateContextOperation operation = new CreateContextOperation("id", "my-dir", packageMap);
-    assertEquals("id", operation.getContextId());
+    DeleteContextOperation operation = new DeleteContextOperation("id");
     assertSame(ServerOperationPriority.SERVER, operation.getPriority());
     // perform
     operation.performOperation(server);
-    verify(server, times(1)).internalCreateContext("id", "my-dir", packageMap);
+    verify(server, times(1)).internalDeleteContext("id");
   }
 }

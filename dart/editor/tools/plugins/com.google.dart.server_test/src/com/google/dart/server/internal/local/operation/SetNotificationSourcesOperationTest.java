@@ -12,10 +12,15 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.NotificationKind;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
+import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
+import com.google.dart.server.internal.local.operation.ServerOperation;
+import com.google.dart.server.internal.local.operation.ServerOperationPriority;
+import com.google.dart.server.internal.local.operation.SetNotificationSourcesOperation;
 
 import junit.framework.TestCase;
 

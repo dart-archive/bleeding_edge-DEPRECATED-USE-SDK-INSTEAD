@@ -12,9 +12,14 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
-import com.google.dart.engine.source.Source;
+import com.google.dart.engine.context.AnalysisOptions;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
+import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
+import com.google.dart.server.internal.local.operation.ServerOperation;
+import com.google.dart.server.internal.local.operation.ServerOperationPriority;
+import com.google.dart.server.internal.local.operation.SetOptionsOperation;
 
 import junit.framework.TestCase;
 
@@ -22,43 +27,38 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class SetPrioritySourcesOperationTest extends TestCase {
+public class SetOptionsOperationTest extends TestCase {
   private LocalAnalysisServerImpl server = mock(LocalAnalysisServerImpl.class);
-  private Source sourceA = mock(Source.class);
-  private Source sourceB = mock(Source.class);
+  private AnalysisOptions options = mock(AnalysisOptions.class);
+  private AnalysisOptions options2 = mock(AnalysisOptions.class);
 
   public void test_mergeWith_false_differentContext() throws Exception {
-    Source[] sources = new Source[] {sourceA};
-    SetPrioritySourcesOperation operationA = new SetPrioritySourcesOperation("id-A", sources);
-    SetPrioritySourcesOperation operationB = new SetPrioritySourcesOperation("id-B", sources);
+    SetOptionsOperation operationA = new SetOptionsOperation("id-A", options);
+    ServerOperation operationB = new SetOptionsOperation("id-B", options);
     assertFalse(operationA.mergeWith(operationB));
   }
 
   public void test_mergeWith_false_notSetContents() throws Exception {
-    Source[] sources = new Source[] {sourceA};
-    SetPrioritySourcesOperation operationA = new SetPrioritySourcesOperation("id", sources);
+    SetOptionsOperation operationA = new SetOptionsOperation("id", options);
     ServerOperation operationB = new PerformAnalysisOperation("id");
     assertFalse(operationA.mergeWith(operationB));
   }
 
   public void test_mergeWith_true() throws Exception {
-    Source[] sourcesA = new Source[] {sourceA};
-    Source[] sourcesB = new Source[] {sourceB};
-    SetPrioritySourcesOperation operationA = new SetPrioritySourcesOperation("id", sourcesA);
-    SetPrioritySourcesOperation operationB = new SetPrioritySourcesOperation("id", sourcesB);
+    SetOptionsOperation operationA = new SetOptionsOperation("id", options);
+    ServerOperation operationB = new SetOptionsOperation("id", options2);
     assertTrue(operationA.mergeWith(operationB));
     // perform
     operationA.performOperation(server);
-    verify(server, times(1)).internalSetPrioritySources("id", sourcesB);
+    verify(server, times(1)).internalSetOptions("id", options2);
   }
 
   public void test_perform() throws Exception {
-    Source[] sources = new Source[] {sourceA, sourceB};
-    SetPrioritySourcesOperation operation = new SetPrioritySourcesOperation("id", sources);
+    SetOptionsOperation operation = new SetOptionsOperation("id", options);
     assertSame(ServerOperationPriority.CONTEXT_CHANGE, operation.getPriority());
     assertEquals("id", operation.getContextId());
     // perform
     operation.performOperation(server);
-    verify(server, times(1)).internalSetPrioritySources("id", sources);
+    verify(server, times(1)).internalSetOptions("id", options);
   }
 }

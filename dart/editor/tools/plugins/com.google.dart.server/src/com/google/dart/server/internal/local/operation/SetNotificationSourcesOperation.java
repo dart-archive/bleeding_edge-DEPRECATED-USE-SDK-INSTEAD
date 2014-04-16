@@ -12,22 +12,27 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.NotificationKind;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
- * An operation for {@link AnalysisServer#setPrioritySources(String, Source[])}.
+ * An operation for
+ * {@link AnalysisServer#setNotificationSources(String, NotificationKind, Source[])}.
  * 
  * @coverage dart.server.local
  */
-public class SetPrioritySourcesOperation implements ContextServerOperation, MergeableOperation {
+public class SetNotificationSourcesOperation implements ContextServerOperation, MergeableOperation {
   private final String contextId;
+  private final NotificationKind kind;
   private Source[] sources;
 
-  public SetPrioritySourcesOperation(String contextId, Source[] sources) {
+  public SetNotificationSourcesOperation(String contextId, NotificationKind kind, Source[] sources) {
     this.contextId = contextId;
+    this.kind = kind;
     this.sources = sources;
   }
 
@@ -38,14 +43,14 @@ public class SetPrioritySourcesOperation implements ContextServerOperation, Merg
 
   @Override
   public ServerOperationPriority getPriority() {
-    return ServerOperationPriority.CONTEXT_CHANGE;
+    return ServerOperationPriority.CONTEXT_NOTIFICATION;
   }
 
   @Override
   public boolean mergeWith(ServerOperation operation) {
-    if (operation instanceof SetPrioritySourcesOperation) {
-      SetPrioritySourcesOperation other = (SetPrioritySourcesOperation) operation;
-      if (contextId.equals(other.contextId)) {
+    if (operation instanceof SetNotificationSourcesOperation) {
+      SetNotificationSourcesOperation other = (SetNotificationSourcesOperation) operation;
+      if (contextId.equals(other.contextId) && kind == other.kind) {
         sources = other.sources;
         return true;
       }
@@ -55,6 +60,6 @@ public class SetPrioritySourcesOperation implements ContextServerOperation, Merg
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalSetPrioritySources(contextId, sources);
+    server.internalSetNotificationSources(contextId, kind, sources);
   }
 }

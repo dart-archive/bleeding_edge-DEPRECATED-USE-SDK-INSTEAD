@@ -12,23 +12,19 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
 /**
- * The enumeration {@code ServerOperationPriority} defines the priority levels used to organize
- * {@link ServerOperation}s in an optimal order. A smaller ordinal value equates to a higher
- * priority.
+ * The interface {@link MergeableOperation} is an {@link ServerOperation}s which can be merged with
+ * (and into) other {@link ServerOperation}s.
  * 
  * @coverage dart.server.local
  */
-public enum ServerOperationPriority {
-  SHUTDOWN,
-  SERVER,
-  CONTEXT_CHANGE,
-  CONTEXT_NOTIFICATION,
-  CONTEXT_ANALYSIS_PRIORITY_CONTINUE,
-  CONTEXT_ANALYSIS_PRIORITY,
-  CONTEXT_ANALYSIS_CONTINUE,
-  CONTEXT_ANALYSIS,
-  REFACTORING
+public interface MergeableOperation extends ServerOperation {
+  /**
+   * Merges the given operation into this one.
+   * 
+   * @return {@code true} if merge was successful.
+   */
+  boolean mergeWith(ServerOperation operation);
 }

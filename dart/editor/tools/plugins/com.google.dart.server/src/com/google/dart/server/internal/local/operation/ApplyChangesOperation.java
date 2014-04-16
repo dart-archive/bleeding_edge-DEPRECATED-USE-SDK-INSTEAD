@@ -12,39 +12,38 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.source.Source;
-import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.NotificationKind;
+import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
- * An operation for sending a notification to {@link AnalysisServerListener}.
+ * An operation for {@link AnalysisServer#applyChanges(String, ChangeSet)}.
  * 
  * @coverage dart.server.local
  */
-public class DartUnitNotificationOperation implements ServerOperation {
+public class ApplyChangesOperation implements ContextServerOperation {
   private final String contextId;
-  private final Source source;
-  private final NotificationKind kind;
-  private CompilationUnit unit;
+  private final ChangeSet changeSet;
 
-  public DartUnitNotificationOperation(String contextId, Source source, NotificationKind kind,
-      CompilationUnit unit) {
+  public ApplyChangesOperation(String contextId, ChangeSet changeSet) {
     this.contextId = contextId;
-    this.source = source;
-    this.kind = kind;
-    this.unit = unit;
+    this.changeSet = changeSet;
+  }
+
+  @Override
+  public String getContextId() {
+    return contextId;
   }
 
   @Override
   public ServerOperationPriority getPriority() {
-    return ServerOperationPriority.CONTEXT_NOTIFICATION;
+    return ServerOperationPriority.CONTEXT_CHANGE;
   }
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalDartUnitNotification(contextId, source, kind, unit);
+    server.internalApplyChanges(contextId, changeSet);
   }
 }

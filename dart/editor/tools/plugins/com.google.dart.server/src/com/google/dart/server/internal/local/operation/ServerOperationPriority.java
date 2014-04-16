@@ -12,16 +12,23 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
 /**
- * {@link ContextServerOperation}s are {@link ServerOperation} which work with an analysis context.
+ * The enumeration {@code ServerOperationPriority} defines the priority levels used to organize
+ * {@link ServerOperation}s in an optimal order. A smaller ordinal value equates to a higher
+ * priority.
  * 
  * @coverage dart.server.local
  */
-public interface ContextServerOperation extends ServerOperation {
-  /**
-   * Returns the identifier of the analysis context this operation works with.
-   */
-  String getContextId();
+public enum ServerOperationPriority {
+  SHUTDOWN,
+  SERVER,
+  CONTEXT_CHANGE,
+  CONTEXT_NOTIFICATION,
+  CONTEXT_ANALYSIS_PRIORITY_CONTINUE,
+  CONTEXT_ANALYSIS_PRIORITY,
+  CONTEXT_ANALYSIS_CONTINUE,
+  CONTEXT_ANALYSIS,
+  REFACTORING
 }

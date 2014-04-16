@@ -12,9 +12,12 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
+import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
+import com.google.dart.server.internal.local.operation.ServerOperationPriority;
 
 import junit.framework.TestCase;
 

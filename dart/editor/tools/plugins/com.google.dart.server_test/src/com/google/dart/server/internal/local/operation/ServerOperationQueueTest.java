@@ -12,7 +12,13 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
+
+import com.google.dart.server.internal.local.operation.ContextServerOperation;
+import com.google.dart.server.internal.local.operation.MergeableOperation;
+import com.google.dart.server.internal.local.operation.ServerOperation;
+import com.google.dart.server.internal.local.operation.ServerOperationPriority;
+import com.google.dart.server.internal.local.operation.ServerOperationQueue;
 
 import junit.framework.TestCase;
 
