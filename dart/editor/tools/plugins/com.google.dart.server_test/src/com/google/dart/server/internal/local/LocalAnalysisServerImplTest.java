@@ -105,6 +105,33 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
     assertEquals("0.0.1", server.version());
   }
 
+  public void test_performAnalysis_continueSingleContext() throws Exception {
+    String contextA = createContext("testA");
+    String contextB = createContext("testB");
+    String contextC = createContext("testC");
+    server.test_waitForWorkerComplete();
+    server.test_setPaused(true);
+    // add sources
+    addSource(contextA, "/testA.dart", "class A {}");
+    addSource(contextB, "/testB.dart", "class B {}");
+    addSource(contextC, "/testC.dart", "class C {}");
+    // resume
+    List<String> analyzedContexts = Lists.newArrayList();
+    server.test_setAnalyzedContexts(analyzedContexts);
+    server.test_setPaused(false);
+    server.test_waitForWorkerComplete();
+    // check that A, B and C are analyzed sequentially
+    int indexA = analyzedContexts.indexOf(contextA);
+    int indexB = analyzedContexts.indexOf(contextB);
+    int indexC = analyzedContexts.indexOf(contextC);
+    int lastIndexA = analyzedContexts.lastIndexOf(contextA);
+    int lastIndexB = analyzedContexts.lastIndexOf(contextB);
+    assertThat(indexA).isLessThan(indexB);
+    assertThat(indexB).isLessThan(indexC);
+    assertThat(lastIndexA).isLessThan(indexB);
+    assertThat(lastIndexB).isLessThan(indexC);
+  }
+
   public void test_removeAnalysisServerListener() throws Exception {
     AnalysisServerListener listener = mock(AnalysisServerListener.class);
     server.addAnalysisServerListener(listener);
