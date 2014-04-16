@@ -265,15 +265,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   }
 
   /**
-   * Implementation for {@link #setContents(String, Source, String)}.
-   */
-  public void internalSetContents(String contextId, Source source, String contents) {
-    AnalysisContext context = getAnalysisContext(contextId);
-    context.setContents(source, contents);
-    schedulePerformAnalysisOperation(contextId, false);
-  }
-
-  /**
    * Implementation for {@link #setNotificationSources(String, NotificationKind, Source[])}.
    */
   public void internalSetNotificationSources(String contextId, NotificationKind kind,
@@ -332,11 +323,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   @Override
   public void removeAnalysisServerListener(AnalysisServerListener listener) {
     this.listener.removeListener(listener);
-  }
-
-  @Override
-  public void setContents(String contextId, Source source, String contents) {
-    operationQueue.add(new SetContentsOperation(contextId, source, contents));
   }
 
   @Override

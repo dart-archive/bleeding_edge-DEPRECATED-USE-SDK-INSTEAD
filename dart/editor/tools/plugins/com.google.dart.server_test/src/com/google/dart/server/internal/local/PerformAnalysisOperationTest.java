@@ -53,7 +53,7 @@ public class PerformAnalysisOperationTest extends TestCase {
 
   public void test_mergeWith_false_notPerformAnalysis() throws Exception {
     PerformAnalysisOperation operationA = new PerformAnalysisOperation("id");
-    MergeableOperation operationB = new SetContentsOperation("id", null, "");
+    MergeableOperation operationB = new SetOptionsOperation("id", null);
     assertFalse(operationA.mergeWith(operationB));
   }
 

@@ -59,9 +59,7 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
   public void test_applyChanges_noContext() throws Exception {
     addSource("no-such-context", "/test.dart", "");
     server.test_waitForWorkerComplete();
-    serverListener.assertServerErrorsWithCodes(
-        AnalysisServerErrorCode.INVALID_CONTEXT_ID,
-        AnalysisServerErrorCode.INVALID_CONTEXT_ID);
+    serverListener.assertServerErrorsWithCodes(AnalysisServerErrorCode.INVALID_CONTEXT_ID);
   }
 
   public void test_createContext() throws Exception {

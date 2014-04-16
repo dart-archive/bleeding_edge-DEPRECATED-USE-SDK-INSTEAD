@@ -73,19 +73,6 @@ public interface AnalysisServer {
   public void removeAnalysisServerListener(AnalysisServerListener listener);
 
   /**
-   * TODO(scheglov) Temporary API.
-   * <p>
-   * Set the contents of the given source to the given contents and mark the source as having
-   * changed. This has the effect of overriding the default contents of the source. If the contents
-   * are {@code null} the override is removed so that the default contents will be returned.
-   * 
-   * @param contextId the identifier of the context to which the changes are to be applied
-   * @param source the source whose contents are being overridden
-   * @param contents the new contents of the source
-   */
-  public void setContents(String contextId, Source source, String contents);
-
-  /**
    * TODO(scheglov) Temporary API. Update to a multi-kind subscription with source filters.
    * <p>
    * Set the sources to receive the given kind of notification for.

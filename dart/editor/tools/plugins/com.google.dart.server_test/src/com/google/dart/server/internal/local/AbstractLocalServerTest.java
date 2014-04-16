@@ -39,8 +39,8 @@ public class AbstractLocalServerTest extends TestCase {
     Source source = new TestSource(createFile(fileName), contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(source);
+    changeSet.changedContent(source, contents);
     server.applyChanges(contextId, changeSet);
-    server.setContents(contextId, source, contents);
     return source;
   }
 

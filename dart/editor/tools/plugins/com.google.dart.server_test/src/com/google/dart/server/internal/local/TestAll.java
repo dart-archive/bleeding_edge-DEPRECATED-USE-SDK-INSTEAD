@@ -26,7 +26,6 @@ public class TestAll {
     suite.addTestSuite(LocalAnalysisServerImplTest.class);
     suite.addTestSuite(PerformAnalysisOperationTest.class);
     suite.addTestSuite(ServerOperationQueueTest.class);
-    suite.addTestSuite(SetContentsOperationTest.class);
     suite.addTestSuite(SetNotificationSourcesOperationTest.class);
     suite.addTestSuite(SetOptionsOperationTest.class);
     suite.addTestSuite(SetPrioritySourcesOperationTest.class);
