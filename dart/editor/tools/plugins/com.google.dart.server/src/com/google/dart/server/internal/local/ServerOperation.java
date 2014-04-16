@@ -28,5 +28,5 @@ public interface ServerOperation {
   /**
    * Perform the operation implemented by this operation.
    */
-  void performOperation(LocalAnalysisServerImpl server);
+  void performOperation(LocalAnalysisServerImpl server) throws Exception;
 }

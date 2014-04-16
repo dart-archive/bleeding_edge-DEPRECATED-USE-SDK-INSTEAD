@@ -58,7 +58,7 @@ public class SetNotificationSourcesOperation implements ContextServerOperation, 
   }
 
   @Override
-  public void performOperation(LocalAnalysisServerImpl server) {
+  public void performOperation(LocalAnalysisServerImpl server) throws Exception {
     server.internalSetNotificationSources(contextId, kind, sources);
   }
 }

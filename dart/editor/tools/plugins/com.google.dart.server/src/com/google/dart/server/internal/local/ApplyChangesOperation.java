@@ -42,7 +42,7 @@ public class ApplyChangesOperation implements ContextServerOperation {
   }
 
   @Override
-  public void performOperation(LocalAnalysisServerImpl server) {
+  public void performOperation(LocalAnalysisServerImpl server) throws Exception {
     server.internalApplyChanges(contextId, changeSet);
   }
 }

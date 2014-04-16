@@ -22,7 +22,6 @@ import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
@@ -165,7 +164,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   /**
    * Implementation for {@link #applyChanges(String, ChangeSet)}.
    */
-  public void internalApplyChanges(String contextId, ChangeSet changeSet) {
+  public void internalApplyChanges(String contextId, ChangeSet changeSet) throws Exception {
     AnalysisContext context = getAnalysisContext(contextId);
     context.applyChanges(changeSet);
     schedulePerformAnalysisOperation(contextId, false);
@@ -175,7 +174,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    * Implementation for {@link #createContext(String, String, Map)}.
    */
   public void internalCreateContext(String contextId, String sdkDirectory,
-      Map<String, String> packageMap) {
+      Map<String, String> packageMap) throws Exception {
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
     DartSdk sdk = getSdk(sdkDirectory);
     // TODO(scheglov) PackageUriResolver
@@ -190,7 +189,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    * Sends one of the {@link NotificationKind}s.
    */
   public void internalDartUnitNotification(String contextId, Source source, NotificationKind kind,
-      CompilationUnit unit) {
+      CompilationUnit unit) throws Exception {
     switch (kind) {
       case ERRORS:
         // TODO(scheglov)
@@ -213,7 +212,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   /**
    * Implementation for {@link #deleteContext(String)}.
    */
-  public void internalDeleteContext(String contextId) {
+  public void internalDeleteContext(String contextId) throws Exception {
     AnalysisContext context = contextMap.remove(contextId);
     notificationMap.remove(contextId);
     if (context == null) {
@@ -226,7 +225,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   /**
    * Performs analysis in the given {@link AnalysisContext}.
    */
-  public void internalPerformAnalysis(String contextId) {
+  public void internalPerformAnalysis(String contextId) throws Exception {
     if (test_analyzedContexts != null) {
       test_analyzedContexts.add(contextId);
     }
@@ -268,7 +267,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    * Implementation for {@link #setNotificationSources(String, NotificationKind, Source[])}.
    */
   public void internalSetNotificationSources(String contextId, NotificationKind kind,
-      Source[] sources) {
+      Source[] sources) throws Exception {
     AnalysisContext analysisContext = getAnalysisContext(contextId);
     Map<NotificationKind, Set<Source>> notifications = notificationMap.get(contextId);
     if (notifications == null) {
@@ -289,13 +288,9 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
       Source[] librarySources = analysisContext.getLibrariesContaining(unitSource);
       if (librarySources.length != 0) {
         Source librarySource = librarySources[0];
-        try {
-          CompilationUnit unit = analysisContext.resolveCompilationUnit(unitSource, librarySource);
-          if (unit != null) {
-            operationQueue.add(new DartUnitNotificationOperation(contextId, unitSource, kind, unit));
-          }
-        } catch (AnalysisException e) {
-          // TODO(scheglov) allow throwing exceptions from operations
+        CompilationUnit unit = analysisContext.resolveCompilationUnit(unitSource, librarySource);
+        if (unit != null) {
+          operationQueue.add(new DartUnitNotificationOperation(contextId, unitSource, kind, unit));
         }
       }
     }
@@ -305,7 +300,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   /**
    * Implementation for {@link #setOptions(String, AnalysisOptions)}.
    */
-  public void internalSetOptions(String contextId, AnalysisOptions options) {
+  public void internalSetOptions(String contextId, AnalysisOptions options) throws Exception {
     AnalysisContext context = getAnalysisContext(contextId);
     context.setAnalysisOptions(options);
     schedulePerformAnalysisOperation(contextId, false);
@@ -314,7 +309,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   /**
    * Implementation for {@link #setPrioritySources(String, Source[])}.
    */
-  public void internalSetPrioritySources(String contextId, Source[] sources) {
+  public void internalSetPrioritySources(String contextId, Source[] sources) throws Exception {
     AnalysisContext context = getAnalysisContext(contextId);
     context.setAnalysisPriorityOrder(Lists.newArrayList(sources));
     schedulePerformAnalysisOperation(contextId, false);

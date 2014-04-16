@@ -34,7 +34,7 @@ public class DeleteContextOperation implements ServerOperation {
   }
 
   @Override
-  public void performOperation(LocalAnalysisServerImpl server) {
+  public void performOperation(LocalAnalysisServerImpl server) throws Exception {
     server.internalDeleteContext(contextId);
   }
 }

@@ -54,7 +54,7 @@ public class SetOptionsOperation implements ContextServerOperation, MergeableOpe
   }
 
   @Override
-  public void performOperation(LocalAnalysisServerImpl server) {
+  public void performOperation(LocalAnalysisServerImpl server) throws Exception {
     server.internalSetOptions(contextId, options);
   }
 }

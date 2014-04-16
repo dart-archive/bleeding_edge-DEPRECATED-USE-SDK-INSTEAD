@@ -44,7 +44,7 @@ public class DartUnitNotificationOperation implements ServerOperation {
   }
 
   @Override
-  public void performOperation(LocalAnalysisServerImpl server) {
+  public void performOperation(LocalAnalysisServerImpl server) throws Exception {
     server.internalDartUnitNotification(contextId, source, kind, unit);
   }
 }

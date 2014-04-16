@@ -46,7 +46,7 @@ public class CreateContextOperation implements ContextServerOperation {
   }
 
   @Override
-  public void performOperation(LocalAnalysisServerImpl server) {
+  public void performOperation(LocalAnalysisServerImpl server) throws Exception {
     server.internalCreateContext(contextId, sdkDirectory, packageMap);
   }
 }

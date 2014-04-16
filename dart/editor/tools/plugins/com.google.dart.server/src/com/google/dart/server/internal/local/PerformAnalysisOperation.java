@@ -65,7 +65,7 @@ public class PerformAnalysisOperation implements ContextServerOperation, Mergeab
   }
 
   @Override
-  public void performOperation(LocalAnalysisServerImpl server) {
+  public void performOperation(LocalAnalysisServerImpl server) throws Exception {
     server.internalPerformAnalysis(contextId);
   }
 }
