@@ -13,12 +13,12 @@
  */
 package com.google.dart.tools.ui.instrumentation;
 
+import com.google.dart.engine.utilities.instrumentation.Base64;
 import com.google.dart.engine.utilities.instrumentation.HealthUtils;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.feedback.FeedbackUtils;
 import com.google.dart.tools.ui.feedback.FeedbackUtils.Stats;
-import com.google.dart.tools.ui.instrumentation.util.Base64;
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.IEditorPart;
