@@ -15,6 +15,8 @@ package com.google.dart.engine.internal.cache;
 
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.utilities.collection.BooleanArray;
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
@@ -146,7 +148,7 @@ public abstract class SourceEntryImpl implements SourceEntry {
    */
   public void invalidateAllInformation() {
     content = null;
-    contentState = CacheState.INVALID;
+    contentState = checkContentState(CacheState.INVALID);
     lineInfo = null;
     lineInfoState = CacheState.INVALID;
   }
@@ -199,7 +201,7 @@ public abstract class SourceEntryImpl implements SourceEntry {
   public void setState(DataDescriptor<?> descriptor, CacheState state) {
     if (descriptor == CONTENT) {
       content = updatedValue(state, content, null);
-      contentState = state;
+      contentState = checkContentState(state);
     } else if (descriptor == LINE_INFO) {
       lineInfo = updatedValue(state, lineInfo, null);
       lineInfoState = state;
@@ -217,7 +219,7 @@ public abstract class SourceEntryImpl implements SourceEntry {
   public <E> void setValue(DataDescriptor<E> descriptor, E value) {
     if (descriptor == CONTENT) {
       content = (CharSequence) value;
-      contentState = CacheState.VALID;
+      contentState = checkContentState(CacheState.VALID);
     } else if (descriptor == LINE_INFO) {
       lineInfo = (LineInfo) value;
       lineInfoState = CacheState.VALID;
@@ -322,5 +324,23 @@ public abstract class SourceEntryImpl implements SourceEntry {
     builder.append(contentState);
     builder.append("; lineInfo = ");
     builder.append(lineInfoState);
+  }
+
+  /**
+   * If the state is changing from ERROR to anything else, capture the information. This is an
+   * attempt to discover the underlying cause of a long-standing bug.
+   * 
+   * @param newState the new state of the content
+   * @return the new state of the content
+   */
+  private CacheState checkContentState(CacheState newState) {
+    if (contentState == CacheState.ERROR) {
+      InstrumentationBuilder builder = Instrumentation.builder("SourceEntryImpl-checkContentState");
+      builder.data("message", "contentState changing from " + contentState + " to " + newState);
+      //builder.data("source", source.getFullName());
+      builder.record(new AnalysisException());
+      builder.log();
+    }
+    return newState;
   }
 }
