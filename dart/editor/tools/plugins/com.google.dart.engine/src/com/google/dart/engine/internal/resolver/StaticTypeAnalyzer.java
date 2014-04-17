@@ -38,7 +38,6 @@ import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
-import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
@@ -691,39 +690,17 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
       }
     }
     recordStaticType(node, typeProvider.getListType().substitute(new Type[] {staticType}));
-
-    NodeList<Expression> elements = node.getElements();
-    int count = elements.size();
-    if (count > 0) {
-      Type propagatedType = elements.get(0).getBestType();
-      for (int i = 1; i < count; i++) {
-        Type elementType = elements.get(i).getBestType();
-        if (!propagatedType.equals(elementType)) {
-          propagatedType = dynamicType;
-        } else {
-          propagatedType = propagatedType.getLeastUpperBound(elementType);
-          if (propagatedType == null) {
-            propagatedType = dynamicType;
-          }
-        }
-      }
-      if (propagatedType.isMoreSpecificThan(staticType)) {
-        recordPropagatedType(
-            node,
-            typeProvider.getListType().substitute(new Type[] {propagatedType}));
-      }
-    }
     return null;
   }
 
   /**
    * The Dart Language Specification, 12.7: <blockquote>The static type of a map literal of the form
-   * <i><b>const</b> &lt;String, V&gt; {k<sub>1</sub>:e<sub>1</sub>, &hellip;,
-   * k<sub>n</sub>:e<sub>n</sub>}</i> or the form <i>&lt;String, V&gt; {k<sub>1</sub>:e<sub>1</sub>,
-   * &hellip;, k<sub>n</sub>:e<sub>n</sub>}</i> is {@code Map&lt;String, V&gt;}. The static type a
-   * map literal of the form <i><b>const</b> {k<sub>1</sub>:e<sub>1</sub>, &hellip;,
+   * <i><b>const</b> &lt;K, V&gt; {k<sub>1</sub>:e<sub>1</sub>, &hellip;,
+   * k<sub>n</sub>:e<sub>n</sub>}</i> or the form <i>&lt;K, V&gt; {k<sub>1</sub>:e<sub>1</sub>,
+   * &hellip;, k<sub>n</sub>:e<sub>n</sub>}</i> is {@code Map&lt;K, V&gt;}. The static type a map
+   * literal of the form <i><b>const</b> {k<sub>1</sub>:e<sub>1</sub>, &hellip;,
    * k<sub>n</sub>:e<sub>n</sub>}</i> or the form <i>{k<sub>1</sub>:e<sub>1</sub>, &hellip;,
-   * k<sub>n</sub>:e<sub>n</sub>}</i> is {@code Map&lt;String, dynamic&gt;}.
+   * k<sub>n</sub>:e<sub>n</sub>}</i> is {@code Map&lt;dynamic, dynamic&gt;}.
    * <p>
    * It is a compile-time error if the first type argument to a map literal is not
    * <i>String</i>.</blockquote>
@@ -751,51 +728,6 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
     recordStaticType(
         node,
         typeProvider.getMapType().substitute(new Type[] {staticKeyType, staticValueType}));
-
-    NodeList<MapLiteralEntry> entries = node.getEntries();
-    int count = entries.size();
-    if (count > 0) {
-      MapLiteralEntry entry = entries.get(0);
-      Type propagatedKeyType = entry.getKey().getBestType();
-      Type propagatedValueType = entry.getValue().getBestType();
-      for (int i = 1; i < count; i++) {
-        entry = entries.get(i);
-        Type elementKeyType = entry.getKey().getBestType();
-        if (!propagatedKeyType.equals(elementKeyType)) {
-          propagatedKeyType = dynamicType;
-        } else {
-          propagatedKeyType = propagatedKeyType.getLeastUpperBound(elementKeyType);
-          if (propagatedKeyType == null) {
-            propagatedKeyType = dynamicType;
-          }
-        }
-        Type elementValueType = entry.getValue().getBestType();
-        if (!propagatedValueType.equals(elementValueType)) {
-          propagatedValueType = dynamicType;
-        } else {
-          propagatedValueType = propagatedValueType.getLeastUpperBound(elementValueType);
-          if (propagatedValueType == null) {
-            propagatedValueType = dynamicType;
-          }
-        }
-      }
-      boolean betterKey = propagatedKeyType != null
-          && propagatedKeyType.isMoreSpecificThan(staticKeyType);
-      boolean betterValue = propagatedValueType != null
-          && propagatedValueType.isMoreSpecificThan(staticValueType);
-      if (betterKey || betterValue) {
-        if (!betterKey) {
-          propagatedKeyType = staticKeyType;
-        }
-        if (!betterValue) {
-          propagatedValueType = staticValueType;
-        }
-        recordPropagatedType(
-            node,
-            typeProvider.getMapType().substitute(
-                new Type[] {propagatedKeyType, propagatedValueType}));
-      }
-    }
     return null;
   }
 

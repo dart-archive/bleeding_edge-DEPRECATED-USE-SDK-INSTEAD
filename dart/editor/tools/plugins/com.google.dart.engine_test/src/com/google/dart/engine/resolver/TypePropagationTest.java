@@ -719,7 +719,13 @@ public class TypePropagationTest extends ResolverTestCase {
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
     IndexExpression indexExpression = (IndexExpression) statement.getExpression();
-    assertSame(getTypeProvider().getIntType(), indexExpression.getPropagatedType());
+    assertNull(indexExpression.getPropagatedType());
+    Expression v = indexExpression.getTarget();
+    InterfaceType propagatedType = (InterfaceType) v.getPropagatedType();
+    assertSame(getTypeProvider().getListType().getElement(), propagatedType.getElement());
+    Type[] typeArguments = propagatedType.getTypeArguments();
+    assertLength(1, typeArguments);
+    assertSame(getTypeProvider().getDynamicType(), typeArguments[0]);
   }
 
   public void test_mapLiteral_different() throws Exception {
@@ -762,8 +768,8 @@ public class TypePropagationTest extends ResolverTestCase {
     assertSame(getTypeProvider().getMapType().getElement(), propagatedType.getElement());
     Type[] typeArguments = propagatedType.getTypeArguments();
     assertLength(2, typeArguments);
-    assertSame(getTypeProvider().getStringType(), typeArguments[0]);
-    assertSame(getTypeProvider().getIntType(), typeArguments[1]);
+    assertSame(getTypeProvider().getDynamicType(), typeArguments[0]);
+    assertSame(getTypeProvider().getDynamicType(), typeArguments[1]);
   }
 
   public void test_propagatedReturnType_function_hasReturnType_returnsNull() throws Exception {
