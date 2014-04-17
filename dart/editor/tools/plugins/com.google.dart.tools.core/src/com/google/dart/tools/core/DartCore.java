@@ -20,11 +20,12 @@ import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
 import com.google.dart.tools.core.internal.OptionManager;
+import com.google.dart.tools.core.internal.analysis.model.AnalysisServerDataImpl;
 import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
 import com.google.dart.tools.core.internal.analysis.model.WorkspaceAnalysisServerListener;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
@@ -317,19 +318,25 @@ public class DartCore extends Plugin implements DartSdkListener {
   private static final Object projectManagerLock = new Object();
 
   /**
-   * The unique {@link AnalysisServer} used for analysis of anything in the workspace
+   * The unique {@link AnalysisServer} used for analysis of anything in the workspace.
    */
   private static AnalysisServer analysisServer;
+
+  /**
+   * The unique {@link AnalysisServerDataImpl} instance.
+   */
+  private static AnalysisServerDataImpl analysisServerDataImpl = new AnalysisServerDataImpl();
+
+  /**
+   * The unique {@link WorkspaceAnalysisServerListener} instance.
+   */
+  private static WorkspaceAnalysisServerListener analysisServerListener = new WorkspaceAnalysisServerListener(
+      analysisServerDataImpl);
 
   /**
    * Used to synchronize access to {@link #analysisServer}.
    */
   private static final Object analysisServerLock = new Object();
-
-  /**
-   * The unique {@link WorkspaceAnalysisServerListener} used for the workspace.
-   */
-  private static AnalysisServerListener analysisServerListener;
 
   /**
    * Add the given listener for dart ignore changes to the Dart Model. Has no effect if an identical
@@ -451,11 +458,20 @@ public class DartCore extends Plugin implements DartSdkListener {
     synchronized (analysisServerLock) {
       if (analysisServer == null) {
         analysisServer = new com.google.dart.server.internal.local.LocalAnalysisServerImpl();
-        analysisServerListener = new WorkspaceAnalysisServerListener();
         analysisServer.addAnalysisServerListener(analysisServerListener);
       }
     }
     return analysisServer;
+  }
+
+  /**
+   * Answer the unique {@link AnalysisServerData} used to provide analysis information in the
+   * workspace.
+   * 
+   * @return the {@link AnalysisServerData} (not {@code null})
+   */
+  public static AnalysisServerData getAnalysisServerData() {
+    return analysisServerDataImpl;
   }
 
   /**

@@ -2373,6 +2373,8 @@ public class QuickAssistProcessorImplTest extends RefactoringImplTest {
     AssistContext context = new AssistContext(
         searchEngine,
         analysisContext,
+        null,
+        testSource,
         testUnit,
         selectionOffset,
         selectionLength);

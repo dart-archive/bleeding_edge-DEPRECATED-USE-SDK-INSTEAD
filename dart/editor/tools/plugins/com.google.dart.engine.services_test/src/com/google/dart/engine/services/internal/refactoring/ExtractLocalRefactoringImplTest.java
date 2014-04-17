@@ -884,6 +884,8 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     AssistContext context = new AssistContext(
         searchEngine,
         analysisContext,
+        null,
+        testSource,
         testUnit,
         selectionStart,
         selectionLength);

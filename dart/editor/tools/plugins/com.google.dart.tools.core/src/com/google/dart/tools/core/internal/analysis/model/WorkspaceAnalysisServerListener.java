@@ -30,6 +30,12 @@ import org.eclipse.core.resources.IResource;
  * Implementation of {@link AnalysisServerListener} for the Eclipse workspace.
  */
 public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
+  private final AnalysisServerDataImpl dataImpl;
+
+  public WorkspaceAnalysisServerListener(AnalysisServerDataImpl dataImpl) {
+    this.dataImpl = dataImpl;
+  }
+
   @Override
   public void computedErrors(String contextId, Source source, AnalysisError[] errors) {
     IResource resource = DartCore.getProjectManager().getResource(source);
@@ -45,10 +51,18 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedNavigation(String contextId, Source source, NavigationRegion[] targets) {
+    dataImpl.internalComputedNavigation(contextId, source, targets);
   }
 
   @Override
   public void computedOutline(String contextId, Source source, Outline outline) {
+  }
+
+  /**
+   * Deletes all the data associated with the given context.
+   */
+  public void internalDeleteContext(String contextId) {
+    dataImpl.internalDeleteContext(contextId);
   }
 
   @Override

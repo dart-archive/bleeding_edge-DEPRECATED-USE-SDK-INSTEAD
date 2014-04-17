@@ -1362,7 +1362,14 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
    * Creates {@link ExtractLocalRefactoring} in {@link #refactoring}.
    */
   private void createRefactoring() throws Exception {
-    AssistContext context = new AssistContext(searchEngine, analysisContext, testUnit, selection, 0);
+    AssistContext context = new AssistContext(
+        searchEngine,
+        analysisContext,
+        null,
+        testSource,
+        testUnit,
+        selection,
+        0);
     refactoring = new InlineMethodRefactoringImpl(context);
     refactoring.setCurrentMode(currentMode);
     refactoring.setDeleteSource(deleteSource);

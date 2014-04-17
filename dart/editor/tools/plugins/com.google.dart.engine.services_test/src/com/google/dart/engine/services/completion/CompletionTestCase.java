@@ -93,7 +93,8 @@ public class CompletionTestCase extends ResolverTestCase {
         "Expected exclamation point ('!') within the source"
             + " denoting the position at which code completion should occur",
         !completionTests.isEmpty());
-    sources.add(addSource(completionTests.iterator().next().source));
+    Source source = addSource(completionTests.iterator().next().source);
+    sources.add(source);
     CompilationUnit compilationUnit = resolveAndIndex(sources);
     AnalysisContext analysisContext = getAnalysisContext();
     CompletionFactory factory = new CompletionFactory();
@@ -103,6 +104,8 @@ public class CompletionTestCase extends ResolverTestCase {
       engine.complete(new AssistContext(
           searchEngine,
           analysisContext,
+          null,
+          source,
           compilationUnit,
           test.testLocation,
           0));

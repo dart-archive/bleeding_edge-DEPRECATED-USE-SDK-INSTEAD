@@ -2473,6 +2473,8 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     AssistContext context = new AssistContext(
         searchEngine,
         analysisContext,
+        null,
+        testSource,
         testUnit,
         selectionStart,
         selectionLength);

@@ -31,6 +31,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
 public class AssistContext {
   private final SearchEngine searchEngine;
   private final AnalysisContext analysisContext;
+  private final String analysisContextId;
+  private final Source source;
   private final CompilationUnit compilationUnit;
   private final int selectionOffset;
   private final int selectionLength;
@@ -40,19 +42,25 @@ public class AssistContext {
   private boolean coveredElementFound;
 
   public AssistContext(SearchEngine searchEngine, AnalysisContext analysisContext,
-      CompilationUnit compilationUnit, int selectionOffset, int selectionLength) {
+      String analysisContextId, Source source, CompilationUnit compilationUnit,
+      int selectionOffset, int selectionLength) {
     this.searchEngine = searchEngine;
     this.analysisContext = analysisContext;
+    this.analysisContextId = analysisContextId;
+    this.source = source;
     this.compilationUnit = compilationUnit;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
   }
 
   public AssistContext(SearchEngine searchEngine, AnalysisContext analysisContext,
-      CompilationUnit compilationUnit, SourceRange selectionRange) {
+      String analysisContextId, Source source, CompilationUnit compilationUnit,
+      SourceRange selectionRange) {
     this(
         searchEngine,
         analysisContext,
+        analysisContextId,
+        source,
         compilationUnit,
         selectionRange.getOffset(),
         selectionRange.getLength());
@@ -63,6 +71,13 @@ public class AssistContext {
    */
   public AnalysisContext getAnalysisContext() {
     return analysisContext;
+  }
+
+  /**
+   * @return the context id in which {@link Source} is analyzed.
+   */
+  public String getAnalysisContextId() {
+    return analysisContextId;
   }
 
   /**
@@ -159,10 +174,6 @@ public class AssistContext {
    * @return the {@link Source} to provide corrections in.
    */
   public Source getSource() {
-    CompilationUnitElement element = compilationUnit.getElement();
-    if (element != null) {
-      return element.getSource();
-    }
-    return null;
+    return source;
   }
 }

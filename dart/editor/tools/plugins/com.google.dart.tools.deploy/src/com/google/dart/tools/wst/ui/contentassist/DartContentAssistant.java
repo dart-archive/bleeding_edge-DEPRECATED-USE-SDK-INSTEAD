@@ -15,8 +15,10 @@ package com.google.dart.tools.wst.ui.contentassist;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProposalComputer;
 import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
@@ -57,9 +59,18 @@ public class DartContentAssistant implements ICompletionProposalComputer {
 
     @Override
     public AssistContext getAssistContext() {
+      Source source = null;
+      if (unit != null) {
+        CompilationUnitElement unitElement = unit.getElement();
+        if (unitElement != null) {
+          source = unitElement.getSource();
+        }
+      }
       return new AssistContext(
           SearchEngineFactory.createSearchEngine(DartCore.getProjectManager().getIndex()),
           context,
+          null,
+          source,
           unit,
           super.getInvocationOffset(),
           0);

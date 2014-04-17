@@ -41,6 +41,8 @@ public class AssistContextTest extends AbstractDartTest {
     AssistContext context = new AssistContext(
         searchEngine,
         analysisContext,
+        null,
+        source,
         compilationUnit,
         selectionOffset,
         selectionLength);
@@ -53,9 +55,17 @@ public class AssistContextTest extends AbstractDartTest {
   }
 
   public void test_access_noElement() throws Exception {
+    Source source = mock(Source.class);
     CompilationUnit compilationUnit = mock(CompilationUnit.class);
-    AssistContext context = new AssistContext(searchEngine, analysisContext, compilationUnit, 0, 0);
-    assertSame(null, context.getSource());
+    AssistContext context = new AssistContext(
+        searchEngine,
+        analysisContext,
+        null,
+        source,
+        compilationUnit,
+        0,
+        0);
+    assertSame(source, context.getSource());
   }
 
   public void test_getCoveredElement() throws Exception {
@@ -71,6 +81,8 @@ public class AssistContextTest extends AbstractDartTest {
     AssistContext context = new AssistContext(
         searchEngine,
         analysisContext,
+        null,
+        testSource,
         testUnit,
         selectionOffset,
         selectionLength);
@@ -80,7 +92,15 @@ public class AssistContextTest extends AbstractDartTest {
   }
 
   public void test_getCoveredElement_null() throws Exception {
-    AssistContext context = new AssistContext(searchEngine, analysisContext, null, 0, 0);
+    Source source = mock(Source.class);
+    AssistContext context = new AssistContext(
+        searchEngine,
+        analysisContext,
+        null,
+        source,
+        null,
+        0,
+        0);
     assertNull(context.getCoveredElement());
   }
 
@@ -99,6 +119,8 @@ public class AssistContextTest extends AbstractDartTest {
       AssistContext context = new AssistContext(
           searchEngine,
           analysisContext,
+          null,
+          testSource,
           testUnit,
           selectionOffset,
           selectionLength);
@@ -116,6 +138,8 @@ public class AssistContextTest extends AbstractDartTest {
       AssistContext context = new AssistContext(
           searchEngine,
           analysisContext,
+          null,
+          testSource,
           testUnit,
           selectionOffset,
           selectionLength);
@@ -128,10 +152,13 @@ public class AssistContextTest extends AbstractDartTest {
   }
 
   public void test_new_SourceRange() throws Exception {
+    Source source = mock(Source.class);
     CompilationUnit compilationUnit = mock(CompilationUnit.class);
     AssistContext context = new AssistContext(
         searchEngine,
         analysisContext,
+        null,
+        source,
         compilationUnit,
         new SourceRange(10, 2));
     assertSame(compilationUnit, context.getCompilationUnit());

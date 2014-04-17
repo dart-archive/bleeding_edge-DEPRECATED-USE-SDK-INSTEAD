@@ -33,7 +33,6 @@ import com.google.dart.engine.source.UriResolver;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SourceSet;
-import com.google.dart.server.SourceSetKind;
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -863,20 +862,13 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       String sdkPath = ((DirectoryBasedDartSdk) getSdk()).getDirectory().getAbsolutePath();
       AnalysisServer analysisServer = DartCore.getAnalysisServer();
       defaultContextId = analysisServer.createContext(projectResource.getName(), sdkPath, null);
-      // TODO(scheglov) Analysis Server: add SourceSetKind unique instances 
       analysisServer.subscribe(
           defaultContextId,
-          ImmutableMap.<NotificationKind, SourceSet> of(NotificationKind.ERRORS, new SourceSet() {
-            @Override
-            public SourceSetKind getKind() {
-              return SourceSetKind.NON_SDK;
-            }
-
-            @Override
-            public Source[] getSources() {
-              return null;
-            }
-          }));
+          ImmutableMap.of(NotificationKind.ERRORS, SourceSet.EXPLICITLY_ADDED));
+      // TODO(scheglov) Analysis Server: request navigation dynamically
+      analysisServer.subscribe(
+          defaultContextId,
+          ImmutableMap.of(NotificationKind.NAVIGATION, SourceSet.ALL));
       defaultResourceMap = new SimpleResourceMapImpl(
           projectResource,
           defaultContext,

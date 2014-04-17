@@ -33,6 +33,7 @@ import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -2281,19 +2282,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   @Override
   public String getInputAnalysisContextId() {
     if (inputResourceFile != null) {
-      // Usually ProjectManager is initialized and knows all contexts.
-      // However sometimes this method is called when ProjectManager needs to initialize contexts.
-      return TimeboxUtils.runObject(new RunnableObject<String>() {
-        @Override
-        public String runObject() {
-          return DartCore.getProjectManager().getContextId(inputResourceFile);
-        }
-      }, null, 50, TimeUnit.MILLISECONDS);
+      return DartCore.getProjectManager().getContextId(inputResourceFile);
     }
     // TODO(scheglov) Analysis Server
-//    if (inputJavaFile != null) {
-//      return DartCore.getProjectManager().getSdkContext();
-//    }
+    //    if (inputJavaFile != null) {
+    //      return DartCore.getProjectManager().getSdkContext();
+    //    }
     return null;
   }
 
@@ -4407,8 +4401,34 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private AssistContext getAssistContext(ITextSelection textSelection) {
     try {
+      Source source = getInputSource();
+      if (source == null) {
+        return null;
+      }
+      // prepare selection
       if (textSelection == null) {
         return null;
+      }
+      int selectionOffset = 0;
+      int selectionLength = 0;
+      {
+        selectionOffset = textSelection.getOffset();
+        selectionLength = textSelection.getLength();
+      }
+      // TODO(scheglov) Analysis Server
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        String analysisContextId = getInputAnalysisContextId();
+        if (analysisContextId == null) {
+          return null;
+        }
+        return new AssistContext(
+            null/*SearchEngineFactory.createSearchEngine(index)*/,
+            null,
+            analysisContextId,
+            source,
+            null,
+            selectionOffset,
+            selectionLength);
       }
       // prepare AnalysisContext
       AnalysisContext analysisContext = getInputAnalysisContext();
@@ -4423,18 +4443,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (unit.getElement() == null) {
         return null;
       }
-      // prepare selection
-      int selectionOffset = 0;
-      int selectionLength = 0;
-      {
-        selectionOffset = textSelection.getOffset();
-        selectionLength = textSelection.getLength();
-      }
       // return AssistContext
       Index index = DartCore.getProjectManager().getIndex();
       return new AssistContext(
           SearchEngineFactory.createSearchEngine(index),
           analysisContext,
+          null,
+          source,
           unit,
           selectionOffset,
           selectionLength);

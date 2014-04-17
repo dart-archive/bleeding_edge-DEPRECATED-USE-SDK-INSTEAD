@@ -19,6 +19,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchScope;
 import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.NavigationTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -898,6 +899,15 @@ public final class DartUI {
     }
     // done
     return part;
+  }
+
+  /**
+   * Opens an editor on the given Dart element in the active page.
+   */
+  public static IEditorPart openInEditor(NavigationTarget target) throws Exception {
+    IEditorPart editor = EditorUtility.openInEditor(target.getSource());
+    EditorUtility.revealInEditor(editor, target.getOffset(), target.getLength());
+    return editor;
   }
 
   /**

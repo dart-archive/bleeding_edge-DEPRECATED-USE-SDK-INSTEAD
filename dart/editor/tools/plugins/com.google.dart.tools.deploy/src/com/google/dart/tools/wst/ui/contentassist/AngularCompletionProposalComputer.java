@@ -267,6 +267,8 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
           SearchEngineFactory.createSearchEngine(index),
           analysisContext,
           null,
+          null,
+          null,
           offset,
           0) {
         @Override

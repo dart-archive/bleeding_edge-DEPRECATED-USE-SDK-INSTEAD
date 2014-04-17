@@ -20,6 +20,12 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.polymer.PolymerTagDartElement;
 import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
+import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.source.Source;
+import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.NavigationTarget;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -41,15 +47,24 @@ public class OpenAction extends AbstractDartSelectionAction {
    * @return {@code true} if given {@link DartSelection} looks valid and we can try to open it.
    */
   private static boolean isValidSelection(DartSelection selection) {
-    // if we are already on declaration, we don't need to open anything
-    AstNode node = getSelectionNode(selection);
-    if (node instanceof SimpleIdentifier) {
-      if (((SimpleIdentifier) node).inDeclarationContext()) {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      AssistContext assistContext = selection.getContext();
+      if (assistContext == null) {
         return false;
       }
+      // TODO(scheglov) Analysis Server: add more checks (maybe)
+      return true;
+    } else {
+      // if we are already on declaration, we don't need to open anything
+      AstNode node = getSelectionNode(selection);
+      if (node instanceof SimpleIdentifier) {
+        if (((SimpleIdentifier) node).inDeclarationContext()) {
+          return false;
+        }
+      }
+      // interesting elements
+      return isInterestingElementSelected(selection);
     }
-    // interesting elements
-    return isInterestingElementSelected(selection);
   }
 
   public OpenAction(DartEditor editor) {
@@ -79,15 +94,36 @@ public class OpenAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    AstNode node = getSelectionNode(selection);
-    Element element = getSelectionElement(selection);
-    // if are on get FieldFormalParameter, open field instead
-    if (node.getParent() instanceof FieldFormalParameter
-        && element instanceof FieldFormalParameterElement) {
-      element = ((FieldFormalParameterElement) element).getField();
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      int offset = selection.getOffset();
+      AssistContext assistContext = selection.getContext();
+      String contextId = assistContext.getAnalysisContextId();
+      Source source = assistContext.getSource();
+      NavigationRegion[] regions = DartCore.getAnalysisServerData().getNavigation(contextId, source);
+      for (NavigationRegion navigationRegion : regions) {
+        if (navigationRegion.containsInclusive(offset)) {
+          for (NavigationTarget target : navigationRegion.getTargets()) {
+            try {
+              DartUI.openInEditor(target);
+              return;
+            } catch (Throwable e) {
+              ExceptionHandler.handle(e, getText(), "Exception during open.");
+            }
+          }
+          return;
+        }
+      }
+    } else {
+      AstNode node = getSelectionNode(selection);
+      Element element = getSelectionElement(selection);
+      // if are on get FieldFormalParameter, open field instead
+      if (node.getParent() instanceof FieldFormalParameter
+          && element instanceof FieldFormalParameterElement) {
+        element = ((FieldFormalParameterElement) element).getField();
+      }
+      // do open Element
+      openElement(element);
     }
-    // do open Element
-    openElement(element);
   }
 
   @Override
