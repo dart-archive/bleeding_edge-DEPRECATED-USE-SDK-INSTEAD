@@ -24,18 +24,20 @@ import com.google.dart.server.NavigationTarget;
  */
 public class NavigationTargetImpl implements NavigationTarget {
   private final Source source;
+  private final String elementId;
   private final int offset;
   private final int length;
 
-  public NavigationTargetImpl(Source source, int offset, int length) {
+  public NavigationTargetImpl(Source source, String elementId, int offset, int length) {
     this.source = source;
+    this.elementId = elementId;
     this.offset = offset;
     this.length = length;
   }
 
   @Override
   public String getElementId() {
-    throw new UnsupportedOperationException();
+    return elementId;
   }
 
   @Override
@@ -62,6 +64,8 @@ public class NavigationTargetImpl implements NavigationTarget {
     builder.append(length);
     builder.append(", source=");
     builder.append(source);
+    builder.append(", element=");
+    builder.append(elementId);
     builder.append("]");
     return builder.toString();
   }

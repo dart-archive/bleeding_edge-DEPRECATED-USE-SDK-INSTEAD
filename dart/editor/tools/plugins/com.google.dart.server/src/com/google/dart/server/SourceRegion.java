@@ -21,6 +21,11 @@ package com.google.dart.server;
  */
 public interface SourceRegion {
   /**
+   * Check if <code>x</code> is in [offset, offset + length] interval.
+   */
+  public boolean containsInclusive(int x);
+
+  /**
    * Return the length of the region.
    * 
    * @return the length of the region

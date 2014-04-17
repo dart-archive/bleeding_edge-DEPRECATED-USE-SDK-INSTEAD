@@ -12,4 +12,5 @@ Require-Bundle: com.google.dart.thirdparty,
  com.google.dart.engine
 Export-Package: com.google.dart.server,
  com.google.dart.server.internal.local;x-friends:="com.google.dart.server_test",
+ com.google.dart.server.internal.local.computer;x-friends:="com.google.dart.server_test",
  com.google.dart.server.internal.local.operation;x-friends:="com.google.dart.server_test"

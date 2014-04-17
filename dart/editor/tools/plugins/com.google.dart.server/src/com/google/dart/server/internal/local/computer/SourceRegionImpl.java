@@ -31,6 +31,11 @@ public class SourceRegionImpl implements SourceRegion {
   }
 
   @Override
+  public boolean containsInclusive(int x) {
+    return offset <= x && x <= offset + length;
+  }
+
+  @Override
   public int getLength() {
     return length;
   }

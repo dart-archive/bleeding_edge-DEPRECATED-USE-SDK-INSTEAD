@@ -20,6 +20,9 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(DartUnitNavigationComputerTest.class);
+    suite.addTestSuite(NavigationRegionImplTest.class);
+    suite.addTestSuite(NavigationTargetImplTest.class);
+    suite.addTestSuite(SourceRegionImplTest.class);
     return suite;
   }
 }

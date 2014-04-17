@@ -130,7 +130,12 @@ public class DartUnitNavigationComputer {
     }
     return new NavigationTargetImpl(
         element.getSource(),
+        getElementId(element),
         element.getNameOffset(),
         element.getDisplayName().length());
+  }
+
+  private String getElementId(Element element) {
+    return element.getLocation().getEncoding();
   }
 }
