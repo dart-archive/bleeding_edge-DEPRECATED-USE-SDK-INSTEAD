@@ -2278,6 +2278,25 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return null;
   }
 
+  @Override
+  public String getInputAnalysisContextId() {
+    if (inputResourceFile != null) {
+      // Usually ProjectManager is initialized and knows all contexts.
+      // However sometimes this method is called when ProjectManager needs to initialize contexts.
+      return TimeboxUtils.runObject(new RunnableObject<String>() {
+        @Override
+        public String runObject() {
+          return DartCore.getProjectManager().getContextId(inputResourceFile);
+        }
+      }, null, 50, TimeUnit.MILLISECONDS);
+    }
+    // TODO(scheglov) Analysis Server
+//    if (inputJavaFile != null) {
+//      return DartCore.getProjectManager().getSdkContext();
+//    }
+    return null;
+  }
+
   /**
    * Alternative to {@link #getInputDartElement()} that returns the Analysis engine
    * {@link com.google.dart.engine.element.Element} instead of a {@link DartElement}.

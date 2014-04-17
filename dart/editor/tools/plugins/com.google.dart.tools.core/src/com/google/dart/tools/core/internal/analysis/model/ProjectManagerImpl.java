@@ -139,6 +139,18 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
+  public String getContextId(IResource resource) {
+    if (resource == null) {
+      return null;
+    }
+    Project project = getProject(resource.getProject());
+    if (project == null) {
+      return null;
+    }
+    return project.getContextId(resource);
+  }
+
+  @Override
   public IResource getHtmlFileForLibrary(Source source) {
     AnalysisContext context = getContext(getResource(source));
     if (context != null) {

@@ -16,10 +16,12 @@ package com.google.dart.tools.ui.internal.text.dart;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.ContextManager;
@@ -311,16 +313,25 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * @param code the new source code or {@code null} if the source should be pulled from disk
    */
   private void sourceChanged(String code) {
-    AnalysisContext context = editor.getInputAnalysisContext();
     Source source = editor.getInputSource();
-    if (context != null && source != null) {
-      ContextManager manager = getContextManager();
-      DartUpdateSourceHelper.getInstance().updateFast(
-          analysisManager,
-          manager,
-          context,
-          source,
-          code);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      String contextId = editor.getInputAnalysisContextId();
+      if (contextId != null && source != null) {
+        ChangeSet changeSet = new ChangeSet();
+        changeSet.changedContent(source, code);
+        DartCore.getAnalysisServer().applyChanges(contextId, changeSet);
+      }
+    } else {
+      AnalysisContext context = editor.getInputAnalysisContext();
+      if (context != null && source != null) {
+        ContextManager manager = getContextManager();
+        DartUpdateSourceHelper.getInstance().updateFast(
+            analysisManager,
+            manager,
+            context,
+            source,
+            code);
+      }
     }
   }
 
@@ -333,19 +344,28 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * @param newLength the number of characters in the replacement text
    */
   private void sourceChanged(String code, int offset, int oldLength, int newLength) {
-    AnalysisContext context = editor.getInputAnalysisContext();
     Source source = editor.getInputSource();
-    if (context != null && source != null) {
-      ContextManager manager = getContextManager();
-      DartUpdateSourceHelper.getInstance().updateFast(
-          analysisManager,
-          manager,
-          context,
-          source,
-          code,
-          offset,
-          oldLength,
-          newLength);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      String contextId = editor.getInputAnalysisContextId();
+      if (contextId != null && source != null) {
+        ChangeSet changeSet = new ChangeSet();
+        changeSet.changedRange(source, code, offset, oldLength, newLength);
+        DartCore.getAnalysisServer().applyChanges(contextId, changeSet);
+      }
+    } else {
+      AnalysisContext context = editor.getInputAnalysisContext();
+      if (context != null && source != null) {
+        ContextManager manager = getContextManager();
+        DartUpdateSourceHelper.getInstance().updateFast(
+            analysisManager,
+            manager,
+            context,
+            source,
+            code,
+            offset,
+            oldLength,
+            newLength);
+      }
     }
   }
 }

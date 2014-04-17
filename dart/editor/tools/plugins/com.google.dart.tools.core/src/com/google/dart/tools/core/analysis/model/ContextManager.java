@@ -58,6 +58,15 @@ public interface ContextManager {
   AnalysisContext getContext(IResource resource);
 
   /**
+   * Answer the context identifier used to analyze the specified resource.
+   * 
+   * @param resource a resource (not {@code null})
+   * @return the context identifier used for analysis or {@code null} if the context was not cached
+   *         and could not be created because the container's location could not be determined
+   */
+  String getContextId(IResource resource);
+
+  /**
    * Answer the LibraryElement associated with the specified file
    * 
    * @param file the file (not {@code null})

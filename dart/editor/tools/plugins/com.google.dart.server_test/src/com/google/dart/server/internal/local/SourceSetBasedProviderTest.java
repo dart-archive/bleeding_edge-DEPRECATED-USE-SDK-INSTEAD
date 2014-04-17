@@ -164,6 +164,12 @@ public class SourceSetBasedProviderTest extends TestCase {
     assertSetIsEqualTo(newProviderB().computeNewSources(null), sourceA, sourceB);
   }
 
+  public void test_create_notList() throws Exception {
+    when(sourceSet.getKind()).thenReturn(SourceSetKind.ALL);
+    when(sourceSet.getSources()).thenThrow(new IllegalStateException("Should not be called"));
+    newProvider();
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();

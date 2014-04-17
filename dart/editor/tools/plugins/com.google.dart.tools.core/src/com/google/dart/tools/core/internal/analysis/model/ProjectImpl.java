@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
@@ -29,6 +30,10 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.UriResolver;
+import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.NotificationKind;
+import com.google.dart.server.SourceSet;
+import com.google.dart.server.SourceSetKind;
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -278,6 +283,14 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     synchronized (pubFolders) {
       PubFolder pubFolder = getPubFolder(resource);
       return pubFolder != null ? pubFolder.getContext() : defaultContext;
+    }
+  }
+
+  @Override
+  public String getContextId(IResource resource) {
+    synchronized (pubFolders) {
+      PubFolder pubFolder = getPubFolder(resource);
+      return pubFolder != null ? pubFolder.getContextId() : defaultContextId;
     }
   }
 
@@ -848,10 +861,22 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       // TODO(scheglov) Analysis Server: packages map
       String sdkPath = ((DirectoryBasedDartSdk) getSdk()).getDirectory().getAbsolutePath();
-      defaultContextId = DartCore.getAnalysisServer().createContext(
-          projectResource.getName(),
-          sdkPath,
-          null);
+      AnalysisServer analysisServer = DartCore.getAnalysisServer();
+      defaultContextId = analysisServer.createContext(projectResource.getName(), sdkPath, null);
+      // TODO(scheglov) Analysis Server: add SourceSetKind unique instances 
+      analysisServer.subscribe(
+          defaultContextId,
+          ImmutableMap.<NotificationKind, SourceSet> of(NotificationKind.ERRORS, new SourceSet() {
+            @Override
+            public SourceSetKind getKind() {
+              return SourceSetKind.NON_SDK;
+            }
+
+            @Override
+            public Source[] getSources() {
+              return null;
+            }
+          }));
       defaultResourceMap = new SimpleResourceMapImpl(
           projectResource,
           defaultContext,

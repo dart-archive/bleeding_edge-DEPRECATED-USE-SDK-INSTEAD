@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.SourceSet;
+import com.google.dart.server.SourceSetKind;
 
 import java.util.Set;
 
@@ -42,7 +43,8 @@ public class SourceSetBaseProvider {
    */
   public SourceSetBaseProvider(SourceSet set, Set<Source> knownSources, Set<Source> addedSources) {
     this.set = set;
-    this.listedSources = ImmutableSet.copyOf(set.getSources());
+    this.listedSources = set.getKind() == SourceSetKind.LIST
+        ? ImmutableSet.copyOf(set.getSources()) : ImmutableSet.<Source> of();
     this.knownSources = knownSources;
     this.addedSources = addedSources;
   }
