@@ -96,7 +96,7 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
     String contextId = createContext("test");
     Source source = addSource(contextId, "/test.dart", makeSource(//
         "main() {",
-        "  var v = [1, 2, 3];",
+        "  List<int> v = [1, 2, 3];",
         "  v[0]; // []",
         "  v[1] = 1; // []=",
         "  v[2] += 2;",
@@ -117,7 +117,7 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
     String contextId = createContext("test");
     Source source = addSource(contextId, "/test.dart", makeSource(//
         "main() {",
-        "  var v = {0: 0, 1 : 10, 2: 20};",
+        "  Map<int, int> v = {0: 0, 1 : 10, 2: 20};",
         "  v[0]; // []",
         "  v[1] = 1; // []=",
         "  v[2] += 2;",

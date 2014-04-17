@@ -12,22 +12,21 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local.computer;
+package com.google.dart.server.internal.local;
 
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.SourceSetKind;
 
-public class TestKindSourceSet implements SourceSet {
-  public static final SourceSet ALL = new TestKindSourceSet(SourceSetKind.ALL);
-
-  public static SourceSet create(SourceSetKind kind) {
-    return new TestKindSourceSet(kind);
-  }
-
+/**
+ * An implementation of {@link SourceSet} for some {@link SourceSetKind}.
+ * 
+ * @coverage dart.server.local
+ */
+public class ImplicitSourceSet implements SourceSet {
   private final SourceSetKind kind;
 
-  private TestKindSourceSet(SourceSetKind kind) {
+  public ImplicitSourceSet(SourceSetKind kind) {
     this.kind = kind;
   }
 

@@ -22,7 +22,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.NotificationKind;
-import com.google.dart.server.internal.local.computer.TestKindSourceSet;
+import com.google.dart.server.SourceSet;
 import com.google.dart.server.internal.local.computer.TestListSourceSet;
 import com.google.dart.server.internal.local.operation.ServerOperation;
 import com.google.dart.server.internal.local.operation.ServerOperationPriority;
@@ -253,7 +253,7 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
 
   public void test_subscribe_ERRORS() throws Exception {
     String contextId = createContext("test");
-    server.subscribe(contextId, ImmutableMap.of(NotificationKind.ERRORS, TestKindSourceSet.ALL));
+    server.subscribe(contextId, ImmutableMap.of(NotificationKind.ERRORS, SourceSet.ALL));
     Source sourceA = addSource(contextId, "/testA.dart", "library testA");
     Source sourceB = addSource(contextId, "/testB.dart", "class {}");
     server.test_waitForWorkerComplete();

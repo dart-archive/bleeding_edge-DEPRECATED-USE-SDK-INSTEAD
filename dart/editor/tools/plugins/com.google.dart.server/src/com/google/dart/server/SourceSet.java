@@ -15,6 +15,7 @@
 package com.google.dart.server;
 
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.internal.local.ImplicitSourceSet;
 
 /**
  * The interface {@code SourceSet} defines the behavior of objects that represent a set of
@@ -23,6 +24,21 @@ import com.google.dart.engine.source.Source;
  * @coverage dart.server
  */
 public interface SourceSet {
+  /**
+   * An instance of {@link SourceSet} for {@link SourceSetKind#ALL}.
+   */
+  SourceSet ALL = new ImplicitSourceSet(SourceSetKind.ALL);
+
+  /**
+   * An instance of {@link SourceSet} for {@link SourceSetKind#NON_SDK}.
+   */
+  SourceSet NON_SDK = new ImplicitSourceSet(SourceSetKind.NON_SDK);
+
+  /**
+   * An instance of {@link SourceSet} for {@link SourceSetKind#EXPLICITLY_ADDED}.
+   */
+  SourceSet EXPLICITLY_ADDED = new ImplicitSourceSet(SourceSetKind.EXPLICITLY_ADDED);
+
   /**
    * Return the kind of the this source set.
    */
