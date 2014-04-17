@@ -79,20 +79,28 @@
             icon="icons/chromium_16_ps.png"
             id="com.google.dart.tools.debug.ui.pubServeLaunchImage">
       </launchConfigurationTypeImage>
+       <launchConfigurationTypeImage
+            configTypeID="com.google.dart.tools.debug.core.mobileLaunchConfig"
+            icon="icons/phone.png"
+            id="com.google.dart.tools.debug.ui.mobileLaunchImage">
+      </launchConfigurationTypeImage>
    </extension>
 
+
    <extension
-         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">   
+      <launchConfigurationTabGroup
+            class="com.google.dart.tools.debug.ui.internal.mobile.MobileLaunchConfigurationTabGroup"
+            id="com.google.dart.tools.debug.core.mobileLaunchConfigTabGroup"
+            type="com.google.dart.tools.debug.core.mobileLaunchConfig"
+            description="Run a Dart web application in a browser on a device">
+      </launchConfigurationTabGroup>
       <launchConfigurationTabGroup
             class="com.google.dart.tools.debug.ui.internal.dartium.DartiumTabGroup"
             id="com.google.dart.tools.debug.core.chromeLaunchConfigTabGroup"
             type="com.google.dart.tools.debug.core.dartiumLaunchConfig"
             description="Run a Dart web application in Dartium">
       </launchConfigurationTabGroup>
-   </extension>
-  
-  <extension
-         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
             class="com.google.dart.tools.debug.ui.internal.pubserve.PubServeTabGroup"
             id="com.google.dart.tools.debug.core.pubServeLaunchConfigTabGroup"

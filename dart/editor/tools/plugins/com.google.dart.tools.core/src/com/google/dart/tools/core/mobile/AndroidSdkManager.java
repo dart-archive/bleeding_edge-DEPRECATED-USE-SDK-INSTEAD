@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.mobile;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.osgi.service.prefs.BackingStoreException;
@@ -25,7 +26,9 @@ import java.io.File;
  */
 public class AndroidSdkManager {
 
-  public static final String ANDROID_SDK_LOCATION_PREFENCE = "androidSdkLocation";
+  public static final String ANDROID_SDK_LOCATION_PREFERENCE = "androidSdkLocation";
+
+  private static final String CONTENT_SHELL_APK = "content_shell-android-arm-release.apk";
 
   private static AndroidSdkManager manager = new AndroidSdkManager();
 
@@ -33,13 +36,20 @@ public class AndroidSdkManager {
     return manager;
   }
 
+  // TODO(keertip): get the apk into the dart-sdk
+  // for now assume apk is in dart-sdk/chromium directory
+  public String getContentShellApkLocation() {
+    return DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory().getAbsolutePath()
+        + File.separator + CONTENT_SHELL_APK;
+  }
+
   public String getSdkLocationPreference() {
-    return DartCore.getPlugin().getPrefs().get(ANDROID_SDK_LOCATION_PREFENCE, "");
+    return DartCore.getPlugin().getPrefs().get(ANDROID_SDK_LOCATION_PREFERENCE, "");
   }
 
   public void setSdkLocationPreference(String location) {
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
-    prefs.put(ANDROID_SDK_LOCATION_PREFENCE, location);
+    prefs.put(ANDROID_SDK_LOCATION_PREFERENCE, location);
 
     try {
       prefs.flush();
@@ -49,7 +59,10 @@ public class AndroidSdkManager {
   }
 
   File getAdbExecutable() {
-    //TODO(keertip): return adb executable android-sdk/platform-tools/adb
+    String sdkLocation = getSdkLocationPreference();
+    if (!sdkLocation.isEmpty()) {
+      return new File(sdkLocation, "platform-tools" + File.separator + "adb");
+    }
     return null;
   }
 

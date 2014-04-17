@@ -44,7 +44,7 @@ public class DartLaunchConfigWrapper {
   private static final String SOURCE_DIRECTORY = "sourceDirectory";
   private static final String URL_QUERY_PARAMS = "urlQueryParams";
   private static final String DART2JS_FLAGS = "dart2jsFlags";
-  private static final String COMPILE_BEFORE_LAUNCH = "runDart2js";
+  private static final String LAUNCH_CONTENT_SHELL = "runContentShell";
 
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
   private static final String SHOW_LAUNCH_OUTPUT = "showLaunchOutput";
@@ -239,6 +239,16 @@ public class DartLaunchConfigWrapper {
     }
   }
 
+  public boolean getLaunchContentShell() {
+    try {
+      return launchConfig.getAttribute(LAUNCH_CONTENT_SHELL, true);
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return false;
+    }
+  }
+
   /**
    * @return the DartProject that contains the application to run
    */
@@ -276,16 +286,6 @@ public class DartLaunchConfigWrapper {
       DartDebugCorePlugin.logError(e);
 
       return "";
-    }
-  }
-
-  public boolean getRunDart2js() {
-    try {
-      return launchConfig.getAttribute(COMPILE_BEFORE_LAUNCH, true);
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return false;
     }
   }
 
@@ -467,6 +467,10 @@ public class DartLaunchConfigWrapper {
     getWorkingCopy().setAttribute(APPLICATION_ENVIRONMENT, value);
   }
 
+  public void setLaunchContentShell(boolean value) {
+    getWorkingCopy().setAttribute(LAUNCH_CONTENT_SHELL, value);
+  }
+
   /**
    * @see #getProjectName()
    */
@@ -476,10 +480,6 @@ public class DartLaunchConfigWrapper {
     if (getApplicationResource() == null) {
       updateMappedResources(value);
     }
-  }
-
-  public void setRunDart2js(boolean value) {
-    getWorkingCopy().setAttribute(COMPILE_BEFORE_LAUNCH, value);
   }
 
   public void setShouldLaunchFile(boolean value) {

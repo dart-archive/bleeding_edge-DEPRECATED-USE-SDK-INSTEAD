@@ -38,6 +38,14 @@
             sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
             sourcePathComputerId="com.google.dart.tools.debug.core.dartiumSourcePathComputer">
       </launchConfigurationType>
+      <launchConfigurationType
+            delegate="com.google.dart.tools.debug.core.mobile.MobileLaunchConfigurationDelegate"
+            id="com.google.dart.tools.debug.core.mobileLaunchConfig"
+            modes="run"
+            name="Mobile launch"
+            sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
+            sourcePathComputerId="com.google.dart.tools.debug.core.dartiumSourcePathComputer">
+      </launchConfigurationType>
    </extension>
 
    <!-- breakpoints -->

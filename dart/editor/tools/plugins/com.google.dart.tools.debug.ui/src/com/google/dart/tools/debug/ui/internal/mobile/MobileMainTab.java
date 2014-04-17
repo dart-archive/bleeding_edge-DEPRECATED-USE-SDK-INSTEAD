@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2014, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,8 +11,9 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.debug.ui.internal.browser;
+package com.google.dart.tools.debug.ui.internal.mobile;
 
+import com.google.dart.tools.core.mobile.AndroidSdkManager;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
@@ -21,20 +22,27 @@ import com.google.dart.tools.debug.ui.internal.util.LaunchTargetComposite;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 
 /**
- * Main launch tab for Browser launch configurations
+ * Main tab for Mobile launch configurations
  */
-public class BrowserMainTab extends AbstractLaunchConfigurationTab {
+public class MobileMainTab extends AbstractLaunchConfigurationTab {
 
   private LaunchTargetComposite launchTargetGroup;
+  private Button dartBrowserButton;
 
   @Override
   public void createControl(Composite parent) {
@@ -49,6 +57,23 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
         notifyPanelChanged();
       }
     });
+
+    // Browser selection group
+    Group group = new Group(composite, SWT.NONE);
+    group.setText("Browser settings");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
+    ((GridLayout) group.getLayout()).marginBottom = 4;
+
+    dartBrowserButton = new Button(group, SWT.CHECK);
+    dartBrowserButton.setText("Launch in Dart Content Shell Browser");
+    dartBrowserButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        notifyPanelChanged();
+      }
+    });
+    GridDataFactory.swtDefaults().span(2, 1).grab(true, false).applyTo(dartBrowserButton);
 
     setControl(composite);
   }
@@ -70,6 +95,9 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
       return performSdkCheck();
     }
 
+    if (AndroidSdkManager.getManager().getSdkLocationPreference().isEmpty()) {
+      return "Set Android SDK location in Preferences > Run & Debug";
+    }
     return launchTargetGroup.getErrorMessage();
   }
 
@@ -78,12 +106,12 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
    */
   @Override
   public Image getImage() {
-    return DartDebugUIPlugin.getImage("obj16/globe_dark.png"); //$NON-NLS-1$
+    return DartDebugUIPlugin.getImage("phone.png"); //$NON-NLS-1$
   }
 
   @Override
   public String getMessage() {
-    return Messages.BrowserMainTab_Description;
+    return "Create a configuration to launch a Dart application in a browser on a device";
   }
 
   /**
@@ -91,7 +119,7 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
    */
   @Override
   public String getName() {
-    return Messages.BrowserMainTab_Name;
+    return "Main";
   }
 
   /**
@@ -111,6 +139,8 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
     } else {
       launchTargetGroup.setHtmlButtonSelection(false);
     }
+
+    dartBrowserButton.setSelection(wrapper.getLaunchContentShell());
 
   }
 
@@ -137,7 +167,7 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
 
     wrapper.setUrl(launchTargetGroup.getUrlString());
     wrapper.setSourceDirectoryName(launchTargetGroup.getSourceDirectory());
-
+    wrapper.setLaunchContentShell(dartBrowserButton.getSelection());
   }
 
   @Override
@@ -145,6 +175,7 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(configuration);
     wrapper.setShouldLaunchFile(true);
     wrapper.setApplicationName(""); //$NON-NLS-1$
+    wrapper.setLaunchContentShell(true);
   }
 
   private void notifyPanelChanged() {
@@ -154,7 +185,7 @@ public class BrowserMainTab extends AbstractLaunchConfigurationTab {
 
   private String performSdkCheck() {
     if (!DartSdkManager.getManager().hasSdk()) {
-      return "Dart2js is not installed ("
+      return "Dart SDK is not installed ("
           + DartSdkManager.getManager().getSdk().getDart2JsExecutable() + ")";
     } else {
       return null;

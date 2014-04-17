@@ -82,6 +82,8 @@ public class DartDebugCorePlugin extends Plugin {
 
   public static final String PUBSERVE_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.pubServeLaunchConfig";
 
+  public static final String MOBILE_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.mobileLaunchConfig";
+
   private static IDebugEventSetListener debugEventListener;
 
   private static DartDebugCorePlugin plugin;
