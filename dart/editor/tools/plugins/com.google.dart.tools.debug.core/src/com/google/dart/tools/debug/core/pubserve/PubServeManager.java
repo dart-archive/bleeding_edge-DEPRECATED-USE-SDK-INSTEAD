@@ -233,7 +233,7 @@ public class PubServeManager {
       }
       in.close();
     } catch (IOException ioe) {
-      DartCore.logError(ioe);
+      DartCore.logInformation("Exception when reading process pub serve process", ioe);
     }
   }
 
