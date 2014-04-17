@@ -120,6 +120,16 @@ public class FileBasedSource implements Source {
     return encoding;
   }
 
+  /**
+   * Return the file represented by this source. This is an internal method that is only intended to
+   * be used by subclasses of {@link UriResolver} that are designed to work with file-based sources.
+   * 
+   * @return the file represented by this source
+   */
+  public File getFile() {
+    return file;
+  }
+
   @Override
   public String getFullName() {
     return file.getAbsolutePath();
@@ -290,15 +300,5 @@ public class FileBasedSource implements Source {
       }
     }
     receiver.accept(contents, modificationTime);
-  }
-
-  /**
-   * Return the file represented by this source. This is an internal method that is only intended to
-   * be used by subclasses of {@link UriResolver} that are designed to work with file-based sources.
-   * 
-   * @return the file represented by this source
-   */
-  File getFile() {
-    return file;
   }
 }

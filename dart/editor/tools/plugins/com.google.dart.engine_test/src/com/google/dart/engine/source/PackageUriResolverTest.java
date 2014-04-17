@@ -70,7 +70,7 @@ public class PackageUriResolverTest extends TestCase {
     File packagesDir = FileUtilities2.createTempDir("pkg1/packages").getCanonicalFile();
     File lib2Dir = FileUtilities2.createTempDir("pkg2/lib").getCanonicalFile();
 
-    // Create symlink packages/pkg1 --> lib
+    // Create symlink packages/pkg1 --> lib1
     File pkg1Dir = new File(packagesDir, "pkg1");
     FileUtilities2.createSymLink(lib1Dir, pkg1Dir);
 
