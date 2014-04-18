@@ -51,37 +51,37 @@ public class DartUnitNavigationComputer {
     unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitAssignmentExpression(AssignmentExpression node) {
-        addRegion(node.getOperator(), node.getBestElement());
+        addRegionForToken(node.getOperator(), node.getBestElement());
         return super.visitAssignmentExpression(node);
       }
 
       @Override
       public Void visitBinaryExpression(BinaryExpression node) {
-        addRegion(node.getOperator(), node.getBestElement());
+        addRegionForToken(node.getOperator(), node.getBestElement());
         return super.visitBinaryExpression(node);
       }
 
       @Override
       public Void visitIndexExpression(IndexExpression node) {
-        addRegion(node.getRightBracket(), node.getBestElement());
+        addRegionForToken(node.getRightBracket(), node.getBestElement());
         return super.visitIndexExpression(node);
       }
 
       @Override
       public Void visitPostfixExpression(PostfixExpression node) {
-        addRegion(node.getOperator(), node.getBestElement());
+        addRegionForToken(node.getOperator(), node.getBestElement());
         return super.visitPostfixExpression(node);
       }
 
       @Override
       public Void visitPrefixExpression(PrefixExpression node) {
-        addRegion(node.getOperator(), node.getBestElement());
+        addRegionForToken(node.getOperator(), node.getBestElement());
         return super.visitPrefixExpression(node);
       }
 
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
-        addRegion(node, node.getBestElement());
+        addRegionForNode(node, node.getBestElement());
         return super.visitSimpleIdentifier(node);
       }
     });
@@ -92,7 +92,7 @@ public class DartUnitNavigationComputer {
    * If the given {@link Element} is not {@code null}, then creates a corresponding
    * {@link NavigationRegion}.
    */
-  private void addRegion(AstNode node, Element element) {
+  private void addRegionForNode(AstNode node, Element element) {
     int offset = node.getOffset();
     int length = node.getLength();
     addRegion(offset, length, element);
@@ -114,7 +114,7 @@ public class DartUnitNavigationComputer {
    * If the given {@link Element} is not {@code null}, then creates a corresponding
    * {@link NavigationRegion}.
    */
-  private void addRegion(Token token, Element element) {
+  private void addRegionForToken(Token token, Element element) {
     int offset = token.getOffset();
     int length = token.getLength();
     addRegion(offset, length, element);

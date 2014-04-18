@@ -14,9 +14,10 @@
 
 package com.google.dart.server.internal.local.computer;
 
-import com.google.common.base.Joiner;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.NavigationTarget;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A concrete implementation of {@link NavigationRegion}.
@@ -41,7 +42,7 @@ public class NavigationRegionImpl extends SourceRegionImpl implements Navigation
     StringBuilder builder = new StringBuilder();
     builder.append(super.toString());
     builder.append(" -> [");
-    builder.append(Joiner.on(", ").join(targets));
+    builder.append(StringUtils.join(targets, ", "));
     builder.append("]");
     return builder.toString();
   }

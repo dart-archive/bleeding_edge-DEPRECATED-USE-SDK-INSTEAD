@@ -445,6 +445,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     List<org.eclipse.jdt.core.dom.Statement> javaStatements = Lists.newArrayList();
     addJavaStatements(javaStatements, node);
     for (org.eclipse.jdt.core.dom.Statement javaStatement : javaStatements) {
+      if (javaStatement instanceof org.eclipse.jdt.core.dom.TypeDeclarationStatement) {
+        continue;
+      }
       statements.add((Statement) translate(javaStatement));
     }
     return done(block(statements));

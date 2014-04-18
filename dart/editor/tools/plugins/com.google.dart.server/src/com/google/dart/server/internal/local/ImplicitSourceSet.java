@@ -15,6 +15,7 @@
 package com.google.dart.server.internal.local;
 
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.translation.DartName;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.SourceSetKind;
 
@@ -23,6 +24,7 @@ import com.google.dart.server.SourceSetKind;
  * 
  * @coverage dart.server.local
  */
+@DartName("_ImplicitSourceSet")
 public class ImplicitSourceSet implements SourceSet {
   private final SourceSetKind kind;
 
