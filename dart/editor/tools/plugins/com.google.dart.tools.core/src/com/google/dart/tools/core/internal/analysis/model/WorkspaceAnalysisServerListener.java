@@ -47,6 +47,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedHighlights(String contextId, Source source, HighlightRegion[] highlights) {
+    // TODO(scheglov) Analysis Server
   }
 
   @Override
@@ -56,6 +57,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedOutline(String contextId, Source source, Outline outline) {
+    // TODO(scheglov) Analysis Server
   }
 
   /**
@@ -67,5 +69,6 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void onServerError(AnalysisServerError error) {
+    // TODO(scheglov) Analysis Server
   }
 }

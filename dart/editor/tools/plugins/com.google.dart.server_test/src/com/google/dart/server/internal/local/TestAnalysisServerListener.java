@@ -25,7 +25,6 @@ import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.NavigationTarget;
 import com.google.dart.server.Outline;
 import com.google.dart.server.internal.local.asserts.NavigationRegionsAssert;
 
@@ -42,6 +41,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   private final Map<Source, AnalysisError[]> sourcesErrors = Maps.newHashMap();
   private final List<AnalysisServerError> serverErrors = Lists.newArrayList();
   private final Map<String, Map<Source, NavigationRegion[]>> navigationMap = Maps.newHashMap();
+  private final Map<String, Map<Source, Outline>> outlineMap = Maps.newHashMap();
 
   /**
    * Assert that the number of errors that have been gathered matches the number of errors that are
@@ -194,11 +194,16 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public synchronized void computedOutline(String contextId, Source source, Outline outline) {
-    throw new UnsupportedOperationException();
+    Map<Source, Outline> outlines = outlineMap.get(contextId);
+    if (outlines == null) {
+      outlines = Maps.newHashMap();
+      outlineMap.put(contextId, outlines);
+    }
+    outlines.put(source, outline);
   }
 
   /**
-   * Returns {@link NavigationTarget} for the given context and {@link Source}, maybe {@code null}
+   * Returns {@link NavigationRegion}s for the given context and {@link Source}, maybe {@code null}
    * if have not been ever notified.
    */
   public synchronized NavigationRegion[] getNavigationRegions(String contextId, Source source) {
@@ -207,6 +212,18 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
       return null;
     }
     return navigations.get(source);
+  }
+
+  /**
+   * Returns {@link Outline} for the given context and {@link Source}, maybe {@code null} if have
+   * not been ever notified.
+   */
+  public synchronized Outline getOutline(String contextId, Source source) {
+    Map<Source, Outline> outlines = outlineMap.get(contextId);
+    if (outlines == null) {
+      return null;
+    }
+    return outlines.get(source);
   }
 
   @Override

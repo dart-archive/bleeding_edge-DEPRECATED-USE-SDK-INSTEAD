@@ -13,8 +13,6 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.element.ElementKind;
-
 /**
  * The interface {@code Outline} defines the behavior of objects that represent an outline for a
  * single source.
@@ -22,6 +20,11 @@ import com.google.dart.engine.element.ElementKind;
  * @coverage dart.server
  */
 public interface Outline {
+  /**
+   * An empty array of outlines.
+   */
+  Outline[] EMPTY_ARRAY = new Outline[0];
+
   /**
    * Return the argument list for the element, or {@code null} if the element is not a method or
    * function. If the element has zero arguments, the string {@code "()"} will be returned.
@@ -43,7 +46,7 @@ public interface Outline {
    * 
    * @return the kind of the element
    */
-  public ElementKind getKind();
+  public OutlineKind getKind();
 
   /**
    * Return the length of the element's name.
@@ -65,6 +68,14 @@ public interface Outline {
    * @return the offset to the beginning of the element's name
    */
   public int getOffset();
+
+  /**
+   * Return the outline that either physically or logically encloses this outline. This will be
+   * {@code null} if this outline is a unit outline.
+   * 
+   * @return the outline that encloses this outline
+   */
+  public Outline getParent();
 
   /**
    * Return the return type of the element, or {@code null} if the element is not a method or

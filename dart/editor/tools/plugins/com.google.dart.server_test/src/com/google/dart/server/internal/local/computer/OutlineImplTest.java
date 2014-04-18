@@ -1,0 +1,54 @@
+/*
+ * Copyright (c) 2014, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package com.google.dart.server.internal.local.computer;
+
+import com.google.dart.server.Outline;
+import com.google.dart.server.OutlineKind;
+import com.google.dart.server.internal.local.AbstractLocalServerTest;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class OutlineImplTest extends AbstractLocalServerTest {
+  public void test_access() throws Exception {
+    Outline childA = mock(Outline.class);
+    Outline childB = mock(Outline.class);
+    when(childA.toString()).thenReturn("childA");
+    when(childB.toString()).thenReturn("childB");
+    Outline parent = childA;
+    Outline[] children = new Outline[] {childA, childB};
+    OutlineImpl outline = new OutlineImpl(
+        parent,
+        OutlineKind.METHOD,
+        "foo",
+        10,
+        20,
+        "(int i, String s)",
+        "Map<String, int>");
+    assertSame(parent, outline.getParent());
+    assertSame(OutlineKind.METHOD, outline.getKind());
+    assertEquals("foo", outline.getName());
+    assertEquals(10, outline.getOffset());
+    assertEquals(20, outline.getLength());
+    assertEquals("(int i, String s)", outline.getArguments());
+    assertEquals("Map<String, int>", outline.getReturnType());
+    // children
+    outline.setChildren(children);
+    assertEquals(children, outline.getChildren());
+    // toString
+    assertEquals("[name=foo, kind=METHOD, offset=10, length=20, arguments=(int i, String s), "
+        + "return=Map<String, int>, children=[childA, childB]]", outline.toString());
+  }
+}

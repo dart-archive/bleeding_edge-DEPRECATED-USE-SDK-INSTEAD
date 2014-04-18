@@ -39,6 +39,7 @@ import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
+import com.google.dart.server.internal.local.computer.DartUnitOutlineComputer;
 import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
@@ -246,7 +247,13 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
         break;
       }
       case OUTLINE:
-        // TODO(scheglov)
+        CompilationUnit dartUnit = changeNotice.getCompilationUnit();
+        if (dartUnit != null) {
+          listener.computedOutline(
+              contextId,
+              source,
+              new DartUnitOutlineComputer(dartUnit).compute());
+        }
         break;
     }
   }
