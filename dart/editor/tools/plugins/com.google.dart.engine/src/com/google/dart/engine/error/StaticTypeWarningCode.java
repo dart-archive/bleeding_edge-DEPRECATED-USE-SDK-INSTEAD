@@ -53,24 +53,30 @@ public enum StaticTypeWarningCode implements ErrorCode {
   INACCESSIBLE_SETTER(""),
 
   /**
-   * 8.1.1 Inheritance and Overriding: However, if there are multiple members <i>m<sub>1</sub>,
-   * &hellip; m<sub>k</sub></i> with the same name <i>n</i> that would be inherited (because
-   * identically named members existed in several superinterfaces) then at most one member is
-   * inherited.
+   * 8.1.1 Inheritance and Overriding: However, if the above rules would cause multiple members
+   * <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> with the same name <i>n</i> that would be
+   * inherited (because identically named members existed in several superinterfaces) then at most
+   * one member is inherited.
    * <p>
    * If the static types <i>T<sub>1</sub>, &hellip;, T<sub>k</sub></i> of the members
    * <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> are not identical, then there must be a member
-   * <i>m<sub>x</sub></i> such that <i>T<sub>x</sub> &lt; T<sub>i</sub>, 1 &lt;= x &lt;= k</i> for
-   * all <i>i, 1 &lt;= i &lt; k</i>, or a static type warning occurs. The member that is inherited
+   * <i>m<sub>x</sub></i> such that <i>T<sub>x</sub> &lt;: T<sub>i</sub>, 1 &lt;= x &lt;= k</i> for
+   * all <i>i, 1 &lt;= i &lt;= k</i>, or a static type warning occurs. The member that is inherited
    * is <i>m<sub>x</sub></i>, if it exists; otherwise:
-   * <ol>
-   * <li>If all of <i>m<sub>1</sub>, &hellip; m<sub>k</sub></i> have the same number <i>r</i> of
-   * required parameters and the same set of named parameters <i>s</i>, then let <i>h = max(
-   * numberOfOptionalPositionals( m<sub>i</sub> ) ), 1 &lt;= i &lt;= k</i>. <i>I</i> has a method
-   * named <i>n</i>, with <i>r</i> required parameters of type dynamic, <i>h</i> optional positional
-   * parameters of type dynamic, named parameters <i>s</i> of type dynamic and return type dynamic.
+   * <ul>
+   * <li>Let <i>numberOfPositionals</i>(<i>f</i>) denote the number of positional parameters of a
+   * function <i>f</i>, and let <i>numberOfRequiredParams</i>(<i>f</i>) denote the number of
+   * required parameters of a function <i>f</i>. Furthermore, let <i>s</i> denote the set of all
+   * named parameters of the <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i>. Then let
+   * <ul>
+   * <li><i>h = max(numberOfPositionals(m<sub>i</sub>)),</i></li>
+   * <li><i>r = min(numberOfRequiredParams(m<sub>i</sub>)), for all <i>i</i>, 1 <= i <= k.</i></li>
+   * </ul>
+   * If <i>r <= h</i> then <i>I</i> has a method named <i>n</i>, with <i>r</i> required parameters
+   * of type <b>dynamic</b>, <i>h</i> positional parameters of type <b>dynamic</b>, named parameters
+   * <i>s</i> of type <b>dynamic</b> and return type <b>dynamic</b>.</li>
    * <li>Otherwise none of the members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> is inherited.
-   * </ol>
+   * </ul>
    */
   INCONSISTENT_METHOD_INHERITANCE(
       "'%s' is inherited by at least two interfaces inconsistently, from %s"),
@@ -125,7 +131,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
 
   /**
    * 12.14.4 Function Expression Invocation: A function expression invocation <i>i</i> has the form
-   * <i>e<sub>f</sub>(a<sub>1</sub>, &hellip; a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>,
+   * <i>e<sub>f</sub>(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>,
    * &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i>, where <i>e<sub>f</sub></i> is an expression.
    * <p>
    * It is a static type warning if the static type <i>F</i> of <i>e<sub>f</sub></i> may not be
@@ -185,12 +191,13 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * <i>G</i>.
    * <p>
    * 15.8 Parameterized Types: If <i>S</i> is the static type of a member <i>m</i> of <i>G</i>, then
-   * the static type of the member <i>m</i> of <i>G&lt;A<sub>1</sub>, &hellip; A<sub>n</sub>&gt;</i>
-   * is <i>[A<sub>1</sub>, &hellip;, A<sub>n</sub>/T<sub>1</sub>, &hellip;, T<sub>n</sub>]S</i>
-   * where <i>T<sub>1</sub>, &hellip; T<sub>n</sub></i> are the formal type parameters of <i>G</i>.
-   * Let <i>B<sub>i</sub></i> be the bounds of <i>T<sub>i</sub>, 1 &lt;= i &lt;= n</i>. It is a
-   * static type warning if <i>A<sub>i</sub></i> is not a subtype of <i>[A<sub>1</sub>, &hellip;,
-   * A<sub>n</sub>/T<sub>1</sub>, &hellip;, T<sub>n</sub>]B<sub>i</sub>, 1 &lt;= i &lt;= n</i>.
+   * the static type of the member <i>m</i> of <i>G&lt;A<sub>1</sub>, &hellip;,
+   * A<sub>n</sub>&gt;</i> is <i>[A<sub>1</sub>, &hellip;, A<sub>n</sub>/T<sub>1</sub>, &hellip;,
+   * T<sub>n</sub>]S</i> where <i>T<sub>1</sub>, &hellip;, T<sub>n</sub></i> are the formal type
+   * parameters of <i>G</i>. Let <i>B<sub>i</sub></i> be the bounds of <i>T<sub>i</sub>, 1 &lt;= i
+   * &lt;= n</i>. It is a static type warning if <i>A<sub>i</sub></i> is not a subtype of
+   * <i>[A<sub>1</sub>, &hellip;, A<sub>n</sub>/T<sub>1</sub>, &hellip;,
+   * T<sub>n</sub>]B<sub>i</sub>, 1 &lt;= i &lt;= n</i>.
    * <p>
    * 7.6.2 Factories: It is a static type warning if any of the type arguments to <i>k'</i> are not
    * subtypes of the bounds of the corresponding formal type parameters of type.

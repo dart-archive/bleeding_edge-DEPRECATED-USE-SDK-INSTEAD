@@ -280,14 +280,13 @@ public enum StaticWarningCode implements ErrorCode {
       "The imported libraries '%s' and '%s' should not have the same name '%s'"),
 
   /**
-   * 8.1.1 Inheritance and Overriding: However, if there are multiple members <i>m<sub>1</sub>,
-   * &hellip; m<sub>k</sub></i> with the same name <i>n</i> that would be inherited (because
-   * identically named members existed in several superinterfaces) then at most one member is
-   * inherited.
+   * 8.1.1 Inheritance and Overriding: However, if the above rules would cause multiple members
+   * <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> with the same name <i>n</i> that would be
+   * inherited (because identically named members existed in several superinterfaces) then at most
+   * one member is inherited.
    * <p>
-   * If some but not all of the <i>m<sub>i</sub>, 1 &lt;= i &lt;= k</i>, are getters, or if some but
-   * not all of the <i>m<sub>i</sub></i> are setters, none of the <i>m<sub>i</sub></i> are
-   * inherited, and a static warning is issued.
+   * If some but not all of the <i>m<sub>i</sub>, 1 &lt;= i &lt;= k</i> are getters none of the
+   * <i>m<sub>i</sub></i> are inherited, and a static warning is issued.
    */
   INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD(
       "'%s' is inherited as a getter and also a method"),
@@ -430,7 +429,7 @@ public enum StaticWarningCode implements ErrorCode {
       "The parameter type '%s' is not assignable to '%s' as required by the setter it is overriding from '%s'"),
 
   /**
-   * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i> ...
+   * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i> &hellip;
    * <i>e<sub>n</sub></i>] is evaluated as follows:
    * <ul>
    * <li>The operator []= is invoked on <i>a</i> with first argument <i>i</i> and second argument
@@ -447,7 +446,8 @@ public enum StaticWarningCode implements ErrorCode {
 
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
-   * <i>e<sub>1</sub></i> ... <i>k<sub>n</sub></i> : <i>e<sub>n</sub></i>] is evaluated as follows:
+   * <i>e<sub>1</sub></i> &hellip; <i>k<sub>n</sub></i> : <i>e<sub>n</sub></i>] is evaluated as
+   * follows:
    * <ul>
    * <li>The operator []= is invoked on <i>m</i> with first argument <i>k<sub>i</sub></i> and second
    * argument <i>e<sub>i</sub></i><i>, 1 &lt;= i &lt;= n</i></li>
@@ -463,7 +463,8 @@ public enum StaticWarningCode implements ErrorCode {
 
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
-   * <i>e<sub>1</sub></i> ... <i>k<sub>n</sub></i> : <i>e<sub>n</sub></i>] is evaluated as follows:
+   * <i>e<sub>1</sub></i> &hellip; <i>k<sub>n</sub></i> : <i>e<sub>n</sub></i>] is evaluated as
+   * follows:
    * <ul>
    * <li>The operator []= is invoked on <i>m</i> with first argument <i>k<sub>i</sub></i> and second
    * argument <i>e<sub>i</sub></i><i>, 1 &lt;= i &lt;= n</i></li>
@@ -532,7 +533,7 @@ public enum StaticWarningCode implements ErrorCode {
    * x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a
    * static warning if <i>T.id</i> is not the name of a constructor declared by the type <i>T</i>.
    * If <i>e</i> of the form <i>new T(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>:
-   * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
+   * a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
    * type <i>T</i> does not declare a constructor with the same name as the declaration of <i>T</i>.
    */
   NEW_WITH_UNDEFINED_CONSTRUCTOR("The class '%s' does not have a constructor '%s'"),
@@ -543,7 +544,7 @@ public enum StaticWarningCode implements ErrorCode {
    * x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a
    * static warning if <i>T.id</i> is not the name of a constructor declared by the type <i>T</i>.
    * If <i>e</i> of the form <i>new T(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>:
-   * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
+   * a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
    * type <i>T</i> does not declare a constructor with the same name as the declaration of <i>T</i>.
    */
   NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT("The class '%s' does not have a default constructor"),
@@ -807,8 +808,8 @@ public enum StaticWarningCode implements ErrorCode {
   UNDEFINED_IDENTIFIER("Undefined name '%s'"),
 
   /**
-   * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
-   * must have a corresponding named parameter in the set {<i>p<sub>n+1</sub></i> ...
+   * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
+   * must have a corresponding named parameter in the set {<i>p<sub>n+1</sub></i> &hellip;
    * <i>p<sub>n+k</sub></i>} or a static warning occurs.
    * 
    * @param name the name of the requested named parameter

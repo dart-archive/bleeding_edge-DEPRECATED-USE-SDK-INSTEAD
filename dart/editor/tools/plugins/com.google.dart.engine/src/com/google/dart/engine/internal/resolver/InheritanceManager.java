@@ -58,12 +58,22 @@ public class InheritanceManager {
 
   /**
    * Given some array of {@link ExecutableElement}s, this method creates a synthetic element as
-   * described in the Superinterfaces section of Inheritance and Overriding.
+   * described in 8.1.1:
    * <p>
-   * TODO (jwren) Copy contents from the Spec into this javadoc.
+   * Let <i>numberOfPositionals</i>(<i>f</i>) denote the number of positional parameters of a
+   * function <i>f</i>, and let <i>numberOfRequiredParams</i>(<i>f</i>) denote the number of
+   * required parameters of a function <i>f</i>. Furthermore, let <i>s</i> denote the set of all
+   * named parameters of the <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i>. Then let
+   * <ul>
+   * <li><i>h = max(numberOfPositionals(m<sub>i</sub>)),</i></li>
+   * <li><i>r = min(numberOfRequiredParams(m<sub>i</sub>)), for all <i>i</i>, 1 <= i <= k.</i></li>
+   * </ul>
+   * If <i>r <= h</i> then <i>I</i> has a method named <i>n</i>, with <i>r</i> required parameters
+   * of type <b>dynamic</b>, <i>h</i> positional parameters of type <b>dynamic</b>, named parameters
+   * <i>s</i> of type <b>dynamic</b> and return type <b>dynamic</b>.
    * <p>
    * TODO (jwren) Associate a propagated type to the synthetic method element using least upper
-   * bound calls
+   * bounds instead of dynamic
    */
   private static ExecutableElement computeMergedExecutableElement(
       ExecutableElement[] elementArrayToMerge) {
