@@ -217,20 +217,16 @@ public class TypeResolverVisitor extends ScopedVisitor {
     //
     super.visitAnnotation(node);
     Identifier identifier = node.getName();
-    if (identifier instanceof SimpleIdentifier) {
-      SimpleIdentifier simpleIdentifier = (SimpleIdentifier) identifier;
-      if (simpleIdentifier.getName().equals(ElementAnnotationImpl.PROXY_VARIABLE_NAME)
-          && node.getParent() instanceof ClassDeclaration) {
-        Element element = getNameScope().lookup(simpleIdentifier, getDefiningLibrary());
-        if (element != null && element.getLibrary().isDartCore()
-            && element instanceof PropertyAccessorElement) {
-          // This is the @proxy from dart.core
-          simpleIdentifier.setStaticElement(element);
-          ClassDeclaration classDeclaration = (ClassDeclaration) node.getParent();
-          ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(element);
-          node.setElementAnnotation(elementAnnotation);
-          ((ClassElementImpl) classDeclaration.getElement()).setMetadata(new ElementAnnotationImpl[] {elementAnnotation});
-        }
+    if (identifier.getName().endsWith(ElementAnnotationImpl.PROXY_VARIABLE_NAME)
+        && node.getParent() instanceof ClassDeclaration) {
+      Element element = getNameScope().lookup(identifier, getDefiningLibrary());
+      if (element != null && element.getLibrary().isDartCore()
+          && element instanceof PropertyAccessorElement) {
+        // This is the @proxy from dart.core
+        ClassDeclaration classDeclaration = (ClassDeclaration) node.getParent();
+        ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(element);
+        node.setElementAnnotation(elementAnnotation);
+        ((ClassElementImpl) classDeclaration.getElement()).setMetadata(new ElementAnnotationImpl[] {elementAnnotation});
       }
     }
     return null;

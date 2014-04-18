@@ -24,7 +24,6 @@ import com.google.dart.engine.internal.context.ResolvableCompilationUnit;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.DeclarationResolver;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
-import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.resolver.TypeResolverVisitor;
@@ -158,12 +157,6 @@ public class ResolveDartUnitTask extends AnalysisTask {
         inheritanceManager,
         errorListener);
     unit.accept(resolverVisitor);
-    // TODO (jwren) Move this logic/ loop into the ResolverVisitor and then make the reportError protected again.
-    for (ProxyConditionalAnalysisError conditionalCode : resolverVisitor.getProxyConditionalAnalysisErrors()) {
-      if (conditionalCode.shouldIncludeErrorCode()) {
-        resolverVisitor.reportError(conditionalCode.getAnalysisError());
-      }
-    }
     //
     // Perform additional error checking.
     //

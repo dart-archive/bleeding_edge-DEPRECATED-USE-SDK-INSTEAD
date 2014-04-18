@@ -1017,6 +1017,21 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
   }
 
+  public void test_undefinedGetter_proxy_annotation_fakeProxy() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "class Fake {",
+        "  const Fake();",
+        "}",
+        "const proxy = const Fake();",
+        "@proxy class PrefixProxy {}",
+        "main() {",
+        "  new PrefixProxy().foo;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
   public void test_undefinedGetter_static() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
@@ -1126,6 +1141,21 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  test() {",
         "    _foo();",
         "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_METHOD);
+  }
+
+  public void test_undefinedMethod_proxy_annotation_fakeProxy() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "class Fake {",
+        "  const Fake();",
+        "}",
+        "const proxy = const Fake();",
+        "@proxy class PrefixProxy {}",
+        "main() {",
+        "  new PrefixProxy().foo();",
         "}"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_METHOD);

@@ -216,15 +216,6 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
     return nameScope;
   }
 
-  /**
-   * Report an error with the given analysis error.
-   * 
-   * @param errorCode analysis error
-   */
-  public void reportError(AnalysisError analysisError) {
-    errorListener.onError(analysisError);
-  }
-
   @Override
   public Void visitBlock(Block node) {
     Scope outerScope = nameScope;

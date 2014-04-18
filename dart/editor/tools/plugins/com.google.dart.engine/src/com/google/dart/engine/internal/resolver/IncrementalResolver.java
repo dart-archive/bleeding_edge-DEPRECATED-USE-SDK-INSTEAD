@@ -168,11 +168,6 @@ public class IncrementalResolver {
         scope,
         errorListener);
     node.accept(visitor);
-    for (ProxyConditionalAnalysisError conditionalCode : visitor.getProxyConditionalAnalysisErrors()) {
-      if (conditionalCode.shouldIncludeErrorCode()) {
-        visitor.reportError(conditionalCode.getAnalysisError());
-      }
-    }
   }
 
   private void resolveTypes(AstNode node, Scope scope) {

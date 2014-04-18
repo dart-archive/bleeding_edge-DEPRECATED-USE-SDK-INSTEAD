@@ -64,7 +64,6 @@ import com.google.dart.engine.internal.element.angular.AngularComponentElementIm
 import com.google.dart.engine.internal.element.angular.AngularElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularViewElementImpl;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
-import com.google.dart.engine.internal.resolver.ProxyConditionalAnalysisError;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Scope;
@@ -822,10 +821,6 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         imports.add(importElement);
       }
       libraryElement.setImports(imports.toArray(new ImportElement[imports.size()]));
-    }
-    // push conditional errors 
-    for (ProxyConditionalAnalysisError conditionalCode : resolver.getProxyConditionalAnalysisErrors()) {
-      resolver.reportError(conditionalCode.getAnalysisError());
     }
   }
 

@@ -394,20 +394,22 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         node.setPropagatedElement(propagatedMethod);
 
         if (shouldReportMissingMember(staticType, staticMethod)) {
-          resolver.reportProxyConditionalErrorForToken(
-              staticType.getElement(),
-              StaticTypeWarningCode.UNDEFINED_METHOD,
-              operator,
-              methodName,
-              staticType.getDisplayName());
+          if (doesClassElementHaveProxy(staticType.getElement())) {
+            resolver.reportErrorForToken(
+                StaticTypeWarningCode.UNDEFINED_METHOD,
+                operator,
+                methodName,
+                staticType.getDisplayName());
+          }
         } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
             && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-          resolver.reportProxyConditionalErrorForToken(
-              propagatedType.getElement(),
-              HintCode.UNDEFINED_METHOD,
-              operator,
-              methodName,
-              propagatedType.getDisplayName());
+          if (doesClassElementHaveProxy(propagatedType.getElement())) {
+            resolver.reportErrorForToken(
+                HintCode.UNDEFINED_METHOD,
+                operator,
+                methodName,
+                propagatedType.getDisplayName());
+          }
         }
       }
     }
@@ -431,20 +433,22 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         node.setPropagatedElement(propagatedMethod);
 
         if (shouldReportMissingMember(staticType, staticMethod)) {
-          resolver.reportProxyConditionalErrorForToken(
-              staticType.getElement(),
-              StaticTypeWarningCode.UNDEFINED_OPERATOR,
-              operator,
-              methodName,
-              staticType.getDisplayName());
+          if (doesClassElementHaveProxy(staticType.getElement())) {
+            resolver.reportErrorForToken(
+                StaticTypeWarningCode.UNDEFINED_OPERATOR,
+                operator,
+                methodName,
+                staticType.getDisplayName());
+          }
         } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
             && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-          resolver.reportProxyConditionalErrorForToken(
-              propagatedType.getElement(),
-              HintCode.UNDEFINED_OPERATOR,
-              operator,
-              methodName,
-              propagatedType.getDisplayName());
+          if (doesClassElementHaveProxy(propagatedType.getElement())) {
+            resolver.reportErrorForToken(
+                HintCode.UNDEFINED_OPERATOR,
+                operator,
+                methodName,
+                propagatedType.getDisplayName());
+          }
         }
       }
     }
@@ -956,12 +960,14 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         targetTypeName = enclosingClass.getDisplayName();
         ErrorCode proxyErrorCode = generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD;
-        resolver.reportProxyConditionalErrorForNode(
-            resolver.getEnclosingClass(),
-            proxyErrorCode,
-            methodName,
-            methodName.getName(),
-            targetTypeName);
+        if (doesClassElementHaveProxy(resolver.getEnclosingClass())) {
+          resolver.reportErrorForNode(
+              proxyErrorCode,
+              methodName,
+              methodName.getName(),
+              targetTypeName);
+        }
+
       } else {
         // ignore Function "call"
         // (if we are about to create a hint using type propagation, then we can use type
@@ -985,12 +991,13 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         targetTypeName = targetType == null ? null : targetType.getDisplayName();
         ErrorCode proxyErrorCode = generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD;
-        resolver.reportProxyConditionalErrorForNode(
-            targetType.getElement(),
-            proxyErrorCode,
-            methodName,
-            methodName.getName(),
-            targetTypeName);
+        if (doesClassElementHaveProxy(targetType.getElement())) {
+          resolver.reportErrorForNode(
+              proxyErrorCode,
+              methodName,
+              methodName.getName(),
+              targetTypeName);
+        }
       }
     } else if (errorCode == StaticTypeWarningCode.UNDEFINED_SUPER_METHOD) {
       // Generate the type name.
@@ -1032,20 +1039,22 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     node.setPropagatedElement(propagatedMethod);
 
     if (shouldReportMissingMember(staticType, staticMethod)) {
-      resolver.reportProxyConditionalErrorForToken(
-          staticType.getElement(),
-          StaticTypeWarningCode.UNDEFINED_OPERATOR,
-          node.getOperator(),
-          methodName,
-          staticType.getDisplayName());
+      if (doesClassElementHaveProxy(staticType.getElement())) {
+        resolver.reportErrorForToken(
+            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            node.getOperator(),
+            methodName,
+            staticType.getDisplayName());
+      }
     } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
         && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-      resolver.reportProxyConditionalErrorForToken(
-          propagatedType.getElement(),
-          HintCode.UNDEFINED_OPERATOR,
-          node.getOperator(),
-          methodName,
-          propagatedType.getDisplayName());
+      if (doesClassElementHaveProxy(propagatedType.getElement())) {
+        resolver.reportErrorForToken(
+            HintCode.UNDEFINED_OPERATOR,
+            node.getOperator(),
+            methodName,
+            propagatedType.getDisplayName());
+      }
     }
     return null;
   }
@@ -1138,20 +1147,22 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       node.setPropagatedElement(propagatedMethod);
 
       if (shouldReportMissingMember(staticType, staticMethod)) {
-        resolver.reportProxyConditionalErrorForToken(
-            staticType.getElement(),
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
-            operator,
-            methodName,
-            staticType.getDisplayName());
+        if (doesClassElementHaveProxy(staticType.getElement())) {
+          resolver.reportErrorForToken(
+              StaticTypeWarningCode.UNDEFINED_OPERATOR,
+              operator,
+              methodName,
+              staticType.getDisplayName());
+        }
       } else if (enableHints && shouldReportMissingMember(propagatedType, propagatedMethod)
           && !memberFoundInSubclass(propagatedType.getElement(), methodName, true, false)) {
-        resolver.reportProxyConditionalErrorForToken(
-            propagatedType.getElement(),
-            HintCode.UNDEFINED_OPERATOR,
-            operator,
-            methodName,
-            propagatedType.getDisplayName());
+        if (doesClassElementHaveProxy(propagatedType.getElement())) {
+          resolver.reportErrorForToken(
+              HintCode.UNDEFINED_OPERATOR,
+              operator,
+              methodName,
+              propagatedType.getDisplayName());
+        }
       }
     }
     return null;
@@ -1245,11 +1256,9 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         Annotation annotation = (Annotation) node.getParent();
         resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       } else {
-        resolver.reportProxyConditionalErrorForNode(
-            resolver.getEnclosingClass(),
-            StaticWarningCode.UNDEFINED_IDENTIFIER,
-            node,
-            node.getName());
+        if (doesClassElementHaveProxy(resolver.getEnclosingClass())) {
+          resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_IDENTIFIER, node, node.getName());
+        }
       }
     }
 
@@ -1473,26 +1482,24 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       ErrorCode errorCode = shouldReportMissingMember_static
           ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR;
       if (leftBracket == null || rightBracket == null) {
-        resolver.reportProxyConditionalErrorForNode(
-            shouldReportMissingMember_static ? staticType.getElement()
-                : propagatedType.getElement(),
-            errorCode,
-            node,
-            methodName,
-            shouldReportMissingMember_static ? staticType.getDisplayName()
-                : propagatedType.getDisplayName());
+        if (doesClassElementHaveProxy(shouldReportMissingMember_static ? staticType.getElement()
+            : propagatedType.getElement())) {
+          resolver.reportErrorForNode(errorCode, node, methodName, shouldReportMissingMember_static
+              ? staticType.getDisplayName() : propagatedType.getDisplayName());
+        }
       } else {
         int offset = leftBracket.getOffset();
         int length = rightBracket.getOffset() - offset + 1;
-        resolver.reportProxyConditionalErrorForOffset(
-            shouldReportMissingMember_static ? staticType.getElement()
-                : propagatedType.getElement(),
-            errorCode,
-            offset,
-            length,
-            methodName,
-            shouldReportMissingMember_static ? staticType.getDisplayName()
-                : propagatedType.getDisplayName());
+        if (doesClassElementHaveProxy(shouldReportMissingMember_static ? staticType.getElement()
+            : propagatedType.getElement())) {
+          resolver.reportErrorForOffset(
+              errorCode,
+              offset,
+              length,
+              methodName,
+              shouldReportMissingMember_static ? staticType.getDisplayName()
+                  : propagatedType.getDisplayName());
+        }
       }
       return true;
     }
@@ -1570,6 +1577,22 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       return ((PropertyAccessorElement) element).getVariable().getGetter();
     }
     return element;
+  }
+
+  /**
+   * Return {@code true} iff the passed {@link Element} is a {@link ClassElement} and either has, or
+   * in that is or inherits proxy.
+   * 
+   * @param element the enclosing element
+   * @return {@code true} iff the passed {@link Element} is a {@link ClassElement} and either has,
+   *         or in that is or inherits proxy
+   * @see ClassElement#isOrInheritsProxy()
+   */
+  private boolean doesClassElementHaveProxy(Element element) {
+    if (element instanceof ClassElement) {
+      return !((ClassElement) element).isOrInheritsProxy();
+    }
+    return true;
   }
 
   /**
@@ -2675,48 +2698,53 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           if (isStaticProperty) {
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
-            resolver.reportProxyConditionalErrorForNode(
-                staticOrPropagatedEnclosingElt,
-                errorCode,
-                propertyName,
-                propertyName.getName(),
-                staticOrPropagatedEnclosingElt.getDisplayName());
+            if (doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
+              resolver.reportErrorForNode(
+                  errorCode,
+                  propertyName,
+                  propertyName.getName(),
+                  staticOrPropagatedEnclosingElt.getDisplayName());
+            }
           } else {
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER;
-            resolver.reportProxyConditionalErrorForNode(
-                staticOrPropagatedEnclosingElt,
-                errorCode,
-                propertyName,
-                propertyName.getName(),
-                staticOrPropagatedEnclosingElt.getDisplayName());
+            if (doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
+              resolver.reportErrorForNode(
+                  errorCode,
+                  propertyName,
+                  propertyName.getName(),
+                  staticOrPropagatedEnclosingElt.getDisplayName());
+            }
           }
         } else if (propertyName.inGetterContext()) {
           if (isStaticProperty) {
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-            resolver.reportProxyConditionalErrorForNode(
-                staticOrPropagatedEnclosingElt,
-                errorCode,
-                propertyName,
-                propertyName.getName(),
-                staticOrPropagatedEnclosingElt.getDisplayName());
+            if (doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
+              resolver.reportErrorForNode(
+                  errorCode,
+                  propertyName,
+                  propertyName.getName(),
+                  staticOrPropagatedEnclosingElt.getDisplayName());
+            }
           } else {
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
-            resolver.reportProxyConditionalErrorForNode(
-                staticOrPropagatedEnclosingElt,
-                errorCode,
-                propertyName,
-                propertyName.getName(),
-                staticOrPropagatedEnclosingElt.getDisplayName());
+            if (doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
+              resolver.reportErrorForNode(
+                  errorCode,
+                  propertyName,
+                  propertyName.getName(),
+                  staticOrPropagatedEnclosingElt.getDisplayName());
+            }
           }
         } else {
-          resolver.reportProxyConditionalErrorForNode(
-              staticOrPropagatedEnclosingElt,
-              StaticWarningCode.UNDEFINED_IDENTIFIER,
-              propertyName,
-              propertyName.getName());
+          if (doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
+            resolver.reportErrorForNode(
+                StaticWarningCode.UNDEFINED_IDENTIFIER,
+                propertyName,
+                propertyName.getName());
+          }
         }
       }
     }

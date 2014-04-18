@@ -3124,6 +3124,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors(source);
   }
 
+  public void test_proxy_annotation_proxyHasPrefixedIdentifier() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'dart:core' as core;",
+        "@core.proxy class PrefixProxy {}",
+        "main() {",
+        "  new PrefixProxy().foo;",
+        "  new PrefixProxy().foo();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
   public void test_proxy_annotation_simple() throws Exception {
     Source source = addSource(createSource(//
         "library L;",

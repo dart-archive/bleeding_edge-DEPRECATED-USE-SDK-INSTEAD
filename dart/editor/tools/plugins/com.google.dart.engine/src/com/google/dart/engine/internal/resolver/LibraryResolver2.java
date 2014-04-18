@@ -487,11 +487,6 @@ public class LibraryResolver2 {
         ast.accept(new VariableResolverVisitor(library, source, typeProvider));
         ResolverVisitor visitor = new ResolverVisitor(library, source, typeProvider);
         ast.accept(visitor);
-        for (ProxyConditionalAnalysisError conditionalCode : visitor.getProxyConditionalAnalysisErrors()) {
-          if (conditionalCode.shouldIncludeErrorCode()) {
-            visitor.reportError(conditionalCode.getAnalysisError());
-          }
-        }
       }
     } finally {
       timeCounter.stop();
