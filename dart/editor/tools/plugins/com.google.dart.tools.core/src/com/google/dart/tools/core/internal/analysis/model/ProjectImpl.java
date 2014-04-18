@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
@@ -69,6 +70,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -858,10 +860,28 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     boolean hasPubspec = projectResource.getFile(PUBSPEC_FILE_NAME).exists();
     defaultPackageResolver = getPackageUriResolver(projectResource, getSdk(), hasPubspec);
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      // TODO(scheglov) Analysis Server: packages map
       String sdkPath = ((DirectoryBasedDartSdk) getSdk()).getDirectory().getAbsolutePath();
+      // TODO(scheglov) Analysis Server: get packages map from Pub
+      Map<String, String> packageMap;
+      {
+        packageMap = Maps.newHashMap();
+        File projectDir = projectResource.getLocation().toFile();
+        File packagesDir = new File(projectDir, "packages");
+        File[] listFiles = packagesDir.listFiles();
+        if (listFiles != null) {
+          for (File packageFile : listFiles) {
+            try {
+              packageMap.put(packageFile.getName(), packageFile.getCanonicalPath());
+            } catch (IOException e) {
+            }
+          }
+        }
+      }
       AnalysisServer analysisServer = DartCore.getAnalysisServer();
-      defaultContextId = analysisServer.createContext(projectResource.getName(), sdkPath, null);
+      defaultContextId = analysisServer.createContext(
+          projectResource.getName(),
+          sdkPath,
+          packageMap);
       analysisServer.subscribe(
           defaultContextId,
           ImmutableMap.of(NotificationKind.ERRORS, SourceSet.EXPLICITLY_ADDED));

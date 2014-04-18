@@ -51,6 +51,9 @@ import com.google.dart.server.internal.local.operation.SetOptionsOperation;
 import com.google.dart.server.internal.local.operation.SetPrioritySourcesOperation;
 import com.google.dart.server.internal.local.operation.ShutdownOperation;
 import com.google.dart.server.internal.local.operation.SubscribeOperation;
+import com.google.dart.server.internal.local.source.FileResource;
+import com.google.dart.server.internal.local.source.PackageMapUriResolver;
+import com.google.dart.server.internal.local.source.Resource;
 
 import java.io.File;
 import java.util.List;
@@ -200,8 +203,20 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
       Map<String, String> packageMap) throws Exception {
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
     DartSdk sdk = getSdk(sdkDirectory);
-    // TODO(scheglov) PackageUriResolver
-    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
+    // prepare package map
+    Map<String, Resource> packageResourceMap = Maps.newHashMap();
+    for (Entry<String, String> entry : packageMap.entrySet()) {
+      String packageName = entry.getKey();
+      String packageDirName = entry.getValue();
+      File packageDir = new File(packageDirName);
+      FileResource packageResource = new FileResource(packageDir);
+      packageResourceMap.put(packageName, packageResource);
+    }
+    // set source factory
+    SourceFactory sourceFactory = new SourceFactory(
+        new DartUriResolver(sdk),
+        new FileUriResolver(),
+        new PackageMapUriResolver(packageResourceMap));
     context.setSourceFactory(sourceFactory);
     // add context
     contextMap.put(contextId, context);
