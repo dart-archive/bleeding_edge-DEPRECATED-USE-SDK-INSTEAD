@@ -1,6 +1,8 @@
 
 
 class TestSource implements Source {
+  String _name;
+  TestSource([this._name = '/test.dart']);
   int get hashCode => 0;
   bool operator ==(Object object) {
     return object is TestSource;
@@ -12,10 +14,10 @@ class TestSource implements Source {
     throw new UnsupportedOperationException();
   }
   String get fullName {
-    throw new UnsupportedOperationException();
+    return _name;
   }
   String get shortName {
-    throw new UnsupportedOperationException();
+    return _name;
   }
   String get encoding {
     throw new UnsupportedOperationException();

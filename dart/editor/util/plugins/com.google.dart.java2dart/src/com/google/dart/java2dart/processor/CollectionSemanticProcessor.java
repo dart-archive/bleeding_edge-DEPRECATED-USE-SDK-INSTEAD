@@ -82,6 +82,11 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
         if (binding instanceof IMethodBinding) {
           IMethodBinding methodBinding = (IMethodBinding) binding;
           ITypeBinding declaringClass = methodBinding.getDeclaringClass();
+          // new HashSet(Map) -> new Set.from(Map)
+          if (isMethodInClass2(methodBinding, "<init>(java.util.Collection)", "java.util.HashSet")) {
+            node.getConstructorName().setName(identifier("from"));
+            return null;
+          }
           // new HashSet(5) -> new HashSet()
           if (JavaUtils.getQualifiedName(declaringClass).equals("java.util.HashSet")) {
             node.getArgumentList().getArguments().clear();

@@ -279,16 +279,23 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
         "import java.util.HashSet;",
+        "import java.util.Collection;",
         "public class Test {",
-        "  public void main() {",
+        "  public void testA() {",
         "    HashSet<String> result = new HashSet<String>(5);",
+        "  }",
+        "  public void testB(Collection<String> existing) {",
+        "    HashSet<String> result = new HashSet<String>(existing);",
         "  }",
         "}");
     runProcessor();
     assertFormattedSource(//
         "class Test {",
-        "  void main() {",
+        "  void testA() {",
         "    Set<String> result = new Set<String>();",
+        "  }",
+        "  void testB(Iterable<String> existing) {",
+        "    Set<String> result = new Set<String>.from(existing);",
         "  }",
         "}");
   }

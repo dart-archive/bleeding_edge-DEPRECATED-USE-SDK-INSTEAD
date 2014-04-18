@@ -14,6 +14,7 @@
 package com.google.dart.engine.source;
 
 import com.google.dart.engine.internal.context.TimestampedData;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.net.URI;
 
@@ -43,6 +44,7 @@ public class NonExistingSource implements Source {
 
   @Override
   @Deprecated
+  @DartOmit
   public void getContentsToReceiver(ContentReceiver receiver) throws Exception {
     throw new UnsupportedOperationException(name + "does not exist.");
   }

@@ -865,7 +865,6 @@ public class MainEngine {
             importShowCombinator("Namespace", "NamespaceBuilder")));
     unit.getDirectives().add(importDirective("engine.dart", null));
     unit.getDirectives().add(importDirective("html.dart", "ht"));
-    unit.getDirectives().add(importDirective("utilities_collection.dart", null));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (file.getName().contains("MemoryIndexReader")
@@ -1000,7 +999,6 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("scanner.dart", "sc"));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
     unit.getDirectives().add(importDirective("utilities_general.dart", null));
-    unit.getDirectives().add(importDirective("utilities_collection.dart", null));
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(
         importDirective("parser.dart", null, importShowCombinator("Parser", "ParserErrorCode")));
@@ -1049,7 +1047,6 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "resolver.dart", null));
     unit.getDirectives().add(importDirective(src_package + "engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "utilities_collection.dart", null));
     unit.getDirectives().add(
         importDirective(src_package + "sdk.dart", null, importShowCombinator("DartSdk")));
     unit.getDirectives().add(
@@ -1265,7 +1262,6 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "utilities_collection.dart", null));
     unit.getDirectives().add(importDirective(src_package + "source.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
