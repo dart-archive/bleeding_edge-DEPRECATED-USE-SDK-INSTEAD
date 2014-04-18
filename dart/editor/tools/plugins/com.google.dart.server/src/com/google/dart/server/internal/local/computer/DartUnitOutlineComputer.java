@@ -23,7 +23,9 @@ import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FormalParameterList;
+import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -31,6 +33,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OutlineKind;
 
@@ -99,6 +102,18 @@ public class DartUnitOutlineComputer {
     return unitOutline;
   }
 
+  private void addLocalFunctionOutlines(final OutlineImpl parenet, FunctionBody body) {
+    final List<Outline> localOutlines = Lists.newArrayList();
+    body.accept(new RecursiveAstVisitor<Void>() {
+      @Override
+      public Void visitFunctionDeclaration(FunctionDeclaration node) {
+        newFunctionOutline(parenet, localOutlines, node);
+        return null;
+      }
+    });
+    parenet.setChildren(localOutlines.toArray(new Outline[localOutlines.size()]));
+  }
+
   private OutlineImpl newClassOutline(Outline unitOutline, List<Outline> unitChildren,
       ClassDeclaration classDeclartion) {
     SimpleIdentifier nameNode = classDeclartion.getName();
@@ -141,14 +156,16 @@ public class DartUnitOutlineComputer {
       length = constructorNameNode.getLength();
     }
     FormalParameterList parameters = constructorDeclaration.getParameters();
-    children.add(new OutlineImpl(
+    OutlineImpl outline = new OutlineImpl(
         classOutline,
         OutlineKind.CONSTRUCTOR,
         name,
         offset,
         length,
         parameters != null ? parameters.toSource() : "",
-        null));
+        null);
+    children.add(outline);
+    addLocalFunctionOutlines(outline, constructorDeclaration.getBody());
   }
 
   private void newField(OutlineImpl classOutline, List<Outline> children, String fieldTypeName,
@@ -168,7 +185,8 @@ public class DartUnitOutlineComputer {
       FunctionDeclaration functionDeclaration) {
     TypeName returnType = functionDeclaration.getReturnType();
     SimpleIdentifier nameNode = functionDeclaration.getName();
-    FormalParameterList parameters = functionDeclaration.getFunctionExpression().getParameters();
+    FunctionExpression functionExpression = functionDeclaration.getFunctionExpression();
+    FormalParameterList parameters = functionExpression.getParameters();
     OutlineKind kind;
     if (functionDeclaration.isGetter()) {
       kind = OutlineKind.GETTER;
@@ -177,14 +195,16 @@ public class DartUnitOutlineComputer {
     } else {
       kind = OutlineKind.FUNCTION;
     }
-    unitChildren.add(new OutlineImpl(
+    OutlineImpl outline = new OutlineImpl(
         unitOutline,
         kind,
         nameNode.getName(),
         nameNode.getOffset(),
         nameNode.getLength(),
         parameters != null ? parameters.toSource() : "",
-        returnType != null ? returnType.toSource() : ""));
+        returnType != null ? returnType.toSource() : "");
+    unitChildren.add(outline);
+    addLocalFunctionOutlines(outline, functionExpression.getBody());
   }
 
   private void newFunctionTypeAliasOutline(Outline unitOutline, List<Outline> unitChildren,
@@ -215,14 +235,16 @@ public class DartUnitOutlineComputer {
     } else {
       kind = OutlineKind.METHOD;
     }
-    children.add(new OutlineImpl(
+    OutlineImpl outline = new OutlineImpl(
         classOutline,
         kind,
         nameNode.getName(),
         nameNode.getOffset(),
         nameNode.getLength(),
         parameters != null ? parameters.toSource() : "",
-        returnType != null ? returnType.toSource() : ""));
+        returnType != null ? returnType.toSource() : "");
+    children.add(outline);
+    addLocalFunctionOutlines(outline, methodDeclaration.getBody());
   }
 
   private OutlineImpl newUnitOutline() {

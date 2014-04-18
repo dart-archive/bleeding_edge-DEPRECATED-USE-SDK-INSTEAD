@@ -163,6 +163,134 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     }
   }
 
+  public void test_localFunctions() throws Exception {
+    String contextId = createContext("test");
+    String code = makeSource(//
+        "class A {",
+        "  A() {",
+        "    int local_A() {}",
+        "  }",
+        "  m() {",
+        "    local_m() {}",
+        "  }",
+        "}",
+        "f() {",
+        "  local_f1(int i) {}",
+        "  local_f2(String s) {",
+        "    local_f21(int p) {}",
+        "  }",
+        "}");
+    Source source = addSource(contextId, "/test.dart", code);
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.OUTLINE, TestListSourceSet.create(source)));
+    server.test_waitForWorkerComplete();
+    // validate
+    Outline unitOutline = serverListener.getOutline(contextId, source);
+    Outline[] topOutlines = unitOutline.getChildren();
+    assertThat(topOutlines).hasSize(2);
+    // A
+    {
+      Outline outline_A = topOutlines[0];
+      assertSame(unitOutline, outline_A.getParent());
+      assertSame(OutlineKind.CLASS, outline_A.getKind());
+      assertEquals("A", outline_A.getName());
+      assertEquals(code.indexOf("A {"), outline_A.getOffset());
+      assertEquals("A".length(), outline_A.getLength());
+      assertSame(null, outline_A.getArguments());
+      assertSame(null, outline_A.getReturnType());
+      // A children
+      Outline[] outlines_A = outline_A.getChildren();
+      assertThat(outlines_A).hasSize(2);
+      {
+        Outline constructorOutline = outlines_A[0];
+        assertSame(OutlineKind.CONSTRUCTOR, constructorOutline.getKind());
+        assertEquals("A", constructorOutline.getName());
+        assertEquals(code.indexOf("A() {"), constructorOutline.getOffset());
+        assertEquals("A".length(), constructorOutline.getLength());
+        assertEquals("()", constructorOutline.getArguments());
+        assertNull(constructorOutline.getReturnType());
+        // local function
+        Outline[] outlines_constructor = constructorOutline.getChildren();
+        assertThat(outlines_constructor).hasSize(1);
+        {
+          Outline outline = outlines_constructor[0];
+          assertSame(OutlineKind.FUNCTION, outline.getKind());
+          assertEquals("local_A", outline.getName());
+          assertEquals(code.indexOf("local_A() {}"), outline.getOffset());
+          assertEquals("local_A".length(), outline.getLength());
+          assertEquals("()", outline.getArguments());
+          assertEquals("int", outline.getReturnType());
+        }
+      }
+      {
+        Outline outlines_m = outlines_A[1];
+        assertSame(OutlineKind.METHOD, outlines_m.getKind());
+        assertEquals("m", outlines_m.getName());
+        assertEquals(code.indexOf("m() {"), outlines_m.getOffset());
+        assertEquals("m".length(), outlines_m.getLength());
+        assertEquals("()", outlines_m.getArguments());
+        assertEquals("", outlines_m.getReturnType());
+        // local function
+        Outline[] methodChildren = outlines_m.getChildren();
+        assertThat(methodChildren).hasSize(1);
+        {
+          Outline outline = methodChildren[0];
+          assertSame(OutlineKind.FUNCTION, outline.getKind());
+          assertEquals("local_m", outline.getName());
+          assertEquals(code.indexOf("local_m() {}"), outline.getOffset());
+          assertEquals("local_m".length(), outline.getLength());
+          assertEquals("()", outline.getArguments());
+          assertEquals("", outline.getReturnType());
+        }
+      }
+    }
+    // f()
+    {
+      Outline outline_f = topOutlines[1];
+      assertSame(unitOutline, outline_f.getParent());
+      assertSame(OutlineKind.FUNCTION, outline_f.getKind());
+      assertEquals("f", outline_f.getName());
+      assertEquals(code.indexOf("f() {"), outline_f.getOffset());
+      assertEquals("f".length(), outline_f.getLength());
+      assertEquals("()", outline_f.getArguments());
+      assertEquals("", outline_f.getReturnType());
+      // f() children
+      Outline[] outlines_f = outline_f.getChildren();
+      assertThat(outlines_f).hasSize(2);
+      {
+        Outline outline_f1 = outlines_f[0];
+        assertSame(OutlineKind.FUNCTION, outline_f1.getKind());
+        assertEquals("local_f1", outline_f1.getName());
+        assertEquals(code.indexOf("local_f1(int i) {}"), outline_f1.getOffset());
+        assertEquals("local_f1".length(), outline_f1.getLength());
+        assertEquals("(int i)", outline_f1.getArguments());
+        assertEquals("", outline_f1.getReturnType());
+      }
+      {
+        Outline outline_f2 = outlines_f[1];
+        assertSame(OutlineKind.FUNCTION, outline_f2.getKind());
+        assertEquals("local_f2", outline_f2.getName());
+        assertEquals(code.indexOf("local_f2(String s) {"), outline_f2.getOffset());
+        assertEquals("local_f2".length(), outline_f2.getLength());
+        assertEquals("(String s)", outline_f2.getArguments());
+        assertEquals("", outline_f2.getReturnType());
+        // local_f2() local function
+        Outline[] outlines_f2 = outline_f2.getChildren();
+        assertThat(outlines_f2).hasSize(1);
+        {
+          Outline outline_f21 = outlines_f2[0];
+          assertSame(OutlineKind.FUNCTION, outline_f21.getKind());
+          assertEquals("local_f21", outline_f21.getName());
+          assertEquals(code.indexOf("local_f21(int p) {"), outline_f21.getOffset());
+          assertEquals("local_f21".length(), outline_f21.getLength());
+          assertEquals("(int p)", outline_f21.getArguments());
+          assertEquals("", outline_f21.getReturnType());
+        }
+      }
+    }
+  }
+
   public void test_topLevel() throws Exception {
     String contextId = createContext("test");
     String code = makeSource(//
