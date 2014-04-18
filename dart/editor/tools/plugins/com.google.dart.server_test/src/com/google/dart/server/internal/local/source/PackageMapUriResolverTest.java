@@ -18,18 +18,16 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.source.UriResolver;
 import com.google.dart.engine.utilities.io.FileUtilities2;
-import com.google.dart.server.internal.local.source.PackageMapUriResolver;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import junit.framework.TestCase;
 
-import java.io.File;
 import java.net.URI;
 import java.util.Map;
 
 public class PackageMapUriResolverTest extends TestCase {
-  private static final Map<String, File> EMPTY_MAP = ImmutableMap.of();
+  private static final Map<String, Resource> EMPTY_MAP = ImmutableMap.of();
 
   public void test_fromEncoding_nonPackage() throws Exception {
     UriResolver resolver = new PackageMapUriResolver(EMPTY_MAP);
@@ -89,25 +87,26 @@ public class PackageMapUriResolverTest extends TestCase {
   }
 
   public void test_resolve_package_OK() throws Exception {
-    File pkgLibDirA = FileUtilities2.createTempDir("pkgA/lib").getCanonicalFile();
-    File pkgLibDirB = FileUtilities2.createTempDir("pkgB/lib").getCanonicalFile();
-    File pkgFileA = FileUtilities2.createTempFile("pkgA/lib/libA.dart", "library A;");
-    File pkgFileB = FileUtilities2.createTempFile("pkgB/lib/libB.dart", "library B;");
-    Map<String, File> packageMap = ImmutableMap.of("pkgA", pkgLibDirA, "pkgB", pkgLibDirB);
+    TestFileSystem fileSystem = new TestFileSystem();
+    Resource pkgLibDirA = fileSystem.newDirectory("/pkgA/lib");
+    Resource pkgLibDirB = fileSystem.newDirectory("/pkgB/lib");
+    Resource pkgFileA = fileSystem.newFile(pkgLibDirA, "libA.dart", "library A;");
+    Resource pkgFileB = fileSystem.newFile(pkgLibDirB, "libB.dart", "library B;");
+    Map<String, Resource> packageMap = ImmutableMap.of("pkgA", pkgLibDirA, "pkgB", pkgLibDirB);
     UriResolver resolver = new PackageMapUriResolver(packageMap);
     {
       Source result = resolver.resolveAbsolute(new URI("package:pkgA/libA.dart"));
       assertNotNull(result);
       assertTrue(result.exists());
       assertSame(UriKind.PACKAGE_URI, result.getUriKind());
-      assertEquals(pkgFileA.getCanonicalPath(), result.getFullName());
+      assertEquals(pkgFileA.getPath(), result.getFullName());
     }
     {
       Source result = resolver.resolveAbsolute(new URI("package:pkgB/libB.dart"));
       assertNotNull(result);
       assertTrue(result.exists());
       assertSame(UriKind.PACKAGE_URI, result.getUriKind());
-      assertEquals(pkgFileB.getCanonicalPath(), result.getFullName());
+      assertEquals(pkgFileB.getPath(), result.getFullName());
     }
   }
 

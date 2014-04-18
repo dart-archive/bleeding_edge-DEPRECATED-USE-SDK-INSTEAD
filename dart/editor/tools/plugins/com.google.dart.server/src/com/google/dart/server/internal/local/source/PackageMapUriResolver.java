@@ -20,7 +20,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.source.UriResolver;
 
-import java.io.File;
 import java.net.URI;
 import java.util.Map;
 
@@ -49,7 +48,7 @@ public class PackageMapUriResolver extends UriResolver {
   /**
    * A table mapping package names to the path of the directory containing the package.
    */
-  private final Map<String, File> packageMap;
+  private final Map<String, Resource> packageMap;
 
   /**
    * Create a new {@link PackageMapUriResolver}.
@@ -57,7 +56,7 @@ public class PackageMapUriResolver extends UriResolver {
    * @param packageMap a table mapping package names to the path of the directory containing the
    *          package
    */
-  public PackageMapUriResolver(Map<String, File> packageMap) {
+  public PackageMapUriResolver(Map<String, Resource> packageMap) {
     this.packageMap = packageMap;
   }
 
@@ -89,11 +88,11 @@ public class PackageMapUriResolver extends UriResolver {
       relPath = path.substring(index + 1);
     }
     // Try to find an existing file.
-    File packageDir = packageMap.get(pkgName);
+    Resource packageDir = packageMap.get(pkgName);
     if (packageDir != null && packageDir.exists()) {
-      File result = new File(packageDir, relPath.replace('/', File.separatorChar));
+      Resource result = packageDir.getChild(relPath);
       if (result.exists()) {
-        return new FileBasedSource(result, UriKind.PACKAGE_URI);
+        return result.createSource(UriKind.PACKAGE_URI);
       }
     }
     // Return a NonExistingSource instance.

@@ -11,16 +11,37 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.google.dart.server.internal.local.source;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.UriKind;
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(FileResourceTest.class);
-    suite.addTestSuite(PackageMapUriResolverTest.class);
-    return suite;
-  }
+/**
+ * A file or directory abstraction.
+ * 
+ * @coverage dart.server.local
+ */
+public interface Resource {
+  /**
+   * Creates a new {@link Source} instance that serves this resource.
+   */
+  Source createSource(UriKind uriKind);
+
+  /**
+   * Tests whether this resource exists.
+   */
+  boolean exists();
+
+  /**
+   * Returns a new {@link Resource} that corresponds to the given path.
+   * 
+   * @param the {@code '/'} separated path
+   */
+  Resource getChild(String path);
+
+  /**
+   * Returns the absolute path.
+   */
+  String getPath();
 }
