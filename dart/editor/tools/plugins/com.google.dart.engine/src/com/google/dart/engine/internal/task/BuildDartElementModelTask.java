@@ -108,6 +108,7 @@ public class BuildDartElementModelTask extends AnalysisTask {
   public BuildDartElementModelTask(InternalAnalysisContext context, Source targetLibrary,
       List<ResolvableLibrary> librariesInCycle) {
     super(context);
+    this.targetLibrary = targetLibrary;
     this.librariesInCycle = librariesInCycle;
     this.errorListener = new RecordingErrorListener();
     coreLibrarySource = context.getSourceFactory().forUri(DartSdk.DART_CORE);
@@ -156,7 +157,7 @@ public class BuildDartElementModelTask extends AnalysisTask {
 
   @Override
   protected void internalPerform() throws AnalysisException {
-    InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.LibraryResolver.resolveLibrary");
+    InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.BuildDartElementModel.internalPerform");
     try {
       //
       // Build the map of libraries that are known.
@@ -192,6 +193,12 @@ public class BuildDartElementModelTask extends AnalysisTask {
       //
       buildTypeHierarchies(new TypeProviderImpl(coreElement));
       instrumentation.metric("buildTypeHierarchies", "complete");
+      instrumentation.metric("librariesInCycles", librariesInCycle.size());
+      for (ResolvableLibrary lib : librariesInCycle) {
+        instrumentation.metric(
+            "librariesInCycles-CompilationUnitSources-Size",
+            lib.getCompilationUnitSources().length);
+      }
     } finally {
       instrumentation.log();
     }

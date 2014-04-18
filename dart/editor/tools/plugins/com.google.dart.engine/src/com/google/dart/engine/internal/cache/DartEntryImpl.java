@@ -50,6 +50,17 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     private Source librarySource;
 
     /**
+     * The state of the cached compilation unit that contains references to the built element model.
+     */
+    private CacheState builtUnitState = CacheState.INVALID;
+
+    /**
+     * The compilation unit that contains references to the built element model, or {@code null} if
+     * that compilation unit is not currently cached.
+     */
+    private CompilationUnit builtUnit;
+
+    /**
      * The state of the cached errors reported while building an element model.
      */
     private CacheState buildElementErrorsState = CacheState.INVALID;
@@ -120,6 +131,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     public void copyFrom(ResolutionState other) {
       librarySource = other.librarySource;
 
+      builtUnitState = other.builtUnitState;
+      builtUnit = other.builtUnit;
+
       buildElementErrorsState = other.buildElementErrorsState;
       buildElementErrors = other.buildElementErrors;
 
@@ -145,6 +159,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
      * Flush any AST structures being maintained by this state.
      */
     public void flushAstStructures() {
+      if (builtUnitState == CacheState.VALID) {
+        builtUnitState = CacheState.FLUSHED;
+        builtUnit = null;
+      }
       if (resolvedUnitState == CacheState.VALID) {
         resolvedUnitState = CacheState.FLUSHED;
         resolvedUnit = null;
@@ -155,8 +173,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
 
     public boolean hasErrorState() {
-      return buildElementErrorsState == CacheState.ERROR || resolvedUnitState == CacheState.ERROR
-          || resolutionErrorsState == CacheState.ERROR
+      return builtUnitState == CacheState.ERROR || buildElementErrorsState == CacheState.ERROR
+          || resolvedUnitState == CacheState.ERROR || resolutionErrorsState == CacheState.ERROR
           || verificationErrorsState == CacheState.ERROR || hintsState == CacheState.ERROR
           || (nextState != null && nextState.hasErrorState());
     }
@@ -167,6 +185,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     public void invalidateAllResolutionInformation() {
       nextState = null;
       librarySource = null;
+
+      builtUnitState = CacheState.INVALID;
+      builtUnit = null;
 
       buildElementErrorsState = CacheState.INVALID;
       buildElementErrors = AnalysisError.NO_ERRORS;
@@ -190,6 +211,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
      * will not change the state of any parse results.
      */
     public void recordResolutionError() {
+      builtUnitState = CacheState.ERROR;
+      builtUnit = null;
+
       buildElementErrorsState = CacheState.ERROR;
       buildElementErrors = AnalysisError.NO_ERRORS;
 
@@ -215,9 +239,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
      * were invalidated before they could be recorded.
      */
     public void recordResolutionNotInProcess() {
-      if (buildElementErrorsState == CacheState.IN_PROCESS) {
-        buildElementErrorsState = CacheState.INVALID;
-      }
       if (resolvedUnitState == CacheState.IN_PROCESS) {
         resolvedUnitState = CacheState.INVALID;
       }
@@ -243,6 +264,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
      */
     protected void writeOn(StringBuilder builder) {
       if (librarySource != null) {
+        builder.append("; builtUnit = ");
+        builder.append(builtUnitState);
         builder.append("; buildElementErrors = ");
         builder.append(buildElementErrorsState);
         builder.append("; resolvedUnit = ");
@@ -472,6 +495,13 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       parsedUnitAccessed = true;
       return parsedUnit;
     }
+    ResolutionState state = resolutionState;
+    while (state != null) {
+      if (state.builtUnitState == CacheState.VALID) {
+        return state.builtUnit;
+      }
+      state = state.nextState;
+    };
     return getAnyResolvedCompilationUnit();
   }
 
@@ -535,6 +565,11 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     ResolutionState state = resolutionState;
     while (state != null) {
+      if (state.builtUnitState == CacheState.VALID) {
+        // TODO(brianwilkerson) We're cloning the structure to remove any previous resolution data,
+        // but I'm not sure that's necessary.
+        return (CompilationUnit) state.builtUnit.accept(new AstCloner());
+      }
       if (state.resolvedUnitState == CacheState.VALID) {
         return (CompilationUnit) state.resolvedUnit.accept(new AstCloner());
       }
@@ -581,6 +616,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       if (librarySource.equals(state.librarySource)) {
         if (descriptor == BUILD_ELEMENT_ERRORS) {
           return state.buildElementErrorsState;
+        } else if (descriptor == BUILT_UNIT) {
+          return state.builtUnitState;
         } else if (descriptor == RESOLUTION_ERRORS) {
           return state.resolutionErrorsState;
         } else if (descriptor == RESOLVED_UNIT) {
@@ -647,6 +684,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       if (librarySource.equals(state.librarySource)) {
         if (descriptor == BUILD_ELEMENT_ERRORS) {
           return (E) state.buildElementErrors;
+        } else if (descriptor == BUILT_UNIT) {
+          return (E) state.builtUnit;
         } else if (descriptor == RESOLUTION_ERRORS) {
           return (E) state.resolutionErrors;
         } else if (descriptor == RESOLVED_UNIT) {
@@ -704,12 +743,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return sourceKindState == CacheState.INVALID;
     } else if (descriptor == TOKEN_STREAM) {
       return tokenStreamState == CacheState.INVALID;
-    } else if (descriptor == BUILD_ELEMENT_ERRORS || descriptor == RESOLUTION_ERRORS
-        || descriptor == RESOLVED_UNIT || descriptor == VERIFICATION_ERRORS || descriptor == HINTS) {
+    } else if (descriptor == BUILD_ELEMENT_ERRORS || descriptor == BUILT_UNIT
+        || descriptor == RESOLUTION_ERRORS || descriptor == RESOLVED_UNIT
+        || descriptor == VERIFICATION_ERRORS || descriptor == HINTS) {
       ResolutionState state = resolutionState;
       while (state != null) {
         if (descriptor == BUILD_ELEMENT_ERRORS) {
           return state.buildElementErrorsState == CacheState.INVALID;
+        } else if (descriptor == BUILT_UNIT) {
+          return state.builtUnitState == CacheState.INVALID;
         } else if (descriptor == RESOLUTION_ERRORS) {
           return state.resolutionErrorsState == CacheState.INVALID;
         } else if (descriptor == RESOLVED_UNIT) {
@@ -733,7 +775,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     ResolutionState state = resolutionState;
     while (state != null) {
-      if (state.resolvedUnitState == CacheState.VALID) {
+      if (state.builtUnitState == CacheState.VALID || state.resolvedUnitState == CacheState.VALID) {
         return true;
       }
       state = state.nextState;
@@ -780,7 +822,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (parsedUnitState == CacheState.FLUSHED) {
       ResolutionState state = resolutionState;
       while (state != null) {
-        if (state.resolvedUnitState == CacheState.VALID) {
+        if (state.builtUnitState == CacheState.VALID) {
+          parsedUnit = state.builtUnit;
+          parsedUnitAccessed = true;
+          parsedUnitState = CacheState.VALID;
+          break;
+        } else if (state.resolvedUnitState == CacheState.VALID) {
           parsedUnit = state.resolvedUnit;
           parsedUnitAccessed = true;
           parsedUnitState = CacheState.VALID;
@@ -803,6 +850,38 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       state = state.nextState;
     }
     return true;
+  }
+
+  /**
+   * Record that an error occurred while attempting to build the element model for the source
+   * represented by this entry. This will set the state of all resolution-based information as being
+   * in error, but will not change the state of any parse results.
+   */
+  public void recordBuildElementError() {
+    element = null;
+    elementState = CacheState.ERROR;
+
+    clearFlags(LAUNCHABLE_INDEX, CLIENT_CODE_INDEX);
+    clientServerState = CacheState.ERROR;
+    launchableState = CacheState.ERROR;
+
+    recordResolutionError();
+  }
+
+  /**
+   * Record that an in-process model build has stopped without recording results because the results
+   * were invalidated before they could be recorded.
+   */
+  public void recordBuildElementNotInProcess() {
+    if (elementState == CacheState.IN_PROCESS) {
+      elementState = CacheState.INVALID;
+    }
+    if (clientServerState == CacheState.IN_PROCESS) {
+      clientServerState = CacheState.INVALID;
+    }
+    if (launchableState == CacheState.IN_PROCESS) {
+      launchableState = CacheState.INVALID;
+    }
   }
 
   @Override
@@ -893,9 +972,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
-   * Record that an error occurred while attempting to scan or parse the entry represented by this
-   * entry. This will set the state of all resolution-based information as being in error, but will
-   * not change the state of any parse results.
+   * Record that an error occurred while attempting to resolve the source represented by this entry.
+   * This will set the state of all resolution-based information as being in error, but will not
+   * change the state of any parse results.
    */
   public void recordResolutionError() {
     element = null;
@@ -904,6 +983,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     clearFlags(LAUNCHABLE_INDEX, CLIENT_CODE_INDEX);
     clientServerState = CacheState.ERROR;
     launchableState = CacheState.ERROR;
+    // TODO(brianwilkerson) Remove the code above this line after resolution and element building
+    // are separated.
 
     publicNamespace = null;
     publicNamespaceState = CacheState.ERROR;
@@ -912,8 +993,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
-   * Record that an in-process parse has stopped without recording results because the results were
-   * invalidated before they could be recorded.
+   * Record that an in-process resolution has stopped without recording results because the results
+   * were invalidated before they could be recorded.
    */
   public void recordResolutionNotInProcess() {
     if (elementState == CacheState.IN_PROCESS) {
@@ -925,6 +1006,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (launchableState == CacheState.IN_PROCESS) {
       launchableState = CacheState.INVALID;
     }
+    // TODO(brianwilkerson) Remove the code above this line after resolution and element building
+    // are separated.
     if (publicNamespaceState == CacheState.IN_PROCESS) {
       publicNamespaceState = CacheState.INVALID;
     }
@@ -1096,6 +1179,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
           state.buildElementErrors,
           AnalysisError.NO_ERRORS);
       state.buildElementErrorsState = cacheState;
+    } else if (descriptor == BUILT_UNIT) {
+      state.builtUnit = updatedValue(cacheState, state.builtUnit, null);
+      state.builtUnitState = cacheState;
     } else if (descriptor == RESOLUTION_ERRORS) {
       state.resolutionErrors = updatedValue(
           cacheState,
@@ -1179,6 +1265,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (descriptor == BUILD_ELEMENT_ERRORS) {
       state.buildElementErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
       state.buildElementErrorsState = CacheState.VALID;
+    } else if (descriptor == BUILT_UNIT) {
+      state.builtUnit = (CompilationUnit) value;
+      state.builtUnitState = CacheState.VALID;
     } else if (descriptor == RESOLUTION_ERRORS) {
       state.resolutionErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
       state.resolutionErrorsState = CacheState.VALID;

@@ -59,7 +59,7 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSED_UNIT));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.PUBLIC_NAMESPACE));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
-    assertTrue(entry.hasInvalidData(DartEntry.SOURCE_KIND));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
   }
 
@@ -402,6 +402,18 @@ public class DartEntryImplTest extends EngineTestCase {
     entry.setValue(DartEntry.IS_LAUNCHABLE, false);
     assertFalse(entry.getValue(DartEntry.IS_LAUNCHABLE));
     assertSame(CacheState.VALID, entry.getState(DartEntry.IS_LAUNCHABLE));
+  }
+
+  public void test_recordBuildElementError() throws Exception {
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.recordBuildElementError();
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.ELEMENT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_CLIENT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_LAUNCHABLE));
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.LINE_INFO));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSE_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSED_UNIT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.PUBLIC_NAMESPACE));
   }
 
   public void test_recordParseError() throws Exception {

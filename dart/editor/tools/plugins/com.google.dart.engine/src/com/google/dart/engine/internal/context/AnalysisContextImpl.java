@@ -2126,7 +2126,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               LineInfo lineInfo = getLineInfo(source);
               DartEntryImpl dartCopy = (DartEntryImpl) cache.get(source).getWritableCopy();
               if (thrownException == null) {
-                dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
                 dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
                 dartCopy.setValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource, unit);
                 dartCopy.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
@@ -2817,6 +2816,40 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Create a {@link BuildDartElementModelTask} for the given source, marking the built unit as
+   * being in-process.
+   * 
+   * @param source the source for the library whose element model is to be built
+   * @param dartEntry the entry for the source
+   * @return task data representing the created task
+   */
+  private TaskData createBuildDartElementModelTask(Source source, DartEntry dartEntry) {
+    try {
+      CycleBuilder builder = new CycleBuilder();
+      builder.computeCycleContaining(source);
+      TaskData taskData = builder.getTaskData();
+      if (taskData != null) {
+        return taskData;
+      }
+      DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+      dartCopy.setStateInLibrary(DartEntry.BUILT_UNIT, source, CacheState.IN_PROCESS);
+      cache.put(source, dartCopy);
+      return new TaskData(
+          new BuildDartElementModelTask(this, source, builder.getLibrariesInCycle()),
+          false);
+    } catch (AnalysisException exception) {
+      DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+      dartCopy.recordBuildElementError();
+      dartCopy.setException(exception);
+      cache.put(source, dartCopy);
+      AnalysisEngine.getInstance().getLogger().logError(
+          "Internal error trying to compute the next analysis task",
+          exception);
+    }
+    return new TaskData(null, false);
+  }
+
+  /**
    * Create an analysis cache based on the given source factory.
    * 
    * @param factory the source factory containing the information needed to create the cache
@@ -3072,8 +3105,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Create a {@link ResolveDartLibraryTask} for the given source, marking the element model as
-   * being in-process.
+   * Create a {@link ResolveDartLibraryTask} for the given source, marking ? as being in-process.
    * 
    * @param source the source whose content is to be resolved
    * @param dartEntry the entry for the source
@@ -3093,6 +3125,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           source,
           builder.getLibrariesInCycle()), false);
     } catch (AnalysisException exception) {
+      DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+      dartCopy.recordResolutionError();
+      dartCopy.setException(exception);
+      cache.put(source, dartCopy);
       AnalysisEngine.getInstance().getLogger().logError(
           "Internal error trying to compute the next analysis task",
           exception);
@@ -4281,6 +4317,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             DartEntryImpl dartCopy = (DartEntryImpl) cache.get(source).getWritableCopy();
             if (thrownException == null) {
               dartCopy.setValueInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, librarySource, errors);
+              dartCopy.setValueInLibrary(DartEntry.BUILT_UNIT, librarySource, unit);
               if (source.equals(librarySource)) {
                 LibraryElementImpl libraryElement = library.getLibraryElement();
                 dartCopy.setValue(DartEntry.ELEMENT, libraryElement);
@@ -4290,7 +4327,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                     isClient(libraryElement, htmlSource, new HashSet<LibraryElement>()));
               }
             } else {
-              dartCopy.recordResolutionError();
+              dartCopy.recordBuildElementError();
               cache.remove(source);
             }
             dartCopy.setException(thrownException);
@@ -4325,14 +4362,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 // The analysis was performed on out-of-date sources. Mark the cache so that the
                 // sources will be re-analyzed using the up-to-date sources.
                 //
-                dartCopy.recordResolutionNotInProcess();
+                dartCopy.recordBuildElementNotInProcess();
               } else {
                 //
                 // We could not determine whether the sources were up-to-date or out-of-date. Mark
                 // the cache so that we won't attempt to re-analyze the sources until there's a
                 // good chance that we'll be able to do so without error.
                 //
-                dartCopy.recordResolutionError();
+                dartCopy.recordBuildElementError();
                 cache.remove(source);
               }
               dartCopy.setException(thrownException);
