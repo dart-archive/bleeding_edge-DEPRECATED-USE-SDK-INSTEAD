@@ -20,7 +20,7 @@ main() {
     test('Parse non-int', _testParseNonInt);
     test('Parse non-double', _testParseNonDouble);
   });
-  group('Coverage Item:', () {
+  group('Coverage Data:', () {
     test('Class name is set', _testClassName);
     test('Visited length < instrumented length', _testData);
     test('Percentage 1x100%', _test1x100);
@@ -31,7 +31,9 @@ main() {
     test('Merge two partial', _testMerge1);
     test('Merge with empty', _testMerge2);
     test('Merge out of order', _testMerge3);
-    test('Merge invalid', _testMerge4);
+  });
+  group('Package Data:', () {
+    test('Create package', _testPackageCreation);
   });
   group('Coverage Reader:', () {
     test('Null data', _testDataNull);
@@ -106,14 +108,14 @@ _test3x0() {
 _testMerge1() {
   CoverageData dst = new CoverageData('Merge 1', [1,2], [1]);
   CoverageData src = new CoverageData('Merge 1', [1,2], [2]);
-  dst.merge(src);
+  dst.merge(src, true);
   expect(dst.percentCovered, 100);
 }
 
 _testMerge2() {
   CoverageData dst = new CoverageData('Merge 1', [1,2,3,4], []);
   CoverageData src = new CoverageData('Merge 1', [1,2,3,4], [1,2]);
-  dst.merge(src);
+  dst.merge(src, true);
   expect(dst.percentCovered, 50);
 }
 
@@ -124,10 +126,13 @@ _testMerge3() {
   expect(dst.visitedLines, [1,2,3,4]);
 }
 
-_testMerge4() {
-  CoverageData dst = new CoverageData('Merge 1', [1,2,3,4,5], [3,1]);
-  CoverageData src = new CoverageData('Merge 1', [1,2,3], [4,2]);
-  expect(() => dst.merge(src), throwsException);
+_testPackageCreation() {
+  CoverageData dst = new CoverageData('Merge 1', [1,2,3,4], [3,1]);
+  CoverageData src = new CoverageData('Merge 1', [1,2,3,4], [4,2]);
+  PackageData pkg = new PackageData('PackageName', 0, 0);
+  pkg.merge(dst);
+  pkg.merge(src);
+  expect(pkg.percentCovered, 50);
 }
 
 _testDataNull() {

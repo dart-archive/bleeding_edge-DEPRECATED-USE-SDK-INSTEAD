@@ -62,7 +62,24 @@ class CoverageList extends PolymerElement {
           ..write(data.visitedLines.length)
           ..writeln();
     }
-    InputElement text = document.querySelector('#output');
+    InputElement text = document.querySelector('#classData');
+    text.setRangeText(buffer.toString());
+    if (model.packages == null || model.packages.isEmpty) {
+      return;
+    }
+    buffer = new StringBuffer();
+    for (var data in model.packages) {
+      buffer
+          ..write(data.packageName)
+          ..write(',')
+          ..write(data.percentCovered)
+          ..write(',')
+          ..write(data.instrumentedLineCount)
+          ..write(',')
+          ..write(data.visitedLineCount)
+          ..writeln();
+    }
+    text = document.querySelector('#packageData');
     text.setRangeText(buffer.toString());
   }
 

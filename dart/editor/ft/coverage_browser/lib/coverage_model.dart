@@ -19,8 +19,11 @@ class CoverageModel extends PolymerElement {
   @published
   ObservableList<CoverageData> items;
   @published
+  ObservableList<PackageData> packages;
+  @published
   int overallPercentage;
   Map<String, CoverageData> allItemsMap = new HashMap<String, CoverageData>();
+  Map<String, PackageData> packagesMap = new HashMap<String, PackageData>();
   int filesToAdd;
   int filesAdded;
 
@@ -31,6 +34,7 @@ class CoverageModel extends PolymerElement {
     async((_) {
       if (items == null) {
         items = new ObservableList<CoverageData>();
+        packages = new ObservableList<PackageData>();
         overallPercentage = 0;
       }
     });
@@ -55,13 +59,33 @@ class CoverageModel extends PolymerElement {
   }
 
   void _refresh() {
-    items.clear();
-    var names = new List.from(allItemsMap.keys);
+    _updatePackages();
+    _refreshWith(items, allItemsMap);
+    _refreshWith(packages, packagesMap);
+    _updatePercentage();
+  }
+
+  void _refreshWith(List<dynamic> list, Map<String, dynamic> map) {
+    list.clear();
+    var names = new List.from(map.keys);
     names.sort();
     for (var name in names) {
-      items.add(allItemsMap[name]);
+      list.add(map[name]);
     }
-    _updatePercentage();
+  }
+
+  void _updatePackages() {
+    packagesMap.clear();
+    var currentPkg;
+    for (var name in allItemsMap.keys) {
+      var packageName = name.substring(0, name.lastIndexOf('.'));
+      currentPkg = packagesMap[packageName];
+      if (currentPkg == null) {
+        currentPkg = new PackageData(packageName, 0, 0);
+        packagesMap[packageName] = currentPkg;
+      }
+      currentPkg.merge(allItemsMap[name]);
+    }
   }
 
   void _updatePercentage() {
