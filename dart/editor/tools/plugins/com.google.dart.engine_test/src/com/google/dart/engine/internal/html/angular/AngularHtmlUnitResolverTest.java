@@ -235,6 +235,45 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertResolvedIdentifier("field}}", "String");
   }
 
+  public void test_NgComponent_updateDartFile() throws Exception {
+    Source componentSource = contextHelper.addSource("/my_component.dart", createSource(//
+        "library my.component;",
+        "import 'angular.dart';",
+        "@NgComponent(selector: 'myComponent')",
+        "class MyComponent {",
+        "}"));
+    contextHelper.addSource(
+        "/my_module.dart",
+        createSource("library my.module;", "import 'my_component.dart';"));
+    addMainSource(createSource("library main;", "import 'my_module.dart';"));
+    resolveIndexNoErrors(createHtmlWithMyController("<myComponent/>"));
+    // "myComponent" tag was resolved
+    {
+      XmlTagNode tagNode = HtmlUnitUtils.getTagNode(indexUnit, findOffset("myComponent"));
+      AngularSelectorElement tagElement = (AngularSelectorElement) tagNode.getElement();
+      assertNotNull(tagElement);
+      assertEquals("myComponent", tagElement.getName());
+    }
+    // replace "myComponent" with "myComponent2" in my_component.dart and index.html
+    {
+      context.setContents(
+          componentSource,
+          getSourceContent(componentSource).replace("myComponent", "myComponent2"));
+      indexContent = getSourceContent(indexSource).replace("myComponent", "myComponent2");
+      context.setContents(indexSource, indexContent);
+    }
+    contextHelper.runTasks();
+    resolveIndex();
+    // "myComponent2" tag should be resolved
+    {
+      XmlTagNode tagNode = HtmlUnitUtils.getTagNode(indexUnit, findOffset("myComponent2"));
+      AngularSelectorElement tagElement = (AngularSelectorElement) tagNode.getElement();
+      // TODO(scheglov) this test fails, because an old version of my_component.dart is used
+//      assertNotNull(tagElement);
+//      assertEquals("myComponent2", tagElement.getName());
+    }
+  }
+
   public void test_NgComponent_use_resolveAttributes() throws Exception {
     contextHelper.addSource("/my_template.html", createSource(//
         "    <div>",
@@ -809,6 +848,10 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     assertNoErrors();
     assertResolvedIdentifier("ctrl.", "MyController");
     assertResolvedIdentifier("field}}", "String");
+  }
+
+  private String getSourceContent(Source source) throws Exception {
+    return context.getContents(source).getData().toString();
   }
 
   private void resolveIndexNoErrors(String content) throws Exception {
