@@ -19,8 +19,8 @@ import com.google.common.collect.Maps;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SourceSet;
+import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
-import com.google.dart.server.internal.local.computer.TestListSourceSet;
 
 import junit.framework.TestCase;
 
@@ -39,7 +39,7 @@ public class SubscribeOperationTest extends TestCase {
   public void test_mergeWith_false_differentContext() throws Exception {
     Map<NotificationKind, SourceSet> subscriptions = ImmutableMap.of(
         NotificationKind.NAVIGATION,
-        TestListSourceSet.create(source));
+        ListSourceSet.create(source));
     SubscribeOperation operationA = new SubscribeOperation("id-A", subscriptions);
     SubscribeOperation operationB = new SubscribeOperation("id-B", subscriptions);
     assertFalse(operationA.mergeWith(operationB));
@@ -48,7 +48,7 @@ public class SubscribeOperationTest extends TestCase {
   public void test_mergeWith_false_subscribeOperation() throws Exception {
     Map<NotificationKind, SourceSet> subscriptions = ImmutableMap.of(
         NotificationKind.NAVIGATION,
-        TestListSourceSet.create(source));
+        ListSourceSet.create(source));
     SubscribeOperation operationA = new SubscribeOperation("id", subscriptions);
     ServerOperation operationB = new PerformAnalysisOperation("id");
     assertFalse(operationA.mergeWith(operationB));
@@ -57,10 +57,10 @@ public class SubscribeOperationTest extends TestCase {
   public void test_mergeWith_true_differentKind() throws Exception {
     Map<NotificationKind, SourceSet> subscriptionsA = ImmutableMap.of(
         NotificationKind.NAVIGATION,
-        TestListSourceSet.create(sourceA));
+        ListSourceSet.create(sourceA));
     Map<NotificationKind, SourceSet> subscriptionsB = ImmutableMap.of(
         NotificationKind.OUTLINE,
-        TestListSourceSet.create(sourceB));
+        ListSourceSet.create(sourceB));
     SubscribeOperation operationA = new SubscribeOperation("id", subscriptionsA);
     SubscribeOperation operationB = new SubscribeOperation("id", subscriptionsB);
     assertTrue(operationA.mergeWith(operationB));
@@ -74,10 +74,10 @@ public class SubscribeOperationTest extends TestCase {
   public void test_mergeWith_true_sameKind() throws Exception {
     Map<NotificationKind, SourceSet> subscriptionsA = ImmutableMap.of(
         NotificationKind.NAVIGATION,
-        TestListSourceSet.create(sourceA));
+        ListSourceSet.create(sourceA));
     Map<NotificationKind, SourceSet> subscriptionsB = ImmutableMap.of(
         NotificationKind.NAVIGATION,
-        TestListSourceSet.create(sourceB));
+        ListSourceSet.create(sourceB));
     SubscribeOperation operationA = new SubscribeOperation("id", subscriptionsA);
     SubscribeOperation operationB = new SubscribeOperation("id", subscriptionsB);
     assertTrue(operationA.mergeWith(operationB));
@@ -89,7 +89,7 @@ public class SubscribeOperationTest extends TestCase {
   public void test_perform() throws Exception {
     Map<NotificationKind, SourceSet> subscriptions = ImmutableMap.of(
         NotificationKind.NAVIGATION,
-        TestListSourceSet.create(source));
+        ListSourceSet.create(source));
     SubscribeOperation operation = new SubscribeOperation("id", subscriptions);
     assertSame(ServerOperationPriority.CONTEXT_NOTIFICATION, operation.getPriority());
     assertEquals("id", operation.getContextId());

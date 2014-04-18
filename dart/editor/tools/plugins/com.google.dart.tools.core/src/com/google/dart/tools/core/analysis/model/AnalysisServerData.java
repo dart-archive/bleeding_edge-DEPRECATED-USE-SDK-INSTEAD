@@ -30,4 +30,14 @@ public interface AnalysisServerData {
    * empty, but not {@code null}.
    */
   NavigationRegion[] getNavigation(String contextId, Source source);
+
+  /**
+   * Specifies that the client wants to request {@link #getNavigation(String, Source)}.
+   */
+  void subscribeNavigation(String contextId, Source source);
+
+  /**
+   * Specifies that the client doesn't need navigation information for the given source anymore.
+   */
+  void unsubscribeNavigation(String contextId, Source source);
 }

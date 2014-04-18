@@ -25,17 +25,20 @@ public class ImplicitSourceSetTest extends TestCase {
     SourceSet sourceSet = SourceSet.ALL;
     assertSame(SourceSetKind.ALL, sourceSet.getKind());
     assertSame(Source.EMPTY_ARRAY, sourceSet.getSources());
+    assertEquals("ALL", sourceSet.toString());
   }
 
   public void test_EXPLICITLY_ADDED() throws Exception {
     SourceSet sourceSet = SourceSet.EXPLICITLY_ADDED;
     assertSame(SourceSetKind.EXPLICITLY_ADDED, sourceSet.getKind());
     assertSame(Source.EMPTY_ARRAY, sourceSet.getSources());
+    assertEquals("EXPLICITLY_ADDED", sourceSet.toString());
   }
 
   public void test_NON_SDK() throws Exception {
     SourceSet sourceSet = SourceSet.NON_SDK;
     assertSame(SourceSetKind.NON_SDK, sourceSet.getKind());
     assertSame(Source.EMPTY_ARRAY, sourceSet.getSources());
+    assertEquals("NON_SDK", sourceSet.toString());
   }
 }

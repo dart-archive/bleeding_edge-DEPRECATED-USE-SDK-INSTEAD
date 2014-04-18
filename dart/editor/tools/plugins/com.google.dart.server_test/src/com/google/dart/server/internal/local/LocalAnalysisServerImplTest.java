@@ -23,7 +23,7 @@ import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SourceSet;
-import com.google.dart.server.internal.local.computer.TestListSourceSet;
+import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.internal.local.operation.ServerOperation;
 import com.google.dart.server.internal.local.operation.ServerOperationPriority;
 
@@ -198,7 +198,7 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
     // request navigation
     server.subscribe(
         contextId,
-        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(source)));
+        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(source)));
     server.test_waitForWorkerComplete();
     // validate that there are results
     serverListener.assertNavigationRegions(contextId, source).isNotEmpty();
@@ -221,14 +221,14 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
     // request regions only for "A"
     server.subscribe(
         contextId,
-        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(sourceA)));
+        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(sourceA)));
     server.test_waitForWorkerComplete();
     serverListener.assertNavigationRegions(contextId, sourceA).isNotEmpty();
     // request regions only for "B"
     serverListener.clearNavigationRegions();
     server.subscribe(
         contextId,
-        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(sourceB)));
+        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(sourceB)));
     server.test_waitForWorkerComplete();
     serverListener.assertNavigationRegions(contextId, sourceA).isEmpty();
     serverListener.assertNavigationRegions(contextId, sourceB).isNotEmpty();
@@ -244,7 +244,7 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
         "}"));
     server.subscribe(
         contextId,
-        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(source)));
+        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(source)));
     server.test_setPaused(false);
     server.test_waitForWorkerComplete();
     // validate that there are results
@@ -265,7 +265,7 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
     Source source = mock(Source.class);
     server.subscribe(
         "no-such-context",
-        ImmutableMap.of(NotificationKind.NAVIGATION, TestListSourceSet.create(source)));
+        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(source)));
     server.test_waitForWorkerComplete();
     serverListener.assertServerErrorsWithCodes(AnalysisServerErrorCode.INVALID_CONTEXT_ID);
   }

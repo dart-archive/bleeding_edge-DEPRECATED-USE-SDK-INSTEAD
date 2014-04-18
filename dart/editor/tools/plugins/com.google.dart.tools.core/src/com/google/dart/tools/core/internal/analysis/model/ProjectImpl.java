@@ -885,10 +885,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       analysisServer.subscribe(
           defaultContextId,
           ImmutableMap.of(NotificationKind.ERRORS, SourceSet.EXPLICITLY_ADDED));
-      // TODO(scheglov) Analysis Server: request navigation dynamically
-      analysisServer.subscribe(
-          defaultContextId,
-          ImmutableMap.of(NotificationKind.NAVIGATION, SourceSet.ALL));
       defaultResourceMap = new SimpleResourceMapImpl(
           projectResource,
           defaultContext,

@@ -2000,6 +2000,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   public void dispose() {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      DartCore.getAnalysisServerData().unsubscribeNavigation(
+          getInputAnalysisContextId(),
+          getInputSource());
+    }
+
     DartX.todo("folding");
     if (fProjectionModelUpdater != null) {
       fProjectionModelUpdater.uninstall();
@@ -3125,6 +3131,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         } catch (Throwable e) {
         }
       }
+    }
+
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      DartCore.getAnalysisServerData().subscribeNavigation(
+          getInputAnalysisContextId(),
+          getInputSource());
     }
 
     ISourceViewer sourceViewer = getSourceViewer();

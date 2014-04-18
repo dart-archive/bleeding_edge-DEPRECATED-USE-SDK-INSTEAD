@@ -458,6 +458,7 @@ public class DartCore extends Plugin implements DartSdkListener {
     synchronized (analysisServerLock) {
       if (analysisServer == null) {
         analysisServer = new com.google.dart.server.internal.local.LocalAnalysisServerImpl();
+        analysisServerDataImpl.setServer(analysisServer);
         analysisServer.addAnalysisServerListener(analysisServerListener);
       }
     }

@@ -39,4 +39,9 @@ public class ImplicitSourceSet implements SourceSet {
   public Source[] getSources() {
     return Source.EMPTY_ARRAY;
   }
+
+  @Override
+  public String toString() {
+    return kind.toString();
+  }
 }

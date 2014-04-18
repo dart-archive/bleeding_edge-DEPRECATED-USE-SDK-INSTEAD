@@ -19,6 +19,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OutlineKind;
+import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.internal.local.AbstractLocalServerTest;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -43,7 +44,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     Source source = addSource(contextId, "/test.dart", code);
     server.subscribe(
         contextId,
-        ImmutableMap.of(NotificationKind.OUTLINE, TestListSourceSet.create(source)));
+        ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(source)));
     server.test_waitForWorkerComplete();
     // validate
     Outline unitOutline = serverListener.getOutline(contextId, source);
@@ -183,7 +184,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     Source source = addSource(contextId, "/test.dart", code);
     server.subscribe(
         contextId,
-        ImmutableMap.of(NotificationKind.OUTLINE, TestListSourceSet.create(source)));
+        ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(source)));
     server.test_waitForWorkerComplete();
     // validate
     Outline unitOutline = serverListener.getOutline(contextId, source);

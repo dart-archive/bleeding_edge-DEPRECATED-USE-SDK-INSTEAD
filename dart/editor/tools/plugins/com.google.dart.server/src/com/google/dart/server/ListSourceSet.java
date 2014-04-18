@@ -12,20 +12,38 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local.computer;
+package com.google.dart.server;
 
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.SourceSet;
-import com.google.dart.server.SourceSetKind;
 
-public class TestListSourceSet implements SourceSet {
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Collection;
+
+/**
+ * A {@link SourceSetKind#LIST} implementation of {@link SourceSet}.
+ * 
+ * @coverage dart.server
+ */
+public class ListSourceSet implements SourceSet {
+  /**
+   * Creates a new list-based {@link SourceSet} instance.
+   */
+  public static SourceSet create(Collection<Source> sourceCollection) {
+    Source[] sources = sourceCollection.toArray(new Source[sourceCollection.size()]);
+    return new ListSourceSet(sources);
+  }
+
+  /**
+   * Creates a new list-based {@link SourceSet} instance.
+   */
   public static SourceSet create(Source... sources) {
-    return new TestListSourceSet(sources);
+    return new ListSourceSet(sources);
   }
 
   private final Source[] sources;
 
-  private TestListSourceSet(Source... sources) {
+  private ListSourceSet(Source... sources) {
     this.sources = sources;
   }
 
@@ -37,5 +55,10 @@ public class TestListSourceSet implements SourceSet {
   @Override
   public Source[] getSources() {
     return sources;
+  }
+
+  @Override
+  public String toString() {
+    return "[" + StringUtils.join(sources, ", ") + "]";
   }
 }
