@@ -1684,6 +1684,12 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       return true;
     } else if (type instanceof InterfaceType) {
       ClassElement classElement = ((InterfaceType) type).getElement();
+      // 16078 from Gilad: If the type is a Functor with the @proxy annotation, treat it as an
+      // executable type.
+      // example code: NonErrorResolverTest.test_invocationOfNonFunction_proxyOnFunctionClass()
+      if (classElement.isProxy() && type.isSubtypeOf(resolver.getTypeProvider().getFunctionType())) {
+        return true;
+      }
       MethodElement methodElement = classElement.lookUpMethod(CALL_METHOD_NAME, definingLibrary);
       return methodElement != null;
     }

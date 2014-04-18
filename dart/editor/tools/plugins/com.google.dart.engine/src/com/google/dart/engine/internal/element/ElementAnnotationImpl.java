@@ -54,7 +54,7 @@ public class ElementAnnotationImpl implements ElementAnnotation {
   /**
    * The name of the top-level variable used to mark a class as implementing a proxy object.
    */
-  private static final String PROXY_VARIABLE_NAME = "proxy";
+  public static final String PROXY_VARIABLE_NAME = "proxy";
 
   /**
    * Initialize a newly created annotation.

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
@@ -68,6 +69,7 @@ import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.ElementAnnotationImpl;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
 import com.google.dart.engine.internal.element.FunctionTypeAliasElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
@@ -199,6 +201,39 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public TypeResolverVisitor(ResolvableLibrary library, Source source, TypeProvider typeProvider) {
     super(library, source, typeProvider);
     dynamicType = typeProvider.getDynamicType();
+  }
+
+  @Override
+  public Void visitAnnotation(Annotation node) {
+    //
+    // Visit annotations, if the annotation is @proxy, on a class, and "proxy" resolves to the proxy
+    // annotation in dart.core, then create create the ElementAnnotationImpl and set it as the
+    // metadata on the enclosing class.
+    //
+    // Element resolution is done in the ElementResolver, and this work will be done in the general
+    // case for all annotations in the ElementResolver. The reason we resolve this particular
+    // element early is so that ClassElement.isProxy() returns the correct information during all
+    // phases of the ElementResolver.
+    //
+    super.visitAnnotation(node);
+    Identifier identifier = node.getName();
+    if (identifier instanceof SimpleIdentifier) {
+      SimpleIdentifier simpleIdentifier = (SimpleIdentifier) identifier;
+      if (simpleIdentifier.getName().equals(ElementAnnotationImpl.PROXY_VARIABLE_NAME)
+          && node.getParent() instanceof ClassDeclaration) {
+        Element element = getNameScope().lookup(simpleIdentifier, getDefiningLibrary());
+        if (element != null && element.getLibrary().isDartCore()
+            && element instanceof PropertyAccessorElement) {
+          // This is the @proxy from dart.core
+          simpleIdentifier.setStaticElement(element);
+          ClassDeclaration classDeclaration = (ClassDeclaration) node.getParent();
+          ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(element);
+          node.setElementAnnotation(elementAnnotation);
+          ((ClassElementImpl) classDeclaration.getElement()).setMetadata(new ElementAnnotationImpl[] {elementAnnotation});
+        }
+      }
+    }
+    return null;
   }
 
   @Override
