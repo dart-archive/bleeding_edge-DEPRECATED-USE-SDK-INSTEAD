@@ -14,6 +14,7 @@
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticTypeWarningCodeTest extends ResolverTestCase {
@@ -24,6 +25,24 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.INACCESSIBLE_SETTER);
     verify(source);
+  }
+
+  public void test_ambiguousImport_function() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "g() { return f(); }"));
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "f() {}"));
+    addNamedSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "f() {}"));
+    resolve(source);
+    assertErrors(
+        source,
+        StaticWarningCode.AMBIGUOUS_IMPORT,
+        StaticTypeWarningCode.UNDEFINED_FUNCTION);
   }
 
   public void test_expectedOneListTypeArgument() throws Exception {
@@ -947,6 +966,47 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
+  }
+
+  public void test_undefinedFunction() throws Exception {
+    Source source = addSource(createSource(//
+        "void f() {",
+        "  g();",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_FUNCTION);
+  }
+
+  public void test_undefinedFunction_hasImportPrefix() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as f;",
+        "main() { return f(); }"));
+    addNamedSource("/lib.dart", "library lib;");
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_FUNCTION);
+  }
+
+  public void test_undefinedFunction_inCatch() throws Exception {
+    Source source = addSource(createSource(//
+        "void f() {",
+        "  try {",
+        "  } on Object {",
+        "    g();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_FUNCTION);
+  }
+
+  public void test_undefinedFunction_inImportedLib() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as f;",
+        "main() { return f.g(); }"));
+    addNamedSource("/lib.dart", createSource(//
+        "library lib;",
+        "h() {}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_FUNCTION);
   }
 
   public void test_undefinedGetter() throws Exception {

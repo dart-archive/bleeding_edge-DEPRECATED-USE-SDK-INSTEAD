@@ -116,24 +116,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_ambiguousImport_function() throws Exception {
-    Source source = addSource(createSource(//
-        "import 'lib1.dart';",
-        "import 'lib2.dart';",
-        "g() { return f(); }"));
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "f() {}"));
-    addNamedSource("/lib2.dart", createSource(//
-        "library lib2;",
-        "f() {}"));
-    resolve(source);
-    assertErrors(
-        source,
-        StaticWarningCode.AMBIGUOUS_IMPORT,
-        CompileTimeErrorCode.UNDEFINED_FUNCTION);
-  }
-
   public void test_builtInIdentifierAsMixinName_classTypeAlias() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
@@ -3706,36 +3688,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT);
     verify(source);
-  }
-
-  public void test_undefinedFunction() throws Exception {
-    Source source = addSource(createSource(//
-        "void f() {",
-        "  g();",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.UNDEFINED_FUNCTION);
-  }
-
-  public void test_undefinedFunction_hasImportPrefix() throws Exception {
-    Source source = addSource(createSource(//
-        "import 'lib.dart' as f;",
-        "main() { return f(); }"));
-    addNamedSource("/lib.dart", "library lib;");
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.UNDEFINED_FUNCTION);
-  }
-
-  public void test_undefinedFunction_inCatch() throws Exception {
-    Source source = addSource(createSource(//
-        "void f() {",
-        "  try {",
-        "  } on Object {",
-        "    g();",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.UNDEFINED_FUNCTION);
   }
 
   public void test_undefinedNamedParameter() throws Exception {

@@ -944,9 +944,9 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
           methodName,
           methodName.getName());
-    } else if (errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION) {
+    } else if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
       resolver.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_FUNCTION,
+          StaticTypeWarningCode.UNDEFINED_FUNCTION,
           methodName,
           methodName.getName());
     } else if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
@@ -1420,7 +1420,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         if (target == null) {
           ClassElement enclosingClass = resolver.getEnclosingClass();
           if (enclosingClass == null) {
-            return CompileTimeErrorCode.UNDEFINED_FUNCTION;
+            return StaticTypeWarningCode.UNDEFINED_FUNCTION;
           } else if (element == null) {
             // Proxy-conditional warning, based on state of resolver.getEnclosingClass()
             return StaticTypeWarningCode.UNDEFINED_METHOD;
@@ -1437,7 +1437,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
             targetType = target.getBestType();
           }
           if (targetType == null) {
-            return CompileTimeErrorCode.UNDEFINED_FUNCTION;
+            return StaticTypeWarningCode.UNDEFINED_FUNCTION;
           } else if (!targetType.isDynamic() && !targetType.isBottom()) {
             // Proxy-conditional warning, based on state of targetType.getElement()
             return StaticTypeWarningCode.UNDEFINED_METHOD;

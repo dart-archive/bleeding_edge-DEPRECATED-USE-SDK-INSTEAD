@@ -211,6 +211,17 @@ public enum StaticTypeWarningCode implements ErrorCode {
   TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND("'%s' cannot be a supertype of its upper bound"),
 
   /**
+   * 12.15.3 Unqualified Invocation: If there exists a lexically visible declaration named
+   * <i>id</i>, let <i>f<sub>id</sub></i> be the innermost such declaration. Then: [skip].
+   * Otherwise, <i>f<sub>id</sub></i> is considered equivalent to the ordinary method invocation
+   * <b>this</b>.<i>id</i>(<i>a<sub>1</sub></i>, ..., <i>a<sub>n</sub></i>, <i>x<sub>n+1</sub></i> :
+   * <i>a<sub>n+1</sub></i>, ..., <i>x<sub>n+k</sub></i> : <i>a<sub>n+k</sub></i>).
+   * 
+   * @param methodName the name of the method that is undefined
+   */
+  UNDEFINED_FUNCTION("The function '%s' is not defined"),
+
+  /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is a static type
    * warning if <i>T</i> does not have a getter named <i>m</i>.
    * 

@@ -342,11 +342,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (errorCode == CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
         addFix_createConstructorSuperExplicit();
       }
-      if (errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION) {
-        addFix_importLibrary_withFunction();
-        addFix_undefinedFunction_useSimilar();
-        addFix_undefinedFunction_create();
-      }
       if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
         addFix_createPart();
         addFix_addPackageDependency();
@@ -415,6 +410,11 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
         addFix_removeParentheses_inGetterInvocation();
       }
+      if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
+        addFix_importLibrary_withFunction();
+        addFix_undefinedFunction_useSimilar();
+        addFix_undefinedFunction_create();
+      }
       if (errorCode == StaticTypeWarningCode.UNDEFINED_GETTER) {
         addFix_createFunction_forFunctionType();
       }
@@ -448,7 +448,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
         || errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
         || errorCode == CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
-        || errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION
         || errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST
         || errorCode == HintCode.DIVISION_OPTIMIZATION
         || errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL || errorCode == HintCode.TYPE_CHECK_IS_NULL
@@ -468,6 +467,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER
         || errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER
         || errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION
+        || errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION
         || errorCode == StaticTypeWarningCode.UNDEFINED_GETTER
         || errorCode == StaticTypeWarningCode.UNDEFINED_METHOD;
   }
