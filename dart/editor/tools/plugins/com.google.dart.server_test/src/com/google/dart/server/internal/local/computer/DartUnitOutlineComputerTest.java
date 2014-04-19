@@ -33,8 +33,8 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         "  String fc;",
         "  A(int i, String s);",
         "  A.name(num p);",
-        "  String ma(int pa) => null;",
-        "  mb(int pb) => null;",
+        "  static String ma(int pa) => null;",
+        "  _mb(int pb);",
         "  String get propA => null;",
         "  set propB(int v) {}",
         "}",
@@ -58,7 +58,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertEquals("A", outline_A.getName());
       assertEquals(code.indexOf("A {"), outline_A.getOffset());
       assertEquals(1, outline_A.getLength());
-      assertSame(null, outline_A.getArguments());
+      assertSame(null, outline_A.getParameters());
       assertSame(null, outline_A.getReturnType());
       // A children
       Outline[] outlines_A = outline_A.getChildren();
@@ -67,21 +67,21 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         Outline outline = outlines_A[0];
         assertSame(OutlineKind.FIELD, outline.getKind());
         assertEquals("fa", outline.getName());
-        assertNull(outline.getArguments());
+        assertNull(outline.getParameters());
         assertEquals("int", outline.getReturnType());
       }
       {
         Outline outline = outlines_A[1];
         assertSame(OutlineKind.FIELD, outline.getKind());
         assertEquals("fb", outline.getName());
-        assertNull(outline.getArguments());
+        assertNull(outline.getParameters());
         assertEquals("int", outline.getReturnType());
       }
       {
         Outline outline = outlines_A[2];
         assertSame(OutlineKind.FIELD, outline.getKind());
         assertEquals("fc", outline.getName());
-        assertNull(outline.getArguments());
+        assertNull(outline.getParameters());
         assertEquals("String", outline.getReturnType());
       }
       {
@@ -90,7 +90,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("A", outline.getName());
         assertEquals(code.indexOf("A(int i, String s);"), outline.getOffset());
         assertEquals("A".length(), outline.getLength());
-        assertEquals("(int i, String s)", outline.getArguments());
+        assertEquals("(int i, String s)", outline.getParameters());
         assertNull(outline.getReturnType());
       }
       {
@@ -99,26 +99,39 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("A.name", outline.getName());
         assertEquals(code.indexOf("name(num p);"), outline.getOffset());
         assertEquals("name".length(), outline.getLength());
-        assertEquals("(num p)", outline.getArguments());
+        assertEquals("(num p)", outline.getParameters());
         assertNull(outline.getReturnType());
       }
       {
         Outline outline = outlines_A[5];
         assertSame(OutlineKind.METHOD, outline.getKind());
+        {
+          String maCode = "String ma(int pa) => null;";
+          int offset = code.indexOf("p);") + "p);".length();
+          int end = code.indexOf(maCode) + maCode.length();
+          assertEquals(offset, outline.getSourceRegion().getOffset());
+          assertEquals(end - offset, outline.getSourceRegion().getLength());
+        }
         assertEquals("ma", outline.getName());
         assertEquals(code.indexOf("ma(int pa) => null;"), outline.getOffset());
         assertEquals("ma".length(), outline.getLength());
-        assertEquals("(int pa)", outline.getArguments());
+        assertEquals("(int pa)", outline.getParameters());
         assertEquals("String", outline.getReturnType());
+        assertFalse(outline.isAbstract());
+        assertFalse(outline.isPrivate());
+        assertTrue(outline.isStatic());
       }
       {
         Outline outline = outlines_A[6];
         assertSame(OutlineKind.METHOD, outline.getKind());
-        assertEquals("mb", outline.getName());
-        assertEquals(code.indexOf("mb(int pb) => null;"), outline.getOffset());
-        assertEquals("mb".length(), outline.getLength());
-        assertEquals("(int pb)", outline.getArguments());
+        assertEquals("_mb", outline.getName());
+        assertEquals(code.indexOf("_mb(int pb);"), outline.getOffset());
+        assertEquals("_mb".length(), outline.getLength());
+        assertEquals("(int pb)", outline.getParameters());
         assertEquals("", outline.getReturnType());
+        assertTrue(outline.isAbstract());
+        assertTrue(outline.isPrivate());
+        assertFalse(outline.isStatic());
       }
       {
         Outline outline = outlines_A[7];
@@ -126,7 +139,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("propA", outline.getName());
         assertEquals(code.indexOf("propA => null;"), outline.getOffset());
         assertEquals("propA".length(), outline.getLength());
-        assertEquals("", outline.getArguments());
+        assertEquals("", outline.getParameters());
         assertEquals("String", outline.getReturnType());
       }
       {
@@ -135,7 +148,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("propB", outline.getName());
         assertEquals(code.indexOf("propB(int v) {}"), outline.getOffset());
         assertEquals("propB".length(), outline.getLength());
-        assertEquals("(int v)", outline.getArguments());
+        assertEquals("(int v)", outline.getParameters());
         assertEquals("", outline.getReturnType());
       }
     }
@@ -147,7 +160,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertEquals("B", outline_B.getName());
       assertEquals(code.indexOf("B {"), outline_B.getOffset());
       assertEquals(1, outline_B.getLength());
-      assertSame(null, outline_B.getArguments());
+      assertSame(null, outline_B.getParameters());
       assertSame(null, outline_B.getReturnType());
       // B children
       Outline[] outlines_B = outline_B.getChildren();
@@ -158,7 +171,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("B", outline.getName());
         assertEquals(code.indexOf("B(int p);"), outline.getOffset());
         assertEquals("B".length(), outline.getLength());
-        assertEquals("(int p)", outline.getArguments());
+        assertEquals("(int p)", outline.getParameters());
         assertNull(outline.getReturnType());
       }
     }
@@ -198,7 +211,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertEquals("A", outline_A.getName());
       assertEquals(code.indexOf("A {"), outline_A.getOffset());
       assertEquals("A".length(), outline_A.getLength());
-      assertSame(null, outline_A.getArguments());
+      assertSame(null, outline_A.getParameters());
       assertSame(null, outline_A.getReturnType());
       // A children
       Outline[] outlines_A = outline_A.getChildren();
@@ -209,7 +222,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("A", constructorOutline.getName());
         assertEquals(code.indexOf("A() {"), constructorOutline.getOffset());
         assertEquals("A".length(), constructorOutline.getLength());
-        assertEquals("()", constructorOutline.getArguments());
+        assertEquals("()", constructorOutline.getParameters());
         assertNull(constructorOutline.getReturnType());
         // local function
         Outline[] outlines_constructor = constructorOutline.getChildren();
@@ -220,7 +233,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
           assertEquals("local_A", outline.getName());
           assertEquals(code.indexOf("local_A() {}"), outline.getOffset());
           assertEquals("local_A".length(), outline.getLength());
-          assertEquals("()", outline.getArguments());
+          assertEquals("()", outline.getParameters());
           assertEquals("int", outline.getReturnType());
         }
       }
@@ -230,7 +243,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("m", outlines_m.getName());
         assertEquals(code.indexOf("m() {"), outlines_m.getOffset());
         assertEquals("m".length(), outlines_m.getLength());
-        assertEquals("()", outlines_m.getArguments());
+        assertEquals("()", outlines_m.getParameters());
         assertEquals("", outlines_m.getReturnType());
         // local function
         Outline[] methodChildren = outlines_m.getChildren();
@@ -241,7 +254,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
           assertEquals("local_m", outline.getName());
           assertEquals(code.indexOf("local_m() {}"), outline.getOffset());
           assertEquals("local_m".length(), outline.getLength());
-          assertEquals("()", outline.getArguments());
+          assertEquals("()", outline.getParameters());
           assertEquals("", outline.getReturnType());
         }
       }
@@ -254,7 +267,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertEquals("f", outline_f.getName());
       assertEquals(code.indexOf("f() {"), outline_f.getOffset());
       assertEquals("f".length(), outline_f.getLength());
-      assertEquals("()", outline_f.getArguments());
+      assertEquals("()", outline_f.getParameters());
       assertEquals("", outline_f.getReturnType());
       // f() children
       Outline[] outlines_f = outline_f.getChildren();
@@ -265,7 +278,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("local_f1", outline_f1.getName());
         assertEquals(code.indexOf("local_f1(int i) {}"), outline_f1.getOffset());
         assertEquals("local_f1".length(), outline_f1.getLength());
-        assertEquals("(int i)", outline_f1.getArguments());
+        assertEquals("(int i)", outline_f1.getParameters());
         assertEquals("", outline_f1.getReturnType());
       }
       {
@@ -274,7 +287,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("local_f2", outline_f2.getName());
         assertEquals(code.indexOf("local_f2(String s) {"), outline_f2.getOffset());
         assertEquals("local_f2".length(), outline_f2.getLength());
-        assertEquals("(String s)", outline_f2.getArguments());
+        assertEquals("(String s)", outline_f2.getParameters());
         assertEquals("", outline_f2.getReturnType());
         // local_f2() local function
         Outline[] outlines_f2 = outline_f2.getChildren();
@@ -285,7 +298,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
           assertEquals("local_f21", outline_f21.getName());
           assertEquals(code.indexOf("local_f21(int p) {"), outline_f21.getOffset());
           assertEquals("local_f21".length(), outline_f21.getLength());
-          assertEquals("(int p)", outline_f21.getArguments());
+          assertEquals("(int p)", outline_f21.getParameters());
           assertEquals("", outline_f21.getReturnType());
         }
       }
@@ -322,7 +335,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertEquals("FTA", outline.getName());
       assertEquals(code.indexOf("FTA("), outline.getOffset());
       assertEquals("FTA".length(), outline.getLength());
-      assertEquals("(int i, String s)", outline.getArguments());
+      assertEquals("(int i, String s)", outline.getParameters());
       assertEquals("String", outline.getReturnType());
     }
     // FTB
@@ -333,7 +346,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertEquals("FTB", outline.getName());
       assertEquals(code.indexOf("FTB("), outline.getOffset());
       assertEquals("FTB".length(), outline.getLength());
-      assertEquals("(int p)", outline.getArguments());
+      assertEquals("(int p)", outline.getParameters());
       assertEquals("", outline.getReturnType());
     }
     // CTA
@@ -344,7 +357,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertEquals("CTA", outline.getName());
       assertEquals(code.indexOf("CTA ="), outline.getOffset());
       assertEquals("CTA".length(), outline.getLength());
-      assertNull(outline.getArguments());
+      assertNull(outline.getParameters());
       assertNull(outline.getReturnType());
     }
     // fA
@@ -355,7 +368,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertEquals("fA", outline.getName());
       assertEquals(code.indexOf("fA("), outline.getOffset());
       assertEquals("fA".length(), outline.getLength());
-      assertEquals("(int i, String s)", outline.getArguments());
+      assertEquals("(int i, String s)", outline.getParameters());
       assertEquals("String", outline.getReturnType());
     }
     // fB
@@ -366,7 +379,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertEquals("fB", outline.getName());
       assertEquals(code.indexOf("fB("), outline.getOffset());
       assertEquals("fB".length(), outline.getLength());
-      assertEquals("(int p)", outline.getArguments());
+      assertEquals("(int p)", outline.getParameters());
       assertEquals("", outline.getReturnType());
     }
     // propA
@@ -377,7 +390,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertEquals("propA", outline.getName());
       assertEquals(code.indexOf("propA => null;"), outline.getOffset());
       assertEquals("propA".length(), outline.getLength());
-      assertEquals("", outline.getArguments());
+      assertEquals("", outline.getParameters());
       assertEquals("String", outline.getReturnType());
     }
     // propB
@@ -388,7 +401,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertEquals("propB", outline.getName());
       assertEquals(code.indexOf("propB(int v) {}"), outline.getOffset());
       assertEquals("propB".length(), outline.getLength());
-      assertEquals("(int v)", outline.getArguments());
+      assertEquals("(int v)", outline.getParameters());
       assertEquals("", outline.getReturnType());
     }
   }

@@ -38,6 +38,4 @@ public interface SourceRegion {
    * @return the offset to the beginning of the region
    */
   public int getOffset();
-
-  // TODO(scheglov) add contains(int) API
 }

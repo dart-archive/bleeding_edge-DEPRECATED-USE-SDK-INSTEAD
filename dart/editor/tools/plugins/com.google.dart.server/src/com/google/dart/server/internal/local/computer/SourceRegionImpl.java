@@ -14,6 +14,7 @@
 
 package com.google.dart.server.internal.local.computer;
 
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.server.SourceRegion;
 
 /**
@@ -36,6 +37,18 @@ public class SourceRegionImpl implements SourceRegion {
   }
 
   @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (!(obj instanceof SourceRegion)) {
+      return false;
+    }
+    SourceRegion other = (SourceRegion) obj;
+    return other.getOffset() == offset && other.getLength() == length;
+  }
+
+  @Override
   public int getLength() {
     return length;
   }
@@ -43,6 +56,11 @@ public class SourceRegionImpl implements SourceRegion {
   @Override
   public int getOffset() {
     return offset;
+  }
+
+  @Override
+  public int hashCode() {
+    return ObjectUtilities.combineHashCodes(offset, length);
   }
 
   @Override

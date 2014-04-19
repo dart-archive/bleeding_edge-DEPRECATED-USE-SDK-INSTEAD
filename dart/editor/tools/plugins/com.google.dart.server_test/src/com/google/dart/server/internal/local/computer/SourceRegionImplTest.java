@@ -35,6 +35,21 @@ public class SourceRegionImplTest extends AbstractLocalServerTest {
     assertFalse(sourceRegion.containsInclusive(50));
   }
 
+  public void test_equals() throws Exception {
+    SourceRegionImpl sourceRegionA = new SourceRegionImpl(1, 2);
+    SourceRegionImpl sourceRegionA2 = new SourceRegionImpl(1, 2);
+    SourceRegionImpl sourceRegionB = new SourceRegionImpl(10, 20);
+    assertTrue(sourceRegionA.equals(sourceRegionA));
+    assertTrue(sourceRegionA.equals(sourceRegionA2));
+    assertFalse(sourceRegionA.equals(this));
+    assertFalse(sourceRegionA.equals(sourceRegionB));
+  }
+
+  public void test_hashCode() throws Exception {
+    SourceRegionImpl sourceRegion = new SourceRegionImpl(10, 20);
+    sourceRegion.hashCode();
+  }
+
   public void test_toString() throws Exception {
     SourceRegionImpl sourceRegion = new SourceRegionImpl(10, 20);
     assertEquals("[offset=10, length=20]", sourceRegion.toString());

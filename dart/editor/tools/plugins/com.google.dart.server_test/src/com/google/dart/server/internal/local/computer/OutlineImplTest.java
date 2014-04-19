@@ -31,19 +31,26 @@ public class OutlineImplTest extends AbstractLocalServerTest {
     Outline[] children = new Outline[] {childA, childB};
     OutlineImpl outline = new OutlineImpl(
         parent,
+        new SourceRegionImpl(1, 2),
         OutlineKind.METHOD,
         "foo",
         10,
         20,
         "(int i, String s)",
-        "Map<String, int>");
+        "Map<String, int>",
+        true,
+        true);
     assertSame(parent, outline.getParent());
+    assertEquals(new SourceRegionImpl(1, 2), outline.getSourceRegion());
     assertSame(OutlineKind.METHOD, outline.getKind());
     assertEquals("foo", outline.getName());
     assertEquals(10, outline.getOffset());
     assertEquals(20, outline.getLength());
-    assertEquals("(int i, String s)", outline.getArguments());
+    assertEquals("(int i, String s)", outline.getParameters());
     assertEquals("Map<String, int>", outline.getReturnType());
+    assertTrue(outline.isAbstract());
+    assertFalse(outline.isPrivate());
+    assertTrue(outline.isStatic());
     // children
     outline.setChildren(children);
     assertEquals(children, outline.getChildren());

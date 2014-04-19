@@ -14,8 +14,10 @@
 
 package com.google.dart.server.internal.local.computer;
 
+import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OutlineKind;
+import com.google.dart.server.SourceRegion;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -26,28 +28,30 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class OutlineImpl implements Outline {
   private final Outline parent;
+  private final SourceRegion sourceRegion;
   private final OutlineKind kind;
   private final String name;
   private final int offset;
   private final int length;
   private final String arguments;
   private final String returnType;
+  private final boolean isAbstract;
+  private final boolean isStatic;
   private Outline[] children = Outline.EMPTY_ARRAY;
 
-  public OutlineImpl(Outline parent, OutlineKind kind, String name, int offset, int length,
-      String arguments, String returnType) {
+  public OutlineImpl(Outline parent, SourceRegion sourceRegion, OutlineKind kind, String name,
+      int offset, int length, String arguments, String returnType, boolean isAbstract,
+      boolean isStatic) {
     this.parent = parent;
+    this.sourceRegion = sourceRegion;
     this.kind = kind;
     this.name = name;
     this.offset = offset;
     this.length = length;
     this.arguments = arguments;
     this.returnType = returnType;
-  }
-
-  @Override
-  public String getArguments() {
-    return arguments;
+    this.isAbstract = isAbstract;
+    this.isStatic = isStatic;
   }
 
   @Override
@@ -76,6 +80,11 @@ public class OutlineImpl implements Outline {
   }
 
   @Override
+  public String getParameters() {
+    return arguments;
+  }
+
+  @Override
   public Outline getParent() {
     return parent;
   }
@@ -83,6 +92,26 @@ public class OutlineImpl implements Outline {
   @Override
   public String getReturnType() {
     return returnType;
+  }
+
+  @Override
+  public SourceRegion getSourceRegion() {
+    return sourceRegion;
+  }
+
+  @Override
+  public boolean isAbstract() {
+    return isAbstract;
+  }
+
+  @Override
+  public boolean isPrivate() {
+    return StringUtilities.startsWithChar(name, '_');
+  }
+
+  @Override
+  public boolean isStatic() {
+    return isStatic;
   }
 
   public void setChildren(Outline[] children) {

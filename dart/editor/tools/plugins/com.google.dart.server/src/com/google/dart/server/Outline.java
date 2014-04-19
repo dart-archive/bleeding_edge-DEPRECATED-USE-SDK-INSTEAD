@@ -26,14 +26,6 @@ public interface Outline {
   Outline[] EMPTY_ARRAY = new Outline[0];
 
   /**
-   * Return the argument list for the element, or {@code null} if the element is not a method or
-   * function. If the element has zero arguments, the string {@code "()"} will be returned.
-   * 
-   * @return the argument list for the element
-   */
-  public String getArguments();
-
-  /**
    * Return an array containing the children of the element. The array will be empty if the element
    * has no children.
    * 
@@ -70,6 +62,15 @@ public interface Outline {
   public int getOffset();
 
   /**
+   * Return the parameter list for the element, or {@code null} if the element is not a constructor,
+   * method or function. If the element has zero arguments, the string {@code "()"} will be
+   * returned.
+   * 
+   * @return the parameter list for the element
+   */
+  public String getParameters();
+
+  /**
    * Return the outline that either physically or logically encloses this outline. This will be
    * {@code null} if this outline is a unit outline.
    * 
@@ -85,4 +86,32 @@ public interface Outline {
    * @return the return type of the element
    */
   public String getReturnType();
+
+  /**
+   * Return the element's source range.
+   * 
+   * @return the element's source range
+   */
+  public SourceRegion getSourceRegion();
+
+  /**
+   * Return {@code true} if the element is abstract.
+   * 
+   * @return {@code true} if the element is abstract
+   */
+  public boolean isAbstract();
+
+  /**
+   * Return {@code true} if the element is private.
+   * 
+   * @return {@code true} if the element is private
+   */
+  public boolean isPrivate();
+
+  /**
+   * Return {@code true} if the element is a class member and is a static element.
+   * 
+   * @return {@code true} if the element is a static element
+   */
+  public boolean isStatic();
 }
