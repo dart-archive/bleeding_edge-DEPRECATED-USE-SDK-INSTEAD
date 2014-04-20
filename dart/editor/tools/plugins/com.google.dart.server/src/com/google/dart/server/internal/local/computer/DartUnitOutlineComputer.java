@@ -125,28 +125,47 @@ public class DartUnitOutlineComputer {
    * Returns the {@link AstNode}'s source region.
    */
   private SourceRegion getSourceRegion(AstNode node) {
+    int endOffset = node.getEnd();
     // prepare position of the node among its siblings
     int firstOffset;
     List<? extends AstNode> siblings;
     AstNode parent = node.getParent();
+    // field
+    if (parent instanceof VariableDeclarationList) {
+      VariableDeclarationList variableList = (VariableDeclarationList) parent;
+      List<VariableDeclaration> variables = variableList.getVariables();
+      int variableIndex = variables.indexOf(node);
+      if (variableIndex == 0) {
+        node = parent.getParent();
+        parent = node.getParent();
+      } else if (variableIndex >= 1) {
+        firstOffset = variables.get(variableIndex - 1).getEnd();
+        if (variableIndex == variables.size() - 1) {
+          endOffset = variableList.getParent().getEnd();
+        }
+        return new SourceRegionImpl(firstOffset, endOffset - firstOffset);
+      }
+    }
+    // unit or class member
     if (parent instanceof CompilationUnit) {
       firstOffset = 0;
       siblings = ((CompilationUnit) parent).getDeclarations();
     } else if (parent instanceof ClassDeclaration) {
       ClassDeclaration classDeclaration = (ClassDeclaration) parent;
-      firstOffset = classDeclaration.getRightBracket().getEnd();
+      firstOffset = classDeclaration.getLeftBracket().getEnd();
       siblings = classDeclaration.getMembers();
     } else {
-      return new SourceRegionImpl(node.getOffset(), node.getLength());
+      int offset = node.getOffset();
+      return new SourceRegionImpl(offset, endOffset - offset);
     }
     // first child: [endOfParent, endOfNode]
     int index = siblings.indexOf(node);
     if (index == 0) {
-      return new SourceRegionImpl(firstOffset, node.getEnd() - firstOffset);
+      return new SourceRegionImpl(firstOffset, endOffset - firstOffset);
     }
     // not first child: [endOfPreviousSibling, endOfNode]
     int prevSiblingEnd = siblings.get(index - 1).getEnd();
-    return new SourceRegionImpl(prevSiblingEnd, node.getEnd() - prevSiblingEnd);
+    return new SourceRegionImpl(prevSiblingEnd, endOffset - prevSiblingEnd);
   }
 
   private OutlineImpl newClassOutline(Outline unitOutline, List<Outline> unitChildren,
@@ -306,7 +325,7 @@ public class DartUnitOutlineComputer {
   private OutlineImpl newUnitOutline() {
     return new OutlineImpl(
         null,
-        null,
+        new SourceRegionImpl(unit.getOffset(), unit.getLength()),
         OutlineKind.COMPILATION_UNIT,
         null,
         0,

@@ -58,4 +58,59 @@ public class OutlineImplTest extends AbstractLocalServerTest {
     assertEquals("[name=foo, kind=METHOD, offset=10, length=20, arguments=(int i, String s), "
         + "return=Map<String, int>, children=[childA, childB]]", outline.toString());
   }
+
+  public void test_equals() throws Exception {
+    OutlineImpl outlineA = new OutlineImpl(
+        null,
+        new SourceRegionImpl(1, 2),
+        OutlineKind.METHOD,
+        "foo",
+        1,
+        2,
+        "()",
+        "",
+        false,
+        false);
+    OutlineImpl outlineA2 = new OutlineImpl(
+        null,
+        new SourceRegionImpl(1, 2),
+        OutlineKind.METHOD,
+        "foo",
+        1,
+        2,
+        "()",
+        "",
+        false,
+        false);
+    OutlineImpl outlineB = new OutlineImpl(
+        null,
+        new SourceRegionImpl(1, 2),
+        OutlineKind.METHOD,
+        "foo",
+        10,
+        20,
+        "()",
+        "",
+        false,
+        false);
+    assertTrue(outlineA.equals(outlineA));
+    assertTrue(outlineA.equals(outlineA2));
+    assertFalse(outlineA.equals(this));
+    assertFalse(outlineA.equals(outlineB));
+  }
+
+  public void test_hashCode() throws Exception {
+    OutlineImpl outline = new OutlineImpl(
+        null,
+        new SourceRegionImpl(1, 2),
+        OutlineKind.METHOD,
+        "foo",
+        10,
+        20,
+        "(int i, String s)",
+        "Map<String, int>",
+        true,
+        true);
+    outline.hashCode();
+  }
 }

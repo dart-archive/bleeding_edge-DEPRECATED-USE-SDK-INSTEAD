@@ -1725,14 +1725,14 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private AnalysisServerOutlineListener analysisServerOutlineListener = new AnalysisServerOutlineListener() {
     @Override
     public void computedOutline(String contextId, Source source, final Outline outline) {
-      if (fOutlinePage_NEW != null) {
-        Display.getDefault().asyncExec(new Runnable() {
-          @Override
-          public void run() {
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          if (fOutlinePage_NEW != null) {
             fOutlinePage_NEW.setInput(outline);
           }
-        });
-      }
+        }
+      });
     }
   };
 
@@ -2273,7 +2273,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return null;
   }
 
-  // TODO(scheglov)
   public Point getDocumentSelectionRange() {
     ISourceViewer sourceViewer = getSourceViewer();
     if (sourceViewer == null) {
@@ -4451,11 +4450,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * Applies the current selection to the Outline view.
    */
   private void applySelectionToOutline() {
-    // prepare resolved unit
-    com.google.dart.engine.ast.CompilationUnit unit = resolvedUnit;
-    if (unit == null) {
-      return;
-    }
     // prepare selection
     ISelection selection = getSelectionProvider().getSelection();
     if (!(selection instanceof TextSelection)) {
@@ -4468,6 +4462,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         fOutlinePage_NEW.select(offset);
       }
     } else {
+      // prepare resolved unit
+      com.google.dart.engine.ast.CompilationUnit unit = resolvedUnit;
+      if (unit == null) {
+        return;
+      }
+      // apply selected element
       LightNodeElement element = computeHighlightRangeSourceElement(resolvedUnit, offset);
       if (element != null && fOutlinePage_OLD != null) {
         fOutlinePage_OLD.select(element);

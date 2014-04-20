@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.common.base.Objects;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OutlineKind;
+import com.google.dart.server.SourceRegion;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
@@ -95,10 +96,9 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
         return NOT_ELEMENT;
       }
       Outline outline = (Outline) e;
-      // TODO(scheglov)
-//      if (outline.isPrivate()) {
-//        return PRIVATE_ELEMENT;
-//      }
+      if (outline.isPrivate()) {
+        return PRIVATE_ELEMENT;
+      }
       return PUBLIC_ELEMENT;
     }
 
@@ -306,8 +306,9 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
       return null;
     }
 
-    private static ImageDescriptor getImageDescriptor(OutlineKind kind, boolean isPrivate) {
-      ImageDescriptor base = getBaseImageDescriptor(kind, isPrivate);
+    private static ImageDescriptor getImageDescriptor(Outline outline) {
+      OutlineKind kind = outline.getKind();
+      ImageDescriptor base = getBaseImageDescriptor(kind, outline.isPrivate());
       if (base == null) {
         return null;
       }
@@ -321,44 +322,19 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
       if (kind == OutlineKind.SETTER) {
         flags |= DartElementImageDescriptor.SETTER;
       }
-      // TODO(scheglov) Analysis Server: add flags: abstract, private, static
-//      // ClassDeclaration
-//      if (node instanceof ClassDeclaration) {
-//        ClassDeclaration classDeclaration = (ClassDeclaration) node;
-//        if (classDeclaration.getAbstractKeyword() != null) {
-//          flags |= DartElementImageDescriptor.ABSTRACT;
-//        }
-//      }
-//      // ConstructorDeclaration
-//      if (node instanceof ConstructorDeclaration) {
-//        flags |= DartElementImageDescriptor.CONSTRUCTOR;
-//      }
-//      // MethodDeclaration
-//      if (node instanceof MethodDeclaration) {
-//        MethodDeclaration method = (MethodDeclaration) node;
-//        if (method.isAbstract()) {
-//          flags |= DartElementImageDescriptor.ABSTRACT;
-//        }
-//        if (method.isStatic()) {
-//          flags |= DartElementImageDescriptor.STATIC;
-//        }
-//        if (method.isGetter()) {
-//          flags |= DartElementImageDescriptor.GETTER;
-//        }
-//        if (method.isSetter()) {
-//          flags |= DartElementImageDescriptor.SETTER;
-//        }
-//      }
-      // done
+      if (outline.isAbstract()) {
+        flags |= DartElementImageDescriptor.ABSTRACT;
+      }
+      if (outline.isStatic()) {
+        flags |= DartElementImageDescriptor.STATIC;
+      }
       return new DartElementImageDescriptor(base, flags, SIZE);
     }
 
     @Override
     public Image getImage(Object o) {
       Outline outline = (Outline) o;
-      // TODO(scheglov) Analysis Server: add isPrivate() accessor
-      boolean isPrivate = outline.getName().startsWith("_");
-      ImageDescriptor descriptor = getImageDescriptor(outline.getKind(), isPrivate);
+      ImageDescriptor descriptor = getImageDescriptor(outline);
       if (descriptor != null) {
         return registry.get(descriptor);
       }
@@ -418,11 +394,9 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
   private static final ViewerFilter PUBLIC_FILTER = new ViewerFilter() {
     @Override
     public boolean select(Viewer viewer, Object parentElement, Object o) {
-      // TODO(scheglov)
-//      if (o instanceof LightNodeElement) {
-//        LightNodeElement element = (LightNodeElement) o;
-//        return !element.isPrivate();
-//      }
+      if (o instanceof Outline) {
+        return !((Outline) o).isPrivate();
+      }
       return false;
     }
   };
@@ -570,9 +544,28 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     updateViewerWithoutDraw(new Runnable() {
       @Override
       public void run() {
-        // TODO(scheglov) Analysis Server: add source range
-//        setSelection(new StructuredSelection(element));
-//        viewer.reveal(element);
+        Outline outline = getOutlineAtOffset(input);
+        if (outline != null) {
+          setSelection(new StructuredSelection(outline));
+          viewer.reveal(outline);
+        }
+      }
+
+      private Outline getOutlineAtOffset(Outline outline) {
+        if (outline == null) {
+          return null;
+        }
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        if (sourceRegion != null && !sourceRegion.containsInclusive(offset)) {
+          return null;
+        }
+        for (Outline child : outline.getChildren()) {
+          Outline result = getOutlineAtOffset(child);
+          if (result != null) {
+            return result;
+          }
+        }
+        return outline;
       }
     });
   }
@@ -589,9 +582,11 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     updateViewerWithoutDraw(new Runnable() {
       @Override
       public void run() {
+        ISelection selection = viewer.getSelection();
         Object[] expandedElements = viewer.getExpandedElements();
         viewer.setInput(input);
         viewer.setExpandedElements(expandedElements);
+        viewer.setSelection(selection, true);
       }
     });
   }

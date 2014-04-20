@@ -20,6 +20,7 @@ import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OutlineKind;
+import com.google.dart.server.SourceRegion;
 import com.google.dart.server.internal.local.AbstractLocalServerTest;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -105,13 +106,6 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       {
         Outline outline = outlines_A[5];
         assertSame(OutlineKind.METHOD, outline.getKind());
-        {
-          String maCode = "String ma(int pa) => null;";
-          int offset = code.indexOf("p);") + "p);".length();
-          int end = code.indexOf(maCode) + maCode.length();
-          assertEquals(offset, outline.getSourceRegion().getOffset());
-          assertEquals(end - offset, outline.getSourceRegion().getLength());
-        }
         assertEquals("ma", outline.getName());
         assertEquals(code.indexOf("ma(int pa) => null;"), outline.getOffset());
         assertEquals("ma".length(), outline.getLength());
@@ -173,6 +167,150 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("B".length(), outline.getLength());
         assertEquals("(int p)", outline.getParameters());
         assertNull(outline.getReturnType());
+      }
+    }
+  }
+
+  public void test_getSourceRange_inClass() throws Exception {
+    String contextId = createContext("test");
+    String code = makeSource(//
+        "class A { // leftA",
+        "  int methodA() {} // endA",
+        "  int methodB() {} // endB",
+        "}");
+    Source source = addSource(contextId, "/test.dart", code);
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(source)));
+    server.test_waitForWorkerComplete();
+    // validate
+    Outline unitOutline = serverListener.getOutline(contextId, source);
+    Outline[] outlines = unitOutline.getChildren()[0].getChildren();
+    assertThat(outlines).hasSize(2);
+    // methodA
+    {
+      Outline outline = outlines[0];
+      assertSame(OutlineKind.METHOD, outline.getKind());
+      assertEquals("methodA", outline.getName());
+      {
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        int offset = code.indexOf(" // leftA");
+        int end = code.indexOf(" // endA");
+        assertEquals(offset, sourceRegion.getOffset());
+        assertEquals(end - offset, sourceRegion.getLength());
+      }
+    }
+    // methodB
+    {
+      Outline outline = outlines[1];
+      assertSame(OutlineKind.METHOD, outline.getKind());
+      assertEquals("methodB", outline.getName());
+      {
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        int offset = code.indexOf(" // endA");
+        int end = code.indexOf(" // endB");
+        assertEquals(offset, sourceRegion.getOffset());
+        assertEquals(end - offset, sourceRegion.getLength());
+      }
+    }
+  }
+
+  public void test_getSourceRange_inClass_inVariableList() throws Exception {
+    String contextId = createContext("test");
+    String code = makeSource(//
+        "class A { // leftA",
+        "  int fieldA, fieldB, fieldC; // marker",
+        "}");
+    Source source = addSource(contextId, "/test.dart", code);
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(source)));
+    server.test_waitForWorkerComplete();
+    // validate
+    Outline unitOutline = serverListener.getOutline(contextId, source);
+    Outline[] outlines = unitOutline.getChildren()[0].getChildren();
+    assertThat(outlines).hasSize(3);
+    // fieldA
+    {
+      Outline outline = outlines[0];
+      assertSame(OutlineKind.FIELD, outline.getKind());
+      assertEquals("fieldA", outline.getName());
+      {
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        int offset = code.indexOf(" // leftA");
+        int end = code.indexOf(", fieldB");
+        assertEquals(offset, sourceRegion.getOffset());
+        assertEquals(end - offset, sourceRegion.getLength());
+      }
+    }
+    // fieldB
+    {
+      Outline outline = outlines[1];
+      assertSame(OutlineKind.FIELD, outline.getKind());
+      assertEquals("fieldB", outline.getName());
+      {
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        int offset = code.indexOf(", fieldB");
+        int end = code.indexOf(", fieldC");
+        assertEquals(offset, sourceRegion.getOffset());
+        assertEquals(end - offset, sourceRegion.getLength());
+      }
+    }
+    // fieldC
+    {
+      Outline outline = outlines[2];
+      assertSame(OutlineKind.FIELD, outline.getKind());
+      assertEquals("fieldC", outline.getName());
+      {
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        int offset = code.indexOf(", fieldC");
+        int end = code.indexOf(" // marker");
+        assertEquals(offset, sourceRegion.getOffset());
+        assertEquals(end - offset, sourceRegion.getLength());
+      }
+    }
+  }
+
+  public void test_getSourceRange_inUnit() throws Exception {
+    String contextId = createContext("test");
+    String code = makeSource(//
+        "class A {",
+        "} // endA",
+        "class B {",
+        "} // endB");
+    Source source = addSource(contextId, "/test.dart", code);
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(source)));
+    server.test_waitForWorkerComplete();
+    // validate
+    Outline unitOutline = serverListener.getOutline(contextId, source);
+    Outline[] topOutlines = unitOutline.getChildren();
+    assertThat(topOutlines).hasSize(2);
+    // A
+    {
+      Outline outline = topOutlines[0];
+      assertSame(OutlineKind.CLASS, outline.getKind());
+      assertEquals("A", outline.getName());
+      {
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        int offset = 0;
+        int end = code.indexOf(" // endA");
+        assertEquals(offset, sourceRegion.getOffset());
+        assertEquals(end - offset, sourceRegion.getLength());
+      }
+    }
+    // B
+    {
+      Outline outline = topOutlines[1];
+      assertSame(OutlineKind.CLASS, outline.getKind());
+      assertEquals("B", outline.getName());
+      {
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        int offset = code.indexOf(" // endA");
+        int end = code.indexOf(" // endB");
+        assertEquals(offset, sourceRegion.getOffset());
+        assertEquals(end - offset, sourceRegion.getLength());
       }
     }
   }

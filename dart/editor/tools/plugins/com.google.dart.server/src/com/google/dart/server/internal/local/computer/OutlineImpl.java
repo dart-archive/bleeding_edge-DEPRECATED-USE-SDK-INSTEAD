@@ -14,6 +14,7 @@
 
 package com.google.dart.server.internal.local.computer;
 
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OutlineKind;
@@ -52,6 +53,18 @@ public class OutlineImpl implements Outline {
     this.returnType = returnType;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (!(obj instanceof OutlineImpl)) {
+      return false;
+    }
+    OutlineImpl other = (OutlineImpl) obj;
+    return ObjectUtilities.equals(other.parent, parent) && other.offset == offset;
   }
 
   @Override
@@ -97,6 +110,11 @@ public class OutlineImpl implements Outline {
   @Override
   public SourceRegion getSourceRegion() {
     return sourceRegion;
+  }
+
+  @Override
+  public int hashCode() {
+    return offset;
   }
 
   @Override
