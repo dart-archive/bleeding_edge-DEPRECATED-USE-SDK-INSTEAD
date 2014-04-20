@@ -215,40 +215,42 @@ public class LibraryElementBuilder {
         if (analysisContext.exists(partSource)) {
           hasPartDirective = true;
           CompilationUnit partUnit = library.getAST(partSource);
-          CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource, partUnit);
-          part.setUriOffset(partUri.getOffset());
-          part.setUriEnd(partUri.getEnd());
-          part.setUri(partDirective.getUriContent());
-          //
-          // Validate that the part contains a part-of directive with the same name as the library.
-          //
-          String partLibraryName = getPartLibraryName(partSource, partUnit, directivesToResolve);
-          if (partLibraryName == null) {
-            errorListener.onError(new AnalysisError(
-                librarySource,
-                partUri.getOffset(),
-                partUri.getLength(),
-                CompileTimeErrorCode.PART_OF_NON_PART,
-                partUri.toSource()));
-          } else if (libraryNameNode == null) {
-            // TODO(brianwilkerson) Collect the names declared by the part. If they are all the same
-            // then we can use that name as the inferred name of the library and present it in a
-            // quick-fix.
-            // partLibraryNames.add(partLibraryName);
-          } else if (!libraryNameNode.getName().equals(partLibraryName)) {
-            errorListener.onError(new AnalysisError(
-                librarySource,
-                partUri.getOffset(),
-                partUri.getLength(),
-                StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
-                libraryNameNode.getName(),
-                partLibraryName));
+          if (partUnit != null) {
+            CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource, partUnit);
+            part.setUriOffset(partUri.getOffset());
+            part.setUriEnd(partUri.getEnd());
+            part.setUri(partDirective.getUriContent());
+            //
+            // Validate that the part contains a part-of directive with the same name as the library.
+            //
+            String partLibraryName = getPartLibraryName(partSource, partUnit, directivesToResolve);
+            if (partLibraryName == null) {
+              errorListener.onError(new AnalysisError(
+                  librarySource,
+                  partUri.getOffset(),
+                  partUri.getLength(),
+                  CompileTimeErrorCode.PART_OF_NON_PART,
+                  partUri.toSource()));
+            } else if (libraryNameNode == null) {
+              // TODO(brianwilkerson) Collect the names declared by the part. If they are all the same
+              // then we can use that name as the inferred name of the library and present it in a
+              // quick-fix.
+              // partLibraryNames.add(partLibraryName);
+            } else if (!libraryNameNode.getName().equals(partLibraryName)) {
+              errorListener.onError(new AnalysisError(
+                  librarySource,
+                  partUri.getOffset(),
+                  partUri.getLength(),
+                  StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                  libraryNameNode.getName(),
+                  partLibraryName));
+            }
+            if (entryPoint == null) {
+              entryPoint = findEntryPoint(part);
+            }
+            directive.setElement(part);
+            sourcedCompilationUnits.add(part);
           }
-          if (entryPoint == null) {
-            entryPoint = findEntryPoint(part);
-          }
-          directive.setElement(part);
-          sourcedCompilationUnits.add(part);
         }
       }
     }
