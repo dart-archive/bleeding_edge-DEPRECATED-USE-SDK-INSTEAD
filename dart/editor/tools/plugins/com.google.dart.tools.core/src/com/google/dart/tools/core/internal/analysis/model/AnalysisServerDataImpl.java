@@ -15,6 +15,7 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.source.Source;
@@ -22,7 +23,9 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.NotificationKind;
+import com.google.dart.server.Outline;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
+import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
 
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +39,7 @@ import java.util.Set;
 public class AnalysisServerDataImpl implements AnalysisServerData {
   private final Map<String, Map<Source, NavigationRegion[]>> navigationData = Maps.newHashMap();
   private final Map<String, Set<Source>> navigationSubscriptions = Maps.newHashMap();
+  private final Map<String, Map<Source, Set<AnalysisServerOutlineListener>>> outlineSubscriptions = Maps.newHashMap();
 
   private AnalysisServer server;
 
@@ -50,15 +54,6 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
       return NavigationRegion.EMPTY_ARRAY;
     }
     return sourceRegions;
-  }
-
-  public void internalComputedNavigation(String contextId, Source source, NavigationRegion[] targets) {
-    Map<Source, NavigationRegion[]> contextRegions = navigationData.get(contextId);
-    if (contextRegions == null) {
-      contextRegions = Maps.newHashMap();
-      navigationData.put(contextId, contextRegions);
-    }
-    contextRegions.put(source, targets);
   }
 
   /**
@@ -91,6 +86,27 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
+  public void subscribeOutline(String contextId, Source source,
+      AnalysisServerOutlineListener listener) {
+    Map<Source, Set<AnalysisServerOutlineListener>> sourceSubscriptions = outlineSubscriptions.get(contextId);
+    if (sourceSubscriptions == null) {
+      sourceSubscriptions = Maps.newHashMap();
+      outlineSubscriptions.put(contextId, sourceSubscriptions);
+    }
+    Set<AnalysisServerOutlineListener> subscriptions = sourceSubscriptions.get(source);
+    if (subscriptions == null) {
+      subscriptions = Sets.newHashSet();
+      sourceSubscriptions.put(source, subscriptions);
+    }
+    if (subscriptions.add(listener)) {
+      Set<Source> sourceSet = sourceSubscriptions.keySet();
+      server.subscribe(
+          contextId,
+          ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(sourceSet)));
+    }
+  }
+
+  @Override
   public void unsubscribeNavigation(String contextId, Source source) {
     Set<Source> sources = navigationSubscriptions.get(contextId);
     if (sources == null) {
@@ -100,6 +116,52 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
       server.subscribe(
           contextId,
           ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(sources)));
+    }
+  }
+
+  @Override
+  public void unsubscribeOutline(String contextId, Source source,
+      AnalysisServerOutlineListener listener) {
+    Map<Source, Set<AnalysisServerOutlineListener>> sourceSubscriptions = outlineSubscriptions.get(contextId);
+    if (sourceSubscriptions == null) {
+      return;
+    }
+    Set<AnalysisServerOutlineListener> subscriptions = sourceSubscriptions.get(source);
+    if (subscriptions == null) {
+      return;
+    }
+    if (subscriptions.remove(listener)) {
+      if (subscriptions.isEmpty()) {
+        sourceSubscriptions.remove(source);
+        Set<Source> sourceSet = sourceSubscriptions.keySet();
+        server.subscribe(
+            contextId,
+            ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(sourceSet)));
+      }
+    }
+  }
+
+  void internalComputedNavigation(String contextId, Source source, NavigationRegion[] targets) {
+    Map<Source, NavigationRegion[]> contextRegions = navigationData.get(contextId);
+    if (contextRegions == null) {
+      contextRegions = Maps.newHashMap();
+      navigationData.put(contextId, contextRegions);
+    }
+    contextRegions.put(source, targets);
+  }
+
+  void internalComputedOutline(String contextId, Source source, Outline outline) {
+    Map<Source, Set<AnalysisServerOutlineListener>> sourceSubscriptions = outlineSubscriptions.get(contextId);
+    if (sourceSubscriptions == null) {
+      return;
+    }
+    Set<AnalysisServerOutlineListener> subscriptions = sourceSubscriptions.get(source);
+    if (subscriptions == null) {
+      return;
+    }
+    subscriptions = ImmutableSet.copyOf(subscriptions);
+    for (AnalysisServerOutlineListener listener : subscriptions) {
+      listener.computedOutline(contextId, source, outline);
     }
   }
 }

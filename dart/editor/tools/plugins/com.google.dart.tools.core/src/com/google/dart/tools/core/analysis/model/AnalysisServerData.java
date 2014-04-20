@@ -17,6 +17,7 @@ package com.google.dart.tools.core.analysis.model;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.Outline;
 
 /**
  * Instances of {@code AnalysisServerData} provide access to analysis results reported by
@@ -37,7 +38,17 @@ public interface AnalysisServerData {
   void subscribeNavigation(String contextId, Source source);
 
   /**
+   * Specifies that the client wants to be notified about new {@link Outline}.
+   */
+  void subscribeOutline(String contextId, Source source, AnalysisServerOutlineListener listener);
+
+  /**
    * Specifies that the client doesn't need navigation information for the given source anymore.
    */
   void unsubscribeNavigation(String contextId, Source source);
+
+  /**
+   * Specifies that the client doesn't want to be notified about outline information anymore.
+   */
+  void unsubscribeOutline(String contextId, Source source, AnalysisServerOutlineListener listener);
 }

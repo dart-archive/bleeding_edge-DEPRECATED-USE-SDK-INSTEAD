@@ -57,7 +57,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedOutline(String contextId, Source source, Outline outline) {
-    // TODO(scheglov) Analysis Server
+    dataImpl.internalComputedOutline(contextId, source, outline);
   }
 
   /**

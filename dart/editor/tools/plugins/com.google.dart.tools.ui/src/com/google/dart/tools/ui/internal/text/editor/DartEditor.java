@@ -32,9 +32,12 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.server.Outline;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole;
+import com.google.dart.tools.core.analysis.model.AnalysisServerData;
+import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
@@ -1714,7 +1717,24 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected final static char[] BRACKETS = {'{', '}', '(', ')', '[', ']', '<', '>'};
 
   /** The outline page */
-  protected DartOutlinePage fOutlinePage;
+  protected DartOutlinePage fOutlinePage_OLD;
+
+  /** The outline page */
+  protected DartOutlinePage_NEW fOutlinePage_NEW;
+
+  private AnalysisServerOutlineListener analysisServerOutlineListener = new AnalysisServerOutlineListener() {
+    @Override
+    public void computedOutline(String contextId, Source source, final Outline outline) {
+      if (fOutlinePage_NEW != null) {
+        Display.getDefault().asyncExec(new Runnable() {
+          @Override
+          public void run() {
+            fOutlinePage_NEW.setInput(outline);
+          }
+        });
+      }
+    }
+  };
 
   /** Outliner context menu Id */
   protected String fOutlinerContextMenuId;
@@ -1932,9 +1952,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           return;
         }
         // update Outline
-        if (resolvedUnit != null && fOutlinePage != null) {
-          if (fOutlinePage != null) {
-            fOutlinePage.setInput(resolvedUnit);
+        if (resolvedUnit != null && fOutlinePage_OLD != null) {
+          if (fOutlinePage_OLD != null) {
+            fOutlinePage_OLD.setInput(resolvedUnit);
           }
           applySelectionToOutline();
         }
@@ -2001,9 +2021,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   @Override
   public void dispose() {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      DartCore.getAnalysisServerData().unsubscribeNavigation(
-          getInputAnalysisContextId(),
-          getInputSource());
+      AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
+      String contextId = getInputAnalysisContextId();
+      Source source = getInputSource();
+      if (contextId != null && source != null) {
+        analysisServerData.unsubscribeNavigation(contextId, source);
+        analysisServerData.unsubscribeOutline(contextId, source, analysisServerOutlineListener);
+      }
     }
 
     DartX.todo("folding");
@@ -2142,10 +2166,17 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     DartX.todo("outline");
     if (IContentOutlinePage.class.equals(required)) {
-      if (fOutlinePage == null) {
-        fOutlinePage = createOutlinePage();
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        if (fOutlinePage_NEW == null) {
+          fOutlinePage_NEW = createOutlinePage_NEW();
+        }
+        return fOutlinePage_NEW;
+      } else {
+        if (fOutlinePage_OLD == null) {
+          fOutlinePage_OLD = createOutlinePage_OLD();
+        }
+        return fOutlinePage_OLD;
       }
-      return fOutlinePage;
     }
 
     if (IEncodingSupport.class.equals(required)) {
@@ -2504,9 +2535,16 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * Informs the editor that its outliner has been closed.
    */
   public void outlinePageClosed() {
-    if (fOutlinePage != null) {
-      fOutlinePage = null;
-      resetHighlightRange();
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      if (fOutlinePage_NEW != null) {
+        fOutlinePage_NEW = null;
+        resetHighlightRange();
+      }
+    } else {
+      if (fOutlinePage_OLD != null) {
+        fOutlinePage_OLD = null;
+        resetHighlightRange();
+      }
     }
   }
 
@@ -2542,7 +2580,46 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     installSemanticHighlighting();
   }
 
-  public void setSelection(LightNodeElement element, boolean moveCursor) {
+  public void setSelection_NEW(Outline element, boolean moveCursor) {
+    // validate Outline
+    if (element == null) {
+      return;
+    }
+    // prepare range
+    int offset = element.getOffset();
+    int length = element.getLength();
+    // prepare ISourceViewer
+    ISourceViewer sourceViewer = getSourceViewer();
+    if (sourceViewer == null) {
+      return;
+    }
+    // highlight range (not selection - just highlighting on left editor band)
+    if (offset < 0) {
+      return;
+    }
+    setHighlightRange(offset, length, moveCursor);
+    // do we want to change selection?
+    if (!moveCursor) {
+      return;
+    }
+    // prepare StyledText
+    StyledText textWidget = sourceViewer.getTextWidget();
+    if (textWidget == null) {
+      return;
+    }
+    // set selection in StyledText
+    try {
+      textWidget.setRedraw(false);
+      sourceViewer.revealRange(offset, length);
+      sourceViewer.setSelectedRange(offset, length);
+      fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
+      updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, getInputUnit());
+    } finally {
+      textWidget.setRedraw(true);
+    }
+  }
+
+  public void setSelection_OLD(LightNodeElement element, boolean moveCursor) {
     // validate LightNodeElement
     if (element == null) {
       return;
@@ -2596,22 +2673,28 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   protected void adjustHighlightRange(int offset, int length) {
-    Object element = getElementAt(offset, false);
-
-    if (element instanceof LightNodeElement) {
-      LightNodeElement sourceElement = (LightNodeElement) element;
-      int elementOffset = sourceElement.getNameOffset();
-      int elementLength = sourceElement.getNameLength();
-
-      ISourceViewer viewer = getSourceViewer();
-      if (viewer instanceof ITextViewerExtension5) {
-        ITextViewerExtension5 extension = (ITextViewerExtension5) viewer;
-        extension.exposeModelRange(new Region(elementOffset, elementLength));
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      if (fOutlinePage_NEW != null) {
+        fOutlinePage_NEW.select(offset);
       }
+    } else {
+      Object element = getElementAt(offset, false);
 
-      setHighlightRange(elementOffset, elementLength, true);
-      if (fOutlinePage != null) {
-        fOutlinePage.select((LightNodeElement) element);
+      if (element instanceof LightNodeElement) {
+        LightNodeElement sourceElement = (LightNodeElement) element;
+        int elementOffset = sourceElement.getNameOffset();
+        int elementLength = sourceElement.getNameLength();
+
+        ISourceViewer viewer = getSourceViewer();
+        if (viewer instanceof ITextViewerExtension5) {
+          ITextViewerExtension5 extension = (ITextViewerExtension5) viewer;
+          extension.exposeModelRange(new Region(elementOffset, elementLength));
+        }
+
+        setHighlightRange(elementOffset, elementLength, true);
+        if (fOutlinePage_OLD != null) {
+          fOutlinePage_OLD.select((LightNodeElement) element);
+        }
       }
     }
 
@@ -3013,9 +3096,20 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * 
    * @return the created Dart outline page
    */
-  protected DartOutlinePage createOutlinePage() {
+  protected DartOutlinePage_NEW createOutlinePage_NEW() {
+    DartOutlinePage_NEW page = new DartOutlinePage_NEW(fOutlinerContextMenuId, this);
+    setOutlinePageInput_NEW(page, getEditorInput());
+    return page;
+  }
+
+  /**
+   * Creates the outline page used with this editor.
+   * 
+   * @return the created Dart outline page
+   */
+  protected DartOutlinePage createOutlinePage_OLD() {
     DartOutlinePage page = new DartOutlinePage(fOutlinerContextMenuId, this);
-    setOutlinePageInput(page, getEditorInput());
+    setOutlinePageInput_OLD(page, getEditorInput());
     return page;
   }
 
@@ -3108,9 +3202,16 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (selection instanceof IStructuredSelection) {
       IStructuredSelection structuredSelection = (IStructuredSelection) selection;
       for (Object selectionObject : structuredSelection.toList()) {
-        if (selectionObject instanceof LightNodeElement) {
-          setSelection((LightNodeElement) selectionObject, !isActivePart());
-          break;
+        if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+          if (selectionObject instanceof Outline) {
+            setSelection_NEW((Outline) selectionObject, !isActivePart());
+            break;
+          }
+        } else {
+          if (selectionObject instanceof LightNodeElement) {
+            setSelection_OLD((LightNodeElement) selectionObject, !isActivePart());
+            break;
+          }
         }
       }
     }
@@ -3134,9 +3235,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
 
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      DartCore.getAnalysisServerData().subscribeNavigation(
-          getInputAnalysisContextId(),
-          getInputSource());
+      AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
+      String contextId = getInputAnalysisContextId();
+      Source source = getInputSource();
+      if (contextId != null && source != null) {
+        analysisServerData.subscribeNavigation(contextId, source);
+      }
     }
 
     ISourceViewer sourceViewer = getSourceViewer();
@@ -3838,7 +3942,25 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @param page the Dart outline page
    * @param input the editor input
    */
-  protected void setOutlinePageInput(DartOutlinePage page, IEditorInput input) {
+  protected void setOutlinePageInput_NEW(DartOutlinePage_NEW page, IEditorInput input) {
+    if (page == null) {
+      return;
+    }
+    AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
+    String contextId = getInputAnalysisContextId();
+    Source source = getInputSource();
+    if (contextId != null && source != null) {
+      analysisServerData.subscribeOutline(contextId, source, analysisServerOutlineListener);
+    }
+  }
+
+  /**
+   * Sets the input of the editor's outline page.
+   * 
+   * @param page the Dart outline page
+   * @param input the editor input
+   */
+  protected void setOutlinePageInput_OLD(DartOutlinePage page, IEditorInput input) {
     if (page == null) {
       return;
     }
@@ -4028,7 +4150,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   protected void synchronizeOutlinePage(Object /* ASTNode */element,
       boolean checkIfOutlinePageActive) {
-    if (fOutlinePage != null && element != null
+    if (fOutlinePage_OLD != null && element != null
         && !(checkIfOutlinePageActive && isOutlinePageActive())) {
       // TODO(scheglov)
 //        ((DartOutlinePage) fOutlinePage).select((LightNodeElement) element);
@@ -4341,9 +4463,15 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
     int offset = ((TextSelection) selection).getOffset();
     // apply selected element
-    LightNodeElement element = computeHighlightRangeSourceElement(resolvedUnit, offset);
-    if (element != null && fOutlinePage != null) {
-      fOutlinePage.select(element);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      if (fOutlinePage_NEW != null) {
+        fOutlinePage_NEW.select(offset);
+      }
+    } else {
+      LightNodeElement element = computeHighlightRangeSourceElement(resolvedUnit, offset);
+      if (element != null && fOutlinePage_OLD != null) {
+        fOutlinePage_OLD.select(element);
+      }
     }
   }
 
@@ -4538,7 +4666,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       fEncodingSupport.reset();
     }
 
-    setOutlinePageInput(fOutlinePage, input);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      setOutlinePageInput_NEW(fOutlinePage_NEW, input);
+    } else {
+      setOutlinePageInput_OLD(fOutlinePage_OLD, input);
+    }
 
     if (isShowingOverrideIndicators()) {
       installOverrideIndicator(false);
@@ -4566,8 +4698,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   private boolean isOutlinePageActive() {
     IWorkbenchPart part = getActivePart();
-    return part instanceof ContentOutline
-        && ((ContentOutline) part).getCurrentPage() == fOutlinePage;
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      return part instanceof ContentOutline
+          && ((ContentOutline) part).getCurrentPage() == fOutlinePage_NEW;
+    } else {
+      return part instanceof ContentOutline
+          && ((ContentOutline) part).getCurrentPage() == fOutlinePage_OLD;
+    }
   }
 
   private boolean isRemoveTrailingWhitespaceEnabled() {

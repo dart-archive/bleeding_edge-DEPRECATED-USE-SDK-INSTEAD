@@ -393,7 +393,7 @@ public class DartOutlineInformationControl extends PopupDialog implements IInfor
     if (viewer != null) {
       IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
       LightNodeElement element = (LightNodeElement) selection.getFirstElement();
-      editor.setSelection(element, true);
+      editor.setSelection_OLD(element, true);
       dispose();
     }
   }
