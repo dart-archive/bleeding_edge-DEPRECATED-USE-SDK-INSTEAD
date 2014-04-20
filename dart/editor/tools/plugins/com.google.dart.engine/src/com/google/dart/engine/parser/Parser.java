@@ -149,6 +149,24 @@ public class Parser {
   }
 
   /**
+   * Parse the script tag and directives in a compilation unit, starting with the given token, until
+   * the first non-directive is encountered. The remainder of the compilation unit will not be
+   * parsed. Specifically, if there are directives later in the file, they will not be parsed.
+   * 
+   * @param token the first token of the compilation unit
+   * @return the compilation unit that was parsed
+   */
+  public CompilationUnit parseDirectives(Token token) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.Parser.parseDirectives");
+    try {
+      currentToken = token;
+      return parseDirectives();
+    } finally {
+      instrumentation.log(2); //Record if takes over 1ms
+    }
+  }
+
+  /**
    * Parse an expression, starting with the given token.
    * 
    * @param token the first token of the expression
@@ -787,23 +805,6 @@ public class Parser {
     return new ConstructorName(type, period, name);
   }
 
-//  /**
-//   * If the current token is an identifier matching the given identifier, return it after advancing
-//   * to the next token. Otherwise report an error and return the current token without advancing.
-//   * 
-//   * @param identifier the identifier that is expected
-//   * @return the token that matched the given type
-//   */
-//  private Token expect(String identifier) {
-//    if (matches(identifier)) {
-//      return getAndAdvance();
-//    }
-//    // Remove uses of this method in favor of matches?
-//    // Pass in the error code to use to report the error?
-//    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
-//    return currentToken;
-//  }
-
   /**
    * Parse an expression that does not contain any cascades.
    * 
@@ -847,6 +848,23 @@ public class Parser {
     return expression;
   }
 
+//  /**
+//   * If the current token is an identifier matching the given identifier, return it after advancing
+//   * to the next token. Otherwise report an error and return the current token without advancing.
+//   * 
+//   * @param identifier the identifier that is expected
+//   * @return the token that matched the given type
+//   */
+//  private Token expect(String identifier) {
+//    if (matches(identifier)) {
+//      return getAndAdvance();
+//    }
+//    // Remove uses of this method in favor of matches?
+//    // Pass in the error code to use to report the error?
+//    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
+//    return currentToken;
+//  }
+
   /**
    * Parse an expression that does not contain any cascades.
    * 
@@ -879,6 +897,22 @@ public class Parser {
     return expression;
   }
 
+  /**
+   * Parse a class extends clause.
+   * 
+   * <pre>
+   * classExtendsClause ::=
+   *     'extends' type
+   * </pre>
+   * 
+   * @return the class extends clause that was parsed
+   */
+  protected ExtendsClause parseExtendsClause() {
+    Token keyword = expectKeyword(Keyword.EXTENDS);
+    TypeName superclass = parseTypeName();
+    return new ExtendsClause(keyword, superclass);
+  }
+
 //  /**
 //   * If the current token is an identifier matching the given identifier, return it after advancing
 //   * to the next token. Otherwise report an error and return the current token without advancing.
@@ -895,22 +929,6 @@ public class Parser {
 //    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
 //    return currentToken;
 //  }
-
-  /**
-   * Parse a class extends clause.
-   * 
-   * <pre>
-   * classExtendsClause ::=
-   *     'extends' type
-   * </pre>
-   * 
-   * @return the class extends clause that was parsed
-   */
-  protected ExtendsClause parseExtendsClause() {
-    Token keyword = expectKeyword(Keyword.EXTENDS);
-    TypeName superclass = parseTypeName();
-    return new ExtendsClause(keyword, superclass);
-  }
 
   /**
    * Parse a list of formal parameters.
@@ -1390,18 +1408,18 @@ public class Parser {
   }
 
 /**
-       * Parse a list of type arguments.
-       * 
-       * <pre>
-       * typeArguments ::=
-       *     '<' typeList '>'
-       * 
-       * typeList ::=
-       *     type (',' type)*
-       * </pre>
-       * 
-       * @return the type argument list that was parsed
-       */
+         * Parse a list of type arguments.
+         * 
+         * <pre>
+         * typeArguments ::=
+         *     '<' typeList '>'
+         * 
+         * typeList ::=
+         *     type (',' type)*
+         * </pre>
+         * 
+         * @return the type argument list that was parsed
+         */
   protected TypeArgumentList parseTypeArgumentList() {
     Token leftBracket = expect(TokenType.LT);
     List<TypeName> arguments = new ArrayList<TypeName>();
@@ -1473,15 +1491,15 @@ public class Parser {
   }
 
 /**
-       * Parse a list of type parameters.
-       * 
-       * <pre>
-       * typeParameterList ::=
-       *     '<' typeParameter (',' typeParameter)* '>'
-       * </pre>
-       * 
-       * @return the list of type parameters that were parsed
-       */
+         * Parse a list of type parameters.
+         * 
+         * <pre>
+         * typeParameterList ::=
+         *     '<' typeParameter (',' typeParameter)* '>'
+         * </pre>
+         * 
+         * @return the list of type parameters that were parsed
+         */
   protected TypeParameterList parseTypeParameterList() {
     Token leftBracket = expect(TokenType.LT);
     List<TypeParameter> typeParameters = new ArrayList<TypeParameter>();
@@ -3404,6 +3422,55 @@ public class Parser {
       throw new IllegalStateException("parseDirective invoked in an invalid state; currentToken = "
           + currentToken);
     }
+  }
+
+  /**
+   * Parse the script tag and directives in a compilation unit until the first non-directive is
+   * encountered.
+   * <p>
+   * 
+   * <pre>
+   * compilationUnit ::=
+   *     scriptTag? directive*
+   * </pre>
+   * 
+   * @return the compilation unit that was parsed
+   */
+  private CompilationUnit parseDirectives() {
+    Token firstToken = currentToken;
+    ScriptTag scriptTag = null;
+    if (matches(TokenType.SCRIPT_TAG)) {
+      scriptTag = new ScriptTag(getAndAdvance());
+    }
+    List<Directive> directives = new ArrayList<Directive>();
+    while (!matches(TokenType.EOF)) {
+      CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
+      if ((matchesKeyword(Keyword.IMPORT) || matchesKeyword(Keyword.EXPORT)
+          || matchesKeyword(Keyword.LIBRARY) || matchesKeyword(Keyword.PART))
+          && !tokenMatches(peek(), TokenType.PERIOD)
+          && !tokenMatches(peek(), TokenType.LT)
+          && !tokenMatches(peek(), TokenType.OPEN_PAREN)) {
+        directives.add(parseDirective(commentAndMetadata));
+      } else if (matches(TokenType.SEMICOLON)) {
+        advance();
+      } else {
+        while (!matches(TokenType.EOF)) {
+          advance();
+        }
+        return new CompilationUnit(
+            firstToken,
+            scriptTag,
+            directives,
+            new ArrayList<CompilationUnitMember>(),
+            currentToken);
+      }
+    }
+    return new CompilationUnit(
+        firstToken,
+        scriptTag,
+        directives,
+        new ArrayList<CompilationUnitMember>(),
+        currentToken);
   }
 
   /**

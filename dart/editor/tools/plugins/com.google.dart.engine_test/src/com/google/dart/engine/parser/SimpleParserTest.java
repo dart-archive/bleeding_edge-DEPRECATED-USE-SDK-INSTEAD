@@ -16,6 +16,7 @@ package com.google.dart.engine.parser;
 import com.google.dart.engine.ast.*;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.parser.CommentAndMetadata;
 import com.google.dart.engine.internal.parser.FinalConstVarOrType;
@@ -27,6 +28,7 @@ import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import static com.google.dart.engine.ast.AstFactory.typeArgumentList;
@@ -2167,6 +2169,48 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(directive.getOfToken());
     assertNotNull(directive.getLibraryName());
     assertNotNull(directive.getSemicolon());
+  }
+
+  public void test_parseDirectives_complete() throws Exception {
+    CompilationUnit unit = parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
+    assertNotNull(unit.getScriptTag());
+    assertSizeOfList(1, unit.getDirectives());
+  }
+
+  public void test_parseDirectives_empty() throws Exception {
+    CompilationUnit unit = parseDirectives("");
+    assertNull(unit.getScriptTag());
+    assertSizeOfList(0, unit.getDirectives());
+  }
+
+  public void test_parseDirectives_mixed() throws Exception {
+    CompilationUnit unit = parseDirectives("library l; class A {} part 'foo.dart';");
+    assertNull(unit.getScriptTag());
+    assertSizeOfList(1, unit.getDirectives());
+  }
+
+  public void test_parseDirectives_multiple() throws Exception {
+    CompilationUnit unit = parseDirectives("library l;\npart 'a.dart';");
+    assertNull(unit.getScriptTag());
+    assertSizeOfList(2, unit.getDirectives());
+  }
+
+  public void test_parseDirectives_script() throws Exception {
+    CompilationUnit unit = parseDirectives("#! /bin/dart");
+    assertNotNull(unit.getScriptTag());
+    assertSizeOfList(0, unit.getDirectives());
+  }
+
+  public void test_parseDirectives_single() throws Exception {
+    CompilationUnit unit = parseDirectives("library l;");
+    assertNull(unit.getScriptTag());
+    assertSizeOfList(1, unit.getDirectives());
+  }
+
+  public void test_parseDirectives_topLevelDeclaration() throws Exception {
+    CompilationUnit unit = parseDirectives("class A {}");
+    assertNull(unit.getScriptTag());
+    assertSizeOfList(0, unit.getDirectives());
   }
 
   public void test_parseDocumentationComment_block() throws Exception {
@@ -5029,6 +5073,28 @@ public class SimpleParserTest extends ParserTestCase {
   private boolean isSwitchMember(String source) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
     return (Boolean) invokeParserMethod("isSwitchMember", source, listener);
+  }
+
+  /**
+   * Parse the given source as a compilation unit.
+   * 
+   * @param source the source to be parsed
+   * @param errorCodes the error codes of the errors that are expected to be found
+   * @return the compilation unit that was parsed
+   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
+   *           not match those that are expected, or if the result would have been {@code null}
+   */
+  private CompilationUnit parseDirectives(String source, ErrorCode... errorCodes) throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
+    listener.setLineInfo(new TestSource(), scanner.getLineStarts());
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    CompilationUnit unit = parser.parseDirectives(token);
+    assertNotNull(unit);
+    assertSizeOfList(0, unit.getDeclarations());
+    listener.assertErrorsWithCodes(errorCodes);
+    return unit;
   }
 
   /**
