@@ -173,6 +173,15 @@ public class ClassTypeAlias extends TypeAlias {
   }
 
   /**
+   * Return {@code true} if this class is declared to be an abstract class.
+   * 
+   * @return {@code true} if this class is declared to be an abstract class
+   */
+  public boolean isAbstract() {
+    return abstractKeyword != null;
+  }
+
+  /**
    * Set the token for the 'abstract' keyword to the given token.
    * 
    * @param abstractKeyword the token for the 'abstract' keyword

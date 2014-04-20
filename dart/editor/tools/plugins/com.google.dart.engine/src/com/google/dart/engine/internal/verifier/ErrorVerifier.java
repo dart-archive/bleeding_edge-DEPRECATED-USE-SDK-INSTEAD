@@ -5381,7 +5381,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @see StaticWarningCode#FUNCTION_WITHOUT_CALL
    */
   private boolean checkImplementsFunctionWithoutCall(ClassDeclaration node) {
-    if (node.getAbstractKeyword() != null) {
+    if (node.isAbstract()) {
       return false;
     }
     ClassElement classElement = node.getElement();

@@ -89,7 +89,7 @@ public class JUnitSemanticProcessor extends SemanticProcessor {
             node.setExtendsClause(extendsClause(typeName("JUnitTestCase")));
           }
           // generate "dartSuite"
-          if (node.getAbstractKeyword() == null) {
+          if (!node.isAbstract()) {
             generateDartSuite(node);
           }
         }

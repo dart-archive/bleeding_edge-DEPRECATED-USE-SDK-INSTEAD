@@ -304,6 +304,15 @@ public class ClassDeclaration extends CompilationUnitMember {
   }
 
   /**
+   * Return {@code true} if this class is declared to be an abstract class.
+   * 
+   * @return {@code true} if this class is declared to be an abstract class
+   */
+  public boolean isAbstract() {
+    return abstractKeyword != null;
+  }
+
+  /**
    * Set the 'abstract' keyword to the given keyword.
    * 
    * @param abstractKeyword the 'abstract' keyword

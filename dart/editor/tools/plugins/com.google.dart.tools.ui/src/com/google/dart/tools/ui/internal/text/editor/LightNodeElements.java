@@ -237,7 +237,7 @@ public class LightNodeElements {
       // ClassDeclaration
       if (node instanceof ClassDeclaration) {
         ClassDeclaration classDeclaration = (ClassDeclaration) node;
-        if (classDeclaration.getAbstractKeyword() != null) {
+        if (classDeclaration.isAbstract()) {
           flags |= DartElementImageDescriptor.ABSTRACT;
         }
       }

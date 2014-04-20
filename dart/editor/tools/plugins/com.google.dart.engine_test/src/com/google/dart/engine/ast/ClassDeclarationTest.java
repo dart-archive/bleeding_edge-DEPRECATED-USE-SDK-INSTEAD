@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.parser.ParserTestCase;
+import com.google.dart.engine.scanner.Keyword;
 
 import static com.google.dart.engine.ast.AstFactory.classDeclaration;
 import static com.google.dart.engine.ast.AstFactory.constructorDeclaration;
@@ -105,5 +106,10 @@ public class ClassDeclarationTest extends ParserTestCase {
     assertSame(aMethod, clazz.getMethod("a"));
     assertSame(bMethod, clazz.getMethod("b"));
     assertSame(null, clazz.getMethod("noSuchMethod"));
+  }
+
+  public void test_isAbstract() throws Exception {
+    assertFalse(classDeclaration(null, "A", null, null, null, null).isAbstract());
+    assertTrue(classDeclaration(Keyword.ABSTRACT, "B", null, null, null, null).isAbstract());
   }
 }

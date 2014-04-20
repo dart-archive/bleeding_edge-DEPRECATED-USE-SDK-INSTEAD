@@ -223,7 +223,7 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
       //
       constructors = createDefaultConstructors(interfaceType);
     }
-    element.setAbstract(node.getAbstractKeyword() != null);
+    element.setAbstract(node.isAbstract());
     element.setAccessors(holder.getAccessors());
     element.setConstructors(constructors);
     element.setFields(holder.getFields());

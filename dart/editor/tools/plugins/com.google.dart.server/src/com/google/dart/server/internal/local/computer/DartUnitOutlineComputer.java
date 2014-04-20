@@ -153,7 +153,6 @@ public class DartUnitOutlineComputer {
       ClassDeclaration classDeclaration) {
     SimpleIdentifier nameNode = classDeclaration.getName();
     String name = nameNode.getName();
-    // TODO(scheglov) add ClassDeclaration.isAbstract()
     OutlineImpl outline = new OutlineImpl(
         unitOutline,
         getSourceRegion(classDeclaration),
@@ -163,7 +162,7 @@ public class DartUnitOutlineComputer {
         name.length(),
         null,
         null,
-        classDeclaration.getAbstractKeyword() != null,
+        classDeclaration.isAbstract(),
         false);
     unitChildren.add(outline);
     return outline;
@@ -172,7 +171,6 @@ public class DartUnitOutlineComputer {
   private void newClassTypeAlias(Outline unitOutline, List<Outline> unitChildren,
       ClassTypeAlias alias) {
     SimpleIdentifier nameNode = alias.getName();
-    // TODO(scheglov) add ClassTypeAlias.isAbstract()
     unitChildren.add(new OutlineImpl(
         unitOutline,
         getSourceRegion(alias),
@@ -182,7 +180,7 @@ public class DartUnitOutlineComputer {
         nameNode.getLength(),
         null,
         null,
-        alias.getAbstractKeyword() != null,
+        alias.isAbstract(),
         false));
   }
 
