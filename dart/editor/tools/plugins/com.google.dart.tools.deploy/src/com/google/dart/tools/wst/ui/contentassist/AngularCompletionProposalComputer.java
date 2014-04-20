@@ -97,18 +97,18 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
       viewer = completionContext.getViewer();
       document = (IStructuredDocument) viewer.getDocument();
       offset = completionContext.getInvocationOffset();
-      prepareResolution();
-      // try to complete as Angular specific HTML entity
       proposals = Lists.newArrayList();
+      // wait for Angular resolution
+      if (!waitForResolution()) {
+        return proposals;
+      }
+      // try to complete as Angular specific HTML entity
       doExpressionCompletion = true;
       completeAttribute();
       completeTag();
       // maybe complete as Dart
       if (doExpressionCompletion) {
-        boolean success = waitForResolution();
-        if (success) {
-          completeExpression(monitor);
-        }
+        completeExpression(monitor);
       }
       // done
       return proposals;
@@ -182,15 +182,13 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
       }
     }
     // add directives
-    if (application != null) {
-      for (AngularElement angularElement : application.getElements()) {
-        if (angularElement instanceof AngularDirectiveElement) {
-          AngularDirectiveElement directive = (AngularDirectiveElement) angularElement;
-          AngularSelectorElement selector = directive.getSelector();
-          if (selector instanceof AngularHasAttributeSelectorElement) {
-            AngularHasAttributeSelectorElement attributeSelector = (AngularHasAttributeSelectorElement) selector;
-            attributeCompletions.add(new AttributeCompletion(attributeSelector.getName()));
-          }
+    for (AngularElement angularElement : application.getElements()) {
+      if (angularElement instanceof AngularDirectiveElement) {
+        AngularDirectiveElement directive = (AngularDirectiveElement) angularElement;
+        AngularSelectorElement selector = directive.getSelector();
+        if (selector instanceof AngularHasAttributeSelectorElement) {
+          AngularHasAttributeSelectorElement attributeSelector = (AngularHasAttributeSelectorElement) selector;
+          attributeCompletions.add(new AttributeCompletion(attributeSelector.getName()));
         }
       }
     }
