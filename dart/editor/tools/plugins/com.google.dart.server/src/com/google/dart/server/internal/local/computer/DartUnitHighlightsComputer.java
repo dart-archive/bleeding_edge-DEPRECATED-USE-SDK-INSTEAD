@@ -19,16 +19,19 @@ import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NativeClause;
@@ -36,10 +39,21 @@ import com.google.dart.engine.ast.NativeFunctionBody;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FieldFormalParameterElement;
+import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
+import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PrefixElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.type.Type;
@@ -79,6 +93,12 @@ public class DartUnitHighlightsComputer {
       }
 
       @Override
+      public Void visitBooleanLiteral(BooleanLiteral node) {
+        addRegion_node(node, HighlightType.LITERAL_BOOLEAN);
+        return super.visitBooleanLiteral(node);
+      }
+
+      @Override
       public Void visitCatchClause(CatchClause node) {
         addRegion_token(node.getOnKeyword(), HighlightType.BUILT_IN);
         return super.visitCatchClause(node);
@@ -95,6 +115,12 @@ public class DartUnitHighlightsComputer {
         addRegion_token(node.getExternalKeyword(), HighlightType.BUILT_IN);
         addRegion_token(node.getFactoryKeyword(), HighlightType.BUILT_IN);
         return super.visitConstructorDeclaration(node);
+      }
+
+      @Override
+      public Void visitDoubleLiteral(DoubleLiteral node) {
+        addRegion_node(node, HighlightType.LITERAL_DOUBLE);
+        return super.visitDoubleLiteral(node);
       }
 
       @Override
@@ -132,6 +158,12 @@ public class DartUnitHighlightsComputer {
       public Void visitImportDirective(ImportDirective node) {
         addRegion_token(node.getKeyword(), HighlightType.BUILT_IN);
         return super.visitImportDirective(node);
+      }
+
+      @Override
+      public Void visitIntegerLiteral(IntegerLiteral node) {
+        addRegion_node(node, HighlightType.LITERAL_INTEGER);
+        return super.visitIntegerLiteral(node);
       }
 
       @Override
@@ -182,6 +214,12 @@ public class DartUnitHighlightsComputer {
         return super.visitSimpleIdentifier(node);
       }
 
+      @Override
+      public Void visitSimpleStringLiteral(SimpleStringLiteral node) {
+        addRegion_node(node, HighlightType.LITERAL_STRING);
+        return super.visitSimpleStringLiteral(node);
+      }
+
     });
     return regions.toArray(new HighlightRegion[regions.size()]);
   }
@@ -194,6 +232,33 @@ public class DartUnitHighlightsComputer {
       return;
     }
     if (addIdentifierRegion_dynamicType(node)) {
+      return;
+    }
+    if (addIdentifierRegion_getterSetterDeclaration(node)) {
+      return;
+    }
+    if (addIdentifierRegion_field(node)) {
+      return;
+    }
+    if (addIdentifierRegion_function(node)) {
+      return;
+    }
+    if (addIdentifierRegion_functionTypeAlias(node)) {
+      return;
+    }
+    if (addIdentifierRegion_importPrefix(node)) {
+      return;
+    }
+    if (addIdentifierRegion_localVariable(node)) {
+      return;
+    }
+    if (addIdentifierRegion_method(node)) {
+      return;
+    }
+    if (addIdentifierRegion_parameter(node)) {
+      return;
+    }
+    if (addIdentifierRegion_typeParameter(node)) {
       return;
     }
   }
@@ -241,6 +306,128 @@ public class DartUnitHighlightsComputer {
     }
     // OK
     return addRegion_node(node, HighlightType.DYNAMIC_TYPE);
+  }
+
+  private boolean addIdentifierRegion_field(SimpleIdentifier node) {
+    Element element = node.getBestElement();
+    if (element instanceof FieldFormalParameterElement) {
+      element = ((FieldFormalParameterElement) element).getField();
+    }
+    if (element instanceof FieldElement) {
+      if (((FieldElement) element).isStatic()) {
+        return addRegion_node(node, HighlightType.FIELD_STATIC);
+      } else {
+        return addRegion_node(node, HighlightType.FIELD);
+      }
+    }
+    if (element instanceof PropertyAccessorElement) {
+      if (((PropertyAccessorElement) element).isStatic()) {
+        return addRegion_node(node, HighlightType.FIELD_STATIC);
+      } else {
+        return addRegion_node(node, HighlightType.FIELD);
+      }
+    }
+    return false;
+  }
+
+  private boolean addIdentifierRegion_function(SimpleIdentifier node) {
+    Element element = node.getStaticElement();
+    if (!(element instanceof FunctionElement)) {
+      return false;
+    }
+    return addRegion_node(node, HighlightType.FUNCTION);
+  }
+
+  private boolean addIdentifierRegion_functionTypeAlias(SimpleIdentifier node) {
+    Element element = node.getStaticElement();
+    if (!(element instanceof FunctionTypeAliasElement)) {
+      return false;
+    }
+    return addRegion_node(node, HighlightType.FUNCTION_TYPE_ALIAS);
+  }
+
+  private boolean addIdentifierRegion_getterSetterDeclaration(SimpleIdentifier node) {
+    // should be declaration
+    AstNode parent = node.getParent();
+    if (!(parent instanceof MethodDeclaration || parent instanceof FunctionDeclaration)) {
+      return false;
+    }
+    // should be property accessor
+    Element element = node.getStaticElement();
+    if (!(element instanceof PropertyAccessorElement)) {
+      return false;
+    }
+    // getter or setter
+    PropertyAccessorElement propertyAccessorElement = (PropertyAccessorElement) element;
+    if (propertyAccessorElement.isGetter()) {
+      return addRegion_node(node, HighlightType.GETTER_DECLARATION);
+    } else {
+      return addRegion_node(node, HighlightType.SETTER_DECLARATION);
+    }
+  }
+
+  private boolean addIdentifierRegion_importPrefix(SimpleIdentifier node) {
+    Element element = node.getStaticElement();
+    if (!(element instanceof PrefixElement)) {
+      return false;
+    }
+    return addRegion_node(node, HighlightType.IMPORT_PREFIX);
+  }
+
+  private boolean addIdentifierRegion_localVariable(SimpleIdentifier node) {
+    Element element = node.getStaticElement();
+    if (!(element instanceof LocalVariableElement)) {
+      return false;
+    }
+    // OK
+    HighlightType type;
+    if (node.inDeclarationContext()) {
+      type = HighlightType.LOCAL_VARIABLE_DECLARATION;
+    } else {
+      type = HighlightType.LOCAL_VARIABLE;
+    }
+    return addRegion_node(node, type);
+  }
+
+  private boolean addIdentifierRegion_method(SimpleIdentifier node) {
+    Element element = node.getStaticElement();
+    if (!(element instanceof MethodElement)) {
+      return false;
+    }
+    MethodElement methodElement = (MethodElement) element;
+    boolean isStatic = methodElement.isStatic();
+    // OK
+    HighlightType type;
+    if (node.inDeclarationContext()) {
+      if (isStatic) {
+        type = HighlightType.METHOD_DECLARATION_STATIC;
+      } else {
+        type = HighlightType.METHOD_DECLARATION;
+      }
+    } else {
+      if (isStatic) {
+        type = HighlightType.METHOD_STATIC;
+      } else {
+        type = HighlightType.METHOD;
+      }
+    }
+    return addRegion_node(node, type);
+  }
+
+  private boolean addIdentifierRegion_parameter(SimpleIdentifier node) {
+    Element element = node.getStaticElement();
+    if (!(element instanceof ParameterElement)) {
+      return false;
+    }
+    return addRegion_node(node, HighlightType.PARAMETER);
+  }
+
+  private boolean addIdentifierRegion_typeParameter(SimpleIdentifier node) {
+    Element element = node.getStaticElement();
+    if (!(element instanceof TypeParameterElement)) {
+      return false;
+    }
+    return addRegion_node(node, HighlightType.TYPE_PARAMETER);
   }
 
   private void addRegion(int offset, int length, HighlightType type) {

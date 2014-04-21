@@ -35,7 +35,7 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
         "  const AAA(a, b, c);",
         "}",
         "@AAA(1, 2, 3) main() {}");
-    assertHasRegion("@AAA(", "@AAA(".length(), HighlightType.ANNOTATION);
+    assertHasStringRegion("@AAA(", HighlightType.ANNOTATION);
     assertHasRegion(") main", ")".length(), HighlightType.ANNOTATION);
   }
 
@@ -208,7 +208,7 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
         "  var part = 1;",
         "  var of = 2;",
         "}");
-    assertHasRegion("part of", "part of".length(), HighlightType.BUILT_IN);
+    assertHasStringRegion("part of", HighlightType.BUILT_IN);
     assertNoRegion("part = 1", HighlightType.BUILT_IN);
     assertNoRegion("of = 2", HighlightType.BUILT_IN);
   }
@@ -301,6 +301,178 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
     assertNoRegion("v3 =", HighlightType.DYNAMIC_TYPE);
   }
 
+  public void test_FIELD() throws Exception {
+    prepareRegions(//
+        "class A {",
+        "  int aaa = 1;",
+        "  int bbb = 2;",
+        "  A([this.bbb = 3]);",
+        "}",
+        "main(A a) {",
+        "  a.aaa = 4;",
+        "  a.bbb = 5;",
+        "}");
+    assertHasRegion("aaa = 1", HighlightType.FIELD);
+    assertHasRegion("bbb = 2", HighlightType.FIELD);
+    assertHasRegion("bbb = 3", HighlightType.FIELD);
+    assertHasRegion("aaa = 4", HighlightType.FIELD);
+    assertHasRegion("bbb = 5", HighlightType.FIELD);
+  }
+
+  public void test_FIELD_STATIC() throws Exception {
+    prepareRegions(//
+        "class A {",
+        "  static int aaa = 1;",
+        "  static get bbb => null;",
+        "  static set ccc(x) {}",
+        "}",
+        "main() {",
+        "  A.aaa = 2;",
+        "  A.bbb;",
+        "  A.ccc = 3;",
+        "}");
+    assertHasRegion("aaa = 1", HighlightType.FIELD_STATIC);
+    assertHasRegion("aaa = 2", HighlightType.FIELD_STATIC);
+    assertHasRegion("bbb;", HighlightType.FIELD_STATIC);
+    assertHasRegion("ccc = 3", HighlightType.FIELD_STATIC);
+  }
+
+  public void test_FUNCTION() throws Exception {
+    prepareRegions(//
+        "fff(p) {}",
+        "main() {",
+        "  fff(42);",
+        "}");
+    assertHasRegion("fff(p) {}", HighlightType.FUNCTION);
+    assertHasRegion("fff(42)", HighlightType.FUNCTION);
+  }
+
+  public void test_FUNCTION_TYPE_ALIAS() throws Exception {
+    prepareRegions(//
+        "typedef F(p);",
+        "main(F f) {",
+        "}");
+    assertHasRegion("F(p)", HighlightType.FUNCTION_TYPE_ALIAS);
+    assertHasRegion("F f)", HighlightType.FUNCTION_TYPE_ALIAS);
+  }
+
+  public void test_GETTER_DECLARATION() throws Exception {
+    prepareRegions(//
+        "get aaa => null;",
+        "class A {",
+        "  get bbb => null;",
+        "}",
+        "main(A a) {",
+        "  aaa;",
+        "  a.bbb;",
+        "}");
+    assertHasRegion("aaa => null", HighlightType.GETTER_DECLARATION);
+    assertHasRegion("bbb => null", HighlightType.GETTER_DECLARATION);
+    assertHasRegion("aaa;", HighlightType.FIELD_STATIC);
+    assertHasRegion("bbb;", HighlightType.FIELD);
+  }
+
+  public void test_IMPORT_PREFIX() throws Exception {
+    prepareRegions(//
+        "import 'dart:math' as ma;",
+        "main(F f) {",
+        "  ma.max(1, 2);",
+        "}");
+    assertHasRegion("ma;", HighlightType.IMPORT_PREFIX);
+    assertHasRegion("ma.max", HighlightType.IMPORT_PREFIX);
+  }
+
+  public void test_LITERAL_BOOLEAN() throws Exception {
+    prepareRegions("var V = true;");
+    assertHasRegion("true;", HighlightType.LITERAL_BOOLEAN);
+  }
+
+  public void test_LITERAL_DOUBLE() throws Exception {
+    prepareRegions("var V = 4.2;");
+    assertHasStringRegion("4.2", HighlightType.LITERAL_DOUBLE);
+  }
+
+  public void test_LITERAL_INTEGER() throws Exception {
+    prepareRegions("var V = 42;");
+    assertHasStringRegion("42", HighlightType.LITERAL_INTEGER);
+  }
+
+  public void test_LITERAL_STRING() throws Exception {
+    prepareRegions("var V = 'abc';");
+    assertHasStringRegion("'abc'", HighlightType.LITERAL_STRING);
+  }
+
+  public void test_LOCAL_VARIABLE() throws Exception {
+    prepareRegions(//
+        "main() {",
+        "  int vvv = 0;",
+        "  vvv;",
+        "  vvv = 1;",
+        "}");
+    assertHasRegion("vvv = 0;", HighlightType.LOCAL_VARIABLE_DECLARATION);
+    assertHasRegion("vvv;", HighlightType.LOCAL_VARIABLE);
+    assertHasRegion("vvv = 1;", HighlightType.LOCAL_VARIABLE);
+  }
+
+  public void test_METHOD() throws Exception {
+    prepareRegions(//
+        "class A {",
+        "  aaa() {}",
+        "  static bbb() {}",
+        "}",
+        "main(A a) {",
+        "  a.aaa();",
+        "  a.aaa;",
+        "  A.bbb();",
+        "  A.bbb;",
+        "}");
+    assertHasRegion("aaa() {}", HighlightType.METHOD_DECLARATION);
+    assertHasRegion("bbb() {}", HighlightType.METHOD_DECLARATION_STATIC);
+    assertHasRegion("aaa();", HighlightType.METHOD);
+    assertHasRegion("aaa;", HighlightType.METHOD);
+    assertHasRegion("bbb();", HighlightType.METHOD_STATIC);
+    assertHasRegion("bbb;", HighlightType.METHOD_STATIC);
+  }
+
+  public void test_PARAMETER() throws Exception {
+    prepareRegions(//
+        "main(int p) {",
+        "  p;",
+        "  p = 42;",
+        "}");
+    assertHasRegion("p) {", HighlightType.PARAMETER);
+    assertHasRegion("p;", HighlightType.PARAMETER);
+    assertHasRegion("p = 42;", HighlightType.PARAMETER);
+  }
+
+  public void test_SETTER_DECLARATION() throws Exception {
+    prepareRegions(//
+        "set aaa(x) {}",
+        "class A {",
+        "  set bbb(x) {}",
+        "}",
+        "main(A a) {",
+        "  aaa = 1;",
+        "  a.bbb = 2;",
+        "}");
+    assertHasRegion("aaa(x)", HighlightType.SETTER_DECLARATION);
+    assertHasRegion("bbb(x)", HighlightType.SETTER_DECLARATION);
+    assertHasRegion("aaa = 1;", HighlightType.FIELD_STATIC);
+    assertHasRegion("bbb = 2;", HighlightType.FIELD);
+  }
+
+  public void test_TYPE_PARAMETER() throws Exception {
+    prepareRegions(//
+        "class A<T> {",
+        "  T fff;",
+        "  T mmm(T p) => null;",
+        "}");
+    assertHasRegion("T> {", HighlightType.TYPE_PARAMETER);
+    assertHasRegion("T fff;", HighlightType.TYPE_PARAMETER);
+    assertHasRegion("T mmm(", HighlightType.TYPE_PARAMETER);
+    assertHasRegion("T p)", HighlightType.TYPE_PARAMETER);
+  }
+
   private void assertHasRegion(HighlightRegion expected) {
     if (hasRegion(expected)) {
       return;
@@ -316,6 +488,11 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
 
   private void assertHasRegion(String search, int length, HighlightType type) {
     HighlightRegion expected = createRegion(search, length, type);
+    assertHasRegion(expected);
+  }
+
+  private void assertHasStringRegion(String search, HighlightType type) {
+    HighlightRegion expected = createRegion(search, search.length(), type);
     assertHasRegion(expected);
   }
 
