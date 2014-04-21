@@ -22,6 +22,9 @@ import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 /**
  * The IVariable implementation of the Dartium Debug Element.
  */
@@ -73,6 +76,10 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
   public String getDisplayName() throws DebugException {
     if (isListMember()) {
       return "[" + getName() + "]";
+    }
+
+    if (isLibraryRef()) {
+      return convertLibraryRefName(descriptor.getName());
     }
 
     // The names of private fields are mangled by the VM.
@@ -215,6 +222,30 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
     this.parent = parent;
   }
 
+  private String convertLibraryRefName(String name) {
+    if (name.startsWith("file:") && name.indexOf('/') != -1) {
+      return "file:" + name.substring(name.lastIndexOf('/') + 1);
+    }
+
+    if (name.startsWith("http:")) {
+      try {
+        URL url = new URL(name);
+        return url.getFile();
+      } catch (MalformedURLException e) {
+      }
+    }
+
+    return name;
+  }
+
+  private boolean isLibraryRef() {
+    if (descriptor.getValue() == null) {
+      return false;
+    }
+
+    return descriptor.getValue().isLibraryRef();
+  }
+
   private boolean isListMember() {
     if (parent != null && parent.isListValue()) {
       return true;
@@ -222,5 +253,4 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
       return false;
     }
   }
-
 }

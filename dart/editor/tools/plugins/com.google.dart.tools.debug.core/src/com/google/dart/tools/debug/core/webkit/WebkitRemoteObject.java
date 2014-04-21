@@ -174,6 +174,17 @@ public class WebkitRemoteObject {
     return "function".equals(type);
   }
 
+  /**
+   * Returns true if this object is a Dart library reference.
+   */
+  public boolean isLibraryRef() {
+    if (className == null) {
+      return false;
+    }
+
+    return className.startsWith("file:") || className.startsWith("http:");
+  }
+
   public boolean isList() {
     return "array".equals(subtype);
   }

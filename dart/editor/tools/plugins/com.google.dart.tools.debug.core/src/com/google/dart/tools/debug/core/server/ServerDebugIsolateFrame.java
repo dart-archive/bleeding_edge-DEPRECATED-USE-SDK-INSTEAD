@@ -92,6 +92,15 @@ public class ServerDebugIsolateFrame extends ServerDebugElement implements IStac
     }
   }
 
+  private static String getNameFor(String libraryUrl) {
+    // Return 'bar.dart' for 'file:///foo/.../bar.dart.
+    if (libraryUrl.startsWith("file:") && libraryUrl.indexOf('/') != -1) {
+      return "file:" + libraryUrl.substring(libraryUrl.lastIndexOf('/') + 1);
+    }
+
+    return libraryUrl;
+  }
+
   private ServerDebugThread thread;
   List<IVariable> variables;
 
@@ -183,7 +192,7 @@ public class ServerDebugIsolateFrame extends ServerDebugElement implements IStac
               for (VmLibraryRef ref : libraries) {
                 ServerDebugVariable variable = new ServerDebugVariable(
                     getTarget(),
-                    ref.getUrl(),
+                    getNameFor(ref.getUrl()),
                     new LibraryVariableRetriever(getTarget(), thread.getIsolate(), ref));
                 variable.setIsLibraryObject(true);
                 variables.add(variable);

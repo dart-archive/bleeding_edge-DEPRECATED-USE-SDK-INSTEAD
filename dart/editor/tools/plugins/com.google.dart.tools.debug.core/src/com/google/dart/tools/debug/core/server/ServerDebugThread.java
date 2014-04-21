@@ -46,8 +46,6 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
 
   private VmIsolate vmIsolate;
 
-  private ServerDebugIsolateFrame isolateFrame;
-
   /**
    * @param target
    */
@@ -99,11 +97,7 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
    * @return a stack frame representing the libraries and top-level variables for the isolate
    */
   public IStackFrame getIsolateVarsPseudoFrame() {
-    if (isolateFrame == null) {
-      isolateFrame = new ServerDebugIsolateFrame(this);
-    }
-
-    return isolateFrame;
+    return new ServerDebugIsolateFrame(this);
   }
 
   @Override
