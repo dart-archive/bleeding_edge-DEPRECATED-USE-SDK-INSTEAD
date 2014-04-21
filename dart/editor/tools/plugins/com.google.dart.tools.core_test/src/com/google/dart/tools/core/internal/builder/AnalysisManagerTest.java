@@ -109,6 +109,37 @@ public class AnalysisManagerTest extends AbstractDartCoreTest {
     assertTrue(latch.await(5, TimeUnit.SECONDS));
   }
 
+  public void test_stopBackgroundAnalysis() throws Exception {
+    final CountDownLatch startedLatch = new CountDownLatch(1);
+    final CountDownLatch stoppedLatch = new CountDownLatch(1);
+    final CountDownLatch wasStoppedLatch = new CountDownLatch(1);
+    MockWorker worker = new MockWorker() {
+      @Override
+      public void performAnalysis(AnalysisManager manager) {
+        assertSame(target, manager);
+        startedLatch.countDown();
+        try {
+          if (stoppedLatch.await(5, TimeUnit.SECONDS)) {
+            wasStoppedLatch.countDown();
+          }
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      };
+
+      @Override
+      public void stop() {
+        super.stop();
+        stoppedLatch.countDown();
+      }
+    };
+    target.addWorker(worker);
+    target.superStartBackgroundAnalysis();
+    assertTrue(startedLatch.await(5, TimeUnit.SECONDS));
+    target.stopBackgroundAnalysis();
+    assertTrue(stoppedLatch.await(5, TimeUnit.SECONDS));
+  }
+
   public void test_waitForBackgroundAnalysis() throws Exception {
     assertTrue(target.waitForBackgroundAnalysis(5000));
     final CountDownLatch latch = new CountDownLatch(1);

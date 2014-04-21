@@ -80,7 +80,9 @@ public class AnalysisManager {
    * @return the worker or {@code null} if none
    */
   public AnalysisWorker getActiveWorker() {
-    return activeWorker;
+    synchronized (backgroundQueue) {
+      return activeWorker;
+    }
   }
 
   /**
@@ -119,24 +121,31 @@ public class AnalysisManager {
    * @param job The job on which the analysis is performed or {@code null} if none.
    */
   public void performAnalysis(Job job) {
-    AnalysisWorker worker = getNextWorker();
-    while (worker != null) {
-      if (job != null) {
-        if (worker.contextManager instanceof Project) {
-          job.setName("Analyzing " + ((Project) worker.contextManager).getResource().getName());
-        } else if (worker.contextManager instanceof ProjectManager) {
-          job.setName("Analyzing SDK");
-        } else {
-          job.setName("Analyzing");
+    while (true) {
+      AnalysisWorker worker;
+      synchronized (backgroundQueue) {
+        worker = getNextWorker();
+        if (worker == null) {
+          break;
         }
+        activeWorker = worker;
       }
-      activeWorker = worker;
       try {
+        if (job != null) {
+          if (worker.contextManager instanceof Project) {
+            job.setName("Analyzing " + ((Project) worker.contextManager).getResource().getName());
+          } else if (worker.contextManager instanceof ProjectManager) {
+            job.setName("Analyzing SDK");
+          } else {
+            job.setName("Analyzing");
+          }
+        }
         worker.performAnalysis(this);
       } finally {
-        activeWorker = null;
+        synchronized (backgroundQueue) {
+          activeWorker = null;
+        }
       }
-      worker = getNextWorker();
     }
   }
 
@@ -171,6 +180,23 @@ public class AnalysisManager {
         backgroundJob.setPriority(Job.BUILD);
       }
       backgroundJob.schedule();
+    }
+  }
+
+  /**
+   * Stop all background analysis and discard all pending work
+   */
+  public void stopBackgroundAnalysis() {
+    synchronized (backgroundQueue) {
+      if (activeWorker != null) {
+        activeWorker.stop();
+      }
+      backgroundQueue.clear();
+      if (backgroundJob != null) {
+        backgroundJob.cancel();
+        backgroundJob = null;
+      }
+      backgroundQueue.notifyAll();
     }
   }
 
