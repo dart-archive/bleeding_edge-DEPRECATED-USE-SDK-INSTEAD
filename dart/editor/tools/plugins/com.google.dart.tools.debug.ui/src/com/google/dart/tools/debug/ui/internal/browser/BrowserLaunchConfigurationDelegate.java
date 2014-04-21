@@ -90,18 +90,16 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
       // launch pub serve 
       PubServeManager manager = PubServeManager.getManager();
 
-      if (!manager.startPubServe(wrapper)) {
-        throw new CoreException(new Status(
-            IStatus.ERROR,
-            DartDebugCorePlugin.PLUGIN_ID,
-            "Could not start pub serve\n" + manager.getStdErrorString()));
-      }
+      try {
 
-      if (!manager.connectToPub(pubConnectionCallback)) {
+        manager.serve(wrapper, pubConnectionCallback);
+
+      } catch (Exception e) {
         throw new CoreException(new Status(
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,
-            "Could not connect to pub\n"));
+            "Could not start pub serve or connect to pub\n",
+            e));
       }
 
     } else {
