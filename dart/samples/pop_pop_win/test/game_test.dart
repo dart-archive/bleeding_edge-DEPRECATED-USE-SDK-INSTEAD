@@ -1,7 +1,7 @@
 library pop_pop_win.game_test;
 
 import 'dart:math';
-import 'package:bot/bot.dart';
+
 import 'package:pop_pop_win/src/game.dart';
 import 'package:unittest/unittest.dart';
 
@@ -115,7 +115,7 @@ void _testNoopChord() {
   expect(g.state, equals(GameState.reset));
 
   var revealed = g.reveal(2, 3);
-  expect(revealed, unorderedEquals([const Coordinate(2, 3)]));
+  expect(revealed, unorderedEquals([const Point(2, 3)]));
 
   g.setFlag(2, 2, true);
 

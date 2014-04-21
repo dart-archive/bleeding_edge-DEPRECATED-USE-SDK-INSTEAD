@@ -4,12 +4,13 @@ class Field extends Array2d<bool> {
   final int bombCount;
   final Array2d<int> _adjacents;
 
-  factory Field([bombCount = 40, cols = 16, rows = 16, int seed = null]) {
-    final squares = new List<bool>.filled(rows * cols, false);
+  factory Field([int bombCount = 40, int cols = 16, int rows = 16,
+      int seed = null]) {
+    var squares = new List<bool>.filled(rows * cols, false);
     assert(bombCount < squares.length);
     assert(bombCount > 0);
 
-    final rnd = new math.Random(seed);
+    var rnd = new Random(seed);
 
     // This is the most simple code, but it'll get slow as
     // bombCount approaches the square count.
@@ -24,7 +25,7 @@ class Field extends Array2d<bool> {
     }
 
     return new Field._internal(bombCount, cols,
-        new ReadOnlyCollection<bool>(squares));
+        new UnmodifiableListView<bool>(squares));
   }
 
   factory Field.fromSquares(int cols, int rows, List<bool> squares) {
@@ -42,19 +43,19 @@ class Field extends Array2d<bool> {
     assert(count < squares.length);
 
     return new Field._internal(count, cols,
-        new ReadOnlyCollection<bool>(squares));
+        new UnmodifiableListView<bool>(squares));
   }
 
-  Field._internal(this.bombCount, int cols, ReadOnlyCollection<bool> source) :
-    this._adjacents = new Array2d<int>(cols, source.length ~/ cols),
-    super.wrap(cols, source.toList()) {
+  Field._internal(this.bombCount, int cols, UnmodifiableListView<bool> source)
+      : this._adjacents = new Array2d<int>(cols, source.length ~/ cols),
+        super.wrap(cols, source.toList()) {
     assert(width > 0);
     assert(height > 0);
     assert(bombCount > 0);
     assert(bombCount < length);
 
     int count = 0;
-    for (final m in this) {
+    for (var m in this) {
       if (m) {
         count++;
       }
@@ -71,7 +72,7 @@ class Field extends Array2d<bool> {
 
     if (val == null) {
       val = 0;
-      for (final i in getAdjacentIndices(x, y)) {
+      for (var i in getAdjacentIndices(x, y)) {
         if (this[i]) {
           val++;
         }

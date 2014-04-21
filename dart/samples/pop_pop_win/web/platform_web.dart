@@ -5,12 +5,12 @@ import 'dart:html';
 import 'package:pop_pop_win/platform_target.dart';
 
 class PlatformWeb extends PlatformTarget {
-  static const String _BIG_HASH = '#big';
   static const String _ABOUT_HASH = '#about';
+  bool _sizeAccessed = false;
 
   final StreamController _aboutController = new StreamController(sync: true);
 
-  PlatformWeb(): super.base() {
+  PlatformWeb() : super.base() {
     window.onPopState.listen((args) => _processUrlHash());
   }
 
@@ -30,7 +30,12 @@ class PlatformWeb extends PlatformTarget {
   Future<String> getValue(String key) =>
       new Future.value(window.localStorage[key]);
 
-  bool get renderBig => _urlHash == _BIG_HASH;
+  int get size {
+    _sizeAccessed = true;
+    var hash = (_urlHash == null) ? '7' : _urlHash;
+    hash = hash.replaceAll('#', '');
+    return int.parse(hash, onError: (e) => 7);
+  }
 
   bool get showAbout => _urlHash == _ABOUT_HASH;
 
@@ -61,7 +66,6 @@ class PlatformWeb extends PlatformTarget {
     var hash = loc.hash;
     var href = loc.href;
 
-    final History history = window.history;
     switch (hash) {
       case "#reset":
         assert(href.endsWith(hash));
@@ -71,11 +75,13 @@ class PlatformWeb extends PlatformTarget {
 
         loc.replace(newLoc);
         break;
-      case _BIG_HASH:
-        if (!renderBig) loc.reload();
-        break;
       case _ABOUT_HASH:
         _aboutController.add(null);
+        break;
+      default:
+        if (hash.isNotEmpty && _sizeAccessed) {
+          loc.reload();
+        }
         break;
     }
   }

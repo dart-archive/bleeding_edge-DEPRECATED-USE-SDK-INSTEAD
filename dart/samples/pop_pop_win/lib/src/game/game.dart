@@ -3,8 +3,9 @@ part of pop_pop_win.game;
 class Game {
   final Field field;
   final Array2d<SquareState> _states;
-  final EventHandle<EventArgs> _updatedEvent = new EventHandle<EventArgs>();
-  final EventHandle<GameState> _gameStateEvent = new EventHandle<GameState>();
+  final StreamController _updatedEvent = new StreamController();
+  final StreamController<GameState> _gameStateEvent =
+      new StreamController<GameState>();
 
   GameState _state;
   int _bombsLeft;
@@ -12,10 +13,11 @@ class Game {
   DateTime _startTime;
   DateTime _endTime;
 
-  Game(Field field) :
-    this.field = field,
-    _state = GameState.reset,
-    _states = new Array2d<SquareState>(field.width, field.height, SquareState.hidden) {
+  Game(Field field)
+      : this.field = field,
+        _state = GameState.reset,
+        _states = new Array2d<SquareState>(field.width, field.height,
+          SquareState.hidden) {
     assert(field != null);
     _bombsLeft = field.bombCount;
     _revealsLeft = field.length - field.bombCount;
@@ -78,18 +80,18 @@ class Game {
     return false;
   }
 
-  List<Coordinate> reveal(int x, int y) {
+  List<Point> reveal(int x, int y) {
     _ensureStarted();
     require(canReveal(x, y), "Item cannot be revealed.");
     final currentSS = _states.get(x, y);
 
-    List<Coordinate> reveals;
+    List<Point> reveals;
 
     // normal reveal
     if (currentSS == SquareState.hidden) {
       if (field.get(x, y)) {
         _setLost();
-        reveals = <Coordinate>[];
+        reveals = <Point>[];
       } else {
         reveals = _doReveal(x, y);
       }
@@ -172,7 +174,7 @@ class Game {
     return false;
   }
 
-  List<Coordinate> _doChord(int x, int y) {
+  List<Point> _doChord(int x, int y) {
     // this does not repeat a bunch of validations that have already happened
     // be careful
     final currentSS = _states.get(x, y);
@@ -199,11 +201,10 @@ class Game {
     // for now we assume counts have been checked
     assert(flagged.length == adjCount);
 
-    var reveals = <Coordinate>[];
+    var reveals = <Point>[];
 
     // if any of the hidden are bombs, we've failed
     if (failed) {
-      // TODO: assert one of the flags must be wrong, right?
       _setLost();
     } else {
       for (final i in hidden) {
@@ -217,12 +218,12 @@ class Game {
     return reveals;
   }
 
-  List<Coordinate> _doReveal(int x, int y) {
+  List<Point> _doReveal(int x, int y) {
     assert(_states.get(x, y) == SquareState.hidden);
     _states.set(x, y, SquareState.revealed);
     _revealsLeft--;
     assert(_revealsLeft >= 0);
-    var reveals = [new Coordinate(x, y)];
+    var reveals = [new Point(x, y)];
     if (_revealsLeft == 0) {
       _setWon();
     } else if (field.getAdjacentCount(x, y) == 0) {
@@ -257,7 +258,7 @@ class Game {
     _setState(GameState.lost);
   }
 
-  void _update() => _updatedEvent.add(EventArgs.empty);
+  void _update() => _updatedEvent.add(null);
 
   void _setState(GameState value) {
     assert(value != null);

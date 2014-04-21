@@ -22,7 +22,7 @@ abstract class PlatformTarget {
 
   Future<String> getValue(String key);
 
-  bool get renderBig;
+  int get size;
 
   bool get showAbout;
 
@@ -36,7 +36,7 @@ class _DefaultPlatform extends PlatformTarget {
   final StreamController _aboutController = new StreamController(sync: true);
   bool _about = false;
 
-  _DefaultPlatform(): super.base();
+  _DefaultPlatform() : super.base();
 
   @override
   Future clearValues() => new Future(_values.clear);
@@ -48,7 +48,7 @@ class _DefaultPlatform extends PlatformTarget {
   @override
   Future<String> getValue(String key) => new Future(() => _values[key]);
 
-  bool get renderBig => false;
+  int get size => 7;
 
   void toggleAbout([bool value]) {
     assert(_about != null);

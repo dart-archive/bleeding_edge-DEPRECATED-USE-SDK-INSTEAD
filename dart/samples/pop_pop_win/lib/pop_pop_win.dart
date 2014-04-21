@@ -1,99 +1,95 @@
 library pop_pop_win;
 
+import 'dart:async';
 import 'dart:html';
-import 'dart:web_audio';
-import 'package:bot/bot.dart';
-import 'package:bot_web/bot_html.dart';
-import 'package:bot_web/bot_texture.dart';
 
-import 'package:pop_pop_win/src/canvas.dart';
-import 'package:pop_pop_win/platform_target.dart';
-import 'package:pop_pop_win/src/html.dart';
+import 'package:stagexl/stagexl.dart';
 
-import 'src/textures.dart';
-
-part 'src/pop_pop_win/audio.dart';
+import 'platform_target.dart';
+import 'src/audio.dart';
+import 'src/platform.dart';
+import 'src/stage.dart';
 
 const String _ASSET_DIR = 'resources/';
 
-const String _TRANSPARENT_TEXTURE =
-    '${_ASSET_DIR}images/transparent_animated.png';
-const String _OPAQUE_TEXTURE = '${_ASSET_DIR}images/dart_opaque_01.jpg';
-const String _TRANSPARENT_STATIC_TEXTURE =
-    '${_ASSET_DIR}images/transparent_static.png';
+const String _TRANSPARENT_TEXTURE = '${_ASSET_DIR}images/transparent.json';
+const String _OPAQUE_TEXTURE = '${_ASSET_DIR}images/opaque.json';
+const String _TRANSPARENT_STATIC_TEXTURE = '${_ASSET_DIR}images/static.json';
 
-const int _LOADING_BAR_PX_WIDTH = 398;
-
-DivElement _loadingBar;
-ImageLoader _imageLoader;
-
-final _Audio _audio = new _Audio();
-
-void startGame(PlatformTarget platform) {
+Future startGame(PlatformTarget platform) {
   initPlatform(platform);
 
-  _loadingBar = querySelector('.sprite.loading_bar');
-  _loadingBar.style.display = 'block';
-  _loadingBar.style.width = '0';
+  var stage = new Stage(querySelector('#gameCanvas'), webGL: true,
+      color: 0xb4ad7f, frameRate: 60);
 
-  _imageLoader = new ImageLoader([_TRANSPARENT_TEXTURE,
-                                  _OPAQUE_TEXTURE]);
-  _imageLoader.loaded.listen(_onLoaded);
-  _imageLoader.progress.listen(_onProgress);
-  _imageLoader.load();
+  var renderLoop = new RenderLoop()
+      ..addStage(stage);
+
+  BitmapData.defaultLoadOptions.webp = true;
+
+  //have to load the loading bar first...
+  var resourceManager = new ResourceManager()
+      ..addTextureAtlas("static", "resources/images/static.json",
+          TextureAtlasFormat.JSON);
+
+  return resourceManager.load()
+      .then((resMan) => _initialLoad(resMan, stage));
 }
 
-void _onProgress(_) {
-  int completedBytes = _imageLoader.completedBytes;
-  int totalBytes = _imageLoader.totalBytes;
+void _initialLoad(ResourceManager resourceManager, Stage stage) {
+  var atlas = resourceManager.getTextureAtlas('static');
 
-  completedBytes += _audio.completedBytes;
-  totalBytes += _audio.totalBytes;
+  var bar = new Gauge(atlas.getBitmapData('loading_bar'), Gauge.DIRECTION_RIGHT)
+      ..x = 51
+      ..y = 8
+      ..ratio = 0;
 
-  var percent = completedBytes / totalBytes;
-  if (percent == double.INFINITY) percent = 0;
-  var percentClean = (percent * 1000).floor() / 10;
+  var loadingText = new Bitmap(atlas.getBitmapData('loading_text'))
+      ..x = 141
+      ..y = 10;
 
-  var barWidth = percent * _LOADING_BAR_PX_WIDTH;
-  _loadingBar.style.width = '${barWidth.toInt()}px';
+  var loadingSprite = new Sprite()
+      ..addChild(new Bitmap(atlas.getBitmapData('loading_background')))
+      ..addChild(bar)
+      ..addChild(loadingText)
+      ..x = stage.sourceWidth ~/ 2 - 1008 ~/ 2
+      ..y = 400
+      ..scaleX = 2
+      ..scaleY = 2
+      ..addTo(stage);
+
+  resourceManager
+      ..addTextureAtlas('opaque', 'resources/images/opaque.json',
+          TextureAtlasFormat.JSON)
+      ..addTextureAtlas('animated', 'resources/images/animated.json',
+          TextureAtlasFormat.JSON);
+
+  resourceManager.addSoundSprite('audio', 'resources/audio/audio.json');
+
+  resourceManager.onProgress.listen((e) {
+    bar.ratio = resourceManager.finishedResources.length /
+        resourceManager.resources.length;
+  });
+
+  resourceManager.load().then((resMan) =>
+      _secondaryLoad(resMan, stage, loadingSprite));
 }
 
-void _onLoaded(_) {
-  if (_imageLoader.state == ResourceLoader.StateLoaded && _audio.done) {
+void _secondaryLoad(ResourceManager resourceManager, Stage stage,
+    Sprite loadingSprite) {
+  var tween = stage.juggler.tween(loadingSprite, .5)
+      ..animate.alpha.to(0)
+      ..onComplete = () => stage.removeChild(loadingSprite);
 
-    //
-    // load textures
-    //
-    var opaqueImage = _imageLoader.getResource(_OPAQUE_TEXTURE);
-    var transparentImage = _imageLoader.getResource(_TRANSPARENT_TEXTURE);
-
-    // already loaded. Used in CSS.
-    var staticTransparentImage =
-        new ImageElement(src: _TRANSPARENT_STATIC_TEXTURE);
-
-    var textures = getTextures(transparentImage, opaqueImage,
-        staticTransparentImage);
-
-    var textureData = new TextureData(textures);
-
-    // run the app
-    querySelector('#loading').style.display = 'none';
-    _runGame(textureData);
-  }
-}
-
-void _runGame(TextureData textureData) {
   _updateAbout();
 
   targetPlatform.aboutChanged.listen((_) => _updateAbout());
 
-  final size = targetPlatform.renderBig ? 16 : 7;
-  final int m = (size * size * 0.15625).toInt();
+  var size = targetPlatform.size;
+  var m = (size * size * 0.15625).toInt();
 
-  final CanvasElement gameCanvas = querySelector('#gameCanvas');
-  gameCanvas.style.userSelect = 'none';
-
-  final gameRoot = new GameRoot(size, size, m, gameCanvas, textureData);
+  GameAudio.initialize(resourceManager);
+  var gameRoot = new GameRoot(size, size, m, stage, resourceManager);
 
   // disable touch events
   window.onTouchMove.listen((args) => args.preventDefault());
@@ -105,13 +101,13 @@ void _runGame(TextureData textureData) {
   titleClickedEvent.listen((args) => targetPlatform.toggleAbout(true));
 }
 
-void _onPopupClick(MouseEvent args) {
+void _onPopupClick(args) {
   if (args.toElement is! AnchorElement) {
     targetPlatform.toggleAbout(false);
   }
 }
 
-void _onKeyDown(KeyboardEvent args) {
+void _onKeyDown(args) {
   var keyEvent = new KeyEvent.wrap(args);
   switch (keyEvent.keyCode) {
     case KeyCode.ESC: // esc
