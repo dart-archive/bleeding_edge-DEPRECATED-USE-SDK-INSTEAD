@@ -261,6 +261,7 @@ public class DartUnitHighlightsComputer {
     if (addIdentifierRegion_typeParameter(node)) {
       return;
     }
+    addRegion_node(node, HighlightType.IDENTIFIER_DEFAULT);
   }
 
   private void addIdentifierRegion_annotation(Annotation node) {

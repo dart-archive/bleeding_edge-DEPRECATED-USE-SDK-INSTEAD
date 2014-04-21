@@ -372,6 +372,18 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
     assertHasRegion("bbb;", HighlightType.FIELD);
   }
 
+  public void test_IDENTIFIER_DEFAULT() throws Exception {
+    prepareRegions(//
+        "main() {",
+        "  aaa = 42;",
+        "  bbb(84);",
+        "  CCC ccc;",
+        "}");
+    assertHasRegion("aaa = 42", HighlightType.IDENTIFIER_DEFAULT);
+    assertHasRegion("bbb(84)", HighlightType.IDENTIFIER_DEFAULT);
+    assertHasRegion("CCC", HighlightType.IDENTIFIER_DEFAULT);
+  }
+
   public void test_IMPORT_PREFIX() throws Exception {
     prepareRegions(//
         "import 'dart:math' as ma;",
