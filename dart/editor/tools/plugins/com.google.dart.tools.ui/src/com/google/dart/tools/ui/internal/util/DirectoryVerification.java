@@ -25,7 +25,8 @@ import org.eclipse.swt.widgets.Shell;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.net.URI;
+import java.net.URL;
 
 /**
  * A utility class to handle checking to see if a directory is legal to open in the editor.
@@ -36,7 +37,8 @@ public class DirectoryVerification {
     // disallow parent directories of the workspace
     try {
       Location workspaceLocation = Platform.getInstanceLocation();
-      File workspaceDirectory = new File(workspaceLocation.getURL().toURI());
+
+      File workspaceDirectory = toFile(workspaceLocation.getURL());
 
       String dirPath = directory.getCanonicalPath();
       String workspacePath = workspaceDirectory.getCanonicalPath();
@@ -46,8 +48,6 @@ public class DirectoryVerification {
             + " - it contains the Editor's workspace.");
       }
     } catch (IOException e) {
-
-    } catch (URISyntaxException e) {
 
     }
 
@@ -77,6 +77,57 @@ public class DirectoryVerification {
     }
 
     return status.isOK();
+  }
+
+  /**
+   * Ensures the given path string starts with exactly four leading slashes.
+   */
+  private static String ensureUNCPath(String path) {
+    int len = path.length();
+    StringBuffer result = new StringBuffer(len);
+    for (int i = 0; i < 4; i++) {
+      //  if we have hit the first non-slash character, add another leading slash
+      if (i >= len || result.length() > 0 || path.charAt(i) != '/') {
+        result.append('/');
+      }
+    }
+    result.append(path);
+    return result.toString();
+  }
+
+  /**
+   * Returns the URL as a local file, or <code>null</code> if the given URL does not represent a
+   * local file.
+   * 
+   * @param url The url to return the file for
+   * @return The local file corresponding to the given url, or <code>null</code>
+   */
+  private static File toFile(URL url) {
+
+    if (!"file".equalsIgnoreCase(url.getProtocol())) {
+      return null;
+      //assume all illegal characters have been properly encoded, so use URI class to unencode
+    }
+
+    String externalForm = url.toExternalForm();
+    String pathString = externalForm.substring(5);
+
+    try {
+      if (pathString.indexOf('/') == 0) {
+        if (pathString.indexOf("//") == 0) {
+          externalForm = "file:" + ensureUNCPath(pathString); //$NON-NLS-1$
+        }
+        return new File(new URI(externalForm));
+      }
+      if (pathString.indexOf(':') == 1) {
+        return new File(new URI("file:/" + pathString)); //$NON-NLS-1$
+      }
+
+      return new File(new URI(pathString).getSchemeSpecificPart());
+    } catch (Exception e) {
+      //URL contains unencoded characters
+      return new File(pathString);
+    }
   }
 
   private DirectoryVerification() {
