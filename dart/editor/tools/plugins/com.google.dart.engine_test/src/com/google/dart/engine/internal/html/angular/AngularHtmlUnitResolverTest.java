@@ -268,9 +268,8 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     {
       XmlTagNode tagNode = HtmlUnitUtils.getTagNode(indexUnit, findOffset("myComponent2"));
       AngularSelectorElement tagElement = (AngularSelectorElement) tagNode.getElement();
-      // TODO(scheglov) this test fails, because an old version of my_component.dart is used
-//      assertNotNull(tagElement);
-//      assertEquals("myComponent2", tagElement.getName());
+      assertNotNull(tagElement);
+      assertEquals("myComponent2", tagElement.getName());
     }
   }
 

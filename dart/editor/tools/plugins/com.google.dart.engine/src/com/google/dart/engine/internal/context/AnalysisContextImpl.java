@@ -2772,6 +2772,21 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Compute the transitive closure of all libraries that depend on the given library by adding such
+   * libraries to the given collection.
+   * 
+   * @param library the library on which the other libraries depend
+   * @param librariesToInvalidate the libraries that depend on the given library
+   */
+  private void computeAllLibrariesDependingOn(Source library, HashSet<Source> librariesToInvalidate) {
+    if (librariesToInvalidate.add(library)) {
+      for (Source dependentLibrary : getLibrariesDependingOn(library)) {
+        computeAllLibrariesDependingOn(dependentLibrary, librariesToInvalidate);
+      }
+    }
+  }
+
+  /**
    * Given the encoded form of a source, use the source factory to reconstitute the original source.
    * 
    * @param encoding the encoded form of a source
@@ -5638,10 +5653,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       Source[] containingLibraries = getLibrariesContaining(source);
       HashSet<Source> librariesToInvalidate = new HashSet<Source>();
       for (Source containingLibrary : containingLibraries) {
-        librariesToInvalidate.add(containingLibrary);
-        for (Source dependentLibrary : getLibrariesDependingOn(containingLibrary)) {
-          librariesToInvalidate.add(dependentLibrary);
-        }
+        computeAllLibrariesDependingOn(containingLibrary, librariesToInvalidate);
       }
 
       for (Source library : librariesToInvalidate) {

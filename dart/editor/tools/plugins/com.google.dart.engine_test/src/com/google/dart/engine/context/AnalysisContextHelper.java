@@ -46,7 +46,9 @@ public class AnalysisContextHelper {
   }
 
   public void runTasks() {
-    while (context.performAnalysisTask().getChangeNotices() != null) {
+    AnalysisResult result = context.performAnalysisTask();
+    while (result.getChangeNotices() != null) {
+      result = context.performAnalysisTask();
     }
   }
 }
