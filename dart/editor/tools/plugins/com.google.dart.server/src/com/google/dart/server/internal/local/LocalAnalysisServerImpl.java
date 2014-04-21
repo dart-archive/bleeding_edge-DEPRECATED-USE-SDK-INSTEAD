@@ -38,6 +38,7 @@ import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SourceSet;
+import com.google.dart.server.internal.local.computer.DartUnitHighlightsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
 import com.google.dart.server.internal.local.computer.DartUnitOutlineComputer;
 import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
@@ -248,9 +249,16 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
       case ERRORS:
         listener.computedErrors(contextId, source, changeNotice.getErrors());
         break;
-      case HIGHLIGHT:
-        // TODO(scheglov)
+      case HIGHLIGHTS: {
+        CompilationUnit dartUnit = changeNotice.getCompilationUnit();
+        if (dartUnit != null) {
+          listener.computedHighlights(
+              contextId,
+              source,
+              new DartUnitHighlightsComputer(dartUnit).compute());
+        }
         break;
+      }
       case NAVIGATION: {
         CompilationUnit dartUnit = changeNotice.getCompilationUnit();
         if (dartUnit != null) {

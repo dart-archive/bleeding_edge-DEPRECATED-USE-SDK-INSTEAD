@@ -14,9 +14,9 @@
 
 package com.google.dart.server.internal.local.computer;
 
-import com.google.dart.server.internal.local.AbstractLocalServerTest;
+import junit.framework.TestCase;
 
-public class SourceRegionImplTest extends AbstractLocalServerTest {
+public class SourceRegionImplTest extends TestCase {
   public void test_access() throws Exception {
     SourceRegionImpl sourceRegion = new SourceRegionImpl(10, 20);
     assertEquals(10, sourceRegion.getOffset());

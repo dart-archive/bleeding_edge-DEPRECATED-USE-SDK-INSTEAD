@@ -16,12 +16,13 @@ package com.google.dart.server.internal.local.computer;
 
 import com.google.dart.server.Outline;
 import com.google.dart.server.OutlineKind;
-import com.google.dart.server.internal.local.AbstractLocalServerTest;
+
+import junit.framework.TestCase;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class OutlineImplTest extends AbstractLocalServerTest {
+public class OutlineImplTest extends TestCase {
   public void test_access() throws Exception {
     Outline childA = mock(Outline.class);
     Outline childB = mock(Outline.class);

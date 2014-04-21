@@ -42,6 +42,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   private final List<AnalysisServerError> serverErrors = Lists.newArrayList();
   private final Map<String, Map<Source, NavigationRegion[]>> navigationMap = Maps.newHashMap();
   private final Map<String, Map<Source, Outline>> outlineMap = Maps.newHashMap();
+  private final Map<String, Map<Source, HighlightRegion[]>> highlightsMap = Maps.newHashMap();
 
   /**
    * Assert that the number of errors that have been gathered matches the number of errors that are
@@ -178,7 +179,12 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   @Override
   public synchronized void computedHighlights(String contextId, Source source,
       HighlightRegion[] highlights) {
-    throw new UnsupportedOperationException();
+    Map<Source, HighlightRegion[]> sourceHighlights = highlightsMap.get(contextId);
+    if (sourceHighlights == null) {
+      sourceHighlights = Maps.newHashMap();
+      highlightsMap.put(contextId, sourceHighlights);
+    }
+    sourceHighlights.put(source, highlights);
   }
 
   @Override
@@ -200,6 +206,18 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
       outlineMap.put(contextId, outlines);
     }
     outlines.put(source, outline);
+  }
+
+  /**
+   * Returns {@link HighlightRegion}s for the given context and {@link Source}, maybe {@code null}
+   * if have not been ever notified.
+   */
+  public synchronized HighlightRegion[] getHighlightRegions(String contextId, Source source) {
+    Map<Source, HighlightRegion[]> sourceHighlights = highlightsMap.get(contextId);
+    if (sourceHighlights == null) {
+      return null;
+    }
+    return sourceHighlights.get(source);
   }
 
   /**

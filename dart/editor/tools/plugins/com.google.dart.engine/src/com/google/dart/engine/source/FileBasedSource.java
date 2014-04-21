@@ -82,7 +82,7 @@ public class FileBasedSource implements Source {
 
   @Override
   public boolean equals(Object object) {
-    return object != null && this.getClass() == object.getClass()
+    return object != null && object instanceof FileBasedSource
         && file.equals(((FileBasedSource) object).file);
   }
 

@@ -14,32 +14,21 @@
 
 package com.google.dart.server.internal.local.computer;
 
-import com.google.dart.engine.source.Source;
+import com.google.dart.server.HighlightType;
 
 import junit.framework.TestCase;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-public class NavigationTargetImplTest extends TestCase {
-  private Source source = mock(Source.class);
+public class HighlightRegionImplTest extends TestCase {
 
   public void test_access() throws Exception {
-    NavigationTargetImpl target = new NavigationTargetImpl(source, "id", 10, 20);
-    assertSame(source, target.getSource());
-    assertEquals("id", target.getElementId());
-    assertEquals(10, target.getOffset());
-    assertEquals(20, target.getLength());
+    HighlightRegionImpl region = new HighlightRegionImpl(10, 20, HighlightType.KEYWORD);
+    assertEquals(10, region.getOffset());
+    assertEquals(20, region.getLength());
+    assertSame(HighlightType.KEYWORD, region.getType());
   }
 
   public void test_toString() throws Exception {
-    NavigationTargetImpl target = new NavigationTargetImpl(source, "id", 10, 20);
-    assertEquals("[offset=10, length=20, source=/my/test.dart, element=id]", target.toString());
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    when(source.toString()).thenReturn("/my/test.dart");
+    HighlightRegionImpl region = new HighlightRegionImpl(10, 20, HighlightType.KEYWORD);
+    assertEquals("[offset=10, length=20, type=KEYWORD]", region.toString());
   }
 }

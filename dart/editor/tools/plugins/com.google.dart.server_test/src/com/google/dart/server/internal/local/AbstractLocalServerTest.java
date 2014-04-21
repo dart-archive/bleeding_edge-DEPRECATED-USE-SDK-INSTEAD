@@ -35,6 +35,12 @@ public class AbstractLocalServerTest extends TestCase {
   protected LocalAnalysisServerImpl server;
   protected TestAnalysisServerListener serverListener = new TestAnalysisServerListener();
 
+  protected final void addSource(String contextId, Source source) {
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    server.applyChanges(contextId, changeSet);
+  }
+
   protected final Source addSource(String contextId, String fileName, String contents) {
     Source source = new TestSource(createFile(fileName), contents);
     ChangeSet changeSet = new ChangeSet();

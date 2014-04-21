@@ -21,7 +21,7 @@ package com.google.dart.server;
  */
 public enum NotificationKind {
   ERRORS,
-  HIGHLIGHT,
+  HIGHLIGHTS,
   NAVIGATION,
   OUTLINE;
 }

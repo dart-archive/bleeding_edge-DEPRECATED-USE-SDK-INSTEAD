@@ -15,12 +15,13 @@
 package com.google.dart.server.internal.local.computer;
 
 import com.google.dart.server.NavigationTarget;
-import com.google.dart.server.internal.local.AbstractLocalServerTest;
+
+import junit.framework.TestCase;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class NavigationRegionImplTest extends AbstractLocalServerTest {
+public class NavigationRegionImplTest extends TestCase {
   private NavigationTarget targetA = mock(NavigationTarget.class);
   private NavigationTarget targetB = mock(NavigationTarget.class);
   private NavigationTarget[] targets = {targetA, targetB};
