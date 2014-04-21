@@ -781,7 +781,7 @@ public class CompletionEngine {
     public Void visitMethodInvocation(MethodInvocation node) {
       if (node.getMethodName() == completionNode) {
         // { x.!y() }
-        Expression expr = node.getTarget();
+        Expression expr = node.getRealTarget();
         Type receiverType;
         if (expr == null) { // use this
           receiverType = typeOfContainingClass(node);
@@ -2136,7 +2136,7 @@ public class CompletionEngine {
 
   void dispatchPrefixAnalysis(MethodInvocation node) {
     // This might be a library prefix on a top-level function
-    Expression expr = node.getTarget();
+    Expression expr = node.getRealTarget();
     if (expr instanceof SimpleIdentifier) {
       SimpleIdentifier ident = (SimpleIdentifier) expr;
       if (ident.getBestElement() instanceof PrefixElement) {

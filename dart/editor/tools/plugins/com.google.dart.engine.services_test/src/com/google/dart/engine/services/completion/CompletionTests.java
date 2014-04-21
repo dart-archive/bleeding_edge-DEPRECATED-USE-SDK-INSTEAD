@@ -1575,6 +1575,18 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+MyClass", "1-justSomeVar");
   }
 
+  public void testCompletion_cascade() throws Exception {
+    test(src(//
+        "class A {",
+        "  aaa() {}",
+        "}",
+        "",
+        "",
+        "main(A a) {",
+        "  a..!1 aaa();",
+        "}"), "1+aaa", "1-main");
+  }
+
   public void testCompletion_combinator_afterComma() throws Exception {
     test("import 'dart:math' show cos, !1;", "1+PI", "1+sin", "1+Random", "1-String");
   }
