@@ -46,8 +46,8 @@ public class WorkspaceDeltaProcessorTest extends TestCase {
    */
   private class MockProjectImpl extends ProjectImpl {
 
-    public MockProjectImpl(IProject resource, DartSdk sdk, Index index) {
-      super(resource, sdk, index, new AnalysisContextFactory() {
+    public MockProjectImpl(IProject resource, DartSdk sdk, String sdkContextId, Index index) {
+      super(resource, sdk, sdkContextId, index, new AnalysisContextFactory() {
         @Override
         public AnalysisContext createContext() {
           return new MockContext();
@@ -67,9 +67,9 @@ public class WorkspaceDeltaProcessorTest extends TestCase {
   private final class MockProjectManagerImpl extends ProjectManagerImpl {
     private IProject projectRemoved;
 
-    public MockProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk,
+    public MockProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, String sdkContextId,
         DartIgnoreManager ignoreManager) {
-      super(resource, sdk, ignoreManager);
+      super(resource, sdk, sdkContextId, ignoreManager);
     }
 
     public void assertProjectRemoved(Project expectedProject) {
@@ -167,8 +167,9 @@ public class WorkspaceDeltaProcessorTest extends TestCase {
     projectContainer = TestProjects.newPubProject3(rootContainer);
     rootContainer.add(projectContainer);
     DartSdk sdk = DirectoryBasedDartSdk.getDefaultSdk();
-    manager = new MockProjectManagerImpl(rootContainer, sdk, new DartIgnoreManager());
-    project = new MockProjectImpl(projectContainer, sdk, manager.getIndex());
+    String sdkContextId = "sdk-id";
+    manager = new MockProjectManagerImpl(rootContainer, sdk, sdkContextId, new DartIgnoreManager());
+    project = new MockProjectImpl(projectContainer, sdk, sdkContextId, manager.getIndex());
     processor = new Target(manager);
   }
 }

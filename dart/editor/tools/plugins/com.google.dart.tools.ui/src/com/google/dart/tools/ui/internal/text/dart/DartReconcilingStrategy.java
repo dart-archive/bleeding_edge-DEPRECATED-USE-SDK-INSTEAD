@@ -172,6 +172,9 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
   @Override
   public void initialReconcile() {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      return;
+    }
     if (!applyResolvedUnit()) {
       try {
         AnalysisContext context = editor.getInputAnalysisContext();

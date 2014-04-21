@@ -102,8 +102,9 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
       AnalysisMarkerManager.getInstance(),
       index);
 
-  public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, DartIgnoreManager ignoreManager) {
-    super(sdk);
+  public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, String sdkContextId,
+      DartIgnoreManager ignoreManager) {
+    super(sdk, sdkContextId);
     this.resource = resource;
     this.ignoreManager = ignoreManager;
   }
@@ -206,9 +207,9 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
           // positives.
           //
           result = new ProjectImpl(resource, new DirectoryBasedDartSdk(
-              resource.getLocation().toFile()));
+              resource.getLocation().toFile()), getSdkContextId());
         } else {
-          result = new ProjectImpl(resource, getSdk());
+          result = new ProjectImpl(resource, getSdk(), getSdkContextId());
         }
         projects.put(resource, result);
       }

@@ -692,6 +692,7 @@ public class DartCore extends Plugin implements DartSdkListener {
         projectManager = new ProjectManagerImpl(
             ResourcesPlugin.getWorkspace().getRoot(),
             DartSdkManager.getManager().getSdk(),
+            DartSdkManager.getManager().getSdkContextId(),
             DartIgnoreManager.getInstance());
       }
     }

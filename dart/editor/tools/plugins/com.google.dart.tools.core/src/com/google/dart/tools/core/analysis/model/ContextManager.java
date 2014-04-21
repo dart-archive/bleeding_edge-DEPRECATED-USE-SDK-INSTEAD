@@ -139,6 +139,13 @@ public interface ContextManager {
   AnalysisContext getSdkContext();
 
   /**
+   * Answer the context identifier containing analysis of sources in the SDK.
+   * 
+   * @return the context identifier (not {@code null})
+   */
+  String getSdkContextId();
+
+  /**
    * Answer the source for the specified file
    * 
    * @param file the file (not {@code null})

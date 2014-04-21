@@ -603,6 +603,7 @@ public class ProjectImplTest extends ContextManagerImplTest {
     ProjectImpl project = new ProjectImpl(
         projectContainer,
         sdk,
+        sdkContextId,
         index,
         new AnalysisContextFactory() {
           @Override
@@ -665,7 +666,7 @@ public class ProjectImplTest extends ContextManagerImplTest {
         testProject.setFileContent(PUBSPEC_FILE_NAME, "name:  myapp");
         testProject.createFolder(PACKAGES_DIRECTORY_NAME + "/myapp");
         testProject.setFileContent(PACKAGES_DIRECTORY_NAME + "/myapp/stuff.dart", "library stuff;");
-        ProjectImpl projectimpl = new ProjectImpl(testProject.getProject(), sdk);
+        ProjectImpl projectimpl = new ProjectImpl(testProject.getProject(), sdk, sdkContextId);
         IFileInfo info = projectimpl.resolveUriToFileInfo(
             testProject.getProject(),
             "package:myapp/stuff.dart");
@@ -678,21 +679,26 @@ public class ProjectImplTest extends ContextManagerImplTest {
 
   @Override
   protected ProjectImpl newTarget() {
-    return new ProjectImpl(projectContainer, sdk, index, new AnalysisContextFactory() {
-      @Override
-      public AnalysisContext createContext() {
-        InternalAnalysisContext context = new MockContextForTest();
-        if (useInstrumentedContexts) {
-          context = new InstrumentedAnalysisContextImpl(context);
-        }
-        return context;
-      }
+    return new ProjectImpl(
+        projectContainer,
+        sdk,
+        sdkContextId,
+        index,
+        new AnalysisContextFactory() {
+          @Override
+          public AnalysisContext createContext() {
+            InternalAnalysisContext context = new MockContextForTest();
+            if (useInstrumentedContexts) {
+              context = new InstrumentedAnalysisContextImpl(context);
+            }
+            return context;
+          }
 
-      @Override
-      public File[] getPackageRoots(IContainer container) {
-        return packageRoots;
-      }
-    });
+          @Override
+          public File[] getPackageRoots(IContainer container) {
+            return packageRoots;
+          }
+        });
   }
 
   @Override

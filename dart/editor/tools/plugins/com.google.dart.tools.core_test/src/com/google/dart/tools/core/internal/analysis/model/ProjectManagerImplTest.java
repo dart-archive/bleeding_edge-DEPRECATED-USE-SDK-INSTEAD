@@ -112,9 +112,9 @@ public class ProjectManagerImplTest extends ContextManagerImplTest {
 
     private Project projectUnderTest;
 
-    public MockProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk,
+    public MockProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, String sdkContextId,
         DartIgnoreManager ignoreManager) {
-      super(resource, sdk, ignoreManager);
+      super(resource, sdk, sdkContextId, ignoreManager);
     }
 
     @Override
@@ -124,6 +124,7 @@ public class ProjectManagerImplTest extends ContextManagerImplTest {
           projectUnderTest = new ProjectImpl(
               projectContainer,
               sdk,
+              sdkContextId,
               getIndex(),
               new AnalysisContextFactory() {
                 @Override
@@ -341,7 +342,7 @@ public class ProjectManagerImplTest extends ContextManagerImplTest {
 
   @Override
   protected MockProjectManagerImpl newTarget() {
-    return new MockProjectManagerImpl(rootContainer, sdk, ignoreManager);
+    return new MockProjectManagerImpl(rootContainer, sdk, sdkContextId, ignoreManager);
   }
 
   @Override

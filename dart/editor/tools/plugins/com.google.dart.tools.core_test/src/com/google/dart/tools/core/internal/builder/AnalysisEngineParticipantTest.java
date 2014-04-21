@@ -99,8 +99,8 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
    */
   private class MockProjectImpl extends ProjectImpl {
 
-    public MockProjectImpl(IProject resource, DartSdk sdk, Index index) {
-      super(resource, sdk, index, new AnalysisContextFactory() {
+    public MockProjectImpl(IProject resource, DartSdk sdk, String sdkContextId, Index index) {
+      super(resource, sdk, sdkContextId, index, new AnalysisContextFactory() {
         @Override
         public AnalysisContext createContext() {
           return new MockAnalysisContextImpl();
@@ -120,9 +120,9 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
   private final class MockProjectManagerImpl extends ProjectManagerImpl {
     private final ArrayList<Project> analyzed = new ArrayList<Project>();
 
-    public MockProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk,
+    public MockProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, String sdkContextId,
         DartIgnoreManager ignoreManager) {
-      super(resource, sdk, ignoreManager);
+      super(resource, sdk, sdkContextId, ignoreManager);
     }
 
     public void assertProjectAnalyzed() {
@@ -158,6 +158,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
   private AnalysisMarkerManager markerManager;
 
   private DartSdk sdk;
+  private String sdkContextId;
   private MockProjectManagerImpl manager;
   private MockProjectImpl project;
   private Source fileSource;
@@ -201,8 +202,8 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     markerManager = new AnalysisMarkerManager(workspace);
 
     sdk = DirectoryBasedDartSdk.getDefaultSdk();
-    manager = new MockProjectManagerImpl(rootRes, sdk, new DartIgnoreManager());
-    project = new MockProjectImpl(projectRes, sdk, manager.getIndex());
+    manager = new MockProjectManagerImpl(rootRes, sdk, sdkContextId, new DartIgnoreManager());
+    project = new MockProjectImpl(projectRes, sdk, sdkContextId, manager.getIndex());
 
     AnalysisContext context = project.getDefaultContext();
     File file = fileRes.getLocation().toFile();

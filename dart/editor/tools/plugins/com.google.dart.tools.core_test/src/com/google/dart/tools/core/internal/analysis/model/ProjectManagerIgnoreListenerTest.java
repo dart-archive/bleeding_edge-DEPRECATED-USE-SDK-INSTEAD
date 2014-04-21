@@ -178,23 +178,29 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
     assertNotNull(appFolder);
     markerManager = mock(AnalysisMarkerManager.class);
     DartSdk sdk = mock(DartSdk.class);
+    String sdkContextId = "sdk-id";
     index = mock(Index.class);
     analysisManager = mock(AnalysisManager.class);
 
-    projectImpl = new ProjectImpl(projectContainer, sdk, index, new AnalysisContextFactory() {
-      @Override
-      public AnalysisContext createContext() {
-        return new MockContext();
-      }
+    projectImpl = new ProjectImpl(
+        projectContainer,
+        sdk,
+        sdkContextId,
+        index,
+        new AnalysisContextFactory() {
+          @Override
+          public AnalysisContext createContext() {
+            return new MockContext();
+          }
 
-      @Override
-      public File[] getPackageRoots(IContainer container) {
-        return new File[] {};
-      }
-    });
+          @Override
+          public File[] getPackageRoots(IContainer container) {
+            return new File[] {};
+          }
+        });
 
     DartIgnoreManager unused = mock(DartIgnoreManager.class);
-    projectManager = new ProjectManagerImpl(rootContainer, sdk, unused) {
+    projectManager = new ProjectManagerImpl(rootContainer, sdk, sdkContextId, unused) {
       @Override
       public Project getProject(org.eclipse.core.resources.IProject resource) {
         return resource == projectContainer ? projectImpl : null;

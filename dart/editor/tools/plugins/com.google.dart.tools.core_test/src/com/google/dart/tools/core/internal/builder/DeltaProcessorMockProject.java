@@ -30,7 +30,7 @@ class DeltaProcessorMockProject extends ProjectImpl {
   private final CallList calls = new CallList();
 
   DeltaProcessorMockProject(IProject resource) {
-    super(resource, mock(DartSdk.class), mock(Index.class), new AnalysisContextFactory() {
+    super(resource, mock(DartSdk.class), "sdk-id", mock(Index.class), new AnalysisContextFactory() {
       @Override
       public AnalysisContext createContext() {
         return new MockContext();

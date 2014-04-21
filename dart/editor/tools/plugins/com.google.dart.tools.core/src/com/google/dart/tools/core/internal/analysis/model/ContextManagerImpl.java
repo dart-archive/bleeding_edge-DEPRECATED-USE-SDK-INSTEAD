@@ -47,8 +47,14 @@ public abstract class ContextManagerImpl implements ContextManager {
    */
   private final DartSdk sdk;
 
-  public ContextManagerImpl(DartSdk sdk) {
+  /**
+   * The identifier of the Dart SDK used when constructing the default context.
+   */
+  private final String sdkContextId;
+
+  public ContextManagerImpl(DartSdk sdk, String sdkContextId) {
     this.sdk = sdk;
+    this.sdkContextId = sdkContextId;
   }
 
   @Override
@@ -96,6 +102,11 @@ public abstract class ContextManagerImpl implements ContextManager {
   @Override
   public AnalysisContext getSdkContext() {
     return sdk.getContext();
+  }
+
+  @Override
+  public String getSdkContextId() {
+    return sdkContextId;
   }
 
   @Override

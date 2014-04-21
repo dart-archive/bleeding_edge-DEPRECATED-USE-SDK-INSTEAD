@@ -48,6 +48,7 @@ public class AnalysisMarkerManagerTest extends TestCase {
   private MockProject projectRes;
   private MockFile fileRes;
   private DartSdk sdk;
+  private String sdkContextId;
   private ProjectManagerImpl projectManager;
   private Project project;
   private FileBasedSource source;
@@ -203,7 +204,7 @@ public class AnalysisMarkerManagerTest extends TestCase {
     });
 
     sdk = DirectoryBasedDartSdk.getDefaultSdk();
-    projectManager = new ProjectManagerImpl(rootRes, sdk, new DartIgnoreManager());
+    projectManager = new ProjectManagerImpl(rootRes, sdk, sdkContextId, new DartIgnoreManager());
     project = projectManager.getProject(projectRes);
     project.getDefaultContext();
 

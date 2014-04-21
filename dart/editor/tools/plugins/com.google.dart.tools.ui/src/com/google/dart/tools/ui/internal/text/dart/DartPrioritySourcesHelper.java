@@ -17,6 +17,7 @@ package com.google.dart.tools.ui.internal.text.dart;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCoreDebug;
 
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -248,15 +249,19 @@ public class DartPrioritySourcesHelper {
    */
   private static void updateAnalysisPriorityOrderOnUiThread(DartPrioritySourceEditor editor,
       boolean isOpen) {
-    AnalysisContext context = editor.getInputAnalysisContext();
-    Source source = editor.getInputSource();
-    if (context != null && source != null) {
-      List<Source> sources = getVisibleSourcesForContext(context);
-      sources.remove(source);
-      if (isOpen) {
-        sources.add(0, source);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      // TODO(scheglov) Analysis Server: implement priority sources
+    } else {
+      AnalysisContext context = editor.getInputAnalysisContext();
+      Source source = editor.getInputSource();
+      if (context != null && source != null) {
+        List<Source> sources = getVisibleSourcesForContext(context);
+        sources.remove(source);
+        if (isOpen) {
+          sources.add(0, source);
+        }
+        updateAnalysisPriorityOrderInBackground(context, sources);
       }
-      updateAnalysisPriorityOrderInBackground(context, sources);
     }
   }
 }

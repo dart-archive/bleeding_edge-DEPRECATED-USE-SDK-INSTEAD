@@ -188,9 +188,15 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * 
    * @param resource the Eclipse project associated with this Dart project (not {@code null})
    * @param sdk the Dart SDK to use when initializing contexts (not {@code null})
+   * @param sdkContextId the identifier of the Dart SDK context (not {@code null})
    */
-  public ProjectImpl(IProject resource, DartSdk sdk) {
-    this(resource, sdk, DartCore.getProjectManager().getIndex(), new AnalysisContextFactory());
+  public ProjectImpl(IProject resource, DartSdk sdk, String sdkContextId) {
+    this(
+        resource,
+        sdk,
+        sdkContextId,
+        DartCore.getProjectManager().getIndex(),
+        new AnalysisContextFactory());
   }
 
   /**
@@ -198,11 +204,13 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * 
    * @param resource the Eclipse project associated with this Dart project (not {@code null})
    * @param sdk the Dart SDK to use when initializing contexts (not {@code null})
+   * @param sdkContextId the identifier of the Dart SDK context (not {@code null})
    * @param index the index to be updated when contexts are discarded (not {@code null})
    * @param factory the factory used to construct new analysis contexts (not {@code null})
    */
-  public ProjectImpl(IProject resource, DartSdk sdk, Index index, AnalysisContextFactory factory) {
-    super(sdk);
+  public ProjectImpl(IProject resource, DartSdk sdk, String sdkContextId, Index index,
+      AnalysisContextFactory factory) {
+    super(sdk, sdkContextId);
     if (resource == null | factory == null | sdk == null) {
       throw new IllegalArgumentException();
     }

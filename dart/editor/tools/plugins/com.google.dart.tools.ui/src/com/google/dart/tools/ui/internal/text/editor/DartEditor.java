@@ -2299,6 +2299,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   public AnalysisContext getInputAnalysisContext() {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      throw new IllegalStateException("This method cannot be used with Analysis Server enabled.");
+    }
     if (inputResourceFile != null) {
       // Usually ProjectManager is initialized and knows all contexts.
       // However sometimes this method is called when ProjectManager needs to initialize contexts.
@@ -2320,10 +2323,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (inputResourceFile != null) {
       return DartCore.getProjectManager().getContextId(inputResourceFile);
     }
-    // TODO(scheglov) Analysis Server
-    //    if (inputJavaFile != null) {
-    //      return DartCore.getProjectManager().getSdkContext();
-    //    }
+    if (inputJavaFile != null) {
+      return DartCore.getProjectManager().getSdkContextId();
+    }
     return null;
   }
 
@@ -2361,10 +2363,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
     // may be SDK
     if (inputJavaFile != null) {
-      AnalysisContext context = getInputAnalysisContext();
-      if (context == null) {
-        return null;
-      }
+      // TODO(scheglov) Analysis Server: remove this?
+//      AnalysisContext context = getInputAnalysisContext();
+//      if (context == null) {
+//        return null;
+//      }
       return new FileBasedSource(inputJavaFile);
     }
     // some random external file

@@ -43,6 +43,8 @@ public abstract class ContextManagerImplTest extends AbstractDartCoreTest {
 
   protected DartSdk sdk;
 
+  protected String sdkContextId;
+
   public void test_getSdk() throws Exception {
     ContextManager manager = newTarget();
     DartSdk actual = manager.getSdk();

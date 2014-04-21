@@ -14,8 +14,11 @@
 
 package com.google.dart.tools.core.model;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -141,6 +144,7 @@ public class DartSdkManager {
   }
 
   private DirectoryBasedDartSdk sdk;
+  private String sdkContextId;
 
   private List<DartSdkListener> listeners = new ArrayList<DartSdkListener>();
 
@@ -154,6 +158,10 @@ public class DartSdkManager {
 
   public DirectoryBasedDartSdk getSdk() {
     return sdk;
+  }
+
+  public String getSdkContextId() {
+    return sdkContextId;
   }
 
   public boolean hasSdk() {
@@ -355,6 +363,19 @@ public class DartSdkManager {
     }
     if (sdkDir != null) {
       sdk = new DirectoryBasedDartSdk(sdkDir);
+      // create an artificial context for SDK
+      sdkContextId = DartCore.getAnalysisServer().createContext(
+          sdkDir.getAbsolutePath(),
+          sdkDir.getAbsolutePath(),
+          ImmutableMap.<String, String> of());
+      // TODO(scheglov) Analysis Server: replace with SDK analysis in server
+      {
+        ChangeSet changeSet = new ChangeSet();
+        FileBasedSource source = new FileBasedSource(new File("bootstrap.dart"));
+        changeSet.addedSource(source);
+        changeSet.changedContent(source, "import 'dart:core';");
+        DartCore.getAnalysisServer().applyChanges(sdkContextId, changeSet);
+      }
     } else {
       sdk = NONE;
     }
