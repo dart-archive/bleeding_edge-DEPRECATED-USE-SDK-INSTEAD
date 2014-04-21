@@ -15,11 +15,11 @@ package com.google.dart.engine.element.angular;
 
 /**
  * The interface {@code AngularDirectiveElement} defines the Angular controller described by
- * <code>NgDirective</code> annotation.
+ * <code>Decorator</code> annotation.
  * 
  * @coverage dart.engine.element
  */
-public interface AngularDirectiveElement extends AngularHasSelectorElement {
+public interface AngularDecoratorElement extends AngularHasSelectorElement {
   /**
    * Return an array containing all of the properties declared by this directive.
    */

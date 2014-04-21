@@ -30,8 +30,8 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
-import com.google.dart.engine.element.angular.AngularDirectiveElement;
-import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularDecoratorElement;
+import com.google.dart.engine.element.angular.AngularFormatterElement;
 import com.google.dart.engine.element.angular.AngularHasAttributeSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
@@ -47,7 +47,7 @@ import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactori
 import com.google.dart.engine.services.internal.refactoring.InlineMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularComponentRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularControllerRefactoringImpl;
-import com.google.dart.engine.services.internal.refactoring.RenameAngularFilterRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameAngularFormatterRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularHasAttributeSelectorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularPropertyRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularScopePropertyRefactoringImpl;
@@ -163,11 +163,11 @@ public class RefactoringFactoryTest extends AbstractDartTest {
     assertThat(refactoring).isInstanceOf(RenameAngularControllerRefactoringImpl.class);
   }
 
-  public void test_createRenameRefactoring_AngularFilterElement() throws Exception {
-    AngularFilterElement element = mock(AngularFilterElement.class);
+  public void test_createRenameRefactoring_AngularFormatterElement() throws Exception {
+    AngularFormatterElement element = mock(AngularFormatterElement.class);
     // create refactoring
     Refactoring refactoring = createRenameRefactoring(searchEngine, element);
-    assertThat(refactoring).isInstanceOf(RenameAngularFilterRefactoringImpl.class);
+    assertThat(refactoring).isInstanceOf(RenameAngularFormatterRefactoringImpl.class);
   }
 
   public void test_createRenameRefactoring_AngularHasAttributeSelectorElement() throws Exception {
@@ -185,7 +185,7 @@ public class RefactoringFactoryTest extends AbstractDartTest {
   }
 
   public void test_createRenameRefactoring_AngularPropertyElement_ofDirective() throws Exception {
-    AngularDirectiveElement directive = mock(AngularDirectiveElement.class);
+    AngularDecoratorElement directive = mock(AngularDecoratorElement.class);
     AngularHasAttributeSelectorElement selector = mock(AngularHasAttributeSelectorElement.class);
     when(selector.getName()).thenReturn("test");
     when(directive.getSelector()).thenReturn(selector);

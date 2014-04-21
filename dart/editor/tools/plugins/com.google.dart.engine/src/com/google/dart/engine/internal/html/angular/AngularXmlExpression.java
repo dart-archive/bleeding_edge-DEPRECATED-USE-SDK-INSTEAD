@@ -47,16 +47,16 @@ public abstract class AngularXmlExpression extends XmlExpression {
     if (reference != null) {
       return reference;
     }
-    // filters
-    for (AngularFilterNode filter : expression.getFilters()) {
-      // filter name
-      reference = getReferenceAtNode(filter.getName(), offset);
+    // formatters
+    for (AngularFormatterNode formatter : expression.getFormatters()) {
+      // formatter name
+      reference = getReferenceAtNode(formatter.getName(), offset);
       if (reference != null) {
         return reference;
       }
-      // filter arguments
-      for (AngularFilterArgument filterArgument : filter.getArguments()) {
-        reference = getReferenceAtNode(filterArgument.getExpression(), offset);
+      // formatter arguments
+      for (AngularFormatterArgument formatterArgument : formatter.getArguments()) {
+        reference = getReferenceAtNode(formatterArgument.getExpression(), offset);
         if (reference != null) {
           return reference;
         }

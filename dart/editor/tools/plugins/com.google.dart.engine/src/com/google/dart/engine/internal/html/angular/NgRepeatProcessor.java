@@ -111,8 +111,8 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
       variable.setType(itemType);
       resolver.defineVariable(variable);
     }
-    // resolve filters
-    resolveFilters(resolver, iterableExpr, itemType);
+    // resolve formatters
+    resolveFormatters(resolver, iterableExpr, itemType);
     // remember expressions
     expressions.add(newRawXmlExpression(varExpression));
     expressions.add(newAngularRawXmlExpression(iterableExpr));
@@ -152,10 +152,10 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
   }
 
   /**
-   * Resolves an argument for "filter" filter.
+   * Resolves an argument for "filter" formatter.
    */
-  private void resolveFilterArgument_filter(AngularHtmlUnitResolver resolver, Type itemType,
-      AngularFilterArgument argument, int argIndex) {
+  private void resolveFormatterArgument_filter(AngularHtmlUnitResolver resolver, Type itemType,
+      AngularFormatterArgument argument, int argIndex) {
     Expression arg = argument.getExpression();
     // only first argument is special for "filter"
     if (argIndex != 0) {
@@ -179,15 +179,15 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
   }
 
   /**
-   * Resolves an argument for "orderBy" filter.
+   * Resolves an argument for "orderBy" formatter.
    */
-  private void resolveFilterArgument_orderBy(AngularHtmlUnitResolver resolver,
+  private void resolveFormatterArgument_orderBy(AngularHtmlUnitResolver resolver,
       List<Expression> expressions, Type itemType, Expression arg, int argIndex) {
     // List of properties
     if (arg instanceof ListLiteral) {
       List<Expression> subArgs = ((ListLiteral) arg).getElements();
       for (Expression subArg : subArgs) {
-        resolveFilterArgument_orderBy(resolver, expressions, itemType, subArg, 0);
+        resolveFormatterArgument_orderBy(resolver, expressions, itemType, subArg, 0);
       }
       return;
     }
@@ -218,10 +218,10 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
   }
 
   /**
-   * Resolves an argument for "orderBy" filter.
+   * Resolves an argument for "orderBy" formatter.
    */
-  private void resolveFilterArgument_orderByWithFilter(AngularHtmlUnitResolver resolver,
-      Type itemType, AngularFilterArgument argument, int argIndex) {
+  private void resolveFormatterArgument_orderByWithFilter(AngularHtmlUnitResolver resolver,
+      Type itemType, AngularFormatterArgument argument, int argIndex) {
     Expression arg = argument.getExpression();
     // only first argument is special for "orderBy"
     if (argIndex != 0) {
@@ -230,37 +230,37 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
     }
     //
     List<Expression> expressions = Lists.newArrayList();
-    resolveFilterArgument_orderBy(resolver, expressions, itemType, arg, 0);
+    resolveFormatterArgument_orderBy(resolver, expressions, itemType, arg, 0);
     // set resolved sub-expressions
     argument.setSubExpressions(expressions.toArray(new Expression[expressions.size()]));
   }
 
-  private void resolveFilterArguments(AngularHtmlUnitResolver resolver, Type itemType,
-      String filterName, List<AngularFilterArgument> arguments) {
+  private void resolveFormatterArguments(AngularHtmlUnitResolver resolver, Type itemType,
+      String formatterName, List<AngularFormatterArgument> arguments) {
     int index = 0;
-    for (AngularFilterArgument argument : arguments) {
-      if ("filter".equals(filterName)) {
-        resolveFilterArgument_filter(resolver, itemType, argument, index);
+    for (AngularFormatterArgument argument : arguments) {
+      if ("filter".equals(formatterName)) {
+        resolveFormatterArgument_filter(resolver, itemType, argument, index);
       }
-      if ("orderBy".equals(filterName)) {
-        resolveFilterArgument_orderByWithFilter(resolver, itemType, argument, index);
+      if ("orderBy".equals(formatterName)) {
+        resolveFormatterArgument_orderByWithFilter(resolver, itemType, argument, index);
       }
       index++;
     }
   }
 
   /**
-   * Resolves sequence of filters.
+   * Resolves sequence of formatters.
    */
-  private void resolveFilters(AngularHtmlUnitResolver resolver,
+  private void resolveFormatters(AngularHtmlUnitResolver resolver,
       AngularExpression angularExpression, Type itemType) {
-    for (AngularFilterNode filter : angularExpression.getFilters()) {
-      SimpleIdentifier filterNameNode = filter.getName();
-      String filterName = filterNameNode.getName();
-      // resolve filter name
-      filterNameNode.setStaticElement(resolver.findAngularElement(filterName));
-      // resolve filter arguments
-      resolveFilterArguments(resolver, itemType, filterName, filter.getArguments());
+    for (AngularFormatterNode formatter : angularExpression.getFormatters()) {
+      SimpleIdentifier formatterNameNode = formatter.getName();
+      String formatterName = formatterNameNode.getName();
+      // resolve formatter name
+      formatterNameNode.setStaticElement(resolver.findAngularElement(formatterName));
+      // resolve formatter arguments
+      resolveFormatterArguments(resolver, itemType, formatterName, formatter.getArguments());
     }
   }
 

@@ -15,7 +15,7 @@ package com.google.dart.engine.element.angular;
 
 /**
  * The interface {@code AngularControllerElement} defines the Angular controller described by
- * <code>NgController</code> annotation.
+ * <code>Controller</code> annotation.
  * 
  * @coverage dart.engine.element
  */

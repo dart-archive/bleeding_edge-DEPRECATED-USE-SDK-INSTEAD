@@ -57,8 +57,8 @@ public final class NamingConventions {
    *         valid, {@link RefactoringStatusSeverity#WARNING} if the name is discouraged, or
    *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
    */
-  public static RefactoringStatus validateAngularFilterName(String name) {
-    return validateLowerCamelCase(name, "Filter");
+  public static RefactoringStatus validateAngularFormatterName(String name) {
+    return validateLowerCamelCase(name, "Formatter");
   }
 
   /**

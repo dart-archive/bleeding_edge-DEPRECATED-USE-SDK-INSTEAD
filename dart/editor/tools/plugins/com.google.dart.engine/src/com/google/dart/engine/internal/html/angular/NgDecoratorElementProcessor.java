@@ -14,7 +14,7 @@
 
 package com.google.dart.engine.internal.html.angular;
 
-import com.google.dart.engine.element.angular.AngularDirectiveElement;
+import com.google.dart.engine.element.angular.AngularDecoratorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
@@ -24,13 +24,13 @@ import com.google.dart.engine.internal.element.angular.HasAttributeSelectorEleme
 import com.google.dart.engine.type.Type;
 
 /**
- * {@link NgDirectiveElementProcessor} applies {@link AngularDirectiveElement} by parsing mapped
+ * {@link NgDecoratorElementProcessor} applies {@link AngularDecoratorElement} by parsing mapped
  * attributes as expressions.
  */
-class NgDirectiveElementProcessor extends NgDirectiveProcessor {
-  private final AngularDirectiveElement element;
+class NgDecoratorElementProcessor extends NgDirectiveProcessor {
+  private final AngularDecoratorElement element;
 
-  public NgDirectiveElementProcessor(AngularDirectiveElement element) {
+  public NgDecoratorElementProcessor(AngularDecoratorElement element) {
     this.element = element;
   }
 

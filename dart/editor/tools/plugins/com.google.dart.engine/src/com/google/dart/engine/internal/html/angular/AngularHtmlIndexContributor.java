@@ -76,7 +76,7 @@ public class AngularHtmlIndexContributor extends ExpressionVisitor {
 
   @Override
   public void visitExpression(Expression expression) {
-    // NgFilter
+    // Formatter
     if (expression instanceof SimpleIdentifier) {
       SimpleIdentifier identifier = (SimpleIdentifier) expression;
       Element element = identifier.getBestElement();

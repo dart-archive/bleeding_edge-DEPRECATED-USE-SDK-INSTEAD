@@ -16,7 +16,7 @@ package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.angular.AngularComponentElement;
-import com.google.dart.engine.element.angular.AngularDirectiveElement;
+import com.google.dart.engine.element.angular.AngularDecoratorElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularHasAttributeSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
@@ -41,15 +41,15 @@ import java.text.MessageFormat;
 public class RenameAngularHasAttributeSelectorRefactoringImpl extends
     RenameAngularElementRefactoringImpl {
   /**
-   * If the given {@link AngularPropertyElement} is a property of an {@link AngularDirectiveElement}
+   * If the given {@link AngularPropertyElement} is a property of an {@link AngularDecoratorElement}
    * then returns the {@link AngularHasAttributeSelectorElement} with the same name as the
    * {@link AngularPropertyElement}, or {@code null}.
    */
   public static AngularHasAttributeSelectorElement getAttributeSelectorElement(
       AngularPropertyElement property) {
     Element enclosing = property.getEnclosingElement();
-    if (enclosing instanceof AngularDirectiveElement) {
-      AngularDirectiveElement directive = (AngularDirectiveElement) enclosing;
+    if (enclosing instanceof AngularDecoratorElement) {
+      AngularDecoratorElement directive = (AngularDecoratorElement) enclosing;
       AngularSelectorElement selector = directive.getSelector();
       if (selector instanceof AngularHasAttributeSelectorElement) {
         AngularHasAttributeSelectorElement attributeSelector = (AngularHasAttributeSelectorElement) selector;
@@ -105,8 +105,8 @@ public class RenameAngularHasAttributeSelectorRefactoringImpl extends
   @Override
   protected void createAdditionalChanges() throws Exception {
     Element enclosing = element.getEnclosingElement();
-    if (enclosing instanceof AngularDirectiveElement) {
-      AngularDirectiveElement directive = (AngularDirectiveElement) enclosing;
+    if (enclosing instanceof AngularDecoratorElement) {
+      AngularDecoratorElement directive = (AngularDecoratorElement) enclosing;
       for (AngularPropertyElement property : directive.getProperties()) {
         if (property.getName().equals(element.getName())) {
           Source source = element.getSource();

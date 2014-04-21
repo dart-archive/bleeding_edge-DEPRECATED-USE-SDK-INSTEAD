@@ -18,7 +18,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
-import com.google.dart.engine.element.angular.AngularDirectiveElement;
+import com.google.dart.engine.element.angular.AngularDecoratorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 
 /**
@@ -26,8 +26,8 @@ import com.google.dart.engine.element.angular.AngularPropertyElement;
  * 
  * @coverage dart.engine.element
  */
-public class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implements
-    AngularDirectiveElement {
+public class AngularDecoratorElementImpl extends AngularHasSelectorElementImpl implements
+    AngularDecoratorElement {
   /**
    * The offset of the annotation that defines this directive.
    */
@@ -43,7 +43,7 @@ public class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl i
    * 
    * @param offset the offset of the annotation that defines this directive
    */
-  public AngularDirectiveElementImpl(int offset) {
+  public AngularDecoratorElementImpl(int offset) {
     super(null, -1);
     this.offset = offset;
   }
@@ -94,6 +94,6 @@ public class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl i
 
   @Override
   protected String getIdentifier() {
-    return "NgDirective@" + offset;
+    return "Decorator@" + offset;
   }
 }

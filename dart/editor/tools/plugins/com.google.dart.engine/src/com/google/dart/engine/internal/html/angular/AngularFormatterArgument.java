@@ -19,11 +19,11 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
 /**
- * Angular filter argument.
+ * Angular formatter argument.
  * 
  * @coverage dart.engine.ast
  */
-public class AngularFilterArgument {
+public class AngularFormatterArgument {
   /**
    * The {@link TokenType#COLON} token.
    */
@@ -39,7 +39,7 @@ public class AngularFilterArgument {
    */
   private Expression[] subExpressions = Expression.EMPTY_ARRAY;
 
-  public AngularFilterArgument(Token token, Expression expression) {
+  public AngularFormatterArgument(Token token, Expression expression) {
     this.token = token;
     this.expression = expression;
   }

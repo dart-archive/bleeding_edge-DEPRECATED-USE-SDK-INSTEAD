@@ -341,7 +341,7 @@ public class SearchEngineImpl implements SearchEngine {
     switch (element.getKind()) {
       case ANGULAR_COMPONENT:
       case ANGULAR_CONTROLLER:
-      case ANGULAR_FILTER:
+      case ANGULAR_FORMATTER:
       case ANGULAR_PROPERTY:
       case ANGULAR_SCOPE_PROPERTY:
       case ANGULAR_SELECTOR:

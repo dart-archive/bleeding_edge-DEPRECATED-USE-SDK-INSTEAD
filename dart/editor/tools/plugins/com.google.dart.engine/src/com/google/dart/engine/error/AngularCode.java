@@ -18,7 +18,7 @@ package com.google.dart.engine.error;
  */
 public enum AngularCode implements ErrorCode {
   CANNOT_PARSE_SELECTOR("The selector '%s' cannot be parsed"),
-  INVALID_FILTER_NAME("Filter name must be a simple identifier"),
+  INVALID_FORMATTER_NAME("Formatter name must be a simple identifier"),
   INVALID_PROPERTY_KIND(
       "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'"),
   INVALID_PROPERTY_FIELD("Unknown property field '%s'"),
@@ -28,7 +28,7 @@ public enum AngularCode implements ErrorCode {
   INVALID_REPEAT_SYNTAX("Expected statement in form '_item_ in _collection_ [tracked by _id_]'"),
   INVALID_REPEAT_ITEM_SYNTAX("Item must by identifier or in '(_key_, _value_)' pair."),
   INVALID_URI("Invalid URI syntax: '%s'"),
-  MISSING_FILTER_COLON("Missing ':' before filter argument"),
+  MISSING_FORMATTER_COLON("Missing ':' before formatter argument"),
   MISSING_NAME("Argument 'name' must be provided"),
   MISSING_PUBLISH_AS("Argument 'publishAs' must be provided"),
   MISSING_SELECTOR("Argument 'selector' must be provided"),

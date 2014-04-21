@@ -15,7 +15,7 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.dart.engine.element.angular.AngularElement;
-import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularFormatterElement;
 import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.refactoring.NamingConventions;
@@ -25,26 +25,27 @@ import com.google.dart.engine.services.status.RefactoringStatus;
 import java.text.MessageFormat;
 
 /**
- * {@link Refactoring} for renaming {@link AngularFilterElement}.
+ * {@link Refactoring} for renaming {@link AngularFormatterElement}.
  */
-public class RenameAngularFilterRefactoringImpl extends RenameAngularElementRefactoringImpl {
-  public RenameAngularFilterRefactoringImpl(SearchEngine searchEngine, AngularFilterElement element) {
+public class RenameAngularFormatterRefactoringImpl extends RenameAngularElementRefactoringImpl {
+  public RenameAngularFormatterRefactoringImpl(SearchEngine searchEngine,
+      AngularFormatterElement element) {
     super(searchEngine, element);
   }
 
   @Override
   public String getRefactoringName() {
-    return "Rename Angular Filter";
+    return "Rename Angular Formatter";
   }
 
   @Override
   protected RefactoringStatus checkNameConflicts(String newName) {
     AngularApplication application = element.getApplication();
     for (AngularElement angularElement : application.getElements()) {
-      if (angularElement instanceof AngularFilterElement) {
+      if (angularElement instanceof AngularFormatterElement) {
         if (angularElement.getName().equals(newName)) {
           String message = MessageFormat.format(
-              "Application already defines filter with name ''{0}''.",
+              "Application already defines formatter with name ''{0}''.",
               newName);
           return RefactoringStatus.createErrorStatus(message);
         }
@@ -55,6 +56,6 @@ public class RenameAngularFilterRefactoringImpl extends RenameAngularElementRefa
 
   @Override
   protected RefactoringStatus checkNameSyntax(String newName) {
-    return NamingConventions.validateAngularFilterName(newName);
+    return NamingConventions.validateAngularFormatterName(newName);
   }
 }

@@ -35,7 +35,7 @@ import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
-import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularFormatterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
@@ -394,9 +394,9 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_AngularFilterElement() throws Exception {
-    AngularFilterElement referencedElement = mockElement(
-        AngularFilterElement.class,
-        ElementKind.ANGULAR_FILTER);
+    AngularFormatterElement referencedElement = mockElement(
+        AngularFormatterElement.class,
+        ElementKind.ANGULAR_FORMATTER);
     {
       Location locationA = new Location(elementA, 1, 2);
       indexStore.recordRelationship(referencedElement, IndexConstants.ANGULAR_REFERENCE, locationA);

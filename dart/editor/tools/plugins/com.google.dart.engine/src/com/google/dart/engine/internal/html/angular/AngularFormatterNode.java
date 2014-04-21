@@ -21,27 +21,28 @@ import com.google.dart.engine.scanner.TokenType;
 import java.util.List;
 
 /**
- * Angular filter node.
+ * Angular formatter node.
  * 
  * @coverage dart.engine.ast
  */
-public class AngularFilterNode {
+public class AngularFormatterNode {
   /**
    * The {@link TokenType#BAR} token.
    */
   private final Token token;
 
   /**
-   * The name of the filter.
+   * The name of the formatter.
    */
   private final SimpleIdentifier name;
 
   /**
-   * The arguments for this filter.
+   * The arguments for this formatter.
    */
-  private final List<AngularFilterArgument> arguments;
+  private final List<AngularFormatterArgument> arguments;
 
-  public AngularFilterNode(Token token, SimpleIdentifier name, List<AngularFilterArgument> arguments) {
+  public AngularFormatterNode(Token token, SimpleIdentifier name,
+      List<AngularFormatterArgument> arguments) {
     this.token = token;
     this.name = name;
     this.arguments = arguments;
@@ -50,12 +51,12 @@ public class AngularFilterNode {
   /**
    * Returns the arguments.
    */
-  public List<AngularFilterArgument> getArguments() {
+  public List<AngularFormatterArgument> getArguments() {
     return arguments;
   }
 
   /**
-   * Returns the filter name.
+   * Returns the formatter name.
    */
   public SimpleIdentifier getName() {
     return name;

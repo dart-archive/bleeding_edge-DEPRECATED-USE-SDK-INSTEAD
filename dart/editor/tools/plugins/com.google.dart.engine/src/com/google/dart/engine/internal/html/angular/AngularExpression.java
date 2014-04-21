@@ -21,25 +21,25 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * An {@link Expression} with optional {@link AngularFilterNode}s.
+ * An {@link Expression} with optional {@link AngularFormatterNode}s.
  * 
  * @coverage dart.engine.ast
  */
 public class AngularExpression {
 
   /**
-   * The {@link Expression} to apply filters to.
+   * The {@link Expression} to apply formatters to.
    */
   private final Expression expression;
 
   /**
-   * The filters to apply.
+   * The formatters to apply.
    */
-  private final List<AngularFilterNode> filters;
+  private final List<AngularFormatterNode> formatters;
 
-  public AngularExpression(Expression expression, List<AngularFilterNode> filters) {
+  public AngularExpression(Expression expression, List<AngularFormatterNode> formatters) {
     this.expression = expression;
-    this.filters = filters;
+    this.formatters = formatters;
   }
 
   /**
@@ -49,19 +49,19 @@ public class AngularExpression {
    * @return the offset of the character just past the node's source range
    */
   public int getEnd() {
-    if (filters.isEmpty()) {
+    if (formatters.isEmpty()) {
       return expression.getEnd();
     }
-    AngularFilterNode lastFilter = filters.get(filters.size() - 1);
-    List<AngularFilterArgument> filterArguments = lastFilter.getArguments();
-    if (filterArguments.isEmpty()) {
-      return lastFilter.getName().getEnd();
+    AngularFormatterNode lastFormatter = formatters.get(formatters.size() - 1);
+    List<AngularFormatterArgument> formatterArguments = lastFormatter.getArguments();
+    if (formatterArguments.isEmpty()) {
+      return lastFormatter.getName().getEnd();
     }
-    return filterArguments.get(filterArguments.size() - 1).getExpression().getEnd();
+    return formatterArguments.get(formatterArguments.size() - 1).getExpression().getEnd();
   }
 
   /**
-   * Returns the {@link Expression} to apply filters to.
+   * Returns the {@link Expression} to apply formatters to.
    */
   public Expression getExpression() {
     return expression;
@@ -73,21 +73,21 @@ public class AngularExpression {
   public List<Expression> getExpressions() {
     List<Expression> expressions = Lists.newArrayList();
     expressions.add(expression);
-    for (AngularFilterNode filter : filters) {
-      expressions.add(filter.getName());
-      for (AngularFilterArgument filterArgument : filter.getArguments()) {
-        Collections.addAll(expressions, filterArgument.getSubExpressions());
-        expressions.add(filterArgument.getExpression());
+    for (AngularFormatterNode formatter : formatters) {
+      expressions.add(formatter.getName());
+      for (AngularFormatterArgument formatterArgument : formatter.getArguments()) {
+        Collections.addAll(expressions, formatterArgument.getSubExpressions());
+        expressions.add(formatterArgument.getExpression());
       }
     }
     return expressions;
   }
 
   /**
-   * Returns the filters to apply.
+   * Returns the formatters to apply.
    */
-  public List<AngularFilterNode> getFilters() {
-    return filters;
+  public List<AngularFormatterNode> getFormatters() {
+    return formatters;
   }
 
   /**

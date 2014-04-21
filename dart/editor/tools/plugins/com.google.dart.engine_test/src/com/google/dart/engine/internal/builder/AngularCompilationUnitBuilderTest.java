@@ -24,9 +24,9 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
-import com.google.dart.engine.element.angular.AngularDirectiveElement;
+import com.google.dart.engine.element.angular.AngularDecoratorElement;
 import com.google.dart.engine.element.angular.AngularElement;
-import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularFormatterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
@@ -92,13 +92,126 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     resolveMainSource(mainContent);
     // prepare AngularFilterElement
     ClassElement classElement = mainUnitElement.getType("MyFilter");
-    AngularFilterElement filter = getAngularElement(classElement, AngularFilterElement.class);
+    AngularFormatterElement filter = getAngularElement(classElement, AngularFormatterElement.class);
+    assertNull(filter);
+  }
+
+  public void test_Decorator() throws Exception {
+    String mainContent = createAngularSource(//
+        "@Decorator(selector: '[my-dir]',",
+        "             map: const {",
+        "               'my-dir' : '=>myPropA',",
+        "               '.' : '&myPropB',",
+        "             })",
+        "class MyDirective {",
+        "  set myPropA(value) {}",
+        "  set myPropB(value) {}",
+        "  @NgTwoWay('my-prop-c')",
+        "  String myPropC;",
+        "}");
+    resolveMainSourceNoErrors(mainContent);
+    // prepare AngularDirectiveElement
+    ClassElement classElement = mainUnitElement.getType("MyDirective");
+    AngularDecoratorElement directive = getAngularElement(
+        classElement,
+        AngularDecoratorElement.class);
+    assertNotNull(directive);
+    // verify
+    assertEquals(null, directive.getName());
+    assertEquals(-1, directive.getNameOffset());
+    assertHasAttributeSelector(directive.getSelector(), "my-dir");
+    // verify properties
+    AngularPropertyElement[] properties = directive.getProperties();
+    assertLength(3, properties);
+    assertProperty(
+        properties[0],
+        "my-dir",
+        findMainOffset("my-dir' :"),
+        AngularPropertyKind.ONE_WAY,
+        "myPropA",
+        findMainOffset("myPropA'"));
+    assertProperty(
+        properties[1],
+        ".",
+        findMainOffset(".' :"),
+        AngularPropertyKind.CALLBACK,
+        "myPropB",
+        findMainOffset("myPropB'"));
+    assertProperty(
+        properties[2],
+        "my-prop-c",
+        findMainOffset("my-prop-c'"),
+        AngularPropertyKind.TWO_WAY,
+        "myPropC",
+        -1);
+  }
+
+  public void test_Decorator_bad_cannotParseSelector() throws Exception {
+    String mainContent = createAngularSource(//
+        "@Decorator(selector: '~bad-selector',",
+        "             map: const {",
+        "               'my-dir' : '=>myPropA',",
+        "               '.' : '&myPropB',",
+        "             })",
+        "class MyDirective {",
+        "  set myPropA(value) {}",
+        "  set myPropB(value) {}",
+        "}");
+    resolveMainSource(mainContent);
+    // has error
+    assertMainErrors(AngularCode.CANNOT_PARSE_SELECTOR);
+  }
+
+  public void test_Decorator_bad_missingSelector() throws Exception {
+    String mainContent = createAngularSource(//
+        "@Decorator(/*selector: '[my-dir]',*/",
+        "             map: const {",
+        "               'my-dir' : '=>myPropA',",
+        "               '.' : '&myPropB',",
+        "             })",
+        "class MyDirective {",
+        "  set myPropA(value) {}",
+        "  set myPropB(value) {}",
+        "}");
+    resolveMainSource(mainContent);
+    // has error
+    assertMainErrors(AngularCode.MISSING_SELECTOR);
+  }
+
+  public void test_Formatter() throws Exception {
+    String mainContent = createAngularSource(//
+        "@Formatter(name: 'myFilter')",
+        "class MyFilter {",
+        "  call(p1, p2) {}",
+        "}");
+    resolveMainSourceNoErrors(mainContent);
+    // prepare AngularFilterElement
+    ClassElement classElement = mainUnitElement.getType("MyFilter");
+    AngularFormatterElement filter = getAngularElement(classElement, AngularFormatterElement.class);
+    assertNotNull(filter);
+    // verify
+    assertEquals("myFilter", filter.getName());
+    assertEquals(findOffset(mainContent, "myFilter'"), filter.getNameOffset());
+  }
+
+  public void test_Formatter_missingName() throws Exception {
+    String mainContent = createAngularSource(//
+        "@Formatter()",
+        "class MyFilter {",
+        "  call(p1, p2) {}",
+        "}");
+    resolveMainSource(mainContent);
+    // has error
+    assertMainErrors(AngularCode.MISSING_NAME);
+    // no filter
+    ClassElement classElement = mainUnitElement.getType("MyFilter");
+    AngularFormatterElement filter = getAngularElement(classElement, AngularFormatterElement.class);
     assertNull(filter);
   }
 
   public void test_getElement_component_name() throws Exception {
     resolveMainSource(createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
         "class MyComponent {}"));
     SimpleStringLiteral node = findMainNode("ctrl'", SimpleStringLiteral.class);
@@ -110,7 +223,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
 
   public void test_getElement_component_property_fromFieldAnnotation() throws Exception {
     resolveMainSource(createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
         "class MyComponent {",
         "  @NgOneWay('prop')",
@@ -129,7 +242,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
 
   public void test_getElement_component_property_fromMap() throws Exception {
     resolveMainSource(createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "             map: const {",
         "               'prop' : '@field',",
@@ -163,7 +276,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
 
   public void test_getElement_component_selector() throws Exception {
     resolveMainSource(createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
         "class MyComponent {}"));
     SimpleStringLiteral node = findMainNode("myComp'", SimpleStringLiteral.class);
@@ -175,7 +288,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
 
   public void test_getElement_controller_name() throws Exception {
     resolveMainSource(createAngularSource(//
-        "@NgController(publishAs: 'ctrl', selector: '[myApp]')",
+        "@Controller(publishAs: 'ctrl', selector: '[myApp]')",
         "class MyController {",
         "}"));
     SimpleStringLiteral node = findMainNode("ctrl'", SimpleStringLiteral.class);
@@ -187,7 +300,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
 
   public void test_getElement_directive_property() throws Exception {
     resolveMainSource(createAngularSource(//
-        "@NgDirective(selector: '[my-dir]',",
+        "@Decorator(selector: '[my-dir]',",
         "             map: const {",
         "               'my-dir' : '=>field'",
         "             })",
@@ -207,7 +320,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
 
   public void test_getElement_directive_selector() throws Exception {
     resolveMainSource(createAngularSource(//
-        "@NgDirective(selector: '[my-dir]')",
+        "@Decorator(selector: '[my-dir]')",
         "class MyDirective {}"));
     SimpleStringLiteral node = findMainNode("my-dir]'", SimpleStringLiteral.class);
     int offset = node.getOffset();
@@ -218,7 +331,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
 
   public void test_getElement_filter_name() throws Exception {
     resolveMainSource(createAngularSource(//
-        "@NgFilter(name: 'myFilter')",
+        "@Formatter(name: 'myFilter')",
         "class MyFilter {",
         "  call(p1, p2) {}",
         "}"));
@@ -226,7 +339,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     int offset = node.getOffset();
     // find FilterElement
     Element element = AngularCompilationUnitBuilder.getElement(node, offset);
-    assertInstanceOf(AngularFilterElement.class, element);
+    assertInstanceOf(AngularFormatterElement.class, element);
   }
 
   public void test_getElement_noClassDeclaration() throws Exception {
@@ -281,7 +394,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: '~myComp',",
+        "@Component(publishAs: 'ctrl', selector: '~myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
         "class MyComponent {",
         "}");
@@ -294,7 +407,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', /*selector: 'myComp',*/",
+        "@Component(publishAs: 'ctrl', /*selector: 'myComp',*/",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
         "class MyComponent {",
         "}");
@@ -323,7 +436,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "             map: const {'name' : '?field'})",
         "class MyComponent {",
@@ -337,7 +450,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "             map: const {null : 'field'})",
         "class MyComponent {",
@@ -351,7 +464,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "             map: const {'name' : '=>field'})",
         "class MyComponent {",
@@ -365,7 +478,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "             map: null)",
         "class MyComponent {",
@@ -379,7 +492,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "             map: const {'name' : null})",
         "class MyComponent {",
@@ -393,7 +506,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html'/*, cssUrl: 'my_styles.css'*/)",
         "class MyComponent {",
         "}");
@@ -413,7 +526,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularSource(//
-        "@NgComponent(/*publishAs: 'ctrl',*/ selector: 'myComp',",
+        "@Component(/*publishAs: 'ctrl',*/ selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
         "class MyComponent {",
         "}");
@@ -433,7 +546,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             /*templateUrl: 'my_template.html',*/ cssUrl: 'my_styles.css')",
         "class MyComponent {",
         "}");
@@ -460,7 +573,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
         "",
         "",
         "",
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "             map: const {",
         "               'prop-a' : '@myPropA'",
@@ -489,7 +602,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     resolveMainSourceNoErrors(createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
         "class MyComponent {",
         "  @NgAttr('prop-a')",
@@ -553,7 +666,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     resolveMainSourceNoErrors(createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "             map: const {",
         "               'prop-a' : '@myPropA',",
@@ -619,7 +732,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
         "class MyComponent {",
         "}");
@@ -645,7 +758,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     String mainContent = createAngularSource(//
-        "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
+        "@Component(publishAs: 'ctrl', selector: 'myComp',",
         "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
         "class MyComponent {",
         "  MyComponent(Scope scope) {",
@@ -697,7 +810,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
 
   public void test_NgController() throws Exception {
     String mainContent = createAngularSource(//
-        "@NgController(publishAs: 'ctrl', selector: '[myApp]')",
+        "@Controller(publishAs: 'ctrl', selector: '[myApp]')",
         "class MyController {",
         "}");
     resolveMainSourceNoErrors(mainContent);
@@ -715,7 +828,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
 
   public void test_NgController_cannotParseSelector() throws Exception {
     String mainContent = createAngularSource(//
-        "@NgController(publishAs: 'ctrl', selector: '~unknown')",
+        "@Controller(publishAs: 'ctrl', selector: '~unknown')",
         "class MyController {",
         "}");
     resolveMainSource(mainContent);
@@ -725,7 +838,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
 
   public void test_NgController_missingPublishAs() throws Exception {
     String mainContent = createAngularSource(//
-        "@NgController(selector: '[myApp]')",
+        "@Controller(selector: '[myApp]')",
         "class MyController {",
         "}");
     resolveMainSource(mainContent);
@@ -735,7 +848,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
 
   public void test_NgController_missingSelector() throws Exception {
     String mainContent = createAngularSource(//
-        "@NgController(publishAs: 'ctrl')",
+        "@Controller(publishAs: 'ctrl')",
         "class MyController {",
         "}");
     resolveMainSource(mainContent);
@@ -750,119 +863,6 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
         "}");
     resolveMainSource(mainContent);
     // ignore errors, but there should be no exceptions
-  }
-
-  public void test_NgDirective() throws Exception {
-    String mainContent = createAngularSource(//
-        "@NgDirective(selector: '[my-dir]',",
-        "             map: const {",
-        "               'my-dir' : '=>myPropA',",
-        "               '.' : '&myPropB',",
-        "             })",
-        "class MyDirective {",
-        "  set myPropA(value) {}",
-        "  set myPropB(value) {}",
-        "  @NgTwoWay('my-prop-c')",
-        "  String myPropC;",
-        "}");
-    resolveMainSourceNoErrors(mainContent);
-    // prepare AngularDirectiveElement
-    ClassElement classElement = mainUnitElement.getType("MyDirective");
-    AngularDirectiveElement directive = getAngularElement(
-        classElement,
-        AngularDirectiveElement.class);
-    assertNotNull(directive);
-    // verify
-    assertEquals(null, directive.getName());
-    assertEquals(-1, directive.getNameOffset());
-    assertHasAttributeSelector(directive.getSelector(), "my-dir");
-    // verify properties
-    AngularPropertyElement[] properties = directive.getProperties();
-    assertLength(3, properties);
-    assertProperty(
-        properties[0],
-        "my-dir",
-        findMainOffset("my-dir' :"),
-        AngularPropertyKind.ONE_WAY,
-        "myPropA",
-        findMainOffset("myPropA'"));
-    assertProperty(
-        properties[1],
-        ".",
-        findMainOffset(".' :"),
-        AngularPropertyKind.CALLBACK,
-        "myPropB",
-        findMainOffset("myPropB'"));
-    assertProperty(
-        properties[2],
-        "my-prop-c",
-        findMainOffset("my-prop-c'"),
-        AngularPropertyKind.TWO_WAY,
-        "myPropC",
-        -1);
-  }
-
-  public void test_NgDirective_bad_cannotParseSelector() throws Exception {
-    String mainContent = createAngularSource(//
-        "@NgDirective(selector: '~bad-selector',",
-        "             map: const {",
-        "               'my-dir' : '=>myPropA',",
-        "               '.' : '&myPropB',",
-        "             })",
-        "class MyDirective {",
-        "  set myPropA(value) {}",
-        "  set myPropB(value) {}",
-        "}");
-    resolveMainSource(mainContent);
-    // has error
-    assertMainErrors(AngularCode.CANNOT_PARSE_SELECTOR);
-  }
-
-  public void test_NgDirective_bad_missingSelector() throws Exception {
-    String mainContent = createAngularSource(//
-        "@NgDirective(/*selector: '[my-dir]',*/",
-        "             map: const {",
-        "               'my-dir' : '=>myPropA',",
-        "               '.' : '&myPropB',",
-        "             })",
-        "class MyDirective {",
-        "  set myPropA(value) {}",
-        "  set myPropB(value) {}",
-        "}");
-    resolveMainSource(mainContent);
-    // has error
-    assertMainErrors(AngularCode.MISSING_SELECTOR);
-  }
-
-  public void test_NgFilter() throws Exception {
-    String mainContent = createAngularSource(//
-        "@NgFilter(name: 'myFilter')",
-        "class MyFilter {",
-        "  call(p1, p2) {}",
-        "}");
-    resolveMainSourceNoErrors(mainContent);
-    // prepare AngularFilterElement
-    ClassElement classElement = mainUnitElement.getType("MyFilter");
-    AngularFilterElement filter = getAngularElement(classElement, AngularFilterElement.class);
-    assertNotNull(filter);
-    // verify
-    assertEquals("myFilter", filter.getName());
-    assertEquals(findOffset(mainContent, "myFilter'"), filter.getNameOffset());
-  }
-
-  public void test_NgFilter_missingName() throws Exception {
-    String mainContent = createAngularSource(//
-        "@NgFilter()",
-        "class MyFilter {",
-        "  call(p1, p2) {}",
-        "}");
-    resolveMainSource(mainContent);
-    // has error
-    assertMainErrors(AngularCode.MISSING_NAME);
-    // no filter
-    ClassElement classElement = mainUnitElement.getType("MyFilter");
-    AngularFilterElement filter = getAngularElement(classElement, AngularFilterElement.class);
-    assertNull(filter);
   }
 
   public void test_parseSelector_hasAttribute() throws Exception {

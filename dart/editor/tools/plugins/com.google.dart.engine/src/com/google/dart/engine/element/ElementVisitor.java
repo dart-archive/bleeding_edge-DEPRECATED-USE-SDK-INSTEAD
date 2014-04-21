@@ -15,8 +15,8 @@ package com.google.dart.engine.element;
 
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
-import com.google.dart.engine.element.angular.AngularDirectiveElement;
-import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularDecoratorElement;
+import com.google.dart.engine.element.angular.AngularFormatterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
@@ -36,9 +36,9 @@ public interface ElementVisitor<R> {
 
   public R visitAngularControllerElement(AngularControllerElement element);
 
-  public R visitAngularDirectiveElement(AngularDirectiveElement element);
+  public R visitAngularDirectiveElement(AngularDecoratorElement element);
 
-  public R visitAngularFilterElement(AngularFilterElement element);
+  public R visitAngularFormatterElement(AngularFormatterElement element);
 
   public R visitAngularPropertyElement(AngularPropertyElement element);
 

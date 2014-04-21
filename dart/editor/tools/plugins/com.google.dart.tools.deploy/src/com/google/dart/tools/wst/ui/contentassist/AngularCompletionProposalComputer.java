@@ -9,7 +9,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
-import com.google.dart.engine.element.angular.AngularDirectiveElement;
+import com.google.dart.engine.element.angular.AngularDecoratorElement;
 import com.google.dart.engine.element.angular.AngularElement;
 import com.google.dart.engine.element.angular.AngularHasAttributeSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
@@ -183,8 +183,8 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
     }
     // add directives
     for (AngularElement angularElement : application.getElements()) {
-      if (angularElement instanceof AngularDirectiveElement) {
-        AngularDirectiveElement directive = (AngularDirectiveElement) angularElement;
+      if (angularElement instanceof AngularDecoratorElement) {
+        AngularDecoratorElement directive = (AngularDecoratorElement) angularElement;
         AngularSelectorElement selector = directive.getSelector();
         if (selector instanceof AngularHasAttributeSelectorElement) {
           AngularHasAttributeSelectorElement attributeSelector = (AngularHasAttributeSelectorElement) selector;

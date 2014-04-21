@@ -14,10 +14,10 @@
 package com.google.dart.engine.element.angular;
 
 /**
- * The interface {@code AngularFilterElement} defines the Angular filter described by
- * <code>NgFilter</code> annotation.
+ * The interface {@code AngularFormatterElement} defines the Angular formatter described by
+ * <code>Formatter</code> annotation.
  * 
  * @coverage dart.engine.element
  */
-public interface AngularFilterElement extends AngularElement {
+public interface AngularFormatterElement extends AngularElement {
 }

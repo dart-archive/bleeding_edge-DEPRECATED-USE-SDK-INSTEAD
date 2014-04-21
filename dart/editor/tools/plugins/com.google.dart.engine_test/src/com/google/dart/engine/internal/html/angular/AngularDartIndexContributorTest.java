@@ -38,7 +38,7 @@ public class AngularDartIndexContributorTest extends AngularTest {
     resolveMainSourceNoErrors(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent', // selector",
@@ -101,7 +101,7 @@ public class AngularDartIndexContributorTest extends AngularTest {
     resolveMainSourceNoErrors(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgDirective(",
+        "@Decorator(",
         "    selector: '[my-directive]',",
         "    map: const {",
         "        'propAttr' : '@field', // attr",

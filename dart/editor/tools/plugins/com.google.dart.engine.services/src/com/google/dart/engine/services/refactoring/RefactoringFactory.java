@@ -32,7 +32,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
-import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularFormatterElement;
 import com.google.dart.engine.element.angular.AngularHasAttributeSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
@@ -47,7 +47,7 @@ import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactori
 import com.google.dart.engine.services.internal.refactoring.InlineMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularComponentRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularControllerRefactoringImpl;
-import com.google.dart.engine.services.internal.refactoring.RenameAngularFilterRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameAngularFormatterRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularHasAttributeSelectorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularPropertyRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameAngularScopePropertyRefactoringImpl;
@@ -123,9 +123,9 @@ public class RefactoringFactory {
   public static RenameRefactoring createRenameRefactoring(SearchEngine searchEngine, Element element) {
     Preconditions.checkNotNull(searchEngine);
     Preconditions.checkNotNull(element);
-    if (element instanceof AngularFilterElement) {
-      AngularFilterElement filter = (AngularFilterElement) element;
-      return new RenameAngularFilterRefactoringImpl(searchEngine, filter);
+    if (element instanceof AngularFormatterElement) {
+      AngularFormatterElement formatter = (AngularFormatterElement) element;
+      return new RenameAngularFormatterRefactoringImpl(searchEngine, formatter);
     }
     if (element instanceof AngularComponentElement) {
       AngularComponentElement component = (AngularComponentElement) element;

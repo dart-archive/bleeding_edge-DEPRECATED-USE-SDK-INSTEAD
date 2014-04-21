@@ -35,9 +35,9 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
-import com.google.dart.engine.element.angular.AngularDirectiveElement;
+import com.google.dart.engine.element.angular.AngularDecoratorElement;
 import com.google.dart.engine.element.angular.AngularElement;
-import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularFormatterElement;
 import com.google.dart.engine.element.angular.AngularHasTemplateElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.error.AnalysisError;
@@ -489,40 +489,40 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
   AngularExpression parseAngularExpressionInToken(Token token) {
     List<Token> tokens = splitAtBar(token);
     Expression mainExpression = parseDartExpressionInToken(tokens.get(0));
-    // parse filters
-    List<AngularFilterNode> filters = Lists.newArrayList();
+    // parse formatters
+    List<AngularFormatterNode> formatters = Lists.newArrayList();
     for (int i = 1; i < tokens.size(); i++) {
-      Token filterToken = tokens.get(i);
-      Token barToken = filterToken;
-      filterToken = filterToken.getNext();
+      Token formatterToken = tokens.get(i);
+      Token barToken = formatterToken;
+      formatterToken = formatterToken.getNext();
       // parse name
-      Expression nameExpression = parseDartExpressionInToken(filterToken);
+      Expression nameExpression = parseDartExpressionInToken(formatterToken);
       if (!(nameExpression instanceof SimpleIdentifier)) {
-        reportErrorForNode(AngularCode.INVALID_FILTER_NAME, nameExpression);
+        reportErrorForNode(AngularCode.INVALID_FORMATTER_NAME, nameExpression);
         continue;
       }
       SimpleIdentifier name = (SimpleIdentifier) nameExpression;
-      filterToken = name.getEndToken().getNext();
+      formatterToken = name.getEndToken().getNext();
       // parse arguments
-      List<AngularFilterArgument> arguments = Lists.newArrayList();
-      while (filterToken.getType() != TokenType.EOF) {
+      List<AngularFormatterArgument> arguments = Lists.newArrayList();
+      while (formatterToken.getType() != TokenType.EOF) {
         // skip ":"
-        Token colonToken = filterToken;
+        Token colonToken = formatterToken;
         if (colonToken.getType() == TokenType.COLON) {
-          filterToken = filterToken.getNext();
+          formatterToken = formatterToken.getNext();
         } else {
-          reportErrorForToken(AngularCode.MISSING_FILTER_COLON, colonToken);
+          reportErrorForToken(AngularCode.MISSING_FORMATTER_COLON, colonToken);
         }
         // parse argument
-        Expression argument = parseDartExpressionInToken(filterToken);
-        arguments.add(new AngularFilterArgument(colonToken, argument));
+        Expression argument = parseDartExpressionInToken(formatterToken);
+        arguments.add(new AngularFormatterArgument(colonToken, argument));
         // next token
-        filterToken = argument.getEndToken().getNext();
+        formatterToken = argument.getEndToken().getNext();
       }
-      filters.add(new AngularFilterNode(barToken, name, arguments));
+      formatters.add(new AngularFormatterNode(barToken, name, arguments));
     }
     // done
-    return new AngularExpression(mainExpression, filters);
+    return new AngularExpression(mainExpression, formatters);
   }
 
   /**
@@ -622,9 +622,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
       AngularControllerElement controller = (AngularControllerElement) element;
       return new NgControllerElementProcessor(controller);
     }
-    if (element instanceof AngularDirectiveElement) {
-      AngularDirectiveElement directive = (AngularDirectiveElement) element;
-      return new NgDirectiveElementProcessor(directive);
+    if (element instanceof AngularDecoratorElement) {
+      AngularDecoratorElement directive = (AngularDecoratorElement) element;
+      return new NgDecoratorElementProcessor(directive);
     }
     return null;
   }
@@ -804,9 +804,9 @@ public class AngularHtmlUnitResolver extends RecursiveXmlVisitor<Void> {
         processors.add(processor);
       }
     }
-    // define filters
+    // define formatters
     for (AngularElement angularElement : angularElements) {
-      if (angularElement instanceof AngularFilterElement) {
+      if (angularElement instanceof AngularFormatterElement) {
         defineTopVariable_forClassElement(angularElement);
       }
     }

@@ -16,32 +16,33 @@ package com.google.dart.engine.internal.element.angular;
 
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
-import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularFormatterElement;
 
 /**
- * Implementation of {@code AngularFilterElement}.
+ * Implementation of {@code AngularFormatterElement}.
  * 
  * @coverage dart.engine.element
  */
-public class AngularFilterElementImpl extends AngularElementImpl implements AngularFilterElement {
+public class AngularFormatterElementImpl extends AngularElementImpl implements
+    AngularFormatterElement {
   /**
-   * Initialize a newly created Angular filter to have the given name.
+   * Initialize a newly created Angular formatter to have the given name.
    * 
    * @param name the name of this element
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  public AngularFilterElementImpl(String name, int nameOffset) {
+  public AngularFormatterElementImpl(String name, int nameOffset) {
     super(name, nameOffset);
   }
 
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
-    return visitor.visitAngularFilterElement(this);
+    return visitor.visitAngularFormatterElement(this);
   }
 
   @Override
   public ElementKind getKind() {
-    return ElementKind.ANGULAR_FILTER;
+    return ElementKind.ANGULAR_FORMATTER;
   }
 }

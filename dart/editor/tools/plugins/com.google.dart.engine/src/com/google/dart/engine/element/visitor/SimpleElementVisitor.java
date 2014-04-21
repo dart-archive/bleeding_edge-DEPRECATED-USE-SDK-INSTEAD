@@ -38,8 +38,8 @@ import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
-import com.google.dart.engine.element.angular.AngularDirectiveElement;
-import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularDecoratorElement;
+import com.google.dart.engine.element.angular.AngularFormatterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
@@ -68,12 +68,12 @@ public class SimpleElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @Override
-  public R visitAngularDirectiveElement(AngularDirectiveElement element) {
+  public R visitAngularDirectiveElement(AngularDecoratorElement element) {
     return null;
   }
 
   @Override
-  public R visitAngularFilterElement(AngularFilterElement element) {
+  public R visitAngularFormatterElement(AngularFormatterElement element) {
     return null;
   }
 

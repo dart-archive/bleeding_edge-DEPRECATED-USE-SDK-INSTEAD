@@ -29,7 +29,7 @@ import com.google.dart.engine.source.Source;
 public class AngularComponentElementImpl extends AngularHasSelectorElementImpl implements
     AngularComponentElement {
   /**
-   * The offset of the defining <code>NgComponent</code> annotation.
+   * The offset of the defining <code>Component</code> annotation.
    */
   private final int annotationOffset;
 

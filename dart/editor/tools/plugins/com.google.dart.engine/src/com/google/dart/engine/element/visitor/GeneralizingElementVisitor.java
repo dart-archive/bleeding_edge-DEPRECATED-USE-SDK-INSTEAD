@@ -45,9 +45,9 @@ import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
-import com.google.dart.engine.element.angular.AngularDirectiveElement;
+import com.google.dart.engine.element.angular.AngularDecoratorElement;
 import com.google.dart.engine.element.angular.AngularElement;
-import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularFormatterElement;
 import com.google.dart.engine.element.angular.AngularHasSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
@@ -127,7 +127,7 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @Override
-  public R visitAngularDirectiveElement(AngularDirectiveElement element) {
+  public R visitAngularDirectiveElement(AngularDecoratorElement element) {
     return visitAngularHasSelectorElement(element);
   }
 
@@ -136,7 +136,7 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @Override
-  public R visitAngularFilterElement(AngularFilterElement element) {
+  public R visitAngularFormatterElement(AngularFormatterElement element) {
     return visitAngularElement(element);
   }
 

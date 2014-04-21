@@ -23,7 +23,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * {@link NgDirectiveProcessor} describes any <code>NgDirective</code> annotation instance.
+ * {@link NgDirectiveProcessor} describes any <code>Directive</code> annotation instance.
  */
 abstract class NgDirectiveProcessor extends NgProcessor {
   protected static boolean hasValue(XmlAttributeNode attribute) {

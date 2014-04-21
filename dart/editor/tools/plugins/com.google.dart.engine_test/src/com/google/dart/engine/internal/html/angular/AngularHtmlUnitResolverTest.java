@@ -23,7 +23,7 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularElement;
-import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularFormatterElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularPropertyKind;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
@@ -49,7 +49,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent')",
@@ -80,7 +80,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent')",
@@ -108,7 +108,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent')",
@@ -139,7 +139,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent')",
@@ -215,7 +215,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent')",
@@ -239,7 +239,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     Source componentSource = contextHelper.addSource("/my_component.dart", createSource(//
         "library my.component;",
         "import 'angular.dart';",
-        "@NgComponent(selector: 'myComponent')",
+        "@Component(selector: 'myComponent')",
         "class MyComponent {",
         "}"));
     contextHelper.addSource(
@@ -282,7 +282,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent', // selector",
@@ -351,7 +351,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgDirective(selector: '[my-directive]')",
+        "@Decorator(selector: '[my-directive]')",
         "class MyDirective {",
         "  @NgOneWay('my-property')",
         "  String condition;",
@@ -408,7 +408,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgDirective(",
+        "@Decorator(",
         "    selector: '[my-directive]',",
         "    map: const {'.' : '=>condition'})",
         "class MyDirective {",
@@ -503,7 +503,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "</li>"));
     // filter "filter" is resolved
     Element filterElement = assertResolvedIdentifier("filter");
-    assertInstanceOf(AngularFilterElement.class, filterElement);
+    assertInstanceOf(AngularFormatterElement.class, filterElement);
   }
 
   public void test_ngRepeat_filters_filter_propertyMap() throws Exception {
@@ -520,7 +520,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     resolveIndex(createHtmlWithMyController(//
         "<li ng-repeat=\"item in ctrl.items | orderBy:'' true\"/>",
         "</li>"));
-    assertErrors(indexSource, AngularCode.MISSING_FILTER_COLON);
+    assertErrors(indexSource, AngularCode.MISSING_FORMATTER_COLON);
   }
 
   public void test_ngRepeat_filters_noArgs() throws Exception {
@@ -530,7 +530,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "</li>"));
     // filter "orderBy" is resolved
     Element filterElement = assertResolvedIdentifier("orderBy");
-    assertInstanceOf(AngularFilterElement.class, filterElement);
+    assertInstanceOf(AngularFormatterElement.class, filterElement);
   }
 
   public void test_ngRepeat_filters_orderBy_emptyString() throws Exception {
@@ -540,7 +540,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
         "</li>"));
     // filter "orderBy" is resolved
     Element filterElement = assertResolvedIdentifier("orderBy");
-    assertInstanceOf(AngularFilterElement.class, filterElement);
+    assertInstanceOf(AngularFormatterElement.class, filterElement);
   }
 
   public void test_ngRepeat_filters_orderBy_propertyList() throws Exception {
@@ -589,8 +589,8 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     resolveIndexNoErrors(createHtmlWithMyController(//
         "<li ng-repeat=\"item in ctrl.items | orderBy:'+' | orderBy:'-'\"/>",
         "</li>"));
-    assertInstanceOf(AngularFilterElement.class, assertResolvedIdentifier("orderBy:'+'"));
-    assertInstanceOf(AngularFilterElement.class, assertResolvedIdentifier("orderBy:'-'"));
+    assertInstanceOf(AngularFormatterElement.class, assertResolvedIdentifier("orderBy:'+'"));
+    assertInstanceOf(AngularFormatterElement.class, assertResolvedIdentifier("orderBy:'-'"));
   }
 
   public void test_ngRepeat_resolvedExpressions() throws Exception {
@@ -676,7 +676,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     resolveMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgController(",
+        "@Controller(",
         "    selector: '[my-controller]',",
         "    publishAs: 'ctrl')",
         "class MyController {",
@@ -698,7 +698,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     resolveMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgController(",
+        "@Controller(",
         "    selector: '[my-controller]',",
         "    publishAs: 'ctrl')",
         "class MyController {",
@@ -757,14 +757,14 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
   public void test_resolveExpression_withFilter_notSimpleIdentifier() throws Exception {
     addMyController();
     resolveIndex(createHtmlWithMyController("{{ctrl.field | not.supported}}"));
-    assertErrors(indexSource, AngularCode.INVALID_FILTER_NAME);
+    assertErrors(indexSource, AngularCode.INVALID_FORMATTER_NAME);
   }
 
   public void test_scopeProperties() throws Exception {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent')",
@@ -795,7 +795,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent')",
@@ -825,7 +825,7 @@ public class AngularHtmlUnitResolverTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgController(",
+        "@Controller(",
         "    selector: '[my-controller]',",
         "    publishAs: 'ctrl')",
         "class MyController {",

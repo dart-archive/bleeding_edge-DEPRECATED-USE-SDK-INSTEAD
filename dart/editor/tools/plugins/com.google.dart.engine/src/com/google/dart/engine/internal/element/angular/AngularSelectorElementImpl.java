@@ -19,7 +19,7 @@ import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.angular.AngularSelectorElement;
 
 /**
- * Implementation of {@code AngularFilterElement}.
+ * Implementation of {@code AngularFormatterElement}.
  * 
  * @coverage dart.engine.element
  */

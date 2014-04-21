@@ -23,7 +23,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
-import com.google.dart.engine.element.angular.AngularDirectiveElement;
+import com.google.dart.engine.element.angular.AngularDecoratorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
@@ -51,8 +51,8 @@ public class AngularDartIndexContributor extends GeneralizingAstVisitor<Void> {
         if (object instanceof AngularComponentElement) {
           indexComponent((AngularComponentElement) object);
         }
-        if (object instanceof AngularDirectiveElement) {
-          AngularDirectiveElement directive = (AngularDirectiveElement) object;
+        if (object instanceof AngularDecoratorElement) {
+          AngularDecoratorElement directive = (AngularDecoratorElement) object;
           indexDirective(directive);
         }
       }
@@ -71,7 +71,7 @@ public class AngularDartIndexContributor extends GeneralizingAstVisitor<Void> {
     indexProperties(component.getProperties());
   }
 
-  private void indexDirective(AngularDirectiveElement directive) {
+  private void indexDirective(AngularDecoratorElement directive) {
     indexProperties(directive.getProperties());
   }
 

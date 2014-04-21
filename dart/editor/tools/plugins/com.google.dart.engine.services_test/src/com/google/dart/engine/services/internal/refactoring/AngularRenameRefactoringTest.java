@@ -20,7 +20,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.element.angular.AngularControllerElement;
-import com.google.dart.engine.element.angular.AngularFilterElement;
+import com.google.dart.engine.element.angular.AngularFormatterElement;
 import com.google.dart.engine.element.angular.AngularHasAttributeSelectorElement;
 import com.google.dart.engine.element.angular.AngularPropertyElement;
 import com.google.dart.engine.element.angular.AngularScopePropertyElement;
@@ -62,7 +62,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgDirective(",
+        "@Decorator(",
         "    selector: '[my-dir]',",
         "    map: const {'my-dir' : '@field'})",
         "class MyDirective {",
@@ -85,7 +85,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
     resolveMainSource(createSource(//
         "import 'angular.dart';",
         "",
-        "@NgDirective(",
+        "@Decorator(",
         "    selector: '[test]',",
         "    map: const {'test' : '@field'})",
         "class MyDirective {",
@@ -195,16 +195,16 @@ public class AngularRenameRefactoringTest extends AngularTest {
     }
   }
 
-  public void test_angular_renameFilter() throws Exception {
-    prepareMyFilter();
+  public void test_angular_renameFormatter() throws Exception {
+    prepareMyFormatter();
     resolveIndex(createHtmlWithMyController(//
         "  <li ng-repeat=\"item in ctrl.items | test:true\">",
         "  </li>",
         ""));
     indexUnit(indexUnit);
     // prepare refactoring
-    AngularFilterElement filter = findMainElement("test");
-    prepareRenameChange(filter, "newName");
+    AngularFormatterElement formatter = findMainElement("test");
+    prepareRenameChange(formatter, "newName");
     // check results
     assertIndexChangeResult(createHtmlWithMyController(//
         "  <li ng-repeat=\"item in ctrl.items | newName:true\">",
@@ -213,17 +213,17 @@ public class AngularRenameRefactoringTest extends AngularTest {
     assertMainChangeResult(mainContent.replace("'test')", "'newName')"));
   }
 
-  public void test_angular_renameFilter_checkNewName() throws Exception {
+  public void test_angular_renameFormatter_checkNewName() throws Exception {
     contextHelper.addSource("/entry-point.html", createHtmlWithAngular());
-    prepareMyFilter();
+    prepareMyFormatter();
     resolveIndex(createHtmlWithMyController(//
         "  <li ng-repeat=\"item in ctrl.items | test:true\">",
         "  </li>",
         ""));
     indexUnit(indexUnit);
     // prepare refactoring
-    AngularFilterElement filter = findMainElement("test");
-    createRenameRefactoring(filter);
+    AngularFormatterElement formatter = findMainElement("test");
+    createRenameRefactoring(formatter);
     // "newName"
     {
       RefactoringStatus status = refactoring.checkNewName("newName");
@@ -235,7 +235,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
       assertRefactoringStatus(
           status,
           RefactoringStatusSeverity.ERROR,
-          "Filter name must not contain '-'.");
+          "Formatter name must not contain '-'.");
     }
     // "new.name" - bad
     {
@@ -243,15 +243,15 @@ public class AngularRenameRefactoringTest extends AngularTest {
       assertRefactoringStatus(
           status,
           RefactoringStatusSeverity.ERROR,
-          "Filter name must not contain '.'.");
+          "Formatter name must not contain '.'.");
     }
-    // there is already "existingFilter" filter
+    // there is already "existingFormatter" formatter
     {
-      RefactoringStatus status = refactoring.checkNewName("existingFilter");
+      RefactoringStatus status = refactoring.checkNewName("existingFormatter");
       assertRefactoringStatus(
           status,
           RefactoringStatusSeverity.ERROR,
-          "Application already defines filter with name 'existingFilter'.");
+          "Application already defines formatter with name 'existingFormatter'.");
     }
   }
 
@@ -306,7 +306,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent')",
@@ -336,7 +336,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent')",
@@ -379,7 +379,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
           RefactoringStatusSeverity.ERROR,
           "Scope property name must not contain '.'.");
     }
-    // there is already "existingScopeProperty" filter
+    // there is already "existingScopeProperty" property
     {
       RefactoringStatus status = refactoring.checkNewName("existingScopeProperty");
       assertRefactoringStatus(
@@ -397,7 +397,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent' // selector)",
@@ -424,10 +424,10 @@ public class AngularRenameRefactoringTest extends AngularTest {
     addMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgComponent(selector: 'existingSelector')",
+        "@Component(selector: 'existingSelector')",
         "class OtherComponent {}",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent' // selector)",
@@ -462,7 +462,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
           RefactoringStatusSeverity.ERROR,
           "Tag selector name must not contain '.'.");
     }
-    // there is already "existingFilter" filter
+    // there is already "existingSelector" selector
     {
       RefactoringStatus status = refactoring.checkNewName("existingSelector");
       assertRefactoringStatus(
@@ -472,7 +472,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
     }
   }
 
-  public void test_dart_renameField_updateFilterArg_orderBy() throws Exception {
+  public void test_dart_renameField_updateFormatterArg_orderBy() throws Exception {
     addMyController();
     resolveIndex(createHtmlWithMyController(//
         "<li ng-repeat=\"item in ctrl.items | orderBy:'-name'\"/>",
@@ -558,7 +558,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
     resolveMainSource(createSource(//
         "import 'angular.dart';",
         "",
-        "@NgComponent(",
+        "@Component(",
         "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
         "    publishAs: 'ctrl',",
         "    selector: 'myComponent', // selector",
@@ -572,14 +572,14 @@ public class AngularRenameRefactoringTest extends AngularTest {
     resolveMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgController(",
+        "@Controller(",
         "    selector: '[other-controller]',",
         "    publishAs: 'otherController')",
         "class OtherController {",
         "  String name;",
         "}",
         "",
-        "@NgController(",
+        "@Controller(",
         "    selector: '[my-controller]',",
         "    publishAs: 'test')",
         "class MyController {",
@@ -587,16 +587,16 @@ public class AngularRenameRefactoringTest extends AngularTest {
         "}"));
   }
 
-  private void prepareMyFilter() throws Exception {
+  private void prepareMyFormatter() throws Exception {
     resolveMainSource(createSource("",//
         "import 'angular.dart';",
         "",
-        "@NgFilter(name: 'test')",
-        "class MyFilter {",
+        "@Formatter(name: 'test')",
+        "class MyFormatter {",
         "}",
         "",
-        "@NgFilter(name: 'existingFilter')",
-        "class ExistingFilter {",
+        "@Formatter(name: 'existingFormatter')",
+        "class ExistingFormatter {",
         "}",
         "",
         "class Item {",
@@ -604,7 +604,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
         "  bool done;",
         "}",
         "",
-        "@NgController(",
+        "@Controller(",
         "    selector: '[my-controller]',",
         "    publishAs: 'ctrl')",
         "class MyController {",
