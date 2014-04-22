@@ -14,8 +14,11 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.common.collect.Sets;
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.LibraryIdentifier;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
@@ -25,8 +28,15 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
+import com.google.dart.engine.internal.type.DynamicTypeImpl;
+import com.google.dart.engine.internal.type.FunctionTypeImpl;
+import com.google.dart.engine.internal.type.VoidTypeImpl;
+import com.google.dart.engine.scanner.SyntheticStringToken;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.ArrayList;
@@ -125,6 +135,12 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   private boolean isAngularHtml;
 
   /**
+   * The element representing the synthetic function {@code loadLibrary} that is defined for this
+   * library, or {@code null} if the element has not yet been created.
+   */
+  private FunctionElement loadLibraryFunction;
+
+  /**
    * Initialize a newly created library element to have the given name.
    * 
    * @param context the analysis context in which the library is defined
@@ -220,6 +236,18 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
+  public ImportElement[] getImportsWithPrefix(PrefixElement prefixElement) {
+    int count = imports.length;
+    ArrayList<ImportElement> importList = new ArrayList<ImportElement>(count);
+    for (int i = 0; i < count; i++) {
+      if (imports[i].getPrefix() == prefixElement) {
+        importList.add(imports[i]);
+      }
+    }
+    return importList.toArray(new ImportElement[importList.size()]);
+  }
+
+  @Override
   public ElementKind getKind() {
     return ElementKind.LIBRARY;
   }
@@ -227,6 +255,20 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @Override
   public LibraryElement getLibrary() {
     return this;
+  }
+
+  @Override
+  public FunctionElement getLoadLibraryFunction() {
+    if (loadLibraryFunction == null) {
+      FunctionElementImpl function = new FunctionElementImpl(new SimpleIdentifier(
+          new SyntheticStringToken(TokenType.IDENTIFIER, FunctionElement.LOAD_LIBRARY_NAME, -1)));
+      function.setSynthetic(true);
+      function.setEnclosingElement(this);
+      function.setReturnType(getLoadLibraryReturnType());
+      function.setType(new FunctionTypeImpl(function));
+      loadLibraryFunction = function;
+    }
+    return loadLibraryFunction;
   }
 
   @Override
@@ -447,6 +489,42 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
           ((LibraryElementImpl) exportedLibrary).addVisibleLibraries(visibleLibraries, true);
         }
       }
+    }
+  }
+
+  /**
+   * Return the object representing the type "Future" from the dart:async library, or the type
+   * "void" if the type "Future" cannot be accessed.
+   * 
+   * @return the type "Future" from the dart:async library
+   */
+  private Type getLoadLibraryReturnType() {
+    try {
+      Source asyncSource = context.getSourceFactory().forUri(DartSdk.DART_ASYNC);
+      if (asyncSource == null) {
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Could not create a source for dart:async");
+        return VoidTypeImpl.getInstance();
+      }
+      LibraryElement asyncElement = context.computeLibraryElement(asyncSource);
+      if (asyncElement == null) {
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Could not build the element model for dart:async");
+        return VoidTypeImpl.getInstance();
+      }
+      ClassElement futureElement = asyncElement.getType("Future");
+      if (futureElement == null) {
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Could not find type Future in dart:async");
+        return VoidTypeImpl.getInstance();
+      }
+      InterfaceType futureType = futureElement.getType();
+      return futureType.substitute(new Type[] {DynamicTypeImpl.getInstance()});
+    } catch (AnalysisException exception) {
+      AnalysisEngine.getInstance().getLogger().logError(
+          "Could not build the element model for dart:async",
+          exception);
+      return VoidTypeImpl.getInstance();
     }
   }
 

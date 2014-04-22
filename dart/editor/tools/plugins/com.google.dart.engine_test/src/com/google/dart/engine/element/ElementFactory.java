@@ -262,6 +262,17 @@ public final class ElementFactory {
     return functionElement(functionName, null, normalParameters, names, namedParameters);
   }
 
+  public static FunctionElementImpl functionElementWithParameters(String functionName,
+      Type returnType, ParameterElement... parameters) {
+    FunctionElementImpl functionElement = new FunctionElementImpl(identifier(functionName));
+    functionElement.setReturnType(returnType == null ? VoidTypeImpl.getInstance() : returnType);
+    functionElement.setParameters(parameters);
+
+    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
+    functionElement.setType(functionType);
+    return functionElement;
+  }
+
   public static ClassElementImpl getObject() {
     if (objectElement == null) {
       objectElement = classElement("Object", (InterfaceType) null);
@@ -336,6 +347,18 @@ public final class ElementFactory {
     method.setReturnType(returnType);
 
     FunctionTypeImpl methodType = new FunctionTypeImpl(method);
+    method.setType(methodType);
+    return method;
+  }
+
+  public static MethodElementImpl methodElementWithParameters(String methodName,
+      Type[] typeArguments, Type returnType, ParameterElement... parameters) {
+    MethodElementImpl method = new MethodElementImpl(identifier(methodName));
+    method.setParameters(parameters);
+    method.setReturnType(returnType);
+
+    FunctionTypeImpl methodType = new FunctionTypeImpl(method);
+    methodType.setTypeArguments(typeArguments);
     method.setType(methodType);
     return method;
   }

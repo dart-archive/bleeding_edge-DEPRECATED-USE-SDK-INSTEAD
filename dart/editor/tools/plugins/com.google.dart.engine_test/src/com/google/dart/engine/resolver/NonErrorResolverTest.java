@@ -2164,6 +2164,20 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_loadLibraryDefined() throws Exception {
+    addNamedSource("/lib.dart", createSource(//
+        "library lib;",
+        "foo() => 22;"));
+    Source source = addSource(createSource(//
+        "import '/lib.dart' deferred as other;",
+        "main() {",
+        "  other.loadLibrary().then((_) => other.foo());",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_mapKeyTypeNotAssignable() throws Exception {
     Source source = addSource(createSource(//
     "var v = <String, int > {'a' : 1};"));

@@ -26,6 +26,11 @@ import java.net.URI;
  */
 public interface DartSdk {
   /**
+   * The short name of the dart SDK async library.
+   */
+  public static final String DART_ASYNC = "dart:async";
+
+  /**
    * The short name of the dart SDK core library.
    */
   public static final String DART_CORE = "dart:core";

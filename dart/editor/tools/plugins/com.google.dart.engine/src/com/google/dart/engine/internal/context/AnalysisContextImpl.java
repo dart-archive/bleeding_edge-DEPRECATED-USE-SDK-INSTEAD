@@ -1756,7 +1756,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public TypeProvider getTypeProvider() throws AnalysisException {
     Source coreSource = getSourceFactory().forUri(DartSdk.DART_CORE);
-    return new TypeProviderImpl(computeLibraryElement(coreSource));
+    if (coreSource == null) {
+      throw new AnalysisException("Could not create a source for dart:core");
+    }
+    LibraryElement coreElement = computeLibraryElement(coreSource);
+    if (coreElement == null) {
+      throw new AnalysisException("Could not create an element for dart:core");
+    }
+    return new TypeProviderImpl(coreElement);
   }
 
   @Override

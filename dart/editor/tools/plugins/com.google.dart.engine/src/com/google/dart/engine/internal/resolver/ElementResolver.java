@@ -869,6 +869,11 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     if (target == null) {
       staticElement = resolveInvokedElement(methodName);
       propagatedElement = null;
+    } else if (isDeferredPrefix(target)
+        && methodName.getName().equals(FunctionElement.LOAD_LIBRARY_NAME)) {
+      LibraryElement importedLibrary = getImportedLibrary(target);
+      methodName.setStaticElement(importedLibrary.getLoadLibraryFunction());
+      return null;
     } else {
       Type staticType = getStaticType(target);
       //
@@ -1627,6 +1632,20 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
   }
 
   /**
+   * Assuming that the given expression is a prefix for a deferred import, return the library that
+   * is being imported.
+   * 
+   * @param expression the expression representing the deferred import's prefix
+   * @return the library that is being imported by the import associated with the prefix
+   */
+  private LibraryElement getImportedLibrary(Expression expression) {
+    PrefixElement prefixElement = (PrefixElement) ((SimpleIdentifier) expression).getStaticElement();
+    ImportElement[] imports = prefixElement.getEnclosingElement().getImportsWithPrefix(
+        prefixElement);
+    return imports[0].getImportedLibrary();
+  }
+
+  /**
    * Return the name of the method invoked by the given postfix expression.
    * 
    * @param node the postfix expression being invoked
@@ -1692,6 +1711,29 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       staticType = resolver.getTypeProvider().getFunctionType();
     }
     return staticType;
+  }
+
+  /**
+   * Return {@code true} if the given expression is a prefix for a deferred import.
+   * 
+   * @param expression the expression being tested
+   * @return {@code true} if the given expression is a prefix for a deferred import
+   */
+  private boolean isDeferredPrefix(Expression expression) {
+    if (!(expression instanceof SimpleIdentifier)) {
+      return false;
+    }
+    Element element = ((SimpleIdentifier) expression).getStaticElement();
+    if (!(element instanceof PrefixElement)) {
+      return false;
+    }
+    PrefixElement prefixElement = (PrefixElement) element;
+    ImportElement[] imports = prefixElement.getEnclosingElement().getImportsWithPrefix(
+        prefixElement);
+    if (imports.length != 1) {
+      return false;
+    }
+    return imports[0].isDeferred();
   }
 
   /**

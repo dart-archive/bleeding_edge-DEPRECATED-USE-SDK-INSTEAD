@@ -46,20 +46,20 @@ public class TypeProviderImplTest extends EngineTestCase {
     InterfaceType stringType = classElement("String", objectType).getType();
     InterfaceType symbolType = classElement("Symbol", objectType).getType();
     InterfaceType typeType = classElement("Type", objectType).getType();
-    CompilationUnitElementImpl unit = new CompilationUnitElementImpl("lib.dart");
-    unit.setTypes(new ClassElement[] {
+    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
+    coreUnit.setTypes(new ClassElement[] {
         boolType.getElement(), doubleType.getElement(), functionType.getElement(),
         intType.getElement(), listType.getElement(), mapType.getElement(), objectType.getElement(),
         stackTraceType.getElement(), stringType.getElement(), symbolType.getElement(),
-        typeType.getElement(),});
-    LibraryElementImpl library = new LibraryElementImpl(
+        typeType.getElement()});
+    LibraryElementImpl coreLibrary = new LibraryElementImpl(
         new AnalysisContextImpl(),
-        libraryIdentifier("lib"));
-    library.setDefiningCompilationUnit(unit);
+        libraryIdentifier("dart.core"));
+    coreLibrary.setDefiningCompilationUnit(coreUnit);
     //
     // Create a type provider and ensure that it can return the expected types.
     //
-    TypeProviderImpl provider = new TypeProviderImpl(library);
+    TypeProviderImpl provider = new TypeProviderImpl(coreLibrary);
     assertSame(boolType, provider.getBoolType());
     assertNotNull(provider.getBottomType());
     assertSame(doubleType, provider.getDoubleType());

@@ -14,17 +14,22 @@
 package com.google.dart.engine.context;
 
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
+import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.FunctionTypeAliasElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
+import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
@@ -36,8 +41,13 @@ import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.constructorElement;
 import static com.google.dart.engine.element.ElementFactory.functionElement;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
+import static com.google.dart.engine.element.ElementFactory.methodElementWithParameters;
+import static com.google.dart.engine.element.ElementFactory.namedParameter;
+import static com.google.dart.engine.element.ElementFactory.positionalParameter;
+import static com.google.dart.engine.element.ElementFactory.requiredParameter;
 import static com.google.dart.engine.element.ElementFactory.topLevelVariableElement;
 
 import junit.framework.Assert;
@@ -140,6 +150,55 @@ public final class AnalysisContextFactory {
         "core"));
     coreLibrary.setDefiningCompilationUnit(coreUnit);
     //
+    // dart:async
+    //
+    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl("async.dart");
+    Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
+    context.setContents(asyncSource, "");
+    asyncUnit.setSource(asyncSource);
+    // Future
+    ClassElementImpl futureElement = classElement("Future", "T");
+    InterfaceType futureType = futureElement.getType();
+    //   factory Future.value([value])
+    ConstructorElementImpl futureConstructor = constructorElement(futureElement, "value");
+    futureConstructor.setParameters(new ParameterElement[] {positionalParameter(
+        "value",
+        provider.getDynamicType())});
+    futureConstructor.setFactory(true);
+    ((FunctionTypeImpl) futureConstructor.getType()).setTypeArguments(futureElement.getType().getTypeArguments());
+    futureElement.setConstructors(new ConstructorElement[] {futureConstructor});
+    //   Future then(onValue(T value), { Function onError });
+    ParameterElement[] parameters = new ParameterElement[] {requiredParameter(
+        "value",
+        futureElement.getTypeParameters()[0].getType())};
+    FunctionTypeAliasElementImpl aliasElement = new FunctionTypeAliasElementImpl(null);
+    aliasElement.setSynthetic(true);
+    aliasElement.shareParameters(parameters);
+    aliasElement.setReturnType(provider.getDynamicType());
+    FunctionTypeImpl aliasType = new FunctionTypeImpl(aliasElement);
+    aliasElement.shareTypeParameters(futureElement.getTypeParameters());
+    aliasType.setTypeArguments(futureElement.getType().getTypeArguments());
+    MethodElement thenMethod = methodElementWithParameters(
+        "then",
+        futureElement.getType().getTypeArguments(),
+        futureType,
+        requiredParameter("onValue", aliasType),
+        namedParameter("onError", provider.getFunctionType()));
+
+    futureElement.setMethods(new MethodElement[] {thenMethod});
+    // Completer
+    ClassElementImpl completerElement = classElement("Completer", "T");
+    ConstructorElementImpl completerConstructor = constructorElement(completerElement, null);
+    ((FunctionTypeImpl) completerConstructor.getType()).setTypeArguments(completerElement.getType().getTypeArguments());
+    completerElement.setConstructors(new ConstructorElement[] {completerConstructor});
+
+    asyncUnit.setTypes(new ClassElement[] {
+        completerElement, futureElement, classElement("Stream", "T")});
+    LibraryElementImpl asyncLibrary = new LibraryElementImpl(context, libraryIdentifier(
+        "dart",
+        "async"));
+    asyncLibrary.setDefiningCompilationUnit(asyncUnit);
+    //
     // dart:html
     //
     CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
@@ -179,6 +238,7 @@ public final class AnalysisContextFactory {
 
     HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();
     elementMap.put(coreSource, coreLibrary);
+    elementMap.put(asyncSource, asyncLibrary);
     elementMap.put(htmlSource, htmlLibrary);
     context.recordLibraryElements(elementMap);
     return context;

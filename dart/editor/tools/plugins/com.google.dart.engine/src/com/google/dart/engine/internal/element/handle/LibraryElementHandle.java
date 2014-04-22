@@ -69,8 +69,18 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   }
 
   @Override
+  public ImportElement[] getImportsWithPrefix(PrefixElement prefixElement) {
+    return getActualElement().getImportsWithPrefix(prefixElement);
+  }
+
+  @Override
   public ElementKind getKind() {
     return ElementKind.LIBRARY;
+  }
+
+  @Override
+  public FunctionElement getLoadLibraryFunction() {
+    return getActualElement().getLoadLibraryFunction();
   }
 
   @Override

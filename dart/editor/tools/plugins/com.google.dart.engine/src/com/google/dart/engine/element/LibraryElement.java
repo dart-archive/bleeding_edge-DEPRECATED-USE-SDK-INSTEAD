@@ -66,6 +66,20 @@ public interface LibraryElement extends Element {
   public ImportElement[] getImports();
 
   /**
+   * Return an array containing all of the imports that share the given prefix, or an empty array if
+   * there are no such imports.
+   * 
+   * @param prefixElement the prefix element shared by the returned imports
+   */
+  public ImportElement[] getImportsWithPrefix(PrefixElement prefixElement);
+
+  /**
+   * Return the element representing the synthetic function {@code loadLibrary} that is implicitly
+   * defined for this library if the library is imported using a deferred import.
+   */
+  public FunctionElement getLoadLibraryFunction();
+
+  /**
    * Return an array containing all of the compilation units that are included in this library using
    * a {@code part} directive. This does not include the defining compilation unit that contains the
    * {@code part} directives.
@@ -128,7 +142,7 @@ public interface LibraryElement extends Element {
   public boolean isAngularHtml();
 
   /**
-   * Answer {@code true} if this library is an application that can be run in the browser.
+   * Return {@code true} if this library is an application that can be run in the browser.
    * 
    * @return {@code true} if this library is an application that can be run in the browser
    */
