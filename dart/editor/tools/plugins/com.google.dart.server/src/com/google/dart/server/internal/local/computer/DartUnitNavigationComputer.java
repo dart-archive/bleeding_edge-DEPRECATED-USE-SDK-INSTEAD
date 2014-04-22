@@ -25,6 +25,7 @@ import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.NavigationTarget;
@@ -92,22 +93,22 @@ public class DartUnitNavigationComputer {
    * If the given {@link Element} is not {@code null}, then creates a corresponding
    * {@link NavigationRegion}.
    */
-  private void addRegionForNode(AstNode node, Element element) {
-    int offset = node.getOffset();
-    int length = node.getLength();
-    addRegion(offset, length, element);
-  }
-
-  /**
-   * If the given {@link Element} is not {@code null}, then creates a corresponding
-   * {@link NavigationRegion}.
-   */
   private void addRegion(int offset, int length, Element element) {
     NavigationTarget target = createTarget(element);
     if (target == null) {
       return;
     }
     regions.add(new NavigationRegionImpl(offset, length, new NavigationTarget[] {target}));
+  }
+
+  /**
+   * If the given {@link Element} is not {@code null}, then creates a corresponding
+   * {@link NavigationRegion}.
+   */
+  private void addRegionForNode(AstNode node, Element element) {
+    int offset = node.getOffset();
+    int length = node.getLength();
+    addRegion(offset, length, element);
   }
 
   /**
@@ -127,6 +128,9 @@ public class DartUnitNavigationComputer {
   private NavigationTarget createTarget(Element element) {
     if (element == null) {
       return null;
+    }
+    if (element instanceof FieldFormalParameterElement) {
+      element = ((FieldFormalParameterElement) element).getField();
     }
     return new NavigationTargetImpl(
         element.getSource(),

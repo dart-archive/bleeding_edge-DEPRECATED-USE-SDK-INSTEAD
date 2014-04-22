@@ -16,12 +16,28 @@ package com.google.dart.server.internal.local.computer;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.NotificationKind;
 import com.google.dart.server.ListSourceSet;
+import com.google.dart.server.NotificationKind;
 import com.google.dart.server.internal.local.AbstractLocalServerTest;
 import com.google.dart.server.internal.local.asserts.NavigationRegionsAssert;
 
 public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
+  public void test_fieldFormalParameter() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", makeSource(//
+        "class A {",
+        "  int fff = 123;",
+        "  A(this.fff);",
+        "}"));
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(source)));
+    server.test_waitForWorkerComplete();
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
+    validator.hasRegion(source, "fff);", 3).isIn(source, "fff = 123;").hasLength(3);
+  }
+
   public void test_identifier_resolved() throws Exception {
     String contextId = createContext("test");
     Source source = addSource(contextId, "/test.dart", makeSource(//
