@@ -264,6 +264,20 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAssignment_typeParameter() throws Exception {
+    // 14221
+    Source source = addSource(createSource(//
+        "class B<T> {",
+        "  T value;",
+        "  void test(num n) {",
+        "    value = n;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
   public void test_invalidAssignment_variableDeclaration() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -679,7 +693,10 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  factory X.name(int x, int y) = X<B>;",
         "}"));
     resolve(source);
-    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(
+        source,
+        StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+        StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE);
     verify(source);
   }
 

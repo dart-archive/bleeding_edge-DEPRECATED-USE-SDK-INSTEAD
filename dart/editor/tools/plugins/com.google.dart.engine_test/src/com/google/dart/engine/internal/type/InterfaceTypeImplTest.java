@@ -29,6 +29,7 @@ import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.type.TypeParameterType;
 
 import static com.google.dart.engine.ast.AstFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
@@ -1099,6 +1100,36 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertTrue(typeC.isMoreSpecificThan(typeA));
   }
 
+  public void test_isMoreSpecificThan_typeParameterType() {
+    //
+    // class A<E> {}
+    //
+    ClassElement classA = classElement("A", "E");
+    InterfaceType typeA = classA.getType();
+    TypeParameterType parameterType = classA.getTypeParameters()[0].getType();
+    Type objectType = typeProvider.getObjectType();
+
+    assertTrue(parameterType.isMoreSpecificThan(objectType));
+    assertFalse(parameterType.isMoreSpecificThan(typeA));
+  }
+
+  public void test_isMoreSpecificThan_typeParameterType_withBound() {
+    //
+    // class A {}
+    // class B<E extends A> {}
+    //
+    ClassElement classA = classElement("A");
+    InterfaceType typeA = classA.getType();
+    ClassElementImpl classB = classElement("B");
+    TypeParameterElementImpl parameterEA = new TypeParameterElementImpl(identifier("E"));
+    TypeParameterType parameterAEType = new TypeParameterTypeImpl(parameterEA);
+    parameterEA.setBound(typeA);
+    parameterEA.setType(parameterAEType);
+    classB.setTypeParameters(new TypeParameterElementImpl[] {parameterEA});
+
+    assertTrue(parameterAEType.isMoreSpecificThan(typeA));
+  }
+
   public void test_isSubtypeOf_directSubtype() {
     ClassElement classA = classElement("A");
     ClassElement classB = classElement("B", classA.getType());
@@ -1250,6 +1281,19 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     // A<I> !<: A<K> and A<K> !<: A<I>
     assertFalse(typeAI.isSubtypeOf(typeAK));
     assertFalse(typeAK.isSubtypeOf(typeAI));
+  }
+
+  public void test_isSubtypeOf_typeParameter() {
+    //
+    // class A<E> {}
+    //
+    ClassElement classA = classElement("A", "E");
+    InterfaceType typeA = classA.getType();
+    TypeParameterType parameterType = classA.getTypeParameters()[0].getType();
+    Type dynamicType = DynamicTypeImpl.getInstance();
+
+    assertFalse(typeA.isSubtypeOf(parameterType));
+    assertTrue(dynamicType.isSubtypeOf(parameterType));
   }
 
   public void test_isSupertypeOf_directSupertype() {

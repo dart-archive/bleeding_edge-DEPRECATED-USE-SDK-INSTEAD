@@ -709,10 +709,10 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     // T is a subtype of S, written T <: S, iff [bottom/dynamic]T << S
     //
-    if (type == DynamicTypeImpl.getInstance()) {
+    if (type.isDynamic()) {
       return true;
     } else if (type instanceof TypeParameterType) {
-      return true;
+      return false;
     } else if (type instanceof FunctionType) {
       ClassElement element = getElement();
       MethodElement callMethod = element.lookUpMethod("call", element.getLibrary());

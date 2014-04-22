@@ -2626,7 +2626,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_typeParameterReferencedByStatic_getter() throws Exception {
     Source source = addSource(createSource(//
         "class A<K> {",
-        "  static K get k => 0;",
+        "  static K get k => null;",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC);

@@ -1396,10 +1396,10 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_inconsistentMethodInheritance_accessors_typeParameter2() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A<E> {",
-        "  E get x {return 1;}",
+        "  E get x {return null;}",
         "}",
         "class B<E> {",
-        "  E get x {return 1;}",
+        "  E get x {return null;}",
         "}",
         "class C<E> extends A<E> implements B<E> {}"));
     resolve(source);
@@ -1436,7 +1436,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  E get x;",
         "}",
         "class C<E> implements A<E>, B<E> {",
-        "  E get x => 1;",
+        "  E get x => null;",
         "}"));
     resolve(source);
     assertNoErrors(source);
