@@ -88,8 +88,6 @@ import com.google.dart.tools.ui.internal.text.functions.DartWordIterator;
 import com.google.dart.tools.ui.internal.text.functions.DocumentCharacterIterator;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.DartUIHelp;
-import com.google.dart.tools.ui.internal.util.RunnableObject;
-import com.google.dart.tools.ui.internal.util.TimeboxUtils;
 import com.google.dart.tools.ui.internal.viewsupport.IViewPartInputProvider;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
@@ -231,7 +229,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Dart specific text editor.
@@ -2305,14 +2302,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       throw new IllegalStateException("This method cannot be used with Analysis Server enabled.");
     }
     if (inputResourceFile != null) {
-      // Usually ProjectManager is initialized and knows all contexts.
-      // However sometimes this method is called when ProjectManager needs to initialize contexts.
-      return TimeboxUtils.runObject(new RunnableObject<AnalysisContext>() {
-        @Override
-        public AnalysisContext runObject() {
-          return DartCore.getProjectManager().getContext(inputResourceFile);
-        }
-      }, null, 50, TimeUnit.MILLISECONDS);
+      return DartCore.getProjectManager().getContext(inputResourceFile);
     }
     if (inputJavaFile != null) {
       return DartCore.getProjectManager().getSdkContext();
