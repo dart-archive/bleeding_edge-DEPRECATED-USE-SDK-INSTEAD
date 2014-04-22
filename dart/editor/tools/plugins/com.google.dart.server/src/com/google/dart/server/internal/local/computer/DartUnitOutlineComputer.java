@@ -135,14 +135,14 @@ public class DartUnitOutlineComputer {
       VariableDeclarationList variableList = (VariableDeclarationList) parent;
       List<VariableDeclaration> variables = variableList.getVariables();
       int variableIndex = variables.indexOf(node);
+      if (variableIndex == variables.size() - 1) {
+        endOffset = variableList.getParent().getEnd();
+      }
       if (variableIndex == 0) {
         node = parent.getParent();
         parent = node.getParent();
       } else if (variableIndex >= 1) {
         firstOffset = variables.get(variableIndex - 1).getEnd();
-        if (variableIndex == variables.size() - 1) {
-          endOffset = variableList.getParent().getEnd();
-        }
         return new SourceRegionImpl(firstOffset, endOffset - firstOffset);
       }
     }

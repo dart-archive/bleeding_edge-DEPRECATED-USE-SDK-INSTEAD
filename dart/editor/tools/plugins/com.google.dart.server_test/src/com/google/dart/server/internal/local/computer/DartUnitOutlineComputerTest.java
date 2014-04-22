@@ -220,6 +220,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     String code = makeSource(//
         "class A { // leftA",
         "  int fieldA, fieldB, fieldC; // marker",
+        "  int fieldD; // marker2",
         "}");
     Source source = addSource(contextId, "/test.dart", code);
     server.subscribe(
@@ -229,7 +230,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // validate
     Outline unitOutline = serverListener.getOutline(contextId, source);
     Outline[] outlines = unitOutline.getChildren()[0].getChildren();
-    assertThat(outlines).hasSize(3);
+    assertThat(outlines).hasSize(4);
     // fieldA
     {
       Outline outline = outlines[0];
@@ -265,6 +266,19 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         SourceRegion sourceRegion = outline.getSourceRegion();
         int offset = code.indexOf(", fieldC");
         int end = code.indexOf(" // marker");
+        assertEquals(offset, sourceRegion.getOffset());
+        assertEquals(end - offset, sourceRegion.getLength());
+      }
+    }
+    // fieldD
+    {
+      Outline outline = outlines[3];
+      assertSame(OutlineKind.FIELD, outline.getKind());
+      assertEquals("fieldD", outline.getName());
+      {
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        int offset = code.indexOf(" // marker");
+        int end = code.indexOf(" // marker2");
         assertEquals(offset, sourceRegion.getOffset());
         assertEquals(end - offset, sourceRegion.getLength());
       }
