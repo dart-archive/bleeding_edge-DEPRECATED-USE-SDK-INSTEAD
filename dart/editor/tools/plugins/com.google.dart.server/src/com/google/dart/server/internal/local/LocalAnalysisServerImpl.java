@@ -25,9 +25,13 @@ import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.index.Index;
+import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.internal.context.ChangeNoticeImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
@@ -71,11 +75,26 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class LocalAnalysisServerImpl implements AnalysisServer {
   /**
-   * The local analysis server worker.
+   * The thread that runs {@link #index}.
    */
-  private class LocalAnalysisServerThread extends Thread {
-    public LocalAnalysisServerThread() {
-      setName("LocalAnalysisServerThread");
+  private class LocalAnalysisServerIndexThread extends Thread {
+    public LocalAnalysisServerIndexThread() {
+      setName("LocalAnalysisServerIndexThread");
+      setDaemon(true);
+    }
+
+    @Override
+    public void run() {
+      index.run();
+    }
+  }
+
+  /**
+   * The thread that executes {@link ServerOperation}.
+   */
+  private class LocalAnalysisServerOperationThread extends Thread {
+    public LocalAnalysisServerOperationThread() {
+      setName("LocalAnalysisServerOperationThread");
       setDaemon(true);
     }
 
@@ -108,12 +127,20 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    */
   private static final Map<String, DartSdk> sdkMap = Maps.newHashMap();
 
+  /**
+   * The queue of {@link ServerOperation}s to execute.
+   */
   private final ServerOperationQueue operationQueue = new ServerOperationQueue();
 
   /**
-   * The worker thread.
+   * The {@link Index} instance for this server.
    */
-  private final LocalAnalysisServerThread thread;
+  private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
+
+  /**
+   * The {@link SearchEngine} instance for this server.
+   */
+  private final SearchEngine searchEngine = SearchEngineFactory.createSearchEngine(index);
 
   /**
    * This is used only for testing purposes and allows tests to control the order of operations on
@@ -167,8 +194,8 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   private final BroadcastAnalysisServerListener listener = new BroadcastAnalysisServerListener();
 
   public LocalAnalysisServerImpl() {
-    thread = new LocalAnalysisServerThread();
-    thread.start();
+    new LocalAnalysisServerIndexThread().start();
+    new LocalAnalysisServerOperationThread().start();
   }
 
   @Override
@@ -307,6 +334,13 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
       Source source = changeNotice.getSource();
       knownSources.add(source);
     }
+    // index units
+    for (ChangeNotice changeNotice : notices) {
+      CompilationUnit dartUnit = changeNotice.getCompilationUnit();
+      if (dartUnit != null) {
+        index.indexUnit(context, dartUnit);
+      }
+    }
     // schedule analysis again
     schedulePerformAnalysisOperation(contextId, true);
     // schedule notifications
@@ -405,6 +439,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   @Override
   public void shutdown() {
     operationQueue.add(ShutdownOperation.INSTANCE);
+    index.stop();
   }
 
   @Override
