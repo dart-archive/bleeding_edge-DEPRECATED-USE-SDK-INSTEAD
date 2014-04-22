@@ -92,7 +92,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
         fontStyle |= SWT.ITALIC;
       }
       // merge style range
-      textPresentation.mergeStyleRange(new StyleRange(
+      textPresentation.replaceStyleRange(new StyleRange(
           hiOffset,
           hiLength,
           foregroundColor,
@@ -139,6 +139,8 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
         return "staticField";
       case FUNCTION:
         return "function";
+      case FUNCTION_DECLARATION:
+        return "methodDeclarationName";
       case FUNCTION_TYPE_ALIAS:
         return "functionTypeAlias";
       case GETTER_DECLARATION:
@@ -166,11 +168,16 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
         return "parameterVariable";
       case SETTER_DECLARATION:
         return "setterDeclaration";
+      case TOP_LEVEL_VARIABLE:
+        return "staticField";
+      case TYPE_NAME_DYNAMIC:
+        return "builtin";
       case TYPE_PARAMETER:
         return "typeParameter";
       case COMMENT_BLOCK:
       case COMMENT_DOCUMENTATION:
       case COMMENT_END_OF_LINE:
+      case IDENTIFIER_DEFAULT:
       case LITERAL_BOOLEAN:
       case LITERAL_LIST:
       case LITERAL_MAP:

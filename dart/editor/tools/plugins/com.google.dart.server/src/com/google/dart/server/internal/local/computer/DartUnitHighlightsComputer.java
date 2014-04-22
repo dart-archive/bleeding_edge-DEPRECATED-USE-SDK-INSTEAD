@@ -29,6 +29,7 @@ import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
+import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IntegerLiteral;
@@ -38,8 +39,10 @@ import com.google.dart.engine.ast.NativeClause;
 import com.google.dart.engine.ast.NativeFunctionBody;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
+import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
+import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -53,6 +56,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Token;
@@ -149,6 +153,12 @@ public class DartUnitHighlightsComputer {
       }
 
       @Override
+      public Void visitHideCombinator(HideCombinator node) {
+        addRegion_token(node.getKeyword(), HighlightType.BUILT_IN);
+        return super.visitHideCombinator(node);
+      }
+
+      @Override
       public Void visitImplementsClause(ImplementsClause node) {
         addRegion_token(node.getKeyword(), HighlightType.BUILT_IN);
         return super.visitImplementsClause(node);
@@ -157,6 +167,8 @@ public class DartUnitHighlightsComputer {
       @Override
       public Void visitImportDirective(ImportDirective node) {
         addRegion_token(node.getKeyword(), HighlightType.BUILT_IN);
+        addRegion_token(node.getDeferredToken(), HighlightType.BUILT_IN);
+        addRegion_token(node.getAsToken(), HighlightType.BUILT_IN);
         return super.visitImportDirective(node);
       }
 
@@ -209,6 +221,12 @@ public class DartUnitHighlightsComputer {
       }
 
       @Override
+      public Void visitShowCombinator(ShowCombinator node) {
+        addRegion_token(node.getKeyword(), HighlightType.BUILT_IN);
+        return super.visitShowCombinator(node);
+      }
+
+      @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
         addIdentifierRegion(node);
         return super.visitSimpleIdentifier(node);
@@ -220,11 +238,26 @@ public class DartUnitHighlightsComputer {
         return super.visitSimpleStringLiteral(node);
       }
 
+      @Override
+      public Void visitTypeName(TypeName node) {
+        Type type = node.getType();
+        if (type != null) {
+          if (type.isDynamic() && node.getName().getName().equals("dynamic")) {
+            addRegion_node(node, HighlightType.TYPE_NAME_DYNAMIC);
+            return null;
+          }
+        }
+        return super.visitTypeName(node);
+      }
+
     });
     return regions.toArray(new HighlightRegion[regions.size()]);
   }
 
   private void addIdentifierRegion(SimpleIdentifier node) {
+    if (addIdentifierRegion_keyword(node)) {
+      return;
+    }
     if (addIdentifierRegion_class(node)) {
       return;
     }
@@ -256,6 +289,9 @@ public class DartUnitHighlightsComputer {
       return;
     }
     if (addIdentifierRegion_parameter(node)) {
+      return;
+    }
+    if (addIdentifierRegion_topLevelVariable(node)) {
       return;
     }
     if (addIdentifierRegion_typeParameter(node)) {
@@ -336,7 +372,13 @@ public class DartUnitHighlightsComputer {
     if (!(element instanceof FunctionElement)) {
       return false;
     }
-    return addRegion_node(node, HighlightType.FUNCTION);
+    HighlightType type;
+    if (node.inDeclarationContext()) {
+      type = HighlightType.FUNCTION_DECLARATION;
+    } else {
+      type = HighlightType.FUNCTION;
+    }
+    return addRegion_node(node, type);
   }
 
   private boolean addIdentifierRegion_functionTypeAlias(SimpleIdentifier node) {
@@ -375,6 +417,14 @@ public class DartUnitHighlightsComputer {
     return addRegion_node(node, HighlightType.IMPORT_PREFIX);
   }
 
+  private boolean addIdentifierRegion_keyword(SimpleIdentifier node) {
+    String name = node.getName();
+    if (name.equals("void")) {
+      return addRegion_node(node, HighlightType.KEYWORD);
+    }
+    return false;
+  }
+
   private boolean addIdentifierRegion_localVariable(SimpleIdentifier node) {
     Element element = node.getStaticElement();
     if (!(element instanceof LocalVariableElement)) {
@@ -391,7 +441,7 @@ public class DartUnitHighlightsComputer {
   }
 
   private boolean addIdentifierRegion_method(SimpleIdentifier node) {
-    Element element = node.getStaticElement();
+    Element element = node.getBestElement();
     if (!(element instanceof MethodElement)) {
       return false;
     }
@@ -421,6 +471,14 @@ public class DartUnitHighlightsComputer {
       return false;
     }
     return addRegion_node(node, HighlightType.PARAMETER);
+  }
+
+  private boolean addIdentifierRegion_topLevelVariable(SimpleIdentifier node) {
+    Element element = node.getStaticElement();
+    if (!(element instanceof TopLevelVariableElement)) {
+      return false;
+    }
+    return addRegion_node(node, HighlightType.TOP_LEVEL_VARIABLE);
   }
 
   private boolean addIdentifierRegion_typeParameter(SimpleIdentifier node) {

@@ -58,12 +58,24 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
 
   public void test_BUILT_IN_as() throws Exception {
     prepareRegions(//
+        "import 'dart:math' as math;",
         "main() {",
         "  p as int;",
         "  int as = 42;",
         "}");
+    assertHasRegion("as math", HighlightType.BUILT_IN);
     assertHasRegion("as int", HighlightType.BUILT_IN);
     assertNoRegion("as = 42", HighlightType.BUILT_IN);
+  }
+
+  public void test_BUILT_IN_deferred() throws Exception {
+    prepareRegions(//
+        "import 'dart:math' deferred as math;",
+        "main() {",
+        "  int deferred = 42;",
+        "}");
+    assertHasRegion("deferred as math", HighlightType.BUILT_IN);
+    assertNoRegion("deferred = 42", HighlightType.BUILT_IN);
   }
 
   public void test_BUILT_IN_export() throws Exception {
@@ -115,6 +127,16 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
     assertHasRegion("get aaa =>", HighlightType.BUILT_IN);
     assertHasRegion("get bbb =>", HighlightType.BUILT_IN);
     assertNoRegion("get = 42", HighlightType.BUILT_IN);
+  }
+
+  public void test_BUILT_IN_hide() throws Exception {
+    prepareRegions(//
+        "import 'foo.dart' hide Foo;",
+        "main() {",
+        "  var hide = 42;",
+        "}");
+    assertHasRegion("hide Foo", HighlightType.BUILT_IN);
+    assertNoRegion("hide = 42", HighlightType.BUILT_IN);
   }
 
   public void test_BUILT_IN_implements() throws Exception {
@@ -225,6 +247,16 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
     assertHasRegion("set aaa(", HighlightType.BUILT_IN);
     assertHasRegion("set bbb(", HighlightType.BUILT_IN);
     assertNoRegion("set = 42", HighlightType.BUILT_IN);
+  }
+
+  public void test_BUILT_IN_show() throws Exception {
+    prepareRegions(//
+        "import 'foo.dart' show Foo;",
+        "main() {",
+        "  var show = 42;",
+        "}");
+    assertHasRegion("show Foo", HighlightType.BUILT_IN);
+    assertNoRegion("show = 42", HighlightType.BUILT_IN);
   }
 
   public void test_BUILT_IN_static() throws Exception {
@@ -343,7 +375,7 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
         "main() {",
         "  fff(42);",
         "}");
-    assertHasRegion("fff(p) {}", HighlightType.FUNCTION);
+    assertHasRegion("fff(p) {}", HighlightType.FUNCTION_DECLARATION);
     assertHasRegion("fff(42)", HighlightType.FUNCTION);
   }
 
@@ -392,6 +424,11 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
         "}");
     assertHasRegion("ma;", HighlightType.IMPORT_PREFIX);
     assertHasRegion("ma.max", HighlightType.IMPORT_PREFIX);
+  }
+
+  public void test_KEYWORD_void() throws Exception {
+    prepareRegions("void main() {}");
+    assertHasRegion("void ", HighlightType.KEYWORD);
   }
 
   public void test_LITERAL_BOOLEAN() throws Exception {
@@ -446,6 +483,16 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
     assertHasRegion("bbb;", HighlightType.METHOD_STATIC);
   }
 
+  public void test_METHOD_useBestType() throws Exception {
+    prepareRegions(//
+        "main(p) {",
+        "  if (p is List) {",
+        "    p.forEach(null);",
+        "  }",
+        "}");
+    assertHasRegion("forEach(", HighlightType.METHOD);
+  }
+
   public void test_PARAMETER() throws Exception {
     prepareRegions(//
         "main(int p) {",
@@ -471,6 +518,28 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
     assertHasRegion("bbb(x)", HighlightType.SETTER_DECLARATION);
     assertHasRegion("aaa = 1;", HighlightType.FIELD_STATIC);
     assertHasRegion("bbb = 2;", HighlightType.FIELD);
+  }
+
+  public void test_TOP_LEVEL_VARIABLE() throws Exception {
+    prepareRegions(//
+        "var VVV = 0;",
+        "main() {",
+        "  print(VVV);",
+        "  VVV = 1;",
+        "}");
+    assertHasRegion("VVV = 0", HighlightType.TOP_LEVEL_VARIABLE);
+    assertHasRegion("VVV);", HighlightType.FIELD_STATIC);
+    assertHasRegion("VVV = 1", HighlightType.FIELD_STATIC);
+  }
+
+  public void test_TYPE_NAME_DYNAMIC() throws Exception {
+    prepareRegions(//
+        "dynamic main() {",
+        "  var dynamic = 42;",
+        "}");
+    assertHasRegion("dynamic main()", HighlightType.TYPE_NAME_DYNAMIC);
+    assertNoRegion("dynamic main()", HighlightType.IDENTIFIER_DEFAULT);
+    assertNoRegion("dynamic = 42", HighlightType.TYPE_NAME_DYNAMIC);
   }
 
   public void test_TYPE_PARAMETER() throws Exception {
