@@ -57,6 +57,7 @@ import com.google.dart.server.internal.local.source.PackageMapUriResolver;
 import com.google.dart.server.internal.local.source.Resource;
 
 import java.io.File;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -119,6 +120,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
    * multiple threads.
    */
   private boolean test_paused;
+
+  /**
+   * This is used only for testing purposes and allows tests to disable SDK analysis for speed.
+   */
+  private boolean test_disableForcedSdkAnalysis;
 
   /**
    * This is used only for testing purposes and allows tests to check the order of operations.
@@ -203,7 +209,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   public void internalCreateContext(String contextId, String sdkDirectory,
       Map<String, String> packageMap) throws Exception {
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
-    DartSdk sdk = getSdk(sdkDirectory);
+    DartSdk sdk = getSdk(contextId, sdkDirectory);
     // prepare package map
     Map<String, Resource> packageResourceMap = Maps.newHashMap();
     for (Entry<String, String> entry : packageMap.entrySet()) {
@@ -412,6 +418,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   }
 
   @VisibleForTesting
+  public void test_disableForcedSdkAnalysis() {
+    this.test_disableForcedSdkAnalysis = true;
+  }
+
+  @VisibleForTesting
   public void test_pingListeners() {
     listener.computedErrors(null, null, null);
   }
@@ -451,11 +462,21 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
     return context;
   }
 
-  private DartSdk getSdk(String directory) {
+  private DartSdk getSdk(String contextId, String directory) {
     DartSdk sdk = sdkMap.get(directory);
     if (sdk == null) {
-      sdk = new DirectoryBasedDartSdk(new File(directory));
+      File directoryFile = new File(directory);
+      sdk = new DirectoryBasedDartSdk(directoryFile);
       sdkMap.put(directory, sdk);
+      // schedule SDK libraries analysis
+      DartUriResolver dartUriResolver = new DartUriResolver(sdk);
+      ChangeSet changeSet = new ChangeSet();
+      for (String uri : sdk.getUris()) {
+        if (!test_disableForcedSdkAnalysis || uri.equals(DartSdk.DART_CORE)) {
+          changeSet.addedSource(dartUriResolver.resolveAbsolute(URI.create(uri)));
+        }
+      }
+      applyChanges(contextId, changeSet);
     }
     return sdk;
   }

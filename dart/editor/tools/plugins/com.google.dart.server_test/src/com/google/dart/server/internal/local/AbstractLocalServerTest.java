@@ -64,6 +64,7 @@ public class AbstractLocalServerTest extends TestCase {
     super.setUp();
     server = new LocalAnalysisServerImpl();
     server.addAnalysisServerListener(serverListener);
+    server.test_disableForcedSdkAnalysis();
   }
 
   @Override
