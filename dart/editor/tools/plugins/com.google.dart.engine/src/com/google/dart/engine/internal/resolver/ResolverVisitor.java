@@ -245,27 +245,30 @@ public class ResolverVisitor extends ScopedVisitor {
     if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
       safelyVisit(leftOperand);
       if (rightOperand != null) {
+        overrideManager.enterScope();
         try {
-          overrideManager.enterScope();
           promoteManager.enterScope();
-          propagateTrueState(leftOperand);
-          // Type promotion.
-          promoteTypes(leftOperand);
-          clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
-          clearTypePromotionsIfPotentiallyMutatedIn(rightOperand);
-          clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(rightOperand);
-          // Visit right operand.
-          rightOperand.accept(this);
+          try {
+            propagateTrueState(leftOperand);
+            // Type promotion.
+            promoteTypes(leftOperand);
+            clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
+            clearTypePromotionsIfPotentiallyMutatedIn(rightOperand);
+            clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(rightOperand);
+            // Visit right operand.
+            rightOperand.accept(this);
+          } finally {
+            promoteManager.exitScope();
+          }
         } finally {
           overrideManager.exitScope();
-          promoteManager.exitScope();
         }
       }
     } else if (operatorType == TokenType.BAR_BAR) {
       safelyVisit(leftOperand);
       if (rightOperand != null) {
+        overrideManager.enterScope();
         try {
-          overrideManager.enterScope();
           propagateFalseState(leftOperand);
           rightOperand.accept(this);
         } finally {
@@ -284,8 +287,8 @@ public class ResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitBlockFunctionBody(BlockFunctionBody node) {
     safelyVisit(commentBeforeFunction);
+    overrideManager.enterScope();
     try {
-      overrideManager.enterScope();
       super.visitBlockFunctionBody(node);
     } finally {
       overrideManager.exitScope();
@@ -352,8 +355,8 @@ public class ResolverVisitor extends ScopedVisitor {
     // for 'b', but not for 'a' because of the order of the visits). Ideally we would create a
     // dependency graph, but that would require references to be resolved, which they are not.
     //
+    overrideManager.enterScope();
     try {
-      overrideManager.enterScope();
       NodeList<Directive> directives = node.getDirectives();
       int directiveCount = directives.size();
       for (int i = 0; i < directiveCount; i++) {
@@ -387,25 +390,28 @@ public class ResolverVisitor extends ScopedVisitor {
     safelyVisit(condition);
     Expression thenExpression = node.getThenExpression();
     if (thenExpression != null) {
+      overrideManager.enterScope();
       try {
-        overrideManager.enterScope();
         promoteManager.enterScope();
-        propagateTrueState(condition);
-        // Type promotion.
-        promoteTypes(condition);
-        clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
-        clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(thenExpression);
-        // Visit "then" expression.
-        thenExpression.accept(this);
+        try {
+          propagateTrueState(condition);
+          // Type promotion.
+          promoteTypes(condition);
+          clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
+          clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(thenExpression);
+          // Visit "then" expression.
+          thenExpression.accept(this);
+        } finally {
+          promoteManager.exitScope();
+        }
       } finally {
         overrideManager.exitScope();
-        promoteManager.exitScope();
       }
     }
     Expression elseExpression = node.getElseExpression();
     if (elseExpression != null) {
+      overrideManager.enterScope();
       try {
-        overrideManager.enterScope();
         propagateFalseState(condition);
         elseExpression.accept(this);
       } finally {
@@ -474,8 +480,8 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitDoStatement(DoStatement node) {
+    overrideManager.enterScope();
     try {
-      overrideManager.enterScope();
       super.visitDoStatement(node);
     } finally {
       overrideManager.exitScope();
@@ -493,8 +499,8 @@ public class ResolverVisitor extends ScopedVisitor {
 
 //  @Override
 //  public Void visitEmptyFunctionBody(EmptyFunctionBody node) {
+//    overrideManager.enterScope();
 //    try {
-//      overrideManager.enterScope();
 //      super.visitEmptyFunctionBody(node);
 //    } finally {
 //      overrideManager.exitScope();
@@ -505,8 +511,8 @@ public class ResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     safelyVisit(commentBeforeFunction);
+    overrideManager.enterScope();
     try {
-      overrideManager.enterScope();
       super.visitExpressionFunctionBody(node);
     } finally {
       overrideManager.exitScope();
@@ -516,8 +522,8 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitFieldDeclaration(FieldDeclaration node) {
+    overrideManager.enterScope();
     try {
-      overrideManager.enterScope();
       super.visitFieldDeclaration(node);
     } finally {
       HashMap<Element, Type> overrides = overrideManager.captureOverrides(node.getFields());
@@ -529,8 +535,8 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitForEachStatement(ForEachStatement node) {
+    overrideManager.enterScope();
     try {
-      overrideManager.enterScope();
       super.visitForEachStatement(node);
     } finally {
       overrideManager.exitScope();
@@ -540,8 +546,8 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitForStatement(ForStatement node) {
+    overrideManager.enterScope();
     try {
-      overrideManager.enterScope();
       super.visitForStatement(node);
     } finally {
       overrideManager.exitScope();
@@ -568,9 +574,12 @@ public class ResolverVisitor extends ScopedVisitor {
     try {
       enclosingFunction = node.getElement();
       overrideManager.enterScope();
-      super.visitFunctionExpression(node);
+      try {
+        super.visitFunctionExpression(node);
+      } finally {
+        overrideManager.exitScope();
+      }
     } finally {
-      overrideManager.exitScope();
       enclosingFunction = outerFunction;
     }
     return null;
@@ -602,27 +611,30 @@ public class ResolverVisitor extends ScopedVisitor {
     HashMap<Element, Type> thenOverrides = null;
     Statement thenStatement = node.getThenStatement();
     if (thenStatement != null) {
+      overrideManager.enterScope();
       try {
-        overrideManager.enterScope();
         promoteManager.enterScope();
-        propagateTrueState(condition);
-        // Type promotion.
-        promoteTypes(condition);
-        clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
-        clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(thenStatement);
-        // Visit "then".
-        visitStatementInScope(thenStatement);
+        try {
+          propagateTrueState(condition);
+          // Type promotion.
+          promoteTypes(condition);
+          clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
+          clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(thenStatement);
+          // Visit "then".
+          visitStatementInScope(thenStatement);
+        } finally {
+          promoteManager.exitScope();
+        }
       } finally {
         thenOverrides = overrideManager.captureLocalOverrides();
         overrideManager.exitScope();
-        promoteManager.exitScope();
       }
     }
     HashMap<Element, Type> elseOverrides = null;
     Statement elseStatement = node.getElseStatement();
     if (elseStatement != null) {
+      overrideManager.enterScope();
       try {
-        overrideManager.enterScope();
         propagateFalseState(condition);
         visitStatementInScope(elseStatement);
       } finally {
@@ -760,8 +772,8 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitSwitchCase(SwitchCase node) {
+    overrideManager.enterScope();
     try {
-      overrideManager.enterScope();
       super.visitSwitchCase(node);
     } finally {
       overrideManager.exitScope();
@@ -771,8 +783,8 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitSwitchDefault(SwitchDefault node) {
+    overrideManager.enterScope();
     try {
-      overrideManager.enterScope();
       super.visitSwitchDefault(node);
     } finally {
       overrideManager.exitScope();
@@ -782,8 +794,8 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    overrideManager.enterScope();
     try {
-      overrideManager.enterScope();
       super.visitTopLevelVariableDeclaration(node);
     } finally {
       HashMap<Element, Type> overrides = overrideManager.captureOverrides(node.getVariables());
@@ -807,8 +819,8 @@ public class ResolverVisitor extends ScopedVisitor {
     safelyVisit(condition);
     Statement body = node.getBody();
     if (body != null) {
+      overrideManager.enterScope();
       try {
-        overrideManager.enterScope();
         propagateTrueState(condition);
         visitStatementInScope(body);
       } finally {
@@ -973,8 +985,8 @@ public class ResolverVisitor extends ScopedVisitor {
     safelyVisit(identifier);
     Statement body = node.getBody();
     if (body != null) {
+      overrideManager.enterScope();
       try {
-        overrideManager.enterScope();
         if (loopVariable != null && iterator != null) {
           LocalVariableElement loopElement = loopVariable.getElement();
           if (loopElement != null) {
