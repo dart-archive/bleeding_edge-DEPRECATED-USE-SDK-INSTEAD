@@ -286,7 +286,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     private static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
 
     private static ImageDescriptor getBaseImageDescriptor(OutlineKind kind, boolean isPrivate) {
-      if (kind == OutlineKind.CLASS) {
+      if (kind == OutlineKind.CLASS || kind == OutlineKind.CLASS_TYPE_ALIAS) {
         return isPrivate ? DartPluginImages.DESC_DART_CLASS_PRIVATE
             : DartPluginImages.DESC_DART_CLASS_PUBLIC;
       }
