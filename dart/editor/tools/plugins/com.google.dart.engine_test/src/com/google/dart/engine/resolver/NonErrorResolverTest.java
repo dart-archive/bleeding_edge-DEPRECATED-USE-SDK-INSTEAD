@@ -2169,7 +2169,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library lib;",
         "foo() => 22;"));
     Source source = addSource(createSource(//
-        "import '/lib.dart' deferred as other;",
+        "import 'lib.dart' deferred as other;",
         "main() {",
         "  other.loadLibrary().then((_) => other.foo());",
         "}"));
