@@ -210,6 +210,8 @@ public class MainAnalysisServer {
             null,
             importShowCombinator("JavaStringBuilder", "StringUtils")));
     unit.getDirectives().add(
+        importDirective("package:analyzer/src/generated/java_engine.dart", null));
+    unit.getDirectives().add(
         importDirective(
             "package:analyzer/src/generated/source.dart",
             null,
@@ -220,11 +222,7 @@ public class MainAnalysisServer {
             null,
             importShowCombinator("Token")));
     unit.getDirectives().add(importDirective("package:analyzer/src/generated/ast.dart", null));
-    unit.getDirectives().add(
-        importDirective(
-            "package:analyzer/src/generated/element.dart",
-            null,
-            importShowCombinator("Element")));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/element.dart", null));
     unit.getDirectives().add(importDirective("service_interfaces.dart", null));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -253,6 +251,7 @@ public class MainAnalysisServer {
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isServerPath(file, "HighlightRegion.java") || isServerPath(file, "HighlightType.java")
+          || isServerPath(file, "ListSourceSet.java")
           || isServerPath(file, "NavigationRegion.java")
           || isServerPath(file, "NavigationTarget.java")
           || isServerPath(file, "NotificationKind.java") || isServerPath(file, "Outline.java")

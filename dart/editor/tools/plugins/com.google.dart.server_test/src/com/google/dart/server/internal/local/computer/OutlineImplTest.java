@@ -56,7 +56,7 @@ public class OutlineImplTest extends TestCase {
     outline.setChildren(children);
     assertEquals(children, outline.getChildren());
     // toString
-    assertEquals("[name=foo, kind=METHOD, offset=10, length=20, arguments=(int i, String s), "
+    assertEquals("[name=foo, kind=METHOD, offset=10, length=20, parameters=(int i, String s), "
         + "return=Map<String, int>, children=[childA, childB]]", outline.toString());
   }
 

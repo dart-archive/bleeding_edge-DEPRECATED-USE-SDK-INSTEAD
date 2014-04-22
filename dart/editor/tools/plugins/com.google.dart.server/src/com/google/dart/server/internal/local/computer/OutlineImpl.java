@@ -34,14 +34,14 @@ public class OutlineImpl implements Outline {
   private final String name;
   private final int offset;
   private final int length;
-  private final String arguments;
+  private final String parameters;
   private final String returnType;
   private final boolean isAbstract;
   private final boolean isStatic;
   private Outline[] children = Outline.EMPTY_ARRAY;
 
   public OutlineImpl(Outline parent, SourceRegion sourceRegion, OutlineKind kind, String name,
-      int offset, int length, String arguments, String returnType, boolean isAbstract,
+      int offset, int length, String parameters, String returnType, boolean isAbstract,
       boolean isStatic) {
     this.parent = parent;
     this.sourceRegion = sourceRegion;
@@ -49,7 +49,7 @@ public class OutlineImpl implements Outline {
     this.name = name;
     this.offset = offset;
     this.length = length;
-    this.arguments = arguments;
+    this.parameters = parameters;
     this.returnType = returnType;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
@@ -94,7 +94,7 @@ public class OutlineImpl implements Outline {
 
   @Override
   public String getParameters() {
-    return arguments;
+    return parameters;
   }
 
   @Override
@@ -147,8 +147,8 @@ public class OutlineImpl implements Outline {
     builder.append(offset);
     builder.append(", length=");
     builder.append(length);
-    builder.append(", arguments=");
-    builder.append(arguments);
+    builder.append(", parameters=");
+    builder.append(parameters);
     builder.append(", return=");
     builder.append(returnType);
     builder.append(", children=[");
