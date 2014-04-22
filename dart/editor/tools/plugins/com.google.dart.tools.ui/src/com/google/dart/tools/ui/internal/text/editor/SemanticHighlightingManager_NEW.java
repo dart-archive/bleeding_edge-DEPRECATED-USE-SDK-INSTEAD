@@ -27,8 +27,12 @@ import com.google.dart.tools.ui.text.IColorManager;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextPresentationListener;
+import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
@@ -41,15 +45,36 @@ import org.eclipse.swt.widgets.Display;
  */
 public class SemanticHighlightingManager_NEW implements AnalysisServerHighlightsListener,
     ITextPresentationListener {
+  /**
+   * A {@link Position} that can be tracked by a {@link Document} and contains the
+   * {@link HighlightRegion}.
+   */
+  private static class HighlightPosition extends Position {
+    private final HighlightRegion highlight;
+
+    public HighlightPosition(HighlightRegion highlight) {
+      super(highlight.getOffset(), highlight.getLength());
+      this.highlight = highlight;
+    }
+
+    @Override
+    public String toString() {
+      return "[" + super.toString() + " " + highlight + "]";
+    }
+  }
+
   private final DartSourceViewer viewer;
   private final String contextId;
   private final Source source;
-  private HighlightRegion[] highlights;
+  private final IDocument document;
+  private HighlightPosition[] positions;
 
   public SemanticHighlightingManager_NEW(DartSourceViewer viewer, String contextId, Source source) {
     this.viewer = viewer;
     this.contextId = contextId;
     this.source = source;
+    this.document = viewer.getDocument();
+    // subscribe
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
     analysisServerData.subscribeHighlights(contextId, source, this);
     viewer.prependTextPresentationListener(this);
@@ -57,7 +82,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
 
   @Override
   public void applyTextPresentation(TextPresentation textPresentation) {
-    if (highlights == null) {
+    if (positions == null) {
       return;
     }
     // prepare damaged region
@@ -68,15 +93,15 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
     IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();
     IColorManager colorManager = DartUI.getColorManager();
     // add style ranges
-    for (HighlightRegion highlight : highlights) {
+    for (HighlightPosition position : positions) {
       // skip if outside of the damaged region
-      int hiOffset = highlight.getOffset();
-      int hiLength = highlight.getLength();
+      int hiOffset = position.getOffset();
+      int hiLength = position.getLength();
       if (hiOffset + hiLength < daOffset || hiOffset >= daEnd) {
         continue;
       }
       // prepare highlight key
-      HighlightType type = highlight.getType();
+      HighlightType type = position.highlight.getType();
       String themeKey = "semanticHighlighting." + getThemeKey(type);
       // prepare color
       RGB foregroundRGB = PreferenceConverter.getColor(store, themeKey + ".color");
@@ -103,7 +128,26 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
 
   @Override
   public void computedHighlights(String contextId, Source source, HighlightRegion[] highlights) {
-    this.highlights = highlights;
+    // stop tracking HighlightPosition(s)
+    if (positions != null) {
+      for (HighlightPosition position : positions) {
+        document.removePosition(position);
+      }
+      positions = null;
+    }
+    // create and track HighlightPosition(s)
+    HighlightPosition[] newPositions = new HighlightPosition[highlights.length];
+    for (int i = 0; i < highlights.length; i++) {
+      HighlightRegion highlight = highlights[i];
+      HighlightPosition position = new HighlightPosition(highlight);
+      try {
+        document.addPosition(position);
+      } catch (BadLocationException e) {
+      }
+      newPositions[i] = position;
+    }
+    positions = newPositions;
+    // invalidate presentation
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
@@ -147,6 +191,8 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
         return "getterDeclaration";
       case IMPORT_PREFIX:
         return "importPrefix";
+      case LITERAL_BOOLEAN:
+        return "builtin";
       case LITERAL_DOUBLE:
       case LITERAL_INTEGER:
         return "number";
@@ -178,7 +224,6 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       case COMMENT_DOCUMENTATION:
       case COMMENT_END_OF_LINE:
       case IDENTIFIER_DEFAULT:
-      case LITERAL_BOOLEAN:
       case LITERAL_LIST:
       case LITERAL_MAP:
         // unsupported
