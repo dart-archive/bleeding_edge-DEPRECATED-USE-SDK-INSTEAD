@@ -101,7 +101,7 @@ def _print_pkg_action(pkg, out):
           ],
           'action': [
             'python',
-            '../truncate_files.py',
+            '../../../tools/create_timestamp_file.py',
             '<@(_outputs)',
           ],
           'message': 'Creating %(pkg)s time stamp.',
@@ -146,7 +146,7 @@ def Main(argv):
           ],
           'action': [
             'python',
-            '../truncate_files.py',
+            '../../../tools/create_timestamp_file.py',
             '<@(_outputs)',
           ],
           'message': 'Creating editor time stamp.',
