@@ -26,6 +26,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.dart.ParameterKind;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * The abstract class {@code ExecutableElementImpl} implements the behavior common to
@@ -74,6 +75,7 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public ExecutableElementImpl(Identifier name) {
     super(name);
   }

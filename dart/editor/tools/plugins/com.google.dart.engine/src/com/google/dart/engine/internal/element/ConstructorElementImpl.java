@@ -22,6 +22,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.utilities.dart.ParameterKind;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Instances of the class {@code ConstructorElementImpl} implement a {@code ConstructorElement}.
@@ -44,6 +45,7 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public ConstructorElementImpl(Identifier name) {
     super(name);
   }

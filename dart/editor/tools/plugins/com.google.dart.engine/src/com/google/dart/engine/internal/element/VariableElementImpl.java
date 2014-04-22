@@ -21,6 +21,7 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Instances of the class {@code VariableElementImpl} implement a {@code VariableElement}.
@@ -49,6 +50,7 @@ public abstract class VariableElementImpl extends ElementImpl implements Variabl
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public VariableElementImpl(Identifier name) {
     super(name);
   }

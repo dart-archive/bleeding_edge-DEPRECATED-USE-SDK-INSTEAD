@@ -16,7 +16,6 @@ package com.google.dart.engine.internal.element;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.LibraryIdentifier;
-import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
@@ -31,8 +30,6 @@ import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
-import com.google.dart.engine.scanner.SyntheticStringToken;
-import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
@@ -260,8 +257,7 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @Override
   public FunctionElement getLoadLibraryFunction() {
     if (loadLibraryFunction == null) {
-      FunctionElementImpl function = new FunctionElementImpl(new SimpleIdentifier(
-          new SyntheticStringToken(TokenType.IDENTIFIER, FunctionElement.LOAD_LIBRARY_NAME, -1)));
+      FunctionElementImpl function = new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
       function.setSynthetic(true);
       function.setEnclosingElement(this);
       function.setReturnType(getLoadLibraryReturnType());

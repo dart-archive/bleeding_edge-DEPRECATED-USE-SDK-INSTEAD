@@ -20,6 +20,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Instances of the class {@code MethodElementImpl} implement a {@code MethodElement}.
@@ -37,6 +38,7 @@ public class MethodElementImpl extends ExecutableElementImpl implements MethodEl
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public MethodElementImpl(Identifier name) {
     super(name);
   }

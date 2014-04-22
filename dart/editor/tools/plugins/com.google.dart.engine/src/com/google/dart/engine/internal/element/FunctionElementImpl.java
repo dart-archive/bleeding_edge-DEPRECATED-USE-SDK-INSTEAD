@@ -21,6 +21,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Instances of the class {@code FunctionElementImpl} implement a {@code FunctionElement}.
@@ -49,6 +50,7 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public FunctionElementImpl(Identifier name) {
     super(name);
   }
@@ -60,8 +62,20 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
+  @DartName("forOffset")
   public FunctionElementImpl(int nameOffset) {
     super("", nameOffset);
+  }
+
+  /**
+   * Initialize a newly created function element to have the given name and offset.
+   * 
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public FunctionElementImpl(String name, int nameOffset) {
+    super(name, nameOffset);
   }
 
   @Override

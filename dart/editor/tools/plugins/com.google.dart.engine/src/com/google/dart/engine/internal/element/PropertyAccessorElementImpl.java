@@ -25,6 +25,7 @@ import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Instances of the class {@code PropertyAccessorElementImpl} implement a
@@ -49,6 +50,7 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public PropertyAccessorElementImpl(Identifier name) {
     super(name);
   }

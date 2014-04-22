@@ -689,7 +689,10 @@ public class MainEngine {
     unit.getDirectives().add(
         importDirective("html.dart", null, importShowCombinator("XmlAttributeNode", "XmlTagNode")));
     unit.getDirectives().add(
-        importDirective("engine.dart", null, importShowCombinator("AnalysisContext")));
+        importDirective(
+            "engine.dart",
+            null,
+            importShowCombinator("AnalysisContext", "AnalysisEngine", "AnalysisException")));
     unit.getDirectives().add(
         importDirective("constant.dart", null, importShowCombinator("EvaluationResultImpl")));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
