@@ -20,11 +20,13 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.Outline;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
+import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
 
 import java.util.Map;
@@ -40,6 +42,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   private final Map<String, Map<Source, NavigationRegion[]>> navigationData = Maps.newHashMap();
   private final Map<String, Set<Source>> navigationSubscriptions = Maps.newHashMap();
   private final Map<String, Map<Source, Set<AnalysisServerOutlineListener>>> outlineSubscriptions = Maps.newHashMap();
+  private final Map<String, Map<Source, Set<AnalysisServerHighlightsListener>>> highlightsSubscriptions = Maps.newHashMap();
 
   private AnalysisServer server;
 
@@ -62,6 +65,8 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   public void internalDeleteContext(String contextId) {
     navigationData.remove(contextId);
     navigationSubscriptions.remove(contextId);
+    outlineSubscriptions.remove(contextId);
+    highlightsSubscriptions.remove(contextId);
   }
 
   /**
@@ -69,6 +74,27 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
    */
   public void setServer(AnalysisServer server) {
     this.server = server;
+  }
+
+  @Override
+  public void subscribeHighlights(String contextId, Source source,
+      AnalysisServerHighlightsListener listener) {
+    Map<Source, Set<AnalysisServerHighlightsListener>> sourceSubscriptions = highlightsSubscriptions.get(contextId);
+    if (sourceSubscriptions == null) {
+      sourceSubscriptions = Maps.newHashMap();
+      highlightsSubscriptions.put(contextId, sourceSubscriptions);
+    }
+    Set<AnalysisServerHighlightsListener> subscriptions = sourceSubscriptions.get(source);
+    if (subscriptions == null) {
+      subscriptions = Sets.newHashSet();
+      sourceSubscriptions.put(source, subscriptions);
+    }
+    if (subscriptions.add(listener)) {
+      Set<Source> sourceSet = sourceSubscriptions.keySet();
+      server.subscribe(
+          contextId,
+          ImmutableMap.of(NotificationKind.HIGHLIGHTS, ListSourceSet.create(sourceSet)));
+    }
   }
 
   @Override
@@ -107,6 +133,28 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
+  public void unsubscribeHighlights(String contextId, Source source,
+      AnalysisServerHighlightsListener listener) {
+    Map<Source, Set<AnalysisServerHighlightsListener>> sourceSubscriptions = highlightsSubscriptions.get(contextId);
+    if (sourceSubscriptions == null) {
+      return;
+    }
+    Set<AnalysisServerHighlightsListener> subscriptions = sourceSubscriptions.get(source);
+    if (subscriptions == null) {
+      return;
+    }
+    if (subscriptions.remove(listener)) {
+      if (subscriptions.isEmpty()) {
+        sourceSubscriptions.remove(source);
+        Set<Source> sourceSet = sourceSubscriptions.keySet();
+        server.subscribe(
+            contextId,
+            ImmutableMap.of(NotificationKind.HIGHLIGHTS, ListSourceSet.create(sourceSet)));
+      }
+    }
+  }
+
+  @Override
   public void unsubscribeNavigation(String contextId, Source source) {
     Set<Source> sources = navigationSubscriptions.get(contextId);
     if (sources == null) {
@@ -138,6 +186,21 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
             contextId,
             ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(sourceSet)));
       }
+    }
+  }
+
+  void internalComputedHighlights(String contextId, Source source, HighlightRegion[] highlights) {
+    Map<Source, Set<AnalysisServerHighlightsListener>> sourceSubscriptions = highlightsSubscriptions.get(contextId);
+    if (sourceSubscriptions == null) {
+      return;
+    }
+    Set<AnalysisServerHighlightsListener> subscriptions = sourceSubscriptions.get(source);
+    if (subscriptions == null) {
+      return;
+    }
+    subscriptions = ImmutableSet.copyOf(subscriptions);
+    for (AnalysisServerHighlightsListener listener : subscriptions) {
+      listener.computedHighlights(contextId, source, highlights);
     }
   }
 

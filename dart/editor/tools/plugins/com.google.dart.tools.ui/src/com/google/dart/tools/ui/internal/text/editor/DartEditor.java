@@ -1736,6 +1736,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   };
 
+  private SemanticHighlightingManager_NEW analysisServerHighlightManager;
+
   /** Outliner context menu Id */
   protected String fOutlinerContextMenuId;
   /**
@@ -3236,15 +3238,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     }
 
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
-      String contextId = getInputAnalysisContextId();
-      Source source = getInputSource();
-      if (contextId != null && source != null) {
-        analysisServerData.subscribeNavigation(contextId, source);
-      }
-    }
-
     ISourceViewer sourceViewer = getSourceViewer();
     if (!(sourceViewer instanceof ISourceViewerExtension2)) {
       setPreferenceStore(createCombinedPreferenceStore(input));
@@ -4632,6 +4625,19 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * Install Semantic Highlighting.
    */
   private void installSemanticHighlighting() {
+    // TODO(scheglov) Analysis Server: remove this old method
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
+      String contextId = getInputAnalysisContextId();
+      Source source = getInputSource();
+      if (contextId != null && source != null) {
+        analysisServerHighlightManager = new SemanticHighlightingManager_NEW(
+            (DartSourceViewer) getSourceViewer(),
+            contextId,
+            source);
+      }
+      return;
+    }
     if (fSemanticManager == null) {
       fSemanticManager = new SemanticHighlightingManager();
       fSemanticManager.install(
@@ -4667,6 +4673,15 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     if (fEncodingSupport != null) {
       fEncodingSupport.reset();
+    }
+
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
+      String contextId = getInputAnalysisContextId();
+      Source source = getInputSource();
+      if (contextId != null && source != null) {
+        analysisServerData.subscribeNavigation(contextId, source);
+      }
     }
 
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
@@ -4744,6 +4759,14 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * Uninstall Semantic Highlighting.
    */
   private void uninstallSemanticHighlighting() {
+    // TODO(scheglov) Analysis Server: remove this old method
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      if (analysisServerHighlightManager != null) {
+        analysisServerHighlightManager.dispose();
+        analysisServerHighlightManager = null;
+      }
+      return;
+    }
     if (fSemanticManager != null) {
       fSemanticManager.uninstall();
       fSemanticManager = null;

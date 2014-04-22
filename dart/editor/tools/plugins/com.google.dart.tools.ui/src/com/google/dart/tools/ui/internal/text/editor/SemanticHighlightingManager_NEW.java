@@ -1,0 +1,182 @@
+/*
+ * Copyright (c) 2014, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package com.google.dart.tools.ui.internal.text.editor;
+
+import com.google.dart.engine.source.Source;
+import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.HighlightRegion;
+import com.google.dart.server.HighlightType;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.AnalysisServerData;
+import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.text.IColorManager;
+
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextPresentationListener;
+import org.eclipse.jface.text.TextPresentation;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Display;
+
+/**
+ * A helper for displaying {@link HighlightRegion} from {@link AnalysisServer}.
+ */
+public class SemanticHighlightingManager_NEW implements AnalysisServerHighlightsListener,
+    ITextPresentationListener {
+  private final DartSourceViewer viewer;
+  private final String contextId;
+  private final Source source;
+  private HighlightRegion[] highlights;
+
+  public SemanticHighlightingManager_NEW(DartSourceViewer viewer, String contextId, Source source) {
+    this.viewer = viewer;
+    this.contextId = contextId;
+    this.source = source;
+    AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
+    analysisServerData.subscribeHighlights(contextId, source, this);
+    viewer.prependTextPresentationListener(this);
+  }
+
+  @Override
+  public void applyTextPresentation(TextPresentation textPresentation) {
+    if (highlights == null) {
+      return;
+    }
+    // prepare damaged region
+    IRegion damagedRegion = textPresentation.getExtent();
+    int daOffset = damagedRegion.getOffset();
+    int daEnd = daOffset + damagedRegion.getLength();
+    // prepare theme access
+    IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();
+    IColorManager colorManager = DartUI.getColorManager();
+    // add style ranges
+    for (HighlightRegion highlight : highlights) {
+      // skip if outside of the damaged region
+      int hiOffset = highlight.getOffset();
+      int hiLength = highlight.getLength();
+      if (hiOffset + hiLength < daOffset || hiOffset >= daEnd) {
+        continue;
+      }
+      // prepare highlight key
+      HighlightType type = highlight.getType();
+      String themeKey = "semanticHighlighting." + getThemeKey(type);
+      // prepare color
+      RGB foregroundRGB = PreferenceConverter.getColor(store, themeKey + ".color");
+      Color foregroundColor = colorManager.getColor(foregroundRGB);
+      // prepare font style
+      boolean fontBold = store.getBoolean(themeKey + ".bold");
+      boolean fontItalic = store.getBoolean(themeKey + ".italic");
+      int fontStyle = 0;
+      if (fontBold) {
+        fontStyle |= SWT.BOLD;
+      }
+      if (fontItalic) {
+        fontStyle |= SWT.ITALIC;
+      }
+      // merge style range
+      textPresentation.mergeStyleRange(new StyleRange(
+          hiOffset,
+          hiLength,
+          foregroundColor,
+          null,
+          fontStyle));
+    }
+  }
+
+  @Override
+  public void computedHighlights(String contextId, Source source, HighlightRegion[] highlights) {
+    this.highlights = highlights;
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        viewer.invalidateTextPresentation();
+      }
+    });
+  }
+
+  public void dispose() {
+    AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
+    analysisServerData.unsubscribeHighlights(contextId, source, this);
+    viewer.removeTextPresentationListener(this);
+  }
+
+  private String getThemeKey(HighlightType type) {
+    switch (type) {
+      case ANNOTATION:
+        return "annotation";
+      case BUILT_IN:
+      case KEYWORD:
+        return "builtin";
+      case CLASS:
+        return "class";
+      case CONSTRUCTOR:
+        return "constructor";
+      case DIRECTIVE:
+        return "directive";
+      case DYNAMIC_TYPE:
+        return "dynamicType";
+      case FIELD:
+        return "field";
+      case FIELD_STATIC:
+        return "staticField";
+      case FUNCTION:
+        return "function";
+      case FUNCTION_TYPE_ALIAS:
+        return "functionTypeAlias";
+      case GETTER_DECLARATION:
+        return "getterDeclaration";
+      case IMPORT_PREFIX:
+        return "importPrefix";
+      case LITERAL_DOUBLE:
+      case LITERAL_INTEGER:
+        return "number";
+      case LITERAL_STRING:
+        return "string";
+      case LOCAL_VARIABLE:
+        return "localVariable";
+      case LOCAL_VARIABLE_DECLARATION:
+        return "localVariableDeclaration";
+      case METHOD:
+        return "method";
+      case METHOD_STATIC:
+        return "staticMethod";
+      case METHOD_DECLARATION:
+        return "methodDeclarationName";
+      case METHOD_DECLARATION_STATIC:
+        return "staticMethodDeclarationName";
+      case PARAMETER:
+        return "parameterVariable";
+      case SETTER_DECLARATION:
+        return "setterDeclaration";
+      case TYPE_PARAMETER:
+        return "typeParameter";
+      case COMMENT_BLOCK:
+      case COMMENT_DOCUMENTATION:
+      case COMMENT_END_OF_LINE:
+      case LITERAL_BOOLEAN:
+      case LITERAL_LIST:
+      case LITERAL_MAP:
+        // unsupported
+        break;
+    }
+    return null;
+  }
+}

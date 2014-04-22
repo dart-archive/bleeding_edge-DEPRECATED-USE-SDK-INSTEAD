@@ -16,6 +16,7 @@ package com.google.dart.tools.core.analysis.model;
 
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
 
@@ -33,6 +34,12 @@ public interface AnalysisServerData {
   NavigationRegion[] getNavigation(String contextId, Source source);
 
   /**
+   * Specifies that the client wants to be notified about new {@link HighlightRegion}s.
+   */
+  void subscribeHighlights(String contextId, Source source,
+      AnalysisServerHighlightsListener listener);
+
+  /**
    * Specifies that the client wants to request {@link #getNavigation(String, Source)}.
    */
   void subscribeNavigation(String contextId, Source source);
@@ -43,12 +50,18 @@ public interface AnalysisServerData {
   void subscribeOutline(String contextId, Source source, AnalysisServerOutlineListener listener);
 
   /**
+   * Specifies that the client doesn't want to be notified about {@link HighlightRegion}s anymore.
+   */
+  void unsubscribeHighlights(String contextId, Source source,
+      AnalysisServerHighlightsListener listener);
+
+  /**
    * Specifies that the client doesn't need navigation information for the given source anymore.
    */
   void unsubscribeNavigation(String contextId, Source source);
 
   /**
-   * Specifies that the client doesn't want to be notified about outline information anymore.
+   * Specifies that the client doesn't want to be notified about {@link Outline} anymore.
    */
   void unsubscribeOutline(String contextId, Source source, AnalysisServerOutlineListener listener);
 }

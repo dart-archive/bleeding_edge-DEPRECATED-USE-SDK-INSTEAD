@@ -47,7 +47,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedHighlights(String contextId, Source source, HighlightRegion[] highlights) {
-    // TODO(scheglov) Analysis Server
+    dataImpl.internalComputedHighlights(contextId, source, highlights);
   }
 
   @Override
