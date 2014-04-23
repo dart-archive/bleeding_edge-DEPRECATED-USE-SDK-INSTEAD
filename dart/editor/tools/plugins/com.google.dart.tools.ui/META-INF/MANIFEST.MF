@@ -50,7 +50,7 @@ Export-Package: com.google.dart.tools.internal.corext.refactoring;x-friends:="co
  com.google.dart.tools.ui.internal.text.correction;x-friends:="com.google.dart.tools.deploy,com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.text.correction.proposals;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.text.dart;x-friends:="com.google.dart.tools.deploy,com.google.dart.tools.ui_test",
- com.google.dart.tools.ui.internal.text.dartdoc;x-friends:="com.google.dart.tools.deploy",
+ com.google.dart.tools.ui.internal.text.dartdoc;x-friends:="com.google.dart.tools.deploy,com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.text.editor;
   x-friends:="com.google.dart.tools.ui_test,
    com.google.dart.tools.debug.ui,
