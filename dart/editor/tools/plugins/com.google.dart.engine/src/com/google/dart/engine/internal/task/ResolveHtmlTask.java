@@ -13,10 +13,13 @@
  */
 package com.google.dart.engine.internal.task;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.html.ast.HtmlScriptTagNode;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
 import com.google.dart.engine.internal.builder.HtmlUnitBuilder;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
@@ -128,7 +131,20 @@ public class ResolveHtmlTask extends AnalysisTask {
     //
     HtmlUnitBuilder builder = new HtmlUnitBuilder(getContext());
     element = builder.buildHtmlElement(source, modificationTime, unit);
-    RecordingErrorListener errorListener = builder.getErrorListener();
+    final RecordingErrorListener errorListener = builder.getErrorListener();
+    //
+    // Validate the directives
+    //
+    unit.accept(new RecursiveXmlVisitor<Void>() {
+      @Override
+      public Void visitHtmlScriptTagNode(HtmlScriptTagNode node) {
+        CompilationUnit script = node.getScript();
+        if (script != null) {
+          GenerateDartErrorsTask.validateDirectives(getContext(), source, script, errorListener);
+        }
+        return null;
+      }
+    });
     //
     // Record all resolution errors.
     //

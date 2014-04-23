@@ -242,19 +242,11 @@ public class ParseHtmlTask extends AnalysisTask {
     AnalysisContext analysisContext = getContext();
     for (Directive directive : script.getDirectives()) {
       if (directive instanceof UriBasedDirective) {
-        UriBasedDirective uriDirective = (UriBasedDirective) directive;
-        Source referencedSource = ParseDartTask.resolveDirective(
+        ParseDartTask.resolveDirective(
             analysisContext,
             source,
-            uriDirective,
+            (UriBasedDirective) directive,
             errorListener);
-        if (referencedSource != null) {
-          GenerateDartErrorsTask.validateReferencedSource(
-              analysisContext,
-              source,
-              uriDirective,
-              errorListener);
-        }
       }
     }
   }

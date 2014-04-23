@@ -90,6 +90,27 @@ public class AnalysisContextImplTest extends EngineTestCase {
     fail("Implement this");
   }
 
+  public void fail_performAnalysisTask_importedLibraryDelete_html() throws Exception {
+    Source htmlSource = addSource("/page.html", createSource(//
+        "<html><body><script type=\"application/dart\">",
+        "  import 'libB.dart';",
+        "  main() {print('hello dart');}",
+        "</script></body></html>"));
+    Source libBSource = addSource("/libB.dart", "library libB;");
+    analyzeAll_assertFinished();
+    assertNotNull("htmlUnit resolved 1", context.getResolvedHtmlUnit(htmlSource));
+    assertNotNull("libB resolved 1", context.getResolvedCompilationUnit(libBSource, libBSource));
+    assertTrue(
+        "htmlSource doesn't have errors",
+        !hasAnalysisErrorWithErrorSeverity(context.getErrors(htmlSource)));
+    // remove libB.dart content and analyze
+    context.setContents(libBSource, null);
+    analyzeAll_assertFinished();
+    assertNotNull("htmlUnit resolved 1", context.getResolvedHtmlUnit(htmlSource));
+    AnalysisErrorInfo errors = context.getErrors(htmlSource);
+    assertTrue("htmlSource has an error", hasAnalysisErrorWithErrorSeverity(errors));
+  }
+
   public void fail_recordLibraryElements() {
     fail("Implement this");
   }
@@ -1034,6 +1055,26 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertTrue(
         "libA doesn't have errors",
         !hasAnalysisErrorWithErrorSeverity(context.getErrors(libASource)));
+  }
+
+  public void test_performAnalysisTask_importedLibraryAdd_html() throws Exception {
+    Source htmlSource = addSource("/page.html", createSource(//
+        "<html><body><script type=\"application/dart\">",
+        "  import '/libB.dart';",
+        "  main() {print('hello dart');}",
+        "</script></body></html>"));
+    analyzeAll_assertFinished();
+    assertNotNull("htmlUnit resolved 1", context.getResolvedHtmlUnit(htmlSource));
+    assertTrue(
+        "htmlSource has an error",
+        hasAnalysisErrorWithErrorSeverity(context.getErrors(htmlSource)));
+    // add libB.dart and analyze
+    Source libBSource = addSource("/libB.dart", "library libB;");
+    analyzeAll_assertFinished();
+    assertNotNull("htmlUnit resolved 1", context.getResolvedHtmlUnit(htmlSource));
+    assertNotNull("libB resolved 2", context.getResolvedCompilationUnit(libBSource, libBSource));
+    AnalysisErrorInfo errors = context.getErrors(htmlSource);
+    assertTrue("htmlSource doesn't have errors", !hasAnalysisErrorWithErrorSeverity(errors));
   }
 
   public void test_performAnalysisTask_importedLibraryDelete() throws Exception {

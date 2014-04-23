@@ -1025,26 +1025,37 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         while (iterator.moveNext()) {
           Source source = iterator.getKey();
           SourceEntry sourceEntry = iterator.getValue();
-          if (!source.isInSystemLibrary() && sourceEntry instanceof DartEntry) {
+          if (!source.isInSystemLibrary()
+              && (sourceEntry instanceof DartEntry || sourceEntry instanceof HtmlEntry)) {
             sourcesToInvalidate.add(source);
           }
         }
         int count = sourcesToInvalidate.size();
         for (int i = 0; i < count; i++) {
           Source source = sourcesToInvalidate.get(i);
-          DartEntry dartEntry = getReadableDartEntry(source);
-          removeFromParts(source, dartEntry);
-          DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-          dartCopy.invalidateAllResolutionInformation();
-          cache.put(source, dartCopy);
-          SourcePriority priority = SourcePriority.UNKNOWN;
-          SourceKind kind = dartCopy.getKind();
-          if (kind == SourceKind.LIBRARY) {
-            priority = SourcePriority.LIBRARY;
-          } else if (kind == SourceKind.PART) {
-            priority = SourcePriority.NORMAL_PART;
+          SourceEntry entry = getReadableSourceEntry(source);
+          if (entry instanceof DartEntry) {
+            DartEntry dartEntry = (DartEntry) entry;
+            removeFromParts(source, dartEntry);
+            DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+            dartCopy.invalidateAllResolutionInformation();
+            cache.put(source, dartCopy);
+            SourcePriority priority = SourcePriority.UNKNOWN;
+            SourceKind kind = dartCopy.getKind();
+            if (kind == SourceKind.LIBRARY) {
+              priority = SourcePriority.LIBRARY;
+            } else if (kind == SourceKind.PART) {
+              priority = SourcePriority.NORMAL_PART;
+            }
+            workManager.add(source, priority);
           }
-          workManager.add(source, priority);
+          if (entry instanceof HtmlEntry) {
+            HtmlEntry htmlEntry = (HtmlEntry) entry;
+            HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+            htmlCopy.invalidateAllResolutionInformation();
+            cache.put(source, htmlCopy);
+            workManager.add(source, SourcePriority.HTML);
+          }
         }
       }
     }
