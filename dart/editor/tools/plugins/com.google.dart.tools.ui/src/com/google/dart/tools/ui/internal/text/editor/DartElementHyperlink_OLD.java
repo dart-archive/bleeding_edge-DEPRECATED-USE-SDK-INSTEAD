@@ -28,7 +28,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 /**
  * Dart element hyperlink.
  */
-public class DartElementHyperlink implements IHyperlink {
+public class DartElementHyperlink_OLD implements IHyperlink {
 
   private final Object /*Element*/element;
   private final InstrumentedSelectionDispatchAction openAction;
@@ -37,7 +37,7 @@ public class DartElementHyperlink implements IHyperlink {
   /**
    * Creates a new Dart element hyperlink.
    */
-  public DartElementHyperlink(Object /*Element*/element, IRegion region,
+  public DartElementHyperlink_OLD(Object /*Element*/element, IRegion region,
       InstrumentedSelectionDispatchAction openAction) {
     Assert.isNotNull(element);
     Assert.isNotNull(region);

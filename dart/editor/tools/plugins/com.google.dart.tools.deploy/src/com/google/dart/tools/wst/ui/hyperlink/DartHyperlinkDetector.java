@@ -29,7 +29,7 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
-import com.google.dart.tools.ui.internal.text.editor.DartElementHyperlink;
+import com.google.dart.tools.ui.internal.text.editor.DartElementHyperlink_OLD;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import com.google.dart.tools.wst.ui.DartReconcilerManager;
 import com.google.dart.tools.wst.ui.EmbeddedDartReconcilerHook;
@@ -115,7 +115,7 @@ public class DartHyperlinkDetector extends AbstractHyperlinkDetector {
     Element element = ElementLocator.locateWithOffset(node, offset);
     if (element != null) {
       IRegion wordRegion = getWordRegion(node);
-      return new IHyperlink[] {new DartElementHyperlink(element, wordRegion, new Opener(
+      return new IHyperlink[] {new DartElementHyperlink_OLD(element, wordRegion, new Opener(
           element,
           partition,
           textViewer))};

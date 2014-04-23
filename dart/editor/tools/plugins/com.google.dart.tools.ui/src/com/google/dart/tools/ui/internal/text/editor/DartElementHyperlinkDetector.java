@@ -26,6 +26,10 @@ import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.source.Source;
+import com.google.dart.server.NavigationRegion;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
@@ -69,6 +73,8 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
 
   private IHyperlink[] internalDetectHyperlinks(ITextViewer textViewer, IRegion region,
       boolean canShowMultipleHyperlinks) {
+    int offset = region.getOffset();
+
     DartEditor editor = (DartEditor) getAdapter(ITextEditor.class);
     if (region == null || !(editor instanceof DartEditor)) {
       return null;
@@ -79,26 +85,40 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
       return null;
     }
 
-    // Get the associated CU
-    CompilationUnit cu = editor.getInputUnit();
-    if (cu == null) {
-      return null;
-    }
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      String contextId = editor.getInputAnalysisContextId();
+      Source source = editor.getInputSource();
+      if (contextId != null && source != null) {
+        NavigationRegion[] navigationRegions = DartCore.getAnalysisServerData().getNavigation(
+            contextId,
+            source);
+        for (NavigationRegion navigationRegion : navigationRegions) {
+          if (navigationRegion.containsInclusive(offset)) {
+            return new IHyperlink[] {new DartNavigationRegionHyperlink_NEW(navigationRegion)};
+          }
+        }
+      }
+    } else {
+      // Get the associated CU
+      CompilationUnit cu = editor.getInputUnit();
+      if (cu == null) {
+        return null;
+      }
 
-    int offset = region.getOffset();
+      AstNode node = new NodeLocator(offset, offset + region.getLength()).searchWithin(cu);
+      if (node == null || node instanceof com.google.dart.engine.ast.CompilationUnit
+          || node instanceof Directive || node instanceof Declaration
+          || node instanceof InstanceCreationExpression || node instanceof PrefixExpression
+          || node instanceof PostfixExpression || node instanceof ConditionalExpression) {
+        return null;
+      }
 
-    AstNode node = new NodeLocator(offset, offset + region.getLength()).searchWithin(cu);
-    if (node == null || node instanceof com.google.dart.engine.ast.CompilationUnit
-        || node instanceof Directive || node instanceof Declaration
-        || node instanceof InstanceCreationExpression || node instanceof PrefixExpression
-        || node instanceof PostfixExpression || node instanceof ConditionalExpression) {
-      return null;
-    }
-
-    Element element = ElementLocator.locateWithOffset(node, offset);
-    if (element != null) {
-      IRegion wordRegion = getWordRegion(node);
-      return new IHyperlink[] {new DartElementHyperlink(element, wordRegion, new OpenAction(editor))};
+      Element element = ElementLocator.locateWithOffset(node, offset);
+      if (element != null) {
+        IRegion wordRegion = getWordRegion(node);
+        return new IHyperlink[] {new DartElementHyperlink_OLD(element, wordRegion, new OpenAction(
+            editor))};
+      }
     }
 
     return null;
