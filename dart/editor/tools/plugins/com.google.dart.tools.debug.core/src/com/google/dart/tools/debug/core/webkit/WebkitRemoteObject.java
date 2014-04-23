@@ -234,4 +234,7 @@ public class WebkitRemoteObject {
     }
   }
 
+  void setDescription(String value) {
+    description = value;
+  }
 }
