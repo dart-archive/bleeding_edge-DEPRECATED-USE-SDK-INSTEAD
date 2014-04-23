@@ -20,6 +20,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -63,11 +64,11 @@ public class GenerateDartErrorsTaskTest extends EngineTestCase {
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(source);
     context.applyChanges(changeSet);
-    context.setContents(source, createSource(createSource(//
+    context.setContents(source, createSource(//
         "library lib;",
         "class A {",
         "  int f = new A();",
-        "}")));
+        "}"));
     final LibraryElement libraryElement = context.computeLibraryElement(source);
     CompilationUnit unit = context.getResolvedCompilationUnit(source, libraryElement);
 
@@ -89,6 +90,45 @@ public class GenerateDartErrorsTaskTest extends EngineTestCase {
         assertSame(source, task.getSource());
         AnalysisError[] errors = task.getErrors();
         assertLength(1, errors);
+        return true;
+      }
+    });
+  }
+
+  public void test_perform_validateDirectives() throws AnalysisException {
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    final Source source = new FileBasedSource(createFile("/test.dart"));
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    context.applyChanges(changeSet);
+    context.setContents(source, createSource(//
+        "library lib;",
+        "import 'invaliduri^.dart';",
+        "export '${a}lib3.dart';",
+        "part '/does/not/exist.dart';",
+        "class A {}"));
+    final LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnit unit = context.getResolvedCompilationUnit(source, libraryElement);
+
+    GenerateDartErrorsTask task = new GenerateDartErrorsTask(
+        context,
+        source,
+        context.getModificationStamp(source),
+        unit,
+        libraryElement);
+    task.perform(new TestTaskVisitor<Boolean>() {
+      @Override
+      public Boolean visitGenerateDartErrorsTask(GenerateDartErrorsTask task)
+          throws AnalysisException {
+        AnalysisException exception = task.getException();
+        if (exception != null) {
+          throw exception;
+        }
+        assertSame(libraryElement, task.getLibraryElement());
+        assertSame(source, task.getSource());
+        AnalysisError[] errors = task.getErrors();
+        assertLength(1, errors);
+        assertSame(CompileTimeErrorCode.URI_DOES_NOT_EXIST, errors[0].getErrorCode());
         return true;
       }
     });

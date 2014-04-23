@@ -19,7 +19,6 @@ import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
-import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.context.AnalysisContext;
@@ -35,16 +34,16 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.io.UriUtilities;
+import com.google.dart.engine.utilities.io.UriUtilities.UriValidationCode;
 import com.google.dart.engine.utilities.source.LineInfo;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashSet;
 
 /**
  * Instances of the class {@code ParseDartTask} parse a specific source as a Dart file.
  */
 public class ParseDartTask extends AnalysisTask {
+
   /**
    * Return the result of resolving the URI of the given URI-based directive against the URI of the
    * given library, or {@code null} if the URI is not valid.
@@ -55,10 +54,25 @@ public class ParseDartTask extends AnalysisTask {
    * @param errorListener the error listener to which errors should be reported
    * @return the result of resolving the URI against the URI of the library
    */
-  public static Source resolveSource(AnalysisContext analysisContext, Source librarySource,
+  public static Source resolveDirective(AnalysisContext context, Source librarySource,
       UriBasedDirective directive, AnalysisErrorListener errorListener) {
     StringLiteral uriLiteral = directive.getUri();
-    if (uriLiteral instanceof StringInterpolation) {
+    String uriContent = uriLiteral.getStringValue();
+    if (uriContent != null) {
+      uriContent = uriContent.trim();
+      directive.setUriContent(uriContent);
+    }
+    UriValidationCode code = UriUtilities.validate(directive);
+    if (code == null) {
+      String encodedUriContent = UriUtilities.encode(uriContent);
+      Source source = context.getSourceFactory().resolveUri(librarySource, encodedUriContent);
+      directive.setSource(source);
+      return source;
+    }
+    if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
+      return null;
+    }
+    if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
       errorListener.onError(new AnalysisError(
           librarySource,
           uriLiteral.getOffset(),
@@ -66,36 +80,16 @@ public class ParseDartTask extends AnalysisTask {
           CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
-    String uriContent = uriLiteral.getStringValue().trim();
-    directive.setUriContent(uriContent);
-    if (directive instanceof ImportDirective && uriContent.startsWith(DART_EXT_SCHEME)) {
-      return null;
-    }
-    try {
-      String encodedUriContent = UriUtilities.encode(uriContent);
-      new URI(encodedUriContent);
-      Source source = analysisContext.getSourceFactory().resolveUri(
-          librarySource,
-          encodedUriContent);
-      if (!analysisContext.exists(source)) {
-        errorListener.onError(new AnalysisError(
-            librarySource,
-            uriLiteral.getOffset(),
-            uriLiteral.getLength(),
-            CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-            uriContent));
-      }
-      directive.setSource(source);
-      return source;
-    } catch (URISyntaxException exception) {
+    if (code == UriValidationCode.INVALID_URI) {
       errorListener.onError(new AnalysisError(
           librarySource,
           uriLiteral.getOffset(),
           uriLiteral.getLength(),
           CompileTimeErrorCode.INVALID_URI,
           uriContent));
+      return null;
     }
-    return null;
+    throw new RuntimeException("Failed to handle validation code: " + code);
   }
 
   /**
@@ -152,11 +146,6 @@ public class ParseDartTask extends AnalysisTask {
    * The errors that were produced by scanning and parsing the source.
    */
   private AnalysisError[] errors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The prefix of a URI using the {@code dart-ext} scheme to reference a native code library.
-   */
-  private static final String DART_EXT_SCHEME = "dart-ext:";
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -305,32 +294,25 @@ public class ParseDartTask extends AnalysisTask {
           containsPartOfDirective = true;
         } else {
           containsNonPartOfDirective = true;
-          if (directive instanceof ExportDirective) {
-            Source exportSource = resolveSource(
+          if (directive instanceof UriBasedDirective) {
+            Source referencedSource = resolveDirective(
                 analysisContext,
                 source,
-                (ExportDirective) directive,
+                (UriBasedDirective) directive,
                 errorListener);
-            if (exportSource != null) {
-              exportedSources.add(exportSource);
-            }
-          } else if (directive instanceof ImportDirective) {
-            Source importSource = resolveSource(
-                analysisContext,
-                source,
-                (ImportDirective) directive,
-                errorListener);
-            if (importSource != null) {
-              importedSources.add(importSource);
-            }
-          } else if (directive instanceof PartDirective) {
-            Source partSource = resolveSource(
-                analysisContext,
-                source,
-                (PartDirective) directive,
-                errorListener);
-            if (partSource != null && !partSource.equals(source)) {
-              includedSources.add(partSource);
+            if (referencedSource != null) {
+              if (directive instanceof ExportDirective) {
+                exportedSources.add(referencedSource);
+              } else if (directive instanceof ImportDirective) {
+                importedSources.add(referencedSource);
+              } else if (directive instanceof PartDirective) {
+                if (!referencedSource.equals(source)) {
+                  includedSources.add(referencedSource);
+                }
+              } else {
+                throw new AnalysisException(getClass().getSimpleName() + " failed to handle a "
+                    + directive.getClass().getName());
+              }
             }
           }
         }

@@ -15,9 +15,7 @@ package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
-import com.google.dart.engine.ast.ExportDirective;
-import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
@@ -243,24 +241,20 @@ public class ParseHtmlTask extends AnalysisTask {
     }
     AnalysisContext analysisContext = getContext();
     for (Directive directive : script.getDirectives()) {
-      if (directive instanceof ExportDirective) {
-        ParseDartTask.resolveSource(
+      if (directive instanceof UriBasedDirective) {
+        UriBasedDirective uriDirective = (UriBasedDirective) directive;
+        Source referencedSource = ParseDartTask.resolveDirective(
             analysisContext,
             source,
-            (ExportDirective) directive,
+            uriDirective,
             errorListener);
-      } else if (directive instanceof ImportDirective) {
-        ParseDartTask.resolveSource(
-            analysisContext,
-            source,
-            (ImportDirective) directive,
-            errorListener);
-      } else if (directive instanceof PartDirective) {
-        ParseDartTask.resolveSource(
-            analysisContext,
-            source,
-            (PartDirective) directive,
-            errorListener);
+        if (referencedSource != null) {
+          GenerateDartErrorsTask.validateReferencedSource(
+              analysisContext,
+              source,
+              uriDirective,
+              errorListener);
+        }
       }
     }
   }

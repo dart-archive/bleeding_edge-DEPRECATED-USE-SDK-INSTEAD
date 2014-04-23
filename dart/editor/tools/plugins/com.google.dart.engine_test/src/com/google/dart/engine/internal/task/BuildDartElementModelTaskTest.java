@@ -16,9 +16,7 @@ package com.google.dart.engine.internal.task;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
-import com.google.dart.engine.ast.ExportDirective;
-import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
@@ -291,12 +289,9 @@ public class BuildDartElementModelTaskTest extends EngineTestCase {
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     for (Directive directive : unit.getDirectives()) {
-      if (directive instanceof ExportDirective) {
-        ParseDartTask.resolveSource(context, source, (ExportDirective) directive, errorListener);
-      } else if (directive instanceof ImportDirective) {
-        ParseDartTask.resolveSource(context, source, (ImportDirective) directive, errorListener);
-      } else if (directive instanceof PartDirective) {
-        ParseDartTask.resolveSource(context, source, (PartDirective) directive, errorListener);
+      if (directive instanceof UriBasedDirective) {
+        UriBasedDirective uriDirective = (UriBasedDirective) directive;
+        ParseDartTask.resolveDirective(context, source, uriDirective, errorListener);
       }
     }
     return unit;

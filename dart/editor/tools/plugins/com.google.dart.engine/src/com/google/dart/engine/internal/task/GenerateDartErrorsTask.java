@@ -14,9 +14,15 @@
 package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.UriBasedDirective;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
@@ -27,12 +33,66 @@ import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
+import com.google.dart.engine.utilities.io.UriUtilities;
 
 /**
  * Instances of the class {@code GenerateDartErrorsTask} generate errors and warnings for a single
  * Dart source.
  */
 public class GenerateDartErrorsTask extends AnalysisTask {
+  /**
+   * Check each directive in the given compilation unit to see if the referenced source exists and
+   * report an error if it does not.
+   * 
+   * @param context the context in which the library exists
+   * @param librarySource the source representing the library containing the directives
+   * @param unit the compilation unit containing the directives to be validated
+   * @param errorListener the error listener to which errors should be reported
+   */
+  public static void validateDirectives(AnalysisContext context, Source librarySource,
+      CompilationUnit unit, AnalysisErrorListener errorListener) {
+    for (Directive directive : unit.getDirectives()) {
+      if (directive instanceof UriBasedDirective) {
+        validateReferencedSource(
+            context,
+            librarySource,
+            (UriBasedDirective) directive,
+            errorListener);
+      }
+    }
+  }
+
+  /**
+   * Check the given directive to see if the referenced source exists and report an error if it does
+   * not.
+   * 
+   * @param context the context in which the library exists
+   * @param librarySource the source representing the library containing the directive
+   * @param directive the directive to be verified
+   * @param errorListener the error listener to which errors should be reported
+   */
+  public static void validateReferencedSource(AnalysisContext context, Source librarySource,
+      UriBasedDirective directive, AnalysisErrorListener errorListener) {
+    Source source = directive.getSource();
+    if (source != null) {
+      if (context.exists(source)) {
+        return;
+      }
+    } else {
+      // Don't report errors already reported by ParseDartTask#resolveDirective
+      if (UriUtilities.validate(directive) != null) {
+        return;
+      }
+    }
+    StringLiteral uriLiteral = directive.getUri();
+    errorListener.onError(new AnalysisError(
+        librarySource,
+        uriLiteral.getOffset(),
+        uriLiteral.getLength(),
+        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        directive.getUriContent()));
+  }
+
   /**
    * The source for which errors and warnings are to be produced.
    */
@@ -130,6 +190,10 @@ public class GenerateDartErrorsTask extends AnalysisTask {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       TypeProvider typeProvider = getContext().getTypeProvider();
+      //
+      // Validate the directives
+      //
+      validateDirectives(getContext(), source, unit, errorListener);
       //
       // Use the ConstantVerifier to verify the use of constants. This needs to happen before using
       // the ErrorVerifier because some error codes need the computed constant values.
