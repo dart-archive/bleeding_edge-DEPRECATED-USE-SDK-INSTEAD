@@ -279,33 +279,46 @@ public class OmniBoxPopup extends BasePopupDialog {
       case SWT.KEYPAD_CR:
         handleSelection();
         break;
-      case SWT.ARROW_DOWN:
+      case SWT.ARROW_DOWN: {
+        e.doit = false;
         int index = table.getSelectionIndex();
-        int count = table.getItemCount();
-        if (index == -1 || index >= count - 1) {
-          break;
-        }
-        int nextIndex = index + 1;
-        if (count > index + 2) {
-          if (isHeader(table.getItem(nextIndex))) {
-            nextIndex++;
+        int numCycles = 0;
+        while (true) {
+          index++;
+          if (index >= table.getItemCount()) {
+            index = 0;
+            numCycles++;
+            if (numCycles >= 2) {
+              return;
+            }
+          }
+          if (!isHeader(table.getItem(index))) {
+            break;
           }
         }
-        table.setSelection(nextIndex);
+        table.setSelection(index);
         break;
-      case SWT.ARROW_UP:
-        index = table.getSelectionIndex();
-        if (index == -1) {
-          break;
-        }
-        int previousIndex = index - 1;
-        if (index >= 2) {
-          if (isHeader(table.getItem(previousIndex))) {
-            previousIndex--;
+      }
+      case SWT.ARROW_UP: {
+        e.doit = false;
+        int index = table.getSelectionIndex();
+        int numCycles = 0;
+        while (true) {
+          index--;
+          if (index < 0) {
+            index = table.getItemCount() - 1;
+            numCycles++;
+            if (numCycles >= 2) {
+              return;
+            }
+          }
+          if (!isHeader(table.getItem(index))) {
+            break;
           }
         }
-        table.setSelection(previousIndex);
+        table.setSelection(index);
         break;
+      }
       case SWT.ESC:
         close();
         break;
