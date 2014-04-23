@@ -55,5 +55,5 @@
     <string color="#2000FF" />
     <typeArgument color="#d07fcd" />
     <typeParameter color="#D00000" bold="true"/>
-    <writeOccurrenceIndication color="#CC6633" />
+    <writeOccurrenceIndication color="#CCFFCC" />
 </colorTheme>

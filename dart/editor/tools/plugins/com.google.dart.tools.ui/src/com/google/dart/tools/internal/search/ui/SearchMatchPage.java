@@ -38,7 +38,6 @@ import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.text.editor.NewDartElementLabelProvider;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
-import com.google.dart.tools.ui.internal.viewsupport.ColoringLabelProvider;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.core.resources.IFile;
@@ -60,6 +59,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -72,11 +72,12 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StyledString;
-import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
@@ -343,6 +344,24 @@ public abstract class SearchMatchPage extends SearchPage {
     }
   }
 
+  private static class PreferenceBackgroundStyler extends StyledString.Styler {
+    private final IPreferenceStore store;
+    private final String key;
+
+    public PreferenceBackgroundStyler(IPreferenceStore store, String key) {
+      this.store = store;
+      this.key = key;
+    }
+
+    @Override
+    public void applyStyles(TextStyle textStyle) {
+      RGB rgb = PreferenceConverter.getColor(store, key);
+      if (rgb != null) {
+        textStyle.background = DartUI.getColorManager().getColor(rgb);
+      }
+    }
+  }
+
   /**
    * Coarse-grained kind of the reference. We don't need all details of {@link MatchKind}.
    */
@@ -465,8 +484,8 @@ public abstract class SearchMatchPage extends SearchPage {
         LineItem item = (LineItem) elem;
         StyledString styledText = new StyledString(item.line.content);
         for (LinePosition linePosition : item.positions) {
-          Styler style = linePosition.kind == ReferenceKind.WRITE
-              ? ColoringLabelProvider.HIGHLIGHT_WRITE_STYLE : ColoringLabelProvider.HIGHLIGHT_STYLE;
+          StyledString.Styler style = linePosition.kind == ReferenceKind.WRITE
+              ? HIGHLIGHT_WRITE_STYLE : HIGHLIGHT_STYLE;
           int styleOffset = linePosition.positionSrc.offset - item.line.start;
           int styleLength = linePosition.positionSrc.length;
           styledText.setStyle(styleOffset, styleLength, style);
@@ -545,6 +564,16 @@ public abstract class SearchMatchPage extends SearchPage {
       return content;
     }
   }
+
+  @SuppressWarnings("restriction")
+  private static final StyledString.Styler HIGHLIGHT_WRITE_STYLE = new PreferenceBackgroundStyler(
+      org.eclipse.ui.internal.editors.text.EditorsPlugin.getDefault().getPreferenceStore(),
+      "writeOccurrenceIndicationColor");
+
+  @SuppressWarnings("restriction")
+  private static final StyledString.Styler HIGHLIGHT_STYLE = new PreferenceBackgroundStyler(
+      org.eclipse.ui.internal.editors.text.EditorsPlugin.getDefault().getPreferenceStore(),
+      "searchResultIndicationColor");
 
   private static final String SETTINGS_ID = "SearchMatchPage";
   private static final String FILTER_SDK_ID = "filter_SDK";
@@ -1428,5 +1457,6 @@ public abstract class SearchMatchPage extends SearchPage {
       return;
     }
     SWTUtil.setColors(viewer.getTree(), preferences);
+    viewer.refresh();
   }
 }
