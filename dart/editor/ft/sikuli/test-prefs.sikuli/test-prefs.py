@@ -1,25 +1,26 @@
 import os
 
 # Add the parent path to the sys path so the script can be run from the dart repo
-scriptPath = os.path.dirname(getBundlePath())
-scriptPath = os.path.normpath(scriptPath + "/../util.sikuli")
-if not scriptPath in sys.path: sys.path.append(scriptPath)
+base_path = os.path.dirname(getBundlePath())
+script_path = os.path.normpath(base_path + "/../util.sikuli")
+if not script_path in sys.path: sys.path.append(script_path)
 
 import util
 reload(util) # Needed during development to avoid restarting Sikuli IDE
+from util import p
 
 def firstPrefPane(region, title):
   "Click in the text pane to the left of the region and wait for title to show up."
   r=region.left(100).right(100)
   r.click()
   type(Key.TAB)
-  region.wait(title)
+  region.wait(p(title))
 
 def nextPrefPane(region, title):
   "Select the next item down in the list and wait for title to show up in the region."
   type(Key.DOWN)
   wait(0.5)
-  region.wait(title, 10)
+  region.wait(p(title), 10)
 
 def selectEditorPrefPane():
   "Select the Editor preferences pane by name."
@@ -79,7 +80,7 @@ def testPrefPaneSelection():
   type(Key.ESC)
 
 def _prefTitleRegion():
-  return find("PreferencesTitle.png").below(40).right(1).left(350)
+  return find(p("PreferencesTitle.png")).below(40).right(1).left(350)
 
 def _selectPrefPane(title):
   t = _prefTitleRegion()
@@ -94,8 +95,9 @@ def _selectPrefPane(title):
   wait(0.5)
   type(Key.DOWN)
   wait(0.5)
-  t.wait(title)
-  
+  t.wait(p(title))
+
+
 util.kill_editor() # Kill any currently running editor
 util.init_dart_editor() # Clear the workspace and start the editor
 testPrefPaneNav() # Test

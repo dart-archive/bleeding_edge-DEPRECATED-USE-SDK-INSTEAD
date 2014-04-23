@@ -1,7 +1,12 @@
 from sikuli import *
 
+import java
 import os
 import subprocess
+import sys
+
+base_path = os.path.dirname(getBundlePath())
+util_path = os.path.normpath(base_path + "/../util.sikuli")
 
 # Utility functions that make working with Dart Editor easier.
 
@@ -33,8 +38,8 @@ def delete_text():
 def disable_code_folding():
   "Uncheck the box for the code folding preference."
   open_preferences()
-  f = find("fold-pref-grey.png")
-  x = f.right(1).left(150).exists("checked-mark.png", 0)
+  f = find(_p(util_path, "fold-pref-grey.png"))
+  x = f.right(1).left(150).exists(_p(util_path, "checked-mark.png"), 0)
   if x:
     x.click() # uncheck the check box
     enter()   # shift focus
@@ -63,7 +68,7 @@ def files_context_menu_select(selection, location=0):
   if (location == 0):
     s = Region(SCREEN)
     s.setW(300)
-    r = s.find("InstalledPackagesLabel.png")
+    r = s.find(_p(util_path, "InstalledPackagesLabel.png"))
     location = r.below(50)
   rightClick(location)
   menuRegion = _merge(location, location.right(200), location.below(300))
@@ -103,11 +108,13 @@ def init_dart_editor():
 
 def is_linux():
   "Return true if running on Linux."
-  return False # TODO
+  os = java.lang.System.getProperty("os.name")
+  return os[0] == "L"
 
 def is_OSX():
   "Return true if running on Mac."
-  return True # TODO
+  os = java.lang.System.getProperty("os.name")
+  return os[0] == "M"
 
 def kill_chromium():
   "Kill chromium if running."
@@ -134,6 +141,9 @@ def open_preferences():
   "Open the Preferences dialog."
   _key_cmd(',')
   wait(0.5)
+
+def p(path):
+  return _p(base_path, path)
 
 def paste_text():
   "Paste text from the clipboard."
@@ -167,10 +177,10 @@ def select_dart_folder_item(name):
   "Select the given name from the file picker"
   s = Region(SCREEN);
   s.setH(300)
-  title = s.find("DartEditorName.png")
+  title = s.find(_p(util_path, "DartEditorName.png"))
   picker = title.below(50).nearby(325)
-  picker.click("dartFolderIcon.png")
-  picker.click("dartFolderIcon.png")
+  picker.click(_p(util_path, "dartFolderIcon.png"))
+  picker.click(_p(util_path, "dartFolderIcon.png"))
   picker.click(name)
   picker.click(name)
   type(Key.ENTER)
@@ -221,8 +231,8 @@ def undo():
 
 def wait_for_analysis():
   "Wait for analysis to finish"
-  if exists("Analyzing.png",2):
-    waitVanish("Analyzing.png", FOREVER)
+  if exists(_p(util_path, "Analyzing.png"), 2):
+    waitVanish(_p(util_path, "Analyzing.png"), FOREVER)
 
 def _check_bounds():
   "Check the screen size is correct and raise an error if not."
@@ -235,7 +245,7 @@ def _check_bounds():
 
 def _init_editor_window(r):
   "If the network connections prompt appears, dismiss it, otherwise click unobtrusively."
-  wait("DartEditorName.png",20)
+  wait(_p(util_path, "DartEditorName.png"),20)
   click(Location(r.width/2+30, r.height/3+55))
 
 def _key_cmd(key):
@@ -250,6 +260,17 @@ def _merge(region, rtRegion, blRegion):
   h=blRegion.getH() + region.getH()
   r=Region(x, y, w, h)
   return r
+
+def _p(base, path):
+  if not isinstance(path, basestring):
+    return path
+  if is_OSX():
+    ospath = "/".join([base, "m", path])
+  elif is_linux():
+    ospath = "/".join([base, "l", path])
+  if os.path.isfile(ospath):
+    return ospath
+  return path
 
 def _shift_key_cmd(key):
   "Send shift-meta-key to the editor."
