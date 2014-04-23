@@ -124,7 +124,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       editor.applyResolvedUnit(null);
 
       // Start analysis immediately if "." pressed to improve code completion response
-      if (".".endsWith(newText)) {
+      if (newText.endsWith(".")) {
         reconcile();
       }
     }
@@ -210,7 +210,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
         String code = document.get();
         instrumentation.data("Length", code.length());
         sourceChanged(code);
-      } else if (!region.isEmpty()) {
+      } else {
         instrumentation.data("Offset", region.getOffset());
         instrumentation.data("OldLength", region.getOldLength());
         instrumentation.data("NewLength", region.getNewLength());
