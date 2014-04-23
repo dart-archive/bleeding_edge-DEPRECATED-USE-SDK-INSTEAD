@@ -555,6 +555,8 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         if (!checkForImplementsDisallowedClass(implementsClause)
             && !checkForExtendsDisallowedClass(extendsClause)
             && !checkForAllMixinErrorCodes(withClause)) {
+          checkForExtendsDeferredClass(extendsClause);
+          checkForImplementsDeferredClass(implementsClause);
           checkForNonAbstractClassInheritsAbstractMember(node.getName());
           checkForInconsistentMethodInheritance();
           checkForRecursiveInterfaceInheritance(enclosingClass);
@@ -601,6 +603,8 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       if (!checkForExtendsDisallowedClassInTypeAlias(node)
           && !checkForImplementsDisallowedClass(node.getImplementsClause())
           && !checkForAllMixinErrorCodes(node.getWithClause())) {
+        checkForExtendsDeferredClassInTypeAlias(node);
+        checkForImplementsDeferredClass(node.getImplementsClause());
         checkForRecursiveInterfaceInheritance(node.getElement());
         checkForTypeAliasCannotReferenceItself_mixin(node);
         checkForNonAbstractClassInheritsAbstractMember(node.getName());
@@ -1768,6 +1772,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         problemReported = true;
       } else {
         ClassElement mixinElement = ((InterfaceType) mixinType).getElement();
+        problemReported |= checkForExtendsOrImplementsDeferredClass(
+            mixinName,
+            CompileTimeErrorCode.MIXIN_DEFERRED_CLASS);
         problemReported |= checkForMixinDeclaresConstructor(mixinName, mixinElement);
         problemReported |= checkForMixinInheritsNotFromObject(mixinName, mixinElement);
         problemReported |= checkForMixinReferencesSuper(mixinName, mixinElement);
@@ -3161,6 +3168,38 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
+   * This verifies that the passed extends clause does not extend a deferred class.
+   * 
+   * @param node the extends clause to test
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#EXTENDS_DEFERRED_CLASS
+   */
+  private boolean checkForExtendsDeferredClass(ExtendsClause node) {
+    if (node == null) {
+      return false;
+    }
+    return checkForExtendsOrImplementsDeferredClass(
+        node.getSuperclass(),
+        CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS);
+  }
+
+  /**
+   * This verifies that the passed type alias does not extend a deferred class.
+   * 
+   * @param node the extends clause to test
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
+   */
+  private boolean checkForExtendsDeferredClassInTypeAlias(ClassTypeAlias node) {
+    if (node == null) {
+      return false;
+    }
+    return checkForExtendsOrImplementsDeferredClass(
+        node.getSuperclass(),
+        CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS);
+  }
+
+  /**
    * This verifies that the passed extends clause does not extend classes such as num or String.
    * 
    * @param node the extends clause to test
@@ -3193,15 +3232,43 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * This verifies that the passed type name does not extend or implement classes such as 'num' or
-   * 'String'.
+   * This verifies that the passed type name does not extend, implement or mixin classes that are
+   * deferred.
+   * 
+   * @param node the type name to test
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see #checkForExtendsDeferredClass(ExtendsClause)
+   * @see #checkForExtendsDeferredClassInTypeAlias(ClassTypeAlias)
+   * @see #checkForImplementsDeferredClass(ImplementsClause)
+   * @see #checkForAllMixinErrorCodes(WithClause)
+   * @see CompileTimeErrorCode#EXTENDS_DEFERRED_CLASS
+   * @see CompileTimeErrorCode#IMPLEMENTS_DEFERRED_CLASS
+   * @see CompileTimeErrorCode#MIXIN_DEFERRED_CLASS
+   */
+  private boolean checkForExtendsOrImplementsDeferredClass(TypeName typeName, ErrorCode errorCode) {
+    if (typeName.isSynthetic()) {
+      return false;
+    }
+    if (typeName.isDeferred()) {
+      errorReporter.reportErrorForNode(errorCode, typeName, typeName.getName().getName());
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed type name does not extend, implement or mixin classes such as
+   * 'num' or 'String'.
    * 
    * @param node the type name to test
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see #checkForExtendsDisallowedClass(ExtendsClause)
+   * @see #checkForExtendsDisallowedClassInTypeAlias(ClassTypeAlias)
    * @see #checkForImplementsDisallowedClass(ImplementsClause)
+   * @see #checkForAllMixinErrorCodes(WithClause)
    * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
    * @see CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS
+   * @see CompileTimeErrorCode#MIXIN_OF_DISALLOWED_CLASS
    */
   private boolean checkForExtendsOrImplementsDisallowedClass(TypeName typeName, ErrorCode errorCode) {
     if (typeName.isSynthetic()) {
@@ -3401,6 +3468,27 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         FieldDeclaration field = (FieldDeclaration) classMember;
         foundError = foundError | checkForFinalNotInitialized(field.getFields());
       }
+    }
+    return foundError;
+  }
+
+  /**
+   * This verifies that the passed implements clause does not implement classes that are deferred.
+   * 
+   * @param node the implements clause to test
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#IMPLEMENTS_DEFERRED_CLASS
+   */
+  private boolean checkForImplementsDeferredClass(ImplementsClause node) {
+    if (node == null) {
+      return false;
+    }
+    boolean foundError = false;
+    for (TypeName type : node.getInterfaces()) {
+      foundError = foundError
+          | checkForExtendsOrImplementsDeferredClass(
+              type,
+              CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS);
     }
     return foundError;
   }

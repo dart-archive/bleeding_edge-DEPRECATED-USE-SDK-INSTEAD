@@ -1034,6 +1034,33 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_extendsDeferredClass() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class B extends a.A {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsDeferredClass_classTypeAlias() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class M {}",
+        "class C = a.A with M;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS);
+    verify(source);
+  }
+
   public void test_extendsDisallowedClass_class_bool() throws Exception {
     Source source = addSource(createSource(//
     "class A extends bool {}"));
@@ -1409,6 +1436,34 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME);
+    verify(source);
+  }
+
+  public void test_implementsDeferredClass() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class B implements a.A {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsDeferredClass_classTypeAlias() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class B {}",
+        "class M {}",
+        "class C = B with M implements a.A;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS);
     verify(source);
   }
 
@@ -2296,6 +2351,33 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B = Object with A;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_mixinDeferredClass() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class B extends Object with a.A {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void test_mixinDeferredClass_classTypeAlias() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class B {}",
+        "class C = B with a.A;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS);
     verify(source);
   }
 

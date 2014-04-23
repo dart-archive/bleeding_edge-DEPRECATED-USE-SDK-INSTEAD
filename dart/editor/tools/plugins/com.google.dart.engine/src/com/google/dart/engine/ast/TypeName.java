@@ -101,6 +101,22 @@ public class TypeName extends AstNode {
     return typeArguments;
   }
 
+  /**
+   * Return {@code true} if this type is a deferred type.
+   * <p>
+   * 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form </i>p.T</i> where <i>p</i>
+   * is a deferred prefix.
+   * 
+   * @return {@code true} if this type is a deferred type
+   */
+  public boolean isDeferred() {
+    Identifier identifier = getName();
+    if (!(identifier instanceof PrefixedIdentifier)) {
+      return false;
+    }
+    return ((PrefixedIdentifier) identifier).isDeferred();
+  }
+
   @Override
   public boolean isSynthetic() {
     return name.isSynthetic() && typeArguments == null;

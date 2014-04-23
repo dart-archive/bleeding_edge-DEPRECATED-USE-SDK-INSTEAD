@@ -14,6 +14,8 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -131,6 +133,28 @@ public class PrefixedIdentifier extends Identifier {
       return null;
     }
     return identifier.getStaticElement();
+  }
+
+  /**
+   * Return {@code true} if this type is a deferred type.
+   * <p>
+   * 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form </i>p.T</i> where <i>p</i>
+   * is a deferred prefix.
+   * 
+   * @return {@code true} if this type is a deferred type
+   */
+  public boolean isDeferred() {
+    Element element = prefix.getStaticElement();
+    if (!(element instanceof PrefixElement)) {
+      return false;
+    }
+    PrefixElement prefixElement = (PrefixElement) element;
+    ImportElement[] imports = prefixElement.getEnclosingElement().getImportsWithPrefix(
+        prefixElement);
+    if (imports.length != 1) {
+      return false;
+    }
+    return imports[0].isDeferred();
   }
 
   /**
