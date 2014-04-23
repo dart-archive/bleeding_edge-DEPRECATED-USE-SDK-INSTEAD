@@ -2386,12 +2386,6 @@
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
 
       <key
-            sequence="CTRL+ALT+H"
-            contextId="com.google.dart.tools.ui.dartEditorScope"
-            commandId="com.google.dart.tools.ui.edit.text.analyze.call.hierarchy"
-            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
-
-      <key
             sequence="F4"
             commandId="com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
