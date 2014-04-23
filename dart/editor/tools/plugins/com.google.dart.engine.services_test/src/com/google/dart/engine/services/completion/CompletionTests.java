@@ -2026,6 +2026,13 @@ public class CompletionTests extends CompletionTestCase {
     test("class A {A({foo, bar}) {}} main() { new A(fo!1); }", "1+foo", "1-bar");
   }
 
+  public void testCompletion_namedArgument_empty() throws Exception {
+    test(
+        "func({foo, bar}) {} main() { func(!1); }",
+        "1+foo:" + ProposalKind.NAMED_ARGUMENT,
+        "1-foo:" + ProposalKind.OPTIONAL_ARGUMENT);
+  }
+
   public void testCompletion_namedArgument_function() throws Exception {
     test("func({foo, bar}) {} main() { func(fo!1); }", "1+foo", "1-bar");
   }

@@ -1986,15 +1986,17 @@ public class CompletionEngine {
     }
     if (argIndex >= 0 && argIndex < parameters.length) {
       ParameterElement parameter = parameters[argIndex];
-      String parameterName = parameter.getDisplayName();
-      CompletionProposal prop = createProposal(ProposalKind.OPTIONAL_ARGUMENT);
-      prop.setCompletion(parameterName);
-      prop.setParameterName(parameterName);
-      prop.setParameterType(parameter.getType().getDisplayName());
-      prop.setLocation(identifier.getOffset());
-      prop.setReplacementLength(identifier.getLength());
-      prop.setRelevance(CompletionProposal.RELEVANCE_HIGH);
-      requestor.accept(prop);
+      if (parameter.getParameterKind() != ParameterKind.NAMED) {
+        String parameterName = parameter.getDisplayName();
+        CompletionProposal prop = createProposal(ProposalKind.OPTIONAL_ARGUMENT);
+        prop.setCompletion(parameterName);
+        prop.setParameterName(parameterName);
+        prop.setParameterType(parameter.getType().getDisplayName());
+        prop.setLocation(identifier.getOffset());
+        prop.setReplacementLength(identifier.getLength());
+        prop.setRelevance(CompletionProposal.RELEVANCE_HIGH);
+        requestor.accept(prop);
+      }
     }
   }
 
