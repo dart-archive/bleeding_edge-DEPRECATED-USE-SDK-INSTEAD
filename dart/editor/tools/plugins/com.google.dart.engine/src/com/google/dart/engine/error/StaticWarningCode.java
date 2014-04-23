@@ -39,6 +39,13 @@ public enum StaticWarningCode implements ErrorCode {
   AMBIGUOUS_IMPORT("The type '%s' is defined in the libraries '%s' and '%s'"),
 
   /**
+   * 15.1 Static Types: It is a static warning to use a deferred type in a type annotation.
+   * 
+   * @param name the name of the type that is deferred and being used in a type annotation
+   */
+  ANNOTATION_DEFERRED_CLASS("The deferred type '%s' cannot be used in a declaration"),
+
+  /**
    * 12.11.1 New: It is a static warning if the static type of <i>a<sub>i</sub>, 1 &lt;= i &lt;= n+
    * k</i> may not be assigned to the type of the corresponding formal parameter of the constructor
    * <i>T.id</i> (respectively <i>T</i>).
@@ -278,6 +285,15 @@ public enum StaticWarningCode implements ErrorCode {
    */
   IMPORT_DUPLICATED_LIBRARY_NAME(
       "The imported libraries '%s' and '%s' should not have the same name '%s'"),
+
+  /**
+   * 14.1 Imports: It is a static warning if the specified URI of a deferred import does not refer
+   * to a library declaration.
+   * 
+   * @param uri the uri pointing to a non-library declaration
+   * @see CompileTimeErrorCode#IMPORT_OF_NON_LIBRARY
+   */
+  IMPORT_OF_NON_LIBRARY("The imported library '%s' must not have a part-of directive"),
 
   /**
    * 8.1.1 Inheritance and Overriding: However, if the above rules would cause multiple members

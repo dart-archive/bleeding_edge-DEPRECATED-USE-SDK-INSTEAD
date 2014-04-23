@@ -153,6 +153,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "Cannot define the 'const' constructor for a class with non-final fields"),
 
   /**
+   * 12.12.2 Const: It is a compile-time error if <i>T</i> is a deferred type.
+   */
+  CONST_DEFERRED_CLASS("Deferred classes cannot be created with 'const'"),
+
+  /**
    * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error if o is not
    * <b>null</b> and the interface of the class of <i>o</i> is not a subtype of the static type of
    * the field <i>v</i>.
@@ -326,6 +331,14 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "Default values aren't allowed in factory constructors that redirect to another constructor"),
 
   /**
+   * 14.1 Imports: A deferred import must include a prefix clause or a compile time error occurs.
+   * 
+   * @param uri the import uri that doesn't have a prefix clause
+   */
+  DEFERRED_IMPORTS_MUST_INCLUDE_PREFIX(
+      "The imported library '%s' must have a prefix, since it is deferred"),
+
+  /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name
    * declared in the same scope.
    */
@@ -414,6 +427,16 @@ public enum CompileTimeErrorCode implements ErrorCode {
   EXTENDS_DISALLOWED_CLASS("Classes cannot extend '%s'"),
 
   /**
+   * 7.9 Superclasses: It is a compile-time error if the extends clause of a class <i>C</i> includes
+   * a deferred type expression.
+   * 
+   * @param typeName the name of the type that cannot be extended
+   * @see #IMPLEMENTS_DEFERRED_CLASS
+   * @see #MIXIN_DEFERRED_CLASS
+   */
+  EXTENDS_DEFERRED_CLASS("This class cannot extend the deferred class '%s'"),
+
+  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;
    * n</i>.
    * <p>
@@ -485,6 +508,16 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "'%s' cannot be used to name a getter, there is already a method with the same name"),
 
   /**
+   * 7.10 Superinterfaces: It is a compile-time error if the implements clause of a class <i>C</i>
+   * specifies a malformed type or deferred type as a superinterface.
+   * 
+   * @param typeName the name of the type that cannot be extended
+   * @see #EXTENDS_DEFERRED_CLASS
+   * @see #MIXIN_DEFERRED_CLASS
+   */
+  IMPLEMENTS_DEFERRED_CLASS("This class cannot implement the deferred class '%s'"),
+
+  /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or implement Null.
    * <p>
    * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement int.
@@ -548,6 +581,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
 
   /**
    * Speculative.
+   * <p>
+   * TODO (jwren) Revisit to remove after we know for sure that this won't be in the Spec.
    */
   IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION(
       "The library '%s' defines a top-level function named 'loadLibrary' and therefore cannot be deferred"),
@@ -560,10 +595,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
   IMPORT_INTERNAL_LIBRARY("The library '%s' is internal and cannot be imported"),
 
   /**
-   * 14.1 Imports: It is a compile-time error if the compilation unit found at the specified URI is
-   * not a library declaration.
+   * 14.1 Imports: It is a compile-time error if the specified URI of an immediate import does not
+   * refer to a library declaration.
    * 
    * @param uri the uri pointing to a non-library declaration
+   * @see StaticWarningCode#IMPORT_OF_NON_LIBRARY
    */
   IMPORT_OF_NON_LIBRARY("The imported library '%s' must not have a part-of directive"),
 
@@ -803,6 +839,16 @@ public enum CompileTimeErrorCode implements ErrorCode {
    */
   MIXIN_DECLARES_CONSTRUCTOR(
       "The class '%s' cannot be used as a mixin because it declares a constructor"),
+
+  /**
+   * 9.1 Mixin Application: It is a compile-time error if the with clause of a mixin application
+   * <i>C</i> includes a deferred type expression.
+   * 
+   * @param typeName the name of the type that cannot be extended
+   * @see #EXTENDS_DEFERRED_CLASS
+   * @see #IMPLEMENTS_DEFERRED_CLASS
+   */
+  MIXIN_DEFERRED_CLASS("This class cannot mixin the deferred class '%s'"),
 
   /**
    * 9 Mixins: It is a compile-time error if a mixin is derived from a class whose superclass is not
@@ -1096,7 +1142,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
   RETURN_IN_GENERATIVE_CONSTRUCTOR("Constructors cannot return a value"),
 
   /**
-   * Speculative.
+   * 14.1 Imports: It is a compile-time error if a prefix used in a deferred import is used in
+   * another import clause.
    */
   SHARED_DEFERRED_PREFIX(
       "The prefix of a deferred import cannot be used in other import directives"),
