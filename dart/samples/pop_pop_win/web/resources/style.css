@@ -32,15 +32,6 @@ body {
   margin-right: 10px;
 }
 
-#loading {
-  left: 0;
-  top: 0;
-  position: relative;
-  margin: 150px auto;
-  width: 504px;
-  height: 88px;
-}
-
 canvas#gameCanvas {
   position: absolute;
 }
