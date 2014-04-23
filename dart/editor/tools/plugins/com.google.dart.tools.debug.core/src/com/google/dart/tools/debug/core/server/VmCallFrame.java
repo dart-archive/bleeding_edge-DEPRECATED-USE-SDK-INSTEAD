@@ -57,11 +57,14 @@ public class VmCallFrame extends VmRef {
     frame.functionName = JsonUtils.getString(object, "functionName");
     frame.location = VmLocation.createFrom(isolate, object.getJSONObject("location"));
     frame.locals = VmVariable.createFrom(isolate, object.optJSONArray("locals"), true);
+    frame.classId = object.optInt("classId", -1);
 
     return frame;
   }
 
   private String functionName;
+
+  private int classId;
 
   private VmLocation location;
 
@@ -69,6 +72,13 @@ public class VmCallFrame extends VmRef {
 
   private VmCallFrame(VmIsolate isolate) {
     super(isolate);
+  }
+
+  /**
+   * Return the classId for this frame; returns -1 if this is not a static or instance frame.
+   */
+  public int getClassId() {
+    return classId;
   }
 
   /**
@@ -101,6 +111,10 @@ public class VmCallFrame extends VmRef {
     }
 
     return null;
+  }
+
+  public boolean hasClassId() {
+    return getClassId() != -1;
   }
 
   public boolean isMain() {

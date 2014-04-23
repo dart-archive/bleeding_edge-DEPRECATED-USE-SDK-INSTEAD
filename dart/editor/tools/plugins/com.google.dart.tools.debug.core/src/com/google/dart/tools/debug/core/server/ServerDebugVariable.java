@@ -64,15 +64,15 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
     }
   }
 
-//  public static ServerDebugVariable createLibraryVariable(ServerDebugTarget target,
-//      VmIsolate isolate, int libraryId) {
-//    ServerDebugVariable variable = new ServerDebugVariable(
-//        target,
-//        DebuggerUtils.TOP_LEVEL_NAME,
-//        new LibraryTopLevelRetriever(target, libraryId, isolate));
-//    variable.setIsLibraryObject(true);
-//    return variable;
-//  }
+  public static ServerDebugVariable createLibraryVariable(ServerDebugTarget target,
+      VmIsolate isolate, int libraryId) {
+    ServerDebugVariable variable = new ServerDebugVariable(
+        target,
+        "globals",
+        new LibraryTopLevelRetriever(target, libraryId, isolate));
+    variable.setIsLibraryObject(true);
+    return variable;
+  }
 
   protected static List<IVariable> createVisibleLibraryVariables(final ServerDebugTarget target,
       final VmIsolate isolate, int libraryId) {
@@ -237,6 +237,11 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
   @Override
   public boolean supportsValueModification() {
     return false;
+  }
+
+  @Override
+  public String toString() {
+    return name;
   }
 
   @Override

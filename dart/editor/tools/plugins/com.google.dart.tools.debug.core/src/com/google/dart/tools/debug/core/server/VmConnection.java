@@ -282,18 +282,20 @@ public class VmConnection {
     callback.handleResult(result);
   }
 
+  public VmClass getClassInfoSync(VmIsolate isolate, int classId) {
+    if (!isolate.hasClassInfo(classId)) {
+      populateClassInfo(isolate, classId);
+    }
+
+    return isolate.getClassInfo(classId);
+  }
+
   public VmClass getClassInfoSync(VmObject obj) {
     if (obj.getClassId() == -1) {
       return null;
     }
 
-    VmIsolate isolate = obj.getIsolate();
-
-    if (!isolate.hasClassInfo(obj.getClassId())) {
-      populateClassInfo(isolate, obj.getClassId());
-    }
-
-    return isolate.getClassInfo(obj.getClassId());
+    return getClassInfoSync(obj.getIsolate(), obj.getClassId());
   }
 
   public String getClassNameSync(VmObject obj) {

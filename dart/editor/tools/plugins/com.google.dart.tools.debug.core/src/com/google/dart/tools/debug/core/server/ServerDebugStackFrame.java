@@ -53,6 +53,10 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
   private List<ServerDebugVariable> locals;
 
+  private IValue classValue;
+
+  private IVariable globalVariable;
+
   public ServerDebugStackFrame(IDebugTarget target, IThread thread, VmCallFrame vmFrame) {
     super(target);
 
@@ -118,23 +122,17 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
           return var;
         }
       }
+    }
 
-      // search statics for an instance method
-      // TODO(devoncarew):
-//      if (thisValue instanceof ServerDebugValue) {
-//        IValue classValue = ((ServerDebugValue) thisValue).getClassValue();
-//
-//        if (classValue != null) {
-//          for (IVariable var : classValue.getVariables()) {
-//            if (var.getName().equals(varName)) {
-//              return var;
-//            }
-//          }
-//        }
-//      }
-    } else {
-      // TODO(devoncarew): search in statics in a class function
+    // search in statics
+    IValue classValue = getClassValue();
 
+    if (classValue != null) {
+      for (IVariable var : classValue.getVariables()) {
+        if (var.getName().equals(varName)) {
+          return var;
+        }
+      }
     }
 
     // search globals
@@ -351,16 +349,25 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     locals = newLocals;
   }
 
-  protected IVariable getGlobalVariable() throws DebugException {
-    for (IVariable var : getVariables()) {
-      if (var instanceof ServerDebugVariable) {
-        if (((ServerDebugVariable) var).isLibraryObject()) {
-          return var;
-        }
-      }
+  protected IValue getClassValue() {
+    if (classValue == null && vmFrame.hasClassId()) {
+      VmClass vmClass = getConnection().getClassInfoSync(vmFrame.getIsolate(), vmFrame.getClassId());
+
+      classValue = new ServerDebugValueClass(getTarget(), vmClass);
     }
 
-    return null;
+    return classValue;
+  }
+
+  protected IVariable getGlobalVariable() throws DebugException {
+    if (globalVariable == null) {
+      globalVariable = ServerDebugVariable.createLibraryVariable(
+          getTarget(),
+          vmFrame.getIsolate(),
+          vmFrame.getLibraryId());
+    }
+
+    return globalVariable;
   }
 
   protected IVariable getThisVariable() throws DebugException {
