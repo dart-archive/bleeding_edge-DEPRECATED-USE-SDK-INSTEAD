@@ -151,7 +151,6 @@ import org.eclipse.jface.text.source.IAnnotationModelExtension;
 import org.eclipse.jface.text.source.ICharacterPairMatcher;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.jface.text.source.ISourceViewerExtension2;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.IVerticalRulerColumn;
 import org.eclipse.jface.text.source.LineChangeHover;
@@ -3228,24 +3227,35 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     }
 
-    ISourceViewer sourceViewer = getSourceViewer();
-    if (!(sourceViewer instanceof ISourceViewerExtension2)) {
+    // TODO(scheglov) This code is intentionally left commented.
+    // If we don't follow the "!(sourceViewer instanceof ISourceViewerExtension2)",
+    // it causes https://code.google.com/p/dart/issues/detail?id=18297
+    // To reproduce it, open editor, rename input file and try to use completion or Quick Assist.
+    // So, we just do it always.
+    {
       setPreferenceStore(createCombinedPreferenceStore(input));
       internalDoSetInput(input);
       return;
     }
 
-    // uninstall & unregister preference store listener
-    getSourceViewerDecorationSupport(sourceViewer).uninstall();
-    ((ISourceViewerExtension2) sourceViewer).unconfigure();
-
-    setPreferenceStore(createCombinedPreferenceStore(input));
-
-    // install & register preference store listener
-    sourceViewer.configure(getSourceViewerConfiguration());
-    getSourceViewerDecorationSupport(sourceViewer).install(getPreferenceStore());
-
-    internalDoSetInput(input);
+//    ISourceViewer sourceViewer = getSourceViewer();
+//    if (!(sourceViewer instanceof ISourceViewerExtension2)) {
+//      setPreferenceStore(createCombinedPreferenceStore(input));
+//      internalDoSetInput(input);
+//      return;
+//    }
+//
+//    // uninstall & unregister preference store listener
+//    getSourceViewerDecorationSupport(sourceViewer).uninstall();
+//    ((ISourceViewerExtension2) sourceViewer).unconfigure();
+//
+//    setPreferenceStore(createCombinedPreferenceStore(input));
+//
+//    // install & register preference store listener
+//    sourceViewer.configure(getSourceViewerConfiguration());
+//    getSourceViewerDecorationSupport(sourceViewer).install(getPreferenceStore());
+//
+//    internalDoSetInput(input);
   }
 
   @Override
