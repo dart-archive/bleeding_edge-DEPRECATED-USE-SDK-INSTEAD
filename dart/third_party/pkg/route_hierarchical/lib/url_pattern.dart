@@ -53,7 +53,7 @@ UrlPattern urlPattern(String p) => new UrlPattern(p);
  *       server.addRequestHandler(matchesUrl(articleUrl), serveArticle);
  *     }
  *
- *     serveArcticle(req, res) {
+ *     serveArticle(req, res) {
  *       var articleId = articleUrl.parse(req.path)[0];
  *       // ...
  *     }
@@ -94,15 +94,14 @@ class UrlPattern implements UrlMatcher, Pattern {
 
   String reverse(Iterable args, {bool useFragment: false}) {
     var sb = new StringBuffer();
-    var chars = pattern.split('');
     var argsIter = args.iterator;
 
     int depth = 0;
     int groupCount = 0;
     bool escaped = false;
 
-    for (int i = 0; i < chars.length; i++) {
-      var c = chars[i];
+    for (int i = 0; i < pattern.length; i++) {
+      var c = pattern[i];
       if (c == '\\' && escaped == false) {
         escaped = true;
       } else {
@@ -198,17 +197,10 @@ class UrlPattern implements UrlMatcher, Pattern {
    * fragment to the server, so the server will have to handle just the path
    * part.
    */
-  bool matchesNonFragment(String str) {
-    if (!_hasFragment) {
-      return matches(str);
-    } else {
-      return _matches(_baseRegex, str);
-    }
-  }
+  bool matchesNonFragment(String str) =>
+      _hasFragment ? _matches(_baseRegex, str) : matches(str);
 
-  Iterable<Match> allMatches(String str) {
-    return regex.allMatches(str);
-  }
+  Iterable<Match> allMatches(String str) => regex.allMatches(str);
 
   bool operator ==(other) =>
       (other is UrlPattern) && (other.pattern == pattern);
@@ -280,7 +272,6 @@ class UrlPattern implements UrlMatcher, Pattern {
         sb.write(c);
       }
     }
-//    sb.write(r'$');
     _regex = new RegExp(sb.toString());
   }
 

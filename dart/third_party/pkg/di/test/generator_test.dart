@@ -7,11 +7,11 @@ main(args) => group('generator', () {
 
   test('should codesplit deferred libraries', () {
     Map<generator.Chunk, String> code = generator.generateCode(
-        'test/assets/gen_test1/main.dart', ['annotations.Injectable'],
-        Platform.environment['DART_SDK'], [Platform.packageRoot]);
+        'test_assets/gen_test1/main.dart', ['annotations.InjectableTest'],
+        Platform.environment['DART_SDK'], [Platform.packageRoot], 'main.dart');
 
     expect(code.keys.map((chunk) => chunk.library == null ? null : chunk.library.name),
-        unorderedEquals([null, 'lib_a', 'lib_b']));
+        unorderedEquals([null, 'lib_a', 'lib_b', 'lib_c']));
 
     code.forEach((chunk, code) {
       var cu = parseCompilationUnit(code);
@@ -21,6 +21,8 @@ main(args) => group('generator', () {
         expectHasImports(cu, ['a.dart', 'a2.dart', 'common2.dart']);
       } else if (chunk.library.name.endsWith('lib_b')) {
         expectHasImports(cu, ['b.dart', 'b2.dart', 'common2.dart']);
+      } else if (chunk.library.name.endsWith('lib_c')) {
+        expectHasImports(cu, []);
       }
     });
   });

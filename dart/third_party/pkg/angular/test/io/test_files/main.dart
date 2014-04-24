@@ -1,16 +1,16 @@
 library test_files.main;
 
-import 'package:angular/core/module.dart';
+import 'package:angular/core/annotation_src.dart';
 
-@NgDirective(
-    children: NgAnnotation.TRANSCLUDE_CHILDREN,
+@Decorator(
+    children: Directive.TRANSCLUDE_CHILDREN,
     selector:'[ng-if]',
     map: const {'.': '=>ngIfCondition'})
 class NgIfDirective {
   bool ngIfCondition;
 }
 
-@NgComponent(
+@Component(
     selector: 'my-component',
     map: const {
       'attr': '@attr',

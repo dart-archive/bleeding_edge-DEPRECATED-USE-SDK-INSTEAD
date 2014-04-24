@@ -2,6 +2,7 @@ library routing_spec;
 
 import '../_specs.dart';
 import 'package:angular/mock/module.dart';
+import 'package:angular/application_factory.dart';
 import 'dart:async';
 
 main() {
@@ -9,7 +10,7 @@ main() {
     TestBed _;
     Router router;
 
-    beforeEach(module((Module m) {
+    beforeEachModule((Module m) {
       _initRoutesCalls = 0;
       _router = null;
       router = new Router(useFragment: false, windowImpl: new MockWindow());
@@ -17,11 +18,11 @@ main() {
         ..install(new AngularMockModule())
         ..factory(RouteInitializerFn, (_) => initRoutes)
         ..value(Router, router);
-    }));
+    });
 
-    beforeEach(inject((TestBed tb) {
+    beforeEach((TestBed tb) {
       _ = tb;
-    }));
+    });
 
     it('should call init of the RouteInitializer once', async(() {
       expect(_initRoutesCalls).toEqual(0);
@@ -32,7 +33,6 @@ main() {
       expect(_initRoutesCalls).toEqual(1);
       expect(_router).toBe(router);
     }));
-
   });
 
   describe('routing DSL', () {
@@ -44,10 +44,10 @@ main() {
     });
 
     initRouter(initializer) {
-      var module = new Module()
-          ..value(RouteInitializerFn, initializer);
-      var injector = new DynamicInjector(
-          modules: [new AngularModule(), new AngularMockModule(), module]);
+      var injector = applicationFactory()
+        .addModule(new AngularMockModule())
+        .addModule(new Module()..value(RouteInitializerFn, initializer))
+        .createInjector();
       injector.get(NgRoutingHelper); // force routing initialization
       router = injector.get(Router);
       _ = injector.get(TestBed);
@@ -60,7 +60,7 @@ main() {
         'baz': 0,
         'aux': 0,
       };
-      initRouter((Router router, ViewFactory views) {
+      initRouter((Router router, RouteViewFactory views) {
         views.configure({
           'foo': ngRoute(
               path: '/foo',
@@ -83,10 +83,10 @@ main() {
         });
       });
 
-      expect(router.root.getRoute('foo').name).toEqual('foo');
-      expect(router.root.getRoute('foo.bar').name).toEqual('bar');
-      expect(router.root.getRoute('foo.baz').name).toEqual('baz');
-      expect(router.root.getRoute('aux').name).toEqual('aux');
+      expect(router.root.findRoute('foo').name).toEqual('foo');
+      expect(router.root.findRoute('foo.bar').name).toEqual('bar');
+      expect(router.root.findRoute('foo.baz').name).toEqual('baz');
+      expect(router.root.findRoute('aux').name).toEqual('aux');
 
       router.route('/foo');
       microLeap();
@@ -128,7 +128,7 @@ main() {
 
     it('should set the default route', async(() {
       int enterCount = 0;
-      initRouter((Router router, ViewFactory views) {
+      initRouter((Router router, RouteViewFactory views) {
         views.configure({
           'foo': ngRoute(path: '/foo'),
           'bar': ngRoute(path: '/bar', defaultRoute: true),
@@ -146,7 +146,7 @@ main() {
 
     it('should call enter callback and show the view when routed', async(() {
       int enterCount = 0;
-      initRouter((Router router, ViewFactory views) {
+      initRouter((Router router, RouteViewFactory views) {
         views.configure({
           'foo': ngRoute(
               path: '/foo',
@@ -158,12 +158,12 @@ main() {
       _.injector.get(TemplateCache)
           .put('foo.html', new HttpResponse(200, '<h1>Foo</h1>'));
 
-      Element root = _.compile('<ng-view></ng-view>');
+      Element root = _.compile('<div><ng-view></ng-view><div>');
       expect(root.text).toEqual('');
 
       router.route('/foo');
       microLeap();
-
+      _.rootScope.apply();
       expect(enterCount).toBe(1);
       expect(root.text).toEqual('Foo');
     }));
@@ -172,7 +172,7 @@ main() {
     it('should call preEnter callback and load modules', async(() {
       int preEnterCount = 0;
       int modulesCount = 0;
-      initRouter((Router router, ViewFactory views) {
+      initRouter((Router router, RouteViewFactory views) {
         views.configure({
           'foo': ngRoute(
               path: '/foo',
@@ -216,7 +216,7 @@ main() {
 
     it('should clear view on leave an call leave callback', async(() {
       int leaveCount = 0;
-      initRouter((Router router, ViewFactory views) {
+      initRouter((Router router, RouteViewFactory views) {
         views.configure({
           'foo': ngRoute(
               path: '/foo',
@@ -231,25 +231,25 @@ main() {
       _.injector.get(TemplateCache)
           .put('foo.html', new HttpResponse(200, '<h1>Foo</h1>'));
 
-      Element root = _.compile('<ng-view></ng-view>');
+      Element root = _.compile('<div><ng-view></ng-view><div>');
       expect(root.text).toEqual('');
 
       router.route('/foo');
       microLeap();
-
+      _.rootScope.apply();
       expect(root.text).toEqual('Foo');
       expect(leaveCount).toBe(0);
 
       router.route('/bar');
       microLeap();
-
+      _.rootScope.apply();
       expect(root.text).toEqual('');
       expect(leaveCount).toBe(1);
     }));
 
 
     it('should synchronously load new directives from modules ', async(() {
-      initRouter((Router router, ViewFactory views) {
+      initRouter((Router router, RouteViewFactory views) {
         views.configure({
           'foo': ngRoute(
               path: '/foo',
@@ -263,18 +263,18 @@ main() {
       _.injector.get(TemplateCache)
           .put('foo.html', new HttpResponse(200, '<div make-it-new>Old!</div>'));
 
-      Element root = _.compile('<ng-view></ng-view>');
+      Element root = _.compile('<div><ng-view></ng-view><div>');
       expect(root.text).toEqual('');
 
       router.route('/foo');
       microLeap();
-
+      _.rootScope.apply();
       expect(root.text).toEqual('New!');
     }));
 
 
     it('should asynchronously load new directives from modules ', async(() {
-      initRouter((Router router, ViewFactory views) {
+      initRouter((Router router, RouteViewFactory views) {
         views.configure({
           'foo': ngRoute(
               path: '/foo',
@@ -288,18 +288,18 @@ main() {
       _.injector.get(TemplateCache)
           .put('foo.html', new HttpResponse(200, '<div make-it-new>Old!</div>'));
 
-      Element root = _.compile('<ng-view></ng-view>');
+      Element root = _.compile('<div><ng-view></ng-view><div>');
       expect(root.text).toEqual('');
 
       router.route('/foo');
       microLeap();
-
+      _.rootScope.apply();
       expect(root.text).toEqual('New!');
     }));
 
 
-    it('should synchronously load new filters from modules ', async(() {
-      initRouter((Router router, ViewFactory views) {
+    it('should synchronously load new formatters from modules ', async(() {
+      initRouter((Router router, RouteViewFactory views) {
         views.configure({
           'foo': ngRoute(
               path: '/foo',
@@ -313,19 +313,18 @@ main() {
       _.injector.get(TemplateCache)
           .put('foo.html', new HttpResponse(200, '<div>{{\'World\' | hello}}</div>'));
 
-      Element root = _.compile('<ng-view></ng-view>');
+      Element root = _.compile('<div><ng-view></ng-view></div>');
       expect(root.text).toEqual('');
 
       router.route('/foo');
       microLeap();
       _.rootScope.apply();
-
       expect(root.text).toEqual('Hello, World!');
     }));
 
 
-    it('should asynchronously load new filters from modules ', async(() {
-      initRouter((Router router, ViewFactory views) {
+    it('should asynchronously load new formatters from modules ', async(() {
+      initRouter((Router router, RouteViewFactory views) {
         views.configure({
           'foo': ngRoute(
               path: '/foo',
@@ -339,13 +338,12 @@ main() {
       _.injector.get(TemplateCache)
           .put('foo.html', new HttpResponse(200, '<div>{{\'World\' | hello}}</div>'));
 
-      Element root = _.compile('<ng-view></ng-view>');
+      Element root = _.compile('<div><ng-view></ng-view></div>');
       expect(root.text).toEqual('');
 
       router.route('/foo');
       microLeap();
       _.rootScope.apply();
-
       expect(root.text).toEqual('Hello, World!');
     }));
 
@@ -355,21 +353,21 @@ main() {
 var _router;
 var _initRoutesCalls = 0;
 
-void initRoutes(Router router, ViewFactory view) {
+void initRoutes(Router router, RouteViewFactory view) {
   _initRoutesCalls++;
   _router = router;
 }
 
-@NgDirective(selector: '[make-it-new]')
+@Decorator(selector: '[make-it-new]')
 class NewDirective {
   NewDirective(Element element) {
     element.innerHtml = 'New!';
   }
 }
 
-@NgFilter(name:'hello')
+@Formatter(name:'hello')
 class HelloFilter {
-  call(String str) {
+  String call(String str) {
     return 'Hello, $str!';
   }
 }

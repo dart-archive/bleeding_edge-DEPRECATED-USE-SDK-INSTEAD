@@ -1,16 +1,35 @@
+ /**
+ *
+ * Directives for [angular.dart](#angular/angular), a web framework for Dart. A directive attaches
+ * a specified behavior to a DOM element.
+ *
+ * This library is included as part of [angular.dart](#angular/angular). It provides all of
+ * the core Directives available in Angular. You can extend Angular by writing your own directives
+ * and providing them as part of a custom library.
+ *
+ * Directives consist of a class specifying the behavior, and a directive annotation (such as a
+ * [Decorator] or a [Component]) that describes when the behavior should be applied.
+ *
+ * For example:
+ *
+ *     <span ng-show="ctrl.isVisible">this text is conditionally visible</span>
+ *
+ */
 library angular.directive;
 
 import 'package:di/di.dart';
 import 'dart:html' as dom;
 import 'package:intl/intl.dart';
-import 'package:angular/core/module.dart';
+import 'package:angular/core/annotation.dart';
+import 'package:angular/core/module_internal.dart';
 import 'package:angular/core/parser/parser.dart';
-import 'package:angular/core_dom/module.dart';
+import 'package:angular/core_dom/module_internal.dart';
 import 'package:angular/utils.dart';
 import 'package:angular/change_detection/watch_group.dart';
 import 'package:angular/change_detection/change_detection.dart';
 
-part 'ng_a.dart';
+part 'a_href.dart';
+part 'ng_base_css.dart';
 part 'ng_bind.dart';
 part 'ng_bind_html.dart';
 part 'ng_bind_template.dart';
@@ -29,52 +48,55 @@ part 'ng_src_boolean.dart';
 part 'ng_style.dart';
 part 'ng_switch.dart';
 part 'ng_non_bindable.dart';
-part 'input_select.dart';
+part 'ng_model_select.dart';
 part 'ng_form.dart';
 part 'ng_model_validators.dart';
 
-class NgDirectiveModule extends Module {
-  NgDirectiveModule() {
-    value(NgADirective, null);
-    value(NgBindDirective, null);
-    value(NgBindTemplateDirective, null);
-    value(NgBindHtmlDirective, null);
-    value(dom.NodeValidator, new dom.NodeValidatorBuilder.common());
-    value(NgClassDirective, null);
-    value(NgClassOddDirective, null);
-    value(NgClassEvenDirective, null);
-    value(NgCloakDirective, null);
-    value(NgHideDirective, null);
-    value(NgIfDirective, null);
-    value(NgUnlessDirective, null);
-    value(NgIncludeDirective, null);
-    value(NgPluralizeDirective, null);
-    value(NgRepeatDirective, null);
-    value(NgShallowRepeatDirective, null);
-    value(NgShowDirective, null);
-    value(InputTextLikeDirective, null);
-    value(InputNumberLikeDirective, null);
-    value(InputRadioDirective, null);
-    value(InputCheckboxDirective, null);
-    value(InputSelectDirective, null);
-    value(OptionValueDirective, null);
-    value(ContentEditableDirective, null);
+class DecoratorFormatter extends Module {
+  DecoratorFormatter() {
+    value(AHref, null);
+    type(NgBaseCss);  // The root injector should have an empty NgBaseCss
+    value(NgBind, null);
+    value(NgBindTemplate, null);
+    value(NgBindHtml, null);
+    factory(dom.NodeValidator, (_) =>
+        new dom.NodeValidatorBuilder.common());
+    value(NgClass, null);
+    value(NgClassOdd, null);
+    value(NgClassEven, null);
+    value(NgCloak, null);
+    value(NgHide, null);
+    value(NgIf, null);
+    value(NgUnless, null);
+    value(NgInclude, null);
+    value(NgPluralize, null);
+    value(NgRepeat, null);
+    value(NgShow, null);
+    value(InputTextLike, null);
+    value(InputDateLike, null);
+    value(InputNumberLike, null);
+    value(InputRadio, null);
+    value(InputCheckbox, null);
+    value(InputSelect, null);
+    value(OptionValue, null);
+    value(ContentEditable, null);
+    value(NgBindTypeForDateLike, null);
     value(NgModel, null);
-    value(NgValue, new NgValue(null));
-    value(NgTrueValue, new NgTrueValue(null));
-    value(NgFalseValue, new NgFalseValue(null));
-    value(NgSwitchDirective, null);
-    value(NgSwitchWhenDirective, null);
-    value(NgSwitchDefaultDirective, null);
+    value(NgValue, null);
+    value(NgTrueValue, new NgTrueValue());
+    value(NgFalseValue, new NgFalseValue());
+    value(NgSwitch, null);
+    value(NgSwitchWhen, null);
+    value(NgSwitchDefault, null);
 
-    value(NgBooleanAttributeDirective, null);
-    value(NgSourceDirective, null);
-    value(NgAttributeDirective, null);
+    value(NgBooleanAttribute, null);
+    value(NgSource, null);
+    value(NgAttribute, null);
 
-    value(NgEventDirective, null);
-    value(NgStyleDirective, null);
-    value(NgNonBindableDirective, null);
-    value(NgTemplateDirective, null);
+    value(NgEvent, null);
+    value(NgStyle, null);
+    value(NgNonBindable, null);
+    value(NgTemplate, null);
     value(NgControl, new NgNullControl());
     value(NgForm, new NgNullForm());
 
@@ -82,6 +104,8 @@ class NgDirectiveModule extends Module {
     value(NgModelUrlValidator, null);
     value(NgModelEmailValidator, null);
     value(NgModelNumberValidator, null);
+    value(NgModelMaxNumberValidator, null);
+    value(NgModelMinNumberValidator, null);
     value(NgModelPatternValidator, null);
     value(NgModelMinLengthValidator, null);
     value(NgModelMaxLengthValidator, null);

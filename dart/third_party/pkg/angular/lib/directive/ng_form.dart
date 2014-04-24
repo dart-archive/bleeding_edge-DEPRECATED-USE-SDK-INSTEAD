@@ -5,23 +5,26 @@ part of angular.directive;
  * on if an action is set, the form will automatically either allow
  * or prevent the default browser submission from occurring.
  */
-@NgDirective(
+@Decorator(
     selector: 'form',
-    publishTypes : const <Type>[NgControl],
-    visibility: NgDirective.CHILDREN_VISIBILITY)
-@NgDirective(
+    module: NgForm.module)
+@Decorator(
     selector: 'fieldset',
-    publishTypes : const <Type>[NgControl],
-    visibility: NgDirective.CHILDREN_VISIBILITY)
-@NgDirective(
+    module: NgForm.module)
+@Decorator(
     selector: '.ng-form',
-    publishTypes : const <Type>[NgControl],
-    visibility: NgDirective.CHILDREN_VISIBILITY)
-@NgDirective(
+    module: NgForm.module)
+@Decorator(
     selector: '[ng-form]',
-    publishTypes : const <Type>[NgControl],
-    visibility: NgDirective.CHILDREN_VISIBILITY)
-class NgForm extends NgControl implements Map<String, NgControl> {
+    module: NgForm.module,
+    map: const { 'ng-form': '@name' })
+class NgForm extends NgControl {
+  static final Module _module = new Module()
+      ..factory(NgControl, (i) => i.get(NgForm));
+  static module() => _module;
+
+  final Scope _scope;
+
   /**
    * Instantiates a new instance of NgForm. Upon creation, the instance of the
    * class will be bound to the formName property on the scope (where formName
@@ -32,75 +35,52 @@ class NgForm extends NgControl implements Map<String, NgControl> {
    * * [element] - The form DOM element.
    * * [injector] - An instance of Injector.
    */
-  NgForm(Scope scope, dom.Element element, Injector injector) :
-    super(scope, element, injector) {
+  NgForm(this._scope, NgElement element, Injector injector, Animate animate) :
+    super(element, injector, animate) {
 
-    if (!element.attributes.containsKey('action')) {
-      element.onSubmit.listen((event) {
+    if (!element.node.attributes.containsKey('action')) {
+      element.node.onSubmit.listen((event) {
         event.preventDefault();
-        _scope.broadcast('submitNgControl', valid == null ? false : valid);
-        reset();
+        onSubmit(valid == true);
+        if (valid == true) {
+          reset();
+        }
       });
     }
   }
 
+  /**
+    * The name of the control. This is usually fetched via the name attribute that is
+    * present on the element that the control is bound to.
+    */
   @NgAttr('name')
   get name => _name;
-  set name(value) {
-    super.name = value;
-    _scope.context[name] = this;
-  }
-
-  //FIXME: fix this reflection bug that shows up when Map is implemented
-  operator []=(String key, value) {
-    if (key == 'name') {
-      name = value;
-    } else {
-      _controlByName[key] = value;
+  set name(String value) {
+    if (value != null) {
+      super.name = value;
+      _scope.context[name] = this;
     }
   }
 
-  //FIXME: fix this reflection bug that shows up when Map is implemented
-  operator[](name) {
-    if (name == 'valid') {
-      return valid;
-    } else if (name == 'invalid') {
-      return invalid;
-    } else {
-      return _controlByName[name];
-    }
-  }
+  /**
+    * The list of associated child controls.
+    */
+  get controls => _controlByName;
 
-  bool get isEmpty => false;
-  bool get isNotEmpty => !isEmpty;
-  get values => null;
-  get keys => null;
-  get length => null;
-  clear() => null;
-  remove(_) => null;
-  containsKey(_) => false;
-  containsValue(_) => false;
-  addAll(_) => null;
-  forEach(_) => null;
-  putIfAbsent(_, __) => null;
+  /**
+    * Returns the child control that is associated with the given name. If multiple
+    * child controls contain the same name then the first instance will be returned.
+    */
+  NgControl operator[](String name) =>
+      controls.containsKey(name) ? controls[name][0] : null;
 }
 
 class NgNullForm extends NgNullControl implements NgForm {
+  var _scope;
+
   NgNullForm() {}
-
+  operator []=(String key, value) {}
   operator[](name) {}
-  operator []=(String name, value) {}
 
-  bool get isEmpty => false;
-  bool get isNotEmpty => true;
-  get values => null;
-  get keys => null;
-  get length => null;
-  clear() => null;
-  remove(_) => null;
-  containsKey(_) => false;
-  containsValue(_) => false;
-  addAll(_) => null;
-  forEach(_) => null;
-  putIfAbsent(_, __) => null;
+  get controls => null;
 }

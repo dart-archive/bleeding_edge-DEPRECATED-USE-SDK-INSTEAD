@@ -15,13 +15,13 @@ part of angular.directive;
  *
  * An alternative solution to this problem would be using the ngCloak directive.
  */
-@NgDirective(
+@Decorator(
   selector: '[ng-bind]',
   map: const {'ng-bind': '=>value'})
-class NgBindDirective {
+class NgBind {
   final dom.Element element;
 
-  NgBindDirective(this.element);
+  NgBind(this.element);
 
   set value(value) => element.text = value == null ? '' : value.toString();
 }

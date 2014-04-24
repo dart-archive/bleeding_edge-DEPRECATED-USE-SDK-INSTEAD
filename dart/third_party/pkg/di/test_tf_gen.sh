@@ -8,5 +8,5 @@ fi
 
 set -v
 
-dart bin/generator.dart $DART_SDK test/main.dart di.tests.Injectable test/type_factories_gen.dart packages/
+dart bin/generator.dart $DART_SDK test/main.dart di.tests.InjectableTest test/type_factories_gen.dart packages/
 

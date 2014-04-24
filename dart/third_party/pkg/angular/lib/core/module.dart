@@ -1,58 +1,75 @@
+/**
+ * Core functionality for [angular.dart](#angular/angular), a web framework for Dart.
+ *
+ * This library is included as part of [angular.dart](#angular/angular). The angular.core library
+ * provides all of the fundamental Classes and Type Definitions that provide the basis for
+ * formatters (in [angular .formatter](#angular-formatter)) and directives (in [angular.directive]
+ * (#angular-directive)).
+ *
+ */
 library angular.core;
 
-import 'dart:async' as async;
-import 'dart:collection';
-import 'dart:mirrors';
-import 'package:intl/intl.dart';
+export "package:angular/change_detection/watch_group.dart" show
+    ReactionFn;
 
-import 'package:di/di.dart';
+export "package:angular/core/parser/parser.dart" show
+    Parser;
 
-import 'package:angular/core/parser/parser.dart';
-import 'package:angular/core/parser/lexer.dart';
-import 'package:angular/utils.dart';
+export "package:angular/core/parser/dynamic_parser.dart" show
+    ClosureMap;
 
-import 'package:angular/core/service.dart';
-export 'package:angular/core/service.dart';
+export "package:angular/change_detection/change_detection.dart" show
+    AvgStopwatch,
+    FieldGetterFactory;
 
-import 'package:angular/change_detection/watch_group.dart';
-export 'package:angular/change_detection/watch_group.dart';
-import 'package:angular/change_detection/change_detection.dart';
-import 'package:angular/change_detection/dirty_checking_change_detector.dart';
-import 'package:angular/core/parser/utils.dart';
-import 'package:angular/core/parser/syntax.dart';
+export "package:angular/core_dom/module_internal.dart" show
+    Animation,
+    AnimationResult,
+    BrowserCookies,
+    Cache,
+    Compiler,
+    Cookies,
+    BoundViewFactory,
+    DirectiveMap,
+    ElementProbe,
+    EventHandler,
+    Http,
+    HttpBackend,
+    HttpDefaultHeaders,
+    HttpDefaults,
+    HttpInterceptor,
+    HttpInterceptors,
+    HttpResponse,
+    HttpResponseConfig,
+    LocationWrapper,
+    NgAnimate,
+    NgElement,
+    NoOpAnimation,
+    NullTreeSanitizer,
+    Animate,
+    RequestErrorInterceptor,
+    RequestInterceptor,
+    Response,
+    ResponseError,
+    UrlRewriter,
+    TemplateCache,
+    View,
+    ViewCache,
+    ViewFactory,
+    ViewPort;
 
-part "cache.dart";
-part "directive.dart";
-part "exception_handler.dart";
-part "filter.dart";
-part "interpolate.dart";
-part "registry.dart";
-part "scope.dart";
-part "zone.dart";
-
-
-class NgCoreModule extends Module {
-  NgCoreModule() {
-    type(ScopeDigestTTL);
-
-    type(MetadataExtractor);
-    type(Cache);
-    type(ExceptionHandler);
-    type(FilterMap);
-    type(Interpolate);
-    type(RootScope);
-    factory(Scope, (injector) => injector.get(RootScope));
-    value(ScopeStats, new ScopeStats());
-    value(GetterCache, new GetterCache({}));
-    value(Object, {}); // RootScope context
-    type(AstParser);
-    type(NgZone);
-
-    type(Parser, implementedBy: DynamicParser);
-    type(ParserBackend, implementedBy: DynamicParserBackend);
-    type(DynamicParser);
-    type(DynamicParserBackend);
-    type(Lexer);
-    type(ClosureMap);
-  }
-}
+export "package:angular/core/module_internal.dart" show
+    CacheStats,
+    ExceptionHandler,
+    FilterMap,
+    Interpolate,
+    VmTurnZone,
+    PrototypeMap,
+    RootScope,
+    Scope,
+    ScopeDigestTTL,
+    ScopeEvent,
+    ScopeStats,
+    ScopeStatsConfig,
+    ScopeStatsEmitter,
+    Watch;

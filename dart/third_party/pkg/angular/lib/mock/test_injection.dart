@@ -1,4 +1,9 @@
-part of angular.mock;
+library angular.mock.test_injection;
+
+import 'package:angular/application_factory.dart';
+import 'package:angular/mock/module.dart';
+import 'package:di/di.dart';
+import 'package:di/dynamic_injector.dart';
 
 _SpecInjector _currentSpecInjector = null;
 
@@ -68,11 +73,14 @@ class _SpecInjector {
  *
  * NOTE: Calling inject creates an injector, which prevents any more calls to [module].
  *
+ * NOTE: [inject] will never return the result of [fn]. If you need to return a [Future]
+ * for unittest to consume, take a look at [async], [clockTick], and [microLeap] instead.
+ *
  * Typical usage:
  *
  *     test('wrap whole test', inject((TestBed tb) {
  *       tb.compile(...);
- *     });
+ *     }));
  *
  *     test('wrap part of a test', () {
  *       module((Module module) {
@@ -127,7 +135,9 @@ module(fnOrModule) {
 void setUpInjector() {
   _currentSpecInjector = new _SpecInjector();
   _currentSpecInjector.module((Module m) {
-    m..install(new AngularModule())..install(new AngularMockModule());
+    m
+      ..install(applicationFactory().ngModule)
+      ..install(new AngularMockModule());
   });
 }
 

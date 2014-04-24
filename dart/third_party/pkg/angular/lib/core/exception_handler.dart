@@ -1,4 +1,4 @@
-part of angular.core;
+part of angular.core_internal;
 
 /**
  * Any uncaught exception in angular expressions is delegated to this service.
@@ -7,7 +7,7 @@ part of angular.core;
  * In your application it is expected that this service is overridden with
  * your implementation which can store the exception for later processing.
  */
-@NgInjectableService()
+@Injectable()
 class ExceptionHandler {
 
  /**

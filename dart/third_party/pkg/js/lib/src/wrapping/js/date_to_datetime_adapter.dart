@@ -43,10 +43,9 @@ class JsDateToDateTimeAdapter extends TypedProxy implements DateTime {
   @override int get weekday => _asDateTime().weekday;
   @override int get millisecondsSinceEpoch =>
       _asDateTime().millisecondsSinceEpoch;
-  @override void set millisecondsSinceEpoch(v) => throw "final";
   @override bool get isUtc => _asDateTime().isUtc;
-  @override void set isUtc(v) => throw "final";
   @override String toString() => _asDateTime().toString();
+  @override String toIso8601String() => _asDateTime().toIso8601String();
   @override DateTime add(Duration duration) => _asDateTime().add(duration);
   @override DateTime subtract(Duration duration) =>
       _asDateTime().subtract(duration);
@@ -55,4 +54,5 @@ class JsDateToDateTimeAdapter extends TypedProxy implements DateTime {
 
   DateTime _asDateTime() =>
       new DateTime.fromMillisecondsSinceEpoch($unsafe.getTime());
+
 }

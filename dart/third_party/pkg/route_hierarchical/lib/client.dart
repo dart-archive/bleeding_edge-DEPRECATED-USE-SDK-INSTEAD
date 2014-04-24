@@ -517,11 +517,12 @@ class Router {
   }
 
   List _matchingRoutes(String path, RouteImpl baseRoute) {
-    var routes = baseRoute._routes.values.toList();
-    if (sortRoutes) {
-      routes.sort((r1, r2) => r1.path.compareTo(r2.path));
-    }
-    return routes.where((r) => r.path.match(path) != null).toList();
+    var routes = baseRoute._routes.values
+        .where((r) => r.path.match(path) != null)
+        .toList();
+
+    return sortRoutes ? 
+        (routes..sort((r1, r2) => r1.path.compareTo(r2.path))) : routes;
   }
 
   List<_Match> _matchingTreePath(String path, RouteImpl baseRoute) {
@@ -612,14 +613,15 @@ class Router {
     return params;
   }
 
-  List<String> _parseKeyVal(keyValPair) {
-    if (keyValPair.isEmpty) return const ['', ''];
-    var splitPoint = keyValPair.indexOf('=') == -1 ?
-        keyValPair.length : keyValPair.indexOf('=') + 1;
-    var key = keyValPair.substring(0, splitPoint +
-        (keyValPair.indexOf('=') == -1 ? 0 : -1));
-    var value = keyValPair.substring(splitPoint);
-    return [key, value];
+  List<String> _parseKeyVal(kvPair) {
+    if (kvPair.isEmpty) {
+      return const ['', ''];
+    }
+    var splitPoint = kvPair.indexOf('=');
+
+    return (splitPoint == -1) ? 
+        [kvPair, '']
+        : [kvPair.substring(0, splitPoint), kvPair.substring(splitPoint + 1)];
   }
 
   void _unsetAllCurrentRoutes(RouteImpl r) {

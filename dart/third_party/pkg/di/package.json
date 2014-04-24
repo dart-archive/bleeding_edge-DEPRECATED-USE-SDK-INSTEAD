@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "description": "A prototype of Dependency Injection framework.",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "qq": "*"
+  },
   "devDependencies": {
     "grunt": "~0.4",
     "grunt-contrib-watch": "~0.3"

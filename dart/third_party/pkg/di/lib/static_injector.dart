@@ -1,11 +1,17 @@
 library di.static_injector;
 
 import 'di.dart';
+import 'src/error_helper.dart';
+import 'src/base_injector.dart';
+import 'src/provider.dart';
+
+export 'annotations.dart';
+export 'di.dart';
 
 /**
  * Static implementation of [Injector] that uses type factories
  */
-class StaticInjector extends Injector {
+class StaticInjector extends BaseInjector {
   Map<Type, TypeFactory> typeFactories;
 
   StaticInjector({List<Module> modules, String name,
@@ -20,24 +26,26 @@ class StaticInjector extends Injector {
     this.typeFactories = _extractTypeFactories(modules);
   }
 
-  newFromParent(List<Module> modules, String name) {
-    return new StaticInjector._fromParent(modules, this, name: name);
-  }
+  newFromParent(List<Module> modules, String name) =>
+      new StaticInjector._fromParent(modules, this, name: name);
 
-  Object newInstanceOf(Type type, ObjectFactory getInstanceByType,
-                       Injector requestor, error) {
+  Object newInstanceOf(Type type, ObjectFactory objFactory,
+                       Injector requestor, resolving) {
     TypeFactory typeFactory = _getFactory(type);
     if (typeFactory == null) {
-      throw new NoProviderError(error('No type factory provided for $type!'));
+      throw new NoProviderError(
+          error(resolving, 'No type factory provided for $type!'));
     }
-    return typeFactory((type) => getInstanceByType(type, requestor));
+    return typeFactory((type, [annotation]) =>
+        objFactory.getInstanceByKey(
+            new Key(type, annotation), requestor, resolving));
   }
 
-  TypeFactory _getFactory(Type type) {
+  TypeFactory _getFactory(Type key) {
     var cursor = this;
     while (cursor != null) {
-      if (cursor.typeFactories.containsKey(type)) {
-        return cursor.typeFactories[type];
+      if (cursor.typeFactories.containsKey(key)) {
+        return cursor.typeFactories[key];
       }
       cursor = cursor.parent;
     }
@@ -48,11 +56,9 @@ class StaticInjector extends Injector {
 Map<Type, TypeFactory> _extractTypeFactories(List<Module> modules,
     [Map<Type, TypeFactory> initial = const {}]) {
   if (modules == null || modules.isEmpty) return initial;
-  var tmp = new Map.from(initial == null ? {} : initial);
-  modules.forEach((module) {
-    module.typeFactories.forEach((type, factory) {
-      tmp[type] = factory;
-    });
+  var factories = new Map.from(initial == null ? {} : initial);
+  modules.forEach((m) {
+    factories.addAll(m.typeFactories);
   });
-  return tmp;
+  return factories;
 }

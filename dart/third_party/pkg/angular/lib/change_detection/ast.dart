@@ -79,12 +79,32 @@ class PureFunctionAST extends AST {
   final List<AST> argsAST;
 
   PureFunctionAST(name, this.fn, argsAST)
-      : super('$name(${_argList(argsAST)})'),
-        argsAST = argsAST,
-        name = name;
+      : argsAST = argsAST,
+        name = name,
+        super('$name(${_argList(argsAST)})');
 
   WatchRecord<_Handler> setupWatch(WatchGroup watchGroup) =>
-      watchGroup.addFunctionWatch(fn, argsAST, expression);
+      watchGroup.addFunctionWatch(fn, argsAST, const {}, expression, true);
+}
+
+/**
+ * SYNTAX: fn(arg0, arg1, ...)
+ *
+ * Invoke a pure function. Pure means that the function has no state, and
+ * therefore it needs to be re-computed only if its args change.
+ */
+class ClosureAST extends AST {
+  final String name;
+  final /* dartbug.com/16401 Function */ fn;
+  final List<AST> argsAST;
+
+  ClosureAST(name, this.fn, argsAST)
+      : argsAST = argsAST,
+        name = name,
+        super('$name(${_argList(argsAST)})');
+
+  WatchRecord<_Handler> setupWatch(WatchGroup watchGroup) =>
+      watchGroup.addFunctionWatch(fn, argsAST, const {}, expression, false);
 }
 
 /**
@@ -96,15 +116,16 @@ class MethodAST extends AST {
   final AST lhsAST;
   final String name;
   final List<AST> argsAST;
+  final Map<Symbol, AST> namedArgsAST;
 
-  MethodAST(lhsAST, name, argsAST)
-      : super('$lhsAST.$name(${_argList(argsAST)})'),
-        lhsAST = lhsAST,
+  MethodAST(lhsAST, name, argsAST, [this.namedArgsAST = const {}])
+      : lhsAST = lhsAST,
         name = name,
-        argsAST = argsAST;
+        argsAST = argsAST,
+        super('$lhsAST.$name(${_argList(argsAST)})');
 
   WatchRecord<_Handler> setupWatch(WatchGroup watchGroup) =>
-      watchGroup.addMethodWatch(lhsAST, name, argsAST, expression);
+      watchGroup.addMethodWatch(lhsAST, name, argsAST, namedArgsAST, expression);
 }
 
 
@@ -123,8 +144,8 @@ String _argList(List<AST> items) => items.join(', ');
 /**
  * The name is a bit oxymoron, but it is essentially the NullObject pattern.
  *
- * This allows children to set a handler on this ChangeRecord and then let it write the initial
- * constant value to the forwarding ChangeRecord.
+ * This allows children to set a handler on this Record and then let it write
+ * the initial constant value to the forwarding Record.
  */
 class _ConstantWatchRecord extends WatchRecord<_Handler> {
   final currentValue;
@@ -134,7 +155,7 @@ class _ConstantWatchRecord extends WatchRecord<_Handler> {
       : currentValue = currentValue,
         handler = new _ConstantHandler(watchGroup, expression, currentValue);
 
-  ChangeRecord<_Handler> check() => null;
+  bool check() => false;
   void remove() => null;
 
   get field => null;

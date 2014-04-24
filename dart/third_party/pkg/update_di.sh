@@ -19,7 +19,7 @@ $DART_SDK/bin/dart \
     bin/generator.dart \
     $DART_SDK/ \
     test/main.dart \
-    di.tests.Injectable \
+    di.tests.InjectableTest \
     test/type_factories_gen.dart \
     packages/
 
