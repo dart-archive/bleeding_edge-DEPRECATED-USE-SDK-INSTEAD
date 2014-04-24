@@ -34,6 +34,7 @@ import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.core.model.IWatchExpressionListener;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -96,10 +97,30 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   }
 
   @Override
-  public void evaluateExpression(String expression, IWatchExpressionListener listener) {
-    // TODO(devoncarew): implement this when the command-line debugger supports expression evaluation
-
-    listener.watchEvaluationFinished(WatchExpressionResult.noOp(expression));
+  public void evaluateExpression(final String expression, final IWatchExpressionListener listener) {
+    try {
+      getConnection().evaluateOnCallFrame(
+          vmFrame.getIsolate(),
+          vmFrame,
+          expression,
+          new VmCallback<VmValue>() {
+            @Override
+            public void handleResult(VmResult<VmValue> result) {
+              if (result.isError()) {
+                listener.watchEvaluationFinished(WatchExpressionResult.error(
+                    expression,
+                    result.getError()));
+              } else {
+                listener.watchEvaluationFinished(WatchExpressionResult.value(
+                    expression,
+                    new ServerDebugValue(getTarget(), result.getResult())));
+              }
+            }
+          });
+    } catch (IOException e) {
+      DebugException exception = createDebugException(e);
+      listener.watchEvaluationFinished(WatchExpressionResult.exception(expression, exception));
+    }
   }
 
   @Override
@@ -260,6 +281,13 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     return locals.toArray(new IVariable[locals.size()]);
   }
 
+  /**
+   * Public for testing.
+   */
+  public VmCallFrame getVmFrame() {
+    return vmFrame;
+  }
+
   @Override
   public boolean hasException() {
     return isExceptionStackFrame;
@@ -380,10 +408,6 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     }
 
     return null;
-  }
-
-  protected VmCallFrame getVmFrame() {
-    return vmFrame;
   }
 
   private List<ServerDebugVariable> createFrom(VmCallFrame frame) {

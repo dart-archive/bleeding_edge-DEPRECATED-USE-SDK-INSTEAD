@@ -274,12 +274,31 @@ public class VmConnection {
     }
   }
 
-  public void evaluateOnCallFrame(VmIsolate isolate, VmCallFrame callFrame, String expression,
-      final VmCallback<VmValue> callback) {
-    // TODO(devoncarew): call through to the VM implementation when available
+  public void evaluateOnCallFrame(final VmIsolate isolate, VmCallFrame callFrame,
+      String expression, final VmCallback<VmValue> callback) throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
 
-    VmResult<VmValue> result = VmResult.createErrorResult("unimplemented");
-    callback.handleResult(result);
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "evaluateExpr");
+      request.put(
+          "params",
+          new JSONObject().put("frameId", callFrame.getFrameId()).put("expression", expression));
+
+      sendRequest(request, isolate.getId(), new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          VmResult<VmValue> evalResult = convertEvaluateObjectResult(isolate, result);
+
+          callback.handleResult(evalResult);
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
   }
 
   public VmClass getClassInfoSync(VmIsolate isolate, int classId) {
