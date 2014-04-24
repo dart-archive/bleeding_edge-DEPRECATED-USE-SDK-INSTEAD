@@ -1265,6 +1265,19 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_importOfNonLibrary() throws Exception {
+    Source source = addSource(createSource(//
+        "library lib;",
+        "import 'part.dart' deferred as p;",
+        "var a = new p.A();"));
+    addNamedSource("/part.dart", createSource(//
+        "part of lib;",
+        "class A {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.IMPORT_OF_NON_LIBRARY);
+    verify(source);
+  }
+
   public void test_inconsistentMethodInheritanceGetterAndMethod() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",

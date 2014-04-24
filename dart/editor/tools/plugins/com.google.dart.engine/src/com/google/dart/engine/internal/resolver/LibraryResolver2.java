@@ -34,6 +34,8 @@ import com.google.dart.engine.element.NamespaceCombinator;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.builder.AngularCompilationUnitBuilder;
 import com.google.dart.engine.internal.builder.PolymerCompilationUnitBuilder;
 import com.google.dart.engine.internal.constant.ConstantValueComputer;
@@ -303,11 +305,14 @@ public class LibraryResolver2 {
               imports.add(importElement);
 
               if (analysisContext.computeKindOf(importedSource) != SourceKind.LIBRARY) {
+                ErrorCode errorCode = importElement.isDeferred()
+                    ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
+                    : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
                 errorListener.onError(new AnalysisError(
                     library.getLibrarySource(),
                     uriLiteral.getOffset(),
                     uriLiteral.getLength(),
-                    CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+                    errorCode,
                     uriLiteral.toSource()));
               }
             }
