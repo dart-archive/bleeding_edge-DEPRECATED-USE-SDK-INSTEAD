@@ -24,6 +24,7 @@ import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.feedback.FeedbackUtils;
 import com.google.dart.tools.ui.internal.text.dart.DartPrioritySourcesHelper;
+import com.google.dart.tools.ui.internal.text.dart.DartPrioritySourcesHelper_NEW;
 import com.google.dart.tools.ui.internal.text.editor.AutoSaveHelper;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -32,6 +33,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IStartup;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 
 import java.io.File;
@@ -82,7 +84,15 @@ public class DartUIStartup implements IStartup {
 
       reportPlatformStatistics();
       reportDartCoreDebug();
-      new DartPrioritySourcesHelper(PlatformUI.getWorkbench(), DartCoreDebug.ENABLE_ANALYSIS_SERVER).start();
+
+      {
+        IWorkbench workbench = PlatformUI.getWorkbench();
+        if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+          new DartPrioritySourcesHelper_NEW(workbench, DartCore.getAnalysisServer()).start();
+        } else {
+          new DartPrioritySourcesHelper(workbench).start();
+        }
+      }
 
       CmdLineFileProcessor.process(CmdLineOptions.getOptions());
       instrumentation.metric("OpenInitialFilesAndFolders", "Complete");

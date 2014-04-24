@@ -30,6 +30,14 @@ public interface DartPrioritySourceEditor {
   AnalysisContext getInputAnalysisContext();
 
   /**
+   * Answer the analysis context identifier to be used when resolving the source displayed in the
+   * editor.
+   * 
+   * @return the context identifier corresponding to this editor or {@code null} if none
+   */
+  String getInputAnalysisContextId();
+
+  /**
    * Answer the project containing the source being displayed in this editor.
    * 
    * @return the {@link Project} or {@code null} if none

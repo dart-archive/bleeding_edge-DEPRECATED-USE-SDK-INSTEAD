@@ -37,6 +37,12 @@ public class StructuredTextEditorToPrioritySourceAdapterFactory implements IAdap
         }
 
         @Override
+        public String getInputAnalysisContextId() {
+          // TODO(scheglov) Analysis Server
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
         public Project getInputProject() {
           return documentInfo.getProject();
         }

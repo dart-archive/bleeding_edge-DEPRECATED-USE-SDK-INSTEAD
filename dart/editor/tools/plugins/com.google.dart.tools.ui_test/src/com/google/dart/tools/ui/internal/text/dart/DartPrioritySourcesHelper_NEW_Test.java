@@ -16,8 +16,8 @@ package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.AnalysisServer;
 
 import junit.framework.TestCase;
 
@@ -35,25 +35,26 @@ import org.mockito.stubbing.Answer;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * Test for {@link DartPrioritySourcesHelper}.
+ * Test for {@link DartPrioritySourcesHelper_NEW}.
  */
-public class DartPrioritySourcesHelperTest extends TestCase {
-  private DartPrioritySourcesHelper helper;
+public class DartPrioritySourcesHelper_NEW_Test extends TestCase {
+  private AnalysisServer analysisServer = mock(AnalysisServer.class);
+  private DartPrioritySourcesHelper_NEW helper;
   private Display display = mock(Display.class);
   private IWorkbenchWindow workbenchWindow = mock(IWorkbenchWindow.class);
   private IWorkbenchPage workbenchPage = mock(IWorkbenchPage.class);
   private IWorkbench workbench = mock(IWorkbench.class);
   private List<IPartListener2> listeners = Lists.newArrayList();
-  private Map<AnalysisContext, List<Source>> contextSources = Maps.newHashMap();
+  private Map<String, List<Source>> contextIdSources = Maps.newHashMap();
 
   private IEditorReference editorRefA = mock(IEditorReference.class);
   private IEditorReference editorRefB = mock(IEditorReference.class);
@@ -73,69 +74,63 @@ public class DartPrioritySourcesHelperTest extends TestCase {
   private Source sourceB = mock(Source.class);
   private Source sourceC = mock(Source.class);
 
-  private AnalysisContext contextA = mock(AnalysisContext.class);
-  private AnalysisContext contextB = mock(AnalysisContext.class);
-  private AnalysisContext contextC = mock(AnalysisContext.class);
+  private String contextIdA = "contextIdA";
+  private String contextIdB = "contextIdB";
+  private String contextIdC = "contextIdC";
 
   public void test_partHidden() throws Exception {
-    when(prioritySourceEditorB.getInputAnalysisContext()).thenReturn(contextA);
+    when(prioritySourceEditorB.getInputAnalysisContextId()).thenReturn(contextIdA);
     when(prioritySourceEditorA.isVisible()).thenReturn(true);
     when(prioritySourceEditorB.isVisible()).thenReturn(true);
     helper.start();
     // initial state
-    helper.test_waitForQueueEmpty();
-    assertPrioritySources(contextA, sourceA, sourceB);
+    assertPrioritySources(contextIdA, sourceA, sourceB);
     // [A, B] - A = [B]
     when(prioritySourceEditorA.isVisible()).thenReturn(false);
     notifyPartHidden(editorRefA);
-    assertPrioritySources(contextA, sourceB);
+    assertPrioritySources(contextIdA, sourceB);
     // [B] - B = []
     when(prioritySourceEditorB.isVisible()).thenReturn(false);
     notifyPartHidden(editorRefB);
-    assertPrioritySources(contextA);
+    assertPrioritySources(contextIdA);
   }
 
   public void test_partVisible() throws Exception {
-    when(prioritySourceEditorB.getInputAnalysisContext()).thenReturn(contextA);
+    when(prioritySourceEditorB.getInputAnalysisContextId()).thenReturn(contextIdA);
     helper.start();
     // [] + A = [A]
     when(prioritySourceEditorA.isVisible()).thenReturn(true);
     notifyPartVisible(editorRefA);
-    assertPrioritySources(contextA, sourceA);
+    assertPrioritySources(contextIdA, sourceA);
     // [A] + B = [A, B]
     when(prioritySourceEditorB.isVisible()).thenReturn(true);
     notifyPartVisible(editorRefB);
-    assertPrioritySources(contextA, sourceA, sourceB);
+    assertPrioritySources(contextIdA, sourceA, sourceB);
   }
 
   public void test_setPriorityOnStart_oneContext_oneEditor() throws Exception {
     when(prioritySourceEditorA.isVisible()).thenReturn(true);
     helper.start();
-    helper.test_waitForQueueEmpty();
-    assertPrioritySources(contextA, sourceA);
+    assertPrioritySources(contextIdA, sourceA);
   }
 
   public void test_setPriorityOnStart_oneContext_twoEditors() throws Exception {
-    when(prioritySourceEditorB.getInputAnalysisContext()).thenReturn(contextA);
+    when(prioritySourceEditorB.getInputAnalysisContextId()).thenReturn(contextIdA);
     when(prioritySourceEditorA.isVisible()).thenReturn(true);
     when(prioritySourceEditorB.isVisible()).thenReturn(true);
     helper.start();
-    helper.test_waitForQueueEmpty();
-    assertPrioritySources(contextA, sourceA, sourceB);
-    verifyNoMoreInteractions(contextB);
-    verifyNoMoreInteractions(contextC);
+    assertPrioritySources(contextIdA, sourceA, sourceB);
   }
 
   public void test_setPriorityOnStart_twoContexts() throws Exception {
-    when(prioritySourceEditorB.getInputAnalysisContext()).thenReturn(contextA);
-    when(prioritySourceEditorC.getInputAnalysisContext()).thenReturn(contextB);
+    when(prioritySourceEditorB.getInputAnalysisContextId()).thenReturn(contextIdA);
+    when(prioritySourceEditorC.getInputAnalysisContextId()).thenReturn(contextIdB);
     when(prioritySourceEditorA.isVisible()).thenReturn(true);
     when(prioritySourceEditorB.isVisible()).thenReturn(true);
     when(prioritySourceEditorC.isVisible()).thenReturn(true);
     helper.start();
-    helper.test_waitForQueueEmpty();
-    assertPrioritySources(contextA, sourceA, sourceB);
-    assertPrioritySources(contextB, sourceC);
+    assertPrioritySources(contextIdA, sourceA, sourceB);
+    assertPrioritySources(contextIdB, sourceC);
   }
 
   public void test_unusedPartListenerMethods() throws Exception {
@@ -153,7 +148,7 @@ public class DartPrioritySourcesHelperTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    helper = new DartPrioritySourcesHelper(workbench);
+    helper = new DartPrioritySourcesHelper_NEW(workbench, analysisServer);
     // perform "asyncExec" synchronously
     doAnswer(new Answer<Void>() {
       @Override
@@ -196,27 +191,24 @@ public class DartPrioritySourcesHelperTest extends TestCase {
     when(sourceB.toString()).thenReturn("sourceB");
     when(sourceC.toString()).thenReturn("sourceC");
     // record priority sources
-    recordContextPrioritySources(contextA);
-    recordContextPrioritySources(contextB);
-    recordContextPrioritySources(contextC);
+    recordContextPrioritySources(contextIdA);
+    recordContextPrioritySources(contextIdB);
+    recordContextPrioritySources(contextIdC);
+    // record priority sources
+    recordContextPrioritySources(contextIdA);
+    recordContextPrioritySources(contextIdB);
+    recordContextPrioritySources(contextIdC);
     // configure editors
     when(prioritySourceEditorA.getInputSource()).thenReturn(sourceA);
     when(prioritySourceEditorB.getInputSource()).thenReturn(sourceB);
     when(prioritySourceEditorC.getInputSource()).thenReturn(sourceC);
-    when(prioritySourceEditorA.getInputAnalysisContext()).thenReturn(contextA);
-    when(prioritySourceEditorB.getInputAnalysisContext()).thenReturn(contextB);
-    when(prioritySourceEditorC.getInputAnalysisContext()).thenReturn(contextC);
+    when(prioritySourceEditorA.getInputAnalysisContextId()).thenReturn(contextIdA);
+    when(prioritySourceEditorB.getInputAnalysisContextId()).thenReturn(contextIdB);
+    when(prioritySourceEditorC.getInputAnalysisContextId()).thenReturn(contextIdC);
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    helper.stop();
-    super.tearDown();
-  }
-
-  private void assertPrioritySources(AnalysisContext context, Source... expected) throws Exception {
-    helper.test_waitForQueueEmpty();
-    List<Source> actual = contextSources.get(context);
+  private void assertPrioritySources(String contextId, Source... expected) throws Exception {
+    List<Source> actual = contextIdSources.get(contextId);
     assertThat(actual).containsOnly((Object[]) expected);
   }
 
@@ -232,14 +224,18 @@ public class DartPrioritySourcesHelperTest extends TestCase {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  private void recordContextPrioritySources(final AnalysisContext context) {
+  private void recordContextPrioritySources(String contextId) {
+    if (analysisServer == null) {
+      return;
+    }
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
-        contextSources.put(context, (List<Source>) invocation.getArguments()[0]);
+        String contextId = (String) invocation.getArguments()[0];
+        Source[] sources = (Source[]) invocation.getArguments()[1];
+        contextIdSources.put(contextId, Lists.newArrayList(sources));
         return null;
       }
-    }).when(context).setAnalysisPriorityOrder(any(List.class));
+    }).when(analysisServer).setPrioritySources(anyString(), any(Source[].class));
   }
 }
