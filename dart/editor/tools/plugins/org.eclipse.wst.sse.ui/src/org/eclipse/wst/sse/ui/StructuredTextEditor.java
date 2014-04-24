@@ -2244,10 +2244,16 @@ public class StructuredTextEditor extends TextEditor {
     if (fStructuredModel != null && !(getDocumentProvider() instanceof IModelProvider)) {
       fStructuredModel.releaseFromEdit();
     }
+    fStructuredModel = null;
 
     //attempt to get the model for the given input
     super.doSetInput(input);
     IStructuredModel model = tryToGetModel(input);
+    
+    if (model == null) {
+      close(true);
+      return;
+    }
 
     /*
      * if could not get the model prompt user to update content type if preferences allow, then try
