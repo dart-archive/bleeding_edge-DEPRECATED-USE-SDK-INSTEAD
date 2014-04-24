@@ -15,9 +15,10 @@
 package com.google.dart.java2dart.processor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
@@ -258,7 +259,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           args.clear();
           return null;
         }
-        if (typeSimpleName.equals("int")) {
+        ArgumentList newArguments = fixConstructorArguments(args, binding);
+        if (newArguments != null) {
+          node.setArgumentList(newArguments);
+        } else if (typeSimpleName.equals("int")) {
           if (args.size() == 1) {
             replaceNode(node, methodInvocation(identifier("int"), "parse", args.get(0)));
           } else {
@@ -627,22 +631,9 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         if (isMethodInExactClass(binding, "<init>(java.lang.Throwable)", "java.lang.Exception")) {
           node.setConstructorName(identifier("withCause"));
         }
-        if (isMethodInExactClass(
-            binding,
-            "<init>(java.lang.Throwable)",
-            "java.lang.RuntimeException")) {
-          node.setArgumentList(argumentList(namedExpression("cause", args.get(0))));
-        }
-        if (isMethodInExactClass(binding, "<init>(java.lang.String)", "java.lang.RuntimeException")) {
-          node.setArgumentList(argumentList(namedExpression("message", args.get(0))));
-        }
-        if (isMethodInExactClass(
-            binding,
-            "<init>(java.lang.String,java.lang.Throwable)",
-            "java.lang.RuntimeException")) {
-          node.setArgumentList(argumentList(
-              namedExpression("message", args.get(0)),
-              namedExpression("cause", args.get(0))));
+        ArgumentList newArguments = fixConstructorArguments(args, binding);
+        if (newArguments != null) {
+          node.setArgumentList(newArguments);
         }
         return null;
       }
@@ -703,6 +694,27 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
               typeName("CharSequence"),
               initializer));
           return null;
+        }
+        return null;
+      }
+
+      private ArgumentList fixConstructorArguments(List<Expression> args, IMethodBinding binding) {
+        if (isMethodInExactClass(
+            binding,
+            "<init>(java.lang.Throwable)",
+            "java.lang.RuntimeException")) {
+          return argumentList(namedExpression("cause", args.get(0)));
+        }
+        if (isMethodInExactClass(binding, "<init>(java.lang.String)", "java.lang.RuntimeException")) {
+          return argumentList(namedExpression("message", args.get(0)));
+        }
+        if (isMethodInExactClass(
+            binding,
+            "<init>(java.lang.String,java.lang.Throwable)",
+            "java.lang.RuntimeException")) {
+          return argumentList(
+              namedExpression("message", args.get(0)),
+              namedExpression("cause", args.get(0)));
         }
         return null;
       }

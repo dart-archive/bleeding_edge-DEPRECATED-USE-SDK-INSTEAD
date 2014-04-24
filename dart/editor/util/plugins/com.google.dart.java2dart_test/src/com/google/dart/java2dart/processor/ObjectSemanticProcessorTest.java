@@ -146,6 +146,24 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_constructsRuntimeException() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public void test() throws Exception {",
+        "    throw new RuntimeException(\"hello\");",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  void test() {",
+        "    throw new RuntimeException(message: \"hello\");",
+        "  }",
+        "}");
+  }
+
   public void test_double_castTo_int() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
