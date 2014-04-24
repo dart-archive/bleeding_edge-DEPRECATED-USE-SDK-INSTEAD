@@ -39,13 +39,6 @@ public enum StaticWarningCode implements ErrorCode {
   AMBIGUOUS_IMPORT("The type '%s' is defined in the libraries '%s' and '%s'"),
 
   /**
-   * 15.1 Static Types: It is a static warning to use a deferred type in a type annotation.
-   * 
-   * @param name the name of the type that is deferred and being used in a type annotation
-   */
-  ANNOTATION_DEFERRED_CLASS("The deferred type '%s' cannot be used in a declaration"),
-
-  /**
    * 12.11.1 New: It is a static warning if the static type of <i>a<sub>i</sub>, 1 &lt;= i &lt;= n+
    * k</i> may not be assigned to the type of the corresponding formal parameter of the constructor
    * <i>T.id</i> (respectively <i>T</i>).
@@ -771,6 +764,13 @@ public enum StaticWarningCode implements ErrorCode {
    */
   SWITCH_EXPRESSION_NOT_ASSIGNABLE(
       "Type '%s' of the switch expression is not assignable to the type '%s' of case expressions"),
+
+  /**
+   * 15.1 Static Types: It is a static warning to use a deferred type in a type annotation.
+   * 
+   * @param name the name of the type that is deferred and being used in a type annotation
+   */
+  TYPE_ANNOTATION_DEFERRED_CLASS("The deferred type '%s' cannot be used in a declaration"),
 
   /**
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type available in the

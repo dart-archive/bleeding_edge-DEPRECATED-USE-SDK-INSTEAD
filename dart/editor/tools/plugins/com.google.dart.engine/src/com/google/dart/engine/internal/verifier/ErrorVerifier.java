@@ -748,6 +748,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     checkForConstFormalParameter(node);
     checkForPrivateOptionalParameter(node);
     checkForFieldInitializingFormalRedirectingConstructor(node);
+    checkForTypeAnnotationDeferredClass(node.getType());
     return super.visitFieldFormalParameter(node);
   }
 
@@ -775,7 +776,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           checkForNonVoidReturnTypeForSetter(returnType);
         }
       }
-
+      checkForTypeAnnotationDeferredClass(node.getReturnType());
       return super.visitFunctionDeclaration(node);
     } finally {
       enclosingFunction = outerFunction;
@@ -826,6 +827,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     boolean old = isInFunctionTypedFormalParameter;
     isInFunctionTypedFormalParameter = true;
     try {
+      checkForTypeAnnotationDeferredClass(node.getReturnType());
       return super.visitFunctionTypedFormalParameter(node);
     } finally {
       isInFunctionTypedFormalParameter = old;
@@ -931,6 +933,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       if (identifier != null) {
         methodName = identifier.getName();
       }
+      TypeName returnTypeName = node.getReturnType();
       if (node.isSetter() || node.isGetter()) {
         checkForMismatchedAccessorTypes(node, methodName);
       }
@@ -939,7 +942,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         checkForConflictingStaticGetterAndInstanceSetter(node);
       } else if (node.isSetter()) {
         checkForWrongNumberOfParametersForSetter(node.getName(), node.getParameters());
-        checkForNonVoidReturnTypeForSetter(node.getReturnType());
+        checkForNonVoidReturnTypeForSetter(returnTypeName);
         checkForConflictingStaticSetterAndInstanceMember(node);
       } else if (node.isOperator()) {
         checkForOptionalParameterInOperator(node);
@@ -948,6 +951,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       }
       checkForConcreteClassWithAbstractMember(node);
       checkForAllInvalidOverrideErrorCodesForMethod(node);
+      checkForTypeAnnotationDeferredClass(returnTypeName);
       return super.visitMethodDeclaration(node);
     } finally {
       enclosingFunction = previousFunction;
@@ -1055,6 +1059,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
     checkForConstFormalParameter(node);
     checkForPrivateOptionalParameter(node);
+    checkForTypeAnnotationDeferredClass(node.getType());
     return super.visitSimpleFormalParameter(node);
   }
 
@@ -1116,6 +1121,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME);
     checkForTypeParameterSupertypeOfItsBound(node);
+    checkForTypeAnnotationDeferredClass(node.getBound());
     return super.visitTypeParameter(node);
   }
 
@@ -1145,6 +1151,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitVariableDeclarationList(VariableDeclarationList node) {
+    checkForTypeAnnotationDeferredClass(node.getType());
     return super.visitVariableDeclarationList(node);
   }
 
@@ -5123,6 +5130,23 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     }
     errorReporter.reportErrorForNode(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node);
     return true;
+  }
+
+  /**
+   * This verifies that the passed type name is not a deferred type.
+   * 
+   * @param expression the expression to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#TYPE_ANNOTATION_DEFERRED_CLASS
+   */
+  private boolean checkForTypeAnnotationDeferredClass(TypeName node) {
+    if (node != null && node.isDeferred()) {
+      errorReporter.reportErrorForNode(
+          StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS,
+          node,
+          node.getName());
+    }
+    return false;
   }
 
   /**

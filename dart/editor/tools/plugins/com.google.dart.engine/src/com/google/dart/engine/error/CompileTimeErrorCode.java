@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.error;
 
+
 /**
  * The enumeration {@code CompileTimeErrorCode} defines the error codes used for compile time
  * errors. The convention for this class is for the name of the error code to indicate the problem
@@ -329,14 +330,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
    */
   DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR(
       "Default values aren't allowed in factory constructors that redirect to another constructor"),
-
-  /**
-   * 14.1 Imports: A deferred import must include a prefix clause or a compile time error occurs.
-   * 
-   * @param uri the import uri that doesn't have a prefix clause
-   */
-  DEFERRED_IMPORTS_MUST_INCLUDE_PREFIX(
-      "The imported library '%s' must have a prefix, since it is deferred"),
 
   /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name

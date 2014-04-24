@@ -572,7 +572,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library root;",
         "import 'lib1.dart' deferred as a;",
         "main() {",
-        "  a.A aa = new a.A.b();",
+        "  new a.A.b();",
         "}"));
     resolve(source);
     assertErrors(source);

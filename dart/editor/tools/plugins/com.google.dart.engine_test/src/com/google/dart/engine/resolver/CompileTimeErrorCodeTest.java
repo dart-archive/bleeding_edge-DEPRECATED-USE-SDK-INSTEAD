@@ -411,7 +411,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library root;",
         "import 'lib1.dart' deferred as a;",
         "main() {",
-        "  a.A aa = const a.A();",
+        "  const a.A();",
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.CONST_DEFERRED_CLASS);
@@ -428,7 +428,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library root;",
         "import 'lib1.dart' deferred as a;",
         "main() {",
-        "  a.A aa = const a.A.b();",
+        "  const a.A.b();",
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.CONST_DEFERRED_CLASS);
