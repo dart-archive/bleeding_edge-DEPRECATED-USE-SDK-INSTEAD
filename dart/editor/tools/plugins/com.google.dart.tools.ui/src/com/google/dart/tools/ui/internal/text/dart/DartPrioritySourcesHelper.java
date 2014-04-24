@@ -200,7 +200,7 @@ public class DartPrioritySourcesHelper {
    */
   private void internalStart(IWorkbenchPage activePage) {
     // make source of the currently visible editors a priority ones
-    if (!withAnalysisServer) {
+    {
       Map<AnalysisContext, List<Source>> contextMap = Maps.newHashMap();
       List<DartPrioritySourceEditor> editors = getVisibleEditors();
       for (DartPrioritySourceEditor editor : editors) {
