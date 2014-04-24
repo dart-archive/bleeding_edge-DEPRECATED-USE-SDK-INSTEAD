@@ -15,9 +15,9 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
-import com.google.dart.tools.core.DartCoreDebug;
 
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -27,10 +27,12 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -38,6 +40,8 @@ import java.util.concurrent.LinkedBlockingQueue;
  * This is called once per instantiated editor on startup and then once for each editor as it
  * becomes active. For example, if there are 2 of 7 editors visible on startup, then this will be
  * called for the 2 visible editors.
+ * 
+ * @coverage dart.editor.ui.text
  */
 public class DartPrioritySourcesHelper {
   private static class PriorityOrderRequest {
@@ -54,7 +58,7 @@ public class DartPrioritySourcesHelper {
     }
   }
 
-  private static class PriorityOrderThread extends Thread {
+  private class PriorityOrderThread extends Thread {
     public PriorityOrderThread() {
       setName("DartPrioritySourcesHelper-PriorityOrderThread");
       setDaemon(true);
@@ -65,6 +69,9 @@ public class DartPrioritySourcesHelper {
       while (true) {
         try {
           PriorityOrderRequest request = requestQueue.take();
+          if (request == SHUTDOWN_REQUEST) {
+            return;
+          }
           request.perform();
         } catch (InterruptedException e) {
         }
@@ -72,13 +79,21 @@ public class DartPrioritySourcesHelper {
     }
   }
 
-  private static final BlockingQueue<PriorityOrderRequest> requestQueue = new LinkedBlockingQueue<PriorityOrderRequest>();
+  private static final PriorityOrderRequest SHUTDOWN_REQUEST = new PriorityOrderRequest(null, null);
+
+  private final IWorkbench workbench;
+  private final boolean withAnalysisServer;
+  private final BlockingQueue<PriorityOrderRequest> requestQueue = new LinkedBlockingQueue<PriorityOrderRequest>();
+
+  public DartPrioritySourcesHelper(IWorkbench _workbench, boolean withAnalysisServer) {
+    this.workbench = _workbench;
+    this.withAnalysisServer = withAnalysisServer;
+  }
 
   /**
    * Schedules helper start, once {@link IWorkbenchPage} is created.
    */
-  public static void start() {
-    final IWorkbench workbench = PlatformUI.getWorkbench();
+  public void start() {
     workbench.getDisplay().asyncExec(new Runnable() {
       @Override
       public void run() {
@@ -94,14 +109,31 @@ public class DartPrioritySourcesHelper {
     new PriorityOrderThread().start();
   }
 
+  public void stop() {
+    requestQueue.offer(SHUTDOWN_REQUEST);
+  }
+
+  public void test_waitForQueueEmpty() throws InterruptedException {
+    final CountDownLatch latch = new CountDownLatch(1);
+    requestQueue.add(new PriorityOrderRequest(null, null) {
+      @Override
+      public void perform() {
+        latch.countDown();
+      }
+    });
+    latch.await();
+  }
+
   /**
    * @return the {@link DartPrioritySourceEditor} that corresponds to the given
    *         {@link IWorkbenchPart}, maybe {@code null}.
    */
-  private static DartPrioritySourceEditor getPrioritySourceEditor(IWorkbenchPart part) {
-    Object maybeEditor = part.getAdapter(DartPrioritySourceEditor.class);
-    if (maybeEditor instanceof DartPrioritySourceEditor) {
-      return (DartPrioritySourceEditor) maybeEditor;
+  private DartPrioritySourceEditor getPrioritySourceEditor(IWorkbenchPart part) {
+    if (part != null) {
+      Object maybeEditor = part.getAdapter(DartPrioritySourceEditor.class);
+      if (maybeEditor instanceof DartPrioritySourceEditor) {
+        return (DartPrioritySourceEditor) maybeEditor;
+      }
     }
     return null;
   }
@@ -112,20 +144,16 @@ public class DartPrioritySourcesHelper {
    * @param context the context (not {@code null})
    * @return a list of sources (not {@code null}, contains no {@code null}s)
    */
-  private static List<DartPrioritySourceEditor> getVisibleEditors() {
+  private List<DartPrioritySourceEditor> getVisibleEditors() {
     List<DartPrioritySourceEditor> editors = Lists.newArrayList();;
-    IWorkbench workbench = PlatformUI.getWorkbench();
     for (IWorkbenchWindow window : workbench.getWorkbenchWindows()) {
       for (IWorkbenchPage page : window.getPages()) {
         for (IEditorReference editorRef : page.getEditorReferences()) {
           IEditorPart part = editorRef.getEditor(false);
-          if (part != null) {
-            Object maybeEditor = part.getAdapter(DartPrioritySourceEditor.class);
-            if (maybeEditor instanceof DartPrioritySourceEditor) {
-              DartPrioritySourceEditor editor = (DartPrioritySourceEditor) maybeEditor;
-              if (editor.isVisible()) {
-                editors.add(editor);
-              }
+          DartPrioritySourceEditor editor = getPrioritySourceEditor(part);
+          if (editor != null) {
+            if (editor.isVisible()) {
+              editors.add(editor);
             }
           }
         }
@@ -141,7 +169,7 @@ public class DartPrioritySourcesHelper {
    * @param context the context (not {@code null})
    * @return a list of sources (not {@code null}, contains no {@code null}s)
    */
-  private static List<Source> getVisibleSourcesForContext(AnalysisContext context) {
+  private List<Source> getVisibleSourcesForContext(AnalysisContext context) {
     List<Source> sources = Lists.newArrayList();
     List<DartPrioritySourceEditor> editors = getVisibleEditors();
     for (DartPrioritySourceEditor editor : editors) {
@@ -155,14 +183,14 @@ public class DartPrioritySourcesHelper {
     return sources;
   }
 
-  private static void handlePartActivated(IWorkbenchPart part) {
+  private void handlePartActivated(IWorkbenchPart part) {
     DartPrioritySourceEditor editor = getPrioritySourceEditor(part);
     if (editor != null) {
       updateAnalysisPriorityOrderOnUiThread(editor, true);
     }
   }
 
-  private static void handlePartDeactivated(IWorkbenchPart part) {
+  private void handlePartDeactivated(IWorkbenchPart part) {
     DartPrioritySourceEditor editor = getPrioritySourceEditor(part);
     if (editor != null) {
       updateAnalysisPriorityOrderOnUiThread(editor, false);
@@ -172,15 +200,27 @@ public class DartPrioritySourcesHelper {
   /**
    * Starts listening for {@link IWorkbenchPage} and adding/removing sources of the visible editors.
    */
-  private static void internalStart(IWorkbenchPage activePage) {
+  private void internalStart(IWorkbenchPage activePage) {
     // make source of the currently visible editors a priority ones
-    List<DartPrioritySourceEditor> editors = getVisibleEditors();
-    for (DartPrioritySourceEditor editor : editors) {
-      updateAnalysisPriorityOrderOnUiThread(editor, true);
+    {
+      Map<AnalysisContext, List<Source>> contextMap = Maps.newHashMap();
+      List<DartPrioritySourceEditor> editors = getVisibleEditors();
+      for (DartPrioritySourceEditor editor : editors) {
+        AnalysisContext context = editor.getInputAnalysisContext();
+        if (context != null && !contextMap.containsKey(context)) {
+          List<Source> sources = getVisibleSourcesForContext(context);
+          contextMap.put(context, sources);
+        }
+      }
+      // schedule priority sources setting
+      for (Entry<AnalysisContext, List<Source>> entry : contextMap.entrySet()) {
+        AnalysisContext context = entry.getKey();
+        List<Source> prioritySources = entry.getValue();
+        updateAnalysisPriorityOrderInBackground(context, prioritySources);
+      }
     }
     // track visible editors
     activePage.addPartListener(new IPartListener2() {
-
       @Override
       public void partActivated(IWorkbenchPartReference partRef) {
       }
@@ -226,8 +266,7 @@ public class DartPrioritySourcesHelper {
   /**
    * Schedules {@link AnalysisContext#setAnalysisPriorityOrder(List)} execution in background.
    */
-  private static void updateAnalysisPriorityOrderInBackground(AnalysisContext context,
-      List<Source> sources) {
+  private void updateAnalysisPriorityOrderInBackground(AnalysisContext context, List<Source> sources) {
     try {
       requestQueue.add(new PriorityOrderRequest(context, sources));
     } catch (IllegalStateException e) {
@@ -247,9 +286,8 @@ public class DartPrioritySourcesHelper {
    *          analyzed or {@code false} if the editor is closed and the source should be removed
    *          from the priority list.
    */
-  private static void updateAnalysisPriorityOrderOnUiThread(DartPrioritySourceEditor editor,
-      boolean isOpen) {
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+  private void updateAnalysisPriorityOrderOnUiThread(DartPrioritySourceEditor editor, boolean isOpen) {
+    if (withAnalysisServer) {
       // TODO(scheglov) Analysis Server: implement priority sources
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();

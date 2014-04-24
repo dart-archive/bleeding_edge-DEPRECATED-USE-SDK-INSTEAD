@@ -25,6 +25,7 @@ public class TestAll {
     suite.addTestSuite(DartReconcilingStrategyTest.class);
     suite.addTestSuite(DartStringDoubleClickSelectorTest.class);
     suite.addTestSuite(DartDoubleClickSelectorTest.class);
+    suite.addTestSuite(DartPrioritySourcesHelperTest.class);
     return suite;
   }
 }

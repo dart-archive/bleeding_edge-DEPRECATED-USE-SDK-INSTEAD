@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IStartup;
+import org.eclipse.ui.PlatformUI;
 
 import java.io.File;
 
@@ -81,7 +82,7 @@ public class DartUIStartup implements IStartup {
 
       reportPlatformStatistics();
       reportDartCoreDebug();
-      DartPrioritySourcesHelper.start();
+      new DartPrioritySourcesHelper(PlatformUI.getWorkbench(), DartCoreDebug.ENABLE_ANALYSIS_SERVER).start();
 
       CmdLineFileProcessor.process(CmdLineOptions.getOptions());
       instrumentation.metric("OpenInitialFilesAndFolders", "Complete");
