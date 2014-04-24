@@ -183,6 +183,12 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
       }
     }
 
+    // create an artificial position for optional arguments
+    if (count == 0) {
+      fArgumentOffsets = new int[] {buffer.length()};
+      fArgumentLengths = new int[] {0};
+    }
+
     if (prefs.beforeClosingParen) {
       buffer.append(SPACE);
     }
