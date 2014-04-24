@@ -31,6 +31,8 @@ import com.google.dart.server.internal.local.asserts.NavigationRegionsAssert;
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import java.util.List;
 import java.util.Map;
 
@@ -70,6 +72,13 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    */
   public NavigationRegionsAssert assertNavigationRegions(String contextId, Source source) {
     return new NavigationRegionsAssert(getNavigationRegions(contextId, source));
+  }
+
+  /**
+   * Asserts that there was no {@link AnalysisServerError} reported.
+   */
+  public void assertNoServerErrors() {
+    assertThat(serverErrors).isEmpty();
   }
 
   /**

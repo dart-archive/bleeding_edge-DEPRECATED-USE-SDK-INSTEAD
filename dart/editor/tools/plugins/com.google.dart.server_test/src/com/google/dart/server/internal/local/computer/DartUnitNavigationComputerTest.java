@@ -29,10 +29,7 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
         "  int fff = 123;",
         "  A(this.fff);",
         "}"));
-    server.subscribe(
-        contextId,
-        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(source)));
-    server.test_waitForWorkerComplete();
+    prepareNavigationRegions(contextId, source);
     // validate
     NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
     validator.hasRegion(source, "fff);", 3).isIn(source, "fff = 123;").hasLength(3);
@@ -45,10 +42,7 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
         "  int vvv = 123;",
         "  print(vvv);",
         "}"));
-    server.subscribe(
-        contextId,
-        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(source)));
-    server.test_waitForWorkerComplete();
+    prepareNavigationRegions(contextId, source);
     // validate
     NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
     validator.hasRegion(source, "main()", 4).isIn(source, "main() {").hasLength(4);
@@ -63,10 +57,7 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
         "  int vvv = 123;",
         "  print(noo);",
         "}"));
-    server.subscribe(
-        contextId,
-        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(source)));
-    server.test_waitForWorkerComplete();
+    prepareNavigationRegions(contextId, source);
     // validate
     NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
     validator.isNotEmpty();
@@ -90,10 +81,7 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
         "  v *= 5;",
         "  v /= 6;",
         "}"));
-    server.subscribe(
-        contextId,
-        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(source)));
-    server.test_waitForWorkerComplete();
+    prepareNavigationRegions(contextId, source);
     // validate
     NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
     validator.hasRegion(source, "- 1;", 1).isInSdk().hasLength(1);
@@ -118,10 +106,7 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
         "  v[1] = 1; // []=",
         "  v[2] += 2;",
         "}"));
-    server.subscribe(
-        contextId,
-        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(source)));
-    server.test_waitForWorkerComplete();
+    prepareNavigationRegions(contextId, source);
     // validate
     NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
     validator.hasRegion(source, "]; // []", 1).isInSdk().hasLength(2);
@@ -139,15 +124,103 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
         "  v[1] = 1; // []=",
         "  v[2] += 2;",
         "}"));
-    server.subscribe(
-        contextId,
-        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(source)));
-    server.test_waitForWorkerComplete();
+    prepareNavigationRegions(contextId, source);
     // validate
     NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
     validator.hasRegion(source, "]; // []", 1).isInSdk().hasLength(2);
     validator.hasRegion(source, "] = 1; // []=", 1).isInSdk().hasLength(3);
     validator.hasRegion(source, "] += 2;", 1).isInSdk().hasLength(3);
     validator.hasRegion(source, "+= 2;", 2).isInSdk().hasLength(1);
+  }
+
+  // XXX
+  public void test_partOf() throws Exception {
+    String contextId = createContext("test");
+    Source unitSource = addSource(contextId, "/test-unit.dart", "part of lib;");
+    Source libSource = addSource(contextId, "/test.dart", makeSource(//
+        "library lib;",
+        "part 'test-unit.dart';"));
+    prepareNavigationRegions(contextId, unitSource);
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(
+        contextId,
+        unitSource);
+    validator.hasRegion(unitSource, "part of lib").isIn(libSource, "lib;");
+  }
+
+  public void test_string_export() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", "export 'dart:math';");
+    prepareNavigationRegions(contextId, source);
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
+    validator.hasRegion(source, "export 'dart:math'").isInSdk().hasLength("dart.math".length());
+  }
+
+  public void test_string_export_unresolvedUri() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", "export 'no.dart';");
+    prepareNavigationRegions(contextId, source);
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
+    validator.noRegionAt(source, "export ");
+  }
+
+  public void test_string_import() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", "import 'dart:math' as m;");
+    prepareNavigationRegions(contextId, source);
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
+    validator.hasRegion(source, "import 'dart:math'").isInSdk().hasLength("dart.math".length());
+  }
+
+  public void test_string_import_noUri() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", "import ;");
+    prepareNavigationRegions(contextId, source);
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
+    validator.noRegionAt(source, "import ");
+  }
+
+  public void test_string_import_unresolvedUri() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", "import 'no.dart';");
+    prepareNavigationRegions(contextId, source);
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
+    validator.noRegionAt(source, "import ");
+  }
+
+  public void test_string_part() throws Exception {
+    String contextId = createContext("test");
+    Source unitSource = addSource(contextId, "/test-unit.dart", "path of lib;");
+    Source source = addSource(contextId, "/test.dart", makeSource(//
+        "library lib;",
+        "part 'test-unit.dart';"));
+    prepareNavigationRegions(contextId, source);
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
+    validator.hasRegion(source, "part 'test-unit.dart'").isIn(unitSource, -1).hasLength(0);
+  }
+
+  public void test_string_part_unresolvedUri() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", makeSource(//
+        "library lib;",
+        "part 'test-unit.dart';"));
+    prepareNavigationRegions(contextId, source);
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
+    validator.noRegionAt(source, "part ");
+  }
+
+  private void prepareNavigationRegions(String contextId, Source source) {
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(source)));
+    server.test_waitForWorkerComplete();
+    serverListener.assertNoServerErrors();
   }
 }

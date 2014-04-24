@@ -52,6 +52,14 @@ public class NavigationRegionsAssert {
   }
 
   /**
+   * Finds the {@link NavigationRegion} that for the given "search", validates that it exists and
+   * returns the corresponding {@link NavigationTargetAssert}.
+   */
+  public NavigationTargetAssert hasRegion(Source source, String search) throws Exception {
+    return hasRegion(source, search, search.length());
+  }
+
+  /**
    * Finds the {@link NavigationRegion} that starts with the given "search" and has the given
    * length, validates that it exists and returns the corresponding {@link NavigationTargetAssert}.
    */
@@ -59,7 +67,8 @@ public class NavigationRegionsAssert {
       throws Exception {
     NavigationRegion region = findRegion(source, search, length);
     if (region == null) {
-      Assert.fail("Cannot find in\n" + StringUtils.join(regions, "\n"));
+      Assert.fail("Cannot find\n'" + search + "' with length=" + length + " in\n"
+          + StringUtils.join(regions, "\n"));
     }
     NavigationTarget target = region.getTargets()[0];
     return new NavigationTargetAssert(target);
@@ -73,9 +82,30 @@ public class NavigationRegionsAssert {
     assertThat(regions).describedAs("Navigation regions").isNotEmpty();
   }
 
+  /**
+   * Asserts that there are no {@link NavigationRegion} containing the offset of "search".
+   */
+  public void noRegionAt(Source source, String search) throws Exception {
+    int offset = findOffset(source, search);
+    NavigationRegion region = findRegionContaining(offset);
+    if (region != null) {
+      Assert.fail("Unexpected\n" + region + "\nat \n'" + search + "'\nin\n"
+          + StringUtils.join(regions, "\n"));
+    }
+  }
+
   private NavigationRegion findRegion(int offset, int length) {
     for (NavigationRegion region : regions) {
       if (region.getOffset() == offset && region.getLength() == length) {
+        return region;
+      }
+    }
+    return null;
+  }
+
+  private NavigationRegion findRegionContaining(int offset) {
+    for (NavigationRegion region : regions) {
+      if (region.containsInclusive(offset)) {
         return region;
       }
     }

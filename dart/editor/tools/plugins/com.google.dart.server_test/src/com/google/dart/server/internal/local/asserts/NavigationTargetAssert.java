@@ -45,13 +45,17 @@ public class NavigationTargetAssert {
     return this;
   }
 
-  public NavigationTargetAssert isIn(Source source, String search) throws Exception {
+  public NavigationTargetAssert isIn(Source source, int expectedOffset) throws Exception {
     Source targetSource = target.getSource();
     assertTrue(description + "expected to be in " + source, source.equals(targetSource));
     // check offset
-    int expectedOffset = NavigationRegionsAssert.findOffset(source, search);
     hasOffset(expectedOffset);
     return this;
+  }
+
+  public NavigationTargetAssert isIn(Source source, String search) throws Exception {
+    int expectedOffset = NavigationRegionsAssert.findOffset(source, search);
+    return isIn(source, expectedOffset);
   }
 
   public NavigationTargetAssert isInSdk() {
