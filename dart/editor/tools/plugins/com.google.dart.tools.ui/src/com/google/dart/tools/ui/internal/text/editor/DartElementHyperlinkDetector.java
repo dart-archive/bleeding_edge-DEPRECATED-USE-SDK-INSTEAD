@@ -94,7 +94,9 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
             source);
         for (NavigationRegion navigationRegion : navigationRegions) {
           if (navigationRegion.containsInclusive(offset)) {
-            return new IHyperlink[] {new DartNavigationRegionHyperlink_NEW(navigationRegion)};
+            return new IHyperlink[] {new DartNavigationRegionHyperlink_NEW(
+                editor.getInputResourceFile(),
+                navigationRegion)};
           }
         }
       }

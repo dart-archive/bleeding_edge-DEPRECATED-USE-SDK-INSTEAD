@@ -104,7 +104,7 @@ public class OpenAction extends AbstractDartSelectionAction {
         if (navigationRegion.containsInclusive(offset)) {
           for (NavigationTarget target : navigationRegion.getTargets()) {
             try {
-              DartUI.openInEditor(target);
+              DartUI.openInEditor(editor.getInputResourceFile(), target);
               return;
             } catch (Throwable e) {
               ExceptionHandler.handle(e, getText(), "Exception during open.");

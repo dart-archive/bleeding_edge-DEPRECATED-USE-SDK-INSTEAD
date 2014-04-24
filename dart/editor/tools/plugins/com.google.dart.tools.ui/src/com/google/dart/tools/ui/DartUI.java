@@ -904,8 +904,26 @@ public final class DartUI {
   /**
    * Opens an editor on the given Dart element in the active page.
    */
-  public static IEditorPart openInEditor(NavigationTarget target) throws Exception {
-    IEditorPart editor = EditorUtility.openInEditor(target.getSource());
+  public static IEditorPart openInEditor(IResource context, NavigationTarget target)
+      throws Exception {
+    Source source = target.getSource();
+    // prepare target IFile
+    IFile file;
+    {
+      ProjectManager projectManager = DartCore.getProjectManager();
+      if (context == null) {
+        file = (IFile) projectManager.getResource(source);
+      } else {
+        ResourceMap map = projectManager.getResourceMap(context);
+        file = map != null ? map.getResource(source) : null;
+      }
+    }
+    IEditorPart editor;
+    if (file != null) {
+      editor = EditorUtility.openInEditor(file, true);
+    } else {
+      editor = EditorUtility.openInEditor(source, true);
+    }
     EditorUtility.revealInEditor(editor, target.getOffset(), target.getLength());
     return editor;
   }

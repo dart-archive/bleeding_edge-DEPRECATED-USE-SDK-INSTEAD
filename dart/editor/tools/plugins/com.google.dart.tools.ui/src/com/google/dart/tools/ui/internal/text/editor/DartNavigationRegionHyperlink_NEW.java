@@ -19,6 +19,7 @@ import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.NavigationTarget;
 import com.google.dart.tools.ui.DartUI;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -28,9 +29,11 @@ import org.eclipse.jface.text.hyperlink.IHyperlink;
  * A hyperlink for {@link NavigationRegion}.
  */
 public class DartNavigationRegionHyperlink_NEW implements IHyperlink {
+  private final IFile context;
   private final NavigationRegion region;
 
-  public DartNavigationRegionHyperlink_NEW(NavigationRegion region) {
+  public DartNavigationRegionHyperlink_NEW(IFile context, NavigationRegion region) {
+    this.context = context;
     this.region = region;
     Assert.isNotNull(region);
   }
@@ -56,7 +59,7 @@ public class DartNavigationRegionHyperlink_NEW implements IHyperlink {
     try {
       NavigationTarget[] targets = region.getTargets();
       if (targets.length != 0) {
-        DartUI.openInEditor(targets[0]);
+        DartUI.openInEditor(context, targets[0]);
       }
       instrumentation.metric("Run", "Completed");
     } catch (Throwable e) {
