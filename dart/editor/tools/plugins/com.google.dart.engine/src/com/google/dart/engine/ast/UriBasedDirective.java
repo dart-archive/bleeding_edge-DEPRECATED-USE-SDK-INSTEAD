@@ -15,7 +15,10 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.io.UriUtilities;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 /**
@@ -33,9 +36,23 @@ import java.util.List;
  */
 public abstract class UriBasedDirective extends Directive {
   /**
+   * Validation codes returned by {@link UriBasedDirective#validate(StringLiteral)}.
+   */
+  public enum UriValidationCode {
+    INVALID_URI,
+    URI_WITH_INTERPOLATION,
+    URI_WITH_DART_EXT_SCHEME,
+  }
+
+  /**
    * The URI referenced by this directive.
    */
   private StringLiteral uri;
+
+  /**
+   * The prefix of a URI using the {@code dart-ext} scheme to reference a native code library.
+   */
+  private static final String DART_EXT_SCHEME = "dart-ext:";
 
   /**
    * The content of the URI.
@@ -122,6 +139,31 @@ public abstract class UriBasedDirective extends Directive {
    */
   public void setUriContent(String uriContent) {
     this.uriContent = uriContent;
+  }
+
+  /**
+   * Validate the given directive, but do not check for existance.
+   * 
+   * @return a code indicating the problem if there is one, or {@code null} no problem
+   */
+  public UriValidationCode validate() {
+    StringLiteral uriLiteral = getUri();
+    if (uriLiteral instanceof StringInterpolation) {
+      return UriValidationCode.URI_WITH_INTERPOLATION;
+    }
+    String uriContent = getUriContent();
+    if (uriContent == null) {
+      return UriValidationCode.INVALID_URI;
+    }
+    if (this instanceof ImportDirective && uriContent.startsWith(DART_EXT_SCHEME)) {
+      return UriValidationCode.URI_WITH_DART_EXT_SCHEME;
+    }
+    try {
+      new URI(UriUtilities.encode(uriContent));
+    } catch (URISyntaxException exception) {
+      return UriValidationCode.INVALID_URI;
+    }
+    return null;
   }
 
   @Override

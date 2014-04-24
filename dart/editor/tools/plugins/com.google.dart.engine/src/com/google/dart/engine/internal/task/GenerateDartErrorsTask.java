@@ -33,7 +33,6 @@ import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
-import com.google.dart.engine.utilities.io.UriUtilities;
 
 /**
  * Instances of the class {@code GenerateDartErrorsTask} generate errors and warnings for a single
@@ -80,7 +79,7 @@ public class GenerateDartErrorsTask extends AnalysisTask {
       }
     } else {
       // Don't report errors already reported by ParseDartTask#resolveDirective
-      if (UriUtilities.validate(directive) != null) {
+      if (directive.validate() != null) {
         return;
       }
     }

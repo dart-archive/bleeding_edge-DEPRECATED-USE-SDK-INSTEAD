@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
+import com.google.dart.engine.ast.UriBasedDirective.UriValidationCode;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
@@ -34,7 +35,6 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.io.UriUtilities;
-import com.google.dart.engine.utilities.io.UriUtilities.UriValidationCode;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.HashSet;
@@ -62,7 +62,7 @@ public class ParseDartTask extends AnalysisTask {
       uriContent = uriContent.trim();
       directive.setUriContent(uriContent);
     }
-    UriValidationCode code = UriUtilities.validate(directive);
+    UriValidationCode code = directive.validate();
     if (code == null) {
       String encodedUriContent = UriUtilities.encode(uriContent);
       Source source = context.getSourceFactory().resolveUri(librarySource, encodedUriContent);
