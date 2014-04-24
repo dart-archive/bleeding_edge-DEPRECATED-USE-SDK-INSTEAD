@@ -562,6 +562,23 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constDeferredClass_new() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {",
+        "  const A.b();",
+        "}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "main() {",
+        "  a.A aa = new a.A.b();",
+        "}"));
+    resolve(source);
+    assertErrors(source);
+    verify(source);
+  }
+
   public void test_constEval_functionTypeLiteral() throws Exception {
     Source source = addSource(createSource(//
         "typedef F();",

@@ -401,6 +401,40 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constDeferredClass() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {",
+        "  const A();",
+        "}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "main() {",
+        "  a.A aa = const a.A();",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONST_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void test_constDeferredClass_namedConstructor() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {",
+        "  const A.b();",
+        "}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "main() {",
+        "  a.A aa = const a.A.b();",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONST_DEFERRED_CLASS);
+    verify(source);
+  }
+
   public void test_constEval_newInstance_constConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

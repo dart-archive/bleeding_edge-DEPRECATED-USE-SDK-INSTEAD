@@ -871,6 +871,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           checkForConstWithNonConst(node);
           checkForConstWithUndefinedConstructor(node);
           checkForConstWithTypeParametersInCreation(node);
+          checkForConstDeferredClass(node, constructorName, typeName);
         } else {
           checkForNewWithUndefinedConstructor(node);
         }
@@ -2716,6 +2717,28 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
         node);
     return true;
+  }
+
+  /**
+   * This verifies that the passed 'const' instance creation expression is not creating a deferred
+   * type.
+   * 
+   * @param node the instance creation expression to evaluate
+   * @param constructorName the constructor name from the instance creation expression
+   * @param typeName the type name off of the constructor name
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_DEFERRED_CLASS
+   */
+  private boolean checkForConstDeferredClass(InstanceCreationExpression node,
+      ConstructorName constructorName, TypeName typeName) {
+    if (typeName.isDeferred()) {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_DEFERRED_CLASS,
+          constructorName,
+          typeName.getName().getName());
+      return true;
+    }
+    return false;
   }
 
   /**
