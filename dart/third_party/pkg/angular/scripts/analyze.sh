@@ -1,12 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
 . $(dirname $0)/env.sh
-
-echo '==========='
-echo '== BUILD =='
-echo '==========='
 
 OUT=tmp/all.dart
 mkdir -p tmp
@@ -27,6 +23,6 @@ do
   echo export \'../$FILE\' hide main, NestedRouteInitializer\; >> $OUT
 done
 
-$NGDART_SCRIPT_DIR/generate-expressions.sh
+$(dirname $0)/generate-expressions.sh
 
 $DARTANALYZER $OUT

@@ -1,19 +1,26 @@
-import 'dart:io' as io;
-
 import 'package:di/di.dart';
 import 'package:di/dynamic_injector.dart';
+import 'package:angular/core/module.dart';
 import 'package:angular/core/parser/parser.dart';
+import 'package:angular/tools/parser_generator/generator.dart';
 import 'package:angular/tools/parser_getter_setter/generator.dart';
 
 main(arguments) {
+  var isGetter = !arguments.isEmpty;
+
   Module module = new Module()..type(Parser, implementedBy: DynamicParser);
-  module.type(ParserBackend, implementedBy: DartGetterSetterGen);
+  if (isGetter) {
+    module.type(ParserBackend, implementedBy: DartGetterSetterGen);
+  } else {
+    module.type(ParserBackend, implementedBy: DynamicParserBackend);
+    module.type(FilterMap, implementedBy: NullFilterMap);
+  }
   Injector injector = new DynamicInjector(modules: [module],
       allowImplicitInjection: true);
 
   // List generated using:
   // node node_modules/karma/bin/karma run | grep -Eo ":XNAY:.*:XNAY:" | sed -e 's/:XNAY://g' | sed -e "s/^/'/" | sed -e "s/$/',/" | sort | uniq > missing_expressions
-  injector.get(ParserGetterSetter).generateParser([
+  injector.get(isGetter ? ParserGetterSetter : ParserGenerator).generateParser([
       "foo == 'bar' ||\nbaz",
       "nonmap['hello']",
       "nonmap['hello']=3",
@@ -113,14 +120,6 @@ main(arguments) {
       'true',
       'true || run()',
       'undefined',
-      'null < 0',
-      'null * 3',
-      'null + 6',
-      '5 + null',
-      'null - 4',
-      '3 - null',
-      'null + null',
-      'null - null',
 
       ';;1;;',
       '1==1',
@@ -168,7 +167,6 @@ main(arguments) {
       'add(a,b)',
       'notAProperty',
       "'Foo'|uppercase",
-      "'f' + ('o'|uppercase) + 'o'",
       "1|increment:2",
       "'abcd'|substring:1:offset",
       "'abcd'|substring:1:3|uppercase",
@@ -428,67 +426,5 @@ main(arguments) {
       "o.void()",
       "o.while()",
       "o.with()",
-
-      '"Foo"|(',
-      '"Foo"|1234',
-      '"Foo"|"uppercase"',
-      'x.(',
-      'x. 1234',
-      'x."foo"',
-      '{(:0}',
-      '{1234:0}',
-
-      "sub1(1)",
-      "sub1(3, b: 2)",
-      "sub2()",
-      "sub2(a: 3)",
-      "sub2(a: 3, b: 2)",
-      "sub2(b: 4)",
-
-      "o.sub1(1)",
-      "o.sub1(3, b: 2)",
-      "o.sub2()",
-      "o.sub2(a: 3)",
-      "o.sub2(a: 3, b: 2)",
-      "o.sub2(b: 4)",
-
-      "(sub1)(1)",
-      "(sub1)(3, b: 2)",
-      "(sub2)()",
-      "(sub2)(a: 3)",
-      "(sub2)(a: 3, b: 2)",
-      "(sub2)(b: 4)",
-
-      'foo(a: 0, a: 1)',
-      'foo(a: 0, b: 1, a: 2)',
-      'foo(0, a: 1, a: 2)',
-      'foo(0, a: 1, b: 2, a: 3)',
-
-      'foo(if: 0)',
-      'foo(a: 0, class: 0)',
-
-      'foo(a: 0)',
-      'foo(a: 0, b: 1)',
-      'foo(b: 1, a: 0)',
-      'foo(0)',
-      'foo(0, a: 0)',
-      'foo(0, a: 0, b: 1)',
-      'foo(0, b: 1, a: 0)',
-
-      'o.foo(a: 0)',
-      'o.foo(a: 0, b: 1)',
-      'o.foo(b: 1, a: 0)',
-      'o.foo(0)',
-      'o.foo(0, a: 0)',
-      'o.foo(0, a: 0, b: 1)',
-      'o.foo(0, b: 1, a: 0)',
-
-      '(foo)(a: 0)',
-      '(foo)(a: 0, b: 1)',
-      '(foo)(b: 1, a: 0)',
-      '(foo)(0)',
-      '(foo)(0, a: 0)',
-      '(foo)(0, a: 0, b: 1)',
-      '(foo)(0, b: 1, a: 0)',
-  ], io.stdout);
+  ]);
 }

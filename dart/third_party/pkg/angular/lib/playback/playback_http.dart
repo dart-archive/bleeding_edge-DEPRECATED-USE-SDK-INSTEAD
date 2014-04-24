@@ -4,17 +4,14 @@ import 'dart:async';
 import 'dart:convert' show JSON;
 import 'dart:html';
 
-import 'package:angular/core_dom/module_internal.dart';
-import 'package:angular/core/annotation_src.dart';
-import 'package:angular/mock/http_backend.dart' as mock;
+import 'package:angular/core_dom/module.dart';
+import 'package:angular/core/service.dart';
+import 'package:angular/mock/module.dart' as mock;
 
 import 'package:angular/playback/playback_data.dart' as playback_data;
 
-@Injectable()
+@NgInjectableService()
 class PlaybackHttpBackendConfig {
-
-  String get recorderUrl => '/record';
-
   requestKey(String url,
              {String method, bool withCredentials, String responseType,
              String mimeType, Map<String, String> requestHeaders, sendData,
@@ -66,7 +63,7 @@ class RecordingHttpBackend implements HttpBackend {
         onProgress: onProgress);
 
       assert(key is String);
-      _prodBackend.request(_config.recorderUrl,
+      _prodBackend.request('/record',  //TODO make this URL configurable.
         method: 'POST', sendData: JSON.encode({
           "key": key, "data": JSON.encode({
               "status": r.status,

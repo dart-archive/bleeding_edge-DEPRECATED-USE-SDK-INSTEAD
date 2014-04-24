@@ -2,20 +2,15 @@
 
 set -e
 
-. $(dirname $0)/env.sh
-
-(cd $NGDART_BASE_DIR/example; pub get)
-
-rm -rf xxx.dart
+(cd demo/todo; pub get)
 
 OUT=$(mktemp XXX.dart)
 
-$DART --package-root=example/packages bin/expression_extractor.dart \
-   example/web/todo.dart example /dev/null /dev/null $OUT
+dart bin/expression_extractor.dart demo/todo/main.dart demo/todo /dev/null /dev/null $OUT
 
 if [[ -e $OUT ]]; then
   echo "Expression extractor created an output file"
-  rm -rf $OUT
+  rm $OUT
   exit;
 fi;
 

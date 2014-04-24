@@ -6,10 +6,10 @@ main() {
   describe('BindTemplateDirective', () {
     TestBed _;
 
-    beforeEach((TestBed tb) => _ = tb);
+    beforeEach(inject((TestBed tb) => _ = tb));
 
     it('should bind template',
-          (Scope scope, Injector injector, Compiler compiler) {
+          inject((Scope scope, Injector injector, Compiler compiler) {
       var element = _.compile('<div ng-bind-template="{{salutation}} {{name}}!"></div>');
       scope.context['salutation'] = 'Hello';
       scope.context['name'] = 'Heisenberg';
@@ -21,6 +21,6 @@ main() {
       scope.apply();
 
       expect(element.text).toEqual('Good-Bye Heisenberg!');
-    });
+    }));
   });
 }

@@ -1,7 +1,7 @@
 part of angular.directive;
 
 /**
- * The [NgTemplate] allows one to preload an Angular template
+ * The [NgTemplateElementDirective] allows one to preload an Angular template
  * into the [TemplateCache].  It works on `<template>` and `<script>` elements
  * that have `type="text/ng-template`.  For such elements, The entire contents
  * of the elements are loaded into the [TemplateCache] under the URL specified
@@ -18,22 +18,20 @@ part of angular.directive;
  *
  * Refer [TemplateCache] for a **full example** as well as more information.
  */
-@Decorator(
+@NgDirective(
   selector: 'template[type=text/ng-template]',
   map: const {'id': '@templateUrl'})
-@Decorator(
+@NgDirective(
   selector: 'script[type=text/ng-template]',
-  children: Directive.IGNORE_CHILDREN,
+  children: NgAnnotation.IGNORE_CHILDREN,
   map: const {'id': '@templateUrl'})
-class NgTemplate {
+class NgTemplateDirective {
   final dom.Element element;
   final TemplateCache templateCache;
 
-  NgTemplate(this.element, this.templateCache);
+  NgTemplateDirective(this.element, this.templateCache);
   set templateUrl(url) => templateCache.put(url, new HttpResponse(200,
       element is dom.TemplateElement
           ? (element as dom.TemplateElement).content.innerHtml
           : element.innerHtml));
 }
-
-

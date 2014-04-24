@@ -10,14 +10,14 @@ class TestBed {
   final Injector injector;
   final Scope rootScope;
   final Compiler compiler;
-  final Parser _parser;
-  final Expando expando;
+  final Parser parser;
+
 
   Element rootElement;
   List<Node> rootElements;
-  View rootView;
+  Block rootBlock;
 
-  TestBed(this.injector, this.rootScope, this.compiler, this._parser, this.expando);
+  TestBed(this.injector, this.rootScope, this.compiler, this.parser);
 
 
   /**
@@ -48,11 +48,11 @@ class TestBed {
     } else {
       throw 'Expecting: String, Node, or List<Node> got $html.';
     }
-    rootElement = rootElements.length > 0 && rootElements[0] is Element ? rootElements[0] : null;
+    rootElement = rootElements[0];
     if (directives == null) {
       directives = injector.get(DirectiveMap);
     }
-    rootView = compiler(rootElements, directives)(injector, rootElements);
+    rootBlock = compiler(rootElements, directives)(injector, rootElements);
     return rootElement;
   }
 
@@ -70,12 +70,12 @@ class TestBed {
   }
 
   /**
-   * Trigger a specific DOM element on a given node to test directives
+   * Triggern a specific DOM element on a given node to test directives
    * which listen to events.
    */
   triggerEvent(element, name, [type='MouseEvent']) {
     element.dispatchEvent(new Event.eventType(type, name));
-    // Since we are manually triggering event we need to simulate apply();
+    // Since we are manually triggering event we need to simpulate apply();
     rootScope.apply();
   }
 
@@ -88,15 +88,4 @@ class TestBed {
     triggerEvent(element, 'change');
     rootScope.apply();
   }
-
-  getProbe(Node node) {
-    while (node != null) {
-      ElementProbe probe = expando[node];
-      if (probe != null) return probe;
-      node = node.parent;
-    }
-    throw 'Probe not found.';
-  }
-
-  getScope(Node node) => getProbe(node).scope;
 }

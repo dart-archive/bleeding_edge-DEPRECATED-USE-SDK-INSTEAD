@@ -22,17 +22,17 @@ class _SelectorPart {
   final String attrName;
   final String attrValue;
 
-  const _SelectorPart.fromElement(this.element)
+  const _SelectorPart.fromElement(String this.element)
       : className = null, attrName = null, attrValue = null;
 
-  const _SelectorPart.fromClass(this.className)
+  const _SelectorPart.fromClass(String this.className)
       : element = null, attrName = null, attrValue = null;
 
 
-  const _SelectorPart.fromAttribute(this.attrName, this.attrValue)
+  const _SelectorPart.fromAttribute(String this.attrName, String this.attrValue)
       : element = null, className = null;
 
-  String toString() =>
+  toString() =>
     element == null
       ? (className == null
          ? (attrValue == '' ? '[$attrName]' : '[$attrName=$attrValue]')
@@ -71,7 +71,7 @@ bool matchesNode(Node node, String selector) {
     if (node is! Text) {
       return false;
     }
-    return new RegExp(match.group(1)).hasMatch((node as Text).text);
+    return new RegExp(match.group(1)).hasMatch((node as Text).value);
   } else if ((match = _ATTR_CONTAINS_REGEXP.firstMatch(selector)) != null) {
     if (node is! Element) {
       return false;
@@ -84,8 +84,10 @@ bool matchesNode(Node node, String selector) {
     }
     return false;
   } else if ((selectorParts = _splitCss(selector)) != null) {
-    if (node is! Element) return false;
-    String nodeName = (node as Element).localName.toLowerCase();
+    if (node is! Element) {
+      return false;
+    }
+    String nodeName = node.tagName.toLowerCase();
 
     bool stillGood = true;
     selectorParts.forEach((_SelectorPart part) {
@@ -109,8 +111,8 @@ bool matchesNode(Node node, String selector) {
     });
 
     return stillGood;
-  }
-
+  } 
+    
   throw new ArgumentError('Unsupported Selector: $selector');
 }
 

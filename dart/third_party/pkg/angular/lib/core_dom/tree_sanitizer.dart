@@ -1,6 +1,6 @@
-part of angular.core.dom_internal;
+part of angular.core.dom;
 
-@Injectable()
+@NgInjectableService()
 class NullTreeSanitizer implements dom.NodeTreeSanitizer {
   void sanitizeTree(dom.Node node) {}
 }

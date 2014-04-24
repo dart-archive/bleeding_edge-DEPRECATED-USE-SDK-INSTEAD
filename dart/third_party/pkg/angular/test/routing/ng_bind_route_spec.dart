@@ -9,13 +9,13 @@ main() {
   describe('ngBindRoute', () {
     TestBed _;
 
-    beforeEachModule((Module m) => m
+    beforeEach(module((Module m) => m
       ..install(new AngularMockModule())
-      ..type(RouteInitializerFn, implementedBy: NestedRouteInitializer));
+      ..type(RouteInitializerFn, implementedBy: NestedRouteInitializer)));
 
-    beforeEach((TestBed tb) {
+    beforeEach(inject((TestBed tb) {
       _ = tb;
-    });
+    }));
 
 
     it('should inject null RouteProvider when no ng-bind-route', async(() {
@@ -47,7 +47,7 @@ main() {
 }
 
 class NestedRouteInitializer implements Function {
-  void call(Router router, RouteViewFactory view) {
+  void call(Router router, ViewFactory view) {
     router.root
       ..addRoute(
           name: 'library',

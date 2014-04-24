@@ -82,97 +82,93 @@ part of angular.directive;
  * for example, you must provide explicit number rules for 0, 1, 2 and 3. You
  * must also provide plural strings for at least the "other" plural category.
  */
-@Decorator(
+@NgDirective(
     selector: 'ng-pluralize',
     map: const { 'count': '=>count' })
-@Decorator(
+@NgDirective(
     selector: '[ng-pluralize]',
     map: const { 'count': '=>count' })
-class NgPluralize {
-  final dom.Element _element;
-  final Scope _scope;
-  final Interpolate _interpolate;
-  int _offset;
-  final _discreteRules = <String, String>{};
-  final _categoryRules = <Symbol, String>{};
-  final _expressionCache = <String, String>{};
-  FormatterMap _formatters;
-
-  Watch _watch;
+class NgPluralizeDirective {
+  final dom.Element element;
+  final Scope scope;
+  final Interpolate interpolate;
+  final AstParser parser;
+  int offset;
+  var discreteRules = <String, String>{};
+  var categoryRules = <Symbol, String>{};
 
   static final RegExp IS_WHEN = new RegExp(r'^when-(minus-)?.');
-
   static const Map<String, Symbol> SYMBOLS = const {
-      'zero'  : #zero,
-      'one'   : #one,
-      'two'   : #two,
-      'few'   : #few,
-      'many'  : #many,
-      'other' : #other,
+    'zero'  : #zero,
+    'one'   : #one,
+    'two'   : #two,
+    'few'   : #few,
+    'many'  : #many,
+    'other' : #other,
   };
 
-  NgPluralize(this._scope, this._element, this._interpolate, this._formatters) {
-    var attrs = _element.attributes;
-    final whens = attrs['when'] == null
-        ? <String, String>{}
-        : _scope.eval(attrs['when']);
-    _offset = attrs['offset'] == null ? 0 : int.parse(attrs['offset']);
+  NgPluralizeDirective(this.scope, this.element, this.interpolate,
+                       NodeAttrs attributes, this.parser) {
+    Map<String, String> whens = attributes['when'] == null
+        ? {}
+        : scope.eval(attributes['when']);
+    offset = attributes['offset'] == null ? 0 : int.parse(attributes['offset']);
 
-    _element.attributes.keys.where((k) => IS_WHEN.hasMatch(k)).forEach((k) {
-      var ruleName = k
-          .replaceFirst(new RegExp('^when-'), '')
-          .replaceFirst(new RegExp('^minus-'), '-');
-      whens[ruleName] = _element.attributes[k];
+    element.attributes.keys.where((k) => IS_WHEN.hasMatch(k)).forEach((k) {
+      var ruleName = k.replaceFirst('when-', '').replaceFirst('minus-', '-');
+      whens[ruleName] = element.attributes[k];
     });
 
     if (whens['other'] == null) {
       throw "ngPluralize error! The 'other' plural category must always be "
-            "specified";
+          "specified";
     }
 
     whens.forEach((k, v) {
       Symbol symbol = SYMBOLS[k];
       if (symbol != null) {
-        _categoryRules[symbol] = v;
+        this.categoryRules[symbol] = v;
       } else {
-        _discreteRules[k] = v;
+        this.discreteRules[k] = v;
       }
     });
   }
 
-  void set count(value) {
+  set count(value) {
     if (value is! num) {
       try {
-        value = num.parse(value);
+        value = int.parse(value);
       } catch(e) {
-        _element.text = '';
-        return;
+        try {
+          value = double.parse(value);
+        } catch(e) {
+          element.text = '';
+          return;
+        }
       }
     }
 
     String stringValue = value.toString();
     int intValue = value.toInt();
 
-    if (_discreteRules[stringValue] != null) {
-      _setAndWatch(_discreteRules[stringValue]);
+    if (discreteRules[stringValue] != null) {
+      _setAndWatch(discreteRules[stringValue]);
     } else {
-      intValue -= _offset;
-      var exp = Function.apply(Intl.plural, [intValue], _categoryRules);
+      intValue -= offset;
+      var exp = Function.apply(Intl.plural, [intValue], categoryRules);
       if (exp != null) {
-        exp = exp.replaceAll(r'{}', (value - _offset).toString());
+        exp = exp.replaceAll(r'{}', (value - offset).toString());
         _setAndWatch(exp);
       }
     }
   }
 
-  void _setAndWatch(template) {
-    if (_watch != null) _watch.remove();
-    var expression = _expressionCache.putIfAbsent(template, () =>
-        _interpolate(template, false, r'${', '}'));
-    _watch = _scope.watch(expression, _updateMarkup, formatters: _formatters);
-  }
-
-  void _updateMarkup(text, previousText) {
-    if (text != previousText) _element.text = text;
+  _setAndWatch(expression) {
+    var interpolation = interpolate(expression, false, '\${', '}');
+    interpolation.setter = (text) => element.text = text;
+    interpolation.setter(expression);
+    var items = interpolation.expressions.map((exp) => parser(exp)).toList();
+    AST ast = new PureFunctionAST(expression, new ArrayFn(), items);
+    scope.watch(ast, interpolation.call);
   }
 }

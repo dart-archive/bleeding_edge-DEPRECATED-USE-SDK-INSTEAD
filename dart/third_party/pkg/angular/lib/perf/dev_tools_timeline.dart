@@ -4,7 +4,7 @@ class DevToolsTimelineProfiler extends Profiler {
   final dom.Console console = dom.window.console;
   String prefix = '';
 
-  String startTimer(String name, [dynamic extraData]) {
+  String startTimer(String name, [String extraData]) {
     console.time('$prefix$name');
     prefix = '$prefix  ';
     return name;
@@ -15,7 +15,7 @@ class DevToolsTimelineProfiler extends Profiler {
     console.timeEnd('$prefix$name');
   }
 
-  void markTime(String name, [dynamic extraData]) {
+  void markTime(String name, [String extraData]) {
     console.timeStamp('$prefix$name');
   }
 }

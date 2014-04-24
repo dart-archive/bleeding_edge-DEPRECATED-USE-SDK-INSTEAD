@@ -1,13 +1,11 @@
-library angular.core.registry;
-
-import 'package:di/di.dart' show Injector;
+part of angular.core;
 
 abstract class AnnotationMap<K> {
   final Map<K, Type> _map = {};
 
   AnnotationMap(Injector injector, MetadataExtractor extractMetadata) {
     injector.types.forEach((type) {
-      extractMetadata(type)
+      var meta = extractMetadata(type)
           .where((annotation) => annotation is K)
           .forEach((annotation) {
             _map[annotation] = type;
@@ -21,12 +19,10 @@ abstract class AnnotationMap<K> {
     return value;
   }
 
-  void forEach(fn(K, Type)) {
-    _map.forEach(fn);
-  }
+  forEach(fn(K, Type)) => _map.forEach(fn);
 
   List<K> annotationsFor(Type type) {
-    final res = <K>[];
+    var res = <K>[];
     forEach((ann, annType) {
       if (annType == type) res.add(ann);
     });
@@ -39,7 +35,7 @@ abstract class AnnotationsMap<K> {
 
   AnnotationsMap(Injector injector, MetadataExtractor extractMetadata) {
     injector.types.forEach((type) {
-      extractMetadata(type)
+      var meta = extractMetadata(type)
           .where((annotation) => annotation is K)
           .forEach((annotation) {
             map.putIfAbsent(annotation, () => []).add(type);
@@ -53,7 +49,7 @@ abstract class AnnotationsMap<K> {
     return value;
   }
 
-  void forEach(fn(K, Type)) {
+  forEach(fn(K, Type)) {
     map.forEach((annotation, types) {
       types.forEach((type) {
         fn(annotation, type);
@@ -70,6 +66,13 @@ abstract class AnnotationsMap<K> {
   }
 }
 
-abstract class MetadataExtractor {
-  Iterable call(Type type);
+
+@NgInjectableService()
+class MetadataExtractor {
+  Iterable call(Type type) {
+    if (reflectType(type) is TypedefMirror) return [];
+    var metadata = reflectClass(type).metadata;
+    if (metadata == null) return [];
+    return metadata.map((InstanceMirror im) => im.reflectee);
+  }
 }

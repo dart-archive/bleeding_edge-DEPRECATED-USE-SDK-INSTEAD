@@ -1,11 +1,34 @@
 library angular.core.parser.lexer;
 
-import 'package:angular/core/annotation_src.dart';
+import 'package:angular/core/module.dart' show NgInjectableService;
 import 'package:angular/core/parser/characters.dart';
 
-part 'tokens.dart';
+class Token {
+  final int index;
+  final String text;
 
-@Injectable()
+  var value;
+  // Tokens should have one of these set.
+  String opKey;
+  String key;
+
+  Token(this.index, this.text);
+
+  withOp(op) {
+    this.opKey = op;
+  }
+
+  withGetterSetter(key) {
+    this.key = key;
+  }
+
+  withValue(value) { this.value = value; }
+
+  toString() => "Token($text)";
+}
+
+
+@NgInjectableService()
 class Lexer {
   List<Token> call(String text) {
     Scanner scanner = new Scanner(text);
@@ -49,7 +72,7 @@ class Scanner {
     switch (peek) {
       case $PERIOD:
         advance();
-        return isDigit(peek) ? scanNumber(start) : new CharacterToken(start, $PERIOD);
+        return isDigit(peek) ? scanNumber(start) : new Token(start, '.');
       case $LPAREN:
       case $RPAREN:
       case $LBRACE:
@@ -59,7 +82,7 @@ class Scanner {
       case $COMMA:
       case $COLON:
       case $SEMICOLON:
-        return scanCharacter(start, peek);
+        return scanCharacter(start, new String.fromCharCode(peek));
       case $SQ:
       case $DQ:
         return scanString();
@@ -92,17 +115,17 @@ class Scanner {
     return null;
   }
 
-  Token scanCharacter(int start, int code) {
-    assert(peek == code);
+  Token scanCharacter(int start, String string) {
+    assert(peek == string.codeUnitAt(0));
     advance();
-    return new CharacterToken(start, code);
+    return new Token(start, string);
   }
 
   Token scanOperator(int start, String string) {
     assert(peek == string.codeUnitAt(0));
     assert(OPERATORS.contains(string));
     advance();
-    return new OperatorToken(start, string);
+    return new Token(start, string)..withOp(string);
   }
 
   Token scanComplexOperator(int start, int code, String one, String two) {
@@ -114,7 +137,7 @@ class Scanner {
       string += two;
     }
     assert(OPERATORS.contains(string));
-    return new OperatorToken(start, string);
+    return new Token(start, string)..withOp(string);
   }
 
   Token scanIdentifier() {
@@ -123,7 +146,15 @@ class Scanner {
     advance();
     while (isIdentifierPart(peek)) advance();
     String string = input.substring(start, index);
-    return new IdentifierToken(start, string, KEYWORDS.contains(string));
+    Token result = new Token(start, string);
+    // TODO(kasperl): Deal with null, undefined, true, and false in
+    // a cleaner and faster way.
+    if (OPERATORS.contains(string)) {
+      result.withOp(string);
+    } else {
+      result.withGetterSetter(string);
+    }
+    return result;
   }
 
   Token scanNumber(int start) {
@@ -147,7 +178,7 @@ class Scanner {
     }
     String string = input.substring(start, index);
     num value = simple ? int.parse(string) : double.parse(string);
-    return new NumberToken(start, value);
+    return new Token(start, string)..withValue(value);
   }
 
   Token scanString() {
@@ -171,9 +202,7 @@ class Scanner {
           String hex = input.substring(index + 1, index + 5);
           unescaped = int.parse(hex, radix: 16, onError: (ignore) {
             error('Invalid unicode escape [\\u$hex]'); });
-          for (int i = 0; i < 5; i++) {
-            advance();
-          }
+          for (int i = 0; i < 5; i++) advance();
         } else {
           unescaped = unescape(peek);
           advance();
@@ -197,11 +226,12 @@ class Scanner {
       buffer.write(last);
       unescaped = buffer.toString();
     }
-    return new StringToken(start, string, unescaped);
+    return new Token(start, string)..withValue(unescaped);
   }
 
   void advance() {
-    peek = ++index >= length ? $EOF : input.codeUnitAt(index);
+    if (++index >= length) peek = $EOF;
+    else peek = input.codeUnitAt(index);
   }
 
   void error(String message, [int offset = 0]) {
@@ -212,14 +242,11 @@ class Scanner {
   }
 }
 
-Set<String> KEYWORDS = new Set<String>.from([
-    'null',
+Set<String> OPERATORS = new Set<String>.from([
     'undefined',
+    'null',
     'true',
     'false',
-]);
-
-Set<String> OPERATORS = new Set<String>.from([
     '+',
     '-',
     '*',

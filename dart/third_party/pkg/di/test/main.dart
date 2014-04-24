@@ -17,7 +17,6 @@ import 'package:di/dynamic_injector.dart';
 import 'package:di/static_injector.dart';
 import 'package:di/annotations.dart';
 
-import 'test_annotations.dart';
 // Generated file. Run ../test_tf_gen.sh.
 import 'type_factories_gen.dart' as type_factories_gen;
 
@@ -26,12 +25,12 @@ import 'type_factories_gen.dart' as type_factories_gen;
  * generated. For testing purposes not all classes are marked with this
  * annotation, some classes are included in @Injectables at the top.
  */
-class InjectableTest {
-  const InjectableTest();
+class Injectable {
+  const Injectable();
 }
 
 // just some classes for testing
-@InjectableTest()
+@Injectable()
 class Engine {
   final String id = 'v8-id';
 }
@@ -41,7 +40,7 @@ class MockEngine implements Engine {
   final String id = 'mock-id';
 }
 
-@InjectableTest()
+@Injectable()
 class MockEngine2 implements Engine {
   String id = 'mock-id-2';
 }
@@ -50,17 +49,7 @@ class HiddenConstructor {
   HiddenConstructor._();
 }
 
-@InjectableTest()
-class TurboEngine implements Engine {
-  String id = 'turbo-engine-id';
-}
-
-@InjectableTest()
-class BrokenOldEngine implements Engine {
-  String id = 'broken-old-engine-id';
-}
-
-@InjectableTest()
+@Injectable()
 class Car {
   Engine engine;
   Injector injector;
@@ -73,14 +62,6 @@ class Lemon {
   final Injector injector;
 
   Lemon(this.engine, this.injector);
-}
-
-@InjectableTest()
-class Porsche {
-  Engine engine;
-  Injector injector;
-
-  Porsche(@Turbo() this.engine, this.injector);
 }
 
 class NumDependency {
@@ -137,49 +118,32 @@ class ClassOne implements InterfaceOne {
   }
 }
 
-@InjectableTest()
+@Injectable()
 class ParameterizedType<T1, T2> {
   ParameterizedType();
 }
 
-@InjectableTest()
+@Injectable()
 class ParameterizedDependency {
   final ParameterizedType<bool, int> _p;
   ParameterizedDependency(this._p);
 }
 
-@InjectableTest()
+@Injectable()
 class GenericParameterizedDependency {
   final ParameterizedType _p;
   GenericParameterizedDependency(this._p);
 }
 
-@InjectableTest()
+@Injectable()
 class Log {
   var log = [];
 
   add(String message) => log.add(message);
 }
 
-@InjectableTest()
-class AnnotatedPrimitiveDependency {
-  String strValue;
-  AnnotatedPrimitiveDependency(@Turbo() this.strValue);
-}
-
 class EmulatedMockEngineFactory {
   call(Injector i) => new MockEngine();
-}
-
-bool throwOnceShouldThrow = true;
-@InjectableTest()
-class ThrowOnce {
-  ThrowOnce() {
-    if (throwOnceShouldThrow) {
-      throwOnceShouldThrow = false;
-      throw ["ThrowOnce"];
-    }
-  }
 }
 
 void main() {
@@ -192,7 +156,6 @@ void main() {
 
   dynamicInjectorTest();
   staticInjectorTest();
-  createKeySpec();
 }
 
 typedef Injector InjectorFactory(List<Module> modules, [String name]);
@@ -207,17 +170,6 @@ createInjectorSpec(String injectorName, InjectorFactory injectorFactory) {
 
       expect(instance, instanceOf(Engine));
       expect(instance.id, toEqual('v8-id'));
-    });
-
-    it('should instantiate an annotated type', () {
-      var injector = injectorFactory([new Module()
-          ..type(Engine, withAnnotation: Turbo, implementedBy: TurboEngine)
-          ..value(Car, new Engine())
-      ]);
-      var instance = injector.getByKey(new Key(Engine, Turbo));
-
-      expect(instance, instanceOf(TurboEngine));
-      expect(instance.id, toEqual('turbo-engine-id'));
     });
 
     it('should fail if no binding is found', () {
@@ -237,28 +189,6 @@ createInjectorSpec(String injectorName, InjectorFactory injectorFactory) {
       expect(instance.engine.id, toEqual('v8-id'));
     });
 
-    it('should resolve complex dependencies', () {
-      var injector = injectorFactory([new Module()
-            ..type(Porsche)
-            ..type(TurboEngine)
-            ..type(Engine, withAnnotation: Turbo, implementedBy: TurboEngine)
-      ]);
-      var instance = injector.get(Porsche);
-
-      expect(instance, instanceOf(Porsche));
-      expect(instance.engine.id, toEqual('turbo-engine-id'));
-    });
-
-    it('should resolve annotated primitive type', () {
-      var injector = injectorFactory([new Module()
-            ..type(AnnotatedPrimitiveDependency)
-            ..value(String, 'Worked!', withAnnotation: Turbo)
-      ]);
-      var instance = injector.get(AnnotatedPrimitiveDependency);
-
-      expect(instance, instanceOf(AnnotatedPrimitiveDependency));
-      expect(instance.strValue, toEqual('Worked!'));
-    });
 
     it('should inject generic parameterized types', () {
       var injector = injectorFactory([new Module()
@@ -391,39 +321,13 @@ createInjectorSpec(String injectorName, InjectorFactory injectorFactory) {
 
 
     it('should throw an exception when circular dependency', () {
-      var injector = injectorFactory([new Module()..type(CircularA)
-                                        ..type(CircularB)]);
+      var injector = injectorFactory([new Module()..type(CircularA)..type(CircularB)]);
 
       expect(() {
         injector.get(CircularA);
-      }, toThrow(CircularDependencyError, 'Cannot resolve a circular '
-          'dependency! (resolving CircularA -> CircularB -> CircularA'));
-    });
-
-    it('should throw an exception when circular dependency in factory', () {
-      var injector = injectorFactory([new Module()
-          ..factory(CircularA, (i) => i.get(CircularA))
-      ]);
-
-      expect(() {
-        injector.get(CircularA);
-      }, toThrow(CircularDependencyError, 'Cannot resolve a '
-          'circular dependency! (resolving CircularA -> CircularA'));
-    });
-
-
-    it('should recover from errors', () {
-      var injector = injectorFactory([new Module()..type(ThrowOnce)]);
-      throwOnceShouldThrow = true;
-
-      var caught = false;
-      try {
-        injector.get(ThrowOnce);
-      } catch (e, s) {
-        caught = true;
-        expect(injector.get(ThrowOnce), not(toEqual(null)));
-      }
-      expect(caught, toEqual(true));
+      }, toThrow(CircularDependencyError, 'Cannot resolve a circular dependency! '
+          '(resolving CircularA -> '
+      'CircularB -> CircularA)'));
     });
 
 
@@ -479,10 +383,8 @@ createInjectorSpec(String injectorName, InjectorFactory injectorFactory) {
       var parent = injectorFactory([new Module()..type(Engine)]);
       var child = parent.createChild([new Module()..type(MockEngine)]);
 
-      expect(parent.types, unorderedEquals(new Set.from(
-          [Engine, Injector])));
-      expect(child.types, unorderedEquals(new Set.from(
-          [Engine, MockEngine, Injector])));
+      expect(parent.types, unorderedEquals(new Set.from([Engine, Injector])));
+      expect(child.types, unorderedEquals(new Set.from([Engine, MockEngine, Injector])));
     });
 
 
@@ -523,7 +425,7 @@ createInjectorSpec(String injectorName, InjectorFactory injectorFactory) {
       var parent = injectorFactory([new Module()..type(Engine)]);
       var abcAlreadyInParent = parent.get(Engine);
 
-      var child = parent.createChild([], forceNewInstances: [new Key(Engine)]);
+      var child = parent.createChild([], forceNewInstances: [Engine]);
       var abcFromChild = child.get(Engine);
 
       expect(abcFromChild, not(toBe(abcAlreadyInParent)));
@@ -535,7 +437,7 @@ createInjectorSpec(String injectorName, InjectorFactory injectorFactory) {
 
       var grandParent = injectorFactory([module]);
       var parent = grandParent.createChild([]);
-      var child = parent.createChild([], forceNewInstances: [new Key(Engine)]);
+      var child = parent.createChild([], forceNewInstances: [Engine]);
 
       var abcFromGrandParent = grandParent.get(Engine);
       var abcFromChild = child.get(Engine);
@@ -567,8 +469,7 @@ createInjectorSpec(String injectorName, InjectorFactory injectorFactory) {
 
 
     it('should instantiate class only once (Issue #18)', () {
-      var rootInjector = injectorFactory([]);
-      var injector = rootInjector.createChild([
+      var injector = injectorFactory([
           new Module()
             ..type(Log)
             ..type(ClassOne)
@@ -577,6 +478,46 @@ createInjectorSpec(String injectorName, InjectorFactory injectorFactory) {
 
       expect(injector.get(InterfaceOne), same(injector.get(ClassOne)));
       expect(injector.get(Log).log.join(' '), 'ClassOne');
+    });
+
+
+    describe('creation strategy', () {
+
+      it('should get called for instance creation', () {
+
+        List creationLog = [];
+        dynamic creation(Injector requesting, Injector defining, factory) {
+          creationLog.add([requesting, defining]);
+          return factory();
+        }
+
+        var parentModule = new Module()
+          ..type(Engine, implementedBy: MockEngine, creation: creation)
+          ..type(Car, creation: creation);
+
+        var parentInjector = injectorFactory([parentModule]);
+        var childInjector = parentInjector.createChild([]);
+        childInjector.get(Car);
+        expect(creationLog, [
+          [childInjector, parentInjector],
+          [childInjector, parentInjector]
+        ]);
+      });
+
+      it('should be able to prevent instantiation', () {
+
+        List creationLog = [];
+        dynamic creation(Injector requesting, Injector defining, factory) {
+          throw 'not allowing';
+        }
+
+        var module = new Module()
+          ..type(Engine, implementedBy: MockEngine, creation: creation);
+        var injector = injectorFactory([module]);
+        expect(() {
+          injector.get(Engine);
+        }, throwsA('not allowing'));
+      });
     });
 
 
@@ -641,24 +582,6 @@ void dynamicInjectorTest() {
       }, toThrow(NoProviderError, startsWith('Unable to find default '
           'constructor for HiddenConstructor. Make sure class has a '
           'default constructor.')));
-    });
-
-    it('should inject parameters into function and invoke it', () {
-      var module = new Module()
-          ..type(Engine);
-      var id;
-      var injector = new DynamicInjector(modules: [module]);
-      injector.invoke((Engine e) => id = e.id);
-      expect(id, equals('v8-id'));
-    });
-
-    it('should inject annotated parameters into function and invoke it', () {
-      var module = new Module()
-          ..type(Engine, withAnnotation: Turbo, implementedBy: TurboEngine);
-      var id;
-      var injector = new DynamicInjector(modules: [module]);
-      injector.invoke((@Turbo() Engine e) => id = e.id);
-      expect(id, equals('turbo-engine-id'));
     });
 
   });
@@ -765,45 +688,5 @@ void staticInjectorTest() {
       expect(engine, new isInstanceOf<Car>());
     });
 
-  });
-}
-
-createKeySpec() {
-  describe('Key', () {
-    it('should be equal to another key if type is the same', () {
-      Key k1 = new Key(Car);
-      Key k2 = new Key(Car);
-      expect(k1, equals(k2));
-      expect(k1.hashCode,  equals(k2.hashCode));
-    });
-
-    it('should be equal to another key if type and annotation are the same', () {
-      Key k1 = new Key(Car, Turbo);
-      Key k2 = new Key(Car, Turbo);
-      expect(k1, equals(k2));
-      expect(k1.hashCode,  equals(k2.hashCode));
-    });
-
-    it('should not be equal to another key if types are different', () {
-      Key k1 = new Key(Car);
-      Key k2 = new Key(Porsche);
-      expect(k1, not(equals(k2)));
-      expect(k1.hashCode, not(equals(k2.hashCode)));
-    });
-
-    it('should not be equal to another key if annotations are different', () {
-      Key k1 = new Key(Car, Turbo);
-      Key k2 = new Key(Car, Old);
-      expect(k1, not(equals(k2)));
-      expect(k1.hashCode, not(equals(k2.hashCode)));
-    });
-
-    it('should not be equal to another key if type is different and annotation'
-        ' is same', () {
-      Key k1 = new Key(Engine, Old);
-      Key k2 = new Key(Car, Old);
-      expect(k1, not(equals(k2)));
-      expect(k1.hashCode, not(equals(k2.hashCode)));
-    });
   });
 }

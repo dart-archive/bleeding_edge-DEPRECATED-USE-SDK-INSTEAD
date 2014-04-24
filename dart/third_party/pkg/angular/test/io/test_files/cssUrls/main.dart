@@ -1,15 +1,15 @@
 library test_files.main;
 
-import 'package:angular/core/annotation_src.dart';
+import 'package:angular/core/module.dart';
 
-@Component(
+@NgComponent(
     selector: 'my-component',
     cssUrl: '/test/io/test_files/cssUrls/one.css')
 class MyComponent
 {
 }
 
-@Component(
+@NgComponent(
     selector: 'my-component2',
     cssUrl: const [
         '/test/io/test_files/cssUrls/two.css',
@@ -18,7 +18,7 @@ class MyComponent2
 {
 }
 
-@Component(
+@NgComponent(
     selector: 'my-component3',
     cssUrl: '/test/io/test_files/cssUrls/four.css')
 class MyComponent3

@@ -1,51 +1,35 @@
 language: node_js
 node_js:
-- "0.11"
-addons:
-  firefox: "28.0"
+  - 0.10
+
 env:
   matrix:
-  - JOB=unit-stable
-    CHANNEL=stable
-    TESTS=vm
-  - JOB=unit-dev
-    CHANNEL=dev
-    TESTS=vm
-  - JOB=unit-stable
-    CHANNEL=stable
-    TESTS=dart2js
-  - JOB=unit-dev
-    CHANNEL=DEV
-    TESTS=dart2js
+    - JOB=unit-stable
+    - JOB=unit-dev
   global:
-  - CHROME_BIN=/usr/bin/google-chrome
-  - secure: "ZSUCLuDjvKEFmgjAd3GpUNCNkdjE66dEIiBfW+EfN0dv2+QHx/MHL4hRyKk2qbGjCr/suR9JWgmNE+Yu1A4fwzcYN52ehgyoLUCTL9YDk+XkFdFWpnjJ8364TDcDuJA0oxwcqJ9E3XUPv6sq1mbcX6DlkPKco7ZT8TLtGmd0nGA="
-
-# Don't test these branches.
-branches:
-  except:
-    - g3v1x
+    - CHROME_BIN=/usr/bin/google-chrome
 
 before_install:
-- export DISPLAY=:99.0
-- ./scripts/travis/install.sh
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - "sudo apt-get update -qq"
+  - "sudo apt-get install -qq unzip chromium-browser"
+  - "sudo apt-get install libxss1"
+  - "wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+  - "sudo dpkg -i google-chrome*.deb"
+  - "sudo chmod u+s /opt"
+
+
 before_script:
-- ./scripts/travis/setup.sh
+  - ./scripts/travis/setup.sh
+
 script:
-- ./scripts/travis/build.sh
-after_success:
-- ./scripts/travis/publish-docs.sh
-- curl -o travis_after_all.py https://raw.github.com/jbdeboer/travis_after_all/master/travis_after_all.py
-- python travis_after_all.py
-- export $(cat .to_export_back)
-- |
-      if [ "$BUILD_LEADER" = "YES" ]; then
-        if [ "$BUILD_AGGREGATE_STATUS" = "others_succeeded" ]; then
-          echo "All Succeded! Submitting..."
-          ./scripts/travis/presubmit.sh
-        else
-          echo "Some Failed, not submitting"
-        fi
-      else
-        echo "Other builds have not finished, not submitting"
-      fi
+  - ./scripts/travis/build.sh
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/87ec780e74ca131d4929
+    on_success: change  # options: [always|never|change] default: always
+    on_failure: always  # options: [always|never|change] default: always
+    on_start: false     # default: false

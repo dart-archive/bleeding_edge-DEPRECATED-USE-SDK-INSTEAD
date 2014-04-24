@@ -5,22 +5,21 @@ part of angular.directive;
  * expression provided to the ngHide attribute. The element is shown or hidden
  * by changing the removing or adding the ng-hide CSS class onto the element.
  */
-@Decorator(
+@NgDirective(
     selector: '[ng-hide]',
     map: const {'ng-hide': '=>hide'})
-class NgHide {
+class NgHideDirective {
   static String NG_HIDE_CLASS = 'ng-hide';
 
   final dom.Element element;
-  final Animate animate;
 
-  NgHide(this.element, this.animate);
+  NgHideDirective(this.element);
 
   set hide(value) {
     if (toBool(value)) {
-      animate.addClass(element, NG_HIDE_CLASS);
+      element.classes.add(NG_HIDE_CLASS);
     } else {
-      animate.removeClass(element, NG_HIDE_CLASS);
+      element.classes.remove(NG_HIDE_CLASS);
     }
   }
 }
@@ -30,20 +29,19 @@ class NgHide {
  * expression provided to the ngHide attribute. The element is shown or hidden
  * by changing the removing or adding the ng-hide CSS class onto the element.
  */
-@Decorator(
+@NgDirective(
     selector: '[ng-show]',
     map: const {'ng-show': '=>show'})
-class NgShow {
+class NgShowDirective {
   final dom.Element element;
-  final Animate animate;
 
-  NgShow(this.element, this.animate);
+  NgShowDirective(this.element);
 
   set show(value) {
     if (toBool(value)) {
-      animate.removeClass(element, NgHide.NG_HIDE_CLASS);
+      element.classes.remove(NgHideDirective.NG_HIDE_CLASS);
     } else {
-      animate.addClass(element, NgHide.NG_HIDE_CLASS);
+      element.classes.add(NgHideDirective.NG_HIDE_CLASS);
     }
   }
 }

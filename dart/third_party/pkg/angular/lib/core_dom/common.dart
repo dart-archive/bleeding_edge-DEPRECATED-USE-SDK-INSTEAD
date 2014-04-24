@@ -1,47 +1,38 @@
-part of angular.core.dom_internal;
+part of angular.core.dom;
 
 List<dom.Node> cloneElements(elements) {
   return elements.map((el) => el.clone(true)).toList();
 }
 
-class MappingParts {
-  final String attrName;
-  final String mode;
-  final String dstExpression;
-  final String originalValue;
-
-  const MappingParts(this.attrName, this.mode, this.dstExpression, this.originalValue);
-}
+typedef ApplyMapping(NodeAttrs attrs, Scope scope, Object dst,
+                     FilterMap filters, notify());
 
 class DirectiveRef {
   final dom.Node element;
   final Type type;
-  final Directive annotation;
+  final NgAnnotation annotation;
   final String value;
-  final mappings = new List<MappingParts>();
+  final List<ApplyMapping> mappings = new List<ApplyMapping>();
+
+  BlockFactory blockFactory;
 
   DirectiveRef(this.element, this.type, this.annotation, [ this.value ]);
 
   String toString() {
-    var html = element is dom.Element
-        ? (element as dom.Element).outerHtml
-        : element.nodeValue;
-    return '{ element: $html, selector: ${annotation.selector}, value: $value, '
-           'type: $type }';
+    var html = element is dom.Element ? (element as dom.Element).outerHtml : element.nodeValue;
+    return '{ element: $html, selector: ${annotation.selector}, value: $value, type: $type }';
   }
 }
 
 /**
- * Creates a child injector that allows loading new directives, formatters and
+ * Creates a child injector that allows loading new directives, filters and
  * services from the provided modules.
  */
 Injector forceNewDirectivesAndFilters(Injector injector, List<Module> modules) {
-  modules.add(new Module()
-      ..factory(Scope, (i) {
-        var scope = i.parent.get(Scope);
-        return scope.createChild(new PrototypeMap(scope.context));
-      }));
-
+  modules.add(new Module()..factory(Scope, (i) {
+    var scope = i.parent.get(Scope);
+    return scope.createChild(new PrototypeMap(scope.context));
+  }));
   return injector.createChild(modules,
-      forceNewInstances: [DirectiveMap, FormatterMap]);
+      forceNewInstances: [DirectiveMap, FilterMap]);
 }

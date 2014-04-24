@@ -1,7 +1,7 @@
-library fixed_unittest;
+library unittest;
 
 import 'package:unittest/unittest.dart';
-import 'package:di/src/mirrors.dart';
+import 'package:di/mirrors.dart';
 import 'dart:async';
 
 export 'package:unittest/unittest.dart';

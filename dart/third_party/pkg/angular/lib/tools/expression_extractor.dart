@@ -12,8 +12,10 @@ import 'package:angular/tools/common.dart';
 import 'package:di/di.dart';
 import 'package:di/dynamic_injector.dart';
 
+import 'package:angular/core/module.dart';
 import 'package:angular/core/parser/parser.dart';
 import 'package:angular/tools/parser_getter_setter/generator.dart';
+import 'package:angular/tools/parser_generator/generator.dart';
 
 main(args) {
   if (args.length < 5) {
@@ -38,38 +40,51 @@ main(args) {
   var headerFile = args[2];
   var footerFile = args[3];
   var outputFile = args[4];
-  var printer;
+  SourcePrinter printer;
   if (outputFile == '--') {
-    printer = stdout;
+    printer = new SourcePrinter();
   } else {
-    printer = new File(outputFile).openWrite();
+    printer = new FileSourcePrinter(outputFile);
   }
 
   // Output the header file first.
   if (headerFile != '') {
-    printer.write(_readFile(headerFile));
+    printer.printSrc(_readFile(headerFile));
   }
 
-  printer.write('// Found ${expressions.length} expressions\n');
+  printer.printSrc('// Found ${expressions.length} expressions');
   Module module = new Module()
       ..type(Parser, implementedBy: DynamicParser)
-      ..type(ParserBackend, implementedBy: DartGetterSetterGen);
+      ..type(ParserBackend, implementedBy: DartGetterSetterGen)
+      ..type(FilterMap, implementedBy: NullFilterMap)
+      ..value(SourcePrinter, printer);
   Injector injector =
       new DynamicInjector(modules: [module], allowImplicitInjection: true);
 
   runZoned(() {
     // Run the generator.
-    injector.get(ParserGetterSetter).generateParser(htmlExtractor.expressions,
-        printer);
+    injector.get(ParserGetterSetter).generateParser(htmlExtractor.expressions);
   }, zoneSpecification: new ZoneSpecification(print: (_, __, ___, String line) {
-    printer.write(line);
+    printer.printSrc(line);
   }));
 
 
   // Output footer last.
   if (footerFile != '') {
-    printer.write(_readFile(footerFile));
+    printer.printSrc(_readFile(footerFile));
   }
 }
 
 String _readFile(String filePath) => new File(filePath).readAsStringSync();
+
+class FileSourcePrinter implements SourcePrinter {
+  final File _file;
+
+  FileSourcePrinter(String filePath)
+      : _file = new File(filePath) {
+    // clear file
+    _file.writeAsStringSync('');
+  }
+
+  printSrc(src) => _file.writeAsStringSync('$src\n', mode: FileMode.APPEND);
+}

@@ -1,7 +1,8 @@
 library angular.core.parser.utils;
 
 import 'package:angular/core/parser/syntax.dart' show Expression;
-import 'package:angular/core/module_internal.dart';
+import 'package:angular/core/module.dart';
+import 'package:angular/utils.dart' show isReservedWord;
 export 'package:angular/utils.dart' show relaxFnApply, relaxFnArgs, toBool;
 
 /// Marker for an uninitialized value.
@@ -19,15 +20,14 @@ class EvalError {
 }
 
 /// Evaluate the [list] in context of the [scope].
-List evalList(scope, List<Expression> list, [FormatterMap formatters]) {
-  final length = list.length;
-  int cacheLength = _evalListCache.length;
-  for (; cacheLength <= length; cacheLength++) {
+List evalList(scope, List<Expression> list, [FilterMap filters]) {
+  int length = list.length;
+  for (int cacheLength = _evalListCache.length; cacheLength <= length; cacheLength++) {
     _evalListCache.add(new List(cacheLength));
   }
   List result = _evalListCache[length];
   for (int i = 0; i < length; i++) {
-    result[i] = list[i].eval(scope, formatters);
+    result[i] = list[i].eval(scope, filters);
   }
   return result;
 }
@@ -47,7 +47,7 @@ autoConvertAdd(a, b) {
   }
   if (a != null) return a;
   if (b != null) return b;
-  return 0;
+  return null;
 }
 
 /**
@@ -96,4 +96,10 @@ setKeyed(object, key, value) {
     object[key] = value;
   }
   return value;
+}
+
+/// Returns a new symbol with the given name if the name is a legal
+/// symbol name. Otherwise, returns null.
+Symbol newSymbol(String name) {
+  return isReservedWord(name) ? null : new Symbol(name);
 }

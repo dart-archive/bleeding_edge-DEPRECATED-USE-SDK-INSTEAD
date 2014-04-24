@@ -11,12 +11,12 @@ part of angular.mock;
  *
  *     expect(logger).toEqual(['foo']);
  */
-@Decorator(
+@NgDirective(
     selector: '[log]',
     map: const {
         'log': '@logMessage'
     })
-class LogAttrDirective implements AttachAware {
+class LogAttrDirective implements NgAttachAware {
   final Logger log;
   String logMessage;
   LogAttrDirective(this.log);

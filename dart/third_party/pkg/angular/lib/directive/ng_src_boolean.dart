@@ -5,7 +5,7 @@ part of angular.directive;
  *
  * Using `<button disabled="{{false}}">` does not work since it would result
  * in `<button disabled="false">` rather than `<button>`.
- * Browsers change behavior based on presence/absence of the attribute rather
+ * Browsers change behavior based on presence/absence of attribute rather the
  * its value.
  *
  * For this reason we provide alternate `ng-`attribute directives to
@@ -22,33 +22,26 @@ part of angular.directive;
  *  - [ng-required]
  *  - [ng-selected]
  */
-@Decorator(selector: '[ng-checked]',  map: const {'ng-checked':  '=>checked'})
-@Decorator(selector: '[ng-disabled]', map: const {'ng-disabled': '=>disabled'})
-@Decorator(selector: '[ng-multiple]', map: const {'ng-multiple': '=>multiple'})
-@Decorator(selector: '[ng-open]',     map: const {'ng-open':     '=>open'})
-@Decorator(selector: '[ng-readonly]', map: const {'ng-readonly': '=>readonly'})
-@Decorator(selector: '[ng-required]', map: const {'ng-required': '=>required'})
-@Decorator(selector: '[ng-selected]', map: const {'ng-selected': '=>selected'})
-class NgBooleanAttribute {
-  final NgElement _ngElement;
+@NgDirective(selector: '[ng-checked]',  map: const {'ng-checked':  '=>checked'})
+@NgDirective(selector: '[ng-disabled]', map: const {'ng-disabled': '=>disabled'})
+@NgDirective(selector: '[ng-multiple]', map: const {'ng-multiple': '=>multiple'})
+@NgDirective(selector: '[ng-open]',     map: const {'ng-open':     '=>open'})
+@NgDirective(selector: '[ng-readonly]', map: const {'ng-readonly': '=>readonly'})
+@NgDirective(selector: '[ng-required]', map: const {'ng-required': '=>required'})
+@NgDirective(selector: '[ng-selected]', map: const {'ng-selected': '=>selected'})
+class NgBooleanAttributeDirective {
+  final NodeAttrs attrs;
+  NgBooleanAttributeDirective(this.attrs);
 
-  NgBooleanAttribute(this._ngElement);
+  _setBooleanAttribute(name, value) => attrs[name] = (toBool(value) ? '' : null);
 
-  void set checked(on)  => _toggleAttribute('checked',  on);
-  void set disabled(on) => _toggleAttribute('disabled', on);
-  void set multiple(on) => _toggleAttribute('multiple', on);
-  void set open(on)     => _toggleAttribute('open', on);
-  void set readonly(on) => _toggleAttribute('readonly', on);
-  void set required(on) => _toggleAttribute('required', on);
-  void set selected(on) => _toggleAttribute('selected', on);
-
-  void _toggleAttribute(attrName, on) {
-    if (toBool(on)) {
-      _ngElement.setAttribute(attrName);
-    } else {
-      _ngElement.removeAttribute(attrName);
-    }
-  }
+  set checked(value)   => _setBooleanAttribute('checked',  value);
+  set disabled(value)  => _setBooleanAttribute('disabled', value);
+  set multiple(value)  => _setBooleanAttribute('multiple', value);
+  set open(value)      => _setBooleanAttribute('open',     value);
+  set readonly(value)  => _setBooleanAttribute('readonly', value);
+  set required(value)  => _setBooleanAttribute('required', value);
+  set selected(value)  => _setBooleanAttribute('selected', value);
 }
 
 /**
@@ -68,16 +61,16 @@ class NgBooleanAttribute {
  * - [ng-src]
  * - [ng-srcset]
  */
-@Decorator(selector: '[ng-href]',   map: const {'ng-href':   '@href'})
-@Decorator(selector: '[ng-src]',    map: const {'ng-src':    '@src'})
-@Decorator(selector: '[ng-srcset]', map: const {'ng-srcset': '@srcset'})
-class NgSource {
-  final NgElement _ngElement;
-  NgSource(this._ngElement);
+@NgDirective(selector: '[ng-href]',   map: const {'ng-href':   '@href'})
+@NgDirective(selector: '[ng-src]',    map: const {'ng-src':    '@src'})
+@NgDirective(selector: '[ng-srcset]', map: const {'ng-srcset': '@srcset'})
+class NgSourceDirective {
+  final NodeAttrs attrs;
+  NgSourceDirective(this.attrs);
 
-  void set href(value)   => _ngElement.setAttribute('href', value);
-  void set src(value)    => _ngElement.setAttribute('src', value);
-  void set srcset(value) => _ngElement.setAttribute('srcset', value);
+  set href(value)   => attrs['href']   = value;
+  set src(value)    => attrs['src']    = value;
+  set srcset(value) => attrs['srcset'] = value;
 
 }
 
@@ -94,11 +87,11 @@ class NgSource {
  *       <circle ng-attr-cx="{{cx}}"></circle>
  *     </svg>
  */
-@Decorator(selector: '[ng-attr-*]')
-class NgAttribute implements AttachAware {
+@NgDirective(selector: '[ng-attr-*]')
+class NgAttributeDirective implements NgAttachAware {
   final NodeAttrs _attrs;
 
-  NgAttribute(this._attrs);
+  NgAttributeDirective(this._attrs);
 
   void attach() {
     String ngAttrPrefix = 'ng-attr-';

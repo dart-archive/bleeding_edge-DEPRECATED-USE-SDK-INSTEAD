@@ -26,25 +26,13 @@ class InjectorBenchmark extends BenchmarkBase {
       ..type(A)
       ..type(B)
       ..type(C)
-      ..type(C, withAnnotation: AnnOne, implementedBy: COne )
       ..type(D)
-      ..type(E)
-      ..type(E, withAnnotation: AnnTwo, implementedBy: ETwo )
-      ..type(F)
-      ..type(G);
+      ..type(E);
   }
 
   teardown() {
     print(count);
   }
-}
-
-class AnnOne {
-  const AnnOne();
-}
-
-class AnnTwo {
-  const AnnTwo();
 }
 
 class A {
@@ -65,12 +53,6 @@ class C {
   }
 }
 
-class COne {
-  COne() {
-    count++;
-  }
-}
-
 class D {
   D() {
     count++;
@@ -79,24 +61,6 @@ class D {
 
 class E {
   E() {
-    count++;
-  }
-}
-
-class ETwo {
-  ETwo() {
-    count++;
-  }
-}
-
-class F {
-  F(@AnnOne() C c, D d) {
-    count++;
-  }
-}
-
-class G {
-  G(@AnnTwo() E) {
     count++;
   }
 }

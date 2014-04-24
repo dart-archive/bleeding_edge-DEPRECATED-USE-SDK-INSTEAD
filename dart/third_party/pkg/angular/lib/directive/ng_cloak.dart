@@ -12,7 +12,7 @@ part of angular.directive;
  *
  * `ngCloak` works in cooperation with a css. Following is the css rule:
  *
- *     [ng-cloak], [data-ng-cloak], .ng-cloak {
+ *     [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
  *        display: none !important;
  *     }
  *
@@ -22,11 +22,11 @@ part of angular.directive;
  * template it deletes the `ngCloak` element attribute, which makes the compiled
  * element visible.
  */
-@Decorator(selector: '[ng-cloak]')
-@Decorator(selector: '.ng-cloak')
-class NgCloak {
-  NgCloak(dom.Element element, Animate animate) {
+@NgDirective(selector: '[ng-cloak]')
+@NgDirective(selector: '.ng-cloak')
+class NgCloakDirective {
+  NgCloakDirective(dom.Element element) {
     element.attributes.remove('ng-cloak');
-    animate.removeClass(element, 'ng-cloak');
+    element.classes.remove('ng-cloak');
   }
 }

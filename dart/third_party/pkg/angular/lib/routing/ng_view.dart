@@ -9,7 +9,7 @@ part of angular.routing;
  * [NgViewDirective] can work with [NgViewDirective] to define nested views
  * for hierarchical routes. For example:
  *
- *     void initRoutes(Router router, RouteViewFactory view) {
+ *     void initRoutes(Router router, ViewFactory view) {
  *       router.root
  *         ..addRoute(
  *             name: 'library',
@@ -55,52 +55,46 @@ part of angular.routing;
  *       <li><a href="/library/23456/overview">Book 23456</a>
  *     </ul>
  */
-@Decorator(
+@NgDirective(
     selector: 'ng-view',
-    module: NgView.module,
-    children: Directive.TRANSCLUDE_CHILDREN)
-class NgView implements DetachAware, RouteProvider {
-  static final Module _module = new Module()
-      ..factory(RouteProvider, (i) => i.get(NgView));
-
-  static module() => _module;
-
-  final NgRoutingHelper _locationService;
-  final ViewCache _viewCache;
-  final Injector _injector;
-  final Scope _scope;
+    publishTypes: const [RouteProvider],
+    visibility: NgDirective.CHILDREN_VISIBILITY)
+class NgViewDirective implements NgDetachAware, RouteProvider {
+  final NgRoutingHelper locationService;
+  final BlockCache blockCache;
+  final Injector injector;
+  final Element element;
+  final Scope scope;
   RouteHandle _route;
 
-  final ViewPort _viewPort;
-
-  View _view;
-  Scope _childScope;
+  Block _previousBlock;
+  Scope _previousScope;
   Route _viewRoute;
 
-
-  NgView(this._viewCache, Injector injector, Router router,
-         this._scope, this._viewPort)
-      : _injector = injector,
-        _locationService = injector.get(NgRoutingHelper)
+  NgViewDirective(this.element, this.blockCache,
+                  Injector injector, Router router,
+                  this.scope)
+      : injector = injector,
+        locationService = injector.get(NgRoutingHelper)
   {
-    RouteProvider routeProvider = _injector.parent.get(NgView);
+    RouteProvider routeProvider = injector.parent.get(NgViewDirective);
     _route = routeProvider != null ?
         routeProvider.route.newHandle() :
         router.root.newHandle();
-    _locationService._registerPortal(this);
+    locationService._registerPortal(this);
     _maybeReloadViews();
   }
 
   void _maybeReloadViews() {
-    if (_route.isActive) _locationService._reloadViews(startingFrom: _route);
+    if (_route.isActive) locationService._reloadViews(startingFrom: _route);
   }
 
-  void detach() {
+  detach() {
     _route.discard();
-    _locationService._unregisterPortal(this);
+    locationService._unregisterPortal(this);
   }
 
-  void _show(_View viewDef, Route route, List<Module> modules) {
+  _show(String templateUrl, Route route, List<Module> modules) {
     assert(route.isActive);
 
     if (_viewRoute != null) return;
@@ -114,52 +108,41 @@ class NgView implements DetachAware, RouteProvider {
       _cleanUp();
     });
 
-    var viewInjector = modules == null ?
-        _injector :
-        forceNewDirectivesAndFilters(_injector, modules);
+    var viewInjector = injector;
+    if (modules != null) {
+      viewInjector = forceNewDirectivesAndFilters(viewInjector, modules);
+    }
 
     var newDirectives = viewInjector.get(DirectiveMap);
-    var viewFuture = viewDef.templateHtml != null ?
-        new Future.value(_viewCache.fromHtml(viewDef.templateHtml, newDirectives)) :
-        _viewCache.fromUrl(viewDef.template, newDirectives);
-
-    viewFuture.then((viewFactory) {
+    blockCache.fromUrl(templateUrl, newDirectives).then((blockFactory) {
       _cleanUp();
-      _childScope = _scope.createChild(new PrototypeMap(_scope.context));
-      _view = viewFactory(
-          viewInjector.createChild([new Module()..value(Scope, _childScope)]));
+      _previousScope = scope.createChild(new PrototypeMap(scope.context));
+      _previousBlock = blockFactory(
+          viewInjector.createChild(
+              [new Module()..value(Scope, _previousScope)]));
 
-      var view = _view;
-      _scope.rootScope.domWrite(() {
-        _viewPort.insert(view);
-      });
+      _previousBlock.elements.forEach((elm) => element.append(elm));
     });
   }
 
-  void _cleanUp() {
-    if (_view == null) return;
+  _cleanUp() {
+    if (_previousBlock == null) return;
 
-    var view = _view;
-    var childScope = _childScope;
-    _scope.rootScope.domWrite(() {
-      _viewPort.remove(view);
-      childScope.destroy();
-    });
+    _previousBlock.remove();
+    _previousScope.destroy();
 
-    _view = null;
-    _childScope = null;
+    _previousBlock = null;
+    _previousScope = null;
   }
 
   Route get route => _viewRoute;
-
   String get routeName => _viewRoute.name;
-
   Map<String, String> get parameters {
     var res = <String, String>{};
-    var route = _viewRoute;
-    while (route != null) {
-      res.addAll(route.parameters);
-      route = route.parent;
+    var p = _viewRoute;
+    while (p != null) {
+      res.addAll(p.parameters);
+      p = p.parent;
     }
     return res;
   }
@@ -170,18 +153,18 @@ class NgView implements DetachAware, RouteProvider {
  * Class that can be injected to retrieve information about the current route.
  * For example:
  *
- *     @Component(/* ... */)
- *     class MyComponent implement DetachAware {
+ *     @NgComponent(/* ... */)
+ *     class MyComponent implement NgDetachAware {
  *       RouteHandle route;
  *
  *       MyComponent(RouteProvider routeProvider) {
  *         _loadFoo(routeProvider.parameters['fooId']);
  *         route = routeProvider.route.newHandle();
- *         route.onEnter.listen((RouteEvent e) {
+ *         route.onRoute.listen((RouteEvent e) {
  *           // Do something when the route is activated.
  *         });
  *         route.onLeave.listen((RouteEvent e) {
- *           // Do something when the route is de-activated.
+ *           // Do something when the route is diactivated.
  *           e.allowLeave(allDataSaved());
  *         });
  *       }

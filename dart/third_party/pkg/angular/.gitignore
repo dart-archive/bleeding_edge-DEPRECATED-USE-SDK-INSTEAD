@@ -15,6 +15,3 @@ dartium
 **/*.dart.js.deps
 **/*.dart.js.map
 **/*.dart.precompiled.js
-docs.angulardart.org
-dartdoc-viewer
-docs

@@ -21,7 +21,7 @@ before_install:
 
 
 before_script:
-  - ./scripts/travis-setup.sh
+  - ./test/scripts/travis-setup.sh
 
 script:
-  - ./scripts/travis-build.sh
+  - ./test/scripts/travis-build.sh

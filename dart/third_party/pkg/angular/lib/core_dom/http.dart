@@ -1,6 +1,6 @@
-part of angular.core.dom_internal;
+part of angular.core.dom;
 
-@Injectable()
+@NgInjectableService()
 class UrlRewriter {
   String call(url) => url;
 }
@@ -14,7 +14,7 @@ class UrlRewriter {
  * During testing this implementation is swapped with [MockHttpBackend] which
  * can be trained with responses.
  */
-@Injectable()
+@NgInjectableService()
 class HttpBackend {
   /**
    * Wrapper around dart:html's [HttpRequest.request]
@@ -29,7 +29,7 @@ class HttpBackend {
         sendData: sendData, onProgress: onProgress);
 }
 
-@Injectable()
+@NgInjectableService()
 class LocationWrapper {
   get location => dom.window.location;
 }
@@ -95,7 +95,7 @@ class DefaultTransformDataHttpInterceptor implements HttpInterceptor {
 /**
  * A list of [HttpInterceptor]s.
  */
-@Injectable()
+@NgInjectableService()
 class HttpInterceptors {
   List<HttpInterceptor> _interceptors =
       [new DefaultTransformDataHttpInterceptor()];
@@ -234,7 +234,7 @@ class HttpResponse {
 /**
  * Default header configuration.
  */
-@Injectable()
+@NgInjectableService()
 class HttpDefaultHeaders {
   static var _defaultContentType = 'application/json;charset=utf-8';
   var _headers = {
@@ -280,7 +280,7 @@ class HttpDefaultHeaders {
 * The default implementation provides headers which the
 * Angular team believes to be useful.
 */
-@Injectable()
+@NgInjectableService()
 class HttpDefaults {
   /**
    * The [HttpDefaultHeaders] object used by [Http] to add default headers
@@ -367,7 +367,7 @@ class HttpDefaults {
  *
  * NOTE: < not yet documented >
  */
-@Injectable()
+@NgInjectableService()
 class Http {
   var _pendingRequests = <String, async.Future<HttpResponse>>{};
   BrowserCookies _cookies;
@@ -386,6 +386,16 @@ class Http {
    */
   Http(this._cookies, this._location, this._rewriter, this._backend,
        this.defaults, this._interceptors);
+
+  /**
+   * DEPRECATED
+   */
+  async.Future<String> getString(String url, {bool withCredentials,
+      void onProgress(dom.ProgressEvent e), Cache cache}) =>
+      request(url,
+              withCredentials: withCredentials,
+              onProgress: onProgress,
+              cache: cache).then((HttpResponse xhr) => xhr.responseText);
 
   /**
    * Parse a [requestUrl] and determine whether this is a same-origin request as
@@ -421,7 +431,7 @@ class Http {
     String method,
     data,
     Map<String, dynamic> params,
-    Map<String, dynamic> headers,
+    Map<String, String> headers,
     xsrfHeaderName,
     xsrfCookieName,
     interceptors,
@@ -432,7 +442,6 @@ class Http {
       throw ['timeout not implemented'];
     }
 
-    url = _rewriter(url);
     method = method.toUpperCase();
 
     if (headers == null) headers = {};
@@ -452,7 +461,8 @@ class Http {
     });
 
     var serverRequest = (HttpResponseConfig config) {
-      assert(config.data == null || config.data is String || config.data is dom.File);
+      assert(config.data == null || config.data is String ||
+          config.data is dom.File);
 
       // Strip content-type if data is undefined
       if (config.data == null) {
@@ -461,45 +471,12 @@ class Http {
             .forEach((h) => headers.remove(h));
       }
 
-      url = _buildUrl(config.url, config.params);
-
-      if (cache == false) {
-        cache = null;
-      } else if (cache == null) {
-        cache = defaults.cache;
-      }
-
-      // We return a pending request only if caching is enabled.
-      if (cache != null && _pendingRequests.containsKey(url)) {
-        return _pendingRequests[url];
-      }
-      var cachedResponse = (cache != null && method == 'GET') ? cache.get(url) : null;
-      if (cachedResponse != null) {
-        return new async.Future.value(new HttpResponse.copy(cachedResponse));
-      }
-
-      var result = _backend.request(url,
-                                    method: method,
-                                    requestHeaders: config.headers,
-                                    sendData: config.data).then((dom.HttpRequest value) {
-        // TODO: Uncomment after apps migrate off of this class.
-        // assert(value.status >= 200 && value.status < 300);
-
-        var response = new HttpResponse(value.status, value.responseText,
-            parseHeaders(value), config);
-
-        if (cache != null) cache.put(url, response);
-        _pendingRequests.remove(url);
-        return response;
-      }, onError: (error) {
-        if (error is! dom.ProgressEvent) throw error;
-        dom.ProgressEvent event = error;
-        _pendingRequests.remove(url);
-        dom.HttpRequest request = event.currentTarget;
-        return new async.Future.error(
-            new HttpResponse(request.status, request.response, parseHeaders(request), config));
-      });
-      return _pendingRequests[url] = result;
+      return request(null,
+                     config: config,
+                     method: method,
+                     sendData: config.data,
+                     requestHeaders: config.headers,
+                     cache: cache);
     };
 
     var chain = [[serverRequest, null]];
@@ -655,12 +632,80 @@ class Http {
     });
     return parsed;
   }
+
   /**
    * Returns an [Iterable] of [Future] [HttpResponse]s for the requests
    * that the [Http] service is currently waiting for.
    */
   Iterable<async.Future<HttpResponse> > get pendingRequests =>
       _pendingRequests.values;
+
+  /**
+   * DEPRECATED
+   */
+  async.Future<HttpResponse> request(String rawUrl,
+      { HttpResponseConfig config,
+        String method: 'GET',
+        bool withCredentials: false,
+        String responseType,
+        String mimeType,
+        Map<String, String> requestHeaders,
+        sendData,
+        void onProgress(dom.ProgressEvent e),
+        /*Cache<String, HttpResponse> or false*/ cache }) {
+    String url;
+
+    if (config == null) {
+      url = _rewriter(rawUrl);
+      config = new HttpResponseConfig(url: url);
+    } else {
+      url = _buildUrl(config.url, config.params);
+    }
+
+    if (cache == false) {
+      cache = null;
+    } else if (cache == null) {
+      cache = defaults.cache;
+    }
+    // We return a pending request only if caching is enabled.
+    if (cache != null && _pendingRequests.containsKey(url)) {
+      return _pendingRequests[url];
+    }
+    var cachedResponse = (cache != null && method == 'GET')
+        ? cache.get(url)
+        : null;
+    if (cachedResponse != null) {
+      return new async.Future.value(new HttpResponse.copy(cachedResponse));
+    }
+
+    var result = _backend.request(url,
+        method: method,
+        withCredentials: withCredentials,
+        responseType: responseType,
+        mimeType: mimeType,
+        requestHeaders: requestHeaders,
+        sendData: sendData,
+        onProgress: onProgress).then((dom.HttpRequest value) {
+      // TODO: Uncomment after apps migrate off of this class.
+      // assert(value.status >= 200 && value.status < 300);
+
+      var response = new HttpResponse(value.status, value.responseText,
+          parseHeaders(value), config);
+
+      if (cache != null) cache.put(url, response);
+      _pendingRequests.remove(url);
+      return response;
+    }, onError: (error) {
+      if (error is! dom.ProgressEvent) throw error;
+      dom.ProgressEvent event = error;
+      _pendingRequests.remove(url);
+      dom.HttpRequest request = event.currentTarget;
+      return new async.Future.error(
+          new HttpResponse(request.status, request.response,
+              parseHeaders(request), config));
+    });
+    return _pendingRequests[url] = result;
+  }
 
   _buildUrl(String url, Map<String, dynamic> params) {
     if (params == null) return url;

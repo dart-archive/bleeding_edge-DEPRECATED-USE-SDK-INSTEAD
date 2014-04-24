@@ -1,6 +1,4 @@
 /**
- * Route configuration for single-page applications.
- *
  * The [routing] library makes it easier to build large single-page
  * applications. The library lets you map the browser address bar to semantic
  * structure of your application and keeps them in sync.
@@ -9,7 +7,7 @@
  * and to provide custom tools to make it easier to use routing with Angular
  * templates.
  *
- * Let's consider a simple recipe book application. The application might have
+ * Lets consider a simple recipe book application. The application might have
  * the following pages:
  *
  *   * recipes list/search
@@ -25,37 +23,37 @@
  *   * `/recipe/:recipeId/edit`
  *
  *
- * Let's try to define those routes in Angular. To get started we need to
+ * Lets try to define those routes in Angular. To get started we need to
  * provide an implementation of [RouteInitializerFn] function.
  *
- *      void initRoutes(Router router, RouteViewFactory view) {
- *        // define routes here.
- *      }
+ *    void initRoutes(Router router, ViewFactory view) {
+ *       // define routes here.
+ *    }
  *
- *      var module = new Module()
- *          ..value(RouteInitializerFn, initRoutes);
+ *     var module = new Module()
+ *       ..factory(RouteInitializerFn, (_) => initRoutes);
  *
- *  Let's see how we could define our routes using the routing framework:
+ *  Lets see how we could define our routes using the routing framework:
  *
- *      void initRoutes(Router router, RouteViewFactory view) {
- *        router.root
- *            ..addRoute(
- *                name: 'recipes',
- *                path: '/recipes',
- *                enter: view('recipes.html'))
- *            ..addRoute(
- *                name: 'addRecipe',
- *                path: '/addRecipe',
- *                enter: view('addRecipe.html'))
- *            ..addRoute(
- *                name: 'viewRecipe',
- *                path: '/recipe/:recipeId/view',
- *                enter: view('viewRecipe.html'))
- *            ..addRoute(
- *                name: 'editRecipe',
- *                path: '/recipe/:recipeId/edit',
- *                enter: view('editRecipe.html'));
- *      }
+ *     void initRoutes(Router router, ViewFactory view) {
+ *       router
+ *         ..addRoute(
+ *            name: 'recipes',
+ *            path: '/recipes',
+ *            enter: view('recipes.html'))
+ *         ..addRoute(
+ *            name: 'addRecipe',
+ *            path: '/addRecipe',
+ *            enter: view('addRecipe.html'))
+ *         ..addRoute(
+ *            name: 'viewRecipe',
+ *            path: '/recipe/:recipeId/view',
+ *            enter: view('viewRecipe.html'))
+ *         ..addRoute(
+ *            name: 'editRecipe',
+ *            path: '/recipe/:recipeId/edit',
+ *            enter: view('editRecipe.html'));
+ *     }
  *
  *  We defined 4 routes and for each route we set views (templates) to be
  *  displayed when that route is "entered". For example, when the browser URL
@@ -66,7 +64,7 @@
  *
  *  Notice that `viewRecipe` and `editRecipe` route paths have `recipeId`
  *  parameter in them. We need to be able to get hold of that parameter in
- *  order to know which recipe to load. Let's consider the following
+ *  order to know which recipe to load. Lets consider the following
  *  `viewRecipe.html`.
  *
  *      <view-recipe></view-recipe>
@@ -75,21 +73,21 @@
  *  displaying the recipe. Now, our `view-recipe` can inject [RouteProvider]
  *  to get hold of the route and its parameters. It might look like this:
  *
- *      @Component(...)
- *      class ViewRecipe {
- *        ViewRecipe(RouteProvider routeProvider) {
+ *      @NgComponent(...)
+ *      class ViewRecipeComponent {
+ *        ViewRecipeComponent(RouteProvider routeProvider) {
  *          String recipeId = routeProvider.parameters['recipeId'];
  *          _loadRecipe(recipeId);
  *        }
  *      }
  *
  *  [RouteProvider] and [Route] can be used to control navigation, specifically,
- *  leaving of the route. For example, let's consider "edit recipe" component:
+ *  leaving of the route. For example, lets consider "edit recipe" component:
  *
- *      @Component(...)
- *      class EditRecipe implements DetachAware {
+ *      @NgComponent(...)
+ *      class EditRecipeComponent implements NgDetachAware {
  *        RouteHandle route;
- *        EditRecipe(RouteProvider routeProvider) {
+ *        EditRecipeComponent(RouteProvider routeProvider) {
  *          RouteHandle route = routeProvider.route.newHandle();
  *          _loadRecipe(route);
  *          route.onLeave.listen((RouteEvent event) {
@@ -118,35 +116,35 @@
  *  [RouteHandle.discard] unsubscribes all listeneters created for the handle.
  *
  *
- * ## Hierarchical Routes
+ *  # Hierarchical Routes
  *
  *  The routing framework allows us to define trees of routes. In our recipes
  *  example we could have defined our routes like this:
  *
- *     void initRoutes(Router router, RouteViewFactory view) {
- *       router.root
- *           ..addRoute(
- *              name: 'recipes',
- *              path: '/recipes',
- *              enter: view('recipes.html'))
- *           ..addRoute(
- *              name: 'addRecipe',
- *              path: '/addRecipe',
- *              enter: view('addRecipe.html'))
- *           ..addRoute(
- *              name: 'recipe',
- *              path: '/recipe/:recipeId',
- *              mount: (Route route) => route
- *                  ..addRoute(
- *                      name: 'view',
- *                      path: '/view',
- *                      enter: view('viewRecipe.html'))
- *                  ..addRoute(
- *                      name: 'edit',
- *                      path: '/edit',
- *                      enter: view('editRecipe.html')));
+ *     void initRoutes(Router router, ViewFactory view) {
+ *       router
+ *         ..addRoute(
+ *            name: 'recipes',
+ *            path: '/recipes',
+ *            enter: view('recipes.html'))
+ *         ..addRoute(
+ *            name: 'addRecipe',
+ *            path: '/addRecipe',
+ *            enter: view('addRecipe.html'))
+ *         ..addRoute(
+ *            name: 'recipe',
+ *            path: '/recipe/:recipeId',
+ *            mount: (Route route) => route
+ *               ..addRoute(
+ *                  name: 'view',
+ *                  path: '/view',
+ *                  enter: view('viewRecipe.html'))
+ *               ..addRoute(
+ *                  name: 'edit',
+ *                  path: '/edit',
+ *                  enter: view('editRecipe.html')));
  *     }
- *
+ *   }
  */
 library angular.routing;
 
@@ -154,18 +152,16 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:di/di.dart';
-import 'package:angular/application.dart';
-import 'package:angular/core/annotation_src.dart';
-import 'package:angular/core/module_internal.dart';
-import 'package:angular/core_dom/module_internal.dart';
+import 'package:angular/angular.dart';
 import 'package:route_hierarchical/client.dart';
+export 'package:route_hierarchical/client.dart';
 
 part 'routing.dart';
 part 'ng_view.dart';
 part 'ng_bind_route.dart';
 
-class RoutingModule extends Module {
-  RoutingModule({bool usePushState: true}) {
+class NgRoutingModule extends Module {
+  NgRoutingModule({bool usePushState: true}) {
     type(NgRoutingUsePushState);
     factory(Router, (injector) {
       var useFragment = !injector.get(NgRoutingUsePushState).usePushState;
@@ -178,8 +174,8 @@ class RoutingModule extends Module {
     value(RouteInitializerFn, null);
 
     // directives
-    value(NgView, null);
-    type(NgBindRoute);
+    value(NgViewDirective, null);
+    type(NgBindRouteDirective);
   }
 }
 
@@ -192,7 +188,7 @@ class RoutingModule extends Module {
  * "http://host:port/path#/foo/bar?baz=qux". Everything after hash (#) is used
  * by the router.
  */
-@Injectable()
+@NgInjectableService()
 class NgRoutingUsePushState {
   final bool usePushState;
   NgRoutingUsePushState(): usePushState = true;

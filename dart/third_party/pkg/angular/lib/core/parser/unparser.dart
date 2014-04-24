@@ -13,35 +13,27 @@ class Unparser extends Visitor {
     return "$buffer";
   }
 
-  void write(String string) {
+  write(String string) {
     buffer.write(string);
   }
 
-  void writeArguments(CallArguments arguments) {
-    bool first = true;
+  writeArguments(List<Expression> arguments) {
     write('(');
-    for (int i = 0; i < arguments.positionals.length; i++) {
-      if (!first) write(', ');
-      first = false;
-      visit(arguments.positionals[i]);
+    for (int i = 0; i < arguments.length; i++) {
+      if (i != 0) write(',');
+      visit(arguments[i]);
     }
-    arguments.named.forEach((String name, value) {
-      if (!first) write(', ');
-      first = false;
-      write('$name: ');
-      visit(value);
-    });
     write(')');
   }
 
-  void visitChain(Chain chain) {
+  visitChain(Chain chain) {
     for (int i = 0; i < chain.expressions.length; i++) {
       if (i != 0) write(';');
       visit(chain.expressions[i]);
     }
   }
 
-  void visitFilter(Filter filter) {
+  visitFilter(Filter filter) {
     write('(');
     visit(filter.expression);
     write('|${filter.name}');
@@ -52,13 +44,13 @@ class Unparser extends Visitor {
     write(')');
   }
 
-  void visitAssign(Assign assign) {
+  visitAssign(Assign assign) {
     visit(assign.target);
     write('=');
     visit(assign.value);
   }
 
-  void visitConditional(Conditional conditional) {
+  visitConditional(Conditional conditional) {
     visit(conditional.condition);
     write('?');
     visit(conditional.yes);
@@ -66,47 +58,45 @@ class Unparser extends Visitor {
     visit(conditional.no);
   }
 
-  void visitAccessScope(AccessScope access) {
+  visitAccessScope(AccessScope access) {
     write(access.name);
   }
 
-  void visitAccessMember(AccessMember access) {
+  visitAccessMember(AccessMember access) {
     visit(access.object);
     write('.${access.name}');
   }
 
-  void visitAccessKeyed(AccessKeyed access) {
+  visitAccessKeyed(AccessKeyed access) {
     visit(access.object);
     write('[');
     visit(access.key);
     write(']');
   }
 
-  void visitCallScope(CallScope call) {
+  visitCallScope(CallScope call) {
     write(call.name);
     writeArguments(call.arguments);
   }
 
-  void visitCallFunction(CallFunction call) {
-    write('(');
+  visitCallFunction(CallFunction call) {
     visit(call.function);
-    write(')');
     writeArguments(call.arguments);
   }
 
-  void visitCallMember(CallMember call) {
+  visitCallMember(CallMember call) {
     visit(call.object);
     write('.${call.name}');
     writeArguments(call.arguments);
   }
 
-  void visitPrefix(Prefix prefix) {
+  visitPrefix(Prefix prefix) {
     write('(${prefix.operation}');
     visit(prefix.expression);
     write(')');
   }
 
-  void visitBinary(Binary binary) {
+  visitBinary(Binary binary) {
     write('(');
     visit(binary.left);
     write(binary.operation);
@@ -114,11 +104,11 @@ class Unparser extends Visitor {
     write(')');
   }
 
-  void visitLiteralPrimitive(LiteralPrimitive literal) {
+  visitLiteralPrimitive(LiteralPrimitive literal) {
     write("${literal.value}");
   }
 
-  void visitLiteralArray(LiteralArray literal) {
+  visitLiteralArray(LiteralArray literal) {
     write('[');
     for (int i = 0; i < literal.elements.length; i++) {
       if (i != 0) write(',');
@@ -127,7 +117,7 @@ class Unparser extends Visitor {
     write(']');
   }
 
-  void visitLiteralObject(LiteralObject literal) {
+  visitLiteralObject(LiteralObject literal) {
     write('{');
     List<String> keys = literal.keys;
     for (int i = 0; i < keys.length; i++) {
@@ -138,7 +128,7 @@ class Unparser extends Visitor {
     write('}');
   }
 
-  void visitLiteralString(LiteralString literal) {
+  visitLiteralString(LiteralString literal) {
     String escaped = literal.value.replaceAll("'", "\\'");
     write("'$escaped'");
   }

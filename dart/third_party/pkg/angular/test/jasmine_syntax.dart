@@ -3,35 +3,28 @@ library jasmine;
 import 'package:unittest/unittest.dart' as unit;
 import 'package:angular/utils.dart' as utils;
 
-var _beforeEachFnsForCurrentTest = [];
-var _afterEachFnsForCurrentTest = [];
+Function _wrapFn;
 
-_withSetup(fn) => () {
-  _beforeEachFnsForCurrentTest.sort((a, b) => Comparable.compare(b[1], a[1]));
-  _beforeEachFnsForCurrentTest.forEach((fn) => fn[0]());
-  try {
-    return fn();
-  } finally {
-    _beforeEachFnsForCurrentTest = [];
-    var _aeFns = _afterEachFnsForCurrentTest;
-    _afterEachFnsForCurrentTest = [];
-    _aeFns.reversed.forEach((fn) => fn());
+_maybeWrapFn(fn) => () {
+  if (_wrapFn != null) {
+    _wrapFn(fn)();
+  } else {
+    fn();
   }
 };
 
-
-
-it(name, fn) => unit.test(name, _withSetup(fn));
-iit(name, fn) => unit.solo_test(name, _withSetup(fn));
+it(name, fn) => unit.test(name, _maybeWrapFn(fn));
+iit(name, fn) => unit.solo_test(name, _maybeWrapFn(fn));
 xit(name, fn) {}
 xdescribe(name, fn) {}
 ddescribe(name, fn) => describe(name, fn, true);
+
 
 class Describe {
   Describe parent;
   String name;
   bool exclusive;
-  List<List> beforeEachFns = [];
+  List<Function> beforeEachFns = [];
   List<Function> afterEachFns = [];
 
   Describe(this.name, this.parent, [bool this.exclusive=false]) {
@@ -41,8 +34,11 @@ class Describe {
   }
 
   setUp() {
-    _beforeEachFnsForCurrentTest.addAll(beforeEachFns);
-    _afterEachFnsForCurrentTest.addAll(afterEachFns);
+    beforeEachFns.forEach((fn) => fn());
+  }
+
+  tearDown() {
+    afterEachFns.forEach((fn) => fn());
   }
 }
 
@@ -60,14 +56,17 @@ describe(name, fn, [bool exclusive=false]) {
     unit.group(name, () {
       unit.setUp(currentDescribe.setUp);
       fn();
+      unit.tearDown(currentDescribe.tearDown);
     });
   } finally {
     currentDescribe = lastDescribe;
   }
 }
 
-beforeEach(fn, {priority: 0}) => currentDescribe.beforeEachFns.add([fn, priority]);
+beforeEach(fn) => currentDescribe.beforeEachFns.add(fn);
 afterEach(fn) => currentDescribe.afterEachFns.insert(0, fn);
+
+wrapFn(fn) => _wrapFn = fn;
 
 var jasmine = new Jasmine();
 
@@ -150,4 +149,5 @@ class Jasmine {
 
 main(){
   unit.setUp(currentDescribe.setUp);
+  unit.tearDown(currentDescribe.tearDown);
 }
