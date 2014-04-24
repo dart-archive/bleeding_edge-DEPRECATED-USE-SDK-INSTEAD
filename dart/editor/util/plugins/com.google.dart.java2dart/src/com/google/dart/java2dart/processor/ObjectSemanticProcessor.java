@@ -210,6 +210,13 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
                   && JavaUtils.isTypeNamed(context.getNodeTypeBinding(expression), "char")) {
                 String value = "" + (char) ((IntegerLiteral) expression).getValue().intValue();
                 elements.add(interpolationString(value, value));
+              } else if (JavaUtils.isTypeNamed(context.getNodeTypeBinding(expression), "char")) {
+                InstanceCreationExpression newString = instanceCreationExpression(
+                    Keyword.NEW,
+                    typeName("String"),
+                    "fromCharCode",
+                    expression);
+                elements.add(interpolationExpression(newString));
               } else {
                 elements.add(interpolationExpression(expression));
               }
