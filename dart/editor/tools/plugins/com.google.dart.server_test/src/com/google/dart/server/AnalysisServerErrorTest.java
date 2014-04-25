@@ -22,5 +22,8 @@ public class AnalysisServerErrorTest extends TestCase {
         AnalysisServerErrorCode.INVALID_CONTEXT_ID,
         "my-id");
     assertEquals("Cannot find a context with the id 'my-id'", error.getMessage());
+    assertEquals(
+        "[code=INVALID_CONTEXT_ID, message=Cannot find a context with the id 'my-id']",
+        error.toString());
   }
 }

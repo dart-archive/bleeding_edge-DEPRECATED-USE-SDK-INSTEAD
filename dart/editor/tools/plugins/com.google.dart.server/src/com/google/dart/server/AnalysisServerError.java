@@ -14,7 +14,6 @@
 
 package com.google.dart.server;
 
-
 /**
  * Instances of the class {@code AnalysisServerError} represent an error reported by
  * {@link AnalysisServer}.
@@ -62,5 +61,17 @@ public class AnalysisServerError {
    */
   public String getMessage() {
     return message;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("[");
+    builder.append("code=");
+    builder.append(errorCode);
+    builder.append(", message=");
+    builder.append(message);
+    builder.append("]");
+    return builder.toString();
   }
 }

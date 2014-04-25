@@ -345,13 +345,15 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
     schedulePerformAnalysisOperation(contextId, true);
     // schedule notifications
     Map<NotificationKind, SourceSetBaseProvider> notifications = notificationMap.get(contextId);
-    for (Entry<NotificationKind, SourceSetBaseProvider> entry : notifications.entrySet()) {
-      NotificationKind notificationKind = entry.getKey();
-      SourceSetBaseProvider sourceProvider = entry.getValue();
-      for (ChangeNotice changeNotice : notices) {
-        Source source = changeNotice.getSource();
-        if (sourceProvider.apply(source)) {
-          operationQueue.add(new NotificationOperation(contextId, changeNotice, notificationKind));
+    if (notifications != null) {
+      for (Entry<NotificationKind, SourceSetBaseProvider> entry : notifications.entrySet()) {
+        NotificationKind notificationKind = entry.getKey();
+        SourceSetBaseProvider sourceProvider = entry.getValue();
+        for (ChangeNotice changeNotice : notices) {
+          Source source = changeNotice.getSource();
+          if (sourceProvider.apply(source)) {
+            operationQueue.add(new NotificationOperation(contextId, changeNotice, notificationKind));
+          }
         }
       }
     }

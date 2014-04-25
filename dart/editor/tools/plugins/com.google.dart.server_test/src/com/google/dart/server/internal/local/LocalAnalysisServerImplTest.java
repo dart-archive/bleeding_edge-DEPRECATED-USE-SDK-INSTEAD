@@ -21,9 +21,9 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SourceSet;
-import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.internal.local.operation.ServerOperation;
 import com.google.dart.server.internal.local.operation.ServerOperationPriority;
 
@@ -64,6 +64,13 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
     // a new context with the same name gets a unique identifier
     String idB = createContext("test");
     assertEquals("test-1", idB);
+  }
+
+  public void test_createContext_noNotifications_noErrors() throws Exception {
+    String contextId = createContext("test");
+    addSource(contextId, "/test.dart", "");
+    server.test_waitForWorkerComplete();
+    serverListener.assertNoServerErrors();
   }
 
   public void test_deleteContext_noContext() throws Exception {
