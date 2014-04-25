@@ -736,6 +736,7 @@ public class CorrectionUtils {
     if (assignedExpression != null) {
       String nameFromExpression = getBaseNameFromExpression(assignedExpression);
       if (nameFromExpression != null) {
+        nameFromExpression = StringUtils.removeStart(nameFromExpression, "_");
         addAll(excluded, res, getVariableNameSuggestions(nameFromExpression));
       }
 

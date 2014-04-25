@@ -1573,6 +1573,26 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         formatLines("sortedNodes", "nodes"));
   }
 
+  public void test_getVariableNameSuggestions_Node_privateName() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var doc;",
+        "main() {",
+        "  doc._name;",
+        "  doc._computeSuffix();",
+        "}");
+    assert_getVariableNameSuggestions(
+        null,
+        findNode("doc._name", PrefixedIdentifier.class),
+        ImmutableSet.of(""),
+        formatLines("name"));
+    assert_getVariableNameSuggestions(
+        null,
+        findNode("doc._computeSuffix()", MethodInvocation.class),
+        ImmutableSet.of(""),
+        formatLines("computeSuffix", "suffix"));
+  }
+
   public void test_getVariableNameSuggestions_Node_propertyAccess() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
