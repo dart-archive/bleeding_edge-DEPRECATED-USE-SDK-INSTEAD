@@ -34,6 +34,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         "  String fc;",
         "  A(int i, String s);",
         "  A.name(num p);",
+        "  A._privateName(num p);",
         "  static String ma(int pa) => null;",
         "  _mb(int pb);",
         "  String get propA => null;",
@@ -63,7 +64,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertSame(null, outline_A.getReturnType());
       // A children
       Outline[] outlines_A = outline_A.getChildren();
-      assertThat(outlines_A).hasSize(9);
+      assertThat(outlines_A).hasSize(10);
       {
         Outline outline = outlines_A[0];
         assertSame(OutlineKind.FIELD, outline.getKind());
@@ -93,6 +94,9 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("A".length(), outline.getLength());
         assertEquals("(int i, String s)", outline.getParameters());
         assertNull(outline.getReturnType());
+        assertFalse(outline.isAbstract());
+        assertFalse(outline.isPrivate());
+        assertFalse(outline.isStatic());
       }
       {
         Outline outline = outlines_A[4];
@@ -102,9 +106,24 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("name".length(), outline.getLength());
         assertEquals("(num p)", outline.getParameters());
         assertNull(outline.getReturnType());
+        assertFalse(outline.isAbstract());
+        assertFalse(outline.isPrivate());
+        assertFalse(outline.isStatic());
       }
       {
         Outline outline = outlines_A[5];
+        assertSame(OutlineKind.CONSTRUCTOR, outline.getKind());
+        assertEquals("A._privateName", outline.getName());
+        assertEquals(code.indexOf("_privateName(num p);"), outline.getOffset());
+        assertEquals("_privateName".length(), outline.getLength());
+        assertEquals("(num p)", outline.getParameters());
+        assertNull(outline.getReturnType());
+        assertFalse(outline.isAbstract());
+        assertTrue(outline.isPrivate());
+        assertFalse(outline.isStatic());
+      }
+      {
+        Outline outline = outlines_A[6];
         assertSame(OutlineKind.METHOD, outline.getKind());
         assertEquals("ma", outline.getName());
         assertEquals(code.indexOf("ma(int pa) => null;"), outline.getOffset());
@@ -116,7 +135,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertTrue(outline.isStatic());
       }
       {
-        Outline outline = outlines_A[6];
+        Outline outline = outlines_A[7];
         assertSame(OutlineKind.METHOD, outline.getKind());
         assertEquals("_mb", outline.getName());
         assertEquals(code.indexOf("_mb(int pb);"), outline.getOffset());
@@ -128,7 +147,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertFalse(outline.isStatic());
       }
       {
-        Outline outline = outlines_A[7];
+        Outline outline = outlines_A[8];
         assertSame(OutlineKind.GETTER, outline.getKind());
         assertEquals("propA", outline.getName());
         assertEquals(code.indexOf("propA => null;"), outline.getOffset());
@@ -137,7 +156,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
         assertEquals("String", outline.getReturnType());
       }
       {
-        Outline outline = outlines_A[8];
+        Outline outline = outlines_A[9];
         assertSame(OutlineKind.SETTER, outline.getKind());
         assertEquals("propB", outline.getName());
         assertEquals(code.indexOf("propB(int v) {}"), outline.getOffset());

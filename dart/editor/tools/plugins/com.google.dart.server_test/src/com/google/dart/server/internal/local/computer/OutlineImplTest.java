@@ -40,6 +40,7 @@ public class OutlineImplTest extends TestCase {
         "(int i, String s)",
         "Map<String, int>",
         true,
+        true,
         true);
     assertSame(parent, outline.getParent());
     assertEquals(new SourceRegionImpl(1, 2), outline.getSourceRegion());
@@ -50,7 +51,7 @@ public class OutlineImplTest extends TestCase {
     assertEquals("(int i, String s)", outline.getParameters());
     assertEquals("Map<String, int>", outline.getReturnType());
     assertTrue(outline.isAbstract());
-    assertFalse(outline.isPrivate());
+    assertTrue(outline.isPrivate());
     assertTrue(outline.isStatic());
     // children
     outline.setChildren(children);
@@ -71,6 +72,7 @@ public class OutlineImplTest extends TestCase {
         "()",
         "",
         false,
+        false,
         false);
     OutlineImpl outlineA2 = new OutlineImpl(
         null,
@@ -82,6 +84,7 @@ public class OutlineImplTest extends TestCase {
         "()",
         "",
         false,
+        false,
         false);
     OutlineImpl outlineB = new OutlineImpl(
         null,
@@ -92,6 +95,7 @@ public class OutlineImplTest extends TestCase {
         20,
         "()",
         "",
+        false,
         false,
         false);
     assertTrue(outlineA.equals(outlineA));
@@ -110,6 +114,7 @@ public class OutlineImplTest extends TestCase {
         20,
         "(int i, String s)",
         "Map<String, int>",
+        true,
         true,
         true);
     outline.hashCode();

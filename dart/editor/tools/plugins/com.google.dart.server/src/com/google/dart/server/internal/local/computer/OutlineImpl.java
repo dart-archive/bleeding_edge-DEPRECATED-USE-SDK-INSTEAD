@@ -15,7 +15,6 @@
 package com.google.dart.server.internal.local.computer;
 
 import com.google.dart.engine.utilities.general.ObjectUtilities;
-import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OutlineKind;
 import com.google.dart.server.SourceRegion;
@@ -37,12 +36,13 @@ public class OutlineImpl implements Outline {
   private final String parameters;
   private final String returnType;
   private final boolean isAbstract;
+  private final boolean isPrivate;
   private final boolean isStatic;
   private Outline[] children = Outline.EMPTY_ARRAY;
 
   public OutlineImpl(Outline parent, SourceRegion sourceRegion, OutlineKind kind, String name,
       int offset, int length, String parameters, String returnType, boolean isAbstract,
-      boolean isStatic) {
+      boolean isPrivate, boolean isStatic) {
     this.parent = parent;
     this.sourceRegion = sourceRegion;
     this.kind = kind;
@@ -53,6 +53,7 @@ public class OutlineImpl implements Outline {
     this.returnType = returnType;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
+    this.isPrivate = isPrivate;
   }
 
   @Override
@@ -124,7 +125,7 @@ public class OutlineImpl implements Outline {
 
   @Override
   public boolean isPrivate() {
-    return StringUtilities.startsWithChar(name, '_');
+    return isPrivate;
   }
 
   @Override

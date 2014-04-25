@@ -35,6 +35,7 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
+import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OutlineKind;
 import com.google.dart.server.SourceRegion;
@@ -182,6 +183,7 @@ public class DartUnitOutlineComputer {
         null,
         null,
         classDeclaration.isAbstract(),
+        StringUtilities.startsWithChar(name, '_'),
         false);
     unitChildren.add(outline);
     return outline;
@@ -190,16 +192,18 @@ public class DartUnitOutlineComputer {
   private void newClassTypeAlias(Outline unitOutline, List<Outline> unitChildren,
       ClassTypeAlias alias) {
     SimpleIdentifier nameNode = alias.getName();
+    String name = nameNode.getName();
     unitChildren.add(new OutlineImpl(
         unitOutline,
         getSourceRegion(alias),
         OutlineKind.CLASS_TYPE_ALIAS,
-        nameNode.getName(),
+        name,
         nameNode.getOffset(),
         nameNode.getLength(),
         null,
         null,
         alias.isAbstract(),
+        StringUtilities.startsWithChar(name, '_'),
         false));
   }
 
@@ -209,9 +213,12 @@ public class DartUnitOutlineComputer {
     String name = returnType.getName();
     int offset = returnType.getOffset();
     int length = returnType.getLength();
+    boolean isPrivate = false;
     SimpleIdentifier constructorNameNode = constructorDeclaration.getName();
     if (constructorNameNode != null) {
-      name += "." + constructorNameNode.getName();
+      String constructorName = constructorNameNode.getName();
+      isPrivate = StringUtilities.startsWithChar(constructorName, '_');
+      name += "." + constructorName;
       offset = constructorNameNode.getOffset();
       length = constructorNameNode.getLength();
     }
@@ -226,6 +233,7 @@ public class DartUnitOutlineComputer {
         parameters != null ? parameters.toSource() : "",
         null,
         false,
+        isPrivate,
         false);
     children.add(outline);
     addLocalFunctionOutlines(outline, constructorDeclaration.getBody());
@@ -234,16 +242,18 @@ public class DartUnitOutlineComputer {
   private void newField(OutlineImpl classOutline, List<Outline> children, String fieldTypeName,
       VariableDeclaration field, boolean isStatic) {
     SimpleIdentifier nameNode = field.getName();
+    String name = nameNode.getName();
     children.add(new OutlineImpl(
         classOutline,
         getSourceRegion(field),
         OutlineKind.FIELD,
-        nameNode.getName(),
+        name,
         nameNode.getOffset(),
         nameNode.getLength(),
         null,
         fieldTypeName,
         false,
+        StringUtilities.startsWithChar(name, '_'),
         isStatic));
   }
 
@@ -251,6 +261,7 @@ public class DartUnitOutlineComputer {
       FunctionDeclaration functionDeclaration) {
     TypeName returnType = functionDeclaration.getReturnType();
     SimpleIdentifier nameNode = functionDeclaration.getName();
+    String name = nameNode.getName();
     FunctionExpression functionExpression = functionDeclaration.getFunctionExpression();
     FormalParameterList parameters = functionExpression.getParameters();
     OutlineKind kind;
@@ -265,12 +276,13 @@ public class DartUnitOutlineComputer {
         unitOutline,
         getSourceRegion(functionDeclaration),
         kind,
-        nameNode.getName(),
+        name,
         nameNode.getOffset(),
         nameNode.getLength(),
         parameters != null ? parameters.toSource() : "",
         returnType != null ? returnType.toSource() : "",
         false,
+        StringUtilities.startsWithChar(name, '_'),
         false);
     unitChildren.add(outline);
     addLocalFunctionOutlines(outline, functionExpression.getBody());
@@ -280,17 +292,19 @@ public class DartUnitOutlineComputer {
       FunctionTypeAlias alias) {
     TypeName returnType = alias.getReturnType();
     SimpleIdentifier nameNode = alias.getName();
+    String name = nameNode.getName();
     FormalParameterList parameters = alias.getParameters();
     unitChildren.add(new OutlineImpl(
         unitOutline,
         getSourceRegion(alias),
         OutlineKind.FUNCTION_TYPE_ALIAS,
-        nameNode.getName(),
+        name,
         nameNode.getOffset(),
         nameNode.getLength(),
         parameters != null ? parameters.toSource() : "",
         returnType != null ? returnType.toSource() : "",
         false,
+        StringUtilities.startsWithChar(name, '_'),
         false));
   }
 
@@ -298,6 +312,7 @@ public class DartUnitOutlineComputer {
       MethodDeclaration methodDeclaration) {
     TypeName returnType = methodDeclaration.getReturnType();
     SimpleIdentifier nameNode = methodDeclaration.getName();
+    String name = nameNode.getName();
     FormalParameterList parameters = methodDeclaration.getParameters();
     OutlineKind kind;
     if (methodDeclaration.isGetter()) {
@@ -311,12 +326,13 @@ public class DartUnitOutlineComputer {
         classOutline,
         getSourceRegion(methodDeclaration),
         kind,
-        nameNode.getName(),
+        name,
         nameNode.getOffset(),
         nameNode.getLength(),
         parameters != null ? parameters.toSource() : "",
         returnType != null ? returnType.toSource() : "",
         methodDeclaration.isAbstract(),
+        StringUtilities.startsWithChar(name, '_'),
         methodDeclaration.isStatic());
     children.add(outline);
     addLocalFunctionOutlines(outline, methodDeclaration.getBody());
@@ -332,6 +348,7 @@ public class DartUnitOutlineComputer {
         0,
         null,
         null,
+        false,
         false,
         false);
   }
