@@ -29,6 +29,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.Statement;
@@ -1418,10 +1419,11 @@ public class MainEngine {
   /**
    * @return the formatted Dart source dump of the given {@link AstNode}.
    */
-  private static String getFormattedSource(AstNode node) {
+  private static String getFormattedSource(CompilationUnit unit) {
     PrintStringWriter writer = new PrintStringWriter();
     writer.append(HEADER);
-    node.accept(new ToFormattedSourceVisitor(writer));
+    sortUnitMembersByName(unit);
+    unit.accept(new ToFormattedSourceVisitor(writer));
     String source = writer.toString();
     source = removeTrailingWhitespaces(source);
     return source;
@@ -1506,5 +1508,26 @@ public class MainEngine {
       throw new IllegalArgumentException("Not found: " + pattern);
     }
     return matcher.replaceFirst(replacement);
+  }
+
+  private static void sortUnitMembersByName(CompilationUnit unit) {
+    Collections.sort(unit.getDeclarations(), new Comparator<CompilationUnitMember>() {
+      @Override
+      public int compare(CompilationUnitMember o1, CompilationUnitMember o2) {
+        String name1 = getName(o1);
+        String name2 = getName(o2);
+        return name1.compareTo(name2);
+      }
+
+      private String getName(CompilationUnitMember member) {
+        if (member instanceof ClassDeclaration) {
+          return ((ClassDeclaration) member).getName().getName();
+        }
+        if (member instanceof FunctionDeclaration) {
+          return ((FunctionDeclaration) member).getName().getName();
+        }
+        throw new UnsupportedOperationException(member.toSource());
+      }
+    });
   }
 }

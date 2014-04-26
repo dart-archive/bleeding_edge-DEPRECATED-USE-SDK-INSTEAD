@@ -524,14 +524,7 @@ public class MainAnalysisServer {
   private static String getFormattedSource(CompilationUnit unit) {
     PrintStringWriter writer = new PrintStringWriter();
     writer.append(HEADER);
-    Collections.sort(unit.getDeclarations(), new Comparator<CompilationUnitMember>() {
-      @Override
-      public int compare(CompilationUnitMember o1, CompilationUnitMember o2) {
-        String name1 = ((ClassDeclaration) o1).getName().getName();
-        String name2 = ((ClassDeclaration) o2).getName().getName();
-        return name1.compareTo(name2);
-      }
-    });
+    sortUnitMembersByName(unit);
     unit.accept(new ToFormattedSourceVisitor(writer));
     String source = writer.toString();
     source = removeTrailingWhitespaces(source);
@@ -591,5 +584,16 @@ public class MainAnalysisServer {
       lines[i] = StringUtils.stripEnd(lines[i], null);
     }
     return StringUtils.join(lines, "\n");
+  }
+
+  private static void sortUnitMembersByName(CompilationUnit unit) {
+    Collections.sort(unit.getDeclarations(), new Comparator<CompilationUnitMember>() {
+      @Override
+      public int compare(CompilationUnitMember o1, CompilationUnitMember o2) {
+        String name1 = ((ClassDeclaration) o1).getName().getName();
+        String name2 = ((ClassDeclaration) o2).getName().getName();
+        return name1.compareTo(name2);
+      }
+    });
   }
 }
