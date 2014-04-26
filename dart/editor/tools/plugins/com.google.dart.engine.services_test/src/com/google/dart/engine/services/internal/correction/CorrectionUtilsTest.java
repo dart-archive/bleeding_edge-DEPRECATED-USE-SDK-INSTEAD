@@ -1294,7 +1294,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     // prepare mocks
     Type type = mock(Type.class);
     Expression expression = mock(Expression.class);
-    when(expression.getStaticType()).thenReturn(type);
+    when(expression.getBestType()).thenReturn(type);
     // null
     assertEquals(null, utils.getTypeSource((Expression) null));
     // int

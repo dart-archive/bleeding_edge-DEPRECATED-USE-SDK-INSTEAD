@@ -18,8 +18,8 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -839,7 +839,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
               // add parameter
               Parameter parameter = parametersMap.get(variableName);
               if (parameter == null) {
-                Type parameterType = variableElement.getType();
+                Type parameterType = node.getBestType();
                 String parameterTypeName = utils.getTypeSource(parameterType);
                 parameter = new Parameter(parameterTypeName, variableName);
                 parameters.add(parameter);

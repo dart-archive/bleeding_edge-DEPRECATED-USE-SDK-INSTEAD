@@ -1530,7 +1530,7 @@ public class CorrectionUtils {
     if (expression == null) {
       return null;
     }
-    Type type = expression.getStaticType();
+    Type type = expression.getBestType();
     String typeSource = getTypeSource(type);
     if ("dynamic".equals(typeSource)) {
       return null;

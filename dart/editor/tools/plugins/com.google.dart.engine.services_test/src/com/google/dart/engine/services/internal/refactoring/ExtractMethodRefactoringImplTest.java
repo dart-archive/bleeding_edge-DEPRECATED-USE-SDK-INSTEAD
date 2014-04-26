@@ -1926,6 +1926,31 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
+  public void test_singleExpression_withVariables_useBestType() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v1 = 1;",
+        "  var v2 = 2;",
+        "  var a = v1 + v2 + v1; // marker",
+        "}",
+        "");
+    selectionStart = findOffset("v1 +");
+    selectionEnd = findOffset("; // marker");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v1 = 1;",
+        "  var v2 = 2;",
+        "  var a = res(v1, v2); // marker",
+        "}",
+        "",
+        "num res(int v1, int v2) => v1 + v2 + v1;",
+        "");
+  }
+
   public void test_statements_assignment() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
