@@ -98,7 +98,7 @@ public class LightweightModel {
           try {
             recalculateForResource(context, resourceMap, source, resource);
           } catch (CoreException e) {
-            DartCore.logInformation("Exception updating: " + source);
+            DartCore.logInformation("Exception updating: " + source, e);
           }
         }
       }
@@ -342,6 +342,14 @@ public class LightweightModel {
 
   private void recalculateForResource(AnalysisContext context, ResourceMap resourceMap,
       Source source, IResource resource) throws CoreException {
+
+    // Check existence before setting persistent properties
+    if (!resource.exists()) {
+      DartCore.logInformation(getClass().getSimpleName()
+          + "#recalculateForResource cannot update persistent properties on non-existant resource: "
+          + resource);
+      return;
+    }
     IFile file = (IFile) resource;
 
     // Set the library name.

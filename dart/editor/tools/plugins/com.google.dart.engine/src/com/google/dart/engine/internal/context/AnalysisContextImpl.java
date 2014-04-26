@@ -1048,8 +1048,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               priority = SourcePriority.NORMAL_PART;
             }
             workManager.add(source, priority);
-          }
-          if (entry instanceof HtmlEntry) {
+
+          } else if (entry instanceof HtmlEntry) {
             HtmlEntry htmlEntry = (HtmlEntry) entry;
             HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
             htmlCopy.invalidateAllResolutionInformation();
