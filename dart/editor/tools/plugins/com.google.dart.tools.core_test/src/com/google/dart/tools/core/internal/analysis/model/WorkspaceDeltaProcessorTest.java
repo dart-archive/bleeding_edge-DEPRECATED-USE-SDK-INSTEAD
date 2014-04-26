@@ -14,9 +14,11 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -142,13 +144,15 @@ public class WorkspaceDeltaProcessorTest extends TestCase {
     MockFile file = pkg1.getMockFile("bar.dart");
     MockDelta delta = new MockDelta(projectContainer);
     delta.add(packages).add(pkg1).add(file);
-    MockContext context = (MockContext) project.getDefaultContext();
     processor.resourceChanged(new MockResourceChangeEvent(delta));
 
+    ChangeSet expected = new ChangeSet();
+    expected.changedSource(new FileBasedSource(file.getLocation().toFile()));
+    MockContext context = (MockContext) project.getDefaultContext();
+    context.assertChanged(expected);
+    context.assertNoCalls();
     manager.assertProjectRemoved(null);
-    MockContext newContext = (MockContext) project.getDefaultContext();
-    assertNotSame(context, newContext);
-
+    processor.assertBackgroundAnalysisStarted(true);
   }
 
   public void test_resourceChanged_project_removed() {

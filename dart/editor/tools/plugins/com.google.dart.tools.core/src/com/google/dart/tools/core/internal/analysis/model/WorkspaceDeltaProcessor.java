@@ -5,6 +5,10 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
+import com.google.dart.tools.core.internal.builder.DeltaProcessor;
+import com.google.dart.tools.core.internal.builder.IgnoreResourceFilter;
+import com.google.dart.tools.core.internal.builder.IndexUpdater;
+import com.google.dart.tools.core.internal.builder.ProjectUpdater;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -56,15 +60,22 @@ public class WorkspaceDeltaProcessor implements IResourceChangeListener {
               return true;
 
             } else if (res.getType() == IResource.FOLDER) {
-              if (res.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)
-                  && (res.getParent().findMember(DartCore.PUBSPEC_FILE_NAME) != null)) {
+              if (res.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
 
                 // The builder is not notified about changes in symlinked folders (e.g. packages)
-                // The context needs the delta of changes, what has to be removed and also added.
-                // Since at this point there is no knowledge of previous package details, do a 
-                // reanalyze for the context
+                // thus we traverse those changes here using the same mechanism as the builder
                 Project project = manager.getProject(res.getProject());
-                project.discardContextsIn(res.getParent());
+                ProjectUpdater updater = new ProjectUpdater();
+                IndexUpdater indexUpdater = new IndexUpdater(manager.getIndex());
+                DeltaProcessor processor = new DeltaProcessor(project);
+                IgnoreResourceFilter filter = new IgnoreResourceFilter();
+                filter.addDeltaListener(updater);
+                filter.addDeltaListener(indexUpdater);
+                processor.addDeltaListener(filter);
+                processor.traverse(delta);
+                updater.applyChanges();
+                AnalysisContext context = manager.getContext(res);
+                startBackgroundAnalysis(project, context);
                 return false;
               }
               return true;
