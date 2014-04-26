@@ -30,8 +30,6 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
@@ -126,17 +124,10 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
                 FunctionExpression functionExpression = functionExpression(
                     compareMethod.getParameters(),
                     compareMethod.getBody());
-                // don't add ";" at the end of ExpressionFunctionBody of the last first field
-                if (node.getParent() instanceof VariableDeclaration
-                    && node.getParent().getParent() instanceof VariableDeclarationList) {
-                  VariableDeclarationList variableDeclarationList = (VariableDeclarationList) node.getParent().getParent();
-                  int index = variableDeclarationList.getVariables().indexOf(node.getParent());
-                  if (index == variableDeclarationList.getVariables().size() - 1) {
-                    if (compareMethod.getBody() instanceof ExpressionFunctionBody) {
-                      ExpressionFunctionBody expressionFunctionBody = (ExpressionFunctionBody) compareMethod.getBody();
-                      expressionFunctionBody.setSemicolon(null);
-                    }
-                  }
+                // don't add ";" at the end of ExpressionFunctionBody
+                if (compareMethod.getBody() instanceof ExpressionFunctionBody) {
+                  ExpressionFunctionBody expressionFunctionBody = (ExpressionFunctionBody) compareMethod.getBody();
+                  expressionFunctionBody.setSemicolon(null);
                 }
                 // do replace
                 replaceNode(node, functionExpression);
@@ -259,6 +250,10 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass(node, "hashCode", "java.util.Arrays")) {
           nameNode.setToken(token("makeHashCode"));
+          return null;
+        }
+        if (isMethodInClass(node, "sort", "java.util.Collections")) {
+          replaceNode(node, methodInvocation(args.get(0), "sort", args.get(1)));
           return null;
         }
         if (isMethodInClass(node, "noneOf", "java.util.EnumSet")) {

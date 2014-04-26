@@ -23,7 +23,7 @@ public class CreateFileChange extends Change {
   private final File file;
   private final String content;
 
-  public CreateFileChange(File file, String content, String name) {
+  public CreateFileChange(String name, File file, String content) {
     super(name);
     this.file = file;
     this.content = content;

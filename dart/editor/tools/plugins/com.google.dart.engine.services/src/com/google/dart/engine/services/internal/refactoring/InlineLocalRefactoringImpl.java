@@ -84,9 +84,9 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
           Element element = coveringIdentifier.getBestElement();
           if (element instanceof LocalVariableElement) {
             variableElement = (LocalVariableElement) element;
-            variableNode = utils.findNode(
-                variableElement.getNameOffset(),
-                VariableDeclaration.class);
+            AstNode variableElementNode = utils.findNode(variableElement.getNameOffset());
+            variableNode = variableElementNode != null
+                ? variableElementNode.getAncestor(VariableDeclaration.class) : null;
           }
         }
       }
@@ -106,9 +106,8 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
         String message = MessageFormat.format(
             "Local variable ''{0}'' is not initialized at declaration.",
             variableElement.getDisplayName());
-        return RefactoringStatus.createFatalErrorStatus(
-            message,
-            RefactoringStatusContext.create(variableNode));
+        return RefactoringStatus.createFatalErrorStatus(message, new RefactoringStatusContext(
+            variableNode));
       }
       pm.worked(1);
       // should not have assignments
@@ -205,7 +204,7 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
    * @return <code>true</code> if given offset of the reference has form <code>$name</code>.
    */
   private boolean isIdentifierInStringInterpolation(int offset) {
-    AstNode node = utils.findNode(offset, AstNode.class);
+    AstNode node = utils.findNode(offset);
     AstNode parent = node.getParent();
     if (parent instanceof InterpolationExpression) {
       InterpolationExpression element = (InterpolationExpression) parent;

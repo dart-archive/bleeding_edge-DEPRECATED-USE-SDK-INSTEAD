@@ -79,7 +79,7 @@ class RenameClassMemberValidator {
             elementClass.getDisplayName(),
             getElementKindName(newNameMember),
             newName);
-        result.addError(message, RefactoringStatusContext.create(newNameMember));
+        result.addError(message, new RefactoringStatusContext(newNameMember));
       }
       pm.worked(1);
       // check shadowing in hierarchy
@@ -96,7 +96,7 @@ class RenameClassMemberValidator {
                 getElementKindName(elementKind),
                 getElementKindName(member),
                 getElementQualifiedName(member));
-            result.addError(message, RefactoringStatusContext.create(member));
+            result.addError(message, new RefactoringStatusContext(member));
           }
           // renamed Element is shadowed by member of sub-class
           if (isRename && subClasses.contains(memberDeclClass)) {
@@ -105,7 +105,7 @@ class RenameClassMemberValidator {
                 getElementKindName(elementKind),
                 getElementKindName(member),
                 getElementQualifiedName(member));
-            result.addError(message, RefactoringStatusContext.create(member));
+            result.addError(message, new RefactoringStatusContext(member));
           }
         }
         pm.worked(1);

@@ -14,10 +14,11 @@
 
 package com.google.dart.engine.services.change;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.translation.DartOmit;
+import com.google.dart.engine.utilities.translation.DartOptional;
 
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ import java.util.Map;
 public class SourceChange extends Change {
   private final Source source;
   private final List<Edit> edits = Lists.newArrayList();
-  private final Map<String, List<Edit>> editGroups = Maps.newTreeMap();
+  private final Map<String, List<Edit>> editGroups = Maps.newHashMap();
 
   /**
    * @param name the name of this change to display in UI
@@ -42,15 +43,15 @@ public class SourceChange extends Change {
   /**
    * Adds the {@link Edit} to apply.
    */
+  @DartOmit
   public void addEdit(Edit edit) {
-    addEdit("", edit);
+    addEdit(edit, "");
   }
 
   /**
    * Adds the {@link Edit} to apply.
    */
-  public void addEdit(String description, Edit edit) {
-    Preconditions.checkNotNull(edit);
+  public void addEdit(Edit edit, @DartOptional(defaultValue = "''") String description) {
     // add to all edits
     edits.add(edit);
     // add to group

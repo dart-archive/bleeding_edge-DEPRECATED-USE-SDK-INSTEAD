@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.services.internal.correction;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -71,8 +70,6 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.services.change.Edit;
 import com.google.dart.engine.services.change.SourceChange;
-import com.google.dart.engine.services.internal.util.ExecutionUtils;
-import com.google.dart.engine.services.internal.util.RunnableObjectEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
@@ -91,10 +88,10 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeTo
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -159,8 +156,8 @@ public class CorrectionUtils {
       Source source = change.getSource();
       String sourceContent = getSourceContent(context, source);
       // prepare range
-      int beginIndex = edit.offset;
-      int endIndex = beginIndex + edit.length;
+      int beginIndex = edit.getOffset();
+      int endIndex = beginIndex + edit.getLength();
       int sourceLength = sourceContent.length();
       if (beginIndex >= sourceLength || endIndex >= sourceLength) {
         throw new IllegalStateException(source + " has " + sourceLength + " characters but "
@@ -176,7 +173,7 @@ public class CorrectionUtils {
       }
     }
     // do add the Edit
-    change.addEdit(description, edit);
+    change.addEdit(edit, description);
   }
 
   /**
@@ -201,16 +198,16 @@ public class CorrectionUtils {
     Collections.sort(edits, new Comparator<Edit>() {
       @Override
       public int compare(Edit o1, Edit o2) {
-        return o1.offset - o2.offset;
+        return o1.getOffset() - o2.getOffset();
       }
     });
     // apply edits
     int delta = 0;
     for (Edit edit : edits) {
-      int editOffset = edit.offset + delta;
+      int editOffset = edit.getOffset() + delta;
       String beforeEdit = s.substring(0, editOffset);
-      String afterEdit = s.substring(editOffset + edit.length);
-      s = beforeEdit + edit.replacement + afterEdit;
+      String afterEdit = s.substring(editOffset + edit.getLength());
+      s = beforeEdit + edit.getReplacement() + afterEdit;
       delta += getDeltaOffset(edit);
     }
     // done
@@ -278,7 +275,7 @@ public class CorrectionUtils {
    * @return the number of characters this {@link Edit} will move offsets after its range.
    */
   public static int getDeltaOffset(Edit edit) {
-    return edit.replacement.length() - edit.length;
+    return edit.getReplacement().length() - edit.getLength();
   }
 
   /**
@@ -426,12 +423,16 @@ public class CorrectionUtils {
    * @return the line prefix from the given source, i.e. basically just whitespace prefix of the
    *         given {@link String}.
    */
-  public static String getLinesPrefix(String linesSource) {
-    int index = CharMatcher.WHITESPACE.negate().indexIn(linesSource);
-    if (index == -1) {
-      return linesSource;
+  public static String getLinesPrefix(String lines) {
+    int index = 0;
+    while (index < lines.length()) {
+      char c = lines.charAt(index);
+      if (!Character.isWhitespace(c)) {
+        break;
+      }
+      index++;
     }
-    return linesSource.substring(0, index);
+    return lines.substring(0, index);
   }
 
   /**
@@ -539,13 +540,24 @@ public class CorrectionUtils {
    * @return parent {@link AstNode}s from {@link CompilationUnit} (at index "0") to the given one.
    */
   public static List<AstNode> getParents(AstNode node) {
-    LinkedList<AstNode> parents = Lists.newLinkedList();
-    AstNode current = node;
-    do {
-      parents.addFirst(current.getParent());
+    // prepare number of parents
+    int numParents = 0;
+    {
+      AstNode current = node.getParent();
+      while (current != null) {
+        numParents++;
+        current = current.getParent();
+      }
+    }
+    // fill array of parents
+    AstNode[] parents = new AstNode[numParents];
+    AstNode current = node.getParent();
+    int index = numParents;
+    while (current != null) {
+      parents[--index] = current;
       current = current.getParent();
-    } while (current.getParent() != null);
-    return parents;
+    }
+    return Arrays.asList(parents);
   }
 
   /**
@@ -673,17 +685,6 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return the whitespace prefix of the given {@link String}.
-   */
-  public static String getStringPrefix(String s) {
-    int index = CharMatcher.WHITESPACE.negate().indexIn(s);
-    if (index == -1) {
-      return s;
-    }
-    return s.substring(0, index);
-  }
-
-  /**
    * @return all top-level elements declared in the given {@link LibraryElement}.
    */
   public static List<Element> getTopLevelElements(LibraryElement library) {
@@ -704,8 +705,14 @@ public class CorrectionUtils {
   public static String[] getVariableNameSuggestions(String text, Set<String> excluded) {
     // filter out everything except of letters and white spaces
     {
-      CharMatcher matcher = CharMatcher.JAVA_LETTER.or(CharMatcher.WHITESPACE);
-      text = matcher.retainFrom(text);
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0; i < text.length(); i++) {
+        char c = text.charAt(i);
+        if (Character.isLetter(c) || Character.isWhitespace(c)) {
+          sb.append(c);
+        }
+      }
+      text = sb.toString();
     }
     // make single camel-case text
     {
@@ -813,7 +820,7 @@ public class CorrectionUtils {
         // prepare name, just "item" or "item2", "item3", etc
         String name = item;
         if (suffix > 1) {
-          name += suffix;
+          name += Integer.toString(suffix);
         }
         // add once found not excluded
         if (!excluded.contains(name)) {
@@ -1035,14 +1042,10 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return the enclosing node with given {@link Class}.
+   * @return the {@link AstNode} that encloses the given offset.
    */
-  public <T extends AstNode> T findNode(int offset, Class<T> clazz) {
-    AstNode node = new NodeLocator(offset).searchWithin(unit);
-    if (node != null) {
-      return node.getAncestor(clazz);
-    }
-    return null;
+  public AstNode findNode(int offset) {
+    return new NodeLocator(offset).searchWithin(unit);
   }
 
   /**
@@ -1069,17 +1072,11 @@ public class CorrectionUtils {
    */
   public String getEndOfLine() {
     if (endOfLine == null) {
-      endOfLine = ExecutionUtils.runObjectIgnore(new RunnableObjectEx<String>() {
-        @Override
-        public String runObject() throws Exception {
-          // try to find Windows
-          if (buffer.contains("\r\n")) {
-            return "\r\n";
-          }
-          // use default
-          return "\n";
-        }
-      }, "\n");
+      if (buffer.contains("\r\n")) {
+        endOfLine = "\r\n";
+      } else {
+        endOfLine = "\n";
+      }
     }
     return endOfLine;
   }
@@ -1400,7 +1397,7 @@ public class CorrectionUtils {
    * @return the {@link #getLinesRange(SourceRange)} for given {@link Statement}s.
    */
   public SourceRange getLinesRange(Statement... statements) {
-    return getLinesRange(ImmutableList.copyOf(statements));
+    return getLinesRange(Lists.newArrayList(statements));
   }
 
   /**

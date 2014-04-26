@@ -346,7 +346,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         String msg = MessageFormat.format(occurence.isSelection
             ? "Substitute statements with call to ''{0}''"
             : "Replace duplicate code fragment with call to ''{0}''", methodName);
-        change.addEdit(msg, edit);
+        change.addEdit(edit, msg);
       }
       // add method declaration
       {
@@ -408,7 +408,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           String msg = MessageFormat.format(selectionExpression != null
               ? "Create new method ''{0}'' from selected expression"
               : "Create new method ''{0}'' from selected statements", methodName);
-          change.addEdit(msg, edit);
+          change.addEdit(edit, msg);
         }
       }
       pm.worked(1);

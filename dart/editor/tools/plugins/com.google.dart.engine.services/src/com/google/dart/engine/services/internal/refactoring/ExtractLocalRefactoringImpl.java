@@ -154,7 +154,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
       // insert variable declaration
       String eol = utils.getEndOfLine();
       Edit edit = new Edit(targetStatement.getOffset(), 0, declarationSource + eol + prefix);
-      change.addEdit("Add variable declaration", edit);
+      change.addEdit(edit, "Add variable declaration");
     }
     // prepare replacement
     String occurrenceReplacement = localName;
@@ -164,7 +164,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
     // replace occurrences with variable reference
     for (SourceRange range : occurrences) {
       Edit edit = new Edit(range, occurrenceReplacement);
-      change.addEdit("Replace expression with variable reference", edit);
+      change.addEdit(edit, "Replace expression with variable reference");
     }
     return change;
   }

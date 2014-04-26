@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
@@ -51,7 +51,7 @@ public class ExtractExpressionAnalyzer extends SelectionAnalyzer {
     if (isFirstSelectedNode(lhs)) {
       invalidSelection(
           "Cannot extract the left-hand side of an assignment.",
-          RefactoringStatusContext.create(lhs));
+          new RefactoringStatusContext(lhs));
     }
     return null;
   }

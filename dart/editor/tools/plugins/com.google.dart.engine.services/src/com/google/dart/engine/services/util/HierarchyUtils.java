@@ -32,6 +32,7 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -41,6 +42,7 @@ import java.util.Set;
 /**
  * Helper for {@link ClassElement} hierarchy.
  */
+@DartOmit
 public class HierarchyUtils {
   public static List<SearchMatch> getAccessibleMatches(Element element, List<SearchMatch> matches) {
     Map<LibraryElement, Set<LibraryElement>> cachedVisibleLibraries = Maps.newHashMap();

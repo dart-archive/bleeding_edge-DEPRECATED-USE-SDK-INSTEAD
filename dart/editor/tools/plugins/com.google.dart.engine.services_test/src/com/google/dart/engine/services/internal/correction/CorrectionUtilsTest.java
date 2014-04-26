@@ -41,7 +41,6 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
-import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.context.AnalysisContext;
@@ -117,7 +116,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     } catch (IllegalStateException e) {
     }
     // verify
-    verify(change, never()).addEdit(description, edit);
+    verify(change, never()).addEdit(edit, description);
   }
 
   public void test_addEdit_badRangeContent() throws Exception {
@@ -134,7 +133,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     } catch (IllegalStateException e) {
     }
     // verify
-    verify(change, never()).addEdit(description, edit);
+    verify(change, never()).addEdit(edit, description);
   }
 
   public void test_addEdit_OK() throws Exception {
@@ -147,7 +146,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     String description = "desc";
     CorrectionUtils.addEdit(getAnalysisContext(), change, description, "234", edit);
     // verify
-    verify(change).addEdit(description, edit);
+    verify(change).addEdit(edit, description);
   }
 
   public void test_allListsEqual_0() throws Exception {
@@ -220,22 +219,12 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     CorrectionUtils utils = getTestCorrectionUtils();
     // no any node
     {
-      AstNode node = utils.findNode(Integer.MAX_VALUE, AstNode.class);
+      AstNode node = utils.findNode(Integer.MAX_VALUE);
       assertNull(node);
     }
-    // "String" as SimpleIdentifier
+    // "String" node
     {
-      SimpleIdentifier node = utils.findNode(findOffset("String "), SimpleIdentifier.class);
-      assertNotNull(node);
-    }
-    // "String" as TypeName
-    {
-      TypeName node = utils.findNode(findOffset("String "), TypeName.class);
-      assertNotNull(node);
-    }
-    // "String" as part of FunctionDeclaration
-    {
-      FunctionDeclaration node = utils.findNode(findOffset("String "), FunctionDeclaration.class);
+      AstNode node = utils.findNode(findOffset("String "));
       assertNotNull(node);
     }
   }
@@ -1240,14 +1229,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
       Statement statementB = findNode("var statementB", Statement.class);
       assertThat(CorrectionUtils.getStatements(block)).containsExactly(statementA, statementB);
     }
-  }
-
-  public void test_getStringPrefix() throws Exception {
-    assertEquals("", CorrectionUtils.getStringPrefix(""));
-    assertEquals("", CorrectionUtils.getStringPrefix("01234"));
-    assertEquals("", CorrectionUtils.getStringPrefix("0 1234"));
-    assertEquals(" ", CorrectionUtils.getStringPrefix(" 01234"));
-    assertEquals("  ", CorrectionUtils.getStringPrefix("  01234"));
   }
 
   /**

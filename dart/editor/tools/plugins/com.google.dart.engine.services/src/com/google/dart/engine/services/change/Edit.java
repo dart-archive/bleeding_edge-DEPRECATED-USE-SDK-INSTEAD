@@ -15,6 +15,7 @@ package com.google.dart.engine.services.change;
 
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Describes a text edit. Edits are executed by applying them to a {@link Source}.
@@ -23,17 +24,17 @@ public class Edit {
   /**
    * The offset at which to apply the edit.
    */
-  public final int offset;
+  private final int offset;
 
   /**
    * The length of the text interval to replace.
    */
-  public final int length;
+  private final int length;
 
   /**
    * The replacement text.
    */
-  public final String replacement;
+  private final String replacement;
 
   /**
    * Create an edit.
@@ -54,10 +55,30 @@ public class Edit {
    * @param range the {@link SourceRange} to replace
    * @param replacement the replacement text
    */
+  @DartName("range")
   public Edit(SourceRange range, String replacement) {
-    this.offset = range.getOffset();
-    this.length = range.getLength();
-    this.replacement = replacement;
+    this(range.getOffset(), range.getLength(), replacement);
+  }
+
+  /**
+   * Returns the length of the text interval to replace.
+   */
+  public int getLength() {
+    return length;
+  }
+
+  /**
+   * Returns the offset at which to apply the edit.
+   */
+  public int getOffset() {
+    return offset;
+  }
+
+  /**
+   * Returns the replacement text.
+   */
+  public String getReplacement() {
+    return replacement;
   }
 
   @Override

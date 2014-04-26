@@ -49,7 +49,7 @@ public enum CorrectionKind {
   QF_ADD_SUPER_CONSTRUCTOR_INVOCATION(50, "Add super constructor %s invocation"),
   QF_CHANGE_TO(51, "Change to '%s'"),
   QF_CHANGE_TO_STATIC_ACCESS(50, "Change access to static using '%s'"),
-  QF_CREATE_CLASS(50, CorrectionImage.IMG_CORRECTION_CLASS, "Create class '%s'"),
+  QF_CREATE_CLASS(50, "Create class '%s'", CorrectionImage.IMG_CORRECTION_CLASS),
   QF_CREATE_CONSTRUCTOR(50, "Create constructor '%s'"),
   QF_CREATE_CONSTRUCTOR_SUPER(50, "Create constructor to call %s"),
   QF_CREATE_FUNCTION(49, "Create function '%s'"),
@@ -74,17 +74,17 @@ public enum CorrectionKind {
   QF_USE_NOT_EQ_NULL(50, "Use != null instead of 'is! Null'");
 
   private final int relevance;
+  private final String message;
   private final CorrectionImage image;
-  private final String name;
-
-  private CorrectionKind(int relevance, CorrectionImage image, String name) {
-    this.relevance = relevance;
-    this.image = image;
-    this.name = name;
-  }
 
   private CorrectionKind(int relevance, String message) {
-    this(relevance, CorrectionImage.IMG_CORRECTION_CHANGE, message);
+    this(relevance, message, CorrectionImage.IMG_CORRECTION_CHANGE);
+  }
+
+  private CorrectionKind(int relevance, String message, CorrectionImage image) {
+    this.relevance = relevance;
+    this.message = message;
+    this.image = image;
   }
 
   /**
@@ -97,8 +97,8 @@ public enum CorrectionKind {
   /**
    * @return the name template used to create the name to be displayed for user.
    */
-  public String getName() {
-    return name;
+  public String getMessage() {
+    return message;
   }
 
   /**

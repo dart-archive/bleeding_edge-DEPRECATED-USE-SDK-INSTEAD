@@ -23,7 +23,7 @@ public class CorrectionProposal {
 
   public CorrectionProposal(CorrectionKind kind, Object... arguments) {
     this.kind = kind;
-    this.name = String.format(kind.getName(), arguments);
+    this.name = String.format(kind.getMessage(), arguments);
   }
 
   /**

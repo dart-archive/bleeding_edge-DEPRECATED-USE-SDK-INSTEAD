@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ForStatement;
@@ -47,7 +47,7 @@ public class ExtractMethodAnalyzer extends StatementAnalyzer {
     if (isFirstSelectedNode(lhs)) {
       invalidSelection(
           "Cannot extract the left-hand side of an assignment.",
-          RefactoringStatusContext.create(lhs));
+          new RefactoringStatusContext(lhs));
     }
     return null;
   }
@@ -58,7 +58,7 @@ public class ExtractMethodAnalyzer extends StatementAnalyzer {
     if (isFirstSelectedNode(node)) {
       invalidSelection(
           "Cannot extract a constructor initializer. Select expression part of initializer.",
-          RefactoringStatusContext.create(node));
+          new RefactoringStatusContext(node));
     }
     return null;
   }
@@ -111,7 +111,7 @@ public class ExtractMethodAnalyzer extends StatementAnalyzer {
     if (isFirstSelectedNode(node)) {
       invalidSelection(
           "Cannot extract a variable declaration fragment. Select whole declaration statement.",
-          RefactoringStatusContext.create(node));
+          new RefactoringStatusContext(node));
     }
     return null;
   }

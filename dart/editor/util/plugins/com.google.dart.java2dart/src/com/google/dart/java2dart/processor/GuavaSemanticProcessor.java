@@ -29,6 +29,7 @@ import static com.google.dart.java2dart.util.AstFactory.identifier;
 import static com.google.dart.java2dart.util.AstFactory.instanceCreationExpression;
 import static com.google.dart.java2dart.util.AstFactory.listLiteral;
 import static com.google.dart.java2dart.util.AstFactory.mapLiteral;
+import static com.google.dart.java2dart.util.AstFactory.propertyAccess;
 import static com.google.dart.java2dart.util.AstFactory.typeName;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
@@ -72,8 +73,16 @@ public class GuavaSemanticProcessor extends SemanticProcessor {
           node.getMethodName().setToken(token("makeHashCode"));
           return null;
         }
+        if (isMethodInClass(node, "of", "com.google.common.collect.ImmutableList")) {
+          replaceNode(node, listLiteral());
+          return null;
+        }
         if (isMethodInClass(node, "of", "com.google.common.collect.ImmutableMap")) {
           replaceNode(node, instanceCreationExpression(Keyword.NEW, typeName("Map")));
+          return null;
+        }
+        if (isMethodInClass(node, "getLast", "com.google.common.collect.Iterables")) {
+          replaceNode(node, propertyAccess(args.get(0), identifier("last")));
           return null;
         }
         if (isMethodInClass(node, "newArrayList", "com.google.common.collect.Lists")) {
@@ -95,6 +104,10 @@ public class GuavaSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass(node, "newHashSet", "com.google.common.collect.Sets")) {
           replaceNode(node, instanceCreationExpression(Keyword.NEW, typeName("Set")));
+          return null;
+        }
+        if (isMethodInClass(node, "newLinkedHashSet", "com.google.common.collect.Sets")) {
+          replaceNode(node, instanceCreationExpression(Keyword.NEW, typeName("LinkedHashSet")));
           return null;
         }
         return null;

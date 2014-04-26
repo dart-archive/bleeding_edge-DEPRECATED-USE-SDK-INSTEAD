@@ -18,6 +18,31 @@ package com.google.dart.java2dart.processor;
  */
 public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
 
+  public void test_ImmutableList() throws Exception {
+    setFileLines(
+        "com/google/common/collect/ImmutableList.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package com.google.common.collect;",
+            "import java.util.*;",
+            "public class ImmutableList {",
+            "  public static <T> List<T> of() { return null; }",
+            "}"));
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.*;",
+        "import com.google.common.collect.ImmutableList;",
+        "public class Test {",
+        "  public Object test_of_zero() { return ImmutableList.of(); }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  Object test_of_zero() => [];",
+        "}");
+  }
+
   public void test_ImmutableMap_of_empty() throws Exception {
     setFileLines(
         "com/google/common/collect/ImmutableMap.java",
@@ -40,6 +65,31 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(//
         "class Test {",
         "  Map<String, String> m = new Map();",
+        "}");
+  }
+
+  public void test_Iterables() throws Exception {
+    setFileLines(
+        "com/google/common/collect/Iterables.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package com.google.common.collect;",
+            "import java.util.*;",
+            "public class Iterables {",
+            "  public static <T> T getLast(Iterable<T> iterable) { return null; }",
+            "}"));
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.*;",
+        "import com.google.common.collect.Iterables;",
+        "public class Test {",
+        "  public Object test_getLast(List<String> values) { return Iterables.getLast(values); }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  Object test_getLast(List<String> values) => values.last;",
         "}");
   }
 
@@ -141,6 +191,7 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
             "import java.util.Set;",
             "public class Sets {",
             "  public static <T> Set<T> newHashSet() { return null; }",
+            "  public static <T> Set<T> newLinkedHashSet() { return null; }",
             "  public static <T> Set<T> difference(Set<T> s, Set<?> t) { return null; }",
             "}"));
     translateSingleFile(
@@ -150,12 +201,14 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "import com.google.common.collect.Sets;",
         "public class Test {",
         "  public Object test_newHashSet() { return Sets.newHashSet(); }",
+        "  public Object test_newLinkedHashSet() { return Sets.newLinkedHashSet(); }",
         "  public Object test_difference(Set<String> s, Set<String> t) { return Sets.difference(s, t); }",
         "}");
     runProcessor();
     assertFormattedSource(
         "class Test {",
         "  Object test_newHashSet() => new Set();",
+        "  Object test_newLinkedHashSet() => new LinkedHashSet();",
         "  Object test_difference(Set<String> s, Set<String> t) => s.difference(t);",
         "}");
   }

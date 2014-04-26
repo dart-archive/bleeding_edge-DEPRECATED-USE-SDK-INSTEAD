@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.services.internal.correction;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -25,8 +25,6 @@ import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.scanner.Token;
-import com.google.dart.engine.services.internal.util.ExecutionUtils;
-import com.google.dart.engine.services.internal.util.RunnableObjectEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
@@ -208,7 +206,7 @@ public class StatementAnalyzer extends SelectionAnalyzer {
       if (hasTokens(rangeBeforeFirstNode)) {
         invalidSelection(
             "The beginning of the selection contains characters that do not belong to a statement.",
-            RefactoringStatusContext.create(unit, rangeBeforeFirstNode));
+            new RefactoringStatusContext(unit, rangeBeforeFirstNode));
       }
     }
     // some tokens after last selected node
@@ -218,7 +216,7 @@ public class StatementAnalyzer extends SelectionAnalyzer {
       if (hasTokens(rangeAfterLastNode)) {
         invalidSelection(
             "The end of the selection contains characters that do not belong to a statement.",
-            RefactoringStatusContext.create(unit, rangeAfterLastNode));
+            new RefactoringStatusContext(unit, rangeAfterLastNode));
       }
     }
   }
@@ -226,14 +224,13 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   /**
    * @return the {@link Token}s in given {@link SourceRange}.
    */
-  private List<Token> getTokens(final SourceRange range) {
-    return ExecutionUtils.runObjectIgnore(new RunnableObjectEx<List<Token>>() {
-      @Override
-      public List<Token> runObject() throws Exception {
-        String text = utils.getText(range);
-        return TokenUtils.getTokens(text);
-      }
-    }, ImmutableList.<Token> of());
+  private List<Token> getTokens(SourceRange range) {
+    try {
+      String text = utils.getText(range);
+      return TokenUtils.getTokens(text);
+    } catch (Throwable e) {
+      return Lists.newArrayList();
+    }
   }
 
   /**

@@ -163,12 +163,12 @@ public class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implem
     // remove "get "
     if (getKeyword != null) {
       Edit edit = new Edit(rangeStartEnd(getKeyword, element.getNameOffset()), "");
-      change.addEdit(description, edit);
+      change.addEdit(edit, description);
     }
     // add parameters "()"
     {
       Edit edit = new Edit(rangeElementName(element).getEnd(), 0, "()");
-      change.addEdit(description, edit);
+      change.addEdit(edit, description);
     }
   }
 
@@ -180,8 +180,8 @@ public class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implem
       SourceChange refChange = changeManager.get(reference.source);
       // insert "()"
       refChange.addEdit(
-          "Replace field access with invocation",
-          new Edit(refRange.getEnd(), 0, "()"));
+          new Edit(refRange.getEnd(), 0, "()"),
+          "Replace field access with invocation");
     }
   }
 }

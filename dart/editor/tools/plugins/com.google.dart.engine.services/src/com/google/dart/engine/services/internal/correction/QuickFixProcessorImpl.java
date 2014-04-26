@@ -324,7 +324,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
     // prepare CorrectionUtils
     utils = new CorrectionUtils(unit);
-    node = utils.findNode(selectionOffset, AstNode.class);
+    node = utils.findNode(selectionOffset);
     coveredNode = new NodeLocator(selectionOffset, selectionOffset + selectionLength).searchWithin(unit);
     //
     final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());

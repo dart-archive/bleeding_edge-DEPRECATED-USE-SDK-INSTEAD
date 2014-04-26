@@ -98,7 +98,7 @@ public class RenameImportRefactoringImpl extends RenameRefactoringImpl {
           }
         }
         if (edit != null) {
-          elementChange.addEdit("Update import directive", edit);
+          elementChange.addEdit(edit, "Update import directive");
         }
       }
       // update references
@@ -112,7 +112,7 @@ public class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         } else {
           edit = createReferenceEdit(reference, newName + ".");
         }
-        refChange.addEdit("Update reference", edit);
+        refChange.addEdit(edit, "Update reference");
       }
       // return CompositeChange
       CompositeChange compositeChange = new CompositeChange(getRefactoringName());

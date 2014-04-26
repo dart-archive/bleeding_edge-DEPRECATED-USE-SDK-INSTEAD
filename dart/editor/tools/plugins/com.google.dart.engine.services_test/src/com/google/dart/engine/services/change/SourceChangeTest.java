@@ -40,8 +40,8 @@ public class SourceChangeTest extends TestCase {
     SourceChange change = new SourceChange("test", source);
     assertThat(change.getEdits()).isEmpty();
     // add edits
-    change.addEdit("desc A", editA);
-    change.addEdit("desc B", editB);
+    change.addEdit(editA, "desc A");
+    change.addEdit(editB, "desc B");
     assertThat(change.getEdits()).containsExactly(editA, editB);
     {
       Map<String, List<Edit>> editGroups = change.getEditGroups();

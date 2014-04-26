@@ -35,7 +35,7 @@ public class RefactoringStatusContextTest extends AbstractDartTest {
         "main() {}",
         "");
     SimpleIdentifier node = findNode("main() {}", SimpleIdentifier.class);
-    RefactoringStatusContext context = RefactoringStatusContext.create(node);
+    RefactoringStatusContext context = new RefactoringStatusContext(node);
     // access
     assertSame(testUnit.getElement().getContext(), context.getContext());
     assertSame(testUnit.getElement().getSource(), context.getSource());
@@ -48,7 +48,7 @@ public class RefactoringStatusContextTest extends AbstractDartTest {
         "main() {}",
         "");
     SourceRange range = new SourceRange(10, 20);
-    RefactoringStatusContext context = RefactoringStatusContext.create(testUnit, range);
+    RefactoringStatusContext context = new RefactoringStatusContext(testUnit, range);
     // access
     assertSame(testUnit.getElement().getContext(), context.getContext());
     assertSame(testUnit.getElement().getSource(), context.getSource());
@@ -57,7 +57,7 @@ public class RefactoringStatusContextTest extends AbstractDartTest {
     {
       String str = context.toString();
       assertThat(str).contains("range=" + range);
-      assertThat(str).startsWith("RefactoringStatusContext{source=");
+      assertThat(str).startsWith("[source=");
     }
   }
 
@@ -69,29 +69,11 @@ public class RefactoringStatusContextTest extends AbstractDartTest {
     when(element.getSource()).thenReturn(source);
     when(element.getNameOffset()).thenReturn(12);
     when(element.getDisplayName()).thenReturn("test");
-    RefactoringStatusContext context = RefactoringStatusContext.create(element);
+    RefactoringStatusContext context = new RefactoringStatusContext(element);
     // access
     assertSame(analysisContext, context.getContext());
     assertSame(source, context.getSource());
     assertEquals(new SourceRange(12, 4), context.getRange());
-  }
-
-  public void test_new_Element_SourceRange() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {}",
-        "");
-    AnalysisContext analysisContext = mock(AnalysisContext.class);
-    Source source = mock(Source.class);
-    Element element = mock(Element.class);
-    when(element.getContext()).thenReturn(analysisContext);
-    when(element.getSource()).thenReturn(source);
-    SourceRange range = new SourceRange(10, 20);
-    RefactoringStatusContext context = RefactoringStatusContext.create(element, range);
-    // access
-    assertSame(analysisContext, context.getContext());
-    assertSame(source, context.getSource());
-    assertEquals(range, context.getRange());
   }
 
   public void test_new_SearchMatch() throws Exception {

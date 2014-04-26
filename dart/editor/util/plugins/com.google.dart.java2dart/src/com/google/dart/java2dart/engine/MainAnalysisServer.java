@@ -22,6 +22,7 @@ import com.google.common.io.Files;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
@@ -56,6 +57,7 @@ import com.google.dart.java2dart.processor.UniqueMemberNamesSemanticProcessor;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
 import static com.google.dart.java2dart.util.AstFactory.importDirective;
+import static com.google.dart.java2dart.util.AstFactory.importHideCombinator;
 import static com.google.dart.java2dart.util.AstFactory.importShowCombinator;
 import static com.google.dart.java2dart.util.AstFactory.libraryDirective;
 
@@ -96,6 +98,7 @@ public class MainAnalysisServer {
   private static final Context context = new Context();
   private static File engineFolder;
   private static File serverFolder;
+  private static File serviceFolder;
 
   private static CompilationUnit dartUnit;
 
@@ -107,15 +110,18 @@ public class MainAnalysisServer {
       + "// significant change. Please see the README file for more information.\n\n";
 
   public static void main(String[] args) throws Exception {
-    if (args.length != 1) {
-      System.out.println("Usage: java2dart <target-src-folder>");
+    if (args.length != 2) {
+      System.out.println("Usage: java2dart <services-target-src-folder> <server-target-src-folder>");
       System.exit(0);
     }
-    String targetFolder = args[0];
-    System.out.println("Generating files into " + targetFolder);
-    new File(targetFolder).mkdirs();
+    String targetFolderServices = args[0];
+    String targetFolderServer = args[1];
+    System.out.println("Generating files into\n\t" + targetFolderServices + "\n\t"
+        + targetFolderServer);
+    new File(targetFolderServer).mkdirs();
     //
     engineFolder = new File("../../../tools/plugins/com.google.dart.engine/src");
+    serviceFolder = new File("../../../tools/plugins/com.google.dart.engine.services/src");
     serverFolder = new File("../../../tools/plugins/com.google.dart.server/src");
     engineFolder = engineFolder.getCanonicalFile();
     // configure Context
@@ -125,6 +131,15 @@ public class MainAnalysisServer {
     context.addSourceFolder(serverFolder);
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/"));
     context.addSourceFiles(new File(serverFolder, "com/google/dart/server/"));
+    context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/assist"));
+    context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/change"));
+    context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/correction"));
+    context.addSourceFiles(new File(
+        serviceFolder,
+        "com/google/dart/engine/services/internal/correction"));
+    context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/internal/util"));
+    context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/status"));
+    context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/util"));
     // translate into single CompilationUnit
     dartUnit = context.translate();
     // run processors
@@ -152,20 +167,54 @@ public class MainAnalysisServer {
     context.applyLocalVariableSemanticChanges(dartUnit);
     {
       CompilationUnit library = buildServiceInterfacesLibrary();
-      Files.write(
-          getFormattedSource(library),
-          new File(targetFolder + "/service_interfaces.dart"),
-          Charsets.UTF_8);
+      Files.write(getFormattedSource(library), new File(targetFolderServer
+          + "/service_interfaces.dart"), Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildServiceComputersLibrary();
+      Files.write(getFormattedSource(library), new File(targetFolderServer
+          + "/service_computers.dart"), Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildServicesLibrary_change();
       Files.write(
           getFormattedSource(library),
-          new File(targetFolder + "/service_computers.dart"),
+          new File(targetFolderServices + "/change.dart"),
           Charsets.UTF_8);
     }
     {
-      String projectFolder = new File(targetFolder).getParentFile().getParentFile().getParent();
+      CompilationUnit library = buildServicesLibrary_status();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolderServices + "/status.dart"),
+          Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildServicesLibrary_proposal();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolderServices + "/proposal.dart"),
+          Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildServicesLibrary_util();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolderServices + "/util.dart"),
+          Charsets.UTF_8);
+    }
+    // TODO(scheglov) restore to translate more
+//    {
+//      CompilationUnit library = buildServicesLibrary_assist();
+//      Files.write(getFormattedSource(library), new File(targetFolder2
+//          + "/service_correction.dart"), Charsets.UTF_8);
+//    }
+    {
+      String projectFolder = new File(targetFolderServices).getParentFile().getParentFile().getParent();
+      fixUnnecessaryCastHints(projectFolder);
+    }
+    {
+      String projectFolder = new File(targetFolderServer).getParentFile().getParentFile().getParent();
       fixUnnecessaryCastHints(projectFolder);
     }
     System.out.println("Translation complete");
@@ -226,8 +275,6 @@ public class MainAnalysisServer {
     unit.getDirectives().add(importDirective("service_interfaces.dart", null));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
-      if (file.getCanonicalPath().endsWith("HighlightType.java")) {
-      }
       if (isServerPath(file, "internal/local/computer/")) {
         addNotRemovedCompiationUnitEntries(unit, entry.getValue());
       }
@@ -242,7 +289,7 @@ public class MainAnalysisServer {
         importDirective(
             "package:analyzer/src/generated/java_core.dart",
             null,
-            importShowCombinator("Enum")));
+            importShowCombinator("Enum", "StringUtils")));
     unit.getDirectives().add(
         importDirective(
             "package:analyzer/src/generated/source.dart",
@@ -258,6 +305,139 @@ public class MainAnalysisServer {
           || isServerPath(file, "OutlineKind.java") || isServerPath(file, "SourceRegion.java")
           || isServerPath(file, "SourceSet.java") || isServerPath(file, "SourceSetKind.java")
           || isServerPath(file, "internal/local/ImplicitSourceSet.java")) {
+        addNotRemovedCompiationUnitEntries(unit, entry.getValue());
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildServicesLibrary_assist() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("service", "correction"));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/ast.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/element.dart", null));
+    unit.getDirectives().add(
+        importDirective(
+            "package:analyzer/src/generated/engine.dart",
+            null,
+            importShowCombinator("AnalysisContext")));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/error.dart", null));
+    unit.getDirectives().add(
+        importDirective(
+            "package:analyzer/src/generated/java_core.dart",
+            null,
+            importHideCombinator("StringUtils")));
+    unit.getDirectives().add(
+        importDirective(
+            "package:analyzer/src/generated/java_io.dart",
+            null,
+            importShowCombinator("JavaFile")));
+    unit.getDirectives().add(
+        importDirective(
+            "package:analyzer/src/generated/parser.dart",
+            null,
+            importShowCombinator("ParserErrorCode")));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/scanner.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/sdk.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/source_io.dart", null));
+    unit.getDirectives().add(
+        importDirective("package:analyzer/src/generated/utilities_dart.dart", null));
+    unit.getDirectives().add(importDirective("change.dart", null));
+    unit.getDirectives().add(importDirective("proposal.dart", null));
+    unit.getDirectives().add(importDirective("stubs.dart", null));
+    unit.getDirectives().add(importDirective("util.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isCorrectionProposalFile(file)) {
+        continue;
+      }
+      if (isCorrectionUtilFile(file)) {
+        continue;
+      }
+      if (isServicePath(file, "assist/") || isServicePath(file, "correction/")
+          || isServicePath(file, "internal/correction/")
+          || isServicePath(file, "internal/util/TokenUtils.java") || isServicePath(file, "util/")) {
+        addNotRemovedCompiationUnitEntries(unit, entry.getValue());
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildServicesLibrary_change() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("services", "change"));
+    unit.getDirectives().add(
+        importDirective(
+            "package:analyzer/src/generated/java_io.dart",
+            null,
+            importShowCombinator("JavaFile")));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/source.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isServicePath(file, "change/")) {
+        addNotRemovedCompiationUnitEntries(unit, entry.getValue());
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildServicesLibrary_proposal() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("services", "proposal"));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/java_core.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/java_io.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/source.dart", null));
+    unit.getDirectives().add(importDirective("change.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isCorrectionProposalFile(file)) {
+        addNotRemovedCompiationUnitEntries(unit, entry.getValue());
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildServicesLibrary_status() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("services", "status"));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/java_core.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/ast.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/element.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/engine.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/source.dart", null));
+    unit.getDirectives().add(importDirective("stubs.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isServicePath(file, "status/")) {
+        addNotRemovedCompiationUnitEntries(unit, entry.getValue());
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildServicesLibrary_util() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("services", "util"));
+    unit.getDirectives().add(importDirective("dart:collection", null));
+    unit.getDirectives().add(
+        importDirective(
+            "package:analyzer/src/generated/java_core.dart",
+            null,
+            importHideCombinator("StringUtils")));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/ast.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/element.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/engine.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/error.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/resolver.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/source.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/scanner.dart", null));
+    unit.getDirectives().add(importDirective("change.dart", null));
+    unit.getDirectives().add(importDirective("proposal.dart", null));
+    unit.getDirectives().add(importDirective("status.dart", null));
+    unit.getDirectives().add(importDirective("stubs.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isCorrectionUtilFile(file)) {
         addNotRemovedCompiationUnitEntries(unit, entry.getValue());
       }
     }
@@ -341,13 +521,44 @@ public class MainAnalysisServer {
   /**
    * @return the formatted Dart source dump of the given {@link AstNode}.
    */
-  private static String getFormattedSource(AstNode node) {
+  private static String getFormattedSource(CompilationUnit unit) {
     PrintStringWriter writer = new PrintStringWriter();
     writer.append(HEADER);
-    node.accept(new ToFormattedSourceVisitor(writer));
+    Collections.sort(unit.getDeclarations(), new Comparator<CompilationUnitMember>() {
+      @Override
+      public int compare(CompilationUnitMember o1, CompilationUnitMember o2) {
+        String name1 = ((ClassDeclaration) o1).getName().getName();
+        String name2 = ((ClassDeclaration) o2).getName().getName();
+        return name1.compareTo(name2);
+      }
+    });
+    unit.accept(new ToFormattedSourceVisitor(writer));
     String source = writer.toString();
     source = removeTrailingWhitespaces(source);
     return source;
+  }
+
+  private static boolean isCorrectionProposalFile(File file) throws Exception {
+    return isServicePath(file, "correction/AddDependencyCorrectionProposal.java")
+        || isServicePath(file, "correction/ChangeCorrectionProposal.java")
+        || isServicePath(file, "correction/CorrectionImage.java")
+        || isServicePath(file, "correction/CorrectionKind.java")
+        || isServicePath(file, "correction/CorrectionProposal.java")
+        || isServicePath(file, "correction/CreateFileCorrectionProposal.java")
+        || isServicePath(file, "correction/LinkedPositionProposal.java")
+        || isServicePath(file, "correction/SourceCorrectionProposal.java");
+  }
+
+  private static boolean isCorrectionUtilFile(File file) throws Exception {
+    return isServicePath(file, "assist/AssistContext.java")
+        || isServicePath(file, "util/HierarchyUtils.java")
+        || isServicePath(file, "util/NameOccurrencesFinder.java")
+        || isServicePath(file, "util/SelectionAnalyzer.java")
+        || isServicePath(file, "internal/correction/CorrectionUtils.java")
+        || isServicePath(file, "internal/correction/SourceBuilder.java")
+        || isServicePath(file, "internal/correction/StatementAnalyzer.java")
+        || isServicePath(file, "internal/correction/URIUtils.java")
+        || isServicePath(file, "internal/util/TokenUtils.java");
   }
 
   /**
@@ -357,6 +568,17 @@ public class MainAnalysisServer {
   private static boolean isServerPath(File file, String serverPackage) throws Exception {
     String filePath = file.getCanonicalPath();
     String prefix = serverFolder.getCanonicalPath() + "/com/google/dart/server/" + serverPackage;
+    return filePath.startsWith(prefix);
+  }
+
+  /**
+   * @param servicePackage the sub-package in <code>com/google/dart/engine/services</code>.
+   * @return <code>true</code> if given {@link File} is located in sub-package of Engine project.
+   */
+  private static boolean isServicePath(File file, String servicePackage) throws Exception {
+    String filePath = file.getCanonicalPath();
+    String prefix = serviceFolder.getCanonicalPath() + "/com/google/dart/engine/services/"
+        + servicePackage;
     return filePath.startsWith(prefix);
   }
 

@@ -13,8 +13,6 @@
  */
 package com.google.dart.engine.services.change;
 
-import com.google.common.base.Preconditions;
-
 /**
  * Describes some abstract operation to perform.
  * <p>
@@ -25,7 +23,6 @@ public abstract class Change {
   private final String name;
 
   public Change(String name) {
-    Preconditions.checkNotNull(name);
     this.name = name;
   }
 

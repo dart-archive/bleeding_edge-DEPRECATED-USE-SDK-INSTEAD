@@ -245,9 +245,9 @@ public class ServiceUtilsTest extends AbstractDartTest {
     Source source = createTestFileSource();
     // fill SourceChange
     SourceChange sourceChange = new SourceChange("My change", source);
-    sourceChange.addEdit("groupA", new Edit(10, 1, "a1"));
-    sourceChange.addEdit("groupA", new Edit(20, 2, "a2"));
-    sourceChange.addEdit("groupB", new Edit(30, 3, "b"));
+    sourceChange.addEdit(new Edit(10, 1, "a1"), "groupA");
+    sourceChange.addEdit(new Edit(20, 2, "a2"), "groupA");
+    sourceChange.addEdit(new Edit(30, 3, "b"), "groupB");
     // toLTK
     TextFileChange ltkChange = ServiceUtils.toLTK(sourceChange);
     assertEquals("My change", ltkChange.getName());

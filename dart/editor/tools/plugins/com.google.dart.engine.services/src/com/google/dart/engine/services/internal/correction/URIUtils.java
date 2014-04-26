@@ -16,7 +16,7 @@ public class URIUtils {
       target = target.substring(1);
     }
     // equal paths - no relative
-    if (base.equals(target) == true) {
+    if (base.equals(target)) {
       return null;
     }
     // split paths

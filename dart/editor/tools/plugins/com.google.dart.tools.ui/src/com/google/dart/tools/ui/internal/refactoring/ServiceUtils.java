@@ -414,7 +414,7 @@ public class ServiceUtils {
   }
 
   private static TextEdit toLTK(Edit edit) {
-    return new ReplaceEdit(edit.offset, edit.length, edit.replacement);
+    return new ReplaceEdit(edit.getOffset(), edit.getLength(), edit.getReplacement());
   }
 
   private static TextEdit[] toLTK(List<Edit> edits) {

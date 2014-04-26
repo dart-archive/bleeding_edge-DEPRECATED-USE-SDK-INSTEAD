@@ -126,7 +126,7 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
               "Duplicate local {0} ''{1}''.",
               getElementKindName(nameElement),
               newName);
-          result.addError(message, RefactoringStatusContext.create(nameElement));
+          result.addError(message, new RefactoringStatusContext(nameElement));
           return result;
         }
         // shadowing referenced element

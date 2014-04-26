@@ -180,6 +180,25 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Collections_sort() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.*;",
+        "public class Test {",
+        "  public void testA(List<String> items, Comparator<String> comparator) {",
+        "    Collections.sort(items, comparator);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  void testA(List<String> items, Comparator<String> comparator) {",
+        "    items.sort(comparator);",
+        "  }",
+        "}");
+  }
+
   public void test_Collections_unmodifiableList() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

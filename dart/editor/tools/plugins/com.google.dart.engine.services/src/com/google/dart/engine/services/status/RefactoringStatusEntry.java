@@ -13,30 +13,47 @@
  */
 package com.google.dart.engine.services.status;
 
+import com.google.dart.engine.utilities.translation.DartOmit;
+import com.google.dart.engine.utilities.translation.DartOptional;
+
 /**
  * An immutable object representing an entry in the list in {@link RefactoringStatus}. A refactoring
  * status entry consists of a severity, a message and a context object.
  */
 public class RefactoringStatusEntry {
+  /**
+   * The severity level.
+   */
   private final RefactoringStatusSeverity severity;
+
+  /**
+   * The message of the status entry.
+   */
   private final String message;
+
+  /**
+   * The {@link RefactoringStatusContext} which can be used to show more detailed information
+   * regarding this status entry in the UI. May be {@code null} indicating that no context is
+   * available.
+   */
   private final RefactoringStatusContext context;
 
-  public RefactoringStatusEntry(RefactoringStatusSeverity severity, String msg) {
-    this(severity, msg, null);
+  @DartOmit
+  public RefactoringStatusEntry(RefactoringStatusSeverity severity, String message) {
+    this(severity, message, null);
   }
 
-  public RefactoringStatusEntry(RefactoringStatusSeverity severity, String msg,
-      RefactoringStatusContext context) {
+  public RefactoringStatusEntry(RefactoringStatusSeverity severity, String message,
+      @DartOptional RefactoringStatusContext ctx) {
     this.severity = severity;
-    this.message = msg;
-    this.context = context;
+    this.message = message;
+    this.context = ctx;
   }
 
   /**
    * @return the {@link RefactoringStatusContext} which can be used to show more detailed
-   *         information regarding this status entry in the UI. The method may return
-   *         <code>null</code> indicating that no context is available.
+   *         information regarding this status entry in the UI. The method may return {@code null}
+   *         indicating that no context is available.
    */
   public RefactoringStatusContext getContext() {
     return context;

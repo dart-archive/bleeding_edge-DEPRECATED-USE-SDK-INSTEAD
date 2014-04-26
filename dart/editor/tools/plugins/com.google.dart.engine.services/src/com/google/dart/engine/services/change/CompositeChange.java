@@ -15,6 +15,8 @@
 package com.google.dart.engine.services.change;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.utilities.translation.DartOmit;
+import com.google.dart.engine.utilities.translation.DartOptional;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -26,18 +28,22 @@ import java.util.List;
 public class CompositeChange extends Change {
   private final List<Change> children = Lists.newArrayList();
 
+  @DartOmit
   public CompositeChange(String name) {
     super(name);
   }
 
+  @DartOmit
   public CompositeChange(String name, Change... changes) {
     super(name);
     add(changes);
   }
 
-  public CompositeChange(String name, Collection<Change> changes) {
+  public CompositeChange(String name, @DartOptional Collection<Change> changes) {
     super(name);
-    children.addAll(changes);
+    if (changes != null) {
+      children.addAll(changes);
+    }
   }
 
   /**

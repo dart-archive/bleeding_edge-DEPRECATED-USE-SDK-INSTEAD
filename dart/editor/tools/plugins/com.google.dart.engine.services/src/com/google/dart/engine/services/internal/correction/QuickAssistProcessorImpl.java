@@ -17,8 +17,8 @@ package com.google.dart.engine.services.internal.correction;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -59,6 +59,7 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenClass;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.search.SearchEngine;
@@ -77,8 +78,6 @@ import com.google.dart.engine.services.correction.LinkedPositionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
 import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils.InsertDesc;
-import com.google.dart.engine.services.internal.util.ExecutionUtils;
-import com.google.dart.engine.services.internal.util.RunnableEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
@@ -264,15 +263,14 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     // run with instrumentation
     final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
     try {
-      for (final Method method : QuickAssistProcessorImpl.class.getDeclaredMethods()) {
+      for (Method method : QuickAssistProcessorImpl.class.getDeclaredMethods()) {
         if (method.getName().startsWith("addProposal_")) {
           resetProposalElements();
-          ExecutionUtils.runIgnore(new RunnableEx() {
-            @Override
-            public void run() throws Exception {
-              method.invoke(QuickAssistProcessorImpl.this);
-            }
-          });
+          try {
+            method.invoke(QuickAssistProcessorImpl.this);
+          } catch (Throwable e) {
+            instrumentation.record(e);
+          }
         }
       }
       instrumentation.metric("QuickAssist-Offset", selectionOffset);
@@ -322,7 +320,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       {
         SourceRange modifiersRange = rangeStartEnd(declarationList, variable);
         String modifiersSource = utils.getText(modifiersRange);
-        List<com.google.dart.engine.scanner.Token> tokens = TokenUtils.getTokens(modifiersSource);
+        List<Token> tokens = TokenUtils.getTokens(modifiersSource);
         varToken = TokenUtils.findKeywordToken(tokens, Keyword.VAR);
       }
       // replace "var", or insert type before name
@@ -641,7 +639,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       newContent += utils.getEndOfLine();
       newContent += utils.getEndOfLine();
       newContent += getSource(linesRange);
-      createFileChange = new CreateFileChange(newFile, newContent, fileName);
+      createFileChange = new CreateFileChange(fileName, newFile, newContent);
     }
     // add 'part'
     SourceChange libraryChange = getInsertPartDirectiveChange(unitLibrarySource, fileName);

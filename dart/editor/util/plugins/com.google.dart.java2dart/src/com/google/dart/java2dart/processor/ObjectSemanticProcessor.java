@@ -419,6 +419,16 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
           return null;
         }
+        if (isMethodInClass2(node, "valueOf(char)", "java.lang.String")) {
+          replaceNode(
+              node,
+              instanceCreationExpression(
+                  Keyword.NEW,
+                  typeName("String"),
+                  "fromCharCode",
+                  args.get(0)));
+          return null;
+        }
         if (isMethodInClass2(node, "concat(java.lang.String)", "java.lang.String")) {
           replaceNode(node, binaryExpression(target, TokenType.PLUS, args.get(0)));
           return null;

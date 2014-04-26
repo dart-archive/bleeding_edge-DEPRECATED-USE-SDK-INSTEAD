@@ -14,6 +14,8 @@
 package com.google.dart.engine.services.status;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.utilities.translation.DartOmit;
+import com.google.dart.engine.utilities.translation.DartOptional;
 
 import java.util.List;
 
@@ -33,6 +35,7 @@ public class RefactoringStatus {
   /**
    * @return the new {@link RefactoringStatus} with {@link RefactoringStatusSeverity#FATAL}.
    */
+  @DartOmit
   public static RefactoringStatus createFatalErrorStatus(String msg) {
     RefactoringStatus status = new RefactoringStatus();
     status.addFatalError(msg);
@@ -43,7 +46,7 @@ public class RefactoringStatus {
    * @return the new {@link RefactoringStatus} with {@link RefactoringStatusSeverity#FATAL}.
    */
   public static RefactoringStatus createFatalErrorStatus(String msg,
-      RefactoringStatusContext context) {
+      @DartOptional RefactoringStatusContext context) {
     RefactoringStatus status = new RefactoringStatus();
     status.addFatalError(msg, context);
     return status;
@@ -74,6 +77,7 @@ public class RefactoringStatus {
   /**
    * Adds a <code>ERROR</code> entry filled with the given message to this status.
    */
+  @DartOmit
   public void addError(String msg) {
     addError(msg, null);
   }
@@ -81,13 +85,14 @@ public class RefactoringStatus {
   /**
    * Adds a <code>ERROR</code> entry filled with the given message and status to this status.
    */
-  public void addError(String msg, RefactoringStatusContext context) {
+  public void addError(String msg, @DartOptional RefactoringStatusContext context) {
     addEntry(new RefactoringStatusEntry(RefactoringStatusSeverity.ERROR, msg, context));
   }
 
   /**
    * Adds a <code>FATAL</code> entry filled with the given message to this status.
    */
+  @DartOmit
   public void addFatalError(String msg) {
     addFatalError(msg, null);
   }
@@ -95,13 +100,14 @@ public class RefactoringStatus {
   /**
    * Adds a <code>FATAL</code> entry filled with the given message and status to this status.
    */
-  public void addFatalError(String msg, RefactoringStatusContext context) {
+  public void addFatalError(String msg, @DartOptional RefactoringStatusContext context) {
     addEntry(new RefactoringStatusEntry(RefactoringStatusSeverity.FATAL, msg, context));
   }
 
   /**
    * Adds a <code>WARNING</code> entry filled with the given message to this status.
    */
+  @DartOmit
   public void addWarning(String msg) {
     addWarning(msg, null);
   }
@@ -109,7 +115,7 @@ public class RefactoringStatus {
   /**
    * Adds a <code>WARNING</code> entry filled with the given message and status to this status.
    */
-  public void addWarning(String msg, RefactoringStatusContext context) {
+  public void addWarning(String msg, @DartOptional RefactoringStatusContext context) {
     addEntry(new RefactoringStatusEntry(RefactoringStatusSeverity.WARNING, msg, context));
   }
 
@@ -232,16 +238,16 @@ public class RefactoringStatus {
 
   @Override
   public String toString() {
-    StringBuffer buff = new StringBuffer();
-    buff.append("<").append(severity.name());
+    StringBuilder sb = new StringBuilder();
+    sb.append("<").append(severity.name());
     if (!isOK()) {
-      buff.append("\n");
+      sb.append("\n");
       for (RefactoringStatusEntry entry : entries) {
-        buff.append("\t").append(entry).append("\n");
+        sb.append("\t").append(entry).append("\n");
       }
     }
-    buff.append(">");
-    return buff.toString();
+    sb.append(">");
+    return sb.toString();
   }
 
   /**

@@ -19,9 +19,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -131,7 +131,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       CompilationUnit refUnit = refElement.getUnit();
       refUtils = new CorrectionUtils(refUnit);
       // prepare node and environment
-      node = refUtils.findNode(reference.getSourceRange().getOffset(), AstNode.class);
+      node = refUtils.findNode(reference.getSourceRange().getOffset());
       Statement refStatement = node.getAncestor(Statement.class);
       if (refStatement != null) {
         refLineRange = refUtils.getLinesRange(ImmutableList.of(refStatement));
@@ -186,7 +186,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         if (methodElement instanceof MethodElement) {
           status.addFatalError(
               "Cannot inline class method reference.",
-              RefactoringStatusContext.create(node));
+              new RefactoringStatusContext(node));
           return;
         }
         // PropertyAccessorElement
@@ -227,7 +227,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         SourceChange refChange = safeManager.get(refSource);
         SourceRange range = rangeNode(node);
         Edit edit = new Edit(range, source);
-        refChange.addEdit("Replace all references to method with statements", edit);
+        refChange.addEdit(edit, "Replace all references to method with statements");
       }
     }
 
@@ -283,9 +283,8 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       }
       // we don't support cascade
       if (cascaded) {
-        status.addError(
-            "Cannot inline cascade invocation.",
-            RefactoringStatusContext.create(methodUsage));
+        status.addError("Cannot inline cascade invocation.", new RefactoringStatusContext(
+            methodUsage));
       }
       // can we inline method body into "methodUsage" block?
       if (canInlineBody(methodUsage)) {
@@ -302,7 +301,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
           // do insert
           SourceRange range = rangeStartLength(refLineRange, 0);
           Edit edit = new Edit(range, source);
-          refChange.addEdit("Replace all references to method with statements", edit);
+          refChange.addEdit(edit, "Replace all references to method with statements");
         }
         // replace invocation with return expression
         if (methodExpressionPart != null) {
@@ -319,10 +318,10 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
           // do replace
           SourceRange methodUsageRange = rangeNode(methodUsage);
           Edit edit = new Edit(methodUsageRange, source);
-          refChange.addEdit("Replace all references to method with statements", edit);
+          refChange.addEdit(edit, "Replace all references to method with statements");
         } else {
           Edit edit = new Edit(refLineRange, "");
-          refChange.addEdit("Replace all references to method with statements", edit);
+          refChange.addEdit(edit, "Replace all references to method with statements");
         }
         return;
       }
@@ -339,7 +338,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       // do insert
       SourceRange range = rangeNode(node);
       Edit edit = new Edit(range, source);
-      refChange.addEdit("Replace all references to method with statements", edit);
+      refChange.addEdit(edit, "Replace all references to method with statements");
     }
 
     private boolean shouldProcess() {
@@ -500,7 +499,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         SourceRange methodRange = rangeNode(methodNode);
         SourceRange linesRange = methodUtils.getLinesRange(methodRange);
         SourceChange change = safeManager.get(methodElement.getSource());
-        change.addEdit("Remove method declaration", new Edit(linesRange, ""));
+        change.addEdit(new Edit(linesRange, ""), "Remove method declaration");
       }
     } finally {
       pm.done();
@@ -901,9 +900,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     methodUtils = new CorrectionUtils(methodUnit);
     if (selectedElement instanceof MethodElement
         || selectedElement instanceof PropertyAccessorElement) {
-      MethodDeclaration methodDeclaration = methodUtils.findNode(
-          methodElement.getNameOffset(),
-          MethodDeclaration.class);
+      MethodDeclaration methodDeclaration = (MethodDeclaration) methodElement.getNode();
       methodNode = methodDeclaration;
       methodParameters = methodDeclaration.getParameters();
       methodBody = methodDeclaration.getBody();
@@ -912,9 +909,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       initialMode = currentMode = isDeclaration ? Mode.INLINE_ALL : Mode.INLINE_SINGLE;
     }
     if (selectedElement instanceof FunctionElement) {
-      FunctionDeclaration functionDeclaration = methodUtils.findNode(
-          methodElement.getNameOffset(),
-          FunctionDeclaration.class);
+      FunctionDeclaration functionDeclaration = (FunctionDeclaration) methodElement.getNode();
       methodNode = functionDeclaration;
       methodParameters = functionDeclaration.getFunctionExpression().getParameters();
       methodBody = functionDeclaration.getFunctionExpression().getBody();
@@ -964,7 +959,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         public Void visitReturnStatement(ReturnStatement node) {
           numReturns++;
           if (numReturns == 2) {
-            result.addError("Ambiguous return value.", RefactoringStatusContext.create(node));
+            result.addError("Ambiguous return value.", new RefactoringStatusContext(node));
           }
           return super.visitReturnStatement(node);
         }

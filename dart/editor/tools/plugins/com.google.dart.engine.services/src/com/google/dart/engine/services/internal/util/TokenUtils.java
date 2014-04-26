@@ -62,19 +62,18 @@ public class TokenUtils {
    *         tokens or some exception happens.
    */
   public static List<Token> getTokens(final String s) {
-    final List<Token> tokens = Lists.newArrayList();
-    ExecutionUtils.runIgnore(new RunnableEx() {
-      @Override
-      public void run() throws Exception {
-        Scanner scanner = new Scanner(null, new CharSequenceReader(s), null);
-        Token token = scanner.tokenize();
-        while (token.getType() != TokenType.EOF) {
-          tokens.add(token);
-          token = token.getNext();
-        }
+    try {
+      List<Token> tokens = Lists.newArrayList();
+      Scanner scanner = new Scanner(null, new CharSequenceReader(s), null);
+      Token token = scanner.tokenize();
+      while (token.getType() != TokenType.EOF) {
+        tokens.add(token);
+        token = token.getNext();
       }
-    });
-    return tokens;
+      return tokens;
+    } catch (Throwable e) {
+      return Lists.newArrayList();
+    }
   }
 
   /**

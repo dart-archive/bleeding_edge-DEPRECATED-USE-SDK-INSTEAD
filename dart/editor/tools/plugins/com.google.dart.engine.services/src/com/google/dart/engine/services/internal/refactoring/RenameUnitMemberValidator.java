@@ -73,7 +73,7 @@ class RenameUnitMemberValidator {
                   "Library already declares {0} with name ''{1}''.",
                   getElementKindName(element),
                   newName);
-              result.addError(message, RefactoringStatusContext.create(element));
+              result.addError(message, new RefactoringStatusContext(element));
             }
             return null;
           }
@@ -100,7 +100,7 @@ class RenameUnitMemberValidator {
                       getElementKindName(elementKind),
                       getElementKindName(maybeShadow),
                       getElementQualifiedName(maybeShadow));
-                  result.addError(message, RefactoringStatusContext.create(maybeShadow));
+                  result.addError(message, new RefactoringStatusContext(maybeShadow));
                 }
                 return null;
               }

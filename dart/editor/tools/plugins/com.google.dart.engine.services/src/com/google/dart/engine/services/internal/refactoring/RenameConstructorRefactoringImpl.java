@@ -129,7 +129,7 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
               parentClass.getDisplayName(),
               getElementKindName(newNameMember),
               newName);
-          result.addError(message, RefactoringStatusContext.create(newNameMember));
+          result.addError(message, new RefactoringStatusContext(newNameMember));
         }
       }
       pm.worked(1);

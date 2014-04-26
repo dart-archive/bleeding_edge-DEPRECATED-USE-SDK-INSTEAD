@@ -176,12 +176,12 @@ public class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implem
     // insert "get "
     {
       Edit edit = new Edit(element.getNameOffset(), 0, "get ");
-      change.addEdit(description, edit);
+      change.addEdit(edit, description);
     }
     // remove parameters
     {
       Edit edit = new Edit(rangeNode(parameters), "");
-      change.addEdit(description, edit);
+      change.addEdit(edit, description);
     }
   }
 
@@ -202,7 +202,7 @@ public class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implem
       if (invocation != null) {
         SourceRange range = rangeEndEnd(refRange, invocation);
         SourceChange refChange = changeManager.get(reference.source);
-        refChange.addEdit("Replace invocation with field access", new Edit(range, ""));
+        refChange.addEdit(new Edit(range, ""), "Replace invocation with field access");
       }
     }
   }

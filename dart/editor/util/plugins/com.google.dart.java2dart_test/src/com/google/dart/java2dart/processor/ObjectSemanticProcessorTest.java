@@ -1095,6 +1095,24 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_String_valueOf_char() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public String test(char c) {",
+        "    String.valueOf(c);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  String test(int c) {",
+        "    new String.fromCharCode(c);",
+        "  }",
+        "}");
+  }
+
   public void test_StringBuilder() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
