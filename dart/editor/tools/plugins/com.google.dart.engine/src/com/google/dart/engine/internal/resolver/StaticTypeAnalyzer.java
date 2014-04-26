@@ -1739,7 +1739,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
    * @param type the propagated type of the node
    */
   private void recordPropagatedType(Expression expression, Type type) {
-    if (type != null && !type.isDynamic()) {
+    if (type != null && !type.isDynamic() && !type.isBottom()) {
       expression.setPropagatedType(type);
     }
   }

@@ -138,6 +138,38 @@ public class TypePropagationTest extends ResolverTestCase {
     assertSame(getTypeProvider().getDoubleType(), variableName.getPropagatedType());
   }
 
+  public void test_assignment_null() throws Exception {
+    String code = createSource(//
+        "main() {",
+        "  int v; // declare",
+        "  v = null;",
+        "  return v; // return",
+        "}");
+    CompilationUnit unit;
+    {
+      Source source = addSource(code);
+      LibraryElement library = resolve(source);
+      assertNoErrors(source);
+      verify(source);
+      unit = resolveCompilationUnit(source, library);
+    }
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "v; // declare", SimpleIdentifier.class);
+      assertSame(getTypeProvider().getIntType(), identifier.getStaticType());
+      assertSame(null, identifier.getPropagatedType());
+    }
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "v = null;", SimpleIdentifier.class);
+      assertSame(getTypeProvider().getIntType(), identifier.getStaticType());
+      assertSame(null, identifier.getPropagatedType());
+    }
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "v; // return", SimpleIdentifier.class);
+      assertSame(getTypeProvider().getIntType(), identifier.getStaticType());
+      assertSame(null, identifier.getPropagatedType());
+    }
+  }
+
   public void test_forEach() throws Exception {
     String code = createSource(//
         "main() {",
@@ -388,6 +420,32 @@ public class TypePropagationTest extends ResolverTestCase {
     PrefixedIdentifier invocation = (PrefixedIdentifier) statement.getExpression();
     SimpleIdentifier variableName = invocation.getPrefix();
     assertSame(getTypeProvider().getStringType(), variableName.getPropagatedType());
+  }
+
+  public void test_initializer_null() throws Exception {
+    String code = createSource(//
+        "main() {",
+        "  int v = null;",
+        "  return v; // marker",
+        "}");
+    CompilationUnit unit;
+    {
+      Source source = addSource(code);
+      LibraryElement library = resolve(source);
+      assertNoErrors(source);
+      verify(source);
+      unit = resolveCompilationUnit(source, library);
+    }
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "v = null;", SimpleIdentifier.class);
+      assertSame(getTypeProvider().getIntType(), identifier.getStaticType());
+      assertSame(null, identifier.getPropagatedType());
+    }
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "v; // marker", SimpleIdentifier.class);
+      assertSame(getTypeProvider().getIntType(), identifier.getStaticType());
+      assertSame(null, identifier.getPropagatedType());
+    }
   }
 
   public void test_is_conditional() throws Exception {
