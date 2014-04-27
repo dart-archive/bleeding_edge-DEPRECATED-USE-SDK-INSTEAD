@@ -15,9 +15,8 @@ package com.google.dart.engine.internal.task;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.CompileTimeErrorCode;
-import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.source.FileUriResolver;
@@ -163,10 +162,11 @@ public class ParseDartTaskTest extends EngineTestCase {
           throw exception;
         }
         assertNotNull(task.getCompilationUnit());
-        AnalysisError[] errors = task.getErrors();
-        assertLength(2, errors);
-        assertHasError(errors, CompileTimeErrorCode.URI_WITH_INTERPOLATION);
-        assertHasError(errors, CompileTimeErrorCode.INVALID_URI);
+        GatheringErrorListener errorListener = new GatheringErrorListener();
+        errorListener.addAll(task.getErrors());
+        errorListener.assertErrorsWithCodes(
+            CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+            CompileTimeErrorCode.INVALID_URI);
         assertEquals(context.getModificationStamp(source), task.getModificationTime());
         assertSame(source, task.getSource());
         assertTrue(task.hasNonPartOfDirective());
@@ -174,15 +174,6 @@ public class ParseDartTaskTest extends EngineTestCase {
         return null;
       }
     });
-  }
-
-  private void assertHasError(AnalysisError[] errors, ErrorCode code) {
-    for (AnalysisError error : errors) {
-      if (error.getErrorCode() == code) {
-        return;
-      }
-    }
-    fail("Expected error code: " + code);
   }
 
   /**

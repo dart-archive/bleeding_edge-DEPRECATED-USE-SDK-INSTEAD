@@ -74,14 +74,23 @@ public class GatheringErrorListener implements AnalysisErrorListener {
   }
 
   /**
+   * Add all of the given errors to this listener.
+   * 
+   * @param the errors to be added
+   */
+  public void addAll(AnalysisError[] errors) {
+    for (AnalysisError error : errors) {
+      onError(error);
+    }
+  }
+
+  /**
    * Add all of the errors recorded by the given listener to this listener.
    * 
    * @param listener the listener that has recorded the errors to be added
    */
   public void addAll(RecordingErrorListener listener) {
-    for (AnalysisError error : listener.getErrors()) {
-      onError(error);
-    }
+    addAll(listener.getErrors());
   }
 
   /**
