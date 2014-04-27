@@ -39,6 +39,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
+import com.google.dart.server.Outline;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -619,13 +620,17 @@ public class LightNodeElements {
     }
     for (TreeItem item : items) {
       Object itemData = item.getData();
-      // prepare LightNodeElement
-      if (!(itemData instanceof LightNodeElement)) {
-        continue;
+      // prepare number of children
+      int numChildren = 0;
+      {
+        if (itemData instanceof LightNodeElement) {
+          numChildren = ((LightNodeElement) itemData).children.size();
+        }
+        if (itemData instanceof Outline) {
+          numChildren = ((Outline) itemData).getChildren().length;
+        }
       }
-      LightNodeElement element = (LightNodeElement) itemData;
       // has children, not too many?
-      int numChildren = element.children.size();
       if (numChildren == 0 || numChildren > childrenLimit) {
         continue;
       }

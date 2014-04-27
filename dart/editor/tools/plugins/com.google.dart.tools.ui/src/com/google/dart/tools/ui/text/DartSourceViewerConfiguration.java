@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.text;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
@@ -38,7 +39,9 @@ import com.google.dart.tools.ui.internal.text.functions.DartCommentScanner;
 import com.google.dart.tools.ui.internal.text.functions.DartElementProvider;
 import com.google.dart.tools.ui.internal.text.functions.DartMultilineStringScanner;
 import com.google.dart.tools.ui.internal.text.functions.DartOutlineElementProvider;
+import com.google.dart.tools.ui.internal.text.functions.DartOutlineElementProvider_NEW;
 import com.google.dart.tools.ui.internal.text.functions.DartOutlineInformationControl;
+import com.google.dart.tools.ui.internal.text.functions.DartOutlineInformationControl_NEW;
 import com.google.dart.tools.ui.internal.text.functions.DartPresentationReconciler;
 import com.google.dart.tools.ui.internal.text.functions.HTMLAnnotationHover;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
@@ -535,7 +538,12 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     }
     presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
     presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
-    IInformationProvider provider = new DartOutlineElementProvider(getEditor());
+    IInformationProvider provider;
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      provider = new DartOutlineElementProvider_NEW(getEditor());
+    } else {
+      provider = new DartOutlineElementProvider(getEditor());
+    }
     presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
     presenter.setInformationProvider(provider, DartPartitions.DART_DOC);
     presenter.setInformationProvider(provider, DartPartitions.DART_MULTI_LINE_COMMENT);
@@ -841,7 +849,11 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
       @Override
       public IInformationControl createInformationControl(Shell parent) {
         int shellStyle = SWT.RESIZE;
-        return new DartOutlineInformationControl(parent, shellStyle, fTextEditor);
+        if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+          return new DartOutlineInformationControl_NEW(parent, shellStyle, fTextEditor);
+        } else {
+          return new DartOutlineInformationControl(parent, shellStyle, fTextEditor);
+        }
       }
     };
   }

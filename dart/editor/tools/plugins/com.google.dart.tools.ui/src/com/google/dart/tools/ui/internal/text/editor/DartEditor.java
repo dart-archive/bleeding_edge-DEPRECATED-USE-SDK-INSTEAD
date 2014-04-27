@@ -1717,10 +1717,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   /** The outline page */
   protected DartOutlinePage_NEW fOutlinePage_NEW;
+  private Outline outline;
 
   private AnalysisServerOutlineListener analysisServerOutlineListener = new AnalysisServerOutlineListener() {
     @Override
     public void computedOutline(String contextId, Source source, final Outline outline) {
+      DartEditor.this.outline = outline;
       Display.getDefault().asyncExec(new Runnable() {
         @Override
         public void run() {
@@ -2372,6 +2374,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   @Override
   public int getOrientation() {
     return SWT.LEFT_TO_RIGHT; // Dart editors are always left to right by default
+  }
+
+  /**
+   * Returns the latest known outline.
+   */
+  public Outline getOutline() {
+    return outline;
   }
 
   public IPreferenceStore getPreferences() {

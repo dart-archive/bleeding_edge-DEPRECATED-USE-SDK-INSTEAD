@@ -127,6 +127,126 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     }
   }
 
+  public static class OutlineContentProvider implements ITreeContentProvider {
+    @Override
+    public void dispose() {
+    }
+
+    @Override
+    public Object[] getChildren(Object parentElement) {
+      return ((Outline) parentElement).getChildren();
+    }
+
+    @Override
+    public Object[] getElements(Object inputElement) {
+      return ((Outline) inputElement).getChildren();
+    }
+
+    @Override
+    public Object getParent(Object element) {
+      return ((Outline) element).getParent();
+    }
+
+    @Override
+    public boolean hasChildren(Object element) {
+      return getChildren(element).length != 0;
+    }
+
+    @Override
+    public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+    }
+  }
+
+  public static class OutlineLabelProvider extends LabelProvider implements IStyledLabelProvider {
+    private static final Point SIZE = new Point(22, 16);
+    private static final ImageDescriptorRegistry registry = DartToolsPlugin.getImageDescriptorRegistry();
+    private static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
+
+    private static ImageDescriptor getBaseImageDescriptor(OutlineKind kind, boolean isPrivate) {
+      if (kind == OutlineKind.CLASS || kind == OutlineKind.CLASS_TYPE_ALIAS) {
+        return isPrivate ? DartPluginImages.DESC_DART_CLASS_PRIVATE
+            : DartPluginImages.DESC_DART_CLASS_PUBLIC;
+      }
+      if (kind == OutlineKind.FUNCTION_TYPE_ALIAS) {
+        return isPrivate ? DartPluginImages.DESC_DART_FUNCTIONTYPE_PRIVATE
+            : DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
+      }
+      if (kind == OutlineKind.FIELD || kind == OutlineKind.TOP_LEVEL_VARIABLE) {
+        return isPrivate ? DartPluginImages.DESC_DART_FIELD_PRIVATE
+            : DartPluginImages.DESC_DART_FIELD_PUBLIC;
+      }
+      if (kind == OutlineKind.CONSTRUCTOR || kind == OutlineKind.FUNCTION
+          || kind == OutlineKind.GETTER || kind == OutlineKind.METHOD || kind == OutlineKind.SETTER) {
+        return isPrivate ? DartPluginImages.DESC_DART_METHOD_PRIVATE
+            : DartPluginImages.DESC_DART_METHOD_PUBLIC;
+      }
+      return null;
+    }
+
+    private static ImageDescriptor getImageDescriptor(Outline outline) {
+      OutlineKind kind = outline.getKind();
+      ImageDescriptor base = getBaseImageDescriptor(kind, outline.isPrivate());
+      if (base == null) {
+        return null;
+      }
+      int flags = 0;
+      if (kind == OutlineKind.CONSTRUCTOR) {
+        flags |= DartElementImageDescriptor.CONSTRUCTOR;
+      }
+      if (kind == OutlineKind.GETTER) {
+        flags |= DartElementImageDescriptor.GETTER;
+      }
+      if (kind == OutlineKind.SETTER) {
+        flags |= DartElementImageDescriptor.SETTER;
+      }
+      if (outline.isAbstract()) {
+        flags |= DartElementImageDescriptor.ABSTRACT;
+      }
+      if (outline.isStatic()) {
+        flags |= DartElementImageDescriptor.STATIC;
+      }
+      return new DartElementImageDescriptor(base, flags, SIZE);
+    }
+
+    @Override
+    public Image getImage(Object o) {
+      Outline outline = (Outline) o;
+      ImageDescriptor descriptor = getImageDescriptor(outline);
+      if (descriptor != null) {
+        return registry.get(descriptor);
+      }
+      return null;
+    }
+
+    @Override
+    public StyledString getStyledText(Object obj) {
+      Outline outline = (Outline) obj;
+      StyledString styledString = new StyledString(getText(obj));
+      // append parameters
+      String parameters = outline.getParameters();
+      if (parameters != null) {
+        styledString.append(parameters, StyledString.DECORATIONS_STYLER);
+      }
+      // append return type
+      String returnType = outline.getReturnType();
+      if (!StringUtils.isEmpty(returnType)) {
+        if (outline.getKind() == OutlineKind.FIELD
+            || outline.getKind() == OutlineKind.TOP_LEVEL_VARIABLE) {
+          styledString.append(" : " + returnType, StyledString.QUALIFIER_STYLER);
+        } else {
+          styledString.append(RIGHT_ARROW + returnType, StyledString.QUALIFIER_STYLER);
+        }
+      }
+      // done
+      return styledString;
+    }
+
+    @Override
+    public String getText(Object element) {
+      return ((Outline) element).getName();
+    }
+  }
+
   /**
    * {@link ViewerComparator} for {@link Outline} positions.
    */
@@ -248,125 +368,6 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
         DartToolsPlugin.getDefault().getPreferenceStore().setValue(
             "LexicalSortingAction.isChecked", on); //$NON-NLS-1$
       }
-    }
-  }
-
-  private static class OutlineContentProvider implements ITreeContentProvider {
-    @Override
-    public void dispose() {
-    }
-
-    @Override
-    public Object[] getChildren(Object parentElement) {
-      return ((Outline) parentElement).getChildren();
-    }
-
-    @Override
-    public Object[] getElements(Object inputElement) {
-      return ((Outline) inputElement).getChildren();
-    }
-
-    @Override
-    public Object getParent(Object element) {
-      return ((Outline) element).getParent();
-    }
-
-    @Override
-    public boolean hasChildren(Object element) {
-      return getChildren(element).length != 0;
-    }
-
-    @Override
-    public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-    }
-  }
-  private static class OutlineLabelProvider extends LabelProvider implements IStyledLabelProvider {
-    private static final Point SIZE = new Point(22, 16);
-    private static final ImageDescriptorRegistry registry = DartToolsPlugin.getImageDescriptorRegistry();
-    private static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
-
-    private static ImageDescriptor getBaseImageDescriptor(OutlineKind kind, boolean isPrivate) {
-      if (kind == OutlineKind.CLASS || kind == OutlineKind.CLASS_TYPE_ALIAS) {
-        return isPrivate ? DartPluginImages.DESC_DART_CLASS_PRIVATE
-            : DartPluginImages.DESC_DART_CLASS_PUBLIC;
-      }
-      if (kind == OutlineKind.FUNCTION_TYPE_ALIAS) {
-        return isPrivate ? DartPluginImages.DESC_DART_FUNCTIONTYPE_PRIVATE
-            : DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
-      }
-      if (kind == OutlineKind.FIELD || kind == OutlineKind.TOP_LEVEL_VARIABLE) {
-        return isPrivate ? DartPluginImages.DESC_DART_FIELD_PRIVATE
-            : DartPluginImages.DESC_DART_FIELD_PUBLIC;
-      }
-      if (kind == OutlineKind.CONSTRUCTOR || kind == OutlineKind.FUNCTION
-          || kind == OutlineKind.GETTER || kind == OutlineKind.METHOD || kind == OutlineKind.SETTER) {
-        return isPrivate ? DartPluginImages.DESC_DART_METHOD_PRIVATE
-            : DartPluginImages.DESC_DART_METHOD_PUBLIC;
-      }
-      return null;
-    }
-
-    private static ImageDescriptor getImageDescriptor(Outline outline) {
-      OutlineKind kind = outline.getKind();
-      ImageDescriptor base = getBaseImageDescriptor(kind, outline.isPrivate());
-      if (base == null) {
-        return null;
-      }
-      int flags = 0;
-      if (kind == OutlineKind.CONSTRUCTOR) {
-        flags |= DartElementImageDescriptor.CONSTRUCTOR;
-      }
-      if (kind == OutlineKind.GETTER) {
-        flags |= DartElementImageDescriptor.GETTER;
-      }
-      if (kind == OutlineKind.SETTER) {
-        flags |= DartElementImageDescriptor.SETTER;
-      }
-      if (outline.isAbstract()) {
-        flags |= DartElementImageDescriptor.ABSTRACT;
-      }
-      if (outline.isStatic()) {
-        flags |= DartElementImageDescriptor.STATIC;
-      }
-      return new DartElementImageDescriptor(base, flags, SIZE);
-    }
-
-    @Override
-    public Image getImage(Object o) {
-      Outline outline = (Outline) o;
-      ImageDescriptor descriptor = getImageDescriptor(outline);
-      if (descriptor != null) {
-        return registry.get(descriptor);
-      }
-      return null;
-    }
-
-    @Override
-    public StyledString getStyledText(Object obj) {
-      Outline outline = (Outline) obj;
-      StyledString styledString = new StyledString(getText(obj));
-      // append parameters
-      String parameters = outline.getParameters();
-      if (parameters != null) {
-        styledString.append(parameters, StyledString.DECORATIONS_STYLER);
-      }
-      // append return type
-      String returnType = outline.getReturnType();
-      if (!StringUtils.isEmpty(returnType)) {
-        if (outline.getKind() == OutlineKind.FIELD
-            || outline.getKind() == OutlineKind.TOP_LEVEL_VARIABLE) {
-          styledString.append(" : " + returnType, StyledString.QUALIFIER_STYLER);
-        } else {
-          styledString.append(RIGHT_ARROW + returnType, StyledString.QUALIFIER_STYLER);
-        }
-      }
-      // done
-      return styledString;
-    }
-
-    @Override
-    public String getText(Object element) {
-      return ((Outline) element).getName();
     }
   }
 
