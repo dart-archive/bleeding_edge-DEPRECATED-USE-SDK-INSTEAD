@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.internal.analysis.model.WorkspaceDeltaProcessor;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.mock.MockDelta;
 import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockFolder;
@@ -76,8 +77,10 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1", REMOVED);
 
     processor = new DeltaProcessor(project);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
     updater = new ProjectUpdater();
-    processor.addDeltaListener(updater);
+    filter.addDeltaListener(updater);
+    processor.addDeltaListener(filter);
     processor.traverse(delta);
     updater.applyChanges();
 
@@ -100,8 +103,10 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1").add(folder, REMOVED);
 
     DeltaProcessor processor = new DeltaProcessor(project);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
     ProjectUpdater updater = new ProjectUpdater();
-    processor.addDeltaListener(updater);
+    filter.addDeltaListener(updater);
+    processor.addDeltaListener(filter);
     processor.traverse(delta);
     updater.applyChanges();
 
@@ -126,8 +131,10 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1").add("bar.dart", ADDED);
 
     DeltaProcessor processor = new DeltaProcessor(project);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
     ProjectUpdater updater = new ProjectUpdater();
-    processor.addDeltaListener(updater);
+    filter.addDeltaListener(updater);
+    processor.addDeltaListener(filter);
     processor.traverse(delta);
     updater.applyChanges();
 
@@ -158,6 +165,7 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add(myApp).add(PACKAGES_DIRECTORY_NAME).add("pkg1").add("bar.dart", ADDED);
 
     DeltaProcessor processor = new DeltaProcessor(project);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
     ProjectUpdater updater = new ProjectUpdater();
     processor.addDeltaListener(updater);
     processor.traverse(delta);
@@ -186,13 +194,40 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add("pkg1").add("bar.dart");
 
     DeltaProcessor processor = new DeltaProcessor(project);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
     ProjectUpdater updater = new ProjectUpdater();
-    processor.addDeltaListener(updater);
+    filter.addDeltaListener(updater);
+    processor.addDeltaListener(filter);
     processor.traverse(delta);
     updater.applyChanges();
 
     File changedFile = new File(pkg1Dir, file.getName());
     project.assertChanged(projectContainer, null, new File[] {changedFile}, null, null);
+    project.assertNoCalls();
+  }
+
+  /**
+   * Test changing a file in a symlinked package in the web/packages directory and assert that no
+   * calls are made because it is not a top level or pub directory.
+   */
+  public void test_traverse_package_file_changed_inWebDir() throws Exception {
+    if (!symlinkPackage(projDir)) {
+      return;
+    }
+
+    MockFolder packages = projectContainer.getMockFolder("web").getMockFolder(
+        PACKAGES_DIRECTORY_NAME);
+    MockDelta delta = new MockDelta(packages);
+    delta.add("pkg1").add("bar.dart");
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
+    ProjectUpdater updater = new ProjectUpdater();
+    filter.addDeltaListener(updater);
+    processor.addDeltaListener(filter);
+    processor.traverse(delta);
+    updater.applyChanges();
+
     project.assertNoCalls();
   }
 
@@ -211,8 +246,10 @@ public class DeltaProcessorCanonicalTest extends AbstractDartCoreTest {
     delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1").add(file, REMOVED);
 
     DeltaProcessor processor = new DeltaProcessor(project);
+    IgnoreResourceFilter filter = new IgnoreResourceFilter(new DartIgnoreManager());
     ProjectUpdater updater = new ProjectUpdater();
-    processor.addDeltaListener(updater);
+    filter.addDeltaListener(updater);
+    processor.addDeltaListener(filter);
     processor.traverse(delta);
     updater.applyChanges();
 
