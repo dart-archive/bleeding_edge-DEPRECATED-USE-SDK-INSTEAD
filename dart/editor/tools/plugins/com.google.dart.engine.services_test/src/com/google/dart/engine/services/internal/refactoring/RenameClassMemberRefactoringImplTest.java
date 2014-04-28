@@ -118,7 +118,6 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "    test(); // marker",
         "  }",
         "}",
-        "",
         "");
     createRenameRefactoring("test() {}");
     // check status
@@ -435,7 +434,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "class C extends B {",
         "  test() {}",
         "}",
-        "class D implements B {",
+        "class D implements A {",
         "  test() {}",
         "}",
         "main() {",
@@ -464,7 +463,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "class C extends B {",
         "  newName() {}",
         "}",
-        "class D implements B {",
+        "class D implements A {",
         "  newName() {}",
         "}",
         "main() {",

@@ -24,6 +24,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
@@ -36,6 +37,7 @@ import static com.google.dart.engine.services.internal.correction.CorrectionUtil
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementQualifiedName;
 
 import java.text.MessageFormat;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -51,7 +53,6 @@ class RenameClassMemberValidator {
   private final String newName;
   private Set<ClassElement> superClasses;
   private Set<ClassElement> subClasses;
-  private Set<ClassElement> hierarchyClasses;
   boolean hasIgnoredElements = false;
   Set<Element> renameElements = Sets.newHashSet();
   List<SearchMatch> renameElementsReferences = Lists.newArrayList();
@@ -150,22 +151,24 @@ class RenameClassMemberValidator {
    * super- and overrides in sub-classes.
    */
   private void prepareHierarchyClasses(RefactoringStatus status) {
-    // prepare super/sub-classes
-    superClasses = HierarchyUtils.getSuperClasses(elementClass);
-    subClasses = HierarchyUtils.getSubClasses(searchEngine, elementClass);
-    // full hierarchy
-    hierarchyClasses = Sets.newHashSet();
-    hierarchyClasses.add(elementClass);
-    hierarchyClasses.addAll(superClasses);
-    hierarchyClasses.addAll(subClasses);
     // prepare elements to rename
+    superClasses = HierarchyUtils.getSuperClasses(elementClass);
+    subClasses = Sets.newHashSet();
     renameElements.clear();
-    for (ClassElement superClass : hierarchyClasses) {
-      for (Element child : getChildren(superClass, oldName)) {
-        // ignore synthetic
-        if (child.isSynthetic()) {
-          continue;
-        }
+    // process super-classes with "oldName" and their sub-classes
+    Set<ClassElement> processed = Sets.newHashSet();
+    LinkedList<ClassElement> toProcess = Lists.newLinkedList();
+    toProcess.addAll(superClasses);
+    toProcess.add(elementClass);
+    while (!toProcess.isEmpty()) {
+      ClassElement classElement = toProcess.removeFirst();
+      // maybe already processed
+      if (!processed.add(classElement)) {
+        continue;
+      }
+      // add "oldName" children
+      List<Element> children = CorrectionUtils.getChildren(classElement, oldName);
+      for (Element child : children) {
         // ignore if Source cannot be updated
         Source source = child.getSource();
         SourceFactory activeSourceFactory = activeContext.getSourceFactory();
@@ -175,9 +178,16 @@ class RenameClassMemberValidator {
         }
         // add element to rename
         renameElements.add(child);
+        // process sub-classes if this class has an "oldName" child
+        toProcess.addAll(HierarchyUtils.getSubClasses(searchEngine, classElement));
+      }
+      // add sub-class
+      if (!superClasses.contains(classElement)) {
+        subClasses.add(classElement);
       }
     }
     // prepare references
+    renameElementsReferences.clear();
     for (Element renameElement : renameElements) {
       List<SearchMatch> references = searchEngine.searchReferences(renameElement, null, null);
       renameElementsReferences.addAll(references);
