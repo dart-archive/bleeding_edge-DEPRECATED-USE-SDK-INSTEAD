@@ -20,6 +20,7 @@ import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
+import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -402,5 +403,10 @@ public class TestAnalysisContext implements InternalAnalysisContext {
   @Override
   public void setSourceFactory(SourceFactory factory) {
     fail("Unexpected invocation of setSourceFactory");
+  }
+
+  @Override
+  public void updateAnalysis(AnalysisDelta delta) {
+    fail("Unexpected invocation of updateAnalysis");
   }
 }

@@ -28,6 +28,7 @@ import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
+import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.context.ObsoleteSourceAnalysisException;
@@ -2096,6 +2097,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
       invalidateAllLocalResolutionInformation();
     }
+  }
+
+  @Override
+  public void updateAnalysis(AnalysisDelta delta) {
+    // TODO (danrubel) implement
   }
 
   /**

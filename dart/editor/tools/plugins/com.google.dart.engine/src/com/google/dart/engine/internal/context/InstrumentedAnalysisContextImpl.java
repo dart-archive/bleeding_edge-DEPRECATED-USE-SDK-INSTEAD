@@ -8,6 +8,7 @@ import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
+import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -828,6 +829,18 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
     try {
       instrumentation.metric("contextId", contextId);
       basis.setSourceFactory(factory);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
+  public void updateAnalysis(AnalysisDelta delta) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-updateAnalysis");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      basis.updateAnalysis(delta);
     } finally {
       instrumentation.log();
     }

@@ -639,4 +639,11 @@ public interface AnalysisContext {
    *          context
    */
   public void setSourceFactory(SourceFactory factory);
+
+  /**
+   * Update the analysis to be performed based upon information contained in the given analysis set.
+   * 
+   * @param delta a description of what analysis should be performed on which sources
+   */
+  public void updateAnalysis(AnalysisDelta delta);
 }
