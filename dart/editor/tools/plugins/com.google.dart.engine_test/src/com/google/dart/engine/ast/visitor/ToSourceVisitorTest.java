@@ -1001,6 +1001,10 @@ public class ToSourceVisitorTest extends EngineTestCase {
             hideCombinator(identifier("B"))));
   }
 
+  public void test_visitImportDirective_deferred() {
+    assertSource("import 'a.dart' deferred as p;", importDirective("a.dart", true, "p"));
+  }
+
   public void test_visitImportDirective_minimal() {
     assertSource("import 'a.dart';", importDirective("a.dart", null));
   }

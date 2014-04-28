@@ -511,6 +511,9 @@ public class ToSourceVisitor implements AstVisitor<Void> {
     visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     writer.print("import ");
     visitNode(node.getUri());
+    if (node.getDeferredToken() != null) {
+      writer.print(" deferred");
+    }
     visitNodeWithPrefix(" as ", node.getPrefix());
     visitNodeListWithSeparatorAndPrefix(" ", node.getCombinators(), " ");
     writer.print(';');

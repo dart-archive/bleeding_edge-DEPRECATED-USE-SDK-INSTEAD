@@ -597,22 +597,27 @@ public final class AstFactory {
   }
 
   public static ImportDirective importDirective(List<Annotation> metadata, String uri,
-      String prefix, Combinator... combinators) {
+      boolean isDeferred, String prefix, Combinator... combinators) {
     return new ImportDirective(
         null,
         metadata,
         tokenFromKeyword(Keyword.IMPORT),
         string(uri),
-        null,
+        !isDeferred ? null : tokenFromKeyword(Keyword.DEFERRED),
         prefix == null ? null : tokenFromKeyword(Keyword.AS),
         prefix == null ? null : identifier(prefix),
         list(combinators),
         tokenFromType(TokenType.SEMICOLON));
   }
 
+  public static ImportDirective importDirective(String uri, boolean isDeferred, String prefix,
+      Combinator... combinators) {
+    return importDirective(new ArrayList<Annotation>(), uri, isDeferred, prefix, combinators);
+  }
+
   public static ImportDirective importDirective(String uri, String prefix,
       Combinator... combinators) {
-    return importDirective(new ArrayList<Annotation>(), uri, prefix, combinators);
+    return importDirective(new ArrayList<Annotation>(), uri, false, prefix, combinators);
   }
 
   public static IndexExpression indexExpression(Expression array, Expression index) {
