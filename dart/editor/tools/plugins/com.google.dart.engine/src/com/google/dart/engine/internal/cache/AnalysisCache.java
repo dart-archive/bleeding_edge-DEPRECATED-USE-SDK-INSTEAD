@@ -73,6 +73,15 @@ public class AnalysisCache {
   }
 
   /**
+   * Return the number of entries in this cache that have an AST associated with them.
+   * 
+   * @return the number of entries in this cache that have an AST associated with them
+   */
+  public int getAstSize() {
+    return partitions[partitions.length - 1].getAstSize();
+  }
+
+  /**
    * Return an iterator returning all of the map entries mapping sources to cache entries.
    * 
    * @return an iterator returning all of the map entries mapping sources to cache entries

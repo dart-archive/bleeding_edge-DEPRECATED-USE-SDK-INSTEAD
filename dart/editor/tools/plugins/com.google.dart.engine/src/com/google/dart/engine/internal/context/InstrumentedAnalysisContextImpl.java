@@ -309,6 +309,11 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public int getCacheSize() {
+    return basis.getCacheSize();
+  }
+
+  @Override
   public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getCompilationUnitElement");
     checkThread(instrumentation);

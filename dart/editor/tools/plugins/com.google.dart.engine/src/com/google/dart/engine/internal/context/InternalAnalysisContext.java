@@ -87,6 +87,13 @@ public interface InternalAnalysisContext extends AnalysisContext {
       InternalAnalysisContext newContext);
 
   /**
+   * Return the number of AST's currently in the result cache.
+   * 
+   * @return the number of AST's currently in the result cache
+   */
+  public int getCacheSize();
+
+  /**
    * Return a namespace containing mappings for all of the public names defined by the given
    * library.
    * 

@@ -1320,6 +1320,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public int getCacheSize() {
+    return cache.getAstSize();
+  }
+
+  @Override
   public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource) {
     LibraryElement libraryElement = getLibraryElement(librarySource);
     if (libraryElement != null) {

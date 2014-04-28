@@ -96,6 +96,8 @@ public class AnalysisView extends ViewPart {
 
   private static class AnalysisContextData {
     private final String name;
+    private final int cacheSize;
+    private final int maxCacheSize;
     private final AnalysisContentStatistics statistics;
     private final ContextWorkerState workerState;
     private int errorCount;
@@ -106,9 +108,11 @@ public class AnalysisView extends ViewPart {
     private Source[] sources;
     private AnalysisException[] exceptions;
 
-    public AnalysisContextData(String name, AnalysisContentStatistics statistics,
-        ContextWorkerState workerState) {
+    public AnalysisContextData(String name, int cacheSize, int maxCacheSize,
+        AnalysisContentStatistics statistics, ContextWorkerState workerState) {
       this.name = name;
+      this.cacheSize = cacheSize;
+      this.maxCacheSize = maxCacheSize;
       this.statistics = statistics;
       this.workerState = workerState;
       for (CacheRow row : statistics.getCacheRows()) {
@@ -162,10 +166,10 @@ public class AnalysisView extends ViewPart {
   }
 
   private static void addContext(AnalysisWorker[] queueWorkers, AnalysisWorker activeWorker,
-      List<AnalysisContextData> contexts, String name, AnalysisContext context) {
+      List<AnalysisContextData> contexts, String name, InternalAnalysisContext context) {
     ContextWorkerState workerState = getContextWorkerState(queueWorkers, activeWorker, context);
-    contexts.add(new AnalysisContextData(name, ((InternalAnalysisContext) context).getStatistics(),
-        workerState));
+    contexts.add(new AnalysisContextData(name, context.getCacheSize(),
+        context.getAnalysisOptions().getCacheSize(), context.getStatistics(), workerState));
   }
 
   private static List<AnalysisContextData> getContexts() {
@@ -176,13 +180,15 @@ public class AnalysisView extends ViewPart {
       String projectName = project.getResource().getName();
       // default context
       AnalysisContext defaultContext = project.getDefaultContext();
-      addContext(queueWorkers, activeWorker, contexts, projectName, defaultContext);
+      addContext(queueWorkers, activeWorker, contexts, projectName,
+          (InternalAnalysisContext) defaultContext);
       // separate Pub folders
       for (PubFolder pubFolder : project.getPubFolders()) {
         String pubFolderName = projectName + " - " + pubFolder.getResource().getName();
         AnalysisContext context = pubFolder.getContext();
         if (context != defaultContext) {
-          addContext(queueWorkers, activeWorker, contexts, pubFolderName, context);
+          addContext(queueWorkers, activeWorker, contexts, pubFolderName,
+              (InternalAnalysisContext) context);
         }
       }
     }
@@ -243,7 +249,8 @@ public class AnalysisView extends ViewPart {
         public String getText(Object element) {
           if (element instanceof AnalysisContextData) {
             AnalysisContextData contextData = (AnalysisContextData) element;
-            return contextData.name;
+            return contextData.name + " [" + contextData.cacheSize + "/" + contextData.maxCacheSize
+                + "]";
           }
           if (element instanceof CacheRow) {
             return ((CacheRow) element).getName();
@@ -560,6 +567,17 @@ public class AnalysisView extends ViewPart {
         } else {
           msg.print("Index: statistics = " + index.getStatistics());
         }
+        int totalCacheSize = 0;
+        int totalMaxCacheSize = 0;
+        for (AnalysisContextData data : contexts) {
+          totalCacheSize += data.cacheSize;
+          totalMaxCacheSize += data.maxCacheSize;
+        }
+        msg.print(" [");
+        msg.print(totalCacheSize);
+        msg.print("/");
+        msg.print(totalMaxCacheSize);
+        msg.print("]");
         setContentDescription(msg.toString());
       }
     });

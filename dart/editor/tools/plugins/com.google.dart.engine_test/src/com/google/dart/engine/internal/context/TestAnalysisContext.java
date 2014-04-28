@@ -151,6 +151,12 @@ public class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @Override
+  public int getCacheSize() {
+    fail("Unexpected invocation of getCacheSize");
+    return 0;
+  }
+
+  @Override
   public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource) {
     fail("Unexpected invocation of getCompilationUnitElement");
     return null;

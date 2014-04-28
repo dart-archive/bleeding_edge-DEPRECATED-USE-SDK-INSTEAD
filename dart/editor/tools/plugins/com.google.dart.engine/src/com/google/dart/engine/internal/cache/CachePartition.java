@@ -101,6 +101,30 @@ public abstract class CachePartition {
   }
 
   /**
+   * Return the number of entries in this partition that have an AST associated with them.
+   * 
+   * @return the number of entries in this partition that have an AST associated with them
+   */
+  public int getAstSize() {
+    int astSize = 0;
+    int count = recentlyUsed.size();
+    for (int i = 0; i < count; i++) {
+      Source source = recentlyUsed.get(i);
+      SourceEntry sourceEntry = sourceMap.get(source);
+      if (sourceEntry instanceof DartEntry) {
+        if (((DartEntry) sourceEntry).getAnyParsedCompilationUnit() != null) {
+          astSize++;
+        }
+      } else if (sourceEntry instanceof HtmlEntry) {
+        if (((HtmlEntry) sourceEntry).getAnyParsedUnit() != null) {
+          astSize++;
+        }
+      }
+    }
+    return astSize;
+  }
+
+  /**
    * Return a table mapping the sources known to the context to the information known about the
    * source.
    * <p>

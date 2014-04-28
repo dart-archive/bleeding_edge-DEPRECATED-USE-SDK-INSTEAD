@@ -302,6 +302,11 @@ public class MockContext implements InternalAnalysisContext {
   }
 
   @Override
+  public int getCacheSize() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource) {
     return null;
   }
