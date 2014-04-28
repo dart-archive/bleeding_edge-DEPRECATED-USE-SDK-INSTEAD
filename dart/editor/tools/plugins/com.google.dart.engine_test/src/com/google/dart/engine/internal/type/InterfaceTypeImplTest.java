@@ -1290,10 +1290,8 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classA = classElement("A", "E");
     InterfaceType typeA = classA.getType();
     TypeParameterType parameterType = classA.getTypeParameters()[0].getType();
-    Type dynamicType = DynamicTypeImpl.getInstance();
 
     assertFalse(typeA.isSubtypeOf(parameterType));
-    assertTrue(dynamicType.isSubtypeOf(parameterType));
   }
 
   public void test_isSupertypeOf_directSupertype() {
