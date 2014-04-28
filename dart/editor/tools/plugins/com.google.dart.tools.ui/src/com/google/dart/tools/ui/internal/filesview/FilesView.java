@@ -154,9 +154,12 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         @Override
         public void run() {
           if (treeViewer != null) {
-            InstalledPackagesNode node = ((ResourceContentProvider) treeViewer.getContentProvider()).getPackagesNode();
-            node.updatePackages(added);
-            treeViewer.refresh(node);
+            ResourceContentProvider provider = (ResourceContentProvider) treeViewer.getContentProvider();
+            if (provider != null) {
+              InstalledPackagesNode node = provider.getPackagesNode();
+              node.updatePackages(added);
+              treeViewer.refresh(node);
+            }
           }
         }
       });

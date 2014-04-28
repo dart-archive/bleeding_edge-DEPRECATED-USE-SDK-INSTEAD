@@ -163,7 +163,12 @@ public class PubCacheManager {
   }
 
   protected IProject[] getProjects() {
-    return ResourcesPlugin.getWorkspace().getRoot().getProjects();
+    try {
+      return ResourcesPlugin.getWorkspace().getRoot().getProjects();
+    } catch (IllegalStateException e) {
+      // The workspace is shutting down so return an empty list
+      return new IProject[] {};
+    }
   }
 
   protected String getPubCacheList() {
