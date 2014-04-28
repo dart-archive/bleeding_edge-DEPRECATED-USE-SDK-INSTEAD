@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.test.util.PlainTestProject;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
@@ -38,6 +39,11 @@ public class ServerDebuggerTest extends ServerTestCase {
    * Test that a breakpoint in the 'lib' folder works.
    */
   public void testBreakpointLibFolder() throws Exception {
+    // Don't run this test on windows.
+    if (DartCore.isWindows()) {
+      return;
+    }
+
     BreakpointLatch latch = new BreakpointLatch(1);
     createBreakpoint(libFile, 2);
     latch.await();
