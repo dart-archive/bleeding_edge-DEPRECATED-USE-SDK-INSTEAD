@@ -24,7 +24,8 @@ public class TestAll {
     suite.addTest(com.google.dart.tools.debug.core.coverage.TestAll.suite());
     suite.addTest(com.google.dart.tools.debug.core.dartium.TestAll.suite());
     suite.addTest(com.google.dart.tools.debug.core.pubserve.TestAll.suite());
-    suite.addTest(com.google.dart.tools.debug.core.server.TestAll.suite());
+    // These tests are flaky on the bots.
+    //suite.addTest(com.google.dart.tools.debug.core.server.TestAll.suite());
     suite.addTest(com.google.dart.tools.debug.core.sourcemaps.TestAll.suite());
     suite.addTest(com.google.dart.tools.debug.core.util.TestAll.suite());
     return suite;
