@@ -192,41 +192,45 @@ public class FileBasedSource implements Source {
    */
   @DartBlockBody({"return new TimestampedData<String>(file.lastModified(), file.readAsStringSync());"})
   protected TimestampedData<CharSequence> getContentsFromFile() throws Exception {
-    String contents;
     long modificationTime = file.lastModified();
-    RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
-    FileChannel channel = null;
-    ByteBuffer byteBuffer = null;
     try {
-      channel = randomAccessFile.getChannel();
-      long size = channel.size();
-      if (size > Integer.MAX_VALUE) {
-        throw new IllegalStateException("File is too long to be read");
-      }
-      int length = (int) size;
-      byte[] bytes = new byte[length];
-      byteBuffer = ByteBuffer.wrap(bytes);
-      byteBuffer.position(0);
-      byteBuffer.limit(length);
-      channel.read(byteBuffer);
-    } catch (ClosedByInterruptException exception) {
-      byteBuffer = null;
-    } finally {
+      RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
+      FileChannel channel = null;
+      ByteBuffer byteBuffer = null;
       try {
-        randomAccessFile.close();
-      } catch (IOException closeException) {
-        // Ignored
+        channel = randomAccessFile.getChannel();
+        long size = channel.size();
+        if (size > Integer.MAX_VALUE) {
+          throw new IllegalStateException("File is too long to be read");
+        }
+        int length = (int) size;
+        byte[] bytes = new byte[length];
+        byteBuffer = ByteBuffer.wrap(bytes);
+        byteBuffer.position(0);
+        byteBuffer.limit(length);
+        channel.read(byteBuffer);
+      } catch (ClosedByInterruptException exception) {
+        byteBuffer = null;
+      } finally {
+        try {
+          randomAccessFile.close();
+        } catch (IOException closeException) {
+          // Ignored
+        }
       }
-    }
-    if (byteBuffer != null) {
-      byteBuffer.rewind();
-      return new TimestampedData<CharSequence>(modificationTime, UTF_8_CHARSET.decode(byteBuffer));
+      if (byteBuffer != null) {
+        byteBuffer.rewind();
+        return new TimestampedData<CharSequence>(modificationTime, UTF_8_CHARSET.decode(byteBuffer));
+      }
+    } catch (IOException exception) {
+      // Ignored so that we can try reading using non-native I/O
     }
     //
     // Eclipse appears to be interrupting the thread sometimes. If we couldn't read the file using
     // the native I/O support, try using the non-native support.
     //
     InputStreamReader reader = null;
+    String contents;
     try {
       reader = new InputStreamReader(new FileInputStream(file), "UTF-8");
       contents = FileUtilities.getContents(reader);
@@ -251,42 +255,46 @@ public class FileBasedSource implements Source {
    */
   @DartOmit
   protected void getContentsFromFileToReceiver(ContentReceiver receiver) throws Exception {
-    String contents;
     long modificationTime = file.lastModified();
-    RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
-    FileChannel channel = null;
-    ByteBuffer byteBuffer = null;
     try {
-      channel = randomAccessFile.getChannel();
-      long size = channel.size();
-      if (size > Integer.MAX_VALUE) {
-        throw new IllegalStateException("File is too long to be read");
-      }
-      int length = (int) size;
-      byte[] bytes = new byte[length];
-      byteBuffer = ByteBuffer.wrap(bytes);
-      byteBuffer.position(0);
-      byteBuffer.limit(length);
-      channel.read(byteBuffer);
-    } catch (ClosedByInterruptException exception) {
-      byteBuffer = null;
-    } finally {
+      RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
+      FileChannel channel = null;
+      ByteBuffer byteBuffer = null;
       try {
-        randomAccessFile.close();
-      } catch (IOException closeException) {
-        // Ignored
+        channel = randomAccessFile.getChannel();
+        long size = channel.size();
+        if (size > Integer.MAX_VALUE) {
+          throw new IllegalStateException("File is too long to be read");
+        }
+        int length = (int) size;
+        byte[] bytes = new byte[length];
+        byteBuffer = ByteBuffer.wrap(bytes);
+        byteBuffer.position(0);
+        byteBuffer.limit(length);
+        channel.read(byteBuffer);
+      } catch (ClosedByInterruptException exception) {
+        byteBuffer = null;
+      } finally {
+        try {
+          randomAccessFile.close();
+        } catch (IOException closeException) {
+          // Ignored
+        }
       }
-    }
-    if (byteBuffer != null) {
-      byteBuffer.rewind();
-      receiver.accept(UTF_8_CHARSET.decode(byteBuffer), modificationTime);
-      return;
+      if (byteBuffer != null) {
+        byteBuffer.rewind();
+        receiver.accept(UTF_8_CHARSET.decode(byteBuffer), modificationTime);
+        return;
+      }
+    } catch (IOException exception) {
+      // Ignored so that we can try reading using non-native I/O
     }
     //
     // Eclipse appears to be interrupting the thread sometimes. If we couldn't read the file using
     // the native I/O support, try using the non-native support.
     //
     InputStreamReader reader = null;
+    String contents;
     try {
       reader = new InputStreamReader(new FileInputStream(file), "UTF-8");
       contents = FileUtilities.getContents(reader);
