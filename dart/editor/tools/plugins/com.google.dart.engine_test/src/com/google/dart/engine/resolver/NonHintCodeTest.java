@@ -232,6 +232,19 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_importDeferredLibraryWithLoadFunction() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "f() {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as lib1;",
+        "main() { lib1.f(); }"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_missingReturn_emptyFunctionBody() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",

@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.error;
 
-
 /**
  * The enumeration {@code CompileTimeErrorCode} defines the error codes used for compile time
  * errors. The convention for this class is for the name of the error code to indicate the problem
@@ -571,14 +570,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * @param name the name of the type in question
    */
   IMPLICIT_THIS_REFERENCE_IN_INITIALIZER("Only static members can be accessed in initializers"),
-
-  /**
-   * Speculative.
-   * <p>
-   * TODO (jwren) Revisit to remove after we know for sure that this won't be in the Spec.
-   */
-  IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION(
-      "The library '%s' defines a top-level function named 'loadLibrary' and therefore cannot be deferred"),
 
   /**
    * SDK implementation libraries can be imported only by other SDK libraries.

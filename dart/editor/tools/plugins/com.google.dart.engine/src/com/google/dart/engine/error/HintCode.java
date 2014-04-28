@@ -93,6 +93,12 @@ public enum HintCode implements ErrorCode {
       "When compiled to JS, this test might return false when the left hand side is a double"),
 
   /**
+   * Deferred libraries shouldn't define a top level function 'loadLibrary'.
+   */
+  IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION(
+      "The library '%s' defines a top-level function named 'loadLibrary' which is hidden by deferring this library"),
+
+  /**
    * This hint is generated anywhere where the {@link StaticTypeWarningCode#INVALID_ASSIGNMENT}
    * would have been generated, if we used propagated information for the warnings.
    * 

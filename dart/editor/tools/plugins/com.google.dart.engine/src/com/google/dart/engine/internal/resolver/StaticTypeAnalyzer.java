@@ -65,6 +65,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
@@ -1435,7 +1436,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
           return dynamicType;
         } else if (returnType instanceof InterfaceType) {
           MethodElement callMethod = ((InterfaceType) returnType).lookUpMethod(
-              ElementResolver.CALL_METHOD_NAME,
+              FunctionElement.CALL_METHOD_NAME,
               resolver.getDefiningLibrary());
           if (callMethod != null) {
             return callMethod.getType().getReturnType();

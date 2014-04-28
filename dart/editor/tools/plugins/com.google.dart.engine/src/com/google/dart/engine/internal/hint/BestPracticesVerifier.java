@@ -45,11 +45,13 @@ import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.internal.error.ErrorReporter;
@@ -172,6 +174,12 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
   @Override
   public Void visitImportDirective(ImportDirective node) {
     checkForDeprecatedMemberUse(node.getUriElement(), node);
+    ImportElement importElement = node.getElement();
+    if (importElement != null) {
+      if (importElement.isDeferred()) {
+        checkForLoadLibraryFunction(node, importElement);
+      }
+    }
     return super.visitImportDirective(node);
   }
 
@@ -544,6 +552,30 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
         errorReporter.reportErrorForNode(HintCode.INVALID_ASSIGNMENT, rhs, rightName, leftName);
         return true;
       }
+    }
+    return false;
+  }
+
+  /**
+   * Check that the imported library does not define a loadLibrary function. The import has already
+   * been determined to be deferred when this is called.
+   * 
+   * @param node the import directive to evaluate
+   * @param importElement the {@link ImportElement} retrieved from the node
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION
+   */
+  private boolean checkForLoadLibraryFunction(ImportDirective node, ImportElement importElement) {
+    LibraryElement importedLibrary = importElement.getImportedLibrary();
+    if (importedLibrary == null) {
+      return false;
+    }
+    if (importedLibrary.hasLoadLibraryFunction()) {
+      errorReporter.reportErrorForNode(
+          HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
+          node,
+          importedLibrary.getName());
+      return true;
     }
     return false;
   }

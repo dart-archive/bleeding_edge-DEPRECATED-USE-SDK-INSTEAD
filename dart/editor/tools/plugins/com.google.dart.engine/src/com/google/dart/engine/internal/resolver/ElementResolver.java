@@ -348,18 +348,6 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
   private TypePromotionManager promoteManager;
 
   /**
-   * The name of the method that can be implemented by a class to allow its instances to be invoked
-   * as if they were a function.
-   */
-  public static final String CALL_METHOD_NAME = "call";
-
-  /**
-   * The name of the method that will be invoked if an attempt is made to invoke an undefined method
-   * on an object.
-   */
-  public static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
    * 
    * @param resolver the resolver driving this participant
@@ -988,7 +976,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           }
         }
         if (targetType != null && targetType.isDartCoreFunction()
-            && methodName.getName().equals(CALL_METHOD_NAME)) {
+            && methodName.getName().equals(FunctionElement.CALL_METHOD_NAME)) {
           // TODO(brianwilkerson) Can we ever resolve the function being invoked?
           //resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
           return null;
@@ -1531,7 +1519,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         Type getterReturnType = getterType.getReturnType();
         if (getterReturnType instanceof InterfaceType) {
           MethodElement callMethod = ((InterfaceType) getterReturnType).lookUpMethod(
-              CALL_METHOD_NAME,
+              FunctionElement.CALL_METHOD_NAME,
               definingLibrary);
           if (callMethod != null) {
             return resolveArgumentsToFunction(false, argumentList, callMethod);
@@ -1558,7 +1546,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       } else if (type instanceof InterfaceType) {
         // "call" invocation
         MethodElement callMethod = ((InterfaceType) type).lookUpMethod(
-            CALL_METHOD_NAME,
+            FunctionElement.CALL_METHOD_NAME,
             definingLibrary);
         if (callMethod != null) {
           ParameterElement[] parameters = callMethod.getParameters();
@@ -1755,7 +1743,9 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       if (classElement.isProxy() && type.isSubtypeOf(resolver.getTypeProvider().getFunctionType())) {
         return true;
       }
-      MethodElement methodElement = classElement.lookUpMethod(CALL_METHOD_NAME, definingLibrary);
+      MethodElement methodElement = classElement.lookUpMethod(
+          FunctionElement.CALL_METHOD_NAME,
+          definingLibrary);
       return methodElement != null;
     }
     return false;

@@ -101,6 +101,7 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FieldFormalParameterElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -850,9 +851,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (importElement != null) {
       checkForImportDuplicateLibraryName(node, importElement);
       checkForImportInternalLibrary(node, importElement);
-      if (importElement.isDeferred()) {
-        checkForLoadLibraryFunction(node, importElement);
-      }
     }
     return super.visitImportDirective(node);
   }
@@ -3962,29 +3960,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * Check that the imported library does not define a loadLibrary function.
-   * 
-   * @param node the import directive to evaluate
-   * @param importElement the {@link ImportElement} retrieved from the node
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION
-   */
-  private boolean checkForLoadLibraryFunction(ImportDirective node, ImportElement importElement) {
-    LibraryElement importedLibrary = importElement.getImportedLibrary();
-    if (importedLibrary == null) {
-      return false;
-    }
-    if (importedLibrary.hasLoadLibraryFunction()) {
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
-          node,
-          importedLibrary.getName());
-      return true;
-    }
-    return false;
-  }
-
-  /**
    * This verifies that the key/value of entries of the given {@link MapLiteral} are subtypes of the
    * key/value types specified in the type arguments.
    * 
@@ -4390,7 +4365,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       // From Spec:  It is a static warning if a concrete class does not have an implementation for
       // a method in any of its superinterfaces unless it declares its own noSuchMethod
       // method (7.10).
-      if (methodName.equals(ElementResolver.NO_SUCH_METHOD_METHOD_NAME)) {
+      if (methodName.equals(FunctionElement.NO_SUCH_METHOD_METHOD_NAME)) {
         return false;
       }
     }
@@ -5496,7 +5471,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return false;
     }
     // If there is a noSuchMethod method, then don't report the warning, see dartbug.com/16078
-    if (classElement.getMethod(ElementResolver.NO_SUCH_METHOD_METHOD_NAME) != null) {
+    if (classElement.getMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME) != null) {
       return false;
     }
     ExecutableElement callMethod = inheritanceManager.lookupMember(classElement, "call");
@@ -5754,7 +5729,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return true;
     } else if (type instanceof InterfaceType) {
       MethodElement callMethod = ((InterfaceType) type).lookUpMethod(
-          ElementResolver.CALL_METHOD_NAME,
+          FunctionElement.CALL_METHOD_NAME,
           currentLibrary);
       return callMethod != null;
     }

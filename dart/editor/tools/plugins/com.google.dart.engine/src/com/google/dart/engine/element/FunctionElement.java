@@ -23,6 +23,18 @@ import com.google.dart.engine.context.AnalysisException;
  */
 public interface FunctionElement extends ExecutableElement, LocalElement {
   /**
+   * The name of the method that can be implemented by a class to allow its instances to be invoked
+   * as if they were a function.
+   */
+  public static final String CALL_METHOD_NAME = "call"; //$NON-NLS-1$
+
+  /**
+   * The name of the method that will be invoked if an attempt is made to invoke an undefined method
+   * on an object.
+   */
+  public static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod"; //$NON-NLS-1$
+
+  /**
    * The name of the synthetic function defined for libraries that are deferred.
    */
   public static final String LOAD_LIBRARY_NAME = "loadLibrary"; //$NON-NLS-1$
