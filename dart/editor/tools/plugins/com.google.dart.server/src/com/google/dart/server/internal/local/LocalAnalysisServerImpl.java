@@ -41,6 +41,7 @@ import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.NotificationKind;
+import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.internal.local.computer.DartUnitHighlightsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
@@ -421,6 +422,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   @Override
   public void removeAnalysisServerListener(AnalysisServerListener listener) {
     this.listener.removeListener(listener);
+  }
+
+  @Override
+  public void searchReferences(String contextId, Source source, int offset,
+      SearchResultsConsumer consumer) {
+    // TODO(scheglov) implement
   }
 
   @Override

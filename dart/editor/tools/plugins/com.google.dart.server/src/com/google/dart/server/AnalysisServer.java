@@ -73,6 +73,16 @@ public interface AnalysisServer {
   public void removeAnalysisServerListener(AnalysisServerListener listener);
 
   /**
+   * Searches for references to the element at the given offset in the given {@link Source}.
+   * 
+   * @param contextId the identifier of the context to search within
+   * @param source the {@link Source} with element
+   * @param offset the offset within the {@code source}
+   */
+  public void searchReferences(String contextId, Source source, int offset,
+      SearchResultsConsumer consumer);
+
+  /**
    * Set the options controlling analysis within a context to the given set of options.
    * 
    * @param contextId the identifier of the context to which the options are to be applied
