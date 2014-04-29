@@ -4,6 +4,10 @@ Notes about Dart Editor workspace setup, development, build, and deploy.
   Installation
 ====================================
 
+Recent versions of Mac OSX do not have Java. To get Eclipse 3.8.2 to work with Java7
+you may want to edit the Java Info.plist to define more capabilities.
+See https://bugs.eclipse.org/bugs/show_bug.cgi?id=411361
+
 * Install Eclipse 3.8  "Eclipse for RCP and RAP Developers" ("Classic" should work as well)
     http://eclipse.org/downloads/
   or, a direct link:
