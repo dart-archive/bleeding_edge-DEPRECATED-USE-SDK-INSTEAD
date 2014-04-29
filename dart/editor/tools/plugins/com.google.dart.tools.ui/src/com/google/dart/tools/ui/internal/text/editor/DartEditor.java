@@ -1727,7 +1727,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         @Override
         public void run() {
           if (fOutlinePage_NEW != null) {
-            fOutlinePage_NEW.setInput(outline);
+            int offset = getSourceViewer().getSelectedRange().x;
+            fOutlinePage_NEW.setInput(outline, offset);
           }
         }
       });

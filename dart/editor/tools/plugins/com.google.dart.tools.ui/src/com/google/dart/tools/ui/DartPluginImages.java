@@ -250,6 +250,11 @@ public class DartPluginImages {
       T_DART,
       "field_private.png"); //$NON-NLS-1$
 
+  public static final ImageDescriptor DESC_DART_TEST_CASE = createUnManaged(T_DART, "test_case.gif"); //$NON-NLS-1$
+  public static final ImageDescriptor DESC_DART_TEST_GROUP = createUnManaged(
+      T_DART,
+      "test_group.gif"); //$NON-NLS-1$
+
   public static final ImageDescriptor DESC_VIEW_ERRORWARNING_TAB = createUnManaged(
       T_EVIEW,
       "errorwarning_tab.gif"); //$NON-NLS-1$

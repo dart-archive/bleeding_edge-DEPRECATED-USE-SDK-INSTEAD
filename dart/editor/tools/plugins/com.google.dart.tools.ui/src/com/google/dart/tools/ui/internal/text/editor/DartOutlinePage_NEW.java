@@ -180,6 +180,12 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
         return isPrivate ? DartPluginImages.DESC_DART_METHOD_PRIVATE
             : DartPluginImages.DESC_DART_METHOD_PUBLIC;
       }
+      if (kind == OutlineKind.UNIT_TEST_CASE) {
+        return DartPluginImages.DESC_DART_TEST_CASE;
+      }
+      if (kind == OutlineKind.UNIT_TEST_GROUP) {
+        return DartPluginImages.DESC_DART_TEST_GROUP;
+      }
       return null;
     }
 
@@ -578,16 +584,15 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     }
   }
 
-  public void setInput(final Outline input) {
+  public void setInput(final Outline input, final int offset) {
     this.input = input;
     updateViewerWithoutDraw(new Runnable() {
       @Override
       public void run() {
-        ISelection selection = viewer.getSelection();
         Object[] expandedElements = viewer.getExpandedElements();
         viewer.setInput(input);
         viewer.setExpandedElements(expandedElements);
-        viewer.setSelection(selection, true);
+        select(offset);
       }
     });
   }
