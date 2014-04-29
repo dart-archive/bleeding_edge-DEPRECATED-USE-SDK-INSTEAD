@@ -37,6 +37,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IProcess;
 
@@ -59,8 +60,6 @@ public class BrowserManager {
   private static BrowserManager manager = new BrowserManager();
 
   private static Process browserProcess = null;
-
-  private static IResourceResolver resourceResolver;
 
   /**
    * Create a Chrome user data directory, and return the path to that directory.
@@ -101,22 +100,6 @@ public class BrowserManager {
     return manager;
   }
 
-  private static IResourceResolver getResourceServer() throws CoreException {
-    if (resourceResolver == null) {
-      try {
-        resourceResolver = ResourceServerManager.getServer();
-      } catch (IOException ioe) {
-        throw new CoreException(new Status(
-            IStatus.ERROR,
-            DartDebugCorePlugin.PLUGIN_ID,
-            ioe.getMessage(),
-            ioe));
-      }
-    }
-
-    return resourceResolver;
-  }
-
   private int devToolsPortNumber;
 
   private IChromiumTabChooser tabChooser;
@@ -135,20 +118,22 @@ public class BrowserManager {
    * Launch the browser and open the given file. If debug mode also connect to browser.
    */
   public void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
-      IProgressMonitor monitor, boolean enableDebugging) throws CoreException {
-    launchBrowser(launch, launchConfig, file, null, monitor, enableDebugging);
+      IProgressMonitor monitor, boolean enableDebugging, IResourceResolver resolver)
+      throws CoreException {
+    launchBrowser(launch, launchConfig, file, null, monitor, enableDebugging, resolver);
   }
 
   /**
    * Launch the browser and open the given url. If debug mode also connect to browser.
    */
   public void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, String url,
-      IProgressMonitor monitor, boolean enableDebugging) throws CoreException {
-    launchBrowser(launch, launchConfig, null, url, monitor, enableDebugging);
+      IProgressMonitor monitor, boolean enableDebugging, IResourceResolver resolver)
+      throws CoreException {
+    launchBrowser(launch, launchConfig, null, url, monitor, enableDebugging, resolver);
   }
 
   public IDebugTarget performRemoteConnection(IChromiumTabChooser tabChooser, String host,
-      int port, IProgressMonitor monitor) throws CoreException {
+      int port, IProgressMonitor monitor, IResourceResolver resourceResolver) throws CoreException {
 
     ILaunch launch = null;
 
@@ -184,7 +169,7 @@ public class BrowserManager {
           connection,
           launch,
           null,
-          getResourceServer(),
+          resourceResolver,
           true,
           true);
 
@@ -213,7 +198,8 @@ public class BrowserManager {
   }
 
   protected void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
-      String url, IProgressMonitor monitor, boolean enableDebugging) throws CoreException {
+      String url, IProgressMonitor monitor, boolean enableDebugging, IResourceResolver resolver)
+      throws CoreException {
 
     // For now, we always start a debugging connection, even when we're not really debugging.
     boolean enableBreakpoints = enableDebugging;
@@ -241,12 +227,12 @@ public class BrowserManager {
     // avg: 55ms
     timer.startTask(browserName + " startup");
 
-    url = resolveLaunchUrl(file, url);
+    if (!launch.getLaunchConfiguration().getType().getIdentifier().equals(
+        DartDebugCorePlugin.PUBSERVE_LAUNCH_CONFIG_ID)) {
+      url = resolveLaunchUrl(launch.getLaunchConfiguration(), file, url, resolver);
+    }
 
     url = launchConfig.appendQueryParams(url);
-
-    IResourceResolver resolver = launchConfig.getShouldLaunchFile() ? getResourceServer()
-        : new LaunchConfigResourceResolver(launchConfig);
 
     // for now, check if browser is open, and connection is alive
     boolean restart = browserProcess == null || isProcessTerminated(browserProcess)
@@ -628,9 +614,10 @@ public class BrowserManager {
    * @param file
    * @throws CoreException
    */
-  private String resolveLaunchUrl(IFile file, String url) throws CoreException {
+  private String resolveLaunchUrl(ILaunchConfiguration config, IFile file, String url,
+      IResourceResolver resolver) throws CoreException {
     if (file != null) {
-      return getResourceServer().getUrlForResource(file);
+      return resolver.getUrlForResource(file);
     }
 
     return url;

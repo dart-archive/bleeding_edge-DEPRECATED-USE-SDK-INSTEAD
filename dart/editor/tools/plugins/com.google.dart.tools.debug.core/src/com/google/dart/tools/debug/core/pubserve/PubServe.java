@@ -150,6 +150,18 @@ public class PubServe {
   }
 
   /**
+   * Send a urlToAssetId command to the current pub serve
+   * 
+   * @param url
+   * @param callback
+   * @throws IOException
+   */
+  void sendGetAssetIdCommand(String url, PubCallback<PubAsset> callback) throws IOException {
+    PubCommands command = pubConnection.getCommands();
+    command.urlToAssetId(url, callback);
+  }
+
+  /**
    * Send a serve directory command to the current pub serve
    * 
    * @throws IOException

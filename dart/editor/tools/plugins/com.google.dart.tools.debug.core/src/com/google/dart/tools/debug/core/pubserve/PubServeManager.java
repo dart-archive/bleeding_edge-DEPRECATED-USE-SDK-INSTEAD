@@ -51,6 +51,17 @@ public class PubServeManager {
   }
 
   /**
+   * Sends a get asset for given url command to current pub serve
+   * 
+   * @param url
+   * @param callback
+   * @throws IOException
+   */
+  public void sendGetAssetIdCommand(String url, PubCallback<PubAsset> callback) throws IOException {
+    pubserve.sendGetAssetIdCommand(url, callback);
+  }
+
+  /**
    * Sends a getUrl command to the current pub serve
    * 
    * @param resource
@@ -59,7 +70,13 @@ public class PubServeManager {
    */
   public void sendGetUrlCommand(IResource resource, PubCallback<String> callback)
       throws IOException {
-    pubserve.sendGetUrlCommand(getPathFromWorkingDir(resource), callback);
+    String path = getPathFromWorkingDir(resource);
+    if (path != null) {
+      pubserve.sendGetUrlCommand(path, callback);
+    } else {
+      DartCore.logInformation("Path from working directory not found for resource "
+          + resource.getName());
+    }
   }
 
   /**
@@ -97,12 +114,13 @@ public class PubServeManager {
   }
 
   /**
-   * Returns the path to the resource from the directory where the pubspec resides. - myproj -
-   * pubspec.yaml - web - index.html => web/index.html
+   * Returns the working directory / application directory for the current pub serve
    */
-  private String getPathFromWorkingDir(IResource resource) {
-    IContainer workingDir = DartCore.getApplicationDirectory(resource);
-    return resource.getFullPath().removeFirstSegments(workingDir.getFullPath().segmentCount()).toString();
+  IContainer getCurrentServeWorkingDir() {
+    if (pubserve != null) {
+      return pubserve.getWorkingDir();
+    }
+    return null;
   }
 
   /**
@@ -113,7 +131,7 @@ public class PubServeManager {
    * @param resource - the resource to launch
    * @return
    */
-  private String getPubServeRootDir(IContainer container, IResource resource) {
+  String getPubServeRootDir(IContainer container, IResource resource) {
 
     try {
       IResource[] folders = container.members();
@@ -130,6 +148,18 @@ public class PubServeManager {
       DartCore.logInformation("", e);
     }
 
+    return null;
+  }
+
+  /**
+   * Returns the path to the resource from the directory where the pubspec resides. - myproj -
+   * pubspec.yaml - web - index.html => web/index.html
+   */
+  private String getPathFromWorkingDir(IResource resource) {
+    IContainer workingDir = DartCore.getApplicationDirectory(resource);
+    if (workingDir != null) {
+      return resource.getFullPath().removeFirstSegments(workingDir.getFullPath().segmentCount()).toString();
+    }
     return null;
   }
 

@@ -15,32 +15,24 @@
 package com.google.dart.tools.debug.core.pubserve;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
-import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.util.BrowserManager;
+import com.google.dart.tools.debug.core.util.LaunchConfigResourceResolver;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.debug.core.model.IProcess;
-import org.eclipse.debug.core.model.RuntimeProcess;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -49,8 +41,6 @@ import java.util.concurrent.Semaphore;
 public class PubServeLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate {
 
   private static Semaphore launchSemaphore = new Semaphore(1);
-
-  private static RuntimeProcess eclipseProcess;
 
   protected static ILaunch launch;
 
@@ -76,85 +66,19 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
     }
   };
 
-  private static void dispose() {
-    if (eclipseProcess != null) {
-      try {
-        eclipseProcess.terminate();
-      } catch (DebugException e) {
-
-      }
-      eclipseProcess = null;
-    }
-  }
+  private static boolean enableDebugging;
 
   private static void launchInDartium(final String url, ILaunch launch,
       DartLaunchConfigWrapper launchConfig) throws CoreException {
 
-    // close a running instance of Dartium, if any
-    dispose();
-
-    File dartium = DartSdkManager.getManager().getSdk().getDartiumExecutable();
-
-    List<String> cmd = new ArrayList<String>();
-    cmd.add(dartium.getAbsolutePath());
-    // In order to start up multiple Chrome processes, we need to specify a different user dir.
-    cmd.add("--user-data-dir=" + BrowserManager.getCreateUserDataDirectoryPath("pubserve"));
-
-    if (launchConfig.getUseWebComponents()) {
-      cmd.add("--enable-experimental-web-platform-features");
-      cmd.add("--enable-html-imports");
-    }
-    // Disables the default browser check.
-    cmd.add("--no-default-browser-check");
-    // Bypass the error dialog when the profile lock couldn't be attained.
-    cmd.add("--no-process-singleton-dialog");
-    for (String arg : launchConfig.getArgumentsAsArray()) {
-      cmd.add(arg);
-    }
-    cmd.add(url);
-
-    ProcessBuilder processBuilder = new ProcessBuilder(cmd);
-    Map<String, String> env = processBuilder.environment();
-    // Due to differences in 32bit and 64 bit environments, dartium 32bit launch does not work on
-    // linux with this property.
-    env.remove("LD_LIBRARY_PATH");
-    if (launchConfig.getCheckedMode()) {
-      env.put("DART_FLAGS", "--enable-checked-mode");
-    }
-
-    Process javaProcess = null;
-
-    try {
-      javaProcess = processBuilder.start();
-    } catch (IOException ioe) {
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartDebugCorePlugin.PLUGIN_ID,
-          ioe.getMessage(),
-          ioe));
-    }
-
-    eclipseProcess = null;
-
-    Map<String, String> processAttributes = new HashMap<String, String>();
-    String programName = "dartium";
-    processAttributes.put(IProcess.ATTR_PROCESS_TYPE, programName);
-
-    if (javaProcess != null) {
-
-      eclipseProcess = new RuntimeProcess(launch, javaProcess, launchConfig.getApplicationName()
-          + " (" + new Date() + ")", processAttributes);
-
-    }
-
-    if (javaProcess == null || eclipseProcess == null) {
-      if (javaProcess != null) {
-        javaProcess.destroy();
-      }
-
-      throw new CoreException(
-          DartDebugCorePlugin.createErrorStatus("Error starting Dartium browser"));
-    }
+    BrowserManager manager = BrowserManager.getManager();
+    manager.launchBrowser(
+        launch,
+        launchConfig,
+        url,
+        new NullProgressMonitor(),
+        enableDebugging,
+        new LaunchConfigResourceResolver(launchConfig));
 
   }
 
@@ -162,7 +86,7 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
   public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch rlaunch,
       IProgressMonitor monitor, InstrumentationBuilder instrumentation) throws CoreException {
 
-    if (!ILaunchManager.RUN_MODE.equals(mode)) {
+    if (!ILaunchManager.RUN_MODE.equals(mode) && !ILaunchManager.DEBUG_MODE.equals(mode)) {
       throw new CoreException(DartDebugCorePlugin.createErrorStatus("Execution mode '" + mode
           + "' is not supported."));
     }
@@ -183,31 +107,41 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
   private void launchImpl(String mode, IProgressMonitor monitor) throws CoreException {
 
     launchConfig.markAsLaunched();
+    enableDebugging = ILaunchManager.DEBUG_MODE.equals(mode)
+        && !DartCoreDebug.DISABLE_DARTIUM_DEBUGGER;
 
     // Launch the browser - show errors if we couldn't.
     IResource resource = null;
 
     resource = launchConfig.getApplicationResource();
+
     if (resource == null) {
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartDebugCorePlugin.PLUGIN_ID,
-          "HTML file could not be found"));
-    }
+      String url = launchConfig.getUrl();
 
-    // launch pub serve
-    PubServeManager manager = PubServeManager.getManager();
+      BrowserManager.getManager().launchBrowser(
+          launch,
+          launchConfig,
+          url,
+          monitor,
+          enableDebugging,
+          new PubServeResourceResolver());
 
-    try {
+    } else {
 
-      manager.serve(launchConfig, pubConnectionCallback);
+      // launch pub serve
+      PubServeManager manager = PubServeManager.getManager();
 
-    } catch (Exception e) {
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartDebugCorePlugin.PLUGIN_ID,
-          "Could not start pub serve or connect to pub\n" + manager.getStdErrorString(),
-          e));
+      try {
+
+        manager.serve(launchConfig, pubConnectionCallback);
+
+      } catch (Exception e) {
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            "Could not start pub serve or connect to pub\n" + manager.getStdErrorString(),
+            e));
+      }
     }
   }
 }

@@ -20,6 +20,10 @@ import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
+import com.google.dart.tools.debug.core.util.IResourceResolver;
+import com.google.dart.tools.debug.core.util.LaunchConfigResourceResolver;
+import com.google.dart.tools.debug.core.util.ResourceServer;
+import com.google.dart.tools.debug.core.util.ResourceServerManager;
 import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
 import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 
@@ -34,6 +38,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IDebugTarget;
 
+import java.io.IOException;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -83,7 +88,32 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
       throws CoreException {
     BrowserManager browserManager = new BrowserManager();
 
-    return browserManager.performRemoteConnection(tabChooser, host, port, monitor);
+    try {
+      return browserManager.performRemoteConnection(
+          tabChooser,
+          host,
+          port,
+          monitor,
+          ResourceServerManager.getServer());
+    } catch (IOException e) {
+      return null;
+    }
+  }
+
+  private IResourceResolver getResourceServer() throws CoreException {
+
+    ResourceServer resourceResolver;
+    try {
+      resourceResolver = ResourceServerManager.getServer();
+    } catch (IOException ioe) {
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          ioe.getMessage(),
+          ioe));
+    }
+
+    return resourceResolver;
   }
 
   private void launchImpl(DartLaunchConfigWrapper launchConfig, String mode, ILaunch launch,
@@ -113,9 +143,21 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
     BrowserManager manager = BrowserManager.getManager();
 
     if (resource instanceof IFile) {
-      manager.launchBrowser(launch, launchConfig, (IFile) resource, monitor, enableDebugging);
+      manager.launchBrowser(
+          launch,
+          launchConfig,
+          (IFile) resource,
+          monitor,
+          enableDebugging,
+          getResourceServer());
     } else {
-      manager.launchBrowser(launch, launchConfig, url, monitor, enableDebugging);
+      manager.launchBrowser(
+          launch,
+          launchConfig,
+          url,
+          monitor,
+          enableDebugging,
+          new LaunchConfigResourceResolver(launchConfig));
     }
   }
 

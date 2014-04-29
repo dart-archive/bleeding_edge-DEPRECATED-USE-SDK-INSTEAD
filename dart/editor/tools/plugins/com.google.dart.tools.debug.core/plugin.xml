@@ -33,7 +33,7 @@
       <launchConfigurationType
             delegate="com.google.dart.tools.debug.core.pubserve.PubServeLaunchConfigurationDelegate"
             id="com.google.dart.tools.debug.core.pubServeLaunchConfig"
-            modes="run"
+            modes="run,debug"
             name="Pub serve launch"
             sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
             sourcePathComputerId="com.google.dart.tools.debug.core.dartiumSourcePathComputer">

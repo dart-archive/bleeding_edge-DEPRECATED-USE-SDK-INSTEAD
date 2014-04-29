@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.debug.ui.internal.pubserve;
 
+import com.google.dart.tools.debug.ui.internal.dartium.DartiumMainTab;
+
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
@@ -31,7 +33,7 @@ public class PubServeTabGroup extends AbstractLaunchConfigurationTabGroup {
 
   @Override
   public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
-    setTabs(new ILaunchConfigurationTab[] {new PubServeMainTab()});
+    setTabs(new ILaunchConfigurationTab[] {new DartiumMainTab()});
   }
 
 }
