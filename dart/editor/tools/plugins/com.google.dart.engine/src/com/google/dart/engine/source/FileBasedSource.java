@@ -16,7 +16,10 @@ package com.google.dart.engine.source;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.TimestampedData;
+import com.google.dart.engine.utilities.general.TimeCounter;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.translation.DartBlockBody;
 import com.google.dart.engine.utilities.translation.DartOmit;
@@ -97,7 +100,7 @@ public class FileBasedSource implements Source {
     try {
       return getContentsFromFile();
     } finally {
-      handle.stop();
+      reportIfSlowIO(handle.stop());
     }
   }
 
@@ -108,7 +111,7 @@ public class FileBasedSource implements Source {
     try {
       getContentsFromFileToReceiver(receiver);
     } finally {
-      handle.stop();
+      reportIfSlowIO(handle.stop());
     }
   }
 
@@ -308,5 +311,21 @@ public class FileBasedSource implements Source {
       }
     }
     receiver.accept(contents, modificationTime);
+  }
+
+  /**
+   * Record the time the IO took if it was slow
+   */
+  private void reportIfSlowIO(long nanos) {
+    //If slower than 10ms
+    if (nanos > 10 * TimeCounter.NANOS_PER_MILLI) {
+      InstrumentationBuilder builder = Instrumentation.builder("SlowIO");
+      try {
+        builder.data("fileName", getFullName());
+        builder.metric("IO-Time-Nanos", nanos);
+      } finally {
+        builder.log();
+      }
+    }
   }
 }

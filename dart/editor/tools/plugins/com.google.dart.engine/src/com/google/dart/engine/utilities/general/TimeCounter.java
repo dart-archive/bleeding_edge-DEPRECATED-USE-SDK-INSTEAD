@@ -34,9 +34,13 @@ public class TimeCounter {
     /**
      * Stops counting time and calls {@link TimeCounter#recordElapsedNanos(long)} to add the elapse
      * time to the counter.
+     * 
+     * @return The number of elapsed nanoseconds
      */
-    public void stop() {
-      recordElapsedNanos(System.nanoTime() - startTime);
+    public long stop() {
+      long elapsed = System.nanoTime() - startTime;
+      recordElapsedNanos(elapsed);
+      return elapsed;
     }
   }
 
