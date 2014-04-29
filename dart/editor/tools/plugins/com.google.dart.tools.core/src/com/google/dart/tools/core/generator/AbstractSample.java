@@ -113,6 +113,10 @@ public class AbstractSample {
     return title;
   }
 
+  public boolean isValidProjectName(String name) {
+    return true;
+  }
+
   public boolean shouldBeDefault() {
     return false;
   }

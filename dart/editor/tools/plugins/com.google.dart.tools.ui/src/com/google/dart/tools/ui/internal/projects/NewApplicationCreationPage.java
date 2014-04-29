@@ -411,7 +411,17 @@ public class NewApplicationCreationPage extends WizardPage {
   }
 
   private IStatus validateName() {
+    AbstractSample sample = getCurrentSample();
+    if (sample != null) {
+      if (sample.isValidProjectName(projectNameField.getText())) {
+        return DartIdentifierUtil.validateIdentifier(projectNameField.getText());
+      } else {
+        return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, "Invalid project name");
+      }
+    }
+
     return DartIdentifierUtil.validateIdentifier(projectNameField.getText());
+
   }
 
 }

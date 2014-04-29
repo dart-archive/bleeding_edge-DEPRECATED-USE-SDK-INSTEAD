@@ -41,6 +41,11 @@ public class WebAppSample extends AbstractSample {
   }
 
   @Override
+  public boolean isValidProjectName(String name) {
+    return !name.equalsIgnoreCase("browser");
+  }
+
+  @Override
   public boolean shouldBeDefault() {
     return true;
   }

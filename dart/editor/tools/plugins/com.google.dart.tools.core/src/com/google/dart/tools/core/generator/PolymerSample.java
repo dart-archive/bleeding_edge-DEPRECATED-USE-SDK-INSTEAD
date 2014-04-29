@@ -46,4 +46,9 @@ public class PolymerSample extends AbstractSample {
     setMainFile("web/{name.lower}.html");
   }
 
+  @Override
+  public boolean isValidProjectName(String name) {
+    return !name.equalsIgnoreCase("polymer");
+  }
+
 }
