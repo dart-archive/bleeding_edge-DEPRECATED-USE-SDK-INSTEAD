@@ -576,4 +576,260 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       assertEquals("", outline.getReturnType());
     }
   }
+
+  public void test_unittest() throws Exception {
+    String contextId = createContext("test");
+    addSource(contextId, "/unittest.dart", makeSource(//
+        "library unittest;",
+        "group(String name, f()) {}",
+        "test(String name, f()) {}"));
+    String code = makeSource(//
+        "import 'unittest.dart';",
+        "main() {",
+        "  group('groupA', () {",
+        "    group('groupAA', () {",
+        "      test('testAA_A', () {}); // testAA_A end",
+        "      test('testAA_B', () {}); // testAA_B end",
+        "    }); // groupAA end",
+        "    test('testA_A', () {}); // testA_A end",
+        "  }); // groupA end",
+        "  group('groupB', () {",
+        "    test('testB_A', () {}); // testB_A end",
+        "    test('testB_B', () {}); // testB_A end",
+        "    test('testB_C', () {}); // testB_A end",
+        "  }); // groupB end",
+        "}");
+    Source source = addSource(contextId, "/test.dart", code);
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(source)));
+    server.test_waitForWorkerComplete();
+    // validate
+    Outline unitOutline = serverListener.getOutline(contextId, source);
+    Outline[] topOutlines = unitOutline.getChildren();
+    assertThat(topOutlines).hasSize(1);
+    // "main"
+    {
+      Outline outline_main = topOutlines[0];
+      assertSame(unitOutline, outline_main.getParent());
+      assertSame(OutlineKind.FUNCTION, outline_main.getKind());
+      assertEquals("main", outline_main.getName());
+      assertEquals(code.indexOf("main() {"), outline_main.getOffset());
+      assertEquals("main".length(), outline_main.getLength());
+      // "main" children
+      Outline[] outlines_main = outline_main.getChildren();
+      assertThat(outlines_main).hasSize(2);
+      // "groupA"
+      {
+        Outline groupA = outlines_main[0];
+        assertSame(OutlineKind.UNIT_TEST_GROUP, groupA.getKind());
+        assertEquals("groupA", groupA.getName());
+        assertEquals(code.indexOf("groupA'"), groupA.getOffset());
+        assertEquals("groupA".length(), groupA.getLength());
+        assertNull(groupA.getParameters());
+        assertSame(null, groupA.getReturnType());
+        assertSame(null, groupA.getParameters());
+        {
+          SourceRegion sourceRegion = groupA.getSourceRegion();
+          int offset = code.indexOf("group('groupA'");
+          int end = code.indexOf("; // groupA end");
+          assertEquals(offset, sourceRegion.getOffset());
+          assertEquals(end - offset, sourceRegion.getLength());
+        }
+        // "groupA" children
+        Outline[] outlines_groupA = groupA.getChildren();
+        assertThat(outlines_groupA).hasSize(2);
+        // "groupAA"
+        {
+          Outline groupAA = outlines_groupA[0];
+          assertSame(OutlineKind.UNIT_TEST_GROUP, groupAA.getKind());
+          assertEquals("groupAA", groupAA.getName());
+          assertEquals(code.indexOf("groupAA'"), groupAA.getOffset());
+          assertEquals("groupAA".length(), groupAA.getLength());
+          assertNull(groupAA.getParameters());
+          assertSame(null, groupAA.getReturnType());
+          assertSame(null, groupAA.getParameters());
+          {
+            SourceRegion sourceRegion = groupAA.getSourceRegion();
+            int offset = code.indexOf("group('groupAA'");
+            int end = code.indexOf("; // groupAA end");
+            assertEquals(offset, sourceRegion.getOffset());
+            assertEquals(end - offset, sourceRegion.getLength());
+          }
+        }
+        // "groupAA"
+        {
+          Outline groupAA = outlines_groupA[0];
+          assertSame(OutlineKind.UNIT_TEST_GROUP, groupAA.getKind());
+          assertEquals("groupAA", groupAA.getName());
+          assertEquals(code.indexOf("groupAA'"), groupAA.getOffset());
+          assertEquals("groupAA".length(), groupAA.getLength());
+          assertNull(groupAA.getParameters());
+          assertSame(null, groupAA.getReturnType());
+          assertSame(null, groupAA.getParameters());
+          {
+            SourceRegion sourceRegion = groupAA.getSourceRegion();
+            int offset = code.indexOf("group('groupAA'");
+            int end = code.indexOf("; // groupAA end");
+            assertEquals(offset, sourceRegion.getOffset());
+            assertEquals(end - offset, sourceRegion.getLength());
+          }
+          // "groupAA" children
+          Outline[] outlines_groupAA = groupAA.getChildren();
+          assertThat(outlines_groupAA).hasSize(2);
+          // "testAA_A"
+          {
+            Outline testAA_A = outlines_groupAA[0];
+            assertSame(OutlineKind.UNIT_TEST_CASE, testAA_A.getKind());
+            assertEquals("testAA_A", testAA_A.getName());
+          }
+          // "testAA_B"
+          {
+            Outline testAA_B = outlines_groupAA[1];
+            assertSame(OutlineKind.UNIT_TEST_CASE, testAA_B.getKind());
+            assertEquals("testAA_B", testAA_B.getName());
+          }
+        }
+        // "testA_A"
+        {
+          Outline testA_A = outlines_groupA[1];
+          assertSame(OutlineKind.UNIT_TEST_CASE, testA_A.getKind());
+          assertEquals("testA_A", testA_A.getName());
+          assertEquals(code.indexOf("testA_A'"), testA_A.getOffset());
+          assertEquals("testA_A".length(), testA_A.getLength());
+          assertNull(testA_A.getParameters());
+          assertSame(null, testA_A.getReturnType());
+          assertSame(null, testA_A.getParameters());
+          {
+            SourceRegion sourceRegion = testA_A.getSourceRegion();
+            int offset = code.indexOf("test('testA_A'");
+            int end = code.indexOf("; // testA_A end");
+            assertEquals(offset, sourceRegion.getOffset());
+            assertEquals(end - offset, sourceRegion.getLength());
+          }
+          assertThat(testA_A.getChildren()).isEmpty();
+        }
+      }
+      // "groupB"
+      {
+        Outline groupB = outlines_main[1];
+        assertSame(OutlineKind.UNIT_TEST_GROUP, groupB.getKind());
+        assertEquals("groupB", groupB.getName());
+        assertEquals(code.indexOf("groupB'"), groupB.getOffset());
+        assertEquals("groupB".length(), groupB.getLength());
+        assertNull(groupB.getParameters());
+        assertSame(null, groupB.getReturnType());
+        assertSame(null, groupB.getParameters());
+        {
+          SourceRegion sourceRegion = groupB.getSourceRegion();
+          int offset = code.indexOf("group('groupB'");
+          int end = code.indexOf("; // groupB end");
+          assertEquals(offset, sourceRegion.getOffset());
+          assertEquals(end - offset, sourceRegion.getLength());
+        }
+        // "groupB" children
+        Outline[] outlines_groupB = groupB.getChildren();
+        assertThat(outlines_groupB).hasSize(3);
+        // "testB_A"
+        {
+          Outline testB_A = outlines_groupB[0];
+          assertSame(OutlineKind.UNIT_TEST_CASE, testB_A.getKind());
+          assertEquals("testB_A", testB_A.getName());
+        }
+        // "testB_B"
+        {
+          Outline testB_B = outlines_groupB[1];
+          assertSame(OutlineKind.UNIT_TEST_CASE, testB_B.getKind());
+          assertEquals("testB_B", testB_B.getName());
+        }
+        // "testB_C"
+        {
+          Outline testB_C = outlines_groupB[2];
+          assertSame(OutlineKind.UNIT_TEST_CASE, testB_C.getKind());
+          assertEquals("testB_C", testB_C.getName());
+        }
+      }
+    }
+  }
+
+  public void test_unittest_bad() throws Exception {
+    String contextId = createContext("test");
+    addSource(contextId, "/unittest.dart", makeSource(//
+        "library unittest;",
+        "group(String name, f()) {}",
+        "test(String name, f()) {}"));
+    String code = makeSource(//
+        "import 'unittest.dart';",
+        "main() {",
+        "  someOtherInvocation();",
+        "  group(); // not 2 arguments",
+        "  group('groupA', null); // not function expression",
+        "  test(); // not 2 arguments",
+        "  test('groupA', null); // not function expression",
+        "}");
+    Source source = addSource(contextId, "/test.dart", code);
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(source)));
+    server.test_waitForWorkerComplete();
+    // validate
+    Outline unitOutline = serverListener.getOutline(contextId, source);
+    Outline[] topOutlines = unitOutline.getChildren();
+    assertThat(topOutlines).hasSize(1);
+    // "main"
+    {
+      Outline outline_main = topOutlines[0];
+      assertEquals("main", outline_main.getName());
+      // "main" children
+      Outline[] outlines_main = outline_main.getChildren();
+      assertThat(outlines_main).isEmpty();
+    }
+  }
+
+  public void test_unittest_bad_notLiteralName() throws Exception {
+    String contextId = createContext("test");
+    addSource(contextId, "/unittest.dart", makeSource(//
+        "library unittest;",
+        "group(String name, f()) {}",
+        "test(String name, f()) {}"));
+    String code = makeSource(//
+        "import 'unittest.dart';",
+        "main() {",
+        "  var groupName = 'foo';",
+        "  var testName = 'bar';",
+        "  group(groupName, () {});",
+        "  test(testName, () {});",
+        "}");
+    Source source = addSource(contextId, "/test.dart", code);
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(source)));
+    server.test_waitForWorkerComplete();
+    // validate
+    Outline unitOutline = serverListener.getOutline(contextId, source);
+    Outline[] topOutlines = unitOutline.getChildren();
+    assertThat(topOutlines).hasSize(1);
+    // "main"
+    {
+      Outline outline_main = topOutlines[0];
+      assertEquals("main", outline_main.getName());
+      // "main" children
+      Outline[] outlines_main = outline_main.getChildren();
+      assertThat(outlines_main).hasSize(2);
+      {
+        Outline outline = outlines_main[0];
+        assertSame(OutlineKind.UNIT_TEST_GROUP, outline.getKind());
+        assertEquals("??????????", outline.getName());
+        assertEquals(code.indexOf("groupName, ()"), outline.getOffset());
+        assertEquals("groupName".length(), outline.getLength());
+      }
+      {
+        Outline outline = outlines_main[1];
+        assertSame(OutlineKind.UNIT_TEST_CASE, outline.getKind());
+        assertEquals("??????????", outline.getName());
+        assertEquals(code.indexOf("testName, ()"), outline.getOffset());
+        assertEquals("testName".length(), outline.getLength());
+      }
+    }
+  }
 }

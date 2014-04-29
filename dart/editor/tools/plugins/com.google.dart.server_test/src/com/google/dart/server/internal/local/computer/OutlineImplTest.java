@@ -66,7 +66,7 @@ public class OutlineImplTest extends TestCase {
         null,
         new SourceRegionImpl(1, 2),
         OutlineKind.METHOD,
-        "foo",
+        "aaa",
         1,
         2,
         "()",
@@ -78,8 +78,8 @@ public class OutlineImplTest extends TestCase {
         null,
         new SourceRegionImpl(1, 2),
         OutlineKind.METHOD,
-        "foo",
-        1,
+        "aaa",
+        10,
         2,
         "()",
         "",
@@ -90,7 +90,7 @@ public class OutlineImplTest extends TestCase {
         null,
         new SourceRegionImpl(1, 2),
         OutlineKind.METHOD,
-        "foo",
+        "bbb",
         10,
         20,
         "()",
@@ -105,8 +105,21 @@ public class OutlineImplTest extends TestCase {
   }
 
   public void test_hashCode() throws Exception {
-    OutlineImpl outline = new OutlineImpl(
+    OutlineImpl unitOutline = new OutlineImpl(
         null,
+        new SourceRegionImpl(1, 2),
+        OutlineKind.METHOD,
+        "foo",
+        10,
+        20,
+        "(int i, String s)",
+        "Map<String, int>",
+        true,
+        true,
+        true);
+    unitOutline.hashCode();
+    OutlineImpl outline = new OutlineImpl(
+        unitOutline,
         new SourceRegionImpl(1, 2),
         OutlineKind.METHOD,
         "foo",

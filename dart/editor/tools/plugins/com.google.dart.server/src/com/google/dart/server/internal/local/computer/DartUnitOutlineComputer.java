@@ -15,6 +15,7 @@
 package com.google.dart.server.internal.local.computer;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -22,6 +23,7 @@ import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
@@ -30,11 +32,16 @@ import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OutlineKind;
@@ -48,6 +55,8 @@ import java.util.List;
  * @coverage dart.server.local
  */
 public class DartUnitOutlineComputer {
+  private static final String UNITTEST_LIBRARY = "unittest";
+
   private final CompilationUnit unit;
 
   public DartUnitOutlineComputer(CompilationUnit unit) {
@@ -110,16 +119,79 @@ public class DartUnitOutlineComputer {
     return unitOutline;
   }
 
-  private void addLocalFunctionOutlines(final OutlineImpl parenet, FunctionBody body) {
+  private void addLocalFunctionOutlines(final OutlineImpl parent, FunctionBody body) {
     final List<Outline> localOutlines = Lists.newArrayList();
     body.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitFunctionDeclaration(FunctionDeclaration node) {
-        newFunctionOutline(parenet, localOutlines, node);
+        newFunctionOutline(parent, localOutlines, node);
         return null;
       }
+
+      @Override
+      public Void visitMethodInvocation(MethodInvocation node) {
+        boolean handled = addUnitTestOutlines(parent, localOutlines, node);
+        if (handled) {
+          return null;
+        }
+        return super.visitMethodInvocation(node);
+      }
     });
-    parenet.setChildren(localOutlines.toArray(new Outline[localOutlines.size()]));
+    parent.setChildren(localOutlines.toArray(new Outline[localOutlines.size()]));
+  }
+
+  private boolean addUnitTestOutlines(OutlineImpl parent, List<Outline> children,
+      MethodInvocation node) {
+    OutlineKind unitTestKind = null;
+    if (isUnitTestFunctionInvocation(node, "group")) {
+      unitTestKind = OutlineKind.UNIT_TEST_GROUP;
+    } else if (isUnitTestFunctionInvocation(node, "test")) {
+      unitTestKind = OutlineKind.UNIT_TEST_CASE;
+    } else {
+      return false;
+    }
+    ArgumentList argumentList = node.getArgumentList();
+    if (argumentList != null) {
+      List<Expression> arguments = argumentList.getArguments();
+      if (arguments.size() == 2 && arguments.get(1) instanceof FunctionExpression) {
+        // prepare name
+        String name;
+        int nameOffset;
+        int nameLength;
+        {
+          Expression nameNode = arguments.get(0);
+          if (nameNode instanceof SimpleStringLiteral) {
+            SimpleStringLiteral nameLiteral = (SimpleStringLiteral) arguments.get(0);
+            name = nameLiteral.getValue();
+            nameOffset = nameLiteral.getValueOffset();
+            nameLength = name.length();
+          } else {
+            name = "??????????";
+            nameOffset = nameNode.getOffset();
+            nameLength = nameNode.getLength();
+          }
+        }
+        // add a new outline
+        FunctionExpression functionExpression = (FunctionExpression) arguments.get(1);
+        SourceRegionImpl sourceRegion = new SourceRegionImpl(node.getOffset(), node.getLength());
+        OutlineImpl outline = new OutlineImpl(
+            parent,
+            sourceRegion,
+            unitTestKind,
+            name,
+            nameOffset,
+            nameLength,
+            null,
+            null,
+            false,
+            false,
+            false);
+        children.add(outline);
+        addLocalFunctionOutlines(outline, functionExpression.getBody());
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -167,6 +239,25 @@ public class DartUnitOutlineComputer {
     // not first child: [endOfPreviousSibling, endOfNode]
     int prevSiblingEnd = siblings.get(index - 1).getEnd();
     return new SourceRegionImpl(prevSiblingEnd, endOffset - prevSiblingEnd);
+  }
+
+  /**
+   * Returns {@code true} if the given {@link MethodInvocation} is invocation of the function with
+   * the given name from the "unittest" library.
+   */
+  private boolean isUnitTestFunctionInvocation(MethodInvocation node, String name) {
+    SimpleIdentifier methodName = node.getMethodName();
+    if (methodName != null) {
+      Element element = methodName.getStaticElement();
+      if (element instanceof FunctionElement) {
+        FunctionElement functionElement = (FunctionElement) element;
+        if (name.equals(functionElement.getName())) {
+          LibraryElement libraryElement = functionElement.getAncestor(LibraryElement.class);
+          return libraryElement != null && UNITTEST_LIBRARY.equals(libraryElement.getName());
+        }
+      }
+    }
+    return false;
   }
 
   private OutlineImpl newClassOutline(Outline unitOutline, List<Outline> unitChildren,
@@ -257,7 +348,7 @@ public class DartUnitOutlineComputer {
         isStatic));
   }
 
-  private void newFunctionOutline(Outline unitOutline, List<Outline> unitChildren,
+  private void newFunctionOutline(Outline parent, List<Outline> children,
       FunctionDeclaration functionDeclaration) {
     TypeName returnType = functionDeclaration.getReturnType();
     SimpleIdentifier nameNode = functionDeclaration.getName();
@@ -273,7 +364,7 @@ public class DartUnitOutlineComputer {
       kind = OutlineKind.FUNCTION;
     }
     OutlineImpl outline = new OutlineImpl(
-        unitOutline,
+        parent,
         getSourceRegion(functionDeclaration),
         kind,
         name,
@@ -284,7 +375,7 @@ public class DartUnitOutlineComputer {
         false,
         StringUtilities.startsWithChar(name, '_'),
         false);
-    unitChildren.add(outline);
+    children.add(outline);
     addLocalFunctionOutlines(outline, functionExpression.getBody());
   }
 

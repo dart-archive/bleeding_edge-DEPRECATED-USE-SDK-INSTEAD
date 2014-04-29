@@ -65,7 +65,7 @@ public class OutlineImpl implements Outline {
       return false;
     }
     OutlineImpl other = (OutlineImpl) obj;
-    return ObjectUtilities.equals(other.parent, parent) && other.offset == offset;
+    return ObjectUtilities.equals(other.parent, parent) && ObjectUtilities.equals(name, other.name);
   }
 
   @Override
@@ -115,7 +115,10 @@ public class OutlineImpl implements Outline {
 
   @Override
   public int hashCode() {
-    return offset;
+    if (parent == null) {
+      return 0;
+    }
+    return ObjectUtilities.combineHashCodes(parent.hashCode(), name.hashCode());
   }
 
   @Override
