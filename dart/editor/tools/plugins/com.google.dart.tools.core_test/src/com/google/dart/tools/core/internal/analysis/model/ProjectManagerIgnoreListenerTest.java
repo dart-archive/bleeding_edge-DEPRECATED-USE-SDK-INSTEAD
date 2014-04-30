@@ -14,9 +14,11 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -39,17 +41,17 @@ import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class ProjectManagerIgnoreListenerTest extends TestCase {
 
@@ -139,30 +141,35 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
     clearInteractions();
     ignoreManager.addToIgnores(projectContainer.getLocation());
 
-    appContext.assertChanged(null, null, new IResource[] {projectContainer});
-    verify(index).removeSources(appContext, projectContainer.asSourceContainer());
     assertIgnored(projectContainer, projectContext);
 
     ignoreManager.removeFromIgnores(projectContainer.getLocation());
 
-    IResource[] projectFiles = projectContainer.getAllDartAndHtmlFiles();
-    IResource[] appFiles = appFolder.getAllDartAndHtmlFiles();
-    ArrayList<IResource> diff = new ArrayList<IResource>();
-    diff.addAll(Arrays.asList(projectFiles));
-    diff.removeAll(Arrays.asList(appFiles));
-    projectFiles = diff.toArray(new IResource[diff.size()]);
-
+    MockFile[] allDartAndHtmlFiles;
+    MockContainer container = projectContainer;
+    for (MockFile file3 : container.getAllDartAndHtmlFiles()) {
+      MockContext context = (MockContext) projectManager.getContext(file3);
+      AnalysisLevel level = AnalysisLevel.ALL;
+      if (inPackage(file3)) {
+        if (inNestedPackage(file3)) {
+          continue;
+        }
+        level = AnalysisLevel.RESOLVED;
+      }
+      context.assertAnalysisLevel(file3.asSource(), level);
+    }
+    allDartAndHtmlFiles = container.getAllDartAndHtmlFiles();
     verify(markerManager).clearMarkers(projectContainer);
-    for (IResource file : projectFiles) {
-      verify(markerManager).queueErrors(eq(file), any(LineInfo.class), any(AnalysisError[].class));
+    for (MockFile file1 : allDartAndHtmlFiles) {
+      if (!inNestedPackage(file1)) {
+        verify(markerManager).queueErrors(
+            eq(file1),
+            any(LineInfo.class),
+            any(AnalysisError[].class));
+      }
     }
-    for (IResource file : appFiles) {
-      verify(markerManager).queueErrors(eq(file), any(LineInfo.class), any(AnalysisError[].class));
-    }
-    verify(analysisManager).performAnalysisInBackground(project, projectContext);
-    verify(analysisManager).performAnalysisInBackground(project, appContext);
-    projectContext.assertChanged(projectFiles, null, null);
-    appContext.assertChanged(appFiles, null, null);
+    verify(analysisManager, atLeast(1)).performAnalysisInBackground(project, projectContext);
+    verify(analysisManager, atLeast(1)).performAnalysisInBackground(project, appContext);
     assertNoMoreInteractions();
   }
 
@@ -226,29 +233,51 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
   }
 
   private void assertAnalyzed(MockResource res, MockContext context) {
-    IResource[] allDartAndHtmlFiles;
-    if (res instanceof MockFolder) {
-      allDartAndHtmlFiles = ((MockFolder) res).getAllDartAndHtmlFiles();
+    MockFile[] allDartAndHtmlFiles;
+    if (res instanceof MockContainer) {
+      MockContainer container = (MockContainer) res;
+      for (MockFile file : container.getAllDartAndHtmlFiles()) {
+        AnalysisLevel level = AnalysisLevel.ALL;
+        if (inPackage(file)) {
+          if (inNestedPackage(file)) {
+            continue;
+          }
+          level = AnalysisLevel.RESOLVED;
+        }
+        context.assertAnalysisLevel(file.asSource(), level);
+      }
+      allDartAndHtmlFiles = container.getAllDartAndHtmlFiles();
     } else {
-      allDartAndHtmlFiles = new IResource[] {res};
+      MockFile file = (MockFile) res;
+      context.assertAnalysisLevel(file, AnalysisLevel.ALL);
+      allDartAndHtmlFiles = new MockFile[] {file};
     }
     verify(markerManager).clearMarkers(res);
-    for (IResource file : allDartAndHtmlFiles) {
-      verify(markerManager).queueErrors(eq(file), any(LineInfo.class), any(AnalysisError[].class));
+    for (MockFile file : allDartAndHtmlFiles) {
+      if (!inNestedPackage(file)) {
+        verify(markerManager).queueErrors(eq(file), any(LineInfo.class), any(AnalysisError[].class));
+      }
     }
-    verify(analysisManager).performAnalysisInBackground(project, context);
-    context.assertChanged(allDartAndHtmlFiles, null, null);
+    verify(analysisManager, atLeast(1)).performAnalysisInBackground(project, context);
     assertNoMoreInteractions();
   }
 
   private void assertIgnored(MockResource res, MockContext context) {
     verify(markerManager).clearMarkers(res);
-    context.assertChanged(null, null, new IResource[] {res});
-    if (res instanceof MockFile) {
-      verify(index).removeSource(context, ((MockFile) res).asSource());
-    }
     if (res instanceof MockContainer) {
-      verify(index).removeSources(context, ((MockContainer) res).asSourceContainer());
+      MockContainer container = (MockContainer) res;
+      for (MockFile file : container.getAllDartAndHtmlFiles()) {
+        Source source = file.asSource();
+        if (source != null && !inNestedPackage(file)) {
+          MockContext subContext = (MockContext) projectManager.getContext(file);
+          verify(index).removeSource(subContext, source);
+          subContext.assertAnalysisLevel(source, AnalysisLevel.NONE);
+        }
+      }
+    } else {
+      MockFile file = (MockFile) res;
+      verify(index).removeSource(context, file.asSource());
+      context.assertAnalysisLevel(file.asSource(), AnalysisLevel.NONE);
     }
     assertNoMoreInteractions();
   }
@@ -266,5 +295,40 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
     verifyNoMoreInteractions(analysisManager);
     projectContext.clearCalls();
     appContext.clearCalls();
+  }
+
+  private boolean inNestedPackage(MockFile file) {
+    IContainer parent = file.getParent();
+    while (parent != null) {
+      if (parent.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
+        parent = parent.getParent();
+        if (parent != null) {
+          try {
+            IResource[] members = parent.members();
+            for (IResource res : members) {
+              if (res.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
+                return false;
+              }
+            }
+            return true;
+          } catch (CoreException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+      parent = parent.getParent();
+    }
+    return false;
+  }
+
+  private boolean inPackage(MockFile file) {
+    IContainer parent = file.getParent();
+    while (parent != null) {
+      if (parent.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
+        return true;
+      }
+      parent = parent.getParent();
+    }
+    return false;
   }
 }

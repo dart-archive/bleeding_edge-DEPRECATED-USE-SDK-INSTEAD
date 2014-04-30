@@ -4,6 +4,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisDelta;
+import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
@@ -37,6 +38,10 @@ import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.CallList;
 import com.google.dart.tools.core.CallList.Call;
+import com.google.dart.tools.core.mock.MockContainer;
+import com.google.dart.tools.core.mock.MockFile;
+
+import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -44,8 +49,10 @@ import org.eclipse.core.resources.IResource;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Mock {@link AnalysisContext} that validates calls and returns Mocks rather than performing the
@@ -117,6 +124,8 @@ public class MockContext implements InternalAnalysisContext {
   private final ContentCache contentCache = new ContentCache();
   private SourceFactory factory = new SourceFactory();
 
+  private Map<Source, AnalysisLevel> analysisLevels = new HashMap<Source, AnalysisDelta.AnalysisLevel>();
+
   @Override
   public void addSourceInfo(Source source, SourceEntry info) {
     throw new UnsupportedOperationException();
@@ -125,6 +134,26 @@ public class MockContext implements InternalAnalysisContext {
   @Override
   public void applyChanges(ChangeSet changes) {
     calls.add(new ChangedCall(this, changes));
+  }
+
+  public void assertAnalysisLevel(MockContainer container, AnalysisLevel expected) {
+    for (IResource res : container.getAllDartAndHtmlFiles()) {
+      MockFile file = (MockFile) res;
+      assertAnalysisLevel(file, expected);
+    }
+  }
+
+  public void assertAnalysisLevel(MockFile file, AnalysisLevel expected) {
+    assertAnalysisLevel(file.asSource(), expected);
+  }
+
+  public void assertAnalysisLevel(Source source, AnalysisLevel expected) {
+    TestCase.assertNotNull(source);
+    AnalysisLevel actual = analysisLevels.remove(source);
+    if (actual != expected) {
+      TestCase.failNotEquals("Analysis level for " + source + "\n  ", expected, actual);
+    }
+    TestCase.assertEquals(expected, actual);
   }
 
   public void assertChanged(ChangeSet expected) {
@@ -193,6 +222,19 @@ public class MockContext implements InternalAnalysisContext {
 
   public void assertNoCalls() {
     calls.assertNoCalls();
+    if (!analysisLevels.isEmpty()) {
+      @SuppressWarnings("resource")
+      PrintStringWriter writer = new PrintStringWriter();
+      writer.print("Expected no more calls to updateAnalysis, but found ");
+      for (Entry<Source, AnalysisLevel> entry : analysisLevels.entrySet()) {
+        writer.println();
+        writer.print("  ");
+        writer.print(entry.getValue());
+        writer.print(" : ");
+        writer.print(entry.getKey());
+      }
+      TestCase.fail(writer.toString());
+    }
   }
 
   public void assertSourcesChanged(IResource... expected) {
@@ -217,6 +259,7 @@ public class MockContext implements InternalAnalysisContext {
 
   public void clearCalls() {
     calls.clear();
+    analysisLevels.clear();
   }
 
   @Override
@@ -532,8 +575,11 @@ public class MockContext implements InternalAnalysisContext {
 
   @Override
   public void updateAnalysis(AnalysisDelta delta) {
-    // TODO (danrubel) implement
-    throw new UnsupportedOperationException();
+    for (Entry<Source, AnalysisLevel> entry : delta.getAnalysisLevels().entrySet()) {
+      TestCase.assertNotNull(entry.getKey());
+      TestCase.assertNotNull(entry.getValue());
+    }
+    analysisLevels.putAll(delta.getAnalysisLevels());
   }
 
   private File[] asFiles(IResource[] resources) {

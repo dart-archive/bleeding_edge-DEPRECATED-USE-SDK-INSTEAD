@@ -177,23 +177,23 @@ public abstract class MockContainer extends MockResource implements IContainer {
    * Return an array of all *.dart and *.html files contained directly or indirectly by the receiver
    * excluding hidden files and files in hidden folders.
    */
-  public IResource[] getAllDartAndHtmlFiles() {
-    ArrayList<IResource> result = new ArrayList<IResource>();
-    for (IResource res : getAllFiles()) {
-      String name = res.getName();
+  public MockFile[] getAllDartAndHtmlFiles() {
+    ArrayList<MockFile> result = new ArrayList<MockFile>();
+    for (MockFile file : getAllFiles()) {
+      String name = file.getName();
       if (isDartLikeFileName(name) || isHtmlLikeFileName(name)) {
-        result.add(res);
+        result.add(file);
       }
     }
-    return result.toArray(new IResource[result.size()]);
+    return result.toArray(new MockFile[result.size()]);
   }
 
   /**
    * Return an array of all files contained directly or indirectly by the receiver excluding hidden
    * files and files in hidden folders.
    */
-  public IResource[] getAllFiles() {
-    ArrayList<IResource> result = new ArrayList<IResource>();
+  public MockFile[] getAllFiles() {
+    ArrayList<MockFile> result = new ArrayList<MockFile>();
     ArrayList<MockContainer> todo = new ArrayList<MockContainer>();
     todo.add(this);
     while (!todo.isEmpty()) {
@@ -206,12 +206,12 @@ public abstract class MockContainer extends MockResource implements IContainer {
           if (res instanceof MockContainer) {
             todo.add((MockContainer) res);
           } else {
-            result.add(res);
+            result.add((MockFile) res);
           }
         }
       }
     }
-    return result.toArray(new IResource[result.size()]);
+    return result.toArray(new MockFile[result.size()]);
   }
 
   @Override

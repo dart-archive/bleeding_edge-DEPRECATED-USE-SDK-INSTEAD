@@ -15,6 +15,8 @@ package com.google.dart.engine.context;
 
 import com.google.dart.engine.source.Source;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -60,6 +62,23 @@ public class AnalysisDelta {
    */
   public AnalysisDelta() {
     super();
+  }
+
+  /**
+   * Return a collection of the sources that have been added. This is equivalent to calling
+   * {@link #getAnalysisLevels()} and collecting all sources that do not have an analysis level of
+   * {@link AnalysisLevel#NONE}.
+   * 
+   * @return a collection of the sources
+   */
+  public Collection<? extends Source> getAddedSources() {
+    ArrayList<Source> result = new ArrayList<Source>();
+    for (Entry<Source, AnalysisLevel> entry : analysisMap.entrySet()) {
+      if (entry.getValue() != AnalysisLevel.NONE) {
+        result.add(entry.getKey());
+      }
+    }
+    return result;
   }
 
   /**
