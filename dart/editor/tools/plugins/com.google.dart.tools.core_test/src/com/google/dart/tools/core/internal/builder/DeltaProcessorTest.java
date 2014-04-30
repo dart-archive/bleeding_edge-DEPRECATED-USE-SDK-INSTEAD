@@ -99,6 +99,19 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     project.assertNoCalls();
   }
 
+  public void test_traverse_html_file() throws Exception {
+    MockFile file = projectContainer.getMockFile("some.html");
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(file);
+    updater.applyChanges();
+
+    project.assertChanged(projectContainer, new IResource[] {file}, null, null);
+    project.assertNoCalls();
+  }
+
   public void test_traverse_html_file_added() throws Exception {
     MockDelta delta = new MockDelta(projectContainer);
     MockFile file = projectContainer.getMockFile("some.html");
@@ -336,6 +349,19 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     project.assertNoCalls();
   }
 
+  public void test_traverse_project_file() throws Exception {
+    MockFile file = projectContainer.getMockFile("some.dart");
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(file);
+    updater.applyChanges();
+
+    project.assertChanged(projectContainer, new IResource[] {file}, null, null);
+    project.assertNoCalls();
+  }
+
   public void test_traverse_project_file_added() throws Exception {
     MockDelta delta = new MockDelta(projectContainer);
     MockFile file = projectContainer.getMockFile("some.dart");
@@ -456,6 +482,8 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
   }
 
   public void test_traverse_web() throws Exception {
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+    ((MockContext) project.getDefaultContext()).clearCalls();
     MockFolder web = projectContainer.getMockFolder("web");
 
     DeltaProcessor processor = new DeltaProcessor(project);
@@ -467,7 +495,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     IResource[] added = new IResource[] {
         web.getFile("other.dart"), web.getMockFolder("sub").getFile("cool.dart")};
 
-    project.assertChanged(projectContainer, added, null, null);
+    project.assertChanged(null, added, null, null);
     project.assertNoCalls();
   }
 

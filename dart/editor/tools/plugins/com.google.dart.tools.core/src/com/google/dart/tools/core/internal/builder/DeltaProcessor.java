@@ -31,6 +31,7 @@ import static com.google.dart.tools.core.DartCore.isDartLikeFileName;
 import static com.google.dart.tools.core.DartCore.isHtmlLikeFileName;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
@@ -243,8 +244,11 @@ public class DeltaProcessor extends DeltaBroadcaster {
    * 
    * @param resource the container of resources to be recursively traversed (not {@code null})
    */
-  public void traverse(IContainer resource) throws CoreException {
+  public void traverse(IResource resource) throws CoreException {
     event = new Event();
+    if (resource instanceof IFile) {
+      setContextFor(resource.getParent());
+    }
     processResources(resource);
     event = null;
   }
@@ -613,7 +617,7 @@ public class DeltaProcessor extends DeltaBroadcaster {
    */
   private boolean setContextFor(IContainer container) {
     PubFolder newPubFolder = project.getPubFolder(container);
-    if (container.getType() == PROJECT || pubFolder != newPubFolder) {
+    if (pubFolder == null || pubFolder != newPubFolder) {
       pubFolder = newPubFolder;
       if (pubFolder != null) {
         if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
