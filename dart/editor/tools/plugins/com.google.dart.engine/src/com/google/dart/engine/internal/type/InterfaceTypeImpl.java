@@ -412,7 +412,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (supertype == null) {
       return null;
     }
-    return supertype.substitute(typeArguments, classElement.getType().getTypeArguments());
+    Type[] typeParameters = classElement.getType().getTypeArguments();
+    if (typeArguments.length == 0 || typeArguments.length != typeParameters.length) {
+      return supertype;
+    }
+    return supertype.substitute(typeArguments, typeParameters);
   }
 
   @Override

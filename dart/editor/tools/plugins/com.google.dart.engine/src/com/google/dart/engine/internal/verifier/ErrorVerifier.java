@@ -5128,7 +5128,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       Type argType = argTypeName.getType();
       Type boundType = boundingElts[i].getBound();
       if (argType != null && boundType != null) {
-        boundType = boundType.substitute(typeArguments, typeParameters);
+        if (typeArguments.length != 0 && typeArguments.length == typeParameters.length) {
+          boundType = boundType.substitute(typeArguments, typeParameters);
+        }
         if (!argType.isSubtypeOf(boundType)) {
           ErrorCode errorCode;
           if (isInConstInstanceCreation) {

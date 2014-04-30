@@ -183,9 +183,11 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     Type[] typeParameters = TypeParameterTypeImpl.getTypes(getTypeParameters());
     for (ParameterElement parameter : parameters) {
       if (parameter.getParameterKind() == ParameterKind.NAMED) {
-        namedParameterTypes.put(
-            parameter.getName(),
-            parameter.getType().substitute(typeArguments, typeParameters));
+        Type type = parameter.getType();
+        if (typeArguments.length != 0 && typeArguments.length == typeParameters.length) {
+          type = type.substitute(typeArguments, typeParameters);
+        }
+        namedParameterTypes.put(parameter.getName(), type);
       }
     }
     return namedParameterTypes;
@@ -201,7 +203,11 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     ArrayList<Type> types = new ArrayList<Type>();
     for (ParameterElement parameter : parameters) {
       if (parameter.getParameterKind() == ParameterKind.REQUIRED) {
-        types.add(parameter.getType().substitute(typeArguments, typeParameters));
+        Type type = parameter.getType();
+        if (typeArguments.length != 0 && typeArguments.length == typeParameters.length) {
+          type = type.substitute(typeArguments, typeParameters);
+        }
+        types.add(type);
       }
     }
     return types.toArray(new Type[types.size()]);
@@ -217,7 +223,11 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     ArrayList<Type> types = new ArrayList<Type>();
     for (ParameterElement parameter : parameters) {
       if (parameter.getParameterKind() == ParameterKind.POSITIONAL) {
-        types.add(parameter.getType().substitute(typeArguments, typeParameters));
+        Type type = parameter.getType();
+        if (typeArguments.length != 0 && typeArguments.length == typeParameters.length) {
+          type = type.substitute(typeArguments, typeParameters);
+        }
+        types.add(type);
       }
     }
     return types.toArray(new Type[types.size()]);
