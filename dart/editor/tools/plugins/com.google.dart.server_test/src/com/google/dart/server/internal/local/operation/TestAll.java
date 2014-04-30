@@ -23,6 +23,7 @@ public class TestAll {
     suite.addTestSuite(CreateContextOperationTest.class);
     suite.addTestSuite(DeleteContextOperationTest.class);
     suite.addTestSuite(PerformAnalysisOperationTest.class);
+    suite.addTestSuite(SearchReferencesOperationTest.class);
     suite.addTestSuite(ServerOperationQueueTest.class);
     suite.addTestSuite(SetOptionsOperationTest.class);
     suite.addTestSuite(SetPrioritySourcesOperationTest.class);

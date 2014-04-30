@@ -46,11 +46,13 @@ import com.google.dart.server.SourceSet;
 import com.google.dart.server.internal.local.computer.DartUnitHighlightsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
 import com.google.dart.server.internal.local.computer.DartUnitOutlineComputer;
+import com.google.dart.server.internal.local.computer.DartUnitReferencesComputer;
 import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
 import com.google.dart.server.internal.local.operation.NotificationOperation;
 import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
+import com.google.dart.server.internal.local.operation.SearchReferencesOperation;
 import com.google.dart.server.internal.local.operation.ServerOperation;
 import com.google.dart.server.internal.local.operation.ServerOperationQueue;
 import com.google.dart.server.internal.local.operation.SetOptionsOperation;
@@ -361,6 +363,23 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   }
 
   /**
+   * Implementation for {@link #searchReferences(String, Source, int, SearchResultsConsumer)}.
+   */
+  public void internalSearchReferences(String contextId, Source source, int offset,
+      SearchResultsConsumer consumer) throws Exception {
+    AnalysisContext analysisContext = getAnalysisContext(contextId);
+    Source[] librarySources = analysisContext.getLibrariesContaining(source);
+    // TODO(scheglov) references from multiple libraries
+    if (librarySources.length != 0) {
+      Source librarySource = librarySources[0];
+      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+      if (unit != null) {
+        new DartUnitReferencesComputer(searchEngine, contextId, source, unit, offset, consumer).compute();
+      }
+    }
+  }
+
+  /**
    * Implementation for {@link #setOptions(String, AnalysisOptions)}.
    */
   public void internalSetOptions(String contextId, AnalysisOptions options) throws Exception {
@@ -427,7 +446,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   @Override
   public void searchReferences(String contextId, Source source, int offset,
       SearchResultsConsumer consumer) {
-    // TODO(scheglov) implement
+    operationQueue.add(new SearchReferencesOperation(contextId, source, offset, consumer));
   }
 
   @Override

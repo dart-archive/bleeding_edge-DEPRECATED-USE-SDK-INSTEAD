@@ -22,10 +22,12 @@ public class TestAll {
     suite.addTestSuite(DartUnitHighlightsComputerTest.class);
     suite.addTestSuite(DartUnitNavigationComputerTest.class);
     suite.addTestSuite(DartUnitOutlineComputerTest.class);
+    suite.addTestSuite(DartUnitReferencesComputerTest.class);
     suite.addTestSuite(HighlightRegionImplTest.class);
     suite.addTestSuite(NavigationRegionImplTest.class);
     suite.addTestSuite(NavigationTargetImplTest.class);
     suite.addTestSuite(OutlineImplTest.class);
+    suite.addTestSuite(SearchResultImplTest.class);
     suite.addTestSuite(SourceRegionImplTest.class);
     return suite;
   }

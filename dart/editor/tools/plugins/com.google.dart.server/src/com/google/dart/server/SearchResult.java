@@ -28,6 +28,13 @@ public interface SearchResult {
   SearchResult[] EMPTY_ARRAY = new SearchResult[0];
 
   /**
+   * Return the kind to this result.
+   * 
+   * @return the kind of this result
+   */
+  public SearchResultKind getKind();
+
+  /**
    * Return the length of the result.
    * 
    * @return the length of the result

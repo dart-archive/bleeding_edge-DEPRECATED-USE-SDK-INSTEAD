@@ -215,6 +215,9 @@ public class ElementLocator {
    * @return the associated element, or {@code null} if none is found
    */
   public static Element locateWithOffset(AstNode node, int offset) {
+    if (node == null) {
+      return null;
+    }
     // try to get Element from node
     {
       Element nodeElement = locate(node);
