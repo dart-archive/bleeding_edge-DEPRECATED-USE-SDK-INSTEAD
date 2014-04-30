@@ -24,11 +24,12 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisDelta;
+import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
-import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.context.ObsoleteSourceAnalysisException;
@@ -108,6 +109,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -2101,7 +2103,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public void updateAnalysis(AnalysisDelta delta) {
-    // TODO (danrubel) implement
+    ChangeSet changeSet = new ChangeSet();
+    for (Entry<Source, AnalysisLevel> entry : delta.getAnalysisLevels().entrySet()) {
+      Source source = entry.getKey();
+      if (entry.getValue() == AnalysisLevel.NONE) {
+        changeSet.removedSource(source);
+      } else {
+        changeSet.addedSource(source);
+      }
+    }
+    applyChanges(changeSet);
   }
 
   /**

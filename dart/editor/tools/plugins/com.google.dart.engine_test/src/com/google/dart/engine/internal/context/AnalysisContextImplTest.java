@@ -20,6 +20,8 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContextFactory;
+import com.google.dart.engine.context.AnalysisDelta;
+import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
@@ -128,8 +130,9 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_applyChanges_add() {
-    Source source = addSource("/test.dart", "");
-    context.setContents(source, "main() {}");
+    assertTrue(context.getSourcesNeedingProcessing().isEmpty());
+    Source source = addSource("/test.dart", "main() {}");
+    assertTrue(context.getSourcesNeedingProcessing().contains(source));
   }
 
   public void test_applyChanges_change_flush_element() throws Exception {
@@ -1334,6 +1337,19 @@ public class AnalysisContextImplTest extends EngineTestCase {
     SourceFactory factory = new SourceFactory();
     context.setSourceFactory(factory);
     assertEquals(factory, context.getSourceFactory());
+  }
+
+  public void test_updateAnalysis() {
+    assertTrue(context.getSourcesNeedingProcessing().isEmpty());
+    Source source = new FileBasedSource(createFile("/test.dart"));
+    AnalysisDelta delta = new AnalysisDelta();
+    delta.setAnalysisLevel(source, AnalysisLevel.ALL);
+    context.updateAnalysis(delta);
+    assertTrue(context.getSourcesNeedingProcessing().contains(source));
+    delta = new AnalysisDelta();
+    delta.setAnalysisLevel(source, AnalysisLevel.NONE);
+    context.updateAnalysis(delta);
+    assertFalse(context.getSourcesNeedingProcessing().contains(source));
   }
 
   public void xtest_performAnalysisTask_stress() throws Exception {
