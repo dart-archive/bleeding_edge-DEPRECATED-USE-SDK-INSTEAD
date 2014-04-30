@@ -100,7 +100,7 @@ def VerifyJavacGetPath():
     print "You do not have JDK installed, can't build the analyzer"
     exit(1)
   return javac_path
-  
+
 def GetJavacPath():
   if 'JAVA_HOME' in os.environ:
     return join(os.environ['JAVA_HOME'], 'bin',
