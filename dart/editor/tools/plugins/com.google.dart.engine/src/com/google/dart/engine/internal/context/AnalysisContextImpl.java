@@ -22,8 +22,8 @@ import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.NodeLocator;
-import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.context.AnalysisErrorInfo;
@@ -1323,11 +1323,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
-  public int getCacheSize() {
-    return cache.getAstSize();
-  }
-
-  @Override
   public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource) {
     LibraryElement libraryElement = getLibraryElement(librarySource);
     if (libraryElement != null) {
@@ -1715,7 +1710,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
-  public AnalysisContentStatistics getStatistics() {
+  public AnalysisContextStatistics getStatistics() {
     boolean hintsEnabled = options.getHint();
     AnalysisContentStatisticsImpl statistics = new AnalysisContentStatisticsImpl();
     synchronized (cacheLock) {
@@ -1769,6 +1764,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
     }
+    statistics.setPartitionData(cache.getPartitionData());
     return statistics;
   }
 

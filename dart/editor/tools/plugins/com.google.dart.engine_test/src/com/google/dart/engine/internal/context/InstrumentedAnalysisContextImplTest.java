@@ -15,7 +15,7 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.context.AnalysisContentStatistics;
+import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
@@ -630,7 +630,7 @@ public class InstrumentedAnalysisContextImplTest extends EngineTestCase {
     InstrumentedAnalysisContextImpl context = new InstrumentedAnalysisContextImpl(
         new TestAnalysisContext() {
           @Override
-          public AnalysisContentStatistics getStatistics() {
+          public AnalysisContextStatistics getStatistics() {
             invoked[0] = true;
             return null;
           }

@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.cache;
 
+import com.google.dart.engine.context.AnalysisContextStatistics.PartitionData;
+import com.google.dart.engine.internal.context.AnalysisContentStatisticsImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.MapIterator;
 import com.google.dart.engine.utilities.collection.MultipleMapIterator;
@@ -79,6 +81,23 @@ public class AnalysisCache {
    */
   public int getAstSize() {
     return partitions[partitions.length - 1].getAstSize();
+  }
+
+  /**
+   * Return information about each of the partitions in this cache.
+   * 
+   * @return information about each of the partitions in this cache
+   */
+  public PartitionData[] getPartitionData() {
+    int count = partitions.length;
+    PartitionData[] data = new PartitionData[count];
+    for (int i = 0; i < count; i++) {
+      CachePartition partition = partitions[i];
+      data[i] = new AnalysisContentStatisticsImpl.PartitionDataImpl(
+          partition.getAstSize(),
+          partition.getMap().size());
+    }
+    return data;
   }
 
   /**

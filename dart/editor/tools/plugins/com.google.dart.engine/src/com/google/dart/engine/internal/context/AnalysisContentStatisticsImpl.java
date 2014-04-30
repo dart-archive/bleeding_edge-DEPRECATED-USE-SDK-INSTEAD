@@ -14,7 +14,7 @@
 
 package com.google.dart.engine.internal.context;
 
-import com.google.dart.engine.context.AnalysisContentStatistics;
+import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.cache.CacheState;
 import com.google.dart.engine.internal.cache.DartEntry;
@@ -29,9 +29,29 @@ import java.util.HashSet;
 import java.util.Map;
 
 /**
- * Implementation of the {@link AnalysisContentStatistics}.
+ * Implementation of the {@link AnalysisContextStatistics}.
  */
-public class AnalysisContentStatisticsImpl implements AnalysisContentStatistics {
+public class AnalysisContentStatisticsImpl implements AnalysisContextStatistics {
+  public static class PartitionDataImpl implements PartitionData {
+    private int astCount;
+
+    private int totalCount;
+
+    public PartitionDataImpl(int astCount, int totalCount) {
+      this.astCount = astCount;
+      this.totalCount = totalCount;
+    }
+
+    @Override
+    public int getAstCount() {
+      return astCount;
+    }
+
+    @Override
+    public int getTotalCount() {
+      return totalCount;
+    }
+  }
   private static class CacheRowImpl implements CacheRow {
     private final String name;
     private int errorCount;
@@ -109,6 +129,8 @@ public class AnalysisContentStatisticsImpl implements AnalysisContentStatistics 
 
   private HashSet<AnalysisException> exceptions = new HashSet<AnalysisException>();
 
+  private PartitionData[] partitionData;
+
   public void addSource(Source source) {
     sources.add(source);
   }
@@ -122,6 +144,11 @@ public class AnalysisContentStatisticsImpl implements AnalysisContentStatistics 
   @Override
   public AnalysisException[] getExceptions() {
     return exceptions.toArray(new AnalysisException[exceptions.size()]);
+  }
+
+  @Override
+  public PartitionData[] getPartitionData() {
+    return partitionData;
   }
 
   @Override
@@ -139,6 +166,13 @@ public class AnalysisContentStatisticsImpl implements AnalysisContentStatistics 
         dartEntry,
         descriptor,
         dartEntry.getStateInLibrary(descriptor, librarySource));
+  }
+
+  /**
+   * Set the partition data returned by this object to the given data.
+   */
+  public void setPartitionData(PartitionData[] data) {
+    partitionData = data;
   }
 
   private void internalPutCacheItem(SourceEntry dartEntry, DataDescriptor<?> rowDesc,

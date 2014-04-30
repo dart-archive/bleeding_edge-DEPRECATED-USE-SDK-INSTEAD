@@ -18,7 +18,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
-import com.google.dart.engine.context.AnalysisContentStatistics;
+import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
@@ -838,7 +838,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_getStatistics() {
-    AnalysisContentStatistics statistics = context.getStatistics();
+    AnalysisContextStatistics statistics = context.getStatistics();
     assertNotNull(statistics);
     assertLength(0, statistics.getCacheRows());
     assertLength(0, statistics.getExceptions());

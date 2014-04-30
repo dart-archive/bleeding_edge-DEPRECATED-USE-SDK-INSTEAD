@@ -2,13 +2,13 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisContextStatistics;
+import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
-import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -307,11 +307,6 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
    */
   public AnalysisContext getBasis() {
     return basis;
-  }
-
-  @Override
-  public int getCacheSize() {
-    return basis.getCacheSize();
   }
 
   @Override
@@ -615,7 +610,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public AnalysisContentStatistics getStatistics() {
+  public AnalysisContextStatistics getStatistics() {
     return basis.getStatistics();
   }
 

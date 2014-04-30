@@ -1,13 +1,13 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisContextStatistics;
+import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
-import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -303,11 +303,6 @@ public class MockContext implements InternalAnalysisContext {
   }
 
   @Override
-  public int getCacheSize() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public CompilationUnitElement getCompilationUnitElement(Source unitSource, Source librarySource) {
     return null;
   }
@@ -442,7 +437,7 @@ public class MockContext implements InternalAnalysisContext {
   }
 
   @Override
-  public AnalysisContentStatistics getStatistics() {
+  public AnalysisContextStatistics getStatistics() {
     throw new UnsupportedOperationException();
   }
 

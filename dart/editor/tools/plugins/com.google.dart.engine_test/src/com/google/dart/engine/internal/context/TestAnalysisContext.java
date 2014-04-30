@@ -14,13 +14,13 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisContextStatistics;
+import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
-import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -149,12 +149,6 @@ public class TestAnalysisContext implements InternalAnalysisContext {
   public AngularApplication getAngularApplicationWithHtml(Source htmlSource) {
     fail("Unexpected invocation of getAngularApplicationWithHtml");
     return null;
-  }
-
-  @Override
-  public int getCacheSize() {
-    fail("Unexpected invocation of getCacheSize");
-    return 0;
   }
 
   @Override
@@ -302,7 +296,7 @@ public class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @Override
-  public AnalysisContentStatistics getStatistics() {
+  public AnalysisContextStatistics getStatistics() {
     fail("Unexpected invocation of getStatistics");
     return null;
   }

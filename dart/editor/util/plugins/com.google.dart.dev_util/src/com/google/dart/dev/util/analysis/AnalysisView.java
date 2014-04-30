@@ -2,9 +2,10 @@ package com.google.dart.dev.util.analysis;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.dart.engine.context.AnalysisContentStatistics;
-import com.google.dart.engine.context.AnalysisContentStatistics.CacheRow;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisContextStatistics;
+import com.google.dart.engine.context.AnalysisContextStatistics.CacheRow;
+import com.google.dart.engine.context.AnalysisContextStatistics.PartitionData;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
@@ -96,9 +97,8 @@ public class AnalysisView extends ViewPart {
 
   private static class AnalysisContextData {
     private final String name;
-    private final int cacheSize;
     private final int maxCacheSize;
-    private final AnalysisContentStatistics statistics;
+    private final AnalysisContextStatistics statistics;
     private final ContextWorkerState workerState;
     private int errorCount;
     private int flushedCount;
@@ -108,10 +108,9 @@ public class AnalysisView extends ViewPart {
     private Source[] sources;
     private AnalysisException[] exceptions;
 
-    public AnalysisContextData(String name, int cacheSize, int maxCacheSize,
-        AnalysisContentStatistics statistics, ContextWorkerState workerState) {
+    public AnalysisContextData(String name, int maxCacheSize, AnalysisContextStatistics statistics,
+        ContextWorkerState workerState) {
       this.name = name;
-      this.cacheSize = cacheSize;
       this.maxCacheSize = maxCacheSize;
       this.statistics = statistics;
       this.workerState = workerState;
@@ -147,6 +146,10 @@ public class AnalysisView extends ViewPart {
       return invalidCount;
     }
 
+    public PartitionData[] getPartitionData() {
+      return statistics.getPartitionData();
+    }
+
     public Source[] getSources() {
       return sources;
     }
@@ -168,8 +171,8 @@ public class AnalysisView extends ViewPart {
   private static void addContext(AnalysisWorker[] queueWorkers, AnalysisWorker activeWorker,
       List<AnalysisContextData> contexts, String name, InternalAnalysisContext context) {
     ContextWorkerState workerState = getContextWorkerState(queueWorkers, activeWorker, context);
-    contexts.add(new AnalysisContextData(name, context.getCacheSize(),
-        context.getAnalysisOptions().getCacheSize(), context.getStatistics(), workerState));
+    contexts.add(new AnalysisContextData(name, context.getAnalysisOptions().getCacheSize(),
+        context.getStatistics(), workerState));
   }
 
   private static List<AnalysisContextData> getContexts() {
@@ -249,8 +252,23 @@ public class AnalysisView extends ViewPart {
         public String getText(Object element) {
           if (element instanceof AnalysisContextData) {
             AnalysisContextData contextData = (AnalysisContextData) element;
-            return contextData.name + " [" + contextData.cacheSize + "/" + contextData.maxCacheSize
-                + "]";
+            StringBuilder builder = new StringBuilder();
+            builder.append(contextData.name);
+            builder.append(" [");
+            builder.append(contextData.maxCacheSize);
+            PartitionData[] data = contextData.getPartitionData();
+            for (int i = 0; i < data.length; i++) {
+              if (i == 0) {
+                builder.append(" | ");
+              } else {
+                builder.append("; ");
+              }
+              builder.append(data[i].getAstCount());
+              builder.append(", ");
+              builder.append(data[i].getTotalCount());
+            }
+            builder.append("]");
+            return builder.toString();
           }
           if (element instanceof CacheRow) {
             return ((CacheRow) element).getName();
@@ -567,16 +585,29 @@ public class AnalysisView extends ViewPart {
         } else {
           msg.print("Index: statistics = " + index.getStatistics());
         }
-        int totalCacheSize = 0;
+        int totalAstSize = 0;
         int totalMaxCacheSize = 0;
-        for (AnalysisContextData data : contexts) {
-          totalCacheSize += data.cacheSize;
+        int totalCacheSize = 0;
+        int count = contexts.size();
+        for (int i = 0; i < count; i++) {
+          AnalysisContextData data = contexts.get(i);
+          PartitionData[] partitionDataArray = data.getPartitionData();
+          if (i == 0) {
+            PartitionData partitionData = partitionDataArray[0];
+            totalAstSize += partitionData.getAstCount();
+            totalCacheSize += partitionData.getTotalCount();
+          }
+          PartitionData partitionData = partitionDataArray[partitionDataArray.length - 1];
+          totalAstSize += partitionData.getAstCount();
           totalMaxCacheSize += data.maxCacheSize;
+          totalCacheSize += partitionData.getTotalCount();
         }
-        msg.print(" [");
-        msg.print(totalCacheSize);
-        msg.print("/");
+        msg.print(" [ast count = ");
+        msg.print(totalAstSize);
+        msg.print(", max size = ");
         msg.print(totalMaxCacheSize);
+        msg.print(", entry count = ");
+        msg.print(totalCacheSize);
         msg.print("]");
         setContentDescription(msg.toString());
       }

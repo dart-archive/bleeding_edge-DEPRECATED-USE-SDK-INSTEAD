@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.internal.context;
 
-import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.cache.SourceEntry;
@@ -87,13 +87,6 @@ public interface InternalAnalysisContext extends AnalysisContext {
       InternalAnalysisContext newContext);
 
   /**
-   * Return the number of AST's currently in the result cache.
-   * 
-   * @return the number of AST's currently in the result cache
-   */
-  public int getCacheSize();
-
-  /**
    * Return a namespace containing mappings for all of the public names defined by the given
    * library.
    * 
@@ -105,7 +98,7 @@ public interface InternalAnalysisContext extends AnalysisContext {
   /**
    * Returns a statistics about this context.
    */
-  public AnalysisContentStatistics getStatistics();
+  public AnalysisContextStatistics getStatistics();
 
   /**
    * Returns a type provider for this context or throws an exception if dart:core cannot be
