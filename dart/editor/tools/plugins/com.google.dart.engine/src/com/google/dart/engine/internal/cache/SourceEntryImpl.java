@@ -157,20 +157,28 @@ public abstract class SourceEntryImpl implements SourceEntry {
    * Record that an error occurred while attempting to get the contents of the source represented by
    * this entry. This will set the state of all information, including any resolution-based
    * information, as being in error.
+   * 
+   * @param exception the exception that shows where the error occurred
    */
-  public void recordContentError() {
+  public void recordContentError(AnalysisException exception) {
     content = null;
     contentState = CacheState.ERROR;
+
+    recordScanError(exception);
   }
 
   /**
-   * Set the exception that caused one or more values to have a state of {@link CacheState#ERROR} to
-   * the given exception.
+   * Record that an error occurred while attempting to scan or parse the entry represented by this
+   * entry. This will set the state of all information, including any resolution-based information,
+   * as being in error.
    * 
-   * @param exception the exception that caused one or more values to be uncomputable
+   * @param exception the exception that shows where the error occurred
    */
-  public void setException(AnalysisException exception) {
-    this.exception = exception;
+  public void recordScanError(AnalysisException exception) {
+    setException(exception);
+
+    lineInfo = null;
+    lineInfoState = CacheState.ERROR;
   }
 
   /**
@@ -278,6 +286,19 @@ public abstract class SourceEntryImpl implements SourceEntry {
    */
   protected boolean hasErrorState() {
     return contentState == CacheState.ERROR || lineInfoState == CacheState.ERROR;
+  }
+
+  /**
+   * Set the exception that caused one or more values to have a state of {@link CacheState#ERROR} to
+   * the given exception.
+   * 
+   * @param exception the exception that caused one or more values to be uncomputable
+   */
+  protected void setException(AnalysisException exception) {
+    if (exception == null) {
+      throw new IllegalArgumentException("exception cannot be null");
+    }
+    this.exception = exception;
   }
 
   /**

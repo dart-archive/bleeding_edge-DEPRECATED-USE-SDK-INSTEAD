@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.cache;
 
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.angular.AngularComponentElement;
 import com.google.dart.engine.error.AnalysisError;
@@ -366,35 +367,62 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   }
 
   @Override
-  public void recordContentError() {
-    super.recordContentError();
-    recordParseError();
+  public void recordContentError(AnalysisException exception) {
+    super.recordContentError(exception);
+    recordParseError(exception);
   }
 
   /**
    * Record that an error was encountered while attempting to parse the source associated with this
    * entry.
+   * 
+   * @param exception the exception that shows where the error occurred
    */
-  public void recordParseError() {
-    setState(SourceEntry.LINE_INFO, CacheState.ERROR);
-    setState(HtmlEntry.PARSE_ERRORS, CacheState.ERROR);
-    setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
-    setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
-    recordResolutionError();
+  public void recordParseError(AnalysisException exception) {
+    // If the scanning and parsing of HTML are separated, the following line can be removed.
+    recordScanError(exception);
+
+    parseErrors = AnalysisError.NO_ERRORS;
+    parseErrorsState = CacheState.ERROR;
+
+    parsedUnit = null;
+    parsedUnitState = CacheState.ERROR;
+
+    referencedLibraries = Source.EMPTY_ARRAY;
+    referencedLibrariesState = CacheState.ERROR;
+
+    recordResolutionError(exception);
   }
 
   /**
    * Record that an error was encountered while attempting to resolve the source associated with
    * this entry.
+   * 
+   * @param exception the exception that shows where the error occurred
    */
-  public void recordResolutionError() {
-    setState(HtmlEntry.ANGULAR_ERRORS, CacheState.ERROR);
-    setState(HtmlEntry.RESOLVED_UNIT, CacheState.ERROR);
-    setState(HtmlEntry.ELEMENT, CacheState.ERROR);
-    setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.ERROR);
-    setState(HtmlEntry.HINTS, CacheState.ERROR);
-    setState(HtmlEntry.POLYMER_BUILD_ERRORS, CacheState.ERROR);
-    setState(HtmlEntry.POLYMER_RESOLUTION_ERRORS, CacheState.ERROR);
+  public void recordResolutionError(AnalysisException exception) {
+    setException(exception);
+
+    angularErrors = AnalysisError.NO_ERRORS;
+    angularErrorsState = CacheState.ERROR;
+
+    resolvedUnit = null;
+    resolvedUnitState = CacheState.ERROR;
+
+    element = null;
+    elementState = CacheState.ERROR;
+
+    resolutionErrors = AnalysisError.NO_ERRORS;
+    resolutionErrorsState = CacheState.ERROR;
+
+    hints = AnalysisError.NO_ERRORS;
+    hintsState = CacheState.ERROR;
+
+    polymerBuildErrors = AnalysisError.NO_ERRORS;
+    polymerBuildErrorsState = CacheState.ERROR;
+
+    polymerResolutionErrors = AnalysisError.NO_ERRORS;
+    polymerResolutionErrorsState = CacheState.ERROR;
   }
 
   @Override

@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.cache;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.scope.Namespace;
@@ -206,11 +207,48 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
 
     /**
+     * Record that an error occurred while attempting to build the element model for the source
+     * represented by this state.
+     */
+    public void recordBuildElementError() {
+      builtUnitState = CacheState.ERROR;
+      builtUnit = null;
+
+      buildElementErrorsState = CacheState.ERROR;
+      buildElementErrors = AnalysisError.NO_ERRORS;
+
+      recordResolutionError();
+    }
+
+    /**
+     * Record that an error occurred while attempting to generate hints for the source represented
+     * by this entry. This will set the state of all verification information as being in error.
+     */
+    public void recordHintError() {
+      hints = AnalysisError.NO_ERRORS;
+      hintsState = CacheState.ERROR;
+    }
+
+    /**
+     * Record that an error occurred while attempting to resolve the source represented by this
+     * state.
+     */
+    public void recordResolutionError() {
+      resolvedUnitState = CacheState.ERROR;
+      resolvedUnit = null;
+
+      resolutionErrorsState = CacheState.ERROR;
+      resolutionErrors = AnalysisError.NO_ERRORS;
+
+      recordVerificationError();
+    }
+
+    /**
      * Record that an error occurred while attempting to scan or parse the entry represented by this
      * entry. This will set the state of all resolution-based information as being in error, but
      * will not change the state of any parse results.
      */
-    public void recordResolutionError() {
+    public void recordResolutionErrorsInAllLibraries() {
       builtUnitState = CacheState.ERROR;
       builtUnit = null;
 
@@ -223,14 +261,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       resolutionErrorsState = CacheState.ERROR;
       resolutionErrors = AnalysisError.NO_ERRORS;
 
-      verificationErrorsState = CacheState.ERROR;
-      verificationErrors = AnalysisError.NO_ERRORS;
-
-      hintsState = CacheState.ERROR;
-      hints = AnalysisError.NO_ERRORS;
+      recordVerificationError();
 
       if (nextState != null) {
-        nextState.recordResolutionError();
+        nextState.recordResolutionErrorsInAllLibraries();
       }
     }
 
@@ -254,6 +288,18 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       if (nextState != null) {
         nextState.recordResolutionNotInProcess();
       }
+    }
+
+    /**
+     * Record that an error occurred while attempting to generate errors and warnings for the source
+     * represented by this entry. This will set the state of all verification information as being
+     * in error.
+     */
+    public void recordVerificationError() {
+      verificationErrors = AnalysisError.NO_ERRORS;
+      verificationErrorsState = CacheState.ERROR;
+
+      recordHintError();
     }
 
     /**
@@ -632,8 +678,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       }
       state = state.nextState;
     };
-    if (descriptor == BUILD_ELEMENT_ERRORS || descriptor == RESOLUTION_ERRORS
-        || descriptor == RESOLVED_UNIT || descriptor == VERIFICATION_ERRORS || descriptor == HINTS) {
+    if (descriptor == BUILD_ELEMENT_ERRORS || descriptor == BUILT_UNIT
+        || descriptor == RESOLUTION_ERRORS || descriptor == RESOLVED_UNIT
+        || descriptor == VERIFICATION_ERRORS || descriptor == HINTS) {
       return CacheState.INVALID;
     } else {
       throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
@@ -856,8 +903,13 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * Record that an error occurred while attempting to build the element model for the source
    * represented by this entry. This will set the state of all resolution-based information as being
    * in error, but will not change the state of any parse results.
+   * 
+   * @param librarySource the source of the library in which the element model was being built
+   * @param exception the exception that shows where the error occurred
    */
-  public void recordBuildElementError() {
+  public void recordBuildElementErrorInLibrary(Source librarySource, AnalysisException exception) {
+    setException(exception);
+
     element = null;
     elementState = CacheState.ERROR;
 
@@ -865,7 +917,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     clientServerState = CacheState.ERROR;
     launchableState = CacheState.ERROR;
 
-    recordResolutionError();
+    ResolutionState state = getOrCreateResolutionState(librarySource);
+    state.recordBuildElementError();
   }
 
   /**
@@ -885,17 +938,33 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   @Override
-  public void recordContentError() {
-    super.recordContentError();
-    recordScanError();
+  public void recordContentError(AnalysisException exception) {
+    super.recordContentError(exception);
+    recordScanError(exception);
+  }
+
+  /**
+   * Record that an error occurred while attempting to generate hints for the source represented by
+   * this entry. This will set the state of all verification information as being in error.
+   * 
+   * @param librarySource the source of the library in which hints were being generated
+   * @param exception the exception that shows where the error occurred
+   */
+  public void recordHintErrorInLibrary(Source librarySource, AnalysisException exception) {
+    setException(exception);
+
+    ResolutionState state = getOrCreateResolutionState(librarySource);
+    state.recordHintError();
   }
 
   /**
    * Record that an error occurred while attempting to scan or parse the entry represented by this
    * entry. This will set the state of all information, including any resolution-based information,
    * as being in error.
+   * 
+   * @param exception the exception that shows where the error occurred
    */
-  public void recordParseError() {
+  public void recordParseError(AnalysisException exception) {
     sourceKind = SourceKind.UNKNOWN;
     sourceKindState = CacheState.ERROR;
 
@@ -915,7 +984,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     includedParts = Source.EMPTY_ARRAY;
     includedPartsState = CacheState.ERROR;
 
-    recordResolutionError();
+    recordResolutionError(exception);
   }
 
   /**
@@ -975,8 +1044,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * Record that an error occurred while attempting to resolve the source represented by this entry.
    * This will set the state of all resolution-based information as being in error, but will not
    * change the state of any parse results.
+   * 
+   * @param exception the exception that shows where the error occurred
    */
-  public void recordResolutionError() {
+  public void recordResolutionError(AnalysisException exception) {
+    setException(exception);
+
     element = null;
     elementState = CacheState.ERROR;
 
@@ -989,7 +1062,34 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     publicNamespace = null;
     publicNamespaceState = CacheState.ERROR;
 
-    resolutionState.recordResolutionError();
+    resolutionState.recordResolutionErrorsInAllLibraries();
+  }
+
+  /**
+   * Record that an error occurred while attempting to resolve the source represented by this entry.
+   * This will set the state of all resolution-based information as being in error, but will not
+   * change the state of any parse results.
+   * 
+   * @param librarySource the source of the library in which resolution was being performed
+   * @param exception the exception that shows where the error occurred
+   */
+  public void recordResolutionErrorInLibrary(Source librarySource, AnalysisException exception) {
+    setException(exception);
+
+    element = null;
+    elementState = CacheState.ERROR;
+
+    clearFlags(LAUNCHABLE_INDEX, CLIENT_CODE_INDEX);
+    clientServerState = CacheState.ERROR;
+    launchableState = CacheState.ERROR;
+    // TODO(brianwilkerson) Remove the code above this line after resolution and element building
+    // are separated.
+
+    publicNamespace = null;
+    publicNamespaceState = CacheState.ERROR;
+
+    ResolutionState state = getOrCreateResolutionState(librarySource);
+    state.recordResolutionError();
   }
 
   /**
@@ -1018,9 +1118,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * Record that an error occurred while attempting to scan or parse the entry represented by this
    * entry. This will set the state of all information, including any resolution-based information,
    * as being in error.
+   * 
+   * @param exception the exception that shows where the error occurred
    */
-  public void recordScanError() {
-    setState(LINE_INFO, CacheState.ERROR);
+  @Override
+  public void recordScanError(AnalysisException exception) {
+    super.recordScanError(exception);
 
     scanErrors = AnalysisError.NO_ERRORS;
     scanErrorsState = CacheState.ERROR;
@@ -1028,7 +1131,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     tokenStream = null;
     tokenStreamState = CacheState.ERROR;
 
-    recordParseError();
+    recordParseError(exception);
   }
 
   /**
@@ -1061,6 +1164,21 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (tokenStreamState == CacheState.IN_PROCESS) {
       tokenStreamState = CacheState.INVALID;
     }
+  }
+
+  /**
+   * Record that an error occurred while attempting to generate errors and warnings for the source
+   * represented by this entry. This will set the state of all verification information as being in
+   * error.
+   * 
+   * @param librarySource the source of the library in which verification was being performed
+   * @param exception the exception that shows where the error occurred
+   */
+  public void recordVerificationErrorInLibrary(Source librarySource, AnalysisException exception) {
+    setException(exception);
+
+    ResolutionState state = getOrCreateResolutionState(librarySource);
+    state.recordVerificationError();
   }
 
   /**

@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -47,7 +48,9 @@ import java.util.HashMap;
 
 public class DartEntryImplTest extends EngineTestCase {
   public void test_creation() throws Exception {
+    Source librarySource = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.CONTENT));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.ELEMENT));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.EXPORTED_LIBRARIES));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.IMPORTED_LIBRARIES));
@@ -61,6 +64,19 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
+
+    assertSame(
+        CacheState.INVALID,
+        entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, librarySource));
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource));
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.HINTS, librarySource));
+    assertSame(
+        CacheState.INVALID,
+        entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource));
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource));
+    assertSame(
+        CacheState.INVALID,
+        entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource));
   }
 
   public void test_getAllErrors() {
@@ -306,7 +322,7 @@ public class DartEntryImplTest extends EngineTestCase {
 
   public void test_hasInvalidData_false() throws Exception {
     DartEntryImpl entry = new DartEntryImpl();
-    entry.recordScanError();
+    entry.recordScanError(new AnalysisException());
     assertFalse(entry.hasInvalidData(DartEntry.ELEMENT));
     assertFalse(entry.hasInvalidData(DartEntry.EXPORTED_LIBRARIES));
     assertFalse(entry.hasInvalidData(DartEntry.HINTS));
@@ -404,55 +420,42 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.VALID, entry.getState(DartEntry.IS_LAUNCHABLE));
   }
 
-  public void test_recordBuildElementError() throws Exception {
+  public void test_recordBuildElementErrorInLibrary() throws Exception {
+    // TODO(brianwilkerson) This test should set the state for two libraries, record an error in one
+    // library, then verify that the data for the other library is still valid.
+    Source source = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
-    entry.recordBuildElementError();
+    entry.recordBuildElementErrorInLibrary(source, new AnalysisException());
+
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.CONTENT));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.ELEMENT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.EXPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.IMPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.INCLUDED_PARTS));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_CLIENT));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_LAUNCHABLE));
     assertSame(CacheState.INVALID, entry.getState(SourceEntry.LINE_INFO));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSE_ERRORS));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSED_UNIT));
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.PUBLIC_NAMESPACE));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PUBLIC_NAMESPACE));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
+
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
   }
 
-  public void test_recordParseError() throws Exception {
+  public void test_recordContentError() throws Exception {
+//    Source source = new TestSource();
     DartEntryImpl entry = new DartEntryImpl();
-    entry.recordParseError();
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.ELEMENT));
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.EXPORTED_LIBRARIES));
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.IMPORTED_LIBRARIES));
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.INCLUDED_PARTS));
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_CLIENT));
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_LAUNCHABLE));
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.PARSE_ERRORS));
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.PARSED_UNIT));
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.PUBLIC_NAMESPACE));
-  }
+    entry.recordContentError(new AnalysisException());
 
-  public void test_recordParseInProcess() throws Exception {
-    DartEntryImpl entry = new DartEntryImpl();
-    entry.recordParseInProcess();
-    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.PARSE_ERRORS));
-    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.PARSED_UNIT));
-    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.SOURCE_KIND));
-  }
-
-  public void test_recordResolutionError() throws Exception {
-    DartEntryImpl entry = new DartEntryImpl();
-    entry.recordResolutionError();
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.ELEMENT));
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_CLIENT));
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_LAUNCHABLE));
-    assertSame(CacheState.INVALID, entry.getState(SourceEntry.LINE_INFO));
-    assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSE_ERRORS));
-    assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSED_UNIT));
-    assertSame(CacheState.ERROR, entry.getState(DartEntry.PUBLIC_NAMESPACE));
-  }
-
-  public void test_recordScanError() throws Exception {
-    DartEntryImpl entry = new DartEntryImpl();
-    entry.recordScanError();
+    assertSame(CacheState.ERROR, entry.getState(SourceEntry.CONTENT));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.ELEMENT));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.EXPORTED_LIBRARIES));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.IMPORTED_LIBRARIES));
@@ -464,7 +467,177 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.ERROR, entry.getState(DartEntry.PARSED_UNIT));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.PUBLIC_NAMESPACE));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.SCAN_ERRORS));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.SOURCE_KIND));
     assertSame(CacheState.ERROR, entry.getState(DartEntry.TOKEN_STREAM));
+
+    // The following lines are commented out because we don't currently have any way of setting the
+    // state for data associated with a library we don't know anything about.
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+  }
+
+  public void test_recordHintErrorInLibrary() throws Exception {
+    // TODO(brianwilkerson) This test should set the state for two libraries, record an error in one
+    // library, then verify that the data for the other library is still valid.
+    Source source = new TestSource();
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.recordHintErrorInLibrary(source, new AnalysisException());
+
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.CONTENT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.ELEMENT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.EXPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.IMPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.INCLUDED_PARTS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.IS_CLIENT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.IS_LAUNCHABLE));
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.LINE_INFO));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSE_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSED_UNIT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PUBLIC_NAMESPACE));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
+
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+  }
+
+  public void test_recordParseError() throws Exception {
+//    Source source = new TestSource();
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.recordParseError(new AnalysisException());
+
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.CONTENT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.ELEMENT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.EXPORTED_LIBRARIES));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.IMPORTED_LIBRARIES));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.INCLUDED_PARTS));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_CLIENT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_LAUNCHABLE));
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.LINE_INFO));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.PARSE_ERRORS));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.PARSED_UNIT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.PUBLIC_NAMESPACE));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.SOURCE_KIND));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
+
+    // The following lines are commented out because we don't currently have any way of setting the
+    // state for data associated with a library we don't know anything about.
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+  }
+
+  public void test_recordParseInProcess() throws Exception {
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.recordParseInProcess();
+    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.PARSE_ERRORS));
+    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.PARSED_UNIT));
+    assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.SOURCE_KIND));
+  }
+
+  public void test_recordResolutionError() throws Exception {
+//    Source source = new TestSource();
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.recordResolutionError(new AnalysisException());
+
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.CONTENT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.ELEMENT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.EXPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.IMPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.INCLUDED_PARTS));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_CLIENT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_LAUNCHABLE));
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.LINE_INFO));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSE_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSED_UNIT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.PUBLIC_NAMESPACE));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
+
+    // The following lines are commented out because we don't currently have any way of setting the
+    // state for data associated with a library we don't know anything about.
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+  }
+
+  public void test_recordResolutionErrorInLibrary() throws Exception {
+    // TODO(brianwilkerson) This test should set the state for two libraries, record an error in one
+    // library, then verify that the data for the other library is still valid.
+    Source source = new TestSource();
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.recordResolutionErrorInLibrary(source, new AnalysisException());
+
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.CONTENT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.ELEMENT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.EXPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.IMPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.INCLUDED_PARTS));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_CLIENT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_LAUNCHABLE));
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.LINE_INFO));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSE_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSED_UNIT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.PUBLIC_NAMESPACE));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
+
+    // The following lines are commented out because we don't currently have any way of setting the
+    // state for data associated with a library we don't know anything about.
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+  }
+
+  public void test_recordScanError() throws Exception {
+//    Source source = new TestSource();
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.recordScanError(new AnalysisException());
+
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.CONTENT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.ELEMENT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.EXPORTED_LIBRARIES));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.IMPORTED_LIBRARIES));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.INCLUDED_PARTS));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_CLIENT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.IS_LAUNCHABLE));
+    assertSame(CacheState.ERROR, entry.getState(SourceEntry.LINE_INFO));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.PARSE_ERRORS));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.PARSED_UNIT));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.PUBLIC_NAMESPACE));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.SCAN_ERRORS));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.SOURCE_KIND));
+    assertSame(CacheState.ERROR, entry.getState(DartEntry.TOKEN_STREAM));
+
+    // The following lines are commented out because we don't currently have any way of setting the
+    // state for data associated with a library we don't know anything about.
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
   }
 
   public void test_recordScanInProcess() throws Exception {
@@ -473,6 +646,36 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.IN_PROCESS, entry.getState(SourceEntry.LINE_INFO));
     assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.SCAN_ERRORS));
     assertSame(CacheState.IN_PROCESS, entry.getState(DartEntry.TOKEN_STREAM));
+  }
+
+  public void test_recordVerificationErrorInLibrary() throws Exception {
+    // TODO(brianwilkerson) This test should set the state for two libraries, record an error in one
+    // library, then verify that the data for the other library is still valid.
+    Source source = new TestSource();
+    DartEntryImpl entry = new DartEntryImpl();
+    entry.recordVerificationErrorInLibrary(source, new AnalysisException());
+
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.CONTENT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.ELEMENT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.EXPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.IMPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.INCLUDED_PARTS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.IS_CLIENT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.IS_LAUNCHABLE));
+    assertSame(CacheState.INVALID, entry.getState(SourceEntry.LINE_INFO));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSE_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PARSED_UNIT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PUBLIC_NAMESPACE));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
+
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
   }
 
   public void test_removeResolution_multiple_first() {
