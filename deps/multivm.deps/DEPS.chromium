@@ -23,7 +23,7 @@ vars = {
   "libcxxabi_revision": "206024",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "172051",
+  "webkit_revision": "172784",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "skia_git": "https://skia.googlesource.com",
@@ -35,7 +35,7 @@ vars = {
   "google_toolbox_for_mac_revision": "662",
   "libaddressinput_revision": "176",
   "libphonenumber_revision": "621",
-  "libvpx_revision": "264320",
+  "libvpx_revision": "263116",
   "lss_revision": "26",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
@@ -45,23 +45,23 @@ vars = {
 
   "sfntly_revision": "228",
   "lighttpd_revision": "33737",
-  "skia_revision": "14270",
-  "skia_hash": "f7927dd60761ca45f26059a8ab434018676cb2e7",
+  "skia_revision": "14390",
+  "skia_hash": "f672cead70404080a991ebfb86c38316a4589b23",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   "v8_branch": "trunk",
-  "v8_revision": "20829",
+  "v8_revision": "21011",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "5831",
+  "webrtc_revision": "5963",
   "jsoncpp_revision": "248",
-  "nss_revision": "259440",
+  "nss_revision": "265958",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarming_client
   # and whatever else without interference from each other.
-  "swarming_revision": "4eeada947e2fa4f48100ebb39b740bccabbc7747",
+  "swarming_revision": "b19319e0bc258985a01760c4260fcfb2b338db2b",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
@@ -74,7 +74,7 @@ vars = {
 
 deps = {
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1313",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1318",
 
   "src/sdch/open-vcdiff":
     (Var("googlecode_url") % "open-vcdiff") + "/trunk@42",
@@ -89,7 +89,7 @@ deps = {
     Var("chromium_git") + "/angle/angle.git@" + Var("angle_revision"),
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@1265",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@1266",
 
   "src/third_party/WebKit":
     Var("webkit_trunk") + "@" + Var("webkit_revision"),
@@ -134,10 +134,10 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@80",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@160",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@167",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1892",
+    (Var("googlecode_url") % "gyp") + "/trunk@1895",
 
   "src/tools/swarming_client":
     Var("chromium_git") + "/external/swarming.client.git@" +
@@ -253,10 +253,10 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@994",
+    (Var("googlecode_url") % "libyuv") + "/trunk@1000",
 
   "src/third_party/smhasher/src":
-    (Var("googlecode_url") % "smhasher") + "/trunk@151",
+    (Var("googlecode_url") % "smhasher") + "/trunk@152",
 
   "src/third_party/libaddressinput/src/cpp":
     (Var("googlecode_url") % "libaddressinput") + "/trunk/cpp@" +
@@ -294,7 +294,7 @@ deps = {
     "/trunk/deps/cdm@262570",
 
   "src/third_party/mesa/src":
-    "/trunk/deps/third_party/mesa@261106",
+    "/trunk/deps/third_party/mesa@265279",
 
   "src/third_party/cld_2/src":
     (Var("googlecode_url") % "cld2") + "/trunk@160",
@@ -362,7 +362,7 @@ deps_os = {
     # Binary level profile guided optimizations. This points to the
     # latest release binaries for the toolchain.
     "src/third_party/syzygy/binaries":
-      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@2058",
+      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@2134",
 
     # Binaries for nacl sdk.
     "src/third_party/nacl_sdk_binaries":
@@ -501,7 +501,7 @@ deps_os = {
   "android": {
     "src/third_party/android_tools":
       Var("chromium_git") + "/android_tools.git" +
-      "@84ff5f258a86d40ae69ccefde2efa45e52a9808c",
+      "@c9390198d02bf6f52b9a46b519badaf1c565261a",
 
     "src/third_party/aosp":
       "/trunk/deps/third_party/aosp@148330",
