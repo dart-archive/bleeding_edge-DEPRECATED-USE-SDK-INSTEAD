@@ -323,6 +323,115 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_deadCode_statementAfterBreak_inDefaultCase() throws Exception {
+    Source source = addSource(createSource(//
+        "f(v) {",
+        "  switch(v) {",
+        "    case 1:",
+        "    default:",
+        "      break;",
+        "      var a;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deadCode_statementAfterBreak_inForEachStatement() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  var list;",
+        "  for(var l in list) {",
+        "    break;",
+        "    var a;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deadCode_statementAfterBreak_inForStatement() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  for(;;) {",
+        "    break;",
+        "    var a;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deadCode_statementAfterBreak_inSwitchCase() throws Exception {
+    Source source = addSource(createSource(//
+        "f(v) {",
+        "  switch(v) {",
+        "    case 1:",
+        "      break;",
+        "      var a;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deadCode_statementAfterBreak_inWhileStatement() throws Exception {
+    Source source = addSource(createSource(//
+        "f(v) {",
+        "  while(v) {",
+        "    break;",
+        "    var a;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deadCode_statementAfterContinue_inForEachStatement() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  var list;",
+        "  for(var l in list) {",
+        "    continue;",
+        "    var a;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deadCode_statementAfterContinue_inForStatement() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  for(;;) {",
+        "    continue;",
+        "    var a;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deadCode_statementAfterContinue_inWhileStatement() throws Exception {
+    Source source = addSource(createSource(//
+        "f(v) {",
+        "  while(v) {",
+        "    continue;",
+        "    var a;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.DEAD_CODE);
+    verify(source);
+  }
+
   public void test_deadCode_statementAfterReturn_function() throws Exception {
     Source source = addSource(createSource(//
         "f() {",

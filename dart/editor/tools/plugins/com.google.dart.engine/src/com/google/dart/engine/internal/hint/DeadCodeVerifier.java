@@ -17,8 +17,10 @@ import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BooleanLiteral;
+import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ConditionalExpression;
+import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
@@ -26,6 +28,9 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.SwitchCase;
+import com.google.dart.engine.ast.SwitchDefault;
+import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
@@ -122,19 +127,7 @@ public class DeadCodeVerifier extends RecursiveAstVisitor<Void> {
   @Override
   public Void visitBlock(Block node) {
     NodeList<Statement> statements = node.getStatements();
-    int size = statements.size();
-    for (int i = 0; i < size; i++) {
-      Statement currentStatement = statements.get(i);
-      safelyVisit(currentStatement);
-      if (currentStatement instanceof ReturnStatement && i != size - 1) {
-        Statement nextStatement = statements.get(i + 1);
-        Statement lastStatement = statements.get(size - 1);
-        int offset = nextStatement.getOffset();
-        int length = lastStatement.getEnd() - offset;
-        errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
-        return null;
-      }
-    }
+    checkForDeadStatementsInNodeList(statements);
     return null;
   }
 
@@ -161,23 +154,6 @@ public class DeadCodeVerifier extends RecursiveAstVisitor<Void> {
     return super.visitConditionalExpression(node);
   }
 
-  // Do we want to report "pointless" or "obscure" code such as do {} !while (false);!
-//@Override
-//public Void visitDoStatement(DoStatement node) {
-//  Expression conditionExpression = node.getCondition();
-//  ValidResult result = getConstantBooleanValue(conditionExpression);
-//  if (result != null) {
-//    if (result == ValidResult.RESULT_FALSE) {
-//      // report error on if block: do {} !while (false);!
-//      int whileOffset = node.getWhileKeyword().getOffset();
-//      int semiColonOffset = node.getSemicolon().getOffset() + 1;
-//      int length = semiColonOffset - whileOffset;
-//      errorReporter.reportError(HintCode.DEAD_CODE, whileOffset, length);
-//    }
-//  }
-//  return super.visitDoStatement(node);
-//}
-
   @Override
   public Void visitIfStatement(IfStatement node) {
     Expression conditionExpression = node.getCondition();
@@ -202,6 +178,35 @@ public class DeadCodeVerifier extends RecursiveAstVisitor<Void> {
       }
     }
     return super.visitIfStatement(node);
+  }
+
+  // Do we want to report "pointless" or "obscure" code such as do {} !while (false);!
+//@Override
+//public Void visitDoStatement(DoStatement node) {
+//  Expression conditionExpression = node.getCondition();
+//  ValidResult result = getConstantBooleanValue(conditionExpression);
+//  if (result != null) {
+//    if (result == ValidResult.RESULT_FALSE) {
+//      // report error on if block: do {} !while (false);!
+//      int whileOffset = node.getWhileKeyword().getOffset();
+//      int semiColonOffset = node.getSemicolon().getOffset() + 1;
+//      int length = semiColonOffset - whileOffset;
+//      errorReporter.reportError(HintCode.DEAD_CODE, whileOffset, length);
+//    }
+//  }
+//  return super.visitDoStatement(node);
+//}
+
+  @Override
+  public Void visitSwitchCase(SwitchCase node) {
+    checkForDeadStatementsInNodeList(node.getStatements());
+    return super.visitSwitchCase(node);
+  }
+
+  @Override
+  public Void visitSwitchDefault(SwitchDefault node) {
+    checkForDeadStatementsInNodeList(node.getStatements());
+    return super.visitSwitchDefault(node);
   }
 
   @Override
@@ -230,7 +235,10 @@ public class DeadCodeVerifier extends RecursiveAstVisitor<Void> {
               CatchClause lastCatchClause = catchClauses.get(numOfCatchClauses - 1);
               int offset = nextCatchClause.getOffset();
               int length = lastCatchClause.getEnd() - offset;
-              errorReporter.reportErrorForOffset(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
+              errorReporter.reportErrorForOffset(
+                  HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
+                  offset,
+                  length);
               return null;
             }
           }
@@ -261,7 +269,10 @@ public class DeadCodeVerifier extends RecursiveAstVisitor<Void> {
           CatchClause lastCatchClause = catchClauses.get(numOfCatchClauses - 1);
           int offset = nextCatchClause.getOffset();
           int length = lastCatchClause.getEnd() - offset;
-          errorReporter.reportErrorForOffset(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
+          errorReporter.reportErrorForOffset(
+              HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
+              offset,
+              length);
           return null;
         }
       }
@@ -285,6 +296,32 @@ public class DeadCodeVerifier extends RecursiveAstVisitor<Void> {
     }
     safelyVisit(node.getBody());
     return null;
+  }
+
+  /**
+   * Given some {@link NodeList} of {@link Statement}s, from either a {@link Block} or
+   * {@link SwitchMember}, this loops through the list in reverse order searching for statements
+   * after a return, unlabeled break or unlabeled continue statement to mark them as dead code.
+   * 
+   * @param statements some ordered list of statements in a {@link Block} or {@link SwitchMember}
+   */
+  private void checkForDeadStatementsInNodeList(NodeList<Statement> statements) {
+    int size = statements.size();
+    for (int i = 0; i < size; i++) {
+      Statement currentStatement = statements.get(i);
+      safelyVisit(currentStatement);
+      boolean returnOrBreakingStatement = currentStatement instanceof ReturnStatement
+          || (currentStatement instanceof BreakStatement && ((BreakStatement) currentStatement).getLabel() == null)
+          || (currentStatement instanceof ContinueStatement && ((ContinueStatement) currentStatement).getLabel() == null);
+      if (returnOrBreakingStatement && i != size - 1) {
+        Statement nextStatement = statements.get(i + 1);
+        Statement lastStatement = statements.get(size - 1);
+        int offset = nextStatement.getOffset();
+        int length = lastStatement.getEnd() - offset;
+        errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
+        return;
+      }
+    }
   }
 
   /**
