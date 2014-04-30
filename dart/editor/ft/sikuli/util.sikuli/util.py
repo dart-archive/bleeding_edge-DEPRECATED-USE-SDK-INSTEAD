@@ -39,13 +39,21 @@ def disable_code_folding():
   "Uncheck the box for the code folding preference."
   open_preferences()
   f = find(_p(util_path, "fold-pref-grey.png"))
-  x = f.right(1).left(150).exists(_p(util_path, "checked-mark.png"), 0)
+  x = f.right(1).left(250).exists(_p(util_path, "checked-mark.png"), 0)
   if x:
     x.click() # uncheck the check box
     enter()   # shift focus
     enter()   # accept changes
   else:
     escape()  # dismiss
+
+def dismiss_dialog():
+  "Dismiss a dialog by typing ESC."
+  if is_OSX():
+    escape()
+  elif is_linux():
+    click(_p(util_path, "CancelButton.png"))
+  wait(2)
 
 def escape():
   "Type the escape key."
@@ -101,10 +109,11 @@ def init_dart_editor():
   "Launch Dart Editor by running the script that initializes its state then starts the app."
   r = _check_bounds()
   s = Region(SCREEN)
-  s.setW(120)
+  s.setW(130)
   s.setH(120)
   s.doubleClick() # Assumes StartDartEditor icon is here, top-left of Desktop
   _init_editor_window(r)
+  wait(10)
 
 def is_linux():
   "Return true if running on Linux."
@@ -126,21 +135,43 @@ def kill_editor():
   subprocess.call(["killall", "DartEditor"])
   wait(0.5)
 
-def menu_bar_select(menu, selection):
+def menu_bar_select(menu, selection, char=None):
   "From the menu bar, show the menu and choose the selection."
   s = Region(SCREEN)
   s.setH(30)
   s.setW(550)
+  if is_linux():
+    s.right(1).hover()
+    s.setH(70)
+    menu = _p(util_path, menu + ".png")
+    selection = _p(util_path, selection + ".png")
   r = s.find(menu)
   r.click()
   wait(0.5)
-  h = r.left(1).below(300).right(250)
-  h.click(selection)
+  h = r.left(1).below(300).right(250)   
+  try:
+    h.click(selection)
+  except FindFailed:
+    if char is not None:
+      type(char)
+    else:
+      raise
+
+def open_outline():
+  "Open the Outline view."
+  menu_bar_select("Tools", "Outline")
 
 def open_preferences():
   "Open the Preferences dialog."
-  _key_cmd(',')
+  if is_OSX():
+    _key_cmd(',')
+  elif is_linux():
+    menu_bar_select("Tools", "Preferences", "p")
   wait(0.5)
+
+def open_welcome():
+  "Open the Welcome screen."
+  menu_bar_select("Tools", "Welcome", "w")
 
 def p(path):
   return _p(base_path, path)
@@ -237,20 +268,24 @@ def wait_for_analysis():
 def _check_bounds():
   "Check the screen size is correct and raise an error if not."
   r=getBounds()
-  if r.x != 0 or r.y != 0:
-    raise RuntimeError, "Bad screen size"
-  if r.width != 1440 or r.height != 900:
-    raise RuntimeError, "Bad screen size"
+#  if r.x != 0 or r.y != 0:
+#    raise RuntimeError, "Bad screen size"
+#  if r.width != 1440 or r.height != 900:
+#    raise RuntimeError, "Bad screen size"
   return r
 
 def _init_editor_window(r):
   "If the network connections prompt appears, dismiss it, otherwise click unobtrusively."
   wait(_p(util_path, "DartEditorName.png"),20)
-  click(Location(r.width/2+30, r.height/3+55))
+  if is_OSX():
+    click(Location(r.width/2+30, r.height/3+55))
 
 def _key_cmd(key):
   "Send meta-key to the editor."
-  type(key, KeyModifier.META)
+  if is_OSX():
+    type(key, KeyModifier.META)
+  else:
+    type(key, KeyModifier.CTRL)
 
 def _merge(region, rtRegion, blRegion):
   "Create a region that represents a context menu region when the given region is clicked."

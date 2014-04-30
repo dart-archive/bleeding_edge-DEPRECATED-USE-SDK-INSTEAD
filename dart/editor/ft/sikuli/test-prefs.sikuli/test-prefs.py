@@ -61,14 +61,15 @@ def testPrefPaneNav():
   nextPrefPane(t, "RunandDebugPaneTitle.png")
   nextPrefPane(t, "UpdatePaneTitle.png")
   nextPrefPane(t, "VisualThemePaneTitle.png")
-  type(Key.ESC)
+  wait(2)
+  util.dismiss_dialog()
 
 def testPrefPaneSelection():
   "Test preference pane selection by name."
   util.open_preferences()
   wait(5) # In case we start with Visual Theme, which we do
   selectEditorPrefPane() # Still in size large panes
-  type(Key.ESC)
+  util.dismiss_dialog()
   util.open_preferences() # Back to size small panes
   selectFontsPrefPane()
   selectHintsPrefPane()
@@ -76,30 +77,38 @@ def testPrefPaneSelection():
   selectRunandDebugPrefPane() # Medium size
   selectUpdatePrefPane()
   selectVisualThemePrefPane() # Large size
+  util.dismiss_dialog()
+  util.open_preferences()
   selectEditorPrefPane() # Start with small size next time
-  type(Key.ESC)
+  util.dismiss_dialog()
 
 def _prefTitleRegion():
   return find(p("PreferencesTitle.png")).below(40).right(1).left(350)
 
 def _selectPrefPane(title):
   t = _prefTitleRegion()
-  i = t.left(1).right(50)
+  i = t.left(1).left(150)
   i.click()
+  t.left(1).left(50).click()
+  t.left(1).right(20).click()
+  wait(1)
   util.select_all()
+  wait(1)
   util.delete_text()
+  wait(1)
   type(title[0])
+  wait(1)
   type(title[1]) # Not needed
-  wait(0.5)
+  wait(1)
   type(Key.DOWN)
-  wait(0.5)
+  wait(1)
   type(Key.DOWN)
-  wait(0.5)
-  t.wait(p(title))
-
+  wait(1)
+  t.nearby(100).wait(p(title))
 
 util.kill_editor() # Kill any currently running editor
 util.init_dart_editor() # Clear the workspace and start the editor
+#util.start_dart_editor()
 testPrefPaneNav() # Test
 testPrefPaneSelection() # Test
 util.quit_app() # Exit editor
