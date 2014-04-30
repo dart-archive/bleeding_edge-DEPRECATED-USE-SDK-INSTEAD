@@ -247,6 +247,11 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       // understand why it is and fix it.
       return DynamicTypeImpl.getInstance();
     }
+    // If there are no arguments to substitute, or if the arguments size doesn't match the parameter
+    // size, return the base return type.
+    if (typeArguments.length == 0 || typeArguments.length != getTypeParameters().length) {
+      return baseReturnType;
+    }
     return baseReturnType.substitute(
         typeArguments,
         TypeParameterTypeImpl.getTypes(getTypeParameters()));
