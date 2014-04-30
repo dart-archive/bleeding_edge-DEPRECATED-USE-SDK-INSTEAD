@@ -114,6 +114,7 @@ public enum ParserErrorCode implements ErrorCode {
   MISSING_EXPRESSION_IN_THROW("Throw expressions must compute the object to be thrown"),
   MISSING_FUNCTION_BODY("A function body must be provided"),
   MISSING_FUNCTION_PARAMETERS("Functions must have an explicit list of parameters"),
+  MISSING_GET("Getters must have the keyword 'get' before the getter name"),
   MISSING_IDENTIFIER("Expected an identifier"),
   MISSING_KEYWORD_OPERATOR("Operator declarations must be preceeded by the keyword 'operator'"),
   MISSING_NAME_IN_LIBRARY_DIRECTIVE("Library directives must include a library name"),

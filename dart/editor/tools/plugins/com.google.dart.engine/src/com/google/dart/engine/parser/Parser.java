@@ -632,6 +632,17 @@ public class Parser {
           type,
           methodName,
           parameters);
+    } else if (tokenMatches(peek(), TokenType.OPEN_CURLY_BRACKET)) {
+      // We have found "TypeName identifier {", and are guessing that this is a getter without the
+      // keyword 'get'.
+      validateModifiersForGetterOrSetterOrMethod(modifiers);
+      reportErrorForCurrentToken(ParserErrorCode.MISSING_GET);
+      currentToken = injectToken(new SyntheticKeywordToken(Keyword.GET, currentToken.getOffset()));
+      return parseGetter(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          modifiers.getStaticKeyword(),
+          type);
     }
     return parseInitializedIdentifierList(
         commentAndMetadata,

@@ -551,6 +551,22 @@ public class RecoveryParserTest extends ParserTestCase {
     assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
   }
 
+  public void test_missingGet() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(createSource(//
+        "class C {",
+        "  int length {}",
+        "  void foo() {}",
+        "}"), ParserErrorCode.MISSING_GET);
+    assertNotNull(unit);
+    ClassDeclaration classDeclaration = (ClassDeclaration) unit.getDeclarations().get(0);
+    NodeList<ClassMember> members = classDeclaration.getMembers();
+    assertSizeOfList(2, members);
+    assertInstanceOf(MethodDeclaration.class, members.get(0));
+    ClassMember member = members.get(1);
+    assertInstanceOf(MethodDeclaration.class, member);
+    assertEquals("foo", ((MethodDeclaration) member).getName().getName());
+  }
+
   public void test_missingIdentifier_afterAnnotation() throws Exception {
     MethodDeclaration method = parse(
         "parseClassMember",
