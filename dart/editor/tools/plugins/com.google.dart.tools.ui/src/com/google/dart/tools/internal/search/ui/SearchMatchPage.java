@@ -19,7 +19,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.search.MatchKind;
@@ -28,6 +27,7 @@ import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -40,6 +40,10 @@ import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.core.filebuffers.FileBuffers;
+import org.eclipse.core.filebuffers.ITextFileBuffer;
+import org.eclipse.core.filebuffers.ITextFileBufferManager;
+import org.eclipse.core.filebuffers.LocationKind;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -47,6 +51,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -60,6 +65,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -118,10 +124,7 @@ public abstract class SearchMatchPage extends SearchPage {
     public void addMatch(SourceLineProvider lineProvider, SearchMatch match) {
       ReferenceKind referenceKind = ReferenceKind.of(match.getKind());
       Source source = element.getSource();
-      SourceLine sourceLine = lineProvider.getLine(
-          element.getContext(),
-          source,
-          match.getSourceRange().getOffset());
+      SourceLine sourceLine = lineProvider.getLine(source, match.getSourceRange().getOffset());
       // find target LineItem
       LineItem targetLineItem = null;
       for (LineItem lineItem : lines) {
@@ -534,8 +537,8 @@ public abstract class SearchMatchPage extends SearchPage {
     /**
      * @return the {@link SourceLine} for the given {@link Source} and offset; may be {@code null}.
      */
-    public SourceLine getLine(AnalysisContext context, Source source, int offset) {
-      String content = getContent(context, source);
+    public SourceLine getLine(Source source, int offset) {
+      String content = getContent(source);
       // find start of line
       int start = offset;
       while (start > 0 && content.charAt(start - 1) != '\n') {
@@ -551,12 +554,30 @@ public abstract class SearchMatchPage extends SearchPage {
       return new SourceLine(source, start, text);
     }
 
-    private String getContent(AnalysisContext context, Source source) {
+    private String getContent(Source source) {
       String content = sourceContentMap.get(source);
       if (content == null) {
         try {
-          content = context.getContents(source).getData().toString();
-          sourceContentMap.put(source, content);
+          IResource resource = DartCore.getProjectManager().getResource(source);
+          if (resource instanceof IFile) {
+            // IFile in workspace, can be open and modified - get contents using FileBuffers.
+            IFile file = (IFile) resource;
+            ITextFileBufferManager manager = FileBuffers.getTextFileBufferManager();
+            IPath path = file.getFullPath();
+            manager.connect(path, LocationKind.IFILE, null);
+            try {
+              ITextFileBuffer buffer = manager.getTextFileBuffer(path, LocationKind.IFILE);
+              IDocument document = buffer.getDocument();
+              content = document.get();
+              sourceContentMap.put(source, content);
+            } finally {
+              manager.disconnect(path, LocationKind.IFILE, null);
+            }
+          } else {
+            // It must be an external file, cannot be modified - request its contents directly.
+            content = source.getContents().getData().toString();
+            sourceContentMap.put(source, content);
+          }
         } catch (Throwable e) {
           return null;
         }
