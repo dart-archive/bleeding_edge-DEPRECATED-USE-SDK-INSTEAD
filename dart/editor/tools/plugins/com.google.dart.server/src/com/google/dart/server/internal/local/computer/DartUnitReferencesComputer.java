@@ -177,6 +177,7 @@ public class DartUnitReferencesComputer {
     boolean isStatic = false;
     // new outline
     OutlineImpl outline = new OutlineImpl(
+        element.getSource(),
         parent,
         new SourceRegionImpl(0, 0),
         outlineKind,

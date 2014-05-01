@@ -322,7 +322,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
           listener.computedOutline(
               contextId,
               source,
-              new DartUnitOutlineComputer(dartUnit).compute());
+              new DartUnitOutlineComputer(source, dartUnit).compute());
         }
         break;
     }

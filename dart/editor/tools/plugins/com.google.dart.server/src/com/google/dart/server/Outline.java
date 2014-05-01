@@ -13,9 +13,11 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.engine.source.Source;
+
 /**
- * The interface {@code Outline} defines the behavior of objects that represent an outline for a
- * single source.
+ * The interface {@code Outline} defines the behavior of objects that represent an outline for an
+ * element.
  * 
  * @coverage dart.server
  */
@@ -86,6 +88,13 @@ public interface Outline {
    * @return the return type of the element
    */
   public String getReturnType();
+
+  /**
+   * Return the source containing the element, not {@code null}.
+   * 
+   * @return the source containing the element
+   */
+  public Source getSource();
 
   /**
    * Return the element's source range.

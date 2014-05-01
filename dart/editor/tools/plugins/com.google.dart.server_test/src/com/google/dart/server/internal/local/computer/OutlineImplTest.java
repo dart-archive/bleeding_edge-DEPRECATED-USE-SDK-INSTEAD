@@ -14,6 +14,7 @@
 
 package com.google.dart.server.internal.local.computer;
 
+import com.google.dart.engine.source.Source;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OutlineKind;
 
@@ -23,6 +24,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class OutlineImplTest extends TestCase {
+  private Source source = mock(Source.class);
+
   public void test_access() throws Exception {
     Outline childA = mock(Outline.class);
     Outline childB = mock(Outline.class);
@@ -31,6 +34,7 @@ public class OutlineImplTest extends TestCase {
     Outline parent = childA;
     Outline[] children = new Outline[] {childA, childB};
     OutlineImpl outline = new OutlineImpl(
+        source,
         parent,
         new SourceRegionImpl(1, 2),
         OutlineKind.METHOD,
@@ -42,6 +46,7 @@ public class OutlineImplTest extends TestCase {
         true,
         true,
         true);
+    assertSame(source, outline.getSource());
     assertSame(parent, outline.getParent());
     assertEquals(new SourceRegionImpl(1, 2), outline.getSourceRegion());
     assertSame(OutlineKind.METHOD, outline.getKind());
@@ -63,6 +68,7 @@ public class OutlineImplTest extends TestCase {
 
   public void test_equals() throws Exception {
     OutlineImpl outlineA = new OutlineImpl(
+        source,
         null,
         new SourceRegionImpl(1, 2),
         OutlineKind.METHOD,
@@ -75,6 +81,7 @@ public class OutlineImplTest extends TestCase {
         false,
         false);
     OutlineImpl outlineA2 = new OutlineImpl(
+        source,
         null,
         new SourceRegionImpl(1, 2),
         OutlineKind.METHOD,
@@ -87,6 +94,7 @@ public class OutlineImplTest extends TestCase {
         false,
         false);
     OutlineImpl outlineB = new OutlineImpl(
+        source,
         null,
         new SourceRegionImpl(1, 2),
         OutlineKind.METHOD,
@@ -106,6 +114,7 @@ public class OutlineImplTest extends TestCase {
 
   public void test_hashCode() throws Exception {
     OutlineImpl unitOutline = new OutlineImpl(
+        source,
         null,
         new SourceRegionImpl(1, 2),
         OutlineKind.METHOD,
@@ -119,6 +128,7 @@ public class OutlineImplTest extends TestCase {
         true);
     unitOutline.hashCode();
     OutlineImpl outline = new OutlineImpl(
+        source,
         unitOutline,
         new SourceRegionImpl(1, 2),
         OutlineKind.METHOD,

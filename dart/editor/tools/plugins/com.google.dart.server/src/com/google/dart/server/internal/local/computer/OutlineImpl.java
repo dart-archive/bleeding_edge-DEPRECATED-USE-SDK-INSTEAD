@@ -14,6 +14,7 @@
 
 package com.google.dart.server.internal.local.computer;
 
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OutlineKind;
@@ -27,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
  * @coverage dart.server.local
  */
 public class OutlineImpl implements Outline {
+  private final Source source;
   private final Outline parent;
   private final SourceRegion sourceRegion;
   private final OutlineKind kind;
@@ -40,9 +42,10 @@ public class OutlineImpl implements Outline {
   private final boolean isStatic;
   private Outline[] children = Outline.EMPTY_ARRAY;
 
-  public OutlineImpl(Outline parent, SourceRegion sourceRegion, OutlineKind kind, String name,
-      int offset, int length, String parameters, String returnType, boolean isAbstract,
-      boolean isPrivate, boolean isStatic) {
+  public OutlineImpl(Source source, Outline parent, SourceRegion sourceRegion, OutlineKind kind,
+      String name, int offset, int length, String parameters, String returnType,
+      boolean isAbstract, boolean isPrivate, boolean isStatic) {
+    this.source = source;
     this.parent = parent;
     this.sourceRegion = sourceRegion;
     this.kind = kind;
@@ -65,7 +68,8 @@ public class OutlineImpl implements Outline {
       return false;
     }
     OutlineImpl other = (OutlineImpl) obj;
-    return ObjectUtilities.equals(other.parent, parent) && ObjectUtilities.equals(name, other.name);
+    return ObjectUtilities.equals(other.source, source)
+        && ObjectUtilities.equals(other.parent, parent) && ObjectUtilities.equals(name, other.name);
   }
 
   @Override
@@ -109,6 +113,11 @@ public class OutlineImpl implements Outline {
   }
 
   @Override
+  public Source getSource() {
+    return source;
+  }
+
+  @Override
   public SourceRegion getSourceRegion() {
     return sourceRegion;
   }
@@ -116,7 +125,7 @@ public class OutlineImpl implements Outline {
   @Override
   public int hashCode() {
     if (parent == null) {
-      return 0;
+      return source.hashCode();
     }
     return ObjectUtilities.combineHashCodes(parent.hashCode(), name.hashCode());
   }

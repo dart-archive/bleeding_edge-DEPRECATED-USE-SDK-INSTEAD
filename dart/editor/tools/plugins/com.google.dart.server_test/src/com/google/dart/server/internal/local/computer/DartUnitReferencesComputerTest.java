@@ -98,15 +98,27 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
 
   public void test_function() throws Exception {
     createContextWithSingleSource(makeSource(//
-        "fff() {};",
+        "fff(p) {};",
         "main() {",
         "  fff(1);",
         "  print(fff);",
         "}"));
-    doSearch("fff() {}");
+    doSearch("fff(p) {}");
     assertThat(searchResults).hasSize(2);
     assertHasResult("fff(1);", SearchResultKind.FUNCTION_INVOCATION);
     assertHasResult("fff);", SearchResultKind.FUNCTION_REFERENCE);
+  }
+
+  public void test_getSource() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "main() {",
+        "  var ttt = 0;",
+        "  print(ttt);",
+        "}"));
+    doSearch("ttt = 0");
+    assertThat(searchResults).hasSize(1);
+    SearchResult searchResult = assertHasResult("ttt);", SearchResultKind.VARIABLE_READ);
+    assertEquals(source, searchResult.getSource());
   }
 
   public void test_getter() throws Exception {
@@ -337,22 +349,23 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
     assertThat(searchResults).isEmpty();
   }
 
-  private void assertHasResult(String search, int length, SearchResultKind kind) {
+  private SearchResult assertHasResult(String search, int length, SearchResultKind kind) {
     int offset = code.indexOf(search);
     SearchResult result = findSearchResult(source, kind, offset, length);
     assertNotNull("Not found\n\"" + search + "\" [offset=" + offset + ", length=" + length
         + ", kind=" + kind + "]\n" + "in\n" + StringUtils.join(searchResults, "\n"), result);
+    return result;
   }
 
-  private void assertHasResult(String search, SearchResultKind kind) {
+  private SearchResult assertHasResult(String search, SearchResultKind kind) {
     int length = CharMatcher.JAVA_LETTER.negate().indexIn(search);
-    assertHasResult(search, length, kind);
+    return assertHasResult(search, length, kind);
   }
 
   private void createContextWithSingleSource(String code) {
-    contextId = createContext("test");
+    this.contextId = createContext("test");
     this.code = code;
-    source = addSource(contextId, "/test.dart", code);
+    this.source = addSource(contextId, "/test.dart", code);
   }
 
   /**
