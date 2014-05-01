@@ -106,6 +106,18 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
     assertEquals("0.0.1", server.version());
   }
 
+  public void test_internal_getContext_getContextMap() throws Exception {
+    String contextId = createContext("testA");
+    server.test_waitForWorkerComplete();
+    assertNotNull(server.getContext(contextId));
+    assertNotNull(server.getContextMap().get(contextId));
+    // delete context
+    server.deleteContext(contextId);
+    server.test_waitForWorkerComplete();
+    assertNull(server.getContext(contextId));
+    assertNull(server.getContextMap().get(contextId));
+  }
+
   public void test_performAnalysis_continueSingleContext() throws Exception {
     String contextA = createContext("testA");
     String contextB = createContext("testB");
