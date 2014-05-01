@@ -1712,7 +1712,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public AnalysisContextStatistics getStatistics() {
     boolean hintsEnabled = options.getHint();
-    AnalysisContentStatisticsImpl statistics = new AnalysisContentStatisticsImpl();
+    AnalysisContextStatisticsImpl statistics = new AnalysisContextStatisticsImpl();
     synchronized (cacheLock) {
       MapIterator<Source, SourceEntry> iterator = cache.iterator();
       while (iterator.moveNext()) {

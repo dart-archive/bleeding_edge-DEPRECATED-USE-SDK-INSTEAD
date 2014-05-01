@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * Implementation of the {@link AnalysisContextStatistics}.
  */
-public class AnalysisContentStatisticsImpl implements AnalysisContextStatistics {
+public class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
   public static class PartitionDataImpl implements PartitionData {
     private int astCount;
 
