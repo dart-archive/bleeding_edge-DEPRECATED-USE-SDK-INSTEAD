@@ -40,6 +40,7 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.InternalAnalysisServer;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.SourceSet;
@@ -76,7 +77,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 
  * @coverage dart.server.local
  */
-public class LocalAnalysisServerImpl implements AnalysisServer {
+public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysisServer {
   /**
    * The thread that runs {@link #index}.
    */
@@ -221,6 +222,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer {
   @Override
   public void deleteContext(String contextId) {
     operationQueue.add(new DeleteContextOperation(contextId));
+  }
+
+  @Override
+  public AnalysisContext getContext(String contextId) {
+    return contextMap.get(contextId);
   }
 
   /**
