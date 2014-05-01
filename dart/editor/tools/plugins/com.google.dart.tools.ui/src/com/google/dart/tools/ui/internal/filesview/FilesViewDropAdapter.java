@@ -13,8 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
-import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
 import com.google.dart.tools.ui.internal.refactoring.MoveSupport;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
@@ -85,13 +84,14 @@ public class FilesViewDropAdapter extends NavigatorDropAdapter {
         return false;
       }
       // execute MoveRefactoring
-      return ExecutionUtils.runLog(new RunnableEx() {
-        @Override
-        public void run() throws Exception {
-          RefactoringStatus status = new RefactoringStatus();
-          MoveSupport.performMove(status, resources, destination);
-        }
-      });
+      try {
+        RefactoringStatus status = new RefactoringStatus();
+        MoveSupport.performMove(status, resources, destination);
+      } catch (InterruptedException e) {
+        // ignore
+      } catch (Throwable e) {
+        DartToolsPlugin.log(e);
+      }
     }
     // we don't know how to move this
     return false;
