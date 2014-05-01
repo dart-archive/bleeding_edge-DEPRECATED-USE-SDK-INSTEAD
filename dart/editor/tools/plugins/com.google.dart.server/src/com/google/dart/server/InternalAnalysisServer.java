@@ -15,6 +15,8 @@ package com.google.dart.server;
 
 import com.google.dart.engine.context.AnalysisContext;
 
+import java.util.Map;
+
 /**
  * This gives access to the internals of the AnalysisServer. This is a temporary access point to
  * keep the analysis server internals and the old model in sync until such time as we have ported
@@ -30,4 +32,11 @@ public interface InternalAnalysisServer {
    * @return the context or {@code null} if none is currently associated with that identifier
    */
   public AnalysisContext getContext(String contextId);
+
+  /**
+   * A map of all contexts known to the analysis server.
+   * 
+   * @return a map of context identifier to context
+   */
+  public Map<String, AnalysisContext> getContextMap();
 }

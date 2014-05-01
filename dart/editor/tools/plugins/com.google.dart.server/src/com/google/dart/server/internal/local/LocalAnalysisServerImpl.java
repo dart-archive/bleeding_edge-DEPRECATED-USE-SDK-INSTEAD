@@ -229,6 +229,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     return contextMap.get(contextId);
   }
 
+  @Override
+  public Map<String, AnalysisContext> getContextMap() {
+    return contextMap;
+  }
+
   /**
    * Implementation for {@link #applyChanges(String, ChangeSet)}.
    */

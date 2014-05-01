@@ -13,6 +13,8 @@ import com.google.dart.engine.internal.index.IndexImpl;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
+import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.InternalAnalysisServer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -20,6 +22,7 @@ import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -49,7 +52,11 @@ import org.eclipse.ui.part.ViewPart;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -168,6 +175,8 @@ public class AnalysisView extends ViewPart {
     NONE, IN_QUEUE, ACTIVE;
   }
 
+  private static int COLUMN_WIDTH = 12;
+
   private static void addContext(AnalysisWorker[] queueWorkers, AnalysisWorker activeWorker,
       List<AnalysisContextData> contexts, String name, InternalAnalysisContext context) {
     ContextWorkerState workerState = getContextWorkerState(queueWorkers, activeWorker, context);
@@ -179,22 +188,38 @@ public class AnalysisView extends ViewPart {
     AnalysisWorker[] queueWorkers = AnalysisManager.getInstance().getQueueWorkers();
     AnalysisWorker activeWorker = AnalysisManager.getInstance().getActiveWorker();
     List<AnalysisContextData> contexts = Lists.newArrayList();
+
+    Set<AnalysisContext> visited = new HashSet<AnalysisContext>();
+    AnalysisServer server = DartCore.getAnalysisServer();
+    if (server instanceof InternalAnalysisServer) {
+      Map<String, AnalysisContext> contextMap = ((InternalAnalysisServer) server).getContextMap();
+      for (Entry<String, AnalysisContext> entry : contextMap.entrySet()) {
+        String name = new Path(entry.getKey()).lastSegment();
+        addContext(queueWorkers, activeWorker, contexts, name,
+            (InternalAnalysisContext) entry.getValue());
+        visited.add(entry.getValue());
+      }
+    }
+
     for (Project project : DartCore.getProjectManager().getProjects()) {
       String projectName = project.getResource().getName();
       // default context
       AnalysisContext defaultContext = project.getDefaultContext();
-      addContext(queueWorkers, activeWorker, contexts, projectName,
-          (InternalAnalysisContext) defaultContext);
+      if (visited.add(defaultContext)) {
+        addContext(queueWorkers, activeWorker, contexts, projectName,
+            (InternalAnalysisContext) defaultContext);
+      }
       // separate Pub folders
       for (PubFolder pubFolder : project.getPubFolders()) {
         String pubFolderName = projectName + " - " + pubFolder.getResource().getName();
         AnalysisContext context = pubFolder.getContext();
-        if (context != defaultContext) {
+        if (context != defaultContext && visited.add(context)) {
           addContext(queueWorkers, activeWorker, contexts, pubFolderName,
               (InternalAnalysisContext) context);
         }
       }
     }
+
     return contexts;
   }
 
@@ -281,7 +306,7 @@ public class AnalysisView extends ViewPart {
       TreeViewerColumn viewerColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
       TreeColumn column = viewerColumn.getColumn();
       column.setText("ERROR");
-      column.setWidth(pixelConverter.convertWidthInCharsToPixels(15));
+      column.setWidth(pixelConverter.convertWidthInCharsToPixels(COLUMN_WIDTH));
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
         public Color getBackground(Object element) {
@@ -313,7 +338,7 @@ public class AnalysisView extends ViewPart {
       TreeViewerColumn viewerColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
       TreeColumn column = viewerColumn.getColumn();
       column.setText("FLUSHED");
-      column.setWidth(pixelConverter.convertWidthInCharsToPixels(15));
+      column.setWidth(pixelConverter.convertWidthInCharsToPixels(COLUMN_WIDTH));
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
         public String getText(Object element) {
@@ -331,7 +356,7 @@ public class AnalysisView extends ViewPart {
       TreeViewerColumn viewerColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
       TreeColumn column = viewerColumn.getColumn();
       column.setText("IN_PROCESS");
-      column.setWidth(pixelConverter.convertWidthInCharsToPixels(15));
+      column.setWidth(pixelConverter.convertWidthInCharsToPixels(COLUMN_WIDTH));
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
         public String getText(Object element) {
@@ -349,7 +374,7 @@ public class AnalysisView extends ViewPart {
       TreeViewerColumn viewerColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
       TreeColumn column = viewerColumn.getColumn();
       column.setText("INVALID");
-      column.setWidth(pixelConverter.convertWidthInCharsToPixels(15));
+      column.setWidth(pixelConverter.convertWidthInCharsToPixels(COLUMN_WIDTH));
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
         public Color getBackground(Object element) {
@@ -379,7 +404,7 @@ public class AnalysisView extends ViewPart {
       TreeViewerColumn viewerColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
       TreeColumn column = viewerColumn.getColumn();
       column.setText("VALID");
-      column.setWidth(pixelConverter.convertWidthInCharsToPixels(15));
+      column.setWidth(pixelConverter.convertWidthInCharsToPixels(COLUMN_WIDTH));
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
         public String getText(Object element) {
