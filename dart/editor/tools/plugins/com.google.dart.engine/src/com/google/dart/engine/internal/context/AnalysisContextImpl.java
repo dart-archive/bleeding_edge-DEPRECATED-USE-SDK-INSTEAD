@@ -2112,6 +2112,24 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Create an analysis cache based on the given source factory.
+   * 
+   * @param factory the source factory containing the information needed to create the cache
+   * @return the cache that was created
+   */
+  protected AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
+    if (factory == null) {
+      return new AnalysisCache(new CachePartition[] {privatePartition});
+    }
+    DartSdk sdk = factory.getDartSdk();
+    if (sdk == null) {
+      return new AnalysisCache(new CachePartition[] {privatePartition});
+    }
+    return new AnalysisCache(new CachePartition[] {
+        AnalysisEngine.getInstance().getPartitionManager().forSdk(sdk), privatePartition});
+  }
+
+  /**
    * Record the results produced by performing a {@link ResolveDartLibraryCycleTask}. If the results
    * were computed from data that is now out-of-date, then the results will not be recorded.
    * 
@@ -2901,24 +2919,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           exception);
     }
     return new TaskData(null, false);
-  }
-
-  /**
-   * Create an analysis cache based on the given source factory.
-   * 
-   * @param factory the source factory containing the information needed to create the cache
-   * @return the cache that was created
-   */
-  private AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
-    if (factory == null) {
-      return new AnalysisCache(new CachePartition[] {privatePartition});
-    }
-    DartSdk sdk = factory.getDartSdk();
-    if (sdk == null) {
-      return new AnalysisCache(new CachePartition[] {privatePartition});
-    }
-    return new AnalysisCache(new CachePartition[] {
-        AnalysisEngine.getInstance().getPartitionManager().forSdk(sdk), privatePartition});
   }
 
   /**

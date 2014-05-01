@@ -38,7 +38,6 @@ public class MockDartSdk implements DartSdk {
   }
 
   @Override
-  @Deprecated
   public AnalysisContext getContext() {
     return null;
   }

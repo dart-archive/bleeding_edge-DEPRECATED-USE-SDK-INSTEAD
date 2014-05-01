@@ -60,7 +60,6 @@ public interface DartSdk {
    * 
    * @return the {@link AnalysisContext} used for all of the sources in this {@link DartSdk}
    */
-  @Deprecated
   public AnalysisContext getContext();
 
   /**

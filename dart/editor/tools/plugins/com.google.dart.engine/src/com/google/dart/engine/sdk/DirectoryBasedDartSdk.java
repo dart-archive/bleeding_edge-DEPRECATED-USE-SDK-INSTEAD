@@ -16,8 +16,8 @@ package com.google.dart.engine.sdk;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.context.SdkAnalysisContext;
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.internal.sdk.SdkLibrariesReader;
 import com.google.dart.engine.source.DartUriResolver;
@@ -268,12 +268,13 @@ public class DirectoryBasedDartSdk implements DartSdk {
   @Override
   public AnalysisContext getContext() {
     if (analysisContext == null) {
-      analysisContext = new AnalysisContextImpl();
-      analysisContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
+      analysisContext = new SdkAnalysisContext();
+      SourceFactory factory = new SourceFactory(new DartUriResolver(this));
+      analysisContext.setSourceFactory(factory);
       String[] uris = getUris();
       ChangeSet changeSet = new ChangeSet();
       for (String uri : uris) {
-        changeSet.addedSource(analysisContext.getSourceFactory().forUri(uri));
+        changeSet.addedSource(factory.forUri(uri));
       }
       analysisContext.applyChanges(changeSet);
     }
