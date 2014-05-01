@@ -301,15 +301,19 @@ public class CompletionEngine {
     }
 
     void addNamesDefinedByHierarchy(ClassElement classElement, boolean forSuper) {
-      InterfaceType[] superTypes = classElement.getAllSupertypes();
+      addNamesDefinedByHierarchy(classElement.getType(), forSuper);
+    }
+
+    void addNamesDefinedByHierarchy(InterfaceType type, boolean forSuper) {
+      InterfaceType[] superTypes = type.getElement().getAllSupertypes();
       if (!forSuper) {
-        superTypes = ArrayUtils.add(superTypes, 0, classElement.getType());
+        superTypes = ArrayUtils.add(superTypes, 0, type);
       }
       addNamesDefinedByTypes(superTypes);
       // Collect names defined by subtypes separately so they can be identified later.
       NameCollector potentialMatchCollector = new NameCollector();
-      if (!classElement.getType().isObject()) {
-        potentialMatchCollector.addNamesDefinedByTypes(allSubtypes(classElement));
+      if (!type.isObject()) {
+        potentialMatchCollector.addNamesDefinedByTypes(allSubtypes(type.getElement()));
       }
       potentialMatches = new HashSet<Element>(potentialMatchCollector.uniqueNames.size());
       for (List<Element> matches : potentialMatchCollector.uniqueNames.values()) {
@@ -2013,14 +2017,14 @@ public class CompletionEngine {
     if (receiverType != null) {
       // Complete x.!y
       Element rcvrTypeElem = receiverType.getElement();
-      if (rcvrTypeElem == null) {
-        rcvrTypeElem = getObjectClassElement(); // { f() => null.! }
+      if (receiverType.isBottom()) {
+        receiverType = getObjectType();
       }
       if (receiverType.isDynamic()) {
-        rcvrTypeElem = getObjectClassElement();
+        receiverType = getObjectType();
       }
-      if (rcvrTypeElem instanceof ClassElement) {
-        prefixedAccess((ClassElement) rcvrTypeElem, forSuper, completionNode);
+      if (receiverType instanceof InterfaceType) {
+        prefixedAccess((InterfaceType) receiverType, forSuper, completionNode);
       } else if (rcvrTypeElem instanceof TypeParameterElement) {
         TypeParameterElement typeParamElem = (TypeParameterElement) rcvrTypeElem;
         analyzePrefixedAccess(typeParamElem.getBound(), false, completionNode);
@@ -2346,14 +2350,14 @@ public class CompletionEngine {
     analyzePrefixedAccess(expr, identifier);
   }
 
-  void prefixedAccess(ClassElement classElement, boolean forSuper, SimpleIdentifier identifier) {
+  void prefixedAccess(InterfaceType type, boolean forSuper, SimpleIdentifier identifier) {
     // Complete identifier when it refers to field or method in classElement.
     filter = new Filter(identifier);
     NameCollector names = new NameCollector();
     if (state.areInstanceReferencesProhibited) {
-      names.addNamesDefinedByType(classElement);
+      names.addNamesDefinedByType(type);
     } else {
-      names.addNamesDefinedByHierarchy(classElement, forSuper);
+      names.addNamesDefinedByHierarchy(type, forSuper);
     }
     proposeNames(names, identifier);
   }
@@ -2617,6 +2621,10 @@ public class CompletionEngine {
 
   private ClassElement getObjectClassElement() {
     return getTypeProvider().getObjectType().getElement();
+  }
+
+  private InterfaceType getObjectType() {
+    return getTypeProvider().getObjectType();
   }
 
   private ParameterElement[] getParameterElements(ArgumentList args) {
