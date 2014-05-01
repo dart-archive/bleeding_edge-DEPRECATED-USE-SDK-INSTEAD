@@ -461,6 +461,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   @Override
+  public Void visitAnnotation(Annotation node) {
+    checkForInvalidAnnotationFromDeferredLibrary(node);
+    return super.visitAnnotation(node);
+  }
+
+  @Override
   public Void visitArgumentList(ArgumentList node) {
     checkForArgumentTypesNotAssignableInList(node);
     return super.visitArgumentList(node);
@@ -1108,6 +1114,15 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   public Void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     checkForFinalNotInitialized(node.getVariables());
     return super.visitTopLevelVariableDeclaration(node);
+  }
+
+  @Override
+  public Void visitTypeArgumentList(TypeArgumentList node) {
+    NodeList<TypeName> list = node.getArguments();
+    for (TypeName typeName : list) {
+      checkForTypeAnnotationDeferredClass(typeName);
+    }
+    return super.visitTypeArgumentList(node);
   }
 
   @Override
@@ -3779,6 +3794,26 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         staticParameterType,
         intType,
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+  }
+
+  /**
+   * This verifies that the passed {@link Annotation} isn't defined in a deferred library.
+   * 
+   * @param node the {@link Annotation}
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY
+   */
+  private boolean checkForInvalidAnnotationFromDeferredLibrary(Annotation node) {
+    Identifier nameIdentifier = node.getName();
+    if (nameIdentifier instanceof PrefixedIdentifier) {
+      if (((PrefixedIdentifier) nameIdentifier).isDeferred()) {
+        errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
+            node.getName());
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

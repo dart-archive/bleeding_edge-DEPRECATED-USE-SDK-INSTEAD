@@ -857,8 +857,8 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     if (target == null) {
       staticElement = resolveInvokedElement(methodName);
       propagatedElement = null;
-    } else if (isDeferredPrefix(target)
-        && methodName.getName().equals(FunctionElement.LOAD_LIBRARY_NAME)) {
+    } else if (methodName.getName().equals(FunctionElement.LOAD_LIBRARY_NAME)
+        && isDeferredPrefix(target)) {
       LibraryElement importedLibrary = getImportedLibrary(target);
       methodName.setStaticElement(importedLibrary.getLoadLibraryFunction());
       return null;
@@ -1057,7 +1057,15 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     SimpleIdentifier prefix = node.getPrefix();
     SimpleIdentifier identifier = node.getIdentifier();
     //
-    // First, check to see whether the prefix is really a prefix.
+    // First, check the "lib.loadLibrary" case
+    //
+    if (identifier.getName().equals(FunctionElement.LOAD_LIBRARY_NAME) && isDeferredPrefix(prefix)) {
+      LibraryElement importedLibrary = getImportedLibrary(prefix);
+      identifier.setStaticElement(importedLibrary.getLoadLibraryFunction());
+      return null;
+    }
+    //
+    // Check to see whether the prefix is really a prefix.
     //
     Element prefixElement = prefix.getStaticElement();
     if (prefixElement instanceof PrefixElement) {

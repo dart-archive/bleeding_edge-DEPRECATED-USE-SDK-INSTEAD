@@ -601,6 +601,36 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constInitializedWithNonConstValueFromDeferredClass() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const V = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "const B = a.V;"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
+  public void test_constInitializedWithNonConstValueFromDeferredClass_nested() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const V = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "const B = a.V + 1;"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
   public void test_constInstanceField() throws Exception {
     Source source = addSource(createSource(//
         "class C {",
@@ -2076,6 +2106,49 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
   }
 
+  public void test_invalidAnnotationFromDeferredLibrary() throws Exception {
+    // See test_invalidAnnotation_notConstantVariable
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class V { const V(); }",
+        "const v = const V();"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "@a.v main () {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
+  public void test_invalidAnnotationFromDeferredLibrary_constructor() throws Exception {
+    // See test_invalidAnnotation_notConstantVariable
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class C { const C(); }"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "@a.C() main () {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
+  public void test_invalidAnnotationFromDeferredLibrary_namedConstructor() throws Exception {
+    // See test_invalidAnnotation_notConstantVariable
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class C { const C.name(); }"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "@a.C.name() main () {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
   public void test_invalidConstructorName_notEnclosingClassName_defined() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2792,6 +2865,32 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValueFromDeferredLibrary() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const V = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f({x : a.V}) {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValueFromDeferredLibrary_nested() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const V = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f({x : a.V + 1}) {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
     verify(source);
   }
 

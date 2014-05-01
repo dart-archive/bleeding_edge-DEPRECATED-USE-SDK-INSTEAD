@@ -61,6 +61,7 @@ import com.google.dart.engine.internal.object.StringState;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.ast.DeferredLibraryReferenceDetector;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -126,13 +127,17 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
       ConstructorElement constructorElement = (ConstructorElement) element;
       // should 'const' constructor
       if (!constructorElement.isConst()) {
-        errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node);
+        errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR,
+            node);
         return null;
       }
       // should have arguments
       ArgumentList argumentList = node.getArguments();
       if (argumentList == null) {
-        errorReporter.reportErrorForNode(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node);
+        errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS,
+            node);
         return null;
       }
       // arguments should be constants
@@ -247,8 +252,18 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
             initializer,
             CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
         element.setEvaluationResult(result);
+        return null;
       } else if (result instanceof ErrorResult) {
         reportErrors(result, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+        return null;
+      }
+      DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
+      initializer.accept(referenceDetector);
+      if (referenceDetector.getResult()) {
+        errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
+            initializer);
+        return null;
       }
     }
     return null;
@@ -331,6 +346,13 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
               CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
           VariableElementImpl element = (VariableElementImpl) parameter.getElement();
           element.setEvaluationResult(result);
+          DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
+          defaultValue.accept(referenceDetector);
+          if (result instanceof ValidResult && referenceDetector.getResult()) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
+                defaultValue);
+          }
         }
       }
     }

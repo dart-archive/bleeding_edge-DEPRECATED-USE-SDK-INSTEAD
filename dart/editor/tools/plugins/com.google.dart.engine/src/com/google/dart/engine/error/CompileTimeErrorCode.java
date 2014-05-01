@@ -184,6 +184,16 @@ public enum CompileTimeErrorCode implements ErrorCode {
   CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE("'const' variables must be constant value"),
 
   /**
+   * 5 Variables: A constant variable must be initialized to a compile-time constant or a
+   * compile-time error occurs.
+   * <p>
+   * 12.1 Constants: A qualified reference to a static constant variable that is not qualified by a
+   * deferred prefix.
+   */
+  CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY(
+      "Constant values from a deferred library cannot be used to initialized a 'const' variable"),
+
+  /**
    * 7.5 Instance Variables: It is a compile-time error if an instance variable is declared to be
    * constant.
    */
@@ -658,6 +668,17 @@ public enum CompileTimeErrorCode implements ErrorCode {
   INVALID_ANNOTATION("Annotation can be only constant variable or constant constructor invocation"),
 
   /**
+   * 11 Metadata: Metadata consists of a series of annotations, each of which begin with the
+   * character @, followed by a constant expression that must be either a reference to a
+   * compile-time constant variable, or a call to a constant constructor.
+   * <p>
+   * 12.1 Constants: A qualified reference to a static constant variable that is not qualified by a
+   * deferred prefix.
+   */
+  INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY(
+      "Constant values from a deferred library cannot be used as annotations"),
+
+  /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time
    * constants. Until then, this acts as a placeholder for more informative errors.
    * <p>
@@ -933,6 +954,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * s<sub>1</sub> &hellip; label<sub>n1</sub> &hellip; label<sub>njn</sub> case e<sub>n</sub>:
    * s<sub>n</sub>}</i>, it is a compile-time error if the expressions <i>e<sub>k</sub></i> are not
    * compile-time constants, for all <i>1 &lt;= k &lt;= n</i>.
+   * <p>
+   * TODO (jwren) For this and all other NON_CONSTANT_* error codes we need a corresponding
+   * NON_CONSTANT_*_FROM_DEFERRED_LIBRARY, see NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY or
+   * CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY.
    */
   NON_CONSTANT_CASE_EXPRESSION("Case expressions must be constant"),
 
@@ -941,6 +966,16 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * parameter is not a compile-time constant.
    */
   NON_CONSTANT_DEFAULT_VALUE("Default values of an optional parameter must be constant"),
+
+  /**
+   * 6.2.2 Optional Formals: It is a compile-time error if the default value of an optional
+   * parameter is not a compile-time constant.
+   * <p>
+   * 12.1 Constants: A qualified reference to a static constant variable that is not qualified by a
+   * deferred prefix.
+   */
+  NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY(
+      "Constant values from a deferred library cannot be used as a default parameter value"),
 
   /**
    * 12.6 Lists: It is a compile time error if an element of a constant list literal is not a

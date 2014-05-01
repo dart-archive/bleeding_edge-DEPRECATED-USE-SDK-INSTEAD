@@ -2697,6 +2697,37 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typeAnnotationDeferredClass_typeArgumentList() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class C<E> {}",
+        "C<a.A> c;"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void test_typeAnnotationDeferredClass_typeArgumentList2() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class C<E, F> {}",
+        "C<a.A, a.A> c;"));
+    resolve(source);
+    assertErrors(
+        source,
+        StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS,
+        StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
   public void test_typeAnnotationDeferredClass_typeParameter_bound() throws Exception {
     addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
