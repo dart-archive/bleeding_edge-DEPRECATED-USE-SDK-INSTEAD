@@ -106,8 +106,9 @@ public class PackagesView extends ViewPart {
         return true;
       }
 
-      if (((PubPackageObject) element).getName().matches(searchString)
-          || ((PubPackageObject) element).getDescription().matches(searchString)) {
+      if (element instanceof PubPackageObject
+          && (((PubPackageObject) element).getName().matches(searchString) || ((PubPackageObject) element).getDescription().matches(
+              searchString))) {
         return true;
       }
       return false;
@@ -257,6 +258,22 @@ public class PackagesView extends ViewPart {
 
   }
 
+  private void createBrowseMenuItem(Menu parent, final TableColumn column) {
+    final MenuItem itemName = new MenuItem(parent, SWT.PUSH);
+    itemName.setText("Browse docs on pub.dartlang.org");
+    itemName.addSelectionListener(new SelectionAdapter() {
+
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        PubPackageObject selection = (PubPackageObject) ((IStructuredSelection) tableViewer.getSelection()).getFirstElement();
+        if (selection != null) {
+          ExternalBrowserUtil.openInExternalBrowser("http://pub.dartlang.org/packages/"
+              + selection.getName());
+        }
+      }
+    });
+  }
+
   private TableViewerColumn createColumnsAndMenu(TableColumnLayout tableLayout) {
     String[] titles = {"Name", "Description", "Version"};
     final TableViewerColumn nameColumn = createTableViewerColumn(titles[0], 0);
@@ -323,22 +340,6 @@ public class PackagesView extends ViewPart {
               selection.getName(),
               selection.getVersion());
           action.run();
-        }
-      }
-    });
-  }
-
-  private void createBrowseMenuItem(Menu parent, final TableColumn column) {
-    final MenuItem itemName = new MenuItem(parent, SWT.PUSH);
-    itemName.setText("Browse docs on pub.dartlang.org");
-    itemName.addSelectionListener(new SelectionAdapter() {
-
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        PubPackageObject selection = (PubPackageObject) ((IStructuredSelection) tableViewer.getSelection()).getFirstElement();
-        if (selection != null) {
-          ExternalBrowserUtil.openInExternalBrowser("http://pub.dartlang.org/packages/"
-              + selection.getName());
         }
       }
     });
