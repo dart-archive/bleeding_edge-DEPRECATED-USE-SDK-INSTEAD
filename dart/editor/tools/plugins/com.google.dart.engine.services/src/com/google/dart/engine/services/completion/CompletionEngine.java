@@ -2867,12 +2867,12 @@ public class CompletionEngine {
     String newUri = uriScheme + CompletionProposal.CURSOR_MARKER;
     if (node.getUri().isSynthetic()) {
       newUri = "'" + newUri + "'";
+      if (node.getSemicolon() == null || node.getSemicolon().isSynthetic()) {
+        newUri += ";";
+      }
     }
     if (context.getSelectionOffset() == node.getKeyword().getEnd()) {
       newUri = " " + newUri;
-    }
-    if (node.getSemicolon() == null || node.getSemicolon().isSynthetic()) {
-      newUri += ";";
     }
     pName(newUri, ProposalKind.IMPORT);
   }

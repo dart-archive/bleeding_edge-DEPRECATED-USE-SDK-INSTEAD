@@ -1844,6 +1844,13 @@ public class CompletionTests extends CompletionTestCase {
         "1-dart:_collection.dev");
   }
 
+  public void testCompletion_import_hasStringLiteral_noSemicolon() throws Exception {
+    test(src(//
+        "import '!1'",
+        "",
+        "class A {}"), resultWithCursor("1+dart:!"), resultWithCursor("1+package:!"));
+  }
+
   public void testCompletion_import_noSpace() throws Exception {
     test(src(//
         "import!1",
