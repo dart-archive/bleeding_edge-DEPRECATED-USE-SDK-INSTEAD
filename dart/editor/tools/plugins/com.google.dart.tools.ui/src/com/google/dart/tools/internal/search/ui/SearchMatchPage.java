@@ -491,7 +491,12 @@ public abstract class SearchMatchPage extends SearchPage {
               ? HIGHLIGHT_WRITE_STYLE : HIGHLIGHT_STYLE;
           int styleOffset = linePosition.positionSrc.offset - item.line.start;
           int styleLength = linePosition.positionSrc.length;
-          styledText.setStyle(styleOffset, styleLength, style);
+          try {
+            styledText.setStyle(styleOffset, styleLength, style);
+          } catch (Throwable e) {
+            // https://code.google.com/p/dart/issues/detail?id=18576
+            // Cannot reproduce, just ignore.
+          }
         }
         // may be potential match
         if (item.potential) {
