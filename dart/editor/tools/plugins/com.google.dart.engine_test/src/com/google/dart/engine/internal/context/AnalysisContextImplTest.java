@@ -18,8 +18,8 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
-import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisContextFactory;
+import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.context.AnalysisErrorInfo;
@@ -996,29 +996,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNull("part resolved 3", context.getResolvedCompilationUnit(partSource, libSource));
   }
 
-  public void test_performAnalysisTask_changePartContents() throws Exception {
-    Source libSource = addSource("/test.dart", "library lib; part 'test-part.dart';");
-    Source partSource = addSource("/test-part.dart", "part of lib;");
-    analyzeAll_assertFinished();
-    assertNotNull("library resolved 1", context.getResolvedCompilationUnit(libSource, libSource));
-    assertNotNull("part resolved 1", context.getResolvedCompilationUnit(partSource, libSource));
-    // update and analyze #1
-    context.setContents(partSource, "part of lib; // 1");
-    assertNull("library changed 2", context.getResolvedCompilationUnit(libSource, libSource));
-    assertNull("part changed 2", context.getResolvedCompilationUnit(partSource, libSource));
-    analyzeAll_assertFinished();
-    assertNotNull("library resolved 2", context.getResolvedCompilationUnit(libSource, libSource));
-    assertNotNull("part resolved 2", context.getResolvedCompilationUnit(partSource, libSource));
-    // update and analyze #2
-    context.setContents(partSource, "part of lib; // 12");
-    assertNull("library changed 3", context.getResolvedCompilationUnit(libSource, libSource));
-    assertNull("part changed 3", context.getResolvedCompilationUnit(partSource, libSource));
-    analyzeAll_assertFinished();
-    assertNotNull("library resolved 3", context.getResolvedCompilationUnit(libSource, libSource));
-    assertNotNull("part resolved 3", context.getResolvedCompilationUnit(partSource, libSource));
-  }
-
-  public void test_performAnalysisTask_changePartContents2() throws Exception {
+  public void test_performAnalysisTask_changePartContents_makeItAPart() throws Exception {
     Source libSource = addSource("/lib.dart", createSource(//
         "library lib;",
         "part 'part.dart';",
@@ -1040,6 +1018,50 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
     assertLength(0, context.getErrors(libSource).getErrors());
     assertLength(0, context.getErrors(partSource).getErrors());
+  }
+
+  /**
+   * https://code.google.com/p/dart/issues/detail?id=12424
+   */
+  public void test_performAnalysisTask_changePartContents_makeItNotPart() throws Exception {
+    Source libSource = addSource("/lib.dart", createSource(//
+        "library lib;",
+        "part 'part.dart';",
+        "void f(x) {}"));
+    Source partSource = addSource("/part.dart", createSource(//
+        "part of lib;",
+        "void g() { f(null); }"));
+    analyzeAll_assertFinished();
+    assertLength(0, context.getErrors(libSource).getErrors());
+    assertLength(0, context.getErrors(partSource).getErrors());
+    // Remove 'part' directive, which should make "f(null)" an error.
+    context.setContents(partSource, createSource(//
+        "//part of lib;",
+        "void g() { f(null); }"));
+    analyzeAll_assertFinished();
+    assertTrue(context.getErrors(libSource).getErrors().length != 0);
+  }
+
+  public void test_performAnalysisTask_changePartContents_noSemanticChanges() throws Exception {
+    Source libSource = addSource("/test.dart", "library lib; part 'test-part.dart';");
+    Source partSource = addSource("/test-part.dart", "part of lib;");
+    analyzeAll_assertFinished();
+    assertNotNull("library resolved 1", context.getResolvedCompilationUnit(libSource, libSource));
+    assertNotNull("part resolved 1", context.getResolvedCompilationUnit(partSource, libSource));
+    // update and analyze #1
+    context.setContents(partSource, "part of lib; // 1");
+    assertNull("library changed 2", context.getResolvedCompilationUnit(libSource, libSource));
+    assertNull("part changed 2", context.getResolvedCompilationUnit(partSource, libSource));
+    analyzeAll_assertFinished();
+    assertNotNull("library resolved 2", context.getResolvedCompilationUnit(libSource, libSource));
+    assertNotNull("part resolved 2", context.getResolvedCompilationUnit(partSource, libSource));
+    // update and analyze #2
+    context.setContents(partSource, "part of lib; // 12");
+    assertNull("library changed 3", context.getResolvedCompilationUnit(libSource, libSource));
+    assertNull("part changed 3", context.getResolvedCompilationUnit(partSource, libSource));
+    analyzeAll_assertFinished();
+    assertNotNull("library resolved 3", context.getResolvedCompilationUnit(libSource, libSource));
+    assertNotNull("part resolved 3", context.getResolvedCompilationUnit(partSource, libSource));
   }
 
   public void test_performAnalysisTask_importedLibraryAdd() throws Exception {
