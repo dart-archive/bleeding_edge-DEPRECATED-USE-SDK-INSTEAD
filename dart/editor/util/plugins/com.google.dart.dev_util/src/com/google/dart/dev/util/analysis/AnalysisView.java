@@ -16,6 +16,7 @@ import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.InternalAnalysisServer;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.builder.AnalysisManager;
@@ -190,32 +191,35 @@ public class AnalysisView extends ViewPart {
     List<AnalysisContextData> contexts = Lists.newArrayList();
 
     Set<AnalysisContext> visited = new HashSet<AnalysisContext>();
-    AnalysisServer server = DartCore.getAnalysisServer();
-    if (server instanceof InternalAnalysisServer) {
-      Map<String, AnalysisContext> contextMap = ((InternalAnalysisServer) server).getContextMap();
-      for (Entry<String, AnalysisContext> entry : contextMap.entrySet()) {
-        String name = new Path(entry.getKey()).lastSegment();
-        addContext(queueWorkers, activeWorker, contexts, name,
-            (InternalAnalysisContext) entry.getValue());
-        visited.add(entry.getValue());
-      }
-    }
 
-    for (Project project : DartCore.getProjectManager().getProjects()) {
-      String projectName = project.getResource().getName();
-      // default context
-      AnalysisContext defaultContext = project.getDefaultContext();
-      if (visited.add(defaultContext)) {
-        addContext(queueWorkers, activeWorker, contexts, projectName,
-            (InternalAnalysisContext) defaultContext);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      AnalysisServer server = DartCore.getAnalysisServer();
+      if (server instanceof InternalAnalysisServer) {
+        Map<String, AnalysisContext> contextMap = ((InternalAnalysisServer) server).getContextMap();
+        for (Entry<String, AnalysisContext> entry : contextMap.entrySet()) {
+          String name = new Path(entry.getKey()).lastSegment();
+          addContext(queueWorkers, activeWorker, contexts, name,
+              (InternalAnalysisContext) entry.getValue());
+          visited.add(entry.getValue());
+        }
       }
-      // separate Pub folders
-      for (PubFolder pubFolder : project.getPubFolders()) {
-        String pubFolderName = projectName + " - " + pubFolder.getResource().getName();
-        AnalysisContext context = pubFolder.getContext();
-        if (context != defaultContext && visited.add(context)) {
-          addContext(queueWorkers, activeWorker, contexts, pubFolderName,
-              (InternalAnalysisContext) context);
+    } else {
+      for (Project project : DartCore.getProjectManager().getProjects()) {
+        String projectName = project.getResource().getName();
+        // default context
+        AnalysisContext defaultContext = project.getDefaultContext();
+        if (visited.add(defaultContext)) {
+          addContext(queueWorkers, activeWorker, contexts, projectName,
+              (InternalAnalysisContext) defaultContext);
+        }
+        // separate Pub folders
+        for (PubFolder pubFolder : project.getPubFolders()) {
+          String pubFolderName = projectName + " - " + pubFolder.getResource().getName();
+          AnalysisContext context = pubFolder.getContext();
+          if (context != defaultContext && visited.add(context)) {
+            addContext(queueWorkers, activeWorker, contexts, pubFolderName,
+                (InternalAnalysisContext) context);
+          }
         }
       }
     }
