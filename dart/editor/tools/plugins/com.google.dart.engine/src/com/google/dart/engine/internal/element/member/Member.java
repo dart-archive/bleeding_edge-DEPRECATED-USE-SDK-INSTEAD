@@ -85,6 +85,11 @@ public abstract class Member implements Element {
   }
 
   @Override
+  public String getExtendedDisplayName() {
+    return baseElement.getExtendedDisplayName();
+  }
+
+  @Override
   public ElementKind getKind() {
     return baseElement.getKind();
   }

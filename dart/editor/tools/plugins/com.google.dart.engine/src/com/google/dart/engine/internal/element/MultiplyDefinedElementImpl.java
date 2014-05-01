@@ -153,6 +153,11 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @Override
+  public String getExtendedDisplayName() {
+    return getDisplayName();
+  }
+
+  @Override
   public ElementKind getKind() {
     return ElementKind.ERROR;
   }

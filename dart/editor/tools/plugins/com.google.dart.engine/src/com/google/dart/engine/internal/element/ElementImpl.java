@@ -151,6 +151,16 @@ public abstract class ElementImpl implements Element {
   }
 
   @Override
+  public String getExtendedDisplayName() {
+    String displayName = getDisplayName();
+    Source source = getSource();
+    if (source != null) {
+      return displayName + " (" + source.getFullName() + ")";
+    }
+    return displayName;
+  }
+
+  @Override
   public LibraryElement getLibrary() {
     return getAncestor(LibraryElement.class);
   }

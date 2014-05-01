@@ -531,9 +531,9 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
     if (lhs == null || rhs == null) {
       return false;
     }
-    VariableElement leftElement = ErrorVerifier.getVariableElement(lhs);
-    Type leftType = (leftElement == null) ? ErrorVerifier.getStaticType(lhs)
-        : leftElement.getType();
+    VariableElement leftVariableElement = ErrorVerifier.getVariableElement(lhs);
+    Type leftType = (leftVariableElement == null) ? ErrorVerifier.getStaticType(lhs)
+        : leftVariableElement.getType();
     Type staticRightType = ErrorVerifier.getStaticType(rhs);
     if (!staticRightType.isAssignableTo(leftType)) {
       // The warning was generated on this rhs
@@ -546,8 +546,12 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
         String leftName = leftType.getDisplayName();
         String rightName = bestRightType.getDisplayName();
         if (leftName.equals(rightName)) {
-          leftName = ErrorVerifier.getExtendedDisplayName(leftType);
-          rightName = ErrorVerifier.getExtendedDisplayName(bestRightType);
+          Element leftElement = leftType.getElement();
+          Element rightElement = bestRightType.getElement();
+          if (leftElement != null && rightElement != null) {
+            leftName = leftElement.getExtendedDisplayName();
+            rightName = rightElement.getExtendedDisplayName();
+          }
         }
         errorReporter.reportErrorForNode(HintCode.INVALID_ASSIGNMENT, rhs, rightName, leftName);
         return true;

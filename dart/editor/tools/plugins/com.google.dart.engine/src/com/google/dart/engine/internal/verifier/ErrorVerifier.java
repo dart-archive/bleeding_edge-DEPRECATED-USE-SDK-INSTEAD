@@ -143,7 +143,6 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.SdkLibrary;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -178,24 +177,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     INIT_IN_DECLARATION,
     INIT_IN_FIELD_FORMAL,
     INIT_IN_INITIALIZERS
-  }
-
-  /**
-   * Return a display name for the given type that includes the path to the compilation unit in
-   * which the type is defined.
-   * 
-   * @param type the type for which an extended display name is to be returned
-   * @return a display name that can help distiguish between two types with the same name
-   */
-  public static String getExtendedDisplayName(Type type) {
-    Element element = type.getElement();
-    if (element != null) {
-      Source source = element.getSource();
-      if (source != null) {
-        return type.getDisplayName() + " (" + source.getFullName() + ")";
-      }
-    }
-    return type.getDisplayName();
   }
 
   /**
@@ -3082,13 +3063,22 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (inheritedMember.isStatic()) {
       return false;
     }
+    // determine the display name, use the extended display name if the enclosing class of the
+    // inherited member is in a different source
+    String displayName;
+    Element enclosingElement = inheritedMember.getEnclosingElement();
+    if (enclosingElement.getSource().equals(enclosingClass.getSource())) {
+      displayName = enclosingElement.getDisplayName();
+    } else {
+      displayName = enclosingElement.getExtendedDisplayName();
+    }
     // report problem
     errorReporter.reportErrorForOffset(
         CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE,
         staticMember.getNameOffset(),
         name.length(),
         name,
-        inheritedMember.getEnclosingElement().getDisplayName());
+        displayName);
     return true;
   }
 
@@ -3828,15 +3818,20 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (lhs == null || rhs == null) {
       return false;
     }
-    VariableElement leftElement = getVariableElement(lhs);
-    Type leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.getType();
+    VariableElement leftVariableElement = getVariableElement(lhs);
+    Type leftType = (leftVariableElement == null) ? getStaticType(lhs)
+        : leftVariableElement.getType();
     Type staticRightType = getStaticType(rhs);
     if (!staticRightType.isAssignableTo(leftType)) {
       String leftName = leftType.getDisplayName();
       String rightName = staticRightType.getDisplayName();
       if (leftName.equals(rightName)) {
-        leftName = getExtendedDisplayName(leftType);
-        rightName = getExtendedDisplayName(staticRightType);
+        Element leftElement = leftType.getElement();
+        Element rightElement = staticRightType.getElement();
+        if (leftElement != null && rightElement != null) {
+          leftName = leftElement.getExtendedDisplayName();
+          rightName = rightElement.getExtendedDisplayName();
+        }
       }
       errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INVALID_ASSIGNMENT,
@@ -3863,8 +3858,9 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (lhs == null) {
       return false;
     }
-    VariableElement leftElement = getVariableElement(lhs);
-    Type leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.getType();
+    VariableElement leftVariableElement = getVariableElement(lhs);
+    Type leftType = (leftVariableElement == null) ? getStaticType(lhs)
+        : leftVariableElement.getType();
     MethodElement invokedMethod = node.getStaticElement();
     if (invokedMethod == null) {
       return false;
@@ -3877,8 +3873,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       String leftName = leftType.getDisplayName();
       String rightName = rightType.getDisplayName();
       if (leftName.equals(rightName)) {
-        leftName = getExtendedDisplayName(leftType);
-        rightName = getExtendedDisplayName(rightType);
+        Element leftElement = leftType.getElement();
+        Element rightElement = rightType.getElement();
+        if (leftElement != null && rightElement != null) {
+          leftName = leftElement.getExtendedDisplayName();
+          rightName = rightElement.getExtendedDisplayName();
+        }
       }
       errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INVALID_ASSIGNMENT,

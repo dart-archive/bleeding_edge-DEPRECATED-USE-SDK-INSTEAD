@@ -185,6 +185,11 @@ public abstract class ElementHandle implements Element {
   }
 
   @Override
+  public String getExtendedDisplayName() {
+    return getActualElement().getExtendedDisplayName();
+  }
+
+  @Override
   public LibraryElement getLibrary() {
     return getAncestor(LibraryElement.class);
   }
