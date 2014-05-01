@@ -1,0 +1,11 @@
+﻿(* Exercise preference panes *)
+util.init
+util.openPreferences
+util.choosePreference "Editor"
+util.choosePreference "Fonts"
+util.choosePreference "Hints"
+util.choosePreference "Key Bindings"
+util.choosePreference "Run and Debug"
+util.choosePreference "Update"
+util.choosePreference "Visual Theme"
+util.closePreferences

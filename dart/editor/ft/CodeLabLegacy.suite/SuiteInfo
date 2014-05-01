@@ -1,1 +1,34 @@
-﻿{EPVersionNumber = 1403101909; Schedules = (); ScriptMetaData = {"Step 0" = {}; "Step 1" = {}; "Step 3" = {}; "Step 5" = {}; Untitled = {}; doit = {}; exec = {}; nohints = {}; "open codelab file search" = {}; openLab = {}; toggleHints = {}; }; helperSuitesInfo = ({filePath = "./Samples.suite"; }); }
+﻿{
+    EPVersionNumber = 1404272331;
+    Schedules =     (
+    );
+    ScriptMetaData =     {
+        "Step 0" =         {
+        };
+        "Step 1" =         {
+        };
+        "Step 3" =         {
+        };
+        "Step 5" =         {
+        };
+        Untitled =         {
+        };
+        doit =         {
+        };
+        exec =         {
+        };
+        nohints =         {
+        };
+        "open codelab file search" =         {
+        };
+        openLab =         {
+        };
+        toggleHints =         {
+        };
+    };
+    helperSuitesInfo =     (
+                {
+            filePath = "./Samples.suite";
+        }
+    );
+}

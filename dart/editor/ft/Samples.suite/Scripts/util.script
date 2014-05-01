@@ -3,359 +3,390 @@ universal initialized
 universal waitFactor
 
 to init
-	put (@universal initialized is "initialized") into wasInitialized
-	if wasInitialized then
-		return
-	end if
-	put the SearchRectangle into origRect
-	set the SearchRectangle to ((0,0),(100,100))
-	if ImageFound("linux menu icon") then
-		put "linux" into universal platform
-	else if ImageFound("mac menu icon") then
-		put "macosx" into universal platform
-	else
-		put "windows" into universal platform
-	end if
-	set the SearchRectangle to origRect
-	if RemoteScreenSize() <> (1920,1200) then
-		throw "Screen size must be 1920x1200"
-	end if
-	Set the ImageDoctor to Auto
-	log connectioninfo().name
-	if  connectioninfo().name is "vm127-m3:1 (chrome-bot)" then
-		put 5 into universal waitFactor (* linux bot is slow *)
-	else if  connectioninfo().name is "vm620-m3:1 (chrome-bot)" then
-		put 5 into universal waitFactor (* mac bot is slow *)
-	else
-		put 1 into universal waitFactor
-	end if
-	log @universal waitFactor
-	put "initialized" into universal initialized
+  put (@universal initialized is "initialized") into wasInitialized
+  if wasInitialized then
+    return
+  end if
+  put the SearchRectangle into origRect
+  set the SearchRectangle to ((0,0),(100,100))
+  if ImageFound("linux menu icon") then
+    put "linux" into universal platform
+  else if ImageFound("mac menu icon") then
+    put "macosx" into universal platform
+  else
+    put "windows" into universal platform
+  end if
+  set the SearchRectangle to origRect
+  if RemoteScreenSize() <> (1920,1200) then
+    throw "Screen size must be 1920x1200"
+  end if
+  Set the ImageDoctor to Auto
+  log connectioninfo().name
+  if  connectioninfo().name is "vm127-m3:1 (chrome-bot)" then
+    put 5 into universal waitFactor (* linux bot is slow *)
+  else if  connectioninfo().name is "vm620-m3:1 (chrome-bot)" then
+    put 5 into universal waitFactor (* mac bot is slow *)
+  else
+    put 1 into universal waitFactor
+  end if
+  log @universal waitFactor
+  put "initialized" into universal initialized
 end init
 
 to isLinux
-	put (@universal platform is "linux") into result
-	return @result
+  put (@universal platform is "linux") into result
+  return @result
 end isLinux
 
 to isMacOSX
-	put (@universal platform is "macosx") into result
-	return @result
+  put (@universal platform is "macosx") into result
+  return @result
 end isMacOSX
 
 to isWindows
-	put (@universal platform is "windows") into result
-	return @result
+  put (@universal platform is "windows") into result
+  return @result
 end isWindows
 
 to xWait n
-	Wait (n * @universal waitFactor)
+  Wait (n * @universal waitFactor)
 end xWait
 
 to xWaitFor n, img
-	WaitFor (n * @universal waitFactor), img
+  WaitFor (n * @universal waitFactor), img
 end xWaitFor
 
 to activateEditor
-	(*selectMenuItem "Navigate", "Activate Editor"*)
-	if isMacOSX() then
-		typetext commandKey,F12
-	else
-		typetext F12
-	end if
+  (*selectMenuItem "Navigate", "Activate Editor"*)
+  if isMacOSX() then
+    typetext commandKey,F12
+  else
+    typetext F12
+  end if
 end activateEditor
 
 to openWelcomePage
-	selectMenuItem "Tools", "Welcome Page"
+  selectMenuItem "Tools", "Welcome Page"
 end openWelcomePage
 
 to nextEditor count
-	(* Typetext wasn't working correctly on linux, so now using keydown/keyup instead  *)
-	repeat count times
-		if isMacOSX()
-			keydown commandKey,F6
-			keyup commandKey,F6
-		else
-			keydown controlKey,F6
-			keyup controlKey,F6
-		end if
-		(*doKeyCmd F6*)
-		xWait 2
-	end repeat
+  (* Typetext wasn't working correctly on linux, so now using keydown/keyup instead  *)
+  repeat count times
+    if isMacOSX()
+      keydown commandKey,F6
+      keyup commandKey,F6
+    else
+      keydown controlKey,F6
+      keyup controlKey,F6
+    end if
+    (*doKeyCmd F6*)
+    xWait 2
+  end repeat
 end NextEditor
 
 to checkProblems
-	put the SearchRectangle into origRect
-	set the SearchRectangle to ((0,800),(1920,1200))
-	xWait 2
-	ClIck (600,500)
-	xWait 2
-	Click "problems tab"
-	xWaitFor 1,"empty problems"
-	set the SearchRectangle to origRect
+  put the SearchRectangle into origRect
+  set the SearchRectangle to ((0,800),(1920,1200))
+  xWait 2
+  ClIck (600,500)
+  xWait 2
+  Click "problems tab"
+  xWaitFor 1,"empty problems"
+  set the SearchRectangle to origRect
 end checkProblems
 
 (* Assumes Chromium is the active proecss. *)
 to exitChromium
-	if isMacOSX()
-		(* Can fail if Chromium window is under Chromium menu causing window edge *)
-		(* to bleed thru menu due to alpha channel.  Re-position Chromium! *)
-		selectMenuItem "Chromium", "Quit Chromium"
-	else
-		TypeText altKey,F4
-	end if
+  if isMacOSX()
+    (* Can fail if Chromium window is under Chromium menu causing window edge *)
+    (* to bleed thru menu due to alpha channel.  Re-position Chromium! *)
+    selectMenuItem "Chromium", "Quit Chromium"
+  else
+    TypeText altKey,F4
+  end if
 end exitChromium
 
 (* Delete the output tab. Only valid if all projects have been deleted. *)
 to deleteOutput
-	put the SearchRectangle into origRect
-	set the SearchRectangle to ((0,800),(1920,1200))
-	put 105 into deltaX
-	if isMacOSX() then
-		put 85 into deltaX
-	end if
-	put ImageLocation("problems tab") + (deltaX,0) into outLoc
-	Click outLoc
-	xWait 0.2
-	RightClick outLoc
-	xWait 0.2
-	repeat while ImageFound("problems unselected")
-		put ImageFound(Text:"Close",CaseSensitive:"yes",ValidCharacters:"*") into out
-		if out
-			Click (Text:"Close",CaseSensitive:"yes",ValidCharacters:"*")
-		end if
-		Click outLoc
-		xWait 0.2
-		RightClick outLoc
-	end repeat
-	Click outLoc - (10,10)
-	set the SearchRectangle to origRect
+  put the SearchRectangle into origRect
+  set the SearchRectangle to ((0,800),(1920,1200))
+  put 105 into deltaX
+  if isMacOSX() then
+    put 85 into deltaX
+  end if
+  put ImageLocation("problems tab") + (deltaX,0) into outLoc
+  Click outLoc
+  xWait 0.2
+  RightClick outLoc
+  xWait 0.2
+  repeat while ImageFound("problems unselected")
+    put ImageFound(Text:"Close",CaseSensitive:"yes",ValidCharacters:"*") into out
+    if out
+      Click (Text:"Close",CaseSensitive:"yes",ValidCharacters:"*")
+    end if
+    Click outLoc
+    xWait 0.2
+    RightClick outLoc
+  end repeat
+  Click outLoc - (10,10)
+  set the SearchRectangle to origRect
 end deleteOutput
 
 (* Delete the project identified by the given image. *)
 to deleteProject project
-	set the SearchRectangle to ((0,75),(300,1200))
-	Click "dart sdk"
-	xWait 0.2
-	put ImageLocation(project) into loc
-	Click loc
-	xWait 0.2
-	RightClick loc (* select project and show context menu *)
-	put mouselocation() - (15,0) into UL
-	put UL + (500,500) into BR
-	set the SearchRectangle to (UL,BR)
-	xWait 0.2
-	Click(Text:"Delete",CaseSensitive:"Yes",ValidCharacters:"*") (* delete it *)
-	set the SearchRectangle to ()
-	xWaitFor 1, "info icon" (* wait for the Delete Resources confirmation *)
-	put ImageRectangle("info icon") into loc
-	put the bottomLeft of loc into TL
-	put TL + (250,75) into BR
-	set the SearchRectangle to (TL,BR)
-	Click(Text:"Delete project contents",ValidCharacters:"*",dpi:94) (* select the option to clear disk *)
-	set the SearchRectangle to ()
-	xWait 0.2
-	newline
+  set the SearchRectangle to ((0,75),(300,1200))
+  Click "dart sdk"
+  xWait 0.2
+  put ImageLocation(project) into loc
+  Click loc
+  xWait 0.2
+  RightClick loc (* select project and show context menu *)
+  put mouselocation() - (15,0) into UL
+  put UL + (500,500) into BR
+  set the SearchRectangle to (UL,BR)
+  xWait 0.2
+  Click(Text:"Delete",CaseSensitive:"Yes",ValidCharacters:"*") (* delete it *)
+  set the SearchRectangle to ()
+  xWaitFor 1, "info icon" (* wait for the Delete Resources confirmation *)
+  put ImageRectangle("info icon") into loc
+  put the bottomLeft of loc into TL
+  put TL + (250,75) into BR
+  set the SearchRectangle to (TL,BR)
+  Click(Text:"Delete project contents",ValidCharacters:"*",dpi:94) (* select the option to clear disk *)
+  set the SearchRectangle to ()
+  xWait 0.2
+  newline
 end deleteProject
 
 (* Select the menuItem from the menu named menuName on the menu bar *)
 to selectMenuItem with menuName, menuItem
-	put the SearchRectangle into origRect
-	set the SearchRectangle to ((0,0),(1920,200))
-	put ImageRectangle(Text:menuName,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94) into labelRect
-	Click center(labelRect)
-	put topLeft(labelRect)-(10,0) into UL
-	put UL + (500,500) into BR
-	set the SearchRectangle to (UL,BR)
-	xWait 0.1
-	moveTo topLeft(labelRect) (* encourage mac vnc to update *)
-	xWait 0.1
-	moveTo bottomRight(labelRect)
-	xWait 0.1
-	Click(Text:menuItem,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
-	set the SearchRectangle to origRect
+  put the SearchRectangle into origRect
+  set the SearchRectangle to ((0,0),(1920,200))
+  put ImageRectangle(Text:menuName,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94) into labelRect
+  Click center(labelRect)
+  put topLeft(labelRect)-(10,0) into UL
+  put UL + (500,500) into BR
+  set the SearchRectangle to (UL,BR)
+  xWait 0.1
+  moveTo topLeft(labelRect) (* encourage mac vnc to update *)
+  xWait 0.1
+  moveTo bottomRight(labelRect)
+  xWait 0.1
+  Click(Text:menuItem,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
+  set the SearchRectangle to origRect
 end selectMenuItem
 
 (* Select the menuItem from the context menu available by right-clicking at contextLocator text *)
 to selectContextMenuItem with contextLocator, menuItem
-	selectContextImageMenuItem (Text:contextLocator,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94), menuItem
+  selectContextImageMenuItem (Text:contextLocator,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94), menuItem
 end selectContextMenuItem
 
 (* Select the menuItem from the context menu available by right-clicking at contextLocator *)
 to selectContextImageMenuItem with contextLocator, menuItem
-	put the SearchRectangle into origRect
-	put ImageLocation(contextLocator) into imageLocation
-	Click imageLocation
-	RightClick imageLocation (*contextLocator*)
-	put mouselocation() - (15,0) into UL
-	put UL + (500,500) into BR
-	set the SearchRectangle to (UL,BR)
-	xWait 0.1
-	Click(Text:menuItem,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
-	set the SearchRectangle to origRect
+  put the SearchRectangle into origRect
+  put ImageLocation(contextLocator) into imageLocation
+  Click imageLocation
+  RightClick imageLocation (*contextLocator*)
+  put mouselocation() - (15,0) into UL
+  put UL + (500,500) into BR
+  set the SearchRectangle to (UL,BR)
+  xWait 0.1
+  Click(Text:menuItem,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
+  set the SearchRectangle to origRect
 end selectContextImageMenuItem
 
 (* Enter term (slowly) and wait a bit *)
 to typeSlowly with term
-	SetOption KeyDownDelay, 0.002
-	TypeText term
-	SetOption KeyDownDelay, 0.001
-	xWait 0.5
+  SetOption KeyDownDelay, 0.002
+  TypeText term
+  SetOption KeyDownDelay, 0.001
+  xWait 0.5
 end typeSlowly
 
 (* Stop debugging and close the debugger, if it is open *)
 to closeDebugger
-	put ImageFound("debugger tab") into bug
-	if bug
-		Put ImageFound("stop debug button") into res
-		if res then
-			Click "stop debug button"
-		end if
-		Click "debugger tab"
-	end if
+  put ImageFound("debugger tab") into bug
+  if bug
+    Put ImageFound("stop debug button") into res
+    if res then
+      Click "stop debug button"
+    end if
+    Click "debugger tab"
+  end if
 end closeDebugger
+
+(* Open the preferences dalog *)
+to openPreferences
+  if isMacOSX() then
+    selectMenuItem "Dart Editor", "Preferences"
+  else if isLinux() then
+    selectMenuItem "Tools", "Preferences"
+  else (* windows *)
+    selectMenuItem "Tools", "Preferences"
+  end if
+end openPreferences
+
+(* With focus in the preference dialog, select the name'd pane *)
+to choosePreference with name
+  set loc = ImageLocation (Text: "Preferences")
+  Click loc + (0,30)
+  util.selectAll
+  util.cutText
+  typetext name
+  xWait 0.5
+  typetext downArrow
+  set BR = loc + (300, 100)
+  set the searchRectangle to (loc,BR)
+  xWaitFor 5, (Text: name)
+  set the searchRectangle to ()
+end choosePreference
+
+(* Accept changes to the dialog *)
+to closePreferences
+  Click "okButton"
+  end closePreferences
 
 (* Start the editor, typically only run at the beginning of a script *)
 to startDartEditor
-	init()
-	set the SearchRectangle to ((0,0),(200,200))
-	DoubleClick "StartDartEditor"
-	xWaitFor 40,"MaximizeWindowIcon"
-	Click "MaximizeWindowIcon"
-	set the SearchRectangle to ()
-	if isMacOSX()
-		SetOption ForceScreenRefresh, true
-	end if
+  init()
+  set the SearchRectangle to ((0,0),(200,200))
+  DoubleClick "StartDartEditor"
+  xWaitFor 40,"MaximizeWindowIcon"
+  Click "MaximizeWindowIcon"
+  set the SearchRectangle to ()
+  if isMacOSX()
+    SetOption ForceScreenRefresh, true
+  end if
 end startDartEditor
 
 (* Exit the editor *)
 to stopDartEditor
-	if isMacOSX()
-		TypeText commandKey,q
-	else
-		TypeText altKey,F4
-	end if
+  if isMacOSX()
+    TypeText commandKey,q
+  else
+    TypeText altKey,F4
+  end if
 end stopDartEditor
 
 (* Force the editor to quit *)
 to killDartEditor
-	if isMacOSX()
-		shell "killall DartEditor.app"
-	else if isLinux()
-		shell "killall DartEditor"
-	else
-		throw "Error" "Not implemented: killDartEditor for Windows"
-	end if
+  if isMacOSX()
+    shell "killall DartEditor.app"
+  else if isLinux()
+    shell "killall DartEditor"
+  else
+    throw "Error" "Not implemented: killDartEditor for Windows"
+  end if
 end killDartEditor
 
 (* Force dartium to quit *)
 to killDartium
-	if isMacOSX()
-		shell "killall Dartium.app"
-	else if isLinux()
-		shell "bash -c 'killall $HOME/Desktop/dart/chromium/chrome'"
-	else
-		throw "Error" "Not implemented: killDartium for Windows"
-	end if
+  if isMacOSX()
+    shell "killall Dartium.app"
+  else if isLinux()
+    shell "bash -c 'killall $HOME/Desktop/dart/chromium/chrome'"
+    else
+    throw "Error" "Not implemented: killDartium for Windows"
+    end if
 end killDartium
 
 to doKeyCmd key
-	if isMacOSX()
-		TypeText commandKey,key
-	else
-		TypeText controlKey,key
-	end if
+  if isMacOSX()
+    TypeText commandKey,key
+  else
+    TypeText controlKey,key
+  end if
 end doKeyCmd
 
 to doShiftKeyCmd key
-	if isMacOSX()
-		TypeText commandKey,shiftKey,key
-	else
-		TypeText controlKey,shiftKey,key
-	end if
+  if isMacOSX()
+    TypeText commandKey,shiftKey,key
+  else
+    TypeText controlKey,shiftKey,key
+  end if
 end doShiftKeyCmd
 
 to closeTab
-	doKeyCmd("w")
+  doKeyCmd("w")
 end closeTab
 
 to closeAllTabs
-	doShiftKeyCmd("w")
+  doShiftKeyCmd("w")
 end closeAllTabs
 
 to saveFile
-	doKeyCmd("s")
+  doKeyCmd("s")
 end saveFile
 
 to openFileDialog
-	SelectMenuItem "File", "Existing F" (* Open Existing Folder, but without O's *)
-	xWait 0.5
+  SelectMenuItem "File", "Existing F" (* Open Existing Folder, but without O's *)
+  xWait 0.5
 end openFileDialog
 
 to openFind
-	doKeyCmd("f")
+  doKeyCmd("f")
 end openFind
 
 to runApp
-	doKeyCmd("r")
+  doKeyCmd("r")
 end runApp
 
 to selectAll
-	doKeyCmd("a")
+  doKeyCmd("a")
 end selectAll
 
 to copyText
-	doKeyCmd("c")
+  doKeyCmd("c")
 end copyText
 
 to pasteText
-	doKeyCmd("v")
+  doKeyCmd("v")
 end pasteText
 
 to cutText
-	doKeyCmd("x")
+  doKeyCmd("x")
 end cutText
 
 to undo
-	doKeyCmd("z")
+  doKeyCmd("z")
 end undo
 
 to newTab
-	doKeyCmd("t")
+  doKeyCmd("t")
 end newTab
 
 to searchBox
-	doKeyCmd("3")
+  doKeyCmd("3")
 end searchBox
 
 to saveFile
-	doKeyCmd("s")
+  doKeyCmd("s")
 end saveFile
 
 to expandTreeNode
-	if isMacOSX() then
-		TypeText enter
-	else
-		TypeText return
-	end if
+  if isMacOSX() then
+    TypeText enter
+  else
+    TypeText return
+  end if
 end expandTreeNode
 
 to endOfLine
-	if isMacOSX() then
-		doKeyCmd(rightArrow)
-	else
-		TypeText EndKey
-	end if
+  if isMacOSX() then
+    doKeyCmd(rightArrow)
+  else
+    TypeText EndKey
+  end if
 end endOfLine
 
 to quickOutline
-	TypeText optionKey,o
+  TypeText optionKey,o
 end quickOutline
 
 to newline
-	if isMacOSX() then
-		TypeText enter
-	else
-		TypeText return
-	end if
+  if isMacOSX() then
+    TypeText enter
+  else
+    TypeText return
+  end if
 end newline
