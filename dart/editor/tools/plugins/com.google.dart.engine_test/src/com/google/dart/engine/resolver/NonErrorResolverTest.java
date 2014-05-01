@@ -88,36 +88,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_argumentDefinitionTestNonParameter_formalParameter() throws Exception {
-    Source source = addSource(createSource(//
-        "f(var v) {",
-        "  return ?v;",
-        "}"));
-    resolve(source);
-    assertErrors(source, ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
-    verify(source);
-  }
-
-  public void test_argumentDefinitionTestNonParameter_namedParameter() throws Exception {
-    Source source = addSource(createSource(//
-        "f({var v : 0}) {",
-        "  return ?v;",
-        "}"));
-    resolve(source);
-    assertErrors(source, ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
-    verify(source);
-  }
-
-  public void test_argumentDefinitionTestNonParameter_optionalParameter() throws Exception {
-    Source source = addSource(createSource(//
-        "f([var v]) {",
-        "  return ?v;",
-        "}"));
-    resolve(source);
-    assertErrors(source, ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
-    verify(source);
-  }
-
   public void test_argumentTypeNotAssignable_classWithCall_Function() throws Exception {
     Source source = addSource(createSource(//
         "  caller(Function callee) {",

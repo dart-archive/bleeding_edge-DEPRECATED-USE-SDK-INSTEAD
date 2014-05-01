@@ -15,7 +15,6 @@ package com.google.dart.engine.parser;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.Annotation;
-import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -75,7 +74,6 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.AstFactory.annotation;
-import static com.google.dart.engine.ast.AstFactory.argumentDefinitionTest;
 import static com.google.dart.engine.ast.AstFactory.asExpression;
 import static com.google.dart.engine.ast.AstFactory.assignmentExpression;
 import static com.google.dart.engine.ast.AstFactory.binaryExpression;
@@ -134,20 +132,6 @@ public class ResolutionCopierTest extends EngineTestCase {
 
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     assertSame(element, toNode.getElement());
-  }
-
-  public void test_visitArgumentDefinitionTest() {
-    String identifier = "p";
-    ArgumentDefinitionTest fromNode = argumentDefinitionTest(identifier);
-    Type propagatedType = classElement("A").getType();
-    fromNode.setPropagatedType(propagatedType);
-    Type staticType = classElement("B").getType();
-    fromNode.setStaticType(staticType);
-    ArgumentDefinitionTest toNode = argumentDefinitionTest(identifier);
-
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    assertSame(propagatedType, toNode.getPropagatedType());
-    assertSame(staticType, toNode.getStaticType());
   }
 
   public void test_visitAsExpression() {

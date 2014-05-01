@@ -57,13 +57,6 @@ public class AstComparator implements AstVisitor<Boolean> {
   }
 
   @Override
-  public Boolean visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    ArgumentDefinitionTest other = (ArgumentDefinitionTest) this.other;
-    return isEqualTokens(node.getQuestion(), other.getQuestion())
-        && isEqualNodes(node.getIdentifier(), other.getIdentifier());
-  }
-
-  @Override
   public Boolean visitArgumentList(ArgumentList node) {
     ArgumentList other = (ArgumentList) this.other;
     return isEqualTokens(node.getLeftParenthesis(), other.getLeftParenthesis())

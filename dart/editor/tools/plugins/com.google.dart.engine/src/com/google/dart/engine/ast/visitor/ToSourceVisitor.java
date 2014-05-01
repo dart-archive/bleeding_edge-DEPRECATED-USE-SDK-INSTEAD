@@ -57,13 +57,6 @@ public class ToSourceVisitor implements AstVisitor<Void> {
   }
 
   @Override
-  public Void visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    writer.print('?');
-    visitNode(node.getIdentifier());
-    return null;
-  }
-
-  @Override
   public Void visitArgumentList(ArgumentList node) {
     writer.print('(');
     visitNodeListWithSeparator(node.getArguments(), ", ");

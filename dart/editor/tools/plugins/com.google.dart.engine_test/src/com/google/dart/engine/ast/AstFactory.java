@@ -61,10 +61,6 @@ public final class AstFactory {
         arguments);
   }
 
-  public static ArgumentDefinitionTest argumentDefinitionTest(String identifier) {
-    return new ArgumentDefinitionTest(tokenFromType(TokenType.QUESTION), identifier(identifier));
-  }
-
   public static ArgumentList argumentList(Expression... arguments) {
     return new ArgumentList(
         tokenFromType(TokenType.OPEN_PAREN),

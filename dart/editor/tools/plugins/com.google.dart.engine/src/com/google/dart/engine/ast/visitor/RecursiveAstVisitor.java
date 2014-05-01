@@ -40,12 +40,6 @@ public class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @Override
-  public R visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
   public R visitArgumentList(ArgumentList node) {
     node.visitChildren(this);
     return null;

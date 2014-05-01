@@ -2345,23 +2345,6 @@ public class Parser {
   }
 
   /**
-   * Parse an argument definition test.
-   * 
-   * <pre>
-   * argumentDefinitionTest ::=
-   *     '?' identifier
-   * </pre>
-   * 
-   * @return the argument definition test that was parsed
-   */
-  private ArgumentDefinitionTest parseArgumentDefinitionTest() {
-    Token question = expect(TokenType.QUESTION);
-    SimpleIdentifier identifier = parseSimpleIdentifier();
-    reportErrorForToken(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question);
-    return new ArgumentDefinitionTest(question, identifier);
-  }
-
-  /**
    * Parse an assert statement.
    * 
    * <pre>
@@ -5109,8 +5092,10 @@ public class Parser {
       }
     } else if (matches(TokenType.LT)) {
       return parseListOrMapLiteral(null);
-    } else if (matches(TokenType.QUESTION)) {
-      return parseArgumentDefinitionTest();
+    } else if (matches(TokenType.QUESTION) && tokenMatches(peek(), TokenType.IDENTIFIER)) {
+      reportErrorForCurrentToken(ParserErrorCode.UNEXPECTED_TOKEN, currentToken.getLexeme());
+      advance();
+      return parsePrimaryExpression();
     } else if (matchesKeyword(Keyword.VOID)) {
       //
       // Recover from having a return type of "void" where a return type is not expected.

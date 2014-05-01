@@ -61,10 +61,6 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("@A.c()", annotation(identifier("A"), identifier("c"), argumentList()));
   }
 
-  public void test_visitArgumentDefinitionTest() {
-    assertSource("?a", argumentDefinitionTest("a"));
-  }
-
   public void test_visitArgumentList() {
     assertSource("(a, b)", argumentList(identifier("a"), identifier("b")));
   }

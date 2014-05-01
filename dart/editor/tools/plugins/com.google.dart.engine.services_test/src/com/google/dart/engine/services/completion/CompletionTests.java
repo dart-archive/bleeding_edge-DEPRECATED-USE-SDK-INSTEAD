@@ -1244,15 +1244,6 @@ public class CompletionTests extends CompletionTestCase {
     test(source, "1+b");
   }
 
-  public void testCommentSnippets071() throws Exception {
-    String source = src(
-        "f(int x, [int a,int b, int c]) {",
-        "  int q;",
-        "  bool f = !!?!1a??b:!!?!2c == ?a?!!?c:?!3b;",
-        "}");
-    test(source, "1+a", "2+c", "2-q", "3+b");
-  }
-
   public void testCommentSnippets072() throws Exception {
     String source = src(
         "class X {",

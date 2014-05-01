@@ -437,15 +437,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(lexeme, identifier.getName());
   }
 
-  public void test_parseArgumentDefinitionTest() throws Exception {
-    ArgumentDefinitionTest test = parse(
-        "parseArgumentDefinitionTest",
-        "?x",
-        ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
-    assertNotNull(test.getQuestion());
-    assertNotNull(test.getIdentifier());
-  }
-
   public void test_parseArgumentList_empty() throws Exception {
     ArgumentList argumentList = parse("parseArgumentList", "()");
     NodeList<Expression> arguments = argumentList.getArguments();

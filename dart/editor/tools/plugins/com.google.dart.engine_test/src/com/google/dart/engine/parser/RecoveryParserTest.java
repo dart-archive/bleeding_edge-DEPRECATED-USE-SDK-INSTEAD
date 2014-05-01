@@ -634,6 +634,11 @@ public class RecoveryParserTest extends ParserTestCase {
     assertEquals(TokenType.MINUS, expression.getOperator().getType());
   }
 
+  public void test_primaryExpression_argumentDefinitionTest() throws Exception {
+    Expression expression = parse("parsePrimaryExpression", "?a", ParserErrorCode.UNEXPECTED_TOKEN);
+    assertInstanceOf(SimpleIdentifier.class, expression);
+  }
+
   public void test_relationalExpression_missing_LHS() throws Exception {
     IsExpression expression = parseExpression("is y", ParserErrorCode.MISSING_IDENTIFIER);
     assertInstanceOf(SimpleIdentifier.class, expression.getExpression());

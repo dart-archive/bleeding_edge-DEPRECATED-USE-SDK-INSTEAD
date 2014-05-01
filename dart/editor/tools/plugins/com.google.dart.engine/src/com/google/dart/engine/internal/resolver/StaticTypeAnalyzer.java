@@ -14,7 +14,6 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.ast.AdjacentStrings;
-import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
@@ -239,16 +238,6 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
   @Override
   public Void visitAdjacentStrings(AdjacentStrings node) {
     recordStaticType(node, typeProvider.getStringType());
-    return null;
-  }
-
-  /**
-   * The Dart Language Specification, 12.33: <blockquote>The static type of an argument definition
-   * test is {@code bool}.</blockquote>
-   */
-  @Override
-  public Void visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    recordStaticType(node, typeProvider.getBoolType());
     return null;
   }
 

@@ -75,16 +75,6 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @Override
-  public ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    ArgumentDefinitionTest copy = new ArgumentDefinitionTest(
-        mapToken(node.getQuestion()),
-        cloneNode(node.getIdentifier()));
-    copy.setPropagatedType(node.getPropagatedType());
-    copy.setStaticType(node.getStaticType());
-    return copy;
-  }
-
-  @Override
   public ArgumentList visitArgumentList(ArgumentList node) {
     return new ArgumentList(
         mapToken(node.getLeftParenthesis()),

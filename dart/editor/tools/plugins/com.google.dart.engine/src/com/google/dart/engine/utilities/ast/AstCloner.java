@@ -41,11 +41,6 @@ public class AstCloner implements AstVisitor<AstNode> {
   }
 
   @Override
-  public ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    return new ArgumentDefinitionTest(node.getQuestion(), cloneNode(node.getIdentifier()));
-  }
-
-  @Override
   public ArgumentList visitArgumentList(ArgumentList node) {
     return new ArgumentList(
         node.getLeftParenthesis(),

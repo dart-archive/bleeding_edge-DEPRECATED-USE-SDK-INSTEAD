@@ -65,14 +65,6 @@ public class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   }
 
   @Override
-  public AstNode visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    if (oldNode == node.getIdentifier()) {
-      return parser.parseSimpleIdentifier();
-    }
-    return notAChild(node);
-  }
-
-  @Override
   public AstNode visitArgumentList(ArgumentList node) {
     if (node.getArguments().contains(oldNode)) {
       return parser.parseArgument();

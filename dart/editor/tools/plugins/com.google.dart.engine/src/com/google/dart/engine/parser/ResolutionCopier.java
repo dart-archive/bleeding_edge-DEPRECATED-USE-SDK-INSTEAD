@@ -60,18 +60,6 @@ public class ResolutionCopier implements AstVisitor<Boolean> {
   }
 
   @Override
-  public Boolean visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    ArgumentDefinitionTest toNode = (ArgumentDefinitionTest) this.toNode;
-    if (isEqualTokens(node.getQuestion(), toNode.getQuestion())
-        & isEqualNodes(node.getIdentifier(), toNode.getIdentifier())) {
-      toNode.setPropagatedType(node.getPropagatedType());
-      toNode.setStaticType(node.getStaticType());
-      return true;
-    }
-    return false;
-  }
-
-  @Override
   public Boolean visitArgumentList(ArgumentList node) {
     ArgumentList toNode = (ArgumentList) this.toNode;
     return isEqualTokens(node.getLeftParenthesis(), toNode.getLeftParenthesis())

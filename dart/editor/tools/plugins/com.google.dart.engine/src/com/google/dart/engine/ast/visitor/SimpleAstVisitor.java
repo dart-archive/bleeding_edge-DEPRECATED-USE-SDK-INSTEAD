@@ -35,11 +35,6 @@ public class SimpleAstVisitor<R> implements AstVisitor<R> {
   }
 
   @Override
-  public R visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    return null;
-  }
-
-  @Override
   public R visitArgumentList(ArgumentList node) {
     return null;
   }

@@ -60,10 +60,6 @@ public class AstClonerTest extends EngineTestCase {
     assertClone(annotation(identifier("A"), identifier("c"), argumentList()));
   }
 
-  public void test_visitArgumentDefinitionTest() {
-    assertClone(argumentDefinitionTest("a"));
-  }
-
   public void test_visitArgumentList() {
     assertClone(argumentList(identifier("a"), identifier("b")));
   }

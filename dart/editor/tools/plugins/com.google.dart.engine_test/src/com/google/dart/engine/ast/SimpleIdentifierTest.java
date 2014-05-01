@@ -16,7 +16,6 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.parser.ParserTestCase;
 import com.google.dart.engine.scanner.TokenType;
 
-import static com.google.dart.engine.ast.AstFactory.argumentDefinitionTest;
 import static com.google.dart.engine.ast.AstFactory.assignmentExpression;
 import static com.google.dart.engine.ast.AstFactory.binaryExpression;
 import static com.google.dart.engine.ast.AstFactory.catchClause;
@@ -63,11 +62,6 @@ public class SimpleIdentifierTest extends ParserTestCase {
     PROPERTY_LEFT,
     PROPERTY_RIGHT,
     NONE;
-  }
-
-  public void test_inDeclarationContext_argumentDefinition() {
-    SimpleIdentifier identifier = argumentDefinitionTest("p").getIdentifier();
-    assertFalse(identifier.inDeclarationContext());
   }
 
   public void test_inDeclarationContext_catch_exception() {

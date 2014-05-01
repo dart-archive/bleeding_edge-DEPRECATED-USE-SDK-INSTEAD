@@ -64,7 +64,6 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 
 import static com.google.dart.engine.ast.AstFactory.adjacentStrings;
-import static com.google.dart.engine.ast.AstFactory.argumentDefinitionTest;
 import static com.google.dart.engine.ast.AstFactory.asExpression;
 import static com.google.dart.engine.ast.AstFactory.assignmentExpression;
 import static com.google.dart.engine.ast.AstFactory.binaryExpression;
@@ -161,13 +160,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // "a" "b"
     Expression node = adjacentStrings(resolvedString("a"), resolvedString("b"));
     assertSame(typeProvider.getStringType(), analyze(node));
-    listener.assertNoErrors();
-  }
-
-  public void test_visitArgumentDefinitionTest() throws Exception {
-    // ?p
-    Expression node = argumentDefinitionTest("p");
-    assertSame(typeProvider.getBoolType(), analyze(node));
     listener.assertNoErrors();
   }
 
