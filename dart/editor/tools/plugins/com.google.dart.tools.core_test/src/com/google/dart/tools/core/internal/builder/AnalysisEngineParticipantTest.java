@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.index.Index;
+import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
@@ -122,7 +123,12 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
 
     public MockProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, String sdkContextId,
         DartIgnoreManager ignoreManager) {
-      super(resource, sdk, sdkContextId, ignoreManager);
+      super(
+          resource,
+          sdk,
+          sdkContextId,
+          IndexFactory.newIndex(IndexFactory.newMemoryIndexStore()),
+          ignoreManager);
     }
 
     public void assertProjectAnalyzed() {

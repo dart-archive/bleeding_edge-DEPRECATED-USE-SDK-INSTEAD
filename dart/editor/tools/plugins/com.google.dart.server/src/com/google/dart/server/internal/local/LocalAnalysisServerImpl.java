@@ -234,6 +234,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     return contextMap;
   }
 
+  @Override
+  public Index getIndex() {
+    return index;
+  }
+
   /**
    * Implementation for {@link #applyChanges(String, ChangeSet)}.
    */

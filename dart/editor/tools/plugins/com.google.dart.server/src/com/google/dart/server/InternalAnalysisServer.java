@@ -14,6 +14,7 @@
 package com.google.dart.server;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.index.Index;
 
 import java.util.Map;
 
@@ -39,4 +40,11 @@ public interface InternalAnalysisServer {
    * @return a map of context identifier to context
    */
   public Map<String, AnalysisContext> getContextMap();
+
+  /**
+   * Answer the index used by the analysis server
+   * 
+   * @return the index
+   */
+  public Index getIndex();
 }

@@ -20,6 +20,7 @@ import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.InternalAnalysisServer;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -693,6 +694,7 @@ public class DartCore extends Plugin implements DartSdkListener {
             ResourcesPlugin.getWorkspace().getRoot(),
             DartSdkManager.getManager().getSdk(),
             DartSdkManager.getManager().getSdkContextId(),
+            ((InternalAnalysisServer) getAnalysisServer()).getIndex(),
             DartIgnoreManager.getInstance());
       }
     }
@@ -1688,6 +1690,7 @@ public class DartCore extends Plugin implements DartSdkListener {
 
     try {
       getProjectManager().stop();
+      getAnalysisServer().shutdown();
 
       if (DartCoreDebug.METRICS) {
         StringWriter writer = new StringWriter();

@@ -17,6 +17,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.index.Index;
+import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
@@ -207,7 +208,12 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
         });
 
     DartIgnoreManager unused = mock(DartIgnoreManager.class);
-    projectManager = new ProjectManagerImpl(rootContainer, sdk, sdkContextId, unused) {
+    projectManager = new ProjectManagerImpl(
+        rootContainer,
+        sdk,
+        sdkContextId,
+        IndexFactory.newIndex(IndexFactory.newMemoryIndexStore()),
+        unused) {
       @Override
       public Project getProject(org.eclipse.core.resources.IProject resource) {
         return resource == projectContainer ? projectImpl : null;

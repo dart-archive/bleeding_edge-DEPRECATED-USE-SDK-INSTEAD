@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
-import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.search.SearchEngine;
@@ -68,7 +67,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
   private final IWorkspaceRoot resource;
   private final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
-  private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
+  private final Index index;
   private final DartIgnoreManager ignoreManager;
   private final ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
 
@@ -100,12 +99,13 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
       ResourcesPlugin.getWorkspace().getRoot(),
       AnalysisManager.getInstance(),
       AnalysisMarkerManager.getInstance(),
-      index);
+      getIndex());
 
-  public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, String sdkContextId,
+  public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, String sdkContextId, Index index,
       DartIgnoreManager ignoreManager) {
     super(sdk, sdkContextId);
     this.resource = resource;
+    this.index = index;
     this.ignoreManager = ignoreManager;
   }
 
@@ -420,12 +420,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
   @Override
   public void start() {
-    new Thread() {
-      @Override
-      public void run() {
-        index.run();
-      }
-    }.start();
     InstrumentationLogger.ensureLoggerStarted();
     if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       new AnalysisWorker(this, getSdkContext()).performAnalysisInBackground();
@@ -440,7 +434,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     AnalysisWorker.removeListener(indexNotifier);
     AnalysisManager.getInstance().stopBackgroundAnalysis();
     AnalysisMarkerManager.getInstance().stop();
-    index.stop();
   }
 
   private void analyzeAllProjects() {
