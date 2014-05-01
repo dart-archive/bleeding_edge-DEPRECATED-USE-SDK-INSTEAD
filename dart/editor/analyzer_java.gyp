@@ -34,7 +34,7 @@
             '<@(plugin_command_analyze_java_sources)',
             '<@(plugin_engine_java_sources)',
             '<@(dependent_jar_files)',
-            'tools/compile_analyzer.py',
+            'tools/compile_analyzer_java.py',
             'plugin_command_analyze_sources.gypi',
             'plugin_engine_sources.gypi',
             '../tools/VERSION',
@@ -44,7 +44,7 @@
           ],
           'action': [
             'python',
-            'tools/compile_analyzer.py',
+            'tools/compile_analyzer_java.py',
             '--output_dir', '<(PRODUCT_DIR)/<(analyzer_name)/',
             '--jar_file_name', '<(analyzer_name).jar',
             '--jar_entry_directory', 'com',
