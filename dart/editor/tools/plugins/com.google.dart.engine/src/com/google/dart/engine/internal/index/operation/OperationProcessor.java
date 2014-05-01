@@ -90,9 +90,6 @@ public class OperationProcessor {
   public void run() {
     synchronized (this) {
       // This processor is, or was, already running on a different thread.
-      if (state == ProcessorState.STOPPED) {
-        return;
-      }
       if (state != ProcessorState.READY) {
         throw new IllegalStateException("Operation processors can only be run one time: " + state); //$NON-NLS-1$
       }
