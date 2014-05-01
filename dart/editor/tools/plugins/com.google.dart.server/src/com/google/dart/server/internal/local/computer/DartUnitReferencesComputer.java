@@ -190,12 +190,10 @@ public class DartUnitReferencesComputer {
         isStatic);
     outline.setChildren(children);
     // done
-    if (parent != null) {
+    if (parentChildren != null) {
       parentChildren[0] = outline;
-      return parent;
-    } else {
-      return outline;
     }
+    return outline;
   }
 
   private SearchResultImpl newSearchResult(SearchMatch match) {

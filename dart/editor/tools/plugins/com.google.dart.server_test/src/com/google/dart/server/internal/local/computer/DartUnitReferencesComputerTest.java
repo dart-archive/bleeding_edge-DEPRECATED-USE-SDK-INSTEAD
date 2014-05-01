@@ -216,10 +216,11 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertNotNull(result);
       Outline path = result.getPath();
       assertEquals(makeSource(//
-          "LIBRARY my_lib",
-          "COMPILATION_UNIT /test.dart",
+          "METHOD B.m() → dynamic",
           "CLASS B",
-          "METHOD B.m() → dynamic"), getPathString(path));
+          "COMPILATION_UNIT /test.dart",
+          "LIBRARY my_lib"), getPathString(path));
+      verifyParentChildLinks(path);
     }
     {
       SearchResult result = findSearchResult(
@@ -230,9 +231,10 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertNotNull(result);
       Outline path = result.getPath();
       assertEquals(makeSource(//
-          "LIBRARY my_lib",
+          "FUNCTION_TYPE_ALIAS typedef F(A a) → String",
           "COMPILATION_UNIT /test.dart",
-          "FUNCTION_TYPE_ALIAS typedef F(A a) → String"), getPathString(path));
+          "LIBRARY my_lib"), getPathString(path));
+      verifyParentChildLinks(path);
     }
     {
       SearchResult result = findSearchResult(
@@ -243,9 +245,10 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertNotNull(result);
       Outline path = result.getPath();
       assertEquals(makeSource(//
-          "LIBRARY my_lib",
+          "FUNCTION main(int p1, double p2) → dynamic",
           "COMPILATION_UNIT /test.dart",
-          "FUNCTION main(int p1, double p2) → dynamic"), getPathString(path));
+          "LIBRARY my_lib"), getPathString(path));
+      verifyParentChildLinks(path);
     }
   }
 
@@ -383,10 +386,21 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
 
   private String getPathString(Outline outline) {
     String str = outline.getKind() + " " + outline.getName();
-    Outline[] children = outline.getChildren();
-    if (children.length != 0) {
-      str += "\n" + getPathString(children[0]);
+    Outline parent = outline.getParent();
+    if (parent != null) {
+      str += "\n" + getPathString(parent);
     }
     return str;
+  }
+
+  private void verifyParentChildLinks(Outline outline) {
+    while (outline != null) {
+      Outline parent = outline.getParent();
+      if (parent != null) {
+        Outline[] children = parent.getChildren();
+        assertThat(children).containsOnly(outline);
+      }
+      outline = parent;
+    }
   }
 }

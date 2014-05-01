@@ -30,32 +30,32 @@ public enum SearchResultKind {
   FIELD_REFERENCE,
 
   /**
-   * A reference to a field in which the field's value is being read.
+   * A reference to a field in which it is read.
    */
   FIELD_READ,
 
   /**
-   * A reference to a field in which the field's value is being written.
+   * A reference to a field in which it is written.
    */
   FIELD_WRITE,
 
   /**
-   * A reference to a function in which the function is being invoked.
+   * A reference to a function in which it is invoked.
    */
   FUNCTION_INVOCATION,
 
   /**
-   * A reference to a function in which the function is being referenced.
+   * A reference to a function in which it is referenced.
    */
   FUNCTION_REFERENCE,
 
   /**
-   * A reference to a method in which the method is being invoked.
+   * A reference to a method in which it is invoked.
    */
   METHOD_INVOCATION,
 
   /**
-   * A reference to a method in which the method is being referenced.
+   * A reference to a method in which it is referenced.
    */
   METHOD_REFERENCE,
 
@@ -75,17 +75,17 @@ public enum SearchResultKind {
   VARIABLE_DECLARATION,
 
   /**
-   * A reference to a variable in which the variable's value is being read.
+   * A reference to a variable in which it is read.
    */
   VARIABLE_READ,
 
   /**
-   * A reference to a variable in which the variable's value is being both read and write.
+   * A reference to a variable in which it is both read and written.
    */
   VARIABLE_READ_WRITE,
 
   /**
-   * A reference to a variable in which the variables's value is being written.
+   * A reference to a variable in which it is written.
    */
   VARIABLE_WRITE;
 }

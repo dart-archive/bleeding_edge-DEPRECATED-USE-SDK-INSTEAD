@@ -49,8 +49,8 @@ public interface SearchResult {
   public int getOffset();
 
   /**
-   * Return the path to this result starting with a library, with a single compilation unit, with a
-   * single class or function, etc.
+   * Return the path to this result starting with an outline of the element that encloses it, then
+   * for its enclosing element, etc up to the library.
    * 
    * @return the path to this result
    */
