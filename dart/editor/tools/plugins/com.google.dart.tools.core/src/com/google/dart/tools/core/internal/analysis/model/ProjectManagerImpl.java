@@ -297,6 +297,17 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
+  public ResourceMap getResourceMap(String contextId) {
+    for (Project project : getProjects()) {
+      ResourceMap map = project.getResourceMap(contextId);
+      if (map != null) {
+        return map;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public void hookListeners() {
     resource.getWorkspace().addResourceChangeListener(resourceChangeListener);
     ignoreManager.addListener(ignoreListener);

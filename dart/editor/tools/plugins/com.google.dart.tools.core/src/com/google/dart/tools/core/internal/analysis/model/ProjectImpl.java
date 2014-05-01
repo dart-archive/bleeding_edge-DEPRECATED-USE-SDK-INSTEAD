@@ -409,6 +409,22 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   @Override
+  public ResourceMap getResourceMap(String contextId) {
+    synchronized (pubFolders) {
+      for (PubFolder pubFolder : getPubFolders()) {
+        String folderContextId = pubFolder.getContextId();
+        if (folderContextId.equals(contextId)) {
+          return pubFolder;
+        }
+      }
+    }
+    if (defaultContextId.equals(contextId)) {
+      return defaultResourceMap;
+    }
+    return null;
+  }
+
+  @Override
   public boolean isContextInProject(AnalysisContext context) {
     return getResourceMap(context) != null;
   }

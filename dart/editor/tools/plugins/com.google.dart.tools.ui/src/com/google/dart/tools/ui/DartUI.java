@@ -515,39 +515,9 @@ public final class DartUI {
    * @return the {@link IFile} with {@link #element} to open, may be {@code null}.
    */
   public static IFile getElementFile(Element element) {
-    AnalysisContext elementContext = element.getContext();
-    Source elementSource = element.getSource();
-    ResourceMap map = DartCore.getProjectManager().getResourceMap(elementContext);
-    if (map == null) {
-      return null;
-    }
-    IFile file = map.getResource(elementSource);
-
-    if (file != null) {
-      IResource resource = DartCore.getProjectManager().getResource(elementSource);
-      if (resource instanceof IFile) {
-        // on Windows, check if there is an resource in project/lib in workspace that is 
-        // the same as the one in packages. If so, open the local source and not packages
-        if (DartCore.isWindows()
-            && resource.getFullPath().toString().contains(DartCore.PACKAGES_DIRECTORY_PATH)) {
-
-          String path = resource.getFullPath().toString();
-          int index = path.indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
-          String packageUri = DartCore.PACKAGE_SCHEME_SPEC
-              + path.substring(index + DartCore.PACKAGES_DIRECTORY_PATH.length());
-
-          IFileInfo info = DartCore.getProjectManager().resolveUriToFileInfo(
-              map.getResource(),
-              packageUri);
-          if (info != null && info.getResource() != null) {
-            return info.getResource();
-          }
-        }
-
-        file = (IFile) resource;
-      }
-    }
-    return file;
+    ResourceMap map = getResourceMap(element);
+    Source source = element.getSource();
+    return getSourceFile(map, source);
   }
 
   /**
@@ -562,6 +532,14 @@ public final class DartUI {
     return fgSharedImages;
   }
 
+  /**
+   * @return the {@link IFile} to open for the {@link Source} in given context, may be {@code null}.
+   */
+  public static IFile getSourceFile(String contextId, Source source) {
+    ResourceMap map = getResourceMap(contextId);
+    return getSourceFile(map, source);
+  }
+
   public static Color getViewerBackground(IPreferenceStore prefs, Display display) {
     // TODO(messick) Use a color identifier distinct from the editor.
     return prefs.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT) ? null
@@ -572,6 +550,24 @@ public final class DartUI {
     // TODO(messick) Use a color identifier distinct from the editor.
     return prefs.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND_SYSTEM_DEFAULT) ? null
         : createColor(prefs, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND, display);
+  }
+
+  public static Color getViewerSelectionBackground(IPreferenceStore prefs, Display display) {
+    // TODO(messick) Use a color identifier distinct from the editor.
+    return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_DEFAULT_COLOR)
+        ? null : createColor(
+            prefs,
+            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_COLOR,
+            display);
+  }
+
+  public static Color getViewerSelectionForeground(IPreferenceStore prefs, Display display) {
+    // TODO(messick) Use a color identifier distinct from the editor.
+    return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_DEFAULT_COLOR)
+        ? null : createColor(
+            prefs,
+            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_COLOR,
+            display);
   }
 
 //TODO (pquitslund): implement when we have dart doc
@@ -654,24 +650,6 @@ public final class DartUI {
 //    JavaDocLocations.setProjectJavadocLocation(project, url);
 //  }
 
-  public static Color getViewerSelectionBackground(IPreferenceStore prefs, Display display) {
-    // TODO(messick) Use a color identifier distinct from the editor.
-    return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_DEFAULT_COLOR)
-        ? null : createColor(
-            prefs,
-            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_COLOR,
-            display);
-  }
-
-  public static Color getViewerSelectionForeground(IPreferenceStore prefs, Display display) {
-    // TODO(messick) Use a color identifier distinct from the editor.
-    return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_DEFAULT_COLOR)
-        ? null : createColor(
-            prefs,
-            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_COLOR,
-            display);
-  }
-
   /**
    * Returns the working copy manager for the Dart UI plug-in.
    * 
@@ -748,7 +726,7 @@ public final class DartUI {
    * @return the opened editor or {@code null} if by some reason editor was not opened.
    */
   public static IEditorPart openInEditor(DartEditor contextEditor, Element element, boolean activate)
-      throws PartInitException, DartModelException {
+      throws Exception {
     IFile contextFile = contextEditor != null ? contextEditor.getInputResourceFile() : null;
     return openInEditor(contextFile, element, activate);
   }
@@ -845,19 +823,13 @@ public final class DartUI {
    */
   public static IEditorPart openInEditor(Element element, boolean activate, boolean reveal)
       throws DartModelException, PartInitException {
-    // prepare resource to open
-    IFile elementFile = getElementFile(element);
-    // open editor
-    IEditorPart editor;
-    if (elementFile != null) {
-      editor = EditorUtility.openInEditor(elementFile, activate);
-    } else {
-      editor = EditorUtility.openInEditor(element.getSource(), activate);
-    }
-    if (editor == null) {
+    if (element == null) {
       return null;
     }
-    if (reveal && editor != null) {
+    ResourceMap map = getResourceMap(element);
+    Source source = element.getSource();
+    IEditorPart editor = openSource(map, source, activate);
+    if (reveal) {
       EditorUtility.revealInEditor(editor, element);
     }
     return editor;
@@ -871,60 +843,51 @@ public final class DartUI {
    * @return the opened editor or {@code null} if by some reason editor was not opened.
    */
   public static IEditorPart openInEditor(IResource context, Element element, boolean activate)
-      throws PartInitException, DartModelException {
+      throws Exception {
     if (element == null) {
       return null;
     }
-    // open editor
-    IEditorPart part;
-    {
-      ProjectManager projectManager = DartCore.getProjectManager();
-      Source source = element.getSource();
-      IFile file;
-      if (context == null) {
-        file = (IFile) projectManager.getResource(source);
-      } else {
-        ResourceMap map = projectManager.getResourceMap(context);
-        file = map != null ? map.getResource(source) : null;
-      }
-      if (file != null) {
-        part = EditorUtility.openInEditor(file, activate);
-      } else {
-        part = EditorUtility.openInEditor(source, activate);
-      }
-    }
-    // reveal Element
-    if (part != null) {
-      EditorUtility.revealInEditor(part, element);
-    }
-    // done
-    return part;
+    IFile file = getElementFile(element);
+    String name = element.getDisplayName();
+    int nameOffset = element.getNameOffset();
+    int nameLength = name != null ? name.length() : 0;
+    return openFile(file, activate, nameOffset, nameLength);
   }
 
   /**
-   * Opens an editor on the given Dart element in the active page.
+   * Opens an editor at the given {@link NavigationTarget} in the active page.
    */
   public static IEditorPart openInEditor(IResource context, NavigationTarget target)
       throws Exception {
     Source source = target.getSource();
-    // prepare target IFile
-    IFile file;
-    {
-      ProjectManager projectManager = DartCore.getProjectManager();
-      if (context == null) {
-        file = (IFile) projectManager.getResource(source);
-      } else {
-        ResourceMap map = projectManager.getResourceMap(context);
-        file = map != null ? map.getResource(source) : null;
-      }
-    }
-    IEditorPart editor;
-    if (file != null) {
-      editor = EditorUtility.openInEditor(file, true);
-    } else {
-      editor = EditorUtility.openInEditor(source, true);
-    }
-    EditorUtility.revealInEditor(editor, target.getOffset(), target.getLength());
+    return openInEditor(context, source, true, target.getOffset(), target.getLength());
+  }
+
+  /**
+   * Opens an editor at the given position in the active page.
+   */
+  public static IEditorPart openInEditor(IResource context, Source source, boolean activate,
+      int offset, int length) throws Exception {
+    ResourceMap map = getResourceMap(context);
+    return openSource(map, source, activate, offset, length);
+  }
+
+  /**
+   * Opens an editor at the given position in the active page.
+   */
+  public static IEditorPart openInEditor(String contextId, Source source, boolean activate)
+      throws Exception {
+    ResourceMap map = getResourceMap(contextId);
+    return openSource(map, source, activate);
+  }
+
+  /**
+   * Opens an editor at the given position in the active page.
+   */
+  public static IEditorPart openInEditor(String contextId, Source source, boolean activate,
+      int offset, int length) throws Exception {
+    IEditorPart editor = openInEditor(contextId, source, activate);
+    EditorUtility.revealInEditor(editor, offset, length);
     return editor;
   }
 
@@ -956,6 +919,103 @@ public final class DartUI {
       }
     }
     return null;
+  }
+
+  private static ResourceMap getResourceMap(Element element) {
+    if (element == null) {
+      return null;
+    }
+    AnalysisContext context = element.getContext();
+    return DartCore.getProjectManager().getResourceMap(context);
+  }
+
+  private static ResourceMap getResourceMap(IResource context) {
+    if (context == null) {
+      return null;
+    }
+    return DartCore.getProjectManager().getResourceMap(context);
+  }
+
+  private static ResourceMap getResourceMap(String contextId) {
+    if (contextId == null) {
+      return null;
+    }
+    return DartCore.getProjectManager().getResourceMap(contextId);
+  }
+
+  /**
+   * @return the {@link IFile} to open for the {@link Source}, may be {@code null}.
+   */
+  private static IFile getSourceFile(ResourceMap map, Source source) {
+    ProjectManager projectManager = DartCore.getProjectManager();
+    // fallback
+    if (map == null) {
+      return (IFile) projectManager.getResource(source);
+    }
+    // use ResourceMap
+    IFile file = map.getResource(source);
+    // self-reference tweak
+    if (file != null) {
+      IResource resource = projectManager.getResource(source);
+      if (resource instanceof IFile) {
+        // on Windows, check if there is an resource in project/lib in workspace that is 
+        // the same as the one in packages. If so, open the local source and not packages
+        if (DartCore.isWindows()
+            && resource.getFullPath().toString().contains(DartCore.PACKAGES_DIRECTORY_PATH)) {
+
+          String path = resource.getFullPath().toString();
+          int index = path.indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
+          String packageUri = DartCore.PACKAGE_SCHEME_SPEC
+              + path.substring(index + DartCore.PACKAGES_DIRECTORY_PATH.length());
+
+          IFileInfo info = DartCore.getProjectManager().resolveUriToFileInfo(
+              map.getResource(),
+              packageUri);
+          if (info != null && info.getResource() != null) {
+            return info.getResource();
+          }
+        }
+
+        file = (IFile) resource;
+      }
+    }
+    return file;
+  }
+
+  private static IEditorPart openFile(IFile file, boolean activate) throws PartInitException,
+      DartModelException {
+    if (file == null) {
+      return null;
+    }
+    return EditorUtility.openInEditor(file, activate);
+  }
+
+  private static IEditorPart openFile(IFile file, boolean activate, int offset, int length)
+      throws Exception {
+    IEditorPart editor = openFile(file, activate);
+    if (editor != null) {
+      EditorUtility.revealInEditor(editor, offset, length);
+    }
+    return editor;
+  }
+
+  private static IEditorPart openSource(ResourceMap map, Source source, boolean activate)
+      throws PartInitException, DartModelException {
+    IFile file = getSourceFile(map, source);
+    if (file != null) {
+      return openFile(file, activate);
+    }
+    // fallback for SDK, which sources are is not a IFile(s)
+    return EditorUtility.openInEditor(source, activate);
+  }
+
+  private static IEditorPart openSource(ResourceMap map, Source source, boolean activate,
+      int offset, int length) throws Exception {
+    IEditorPart editor = openSource(map, source, activate);
+    if (editor != null) {
+      EditorUtility.revealInEditor(editor, offset, length);
+    }
+    return editor;
   }
 
   private DartUI() {

@@ -125,6 +125,15 @@ public interface ContextManager {
   ResourceMap getResourceMap(IResource resource);
 
   /**
+   * Answer the bi-directional map for translating between sources and resources for the specified
+   * analysis context.
+   * 
+   * @param contextId the context identifier (not {@code null})
+   * @return the resource map (not {@code null})
+   */
+  ResourceMap getResourceMap(String contextId);
+
+  /**
    * Answer the {@link DartSdk} associated with this manager.
    * 
    * @return the sdk (not {@code null})
