@@ -132,6 +132,15 @@ public class MockContext implements InternalAnalysisContext {
   }
 
   @Override
+  public void applyAnalysisDelta(AnalysisDelta delta) {
+    for (Entry<Source, AnalysisLevel> entry : delta.getAnalysisLevels().entrySet()) {
+      TestCase.assertNotNull(entry.getKey());
+      TestCase.assertNotNull(entry.getValue());
+    }
+    analysisLevels.putAll(delta.getAnalysisLevels());
+  }
+
+  @Override
   public void applyChanges(ChangeSet changes) {
     calls.add(new ChangedCall(this, changes));
   }
@@ -571,15 +580,6 @@ public class MockContext implements InternalAnalysisContext {
   @Override
   public void setSourceFactory(SourceFactory sourceFactory) {
     factory = sourceFactory;
-  }
-
-  @Override
-  public void updateAnalysis(AnalysisDelta delta) {
-    for (Entry<Source, AnalysisLevel> entry : delta.getAnalysisLevels().entrySet()) {
-      TestCase.assertNotNull(entry.getKey());
-      TestCase.assertNotNull(entry.getValue());
-    }
-    analysisLevels.putAll(delta.getAnalysisLevels());
   }
 
   private File[] asFiles(IResource[] resources) {

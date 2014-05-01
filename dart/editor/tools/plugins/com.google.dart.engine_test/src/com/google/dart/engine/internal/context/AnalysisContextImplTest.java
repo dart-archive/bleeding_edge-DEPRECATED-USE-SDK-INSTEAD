@@ -1344,11 +1344,11 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source source = new FileBasedSource(createFile("/test.dart"));
     AnalysisDelta delta = new AnalysisDelta();
     delta.setAnalysisLevel(source, AnalysisLevel.ALL);
-    context.updateAnalysis(delta);
+    context.applyAnalysisDelta(delta);
     assertTrue(context.getSourcesNeedingProcessing().contains(source));
     delta = new AnalysisDelta();
     delta.setAnalysisLevel(source, AnalysisLevel.NONE);
-    context.updateAnalysis(delta);
+    context.applyAnalysisDelta(delta);
     assertFalse(context.getSourcesNeedingProcessing().contains(source));
   }
 

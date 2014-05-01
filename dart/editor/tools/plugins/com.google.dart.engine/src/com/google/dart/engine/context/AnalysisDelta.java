@@ -55,7 +55,7 @@ public class AnalysisDelta {
   /**
    * A mapping from source to what type of analysis should be performed on that source.
    */
-  private HashMap<Source, AnalysisLevel> analysisMap = new HashMap<Source, AnalysisDelta.AnalysisLevel>();
+  private HashMap<Source, AnalysisLevel> analysisMap = new HashMap<Source, AnalysisLevel>();
 
   /**
    * Initialize a newly created analysis set to be empty.

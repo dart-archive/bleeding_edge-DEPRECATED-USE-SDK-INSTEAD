@@ -69,6 +69,14 @@ import java.util.List;
  */
 public interface AnalysisContext {
   /**
+   * Apply the given delta to change the level of analysis that will be performed for the sources
+   * known to this context.
+   * 
+   * @param delta a description of the level of analysis that should be performed for some sources
+   */
+  public void applyAnalysisDelta(AnalysisDelta delta);
+
+  /**
    * Apply the changes specified by the given change set to this context. Any analysis results that
    * have been invalidated by these changes will be removed.
    * 
@@ -639,11 +647,4 @@ public interface AnalysisContext {
    *          context
    */
   public void setSourceFactory(SourceFactory factory);
-
-  /**
-   * Update the analysis to be performed based upon information contained in the given analysis set.
-   * 
-   * @param delta a description of what analysis should be performed on which sources
-   */
-  public void updateAnalysis(AnalysisDelta delta);
 }

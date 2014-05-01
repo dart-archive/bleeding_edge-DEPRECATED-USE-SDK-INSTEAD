@@ -56,6 +56,11 @@ public class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @Override
+  public void applyAnalysisDelta(AnalysisDelta delta) {
+    fail("Unexpected invocation of applyAnalysisDelta");
+  }
+
+  @Override
   public void applyChanges(ChangeSet changeSet) {
     fail("Unexpected invocation of applyChanges");
   }
@@ -397,10 +402,5 @@ public class TestAnalysisContext implements InternalAnalysisContext {
   @Override
   public void setSourceFactory(SourceFactory factory) {
     fail("Unexpected invocation of setSourceFactory");
-  }
-
-  @Override
-  public void updateAnalysis(AnalysisDelta delta) {
-    fail("Unexpected invocation of updateAnalysis");
   }
 }

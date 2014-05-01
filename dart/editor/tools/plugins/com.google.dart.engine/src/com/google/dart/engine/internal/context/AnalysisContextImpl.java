@@ -974,6 +974,20 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public void applyAnalysisDelta(AnalysisDelta delta) {
+    ChangeSet changeSet = new ChangeSet();
+    for (Entry<Source, AnalysisLevel> entry : delta.getAnalysisLevels().entrySet()) {
+      Source source = entry.getKey();
+      if (entry.getValue() == AnalysisLevel.NONE) {
+        changeSet.removedSource(source);
+      } else {
+        changeSet.addedSource(source);
+      }
+    }
+    applyChanges(changeSet);
+  }
+
+  @Override
   public void applyChanges(ChangeSet changeSet) {
     if (changeSet.isEmpty()) {
       return;
@@ -2095,20 +2109,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
       invalidateAllLocalResolutionInformation();
     }
-  }
-
-  @Override
-  public void updateAnalysis(AnalysisDelta delta) {
-    ChangeSet changeSet = new ChangeSet();
-    for (Entry<Source, AnalysisLevel> entry : delta.getAnalysisLevels().entrySet()) {
-      Source source = entry.getKey();
-      if (entry.getValue() == AnalysisLevel.NONE) {
-        changeSet.removedSource(source);
-      } else {
-        changeSet.addedSource(source);
-      }
-    }
-    applyChanges(changeSet);
   }
 
   /**

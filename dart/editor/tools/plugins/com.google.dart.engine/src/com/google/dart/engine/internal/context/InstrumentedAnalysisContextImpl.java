@@ -122,6 +122,18 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public void applyAnalysisDelta(AnalysisDelta delta) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-updateAnalysis");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      basis.applyAnalysisDelta(delta);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
   public void applyChanges(ChangeSet changeSet) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-applyChanges");
     checkThread(instrumentation);
@@ -824,18 +836,6 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
     try {
       instrumentation.metric("contextId", contextId);
       basis.setSourceFactory(factory);
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  @Override
-  public void updateAnalysis(AnalysisDelta delta) {
-    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-updateAnalysis");
-    checkThread(instrumentation);
-    try {
-      instrumentation.metric("contextId", contextId);
-      basis.updateAnalysis(delta);
     } finally {
       instrumentation.log();
     }

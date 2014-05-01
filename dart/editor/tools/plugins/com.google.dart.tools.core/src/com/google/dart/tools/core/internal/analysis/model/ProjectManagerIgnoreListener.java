@@ -132,7 +132,7 @@ public class ProjectManagerIgnoreListener implements DartIgnoreListener {
             @Override
             public void visitContext(ResourceDeltaEvent event) {
               if (context != null) {
-                context.updateAnalysis(delta);
+                context.applyAnalysisDelta(delta);
               }
               if (event != null) {
                 context = event.getContext();
@@ -196,7 +196,7 @@ public class ProjectManagerIgnoreListener implements DartIgnoreListener {
             @Override
             public void visitContext(ResourceDeltaEvent event) {
               if (context != null) {
-                context.updateAnalysis(delta);
+                context.applyAnalysisDelta(delta);
                 analysisManager.performAnalysisInBackground(project, context);
               }
               if (event != null) {
