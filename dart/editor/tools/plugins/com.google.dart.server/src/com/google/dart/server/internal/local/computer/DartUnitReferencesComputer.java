@@ -22,6 +22,8 @@ import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.FieldFormalParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -114,6 +116,13 @@ public class DartUnitReferencesComputer {
   public void compute() {
     AstNode node = new NodeLocator(offset).searchWithin(unit);
     Element element = ElementLocator.locateWithOffset(node, offset);
+    // tweak element
+    if (element instanceof PropertyAccessorElement) {
+      element = ((PropertyAccessorElement) element).getVariable();
+    }
+    if (element instanceof FieldFormalParameterElement) {
+      element = ((FieldFormalParameterElement) element).getField();
+    }
     // do search
     if (element != null) {
       List<SearchResult> results = Lists.newArrayList();
@@ -149,6 +158,8 @@ public class DartUnitReferencesComputer {
       outlineKind = OutlineKind.CLASS;
     } else if (elementKind == ElementKind.COMPILATION_UNIT) {
       outlineKind = OutlineKind.COMPILATION_UNIT;
+    } else if (elementKind == ElementKind.CONSTRUCTOR) {
+      outlineKind = OutlineKind.CONSTRUCTOR;
     } else if (elementKind == ElementKind.FUNCTION) {
       outlineKind = OutlineKind.FUNCTION;
     } else if (elementKind == ElementKind.FUNCTION_TYPE_ALIAS) {

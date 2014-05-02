@@ -69,7 +69,7 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
     assertHasResult("(2);", "".length(), SearchResultKind.CONSTRUCTOR_REFERENCE);
   }
 
-  public void test_field() throws Exception {
+  public void test_field_explicit() throws Exception {
     createContextWithSingleSource(makeSource(//
         "class A {",
         "  int fff; // declaration",
@@ -96,6 +96,55 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
     assertHasResult("fff); // in main()", SearchResultKind.FIELD_READ);
   }
 
+  public void test_field_implicit() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "class A {",
+        "  int get fff => 0;",
+        "  int set fff(x) {}",
+        "  m() {",
+        "    print(fff); // in m()",
+        "    fff = 1; // in m()",
+        "  }",
+        "}",
+        "main(A a) {",
+        "  print(a.fff); // in main()",
+        "  a.fff = 10; // in main()",
+        "}"));
+    {
+      doSearch("fff => 0;");
+      assertThat(searchResults).hasSize(4);
+      assertHasResult("fff); // in m()", SearchResultKind.FIELD_READ);
+      assertHasResult("fff = 1;", SearchResultKind.FIELD_WRITE);
+      assertHasResult("fff); // in m()", SearchResultKind.FIELD_READ);
+      assertHasResult("fff = 10;", SearchResultKind.FIELD_WRITE);
+    }
+    {
+      doSearch("fff(x) {}");
+      assertThat(searchResults).hasSize(4);
+      assertHasResult("fff); // in m()", SearchResultKind.FIELD_READ);
+      assertHasResult("fff = 1;", SearchResultKind.FIELD_WRITE);
+      assertHasResult("fff); // in m()", SearchResultKind.FIELD_READ);
+      assertHasResult("fff = 10;", SearchResultKind.FIELD_WRITE);
+    }
+  }
+
+  public void test_field_inFieldFormalParameter() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "class A {",
+        "  int fff; // declaration",
+        "  A(this.fff); // in constructor",
+        "  m() {",
+        "    fff = 2;",
+        "    print(fff); // in m()",
+        "  }",
+        "}"));
+    doSearch("fff); // in constructor");
+    assertThat(searchResults).hasSize(3);
+    assertHasResult("fff); // in constructor", SearchResultKind.FIELD_REFERENCE);
+    assertHasResult("fff = 2", SearchResultKind.FIELD_WRITE);
+    assertHasResult("fff); // in m()", SearchResultKind.FIELD_READ);
+  }
+
   public void test_function() throws Exception {
     createContextWithSingleSource(makeSource(//
         "fff(p) {};",
@@ -119,23 +168,6 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
     assertThat(searchResults).hasSize(1);
     SearchResult searchResult = assertHasResult("ttt);", SearchResultKind.VARIABLE_READ);
     assertEquals(source, searchResult.getSource());
-  }
-
-  public void test_getter() throws Exception {
-    createContextWithSingleSource(makeSource(//
-        "class A {",
-        "  int get ggg => 0;",
-        "  m() {",
-        "    print(ggg); // in m()",
-        "  }",
-        "}",
-        "main(A a) {",
-        "  print(a.ggg); // in main()",
-        "}"));
-    doSearch("ggg => 0;");
-    assertThat(searchResults).hasSize(2);
-    assertHasResult("ggg); // in m()", SearchResultKind.PROPERTY_ACCESSOR_REFERENCE);
-    assertHasResult("ggg); // in main()", SearchResultKind.PROPERTY_ACCESSOR_REFERENCE);
   }
 
   public void test_localVariable() throws Exception {
@@ -204,21 +236,45 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
     assertHasResult("ppp);", SearchResultKind.VARIABLE_READ);
   }
 
-  public void test_path() throws Exception {
+  public void test_path_inConstructor_named() throws Exception {
     createContextWithSingleSource(makeSource(//
         "library my_lib;",
         "class A {}",
         "class B {",
-        "  m() {",
-        "    A a = null; // 1",
+        "  B.named() {",
+        "    A a = null; // 2",
         "  }",
-        "}",
-        "typedef String F(A a); // 2",
-        "main(int p1, double p2) {",
-        "  A a = null; // 3",
         "}"));
     doSearch("A {}");
-    assertThat(searchResults).hasSize(3);
+    assertThat(searchResults).hasSize(1);
+    {
+      SearchResult result = findSearchResult(
+          source,
+          SearchResultKind.TYPE_REFERENCE,
+          code.indexOf("A a = null; // 2"),
+          "A".length());
+      assertNotNull(result);
+      Outline path = result.getPath();
+      assertEquals(makeSource(//
+          "CONSTRUCTOR B.named() → B",
+          "CLASS B",
+          "COMPILATION_UNIT /test.dart",
+          "LIBRARY my_lib"), getPathString(path));
+      verifyParentChildLinks(path);
+    }
+  }
+
+  public void test_path_inConstructor_unnamed() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "library my_lib;",
+        "class A {}",
+        "class B {",
+        "  B() {",
+        "    A a = null; // 1",
+        "  }",
+        "}"));
+    doSearch("A {}");
+    assertThat(searchResults).hasSize(1);
     {
       SearchResult result = findSearchResult(
           source,
@@ -228,31 +284,28 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertNotNull(result);
       Outline path = result.getPath();
       assertEquals(makeSource(//
-          "METHOD B.m() → dynamic",
+          "CONSTRUCTOR B() → B",
           "CLASS B",
           "COMPILATION_UNIT /test.dart",
           "LIBRARY my_lib"), getPathString(path));
       verifyParentChildLinks(path);
     }
+  }
+
+  public void test_path_inFunction() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "library my_lib;",
+        "class A {}",
+        "main(int p1, double p2) {",
+        "  A a = null; // 5",
+        "}"));
+    doSearch("A {}");
+    assertThat(searchResults).hasSize(1);
     {
       SearchResult result = findSearchResult(
           source,
           SearchResultKind.TYPE_REFERENCE,
-          code.indexOf("A a); // 2"),
-          "A".length());
-      assertNotNull(result);
-      Outline path = result.getPath();
-      assertEquals(makeSource(//
-          "FUNCTION_TYPE_ALIAS typedef F(A a) → String",
-          "COMPILATION_UNIT /test.dart",
-          "LIBRARY my_lib"), getPathString(path));
-      verifyParentChildLinks(path);
-    }
-    {
-      SearchResult result = findSearchResult(
-          source,
-          SearchResultKind.TYPE_REFERENCE,
-          code.indexOf("A a = null; // 3"),
+          code.indexOf("A a = null; // 5"),
           "A".length());
       assertNotNull(result);
       Outline path = result.getPath();
@@ -264,24 +317,59 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
     }
   }
 
-  public void test_setter() throws Exception {
+  public void test_path_inFunctionTypeAlias() throws Exception {
     createContextWithSingleSource(makeSource(//
-        "class A {",
-        "  void set sss(x) {}",
-        "  m() {",
-        "    sss = 1;",
-        "  }",
-        "}",
-        "main(A a) {",
-        "  a.sss = 10;",
-        "}"));
-    doSearch("sss(x) {}");
-    assertThat(searchResults).hasSize(2);
-    assertHasResult("sss = 1", SearchResultKind.PROPERTY_ACCESSOR_REFERENCE);
-    assertHasResult("sss = 10", SearchResultKind.PROPERTY_ACCESSOR_REFERENCE);
+        "library my_lib;",
+        "class A {}",
+        "typedef String F(A a); // 4",
+        ""));
+    doSearch("A {}");
+    assertThat(searchResults).hasSize(1);
+    {
+      SearchResult result = findSearchResult(
+          source,
+          SearchResultKind.TYPE_REFERENCE,
+          code.indexOf("A a); // 4"),
+          "A".length());
+      assertNotNull(result);
+      Outline path = result.getPath();
+      assertEquals(makeSource(//
+          "FUNCTION_TYPE_ALIAS typedef F(A a) → String",
+          "COMPILATION_UNIT /test.dart",
+          "LIBRARY my_lib"), getPathString(path));
+      verifyParentChildLinks(path);
+    }
   }
 
-  public void test_topLevelVariable() throws Exception {
+  public void test_path_inMethod() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "library my_lib;",
+        "class A {}",
+        "class B {",
+        "  m() {",
+        "    A a = null; // 3",
+        "  }",
+        "}"));
+    doSearch("A {}");
+    assertThat(searchResults).hasSize(1);
+    {
+      SearchResult result = findSearchResult(
+          source,
+          SearchResultKind.TYPE_REFERENCE,
+          code.indexOf("A a = null; // 3"),
+          "A".length());
+      assertNotNull(result);
+      Outline path = result.getPath();
+      assertEquals(makeSource(//
+          "METHOD B.m() → dynamic",
+          "CLASS B",
+          "COMPILATION_UNIT /test.dart",
+          "LIBRARY my_lib"), getPathString(path));
+      verifyParentChildLinks(path);
+    }
+  }
+
+  public void test_topLevelVariable_explicit() throws Exception {
     createContextWithSingleSource(makeSource(//
         "int vvv = 1;",
         "main() {",
@@ -294,6 +382,31 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
     assertHasResult("vvv = 2", SearchResultKind.FIELD_WRITE);
     assertHasResult("vvv += 3", SearchResultKind.FIELD_WRITE);
     assertHasResult("vvv);", SearchResultKind.FIELD_READ);
+  }
+
+  public void test_topLevelVariable_implicit() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "int get vvv => 1;",
+        "void set vvv(x) {}",
+        "main() {",
+        "  vvv = 2;",
+        "  vvv += 3;",
+        "  print(vvv);",
+        "}"));
+    {
+      doSearch("vvv => 1;");
+      assertThat(searchResults).hasSize(3);
+      assertHasResult("vvv = 2", SearchResultKind.FIELD_WRITE);
+      assertHasResult("vvv += 3", SearchResultKind.FIELD_WRITE);
+      assertHasResult("vvv);", SearchResultKind.FIELD_READ);
+    }
+    {
+      doSearch("vvv(x) {}");
+      assertThat(searchResults).hasSize(3);
+      assertHasResult("vvv = 2", SearchResultKind.FIELD_WRITE);
+      assertHasResult("vvv += 3", SearchResultKind.FIELD_WRITE);
+      assertHasResult("vvv);", SearchResultKind.FIELD_READ);
+    }
   }
 
   public void test_typeReference_class() throws Exception {
@@ -372,6 +485,7 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
    * Requests references and waits for results.
    */
   private void doSearch(String search) throws Exception {
+    searchResults.clear();
     final CountDownLatch latch = new CountDownLatch(1);
     server.searchReferences(contextId, source, code.indexOf(search), new SearchResultsConsumer() {
       @Override
