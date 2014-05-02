@@ -26,11 +26,14 @@ import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.index.Index;
+import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.server.Outline;
 import com.google.dart.tools.core.DartCore;
@@ -2362,6 +2365,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 //      if (context == null) {
 //        return null;
 //      }
+      DartSdk sdk = projectManager.getSdk();
+      if (sdk instanceof DirectoryBasedDartSdk) {
+        if (inputJavaFile.getAbsolutePath().startsWith(
+            ((DirectoryBasedDartSdk) sdk).getDirectory().getAbsolutePath() + File.separator)) {
+          return new FileBasedSource(inputJavaFile, UriKind.DART_URI);
+        }
+      }
       return new FileBasedSource(inputJavaFile);
     }
     // some random external file
