@@ -5,10 +5,15 @@ import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.io.FileUtilities2;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.util.Collection;
 import java.util.Map;
 
+/**
+ * TODO(scheglov) Restore this test once TestSource is not file based.
+ */
+@DartOmit
 public class AnalysisDeltaTest extends EngineTestCase {
 
   private TestSource source1 = new TestSource();
