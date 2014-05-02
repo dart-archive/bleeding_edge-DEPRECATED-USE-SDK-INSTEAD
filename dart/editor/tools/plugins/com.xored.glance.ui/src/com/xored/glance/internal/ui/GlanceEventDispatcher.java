@@ -1,5 +1,7 @@
 package com.xored.glance.internal.ui;
 
+import com.google.dart.tools.ui.omni.OmniBoxControlContribution;
+
 import com.xored.glance.internal.ui.search.SearchManager;
 
 import org.eclipse.jface.bindings.Binding;
@@ -8,6 +10,7 @@ import org.eclipse.jface.bindings.keys.KeySequence;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchCommandConstants;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.keys.BindingService;
 import org.eclipse.ui.internal.keys.WorkbenchKeyboard;
@@ -23,12 +26,14 @@ public class GlanceEventDispatcher {
 
   public static final String GLANCE_CTX = "com.xored.glance.ui.context";
   public static final String TEXT_EDITOR_CTX = "org.eclipse.ui.textEditorScope";
+  public static final String WINDOW_CTX = "org.eclipse.ui.contexts.window";
 
   public static final String NEXT_COMMAND = "com.xored.glance.ui.nextResult";
   public static final String PREV_COMMAND = "com.xored.glance.ui.prevResult";
   public static final String FOCUS_COMMAND = "com.xored.glance.commands.focus";
   public static final String CLOSE_COMMAND = "com.xored.glance.commands.close";
   public static final String CLEAR_COMMAND = "com.xored.glance.commands.clearHistory";
+  public static final String OMNI_FOCUS_COMMAND = "com.google.dart.tools.ui.omnibox";
 
   public static GlanceEventDispatcher INSTANCE = new GlanceEventDispatcher();
 
@@ -71,6 +76,13 @@ public class GlanceEventDispatcher {
       // on linux we have to deal with this
       SearchManager.getIntance().findPrevious();
       event.doit = false;
+    } else if (OMNI_FOCUS_COMMAND.equals(commandID)) {
+      IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+      OmniBoxControlContribution control = OmniBoxControlContribution.getControlForWindow(window);
+      if (control != null) {
+        control.giveFocus();
+      }
+      event.doit = false;
     }
   }
 
@@ -81,7 +93,7 @@ public class GlanceEventDispatcher {
       for (Object obj : bindings) {
         Binding binding = (Binding) obj;
         String ctx = binding.getContextId();
-        if (GLANCE_CTX.equals(ctx) || TEXT_EDITOR_CTX.equals(ctx)) {
+        if (GLANCE_CTX.equals(ctx) || TEXT_EDITOR_CTX.equals(ctx) || WINDOW_CTX.equals(ctx)) {
           return binding.getParameterizedCommand().getId();
         }
       }
