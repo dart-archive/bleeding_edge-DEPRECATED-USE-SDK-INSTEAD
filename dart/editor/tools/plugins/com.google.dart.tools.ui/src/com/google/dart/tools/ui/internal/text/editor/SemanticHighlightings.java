@@ -423,6 +423,9 @@ public class SemanticHighlightings {
     }
 
     protected List<SourceRange> addPosition(List<SourceRange> positions, Token token) {
+      if (token == null) {
+        return positions;
+      }
       return addPosition(positions, rangeToken(token));
     }
 
@@ -510,6 +513,8 @@ public class SemanticHighlightings {
       if (node instanceof ImportDirective) {
         ImportDirective directive = (ImportDirective) node;
         result = addPosition(result, directive.getKeyword());
+        result = addPosition(result, directive.getDeferredToken());
+        result = addPosition(result, directive.getAsToken());
         for (Combinator combinator : directive.getCombinators()) {
           result = addPosition(result, combinator.getKeyword());
         }

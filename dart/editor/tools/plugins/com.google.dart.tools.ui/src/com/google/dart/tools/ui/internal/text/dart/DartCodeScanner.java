@@ -25,7 +25,6 @@ import com.google.dart.tools.ui.internal.text.functions.ISourceVersionDependent;
 import com.google.dart.tools.ui.text.IColorManager;
 import com.google.dart.tools.ui.text.IDartColorConstants;
 
-import static com.google.dart.compiler.parser.Token.AS;
 import static com.google.dart.compiler.parser.Token.BREAK;
 import static com.google.dart.compiler.parser.Token.IS;
 import static com.google.dart.compiler.parser.Token.LIBRARY;
@@ -240,7 +239,7 @@ public class DartCodeScanner extends AbstractDartScanner {
     for (int i = 0; i < tokens.length; i++) {
       com.google.dart.compiler.parser.Token token = tokens[i];
       if ((BREAK.ordinal() <= token.ordinal() && token.ordinal() <= WITH.ordinal())
-          || token.ordinal() == AS.ordinal() || token.ordinal() == IS.ordinal()) {
+          || token.ordinal() == IS.ordinal()) {
         keywords.add(token.getSyntax());
       }
 
