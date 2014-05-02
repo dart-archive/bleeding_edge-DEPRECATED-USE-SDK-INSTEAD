@@ -48,12 +48,11 @@ public class AbstractSample {
 
   public static List<AbstractSample> getAllSamples() {
     return Arrays.asList(
-        new ChromePackagedAppSample(),
+        new WebAppSample(),
         new CommandLineSample(),
         new PackageSample(),
-        new ProjectSample(),
-        new WebAppSample(),
-        new PolymerSample());
+        new PolymerSample(),
+        new ChromePackagedAppSample());
   }
 
   private String title;

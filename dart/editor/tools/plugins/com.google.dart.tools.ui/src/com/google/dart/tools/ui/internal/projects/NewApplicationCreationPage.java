@@ -77,13 +77,9 @@ public class NewApplicationCreationPage extends WizardPage {
   static final String NEW_APPPLICATION_SETTINGS = "newApplicationWizard.settings"; //$NON-NLS-1$
   static final String PARENT_DIR = "parentDir"; //$NON-NLS-1$
 
-  private static final String CONTENT_GENERATION_DISABLED = "contentGenerationDisabled"; //$NON-NLS-1$
-
   private Text projectNameField;
   private Text projectLocationField;
   private String defaultLocation;
-
-  private Button generateContentButton;
   private TableViewer samplesViewer;
 
   /**
@@ -172,23 +168,6 @@ public class NewApplicationCreationPage extends WizardPage {
     GridDataFactory.fillDefaults().span(3, 1).grab(true, false).indent(0, 10).applyTo(contentGroup);
     GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(contentGroup);
 
-    generateContentButton = new Button(contentGroup, SWT.CHECK);
-    generateContentButton.setText("Generate sample content");
-    generateContentButton.setSelection(getGenerateContentPreference());
-    generateContentButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
-            NEW_APPPLICATION_SETTINGS);
-        settings.put(CONTENT_GENERATION_DISABLED, !generateContentButton.getSelection());
-
-        updateMessageAndEnablement();
-      }
-    });
-
-    Label spacer = new Label(contentGroup, SWT.SEPARATOR | SWT.HORIZONTAL);
-    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(spacer);
-
     samplesViewer = new TableViewer(contentGroup, SWT.SINGLE | SWT.V_SCROLL | SWT.BORDER
         | SWT.FULL_SELECTION);
     samplesViewer.setLabelProvider(new LabelProvider());
@@ -211,6 +190,8 @@ public class NewApplicationCreationPage extends WizardPage {
         updateMessageAndEnablement();
       }
     });
+
+    samplesViewer.getTable().setEnabled(true);
 
     updateMessageAndEnablement();
 
@@ -253,17 +234,14 @@ public class NewApplicationCreationPage extends WizardPage {
   }
 
   protected AbstractSample getCurrentSample() {
-    if (generateContentButton.getSelection()) {
-      IStructuredSelection selection = (IStructuredSelection) samplesViewer.getSelection();
 
-      if (selection.isEmpty()) {
-        return null;
-      } else {
-        return (AbstractSample) selection.getFirstElement();
-      }
-    } else {
+    IStructuredSelection selection = (IStructuredSelection) samplesViewer.getSelection();
+    if (selection.isEmpty()) {
       return null;
+    } else {
+      return (AbstractSample) selection.getFirstElement();
     }
+
   }
 
   protected void handleBrowseButton(Text locationField) {
@@ -307,12 +285,6 @@ public class NewApplicationCreationPage extends WizardPage {
     }
 
     return samples.get(0);
-  }
-
-  private boolean getGenerateContentPreference() {
-    IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
-        NEW_APPPLICATION_SETTINGS);
-    return !settings.getBoolean(CONTENT_GENERATION_DISABLED);
   }
 
   private IPath getLocationPath() {
@@ -365,8 +337,6 @@ public class NewApplicationCreationPage extends WizardPage {
   private void updateMessageAndEnablement() {
     AbstractSample sample = getCurrentSample();
     setMessage(sample == null ? null : sample.getDescription());
-
-    samplesViewer.getTable().setEnabled(generateContentButton.getSelection());
   }
 
   private IStatus validate() {
