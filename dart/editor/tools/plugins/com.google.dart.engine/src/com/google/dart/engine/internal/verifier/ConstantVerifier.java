@@ -172,8 +172,14 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
   public Void visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.getConstKeyword() != null) {
+      EvaluationResultImpl result;
       for (Expression element : node.getElements()) {
-        validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+        result = validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+        if (result instanceof ValidResult) {
+          reportErrorIfFromDeferredLibrary(
+              element,
+              CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY);
+        }
       }
     }
     return null;
@@ -189,10 +195,21 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
     for (MapLiteralEntry entry : node.getEntries()) {
       Expression key = entry.getKey();
       if (isConst) {
-        EvaluationResultImpl result = validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
-        validate(entry.getValue(), CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
-        if (result instanceof ValidResult) {
-          DartObject value = ((ValidResult) result).getValue();
+        EvaluationResultImpl keyResult = validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
+        Expression valueExpression = entry.getValue();
+        EvaluationResultImpl valueResult = validate(
+            valueExpression,
+            CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+        if (valueResult instanceof ValidResult) {
+          reportErrorIfFromDeferredLibrary(
+              valueExpression,
+              CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
+        }
+        if (keyResult instanceof ValidResult) {
+          reportErrorIfFromDeferredLibrary(
+              key,
+              CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY);
+          DartObject value = ((ValidResult) keyResult).getValue();
           if (keys.contains(value)) {
             invalidKeys.add(key);
           } else {
@@ -231,7 +248,15 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
   @Override
   public Void visitSwitchCase(SwitchCase node) {
     super.visitSwitchCase(node);
-    validate(node.getExpression(), CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
+    Expression expression = node.getExpression();
+    EvaluationResultImpl result = validate(
+        expression,
+        CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
+    if (result instanceof ValidResult) {
+      reportErrorIfFromDeferredLibrary(
+          expression,
+          CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
+    }
     return null;
   }
 
@@ -257,16 +282,27 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
         reportErrors(result, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
         return null;
       }
-      DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
-      initializer.accept(referenceDetector);
-      if (referenceDetector.getResult()) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
-            initializer);
-        return null;
-      }
+      reportErrorIfFromDeferredLibrary(
+          initializer,
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
     }
     return null;
+  }
+
+  /**
+   * Given some computed {@link Expression}, this method generates the passed {@link ErrorCode} on
+   * the node if its' value consists of information from a deferred library.
+   * 
+   * @param expression the expression to be tested for a deferred library reference
+   * @param errorCode the error code to be used if the expression is or consists of a reference to a
+   *          deferred library
+   */
+  private void reportErrorIfFromDeferredLibrary(Expression expression, ErrorCode errorCode) {
+    DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
+    expression.accept(referenceDetector);
+    if (referenceDetector.getResult()) {
+      errorReporter.reportErrorForNode(errorCode, expression);
+    }
   }
 
   /**
@@ -346,12 +382,10 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
               CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
           VariableElementImpl element = (VariableElementImpl) parameter.getElement();
           element.setEvaluationResult(result);
-          DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
-          defaultValue.accept(referenceDetector);
-          if (result instanceof ValidResult && referenceDetector.getResult()) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
-                defaultValue);
+          if (result instanceof ValidResult) {
+            reportErrorIfFromDeferredLibrary(
+                defaultValue,
+                CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
           }
         }
       }
@@ -404,6 +438,11 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
       }
     });
     reportErrors(result, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    if (result instanceof ValidResult) {
+      reportErrorIfFromDeferredLibrary(
+          expression,
+          CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
+    }
   }
 
   /**

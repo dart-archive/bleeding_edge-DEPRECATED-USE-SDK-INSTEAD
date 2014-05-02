@@ -954,12 +954,23 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * s<sub>1</sub> &hellip; label<sub>n1</sub> &hellip; label<sub>njn</sub> case e<sub>n</sub>:
    * s<sub>n</sub>}</i>, it is a compile-time error if the expressions <i>e<sub>k</sub></i> are not
    * compile-time constants, for all <i>1 &lt;= k &lt;= n</i>.
-   * <p>
-   * TODO (jwren) For this and all other NON_CONSTANT_* error codes we need a corresponding
-   * NON_CONSTANT_*_FROM_DEFERRED_LIBRARY, see NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY or
-   * CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY.
    */
   NON_CONSTANT_CASE_EXPRESSION("Case expressions must be constant"),
+
+  /**
+   * 13.9 Switch: Given a switch statement of the form <i>switch (e) { label<sub>11</sub> &hellip;
+   * label<sub>1j1</sub> case e<sub>1</sub>: s<sub>1</sub> &hellip; label<sub>n1</sub> &hellip;
+   * label<sub>njn</sub> case e<sub>n</sub>: s<sub>n</sub> default: s<sub>n+1</sub>}</i> or the form
+   * <i>switch (e) { label<sub>11</sub> &hellip; label<sub>1j1</sub> case e<sub>1</sub>:
+   * s<sub>1</sub> &hellip; label<sub>n1</sub> &hellip; label<sub>njn</sub> case e<sub>n</sub>:
+   * s<sub>n</sub>}</i>, it is a compile-time error if the expressions <i>e<sub>k</sub></i> are not
+   * compile-time constants, for all <i>1 &lt;= k &lt;= n</i>.
+   * <p>
+   * 12.1 Constants: A qualified reference to a static constant variable that is not qualified by a
+   * deferred prefix.
+   */
+  NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY(
+      "Constant values from a deferred library cannot be used as a case expression"),
 
   /**
    * 6.2.2 Optional Formals: It is a compile-time error if the default value of an optional
@@ -984,6 +995,16 @@ public enum CompileTimeErrorCode implements ErrorCode {
   NON_CONSTANT_LIST_ELEMENT("'const' lists must have all constant values"),
 
   /**
+   * 12.6 Lists: It is a compile time error if an element of a constant list literal is not a
+   * compile-time constant.
+   * <p>
+   * 12.1 Constants: A qualified reference to a static constant variable that is not qualified by a
+   * deferred prefix.
+   */
+  NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY(
+      "Constant values from a deferred library cannot be used as values in a 'const' list"),
+
+  /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
    * literal is not a compile-time constant.
    */
@@ -992,13 +1013,36 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
    * literal is not a compile-time constant.
+   * <p>
+   * 12.1 Constants: A qualified reference to a static constant variable that is not qualified by a
+   * deferred prefix.
+   */
+  NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY(
+      "Constant values from a deferred library cannot be used as keys in a map"),
+
+  /**
+   * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
+   * literal is not a compile-time constant.
    */
   NON_CONSTANT_MAP_VALUE("The values in a 'const' map must be constant"),
+
+  /**
+   * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
+   * literal is not a compile-time constant.
+   * <p>
+   * 12.1 Constants: A qualified reference to a static constant variable that is not qualified by a
+   * deferred prefix.
+   */
+  NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY(
+      "Constant values from a deferred library cannot be used as values in a 'const' map"),
 
   /**
    * 11 Metadata: Metadata consists of a series of annotations, each of which begin with the
    * character @, followed by a constant expression that must be either a reference to a
    * compile-time constant variable, or a call to a constant constructor.
+   * <p>
+   * "From deferred library" case is covered by
+   * {@link CompileTimeErrorCode#INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY}.
    */
   NON_CONSTANT_ANNOTATION_CONSTRUCTOR("Annotation creation can use only 'const' constructor"),
 
@@ -1008,6 +1052,16 @@ public enum CompileTimeErrorCode implements ErrorCode {
    */
   NON_CONSTANT_VALUE_IN_INITIALIZER(
       "Initializer expressions in constant constructors must be constants"),
+
+  /**
+   * 7.6.3 Constant Constructors: Any expression that appears within the initializer list of a
+   * constant constructor must be a potentially constant expression, or a compile-time error occurs.
+   * <p>
+   * 12.1 Constants: A qualified reference to a static constant variable that is not qualified by a
+   * deferred prefix.
+   */
+  NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY(
+      "Constant values from a deferred library cannot be used as constant initializers"),
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.

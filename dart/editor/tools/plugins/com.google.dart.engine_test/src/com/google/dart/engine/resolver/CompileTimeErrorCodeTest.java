@@ -2907,6 +2907,42 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonConstCaseExpressionFromDeferredLibrary() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const int c = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "main (int p) {",
+        "  switch (p) {",
+        "    case a.c:",
+        "      break;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
+  public void test_nonConstCaseExpressionFromDeferredLibrary_nested() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const int c = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "main (int p) {",
+        "  switch (p) {",
+        "    case a.c + 1:",
+        "      break;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
   public void test_nonConstListElement() throws Exception {
     Source source = addSource(createSource(//
         "f(a) {",
@@ -2914,6 +2950,36 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+    verify(source);
+  }
+
+  public void test_nonConstListElementFromDeferredLibrary() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const int c = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f() {",
+        "  return const [a.c];",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
+  public void test_nonConstListElementFromDeferredLibrary_nested() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const int c = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f() {",
+        "  return const [a.c + 1];",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY);
     verify(source);
   }
 
@@ -2947,6 +3013,36 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonConstMapKeyFromDeferredLibrary() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const int c = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f() {",
+        "  return const {a.c : 0};",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
+  public void test_nonConstMapKeyFromDeferredLibrary_nested() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const int c = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f() {",
+        "  return const {a.c + 1 : 0};",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
   public void test_nonConstMapValue() throws Exception {
     Source source = addSource(createSource(//
         "f(a) {",
@@ -2954,6 +3050,36 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+    verify(source);
+  }
+
+  public void test_nonConstMapValueFromDeferredLibrary() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const int c = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f() {",
+        "  return const {'a' : a.c};",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
+  public void test_nonConstMapValueFromDeferredLibrary_nested() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const int c = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f() {",
+        "  return const {'a' : a.c + 1};",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
     verify(source);
   }
 
@@ -3042,6 +3168,80 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializerFromDeferredLibrary_field() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const int C = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class A {",
+        "  final int x;",
+        "  const A() : x = a.C;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializerFromDeferredLibrary_field_nested() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const int C = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class A {",
+        "  final int x;",
+        "  const A() : x = a.C + 1;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializerFromDeferredLibrary_redirecting() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const int C = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class A {",
+        "  const A.named(p);",
+        "  const A() : this.named(a.C);",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializerFromDeferredLibrary_super() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "const int C = 1;"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class A {",
+        "  const A(p);",
+        "}",
+        "class B extends A {",
+        "  const B() : super(a.C);",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
     verify(source);
   }
 
