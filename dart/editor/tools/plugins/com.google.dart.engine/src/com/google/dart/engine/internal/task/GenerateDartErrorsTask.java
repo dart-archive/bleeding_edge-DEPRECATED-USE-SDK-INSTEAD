@@ -197,7 +197,10 @@ public class GenerateDartErrorsTask extends AnalysisTask {
       // Use the ConstantVerifier to verify the use of constants. This needs to happen before using
       // the ErrorVerifier because some error codes need the computed constant values.
       //
-      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
+      ConstantVerifier constantVerifier = new ConstantVerifier(
+          errorReporter,
+          libraryElement,
+          typeProvider);
       unit.accept(constantVerifier);
       //
       // Use the ErrorVerifier to compute the rest of the errors.

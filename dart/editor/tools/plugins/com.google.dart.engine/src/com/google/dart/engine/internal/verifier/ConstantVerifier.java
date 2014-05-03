@@ -34,11 +34,16 @@ import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SwitchCase;
+import com.google.dart.engine.ast.SwitchMember;
+import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.constant.DartObject;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
@@ -105,12 +110,19 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
   private InterfaceType stringType;
 
   /**
+   * The current library that is being analyzed.
+   */
+  private LibraryElement currentLibrary;
+
+  /**
    * Initialize a newly created constant verifier.
    * 
    * @param errorReporter the error reporter by which errors will be reported
    */
-  public ConstantVerifier(ErrorReporter errorReporter, TypeProvider typeProvider) {
+  public ConstantVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
+      TypeProvider typeProvider) {
     this.errorReporter = errorReporter;
+    this.currentLibrary = currentLibrary;
     this.typeProvider = typeProvider;
     this.boolType = typeProvider.getBoolType();
     this.intType = typeProvider.getIntType();
@@ -215,6 +227,13 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
           } else {
             keys.add(value);
           }
+          Type type = value.getType();
+          if (implementsEqualsWhenNotAllowed(type)) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+                key,
+                type.getDisplayName());
+          }
         }
       } else {
         EvaluationResultImpl result = key.accept(new ConstantVisitor(typeProvider));
@@ -246,18 +265,45 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
   }
 
   @Override
-  public Void visitSwitchCase(SwitchCase node) {
-    super.visitSwitchCase(node);
-    Expression expression = node.getExpression();
-    EvaluationResultImpl result = validate(
-        expression,
-        CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
-    if (result instanceof ValidResult) {
-      reportErrorIfFromDeferredLibrary(
-          expression,
-          CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
+  public Void visitSwitchStatement(SwitchStatement node) {
+    // TODO(paulberry): to minimize error messages, it would be nice to
+    // compare all types with the most popular type rather than the first
+    // type.
+    NodeList<SwitchMember> switchMembers = node.getMembers();
+    boolean foundError = false;
+    Type firstType = null;
+    for (SwitchMember switchMember : switchMembers) {
+      if (switchMember instanceof SwitchCase) {
+        SwitchCase switchCase = (SwitchCase) switchMember;
+        Expression expression = switchCase.getExpression();
+        EvaluationResultImpl caseResult = validate(
+            expression,
+            CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
+        if (caseResult instanceof ValidResult) {
+          reportErrorIfFromDeferredLibrary(
+              expression,
+              CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
+          DartObject value = ((ValidResult) caseResult).getValue();
+          if (firstType == null) {
+            firstType = value.getType();
+          } else {
+            Type nType = value.getType();
+            if (!firstType.equals(nType)) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
+                  expression,
+                  expression.toSource(),
+                  firstType.getDisplayName());
+              foundError = true;
+            }
+          }
+        }
+      }
     }
-    return null;
+    if (!foundError) {
+      checkForCaseExpressionTypeImplementsEquals(node, firstType);
+    }
+    return super.visitSwitchStatement(node);
   }
 
   @Override
@@ -287,6 +333,60 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
           CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
     }
     return null;
+  }
+
+  /**
+   * This verifies that the passed switch statement does not have a case expression with the
+   * operator '==' overridden.
+   * 
+   * @param node the switch statement to evaluate
+   * @param type the common type of all 'case' expressions
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+   */
+  private boolean checkForCaseExpressionTypeImplementsEquals(SwitchStatement node, Type type) {
+    if (!implementsEqualsWhenNotAllowed(type)) {
+      return false;
+    }
+    // report error
+    errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+        node.getKeyword(),
+        type.getDisplayName());
+    return true;
+  }
+
+  /**
+   * @return {@code true} if given {@link Type} implements operator <i>==</i>, and it is not
+   *         <i>int</i> or <i>String</i>.
+   */
+  private boolean implementsEqualsWhenNotAllowed(Type type) {
+    // ignore int or String
+    if (type == null || type.equals(intType) || type.equals(typeProvider.getStringType())) {
+      return false;
+    } else if (type.equals(typeProvider.getDoubleType())) {
+      return true;
+    }
+    // prepare ClassElement
+    Element element = type.getElement();
+    if (!(element instanceof ClassElement)) {
+      return false;
+    }
+    ClassElement classElement = (ClassElement) element;
+    // lookup for ==
+    MethodElement method = classElement.lookUpMethod("==", currentLibrary);
+    while (method != null && method.isAbstract()) {
+      ClassElement definingClass = method.getEnclosingElement();
+      if (definingClass == null) {
+        return false;
+      }
+      method = definingClass.lookUpInheritedMethod("==", currentLibrary);
+    }
+    if (method == null || method.getEnclosingElement().getType().isObject()) {
+      return false;
+    }
+    // there is == that we don't like
+    return true;
   }
 
   /**

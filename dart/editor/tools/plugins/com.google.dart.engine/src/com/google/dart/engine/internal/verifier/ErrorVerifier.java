@@ -907,7 +907,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       checkForMapTypeNotAssignable(node, typeArguments);
     }
     checkForNonConstMapAsExpressionStatement(node);
-    checkForConstMapKeyExpressionTypeImplementsEquals(node);
     return super.visitMapLiteral(node);
   }
 
@@ -1073,7 +1072,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitSwitchStatement(SwitchStatement node) {
-    checkForInconsistentCaseExpressionTypes(node);
     checkForSwitchExpressionNotAssignable(node);
     checkForCaseBlocksNotTerminated(node);
     return super.visitSwitchStatement(node);
@@ -2196,27 +2194,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * This verifies that the passed switch statement does not have a case expression with the
-   * operator '==' overridden.
-   * 
-   * @param node the switch statement to evaluate
-   * @param type the common type of all 'case' expressions
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-   */
-  private boolean checkForCaseExpressionTypeImplementsEquals(SwitchStatement node, Type type) {
-    if (!implementsEqualsWhenNotAllowed(type)) {
-      return false;
-    }
-    // report error
-    errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-        node.getKeyword(),
-        type.getDisplayName());
-    return true;
-  }
-
-  /**
    * This verifies that the passed method declaration is abstract only if the enclosing class is
    * also abstract.
    * 
@@ -2775,35 +2752,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return true;
     }
     return false;
-  }
-
-  /**
-   * This verifies that the all keys of the passed map literal have class type that does not declare
-   * operator <i>==<i>.
-   * 
-   * @param key the map literal to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-   */
-  private boolean checkForConstMapKeyExpressionTypeImplementsEquals(MapLiteral node) {
-    // OK, not const.
-    if (node.getConstKeyword() == null) {
-      return false;
-    }
-    // Check every map entry.
-    boolean hasProblems = false;
-    for (MapLiteralEntry entry : node.getEntries()) {
-      Expression key = entry.getKey();
-      Type type = key.getStaticType();
-      if (implementsEqualsWhenNotAllowed(type)) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-            key,
-            type.getDisplayName());
-        hasProblems = true;
-      }
-    }
-    return hasProblems;
   }
 
   /**
@@ -3655,46 +3603,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         node,
         node.getUri());
     return true;
-  }
-
-  /**
-   * This verifies that the passed switch statement case expressions all have the same type.
-   * 
-   * @param node the switch statement to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#INCONSISTENT_CASE_EXPRESSION_TYPES
-   */
-  private boolean checkForInconsistentCaseExpressionTypes(SwitchStatement node) {
-    // TODO(jwren) Revisit this algorithm, should there up to n-1 errors?
-    NodeList<SwitchMember> switchMembers = node.getMembers();
-    boolean foundError = false;
-    Type firstType = null;
-    for (SwitchMember switchMember : switchMembers) {
-      if (switchMember instanceof SwitchCase) {
-        SwitchCase switchCase = (SwitchCase) switchMember;
-        Expression expression = switchCase.getExpression();
-        if (firstType == null) {
-          // TODO(brianwilkerson) This is failing with const variables whose declared type is
-          // dynamic. The problem is that we don't have any way to propagate type information for
-          // the variable.
-          firstType = expression.getBestType();
-        } else {
-          Type nType = expression.getBestType();
-          if (!firstType.equals(nType)) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
-                expression,
-                expression.toSource(),
-                firstType.getDisplayName());
-            foundError = true;
-          }
-        }
-      }
-    }
-    if (!foundError) {
-      checkForCaseExpressionTypeImplementsEquals(node, firstType);
-    }
-    return foundError;
   }
 
   /**
@@ -5733,39 +5641,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       });
       checked.add(current);
     }
-  }
-
-  /**
-   * @return {@code true} if given {@link Type} implements operator <i>==</i>, and it is not
-   *         <i>int</i> or <i>String</i>.
-   */
-  private boolean implementsEqualsWhenNotAllowed(Type type) {
-    // ignore int or String
-    if (type == null || type.equals(intType) || type.equals(typeProvider.getStringType())) {
-      return false;
-    } else if (type.equals(typeProvider.getDoubleType())) {
-      return true;
-    }
-    // prepare ClassElement
-    Element element = type.getElement();
-    if (!(element instanceof ClassElement)) {
-      return false;
-    }
-    ClassElement classElement = (ClassElement) element;
-    // lookup for ==
-    MethodElement method = classElement.lookUpMethod("==", currentLibrary);
-    while (method != null && method.isAbstract()) {
-      ClassElement definingClass = method.getEnclosingElement();
-      if (definingClass == null) {
-        return false;
-      }
-      method = definingClass.lookUpInheritedMethod("==", currentLibrary);
-    }
-    if (method == null || method.getEnclosingElement().getType().isObject()) {
-      return false;
-    }
-    // there is == that we don't like
-    return true;
   }
 
   private boolean isFunctionType(Type type) {

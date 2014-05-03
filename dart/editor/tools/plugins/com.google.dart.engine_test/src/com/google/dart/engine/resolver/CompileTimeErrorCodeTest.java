@@ -335,6 +335,31 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_consistentCaseExpressionTypes_dynamic() throws Exception {
+    // Even though A.S and S have a static type of "dynamic", we should see
+    // that they match 'abc', because they are constant strings.
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static const S = 'A.S';",
+        "}",
+        "",
+        "const S = 'S';",
+        "",
+        "foo(var p) {",
+        "  switch (p) {",
+        "    case S:",
+        "      break;",
+        "    case A.S:",
+        "      break;",
+        "    case 'abc':",
+        "      break;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_constConstructorWithNonConstSuper_explicit() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -649,6 +674,26 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "main() {",
         "  const {const A() : 0};",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS);
+    verify(source);
+  }
+
+  public void test_constMapKeyTypeImplementsEquals_dynamic() throws Exception {
+    // Note: static type of B.a is "dynamic", but actual type of the const
+    // object is A.  We need to make sure we examine the actual type when
+    // deciding whether there is a problem with operator==.
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "  operator ==(other) => false;",
+        "}",
+        "class B {",
+        "  static const a = const A();",
+        "}",
+        "main() {",
+        "  const {B.a : 0};",
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS);
@@ -1852,6 +1897,34 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES);
+    verify(source);
+  }
+
+  public void test_inconsistentCaseExpressionTypes_dynamic() throws Exception {
+    // Even though A.S and S have a static type of "dynamic", we should see
+    // that they fail to match 3, because they are constant strings.
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static const S = 'A.S';",
+        "}",
+        "",
+        "const S = 'S';",
+        "",
+        "foo(var p) {",
+        "  switch (p) {",
+        "    case 3:",
+        "      break;",
+        "    case S:",
+        "      break;",
+        "    case A.S:",
+        "      break;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
+        CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES);
     verify(source);
   }
 

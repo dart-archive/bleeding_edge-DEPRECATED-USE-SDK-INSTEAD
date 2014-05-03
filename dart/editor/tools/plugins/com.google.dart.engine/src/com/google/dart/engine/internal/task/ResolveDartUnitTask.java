@@ -170,7 +170,10 @@ public class ResolveDartUnitTask extends AnalysisTask {
           inheritanceManager);
       unit.accept(errorVerifier);
 
-      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
+      ConstantVerifier constantVerifier = new ConstantVerifier(
+          errorReporter,
+          libraryElement,
+          typeProvider);
       unit.accept(constantVerifier);
     } finally {
       counterHandleErrors.stop();
