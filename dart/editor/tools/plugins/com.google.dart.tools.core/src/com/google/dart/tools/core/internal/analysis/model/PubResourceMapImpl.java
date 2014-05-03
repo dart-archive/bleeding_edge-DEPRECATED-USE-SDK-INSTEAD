@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.analysis.model;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.UriKind;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.resources.IContainer;
@@ -117,6 +118,7 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
     }
     int index = packagesLocation.segmentCount();
     File file;
+    UriKind uriKind;
     if (fileLocation.segmentCount() > index && packagesLocation.isPrefixOf(fileLocation)) {
       File pkgDir = fileLocation.uptoSegment(index + 1).toFile();
       try {
@@ -131,10 +133,12 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
       } else {
         file = pkgDir;
       }
+      uriKind = UriKind.PACKAGE_URI;
     } else {
       file = fileLocation.toFile();
+      uriKind = UriKind.FILE_URI;
     }
-    return new FileBasedSource(file);
+    return new FileBasedSource(file, uriKind);
   }
 
   /**

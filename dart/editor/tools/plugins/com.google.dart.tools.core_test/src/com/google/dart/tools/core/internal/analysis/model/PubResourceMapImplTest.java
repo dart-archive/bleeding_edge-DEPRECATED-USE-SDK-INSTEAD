@@ -14,6 +14,8 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.mock.MockFile;
@@ -108,8 +110,16 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
 
     PubResourceMapImpl map = newTarget();
     map.getResource(source1);
-    assertEquals(source1, map.getSource(res1));
-    assertEquals(source2, map.getSource(res2));
+    {
+      Source mapSource1 = map.getSource(res1);
+      assertEquals(source1, mapSource1);
+      assertSame(UriKind.PACKAGE_URI, mapSource1.getUriKind());
+    }
+    {
+      Source mapSource2 = map.getSource(res2);
+      assertEquals(source2, mapSource2);
+      assertSame(UriKind.PACKAGE_URI, mapSource2.getUriKind());
+    }
   }
 
   @Override
