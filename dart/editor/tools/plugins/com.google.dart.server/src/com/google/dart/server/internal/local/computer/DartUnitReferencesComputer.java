@@ -28,7 +28,6 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.server.ElementKind;
 import com.google.dart.server.Outline;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
@@ -150,29 +149,15 @@ public class DartUnitReferencesComputer {
 
   private OutlineImpl newOutline_withChildren(Element engineElement, Outline[] children) {
     Element engineEnclosingElement = engineElement.getEnclosingElement();
-    // prepare kind
-    ElementKind outlineKind;
+    // use only these elements as a scope
     switch (engineElement.getKind()) {
       case CLASS:
-        outlineKind = ElementKind.CLASS;
-        break;
       case COMPILATION_UNIT:
-        outlineKind = ElementKind.COMPILATION_UNIT;
-        break;
       case CONSTRUCTOR:
-        outlineKind = ElementKind.CONSTRUCTOR;
-        break;
       case FUNCTION:
-        outlineKind = ElementKind.FUNCTION;
-        break;
       case FUNCTION_TYPE_ALIAS:
-        outlineKind = ElementKind.FUNCTION_TYPE_ALIAS;
-        break;
       case LIBRARY:
-        outlineKind = ElementKind.LIBRARY;
-        break;
       case METHOD:
-        outlineKind = ElementKind.METHOD;
         break;
       default:
         return newOutline_withChildren(engineEnclosingElement, children);
@@ -184,27 +169,9 @@ public class DartUnitReferencesComputer {
       parentChildren = new Outline[1];
       parent = newOutline_withChildren(engineEnclosingElement, parentChildren);
     }
-    // prepare name
-    String name = engineElement.getName();
-    int nameOffset = engineElement.getNameOffset();
-    int nameLength = name != null ? name.length() : 0;
-    // prepare flags
-    boolean isAbstract = false;
-    boolean isPrivate = false;
-    boolean isStatic = false;
     // new outline
-    ElementImpl element2 = new ElementImpl(
-        engineElement.getSource(),
-        outlineKind,
-        engineElement.toString(),
-        nameOffset,
-        nameLength,
-        "",
-        "",
-        isAbstract,
-        isPrivate,
-        isStatic);
-    OutlineImpl outline = new OutlineImpl(parent, element2, new SourceRegionImpl(0, 0));
+    ElementImpl element = ElementImpl.create(engineElement);
+    OutlineImpl outline = new OutlineImpl(parent, element, new SourceRegionImpl(0, 0));
     outline.setChildren(children);
     // done
     if (parentChildren != null) {

@@ -14,18 +14,25 @@
 
 package com.google.dart.server.internal.local.computer;
 
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.ElementKind;
 
 import junit.framework.TestCase;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ElementImplTest extends TestCase {
+  private String id = "my-id";
   private Source source = mock(Source.class);
 
   public void test_access() throws Exception {
     ElementImpl element = new ElementImpl(
+        id,
         source,
         ElementKind.METHOD,
         "foo",
@@ -36,6 +43,7 @@ public class ElementImplTest extends TestCase {
         true,
         true,
         true);
+    assertEquals(id, element.getId());
     assertSame(source, element.getSource());
     assertSame(ElementKind.METHOD, element.getKind());
     assertEquals("foo", element.getName());
@@ -51,8 +59,61 @@ public class ElementImplTest extends TestCase {
         + "return=Map<String, int>]", element.toString());
   }
 
+  public void test_create_ClassElement() throws Exception {
+    ElementLocation location = mock(ElementLocation.class);
+    when(location.getEncoding()).thenReturn("my-id");
+    // mock ClassElement
+    ClassElement engineElement = mock(ClassElement.class);
+    when(engineElement.getLocation()).thenReturn(location);
+    when(engineElement.getKind()).thenReturn(com.google.dart.engine.element.ElementKind.CLASS);
+    when(engineElement.getDisplayName()).thenReturn("MyClass");
+    when(engineElement.getNameOffset()).thenReturn(42);
+    // create server Element
+    ElementImpl element = ElementImpl.create(engineElement);
+    assertEquals("my-id", element.getId());
+    assertSame(ElementKind.CLASS, element.getKind());
+    assertEquals("MyClass", element.getName());
+    assertEquals(42, element.getOffset());
+    assertEquals("MyClass".length(), element.getLength());
+    assertEquals(false, element.isAbstract());
+    assertEquals(false, element.isPrivate());
+    assertEquals(false, element.isStatic());
+  }
+
+  public void test_create_CompilationUnit() throws Exception {
+    ElementLocation location = mock(ElementLocation.class);
+    when(location.getEncoding()).thenReturn("my-id");
+    // mock CompilationUnitElement
+    CompilationUnitElement engineElement = mock(CompilationUnitElement.class);
+    when(engineElement.getLocation()).thenReturn(location);
+    when(engineElement.getKind()).thenReturn(
+        com.google.dart.engine.element.ElementKind.COMPILATION_UNIT);
+    when(engineElement.getDisplayName()).thenReturn("test.dart");
+    when(engineElement.getNameOffset()).thenReturn(42);
+    // create server Element
+    ElementImpl element = ElementImpl.create(engineElement);
+    assertEquals("my-id", element.getId());
+    assertSame(ElementKind.COMPILATION_UNIT, element.getKind());
+    assertEquals("test.dart", element.getName());
+    assertEquals(-1, element.getOffset());
+    assertEquals(0, element.getLength());
+  }
+
+  public void test_createId() throws Exception {
+    ElementLocation location = mock(ElementLocation.class);
+    Element element = mock(Element.class);
+    when(element.getLocation()).thenReturn(location);
+    when(location.getEncoding()).thenReturn("my-id");
+    assertEquals("my-id", ElementImpl.createId(element));
+  }
+
+  public void test_createId_null() throws Exception {
+    assertEquals(null, ElementImpl.createId(null));
+  }
+
   public void test_equals() throws Exception {
     ElementImpl elementA = new ElementImpl(
+        id,
         source,
         ElementKind.METHOD,
         "aaa",
@@ -64,6 +125,7 @@ public class ElementImplTest extends TestCase {
         false,
         false);
     ElementImpl elementA2 = new ElementImpl(
+        id,
         source,
         ElementKind.METHOD,
         "aaa",
@@ -75,6 +137,7 @@ public class ElementImplTest extends TestCase {
         false,
         false);
     ElementImpl elementB = new ElementImpl(
+        id,
         source,
         ElementKind.METHOD,
         "bbb",
@@ -93,6 +156,7 @@ public class ElementImplTest extends TestCase {
 
   public void test_hashCode() throws Exception {
     ElementImpl element = new ElementImpl(
+        id,
         source,
         ElementKind.METHOD,
         "foo",
@@ -108,6 +172,7 @@ public class ElementImplTest extends TestCase {
 
   public void test_hashCode_nullName() throws Exception {
     ElementImpl element = new ElementImpl(
+        id,
         source,
         ElementKind.LIBRARY,
         null,

@@ -19,7 +19,6 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchScope;
 import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.NavigationTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -836,6 +835,15 @@ public final class DartUI {
   }
 
   /**
+   * Opens an editor at the given {@link Element} in the active page.
+   */
+  public static IEditorPart openInEditor(IResource context, com.google.dart.server.Element element)
+      throws Exception {
+    Source source = element.getSource();
+    return openInEditor(context, source, true, element.getOffset(), element.getLength());
+  }
+
+  /**
    * Opens an editor with {@link Element} in context of the given {@link IFile}.
    * 
    * @param context the {@link IResource} to open {@link Element} in, may be {@code null}.
@@ -852,15 +860,6 @@ public final class DartUI {
     int nameOffset = element.getNameOffset();
     int nameLength = name != null ? name.length() : 0;
     return openFile(file, activate, nameOffset, nameLength);
-  }
-
-  /**
-   * Opens an editor at the given {@link NavigationTarget} in the active page.
-   */
-  public static IEditorPart openInEditor(IResource context, NavigationTarget target)
-      throws Exception {
-    Source source = target.getSource();
-    return openInEditor(context, source, true, target.getOffset(), target.getLength());
   }
 
   /**

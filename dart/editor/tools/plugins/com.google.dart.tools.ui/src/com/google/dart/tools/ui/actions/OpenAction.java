@@ -23,7 +23,6 @@ import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.NavigationTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartUI;
@@ -102,7 +101,7 @@ public class OpenAction extends AbstractDartSelectionAction {
       NavigationRegion[] regions = DartCore.getAnalysisServerData().getNavigation(contextId, source);
       for (NavigationRegion navigationRegion : regions) {
         if (navigationRegion.containsInclusive(offset)) {
-          for (NavigationTarget target : navigationRegion.getTargets()) {
+          for (com.google.dart.server.Element target : navigationRegion.getTargets()) {
             try {
               DartUI.openInEditor(editor.getInputResourceFile(), target);
               return;

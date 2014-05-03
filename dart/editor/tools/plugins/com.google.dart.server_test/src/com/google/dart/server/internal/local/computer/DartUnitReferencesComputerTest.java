@@ -35,6 +35,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
+  public static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
+
   private String contextId;
   private String code;
   private Source source;
@@ -259,7 +261,7 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertEquals(makeSource(//
           "CONSTRUCTOR B.named() → B",
           "CLASS B",
-          "COMPILATION_UNIT /test.dart",
+          "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
       verifyParentChildLinks(path);
     }
@@ -287,7 +289,7 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertEquals(makeSource(//
           "CONSTRUCTOR B() → B",
           "CLASS B",
-          "COMPILATION_UNIT /test.dart",
+          "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
       verifyParentChildLinks(path);
     }
@@ -312,7 +314,7 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       Outline path = result.getPath();
       assertEquals(makeSource(//
           "FUNCTION main(int p1, double p2) → dynamic",
-          "COMPILATION_UNIT /test.dart",
+          "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
       verifyParentChildLinks(path);
     }
@@ -335,8 +337,8 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertNotNull(result);
       Outline path = result.getPath();
       assertEquals(makeSource(//
-          "FUNCTION_TYPE_ALIAS typedef F(A a) → String",
-          "COMPILATION_UNIT /test.dart",
+          "FUNCTION_TYPE_ALIAS F(A a) → String",
+          "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
       verifyParentChildLinks(path);
     }
@@ -362,9 +364,9 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertNotNull(result);
       Outline path = result.getPath();
       assertEquals(makeSource(//
-          "METHOD B.m() → dynamic",
+          "METHOD m() → dynamic",
           "CLASS B",
-          "COMPILATION_UNIT /test.dart",
+          "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
       verifyParentChildLinks(path);
     }
@@ -515,6 +517,19 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
   private String getPathString(Outline outline) {
     Element element = outline.getElement();
     String str = element.getKind() + " " + element.getName();
+    {
+      String parameters = element.getParameters();
+      if (!StringUtils.isEmpty(parameters)) {
+        str += parameters;
+      }
+    }
+    {
+      String parameters = element.getReturnType();
+      if (!StringUtils.isEmpty(parameters)) {
+        str += RIGHT_ARROW;
+        str += parameters;
+      }
+    }
     Outline parent = outline.getParent();
     if (parent != null) {
       str += "\n" + getPathString(parent);

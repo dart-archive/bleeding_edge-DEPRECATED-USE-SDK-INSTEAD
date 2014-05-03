@@ -28,6 +28,14 @@ public interface Element {
   Element[] EMPTY_ARRAY = new Element[0];
 
   /**
+   * Return the id of the element, may be {@code null} if there is no resolution information
+   * associated with this element.
+   * 
+   * @return the id of the element
+   */
+  public String getId();
+
+  /**
    * Return the kind of the element.
    * 
    * @return the kind of the element

@@ -26,7 +26,6 @@ public class TestAll {
     suite.addTestSuite(ElementImplTest.class);
     suite.addTestSuite(HighlightRegionImplTest.class);
     suite.addTestSuite(NavigationRegionImplTest.class);
-    suite.addTestSuite(NavigationTargetImplTest.class);
     suite.addTestSuite(OutlineImplTest.class);
     suite.addTestSuite(SearchResultImplTest.class);
     suite.addTestSuite(SourceRegionImplTest.class);

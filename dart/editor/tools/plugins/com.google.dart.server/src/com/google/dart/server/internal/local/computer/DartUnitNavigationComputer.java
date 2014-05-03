@@ -34,7 +34,6 @@ import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.NavigationTarget;
 
 import java.util.List;
 
@@ -132,11 +131,14 @@ public class DartUnitNavigationComputer {
    * {@link NavigationRegion}.
    */
   private void addRegion(int offset, int length, Element element) {
-    NavigationTarget target = createTarget(element);
+    com.google.dart.server.Element target = createTarget(element);
     if (target == null) {
       return;
     }
-    regions.add(new NavigationRegionImpl(offset, length, new NavigationTarget[] {target}));
+    regions.add(new NavigationRegionImpl(
+        offset,
+        length,
+        new com.google.dart.server.Element[] {target}));
   }
 
   private void addRegion_tokenStart_nodeEnd(Token a, AstNode b, Element element) {
@@ -166,29 +168,16 @@ public class DartUnitNavigationComputer {
   }
 
   /**
-   * Returns the {@link NavigationTarget} for the given {@link Element}, maybe {@code null} if
-   * {@code null} was given.
+   * Returns the {@link com.google.dart.server.Element} for the given {@link Element}, maybe
+   * {@code null} if {@code null} was given.
    */
-  private NavigationTarget createTarget(Element element) {
+  private com.google.dart.server.Element createTarget(Element element) {
     if (element == null) {
       return null;
     }
     if (element instanceof FieldFormalParameterElement) {
       element = ((FieldFormalParameterElement) element).getField();
     }
-    int nameOffset = element.getNameOffset();
-    int nameLength = element.getDisplayName().length();
-    if (nameOffset == -1) {
-      nameLength = 0;
-    }
-    return new NavigationTargetImpl(
-        element.getSource(),
-        getElementId(element),
-        nameOffset,
-        nameLength);
-  }
-
-  private String getElementId(Element element) {
-    return element.getLocation().getEncoding();
+    return ElementImpl.create(element);
   }
 }

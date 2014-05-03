@@ -15,51 +15,51 @@
 package com.google.dart.server.internal.local.asserts;
 
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.NavigationTarget;
+import com.google.dart.server.Element;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * A helper for validating a {@link NavigationTarget}.
+ * A helper for validating a {@link Element}.
  */
-public class NavigationTargetAssert {
-  private final NavigationTarget target;
+public class ElementAssert {
+  private final Element element;
   private final String description;
 
-  public NavigationTargetAssert(NavigationTarget target) {
-    this.target = target;
-    this.description = "target=" + target + "\n";
+  public ElementAssert(Element element) {
+    this.element = element;
+    this.description = "target=" + element + "\n";
   }
 
-  public NavigationTargetAssert hasLength(int expected) {
-    assertNotNull("Length " + expected + " expected, but null found", target);
-    assertEquals(description, expected, target.getLength());
+  public ElementAssert hasLength(int expected) {
+    assertNotNull("Length " + expected + " expected, but null found", element);
+    assertEquals(description, expected, element.getLength());
     return this;
   }
 
-  public NavigationTargetAssert hasOffset(int expected) {
-    assertNotNull("Offset " + expected + " expected, but null found", target);
-    assertEquals(description, expected, target.getOffset());
+  public ElementAssert hasOffset(int expected) {
+    assertNotNull("Offset " + expected + " expected, but null found", element);
+    assertEquals(description, expected, element.getOffset());
     return this;
   }
 
-  public NavigationTargetAssert isIn(Source source, int expectedOffset) throws Exception {
-    Source targetSource = target.getSource();
+  public ElementAssert isIn(Source source, int expectedOffset) throws Exception {
+    Source targetSource = element.getSource();
     assertTrue(description + "expected to be in " + source, source.equals(targetSource));
     // check offset
     hasOffset(expectedOffset);
     return this;
   }
 
-  public NavigationTargetAssert isIn(Source source, String search) throws Exception {
+  public ElementAssert isIn(Source source, String search) throws Exception {
     int expectedOffset = NavigationRegionsAssert.findOffset(source, search);
     return isIn(source, expectedOffset);
   }
 
-  public NavigationTargetAssert isInSdk() {
-    assertTrue(description + "expected to be in SDK", target.getSource().isInSystemLibrary());
+  public ElementAssert isInSdk() {
+    assertTrue(description + "expected to be in SDK", element.getSource().isInSystemLibrary());
     return this;
   }
 }

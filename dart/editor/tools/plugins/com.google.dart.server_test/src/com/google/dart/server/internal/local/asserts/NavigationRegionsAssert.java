@@ -15,8 +15,8 @@
 package com.google.dart.server.internal.local.asserts;
 
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.Element;
 import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.NavigationTarget;
 
 import junit.framework.Assert;
 
@@ -53,25 +53,24 @@ public class NavigationRegionsAssert {
 
   /**
    * Finds the {@link NavigationRegion} that for the given "search", validates that it exists and
-   * returns the corresponding {@link NavigationTargetAssert}.
+   * returns the corresponding {@link ElementAssert}.
    */
-  public NavigationTargetAssert hasRegion(Source source, String search) throws Exception {
+  public ElementAssert hasRegion(Source source, String search) throws Exception {
     return hasRegion(source, search, search.length());
   }
 
   /**
    * Finds the {@link NavigationRegion} that starts with the given "search" and has the given
-   * length, validates that it exists and returns the corresponding {@link NavigationTargetAssert}.
+   * length, validates that it exists and returns the corresponding {@link ElementAssert}.
    */
-  public NavigationTargetAssert hasRegion(Source source, String search, int length)
-      throws Exception {
+  public ElementAssert hasRegion(Source source, String search, int length) throws Exception {
     NavigationRegion region = findRegion(source, search, length);
     if (region == null) {
       Assert.fail("Cannot find\n'" + search + "' with length=" + length + " in\n"
           + StringUtils.join(regions, "\n"));
     }
-    NavigationTarget target = region.getTargets()[0];
-    return new NavigationTargetAssert(target);
+    Element target = region.getTargets()[0];
+    return new ElementAssert(target);
   }
 
   public void isEmpty() {

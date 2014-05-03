@@ -31,6 +31,7 @@ public enum ElementKind {
   METHOD,
   SETTER,
   TOP_LEVEL_VARIABLE,
+  UNKNOWN,
   UNIT_TEST_CASE,
   UNIT_TEST_GROUP;
 }
