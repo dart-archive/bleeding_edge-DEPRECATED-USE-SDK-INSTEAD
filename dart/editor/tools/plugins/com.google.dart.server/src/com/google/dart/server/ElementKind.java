@@ -14,11 +14,11 @@
 package com.google.dart.server;
 
 /**
- * The enumeration {@code OutlineKind} defines the various kinds of {@link Outline} items.
+ * The enumeration {@code ElementKind} defines the various kinds of {@link Element}s.
  * 
  * @coverage dart.server
  */
-public enum OutlineKind {
+public enum ElementKind {
   CLASS,
   CLASS_TYPE_ALIAS,
   COMPILATION_UNIT,

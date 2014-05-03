@@ -13,7 +13,6 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.source.Source;
 
 /**
  * The interface {@code Outline} defines the behavior of objects that represent an outline for an
@@ -28,49 +27,19 @@ public interface Outline {
   Outline[] EMPTY_ARRAY = new Outline[0];
 
   /**
-   * Return an array containing the children of the element. The array will be empty if the element
-   * has no children.
+   * Return an array containing the children outline. The array will be empty if the outline has no
+   * children.
    * 
    * @return an array containing the children of the element
    */
   public Outline[] getChildren();
 
   /**
-   * Return the kind of the element.
+   * Return the information about the element.
    * 
-   * @return the kind of the element
+   * @return the information about the element
    */
-  public OutlineKind getKind();
-
-  /**
-   * Return the length of the element's name.
-   * 
-   * @return the length of the element's name
-   */
-  public int getLength();
-
-  /**
-   * Return the name of the element.
-   * 
-   * @return the name of the element
-   */
-  public String getName();
-
-  /**
-   * Return the offset to the beginning of the element's name.
-   * 
-   * @return the offset to the beginning of the element's name
-   */
-  public int getOffset();
-
-  /**
-   * Return the parameter list for the element, or {@code null} if the element is not a constructor,
-   * method or function. If the element has zero arguments, the string {@code "()"} will be
-   * returned.
-   * 
-   * @return the parameter list for the element
-   */
-  public String getParameters();
+  public Element getElement();
 
   /**
    * Return the outline that either physically or logically encloses this outline. This will be
@@ -81,46 +50,9 @@ public interface Outline {
   public Outline getParent();
 
   /**
-   * Return the return type of the element, or {@code null} if the element is not a method or
-   * function. If the element does not have a declared return type then an empty string will be
-   * returned.
+   * Return the source range associated with this outline.
    * 
-   * @return the return type of the element
-   */
-  public String getReturnType();
-
-  /**
-   * Return the source containing the element, not {@code null}.
-   * 
-   * @return the source containing the element
-   */
-  public Source getSource();
-
-  /**
-   * Return the element's source range.
-   * 
-   * @return the element's source range
+   * @return the source range associated with this outline
    */
   public SourceRegion getSourceRegion();
-
-  /**
-   * Return {@code true} if the element is abstract.
-   * 
-   * @return {@code true} if the element is abstract
-   */
-  public boolean isAbstract();
-
-  /**
-   * Return {@code true} if the element is private.
-   * 
-   * @return {@code true} if the element is private
-   */
-  public boolean isPrivate();
-
-  /**
-   * Return {@code true} if the element is a class member and is a static element.
-   * 
-   * @return {@code true} if the element is a static element
-   */
-  public boolean isStatic();
 }

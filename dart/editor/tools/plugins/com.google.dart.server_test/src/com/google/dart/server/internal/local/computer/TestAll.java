@@ -23,6 +23,7 @@ public class TestAll {
     suite.addTestSuite(DartUnitNavigationComputerTest.class);
     suite.addTestSuite(DartUnitOutlineComputerTest.class);
     suite.addTestSuite(DartUnitReferencesComputerTest.class);
+    suite.addTestSuite(ElementImplTest.class);
     suite.addTestSuite(HighlightRegionImplTest.class);
     suite.addTestSuite(NavigationRegionImplTest.class);
     suite.addTestSuite(NavigationTargetImplTest.class);

@@ -18,6 +18,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
+import com.google.dart.server.Element;
 import com.google.dart.server.Outline;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
@@ -512,7 +513,8 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
   }
 
   private String getPathString(Outline outline) {
-    String str = outline.getKind() + " " + outline.getName();
+    Element element = outline.getElement();
+    String str = element.getKind() + " " + element.getName();
     Outline parent = outline.getParent();
     if (parent != null) {
       str += "\n" + getPathString(parent);

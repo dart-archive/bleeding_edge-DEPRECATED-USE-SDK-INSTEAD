@@ -14,10 +14,9 @@
 
 package com.google.dart.server.internal.local.computer;
 
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
+import com.google.dart.server.Element;
 import com.google.dart.server.Outline;
-import com.google.dart.server.OutlineKind;
 import com.google.dart.server.SourceRegion;
 
 import org.apache.commons.lang3.StringUtils;
@@ -28,35 +27,15 @@ import org.apache.commons.lang3.StringUtils;
  * @coverage dart.server.local
  */
 public class OutlineImpl implements Outline {
-  private final Source source;
   private final Outline parent;
+  private final Element element;
   private final SourceRegion sourceRegion;
-  private final OutlineKind kind;
-  private final String name;
-  private final int offset;
-  private final int length;
-  private final String parameters;
-  private final String returnType;
-  private final boolean isAbstract;
-  private final boolean isPrivate;
-  private final boolean isStatic;
   private Outline[] children = Outline.EMPTY_ARRAY;
 
-  public OutlineImpl(Source source, Outline parent, SourceRegion sourceRegion, OutlineKind kind,
-      String name, int offset, int length, String parameters, String returnType,
-      boolean isAbstract, boolean isPrivate, boolean isStatic) {
-    this.source = source;
+  public OutlineImpl(Outline parent, Element element, SourceRegion sourceRegion) {
     this.parent = parent;
+    this.element = element;
     this.sourceRegion = sourceRegion;
-    this.kind = kind;
-    this.name = name;
-    this.offset = offset;
-    this.length = length;
-    this.parameters = parameters;
-    this.returnType = returnType;
-    this.isAbstract = isAbstract;
-    this.isStatic = isStatic;
-    this.isPrivate = isPrivate;
   }
 
   @Override
@@ -68,8 +47,8 @@ public class OutlineImpl implements Outline {
       return false;
     }
     OutlineImpl other = (OutlineImpl) obj;
-    return ObjectUtilities.equals(other.source, source)
-        && ObjectUtilities.equals(other.parent, parent) && ObjectUtilities.equals(name, other.name);
+    return ObjectUtilities.equals(other.element, element)
+        && ObjectUtilities.equals(other.parent, parent);
   }
 
   @Override
@@ -78,43 +57,13 @@ public class OutlineImpl implements Outline {
   }
 
   @Override
-  public OutlineKind getKind() {
-    return kind;
-  }
-
-  @Override
-  public int getLength() {
-    return length;
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public int getOffset() {
-    return offset;
-  }
-
-  @Override
-  public String getParameters() {
-    return parameters;
+  public Element getElement() {
+    return element;
   }
 
   @Override
   public Outline getParent() {
     return parent;
-  }
-
-  @Override
-  public String getReturnType() {
-    return returnType;
-  }
-
-  @Override
-  public Source getSource() {
-    return source;
   }
 
   @Override
@@ -125,24 +74,9 @@ public class OutlineImpl implements Outline {
   @Override
   public int hashCode() {
     if (parent == null) {
-      return source.hashCode();
+      return element.hashCode();
     }
-    return ObjectUtilities.combineHashCodes(parent.hashCode(), name.hashCode());
-  }
-
-  @Override
-  public boolean isAbstract() {
-    return isAbstract;
-  }
-
-  @Override
-  public boolean isPrivate() {
-    return isPrivate;
-  }
-
-  @Override
-  public boolean isStatic() {
-    return isStatic;
+    return ObjectUtilities.combineHashCodes(parent.hashCode(), element.hashCode());
   }
 
   public void setChildren(Outline[] children) {
@@ -152,18 +86,8 @@ public class OutlineImpl implements Outline {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append("[name=");
-    builder.append(name);
-    builder.append(", kind=");
-    builder.append(kind);
-    builder.append(", offset=");
-    builder.append(offset);
-    builder.append(", length=");
-    builder.append(length);
-    builder.append(", parameters=");
-    builder.append(parameters);
-    builder.append(", return=");
-    builder.append(returnType);
+    builder.append("[element=");
+    builder.append(element);
     builder.append(", children=[");
     builder.append(StringUtils.join(children, ", "));
     builder.append("]]");

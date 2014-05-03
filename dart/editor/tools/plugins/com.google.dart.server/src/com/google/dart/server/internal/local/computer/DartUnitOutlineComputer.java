@@ -44,8 +44,8 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.StringUtilities;
+import com.google.dart.server.ElementKind;
 import com.google.dart.server.Outline;
-import com.google.dart.server.OutlineKind;
 import com.google.dart.server.SourceRegion;
 
 import java.util.List;
@@ -145,11 +145,11 @@ public class DartUnitOutlineComputer {
 
   private boolean addUnitTestOutlines(OutlineImpl parent, List<Outline> children,
       MethodInvocation node) {
-    OutlineKind unitTestKind = null;
+    ElementKind unitTestKind = null;
     if (isUnitTestFunctionInvocation(node, "group")) {
-      unitTestKind = OutlineKind.UNIT_TEST_GROUP;
+      unitTestKind = ElementKind.UNIT_TEST_GROUP;
     } else if (isUnitTestFunctionInvocation(node, "test")) {
-      unitTestKind = OutlineKind.UNIT_TEST_CASE;
+      unitTestKind = ElementKind.UNIT_TEST_CASE;
     } else {
       return false;
     }
@@ -177,10 +177,8 @@ public class DartUnitOutlineComputer {
         // add a new outline
         FunctionExpression functionExpression = (FunctionExpression) arguments.get(1);
         SourceRegionImpl sourceRegion = new SourceRegionImpl(node.getOffset(), node.getLength());
-        OutlineImpl outline = new OutlineImpl(
+        ElementImpl element = new ElementImpl(
             source,
-            parent,
-            sourceRegion,
             unitTestKind,
             name,
             nameOffset,
@@ -190,6 +188,7 @@ public class DartUnitOutlineComputer {
             false,
             false,
             false);
+        OutlineImpl outline = new OutlineImpl(parent, element, sourceRegion);
         children.add(outline);
         addLocalFunctionOutlines(outline, functionExpression.getBody());
         return true;
@@ -268,11 +267,9 @@ public class DartUnitOutlineComputer {
       ClassDeclaration classDeclaration) {
     SimpleIdentifier nameNode = classDeclaration.getName();
     String name = nameNode.getName();
-    OutlineImpl outline = new OutlineImpl(
+    ElementImpl element = new ElementImpl(
         source,
-        unitOutline,
-        getSourceRegion(classDeclaration),
-        OutlineKind.CLASS,
+        ElementKind.CLASS,
         name,
         nameNode.getOffset(),
         name.length(),
@@ -281,6 +278,8 @@ public class DartUnitOutlineComputer {
         classDeclaration.isAbstract(),
         StringUtilities.startsWithChar(name, '_'),
         false);
+    SourceRegion sourceRegion = getSourceRegion(classDeclaration);
+    OutlineImpl outline = new OutlineImpl(unitOutline, element, sourceRegion);
     unitChildren.add(outline);
     return outline;
   }
@@ -289,11 +288,9 @@ public class DartUnitOutlineComputer {
       ClassTypeAlias alias) {
     SimpleIdentifier nameNode = alias.getName();
     String name = nameNode.getName();
-    unitChildren.add(new OutlineImpl(
+    ElementImpl element = new ElementImpl(
         source,
-        unitOutline,
-        getSourceRegion(alias),
-        OutlineKind.CLASS_TYPE_ALIAS,
+        ElementKind.CLASS_TYPE_ALIAS,
         name,
         nameNode.getOffset(),
         nameNode.getLength(),
@@ -301,7 +298,10 @@ public class DartUnitOutlineComputer {
         null,
         alias.isAbstract(),
         StringUtilities.startsWithChar(name, '_'),
-        false));
+        false);
+    SourceRegion sourceRegion = getSourceRegion(alias);
+    OutlineImpl outline = new OutlineImpl(unitOutline, element, sourceRegion);
+    unitChildren.add(outline);
   }
 
   private void newConstructorOutline(OutlineImpl classOutline, List<Outline> children,
@@ -320,11 +320,9 @@ public class DartUnitOutlineComputer {
       length = constructorNameNode.getLength();
     }
     FormalParameterList parameters = constructorDeclaration.getParameters();
-    OutlineImpl outline = new OutlineImpl(
+    ElementImpl element = new ElementImpl(
         source,
-        classOutline,
-        getSourceRegion(constructorDeclaration),
-        OutlineKind.CONSTRUCTOR,
+        ElementKind.CONSTRUCTOR,
         name,
         offset,
         length,
@@ -333,6 +331,8 @@ public class DartUnitOutlineComputer {
         false,
         isPrivate,
         false);
+    SourceRegion sourceRegion = getSourceRegion(constructorDeclaration);
+    OutlineImpl outline = new OutlineImpl(classOutline, element, sourceRegion);
     children.add(outline);
     addLocalFunctionOutlines(outline, constructorDeclaration.getBody());
   }
@@ -341,11 +341,9 @@ public class DartUnitOutlineComputer {
       VariableDeclaration field, boolean isStatic) {
     SimpleIdentifier nameNode = field.getName();
     String name = nameNode.getName();
-    children.add(new OutlineImpl(
+    ElementImpl element = new ElementImpl(
         source,
-        classOutline,
-        getSourceRegion(field),
-        OutlineKind.FIELD,
+        ElementKind.FIELD,
         name,
         nameNode.getOffset(),
         nameNode.getLength(),
@@ -353,7 +351,10 @@ public class DartUnitOutlineComputer {
         fieldTypeName,
         false,
         StringUtilities.startsWithChar(name, '_'),
-        isStatic));
+        isStatic);
+    SourceRegion sourceRegion = getSourceRegion(field);
+    OutlineImpl outline = new OutlineImpl(classOutline, element, sourceRegion);
+    children.add(outline);
   }
 
   private void newFunctionOutline(Outline parent, List<Outline> children,
@@ -363,18 +364,16 @@ public class DartUnitOutlineComputer {
     String name = nameNode.getName();
     FunctionExpression functionExpression = functionDeclaration.getFunctionExpression();
     FormalParameterList parameters = functionExpression.getParameters();
-    OutlineKind kind;
+    ElementKind kind;
     if (functionDeclaration.isGetter()) {
-      kind = OutlineKind.GETTER;
+      kind = ElementKind.GETTER;
     } else if (functionDeclaration.isSetter()) {
-      kind = OutlineKind.SETTER;
+      kind = ElementKind.SETTER;
     } else {
-      kind = OutlineKind.FUNCTION;
+      kind = ElementKind.FUNCTION;
     }
-    OutlineImpl outline = new OutlineImpl(
+    ElementImpl element = new ElementImpl(
         source,
-        parent,
-        getSourceRegion(functionDeclaration),
         kind,
         name,
         nameNode.getOffset(),
@@ -384,6 +383,8 @@ public class DartUnitOutlineComputer {
         false,
         StringUtilities.startsWithChar(name, '_'),
         false);
+    SourceRegion sourceRegion = getSourceRegion(functionDeclaration);
+    OutlineImpl outline = new OutlineImpl(parent, element, sourceRegion);
     children.add(outline);
     addLocalFunctionOutlines(outline, functionExpression.getBody());
   }
@@ -394,11 +395,9 @@ public class DartUnitOutlineComputer {
     SimpleIdentifier nameNode = alias.getName();
     String name = nameNode.getName();
     FormalParameterList parameters = alias.getParameters();
-    unitChildren.add(new OutlineImpl(
+    ElementImpl element = new ElementImpl(
         source,
-        unitOutline,
-        getSourceRegion(alias),
-        OutlineKind.FUNCTION_TYPE_ALIAS,
+        ElementKind.FUNCTION_TYPE_ALIAS,
         name,
         nameNode.getOffset(),
         nameNode.getLength(),
@@ -406,7 +405,10 @@ public class DartUnitOutlineComputer {
         returnType != null ? returnType.toSource() : "",
         false,
         StringUtilities.startsWithChar(name, '_'),
-        false));
+        false);
+    SourceRegion sourceRegion = getSourceRegion(alias);
+    OutlineImpl outline = new OutlineImpl(unitOutline, element, sourceRegion);
+    unitChildren.add(outline);
   }
 
   private void newMethodOutline(OutlineImpl classOutline, List<Outline> children,
@@ -415,18 +417,16 @@ public class DartUnitOutlineComputer {
     SimpleIdentifier nameNode = methodDeclaration.getName();
     String name = nameNode.getName();
     FormalParameterList parameters = methodDeclaration.getParameters();
-    OutlineKind kind;
+    ElementKind kind;
     if (methodDeclaration.isGetter()) {
-      kind = OutlineKind.GETTER;
+      kind = ElementKind.GETTER;
     } else if (methodDeclaration.isSetter()) {
-      kind = OutlineKind.SETTER;
+      kind = ElementKind.SETTER;
     } else {
-      kind = OutlineKind.METHOD;
+      kind = ElementKind.METHOD;
     }
-    OutlineImpl outline = new OutlineImpl(
+    ElementImpl element = new ElementImpl(
         source,
-        classOutline,
-        getSourceRegion(methodDeclaration),
         kind,
         name,
         nameNode.getOffset(),
@@ -436,16 +436,16 @@ public class DartUnitOutlineComputer {
         methodDeclaration.isAbstract(),
         StringUtilities.startsWithChar(name, '_'),
         methodDeclaration.isStatic());
+    SourceRegion sourceRegion = getSourceRegion(methodDeclaration);
+    OutlineImpl outline = new OutlineImpl(classOutline, element, sourceRegion);
     children.add(outline);
     addLocalFunctionOutlines(outline, methodDeclaration.getBody());
   }
 
   private OutlineImpl newUnitOutline() {
-    return new OutlineImpl(
+    ElementImpl element = new ElementImpl(
         source,
-        null,
-        new SourceRegionImpl(unit.getOffset(), unit.getLength()),
-        OutlineKind.COMPILATION_UNIT,
+        ElementKind.COMPILATION_UNIT,
         null,
         0,
         0,
@@ -454,5 +454,6 @@ public class DartUnitOutlineComputer {
         false,
         false,
         false);
+    return new OutlineImpl(null, element, new SourceRegionImpl(unit.getOffset(), unit.getLength()));
   }
 }

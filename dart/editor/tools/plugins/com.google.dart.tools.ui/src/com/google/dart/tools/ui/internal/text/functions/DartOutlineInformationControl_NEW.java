@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
+import com.google.dart.server.ElementKind;
 import com.google.dart.server.Outline;
-import com.google.dart.server.OutlineKind;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartOutlinePage_NEW;
@@ -74,7 +74,7 @@ public class DartOutlineInformationControl_NEW extends PopupDialog implements II
         return true;
       }
       // maybe "outline" matches
-      String name = outline.getName();
+      String name = outline.getElement().getName();
       if (name != null && stringMatcher.match(name)) {
         return true;
       }
@@ -432,7 +432,7 @@ public class DartOutlineInformationControl_NEW extends PopupDialog implements II
       // make root of "outline" top item 
       {
         Outline parent = outline.getParent();
-        while (parent != null && parent.getKind() != OutlineKind.COMPILATION_UNIT) {
+        while (parent != null && parent.getElement().getKind() != ElementKind.COMPILATION_UNIT) {
           if (parent.getParent() == null) {
             TreeItem parentItem = viewer.findItem2(parent);
             if (parentItem != null) {

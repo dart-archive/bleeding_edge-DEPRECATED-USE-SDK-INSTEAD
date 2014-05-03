@@ -16,10 +16,11 @@ package com.google.dart.server.internal.local.computer;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.Element;
+import com.google.dart.server.ElementKind;
 import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.Outline;
-import com.google.dart.server.OutlineKind;
 import com.google.dart.server.SourceRegion;
 import com.google.dart.server.internal.local.AbstractLocalServerTest;
 
@@ -55,137 +56,150 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // A
     {
       Outline outline_A = topOutlines[0];
+      Element element_A = outline_A.getElement();
       assertSame(unitOutline, outline_A.getParent());
-      assertSame(OutlineKind.CLASS, outline_A.getKind());
-      assertEquals("A", outline_A.getName());
-      assertEquals(code.indexOf("A {"), outline_A.getOffset());
-      assertEquals(1, outline_A.getLength());
-      assertSame(null, outline_A.getParameters());
-      assertSame(null, outline_A.getReturnType());
+      assertSame(ElementKind.CLASS, element_A.getKind());
+      assertEquals("A", element_A.getName());
+      assertEquals(code.indexOf("A {"), element_A.getOffset());
+      assertEquals(1, element_A.getLength());
+      assertSame(null, element_A.getParameters());
+      assertSame(null, element_A.getReturnType());
       // A children
       Outline[] outlines_A = outline_A.getChildren();
       assertThat(outlines_A).hasSize(10);
       {
         Outline outline = outlines_A[0];
-        assertSame(OutlineKind.FIELD, outline.getKind());
-        assertEquals("fa", outline.getName());
-        assertNull(outline.getParameters());
-        assertEquals("int", outline.getReturnType());
+        Element element = outline.getElement();
+        assertSame(ElementKind.FIELD, element.getKind());
+        assertEquals("fa", element.getName());
+        assertNull(element.getParameters());
+        assertEquals("int", element.getReturnType());
       }
       {
         Outline outline = outlines_A[1];
-        assertSame(OutlineKind.FIELD, outline.getKind());
-        assertEquals("fb", outline.getName());
-        assertNull(outline.getParameters());
-        assertEquals("int", outline.getReturnType());
+        Element element = outline.getElement();
+        assertSame(ElementKind.FIELD, element.getKind());
+        assertEquals("fb", element.getName());
+        assertNull(element.getParameters());
+        assertEquals("int", element.getReturnType());
       }
       {
         Outline outline = outlines_A[2];
-        assertSame(OutlineKind.FIELD, outline.getKind());
-        assertEquals("fc", outline.getName());
-        assertNull(outline.getParameters());
-        assertEquals("String", outline.getReturnType());
+        Element element = outline.getElement();
+        assertSame(ElementKind.FIELD, element.getKind());
+        assertEquals("fc", element.getName());
+        assertNull(element.getParameters());
+        assertEquals("String", element.getReturnType());
       }
       {
         Outline outline = outlines_A[3];
-        assertSame(OutlineKind.CONSTRUCTOR, outline.getKind());
-        assertEquals("A", outline.getName());
-        assertEquals(code.indexOf("A(int i, String s);"), outline.getOffset());
-        assertEquals("A".length(), outline.getLength());
-        assertEquals("(int i, String s)", outline.getParameters());
-        assertNull(outline.getReturnType());
-        assertFalse(outline.isAbstract());
-        assertFalse(outline.isPrivate());
-        assertFalse(outline.isStatic());
+        Element element = outline.getElement();
+        assertSame(ElementKind.CONSTRUCTOR, element.getKind());
+        assertEquals("A", element.getName());
+        assertEquals(code.indexOf("A(int i, String s);"), element.getOffset());
+        assertEquals("A".length(), element.getLength());
+        assertEquals("(int i, String s)", element.getParameters());
+        assertNull(element.getReturnType());
+        assertFalse(element.isAbstract());
+        assertFalse(element.isPrivate());
+        assertFalse(element.isStatic());
       }
       {
         Outline outline = outlines_A[4];
-        assertSame(OutlineKind.CONSTRUCTOR, outline.getKind());
-        assertEquals("A.name", outline.getName());
-        assertEquals(code.indexOf("name(num p);"), outline.getOffset());
-        assertEquals("name".length(), outline.getLength());
-        assertEquals("(num p)", outline.getParameters());
-        assertNull(outline.getReturnType());
-        assertFalse(outline.isAbstract());
-        assertFalse(outline.isPrivate());
-        assertFalse(outline.isStatic());
+        Element element = outline.getElement();
+        assertSame(ElementKind.CONSTRUCTOR, element.getKind());
+        assertEquals("A.name", element.getName());
+        assertEquals(code.indexOf("name(num p);"), element.getOffset());
+        assertEquals("name".length(), element.getLength());
+        assertEquals("(num p)", element.getParameters());
+        assertNull(element.getReturnType());
+        assertFalse(element.isAbstract());
+        assertFalse(element.isPrivate());
+        assertFalse(element.isStatic());
       }
       {
         Outline outline = outlines_A[5];
-        assertSame(OutlineKind.CONSTRUCTOR, outline.getKind());
-        assertEquals("A._privateName", outline.getName());
-        assertEquals(code.indexOf("_privateName(num p);"), outline.getOffset());
-        assertEquals("_privateName".length(), outline.getLength());
-        assertEquals("(num p)", outline.getParameters());
-        assertNull(outline.getReturnType());
-        assertFalse(outline.isAbstract());
-        assertTrue(outline.isPrivate());
-        assertFalse(outline.isStatic());
+        Element elemnet = outline.getElement();
+        assertSame(ElementKind.CONSTRUCTOR, elemnet.getKind());
+        assertEquals("A._privateName", elemnet.getName());
+        assertEquals(code.indexOf("_privateName(num p);"), elemnet.getOffset());
+        assertEquals("_privateName".length(), elemnet.getLength());
+        assertEquals("(num p)", elemnet.getParameters());
+        assertNull(elemnet.getReturnType());
+        assertFalse(elemnet.isAbstract());
+        assertTrue(elemnet.isPrivate());
+        assertFalse(elemnet.isStatic());
       }
       {
         Outline outline = outlines_A[6];
-        assertSame(OutlineKind.METHOD, outline.getKind());
-        assertEquals("ma", outline.getName());
-        assertEquals(code.indexOf("ma(int pa) => null;"), outline.getOffset());
-        assertEquals("ma".length(), outline.getLength());
-        assertEquals("(int pa)", outline.getParameters());
-        assertEquals("String", outline.getReturnType());
-        assertFalse(outline.isAbstract());
-        assertFalse(outline.isPrivate());
-        assertTrue(outline.isStatic());
+        Element element = outline.getElement();
+        assertSame(ElementKind.METHOD, element.getKind());
+        assertEquals("ma", element.getName());
+        assertEquals(code.indexOf("ma(int pa) => null;"), element.getOffset());
+        assertEquals("ma".length(), element.getLength());
+        assertEquals("(int pa)", element.getParameters());
+        assertEquals("String", element.getReturnType());
+        assertFalse(element.isAbstract());
+        assertFalse(element.isPrivate());
+        assertTrue(element.isStatic());
       }
       {
         Outline outline = outlines_A[7];
-        assertSame(OutlineKind.METHOD, outline.getKind());
-        assertEquals("_mb", outline.getName());
-        assertEquals(code.indexOf("_mb(int pb);"), outline.getOffset());
-        assertEquals("_mb".length(), outline.getLength());
-        assertEquals("(int pb)", outline.getParameters());
-        assertEquals("", outline.getReturnType());
-        assertTrue(outline.isAbstract());
-        assertTrue(outline.isPrivate());
-        assertFalse(outline.isStatic());
+        Element element = outline.getElement();
+        assertSame(ElementKind.METHOD, element.getKind());
+        assertEquals("_mb", element.getName());
+        assertEquals(code.indexOf("_mb(int pb);"), element.getOffset());
+        assertEquals("_mb".length(), element.getLength());
+        assertEquals("(int pb)", element.getParameters());
+        assertEquals("", element.getReturnType());
+        assertTrue(element.isAbstract());
+        assertTrue(element.isPrivate());
+        assertFalse(element.isStatic());
       }
       {
         Outline outline = outlines_A[8];
-        assertSame(OutlineKind.GETTER, outline.getKind());
-        assertEquals("propA", outline.getName());
-        assertEquals(code.indexOf("propA => null;"), outline.getOffset());
-        assertEquals("propA".length(), outline.getLength());
-        assertEquals("", outline.getParameters());
-        assertEquals("String", outline.getReturnType());
+        Element element = outline.getElement();
+        assertSame(ElementKind.GETTER, element.getKind());
+        assertEquals("propA", element.getName());
+        assertEquals(code.indexOf("propA => null;"), element.getOffset());
+        assertEquals("propA".length(), element.getLength());
+        assertEquals("", element.getParameters());
+        assertEquals("String", element.getReturnType());
       }
       {
         Outline outline = outlines_A[9];
-        assertSame(OutlineKind.SETTER, outline.getKind());
-        assertEquals("propB", outline.getName());
-        assertEquals(code.indexOf("propB(int v) {}"), outline.getOffset());
-        assertEquals("propB".length(), outline.getLength());
-        assertEquals("(int v)", outline.getParameters());
-        assertEquals("", outline.getReturnType());
+        Element element = outline.getElement();
+        assertSame(ElementKind.SETTER, element.getKind());
+        assertEquals("propB", element.getName());
+        assertEquals(code.indexOf("propB(int v) {}"), element.getOffset());
+        assertEquals("propB".length(), element.getLength());
+        assertEquals("(int v)", element.getParameters());
+        assertEquals("", element.getReturnType());
       }
     }
     // B
     {
       Outline outline_B = topOutlines[1];
+      Element element_B = outline_B.getElement();
       assertSame(unitOutline, outline_B.getParent());
-      assertSame(OutlineKind.CLASS, outline_B.getKind());
-      assertEquals("B", outline_B.getName());
-      assertEquals(code.indexOf("B {"), outline_B.getOffset());
-      assertEquals(1, outline_B.getLength());
-      assertSame(null, outline_B.getParameters());
-      assertSame(null, outline_B.getReturnType());
+      assertSame(ElementKind.CLASS, element_B.getKind());
+      assertEquals("B", element_B.getName());
+      assertEquals(code.indexOf("B {"), element_B.getOffset());
+      assertEquals(1, element_B.getLength());
+      assertSame(null, element_B.getParameters());
+      assertSame(null, element_B.getReturnType());
       // B children
       Outline[] outlines_B = outline_B.getChildren();
       assertThat(outlines_B).hasSize(1);
       {
         Outline outline = outlines_B[0];
-        assertSame(OutlineKind.CONSTRUCTOR, outline.getKind());
-        assertEquals("B", outline.getName());
-        assertEquals(code.indexOf("B(int p);"), outline.getOffset());
-        assertEquals("B".length(), outline.getLength());
-        assertEquals("(int p)", outline.getParameters());
-        assertNull(outline.getReturnType());
+        Element element = outline.getElement();
+        assertSame(ElementKind.CONSTRUCTOR, element.getKind());
+        assertEquals("B", element.getName());
+        assertEquals(code.indexOf("B(int p);"), element.getOffset());
+        assertEquals("B".length(), element.getLength());
+        assertEquals("(int p)", element.getParameters());
+        assertNull(element.getReturnType());
       }
     }
   }
@@ -209,8 +223,9 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // methodA
     {
       Outline outline = outlines[0];
-      assertSame(OutlineKind.METHOD, outline.getKind());
-      assertEquals("methodA", outline.getName());
+      Element element = outline.getElement();
+      assertSame(ElementKind.METHOD, element.getKind());
+      assertEquals("methodA", element.getName());
       {
         SourceRegion sourceRegion = outline.getSourceRegion();
         int offset = code.indexOf(" // leftA");
@@ -222,8 +237,9 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // methodB
     {
       Outline outline = outlines[1];
-      assertSame(OutlineKind.METHOD, outline.getKind());
-      assertEquals("methodB", outline.getName());
+      Element element = outline.getElement();
+      assertSame(ElementKind.METHOD, element.getKind());
+      assertEquals("methodB", element.getName());
       {
         SourceRegion sourceRegion = outline.getSourceRegion();
         int offset = code.indexOf(" // endA");
@@ -253,8 +269,9 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // fieldA
     {
       Outline outline = outlines[0];
-      assertSame(OutlineKind.FIELD, outline.getKind());
-      assertEquals("fieldA", outline.getName());
+      Element element = outline.getElement();
+      assertSame(ElementKind.FIELD, element.getKind());
+      assertEquals("fieldA", element.getName());
       {
         SourceRegion sourceRegion = outline.getSourceRegion();
         int offset = code.indexOf(" // leftA");
@@ -266,8 +283,9 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // fieldB
     {
       Outline outline = outlines[1];
-      assertSame(OutlineKind.FIELD, outline.getKind());
-      assertEquals("fieldB", outline.getName());
+      Element element = outline.getElement();
+      assertSame(ElementKind.FIELD, element.getKind());
+      assertEquals("fieldB", element.getName());
       {
         SourceRegion sourceRegion = outline.getSourceRegion();
         int offset = code.indexOf(", fieldB");
@@ -279,8 +297,9 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // fieldC
     {
       Outline outline = outlines[2];
-      assertSame(OutlineKind.FIELD, outline.getKind());
-      assertEquals("fieldC", outline.getName());
+      Element element = outline.getElement();
+      assertSame(ElementKind.FIELD, element.getKind());
+      assertEquals("fieldC", element.getName());
       {
         SourceRegion sourceRegion = outline.getSourceRegion();
         int offset = code.indexOf(", fieldC");
@@ -292,8 +311,9 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // fieldD
     {
       Outline outline = outlines[3];
-      assertSame(OutlineKind.FIELD, outline.getKind());
-      assertEquals("fieldD", outline.getName());
+      Element element = outline.getElement();
+      assertSame(ElementKind.FIELD, element.getKind());
+      assertEquals("fieldD", element.getName());
       {
         SourceRegion sourceRegion = outline.getSourceRegion();
         int offset = code.indexOf(" // marker");
@@ -323,8 +343,9 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // A
     {
       Outline outline = topOutlines[0];
-      assertSame(OutlineKind.CLASS, outline.getKind());
-      assertEquals("A", outline.getName());
+      Element element = outline.getElement();
+      assertSame(ElementKind.CLASS, element.getKind());
+      assertEquals("A", element.getName());
       {
         SourceRegion sourceRegion = outline.getSourceRegion();
         int offset = 0;
@@ -336,8 +357,9 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // B
     {
       Outline outline = topOutlines[1];
-      assertSame(OutlineKind.CLASS, outline.getKind());
-      assertEquals("B", outline.getName());
+      Element element = outline.getElement();
+      assertSame(ElementKind.CLASS, element.getKind());
+      assertEquals("B", element.getName());
       {
         SourceRegion sourceRegion = outline.getSourceRegion();
         int offset = code.indexOf(" // endA");
@@ -377,100 +399,109 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // A
     {
       Outline outline_A = topOutlines[0];
+      Element element_A = outline_A.getElement();
       assertSame(unitOutline, outline_A.getParent());
-      assertSame(OutlineKind.CLASS, outline_A.getKind());
-      assertEquals("A", outline_A.getName());
-      assertEquals(code.indexOf("A {"), outline_A.getOffset());
-      assertEquals("A".length(), outline_A.getLength());
-      assertSame(null, outline_A.getParameters());
-      assertSame(null, outline_A.getReturnType());
+      assertSame(ElementKind.CLASS, element_A.getKind());
+      assertEquals("A", element_A.getName());
+      assertEquals(code.indexOf("A {"), element_A.getOffset());
+      assertEquals("A".length(), element_A.getLength());
+      assertSame(null, element_A.getParameters());
+      assertSame(null, element_A.getReturnType());
       // A children
       Outline[] outlines_A = outline_A.getChildren();
       assertThat(outlines_A).hasSize(2);
       {
         Outline constructorOutline = outlines_A[0];
-        assertSame(OutlineKind.CONSTRUCTOR, constructorOutline.getKind());
-        assertEquals("A", constructorOutline.getName());
-        assertEquals(code.indexOf("A() {"), constructorOutline.getOffset());
-        assertEquals("A".length(), constructorOutline.getLength());
-        assertEquals("()", constructorOutline.getParameters());
-        assertNull(constructorOutline.getReturnType());
+        Element constructorElement = constructorOutline.getElement();
+        assertSame(ElementKind.CONSTRUCTOR, constructorElement.getKind());
+        assertEquals("A", constructorElement.getName());
+        assertEquals(code.indexOf("A() {"), constructorElement.getOffset());
+        assertEquals("A".length(), constructorElement.getLength());
+        assertEquals("()", constructorElement.getParameters());
+        assertNull(constructorElement.getReturnType());
         // local function
         Outline[] outlines_constructor = constructorOutline.getChildren();
         assertThat(outlines_constructor).hasSize(1);
         {
           Outline outline = outlines_constructor[0];
-          assertSame(OutlineKind.FUNCTION, outline.getKind());
-          assertEquals("local_A", outline.getName());
-          assertEquals(code.indexOf("local_A() {}"), outline.getOffset());
-          assertEquals("local_A".length(), outline.getLength());
-          assertEquals("()", outline.getParameters());
-          assertEquals("int", outline.getReturnType());
+          Element element = outline.getElement();
+          assertSame(ElementKind.FUNCTION, element.getKind());
+          assertEquals("local_A", element.getName());
+          assertEquals(code.indexOf("local_A() {}"), element.getOffset());
+          assertEquals("local_A".length(), element.getLength());
+          assertEquals("()", element.getParameters());
+          assertEquals("int", element.getReturnType());
         }
       }
       {
-        Outline outlines_m = outlines_A[1];
-        assertSame(OutlineKind.METHOD, outlines_m.getKind());
-        assertEquals("m", outlines_m.getName());
-        assertEquals(code.indexOf("m() {"), outlines_m.getOffset());
-        assertEquals("m".length(), outlines_m.getLength());
-        assertEquals("()", outlines_m.getParameters());
-        assertEquals("", outlines_m.getReturnType());
+        Outline outline_m = outlines_A[1];
+        Element element_m = outline_m.getElement();
+        assertSame(ElementKind.METHOD, element_m.getKind());
+        assertEquals("m", element_m.getName());
+        assertEquals(code.indexOf("m() {"), element_m.getOffset());
+        assertEquals("m".length(), element_m.getLength());
+        assertEquals("()", element_m.getParameters());
+        assertEquals("", element_m.getReturnType());
         // local function
-        Outline[] methodChildren = outlines_m.getChildren();
+        Outline[] methodChildren = outline_m.getChildren();
         assertThat(methodChildren).hasSize(1);
         {
           Outline outline = methodChildren[0];
-          assertSame(OutlineKind.FUNCTION, outline.getKind());
-          assertEquals("local_m", outline.getName());
-          assertEquals(code.indexOf("local_m() {}"), outline.getOffset());
-          assertEquals("local_m".length(), outline.getLength());
-          assertEquals("()", outline.getParameters());
-          assertEquals("", outline.getReturnType());
+          Element element = outline.getElement();
+          assertSame(ElementKind.FUNCTION, element.getKind());
+          assertEquals("local_m", element.getName());
+          assertEquals(code.indexOf("local_m() {}"), element.getOffset());
+          assertEquals("local_m".length(), element.getLength());
+          assertEquals("()", element.getParameters());
+          assertEquals("", element.getReturnType());
         }
       }
     }
     // f()
     {
       Outline outline_f = topOutlines[1];
+      Element element_f = outline_f.getElement();
       assertSame(unitOutline, outline_f.getParent());
-      assertSame(OutlineKind.FUNCTION, outline_f.getKind());
-      assertEquals("f", outline_f.getName());
-      assertEquals(code.indexOf("f() {"), outline_f.getOffset());
-      assertEquals("f".length(), outline_f.getLength());
-      assertEquals("()", outline_f.getParameters());
-      assertEquals("", outline_f.getReturnType());
+      assertSame(ElementKind.FUNCTION, element_f.getKind());
+      assertEquals("f", element_f.getName());
+      assertEquals(code.indexOf("f() {"), element_f.getOffset());
+      assertEquals("f".length(), element_f.getLength());
+      assertEquals("()", element_f.getParameters());
+      assertEquals("", element_f.getReturnType());
       // f() children
       Outline[] outlines_f = outline_f.getChildren();
       assertThat(outlines_f).hasSize(2);
       {
         Outline outline_f1 = outlines_f[0];
-        assertSame(OutlineKind.FUNCTION, outline_f1.getKind());
-        assertEquals("local_f1", outline_f1.getName());
-        assertEquals(code.indexOf("local_f1(int i) {}"), outline_f1.getOffset());
-        assertEquals("local_f1".length(), outline_f1.getLength());
-        assertEquals("(int i)", outline_f1.getParameters());
-        assertEquals("", outline_f1.getReturnType());
+        Element element_f1 = outline_f1.getElement();
+        assertSame(ElementKind.FUNCTION, element_f1.getKind());
+        assertEquals("local_f1", element_f1.getName());
+        assertEquals(code.indexOf("local_f1(int i) {}"), element_f1.getOffset());
+        assertEquals("local_f1".length(), element_f1.getLength());
+        assertEquals("(int i)", element_f1.getParameters());
+        assertEquals("", element_f1.getReturnType());
       }
       {
         Outline outline_f2 = outlines_f[1];
-        assertSame(OutlineKind.FUNCTION, outline_f2.getKind());
-        assertEquals("local_f2", outline_f2.getName());
-        assertEquals(code.indexOf("local_f2(String s) {"), outline_f2.getOffset());
-        assertEquals("local_f2".length(), outline_f2.getLength());
-        assertEquals("(String s)", outline_f2.getParameters());
-        assertEquals("", outline_f2.getReturnType());
+        Element element_f2 = outline_f2.getElement();
+        assertSame(ElementKind.FUNCTION, element_f2.getKind());
+        assertEquals("local_f2", element_f2.getName());
+        assertEquals(code.indexOf("local_f2(String s) {"), element_f2.getOffset());
+        assertEquals("local_f2".length(), element_f2.getLength());
+        assertEquals("(String s)", element_f2.getParameters());
+        assertEquals("", element_f2.getReturnType());
         // local_f2() local function
         Outline[] outlines_f2 = outline_f2.getChildren();
         assertThat(outlines_f2).hasSize(1);
         {
           Outline outline_f21 = outlines_f2[0];
-          assertSame(OutlineKind.FUNCTION, outline_f21.getKind());
-          assertEquals("local_f21", outline_f21.getName());
-          assertEquals(code.indexOf("local_f21(int p) {"), outline_f21.getOffset());
-          assertEquals("local_f21".length(), outline_f21.getLength());
-          assertEquals("(int p)", outline_f21.getParameters());
-          assertEquals("", outline_f21.getReturnType());
+          Element element_f21 = outline_f21.getElement();
+          assertSame(ElementKind.FUNCTION, element_f21.getKind());
+          assertEquals("local_f21", element_f21.getName());
+          assertEquals(code.indexOf("local_f21(int p) {"), element_f21.getOffset());
+          assertEquals("local_f21".length(), element_f21.getLength());
+          assertEquals("(int p)", element_f21.getParameters());
+          assertEquals("", element_f21.getReturnType());
         }
       }
     }
@@ -501,79 +532,86 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // FTA
     {
       Outline outline = topOutlines[0];
+      Element element = outline.getElement();
       assertSame(unitOutline, outline.getParent());
-      assertSame(OutlineKind.FUNCTION_TYPE_ALIAS, outline.getKind());
-      assertEquals("FTA", outline.getName());
-      assertEquals(code.indexOf("FTA("), outline.getOffset());
-      assertEquals("FTA".length(), outline.getLength());
-      assertEquals("(int i, String s)", outline.getParameters());
-      assertEquals("String", outline.getReturnType());
+      assertSame(ElementKind.FUNCTION_TYPE_ALIAS, element.getKind());
+      assertEquals("FTA", element.getName());
+      assertEquals(code.indexOf("FTA("), element.getOffset());
+      assertEquals("FTA".length(), element.getLength());
+      assertEquals("(int i, String s)", element.getParameters());
+      assertEquals("String", element.getReturnType());
     }
     // FTB
     {
       Outline outline = topOutlines[1];
+      Element element = outline.getElement();
       assertSame(unitOutline, outline.getParent());
-      assertSame(OutlineKind.FUNCTION_TYPE_ALIAS, outline.getKind());
-      assertEquals("FTB", outline.getName());
-      assertEquals(code.indexOf("FTB("), outline.getOffset());
-      assertEquals("FTB".length(), outline.getLength());
-      assertEquals("(int p)", outline.getParameters());
-      assertEquals("", outline.getReturnType());
+      assertSame(ElementKind.FUNCTION_TYPE_ALIAS, element.getKind());
+      assertEquals("FTB", element.getName());
+      assertEquals(code.indexOf("FTB("), element.getOffset());
+      assertEquals("FTB".length(), element.getLength());
+      assertEquals("(int p)", element.getParameters());
+      assertEquals("", element.getReturnType());
     }
     // CTA
     {
       Outline outline = topOutlines[4];
+      Element element = outline.getElement();
       assertSame(unitOutline, outline.getParent());
-      assertSame(OutlineKind.CLASS_TYPE_ALIAS, outline.getKind());
-      assertEquals("CTA", outline.getName());
-      assertEquals(code.indexOf("CTA ="), outline.getOffset());
-      assertEquals("CTA".length(), outline.getLength());
-      assertNull(outline.getParameters());
-      assertNull(outline.getReturnType());
+      assertSame(ElementKind.CLASS_TYPE_ALIAS, element.getKind());
+      assertEquals("CTA", element.getName());
+      assertEquals(code.indexOf("CTA ="), element.getOffset());
+      assertEquals("CTA".length(), element.getLength());
+      assertNull(element.getParameters());
+      assertNull(element.getReturnType());
     }
     // fA
     {
       Outline outline = topOutlines[5];
+      Element element = outline.getElement();
       assertSame(unitOutline, outline.getParent());
-      assertSame(OutlineKind.FUNCTION, outline.getKind());
-      assertEquals("fA", outline.getName());
-      assertEquals(code.indexOf("fA("), outline.getOffset());
-      assertEquals("fA".length(), outline.getLength());
-      assertEquals("(int i, String s)", outline.getParameters());
-      assertEquals("String", outline.getReturnType());
+      assertSame(ElementKind.FUNCTION, element.getKind());
+      assertEquals("fA", element.getName());
+      assertEquals(code.indexOf("fA("), element.getOffset());
+      assertEquals("fA".length(), element.getLength());
+      assertEquals("(int i, String s)", element.getParameters());
+      assertEquals("String", element.getReturnType());
     }
     // fB
     {
       Outline outline = topOutlines[6];
+      Element element = outline.getElement();
       assertSame(unitOutline, outline.getParent());
-      assertSame(OutlineKind.FUNCTION, outline.getKind());
-      assertEquals("fB", outline.getName());
-      assertEquals(code.indexOf("fB("), outline.getOffset());
-      assertEquals("fB".length(), outline.getLength());
-      assertEquals("(int p)", outline.getParameters());
-      assertEquals("", outline.getReturnType());
+      assertSame(ElementKind.FUNCTION, element.getKind());
+      assertEquals("fB", element.getName());
+      assertEquals(code.indexOf("fB("), element.getOffset());
+      assertEquals("fB".length(), element.getLength());
+      assertEquals("(int p)", element.getParameters());
+      assertEquals("", element.getReturnType());
     }
     // propA
     {
       Outline outline = topOutlines[7];
+      Element element = outline.getElement();
       assertSame(unitOutline, outline.getParent());
-      assertSame(OutlineKind.GETTER, outline.getKind());
-      assertEquals("propA", outline.getName());
-      assertEquals(code.indexOf("propA => null;"), outline.getOffset());
-      assertEquals("propA".length(), outline.getLength());
-      assertEquals("", outline.getParameters());
-      assertEquals("String", outline.getReturnType());
+      assertSame(ElementKind.GETTER, element.getKind());
+      assertEquals("propA", element.getName());
+      assertEquals(code.indexOf("propA => null;"), element.getOffset());
+      assertEquals("propA".length(), element.getLength());
+      assertEquals("", element.getParameters());
+      assertEquals("String", element.getReturnType());
     }
     // propB
     {
       Outline outline = topOutlines[8];
+      Element element = outline.getElement();
       assertSame(unitOutline, outline.getParent());
-      assertSame(OutlineKind.SETTER, outline.getKind());
-      assertEquals("propB", outline.getName());
-      assertEquals(code.indexOf("propB(int v) {}"), outline.getOffset());
-      assertEquals("propB".length(), outline.getLength());
-      assertEquals("(int v)", outline.getParameters());
-      assertEquals("", outline.getReturnType());
+      assertSame(ElementKind.SETTER, element.getKind());
+      assertEquals("propB", element.getName());
+      assertEquals(code.indexOf("propB(int v) {}"), element.getOffset());
+      assertEquals("propB".length(), element.getLength());
+      assertEquals("(int v)", element.getParameters());
+      assertEquals("", element.getReturnType());
     }
   }
 
@@ -611,142 +649,134 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // "main"
     {
       Outline outline_main = topOutlines[0];
+      Element element_main = outline_main.getElement();
       assertSame(unitOutline, outline_main.getParent());
-      assertSame(OutlineKind.FUNCTION, outline_main.getKind());
-      assertEquals("main", outline_main.getName());
-      assertEquals(code.indexOf("main() {"), outline_main.getOffset());
-      assertEquals("main".length(), outline_main.getLength());
+      assertSame(ElementKind.FUNCTION, element_main.getKind());
+      assertEquals("main", element_main.getName());
+      assertEquals(code.indexOf("main() {"), element_main.getOffset());
+      assertEquals("main".length(), element_main.getLength());
       // "main" children
       Outline[] outlines_main = outline_main.getChildren();
       assertThat(outlines_main).hasSize(2);
       // "groupA"
       {
-        Outline groupA = outlines_main[0];
-        assertSame(OutlineKind.UNIT_TEST_GROUP, groupA.getKind());
-        assertEquals("groupA", groupA.getName());
-        assertEquals(code.indexOf("groupA'"), groupA.getOffset());
-        assertEquals("groupA".length(), groupA.getLength());
-        assertNull(groupA.getParameters());
-        assertSame(null, groupA.getReturnType());
-        assertSame(null, groupA.getParameters());
+        Outline outline_A = outlines_main[0];
+        Element element_A = outline_A.getElement();
+        assertSame(ElementKind.UNIT_TEST_GROUP, element_A.getKind());
+        assertEquals("groupA", element_A.getName());
+        assertEquals(code.indexOf("groupA'"), element_A.getOffset());
+        assertEquals("groupA".length(), element_A.getLength());
+        assertNull(element_A.getParameters());
+        assertSame(null, element_A.getReturnType());
+        assertSame(null, element_A.getParameters());
         {
-          SourceRegion sourceRegion = groupA.getSourceRegion();
+          SourceRegion sourceRegion = outline_A.getSourceRegion();
           int offset = code.indexOf("group('groupA'");
           int end = code.indexOf("; // groupA end");
           assertEquals(offset, sourceRegion.getOffset());
           assertEquals(end - offset, sourceRegion.getLength());
         }
         // "groupA" children
-        Outline[] outlines_groupA = groupA.getChildren();
+        Outline[] outlines_groupA = outline_A.getChildren();
         assertThat(outlines_groupA).hasSize(2);
         // "groupAA"
         {
-          Outline groupAA = outlines_groupA[0];
-          assertSame(OutlineKind.UNIT_TEST_GROUP, groupAA.getKind());
-          assertEquals("groupAA", groupAA.getName());
-          assertEquals(code.indexOf("groupAA'"), groupAA.getOffset());
-          assertEquals("groupAA".length(), groupAA.getLength());
-          assertNull(groupAA.getParameters());
-          assertSame(null, groupAA.getReturnType());
-          assertSame(null, groupAA.getParameters());
+          Outline outline_AA = outlines_groupA[0];
+          Element element_AA = outline_AA.getElement();
+          assertSame(ElementKind.UNIT_TEST_GROUP, element_AA.getKind());
+          assertEquals("groupAA", element_AA.getName());
+          assertEquals(code.indexOf("groupAA'"), element_AA.getOffset());
+          assertEquals("groupAA".length(), element_AA.getLength());
+          assertNull(element_AA.getParameters());
+          assertSame(null, element_AA.getReturnType());
+          assertSame(null, element_AA.getParameters());
           {
-            SourceRegion sourceRegion = groupAA.getSourceRegion();
-            int offset = code.indexOf("group('groupAA'");
-            int end = code.indexOf("; // groupAA end");
-            assertEquals(offset, sourceRegion.getOffset());
-            assertEquals(end - offset, sourceRegion.getLength());
-          }
-        }
-        // "groupAA"
-        {
-          Outline groupAA = outlines_groupA[0];
-          assertSame(OutlineKind.UNIT_TEST_GROUP, groupAA.getKind());
-          assertEquals("groupAA", groupAA.getName());
-          assertEquals(code.indexOf("groupAA'"), groupAA.getOffset());
-          assertEquals("groupAA".length(), groupAA.getLength());
-          assertNull(groupAA.getParameters());
-          assertSame(null, groupAA.getReturnType());
-          assertSame(null, groupAA.getParameters());
-          {
-            SourceRegion sourceRegion = groupAA.getSourceRegion();
+            SourceRegion sourceRegion = outline_AA.getSourceRegion();
             int offset = code.indexOf("group('groupAA'");
             int end = code.indexOf("; // groupAA end");
             assertEquals(offset, sourceRegion.getOffset());
             assertEquals(end - offset, sourceRegion.getLength());
           }
           // "groupAA" children
-          Outline[] outlines_groupAA = groupAA.getChildren();
+          Outline[] outlines_groupAA = outline_AA.getChildren();
           assertThat(outlines_groupAA).hasSize(2);
           // "testAA_A"
           {
-            Outline testAA_A = outlines_groupAA[0];
-            assertSame(OutlineKind.UNIT_TEST_CASE, testAA_A.getKind());
-            assertEquals("testAA_A", testAA_A.getName());
+            Outline outline_AA_A = outlines_groupAA[0];
+            Element element_AA_A = outline_AA_A.getElement();
+            assertSame(ElementKind.UNIT_TEST_CASE, element_AA_A.getKind());
+            assertEquals("testAA_A", element_AA_A.getName());
           }
           // "testAA_B"
           {
-            Outline testAA_B = outlines_groupAA[1];
-            assertSame(OutlineKind.UNIT_TEST_CASE, testAA_B.getKind());
-            assertEquals("testAA_B", testAA_B.getName());
+            Outline outline_AA_B = outlines_groupAA[1];
+            Element element_AA_B = outline_AA_B.getElement();
+            assertSame(ElementKind.UNIT_TEST_CASE, element_AA_B.getKind());
+            assertEquals("testAA_B", element_AA_B.getName());
           }
         }
         // "testA_A"
         {
-          Outline testA_A = outlines_groupA[1];
-          assertSame(OutlineKind.UNIT_TEST_CASE, testA_A.getKind());
-          assertEquals("testA_A", testA_A.getName());
-          assertEquals(code.indexOf("testA_A'"), testA_A.getOffset());
-          assertEquals("testA_A".length(), testA_A.getLength());
-          assertNull(testA_A.getParameters());
-          assertSame(null, testA_A.getReturnType());
-          assertSame(null, testA_A.getParameters());
+          Outline outline_A_A = outlines_groupA[1];
+          Element element_A_A = outline_A_A.getElement();
+          assertSame(ElementKind.UNIT_TEST_CASE, element_A_A.getKind());
+          assertEquals("testA_A", element_A_A.getName());
+          assertEquals(code.indexOf("testA_A'"), element_A_A.getOffset());
+          assertEquals("testA_A".length(), element_A_A.getLength());
+          assertNull(element_A_A.getParameters());
+          assertSame(null, element_A_A.getReturnType());
+          assertSame(null, element_A_A.getParameters());
           {
-            SourceRegion sourceRegion = testA_A.getSourceRegion();
+            SourceRegion sourceRegion = outline_A_A.getSourceRegion();
             int offset = code.indexOf("test('testA_A'");
             int end = code.indexOf("; // testA_A end");
             assertEquals(offset, sourceRegion.getOffset());
             assertEquals(end - offset, sourceRegion.getLength());
           }
-          assertThat(testA_A.getChildren()).isEmpty();
+          assertThat(outline_A_A.getChildren()).isEmpty();
         }
       }
       // "groupB"
       {
-        Outline groupB = outlines_main[1];
-        assertSame(OutlineKind.UNIT_TEST_GROUP, groupB.getKind());
-        assertEquals("groupB", groupB.getName());
-        assertEquals(code.indexOf("groupB'"), groupB.getOffset());
-        assertEquals("groupB".length(), groupB.getLength());
-        assertNull(groupB.getParameters());
-        assertSame(null, groupB.getReturnType());
-        assertSame(null, groupB.getParameters());
+        Outline outline_B = outlines_main[1];
+        Element element_B = outline_B.getElement();
+        assertSame(ElementKind.UNIT_TEST_GROUP, element_B.getKind());
+        assertEquals("groupB", element_B.getName());
+        assertEquals(code.indexOf("groupB'"), element_B.getOffset());
+        assertEquals("groupB".length(), element_B.getLength());
+        assertNull(element_B.getParameters());
+        assertSame(null, element_B.getReturnType());
+        assertSame(null, element_B.getParameters());
         {
-          SourceRegion sourceRegion = groupB.getSourceRegion();
+          SourceRegion sourceRegion = outline_B.getSourceRegion();
           int offset = code.indexOf("group('groupB'");
           int end = code.indexOf("; // groupB end");
           assertEquals(offset, sourceRegion.getOffset());
           assertEquals(end - offset, sourceRegion.getLength());
         }
         // "groupB" children
-        Outline[] outlines_groupB = groupB.getChildren();
+        Outline[] outlines_groupB = outline_B.getChildren();
         assertThat(outlines_groupB).hasSize(3);
         // "testB_A"
         {
-          Outline testB_A = outlines_groupB[0];
-          assertSame(OutlineKind.UNIT_TEST_CASE, testB_A.getKind());
-          assertEquals("testB_A", testB_A.getName());
+          Outline outline_B_A = outlines_groupB[0];
+          Element element_B_A = outline_B_A.getElement();
+          assertSame(ElementKind.UNIT_TEST_CASE, element_B_A.getKind());
+          assertEquals("testB_A", element_B_A.getName());
         }
         // "testB_B"
         {
-          Outline testB_B = outlines_groupB[1];
-          assertSame(OutlineKind.UNIT_TEST_CASE, testB_B.getKind());
-          assertEquals("testB_B", testB_B.getName());
+          Outline outline_B_B = outlines_groupB[1];
+          Element element_B_B = outline_B_B.getElement();
+          assertSame(ElementKind.UNIT_TEST_CASE, element_B_B.getKind());
+          assertEquals("testB_B", element_B_B.getName());
         }
         // "testB_C"
         {
-          Outline testB_C = outlines_groupB[2];
-          assertSame(OutlineKind.UNIT_TEST_CASE, testB_C.getKind());
-          assertEquals("testB_C", testB_C.getName());
+          Outline outline_B_C = outlines_groupB[2];
+          Element element_B_C = outline_B_C.getElement();
+          assertSame(ElementKind.UNIT_TEST_CASE, element_B_C.getKind());
+          assertEquals("testB_C", element_B_C.getName());
         }
       }
     }
@@ -779,7 +809,8 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // "main"
     {
       Outline outline_main = topOutlines[0];
-      assertEquals("main", outline_main.getName());
+      Element element_main = outline_main.getElement();
+      assertEquals("main", element_main.getName());
       // "main" children
       Outline[] outlines_main = outline_main.getChildren();
       assertThat(outlines_main).isEmpty();
@@ -812,23 +843,26 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     // "main"
     {
       Outline outline_main = topOutlines[0];
-      assertEquals("main", outline_main.getName());
+      Element element_main = outline_main.getElement();
+      assertEquals("main", element_main.getName());
       // "main" children
       Outline[] outlines_main = outline_main.getChildren();
       assertThat(outlines_main).hasSize(2);
       {
         Outline outline = outlines_main[0];
-        assertSame(OutlineKind.UNIT_TEST_GROUP, outline.getKind());
-        assertEquals("??????????", outline.getName());
-        assertEquals(code.indexOf("groupName, ()"), outline.getOffset());
-        assertEquals("groupName".length(), outline.getLength());
+        Element element = outline.getElement();
+        assertSame(ElementKind.UNIT_TEST_GROUP, element.getKind());
+        assertEquals("??????????", element.getName());
+        assertEquals(code.indexOf("groupName, ()"), element.getOffset());
+        assertEquals("groupName".length(), element.getLength());
       }
       {
         Outline outline = outlines_main[1];
-        assertSame(OutlineKind.UNIT_TEST_CASE, outline.getKind());
-        assertEquals("??????????", outline.getName());
-        assertEquals(code.indexOf("testName, ()"), outline.getOffset());
-        assertEquals("testName".length(), outline.getLength());
+        Element element = outline.getElement();
+        assertSame(ElementKind.UNIT_TEST_CASE, element.getKind());
+        assertEquals("??????????", element.getName());
+        assertEquals(code.indexOf("testName, ()"), element.getOffset());
+        assertEquals("testName".length(), element.getLength());
       }
     }
   }

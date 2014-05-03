@@ -2593,11 +2593,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     installSemanticHighlighting();
   }
 
-  public void setSelection_NEW(Outline element, boolean moveCursor) {
+  public void setSelection_NEW(Outline outline, boolean moveCursor) {
     // validate Outline
-    if (element == null) {
+    if (outline == null) {
       return;
     }
+    com.google.dart.server.Element element = outline.getElement();
     // prepare range
     int offset = element.getOffset();
     int length = element.getLength();

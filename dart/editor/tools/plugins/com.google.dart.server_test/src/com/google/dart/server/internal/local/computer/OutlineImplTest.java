@@ -14,9 +14,8 @@
 
 package com.google.dart.server.internal.local.computer;
 
-import com.google.dart.engine.source.Source;
+import com.google.dart.server.Element;
 import com.google.dart.server.Outline;
-import com.google.dart.server.OutlineKind;
 
 import junit.framework.TestCase;
 
@@ -24,7 +23,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class OutlineImplTest extends TestCase {
-  private Source source = mock(Source.class);
+  private Element elementA = mock(Element.class);
+  private Element elementB = mock(Element.class);
 
   public void test_access() throws Exception {
     Outline childA = mock(Outline.class);
@@ -33,79 +33,21 @@ public class OutlineImplTest extends TestCase {
     when(childB.toString()).thenReturn("childB");
     Outline parent = childA;
     Outline[] children = new Outline[] {childA, childB};
-    OutlineImpl outline = new OutlineImpl(
-        source,
-        parent,
-        new SourceRegionImpl(1, 2),
-        OutlineKind.METHOD,
-        "foo",
-        10,
-        20,
-        "(int i, String s)",
-        "Map<String, int>",
-        true,
-        true,
-        true);
-    assertSame(source, outline.getSource());
+    OutlineImpl outline = new OutlineImpl(parent, elementA, new SourceRegionImpl(1, 2));
     assertSame(parent, outline.getParent());
     assertEquals(new SourceRegionImpl(1, 2), outline.getSourceRegion());
-    assertSame(OutlineKind.METHOD, outline.getKind());
-    assertEquals("foo", outline.getName());
-    assertEquals(10, outline.getOffset());
-    assertEquals(20, outline.getLength());
-    assertEquals("(int i, String s)", outline.getParameters());
-    assertEquals("Map<String, int>", outline.getReturnType());
-    assertTrue(outline.isAbstract());
-    assertTrue(outline.isPrivate());
-    assertTrue(outline.isStatic());
+    assertSame(elementA, outline.getElement());
     // children
     outline.setChildren(children);
     assertEquals(children, outline.getChildren());
     // toString
-    assertEquals("[name=foo, kind=METHOD, offset=10, length=20, parameters=(int i, String s), "
-        + "return=Map<String, int>, children=[childA, childB]]", outline.toString());
+    assertEquals("[element=elementA, children=[childA, childB]]", outline.toString());
   }
 
   public void test_equals() throws Exception {
-    OutlineImpl outlineA = new OutlineImpl(
-        source,
-        null,
-        new SourceRegionImpl(1, 2),
-        OutlineKind.METHOD,
-        "aaa",
-        1,
-        2,
-        "()",
-        "",
-        false,
-        false,
-        false);
-    OutlineImpl outlineA2 = new OutlineImpl(
-        source,
-        null,
-        new SourceRegionImpl(1, 2),
-        OutlineKind.METHOD,
-        "aaa",
-        10,
-        2,
-        "()",
-        "",
-        false,
-        false,
-        false);
-    OutlineImpl outlineB = new OutlineImpl(
-        source,
-        null,
-        new SourceRegionImpl(1, 2),
-        OutlineKind.METHOD,
-        "bbb",
-        10,
-        20,
-        "()",
-        "",
-        false,
-        false,
-        false);
+    OutlineImpl outlineA = new OutlineImpl(null, elementA, new SourceRegionImpl(1, 2));
+    OutlineImpl outlineA2 = new OutlineImpl(null, elementA, new SourceRegionImpl(1, 2));
+    OutlineImpl outlineB = new OutlineImpl(null, elementB, new SourceRegionImpl(1, 2));
     assertTrue(outlineA.equals(outlineA));
     assertTrue(outlineA.equals(outlineA2));
     assertFalse(outlineA.equals(this));
@@ -113,33 +55,16 @@ public class OutlineImplTest extends TestCase {
   }
 
   public void test_hashCode() throws Exception {
-    OutlineImpl unitOutline = new OutlineImpl(
-        source,
-        null,
-        new SourceRegionImpl(1, 2),
-        OutlineKind.METHOD,
-        "foo",
-        10,
-        20,
-        "(int i, String s)",
-        "Map<String, int>",
-        true,
-        true,
-        true);
+    OutlineImpl unitOutline = new OutlineImpl(null, elementA, new SourceRegionImpl(1, 2));
     unitOutline.hashCode();
-    OutlineImpl outline = new OutlineImpl(
-        source,
-        unitOutline,
-        new SourceRegionImpl(1, 2),
-        OutlineKind.METHOD,
-        "foo",
-        10,
-        20,
-        "(int i, String s)",
-        "Map<String, int>",
-        true,
-        true,
-        true);
+    OutlineImpl outline = new OutlineImpl(unitOutline, elementB, new SourceRegionImpl(10, 20));
     outline.hashCode();
+  }
+
+  @Override
+  protected void setUp() throws Exception {
+    when(elementA.toString()).thenReturn("elementA");
+    when(elementB.toString()).thenReturn("elementB");
+    super.setUp();
   }
 }
