@@ -5743,6 +5743,8 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     // ignore int or String
     if (type == null || type.equals(intType) || type.equals(typeProvider.getStringType())) {
       return false;
+    } else if (type.equals(typeProvider.getDoubleType())) {
+      return true;
     }
     // prepare ClassElement
     Element element = type.getElement();
@@ -5752,6 +5754,13 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     ClassElement classElement = (ClassElement) element;
     // lookup for ==
     MethodElement method = classElement.lookUpMethod("==", currentLibrary);
+    while (method != null && method.isAbstract()) {
+      ClassElement definingClass = method.getEnclosingElement();
+      if (definingClass == null) {
+        return false;
+      }
+      method = definingClass.lookUpInheritedMethod("==", currentLibrary);
+    }
     if (method == null || method.getEnclosingElement().getType().isObject()) {
       return false;
     }

@@ -272,6 +272,33 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_caseExpressionTypeImplementsEquals() throws Exception {
+    Source source = addSource(createSource(//
+        "print(p) {}",
+        "",
+        "abstract class B {",
+        "  final id;",
+        "  const B(this.id);",
+        "  String toString() => 'C($id)';",
+        "  /** Equality is identity equality, the id isn't used. */",
+        "  bool operator==(Object other);",
+        "  }",
+        "",
+        "class C extends B {",
+        "  const C(id) : super(id);",
+        "}",
+        "",
+        "void doSwitch(c) {",
+        "  switch (c) {",
+        "  case const C(0): print('Switch: 0'); break;",
+        "  case const C(1): print('Switch: 1'); break;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_caseExpressionTypeImplementsEquals_int() throws Exception {
     Source source = addSource(createSource(//
         "f(int i) {",
@@ -647,6 +674,28 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const B.c5(String p) : v = p != '';",
         "  const B.n1(num p) : v = p != null;",
         "  const B.n2(num p) : v = null != p;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_constMapKeyExpressionTypeImplementsEquals_abstract() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class B {",
+        "  final id;",
+        "  const B(this.id);",
+        "  String toString() => 'C($id)';",
+        "  /** Equality is identity equality, the id isn't used. */",
+        "  bool operator==(Object other);",
+        "  }",
+        "",
+        "class C extends B {",
+        "  const C(id) : super(id);",
+        "}",
+        "",
+        "Map getMap() {",
+        "  return const { const C(0): 'Map: 0' };",
         "}"));
     resolve(source);
     assertNoErrors(source);

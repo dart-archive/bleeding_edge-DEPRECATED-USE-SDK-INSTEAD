@@ -253,6 +253,49 @@ public class ClassElementImplTest extends EngineTestCase {
     assertNull(classA.lookUpGetter("g", library));
   }
 
+  public void test_lookUpInheritedMethod_declared() {
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement method = methodElement(methodName, null);
+    classA.setMethods(new MethodElement[] {method});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertNull(classA.lookUpInheritedMethod(methodName, library));
+  }
+
+  public void test_lookUpInheritedMethod_declaredAndInherited() {
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement inheritedMethod = methodElement(methodName, null);
+    classA.setMethods(new MethodElement[] {inheritedMethod});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    MethodElement method = methodElement(methodName, null);
+    classB.setMethods(new MethodElement[] {method});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertSame(inheritedMethod, classB.lookUpInheritedMethod(methodName, library));
+  }
+
+  public void test_lookUpInheritedMethod_inherited() {
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement inheritedMethod = methodElement(methodName, null);
+    classA.setMethods(new MethodElement[] {inheritedMethod});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertSame(inheritedMethod, classB.lookUpInheritedMethod(methodName, library));
+  }
+
+  public void test_lookUpInheritedMethod_undeclared() {
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertNull(classA.lookUpInheritedMethod("m", library));
+  }
+
   public void test_lookUpMethod_declared() {
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");

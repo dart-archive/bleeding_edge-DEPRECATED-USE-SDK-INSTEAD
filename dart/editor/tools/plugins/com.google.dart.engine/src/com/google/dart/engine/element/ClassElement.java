@@ -275,6 +275,27 @@ public interface ClassElement extends Element {
   public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library);
 
   /**
+   * Return the element representing the method that results from looking up the given method in the
+   * superclass of this class with respect to the given library, or {@code null} if the look up
+   * fails. The behavior of this method is defined by the Dart Language Specification in section
+   * 12.15.1: <blockquote> The result of looking up method <i>m</i> in class <i>C</i> with respect
+   * to library <i>L</i> is:
+   * <ul>
+   * <li>If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
+   * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
+   * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
+   * to <i>L</i>. Otherwise, we say that the lookup has failed.</li>
+   * </ul>
+   * </blockquote>
+   * 
+   * @param methodName the name of the method being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given method in the superclass of this class with respect
+   *         to the given library
+   */
+  public MethodElement lookUpInheritedMethod(String methodName, LibraryElement library);
+
+  /**
    * Return the element representing the method that results from looking up the given method in
    * this class with respect to the given library, or {@code null} if the look up fails. The
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:

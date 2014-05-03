@@ -402,31 +402,13 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public MethodElement lookUpInheritedMethod(String methodName, LibraryElement library) {
+    return internalLookUpMethod(methodName, library, false);
+  }
+
+  @Override
   public MethodElement lookUpMethod(String methodName, LibraryElement library) {
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    ClassElement currentElement = this;
-    while (currentElement != null && !visitedClasses.contains(currentElement)) {
-      visitedClasses.add(currentElement);
-      MethodElement element = currentElement.getMethod(methodName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
-      for (InterfaceType mixin : currentElement.getMixins()) {
-        ClassElement mixinElement = mixin.getElement();
-        if (mixinElement != null) {
-          element = mixinElement.getMethod(methodName);
-          if (element != null && element.isAccessibleIn(library)) {
-            return element;
-          }
-        }
-      }
-      InterfaceType supertype = currentElement.getSupertype();
-      if (supertype == null) {
-        return null;
-      }
-      currentElement = supertype.getElement();
-    }
-    return null;
+    return internalLookUpMethod(methodName, library, true);
   }
 
   @Override
@@ -649,6 +631,39 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
         }
       }
     }
+  }
+
+  private MethodElement internalLookUpMethod(String methodName, LibraryElement library,
+      boolean includeThisClass) {
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    ClassElement currentElement = this;
+    if (includeThisClass) {
+      MethodElement element = currentElement.getMethod(methodName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    while (currentElement != null && visitedClasses.add(currentElement)) {
+      for (InterfaceType mixin : currentElement.getMixins()) {
+        ClassElement mixinElement = mixin.getElement();
+        if (mixinElement != null) {
+          MethodElement element = mixinElement.getMethod(methodName);
+          if (element != null && element.isAccessibleIn(library)) {
+            return element;
+          }
+        }
+      }
+      InterfaceType supertype = currentElement.getSupertype();
+      if (supertype == null) {
+        return null;
+      }
+      currentElement = supertype.getElement();
+      MethodElement element = currentElement.getMethod(methodName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    return null;
   }
 
   private boolean safeIsOrInheritsProxy(ClassElement classElt,

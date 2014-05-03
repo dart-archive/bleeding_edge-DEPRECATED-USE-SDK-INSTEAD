@@ -186,6 +186,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public MethodElement lookUpInheritedMethod(String methodName, LibraryElement library) {
+    return getActualElement().lookUpInheritedMethod(methodName, library);
+  }
+
+  @Override
   public MethodElement lookUpMethod(String methodName, LibraryElement library) {
     return getActualElement().lookUpMethod(methodName, library);
   }
