@@ -161,6 +161,31 @@ public class InlineLocalRefactoringImplTest extends RefactoringImplTest {
         "process(x) {}");
   }
 
+  /**
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=18587
+   */
+  public void test_OK_keepNextCommentedLine() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int test = 1 + 2;",
+        "  // foo",
+        "  print(test);",
+        "  // bar",
+        "}");
+    selection = findOffset("test = ");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  // foo",
+        "  print(1 + 2);",
+        "  // bar",
+        "}");
+  }
+
   public void test_OK_noUsages_1() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

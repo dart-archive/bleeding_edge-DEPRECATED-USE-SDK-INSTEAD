@@ -1329,7 +1329,7 @@ public class CorrectionUtils {
    */
   public int getLineNext(int index) {
     int length = buffer.length();
-    // skip whitespace characters
+    // skip to the end of the line
     while (index < length) {
       char c = buffer.charAt(index);
       if (c == '\r' || c == '\n') {

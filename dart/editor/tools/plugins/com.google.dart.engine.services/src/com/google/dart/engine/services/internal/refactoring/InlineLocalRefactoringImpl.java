@@ -40,9 +40,6 @@ import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
 import com.google.dart.engine.utilities.source.SourceRange;
 
-import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
-import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartStart;
-
 import java.text.MessageFormat;
 import java.util.List;
 
@@ -136,28 +133,7 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
     // remove declaration
     {
       Statement declarationStatement = variableNode.getAncestor(VariableDeclarationStatement.class);
-      Block block = (Block) declarationStatement.getParent();
-      List<Statement> statements = block.getStatements();
-      int declarationIndex = statements.indexOf(declarationStatement);
-      // remove declaration - to the next statement or end of block
-      if (declarationIndex + 1 < statements.size()) {
-        Statement nextStatement = statements.get(declarationIndex + 1);
-        change.addEdit(new Edit(rangeStartStart(declarationStatement, nextStatement), ""));
-      } else {
-        // start = start of the declaration statement line
-        int start = declarationStatement.getOffset();
-        while (true) {
-          char c = utils.getText().charAt(start - 1);
-          if (c == ' ' || c == '\t') {
-            start--;
-            continue;
-          }
-          break;
-        }
-        // end = position before closing "}"
-        int end = block.getEnd() - 1;
-        change.addEdit(new Edit(rangeStartEnd(start, end), ""));
-      }
+      change.addEdit(new Edit(utils.getLinesRange(declarationStatement), ""));
     }
     // prepare source
     String initializerSource;
