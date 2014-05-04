@@ -28,7 +28,6 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.server.Outline;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
 import com.google.dart.server.SearchResultsConsumer;
@@ -73,8 +72,6 @@ public class DartUnitReferencesComputer {
         return SearchResultKind.METHOD_INVOCATION;
       case METHOD_REFERENCE:
         return SearchResultKind.METHOD_REFERENCE;
-      case PROPERTY_ACCESSOR_REFERENCE:
-        return SearchResultKind.PROPERTY_ACCESSOR_REFERENCE;
       case TYPE_REFERENCE:
       case FUNCTION_TYPE_REFERENCE:
       case TYPE_PARAMETER_REFERENCE:
@@ -143,54 +140,38 @@ public class DartUnitReferencesComputer {
     consumer.computedReferences(contextId, source, offset, SearchResult.EMPTY_ARRAY, true);
   }
 
-  private Outline newOutline(Element element) {
-    return newOutline_withChildren(element, Outline.EMPTY_ARRAY);
-  }
-
-  private OutlineImpl newOutline_withChildren(Element engineElement, Outline[] children) {
-    Element engineEnclosingElement = engineElement.getEnclosingElement();
-    // use only these elements as a scope
-    switch (engineElement.getKind()) {
-      case CLASS:
-      case COMPILATION_UNIT:
-      case CONSTRUCTOR:
-      case FUNCTION:
-      case FUNCTION_TYPE_ALIAS:
-      case LIBRARY:
-      case METHOD:
-        break;
-      default:
-        return newOutline_withChildren(engineEnclosingElement, children);
+  private com.google.dart.server.Element[] computePath(Element engineElement) {
+    List<com.google.dart.server.Element> path = Lists.newArrayList();
+    while (engineElement != null) {
+      switch (engineElement.getKind()) {
+        case CLASS:
+        case COMPILATION_UNIT:
+        case CONSTRUCTOR:
+        case FUNCTION:
+        case FUNCTION_TYPE_ALIAS:
+        case LIBRARY:
+        case METHOD:
+          ElementImpl element = ElementImpl.create(engineElement);
+          path.add(element);
+          break;
+        default:
+          break;
+      }
+      engineElement = engineElement.getEnclosingElement();
     }
-    // prepare parent
-    OutlineImpl parent = null;
-    Outline[] parentChildren = null;
-    if (engineEnclosingElement != null) {
-      parentChildren = new Outline[1];
-      parent = newOutline_withChildren(engineEnclosingElement, parentChildren);
-    }
-    // new outline
-    ElementImpl element = ElementImpl.create(engineElement);
-    OutlineImpl outline = new OutlineImpl(parent, element, new SourceRegionImpl(0, 0));
-    outline.setChildren(children);
-    // done
-    if (parentChildren != null) {
-      parentChildren[0] = outline;
-    }
-    return outline;
+    return path.toArray(new com.google.dart.server.Element[path.size()]);
   }
 
   private SearchResultImpl newSearchResult(SearchMatch match) {
-    Element matchElement = match.getElement();
     MatchKind matchKind = match.getKind();
-    SourceRange matchRange = match.getSourceRange();
-    Outline path = newOutline(matchElement);
     SearchResultKind kind = getSearchResultKind(matchKind);
     if (kind == null) {
       return null;
     }
+    Element matchElement = match.getElement();
+    SourceRange matchRange = match.getSourceRange();
     return new SearchResultImpl(
-        path,
+        computePath(matchElement),
         matchElement.getSource(),
         kind,
         matchRange.getOffset(),

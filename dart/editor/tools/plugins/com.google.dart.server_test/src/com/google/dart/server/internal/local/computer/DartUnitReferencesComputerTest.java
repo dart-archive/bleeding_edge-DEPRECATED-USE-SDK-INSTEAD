@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.server.Element;
-import com.google.dart.server.Outline;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
 import com.google.dart.server.SearchResultsConsumer;
@@ -257,13 +256,12 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
           code.indexOf("A a = null; // 2"),
           "A".length());
       assertNotNull(result);
-      Outline path = result.getPath();
+      Element[] path = result.getPath();
       assertEquals(makeSource(//
           "CONSTRUCTOR B.named() → B",
           "CLASS B",
           "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
-      verifyParentChildLinks(path);
     }
   }
 
@@ -285,13 +283,12 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
           code.indexOf("A a = null; // 1"),
           "A".length());
       assertNotNull(result);
-      Outline path = result.getPath();
+      Element[] path = result.getPath();
       assertEquals(makeSource(//
           "CONSTRUCTOR B() → B",
           "CLASS B",
           "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
-      verifyParentChildLinks(path);
     }
   }
 
@@ -311,12 +308,11 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
           code.indexOf("A a = null; // 5"),
           "A".length());
       assertNotNull(result);
-      Outline path = result.getPath();
+      Element[] path = result.getPath();
       assertEquals(makeSource(//
           "FUNCTION main(int p1, double p2) → dynamic",
           "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
-      verifyParentChildLinks(path);
     }
   }
 
@@ -335,12 +331,11 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
           code.indexOf("A a); // 4"),
           "A".length());
       assertNotNull(result);
-      Outline path = result.getPath();
+      Element[] path = result.getPath();
       assertEquals(makeSource(//
           "FUNCTION_TYPE_ALIAS F(A a) → String",
           "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
-      verifyParentChildLinks(path);
     }
   }
 
@@ -362,13 +357,12 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
           code.indexOf("A a = null; // 3"),
           "A".length());
       assertNotNull(result);
-      Outline path = result.getPath();
+      Element[] path = result.getPath();
       assertEquals(makeSource(//
           "METHOD m() → dynamic",
           "CLASS B",
           "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
-      verifyParentChildLinks(path);
     }
   }
 
@@ -514,37 +508,27 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
     return null;
   }
 
-  private String getPathString(Outline outline) {
-    Element element = outline.getElement();
-    String str = element.getKind() + " " + element.getName();
-    {
-      String parameters = element.getParameters();
-      if (!StringUtils.isEmpty(parameters)) {
-        str += parameters;
+  private String getPathString(Element[] path) {
+    String str = "";
+    for (Element element : path) {
+      if (!str.isEmpty()) {
+        str += "\n";
       }
-    }
-    {
-      String parameters = element.getReturnType();
-      if (!StringUtils.isEmpty(parameters)) {
-        str += RIGHT_ARROW;
-        str += parameters;
+      str += element.getKind() + " " + element.getName();
+      {
+        String parameters = element.getParameters();
+        if (!StringUtils.isEmpty(parameters)) {
+          str += parameters;
+        }
       }
-    }
-    Outline parent = outline.getParent();
-    if (parent != null) {
-      str += "\n" + getPathString(parent);
+      {
+        String parameters = element.getReturnType();
+        if (!StringUtils.isEmpty(parameters)) {
+          str += RIGHT_ARROW;
+          str += parameters;
+        }
+      }
     }
     return str;
-  }
-
-  private void verifyParentChildLinks(Outline outline) {
-    while (outline != null) {
-      Outline parent = outline.getParent();
-      if (parent != null) {
-        Outline[] children = parent.getChildren();
-        assertThat(children).containsOnly(outline);
-      }
-      outline = parent;
-    }
   }
 }

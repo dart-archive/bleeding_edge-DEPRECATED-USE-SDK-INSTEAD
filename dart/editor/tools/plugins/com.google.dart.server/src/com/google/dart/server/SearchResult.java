@@ -49,12 +49,12 @@ public interface SearchResult {
   public int getOffset();
 
   /**
-   * Return the path to this result starting with an outline of the element that encloses it, then
-   * for its enclosing element, etc up to the library.
+   * Return the path to this result starting with the element that encloses it, then for its
+   * enclosing element, etc up to the library.
    * 
    * @return the path to this result
    */
-  public Outline getPath();
+  public Element[] getPath();
 
   /**
    * Return the source containing the result.

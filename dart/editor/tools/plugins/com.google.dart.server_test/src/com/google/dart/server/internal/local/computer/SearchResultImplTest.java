@@ -15,7 +15,7 @@
 package com.google.dart.server.internal.local.computer;
 
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.Outline;
+import com.google.dart.server.Element;
 import com.google.dart.server.SearchResultKind;
 
 import junit.framework.TestCase;
@@ -23,11 +23,11 @@ import junit.framework.TestCase;
 import static org.mockito.Mockito.mock;
 
 public class SearchResultImplTest extends TestCase {
-  private Outline path = mock(Outline.class);
   private Source source = mock(Source.class);
 
   public void test_access() throws Exception {
     SearchResultKind kind = SearchResultKind.TYPE_REFERENCE;
+    Element[] path = new Element[0];
     SearchResultImpl searchResult = new SearchResultImpl(path, source, kind, 10, 20);
     assertSame(path, searchResult.getPath());
     assertSame(source, searchResult.getSource());

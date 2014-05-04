@@ -15,7 +15,7 @@
 package com.google.dart.server.internal.local.computer;
 
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.Outline;
+import com.google.dart.server.Element;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
 
@@ -25,13 +25,14 @@ import com.google.dart.server.SearchResultKind;
  * @coverage dart.server.local
  */
 public class SearchResultImpl implements SearchResult {
-  private final Outline path;
+  private final Element[] path;
   private final Source source;
   private final SearchResultKind kind;
   private final int offset;
   private final int length;
 
-  public SearchResultImpl(Outline path, Source source, SearchResultKind kind, int offset, int length) {
+  public SearchResultImpl(Element[] path, Source source, SearchResultKind kind, int offset,
+      int length) {
     this.path = path;
     this.source = source;
     this.kind = kind;
@@ -55,7 +56,7 @@ public class SearchResultImpl implements SearchResult {
   }
 
   @Override
-  public Outline getPath() {
+  public Element[] getPath() {
     return path;
   }
 
