@@ -59,9 +59,10 @@ public interface AnalysisServer {
    * @param contextId the identifier of the context to perform refactorings within
    * @param source the {@link Source} to perform refactorings within
    * @param offset the offset within the {@code source}
+   * @param length the length of the selected code within the {@code source}
    * @param consumer the results listener
    */
-  public void computeMinorRefactorings(String contextId, Source source, int offset,
+  public void computeMinorRefactorings(String contextId, Source source, int offset, int length,
       MinorRefactoringsConsumer consumer);
 
   /**

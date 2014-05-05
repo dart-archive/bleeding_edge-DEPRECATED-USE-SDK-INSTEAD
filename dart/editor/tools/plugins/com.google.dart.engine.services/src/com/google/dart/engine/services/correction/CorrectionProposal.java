@@ -18,6 +18,11 @@ package com.google.dart.engine.services.correction;
  * Proposal for some change.
  */
 public class CorrectionProposal {
+  /**
+   * An empty array of {@link CorrectionProposal}s.
+   */
+  public static final CorrectionProposal[] EMPTY_ARRAY = new CorrectionProposal[0];
+
   private final CorrectionKind kind;
   private final String name;
 

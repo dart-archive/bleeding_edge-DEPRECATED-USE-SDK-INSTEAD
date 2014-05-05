@@ -25,7 +25,8 @@ public interface MinorRefactoringsConsumer {
   /**
    * A set {@link CorrectionProposal}s have been computed.
    * 
-   * @param proposals an array of computers {@link CorrectionProposal}s
+   * @param proposals an array of computed {@link CorrectionProposal}s
+   * @param isLastResult is {@code true} if this is the last set of results
    */
-  public void computedProposals(CorrectionProposal[] proposals);
+  public void computedProposals(CorrectionProposal[] proposals, boolean isLastResult);
 }

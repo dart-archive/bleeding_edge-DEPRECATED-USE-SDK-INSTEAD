@@ -34,6 +34,7 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
+import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
@@ -49,10 +50,12 @@ import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.internal.local.computer.DartUnitHighlightsComputer;
+import com.google.dart.server.internal.local.computer.DartUnitMinorRefactoringsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
 import com.google.dart.server.internal.local.computer.DartUnitOutlineComputer;
 import com.google.dart.server.internal.local.computer.DartUnitReferencesComputer;
 import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
+import com.google.dart.server.internal.local.operation.ComputeMinorRefactoringsOperation;
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
 import com.google.dart.server.internal.local.operation.NotificationOperation;
@@ -222,9 +225,14 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   @Override
-  public void computeMinorRefactorings(String contextId, Source source, int offset,
+  public void computeMinorRefactorings(String contextId, Source source, int offset, int length,
       MinorRefactoringsConsumer consumer) {
-    // TODO(scheglov) implement it
+    operationQueue.add(new ComputeMinorRefactoringsOperation(
+        contextId,
+        source,
+        offset,
+        length,
+        consumer));
   }
 
   @Override
@@ -280,6 +288,32 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     getSourcesMap(contextId, contextAddedSourcesMap).addAll(changeSet.getAddedSources());
     context.applyChanges(changeSet);
     schedulePerformAnalysisOperation(contextId, false);
+  }
+
+  /**
+   * Implementation for
+   * {@link #computeMinorRefactorings(String, Source, int, MinorRefactoringsConsumer)}.
+   */
+  public void internalComputeMinorRefactorings(String contextId, Source source, int offset,
+      int length, MinorRefactoringsConsumer consumer) throws Exception {
+    AnalysisContext analysisContext = getAnalysisContext(contextId);
+    Source[] librarySources = analysisContext.getLibrariesContaining(source);
+    if (librarySources.length != 0) {
+      Source librarySource = librarySources[0];
+      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+      if (unit != null) {
+        new DartUnitMinorRefactoringsComputer(
+            searchEngine,
+            contextId,
+            analysisContext,
+            source,
+            unit,
+            offset,
+            length,
+            consumer).compute();
+      }
+    }
+    consumer.computedProposals(CorrectionProposal.EMPTY_ARRAY, true);
   }
 
   /**
