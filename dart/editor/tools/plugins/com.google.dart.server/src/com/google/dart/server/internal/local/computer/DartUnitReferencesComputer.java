@@ -92,7 +92,6 @@ public class DartUnitReferencesComputer {
   private final Source source;
   private final CompilationUnit unit;
   private final int offset;
-
   private final SearchResultsConsumer consumer;
 
   public DartUnitReferencesComputer(SearchEngine searchEngine, String contextId, Source source,
@@ -136,8 +135,6 @@ public class DartUnitReferencesComputer {
           results.toArray(new SearchResult[results.size()]),
           true);
     }
-    // done
-    consumer.computedReferences(contextId, source, offset, SearchResult.EMPTY_ARRAY, true);
   }
 
   private com.google.dart.server.Element[] computePath(Element engineElement) {

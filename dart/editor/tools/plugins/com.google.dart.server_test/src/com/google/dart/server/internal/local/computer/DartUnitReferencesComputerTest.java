@@ -224,6 +224,52 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
     assertHasResult("mmm);", SearchResultKind.METHOD_REFERENCE);
   }
 
+  public void test_oneUnit_twoLibraries() throws Exception {
+    createTestContext();
+    String libA_code = makeSource(//
+        "library my_lib;",
+        "part 'test.dart';",
+        "main() {",
+        "  fff(10);",
+        "}");
+    Source libA_source = addSource(contextId, "/libA.dart", libA_code);
+    String libB_code = makeSource(//
+        "library my_lib;",
+        "part 'test.dart';",
+        "main() {",
+        "  // inserted to ensure a different offset in libB.dart",
+        "  fff(20);",
+        "}");
+    Source libB_source = addSource(contextId, "/libB.dart", libB_code);
+    addTestSource(makeSource(//
+        "part of my_lib;",
+        "fff(p) {};",
+        ""));
+    doSearch("fff(p) {}");
+    assertThat(searchResults).hasSize(2);
+    assertHasResult(
+        libA_source,
+        libA_code,
+        "fff(10);",
+        "fff".length(),
+        SearchResultKind.FUNCTION_INVOCATION);
+    assertHasResult(
+        libB_source,
+        libB_code,
+        "fff(20);",
+        "fff".length(),
+        SearchResultKind.FUNCTION_INVOCATION);
+  }
+
+  public void test_oneUnit_zeroLibraries() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "part of my_lib;",
+        "fff(p) {};",
+        ""));
+    doSearch("fff(p) {}");
+    assertThat(searchResults).isEmpty();
+  }
+
   public void test_parameter() throws Exception {
     createContextWithSingleSource(makeSource(//
         "main(int ppp) {",
@@ -459,12 +505,22 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
     assertThat(searchResults).isEmpty();
   }
 
-  private SearchResult assertHasResult(String search, int length, SearchResultKind kind) {
+  private void addTestSource(String code) {
+    this.code = code;
+    this.source = addSource(contextId, "/test.dart", code);
+  }
+
+  private SearchResult assertHasResult(Source source, String code, String search, int length,
+      SearchResultKind kind) {
     int offset = code.indexOf(search);
     SearchResult result = findSearchResult(source, kind, offset, length);
     assertNotNull("Not found\n\"" + search + "\" [offset=" + offset + ", length=" + length
         + ", kind=" + kind + "]\n" + "in\n" + StringUtils.join(searchResults, "\n"), result);
     return result;
+  }
+
+  private SearchResult assertHasResult(String search, int length, SearchResultKind kind) {
+    return assertHasResult(source, code, search, length, kind);
   }
 
   private SearchResult assertHasResult(String search, SearchResultKind kind) {
@@ -473,9 +529,12 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
   }
 
   private void createContextWithSingleSource(String code) {
+    createTestContext();
+    addTestSource(code);
+  }
+
+  private void createTestContext() {
     this.contextId = createContext("test");
-    this.code = code;
-    this.source = addSource(contextId, "/test.dart", code);
   }
 
   /**

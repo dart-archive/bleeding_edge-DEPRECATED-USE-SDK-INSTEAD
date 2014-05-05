@@ -42,6 +42,7 @@ import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.InternalAnalysisServer;
 import com.google.dart.server.NotificationKind;
+import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.internal.local.computer.DartUnitHighlightsComputer;
@@ -385,7 +386,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
       SearchResultsConsumer consumer) throws Exception {
     AnalysisContext analysisContext = getAnalysisContext(contextId);
     Source[] librarySources = analysisContext.getLibrariesContaining(source);
-    // TODO(scheglov) references from multiple libraries
     if (librarySources.length != 0) {
       Source librarySource = librarySources[0];
       CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
@@ -393,6 +393,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         new DartUnitReferencesComputer(searchEngine, contextId, source, unit, offset, consumer).compute();
       }
     }
+    consumer.computedReferences(contextId, source, offset, SearchResult.EMPTY_ARRAY, true);
   }
 
   /**
