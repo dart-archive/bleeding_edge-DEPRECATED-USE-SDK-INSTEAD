@@ -53,6 +53,18 @@ public interface AnalysisServer {
   public void applyChanges(String contextId, ChangeSet changeSet);
 
   /**
+   * Computes a set of minor refactorings which can be performed at the given offset in the given
+   * {@link Source}. The given consumer is invoked asynchronously on a different thread.
+   * 
+   * @param contextId the identifier of the context to perform refactorings within
+   * @param source the {@link Source} to perform refactorings within
+   * @param offset the offset within the {@code source}
+   * @param consumer the results listener
+   */
+  public void computeMinorRefactorings(String contextId, Source source, int offset,
+      MinorRefactoringsConsumer consumer);
+
+  /**
    * Create a new context in which analysis can be performed. The context that is created will
    * persist until {@link #deleteContext(String)} is used to delete it. Clients, therefore, are
    * responsible for managing the lifetime of contexts.
@@ -82,11 +94,13 @@ public interface AnalysisServer {
   public void removeAnalysisServerListener(AnalysisServerListener listener);
 
   /**
-   * Searches for references to the element at the given offset in the given {@link Source}.
+   * Searches for references to the element at the given offset in the given {@link Source}. The
+   * given consumer is invoked asynchronously on a different thread.
    * 
    * @param contextId the identifier of the context to search within
    * @param source the {@link Source} with element
    * @param offset the offset within the {@code source}
+   * @param consumer the results listener
    */
   public void searchReferences(String contextId, Source source, int offset,
       SearchResultsConsumer consumer);

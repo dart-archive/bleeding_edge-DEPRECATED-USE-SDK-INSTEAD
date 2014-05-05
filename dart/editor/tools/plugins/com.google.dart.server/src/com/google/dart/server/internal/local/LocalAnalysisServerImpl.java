@@ -43,6 +43,7 @@ import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.InternalAnalysisServer;
+import com.google.dart.server.MinorRefactoringsConsumer;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultsConsumer;
@@ -218,6 +219,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @Override
   public void applyChanges(String contextId, ChangeSet changeSet) {
     operationQueue.add(new ApplyChangesOperation(contextId, changeSet));
+  }
+
+  @Override
+  public void computeMinorRefactorings(String contextId, Source source, int offset,
+      MinorRefactoringsConsumer consumer) {
+    // TODO(scheglov) implement it
   }
 
   @Override

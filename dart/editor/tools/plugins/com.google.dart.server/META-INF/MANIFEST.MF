@@ -9,7 +9,8 @@ Bundle-Version: 0.0.0.qualifier
 Bundle-Vendor: %providerName
 Bundle-ClassPath: .
 Require-Bundle: com.google.dart.thirdparty,
- com.google.dart.engine
+ com.google.dart.engine,
+ com.google.dart.engine.services
 Export-Package: com.google.dart.server,
  com.google.dart.server.internal.local;x-friends:="com.google.dart.server_test",
  com.google.dart.server.internal.local.computer;x-friends:="com.google.dart.server_test",
