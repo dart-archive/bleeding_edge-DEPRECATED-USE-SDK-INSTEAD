@@ -27,16 +27,6 @@ import com.google.dart.engine.utilities.source.SourceRange;
  */
 public class LocalVariableElementImpl extends VariableElementImpl implements LocalVariableElement {
   /**
-   * Is {@code true} if this variable is potentially mutated somewhere in its scope.
-   */
-  private boolean potentiallyMutatedInScope;
-
-  /**
-   * Is {@code true} if this variable is potentially mutated somewhere in closure.
-   */
-  private boolean potentiallyMutatedInClosure;
-
-  /**
    * The offset to the beginning of the visible range for this element.
    */
   private int visibleRangeOffset;
@@ -90,26 +80,26 @@ public class LocalVariableElementImpl extends VariableElementImpl implements Loc
 
   @Override
   public boolean isPotentiallyMutatedInClosure() {
-    return potentiallyMutatedInClosure;
+    return hasModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT);
   }
 
   @Override
   public boolean isPotentiallyMutatedInScope() {
-    return potentiallyMutatedInScope;
+    return hasModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE);
   }
 
   /**
    * Specifies that this variable is potentially mutated somewhere in closure.
    */
   public void markPotentiallyMutatedInClosure() {
-    potentiallyMutatedInClosure = true;
+    setModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT, true);
   }
 
   /**
    * Specifies that this variable is potentially mutated somewhere in its scope.
    */
   public void markPotentiallyMutatedInScope() {
-    potentiallyMutatedInScope = true;
+    setModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE, true);
   }
 
   /**

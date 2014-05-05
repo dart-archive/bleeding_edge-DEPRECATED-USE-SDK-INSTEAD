@@ -58,6 +58,16 @@ public enum Modifier {
 
   MIXIN,
 
+  /**
+   * Indicates that the value of a parameter or local variable might be mutated within the context.
+   */
+  POTENTIALLY_MUTATED_IN_CONTEXT,
+
+  /**
+   * Indicates that the value of a parameter or local variable might be mutated within the scope.
+   */
+  POTENTIALLY_MUTATED_IN_SCOPE,
+
   REFERENCES_SUPER,
 
   /**

@@ -27,16 +27,6 @@ import com.google.dart.engine.utilities.source.SourceRange;
  */
 public class ParameterElementImpl extends VariableElementImpl implements ParameterElement {
   /**
-   * Is {@code true} if this variable is potentially mutated somewhere in its scope.
-   */
-  private boolean potentiallyMutatedInScope;
-
-  /**
-   * Is {@code true} if this variable is potentially mutated somewhere in closure.
-   */
-  private boolean potentiallyMutatedInClosure;
-
-  /**
    * An array containing all of the parameters defined by this parameter element. There will only be
    * parameters if this parameter is a function typed parameter.
    */
@@ -137,26 +127,26 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
 
   @Override
   public boolean isPotentiallyMutatedInClosure() {
-    return potentiallyMutatedInClosure;
+    return hasModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT);
   }
 
   @Override
   public boolean isPotentiallyMutatedInScope() {
-    return potentiallyMutatedInScope;
+    return hasModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE);
   }
 
   /**
    * Specifies that this variable is potentially mutated somewhere in closure.
    */
   public void markPotentiallyMutatedInClosure() {
-    potentiallyMutatedInClosure = true;
+    setModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT, true);
   }
 
   /**
    * Specifies that this variable is potentially mutated somewhere in its scope.
    */
   public void markPotentiallyMutatedInScope() {
-    potentiallyMutatedInScope = true;
+    setModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE, true);
   }
 
   /**
