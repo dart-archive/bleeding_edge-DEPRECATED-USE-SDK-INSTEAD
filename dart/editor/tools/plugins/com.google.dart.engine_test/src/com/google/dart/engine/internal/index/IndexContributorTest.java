@@ -26,7 +26,6 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
-import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
@@ -556,7 +555,32 @@ public class IndexContributorTest extends AbstractDartTest {
         fooElement,
         IndexConstants.IS_INVOKED_BY_QUALIFIED,
         new ExpectedLocation(mainElement, findOffset("foo();"), "foo"));
-    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
+    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY_QUALIFIED, null);
+  }
+
+  public void test_isInvokedByQualified_MethodElement_propagatedType() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "}",
+        "main() {",
+        "  var a = new A();",
+        "  a.foo();",
+        "}");
+    // set elements
+    Element mainElement = findElement("main() {");
+    MethodElement fooElement = findElement("foo() {}");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fooElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, findOffset("foo();"), "foo"));
+    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY_QUALIFIED, null);
   }
 
   public void test_isInvokedByUnqualified_MethodElement() throws Exception {
@@ -1219,9 +1243,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "");
     // set elements
     Element mainElement = testUnitElement;
-    LibraryElement referencedElement = ((ExportElement) findNode(
-        "export 'Lib.dart",
-        ExportDirective.class).getElement()).getExportedLibrary();
+    LibraryElement referencedElement = findNode("export 'Lib.dart", ExportDirective.class).getElement().getExportedLibrary();
     // index
     index.visitCompilationUnit(testUnit);
     // verify

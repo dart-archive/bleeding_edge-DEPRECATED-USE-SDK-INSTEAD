@@ -217,9 +217,7 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
         "  print(a.mmm);",
         "}"));
     doSearch("mmm(p) {}");
-    // TODO(scheglov) there is an extra METHOD_REFERENCE for mmm(1)
-    // Only for propagated type?
-//    assertThat(searchResults).hasSize(2);
+    assertThat(searchResults).hasSize(2);
     assertHasResult("mmm(1);", SearchResultKind.METHOD_INVOCATION);
     assertHasResult("mmm);", SearchResultKind.METHOD_REFERENCE);
   }

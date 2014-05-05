@@ -857,10 +857,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
   private boolean isAlreadyHandledName(SimpleIdentifier node) {
     AstNode parent = node.getParent();
     if (parent instanceof MethodInvocation) {
-      Element element = node.getStaticElement();
-      if (element instanceof MethodElement || element instanceof FunctionElement) {
-        return ((MethodInvocation) parent).getMethodName() == node;
-      }
+      return ((MethodInvocation) parent).getMethodName() == node;
     }
     return false;
   }
