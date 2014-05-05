@@ -344,7 +344,7 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
       // source mapping.
       SourceMapManager sourceMapManager = debugTarget.getSourceMapManager();
 
-      if (sourceMapManager.isMapTarget(breakpoint.getFile())) {
+      if (sourceMapManager != null && sourceMapManager.isMapTarget(breakpoint.getFile())) {
         List<SourceMapManager.SourceLocation> locations = sourceMapManager.getReverseMappingsFor(
             breakpoint.getFile(),
             line);

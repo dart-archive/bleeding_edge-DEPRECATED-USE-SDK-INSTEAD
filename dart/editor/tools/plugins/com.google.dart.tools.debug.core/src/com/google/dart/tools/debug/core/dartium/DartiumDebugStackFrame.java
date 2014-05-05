@@ -546,6 +546,10 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   private SourceMapManager.SourceLocation getMappedLocation() {
     SourceMapManager sourceMapManager = getTarget().getSourceMapManager();
 
+    if (sourceMapManager == null) {
+      return null;
+    }
+
     IFile file = WorkspaceSourceContainer.locatePathAsFile(getActualLocationPath());
 
     if (sourceMapManager.isMapSource(file)) {

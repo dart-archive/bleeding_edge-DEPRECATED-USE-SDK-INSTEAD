@@ -37,7 +37,6 @@ import com.google.dart.tools.debug.core.webkit.WebkitResult;
 import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
 import org.eclipse.core.resources.IMarkerDelta;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IBreakpointManager;
@@ -144,8 +143,6 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
     if (wrapper.getProject() != null) {
       sourceMapManager = new SourceMapManager(wrapper.getProject());
-    } else {
-      sourceMapManager = new SourceMapManager(ResourcesPlugin.getWorkspace().getRoot());
     }
   }
 
@@ -214,7 +211,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       dartCodeManager.dispose();
     }
 
-    sourceMapManager.dispose();
+    if (sourceMapManager != null) {
+      sourceMapManager.dispose();
+    }
 
     debugThread = null;
 

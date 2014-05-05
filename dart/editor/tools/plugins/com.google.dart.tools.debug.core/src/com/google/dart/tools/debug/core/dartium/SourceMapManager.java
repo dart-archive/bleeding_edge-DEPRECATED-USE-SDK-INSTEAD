@@ -21,12 +21,10 @@ import com.google.dart.tools.debug.core.sourcemaps.SourceMapInfo;
 import com.google.dart.tools.debug.core.util.ResourceChangeManager;
 import com.google.dart.tools.debug.core.util.ResourceChangeParticipant;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 
@@ -97,19 +95,9 @@ public class SourceMapManager implements ResourceChangeParticipant {
   private Map<IFile, SourceMap> sourceMaps = new HashMap<IFile, SourceMap>();
 
   public SourceMapManager(IProject project) {
-    // TODO(devoncarew): scope our changes to the current project
-
-    this((IContainer) project);
-  }
-
-  public SourceMapManager(IWorkspaceRoot workspace) {
-    this((IContainer) workspace);
-  }
-
-  protected SourceMapManager(IContainer container) {
-    // Collect all maps in the current container.
+    // Collect all maps in the current project.
     try {
-      container.accept(new IResourceVisitor() {
+      project.accept(new IResourceVisitor() {
         @Override
         public boolean visit(IResource resource) throws CoreException {
           if (resource instanceof IFile && isMapFileName((IFile) resource)) {
@@ -125,6 +113,7 @@ public class SourceMapManager implements ResourceChangeParticipant {
   }
 
   public void dispose() {
+    // TODO(devoncarew): I don't see where we are ever adding this participant.
     ResourceChangeManager.removeChangeParticipant(this);
   }
 

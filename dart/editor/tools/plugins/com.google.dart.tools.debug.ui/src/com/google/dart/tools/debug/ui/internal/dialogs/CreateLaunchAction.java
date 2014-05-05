@@ -25,6 +25,7 @@ import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ISelection;
@@ -50,10 +51,13 @@ class CreateLaunchAction extends InstrumentedAction implements IWorkbenchWindowA
     this.launchConfigurationDialog = launchConfigurationDialog;
     this.configType = configType;
 
-    setImageDescriptor(new DecorationOverlayIcon(
-        DartDebugUIPlugin.getImage(DebugUITools.getDefaultImageDescriptor(configType)),
-        DartDebugUIPlugin.getImageDescriptor("ovr16/new.png"),
-        IDecoration.TOP_RIGHT));
+    ImageDescriptor descriptor = DebugUITools.getDefaultImageDescriptor(configType);
+    if (descriptor != null) {
+      setImageDescriptor(new DecorationOverlayIcon(
+          DartDebugUIPlugin.getImage(descriptor),
+          DartDebugUIPlugin.getImageDescriptor("ovr16/new.png"),
+          IDecoration.TOP_RIGHT));
+    }
   }
 
   @Override
