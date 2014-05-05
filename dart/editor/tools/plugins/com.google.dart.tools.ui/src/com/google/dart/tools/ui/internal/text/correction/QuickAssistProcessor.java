@@ -14,12 +14,16 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.MinorRefactoringsConsumer;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.actions.ConvertGetterToMethodAction;
@@ -39,7 +43,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Standard {@link IQuickAssistProcessor} for Dart.
@@ -84,16 +91,38 @@ public class QuickAssistProcessor {
       ExecutionUtils.runLog(new RunnableEx() {
         @Override
         public void run() throws Exception {
-          // add refactoring proposals
-          addProposal_convertGetterToMethodRefactoring();
-          addProposal_convertMethodToGetterRefactoring();
-          addProposal_renameRefactoring();
-          addProposal_format();
-          // ask services
-          com.google.dart.engine.services.correction.QuickAssistProcessor serviceProcessor;
-          serviceProcessor = CorrectionProcessors.getQuickAssistProcessor();
-          CorrectionProposal[] serviceProposals = serviceProcessor.getProposals(context);
-          addServiceProposals(proposals, serviceProposals);
+          if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+            final List<CorrectionProposal> proposalList = Lists.newArrayList();
+            final CountDownLatch latch = new CountDownLatch(1);
+            DartCore.getAnalysisServer().computeMinorRefactorings(
+                context.getAnalysisContextId(),
+                context.getSource(),
+                context.getSelectionOffset(),
+                context.getSelectionLength(),
+                new MinorRefactoringsConsumer() {
+                  @Override
+                  public void computedProposals(CorrectionProposal[] proposals, boolean isLastResult) {
+                    Collections.addAll(proposalList, proposals);
+                    if (isLastResult) {
+                      latch.countDown();
+                    }
+                  }
+                });
+            Uninterruptibles.awaitUninterruptibly(latch, 2000, TimeUnit.MILLISECONDS);
+            CorrectionProposal[] serviceProposals = proposalList.toArray(new CorrectionProposal[proposalList.size()]);
+            addServiceProposals(proposals, serviceProposals);
+          } else {
+            // add refactoring proposals
+            addProposal_convertGetterToMethodRefactoring();
+            addProposal_convertMethodToGetterRefactoring();
+            addProposal_renameRefactoring();
+            addProposal_format();
+            // ask services
+            com.google.dart.engine.services.correction.QuickAssistProcessor serviceProcessor;
+            serviceProcessor = CorrectionProcessors.getQuickAssistProcessor();
+            CorrectionProposal[] serviceProposals = serviceProcessor.getProposals(context);
+            addServiceProposals(proposals, serviceProposals);
+          }
         }
       });
     }
