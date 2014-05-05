@@ -15,12 +15,14 @@ package com.google.dart.tools.debug.core.pubserve;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
+import com.google.dart.tools.core.pub.IPubServeListener;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ListenerList;
 
 import java.io.IOException;
 
@@ -40,6 +42,12 @@ public class PubServeManager {
 
   private PubServe pubserve;
 
+  private final ListenerList listeners = new ListenerList();
+
+  public void addListener(IPubServeListener listener) {
+    listeners.add(listener);
+  }
+
   public void dispose() {
     if (pubserve != null) {
       pubserve.dispose();
@@ -48,6 +56,23 @@ public class PubServeManager {
 
   public String getStdErrorString() {
     return pubserve.getStdErrorString();
+  }
+
+  /**
+   * Indicates whether pub serve is running
+   */
+  public boolean isServing() {
+    return pubserve != null && pubserve.isAlive();
+  }
+
+  public void notifyListeners(boolean isServing) {
+    for (Object listener : listeners.getListeners()) {
+      ((IPubServeListener) listener).pubServeStatus(isServing);
+    }
+  }
+
+  public void removeListener(IPubServeListener listener) {
+    listeners.remove(listener);
   }
 
   /**
@@ -89,7 +114,6 @@ public class PubServeManager {
   public void serve(DartLaunchConfigWrapper wrapper, PubCallback<String> pubConnectionCallback)
       throws Exception {
 
-    // TODO(keertip): output to process console
     console = DartCore.getConsole();
     IResource resource = wrapper.getApplicationResource();
     console.printSeparator("Starting pub serve : " + resource.getProject().getName());
@@ -111,6 +135,15 @@ public class PubServeManager {
     }
 
     sendGetUrlCommand(resource, pubConnectionCallback);
+    notifyListeners(true);
+  }
+
+  /**
+   * Stop pub serve and notify listeners of change of state.
+   */
+  public void terminatePubServe() {
+    dispose();
+    notifyListeners(false);
   }
 
   /**

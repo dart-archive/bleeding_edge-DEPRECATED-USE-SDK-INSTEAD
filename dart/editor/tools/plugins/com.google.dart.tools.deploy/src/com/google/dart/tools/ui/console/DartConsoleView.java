@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.console;
 
+import com.google.dart.tools.debug.ui.launch.StopPubServeAction;
 import com.google.dart.tools.deploy.Activator;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
@@ -212,6 +213,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   private ClearAction clearAction;
   private ScrollLockAction pinAction;
   private IAction propertiesAction;
+  private StopPubServeAction stopPubServeAction;
 
   private Display display;
 
@@ -244,6 +246,10 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     pinAction = new ScrollLockAction();
     propertiesAction = new PropertiesAction();
     terminateAction = new TerminateAction();
+
+    stopPubServeAction = new StopPubServeAction();
+    stopPubServeAction.setImageDescriptor(Activator.getImageDescriptor("icons/full/obj16/psstop.gif"));
+    stopPubServeAction.setDisabledImageDescriptor(Activator.getImageDescriptor("icons/full/obj16/psstop_g.gif"));
 
     updateToolBar();
   }
@@ -545,6 +551,12 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     toolbar.add(propertiesAction);
     toolbar.add(pinAction);
     toolbar.add(new Separator());
+
+    if (!(console instanceof ProcessConsole)) {
+      toolbar.add(stopPubServeAction);
+      toolbar.add(new Separator());
+    }
+
     toolbar.add(terminateAction);
     toolbar.add(new Separator("outputGroup"));
     getViewSite().getActionBars().updateActionBars();

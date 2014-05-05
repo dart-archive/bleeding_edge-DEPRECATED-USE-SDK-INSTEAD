@@ -62,6 +62,7 @@ public class PubServeLaunchConfigurationDelegate extends DartLaunchConfiguration
         launchInDartium(launchUrl, launch, launchConfig);
       } catch (CoreException e) {
         DartDebugCorePlugin.logError(e);
+        DebugUIHelper.getHelper().showError("Dartium Launch Error", e.getMessage());
       }
     }
   };

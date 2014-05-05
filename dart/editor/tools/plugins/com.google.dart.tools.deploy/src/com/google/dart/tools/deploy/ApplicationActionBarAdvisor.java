@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.ui.internal.view.BreakpointsView;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
 import com.google.dart.tools.debug.ui.launch.DartRunAction;
+import com.google.dart.tools.debug.ui.launch.StopPubServeAction;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
@@ -31,6 +32,7 @@ import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.actions.RunPublishAction;
 import com.google.dart.tools.ui.actions.ShowInFinderAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
+import com.google.dart.tools.ui.console.DartConsoleView;
 import com.google.dart.tools.ui.internal.handlers.NewFileHandler;
 import com.google.dart.tools.ui.internal.handlers.NewFileHandler.NewFileCommandAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
@@ -331,6 +333,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private ShowPropertiesAction showPropertiesAction;
 
+  private StopPubServeAction stopPubServeAction;
+
   /**
    * Constructs a new action builder which contributes actions to the given window.
    * 
@@ -588,6 +592,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     pubPublishAction = RunPublishAction.createPubPublishAction(window);
 
     pubDeployAction = RunPubAction.createPubDeployAction(window);
+
+    stopPubServeAction = new StopPubServeAction();
 
 //    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
 //      // TODO(scheglov)
@@ -901,6 +907,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(IPageLayout.ID_OUTLINE);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
+    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartConsoleView.VIEW_ID);
+    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+
     //optionally add AST view if it's available
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(
         "com.google.dart.dev.util.ast.ASTExplorer"); //$NON-NLS-1$
@@ -1185,6 +1194,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(pubDeployAction);
     menu.add(pubPublishAction);
 
+    menu.add(stopPubServeAction);
     menu.add(new Separator());
 
     menu.add(cleanAllAction);
