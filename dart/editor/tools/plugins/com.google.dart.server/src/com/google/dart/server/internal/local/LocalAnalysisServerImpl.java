@@ -261,10 +261,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     AnalysisContext context = getAnalysisContext(contextId);
     Set<Source> sourcesMap = getSourcesMap(contextId, contextAddedSourcesMap);
     for (Entry<Source, AnalysisLevel> entry : delta.getAnalysisLevels().entrySet()) {
+      Source source = entry.getKey();
       if (entry.getValue() == AnalysisLevel.NONE) {
-        sourcesMap.remove(entry.getKey());
+        sourcesMap.remove(source);
       } else {
-        sourcesMap.add(entry.getKey());
+        sourcesMap.add(source);
       }
     }
     context.applyAnalysisDelta(delta);

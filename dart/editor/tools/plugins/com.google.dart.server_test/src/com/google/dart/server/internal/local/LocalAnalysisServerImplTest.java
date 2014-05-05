@@ -59,22 +59,27 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
   }
 
   public void test_applyAnalysisDelta() throws Exception {
+    Source source = new TestSource(createFile("/test.dart"), "");
+    // prepare context
     String contextId = createContext("test");
-    Source source = new TestSource(createFile("/test.dart"), makeSource(//
-        "main() {",
-        "  int aaa = 111;",
-        "  print(aaa);",
-        "}"));
-    // Get context and assert source is not included
     server.test_waitForWorkerComplete();
     AnalysisContext context = server.getContextMap().get(contextId);
-    assertNull(context.getResolvedCompilationUnit(source, source));
-    // Apply delta and assert source is now included
-    AnalysisDelta delta = new AnalysisDelta();
-    delta.setAnalysisLevel(source, AnalysisLevel.RESOLVED);
-    server.applyAnalysisDelta(contextId, delta);
+    // request source resolution
+    {
+      AnalysisDelta delta = new AnalysisDelta();
+      delta.setAnalysisLevel(source, AnalysisLevel.RESOLVED);
+      server.applyAnalysisDelta(contextId, delta);
+    }
     server.test_waitForWorkerComplete();
     assertNotNull(context.getResolvedCompilationUnit(source, source));
+    // stop source analysis
+    {
+      AnalysisDelta delta = new AnalysisDelta();
+      delta.setAnalysisLevel(source, AnalysisLevel.NONE);
+      server.applyAnalysisDelta(contextId, delta);
+    }
+    server.test_waitForWorkerComplete();
+    assertNull(context.getResolvedCompilationUnit(source, source));
   }
 
   public void test_applyChanges_noContext() throws Exception {
