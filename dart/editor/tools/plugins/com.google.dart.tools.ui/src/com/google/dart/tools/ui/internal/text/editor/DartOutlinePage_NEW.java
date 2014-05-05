@@ -15,12 +15,10 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.base.Objects;
 import com.google.dart.server.Element;
-import com.google.dart.server.ElementKind;
 import com.google.dart.server.Outline;
 import com.google.dart.server.SourceRegion;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
-import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
@@ -30,9 +28,7 @@ import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
-import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.action.IAction;
@@ -41,7 +37,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
@@ -63,7 +58,6 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -82,102 +76,6 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  * {@link IContentOutlinePage} for {@link DartEditor}.
  */
 public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
-
-  public static class ElementLabelProvider extends LabelProvider implements IStyledLabelProvider {
-    private static final Point SIZE = new Point(22, 16);
-    private static final ImageDescriptorRegistry registry = DartToolsPlugin.getImageDescriptorRegistry();
-    private static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
-
-    private static ImageDescriptor getBaseImageDescriptor(ElementKind kind, boolean isPrivate) {
-      if (kind == ElementKind.CLASS || kind == ElementKind.CLASS_TYPE_ALIAS) {
-        return isPrivate ? DartPluginImages.DESC_DART_CLASS_PRIVATE
-            : DartPluginImages.DESC_DART_CLASS_PUBLIC;
-      }
-      if (kind == ElementKind.FUNCTION_TYPE_ALIAS) {
-        return isPrivate ? DartPluginImages.DESC_DART_FUNCTIONTYPE_PRIVATE
-            : DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
-      }
-      if (kind == ElementKind.FIELD || kind == ElementKind.TOP_LEVEL_VARIABLE) {
-        return isPrivate ? DartPluginImages.DESC_DART_FIELD_PRIVATE
-            : DartPluginImages.DESC_DART_FIELD_PUBLIC;
-      }
-      if (kind == ElementKind.CONSTRUCTOR || kind == ElementKind.FUNCTION
-          || kind == ElementKind.GETTER || kind == ElementKind.METHOD || kind == ElementKind.SETTER) {
-        return isPrivate ? DartPluginImages.DESC_DART_METHOD_PRIVATE
-            : DartPluginImages.DESC_DART_METHOD_PUBLIC;
-      }
-      if (kind == ElementKind.UNIT_TEST_CASE) {
-        return DartPluginImages.DESC_DART_TEST_CASE;
-      }
-      if (kind == ElementKind.UNIT_TEST_GROUP) {
-        return DartPluginImages.DESC_DART_TEST_GROUP;
-      }
-      return null;
-    }
-
-    private static ImageDescriptor getImageDescriptor(Element element) {
-      ElementKind kind = element.getKind();
-      ImageDescriptor base = getBaseImageDescriptor(kind, element.isPrivate());
-      if (base == null) {
-        return null;
-      }
-      int flags = 0;
-      if (kind == ElementKind.CONSTRUCTOR) {
-        flags |= DartElementImageDescriptor.CONSTRUCTOR;
-      }
-      if (kind == ElementKind.GETTER) {
-        flags |= DartElementImageDescriptor.GETTER;
-      }
-      if (kind == ElementKind.SETTER) {
-        flags |= DartElementImageDescriptor.SETTER;
-      }
-      if (element.isAbstract()) {
-        flags |= DartElementImageDescriptor.ABSTRACT;
-      }
-      if (element.isStatic()) {
-        flags |= DartElementImageDescriptor.STATIC;
-      }
-      return new DartElementImageDescriptor(base, flags, SIZE);
-    }
-
-    @Override
-    public Image getImage(Object obj) {
-      Element element = (Element) obj;
-      ImageDescriptor descriptor = getImageDescriptor(element);
-      if (descriptor != null) {
-        return registry.get(descriptor);
-      }
-      return null;
-    }
-
-    @Override
-    public StyledString getStyledText(Object obj) {
-      Element element = (Element) obj;
-      StyledString styledString = new StyledString(getText(obj));
-      // append parameters
-      String parameters = element.getParameters();
-      if (parameters != null) {
-        styledString.append(parameters, StyledString.DECORATIONS_STYLER);
-      }
-      // append return type
-      String returnType = element.getReturnType();
-      if (!StringUtils.isEmpty(returnType)) {
-        if (element.getKind() == ElementKind.FIELD
-            || element.getKind() == ElementKind.TOP_LEVEL_VARIABLE) {
-          styledString.append(" : " + returnType, StyledString.QUALIFIER_STYLER);
-        } else {
-          styledString.append(RIGHT_ARROW + returnType, StyledString.QUALIFIER_STYLER);
-        }
-      }
-      // done
-      return styledString;
-    }
-
-    @Override
-    public String getText(Object obj) {
-      return ((Element) obj).getName();
-    }
-  }
 
   /**
    * {@link ViewerComparator} for {@link Outline} names.
@@ -255,7 +153,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
   }
 
   public static class OutlineLabelProvider extends LabelProvider implements IStyledLabelProvider {
-    private final ElementLabelProvider elementLabelProvider = new ElementLabelProvider();
+    private final ElementLabelProvider_NEW elementLabelProvider = new ElementLabelProvider_NEW();
 
     @Override
     public Image getImage(Object obj) {

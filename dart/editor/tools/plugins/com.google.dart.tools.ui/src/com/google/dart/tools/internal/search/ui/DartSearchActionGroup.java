@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.internal.search.ui;
 
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionActionGroup;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.OpenAction;
@@ -31,13 +33,17 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
  * @coverage dart.editor.ui.search
  */
 public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
-  private FindReferencesAction findReferencesAction;
+  private AbstractDartSelectionAction findReferencesAction;
   private FindDeclarationsAction findDeclarationsAction;
   private OpenAction openAction;
 
   public DartSearchActionGroup(DartEditor editor) {
     super(editor);
-    findReferencesAction = new FindReferencesAction(editor);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      findReferencesAction = new FindReferencesAction_NEW(editor);
+    } else {
+      findReferencesAction = new FindReferencesAction(editor);
+    }
     findDeclarationsAction = new FindDeclarationsAction(editor);
     openAction = new OpenAction(editor);
     initActions();
@@ -54,7 +60,11 @@ public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
 
   public DartSearchActionGroup(IWorkbenchSite site) {
     super(site);
-    findReferencesAction = new FindReferencesAction(site);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      findReferencesAction = new FindReferencesAction_NEW(site);
+    } else {
+      findReferencesAction = new FindReferencesAction(site);
+    }
     findDeclarationsAction = new FindDeclarationsAction(site);
     initActions();
     addActions(findReferencesAction, findDeclarationsAction);

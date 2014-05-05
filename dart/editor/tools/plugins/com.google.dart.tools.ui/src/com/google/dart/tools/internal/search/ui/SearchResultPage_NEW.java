@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2014, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,14 +19,13 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ExecutableElement;
-import com.google.dart.engine.search.MatchKind;
-import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.server.Element;
+import com.google.dart.server.SearchResult;
+import com.google.dart.server.SearchResultKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
@@ -35,7 +34,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
-import com.google.dart.tools.ui.internal.text.editor.NewDartElementLabelProvider;
+import com.google.dart.tools.ui.internal.text.editor.ElementLabelProvider_NEW;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
@@ -70,12 +69,14 @@ import org.eclipse.jface.text.Position;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -97,11 +98,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Abstract {@link SearchPage} for displaying {@link SearchMatch}s.
+ * Abstract {@link SearchPage} for displaying {@link SearchResult}s.
  * 
  * @coverage dart.editor.ui.search
  */
-public abstract class SearchMatchPage extends SearchPage {
+public abstract class SearchResultPage_NEW extends SearchPage {
   /**
    * Item for an element in search results tree.
    */
@@ -119,12 +120,12 @@ public abstract class SearchMatchPage extends SearchPage {
     }
 
     /**
-     * Adds new {@link SearchMatch}, on the same or new {@link LineItem}.
+     * Adds new {@link SearchResult}, on the same or new {@link LineItem}.
      */
-    public void addMatch(SourceLineProvider lineProvider, SearchMatch match) {
+    public void addMatch(SourceLineProvider lineProvider, SearchResult match) {
       ReferenceKind referenceKind = ReferenceKind.of(match.getKind());
-      Source source = element.getSource();
-      SourceLine sourceLine = lineProvider.getLine(source, match.getSourceRange().getOffset());
+      Source source = match.getSource();
+      SourceLine sourceLine = lineProvider.getLine(source, match.getOffset());
       // find target LineItem
       LineItem targetLineItem = null;
       for (LineItem lineItem : lines) {
@@ -136,12 +137,11 @@ public abstract class SearchMatchPage extends SearchPage {
       // new LineItem
       if (targetLineItem == null) {
         boolean potential = FILTER_POTENTIAL.apply(match);
-        targetLineItem = new LineItem(this, potential, sourceLine);
+        targetLineItem = new LineItem(this, source, potential, sourceLine);
         lines.add(targetLineItem);
       }
       // prepare position
-      SourceRange matchRange = match.getSourceRange();
-      Position position = new Position(matchRange.getOffset(), matchRange.getLength());
+      Position position = new Position(match.getOffset(), match.getLength());
       // add new position
       targetLineItem.addPosition(position, referenceKind);
     }
@@ -199,14 +199,18 @@ public abstract class SearchMatchPage extends SearchPage {
       this.lineIndex = positionIndex;
     }
 
-    Position getPosition() {
+    LineItem getLine() {
       if (item == null) {
         return null;
       }
       if (lineIndex < 0 || lineIndex > item.lines.size() - 1) {
         return null;
       }
-      LineItem lineItem = item.lines.get(lineIndex);
+      return item.lines.get(lineIndex);
+    }
+
+    Position getPosition() {
+      LineItem lineItem = getLine();
       LinePosition linePosition = lineItem.positions.get(0);
       return linePosition.position;
     }
@@ -300,12 +304,14 @@ public abstract class SearchMatchPage extends SearchPage {
    */
   private static class LineItem {
     private ElementItem item;
+    private final Source source;
     private boolean potential;
     private final SourceLine line;
     private final List<LinePosition> positions = Lists.newArrayList();
 
-    public LineItem(ElementItem item, boolean potential, SourceLine line) {
+    public LineItem(ElementItem item, Source source, boolean potential, SourceLine line) {
       this.item = item;
+      this.source = source;
       this.potential = potential;
       this.line = line;
     }
@@ -366,18 +372,18 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   /**
-   * Coarse-grained kind of the reference. We don't need all details of {@link MatchKind}.
+   * Coarse-grained kind of the reference. We don't need all details of {@link SearchResultKind}.
    */
   private static enum ReferenceKind {
     REFERENCE,
     READ,
     WRITE;
-    public static ReferenceKind of(MatchKind kind) {
-      if (kind == MatchKind.FIELD_READ || kind == MatchKind.VARIABLE_READ) {
+    public static ReferenceKind of(SearchResultKind kind) {
+      if (kind == SearchResultKind.FIELD_READ || kind == SearchResultKind.VARIABLE_READ) {
         return READ;
       }
-      if (kind == MatchKind.FIELD_WRITE || kind == MatchKind.VARIABLE_WRITE
-          || kind == MatchKind.VARIABLE_READ_WRITE) {
+      if (kind == SearchResultKind.FIELD_WRITE || kind == SearchResultKind.VARIABLE_WRITE
+          || kind == SearchResultKind.VARIABLE_READ_WRITE) {
         return WRITE;
       }
       return REFERENCE;
@@ -399,14 +405,11 @@ public abstract class SearchMatchPage extends SearchPage {
         return ArrayUtils.EMPTY_OBJECT_ARRAY;
       }
       ElementItem item = (ElementItem) parentElement;
-      // sub-items
-      List<ElementItem> children = item.children;
-      if (!children.isEmpty()) {
-        return children.toArray(new ElementItem[children.size()]);
-      }
-      // lines
-      List<LineItem> lines = item.lines;
-      return lines.toArray(new LineItem[lines.size()]);
+      // lines and sub-items
+      List<Object> children = Lists.newArrayList();
+      children.addAll(item.lines);
+      children.addAll(item.children);
+      return children.toArray(new Object[children.size()]);
     }
 
     @Override
@@ -442,13 +445,15 @@ public abstract class SearchMatchPage extends SearchPage {
   /**
    * {@link ILabelProvider} for {@link ElementItem}s.
    */
-  private static class SearchLabelProvider extends NewDartElementLabelProvider {
+  private static class SearchLabelProvider extends LabelProvider implements IStyledLabelProvider {
+    private final ElementLabelProvider_NEW elementLabelProvider = new ElementLabelProvider_NEW();
+
     @Override
     public Image getImage(Object elem) {
-      // element
+      // outline
       if (elem instanceof ElementItem) {
         ElementItem item = (ElementItem) elem;
-        return super.getImage(item.element);
+        return elementLabelProvider.getImage(item.element);
       }
       // line
       if (elem instanceof LineItem) {
@@ -476,7 +481,7 @@ public abstract class SearchMatchPage extends SearchPage {
     public StyledString getStyledText(Object elem) {
       if (elem instanceof ElementItem) {
         ElementItem item = (ElementItem) elem;
-        StyledString styledText = super.getStyledText(item.element);
+        StyledString styledText = new StyledString(item.element.getName());
         if (item.numMatches == 1) {
           styledText.append(" (1 match)", StyledString.COUNTER_STYLER);
         } else if (item.numMatches > 1) {
@@ -491,12 +496,7 @@ public abstract class SearchMatchPage extends SearchPage {
               ? HIGHLIGHT_WRITE_STYLE : HIGHLIGHT_STYLE;
           int styleOffset = linePosition.positionSrc.offset - item.line.start;
           int styleLength = linePosition.positionSrc.length;
-          try {
-            styledText.setStyle(styleOffset, styleLength, style);
-          } catch (Throwable e) {
-            // https://code.google.com/p/dart/issues/detail?id=18576
-            // Cannot reproduce, just ignore.
-          }
+          styledText.setStyle(styleOffset, styleLength, style);
         }
         // may be potential match
         if (item.potential) {
@@ -611,7 +611,8 @@ public abstract class SearchMatchPage extends SearchPage {
   /**
    * Adds new {@link ElementItem} to the tree.
    */
-  private static ElementItem addElementItem(Map<Element, ElementItem> itemMap, ElementItem child) {
+  private static ElementItem addElementItem(Map<Element, ElementItem> itemMap, ElementItem child,
+      Element[] elements, int elementIndex) {
     // put child
     Element childElement = child.element;
     {
@@ -625,9 +626,15 @@ public abstract class SearchMatchPage extends SearchPage {
     }
     // bind child to parent
     if (childElement != null) {
-      Element parentElement = childElement.getEnclosingElement();
+      elementIndex++;
+      Element parentElement;
+      if (elementIndex < elements.length) {
+        parentElement = elements[elementIndex];
+      } else {
+        parentElement = null;
+      }
       ElementItem parent = new ElementItem(parentElement);
-      parent = addElementItem(itemMap, parent);
+      parent = addElementItem(itemMap, parent, elements, elementIndex);
       parent.addChild(child);
     }
     // done
@@ -635,18 +642,18 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   /**
-   * Builds {@link ElementItem} tree out of the given {@link SearchMatch}s.
+   * Builds {@link ElementItem} tree out of the given {@link SearchResult}s.
    */
-  private static ElementItem buildElementItemTree(List<SearchMatch> matches) {
+  private static ElementItem buildElementItemTree(List<SearchResult> searchResults) {
     SourceLineProvider sourceLineProvider = new SourceLineProvider();
     ElementItem rootItem = new ElementItem(null);
     Map<Element, ElementItem> itemMap = Maps.newHashMap();
     itemMap.put(null, rootItem);
-    for (SearchMatch match : matches) {
-      Element element = getExecutableElement(match);
-      ElementItem elementItem = new ElementItem(element);
-      elementItem.addMatch(sourceLineProvider, match);
-      addElementItem(itemMap, elementItem);
+    for (SearchResult searchResult : searchResults) {
+      Element[] elements = searchResult.getPath();
+      ElementItem elementItem = new ElementItem(elements[0]);
+      elementItem.addMatch(sourceLineProvider, searchResult);
+      addElementItem(itemMap, elementItem, elements, 0);
     }
     calculateNumMatches(rootItem);
     sortLines(rootItem);
@@ -673,20 +680,20 @@ public abstract class SearchMatchPage extends SearchPage {
     return DartToolsPlugin.getDefault().getDialogSettingsSection(SETTINGS_ID);
   }
 
-  /**
-   * @return the {@link Element} to use as enclosing in {@link ElementItem} tree.
-   */
-  private static Element getExecutableElement(SearchMatch match) {
-    Element element = match.getElement();
-    while (element != null) {
-      Element executable = element.getAncestor(ExecutableElement.class);
-      if (executable == null) {
-        break;
-      }
-      element = executable;
-    }
-    return element;
-  }
+//  /**
+//   * @return the {@link Element} to use as enclosing in {@link ElementItem} tree.
+//   */
+//  private static Element getExecutableElement(SearchMatch match) {
+//    Element element = match.getElement();
+//    while (element != null) {
+//      Element executable = element.getAncestor(ExecutableElement.class);
+//      if (executable == null) {
+//        break;
+//      }
+//      element = executable;
+//    }
+//    return element;
+//  }
 
   /**
    * Recursively visits {@link ElementItem} and links leaves.
@@ -710,18 +717,6 @@ public abstract class SearchMatchPage extends SearchPage {
       lastLeaf = linkLeaves(child, lastLeaf);
     }
     return lastLeaf;
-  }
-
-  /**
-   * Opens the {@link Position} in the {@link Element}s editor.
-   */
-  private static void openPositionInElement(Element element, Position position) {
-    try {
-      IEditorPart editor = DartUI.openInEditor(element);
-      revealInEditor(editor, position);
-    } catch (Throwable e) {
-      ExceptionHandler.handle(e, "Search", "Exception during open.");
-    }
   }
 
   /**
@@ -755,7 +750,7 @@ public abstract class SearchMatchPage extends SearchPage {
     Collections.sort(item.children, new Comparator<ElementItem>() {
       @Override
       public int compare(ElementItem o1, ElementItem o2) {
-        return o1.element.getNameOffset() - o2.element.getNameOffset();
+        return o1.element.getOffset() - o2.element.getOffset();
       }
     });
     for (ElementItem child : item.children) {
@@ -923,6 +918,7 @@ public abstract class SearchMatchPage extends SearchPage {
 
   private final SearchView searchView;
   private final String taskName;
+  private String contextId;
 
   private final Set<IResource> markerResources = Sets.newHashSet();
 
@@ -946,39 +942,43 @@ public abstract class SearchMatchPage extends SearchPage {
   private int filteredCountPotential = 0;
   private int filteredCountProject = 0;
 
-  private static final Predicate<SearchMatch> FILTER_SDK = new Predicate<SearchMatch>() {
+  private static final Predicate<SearchResult> FILTER_SDK = new Predicate<SearchResult>() {
     @Override
-    public boolean apply(SearchMatch input) {
-      Source source = input.getElement().getSource();
+    public boolean apply(SearchResult input) {
+      Source source = input.getSource();
       UriKind uriKind = source.getUriKind();
       return uriKind == UriKind.DART_URI || uriKind == UriKind.PACKAGE_URI;
     }
   };
 
-  private static final Predicate<SearchMatch> FILTER_POTENTIAL = new Predicate<SearchMatch>() {
+  private static final Predicate<SearchResult> FILTER_POTENTIAL = new Predicate<SearchResult>() {
     @Override
-    public boolean apply(SearchMatch input) {
-      return input.getKind() == MatchKind.NAME_REFERENCE_RESOLVED
-          || input.getKind() == MatchKind.NAME_REFERENCE_UNRESOLVED;
+    public boolean apply(SearchResult input) {
+      // TODO(scheglov) add support for potential matches
+      return false;
+//      return input.getKind() == MatchKind.NAME_REFERENCE_RESOLVED
+//          || input.getKind() == MatchKind.NAME_REFERENCE_UNRESOLVED;
     }
   };
 
-  private final Predicate<SearchMatch> FILTER_PROJECT = new Predicate<SearchMatch>() {
+  private final Predicate<SearchResult> FILTER_PROJECT = new Predicate<SearchResult>() {
     @Override
-    public boolean apply(SearchMatch input) {
+    public boolean apply(SearchResult input) {
       IProject currentProject = getCurrentProject();
-      IFile resource = DartUI.getElementFile(input.getElement());
+      IFile resource = DartUI.getSourceFile(contextId, input.getSource());
       return resource != null && currentProject != null
           && currentProject.equals(resource.getProject());
     }
   };
 
   private long lastQueryStartTime = 0;
+
   private long lastQueryFinishTime = 0;
 
-  public SearchMatchPage(SearchView searchView, String taskName) {
+  public SearchResultPage_NEW(SearchView searchView, String taskName, String contextId) {
     this.searchView = searchView;
     this.taskName = taskName;
+    this.contextId = contextId;
   }
 
   @Override
@@ -1085,11 +1085,11 @@ public abstract class SearchMatchPage extends SearchPage {
   protected abstract String getQueryKindName();
 
   /**
-   * Runs a {@link SearchEngine} request.
+   * Runs a search query.
    * 
-   * @return the {@link SearchMatch}s to display.
+   * @return the {@link SearchResult}s to display.
    */
-  protected abstract List<SearchMatch> runQuery();
+  protected abstract List<SearchResult> runQuery();
 
   /**
    * Closes this page and removes all search markers
@@ -1121,23 +1121,21 @@ public abstract class SearchMatchPage extends SearchPage {
    */
   private void addMarkers(ElementItem item) throws CoreException {
     // add marker if leaf
-    if (!item.lines.isEmpty()) {
-      IFile resource = DartUI.getElementFile(item.element);
-      if (resource != null && resource.exists()) {
-        markerResources.add(resource);
-        try {
-          for (LineItem lineItem : item.lines) {
-            List<LinePosition> positions = lineItem.positions;
-            for (LinePosition linePosition : positions) {
-              Position position = linePosition.position;
-              IMarker marker = resource.createMarker(SearchView.SEARCH_MARKER);
-              marker.setAttribute(IMarker.CHAR_START, position.getOffset());
-              marker.setAttribute(IMarker.CHAR_END, position.getOffset() + position.getLength());
-            }
+    try {
+      for (LineItem lineItem : item.lines) {
+        IFile resource = DartUI.getSourceFile(contextId, lineItem.source);
+        if (resource != null && resource.exists()) {
+          markerResources.add(resource);
+          List<LinePosition> positions = lineItem.positions;
+          for (LinePosition linePosition : positions) {
+            Position position = linePosition.position;
+            IMarker marker = resource.createMarker(SearchView.SEARCH_MARKER);
+            marker.setAttribute(IMarker.CHAR_START, position.getOffset());
+            marker.setAttribute(IMarker.CHAR_END, position.getOffset() + position.getLength());
           }
-        } catch (Throwable e) {
         }
       }
+    } catch (Throwable e) {
     }
     // process children
     for (ElementItem child : item.children) {
@@ -1145,13 +1143,13 @@ public abstract class SearchMatchPage extends SearchPage {
     }
   }
 
-  private List<SearchMatch> applyFilters(List<SearchMatch> matches) {
+  private List<SearchResult> applyFilters(List<SearchResult> matches) {
     filteredCountSdk = 0;
     filteredCountPotential = 0;
     filteredCountProject = 0;
     IProject currentProject = getCurrentProject();
-    List<SearchMatch> filtered = Lists.newArrayList();
-    for (SearchMatch match : matches) {
+    List<SearchResult> filtered = Lists.newArrayList();
+    for (SearchResult match : matches) {
       // SDK filter
       if (FILTER_SDK.apply(match)) {
         filteredCountSdk++;
@@ -1284,6 +1282,17 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   /**
+   * Opens the {@link Position} in the {@link Source}s editor.
+   */
+  private void openPosition(Source source, Position position) {
+    try {
+      DartUI.openInEditor(contextId, source, true, position.offset, position.length);
+    } catch (Throwable e) {
+      ExceptionHandler.handle(e, "Search", "Exception during open.");
+    }
+  }
+
+  /**
    * Opens selected {@link ElementItem} in the editor.
    */
   private void openSelectedElement(ISelection selection) {
@@ -1301,7 +1310,7 @@ public abstract class SearchMatchPage extends SearchPage {
     if (firstElement instanceof LineItem) {
       LineItem lineItem = (LineItem) firstElement;
       Position position = lineItem.positions.get(0).position;
-      openPositionInElement(lineItem.item.element, position);
+      openPosition(lineItem.source, position);
     }
     // element item
     if (firstElement instanceof ElementItem) {
@@ -1312,10 +1321,10 @@ public abstract class SearchMatchPage extends SearchPage {
       if (!found) {
         return;
       }
-      Element element = itemCursor.item.element;
+      Source source = itemCursor.getLine().source;
       Position position = itemCursor.getPosition();
       // open position
-      openPositionInElement(element, position);
+      openPosition(source, position);
     }
   }
 
@@ -1331,9 +1340,9 @@ public abstract class SearchMatchPage extends SearchPage {
         protected IStatus run(IProgressMonitor monitor) {
           beforeRefresh();
           // do query
-          List<SearchMatch> matches = runQuery();
-          int totalCount = matches.size();
-          matches = applyFilters(matches);
+          List<SearchResult> results = runQuery();
+          int totalCount = results.size();
+          results = applyFilters(results);
           // set description
           String filtersDesc;
           {
@@ -1355,10 +1364,10 @@ public abstract class SearchMatchPage extends SearchPage {
               }
             }
           }
-          setContentDescription("'" + getQueryElementName() + "' - " + matches.size() + " "
+          setContentDescription("'" + getQueryElementName() + "' - " + results.size() + " "
               + getQueryKindName() + ",   total: " + totalCount + filtersDesc);
           // process query results
-          rootItem = buildElementItemTree(matches);
+          rootItem = buildElementItemTree(results);
           itemCursor = new ItemCursor(rootItem);
           trackPositions();
           // add markers
@@ -1430,12 +1439,10 @@ public abstract class SearchMatchPage extends SearchPage {
    */
   private void showCursor() {
     try {
-      ElementItem elementItem = itemCursor.item;
-      LineItem lineItem = elementItem.lines.get(itemCursor.lineIndex);
+      LineItem lineItem = itemCursor.getLine();
       viewer.setSelection(new StructuredSelection(lineItem), true);
-      // open editor with Element
-      Element element = elementItem.element;
-      IEditorPart editor = DartUI.openInEditor(element, false, true);
+      // open editor
+      IEditorPart editor = DartUI.openInEditor(contextId, lineItem.source, false);
       // show Position
       Position position = itemCursor.getPosition();
       if (position != null) {
@@ -1461,9 +1468,9 @@ public abstract class SearchMatchPage extends SearchPage {
   private void trackPositions(ElementItem item) {
     // do track positions
     if (item.element != null) {
-      IFile file = DartUI.getElementFile(item.element);
-      if (file != null) {
-        for (LineItem lineItem : item.lines) {
+      for (LineItem lineItem : item.lines) {
+        IFile file = DartUI.getSourceFile(contextId, lineItem.source);
+        if (file != null) {
           List<LinePosition> positions = lineItem.positions;
           for (LinePosition linePosition : positions) {
             Position position = linePosition.position;
