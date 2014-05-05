@@ -105,6 +105,7 @@ public class AnalysisView extends ViewPart {
 
   private static class AnalysisContextData {
     private final String name;
+    private final InternalAnalysisContext context;
     private final int maxCacheSize;
     private final AnalysisContextStatistics statistics;
     private final ContextWorkerState workerState;
@@ -116,11 +117,12 @@ public class AnalysisView extends ViewPart {
     private Source[] sources;
     private AnalysisException[] exceptions;
 
-    public AnalysisContextData(String name, int maxCacheSize, AnalysisContextStatistics statistics,
+    public AnalysisContextData(String name, InternalAnalysisContext context,
         ContextWorkerState workerState) {
       this.name = name;
-      this.maxCacheSize = maxCacheSize;
-      this.statistics = statistics;
+      this.context = context;
+      this.maxCacheSize = context.getAnalysisOptions().getCacheSize();
+      this.statistics = context.getStatistics();
       this.workerState = workerState;
       for (CacheRow row : statistics.getCacheRows()) {
         errorCount += row.getErrorCount();
@@ -136,6 +138,10 @@ public class AnalysisView extends ViewPart {
     @Override
     public boolean equals(Object obj) {
       return obj instanceof AnalysisContextData && ((AnalysisContextData) obj).name.equals(name);
+    }
+
+    public InternalAnalysisContext getContext() {
+      return context;
     }
 
     public int getErrorCount() {
@@ -181,8 +187,7 @@ public class AnalysisView extends ViewPart {
   private static void addContext(AnalysisWorker[] queueWorkers, AnalysisWorker activeWorker,
       List<AnalysisContextData> contexts, String name, InternalAnalysisContext context) {
     ContextWorkerState workerState = getContextWorkerState(queueWorkers, activeWorker, context);
-    contexts.add(new AnalysisContextData(name, context.getAnalysisOptions().getCacheSize(),
-        context.getStatistics(), workerState));
+    contexts.add(new AnalysisContextData(name, context, workerState));
   }
 
   private static List<AnalysisContextData> getContexts() {
@@ -243,13 +248,14 @@ public class AnalysisView extends ViewPart {
 
   private TreeViewer viewer;
   private long lastToggleTime = 0;
-  private boolean disposed = false;
 
+  private boolean disposed = false;
   private Font boldFont = null;
   private Font italicFont = null;
-  private Color redColor = null;
 
+  private Color redColor = null;
   private final Object contextsLock = new Object();
+
   private List<AnalysisContextData> contexts;
 
   @Override
@@ -294,6 +300,35 @@ public class AnalysisView extends ViewPart {
               }
               builder.append(data[i].getAstCount());
               builder.append(", ");
+              builder.append(data[i].getTotalCount());
+            }
+            builder.append("]");
+            return builder.toString();
+          }
+          if (element instanceof CacheRow) {
+            return ((CacheRow) element).getName();
+          }
+          return null;
+        }
+
+        @Override
+        public String getToolTipText(Object element) {
+          if (element instanceof AnalysisContextData) {
+            AnalysisContextData contextData = (AnalysisContextData) element;
+            StringBuilder builder = new StringBuilder();
+            builder.append(contextData.name);
+            builder.append(" [max cache size = ");
+            builder.append(contextData.maxCacheSize);
+            PartitionData[] data = contextData.getPartitionData();
+            for (int i = 0; i < data.length; i++) {
+              if (i == 0) {
+                builder.append(" | ");
+              } else {
+                builder.append("; ");
+              }
+              builder.append("ast count = ");
+              builder.append(data[i].getAstCount());
+              builder.append(", entry count = ");
               builder.append(data[i].getTotalCount());
             }
             builder.append("]");
@@ -463,6 +498,14 @@ public class AnalysisView extends ViewPart {
         copyExceptions();
       }
     });
+    MenuItem copyMemoryStatsItem = new MenuItem(menu, SWT.PUSH);
+    copyMemoryStatsItem.setText("Copy Memory Usage Statistics");
+    copyMemoryStatsItem.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent event) {
+        copyMemoryStats();
+      }
+    });
     viewer.getTree().setMenu(menu);
 
     viewer.setInput(this);
@@ -509,6 +552,12 @@ public class AnalysisView extends ViewPart {
     Clipboard clipboard = new Clipboard(viewer.getTree().getDisplay());
     TextTransfer textTransfer = TextTransfer.getInstance();
     clipboard.setContents(new Object[] {getExceptionsText()}, new Transfer[] {textTransfer});
+  }
+
+  private void copyMemoryStats() {
+    Clipboard clipboard = new Clipboard(viewer.getTree().getDisplay());
+    TextTransfer textTransfer = TextTransfer.getInstance();
+    clipboard.setContents(new Object[] {getMemoryStatsText()}, new Transfer[] {textTransfer});
   }
 
   private void copySources(AnalysisContextData data) {
@@ -559,6 +608,17 @@ public class AnalysisView extends ViewPart {
       italicFont = new Font(defaultFont.getDevice(), boldData);
     }
     return italicFont;
+  }
+
+  private String getMemoryStatsText() {
+    if (contexts == null || contexts.size() == 0) {
+      return "- no memory usage data -";
+    }
+    MemoryUsageData usageData = new MemoryUsageData();
+    for (AnalysisContextData data : contexts) {
+      usageData.addContext(data.getContext());
+    }
+    return usageData.getReport();
   }
 
   private Color getRedColor() {

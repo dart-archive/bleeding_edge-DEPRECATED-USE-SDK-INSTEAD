@@ -128,6 +128,9 @@ public class PrintStringWriter extends PrintWriter {
     }
     for (int i = 0; i < rowCount; i++) {
       for (int j = 0; j < columnCount; j++) {
+        if (j > 0) {
+          print(' ');
+        }
         padCount = columnWidths[j] - data[i][j].length();
         if (columnAlignments[j] == ALIGN_RIGHT) {
           for (int k = 0; k < padCount; k++) {
