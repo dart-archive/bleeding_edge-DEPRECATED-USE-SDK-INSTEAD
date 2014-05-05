@@ -16,11 +16,13 @@ package com.google.dart.tools.internal.search.ui;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.Element;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
+import com.google.dart.tools.ui.actions.OpenAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -76,8 +78,8 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
 
   @Override
   public void selectionChanged(DartSelection selection) {
-    // TODO(scheglov)
-//    setEnabled(isValidSelection(selection));
+    Element[] elements = OpenAction.getNavigationTargets(selection);
+    setEnabled(elements.length != 0);
   }
 
   @Override
@@ -104,6 +106,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
       return;
     }
     // do search
+    final Element[] elements = OpenAction.getNavigationTargets(selection);
     view.showPage(new SearchResultPage_NEW(view, "Searching for references...", contextId) {
 
       @Override
@@ -113,8 +116,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
 
       @Override
       protected String getQueryElementName() {
-        // TODO(scheglov)
-        return "ZZZZZZZZZZ";
+        return elements[0].getName();
       }
 
       @Override

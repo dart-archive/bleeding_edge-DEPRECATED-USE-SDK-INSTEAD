@@ -43,16 +43,36 @@ import org.eclipse.ui.texteditor.IEditorStatusLine;
  */
 public class OpenAction extends AbstractDartSelectionAction {
   /**
+   * Returns navigation targets for the given context, may be empty, but not {@code null}.
+   */
+  public static com.google.dart.server.Element[] getNavigationTargets(DartSelection selection) {
+    int offset = selection.getOffset();
+    AssistContext assistContext = selection.getContext();
+    String contextId = assistContext.getAnalysisContextId();
+    Source source = assistContext.getSource();
+    return getNavigationTargets(contextId, source, offset);
+  }
+
+  /**
+   * Returns navigation targets for the given context, may be empty, but not {@code null}.
+   */
+  public static com.google.dart.server.Element[] getNavigationTargets(String contextId,
+      Source source, int offset) {
+    NavigationRegion[] regions = DartCore.getAnalysisServerData().getNavigation(contextId, source);
+    for (NavigationRegion navigationRegion : regions) {
+      if (navigationRegion.containsInclusive(offset)) {
+        return navigationRegion.getTargets();
+      }
+    }
+    return com.google.dart.server.Element.EMPTY_ARRAY;
+  }
+
+  /**
    * @return {@code true} if given {@link DartSelection} looks valid and we can try to open it.
    */
   private static boolean isValidSelection(DartSelection selection) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      AssistContext assistContext = selection.getContext();
-      if (assistContext == null) {
-        return false;
-      }
-      // TODO(scheglov) Analysis Server: add more checks (maybe)
-      return true;
+      return OpenAction.getNavigationTargets(selection).length != 0;
     } else {
       // if we are already on declaration, we don't need to open anything
       AstNode node = getSelectionNode(selection);
@@ -94,22 +114,13 @@ public class OpenAction extends AbstractDartSelectionAction {
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      int offset = selection.getOffset();
-      AssistContext assistContext = selection.getContext();
-      String contextId = assistContext.getAnalysisContextId();
-      Source source = assistContext.getSource();
-      NavigationRegion[] regions = DartCore.getAnalysisServerData().getNavigation(contextId, source);
-      for (NavigationRegion navigationRegion : regions) {
-        if (navigationRegion.containsInclusive(offset)) {
-          for (com.google.dart.server.Element target : navigationRegion.getTargets()) {
-            try {
-              DartUI.openInEditor(editor.getInputResourceFile(), target);
-              return;
-            } catch (Throwable e) {
-              ExceptionHandler.handle(e, getText(), "Exception during open.");
-            }
-          }
+      com.google.dart.server.Element[] targets = getNavigationTargets(selection);
+      for (com.google.dart.server.Element target : targets) {
+        try {
+          DartUI.openInEditor(editor.getInputResourceFile(), target);
           return;
+        } catch (Throwable e) {
+          ExceptionHandler.handle(e, getText(), "Exception during open.");
         }
       }
     } else {
