@@ -16,9 +16,13 @@ package com.google.dart.server.internal.local;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisDelta;
+import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.TestSource;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.ListSourceSet;
@@ -26,6 +30,8 @@ import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.internal.local.operation.ServerOperation;
 import com.google.dart.server.internal.local.operation.ServerOperationPriority;
+
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
@@ -50,6 +56,25 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
     server.test_pingListeners();
     verify(listener, times(1)).computedErrors(null, null, null);
     reset(listener);
+  }
+
+  public void test_applyAnalysisDelta() throws Exception {
+    String contextId = createContext("test");
+    Source source = new TestSource(createFile("/test.dart"), makeSource(//
+        "main() {",
+        "  int aaa = 111;",
+        "  print(aaa);",
+        "}"));
+    // Get context and assert source is not included
+    server.test_waitForWorkerComplete();
+    AnalysisContext context = server.getContextMap().get(contextId);
+    assertNull(context.getResolvedCompilationUnit(source, source));
+    // Apply delta and assert source is now included
+    AnalysisDelta delta = new AnalysisDelta();
+    delta.setAnalysisLevel(source, AnalysisLevel.RESOLVED);
+    server.applyAnalysisDelta(contextId, delta);
+    server.test_waitForWorkerComplete();
+    assertNotNull(context.getResolvedCompilationUnit(source, source));
   }
 
   public void test_applyChanges_noContext() throws Exception {

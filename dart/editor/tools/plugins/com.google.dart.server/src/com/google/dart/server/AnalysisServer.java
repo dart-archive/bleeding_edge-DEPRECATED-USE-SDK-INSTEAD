@@ -13,6 +13,7 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.source.Source;
@@ -33,6 +34,14 @@ public interface AnalysisServer {
    * @param listener the listener to be added
    */
   public void addAnalysisServerListener(AnalysisServerListener listener);
+
+  /**
+   * Inform the specified context that the specified sources should be analyzed as indicated.
+   * 
+   * @param contextId the identifier of the context to be notified
+   * @param delta indications of what analysis should be performed
+   */
+  public void applyAnalysisDelta(String contextId, AnalysisDelta delta);
 
   /**
    * Inform the specified context that the changes encoded in the change set have been made. Any

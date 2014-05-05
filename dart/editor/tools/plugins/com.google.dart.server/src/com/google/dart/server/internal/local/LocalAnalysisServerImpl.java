@@ -21,6 +21,8 @@ import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisDelta;
+import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
@@ -209,6 +211,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   @Override
+  public void applyAnalysisDelta(String contextId, AnalysisDelta delta) {
+    operationQueue.add(new ApplyAnalysisDeltaOperation(contextId, delta));
+  }
+
+  @Override
   public void applyChanges(String contextId, ChangeSet changeSet) {
     operationQueue.add(new ApplyChangesOperation(contextId, changeSet));
   }
@@ -238,6 +245,23 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @Override
   public Index getIndex() {
     return index;
+  }
+
+  /**
+   * Implementation for {@link #applyAnalysisDelta(String, AnalysisDelta)}.
+   */
+  public void internalApplyAnalysisDelta(String contextId, AnalysisDelta delta) {
+    AnalysisContext context = getAnalysisContext(contextId);
+    Set<Source> sourcesMap = getSourcesMap(contextId, contextAddedSourcesMap);
+    for (Entry<Source, AnalysisLevel> entry : delta.getAnalysisLevels().entrySet()) {
+      if (entry.getValue() == AnalysisLevel.NONE) {
+        sourcesMap.remove(entry.getKey());
+      } else {
+        sourcesMap.add(entry.getKey());
+      }
+    }
+    context.applyAnalysisDelta(delta);
+    schedulePerformAnalysisOperation(contextId, false);
   }
 
   /**
