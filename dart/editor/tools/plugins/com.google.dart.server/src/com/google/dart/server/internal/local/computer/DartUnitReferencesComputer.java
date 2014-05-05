@@ -22,7 +22,10 @@ import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldFormalParameterElement;
+import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -117,6 +120,16 @@ public class DartUnitReferencesComputer {
     if (element instanceof FieldFormalParameterElement) {
       element = ((FieldFormalParameterElement) element).getField();
     }
+    // include variable declaration into search results
+    if (isVariableLikeElement(element)) {
+      SearchResultImpl result = new SearchResultImpl(
+          computePath(element),
+          element.getSource(),
+          SearchResultKind.VARIABLE_DECLARATION,
+          element.getNameOffset(),
+          element.getName().length());
+      consumer.computedReferences(contextId, source, offset, new SearchResult[] {result}, false);
+    }
     // do search
     if (element != null) {
       List<SearchResult> results = Lists.newArrayList();
@@ -133,7 +146,7 @@ public class DartUnitReferencesComputer {
           source,
           offset,
           results.toArray(new SearchResult[results.size()]),
-          true);
+          false);
     }
   }
 
@@ -157,6 +170,19 @@ public class DartUnitReferencesComputer {
       engineElement = engineElement.getEnclosingElement();
     }
     return path.toArray(new com.google.dart.server.Element[path.size()]);
+  }
+
+  private boolean isVariableLikeElement(Element element) {
+    if (element instanceof LocalVariableElement) {
+      return true;
+    }
+    if (element instanceof ParameterElement) {
+      return true;
+    }
+    if (element instanceof PropertyInducingElement) {
+      return !((PropertyInducingElement) element).isSynthetic();
+    }
+    return false;
   }
 
   private SearchResultImpl newSearchResult(SearchMatch match) {

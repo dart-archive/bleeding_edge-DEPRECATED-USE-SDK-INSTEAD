@@ -88,7 +88,8 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
         "  print(a.fff); // in main()",
         "}"));
     doSearch("fff; // declaration");
-    assertThat(searchResults).hasSize(7);
+    assertThat(searchResults).hasSize(8);
+    assertHasResult("fff; // declaration", SearchResultKind.VARIABLE_DECLARATION);
     assertHasResult("fff); // in constructor", SearchResultKind.FIELD_REFERENCE);
     assertHasResult("fff = 2", SearchResultKind.FIELD_WRITE);
     assertHasResult("fff += 3", SearchResultKind.FIELD_WRITE);
@@ -141,7 +142,8 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
         "  }",
         "}"));
     doSearch("fff); // in constructor");
-    assertThat(searchResults).hasSize(3);
+    assertThat(searchResults).hasSize(4);
+    assertHasResult("fff; // declaration", SearchResultKind.VARIABLE_DECLARATION);
     assertHasResult("fff); // in constructor", SearchResultKind.FIELD_REFERENCE);
     assertHasResult("fff = 2", SearchResultKind.FIELD_WRITE);
     assertHasResult("fff); // in m()", SearchResultKind.FIELD_READ);
@@ -167,7 +169,8 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
         "  print(ttt);",
         "}"));
     doSearch("ttt = 0");
-    assertThat(searchResults).hasSize(1);
+    assertThat(searchResults).hasSize(2);
+    assertHasResult("ttt = 0;", SearchResultKind.VARIABLE_DECLARATION);
     SearchResult searchResult = assertHasResult("ttt);", SearchResultKind.VARIABLE_READ);
     assertEquals(source, searchResult.getSource());
   }
@@ -181,7 +184,8 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
         "  print(vvv);",
         "}"));
     doSearch("vvv = 1;");
-    assertThat(searchResults).hasSize(3);
+    assertThat(searchResults).hasSize(4);
+    assertHasResult("vvv = 1;", SearchResultKind.VARIABLE_DECLARATION);
     assertHasResult("vvv = 2", SearchResultKind.VARIABLE_WRITE);
     assertHasResult("vvv += 3", SearchResultKind.VARIABLE_READ_WRITE);
     assertHasResult("vvv);", SearchResultKind.VARIABLE_READ);
@@ -276,7 +280,8 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
         "  print(ppp);",
         "}"));
     doSearch("ppp) {");
-    assertThat(searchResults).hasSize(3);
+    assertThat(searchResults).hasSize(4);
+    assertHasResult("ppp) {", SearchResultKind.VARIABLE_DECLARATION);
     assertHasResult("ppp = 2", SearchResultKind.VARIABLE_WRITE);
     assertHasResult("ppp += 3", SearchResultKind.VARIABLE_READ_WRITE);
     assertHasResult("ppp);", SearchResultKind.VARIABLE_READ);
@@ -419,7 +424,8 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
         "  print(vvv);",
         "}"));
     doSearch("vvv = 1;");
-    assertThat(searchResults).hasSize(3);
+    assertThat(searchResults).hasSize(4);
+    assertHasResult("vvv = 1;", SearchResultKind.VARIABLE_DECLARATION);
     assertHasResult("vvv = 2", SearchResultKind.FIELD_WRITE);
     assertHasResult("vvv += 3", SearchResultKind.FIELD_WRITE);
     assertHasResult("vvv);", SearchResultKind.FIELD_READ);
@@ -486,14 +492,14 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
 
   public void test_unknownMatchKind() throws Exception {
     createContextWithSingleSource(makeSource(//
+        "fff() {}",
         "main() {",
-        "  int vvv = 1;",
-        "  print(vvv);",
+        "  fff();",
         "}"));
     // do simulation
     DartUnitReferencesComputer.test_simulateUknownMatchKind = true;
     try {
-      doSearch("vvv = 1;");
+      doSearch("fff();");
     } finally {
       DartUnitReferencesComputer.test_simulateUknownMatchKind = false;
     }

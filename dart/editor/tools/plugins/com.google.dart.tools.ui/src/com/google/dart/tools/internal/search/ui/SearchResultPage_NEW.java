@@ -382,7 +382,8 @@ public abstract class SearchResultPage_NEW extends SearchPage {
       if (kind == SearchResultKind.FIELD_READ || kind == SearchResultKind.VARIABLE_READ) {
         return READ;
       }
-      if (kind == SearchResultKind.FIELD_WRITE || kind == SearchResultKind.VARIABLE_WRITE
+      if (kind == SearchResultKind.FIELD_WRITE || kind == SearchResultKind.VARIABLE_DECLARATION
+          || kind == SearchResultKind.VARIABLE_WRITE
           || kind == SearchResultKind.VARIABLE_READ_WRITE) {
         return WRITE;
       }
@@ -450,7 +451,7 @@ public abstract class SearchResultPage_NEW extends SearchPage {
 
     @Override
     public Image getImage(Object elem) {
-      // outline
+      // element
       if (elem instanceof ElementItem) {
         ElementItem item = (ElementItem) elem;
         return elementLabelProvider.getImage(item.element);
