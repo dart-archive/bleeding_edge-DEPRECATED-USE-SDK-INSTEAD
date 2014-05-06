@@ -58,6 +58,7 @@ import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
 import com.google.dart.server.internal.local.operation.ComputeMinorRefactoringsOperation;
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
+import com.google.dart.server.internal.local.operation.GetContextOperation;
 import com.google.dart.server.internal.local.operation.NotificationOperation;
 import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
 import com.google.dart.server.internal.local.operation.SearchReferencesOperation;
@@ -249,7 +250,9 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 
   @Override
   public AnalysisContext getContext(String contextId) {
-    return contextMap.get(contextId);
+    GetContextOperation operation = new GetContextOperation(contextId);
+    operationQueue.add(operation);
+    return operation.getContext();
   }
 
   @Override
