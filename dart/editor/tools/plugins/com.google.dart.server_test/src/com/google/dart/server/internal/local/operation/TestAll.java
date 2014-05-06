@@ -21,6 +21,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ApplyAnalysisDeltaOperationTest.class);
     suite.addTestSuite(ApplyChangesOperationTest.class);
+    suite.addTestSuite(ComputeFixesOperationTest.class);
     suite.addTestSuite(ComputeMinorRefactoringsOperationTest.class);
     suite.addTestSuite(CreateContextOperationTest.class);
     suite.addTestSuite(DeleteContextOperationTest.class);

@@ -218,6 +218,17 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   /**
+   * Returns {@link AnalysisError} for the given {@link Source}, may be empty, but not {@code null}.
+   */
+  public synchronized AnalysisError[] getErrors(Source source) {
+    AnalysisError[] errors = sourcesErrors.get(source);
+    if (errors == null) {
+      return AnalysisError.NO_ERRORS;
+    }
+    return errors;
+  }
+
+  /**
    * Returns {@link HighlightRegion}s for the given context and {@link Source}, maybe {@code null}
    * if have not been ever notified.
    */

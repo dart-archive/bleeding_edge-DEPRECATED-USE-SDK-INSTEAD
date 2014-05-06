@@ -53,12 +53,14 @@ import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.TypeHierarchyConsumer;
+import com.google.dart.server.internal.local.computer.DartUnitFixesComputer;
 import com.google.dart.server.internal.local.computer.DartUnitHighlightsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitMinorRefactoringsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
 import com.google.dart.server.internal.local.computer.DartUnitOutlineComputer;
 import com.google.dart.server.internal.local.computer.DartUnitReferencesComputer;
 import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
+import com.google.dart.server.internal.local.operation.ComputeFixesOperation;
 import com.google.dart.server.internal.local.operation.ComputeMinorRefactoringsOperation;
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
@@ -230,7 +232,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 
   @Override
   public void computeFixes(String contextId, AnalysisError[] errors, FixesConsumer consumer) {
-    // TODO(scheglov) implement it
+    operationQueue.add(new ComputeFixesOperation(contextId, errors, consumer));
   }
 
   @Override
@@ -304,6 +306,27 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     getSourcesMap(contextId, contextAddedSourcesMap).addAll(changeSet.getAddedSources());
     context.applyChanges(changeSet);
     schedulePerformAnalysisOperation(contextId, false);
+  }
+
+  /**
+   * Implementation for {@link #computeFixes(String, AnalysisError[], FixesConsumer)}.
+   */
+  public void internalComputeFixes(String contextId, AnalysisError[] errors, FixesConsumer consumer)
+      throws Exception {
+    AnalysisContext analysisContext = getAnalysisContext(contextId);
+    for (AnalysisError error : errors) {
+      Source source = error.getSource();
+      Source[] librarySources = analysisContext.getLibrariesContaining(source);
+      if (librarySources.length != 0) {
+        Source librarySource = librarySources[0];
+        CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+        if (unit != null) {
+          new DartUnitFixesComputer(searchEngine, contextId, analysisContext, unit, error, consumer).compute();
+        }
+      }
+    }
+    // send "done" notification
+    consumer.computedFixes(Maps.<AnalysisError, CorrectionProposal[]> newHashMap(), true);
   }
 
   /**
