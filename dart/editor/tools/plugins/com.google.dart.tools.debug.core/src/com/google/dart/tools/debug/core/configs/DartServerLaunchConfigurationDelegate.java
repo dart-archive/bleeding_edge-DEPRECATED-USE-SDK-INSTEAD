@@ -21,6 +21,7 @@ import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
+import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.coverage.CoverageManager;
 import com.google.dart.tools.debug.core.server.ServerDebugTarget;
 import com.google.dart.tools.debug.core.server.ServerRemoteProcess;
@@ -61,6 +62,8 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
 
   private IPackageRootProvider packageRootProvider;
 
+  private int observatoryPort = -1;
+
   /**
    * Create a new DartServerLaunchConfigurationDelegate.
    */
@@ -86,6 +89,8 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     terminateSameLaunches(launch);
 
     launchVM(launch, launchConfig, enableDebugging, monitor);
+
+    launchObservatory(launchConfig);
   }
 
   @Override
@@ -165,6 +170,9 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     if (enableDebugging) {
       commandsList.add("--debug:" + connectionPort);
     }
+
+    observatoryPort = NetUtils.findUnusedPort(0);
+    commandsList.add("--enable-vm-service:" + observatoryPort);
 
     String coverageTempDir = null;
     if (DartCoreDebug.ENABLE_COVERAGE) {
@@ -301,6 +309,14 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     } catch (IllegalThreadStateException ex) {
       return false;
     }
+  }
+
+  private void launchObservatory(DartLaunchConfigWrapper launchConfig) {
+
+    if (launchConfig.getLaunchObservatory() && observatoryPort != -1) {
+      DebugUIHelper.getHelper().openBrowserTab("http://localhost:" + observatoryPort);
+    }
+
   }
 
   private void sleep(int millis) {

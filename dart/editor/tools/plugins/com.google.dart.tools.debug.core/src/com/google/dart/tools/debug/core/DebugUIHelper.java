@@ -42,6 +42,11 @@ public abstract class DebugUIHelper {
     }
 
     @Override
+    public void openBrowserTab(String url) {
+      // no-op
+    }
+
+    @Override
     public void showError(String title, String message) {
       // no-op
 
@@ -105,6 +110,8 @@ public abstract class DebugUIHelper {
   public abstract void activateApplication(File application, String name);
 
   public abstract void handleDevtoolsDisconnect(DartiumDebugTarget target);
+
+  public abstract void openBrowserTab(String url);
 
   public abstract void showError(String title, String message);
 

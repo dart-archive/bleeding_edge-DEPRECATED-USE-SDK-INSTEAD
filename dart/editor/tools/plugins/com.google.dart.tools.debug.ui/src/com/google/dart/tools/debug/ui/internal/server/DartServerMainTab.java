@@ -87,6 +87,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     }
   };
   private Text vmArgumentsText;
+  private Button observatoryButton;
 
   public DartServerMainTab() {
 
@@ -182,6 +183,16 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
       }
     });
 
+    observatoryButton = new Button(group, SWT.CHECK);
+    observatoryButton.setText("Open Observatory");
+    observatoryButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        notifyPanelChanged();
+      }
+    });
+    GridDataFactory.swtDefaults().span(3, 1).grab(true, false).applyTo(observatoryButton);
+
     // additional vm arguments
     Label argsLabel = new Label(group, SWT.NONE);
     argsLabel.setText("VM arguments:");
@@ -231,6 +242,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     argsText.setText(dartLauncher.getArguments());
     checkedModeButton.setSelection(dartLauncher.getCheckedMode());
     vmArgumentsText.setText(dartLauncher.getVmArguments());
+    observatoryButton.setSelection(dartLauncher.getLaunchObservatory());
   }
 
   @Override
@@ -247,6 +259,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setArguments(argsText.getText().trim());
     dartLauncher.setCheckedMode(checkedModeButton.getSelection());
     dartLauncher.setVmArguments(vmArgumentsText.getText().trim());
+    dartLauncher.setLaunchObservatory(observatoryButton.getSelection());
   }
 
   @Override
@@ -257,6 +270,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setArguments("");
 
     dartLauncher.setCheckedMode(false);
+    dartLauncher.setLaunchObservatory(false);
   }
 
   protected void handleCwdBrowseButton() {

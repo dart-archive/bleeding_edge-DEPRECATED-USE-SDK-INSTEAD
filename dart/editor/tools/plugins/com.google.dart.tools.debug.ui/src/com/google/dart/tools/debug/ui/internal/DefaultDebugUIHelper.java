@@ -19,8 +19,10 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
 import com.google.dart.tools.debug.ui.internal.dartium.DevToolsDisconnectManager;
+import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
@@ -57,6 +59,17 @@ public class DefaultDebugUIHelper extends DebugUIHelper {
   public void handleDevtoolsDisconnect(DartiumDebugTarget target) {
     // Create a new manager for this specific disconnect.
     new DevToolsDisconnectManager(target);
+  }
+
+  @Override
+  public void openBrowserTab(String url) {
+    try {
+      LaunchUtils.openBrowser(url);
+      DartCore.getConsole().print(url);
+    } catch (CoreException e) {
+      showError("Open Browser", e.getMessage());
+    }
+
   }
 
   @Override
