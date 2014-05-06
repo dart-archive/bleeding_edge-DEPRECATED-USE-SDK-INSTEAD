@@ -307,7 +307,7 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertNotNull(result);
       Element[] path = result.getPath();
       assertEquals(makeSource(//
-          "CONSTRUCTOR B.named() → B",
+          "CONSTRUCTOR B.named()" + RIGHT_ARROW + "B",
           "CLASS B",
           "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
@@ -334,7 +334,7 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertNotNull(result);
       Element[] path = result.getPath();
       assertEquals(makeSource(//
-          "CONSTRUCTOR B() → B",
+          "CONSTRUCTOR B()" + RIGHT_ARROW + "B",
           "CLASS B",
           "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
@@ -359,7 +359,7 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertNotNull(result);
       Element[] path = result.getPath();
       assertEquals(makeSource(//
-          "FUNCTION main(int p1, double p2) → dynamic",
+          "FUNCTION main(int p1, double p2)" + RIGHT_ARROW + "dynamic",
           "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
     }
@@ -382,7 +382,7 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertNotNull(result);
       Element[] path = result.getPath();
       assertEquals(makeSource(//
-          "FUNCTION_TYPE_ALIAS F(A a) → String",
+          "FUNCTION_TYPE_ALIAS F(A a)" + RIGHT_ARROW + "String",
           "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
     }
@@ -408,7 +408,7 @@ public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
       assertNotNull(result);
       Element[] path = result.getPath();
       assertEquals(makeSource(//
-          "METHOD m() → dynamic",
+          "METHOD m()" + RIGHT_ARROW + "dynamic",
           "CLASS B",
           "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
