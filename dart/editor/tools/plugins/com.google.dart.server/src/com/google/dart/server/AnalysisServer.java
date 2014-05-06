@@ -16,6 +16,7 @@ package com.google.dart.server;
 import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.source.Source;
 
 import java.util.Map;
@@ -51,6 +52,16 @@ public interface AnalysisServer {
    * @param changeSet the change set to be applied
    */
   public void applyChanges(String contextId, ChangeSet changeSet);
+
+  /**
+   * Computes the set of fixes that are available for problems related to the given error. The given
+   * consumer is invoked asynchronously on a different thread.
+   * 
+   * @param contextId the identifier of the context in which the source was analyzed
+   * @param errors the errors for which fixes are being requested
+   * @param consumer the results listener
+   */
+  public void computeFixes(String contextId, AnalysisError[] errors, FixesConsumer consumer);
 
   /**
    * Computes a set of minor refactorings which can be performed at the given offset in the given

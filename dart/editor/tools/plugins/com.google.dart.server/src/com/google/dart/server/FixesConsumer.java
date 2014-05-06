@@ -13,20 +13,24 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 
+import java.util.Map;
+
 /**
- * The interface {@code MinorRefactoringsConsumer} defines the behavior of objects that consume
- * minor refactorings {@link CorrectionProposal}s.
+ * The interface {@code FixesConsumer} defines the behavior of objects that consume fixes for
+ * errors.
  * 
  * @coverage dart.server
  */
-public interface MinorRefactoringsConsumer {
+public interface FixesConsumer {
   /**
-   * A set {@link CorrectionProposal}s has been computed.
+   * A set fixes has been computed. Note that not every {@link AnalysisError} can be fixed, so not
+   * for all of the any fixes will be returned.
    * 
-   * @param proposals an array of computed {@link CorrectionProposal}s
-   * @param isLastResult is {@code true} if this is the last set of results
+   * @param fixesMap a map of computed fixes for some of the given errors
+   * @param isLastResult is {@code true} if this is the last set of fixes
    */
-  public void computedProposals(CorrectionProposal[] proposals, boolean isLastResult);
+  public void computedFixes(Map<AnalysisError, CorrectionProposal[]> fixesMap, boolean isLastResult);
 }

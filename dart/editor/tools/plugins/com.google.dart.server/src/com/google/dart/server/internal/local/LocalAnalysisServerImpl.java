@@ -27,6 +27,7 @@ import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.internal.context.ChangeNoticeImpl;
@@ -43,6 +44,7 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.InternalAnalysisServer;
 import com.google.dart.server.MinorRefactoringsConsumer;
 import com.google.dart.server.NotificationKind;
@@ -223,6 +225,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @Override
   public void applyChanges(String contextId, ChangeSet changeSet) {
     operationQueue.add(new ApplyChangesOperation(contextId, changeSet));
+  }
+
+  @Override
+  public void computeFixes(String contextId, AnalysisError[] errors, FixesConsumer consumer) {
+    // TODO(scheglov) implement it
   }
 
   @Override
