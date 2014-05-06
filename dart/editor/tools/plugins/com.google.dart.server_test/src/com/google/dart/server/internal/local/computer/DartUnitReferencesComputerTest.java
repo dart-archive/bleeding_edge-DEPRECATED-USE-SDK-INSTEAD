@@ -34,7 +34,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class DartUnitReferencesComputerTest extends AbstractLocalServerTest {
-  public static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
+  public static final String RIGHT_ARROW = " => "; //$NON-NLS-1$
 
   private String contextId;
   private String code;
