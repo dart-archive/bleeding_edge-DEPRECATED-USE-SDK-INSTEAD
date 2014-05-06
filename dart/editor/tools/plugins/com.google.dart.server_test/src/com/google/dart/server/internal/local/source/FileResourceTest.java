@@ -58,7 +58,8 @@ public class FileResourceTest extends TestCase {
     File dir = FileUtilities2.createTempDir("my");
     FileResource dirResource = new FileResource(dir);
     Resource child = dirResource.getChild("other/file.txt");
-    assertEquals(dir.getAbsolutePath() + "/other/file.txt", child.getPath());
+    String expected = new File(new File(dir, "other"), "file.txt").getAbsolutePath();
+    assertEquals(expected, child.getPath());
   }
 
   public void test_getPath() throws Exception {
