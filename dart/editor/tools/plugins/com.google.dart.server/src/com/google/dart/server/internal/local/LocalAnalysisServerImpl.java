@@ -350,15 +350,19 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
    * Implementation for {@link #deleteContext(String)}.
    */
   public void internalDeleteContext(String contextId) throws Exception {
-    AnalysisContext context = contextMap.remove(contextId);
+    // stop processing this context
+    operationQueue.removeWithContextId(contextId);
+    // remove associated information
     contextKnownSourcesMap.remove(contextId);
     contextAddedSourcesMap.remove(contextId);
     notificationMap.remove(contextId);
+    // prepare context
+    AnalysisContext context = contextMap.remove(contextId);
     if (context == null) {
-      onServerError(AnalysisServerErrorCode.INVALID_CONTEXT_ID, contextId);
-      return;
+      throw new AnalysisServerErrorException(AnalysisServerErrorCode.INVALID_CONTEXT_ID, contextId);
     }
-    operationQueue.removeWithContextId(contextId);
+    // remove from index
+    index.removeContext(context);
   }
 
   /**
