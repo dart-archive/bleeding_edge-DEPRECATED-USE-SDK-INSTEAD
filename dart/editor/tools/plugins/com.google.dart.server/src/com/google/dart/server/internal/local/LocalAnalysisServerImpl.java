@@ -75,7 +75,6 @@ import com.google.dart.server.internal.local.source.PackageMapUriResolver;
 import com.google.dart.server.internal.local.source.Resource;
 
 import java.io.File;
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -628,15 +627,18 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
       File directoryFile = new File(directory);
       sdk = new DirectoryBasedDartSdk(directoryFile);
       sdkMap.put(directory, sdk);
-      // schedule SDK libraries analysis
-      DartUriResolver dartUriResolver = new DartUriResolver(sdk);
-      ChangeSet changeSet = new ChangeSet();
+      AnalysisContext context = sdk.getContext();
+      SourceFactory factory = context.getSourceFactory();
+      AnalysisDelta delta = new AnalysisDelta();
       for (String uri : sdk.getUris()) {
         if (!test_disableForcedSdkAnalysis || uri.equals(DartSdk.DART_CORE)) {
-          changeSet.addedSource(dartUriResolver.resolveAbsolute(URI.create(uri)));
+          delta.setAnalysisLevel(factory.forUri(uri), AnalysisLevel.RESOLVED);
         }
       }
-      applyChanges(contextId, changeSet);
+      context.applyAnalysisDelta(delta);
+      String sdkContextId = "dart-sdk-internal-" + nextId.getAndIncrement();
+      contextMap.put(sdkContextId, context);
+      schedulePerformAnalysisOperation(sdkContextId, false);
     }
     return sdk;
   }

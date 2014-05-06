@@ -18,7 +18,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -363,12 +362,10 @@ public class DartSdkManager {
     if (sdkDir != null) {
       sdk = new DirectoryBasedDartSdk(sdkDir);
       // create an artificial context for SDK
-      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-        sdkContextId = DartCore.getAnalysisServer().createContext(
-            sdkDir.getAbsolutePath(),
-            sdkDir.getAbsolutePath(),
-            ImmutableMap.<String, String> of());
-      }
+      sdkContextId = DartCore.getAnalysisServer().createContext(
+          sdkDir.getAbsolutePath(),
+          sdkDir.getAbsolutePath(),
+          ImmutableMap.<String, String> of());
     } else {
       sdk = NONE;
     }

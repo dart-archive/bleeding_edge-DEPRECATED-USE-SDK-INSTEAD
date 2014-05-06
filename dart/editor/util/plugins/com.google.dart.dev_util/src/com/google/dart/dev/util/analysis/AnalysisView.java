@@ -197,18 +197,20 @@ public class AnalysisView extends ViewPart {
 
     Set<AnalysisContext> visited = new HashSet<AnalysisContext>();
 
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      AnalysisServer server = DartCore.getAnalysisServer();
-      if (server instanceof InternalAnalysisServer) {
-        Map<String, AnalysisContext> contextMap = ((InternalAnalysisServer) server).getContextMap();
-        for (Entry<String, AnalysisContext> entry : contextMap.entrySet()) {
-          String name = new Path(entry.getKey()).lastSegment();
-          addContext(queueWorkers, activeWorker, contexts, name,
-              (InternalAnalysisContext) entry.getValue());
-          visited.add(entry.getValue());
-        }
+    AnalysisServer server = DartCore.getAnalysisServer();
+    if (server instanceof InternalAnalysisServer) {
+      Map<String, AnalysisContext> contextMap = ((InternalAnalysisServer) server).getContextMap();
+      for (Entry<String, AnalysisContext> entry : contextMap.entrySet()) {
+        String name = new Path(entry.getKey()).lastSegment();
+        addContext(queueWorkers, activeWorker, contexts, name,
+            (InternalAnalysisContext) entry.getValue());
+        visited.add(entry.getValue());
       }
-    } else {
+    }
+    //
+    // Show both analysis server and project manager contexts during this transition
+    //
+    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       for (Project project : DartCore.getProjectManager().getProjects()) {
         String projectName = project.getResource().getName();
         // default context

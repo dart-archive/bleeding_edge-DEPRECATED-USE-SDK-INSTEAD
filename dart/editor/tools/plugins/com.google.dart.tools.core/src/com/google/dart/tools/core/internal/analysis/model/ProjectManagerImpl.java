@@ -20,7 +20,6 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
@@ -407,9 +406,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   @Override
   public void start() {
     InstrumentationLogger.ensureLoggerStarted();
-    if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      new AnalysisWorker(this, getSdkContext()).performAnalysisInBackground();
-    }
     analyzeAllProjects();
   }
 
