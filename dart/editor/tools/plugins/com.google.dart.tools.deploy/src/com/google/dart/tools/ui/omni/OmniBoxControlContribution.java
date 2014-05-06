@@ -106,6 +106,8 @@ public class OmniBoxControlContribution {
 
   private static final String MOD_KEY = SWTKeySupport.getKeyFormatterForPlatform().format(SWT.MOD1);
 
+  private static final String COMMAND_KEY_STRING = Util.isMac() ? "COMMAND" : "CTRL";
+
   private static final String WATERMARK_TEXT;
 
   private static int SEARCH_BOX_STYLE_BITS = SWT.SEARCH;
@@ -308,7 +310,7 @@ public class OmniBoxControlContribution {
       IWorkbench wb = PlatformUI.getWorkbench();
       IBindingService bindings = (IBindingService) wb.getService(IBindingService.class);
       try {
-        KeySequence keys = KeySequence.getInstance("COMMAND+F");
+        KeySequence keys = KeySequence.getInstance(COMMAND_KEY_STRING + "+F");
         Binding binding = bindings.getPerfectMatch(keys);
         if (binding != null) {
           ParameterizedCommand parameterizedCommand = binding.getParameterizedCommand();
@@ -318,7 +320,7 @@ public class OmniBoxControlContribution {
           }
         }
       } catch (ParseException ex) {
-        // won't happen for "COMMAND+F"
+        Activator.logError(ex);
       } catch (CommandException ex) {
         Activator.logError(ex);
       }
