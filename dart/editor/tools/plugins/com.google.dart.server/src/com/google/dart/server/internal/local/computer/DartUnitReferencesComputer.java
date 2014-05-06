@@ -31,6 +31,7 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.translation.DartOmit;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
 import com.google.dart.server.SearchResultsConsumer;
@@ -42,6 +43,7 @@ import java.util.List;
  * 
  * @coverage dart.server.local
  */
+@DartOmit
 public class DartUnitReferencesComputer {
   /**
    * This is used only for testing purposes and allows tests to check the behavior in case an

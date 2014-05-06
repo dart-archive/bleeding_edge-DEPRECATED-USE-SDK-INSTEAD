@@ -43,7 +43,7 @@ public class CompletionProposalImpl implements CompletionProposal {
   private boolean positional = false;
   private boolean deprecated = false;
   private boolean potential = false;
-  private int relevance = RELEVANCE_DEFAULT;
+  private int relevance = CompletionProposal.RELEVANCE_DEFAULT;
 
   @Override
   public void applyPartitionOffset(int partitionOffset) {

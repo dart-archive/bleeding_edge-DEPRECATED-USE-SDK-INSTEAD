@@ -133,7 +133,11 @@ public class MainAnalysisServer {
     context.addSourceFiles(new File(serverFolder, "com/google/dart/server/"));
     context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/assist"));
     context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/change"));
+    context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/completion"));
     context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/correction"));
+    context.addSourceFiles(new File(
+        serviceFolder,
+        "com/google/dart/engine/services/internal/completion"));
     context.addSourceFiles(new File(
         serviceFolder,
         "com/google/dart/engine/services/internal/correction"));
@@ -181,6 +185,32 @@ public class MainAnalysisServer {
           getFormattedSource(library),
           new File(targetFolderServices + "/change.dart"),
           Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildServicesLibrary_completion();
+      String source = getFormattedSource(library);
+      // TODO(scheglov) improve java2dart to make this translated correctly
+      source = replaceSourceFragment(
+          source,
+          "new CompletionEngine_CommentReferenceCompleter(this, _completionNode)",
+          "new CompletionEngine_CommentReferenceCompleter(CompletionEngine_this, _completionNode)");
+      source = replaceSourceFragment(
+          source,
+          "new CompletionEngine_TypeNameCompleter(this, _completionNode, node)",
+          "new CompletionEngine_TypeNameCompleter(CompletionEngine_this, _completionNode, node)");
+//      source = replaceSourceFragment(
+//          source,
+//          "new CompletionEngine_NameCollector(this)",
+//          "new CompletionEngine_NameCollector(CompletionEngine_this)");
+      source = replaceSourceFragment(
+          source,
+          "new CompletionEngine_IdentifierCompleter(this, node)",
+          "new CompletionEngine_IdentifierCompleter(CompletionEngine_this, node)");
+      source = replaceSourceFragment(
+          source,
+          "new CompletionEngine_StringCompleter(this, node)",
+          "new CompletionEngine_StringCompleter(CompletionEngine_this, node)");
+      Files.write(source, new File(targetFolderServices + "/completion.dart"), Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildServicesLibrary_status();
@@ -271,14 +301,32 @@ public class MainAnalysisServer {
             null,
             importShowCombinator("Token")));
     unit.getDirectives().add(importDirective("package:analyzer/src/generated/ast.dart", null));
-    unit.getDirectives().add(importDirective("package:analyzer/src/generated/element.dart", null));
-    unit.getDirectives().add(importDirective("service_interfaces.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/element.dart", "pae"));
+    unit.getDirectives().add(
+        importDirective(
+            "package:analyzer/src/generated/element.dart",
+            null,
+            importShowCombinator("DartType")));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/source.dart", null));
+    unit.getDirectives().add(importDirective("service_interfaces.dart", "psi"));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isServerPath(file, "internal/local/computer/")) {
         addNotRemovedCompiationUnitEntries(unit, entry.getValue());
       }
     }
+    EngineSemanticProcessor.useImportPrefix(
+        context,
+        unit,
+        "psi",
+        new String[] {"com.google.dart.server."},
+        true);
+    EngineSemanticProcessor.useImportPrefix(
+        context,
+        unit,
+        "pae",
+        new String[] {"com.google.dart.engine.element."},
+        false);
     return unit;
   }
 
@@ -297,13 +345,17 @@ public class MainAnalysisServer {
             importShowCombinator("Source")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
-      if (isServerPath(file, "HighlightRegion.java") || isServerPath(file, "HighlightType.java")
+      if (isServerPath(file, "Element.java") || isServerPath(file, "ElementKind.java")
+          || isServerPath(file, "HighlightRegion.java") || isServerPath(file, "HighlightType.java")
           || isServerPath(file, "ListSourceSet.java")
+          || isServerPath(file, "MinorRefactoringsConsumer.java")
           || isServerPath(file, "NavigationRegion.java")
-          || isServerPath(file, "NavigationTarget.java")
           || isServerPath(file, "NotificationKind.java") || isServerPath(file, "Outline.java")
-          || isServerPath(file, "OutlineKind.java") || isServerPath(file, "SourceRegion.java")
-          || isServerPath(file, "SourceSet.java") || isServerPath(file, "SourceSetKind.java")
+          || isServerPath(file, "OutlineKind.java") || isServerPath(file, "SearchResult.java")
+          || isServerPath(file, "SearchResultKind.java")
+          || isServerPath(file, "SearchResultsConsumer.java")
+          || isServerPath(file, "SourceRegion.java") || isServerPath(file, "SourceSet.java")
+          || isServerPath(file, "SourceSetKind.java")
           || isServerPath(file, "internal/local/ImplicitSourceSet.java")) {
         addNotRemovedCompiationUnitEntries(unit, entry.getValue());
       }
@@ -366,6 +418,7 @@ public class MainAnalysisServer {
   private static CompilationUnit buildServicesLibrary_change() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("services", "change"));
+    unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(
         importDirective(
             "package:analyzer/src/generated/java_io.dart",
@@ -375,6 +428,39 @@ public class MainAnalysisServer {
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isServicePath(file, "change/")) {
+        addNotRemovedCompiationUnitEntries(unit, entry.getValue());
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildServicesLibrary_completion() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("services", "completion"));
+    unit.getDirectives().add(importDirective("dart:collection", null));
+    unit.getDirectives().add(
+        importDirective(
+            "package:analyzer/src/generated/java_core.dart",
+            null,
+            importHideCombinator("StringUtils")));
+    unit.getDirectives().add(
+        importDirective("package:analyzer/src/generated/java_engine.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/java_io.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/ast.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/element.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/engine.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/error.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/resolver.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/scanner.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/sdk.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/source_io.dart", null));
+    unit.getDirectives().add(
+        importDirective("package:analyzer/src/generated/utilities_dart.dart", null));
+    unit.getDirectives().add(importDirective("stubs.dart", null));
+    unit.getDirectives().add(importDirective("util.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isServicePath(file, "completion/") || isServicePath(file, "internal/completion/")) {
         addNotRemovedCompiationUnitEntries(unit, entry.getValue());
       }
     }
@@ -584,6 +670,22 @@ public class MainAnalysisServer {
       lines[i] = StringUtils.stripEnd(lines[i], null);
     }
     return StringUtils.join(lines, "\n");
+  }
+
+  /**
+   * Replaces the fragment of the source specified by the RE pattern with the given source.
+   * 
+   * @param source the source to replace fragment in
+   * @param pattern the fragment to replace
+   * @param replacement the source to replace fragment with
+   * @return the source with the replacement fragment
+   */
+  private static String replaceSourceFragment(String source, String pattern, String replacement) {
+    int index = source.indexOf(pattern);
+    if (index == -1) {
+      throw new IllegalArgumentException("Not found: " + pattern);
+    }
+    return StringUtils.replace(source, pattern, replacement);
   }
 
   private static void sortUnitMembersByName(CompilationUnit unit) {

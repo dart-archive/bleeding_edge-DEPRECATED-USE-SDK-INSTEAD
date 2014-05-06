@@ -804,7 +804,8 @@ public class MainEngine {
         context,
         unit,
         "ht",
-        new String[] {"com.google.dart.engine.html."});
+        new String[] {"com.google.dart.engine.html."},
+        false);
     return unit;
   }
 
@@ -858,7 +859,8 @@ public class MainEngine {
         context,
         unit,
         "sc",
-        new String[] {"com.google.dart.engine.scanner."});
+        new String[] {"com.google.dart.engine.scanner."},
+        false);
     return unit;
   }
 
@@ -897,7 +899,8 @@ public class MainEngine {
         context,
         unit,
         "ht",
-        new String[] {"com.google.dart.engine.html."});
+        new String[] {"com.google.dart.engine.html."},
+        false);
     unit.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitCatchClause(CatchClause node) {
@@ -1035,12 +1038,14 @@ public class MainEngine {
         context,
         unit,
         "sc",
-        new String[] {"com.google.dart.engine.scanner."});
+        new String[] {"com.google.dart.engine.scanner."},
+        false);
     EngineSemanticProcessor.useImportPrefix(
         context,
         unit,
         "ht",
-        new String[] {"com.google.dart.engine.html."});
+        new String[] {"com.google.dart.engine.html."},
+        false);
     // done
     return unit;
   }

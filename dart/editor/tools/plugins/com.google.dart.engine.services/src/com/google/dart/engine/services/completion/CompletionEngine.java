@@ -41,7 +41,6 @@ import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.DoubleLiteral;
-import com.google.dart.engine.ast.EphemeralIdentifier;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
@@ -137,6 +136,8 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.ast.ScopedNameFinder;
 import com.google.dart.engine.utilities.dart.ParameterKind;
+import com.google.dart.engine.utilities.translation.DartBlockBody;
+import com.google.dart.engine.utilities.translation.DartOmit;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -153,7 +154,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * The analysis engine for code completion.
@@ -183,7 +183,7 @@ public class CompletionEngine {
 
     public CommentReferenceCompleter(SimpleIdentifier identifier) {
       this.identifier = identifier;
-      filter = new Filter(identifier);
+      filter = createFilter(identifier);
       names = collectTopLevelElementVisibleAt(identifier);
     }
 
@@ -253,26 +253,29 @@ public class CompletionEngine {
     }
   }
 
-  class ContainmentFilter implements SearchFilter {
-    ExecutableElement containingElement;
-
-    ContainmentFilter(ExecutableElement element) {
-      containingElement = element;
-    }
-
-    @Override
-    public boolean passes(SearchMatch match) {
-      Element baseElement = match.getElement();
-      if (containingElement == null) {
-        return baseElement.getEnclosingElement() instanceof CompilationUnitElement;
-      }
-      return true;
-    }
-  }
+//  class ContainmentFilter implements SearchFilter {
+//    ExecutableElement containingElement;
+//
+//    ContainmentFilter(ExecutableElement element) {
+//      containingElement = element;
+//    }
+//
+//    @Override
+//    public boolean passes(SearchMatch match) {
+//      Element baseElement = match.getElement();
+//      if (containingElement == null) {
+//        return baseElement.getEnclosingElement() instanceof CompilationUnitElement;
+//      }
+//      return true;
+//    }
+//  }
 
   class NameCollector {
     private Map<String, List<Element>> uniqueNames = new HashMap<String, List<Element>>();
     private Set<Element> potentialMatches;
+
+    public NameCollector() {
+    }
 
     public void addAll(Collection<SimpleIdentifier> values) {
       for (SimpleIdentifier id : values) {
@@ -311,7 +314,7 @@ public class CompletionEngine {
       }
       addNamesDefinedByTypes(superTypes);
       // Collect names defined by subtypes separately so they can be identified later.
-      NameCollector potentialMatchCollector = new NameCollector();
+      NameCollector potentialMatchCollector = createNameCollector();
       if (!type.isObject()) {
         potentialMatchCollector.addNamesDefinedByTypes(allSubtypes(type.getElement()));
       }
@@ -462,122 +465,6 @@ public class CompletionEngine {
     DECLARED_AND_EXPORTS
   }
 
-  private class Filter {
-    String prefix;
-    String originalPrefix;
-    Pattern pattern;
-
-    Filter(SimpleIdentifier ident) {
-      this(ident, context.getSelectionOffset());
-    }
-
-    Filter(SimpleIdentifier ident, int loc) {
-      this(ident.getName(), ident.getOffset(), loc);
-    }
-
-    Filter(String name, int pos, int loc) {
-      int len = loc - pos;
-      if (len > 0) {
-        if (len <= name.length()) {
-          prefix = name.substring(0, len);
-        } else {
-          prefix = name;
-        }
-      } else {
-        prefix = "";
-      }
-      originalPrefix = prefix;
-      prefix = prefix.toLowerCase();
-    }
-
-    /**
-     * @return {@code true} if the given name starts with the same prefix as used for filter.
-     */
-    boolean isSameCasePrefix(String name) {
-      return name.startsWith(originalPrefix);
-    }
-
-    String makePattern() {
-      String source = filter.originalPrefix;
-      if (source == null || source.length() < 2) {
-        return "*";
-      }
-      int index = 0;
-      StringBuffer regex = new StringBuffer();
-      StringBuffer pattern = new StringBuffer();
-      regex.append(source.charAt(index));
-      pattern.append(source.charAt(index++));
-      while (index < source.length()) {
-        char ch = source.charAt(index++);
-        if (Character.isUpperCase(ch)) {
-          pattern.append('*');
-          regex.append("\\p{javaLowerCase}*");
-        }
-        pattern.append(ch);
-        regex.append(ch);
-      }
-      pattern.append('*');
-      regex.append("\\p{javaLowerCase}*");
-      String result = pattern.toString();
-      this.pattern = Pattern.compile(regex.toString(), 0);
-      return result;
-    }
-
-    boolean match(Element elem) {
-      return match(elem.getDisplayName());
-    }
-
-    boolean match(String name) {
-      // Return true if the filter passes.
-      if (name.toLowerCase().startsWith(prefix)) {
-        return true;
-      }
-      return pattern != null && pattern.matcher(name).matches();
-    }
-
-    void removeNotMatching(List<Element> elements) {
-      for (Iterator<Element> I = elements.iterator(); I.hasNext();) {
-        Element element = I.next();
-        if (!match(element)) {
-          I.remove();
-        }
-      }
-    }
-  }
-
-  /**
-   * An Ident is a wrapper for a String that provides type equivalence with SimpleIdentifier.
-   */
-  private class Ident extends EphemeralIdentifier {
-    private String name;
-
-    Ident(AstNode parent) {
-      super(parent, completionLocation());
-    }
-
-    Ident(AstNode parent, String name, int offset) {
-      super(parent, offset);
-      this.name = name;
-    }
-
-    Ident(AstNode parent, Token name) {
-      super(parent, name.getOffset());
-      this.name = name.getLexeme();
-    }
-
-    @Override
-    public String getName() {
-      if (name != null) {
-        return name;
-      }
-      String n = super.getName();
-      if (n != null) {
-        return n;
-      }
-      return "";
-    }
-  }
-
   /**
    * An IdentifierCompleter is used to classify the parent of the completion node when it has
    * previously been determined that the completion node is a SimpleIdentifier.
@@ -645,7 +532,7 @@ public class CompletionEngine {
     @Override
     public Void visitConstructorDeclaration(ConstructorDeclaration node) {
       if (node.getReturnType() == completionNode) {
-        filter = new Filter(completionNode);
+        filter = createFilter(completionNode);
         pName(completionNode.getName(), ProposalKind.CONSTRUCTOR);
       }
       return null;
@@ -692,7 +579,7 @@ public class CompletionEngine {
       if (completionNode instanceof SimpleIdentifier) {
         ident = completionNode;
       } else {
-        ident = new Ident(node);
+        ident = createIdent(node);
       }
       analyzeLocalName(ident);
       return null;
@@ -712,7 +599,7 @@ public class CompletionEngine {
       if (completionNode instanceof SimpleIdentifier) {
         ident = completionNode;
       } else {
-        ident = new Ident(node);
+        ident = createIdent(node);
       }
       analyzeLocalName(ident);
       return null;
@@ -809,7 +696,7 @@ public class CompletionEngine {
       if (node.getParent() instanceof ArgumentList) {
         ParameterElement parameterElement = node.getBestParameterElement();
         if (parameterElement != null && parameterElement.getType() instanceof FunctionType) {
-          Ident ident = new Ident(completionNode);
+          Ident ident = createIdent(completionNode);
           analyzeTypeName(completionNode, ident);
         }
       }
@@ -862,7 +749,7 @@ public class CompletionEngine {
     public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
       if (node.getIdentifier() == completionNode) {
         if (node.getKeyword() == null && node.getType() == null) {
-          Ident ident = new Ident(node);
+          Ident ident = createIdent(node);
           analyzeTypeName(node.getIdentifier(), ident);
         }
       }
@@ -1016,7 +903,7 @@ public class CompletionEngine {
       if (isCompletionBetween(
           node.getLeftParenthesis().getEnd(),
           node.getRightParenthesis().getOffset())) {
-        Ident ident = new Ident(node);
+        Ident ident = createIdent(node);
         analyzeLocalName(ident);
         analyzePositionalArgument(node, ident);
         analyzeNamedParameter(node, ident);
@@ -1029,7 +916,7 @@ public class CompletionEngine {
       if (isCompletionAfter(node.getAsOperator().getEnd())) {
         state.isDynamicAllowed = false;
         state.isVoidAllowed = false;
-        analyzeTypeName(new Ident(node), null);
+        analyzeTypeName(createIdent(node), null);
       }
       return null;
     }
@@ -1046,7 +933,7 @@ public class CompletionEngine {
     public Void visitBlock(Block node) {
       if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
         // { {! stmt; !} }
-        analyzeLocalName(new Ident(node));
+        analyzeLocalName(createIdent(node));
       }
       return null;
     }
@@ -1086,7 +973,7 @@ public class CompletionEngine {
           if (node.getRightBracket().isSynthetic()
               || isCompletionBefore(node.getRightBracket().getOffset())) {
             if (!hasErrorBeforeCompletionLocation()) {
-              analyzeLocalName(new Ident(node));
+              analyzeLocalName(createIdent(node));
             }
           }
         }
@@ -1158,7 +1045,7 @@ public class CompletionEngine {
       } else if (isCompletionBetween(
           node.getCondition().getEnd(),
           node.getRightParenthesis().getOffset())) {
-        operatorAccess(node.getCondition(), new Ident(node));
+        operatorAccess(node.getCondition(), createIdent(node));
       }
       return null;
     }
@@ -1176,7 +1063,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitExpression(Expression node) {
-      analyzeLocalName(new Ident(node));
+      analyzeLocalName(createIdent(node));
       return null;
     }
 
@@ -1184,7 +1071,7 @@ public class CompletionEngine {
     public Void visitExpressionFunctionBody(ExpressionFunctionBody node) {
       if (node.getExpression() != null && node.getSemicolon() != null) {
         if (isCompletionBetween(node.getExpression().getEnd(), node.getSemicolon().getOffset())) {
-          operatorAccess(node.getExpression(), new Ident(node));
+          operatorAccess(node.getExpression(), createIdent(node));
         }
       }
       return null;
@@ -1192,7 +1079,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitExpressionStatement(ExpressionStatement node) {
-      analyzeLocalName(new Ident(node));
+      analyzeLocalName(createIdent(node));
       return null;
     }
 
@@ -1202,10 +1089,10 @@ public class CompletionEngine {
         pKeyword(node.getKeyword());
       } else if (node.getSuperclass() == null) {
         // { X extends ! }
-        analyzeTypeName(new Ident(node), typeDeclarationName(node));
+        analyzeTypeName(createIdent(node), typeDeclarationName(node));
       } else {
         // { X extends ! Y }
-        analyzeTypeName(new Ident(node), typeDeclarationName(node));
+        analyzeTypeName(createIdent(node), typeDeclarationName(node));
       }
       return null;
     }
@@ -1232,11 +1119,11 @@ public class CompletionEngine {
             List<FormalParameter> newParams = copyWithout(params, last);
             analyzeNewParameterName(newParams, last.getIdentifier(), null);
           } else {
-            Ident ident = new Ident(node);
+            Ident ident = createIdent(node);
             analyzeTypeName(ident, ident);
           }
         } else {
-          Ident ident = new Ident(node);
+          Ident ident = createIdent(node);
           analyzeTypeName(ident, ident);
         }
       }
@@ -1268,7 +1155,7 @@ public class CompletionEngine {
       } else if (isCompletionBetween(
           node.getCondition().getEnd(),
           node.getRightParenthesis().getOffset())) {
-        operatorAccess(node.getCondition(), new Ident(node));
+        operatorAccess(node.getCondition(), createIdent(node));
       }
       return null;
     }
@@ -1279,10 +1166,10 @@ public class CompletionEngine {
         pKeyword(node.getKeyword());
       } else if (node.getInterfaces().isEmpty()) {
         // { X implements ! }
-        analyzeTypeName(new Ident(node), typeDeclarationName(node));
+        analyzeTypeName(createIdent(node), typeDeclarationName(node));
       } else {
         // { X implements ! Y }
-        analyzeTypeName(new Ident(node), typeDeclarationName(node));
+        analyzeTypeName(createIdent(node), typeDeclarationName(node));
       }
       return null;
     }
@@ -1304,7 +1191,7 @@ public class CompletionEngine {
         Ident ident = new Ident(node, node.getKeyword());
         analyzeLocalName(ident);
       } else {
-        Ident ident = new Ident(node);
+        Ident ident = createIdent(node);
         analyzeConstructorTypeName(ident);
       }
       return null;
@@ -1338,10 +1225,10 @@ public class CompletionEngine {
       } else if (isCompletionAfter(isTokenEnd)) {
         state.isDynamicAllowed = false;
         state.isVoidAllowed = false;
-        analyzeTypeName(new Ident(node), null);
+        analyzeTypeName(createIdent(node), null);
         return null;
       } else {
-        ident = new Ident(node);
+        ident = createIdent(node);
       }
       analyzeLocalName(ident);
       return null;
@@ -1435,7 +1322,7 @@ public class CompletionEngine {
       Token semicolon = node.getSemicolon();
       if (expression != null && semicolon != null
           && isCompletionBetween(expression.getEnd(), semicolon.getOffset())) {
-        operatorAccess(expression, new Ident(node));
+        operatorAccess(expression, createIdent(node));
         return null;
       }
       return null;
@@ -1505,7 +1392,7 @@ public class CompletionEngine {
     @Override
     public Void visitTypeArgumentList(TypeArgumentList node) {
       if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
-        analyzeTypeName(new Ident(node), null);
+        analyzeTypeName(createIdent(node), null);
       }
       return null;
     }
@@ -1527,7 +1414,7 @@ public class CompletionEngine {
     public Void visitTypeParameterList(TypeParameterList node) {
       // { <X extends A,! B,! > }
       if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
-        analyzeTypeName(new Ident(node), typeDeclarationName(node));
+        analyzeTypeName(createIdent(node), typeDeclarationName(node));
       }
       return null;
     }
@@ -1536,7 +1423,7 @@ public class CompletionEngine {
     public Void visitVariableDeclaration(VariableDeclaration node) {
       if (isCompletionAfter(node.getEquals().getEnd())) {
         // { var x =! ...}
-        analyzeLocalName(new Ident(node));
+        analyzeLocalName(createIdent(node));
       }
       return null;
     }
@@ -1557,7 +1444,7 @@ public class CompletionEngine {
       } else if (isCompletionBetween(
           node.getCondition().getEnd(),
           node.getRightParenthesis().getOffset())) {
-        operatorAccess(node.getCondition(), new Ident(node));
+        operatorAccess(node.getCondition(), createIdent(node));
       }
       return null;
     }
@@ -1568,10 +1455,10 @@ public class CompletionEngine {
         pKeyword(node.getWithKeyword());
       } else if (node.getMixinTypes().isEmpty()) {
         // { X with ! }
-        analyzeTypeName(new Ident(node), typeDeclarationName(node));
+        analyzeTypeName(createIdent(node), typeDeclarationName(node));
       } else {
         // { X with ! Y }
-        analyzeTypeName(new Ident(node), typeDeclarationName(node));
+        analyzeTypeName(createIdent(node), typeDeclarationName(node));
       }
       return null;
     }
@@ -1752,6 +1639,7 @@ public class CompletionEngine {
   }
 
   private CompletionRequestor requestor;
+
   private CompletionFactory factory;
   private AssistContext context;
 
@@ -1786,7 +1674,7 @@ public class CompletionEngine {
   }
 
   void analyzeAnnotationName(SimpleIdentifier identifier) {
-    filter = new Filter(identifier);
+    filter = createFilter(identifier);
     NameCollector names = collectTopLevelElementVisibleAt(identifier);
     for (Element element : names.getUniqueElements()) {
       if (element instanceof PropertyAccessorElement) {
@@ -1809,7 +1697,7 @@ public class CompletionEngine {
   }
 
   void analyzeConstructorTypeName(SimpleIdentifier identifier) {
-    filter = new Filter(identifier);
+    filter = createFilter(identifier);
     Element[] types = findAllTypes(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
     for (Element type : types) {
       if (type instanceof ClassElement) {
@@ -1826,7 +1714,7 @@ public class CompletionEngine {
     // We might want to propose multiple names for a declaration based on types someday.
     // For now, just use whatever is already there.
     SimpleIdentifier identifier = varDecl.getName();
-    filter = new Filter(identifier);
+    filter = createFilter(identifier);
     VariableDeclarationList varList = (VariableDeclarationList) varDecl.getParent();
     TypeName type = varList.getType();
     if (identifier.getLength() > 0) {
@@ -1856,7 +1744,7 @@ public class CompletionEngine {
   }
 
   void analyzeImmediateField(SimpleIdentifier fieldName) {
-    filter = new Filter(fieldName);
+    filter = createFilter(fieldName);
     ClassDeclaration classDecl = fieldName.getAncestor(ClassDeclaration.class);
     ClassElement classElement = classDecl.getElement();
     for (FieldElement field : classElement.getFields()) {
@@ -1866,15 +1754,15 @@ public class CompletionEngine {
 
   void analyzeLiteralReference(BooleanLiteral literal) {
 //    state.setContext(literal);
-    Ident ident = new Ident(literal.getParent());
+    Ident ident = createIdent(literal.getParent());
     ident.setToken(literal.getLiteral());
-    filter = new Filter(ident);
+    filter = createFilter(ident);
     analyzeLocalName(ident);
   }
 
   void analyzeLocalName(SimpleIdentifier identifier) {
     // Completion x!
-    filter = new Filter(identifier);
+    filter = createFilter(identifier);
     // TODO Filter out types that have no static members.
     NameCollector names = collectIdentifiersVisibleAt(identifier);
     for (Element element : names.getUniqueElements()) {
@@ -1909,7 +1797,7 @@ public class CompletionEngine {
 
   void analyzeNamedParameter(ArgumentList args, SimpleIdentifier identifier) {
     // Completion x!
-    filter = new Filter(identifier);
+    filter = createFilter(identifier);
     // prepare parameters
     ParameterElement[] parameters = getParameterElements(args);
     if (parameters == null) {
@@ -1954,7 +1842,7 @@ public class CompletionEngine {
   void analyzeNewParameterName(List<FormalParameter> params, SimpleIdentifier typeIdent,
       String identifierName) {
     String typeName = typeIdent.getName();
-    filter = new Filter(new Ident(typeIdent));
+    filter = createFilter(createIdent(typeIdent));
     List<String> names = new ArrayList<String>(params.size());
     for (FormalParameter node : params) {
       names.add(node.getIdentifier().getName());
@@ -2034,7 +1922,7 @@ public class CompletionEngine {
 
   void analyzeReceiver(SimpleIdentifier identifier) {
     // Completion x!.y
-    filter = new Filter(identifier);
+    filter = createFilter(identifier);
     NameCollector names = collectIdentifiersVisibleAt(identifier);
     for (Element element : names.getUniqueElements()) {
       proposeName(element, identifier, names);
@@ -2053,7 +1941,7 @@ public class CompletionEngine {
   }
 
   void analyzeTypeName(SimpleIdentifier identifier, SimpleIdentifier nameIdent) {
-    filter = new Filter(identifier);
+    filter = createFilter(identifier);
     String name = nameIdent == null ? "" : nameIdent.getName();
     Element[] types = findAllTypes(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
     for (Element type : types) {
@@ -2097,7 +1985,7 @@ public class CompletionEngine {
 
   void constructorReference(ClassElement classElement, SimpleIdentifier identifier) {
     // Complete identifier when it refers to a constructor defined in classElement.
-    filter = new Filter(identifier);
+    filter = createFilter(identifier);
     for (ConstructorElement cons : classElement.getConstructors()) {
       if (state.isCompileTimeConstantRequired == cons.isConst() && filterAllows(cons)) {
         pExecutable(cons, identifier, false);
@@ -2106,8 +1994,8 @@ public class CompletionEngine {
   }
 
   void directAccess(ClassElement classElement, SimpleIdentifier identifier) {
-    filter = new Filter(identifier);
-    NameCollector names = new NameCollector();
+    filter = createFilter(identifier);
+    NameCollector names = createNameCollector();
     names.addLocalNames(identifier);
     names.addNamesDefinedByHierarchy(classElement, false);
     names.addTopLevelNames(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
@@ -2133,7 +2021,7 @@ public class CompletionEngine {
       identifier = ((PrefixedIdentifier) typeName).getIdentifier();
     }
     if (identifier == null) {
-      identifier = new Ident(node);
+      identifier = createIdent(node);
     }
     // analyze constructor name
     analyzeConstructorTypeName(identifier);
@@ -2157,7 +2045,7 @@ public class CompletionEngine {
       }
     }
     if (expr == null) {
-      analyzeLocalName(new Ident(node));
+      analyzeLocalName(createIdent(node));
     } else {
       analyzePrefixedAccess(expr, node.getMethodName());
     }
@@ -2197,7 +2085,7 @@ public class CompletionEngine {
 
   void fieldReference(ClassElement classElement, SimpleIdentifier identifier) {
     // Complete identifier when it refers to a constructor defined in classElement.
-    filter = new Filter(identifier);
+    filter = createFilter(identifier);
     for (FieldElement cons : classElement.getFields()) {
       if (filterAllows(cons)) {
         pField(cons, identifier, classElement);
@@ -2208,7 +2096,7 @@ public class CompletionEngine {
   void namedConstructorReference(ClassElement classElement, SimpleIdentifier identifier) {
     // Complete identifier when it refers to a named constructor defined in classElement.
     if (filter == null) {
-      filter = new Filter(identifier);
+      filter = createFilter(identifier);
     }
     for (ConstructorElement cons : classElement.getConstructors()) {
       if (!isVisible(cons)) {
@@ -2275,7 +2163,7 @@ public class CompletionEngine {
     if (!lit.isEmpty()) {
       lit = lit.substring(1, Math.max(lit.length() - 1, 0));
     }
-    filter = new Filter(new Ident(node, lit, literal.getOffset() + 1));
+    filter = createFilter(new Ident(node, lit, literal.getOffset() + 1));
     Set<String> packageUris = Sets.newHashSet();
     List<LibraryElement> libraries = new ArrayList<LibraryElement>();
     List<LibraryElement> librariesInLib = new ArrayList<LibraryElement>();
@@ -2352,8 +2240,8 @@ public class CompletionEngine {
 
   void prefixedAccess(InterfaceType type, boolean forSuper, SimpleIdentifier identifier) {
     // Complete identifier when it refers to field or method in classElement.
-    filter = new Filter(identifier);
-    NameCollector names = new NameCollector();
+    filter = createFilter(identifier);
+    NameCollector names = createNameCollector();
     if (state.areInstanceReferencesProhibited) {
       names.addNamesDefinedByType(type);
     } else {
@@ -2364,9 +2252,9 @@ public class CompletionEngine {
 
   void prefixedAccess(SimpleIdentifier prefixName, SimpleIdentifier identifier) {
     if (filter == null) {
-      filter = new Filter(identifier);
+      filter = createFilter(identifier);
     }
-    NameCollector names = new NameCollector();
+    NameCollector names = createNameCollector();
     ImportElement[] prefixImports = importsWithName(prefixName);
     // Library prefixes do not have a unique AST representation so we need to fudge state vars.
     boolean litsAllowed = state.areLiteralsAllowed;
@@ -2376,6 +2264,7 @@ public class CompletionEngine {
     proposeNames(names, identifier);
   }
 
+  @DartBlockBody({"// TODO(scheglov) translate it", "return [];"})
   private InterfaceType[] allSubtypes(final ClassElement classElement) {
     SearchEngine engine = context.getSearchEngine();
     SearchScope scope = SearchScopeFactory.createUniverseScope();
@@ -2412,7 +2301,7 @@ public class CompletionEngine {
   }
 
   private NameCollector collectIdentifiersVisibleAt(AstNode ident) {
-    NameCollector names = new NameCollector();
+    NameCollector names = createNameCollector();
     ScopedNameFinder finder = new ScopedNameFinder(completionLocation());
     ident.accept(finder);
     names.addAll(finder.getLocals().values());
@@ -2426,7 +2315,7 @@ public class CompletionEngine {
   }
 
   private NameCollector collectTopLevelElementVisibleAt(AstNode ident) {
-    NameCollector names = new NameCollector();
+    NameCollector names = createNameCollector();
     names.addTopLevelNames(getCurrentLibrary(), TopLevelNamesKind.DECLARED_AND_IMPORTS);
     return names;
   }
@@ -2439,6 +2328,7 @@ public class CompletionEngine {
     return completionLocation() - filter.prefix.length();
   }
 
+  @DartOmit
   private SearchScope constructSearchScope() {
     if (libraries == null) {
       libraries = currentLibraryList();
@@ -2462,6 +2352,18 @@ public class CompletionEngine {
       }
     });
     return newList;
+  }
+
+  private Filter createFilter(SimpleIdentifier ident) {
+    return new Filter(ident, context.getSelectionOffset());
+  }
+
+  private Ident createIdent(AstNode node) {
+    return new Ident(node, completionLocation());
+  }
+
+  private NameCollector createNameCollector() {
+    return new NameCollector();
   }
 
   private CompletionProposal createProposal(Element element) {
@@ -2512,15 +2414,15 @@ public class CompletionEngine {
     Set<LibraryElement> libraries = new HashSet<LibraryElement>();
     LibraryElement curLib = getCurrentLibrary();
     libraries.add(curLib);
-    List<LibraryElement> queue = new LinkedList<LibraryElement>();
+    LinkedList<LibraryElement> queue = new LinkedList<LibraryElement>();
     Collections.addAll(queue, curLib.getImportedLibraries());
     currentLibraryLister(queue, libraries);
     return libraries.toArray(new LibraryElement[libraries.size()]);
   }
 
-  private void currentLibraryLister(List<LibraryElement> queue, Set<LibraryElement> libraries) {
+  private void currentLibraryLister(LinkedList<LibraryElement> queue, Set<LibraryElement> libraries) {
     while (!queue.isEmpty()) {
-      LibraryElement sourceLib = queue.remove(0);
+      LibraryElement sourceLib = queue.removeFirst();
       libraries.add(sourceLib);
       LibraryElement[] expLibs = sourceLib.getExportedLibraries();
       for (LibraryElement lib : expLibs) {
@@ -2998,12 +2900,12 @@ public class CompletionEngine {
   }
 
   private void proposeCombinator(Combinator node, SimpleIdentifier identifier) {
-    filter = new Filter(identifier);
+    filter = createFilter(identifier);
     NamespaceDirective directive = (NamespaceDirective) node.getParent();
     LibraryElement libraryElement = directive.getUriElement();
     if (libraryElement != null) {
       // prepare Elements with unique names
-      NameCollector nameCollector = new NameCollector();
+      NameCollector nameCollector = createNameCollector();
       Collection<Element> elements = CorrectionUtils.getExportNamespace(libraryElement).values();
       for (Element element : elements) {
         if (filterDisallows(element)) {
@@ -3230,10 +3132,11 @@ public class CompletionEngine {
     return DynamicTypeImpl.getInstance();
   }
 
-  private Type typeSearch(PropertyInducingElement var) {
+  @DartBlockBody({"// TODO(scheglov) translate it", "return null;"})
+  private Type typeSearch(PropertyInducingElement varElement) {
     SearchEngine engine = context.getSearchEngine();
     SearchScope scope = constructSearchScope();
-    Set<Type> matches = engine.searchAssignedTypes(var, scope);
+    Set<Type> matches = engine.searchAssignedTypes(varElement, scope);
     if (matches.isEmpty()) {
       return null;
     }

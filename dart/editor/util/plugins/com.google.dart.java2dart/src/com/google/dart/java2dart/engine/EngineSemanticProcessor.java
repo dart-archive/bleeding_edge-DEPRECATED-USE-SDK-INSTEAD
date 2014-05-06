@@ -420,7 +420,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
   }
 
   static void useImportPrefix(final Context context, final AstNode rootNode,
-      final String prefixName, final String[] packageNames) {
+      final String prefixName, final String[] packageNames, final boolean exactPackage) {
     rootNode.accept(new RecursiveAstVisitor<Void>() {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
@@ -431,7 +431,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           ITypeBinding binding = (ITypeBinding) binding0;
           String shortName = binding.getName();
           shortName = StringUtils.substringBefore(shortName, "<");
-          if (isPrefixPackage(binding)) {
+          if (shouldRewrite(binding)) {
             SemanticProcessor.replaceNode(target, identifier(prefixName, shortName));
             return null;
           }
@@ -448,7 +448,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           ITypeBinding binding = (ITypeBinding) binding0;
           String shortName = binding.getName();
           shortName = StringUtils.substringBefore(shortName, "<");
-          if (isPrefixPackage(binding)) {
+          if (shouldRewrite(binding)) {
             SemanticProcessor.replaceNode(target, identifier(prefixName, shortName));
             return null;
           }
@@ -460,7 +460,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       public Void visitTypeName(TypeName node) {
         ITypeBinding binding = context.getNodeTypeBinding(node);
         if (binding != null) {
-          if (isPrefixPackage(binding)) {
+          if (shouldRewrite(binding)) {
             String shortName = node.getName().getName();
             if (shortName.indexOf('.') != -1) {
               shortName = StringUtils.substringAfterLast(shortName, ".");
@@ -473,6 +473,16 @@ public class EngineSemanticProcessor extends SemanticProcessor {
         return super.visitTypeName(node);
       }
 
+      private boolean isInPackage(ITypeBinding binding) {
+        String typeName = binding.getQualifiedName();
+        for (String packageName : packageNames) {
+          if (typeName.equals(packageName + binding.getName())) {
+            return true;
+          }
+        }
+        return false;
+      }
+
       private boolean isPrefixPackage(ITypeBinding binding) {
         String typeName = binding.getQualifiedName();
         for (String packageName : packageNames) {
@@ -481,6 +491,13 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           }
         }
         return false;
+      }
+
+      private boolean shouldRewrite(ITypeBinding binding) {
+        if (exactPackage) {
+          return isInPackage(binding);
+        }
+        return isPrefixPackage(binding);
       }
     });
   }

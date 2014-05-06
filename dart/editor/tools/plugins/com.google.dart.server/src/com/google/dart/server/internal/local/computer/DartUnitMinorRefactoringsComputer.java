@@ -22,6 +22,7 @@ import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.translation.DartOmit;
 import com.google.dart.server.MinorRefactoringsConsumer;
 
 /**
@@ -29,6 +30,7 @@ import com.google.dart.server.MinorRefactoringsConsumer;
  * 
  * @coverage dart.server.local
  */
+@DartOmit
 public class DartUnitMinorRefactoringsComputer {
   private final SearchEngine searchEngine;
   private final String contextId;

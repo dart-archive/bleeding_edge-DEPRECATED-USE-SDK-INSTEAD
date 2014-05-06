@@ -256,7 +256,7 @@ public class DartUnitOutlineComputer {
       if (element instanceof FunctionElement) {
         FunctionElement functionElement = (FunctionElement) element;
         if (name.equals(functionElement.getName())) {
-          LibraryElement libraryElement = functionElement.getAncestor(LibraryElement.class);
+          LibraryElement libraryElement = functionElement.getLibrary();
           return libraryElement != null && UNITTEST_LIBRARY.equals(libraryElement.getName());
         }
       }

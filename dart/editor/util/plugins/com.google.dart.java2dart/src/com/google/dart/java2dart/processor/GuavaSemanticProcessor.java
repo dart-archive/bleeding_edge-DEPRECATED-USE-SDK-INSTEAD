@@ -97,6 +97,10 @@ public class GuavaSemanticProcessor extends SemanticProcessor {
           replaceNode(node, mapLiteral());
           return null;
         }
+        if (isMethodInClass(node, "newLinkedHashMap", "com.google.common.collect.Maps")) {
+          replaceNode(node, instanceCreationExpression(Keyword.NEW, typeName("LinkedHashMap")));
+          return null;
+        }
         if (isMethodInClass(node, "difference", "com.google.common.collect.Sets")) {
           node.setTarget(args.get(0));
           args.remove(0);
