@@ -44,6 +44,7 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.Element;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.InternalAnalysisServer;
 import com.google.dart.server.MinorRefactoringsConsumer;
@@ -51,6 +52,7 @@ import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.SourceSet;
+import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.internal.local.computer.DartUnitHighlightsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitMinorRefactoringsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
@@ -240,6 +242,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         offset,
         length,
         consumer));
+  }
+
+  @Override
+  public void computeTypeHierarchy(String contextId, Element element, TypeHierarchyConsumer consumer) {
+    // TODO(scheglov) implement it
   }
 
   @Override

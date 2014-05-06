@@ -77,6 +77,16 @@ public interface AnalysisServer {
       MinorRefactoringsConsumer consumer);
 
   /**
+   * Computes a type hierarchy for the given {@link Element} - class or member. The given consumer
+   * is invoked asynchronously on a different thread.
+   * 
+   * @param contextId the identifier of the context to compute hierarchy within
+   * @param element the {@link Element} to compute hierarchy for
+   * @param consumer the results listener
+   */
+  public void computeTypeHierarchy(String contextId, Element element, TypeHierarchyConsumer consumer);
+
+  /**
    * Create a new context in which analysis can be performed. The context that is created will
    * persist until {@link #deleteContext(String)} is used to delete it. Clients, therefore, are
    * responsible for managing the lifetime of contexts.
