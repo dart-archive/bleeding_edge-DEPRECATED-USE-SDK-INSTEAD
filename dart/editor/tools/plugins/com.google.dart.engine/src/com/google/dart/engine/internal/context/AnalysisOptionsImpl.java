@@ -32,9 +32,9 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   public static boolean DEFAULT_ENABLE_DEFERRED_LOADING = false;
 
   /**
-   * The maximum number of sources for which AST structures should be kept in the cache.
+   * A flag indicating whether analysis is to analyze Angular.
    */
-  private int cacheSize = DEFAULT_CACHE_SIZE;
+  private boolean analyzeAngular = true;
 
   /**
    * A flag indicating whether analysis is to parse and analyze function bodies.
@@ -42,9 +42,24 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean analyzeFunctionBodies = true;
 
   /**
+   * A flag indicating whether analysis is to analyze Polymer.
+   */
+  private boolean analyzePolymer = true;
+
+  /**
+   * The maximum number of sources for which AST structures should be kept in the cache.
+   */
+  private int cacheSize = DEFAULT_CACHE_SIZE;
+
+  /**
    * A flag indicating whether analysis is to generate dart2js related hint results.
    */
   private boolean dart2jsHint = true;
+
+  /**
+   * A flag indicating whether analysis is to enable deferred loading.
+   */
+  private boolean enableDeferredLoading = DEFAULT_ENABLE_DEFERRED_LOADING;
 
   /**
    * A flag indicating whether errors, warnings and hints should be generated for sources in the
@@ -69,21 +84,6 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean preserveComments = true;
 
   /**
-   * A flag indicating whether analysis is to analyze Angular.
-   */
-  private boolean analyzeAngular = true;
-
-  /**
-   * A flag indicating whether analysis is to analyze Polymer.
-   */
-  private boolean analyzePolymer = true;
-
-  /**
-   * A flag indicating whether analysis is to enable deferred loading.
-   */
-  private boolean enableDeferredLoading = DEFAULT_ENABLE_DEFERRED_LOADING;
-
-  /**
    * Initialize a newly created set of analysis options to have their default values.
    */
   public AnalysisOptionsImpl() {
@@ -96,10 +96,16 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    * @param options the analysis options whose values are being copied
    */
   public AnalysisOptionsImpl(AnalysisOptions options) {
+    analyzeAngular = options.getAnalyzeAngular();
+    analyzeFunctionBodies = options.getAnalyzeFunctionBodies();
+    analyzePolymer = options.getAnalyzePolymer();
     cacheSize = options.getCacheSize();
     dart2jsHint = options.getDart2jsHint();
+    enableDeferredLoading = options.getEnableDeferredLoading();
+    generateSdkErrors = options.getGenerateSdkErrors();
     hint = options.getHint();
     incremental = options.getIncremental();
+    preserveComments = options.getPreserveComments();
   }
 
   @Override

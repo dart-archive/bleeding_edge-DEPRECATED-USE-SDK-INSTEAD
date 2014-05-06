@@ -16,6 +16,87 @@ package com.google.dart.engine.internal.context;
 import com.google.dart.engine.EngineTestCase;
 
 public class AnalysisOptionsImplTest extends EngineTestCase {
+  public void test_AnalysisOptionsImpl_copy() {
+    boolean booleanValue = true;
+    for (int i = 0; i < 2; i++, booleanValue = !booleanValue) {
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+      options.setAnalyzeAngular(booleanValue);
+      options.setAnalyzeFunctionBodies(booleanValue);
+      options.setAnalyzePolymer(booleanValue);
+      options.setCacheSize(i);
+      options.setDart2jsHint(booleanValue);
+      options.setEnableDeferredLoading(booleanValue);
+      options.setGenerateSdkErrors(booleanValue);
+      options.setHint(booleanValue);
+      options.setIncremental(booleanValue);
+      options.setPreserveComments(booleanValue);
+      AnalysisOptionsImpl copy = new AnalysisOptionsImpl(options);
+      assertEquals(options.getAnalyzeAngular(), copy.getAnalyzeAngular());
+      assertEquals(options.getAnalyzeFunctionBodies(), copy.getAnalyzeFunctionBodies());
+      assertEquals(options.getAnalyzePolymer(), copy.getAnalyzePolymer());
+      assertEquals(options.getCacheSize(), copy.getCacheSize());
+      assertEquals(options.getDart2jsHint(), copy.getDart2jsHint());
+      assertEquals(options.getEnableDeferredLoading(), copy.getEnableDeferredLoading());
+      assertEquals(options.getGenerateSdkErrors(), copy.getGenerateSdkErrors());
+      assertEquals(options.getHint(), copy.getHint());
+      assertEquals(options.getIncremental(), copy.getIncremental());
+      assertEquals(options.getPreserveComments(), copy.getPreserveComments());
+    }
+  }
+
+  public void test_getAnalyzeAngular() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    boolean value = !options.getAnalyzeAngular();
+    options.setAnalyzeAngular(value);
+    assertEquals(value, options.getAnalyzeAngular());
+  }
+
+  public void test_getAnalyzeFunctionBodies() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    boolean value = !options.getAnalyzeFunctionBodies();
+    options.setAnalyzeFunctionBodies(value);
+    assertEquals(value, options.getAnalyzeFunctionBodies());
+  }
+
+  public void test_getAnalyzePolymer() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    boolean value = !options.getAnalyzePolymer();
+    options.setAnalyzePolymer(value);
+    assertEquals(value, options.getAnalyzePolymer());
+  }
+
+  public void test_getCacheSize() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    assertEquals(AnalysisOptionsImpl.DEFAULT_CACHE_SIZE, options.getCacheSize());
+    int value = options.getCacheSize() + 1;
+    options.setCacheSize(value);
+    assertEquals(value, options.getCacheSize());
+  }
+
+  public void test_getDart2jsHint() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    boolean value = !options.getDart2jsHint();
+    options.setDart2jsHint(value);
+    assertEquals(value, options.getDart2jsHint());
+  }
+
+  public void test_getEnableDeferredLoading() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    assertEquals(
+        AnalysisOptionsImpl.DEFAULT_ENABLE_DEFERRED_LOADING,
+        options.getEnableDeferredLoading());
+    boolean value = !options.getEnableDeferredLoading();
+    options.setEnableDeferredLoading(value);
+    assertEquals(value, options.getEnableDeferredLoading());
+  }
+
+  public void test_getGenerateSdkErrors() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    boolean value = !options.getGenerateSdkErrors();
+    options.setGenerateSdkErrors(value);
+    assertEquals(value, options.getGenerateSdkErrors());
+  }
+
   public void test_getHint() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     boolean value = !options.getHint();
@@ -28,5 +109,12 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
     boolean value = !options.getIncremental();
     options.setIncremental(value);
     assertEquals(value, options.getIncremental());
+  }
+
+  public void test_getPreserveComments() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    boolean value = !options.getPreserveComments();
+    options.setPreserveComments(value);
+    assertEquals(value, options.getPreserveComments());
   }
 }
