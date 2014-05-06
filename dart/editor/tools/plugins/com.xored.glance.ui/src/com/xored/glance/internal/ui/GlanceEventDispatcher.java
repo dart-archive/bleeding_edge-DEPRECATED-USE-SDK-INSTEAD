@@ -80,6 +80,7 @@ public class GlanceEventDispatcher {
       IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
       OmniBoxControlContribution control = OmniBoxControlContribution.getControlForWindow(window);
       if (control != null) {
+        SearchManager.getIntance().close();
         control.giveFocus();
       }
       event.doit = false;
