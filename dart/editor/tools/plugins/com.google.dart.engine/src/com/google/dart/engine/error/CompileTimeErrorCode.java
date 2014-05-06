@@ -1197,6 +1197,19 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "Constant factory constructor cannot delegate to a non-constant constructor"),
 
   /**
+   * 7.6.1 Generative constructors: A generative constructor may be <i>redirecting</i>, in which
+   * case its only action is to invoke another generative constructor.
+   */
+  REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR("The constructor '%s' could not be found in '%s'"),
+
+  /**
+   * 7.6.1 Generative constructors: A generative constructor may be <i>redirecting</i>, in which
+   * case its only action is to invoke another generative constructor.
+   */
+  REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR(
+      "Generative constructor cannot redirect to a factory constructor"),
+
+  /**
    * 5 Variables: A local variable may only be referenced at a source code location that is after
    * its initializer, if any, is complete, or a compile-time error occurs.
    */

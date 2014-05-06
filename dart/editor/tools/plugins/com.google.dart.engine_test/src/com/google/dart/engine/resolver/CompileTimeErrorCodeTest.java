@@ -3736,6 +3736,26 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_redirectGenerativeToMissingConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() : this.noSuchConstructor();",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR);
+  }
+
+  public void test_redirectGenerativeToNonGenerativeConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() : this.x();",
+        "  factory A.x() => null;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR);
+    verify(source);
+  }
+
   public void test_redirectToMissingConstructor_named() throws Exception {
     Source source = addSource(createSource(//
         "class A implements B{",

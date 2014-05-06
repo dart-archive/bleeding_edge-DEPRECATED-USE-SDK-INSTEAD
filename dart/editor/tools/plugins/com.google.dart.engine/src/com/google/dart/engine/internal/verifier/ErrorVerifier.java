@@ -4731,6 +4731,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @see CompileTimeErrorCode#FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
    * @see CompileTimeErrorCode#MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS
    * @see CompileTimeErrorCode#SUPER_IN_REDIRECTING_CONSTRUCTOR
+   * @see CompileTimeErrorCode#REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR
    */
   private boolean checkForRedirectingConstructorErrorCodes(ConstructorDeclaration node) {
     boolean errorReported = false;
@@ -4758,6 +4759,28 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
               CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
               initializer);
           errorReported = true;
+        }
+        if (node.getFactoryKeyword() == null) {
+          RedirectingConstructorInvocation invocation = (RedirectingConstructorInvocation) initializer;
+          ConstructorElement redirectingElement = invocation.getStaticElement();
+          if (redirectingElement == null) {
+            String enclosingTypeName = enclosingClass.getDisplayName();
+            String constructorStrName = enclosingTypeName;
+            if (invocation.getConstructorName() != null) {
+              constructorStrName += '.' + invocation.getConstructorName().getName();
+            }
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+                invocation,
+                constructorStrName,
+                enclosingTypeName);
+          } else {
+            if (redirectingElement.isFactory()) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR,
+                  initializer);
+            }
+          }
         }
         numRedirections++;
       }
