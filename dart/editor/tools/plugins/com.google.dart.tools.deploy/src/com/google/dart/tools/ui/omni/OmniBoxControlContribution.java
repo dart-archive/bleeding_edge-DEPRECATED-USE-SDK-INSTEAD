@@ -16,6 +16,11 @@ package com.google.dart.tools.ui.omni;
 import com.google.dart.tools.deploy.Activator;
 
 import org.eclipse.core.commands.Command;
+import org.eclipse.core.commands.ParameterizedCommand;
+import org.eclipse.core.commands.common.CommandException;
+import org.eclipse.jface.bindings.Binding;
+import org.eclipse.jface.bindings.keys.KeySequence;
+import org.eclipse.jface.bindings.keys.ParseException;
 import org.eclipse.jface.bindings.keys.SWTKeySupport;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.util.Util;
@@ -38,6 +43,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.IBindingService;
@@ -291,7 +297,35 @@ public class OmniBoxControlContribution {
     }
   }
 
+  @SuppressWarnings("deprecation")
   private void handleKeyPressed(KeyEvent e) {
+
+    if (e.character == '\0') {
+      return;
+    }
+    if (e.keyCode == 'f' && (e.stateMask & SWT.MOD1) == SWT.MOD1) {
+      // special treatment to activate the text search when requested
+      IWorkbench wb = PlatformUI.getWorkbench();
+      IBindingService bindings = (IBindingService) wb.getService(IBindingService.class);
+      try {
+        KeySequence keys = KeySequence.getInstance("COMMAND+F");
+        Binding binding = bindings.getPerfectMatch(keys);
+        if (binding != null) {
+          ParameterizedCommand parameterizedCommand = binding.getParameterizedCommand();
+          if (parameterizedCommand != null) {
+            defocus();
+            parameterizedCommand.getCommand().execute(null);
+          }
+        }
+      } catch (ParseException ex) {
+        // won't happen for "COMMAND+F"
+      } catch (CommandException ex) {
+        Activator.logError(ex);
+      }
+      e.doit = false;
+      return;
+    }
+
     if (SWT.ARROW_DOWN == e.keyCode) {
       if (popupClosed()) {
         openPopup();
@@ -312,7 +346,6 @@ public class OmniBoxControlContribution {
       }
       openPopup();
     }
-
     if (popup != null && !popup.isDisposed()) {
       popup.sendKeyPress(e);
     }
