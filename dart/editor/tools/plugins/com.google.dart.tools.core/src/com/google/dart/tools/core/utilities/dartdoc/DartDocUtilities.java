@@ -39,6 +39,8 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -476,16 +478,31 @@ public final class DartDocUtilities {
     // handle too much whitespace in front of list items
     str = str.replace("<br>\n<li>", "<li>");
 
-    // convert code and reference blocks
-    str = str.replace("[:", "<code>").replace(":]", "</code>");
-    str = str.replace("[", "<code>").replace("]", "</code>");
-    str = replacePairs(str, "`", "<code>", "</code>");
+    // process non-code lines
+    {
+      String[] lines = StringUtils.splitPreserveAllTokens(str, "\n");
+      StringBuilder sb = new StringBuilder();
+      for (String line : lines) {
+        if (line.startsWith("    ") || line.startsWith("<pre>    ")) {
+          // ignore code lines
+        } else {
+          // convert code and reference blocks
+          line = line.replace("[:", "<code>").replace(":]", "</code>");
+          line = line.replace("[", "<code>").replace("]", "</code>");
+          line = replacePairs(line, "`", "<code>", "</code>");
 
-    // convert bold and italic
-    str = replacePairs(str, "**", "<b>", "</b>");
-    str = replacePairs(str, "__", "<b>", "</b>");
-    str = replacePairs(str, "*", "<i>", "</i>");
-    str = replacePairs(str, "_", "<i>", "</i>");
+          // convert bold and italic
+          line = replacePairs(line, "**", "<b>", "</b>");
+          line = replacePairs(line, "__", "<b>", "</b>");
+          line = replacePairs(line, "*", "<i>", "</i>");
+          line = replacePairs(line, "_", "<i>", "</i>");
+        }
+        sb.append(line);
+        sb.append("\n");
+      }
+      str = sb.toString();
+      str = str.substring(0, str.length() - 1);
+    }
 
     return str;
   }

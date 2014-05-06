@@ -128,6 +128,21 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
     assertEquals("int FFF(int a, double b)", DartDocUtilities.getTextSummary(null, element));
   }
 
+  /**
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=18438
+   */
+  public void test_getDartDocAsHtml_codeSample_index() throws Exception {
+    AstNode id = findNodeIn("A", createSource(//
+        "/// Example:",
+        "///     var x = values[0];",
+        "///     var y = values[1];",
+        "class A { }"));
+    Element element = ElementLocator.locate(id);
+    assertEquals("Example:\n" + "<pre>    var x = values[0];</pre><pre>\n"
+        + "    var y = values[1];</pre>", DartDocUtilities.getDartDocAsHtml(element));
+  }
+
   public void test_method_doc() throws Exception {
     AstNode id = findNodeIn("x", createSource(//
         "/// My method",
