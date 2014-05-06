@@ -16,7 +16,6 @@ package com.google.dart.tools.core.internal.analysis.model;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
-import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.source.Source;
@@ -197,20 +196,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     synchronized (projects) {
       Project result = projects.get(resource);
       if (result == null) {
-        if (resource.getFile("lib/_internal/libraries.dart").exists()) {
-          //
-          // If this file exists, then the project is assumed to have been opened on the root of an
-          // SDK. In such a case we want to use the SDK being edited as the SDK for analysis so that
-          // analysis engine can correctly recognize files within dart:core. Failure to do so causes
-          // analysis engine to implicitly import (a potentially different version of) dart:core
-          // into the dart:core files in the project, which leads to a large number of false
-          // positives.
-          //
-          result = new ProjectImpl(resource, new DirectoryBasedDartSdk(
-              resource.getLocation().toFile()), getSdkContextId());
-        } else {
-          result = new ProjectImpl(resource, getSdk(), getSdkContextId());
-        }
+        result = new ProjectImpl(resource, getSdk(), getSdkContextId());
         projects.put(resource, result);
       }
       return result;
