@@ -23,6 +23,58 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class NonErrorResolverTest extends ResolverTestCase {
+  public void fail_constDeferredClass_new() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {",
+        "  const A.b();",
+        "}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "main() {",
+        "  new a.A.b();",
+        "}"));
+    resolve(source);
+    assertErrors(source);
+    verify(source);
+  }
+
+  public void fail_loadLibraryDefined() throws Exception {
+    addNamedSource("/lib.dart", createSource(//
+        "library lib;",
+        "foo() => 22;"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' deferred as other;",
+        "main() {",
+        "  other.loadLibrary().then((_) => other.foo());",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void fail_sharedDeferredPrefix() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "f1() {}"));
+    addNamedSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "f2() {}"));
+    addNamedSource("/lib3.dart", createSource(//
+        "library lib3;",
+        "f3() {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as lib1;",
+        "import 'lib2.dart' as lib;",
+        "import 'lib3.dart' as lib;",
+        "main() { lib1.f1(); lib.f2(); lib.f3(); }"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_ambiguousExport() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
@@ -556,23 +608,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertNoErrors(source);
-    verify(source);
-  }
-
-  public void test_constDeferredClass_new() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {",
-        "  const A.b();",
-        "}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as a;",
-        "main() {",
-        "  new a.A.b();",
-        "}"));
-    resolve(source);
-    assertErrors(source);
     verify(source);
   }
 
@@ -2187,20 +2222,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_loadLibraryDefined() throws Exception {
-    addNamedSource("/lib.dart", createSource(//
-        "library lib;",
-        "foo() => 22;"));
-    Source source = addSource(createSource(//
-        "import 'lib.dart' deferred as other;",
-        "main() {",
-        "  other.loadLibrary().then((_) => other.foo());",
-        "}"));
-    resolve(source);
-    assertNoErrors(source);
-    verify(source);
-  }
-
   public void test_mapKeyTypeNotAssignable() throws Exception {
     Source source = addSource(createSource(//
     "var v = <String, int > {'a' : 1};"));
@@ -3491,27 +3512,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class _InvertedCodec<T2, S2> extends Codec<T2, S2> {",
         "  _InvertedCodec(Codec<S2, T2> codec);",
         "}"));
-    resolve(source);
-    assertNoErrors(source);
-    verify(source);
-  }
-
-  public void test_sharedDeferredPrefix() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "f1() {}"));
-    addNamedSource("/lib2.dart", createSource(//
-        "library lib2;",
-        "f2() {}"));
-    addNamedSource("/lib3.dart", createSource(//
-        "library lib3;",
-        "f3() {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as lib1;",
-        "import 'lib2.dart' as lib;",
-        "import 'lib3.dart' as lib;",
-        "main() { lib1.f1(); lib.f2(); lib.f3(); }"));
     resolve(source);
     assertNoErrors(source);
     verify(source);

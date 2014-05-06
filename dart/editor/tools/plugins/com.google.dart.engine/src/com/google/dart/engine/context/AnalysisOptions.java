@@ -54,6 +54,13 @@ public interface AnalysisOptions {
   public boolean getDart2jsHint();
 
   /**
+   * Return {@code true} if analysis is to include the new "deferred loading" support.
+   * 
+   * @return {@code true} if analysis is to include the new "deferred loading" support
+   */
+  public boolean getEnableDeferredLoading();
+
+  /**
    * Return {@code true} if errors, warnings and hints should be generated for sources in the SDK.
    * The default value is {@code false}.
    * 

@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.ast.UriBasedDirective.UriValidationCode;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -285,7 +286,9 @@ public class ParseDartTask extends AnalysisTask {
     try {
       final RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(source, errorListener);
-      parser.setParseFunctionBodies(getContext().getAnalysisOptions().getAnalyzeFunctionBodies());
+      AnalysisOptions options = getContext().getAnalysisOptions();
+      parser.setParseFunctionBodies(options.getAnalyzeFunctionBodies());
+      parser.setParseDeferredLibraries(options.getEnableDeferredLoading());
       unit = parser.parseCompilationUnit(tokenStream);
       unit.setLineInfo(lineInfo);
       AnalysisContext analysisContext = getContext();

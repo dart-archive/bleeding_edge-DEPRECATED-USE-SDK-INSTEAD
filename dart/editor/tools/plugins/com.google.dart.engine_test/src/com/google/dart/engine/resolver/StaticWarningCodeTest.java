@@ -20,6 +20,19 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticWarningCodeTest extends ResolverTestCase {
+  public void fail_importOfNonLibrary() throws Exception {
+    Source source = addSource(createSource(//
+        "library lib;",
+        "import 'part.dart' deferred as p;",
+        "var a = new p.A();"));
+    addNamedSource("/part.dart", createSource(//
+        "part of lib;",
+        "class A {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.IMPORT_OF_NON_LIBRARY);
+    verify(source);
+  }
+
   public void fail_invalidGetterOverrideReturnType_twoInterfaces_conflicting() throws Exception {
     // 17983
     Source source = addSource(createSource(//
@@ -71,6 +84,134 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE);
+    verify(source);
+  }
+
+  public void fail_typeAnnotationDeferredClass_fieldFormalParameter() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class C {",
+        "  var v;",
+        "  C(a.A this.v);",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void fail_typeAnnotationDeferredClass_functionDeclaration_returnType() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "a.A f() { return null; }"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void fail_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType()
+      throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f(a.A g()) {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void fail_typeAnnotationDeferredClass_methodDeclaration_returnType() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class C {",
+        "  a.A m() { return null; }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void fail_typeAnnotationDeferredClass_simpleFormalParameter() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f(a.A v) {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void fail_typeAnnotationDeferredClass_typeArgumentList() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class C<E> {}",
+        "C<a.A> c;"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void fail_typeAnnotationDeferredClass_typeArgumentList2() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class C<E, F> {}",
+        "C<a.A, a.A> c;"));
+    resolve(source);
+    assertErrors(
+        source,
+        StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS,
+        StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void fail_typeAnnotationDeferredClass_typeParameter_bound() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "class C<E extends a.A> {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void fail_typeAnnotationDeferredClass_variableDeclarationList() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "a.A v;"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
     verify(source);
   }
 
@@ -1262,19 +1403,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME,
         HintCode.UNUSED_IMPORT,
         HintCode.UNUSED_IMPORT);
-    verify(source);
-  }
-
-  public void test_importOfNonLibrary() throws Exception {
-    Source source = addSource(createSource(//
-        "library lib;",
-        "import 'part.dart' deferred as p;",
-        "var a = new p.A();"));
-    addNamedSource("/part.dart", createSource(//
-        "part of lib;",
-        "class A {}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.IMPORT_OF_NON_LIBRARY);
     verify(source);
   }
 
@@ -2626,134 +2754,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_typeAnnotationDeferredClass_fieldFormalParameter() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as a;",
-        "class C {",
-        "  var v;",
-        "  C(a.A this.v);",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
-    verify(source);
-  }
-
-  public void test_typeAnnotationDeferredClass_functionDeclaration_returnType() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as a;",
-        "a.A f() { return null; }"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
-    verify(source);
-  }
-
-  public void test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType()
-      throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as a;",
-        "f(a.A g()) {}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
-    verify(source);
-  }
-
-  public void test_typeAnnotationDeferredClass_methodDeclaration_returnType() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as a;",
-        "class C {",
-        "  a.A m() { return null; }",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
-    verify(source);
-  }
-
-  public void test_typeAnnotationDeferredClass_simpleFormalParameter() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as a;",
-        "f(a.A v) {}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
-    verify(source);
-  }
-
-  public void test_typeAnnotationDeferredClass_typeArgumentList() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as a;",
-        "class C<E> {}",
-        "C<a.A> c;"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
-    verify(source);
-  }
-
-  public void test_typeAnnotationDeferredClass_typeArgumentList2() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as a;",
-        "class C<E, F> {}",
-        "C<a.A, a.A> c;"));
-    resolve(source);
-    assertErrors(
-        source,
-        StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS,
-        StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
-    verify(source);
-  }
-
-  public void test_typeAnnotationDeferredClass_typeParameter_bound() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as a;",
-        "class C<E extends a.A> {}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
-    verify(source);
-  }
-
-  public void test_typeAnnotationDeferredClass_variableDeclarationList() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "class A {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as a;",
-        "a.A v;"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
-    verify(source);
-  }
-
   public void test_typeParameterReferencedByStatic_field() throws Exception {
     Source source = addSource(createSource(//
         "class A<K> {",
@@ -3064,4 +3064,5 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, StaticWarningCode.VOID_RETURN_FOR_GETTER);
   }
+
 }

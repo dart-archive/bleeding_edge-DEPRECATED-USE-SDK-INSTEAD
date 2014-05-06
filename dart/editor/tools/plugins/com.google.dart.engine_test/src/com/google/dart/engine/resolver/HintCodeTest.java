@@ -47,6 +47,20 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_importDeferredLibraryWithLoadFunction() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "loadLibrary() {}",
+        "f() {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as lib1;",
+        "main() { lib1.f(); }"));
+    resolve(source);
+    assertErrors(source, HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION);
+    verify(source);
+  }
+
   public void fail_isInt() throws Exception {
     Source source = addSource(createSource(//
     "var v = 1 is int;"));
@@ -759,20 +773,6 @@ public class HintCodeTest extends ResolverTestCase {
         "class B {}"));
     resolve(source);
     assertErrors(source, HintCode.DUPLICATE_IMPORT, HintCode.UNUSED_IMPORT);
-    verify(source);
-  }
-
-  public void test_importDeferredLibraryWithLoadFunction() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "loadLibrary() {}",
-        "f() {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as lib1;",
-        "main() { lib1.f(); }"));
-    resolve(source);
-    assertErrors(source, HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION);
     verify(source);
   }
 

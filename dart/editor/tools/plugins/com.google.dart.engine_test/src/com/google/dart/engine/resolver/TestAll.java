@@ -22,6 +22,7 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(CompileTimeErrorCodeTest.class);
+    suite.addTestSuite(DeferredLoadingTest.class);
     suite.addTestSuite(ErrorResolverTest.class);
     suite.addTestSuite(HintCodeTest.class);
     suite.addTestSuite(MemberMapTest.class);

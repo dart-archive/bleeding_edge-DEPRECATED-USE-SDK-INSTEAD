@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.*;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.BooleanErrorListener;
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.internal.parser.CommentAndMetadata;
 import com.google.dart.engine.internal.parser.FinalConstVarOrType;
 import com.google.dart.engine.internal.parser.Modifiers;
@@ -92,6 +93,11 @@ public class Parser {
    * A flag indicating whether parser is to parse function bodies.
    */
   private boolean parseFunctionBodies = true;
+
+  /**
+   * A flag indicating whether parser is to parse deferred libraries.
+   */
+  private boolean parseDeferredLibraries = AnalysisOptionsImpl.DEFAULT_ENABLE_DEFERRED_LOADING;
 
   /**
    * The next token to be parsed.
@@ -215,6 +221,15 @@ public class Parser {
     } finally {
       instrumentation.log();
     }
+  }
+
+  /**
+   * Set whether parser is to parse deferred libraries.
+   * 
+   * @param parseDeferredLibraries {@code true} if parser is to parse deferred libraries
+   */
+  public void setParseDeferredLibraries(boolean parseDeferredLibraries) {
+    this.parseDeferredLibraries = parseDeferredLibraries;
   }
 
   /**
@@ -4201,7 +4216,12 @@ public class Parser {
     Token asToken = null;
     SimpleIdentifier prefix = null;
     if (matchesKeyword(Keyword.DEFERRED)) {
-      deferredToken = getAndAdvance();
+      if (parseDeferredLibraries) {
+        deferredToken = getAndAdvance();
+      } else {
+        reportErrorForCurrentToken(ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED);
+        advance();
+      }
     }
     if (matchesKeyword(Keyword.AS)) {
       asToken = getAndAdvance();

@@ -1967,6 +1967,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     synchronized (cacheLock) {
       boolean needsRecompute = this.options.getAnalyzeFunctionBodies() != options.getAnalyzeFunctionBodies()
           || this.options.getGenerateSdkErrors() != options.getGenerateSdkErrors()
+          || this.options.getEnableDeferredLoading() != options.getEnableDeferredLoading()
           || this.options.getDart2jsHint() != options.getDart2jsHint()
           || (this.options.getHint() && !options.getHint())
           || this.options.getPreserveComments() != options.getPreserveComments();
@@ -1990,6 +1991,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       this.options.setAnalyzeFunctionBodies(options.getAnalyzeFunctionBodies());
       this.options.setGenerateSdkErrors(options.getGenerateSdkErrors());
+      this.options.setEnableDeferredLoading(options.getEnableDeferredLoading());
       this.options.setDart2jsHint(options.getDart2jsHint());
       this.options.setHint(options.getHint());
       this.options.setIncremental(options.getIncremental());

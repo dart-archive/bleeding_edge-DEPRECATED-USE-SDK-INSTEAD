@@ -27,6 +27,11 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   public static final int DEFAULT_CACHE_SIZE = 64;
 
   /**
+   * The default value for enabling deferred loading.
+   */
+  public static boolean DEFAULT_ENABLE_DEFERRED_LOADING = false;
+
+  /**
    * The maximum number of sources for which AST structures should be kept in the cache.
    */
   private int cacheSize = DEFAULT_CACHE_SIZE;
@@ -74,6 +79,11 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean analyzePolymer = true;
 
   /**
+   * A flag indicating whether analysis is to enable deferred loading.
+   */
+  private boolean enableDeferredLoading = DEFAULT_ENABLE_DEFERRED_LOADING;
+
+  /**
    * Initialize a newly created set of analysis options to have their default values.
    */
   public AnalysisOptionsImpl() {
@@ -115,6 +125,11 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   @Override
   public boolean getDart2jsHint() {
     return dart2jsHint;
+  }
+
+  @Override
+  public boolean getEnableDeferredLoading() {
+    return enableDeferredLoading;
   }
 
   @Override
@@ -182,6 +197,15 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    */
   public void setDart2jsHint(boolean dart2jsHints) {
     this.dart2jsHint = dart2jsHints;
+  }
+
+  /**
+   * Set whether deferred loading should be enabled.
+   * 
+   * @param enableDeferredLoading {@code true} if deferred loading should be enabled
+   */
+  public void setEnableDeferredLoading(boolean enableDeferredLoading) {
+    this.enableDeferredLoading = enableDeferredLoading;
   }
 
   /**
