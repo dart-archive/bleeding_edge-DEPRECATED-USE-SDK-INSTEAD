@@ -2428,6 +2428,18 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_notEnoughRequiredArguments_getterReturningFunction() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef Getter(self);",
+        "Getter getter = (x) => x;",
+        "main() {",
+        "  getter();",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
+    verify(source);
+  }
+
   public void test_partOfDifferentLibrary() throws Exception {
     Source source = addSource(createSource(//
         "library lib;",

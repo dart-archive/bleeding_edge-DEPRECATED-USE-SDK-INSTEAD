@@ -1533,13 +1533,8 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
             return resolveArgumentsToFunction(false, argumentList, callMethod);
           }
         } else if (getterReturnType instanceof FunctionType) {
-          Element functionElement = ((FunctionType) getterReturnType).getElement();
-          if (functionElement instanceof ExecutableElement) {
-            return resolveArgumentsToFunction(
-                false,
-                argumentList,
-                (ExecutableElement) functionElement);
-          }
+          ParameterElement[] parameters = ((FunctionType) getterReturnType).getParameters();
+          return resolveArgumentsToParameters(false, argumentList, parameters);
         }
       }
     } else if (element instanceof ExecutableElement) {
