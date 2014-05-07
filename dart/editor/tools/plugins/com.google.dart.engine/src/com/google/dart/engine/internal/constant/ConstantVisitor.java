@@ -79,6 +79,7 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Instances of the class {@code ConstantVisitor} evaluate constant expressions to produce their
@@ -279,15 +280,42 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
           argumentValues[i] = valueOf(argument);
         }
       }
+      HashSet<ConstructorElement> constructorsVisited = new HashSet<ConstructorElement>();
       InterfaceType definingClass = (InterfaceType) constructor.getReturnType();
-      if (definingClass.getElement().getLibrary().isDartCore()) {
-        String className = definingClass.getName();
-        if (className.equals("Symbol") && argumentCount == 1) {
-          String argumentValue = argumentValues[0].getStringValue();
-          if (argumentValue != null) {
-            return valid(definingClass, new SymbolState(argumentValue));
+      while (constructor.isFactory()) {
+        if (definingClass.getElement().getLibrary().isDartCore()) {
+          String className = definingClass.getName();
+          if (className.equals("Symbol") && argumentCount == 1) {
+            String argumentValue = argumentValues[0].getStringValue();
+            if (argumentValue != null) {
+              return valid(definingClass, new SymbolState(argumentValue));
+            }
           }
         }
+        constructorsVisited.add(constructor);
+        ConstructorElement redirectedConstructor = constructor.getRedirectedConstructor();
+        if (redirectedConstructor == null) {
+          // This can happen if constructor is an external factory constructor.  Since there is no
+          // constructor to delegate to, we currently can't evaluate the constant.
+          // TODO(paulberry): if the constructor is one of {bool,int,String}.fromEnvironment(),
+          // we may be able to infer the value based on -D flags provided to the analyzer (see
+          // dartbug.com/17234).
+          return error(node, null);
+        }
+        if (!redirectedConstructor.isConst()) {
+          // Delegating to a non-const constructor--this is not allowed (and
+          // is checked elsewhere--see [ErrorVerifier.checkForRedirectToNonConstConstructor()]).
+          // So if we encounter it just error out.
+          return error(node, null);
+        }
+        if (constructorsVisited.contains(redirectedConstructor)) {
+          // Cycle in redirecting factory constructors--this is not allowed
+          // and is checked elsewhere--see [ErrorVerifier.checkForRecursiveFactoryRedirect()]).
+          // So if we encounter it just error out.
+          return error(node, null);
+        }
+        constructor = redirectedConstructor;
+        definingClass = (InterfaceType) constructor.getReturnType();
       }
       HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
       ParameterElement[] parameters = constructor.getParameters();

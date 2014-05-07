@@ -1068,6 +1068,24 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constMapKeyTypeImplementsEquals_factory() throws Exception {
+    Source source = addSource(createSource(//
+        "class A { const factory A() = B; }",
+        "",
+        "class B implements A {",
+        "  const B();",
+        "",
+        "  operator ==(o) => true;",
+        "}",
+        "",
+        "main() {",
+        "  var m = const { const A(): 42 };",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS);
+    verify(source);
+  }
+
   public void test_constMapKeyTypeImplementsEquals_super() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

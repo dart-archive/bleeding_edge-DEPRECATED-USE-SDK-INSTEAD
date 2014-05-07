@@ -18,6 +18,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
@@ -326,7 +327,15 @@ public class TestTypeProvider implements TypeProvider {
   @Override
   public InterfaceType getSymbolType() {
     if (symbolType == null) {
-      symbolType = classElement("Symbol").getType();
+      ClassElementImpl symbolClass = classElement("Symbol");
+      ConstructorElementImpl constructor = constructorElement(
+          symbolClass,
+          null,
+          true,
+          getStringType());
+      constructor.setFactory(true);
+      symbolClass.setConstructors(new ConstructorElement[] {constructor});
+      symbolType = symbolClass.getType();
     }
     return symbolType;
   }
