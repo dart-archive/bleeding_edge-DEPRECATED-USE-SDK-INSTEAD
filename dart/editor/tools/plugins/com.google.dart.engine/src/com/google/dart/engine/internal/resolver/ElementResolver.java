@@ -2817,7 +2817,8 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
           element = setter;
         }
       }
-    } else if (element == null && node.inSetterContext()) {
+    } else if (element == null
+        && (node.inSetterContext() || node.getParent() instanceof CommentReference)) {
       element = resolver.getNameScope().lookup(
           new SyntheticIdentifier(node.getName() + "="),
           definingLibrary);
@@ -2825,7 +2826,8 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     ClassElement enclosingClass = resolver.getEnclosingClass();
     if (element == null && enclosingClass != null) {
       InterfaceType enclosingType = enclosingClass.getType();
-      if (element == null && node.inSetterContext()) {
+      if (element == null
+          && (node.inSetterContext() || node.getParent() instanceof CommentReference)) {
         element = lookUpSetter(null, enclosingType, node.getName());
       }
       if (element == null && node.inGetterContext()) {

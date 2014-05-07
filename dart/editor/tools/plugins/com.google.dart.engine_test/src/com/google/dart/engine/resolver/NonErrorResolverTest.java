@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.parser.ParserErrorCode;
@@ -475,6 +476,33 @@ public class NonErrorResolverTest extends ResolverTestCase {
     CompilationUnit unit = getAnalysisContext().parseCompilationUnit(source);
     SimpleIdentifier ref = findNode(unit, code, "foo]", SimpleIdentifier.class);
     assertInstanceOf(MethodElement.class, ref.getStaticElement());
+  }
+
+  public void test_commentReference_setter() throws Exception {
+    String code = createSource(//
+        "class A {",
+        "  /// [x] in A",
+        "  mA() {}",
+        "  set x(value) {}",
+        "}",
+        "class B extends A {",
+        "  /// [x] in B",
+        "  mB() {}",
+        "}",
+        "");
+    Source source = addSource(code);
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = getAnalysisContext().parseCompilationUnit(source);
+    {
+      SimpleIdentifier ref = findNode(unit, code, "x] in A", SimpleIdentifier.class);
+      assertInstanceOf(PropertyAccessorElement.class, ref.getStaticElement());
+    }
+    {
+      SimpleIdentifier ref = findNode(unit, code, "x] in B", SimpleIdentifier.class);
+      assertInstanceOf(PropertyAccessorElement.class, ref.getStaticElement());
+    }
   }
 
   public void test_concreteClassWithAbstractMember() throws Exception {
