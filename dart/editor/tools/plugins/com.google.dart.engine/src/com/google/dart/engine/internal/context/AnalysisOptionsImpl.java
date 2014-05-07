@@ -29,7 +29,7 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   /**
    * The default value for enabling deferred loading.
    */
-  public static boolean DEFAULT_ENABLE_DEFERRED_LOADING = false;
+  public static boolean DEFAULT_ENABLE_DEFERRED_LOADING = true;
 
   /**
    * A flag indicating whether analysis is to analyze Angular.

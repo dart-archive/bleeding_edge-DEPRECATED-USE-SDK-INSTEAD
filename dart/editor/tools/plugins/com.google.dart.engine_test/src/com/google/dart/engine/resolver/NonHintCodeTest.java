@@ -16,19 +16,6 @@ package com.google.dart.engine.resolver;
 import com.google.dart.engine.source.Source;
 
 public class NonHintCodeTest extends ResolverTestCase {
-  public void fail_importDeferredLibraryWithLoadFunction() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "f() {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as lib1;",
-        "main() { lib1.f(); }"));
-    resolve(source);
-    assertNoErrors(source);
-    verify(source);
-  }
-
   public void test_deadCode_deadBlock_conditionalElse_debugConst() throws Exception {
     Source source = addSource(createSource(//
         "const bool DEBUG = true;",
@@ -240,6 +227,19 @@ public class NonHintCodeTest extends ResolverTestCase {
         "library lib1;",
         "class A {}",
         "class B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_importDeferredLibraryWithLoadFunction() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "f() {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as lib1;",
+        "main() { lib1.f(); }"));
     resolve(source);
     assertNoErrors(source);
     verify(source);

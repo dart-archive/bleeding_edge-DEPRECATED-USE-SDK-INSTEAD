@@ -29,16 +29,6 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
   private String testCode;
   private HighlightRegion[] regions;
 
-  public void fail_BUILT_IN_deferred() throws Exception {
-    prepareRegions(//
-        "import 'dart:math' deferred as math;",
-        "main() {",
-        "  int deferred = 42;",
-        "}");
-    assertHasRegion("deferred as math", HighlightType.BUILT_IN);
-    assertNoRegion("deferred = 42", HighlightType.BUILT_IN);
-  }
-
   public void test_ANNOTATION_hasArguments() throws Exception {
     prepareRegions(//
         "class AAA {",
@@ -76,6 +66,16 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
     assertHasRegion("as math", HighlightType.BUILT_IN);
     assertHasRegion("as int", HighlightType.BUILT_IN);
     assertNoRegion("as = 42", HighlightType.BUILT_IN);
+  }
+
+  public void test_BUILT_IN_deferred() throws Exception {
+    prepareRegions(//
+        "import 'dart:math' deferred as math;",
+        "main() {",
+        "  int deferred = 42;",
+        "}");
+    assertHasRegion("deferred as math", HighlightType.BUILT_IN);
+    assertNoRegion("deferred = 42", HighlightType.BUILT_IN);
   }
 
   public void test_BUILT_IN_export() throws Exception {
