@@ -1,3 +1,4 @@
+﻿(* Run normally *)
 Click "run button"
 util.xWait 5
 util.xWaitFor 20, "browser right arrow button"
@@ -5,6 +6,23 @@ Click "browser right arrow button"
 util.xWaitFor 20,"sunflower slider"
 Click "sunflower slider"
 util.exitChromium
+
+(* Run with a breakpoint set on a function declaraction *)
+set the SearchRectangle to ()
+put -40 into offset
+if (util's isLinux) then
+  put -60 into offset
+end if
+put (ImageLocation(Text:"void draw",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)) into declLoc
+DoubleClick declLoc + (offset,0)
+Click "run button"
+util.xWait 2
+Click (1000,40) (* work-around for broken debug UX on linux *)
+util.xWaitFor 10, "debug line indicator"
+DoubleClick declLoc + (offset,0)
+Click "stop debug button"
+
+(* Run with an error that causes the debugger to activate *)
 DoubleClick (Text:"void main",CaseSensitive:"yes")
 util.xWait 0.4
 TypeText downArrow
@@ -16,6 +34,8 @@ util.xWait 0.5
 util.saveFile
 util.xWait 5
 util.runApp
+util.xWait 2
+Click (1000,40) (* work-around for broken debug UX on linux *)
 put the SearchRectangle into origRect
 set the SearchRectangle to ((0,800),(1920,1200))
 util.xWaitFor 10, (Text:"Breaking",CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)

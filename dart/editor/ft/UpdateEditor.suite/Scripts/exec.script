@@ -3,22 +3,22 @@
 (* Most scripts use util.xWait for timing. This one uses wait because the bots have amazing bandwidth. *)
 
 if the paramCount > 0 then
-	Connect (serverID: server, portNum: port, password: passwd, visible: "No")
+  Connect (serverID: server, portNum: port, password: passwd, visible: "No")
 end if
 util.init()
 set the SearchRectangle to ((0,100),(200,300))
 DoubleClick "UpdateEditor"
-wait 1
+wait 5
 if util.isMacOSX() then
-	set the SearchRectangle to ((0,0),(150,50))
-	repeat while imageFound("UpdateMacIcon")
-		wait 2
-	end repeat
+  set the SearchRectangle to ((0,0),(150,50))
+  repeat while imageFound("UpdateMacIcon")
+    wait 2
+  end repeat
 else if util.isLinux() then
-	set the SearchRectangle to ((0,200),(200,500))
-	repeat while imageFound("UpdateLinuxIcon")
-		wait 2
-	end repeat
+  set the SearchRectangle to ((0,200),(200,500))
+  repeat while imageFound("UpdateLinuxIcon")
+    wait 2
+  end repeat
 end if
 set the SearchRectangle to ()
 wait 1
