@@ -954,7 +954,10 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
     unit.getDirectives().add(
-        importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
+        importDirective(
+            "engine.dart",
+            null,
+            importShowCombinator("AnalysisEngine", "AnalysisOptionsImpl")));
     unit.getDirectives().add(
         importDirective("utilities_collection.dart", null, importShowCombinator("TokenMap")));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {

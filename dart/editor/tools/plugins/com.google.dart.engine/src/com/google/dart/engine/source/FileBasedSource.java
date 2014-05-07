@@ -319,6 +319,7 @@ public class FileBasedSource implements Source {
    * Returns a {@link FileInputStream} for the {@link #file} with skipped optional leading UTF-8
    * BOM.
    */
+  @DartOmit
   private FileInputStream getFileInputStreamWithoutBOM() throws Exception {
     FileInputStream in = new FileInputStream(file);
     // check if there is an UTF-8 BOM
@@ -349,6 +350,7 @@ public class FileBasedSource implements Source {
   /**
    * Skips an optional UTF-8 BOM.
    */
+  @DartOmit
   private void skipOptionalBOM(ByteBuffer byteBuffer) {
     if (byteBuffer.remaining() >= 3 && byteBuffer.get(0) == (byte) 0xEF
         && byteBuffer.get(1) == (byte) 0xBB && byteBuffer.get(2) == (byte) 0xBF) {
