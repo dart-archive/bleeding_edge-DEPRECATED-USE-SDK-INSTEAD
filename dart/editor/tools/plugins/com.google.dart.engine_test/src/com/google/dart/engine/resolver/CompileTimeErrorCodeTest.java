@@ -2240,6 +2240,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAnnotation_useLibraryScope() throws Exception {
+    Source source = addSource(createSource(//
+        "@foo",
+        "class A {",
+        "  static const foo = null;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
+  }
+
   public void test_invalidConstructorName_notEnclosingClassName_defined() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

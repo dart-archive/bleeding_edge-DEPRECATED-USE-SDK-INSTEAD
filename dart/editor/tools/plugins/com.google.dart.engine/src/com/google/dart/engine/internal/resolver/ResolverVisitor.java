@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
@@ -120,6 +121,12 @@ public class ResolverVisitor extends ScopedVisitor {
   private ClassElement enclosingClass = null;
 
   /**
+   * The class declaration representing the class containing the current node, or {@code null} if
+   * the current node is not contained in a class.
+   */
+  private ClassDeclaration enclosingClassDeclaration = null;
+
+  /**
    * The element representing the function containing the current node, or {@code null} if the
    * current node is not contained in a function.
    */
@@ -224,6 +231,14 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   @Override
+  public Void visitAnnotation(Annotation node) {
+    if (node.getParent() == enclosingClassDeclaration) {
+      return null;
+    }
+    return super.visitAnnotation(node);
+  }
+
+  @Override
   public Void visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
     overrideExpression(node.getExpression(), node.getType().getType());
@@ -308,6 +323,12 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
+    // Resolve the class metadata in the library scope.
+    if (node.getMetadata() != null) {
+      node.getMetadata().accept(this);
+    }
+    enclosingClassDeclaration = node;
+    // Continue the class resolution.
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.getElement();
@@ -316,6 +337,7 @@ public class ResolverVisitor extends ScopedVisitor {
     } finally {
       typeAnalyzer.setThisType(outerType == null ? null : outerType.getType());
       enclosingClass = outerType;
+      enclosingClassDeclaration = null;
     }
     return null;
   }
