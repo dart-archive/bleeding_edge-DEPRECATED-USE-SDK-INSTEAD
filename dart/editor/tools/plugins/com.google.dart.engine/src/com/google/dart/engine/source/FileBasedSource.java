@@ -223,6 +223,7 @@ public class FileBasedSource implements Source {
       }
       if (byteBuffer != null) {
         byteBuffer.rewind();
+        skipOptionalBOM(byteBuffer);
         return new TimestampedData<CharSequence>(modificationTime, UTF_8_CHARSET.decode(byteBuffer));
       }
     } catch (IOException exception) {
@@ -235,7 +236,7 @@ public class FileBasedSource implements Source {
     InputStreamReader reader = null;
     String contents;
     try {
-      reader = new InputStreamReader(new FileInputStream(file), "UTF-8");
+      reader = new InputStreamReader(getFileInputStreamWithoutBOM(), "UTF-8");
       contents = FileUtilities.getContents(reader);
     } finally {
       if (reader != null) {
@@ -286,6 +287,7 @@ public class FileBasedSource implements Source {
       }
       if (byteBuffer != null) {
         byteBuffer.rewind();
+        skipOptionalBOM(byteBuffer);
         receiver.accept(UTF_8_CHARSET.decode(byteBuffer), modificationTime);
         return;
       }
@@ -299,7 +301,7 @@ public class FileBasedSource implements Source {
     InputStreamReader reader = null;
     String contents;
     try {
-      reader = new InputStreamReader(new FileInputStream(file), "UTF-8");
+      reader = new InputStreamReader(getFileInputStreamWithoutBOM(), "UTF-8");
       contents = FileUtilities.getContents(reader);
     } finally {
       if (reader != null) {
@@ -311,6 +313,21 @@ public class FileBasedSource implements Source {
       }
     }
     receiver.accept(contents, modificationTime);
+  }
+
+  /**
+   * Returns a {@link FileInputStream} for the {@link #file} with skipped optional leading UTF-8
+   * BOM.
+   */
+  private FileInputStream getFileInputStreamWithoutBOM() throws Exception {
+    FileInputStream in = new FileInputStream(file);
+    // check if there is an UTF-8 BOM
+    if (in.read() == (byte) 0xEF && in.read() == (byte) 0xBB && in.read() == (byte) 0xBF) {
+      return in;
+    }
+    // re-open stream
+    in.close();
+    return new FileInputStream(file);
   }
 
   /**
@@ -326,6 +343,16 @@ public class FileBasedSource implements Source {
       } finally {
         builder.log();
       }
+    }
+  }
+
+  /**
+   * Skips an optional UTF-8 BOM.
+   */
+  private void skipOptionalBOM(ByteBuffer byteBuffer) {
+    if (byteBuffer.remaining() >= 3 && byteBuffer.get(0) == (byte) 0xEF
+        && byteBuffer.get(1) == (byte) 0xBB && byteBuffer.get(2) == (byte) 0xBF) {
+      byteBuffer.position(3);
     }
   }
 }
