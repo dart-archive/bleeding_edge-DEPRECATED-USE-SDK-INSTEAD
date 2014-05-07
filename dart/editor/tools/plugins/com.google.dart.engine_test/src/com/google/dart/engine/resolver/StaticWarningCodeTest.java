@@ -773,6 +773,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_assignmentToFunction() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {}",
+        "main() {",
+        "  f = null;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FUNCTION);
+    verify(source);
+  }
+
   public void test_assignmentToMethod() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

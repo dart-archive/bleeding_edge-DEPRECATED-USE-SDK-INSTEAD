@@ -82,8 +82,16 @@ public enum StaticWarningCode implements ErrorCode {
   ASSIGNMENT_TO_FINAL("'%s' cannot be used as a setter, it is final"),
 
   /**
+   * 12.18 Assignment: It is as static warning if an assignment of the form <i>v = e</i> occurs
+   * inside a top level or static function (be it function, method, getter, or setter) or variable
+   * initializer and there is neither a local variable declaration with name <i>v</i> nor setter
+   * declaration with name <i>v=</i> in the lexical scope enclosing the assignment.
+   */
+  ASSIGNMENT_TO_FUNCTION("Functions cannot be assigned a value"),
+
+  /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
-   * warning if <i>T</i> does not have an accessible instance setter named <i>v =</i>.
+   * warning if <i>T</i> does not have an accessible instance setter named <i>v=</i>.
    */
   ASSIGNMENT_TO_METHOD("Methods cannot be assigned a value"),
 

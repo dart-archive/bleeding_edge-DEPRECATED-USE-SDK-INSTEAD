@@ -2097,6 +2097,10 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       }
       return false;
     }
+    if (element instanceof FunctionElement) {
+      errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_FUNCTION, expression);
+      return true;
+    }
     if (element instanceof MethodElement) {
       errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_METHOD, expression);
       return true;
