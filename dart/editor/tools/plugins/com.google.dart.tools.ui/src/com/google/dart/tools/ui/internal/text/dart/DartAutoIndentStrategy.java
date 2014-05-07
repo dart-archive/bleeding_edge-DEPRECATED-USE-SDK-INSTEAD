@@ -1058,6 +1058,10 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 //    return indenter.isAfterClassPrologue(p);
 //  }
 
+  private boolean hasMultiLineStringQuotes(String lineContent) {
+    return lineContent.contains("'''") || lineContent.contains("\"\"\"");
+  }
+
   private boolean isClosed(IDocument document, int offset, int length) {
     CompilationUnitInfo info = getCompilationUnitForMethod(document, offset);
     if (info == null) {
@@ -1119,6 +1123,20 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     return false;
   }
 
+//  /**
+//   * If "p" is right after "{" and the next token is "," or ")" - i.e. tokens that we expect to
+//   * follow a closure in an argument list.
+//   */
+//  private boolean looksLikeAfterLBraceForClosure(IDocument d, int p) {
+//    DartHeuristicScanner scanner = new DartHeuristicScanner(d);
+//    int len = d.getLength();
+//    int token = scanner.nextToken(p, len);
+//    if (token == Symbols.TokenCOMMA || token == Symbols.TokenRPAREN) {
+//      return true;
+//    }
+//    return false;
+//  }
+
   /**
    * Tells whether the given inserted string represents hitting the Tab key.
    * 
@@ -1144,20 +1162,6 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       return text.length() == 1 && text.charAt(0) == '\t';
     }
   }
-
-//  /**
-//   * If "p" is right after "{" and the next token is "," or ")" - i.e. tokens that we expect to
-//   * follow a closure in an argument list.
-//   */
-//  private boolean looksLikeAfterLBraceForClosure(IDocument d, int p) {
-//    DartHeuristicScanner scanner = new DartHeuristicScanner(d);
-//    int len = d.getLength();
-//    int token = scanner.nextToken(p, len);
-//    if (token == Symbols.TokenCOMMA || token == Symbols.TokenRPAREN) {
-//      return true;
-//    }
-//    return false;
-//  }
 
   private boolean shouldCloseUnbalancedBrace(IDocument d, int p, int lineEnd) {
     DartHeuristicScanner scanner = new DartHeuristicScanner(d);
@@ -1564,11 +1568,19 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       int first = document.computeNumberOfLines(prefix) + firstLine; // don't format first line
       int lines = temp.getNumberOfLines();
       int tabLength = getVisualTabLengthPreference();
+
+      boolean isInMultiLineString = false;
+      {
+        IRegion r = temp.getLineInformation(0);
+        isInMultiLineString = hasMultiLineStringQuotes(temp.get(r.getOffset(), r.getLength()));
+      }
+
       for (int l = first; l < lines; l++) { // we don't change the number of lines while adding indents
 
         IRegion r = temp.getLineInformation(l);
         int lineOffset = r.getOffset();
         int lineLength = r.getLength();
+        String lineContent = temp.get(lineOffset, lineLength);
 
         if (lineLength == 0) {
           continue;
@@ -1606,10 +1618,16 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         insertLength = subtractIndent(correct, current, addition, tabLength);
 
         // relatively indent all pasted lines
-        if (insertLength > 0) {
-          addIndent(temp, l, addition, tabLength);
-        } else if (insertLength < 0) {
-          cutIndent(temp, l, -insertLength, tabLength);
+        if (!isInMultiLineString) {
+          if (insertLength > 0) {
+            addIndent(temp, l, addition, tabLength);
+          } else if (insertLength < 0) {
+            cutIndent(temp, l, -insertLength, tabLength);
+          }
+        }
+
+        if (hasMultiLineStringQuotes(lineContent)) {
+          isInMultiLineString = !isInMultiLineString;
         }
 
       }

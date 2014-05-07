@@ -424,6 +424,32 @@ public class DartAutoIndentStrategyTest extends EngineTestCase {
         "!}"));
   }
 
+  public void test_smartPaste_multiLineString_doubleQuote() throws Exception {
+    assertSmartPaste(createSource(//
+        "main() {",
+        "  var a = !;",
+        "}"), "\"\"\"" + EOL + "000" + EOL + "  111" + EOL + "\"\"\"", createSource(//
+        "main() {",
+        "  var a = \"\"\"",
+        "000",
+        "  111",
+        "\"\"\"!;",
+        "}"));
+  }
+
+  public void test_smartPaste_multiLineString_singleQuote() throws Exception {
+    assertSmartPaste(createSource(//
+        "main() {",
+        "  var a = !;",
+        "}"), "'''" + EOL + "000" + EOL + "  111" + EOL + "'''", createSource(//
+        "main() {",
+        "  var a = '''",
+        "000",
+        "  111",
+        "'''!;",
+        "}"));
+  }
+
   public void test_smartPaste_preventNegativeIndent() throws Exception {
     assertSmartPaste(createSource(//
         "main() {",
