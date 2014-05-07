@@ -11,6 +11,7 @@ import optparse
 import os
 import subprocess
 import sys
+import time
 import urllib
 
 from os.path import join
@@ -107,9 +108,24 @@ def _PromoteDartArchiveBuild(channel, revision):
         raise Exception(
             "InternalError: Sanity check failed on GS URI: %s" % gs_path)
 
+    # Google cloud storage has read-after-write, read-after-update,
+    # and read-after-delete consistency, but not list after delete consistency.
+    # Because gsutil uses list to figure out if it should do the unix styly
+    # copy to or copy into, this means that if the directory is reported as
+    # still being there (after it has been deleted) gsutil will copy
+    # into the directory instead of to the directory.
+    def wait_for_delete_to_be_consistent_with_list(gs_path):
+      while True:
+        (_, _, exit_code) = Gsutil(['ls', gs_path], throw_on_error=False)
+        # gsutil will exit 1 if the "directory" does not exist
+        if exit_code != 0:
+          break
+        time.sleep(1)
+
     def remove_gs_directory(gs_path):
       safety_check_on_gs_path(gs_path, to_revision, channel)
       Gsutil(['-m', 'rm', '-R', '-f', gs_path])
+      wait_for_delete_to_be_consistent_with_list(gs_path)
 
     # Copy sdk directory.
     from_loc = raw_namer.sdk_directory(revision)
@@ -167,9 +183,10 @@ def _PromoteDartArchiveBuild(channel, revision):
   promote(revision)
   promote('latest')
 
-def Gsutil(cmd):
+def Gsutil(cmd, throw_on_error=True):
   gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
-  bot_utils.run([sys.executable, gsutilTool] + cmd)
+  return bot_utils.run([sys.executable, gsutilTool] + cmd,
+                       throw_on_error=throw_on_error)
 
 
 if __name__ == '__main__':
