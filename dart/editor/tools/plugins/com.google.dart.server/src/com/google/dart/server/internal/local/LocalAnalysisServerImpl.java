@@ -166,11 +166,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   private boolean test_paused;
 
   /**
-   * This is used only for testing purposes and allows tests to disable SDK analysis for speed.
-   */
-  private boolean test_disableForcedSdkAnalysis;
-
-  /**
    * This is used only for testing purposes and allows tests to check the order of operations.
    */
   private List<String> test_analyzedContexts;
@@ -607,11 +602,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   @VisibleForTesting
-  public void test_disableForcedSdkAnalysis() {
-    this.test_disableForcedSdkAnalysis = true;
-  }
-
-  @VisibleForTesting
   public void test_pingListeners() {
     listener.computedErrors(null, null, null);
   }
@@ -661,9 +651,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
       SourceFactory factory = context.getSourceFactory();
       AnalysisDelta delta = new AnalysisDelta();
       for (String uri : sdk.getUris()) {
-        if (!test_disableForcedSdkAnalysis || uri.equals(DartSdk.DART_CORE)) {
-          delta.setAnalysisLevel(factory.forUri(uri), AnalysisLevel.RESOLVED);
-        }
+        delta.setAnalysisLevel(factory.forUri(uri), AnalysisLevel.RESOLVED);
       }
       context.applyAnalysisDelta(delta);
       String sdkContextId = "dart-sdk-internal-" + nextId.getAndIncrement();
