@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.cache;
 
-import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.MapIterator;
 import com.google.dart.engine.utilities.collection.SingleMapIterator;
@@ -259,9 +258,9 @@ public abstract class CachePartition {
       }
     }
     if (sourceToRemove < 0) {
-      AnalysisEngine.getInstance().getLogger().logError(
-          "Internal error: Could not flush data from the cache",
-          new Exception());
+      // This happens if the retention policy returns a priority of HIGH for all of the sources that
+      // have been recently used. This is the case, for example, when the list of priority sources
+      // is bigger than the current cache size.
       return null;
     }
     return recentlyUsed.remove(sourceToRemove);
