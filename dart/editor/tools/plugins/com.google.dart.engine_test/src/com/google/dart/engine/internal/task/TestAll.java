@@ -22,6 +22,7 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(AnalysisTaskTest.class);
+    suite.addTestSuite(BuildDartElementModelTaskTest.class);
     suite.addTestSuite(GenerateDartErrorsTaskTest.class);
     suite.addTestSuite(GenerateDartHintsTaskTest.class);
     suite.addTestSuite(GetContentTaskTest.class);
@@ -31,6 +32,7 @@ public class TestAll {
     suite.addTestSuite(ResolveDartLibraryTaskTest.class);
     suite.addTestSuite(ResolveDartUnitTaskTest.class);
     suite.addTestSuite(ResolveHtmlTaskTest.class);
+    suite.addTestSuite(ScanDartTaskTest.class);
     return suite;
   }
 }

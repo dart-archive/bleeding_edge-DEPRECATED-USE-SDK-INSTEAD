@@ -34,6 +34,10 @@ public class ObjectUtilitiesTest extends TestCase {
     assertFalse(ObjectUtilities.equals("test", null));
   }
 
+  public void test_equals_null_notNull() {
+    assertFalse(ObjectUtilities.equals(null, "test"));
+  }
+
   public void test_equals_null_null() {
     assertTrue(ObjectUtilities.equals(null, null));
   }

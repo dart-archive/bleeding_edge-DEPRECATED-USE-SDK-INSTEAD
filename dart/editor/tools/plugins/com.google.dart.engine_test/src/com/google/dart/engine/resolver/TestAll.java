@@ -26,8 +26,8 @@ public class TestAll {
     suite.addTestSuite(ErrorResolverTest.class);
     suite.addTestSuite(HintCodeTest.class);
     suite.addTestSuite(MemberMapTest.class);
-    suite.addTestSuite(NonHintCodeTest.class);
     suite.addTestSuite(NonErrorResolverTest.class);
+    suite.addTestSuite(NonHintCodeTest.class);
     //suite.addTestSuite(PubSuggestionCodeTest.class);
     suite.addTestSuite(SimpleResolverTest.class);
     suite.addTestSuite(StaticTypeWarningCodeTest.class);

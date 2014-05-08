@@ -28,6 +28,7 @@ public class TestAll {
     suite.addTestSuite(ListUtilitiesTest.class);
     suite.addTestSuite(MultipleMapIteratorTest.class);
     suite.addTestSuite(SingleMapIteratorTest.class);
+    suite.addTestSuite(TokenMapTest.class);
     return suite;
   }
 }

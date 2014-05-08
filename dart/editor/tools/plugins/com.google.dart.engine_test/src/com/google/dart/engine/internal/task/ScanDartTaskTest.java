@@ -50,7 +50,7 @@ public class ScanDartTaskTest extends EngineTestCase {
 
   public void test_getModificationTime() {
     ScanDartTask task = new ScanDartTask(null, null, 0L, null);
-    assertEquals(-1L, task.getModificationTime());
+    assertEquals(0L, task.getModificationTime());
   }
 
   public void test_getSource() {
