@@ -53,14 +53,14 @@ public class NumState extends InstanceState {
   }
 
   @Override
-  public boolean equals(Object object) {
-    return object instanceof NumState;
-  }
-
-  @Override
   public BoolState equalEqual(InstanceState rightOperand) throws EvaluationException {
     assertBoolNumStringOrNull(rightOperand);
     return BoolState.UNKNOWN_VALUE;
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    return object instanceof NumState;
   }
 
   @Override
@@ -104,6 +104,11 @@ public class NumState extends InstanceState {
   @Override
   public boolean isBoolNumStringOrNull() {
     return true;
+  }
+
+  @Override
+  public boolean isUnknown() {
+    return this == UNKNOWN_VALUE;
   }
 
   @Override

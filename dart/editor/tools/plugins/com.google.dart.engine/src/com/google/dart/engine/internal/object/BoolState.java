@@ -129,6 +129,11 @@ public class BoolState extends InstanceState {
   }
 
   @Override
+  public boolean isUnknown() {
+    return value == null;
+  }
+
+  @Override
   public BoolState logicalAnd(InstanceState rightOperand) throws EvaluationException {
     assertBool(rightOperand);
     if (value == null) {

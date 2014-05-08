@@ -47,6 +47,15 @@ public class GenericState extends InstanceState {
   }
 
   @Override
+  public BoolState equalEqual(InstanceState rightOperand) throws EvaluationException {
+    assertBoolNumStringOrNull(rightOperand);
+    if (rightOperand instanceof DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(equals(rightOperand));
+  }
+
+  @Override
   public boolean equals(Object object) {
     if (!(object instanceof GenericState)) {
       return false;
@@ -68,15 +77,6 @@ public class GenericState extends InstanceState {
   }
 
   @Override
-  public BoolState equalEqual(InstanceState rightOperand) throws EvaluationException {
-    assertBoolNumStringOrNull(rightOperand);
-    if (rightOperand instanceof DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
-    return BoolState.from(equals(rightOperand));
-  }
-
-  @Override
   public String getTypeName() {
     return "user defined type";
   }
@@ -88,5 +88,10 @@ public class GenericState extends InstanceState {
       hashCode += value.hashCode();
     }
     return hashCode;
+  }
+
+  @Override
+  public boolean isUnknown() {
+    return this == UNKNOWN_VALUE;
   }
 }

@@ -111,6 +111,11 @@ public class StringState extends InstanceState {
   }
 
   @Override
+  public boolean isUnknown() {
+    return value == null;
+  }
+
+  @Override
   public String toString() {
     return value == null ? "-unknown-" : "'" + value + "'";
   }

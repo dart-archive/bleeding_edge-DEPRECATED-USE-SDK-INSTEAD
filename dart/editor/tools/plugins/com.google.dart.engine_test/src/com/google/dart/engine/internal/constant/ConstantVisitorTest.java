@@ -141,7 +141,7 @@ public class ConstantVisitorTest extends ResolverTestCase {
         "  const factory A() = A.b;",
         "  const factory A.b() = A;",
         "}"));
-    assertError(evaluateConstant(compilationUnit, "foo"));
+    assertValidUnknown(evaluateConstant(compilationUnit, "foo"));
   }
 
   public void test_visitInstanceCreationExpression_redirect_extern() throws Exception {
@@ -150,7 +150,7 @@ public class ConstantVisitorTest extends ResolverTestCase {
         "class A {",
         "  external const factory A();",
         "}"));
-    assertError(evaluateConstant(compilationUnit, "foo"));
+    assertValidUnknown(evaluateConstant(compilationUnit, "foo"));
   }
 
   public void test_visitInstanceCreationExpression_redirect_nonConst() throws Exception {
@@ -163,7 +163,7 @@ public class ConstantVisitorTest extends ResolverTestCase {
         "  const factory A() = A.b;",
         "  A.b();",
         "}"));
-    assertError(evaluateConstant(compilationUnit, "foo"));
+    assertValidUnknown(evaluateConstant(compilationUnit, "foo"));
   }
 
   public void test_visitInstanceCreationExpression_symbol() throws Exception {
@@ -175,14 +175,16 @@ public class ConstantVisitorTest extends ResolverTestCase {
     assertEquals("a", value.getValue());
   }
 
-  private void assertError(EvaluationResultImpl result) {
-    assertInstanceOf(ErrorResult.class, result);
-  }
-
   private void assertType(EvaluationResultImpl result, String typeName) {
     assertInstanceOf(ValidResult.class, result);
     DartObjectImpl value = ((ValidResult) result).getValue();
     assertEquals(typeName, value.getType().getName());
+  }
+
+  private void assertValidUnknown(EvaluationResultImpl result) {
+    assertInstanceOf(ValidResult.class, result);
+    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertTrue(value.isUnknown());
   }
 
   private void assertValue(long expectedValue, EvaluationResultImpl result) {

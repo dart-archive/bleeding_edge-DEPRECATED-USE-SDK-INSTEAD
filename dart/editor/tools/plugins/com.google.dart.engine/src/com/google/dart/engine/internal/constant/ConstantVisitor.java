@@ -300,19 +300,19 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
           // TODO(paulberry): if the constructor is one of {bool,int,String}.fromEnvironment(),
           // we may be able to infer the value based on -D flags provided to the analyzer (see
           // dartbug.com/17234).
-          return error(node, null);
+          return validWithUnknownValue(definingClass);
         }
         if (!redirectedConstructor.isConst()) {
           // Delegating to a non-const constructor--this is not allowed (and
           // is checked elsewhere--see [ErrorVerifier.checkForRedirectToNonConstConstructor()]).
-          // So if we encounter it just error out.
-          return error(node, null);
+          // So if we encounter it just consider it an unknown value to suppress further errors.
+          return validWithUnknownValue(definingClass);
         }
         if (constructorsVisited.contains(redirectedConstructor)) {
           // Cycle in redirecting factory constructors--this is not allowed
           // and is checked elsewhere--see [ErrorVerifier.checkForRecursiveFactoryRedirect()]).
-          // So if we encounter it just error out.
-          return error(node, null);
+          // So if we encounter it just consider it an unknown value to suppress further errors.
+          return validWithUnknownValue(definingClass);
         }
         constructor = redirectedConstructor;
         definingClass = (InterfaceType) constructor.getReturnType();

@@ -325,6 +325,13 @@ public class DartObjectImpl implements DartObject {
   }
 
   /**
+   * Return true if this object represents an unknown value.
+   */
+  public boolean isUnknown() {
+    return state.isUnknown();
+  }
+
+  /**
    * Return {@code true} if this object represents an instance of a user-defined class.
    * 
    * @return {@code true} if this object represents an instance of a user-defined class

@@ -221,6 +221,13 @@ public abstract class InstanceState {
   }
 
   /**
+   * Return true if this object represents an unknown value.
+   */
+  public boolean isUnknown() {
+    return false;
+  }
+
+  /**
    * Return the result of invoking the '&lt;' operator on this object with the given argument.
    * 
    * @param rightOperand the right-hand operand of the operation

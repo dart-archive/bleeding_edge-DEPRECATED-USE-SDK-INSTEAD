@@ -471,6 +471,19 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constEval_newInstance_externalFactoryConstConstructor() throws Exception {
+    // We can't evaluate "const A()" because its constructor is external.  But
+    // the code is correct--we shouldn't report an error.
+    Source source = addSource(createSource(//
+        "class A {",
+        "  external factory const A();",
+        "}",
+        "const x = const A();"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_constEval_propertyExtraction_targetNotConst() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
