@@ -2641,6 +2641,13 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (node.getFactoryKeyword() != null) {
       return false;
     }
+    // check for mixins
+    if (enclosingClass.getMixins().length != 0) {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN,
+          node.getReturnType());
+      return true;
+    }
     // try to find and check super constructor invocation
     for (ConstructorInitializer initializer : node.getInitializers()) {
       if (initializer instanceof SuperConstructorInvocation) {
@@ -2651,7 +2658,8 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         }
         errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
-            superInvocation);
+            superInvocation,
+            element.getEnclosingElement().getDisplayName());
         return true;
       }
     }
@@ -2673,7 +2681,8 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     // default constructor is not 'const', report problem
     errorReporter.reportErrorForNode(
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
-        node.getReturnType());
+        node.getReturnType(),
+        supertype.getDisplayName());
     return true;
   }
 

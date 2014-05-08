@@ -360,6 +360,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constConstructorWithMixin() throws Exception {
+    Source source = addSource(createSource(//
+        "class M {",
+        "}",
+        "class A extends Object with M {",
+        "  const A();",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN);
+    verify(source);
+  }
+
   public void test_constConstructorWithNonConstSuper_explicit() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -395,7 +407,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const B();",
         "}"));
     resolve(source);
-    assertErrors(source, CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN,
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
     verify(source);
   }
 
@@ -2210,6 +2225,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
   }
 
+  public void test_invalidAnnotation_useLibraryScope() throws Exception {
+    Source source = addSource(createSource(//
+        "@foo",
+        "class A {",
+        "  static const foo = null;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
+  }
+
   public void test_invalidAnnotationFromDeferredLibrary() throws Exception {
     // See test_invalidAnnotation_notConstantVariable
     addNamedSource("/lib1.dart", createSource(//
@@ -2251,16 +2276,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY);
     verify(source);
-  }
-
-  public void test_invalidAnnotation_useLibraryScope() throws Exception {
-    Source source = addSource(createSource(//
-        "@foo",
-        "class A {",
-        "  static const foo = null;",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
   }
 
   public void test_invalidConstructorName_notEnclosingClassName_defined() throws Exception {

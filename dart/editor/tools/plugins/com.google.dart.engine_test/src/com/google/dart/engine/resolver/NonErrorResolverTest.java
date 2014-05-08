@@ -560,7 +560,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const B();",
         "}"));
     resolve(source);
-    assertNoErrors(source);
+    assertErrors(source, CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN);
     verify(source);
   }
 

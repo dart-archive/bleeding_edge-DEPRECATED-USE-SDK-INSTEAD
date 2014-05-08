@@ -139,9 +139,19 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.6.3 Constant Constructors: The superinitializer that appears, explicitly or implicitly, in
    * the initializer list of a constant constructor must specify a constant constructor of the
    * superclass of the immediately enclosing class or a compile-time error occurs.
+   * <p>
+   * 9 Mixins: For each generative constructor named ... an implicitly declared constructor named
+   * ... is declared.
+   */
+  CONST_CONSTRUCTOR_WITH_MIXIN("Constant constructor cannot be declared for a class with a mixin"),
+
+  /**
+   * 7.6.3 Constant Constructors: The superinitializer that appears, explicitly or implicitly, in
+   * the initializer list of a constant constructor must specify a constant constructor of the
+   * superclass of the immediately enclosing class or a compile-time error occurs.
    */
   CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER(
-      "Constant constructor cannot call non-constant super constructor"),
+      "Constant constructor cannot call non-constant super constructor of '%s'"),
 
   /**
    * 7.6.3 Constant Constructors: It is a compile-time error if a constant constructor is declared
