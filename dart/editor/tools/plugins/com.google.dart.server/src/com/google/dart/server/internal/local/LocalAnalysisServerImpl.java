@@ -59,6 +59,7 @@ import com.google.dart.server.internal.local.computer.DartUnitMinorRefactoringsC
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
 import com.google.dart.server.internal.local.computer.DartUnitOutlineComputer;
 import com.google.dart.server.internal.local.computer.DartUnitReferencesComputer;
+import com.google.dart.server.internal.local.operation.ApplyAnalysisDeltaOperation;
 import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
 import com.google.dart.server.internal.local.operation.ComputeFixesOperation;
 import com.google.dart.server.internal.local.operation.ComputeMinorRefactoringsOperation;

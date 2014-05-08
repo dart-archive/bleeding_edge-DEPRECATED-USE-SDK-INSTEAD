@@ -11,12 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.local.operation;
 
 import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.internal.local.operation.ContextServerOperation;
-import com.google.dart.server.internal.local.operation.ServerOperationPriority;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
  * An operation for

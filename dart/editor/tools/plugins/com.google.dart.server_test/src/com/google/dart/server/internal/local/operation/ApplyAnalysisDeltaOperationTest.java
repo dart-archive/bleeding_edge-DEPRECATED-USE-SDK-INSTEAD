@@ -14,7 +14,6 @@
 package com.google.dart.server.internal.local.operation;
 
 import com.google.dart.engine.context.AnalysisDelta;
-import com.google.dart.server.internal.local.ApplyAnalysisDeltaOperation;
 import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 import junit.framework.TestCase;
