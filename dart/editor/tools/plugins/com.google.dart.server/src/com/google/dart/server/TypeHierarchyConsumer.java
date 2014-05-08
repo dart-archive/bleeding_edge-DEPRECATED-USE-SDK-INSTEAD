@@ -23,7 +23,8 @@ public interface TypeHierarchyConsumer {
   /**
    * Type hierarchy has been computed.
    * 
-   * @param target the item corresponding to the {@link Element} the hierarchy was requested for
+   * @param target the item corresponding to the {@link Element} the hierarchy was requested for,
+   *          {@code null} if no hierarchy exists for the given {@link Element}
    */
-  public void computedReferences(TypeHierarchyItem target);
+  public void computedHierarchy(TypeHierarchyItem target);
 }

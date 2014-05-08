@@ -31,6 +31,8 @@ public class TestAll {
     suite.addTestSuite(OutlineImplTest.class);
     suite.addTestSuite(SearchResultImplTest.class);
     suite.addTestSuite(SourceRegionImplTest.class);
+    suite.addTestSuite(TypeHierarchyComputerTest.class);
+    suite.addTestSuite(TypeHierarchyItemImplTest.class);
     return suite;
   }
 }

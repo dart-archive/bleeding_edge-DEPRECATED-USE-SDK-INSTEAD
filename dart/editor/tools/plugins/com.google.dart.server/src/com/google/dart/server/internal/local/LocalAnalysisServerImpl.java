@@ -27,6 +27,7 @@ import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
@@ -53,16 +54,19 @@ import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.TypeHierarchyConsumer;
+import com.google.dart.server.TypeHierarchyItem;
 import com.google.dart.server.internal.local.computer.DartUnitFixesComputer;
 import com.google.dart.server.internal.local.computer.DartUnitHighlightsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitMinorRefactoringsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
 import com.google.dart.server.internal.local.computer.DartUnitOutlineComputer;
 import com.google.dart.server.internal.local.computer.DartUnitReferencesComputer;
+import com.google.dart.server.internal.local.computer.TypeHierarchyComputer;
 import com.google.dart.server.internal.local.operation.ApplyAnalysisDeltaOperation;
 import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
 import com.google.dart.server.internal.local.operation.ComputeFixesOperation;
 import com.google.dart.server.internal.local.operation.ComputeMinorRefactoringsOperation;
+import com.google.dart.server.internal.local.operation.ComputeTypeHierarchyOperation;
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
 import com.google.dart.server.internal.local.operation.GetContextOperation;
@@ -244,7 +248,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 
   @Override
   public void computeTypeHierarchy(String contextId, Element element, TypeHierarchyConsumer consumer) {
-    // TODO(scheglov) implement it
+    operationQueue.add(new ComputeTypeHierarchyOperation(contextId, element, consumer));
   }
 
   @Override
@@ -349,6 +353,29 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
       }
     }
     consumer.computedProposals(CorrectionProposal.EMPTY_ARRAY, true);
+  }
+
+  /**
+   * Implementation for {@link #computeTypeHierarchy(String, Element, TypeHierarchyConsumer)}.
+   */
+  public void internalComputeTypeHierarchy(String contextId, Element element,
+      TypeHierarchyConsumer consumer) throws Exception {
+    TypeHierarchyItem result = null;
+    // prepare context
+    AnalysisContext analysisContext = getAnalysisContext(contextId);
+    Source source = element.getSource();
+    Source[] librarySources = analysisContext.getLibrariesContaining(source);
+    // compute
+    if (librarySources.length != 0) {
+      Source librarySource = librarySources[0];
+      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+      if (unit != null) {
+        CompilationUnitElement unitElement = unit.getElement();
+        result = new TypeHierarchyComputer(searchEngine, unitElement, element).compute();
+      }
+    }
+    // done
+    consumer.computedHierarchy(result);
   }
 
   /**

@@ -21,6 +21,11 @@ package com.google.dart.server;
  */
 public interface TypeHierarchyItem {
   /**
+   * An empty array of hierarchy items.
+   */
+  TypeHierarchyItem[] EMPTY_ARRAY = new TypeHierarchyItem[0];
+
+  /**
    * Return the class element associated with this item. Not {@code null}.
    * 
    * @return the class element associated with this item

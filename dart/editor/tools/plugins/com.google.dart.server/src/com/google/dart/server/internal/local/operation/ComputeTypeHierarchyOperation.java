@@ -11,23 +11,30 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.google.dart.server.internal.local.operation;
 
-import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.Element;
+import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
  * An operation for
- * {@link AnalysisServer#applyAnalysisDelta(String, com.google.dart.engine.context.AnalysisDelta)}.
+ * {@link AnalysisServer#computeTypeHierarchy(String, Element, TypeHierarchyConsumer)}.
+ * 
+ * @coverage dart.server.local
  */
-public class ApplyAnalysisDeltaOperation implements ContextServerOperation {
+public class ComputeTypeHierarchyOperation implements ContextServerOperation {
   private final String contextId;
-  private final AnalysisDelta delta;
+  private final Element element;
+  private final TypeHierarchyConsumer consumer;
 
-  public ApplyAnalysisDeltaOperation(String contextId, AnalysisDelta delta) {
+  public ComputeTypeHierarchyOperation(String contextId, Element element,
+      TypeHierarchyConsumer consumer) {
     this.contextId = contextId;
-    this.delta = delta;
+    this.element = element;
+    this.consumer = consumer;
   }
 
   @Override
@@ -37,11 +44,11 @@ public class ApplyAnalysisDeltaOperation implements ContextServerOperation {
 
   @Override
   public ServerOperationPriority getPriority() {
-    return ServerOperationPriority.CONTEXT_CHANGE;
+    return ServerOperationPriority.SEARCH;
   }
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalApplyAnalysisDelta(contextId, delta);
+    server.internalComputeTypeHierarchy(contextId, element, consumer);
   }
 }

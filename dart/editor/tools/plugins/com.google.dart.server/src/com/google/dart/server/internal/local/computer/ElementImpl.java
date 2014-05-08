@@ -32,6 +32,9 @@ public class ElementImpl implements Element {
    * {@link com.google.dart.engine.element.Element}.
    */
   public static ElementImpl create(com.google.dart.engine.element.Element element) {
+    if (element == null) {
+      return null;
+    }
     // prepare name
     String name = element.getDisplayName();
     int nameOffset = element.getNameOffset();
@@ -63,6 +66,9 @@ public class ElementImpl implements Element {
       case FUNCTION:
         outlineKind = ElementKind.FUNCTION;
         break;
+      case GETTER:
+        outlineKind = ElementKind.GETTER;
+        break;
       case FUNCTION_TYPE_ALIAS:
         outlineKind = ElementKind.FUNCTION_TYPE_ALIAS;
         break;
@@ -72,6 +78,9 @@ public class ElementImpl implements Element {
       case METHOD:
         outlineKind = ElementKind.METHOD;
         isAbstract = ((MethodElement) element).isAbstract();
+        break;
+      case SETTER:
+        outlineKind = ElementKind.SETTER;
         break;
       default:
         outlineKind = ElementKind.UNKNOWN;

@@ -99,6 +99,11 @@ public class ElementImplTest extends TestCase {
     assertEquals(0, element.getLength());
   }
 
+  public void test_create_null() throws Exception {
+    ElementImpl element = ElementImpl.create(null);
+    assertSame(null, element);
+  }
+
   public void test_createId() throws Exception {
     ElementLocation location = mock(ElementLocation.class);
     Element element = mock(Element.class);
