@@ -1,0 +1,38 @@
+﻿(* Open and navigate platform_web.dart *)
+put ImageLocation(Text:"platform_web.dart",CaseSensitive:"yes",ValidCharacters:"*",\
+    IgnoreSpaces:"yes",ignoreUnderscores:"no",dpi:94) into platformLoc
+Click platformLoc
+DoubleClick platformLoc
+set the SearchRectangle to ((0,100),(800,200))
+util.xWaitFor 10, (Text:"ppw_plat",CaseSensitive:"yes",ValidCharacters:"*",\
+    IgnoreSpaces:"yes",ignoreUnderscores:"no",dpi:94) 
+set the SearchRectangle to ()
+util.activateEditor
+
+(* Use quick outline to select last method in file *)
+util.quickOutline
+TypeText "_pro"
+util.xWait 1
+util.newline
+util.xWaitFor 10, (Text:"#reset",CaseSensitive:"yes",ValidCharacters:"*",\
+    IgnoreSpaces:"yes",ignoreUnderscores:"no",dpi:94) 
+
+(* Navigate to SDK code *)
+TypeText downArrow (* should be after l of window.location *)
+util.xWait 1
+TypeText F3 (* opens html_dartium.dart, with ref to _blink in code *)
+util.xWaitFor 10, (Text:"_blink",CaseSensitive:"yes",ValidCharacters:"*",\
+    IgnoreSpaces:"yes",ignoreUnderscores:"no",dpi:94) 
+
+(* Navigate within SDK code *)
+repeat 14 times
+  TypeText rightArrow (* move to ref of Native_Window_location_Getter *)
+end repeat
+util.xWait 1
+TypeText F3 (* opens _blink_dartium.dart, with def of Native_Window_innerHeight_Getter *)
+util.xWaitFor 10, (Text:"innerWidth",CaseSensitive:"yes",ValidCharacters:"*",\
+    IgnoreSpaces:"yes",ignoreUnderscores:"no",dpi:94) 
+
+util.closeTab
+util.closeTab
+

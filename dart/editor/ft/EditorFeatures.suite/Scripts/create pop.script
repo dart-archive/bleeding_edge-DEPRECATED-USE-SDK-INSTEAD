@@ -1,0 +1,6 @@
+﻿(* Create the Pop Pop Win sample *)
+util.init
+util.openWelcomePage
+Click "pop icon"
+util.xWaitFor 60, "pubspec lock"
+util.xWait 5 (* let analysis finish *)

@@ -244,7 +244,7 @@ end choosePreference
 (* Accept changes to the dialog *)
 to closePreferences
   Click "okButton"
-  end closePreferences
+end closePreferences
 
 (* Start the editor, typically only run at the beginning of a script *)
 to startDartEditor
@@ -285,9 +285,9 @@ to killDartium
     shell "killall Dartium.app"
   else if isLinux()
     shell "bash -c 'killall $HOME/Desktop/dart/chromium/chrome'"
-    else
+  else
     throw "Error" "Not implemented: killDartium for Windows"
-    end if
+  end if
 end killDartium
 
 to doKeyCmd key
@@ -390,3 +390,11 @@ to newline
     TypeText return
   end if
 end newline
+
+to nextWord
+  doKeyCmd(rightArrow)
+end nextWord
+
+to prevWord
+  doKeyCmd(leftArrow)
+end nextWord

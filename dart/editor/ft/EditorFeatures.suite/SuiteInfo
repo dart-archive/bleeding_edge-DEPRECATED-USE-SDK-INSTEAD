@@ -1,0 +1,26 @@
+﻿{
+    EPVersionNumber = 1404272331;
+    Schedules =     (
+    );
+    ScriptMetaData =     {
+        Untitled =         {
+        };
+        "create pop" =         {
+        };
+        "do it" =         {
+        };
+        exec =         {
+        };
+        outline =         {
+        };
+        "platform nav" =         {
+        };
+        pubspec =         {
+        };
+    };
+    helperSuitesInfo =     (
+                {
+            filePath = "./Samples.suite";
+        }
+    );
+}

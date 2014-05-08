@@ -1,0 +1,18 @@
+﻿(* Open a pubspec editor *)
+put ImageLocation(Text:"pubspec.yaml",CaseSensitive:"yes",ValidCharacters:"*",\
+    IgnoreSpaces:"yes",ignoreUnderscores:"yes",dpi:94) into platformLoc
+Click platformLoc
+DoubleClick platformLoc
+set the SearchRectangle to ((0,100),(800,200))
+util.xWaitFor 10, (Text:"Details",CaseSensitive:"yes",ValidCharacters:"*",\
+    IgnoreSpaces:"yes",ignoreUnderscores:"no",dpi:94) 
+set the SearchRectangle to ()
+util.activateEditor
+
+(* Select a dependency *)
+Click (Text:"stagexl",CaseSensitive:"yes",ValidCharacters:"*",\
+    IgnoreSpaces:"yes",ignoreUnderscores:"no",dpi:94) 
+util.xWaitFor 10, (Text:">=0.9",CaseSensitive:"yes",ValidCharacters:"*",\
+    IgnoreSpaces:"yes",ignoreUnderscores:"no",dpi:94) 
+
+util.closeTab

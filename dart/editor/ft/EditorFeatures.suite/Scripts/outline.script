@@ -1,0 +1,5 @@
+﻿util.selectMenuItem "Tools", "Outline"
+TypeText downArrow
+util.expandTreeNode
+
+(* Outline view cannot be closed with Cmd-W *)
