@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
+import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -32,11 +33,13 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IsExpression;
@@ -46,12 +49,14 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
@@ -1530,6 +1535,52 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       ParameterElement parameter = invocation.getBestParameterElement();
       return parameter != null ? parameter.getType() : null;
     }
+    // bool
+    {
+      // assert( myFunction() );
+      if (parent instanceof AssertStatement) {
+        AssertStatement statement = (AssertStatement) parent;
+        if (statement.getCondition() == invocation) {
+          return getCoreTypeBool();
+        }
+      }
+      // if ( myFunction() ) {}
+      if (parent instanceof IfStatement) {
+        IfStatement statement = (IfStatement) parent;
+        if (statement.getCondition() == invocation) {
+          return getCoreTypeBool();
+        }
+      }
+      // while ( myFunction() ) {}
+      if (parent instanceof WhileStatement) {
+        WhileStatement statement = (WhileStatement) parent;
+        if (statement.getCondition() == invocation) {
+          return getCoreTypeBool();
+        }
+      }
+      // do {} while ( myFunction() );
+      if (parent instanceof DoStatement) {
+        DoStatement statement = (DoStatement) parent;
+        if (statement.getCondition() == invocation) {
+          return getCoreTypeBool();
+        }
+      }
+      // !myFunction()
+      if (parent instanceof PrefixExpression) {
+        PrefixExpression prefixExpression = (PrefixExpression) parent;
+        if (prefixExpression.getOperator().getType() == TokenType.BANG) {
+          return getCoreTypeBool();
+        }
+      }
+      // binary expression '&&' or '||'
+      if (parent instanceof BinaryExpression) {
+        BinaryExpression binaryExpression = (BinaryExpression) parent;
+        TokenType operatorType = binaryExpression.getOperator().getType();
+        if (operatorType == TokenType.AMPERSAND_AMPERSAND || operatorType == TokenType.BAR_BAR) {
+          return getCoreTypeBool();
+        }
+      }
+    }
     // we don't know
     return null;
   }
@@ -1980,6 +2031,27 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     appendParameters(proposalNameBuffer, constructor.getParameters(), null);
     // done
     return proposalNameBuffer.toString();
+  }
+
+  /**
+   * Returns the {@link Type} with given name from the {@code dart:core} library.
+   */
+  private Type getCoreType(String name) {
+    LibraryElement[] libraries = unitLibraryElement.getImportedLibraries();
+    for (LibraryElement library : libraries) {
+      if (library.isDartCore()) {
+        ClassElement classElement = library.getType(name);
+        if (classElement != null) {
+          return classElement.getType();
+        }
+        return null;
+      }
+    }
+    return null;
+  }
+
+  private Type getCoreTypeBool() {
+    return getCoreType("bool");
   }
 
   private Map<ParameterElement, String> getDefaultValueMap(ParameterElement[] parameters)

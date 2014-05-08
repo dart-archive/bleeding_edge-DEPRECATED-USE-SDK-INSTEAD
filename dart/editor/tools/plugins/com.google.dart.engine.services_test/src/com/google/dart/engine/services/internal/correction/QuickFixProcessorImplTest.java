@@ -1662,6 +1662,21 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             ""));
   }
 
+  public void test_undefinedFunction_create_returnType_bool_expressions() throws Exception {
+    assert_undefinedFunction_create_returnType_bool("!test();");
+    assert_undefinedFunction_create_returnType_bool("true && test();");
+    assert_undefinedFunction_create_returnType_bool("test() && true;");
+    assert_undefinedFunction_create_returnType_bool("true || test();");
+    assert_undefinedFunction_create_returnType_bool("test() || true;");
+  }
+
+  public void test_undefinedFunction_create_returnType_bool_statements() throws Exception {
+    assert_undefinedFunction_create_returnType_bool("assert ( test() );");
+    assert_undefinedFunction_create_returnType_bool("if ( test() ) {}");
+    assert_undefinedFunction_create_returnType_bool("while ( test() ) {}");
+    assert_undefinedFunction_create_returnType_bool("do {} while ( test() );");
+  }
+
   public void test_undefinedFunction_create_returnType_fromAssignment_eq() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -2191,6 +2206,23 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     assertNotNull(kind.name(), resultProposal);
     resultCode = applyProposal(resultProposal);
     assertEquals(expectedSource, resultCode);
+  }
+
+  private void assert_undefinedFunction_create_returnType_bool(String lineWithTest)
+      throws Exception {
+    prepareProblemWithFix(//
+        "main() {",
+        lineWithTest,
+        "}",
+        "");
+    assert_runProcessor(CorrectionKind.QF_CREATE_FUNCTION, makeSource(//
+        "main() {",
+        lineWithTest,
+        "}",
+        "",
+        "bool test() {",
+        "}",
+        ""));
   }
 
   private void assertLinkedProposals(String positionName, String... expectedNames) {
