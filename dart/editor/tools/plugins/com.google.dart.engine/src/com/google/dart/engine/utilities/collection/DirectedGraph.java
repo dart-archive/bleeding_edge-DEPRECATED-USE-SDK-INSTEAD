@@ -283,6 +283,13 @@ public class DirectedGraph<N> {
   }
 
   /**
+   * Return a set of all nodes in the graph.
+   */
+  public Set<N> getNodes() {
+    return edges.keySet();
+  }
+
+  /**
    * Return a set containing the tails of edges that have the given node as their head. The set will
    * be empty if there are no such edges or if the node is not part of the graph. Clients must not
    * modify the returned set.

@@ -532,6 +532,13 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
   }
 
   /**
+   * This method is called just before retrieving an evaluation result from an AST node. Unit tests
+   * will override it to introduce additional error checking.
+   */
+  protected void beforeGetEvaluationResult(AstNode node) {
+  }
+
+  /**
    * Return a result object representing an error associated with the given node.
    * 
    * @param node the AST node associated with the error
@@ -555,6 +562,7 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
     }
     if (element instanceof VariableElementImpl) {
       VariableElementImpl variableElementImpl = (VariableElementImpl) element;
+      beforeGetEvaluationResult(node);
       EvaluationResultImpl value = variableElementImpl.getEvaluationResult();
       if (variableElementImpl.isConst() && value != null) {
         return value;

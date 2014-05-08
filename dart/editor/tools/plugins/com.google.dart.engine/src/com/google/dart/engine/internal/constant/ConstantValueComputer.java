@@ -43,7 +43,7 @@ public class ConstantValueComputer {
   /**
    * The type provider used to access the known types.
    */
-  private TypeProvider typeProvider;
+  protected TypeProvider typeProvider;
 
   /**
    * The object used to find constant variables and constant constructor invocations in the
@@ -55,7 +55,7 @@ public class ConstantValueComputer {
    * A graph in which the nodes are the constants, and the edges are from each constant to the other
    * constants that are referenced by it.
    */
-  private DirectedGraph<AstNode> referenceGraph = new DirectedGraph<AstNode>();
+  protected DirectedGraph<AstNode> referenceGraph = new DirectedGraph<AstNode>();
 
   /**
    * A table mapping constant variables to the declarations of those variables.
@@ -96,6 +96,7 @@ public class ConstantValueComputer {
       declaration.getInitializer().accept(referenceFinder);
     }
     // TODO(paulberry): Do the same for constant constructor invocations.
+    beforeGraphWalk();
     while (!referenceGraph.isEmpty()) {
       AstNode node = referenceGraph.removeSink();
       while (node != null) {
@@ -124,16 +125,38 @@ public class ConstantValueComputer {
   }
 
   /**
+   * This method is called just before computing the constant value associated with an AST node.
+   * Unit tests will override this method to introduce additional error checking.
+   */
+  protected void beforeComputeValue(AstNode constNode) {
+  }
+
+  /**
+   * This method is called just before walking through [referenceGraph] to compute constant values.
+   * Unit tests will override this method to introduce additional error checking.
+   */
+  protected void beforeGraphWalk() {
+  }
+
+  /**
+   * Create the ConstantVisitor used to evaluate constants. Unit tests will override this method to
+   * introduce additional error checking.
+   */
+  protected ConstantVisitor createConstantVisitor() {
+    return new ConstantVisitor(typeProvider);
+  }
+
+  /**
    * Compute a value for the given constant.
    * 
    * @param constNode the constant for which a value is to be computed
    */
   private void computeValueFor(AstNode constNode) {
+    beforeComputeValue(constNode);
     if (constNode instanceof VariableDeclaration) {
       VariableDeclaration declaration = (VariableDeclaration) constNode;
       VariableElement variable = declaration.getElement();
-      EvaluationResultImpl result = declaration.getInitializer().accept(
-          new ConstantVisitor(typeProvider));
+      EvaluationResultImpl result = declaration.getInitializer().accept(createConstantVisitor());
       ((VariableElementImpl) variable).setEvaluationResult(result);
       if (result instanceof ErrorResult) {
         ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();

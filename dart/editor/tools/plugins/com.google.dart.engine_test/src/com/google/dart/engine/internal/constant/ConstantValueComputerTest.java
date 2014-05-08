@@ -14,21 +14,88 @@
 package com.google.dart.engine.internal.constant;
 
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
+import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.engine.utilities.logging.TestLogger;
 
+import java.util.HashMap;
+import java.util.HashSet;
+
 public class ConstantValueComputerTest extends ResolverTestCase {
+  class ValidatingConstantVisitor extends ConstantVisitor {
+    private HashMap<AstNode, HashSet<AstNode>> capturedDependencies;
+    private AstNode nodeBeingEvaluated;
+
+    public ValidatingConstantVisitor(TypeProvider typeProvider,
+        HashMap<AstNode, HashSet<AstNode>> capturedDependencies, AstNode nodeBeingEvaluated) {
+      super(typeProvider);
+      this.capturedDependencies = capturedDependencies;
+      this.nodeBeingEvaluated = nodeBeingEvaluated;
+    }
+
+    @Override
+    protected void beforeGetEvaluationResult(AstNode node) {
+      super.beforeGetEvaluationResult(node);
+
+      // If we are getting the evaluation result for a node in the graph, make sure we properly
+      // recorded the dependency.
+      if (capturedDependencies.containsKey(node)) {
+        assertTrue(capturedDependencies.get(nodeBeingEvaluated).contains(node));
+      }
+    }
+  }
+
+  private class ValidatingConstantValueComputer extends ConstantValueComputer {
+    private HashMap<AstNode, HashSet<AstNode>> capturedDependencies;
+    private AstNode nodeBeingEvaluated;
+
+    public ValidatingConstantValueComputer(TypeProvider typeProvider) {
+      super(typeProvider);
+    }
+
+    @Override
+    protected void beforeComputeValue(AstNode constNode) {
+      super.beforeComputeValue(constNode);
+      nodeBeingEvaluated = constNode;
+    }
+
+    @Override
+    protected void beforeGraphWalk() {
+      super.beforeGraphWalk();
+
+      // Capture the dependency info in referenceGraph so that we can check it later.  (We need
+      // to capture it now, before nodes get removed from the graph).
+      capturedDependencies = new HashMap<AstNode, HashSet<AstNode>>();
+      for (AstNode head : referenceGraph.getNodes()) {
+        HashSet<AstNode> tails = new HashSet<AstNode>();
+        for (AstNode tail : referenceGraph.getTails(head)) {
+          tails.add(tail);
+        }
+        capturedDependencies.put(head, tails);
+      }
+    }
+
+    @Override
+    protected ConstantVisitor createConstantVisitor() {
+      return new ValidatingConstantVisitor(typeProvider, capturedDependencies, nodeBeingEvaluated);
+    }
+
+  }
+
   public void test_computeValues_cycle() throws Exception {
     Logger systemLogger = AnalysisEngine.getInstance().getLogger();
     TestLogger logger = new TestLogger();
@@ -46,7 +113,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
       getAnalysisContext().computeErrors(librarySource);
       assertNotNull(unit);
 
-      ConstantValueComputer computer = new ConstantValueComputer(new TestTypeProvider());
+      ConstantValueComputer computer = makeConstantValueComputer();
       computer.add(unit);
       computer.computeValues();
       NodeList<CompilationUnitMember> members = unit.getDeclarations();
@@ -70,7 +137,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         libraryElement);
     assertNotNull(unit);
 
-    ConstantValueComputer computer = new ConstantValueComputer(new TestTypeProvider());
+    ConstantValueComputer computer = makeConstantValueComputer();
     computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.getDeclarations();
@@ -80,7 +147,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   public void test_computeValues_empty() {
-    ConstantValueComputer computer = new ConstantValueComputer(new TestTypeProvider());
+    ConstantValueComputer computer = makeConstantValueComputer();
     computer.computeValues();
   }
 
@@ -104,7 +171,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         libraryElement);
     assertNotNull(partUnit);
 
-    ConstantValueComputer computer = new ConstantValueComputer(new TestTypeProvider());
+    ConstantValueComputer computer = makeConstantValueComputer();
     computer.add(libraryUnit);
     computer.add(partUnit);
     computer.computeValues();
@@ -128,12 +195,35 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         libraryElement);
     assertNotNull(unit);
 
-    ConstantValueComputer computer = new ConstantValueComputer(new TestTypeProvider());
+    ConstantValueComputer computer = makeConstantValueComputer();
     computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.getDeclarations();
     assertSizeOfList(1, members);
     validate(true, ((TopLevelVariableDeclaration) members.get(0)).getVariables());
+  }
+
+  public void test_dependencyOnVariable() throws Exception {
+    // x depends on y
+    assertProperDependencies(createSource(//
+        "const x = y + 1;",
+        "const y = 2;"));
+  }
+
+  private void assertProperDependencies(String sourceText, ErrorCode... expectedErrorCodes)
+      throws AnalysisException {
+    Source source = addSource(sourceText);
+    LibraryElement element = resolve(source);
+    CompilationUnit unit = getAnalysisContext().resolveCompilationUnit(source, element);
+    assertNotNull(unit);
+    ConstantValueComputer computer = makeConstantValueComputer();
+    computer.add(unit);
+    computer.computeValues();
+    assertErrors(source, expectedErrorCodes);
+  }
+
+  private ConstantValueComputer makeConstantValueComputer() {
+    return new ValidatingConstantValueComputer(new TestTypeProvider());
   }
 
   private void validate(boolean shouldBeValid, VariableDeclarationList declarationList) {
