@@ -48,6 +48,7 @@ public class DartLaunchConfigWrapper {
 
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
   private static final String OPEN_OBSERVATORY = "openObservatory";
+  private static final String PAUSE_ISOLATE_ON_EXIT = "pauseIsolateOnExit";
   private static final String SHOW_LAUNCH_OUTPUT = "showLaunchOutput";
 
   // --enable-experimental-webkit-features and --enable-devtools-experiments
@@ -253,6 +254,16 @@ public class DartLaunchConfigWrapper {
   public boolean getLaunchObservatory() {
     try {
       return launchConfig.getAttribute(OPEN_OBSERVATORY, false);
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return false;
+    }
+  }
+
+  public boolean getPauseIsolateOnExit() {
+    try {
+      return launchConfig.getAttribute(PAUSE_ISOLATE_ON_EXIT, false);
     } catch (CoreException e) {
       DartDebugCorePlugin.logError(e);
 
@@ -484,6 +495,10 @@ public class DartLaunchConfigWrapper {
 
   public void setLaunchObservatory(boolean value) {
     getWorkingCopy().setAttribute(OPEN_OBSERVATORY, value);
+  }
+
+  public void setPauseIsolateOnExit(boolean value) {
+    getWorkingCopy().setAttribute(PAUSE_ISOLATE_ON_EXIT, value);
   }
 
   /**

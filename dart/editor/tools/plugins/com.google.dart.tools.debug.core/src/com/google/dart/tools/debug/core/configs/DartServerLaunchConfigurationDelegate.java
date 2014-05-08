@@ -171,8 +171,14 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
       commandsList.add("--debug:" + connectionPort);
     }
 
-    observatoryPort = NetUtils.findUnusedPort(0);
-    commandsList.add("--enable-vm-service:" + observatoryPort);
+    if (launchConfig.getLaunchObservatory()) {
+      observatoryPort = NetUtils.findUnusedPort(0);
+      commandsList.add("--enable-vm-service:" + observatoryPort);
+
+      if (launchConfig.getPauseIsolateOnExit()) {
+        commandsList.add("--pause-isolates-on-exit");
+      }
+    }
 
     String coverageTempDir = null;
     if (DartCoreDebug.ENABLE_COVERAGE) {
