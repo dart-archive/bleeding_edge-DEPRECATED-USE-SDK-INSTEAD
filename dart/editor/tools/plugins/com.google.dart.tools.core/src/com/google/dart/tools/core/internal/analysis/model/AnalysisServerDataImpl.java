@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.HighlightRegion;
@@ -39,12 +40,26 @@ import java.util.Set;
  * @coverage dart.tools.core.model
  */
 public class AnalysisServerDataImpl implements AnalysisServerData {
+  private final Map<String, Map<Source, AnalysisError[]>> errorData = Maps.newHashMap();
   private final Map<String, Map<Source, NavigationRegion[]>> navigationData = Maps.newHashMap();
   private final Map<String, Set<Source>> navigationSubscriptions = Maps.newHashMap();
   private final Map<String, Map<Source, Set<AnalysisServerOutlineListener>>> outlineSubscriptions = Maps.newHashMap();
   private final Map<String, Map<Source, Set<AnalysisServerHighlightsListener>>> highlightsSubscriptions = Maps.newHashMap();
 
   private AnalysisServer server;
+
+  @Override
+  public AnalysisError[] getErrors(String contextId, Source source) {
+    Map<Source, AnalysisError[]> contextErrors = errorData.get(contextId);
+    if (contextErrors == null) {
+      return AnalysisError.NO_ERRORS;
+    }
+    AnalysisError[] sourceErrors = contextErrors.get(source);
+    if (sourceErrors == null) {
+      return AnalysisError.NO_ERRORS;
+    }
+    return sourceErrors;
+  }
 
   @Override
   public NavigationRegion[] getNavigation(String contextId, Source source) {
@@ -63,6 +78,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
    * Deletes all the data associated with the given context.
    */
   public void internalDeleteContext(String contextId) {
+    errorData.remove(contextId);
     navigationData.remove(contextId);
     navigationSubscriptions.remove(contextId);
     outlineSubscriptions.remove(contextId);
@@ -187,6 +203,15 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
             ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(sourceSet)));
       }
     }
+  }
+
+  void internalComputedErrors(String contextId, Source source, AnalysisError[] errors) {
+    Map<Source, AnalysisError[]> contextErrors = errorData.get(contextId);
+    if (contextErrors == null) {
+      contextErrors = Maps.newHashMap();
+      errorData.put(contextId, contextErrors);
+    }
+    contextErrors.put(source, errors);
   }
 
   void internalComputedHighlights(String contextId, Source source, HighlightRegion[] highlights) {

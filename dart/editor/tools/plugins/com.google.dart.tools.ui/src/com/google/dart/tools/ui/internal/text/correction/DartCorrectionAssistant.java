@@ -14,11 +14,12 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.util.RunnableObject;
@@ -160,12 +161,21 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
   }
 
   private AnalysisError[] getErrorsTimeBoxed(final AssistContext context) {
-    return TimeboxUtils.runObject(new RunnableObject<AnalysisError[]>() {
-      @Override
-      public AnalysisError[] runObject() {
-        return context.getErrors();
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      String contextId = context.getAnalysisContextId();
+      Source source = context.getSource();
+      if (contextId == null || source == null) {
+        return AnalysisError.NO_ERRORS;
       }
-    }, AnalysisError.NO_ERRORS, 50, TimeUnit.MILLISECONDS);
+      return DartCore.getAnalysisServerData().getErrors(contextId, source);
+    } else {
+      return TimeboxUtils.runObject(new RunnableObject<AnalysisError[]>() {
+        @Override
+        public AnalysisError[] runObject() {
+          return context.getErrors();
+        }
+      }, AnalysisError.NO_ERRORS, 50, TimeUnit.MILLISECONDS);
+    }
   }
 
   /**
@@ -197,10 +207,6 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
         return;
       }
       // prepare errors
-      AnalysisContext analysisContext = context.getAnalysisContext();
-      if (analysisContext == null) {
-        return;
-      }
       AnalysisError[] errors = getErrorsTimeBoxed(context);
       // prepare current line range
       IRegion lineInfo = getRegionOfInterest(editor, currOffset);
@@ -219,7 +225,8 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
           continue;
         }
         // add only if has fix 
-        if (QuickFixProcessor.hasFix(error)) {
+        String contextId = editor.getInputAnalysisContextId();
+        if (QuickFixProcessor.hasFix(contextId, error)) {
           allProblems.add(error);
           allPositions.add(pos);
         }

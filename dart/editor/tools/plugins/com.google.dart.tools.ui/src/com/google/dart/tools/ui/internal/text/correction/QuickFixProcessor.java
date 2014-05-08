@@ -14,15 +14,23 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
+import com.google.dart.server.FixesConsumer;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * UI wrapper around {@link QuickFixProcessor} service.
@@ -35,8 +43,37 @@ public class QuickFixProcessor {
    * @return {@code true} if {@link QuickFixProcessor} can produce {@link ICompletionProposal} to
    *         fix given problem.
    */
-  public static boolean hasFix(AnalysisError problem) {
-    return CorrectionProcessors.getQuickFixProcessor().hasFix(problem);
+  public static boolean hasFix(String contextId, AnalysisError problem) {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      // TODO(scheglov) Actually we don't need fixes here.
+      // Consider sending fixable ErrorCode(s) from server and caching it locally.
+      // One time, at context creation.
+      return getFixes(contextId, problem).length != 0;
+    } else {
+      return CorrectionProcessors.getQuickFixProcessor().hasFix(problem);
+    }
+  }
+
+  private static CorrectionProposal[] getFixes(String contextId, final AnalysisError problem) {
+    final List<CorrectionProposal> proposalList = Lists.newArrayList();
+    final CountDownLatch latch = new CountDownLatch(1);
+    DartCore.getAnalysisServer().computeFixes(
+        contextId,
+        new AnalysisError[] {problem},
+        new FixesConsumer() {
+          @Override
+          public void computedFixes(Map<AnalysisError, CorrectionProposal[]> fixesMap,
+              boolean isLastResult) {
+            CorrectionProposal[] fixes = fixesMap.get(problem);
+            Collections.addAll(proposalList, fixes);
+            if (isLastResult) {
+              latch.countDown();
+            }
+          }
+        });
+    Uninterruptibles.awaitUninterruptibly(latch, 100, TimeUnit.MILLISECONDS);
+    CorrectionProposal[] serviceProposals = proposalList.toArray(new CorrectionProposal[proposalList.size()]);
+    return serviceProposals;
   }
 
   /**
@@ -50,12 +87,18 @@ public class QuickFixProcessor {
     ExecutionUtils.runLog(new RunnableEx() {
       @Override
       public void run() throws Exception {
-        com.google.dart.engine.services.correction.QuickFixProcessor serviceProcessor;
-        serviceProcessor = CorrectionProcessors.getQuickFixProcessor();
-        CorrectionProposal[] serviceProposals = serviceProcessor.computeProposals(
-            contextUI.getContext(),
-            problem);
-        QuickAssistProcessor.addServiceProposals(proposals, serviceProposals);
+        if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+          String contextId = contextUI.getContext().getAnalysisContextId();
+          CorrectionProposal[] serviceProposals = getFixes(contextId, problem);
+          QuickAssistProcessor.addServiceProposals(proposals, serviceProposals);
+        } else {
+          com.google.dart.engine.services.correction.QuickFixProcessor serviceProcessor;
+          serviceProcessor = CorrectionProcessors.getQuickFixProcessor();
+          CorrectionProposal[] serviceProposals = serviceProcessor.computeProposals(
+              contextUI.getContext(),
+              problem);
+          QuickAssistProcessor.addServiceProposals(proposals, serviceProposals);
+        }
       }
     });
     return proposals.toArray(new ICompletionProposal[proposals.size()]);

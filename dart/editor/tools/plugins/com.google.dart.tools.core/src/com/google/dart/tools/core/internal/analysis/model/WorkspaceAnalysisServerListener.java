@@ -38,6 +38,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedErrors(String contextId, Source source, AnalysisError[] errors) {
+    dataImpl.internalComputedErrors(contextId, source, errors);
     IResource resource = DartCore.getProjectManager().getResource(source);
     if (resource != null) {
       // TODO(scheglov) Analysis Server: LineInfo

@@ -54,7 +54,8 @@ public class DartCorrectionProcessor implements
     if (problem == null) {
       return false;
     }
-    return QuickFixProcessor.hasFix(problem);
+    String contextId = assistant.getEditor().getInputAnalysisContextId();
+    return QuickFixProcessor.hasFix(contextId, problem);
   }
 
   @Override

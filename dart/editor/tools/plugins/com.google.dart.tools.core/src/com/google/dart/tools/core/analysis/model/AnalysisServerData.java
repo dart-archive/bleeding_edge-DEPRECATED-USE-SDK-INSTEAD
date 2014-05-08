@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.core.analysis.model;
 
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.HighlightRegion;
@@ -27,6 +28,12 @@ import com.google.dart.server.Outline;
  * @coverage dart.tools.core.model
  */
 public interface AnalysisServerData {
+  /**
+   * Returns {@link AnalysisError}s associated with the given context and {@link Source}. May be
+   * empty, but not {@code null}.
+   */
+  AnalysisError[] getErrors(String contextId, Source source);
+
   /**
    * Returns {@link NavigationRegion}s associated with the given context and {@link Source}. May be
    * empty, but not {@code null}.
