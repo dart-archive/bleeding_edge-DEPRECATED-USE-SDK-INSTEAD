@@ -14,40 +14,70 @@
 package com.google.dart.engine.internal.constant;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.utilities.collection.DirectedGraph;
 
 import static com.google.dart.engine.ast.AstFactory.identifier;
+import static com.google.dart.engine.ast.AstFactory.variableDeclaration;
+import static com.google.dart.engine.ast.AstFactory.variableDeclarationList;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
+import java.util.HashMap;
 import java.util.Set;
 
 public class ReferenceFinderTest extends EngineTestCase {
   public void test_visitSimpleIdentifier_const() {
-    VariableElementImpl head = localVariableElement("v1");
-    VariableElementImpl tail = localVariableElement("v2");
-    tail.setConst(true);
-    DirectedGraph<VariableElement> referenceGraph = new DirectedGraph<VariableElement>();
-    ReferenceFinder finder = new ReferenceFinder(head, referenceGraph);
+    VariableDeclaration head = variableDeclaration("v1");
+    VariableDeclaration tail = variableDeclaration("v2");
+    VariableElementImpl tailElement = localVariableElement("v2");
+    tailElement.setConst(true);
+    variableDeclarationList(Keyword.CONST, head, tail);
+    DirectedGraph<AstNode> referenceGraph = new DirectedGraph<AstNode>();
+    HashMap<VariableElement, VariableDeclaration> declarationMap = new HashMap<VariableElement, VariableDeclaration>();
+    declarationMap.put(tailElement, tail);
+    ReferenceFinder finder = new ReferenceFinder(head, referenceGraph, declarationMap);
     SimpleIdentifier identifier = identifier("v2");
-    identifier.setStaticElement(tail);
+    identifier.setStaticElement(tailElement);
     identifier.accept(finder);
-    Set<VariableElement> tails = referenceGraph.getTails(head);
+    Set<AstNode> tails = referenceGraph.getTails(head);
     assertSizeOfSet(1, tails);
     assertSame(tail, tails.iterator().next());
   }
 
   public void test_visitSimpleIdentifier_nonConst() {
-    VariableElementImpl head = localVariableElement("v1");
-    VariableElementImpl tail = localVariableElement("v2");
-    DirectedGraph<VariableElement> referenceGraph = new DirectedGraph<VariableElement>();
-    ReferenceFinder finder = new ReferenceFinder(head, referenceGraph);
+    VariableDeclaration head = variableDeclaration("v1");
+    VariableDeclaration tail = variableDeclaration("v2");
+    VariableElementImpl tailElement = localVariableElement("v2");
+    tailElement.setConst(false);
+    variableDeclarationList(Keyword.VAR, head, tail);
+    DirectedGraph<AstNode> referenceGraph = new DirectedGraph<AstNode>();
+    HashMap<VariableElement, VariableDeclaration> declarationMap = new HashMap<VariableElement, VariableDeclaration>();
+    ReferenceFinder finder = new ReferenceFinder(head, referenceGraph, declarationMap);
     SimpleIdentifier identifier = identifier("v2");
-    identifier.setStaticElement(tail);
+    identifier.setStaticElement(tailElement);
     identifier.accept(finder);
-    Set<VariableElement> tails = referenceGraph.getTails(head);
+    Set<AstNode> tails = referenceGraph.getTails(head);
+    assertSizeOfSet(0, tails);
+  }
+
+  public void test_visitSimpleIdentifier_notInMap() {
+    VariableDeclaration head = variableDeclaration("v1");
+    VariableDeclaration tail = variableDeclaration("v2");
+    VariableElementImpl tailElement = localVariableElement("v2");
+    tailElement.setConst(true);
+    variableDeclarationList(Keyword.CONST, head, tail);
+    DirectedGraph<AstNode> referenceGraph = new DirectedGraph<AstNode>();
+    HashMap<VariableElement, VariableDeclaration> declarationMap = new HashMap<VariableElement, VariableDeclaration>();
+    ReferenceFinder finder = new ReferenceFinder(head, referenceGraph, declarationMap);
+    SimpleIdentifier identifier = identifier("v2");
+    identifier.setStaticElement(tailElement);
+    identifier.accept(finder);
+    Set<AstNode> tails = referenceGraph.getTails(head);
     assertSizeOfSet(0, tails);
   }
 }

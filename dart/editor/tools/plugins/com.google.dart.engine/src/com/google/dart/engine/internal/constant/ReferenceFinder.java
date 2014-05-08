@@ -13,12 +13,16 @@
  */
 package com.google.dart.engine.internal.constant;
 
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.utilities.collection.DirectedGraph;
+
+import java.util.HashMap;
 
 /**
  * Instances of the class {@code ReferenceFinder} add reference information for a given variable to
@@ -28,13 +32,18 @@ public class ReferenceFinder extends RecursiveAstVisitor<Void> {
   /**
    * The element representing the variable whose initializer will be visited.
    */
-  private VariableElement source;
+  private VariableDeclaration source;
 
   /**
    * A graph in which the nodes are the constant variables and the edges are from each variable to
    * the other constant variables that are referenced in the head's initializer.
    */
-  private DirectedGraph<VariableElement> referenceGraph;
+  private DirectedGraph<AstNode> referenceGraph;
+
+  /**
+   * A table mapping constant variables to the declarations of those variables.
+   */
+  private HashMap<VariableElement, VariableDeclaration> declarationMap;
 
   /**
    * Initialize a newly created reference finder to find references from the given variable to other
@@ -43,10 +52,14 @@ public class ReferenceFinder extends RecursiveAstVisitor<Void> {
    * @param source the element representing the variable whose initializer will be visited
    * @param referenceGraph a graph recording which variables (heads) reference which other variables
    *          (tails) in their initializers
+   * @param declarationMap A table mapping constant variables to the declarations of those
+   *          variables.
    */
-  public ReferenceFinder(VariableElement source, DirectedGraph<VariableElement> referenceGraph) {
+  public ReferenceFinder(VariableDeclaration source, DirectedGraph<AstNode> referenceGraph,
+      HashMap<VariableElement, VariableDeclaration> declarationMap) {
     this.source = source;
     this.referenceGraph = referenceGraph;
+    this.declarationMap = declarationMap;
   }
 
   @Override
@@ -58,7 +71,14 @@ public class ReferenceFinder extends RecursiveAstVisitor<Void> {
     if (element instanceof VariableElement) {
       VariableElement variable = (VariableElement) element;
       if (variable.isConst()) {
-        referenceGraph.addEdge(source, variable);
+        VariableDeclaration variableDeclaration = declarationMap.get(variable);
+        // The declaration will be null when the variable is not defined in the compilation units
+        // that were added used to produce the declarationMap.  In such cases, the variable should
+        // already have a value associated with it, but we don't bother to check because there's
+        // nothing we can do about it at this point.
+        if (variableDeclaration != null) {
+          referenceGraph.addEdge(source, variableDeclaration);
+        }
       }
     }
     return null;
