@@ -170,6 +170,14 @@ public class SourceSetBasedProviderTest extends TestCase {
     newProvider();
   }
 
+  public void test_toString() throws Exception {
+    SourceSetBaseProvider provider = new SourceSetBaseProvider(
+        SourceSet.EXPLICITLY_ADDED,
+        null,
+        null);
+    assertEquals("EXPLICITLY_ADDED", provider.toString());
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();

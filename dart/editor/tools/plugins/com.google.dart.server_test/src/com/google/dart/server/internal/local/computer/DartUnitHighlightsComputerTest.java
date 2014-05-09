@@ -220,6 +220,7 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
   }
 
   public void test_BUILT_IN_partOf() throws Exception {
+    server.test_setLog(true);
     contextId = createContext("test");
     addSource(contextId, "/test_lib.dart", makeSource(//
         "library a;",
@@ -554,6 +555,12 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
     assertHasRegion("T p)", HighlightType.TYPE_PARAMETER);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    server.test_setLog(false);
+    super.tearDown();
+  }
+
   private void assertHasRegion(HighlightRegion expected) {
     if (hasRegion(expected)) {
       return;
@@ -640,6 +647,7 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
         contextId,
         ImmutableMap.of(NotificationKind.HIGHLIGHTS, ListSourceSet.create(testSource)));
     server.test_waitForWorkerComplete();
+    serverListener.assertNoServerErrors();
     regions = serverListener.getHighlightRegions(contextId, testSource);
   }
 }

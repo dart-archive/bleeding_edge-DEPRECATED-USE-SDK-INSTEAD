@@ -171,6 +171,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   private boolean test_paused;
 
   /**
+   * This is used only for testing purposes and allows tests to enable logging.
+   */
+  private boolean test_log;
+
+  /**
    * This is used only for testing purposes and allows tests to check the order of operations.
    */
   private List<String> test_analyzedContexts;
@@ -430,12 +435,14 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   public void internalNotification(String contextId, ChangeNotice changeNotice,
       NotificationKind kind) throws Exception {
     Source source = changeNotice.getSource();
+    log("internalNotification: %s with %s", kind, changeNotice);
     switch (kind) {
       case ERRORS:
         listener.computedErrors(contextId, source, changeNotice.getErrors());
         break;
       case HIGHLIGHTS: {
         CompilationUnit dartUnit = changeNotice.getCompilationUnit();
+        log("\tHIGHLIGHTS %s", dartUnit);
         if (dartUnit != null) {
           listener.computedHighlights(
               contextId,
@@ -477,12 +484,14 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     // prepare results
     AnalysisResult result = context.performAnalysisTask();
     ChangeNotice[] notices = result.getChangeNotices();
+    log("internalPerformAnalysis: %s", result.getTaskClassName());
     if (notices == null) {
       return;
     }
     // remember known sources
     for (ChangeNotice changeNotice : notices) {
       Source source = changeNotice.getSource();
+      log("\tsource: %s", source);
       knownSources.add(source);
     }
     // index units
@@ -496,6 +505,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     schedulePerformAnalysisOperation(contextId, true);
     // schedule notifications
     Map<NotificationKind, SourceSetBaseProvider> notifications = notificationMap.get(contextId);
+    log("\tnotifications: %s", notifications);
     if (notifications != null) {
       for (Entry<NotificationKind, SourceSetBaseProvider> entry : notifications.entrySet()) {
         NotificationKind notificationKind = entry.getKey();
@@ -503,6 +513,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         for (ChangeNotice changeNotice : notices) {
           Source source = changeNotice.getSource();
           if (sourceProvider.apply(source)) {
+            log("\tadd NotificationOperation: %s with %s", notificationKind, changeNotice);
             operationQueue.add(new NotificationOperation(contextId, changeNotice, notificationKind));
           }
         }
@@ -550,6 +561,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
    */
   public void internalSubscribe(String contextId, Map<NotificationKind, SourceSet> subscriptions)
       throws Exception {
+    log("internalSubscribe: %s", subscriptions);
     AnalysisContext analysisContext = getAnalysisContext(contextId);
     Set<Source> knownSources = getSourcesMap(contextId, contextKnownSourcesMap);
     Set<Source> addedSources = getSourcesMap(contextId, contextAddedSourcesMap);
@@ -569,14 +581,20 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
           addedSources);
       // schedule notification operations for new sources
       Set<Source> newSources = newProvider.computeNewSources(oldProvider);
+      log("\tnewSources: %s", newSources);
       for (Source unitSource : newSources) {
+        log("\tunitSource: %s", unitSource);
         Source[] librarySources = analysisContext.getLibrariesContaining(unitSource);
+        log("\t\tlibrarySources: %s", librarySources.length);
         if (librarySources.length != 0) {
           Source librarySource = librarySources[0];
+          log("\t\tlibrarySource: %s", librarySource);
           CompilationUnit unit = analysisContext.resolveCompilationUnit(unitSource, librarySource);
+          log("\t\tunit: %s", unit);
           if (unit != null) {
             ChangeNoticeImpl changeNotice = new ChangeNoticeImpl(unitSource);
             changeNotice.setCompilationUnit(unit);
+            log("\t\tadd NotificationOperation: %s with %s", kind, changeNotice);
             operationQueue.add(new NotificationOperation(contextId, changeNotice, kind));
           }
         }
@@ -641,6 +659,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   @VisibleForTesting
+  public void test_setLog(boolean log) {
+    this.test_log = log;
+  }
+
+  @VisibleForTesting
   public void test_setPaused(boolean paused) {
     this.test_paused = paused;
   }
@@ -698,6 +721,13 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
       contextSourcesMap.put(contextId, sources);
     }
     return sources;
+  }
+
+  private void log(String msg, Object... arguments) {
+    if (test_log) {
+      String message = String.format(msg, arguments);
+      System.out.println(message);
+    }
   }
 
   /**

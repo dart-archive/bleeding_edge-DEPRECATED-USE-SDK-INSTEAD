@@ -79,4 +79,9 @@ public class SourceSetBaseProvider {
     }
     return result;
   }
+
+  @Override
+  public String toString() {
+    return set.toString();
+  }
 }
