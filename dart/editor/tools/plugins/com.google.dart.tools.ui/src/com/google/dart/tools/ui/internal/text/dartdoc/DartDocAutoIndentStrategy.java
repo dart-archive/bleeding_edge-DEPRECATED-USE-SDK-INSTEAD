@@ -63,6 +63,9 @@ public class DartDocAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy
       // split line
       String strLine = d.get(start, end - start);
       int firstNotWS = StringUtils.indexOfAnyBut(strLine, " \t");
+      if (firstNotWS == -1) {
+        firstNotWS = 0;
+      }
       String strWS = strLine.substring(0, firstNotWS);
       String strAfterWS = strLine.substring(firstNotWS);
 
@@ -72,6 +75,8 @@ public class DartDocAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy
       buf.append(lineDelimiter);
       buf.append(strWS);
       if (strAfterWS.startsWith("/")) {
+        buf.append(" ");
+      } else if (firstNotWS == 0) {
         buf.append(" ");
       }
       buf.append("* ");

@@ -83,6 +83,19 @@ public class DartDocAutoIndentStrategyTest extends EngineTestCase {
             " */"));
   }
 
+  public void test_inEmptyLine() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "/**",
+        "!",
+        " */",
+        ""), createSource(//
+        "/**",
+        "",
+        " * !",
+        " */",
+        ""));
+  }
+
   public void test_inMiddleLine() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "/**",
