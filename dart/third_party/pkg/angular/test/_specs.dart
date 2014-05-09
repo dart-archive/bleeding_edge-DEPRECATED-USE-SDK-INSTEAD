@@ -11,7 +11,7 @@ import 'jasmine_syntax.dart';
 export 'dart:html';
 export 'jasmine_syntax.dart' hide main;
 export 'package:unittest/unittest.dart';
-export 'package:unittest/mock.dart';
+export 'package:mock/mock.dart';
 export 'package:di/dynamic_injector.dart';
 export 'package:angular/angular.dart';
 export 'package:angular/mock/module.dart';
