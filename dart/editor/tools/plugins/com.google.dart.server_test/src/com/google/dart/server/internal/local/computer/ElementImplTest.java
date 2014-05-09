@@ -27,11 +27,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ElementImplTest extends TestCase {
+  private String contextId = "my-context-id";
   private String id = "my-id";
   private Source source = mock(Source.class);
 
   public void test_access() throws Exception {
     ElementImpl element = new ElementImpl(
+        contextId,
         id,
         source,
         ElementKind.METHOD,
@@ -43,6 +45,7 @@ public class ElementImplTest extends TestCase {
         true,
         true,
         true);
+    assertEquals(contextId, element.getContextId());
     assertEquals(id, element.getId());
     assertSame(source, element.getSource());
     assertSame(ElementKind.METHOD, element.getKind());
@@ -69,7 +72,7 @@ public class ElementImplTest extends TestCase {
     when(engineElement.getDisplayName()).thenReturn("MyClass");
     when(engineElement.getNameOffset()).thenReturn(42);
     // create server Element
-    ElementImpl element = ElementImpl.create(engineElement);
+    ElementImpl element = ElementImpl.create(contextId, engineElement);
     assertEquals("my-id", element.getId());
     assertSame(ElementKind.CLASS, element.getKind());
     assertEquals("MyClass", element.getName());
@@ -91,7 +94,7 @@ public class ElementImplTest extends TestCase {
     when(engineElement.getDisplayName()).thenReturn("test.dart");
     when(engineElement.getNameOffset()).thenReturn(42);
     // create server Element
-    ElementImpl element = ElementImpl.create(engineElement);
+    ElementImpl element = ElementImpl.create(contextId, engineElement);
     assertEquals("my-id", element.getId());
     assertSame(ElementKind.COMPILATION_UNIT, element.getKind());
     assertEquals("test.dart", element.getName());
@@ -100,7 +103,7 @@ public class ElementImplTest extends TestCase {
   }
 
   public void test_create_null() throws Exception {
-    ElementImpl element = ElementImpl.create(null);
+    ElementImpl element = ElementImpl.create(contextId, null);
     assertSame(null, element);
   }
 
@@ -118,6 +121,7 @@ public class ElementImplTest extends TestCase {
 
   public void test_equals() throws Exception {
     ElementImpl elementA = new ElementImpl(
+        contextId,
         id,
         source,
         ElementKind.METHOD,
@@ -130,6 +134,7 @@ public class ElementImplTest extends TestCase {
         false,
         false);
     ElementImpl elementA2 = new ElementImpl(
+        contextId,
         id,
         source,
         ElementKind.METHOD,
@@ -142,6 +147,7 @@ public class ElementImplTest extends TestCase {
         false,
         false);
     ElementImpl elementB = new ElementImpl(
+        contextId,
         id,
         source,
         ElementKind.METHOD,
@@ -161,6 +167,7 @@ public class ElementImplTest extends TestCase {
 
   public void test_hashCode() throws Exception {
     ElementImpl element = new ElementImpl(
+        contextId,
         id,
         source,
         ElementKind.METHOD,
@@ -177,6 +184,7 @@ public class ElementImplTest extends TestCase {
 
   public void test_hashCode_nullName() throws Exception {
     ElementImpl element = new ElementImpl(
+        contextId,
         id,
         source,
         ElementKind.LIBRARY,

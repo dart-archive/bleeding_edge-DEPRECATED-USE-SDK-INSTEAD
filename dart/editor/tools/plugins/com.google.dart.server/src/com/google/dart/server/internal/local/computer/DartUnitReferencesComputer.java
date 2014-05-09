@@ -163,7 +163,7 @@ public class DartUnitReferencesComputer {
         case FUNCTION_TYPE_ALIAS:
         case LIBRARY:
         case METHOD:
-          ElementImpl element = ElementImpl.create(engineElement);
+          ElementImpl element = ElementImpl.create(contextId, engineElement);
           path.add(element);
           break;
         default:

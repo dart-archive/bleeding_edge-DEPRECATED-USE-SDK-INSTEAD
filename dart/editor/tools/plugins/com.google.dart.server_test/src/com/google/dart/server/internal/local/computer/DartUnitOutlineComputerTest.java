@@ -58,6 +58,7 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
       Outline outline_A = topOutlines[0];
       Element element_A = outline_A.getElement();
       assertSame(unitOutline, outline_A.getParent());
+      assertEquals(contextId, element_A.getContextId());
       assertSame(ElementKind.CLASS, element_A.getKind());
       assertEquals("A", element_A.getName());
       assertEquals(code.indexOf("A {"), element_A.getOffset());

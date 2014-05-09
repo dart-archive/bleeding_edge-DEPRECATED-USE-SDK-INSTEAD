@@ -39,12 +39,14 @@ import java.util.Set;
  */
 public class TypeHierarchyComputer {
   private final SearchEngine searchEngine;
+  private final String contextId;
   private final CompilationUnitElement unitElement;
   private final Element element;
 
-  public TypeHierarchyComputer(SearchEngine searchEngine, CompilationUnitElement unitElement,
-      Element element) {
+  public TypeHierarchyComputer(SearchEngine searchEngine, String contextId,
+      CompilationUnitElement unitElement, Element element) {
     this.searchEngine = searchEngine;
+    this.contextId = contextId;
     this.unitElement = unitElement;
     this.element = element;
   }
@@ -82,8 +84,8 @@ public class TypeHierarchyComputer {
         }
         // create a subtype item
         ExecutableElement engineMemberElement = findMemberElement(engineClassElement);
-        Element classElement = ElementImpl.create(engineClassElement);
-        ElementImpl memberElement = ElementImpl.create(engineMemberElement);
+        Element classElement = ElementImpl.create(contextId, engineClassElement);
+        ElementImpl memberElement = ElementImpl.create(contextId, engineMemberElement);
         TypeHierarchyItemImpl subItem = new TypeHierarchyItemImpl(
             engineElement.getDisplayName(),
             classElement,
@@ -144,8 +146,8 @@ public class TypeHierarchyComputer {
     String name = type.toString();
     ClassElement engineClassElement = type.getElement();
     ExecutableElement engineMemberElement = findMemberElement(engineClassElement);
-    ElementImpl classElement = ElementImpl.create(engineClassElement);
-    ElementImpl memberElement = ElementImpl.create(engineMemberElement);
+    ElementImpl classElement = ElementImpl.create(contextId, engineClassElement);
+    ElementImpl memberElement = ElementImpl.create(contextId, engineMemberElement);
     return new TypeHierarchyItemImpl(
         name,
         classElement,

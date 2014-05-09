@@ -58,10 +58,12 @@ import java.util.List;
 public class DartUnitOutlineComputer {
   private static final String UNITTEST_LIBRARY = "unittest";
 
+  private final String contextId;
   private final Source source;
   private final CompilationUnit unit;
 
-  public DartUnitOutlineComputer(Source source, CompilationUnit unit) {
+  public DartUnitOutlineComputer(String contextId, Source source, CompilationUnit unit) {
+    this.contextId = contextId;
     this.source = source;
     this.unit = unit;
   }
@@ -178,6 +180,7 @@ public class DartUnitOutlineComputer {
         FunctionExpression functionExpression = (FunctionExpression) arguments.get(1);
         SourceRegionImpl sourceRegion = new SourceRegionImpl(node.getOffset(), node.getLength());
         ElementImpl element = new ElementImpl(
+            contextId,
             null,
             source,
             unitTestKind,
@@ -269,6 +272,7 @@ public class DartUnitOutlineComputer {
     SimpleIdentifier nameNode = classDeclaration.getName();
     String name = nameNode.getName();
     ElementImpl element = new ElementImpl(
+        contextId,
         ElementImpl.createId(classDeclaration.getElement()),
         source,
         ElementKind.CLASS,
@@ -291,6 +295,7 @@ public class DartUnitOutlineComputer {
     SimpleIdentifier nameNode = alias.getName();
     String name = nameNode.getName();
     ElementImpl element = new ElementImpl(
+        contextId,
         ElementImpl.createId(alias.getElement()),
         source,
         ElementKind.CLASS_TYPE_ALIAS,
@@ -324,6 +329,7 @@ public class DartUnitOutlineComputer {
     }
     FormalParameterList parameters = constructorDeclaration.getParameters();
     ElementImpl element = new ElementImpl(
+        contextId,
         ElementImpl.createId(constructorDeclaration.getElement()),
         source,
         ElementKind.CONSTRUCTOR,
@@ -346,6 +352,7 @@ public class DartUnitOutlineComputer {
     SimpleIdentifier nameNode = field.getName();
     String name = nameNode.getName();
     ElementImpl element = new ElementImpl(
+        contextId,
         ElementImpl.createId(field.getElement()),
         source,
         ElementKind.FIELD,
@@ -378,6 +385,7 @@ public class DartUnitOutlineComputer {
       kind = ElementKind.FUNCTION;
     }
     ElementImpl element = new ElementImpl(
+        contextId,
         ElementImpl.createId(functionDeclaration.getElement()),
         source,
         kind,
@@ -402,6 +410,7 @@ public class DartUnitOutlineComputer {
     String name = nameNode.getName();
     FormalParameterList parameters = alias.getParameters();
     ElementImpl element = new ElementImpl(
+        contextId,
         ElementImpl.createId(alias.getElement()),
         source,
         ElementKind.FUNCTION_TYPE_ALIAS,
@@ -433,6 +442,7 @@ public class DartUnitOutlineComputer {
       kind = ElementKind.METHOD;
     }
     ElementImpl element = new ElementImpl(
+        contextId,
         ElementImpl.createId(methodDeclaration.getElement()),
         source,
         kind,
@@ -452,6 +462,7 @@ public class DartUnitOutlineComputer {
 
   private OutlineImpl newUnitOutline() {
     ElementImpl element = new ElementImpl(
+        contextId,
         ElementImpl.createId(unit.getElement()),
         source,
         ElementKind.COMPILATION_UNIT,

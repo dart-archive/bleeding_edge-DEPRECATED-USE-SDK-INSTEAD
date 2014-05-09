@@ -31,7 +31,7 @@ public class ElementImpl implements Element {
    * Creates an {@link ElementImpl} instance for the given
    * {@link com.google.dart.engine.element.Element}.
    */
-  public static ElementImpl create(com.google.dart.engine.element.Element element) {
+  public static ElementImpl create(String contextId, com.google.dart.engine.element.Element element) {
     if (element == null) {
       return null;
     }
@@ -111,6 +111,7 @@ public class ElementImpl implements Element {
     }
     // new element
     return new ElementImpl(
+        contextId,
         createId(element),
         element.getSource(),
         outlineKind,
@@ -134,6 +135,7 @@ public class ElementImpl implements Element {
     return element.getLocation().getEncoding();
   }
 
+  private final String contextId;
   private final String id;
   private final Source source;
   private final ElementKind kind;
@@ -146,9 +148,10 @@ public class ElementImpl implements Element {
   private final boolean isPrivate;
   private final boolean isStatic;
 
-  public ElementImpl(String id, Source source, ElementKind kind, String name, int offset,
-      int length, String parameters, String returnType, boolean isAbstract, boolean isStatic,
-      boolean isPrivate) {
+  public ElementImpl(String contextId, String id, Source source, ElementKind kind, String name,
+      int offset, int length, String parameters, String returnType, boolean isAbstract,
+      boolean isStatic, boolean isPrivate) {
+    this.contextId = contextId;
     this.id = id;
     this.source = source;
     this.kind = kind;
@@ -173,6 +176,11 @@ public class ElementImpl implements Element {
     ElementImpl other = (ElementImpl) obj;
     return other.kind == kind && ObjectUtilities.equals(other.source, source)
         && ObjectUtilities.equals(name, other.name);
+  }
+
+  @Override
+  public String getContextId() {
+    return contextId;
   }
 
   @Override

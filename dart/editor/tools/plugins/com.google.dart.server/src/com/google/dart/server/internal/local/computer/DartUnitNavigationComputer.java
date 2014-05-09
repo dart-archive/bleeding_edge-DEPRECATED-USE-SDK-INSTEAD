@@ -43,10 +43,12 @@ import java.util.List;
  * @coverage dart.server.local
  */
 public class DartUnitNavigationComputer {
+  private final String contextId;
   private final CompilationUnit unit;
   private final List<NavigationRegion> regions = Lists.newArrayList();
 
-  public DartUnitNavigationComputer(CompilationUnit unit) {
+  public DartUnitNavigationComputer(String contextId, CompilationUnit unit) {
+    this.contextId = contextId;
     this.unit = unit;
   }
 
@@ -178,6 +180,6 @@ public class DartUnitNavigationComputer {
     if (element instanceof FieldFormalParameterElement) {
       element = ((FieldFormalParameterElement) element).getField();
     }
-    return ElementImpl.create(element);
+    return ElementImpl.create(contextId, element);
   }
 }

@@ -28,6 +28,13 @@ public interface Element {
   Element[] EMPTY_ARRAY = new Element[0];
 
   /**
+   * Return the id of the context this element is created in.
+   * 
+   * @return the id of the context
+   */
+  public String getContextId();
+
+  /**
    * Return the id of the element, may be {@code null} if there is no resolution information
    * associated with this element.
    * 

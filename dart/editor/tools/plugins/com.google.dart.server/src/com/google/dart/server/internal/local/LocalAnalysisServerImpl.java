@@ -371,7 +371,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
       CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
       if (unit != null) {
         CompilationUnitElement unitElement = unit.getElement();
-        result = new TypeHierarchyComputer(searchEngine, unitElement, element).compute();
+        result = new TypeHierarchyComputer(searchEngine, contextId, unitElement, element).compute();
       }
     }
     // done
@@ -447,20 +447,19 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
       case NAVIGATION: {
         CompilationUnit dartUnit = changeNotice.getCompilationUnit();
         if (dartUnit != null) {
-          listener.computedNavigation(
+          listener.computedNavigation(contextId, source, new DartUnitNavigationComputer(
               contextId,
-              source,
-              new DartUnitNavigationComputer(dartUnit).compute());
+              dartUnit).compute());
         }
         break;
       }
       case OUTLINE:
         CompilationUnit dartUnit = changeNotice.getCompilationUnit();
         if (dartUnit != null) {
-          listener.computedOutline(
+          listener.computedOutline(contextId, source, new DartUnitOutlineComputer(
               contextId,
               source,
-              new DartUnitOutlineComputer(source, dartUnit).compute());
+              dartUnit).compute());
         }
         break;
     }
