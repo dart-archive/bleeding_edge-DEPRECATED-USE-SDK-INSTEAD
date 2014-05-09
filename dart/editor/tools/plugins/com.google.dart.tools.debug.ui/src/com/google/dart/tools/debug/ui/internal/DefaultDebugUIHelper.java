@@ -65,7 +65,6 @@ public class DefaultDebugUIHelper extends DebugUIHelper {
   public void openBrowserTab(String url) {
     try {
       LaunchUtils.openBrowser(url);
-      DartCore.getConsole().print(url);
     } catch (CoreException e) {
       showError("Open Browser", e.getMessage());
     }

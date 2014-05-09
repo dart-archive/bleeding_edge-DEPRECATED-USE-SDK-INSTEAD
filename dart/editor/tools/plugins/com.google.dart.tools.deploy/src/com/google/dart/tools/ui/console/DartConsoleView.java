@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.console;
 
+import com.google.dart.tools.debug.ui.launch.OpenObservatoryAction;
 import com.google.dart.tools.debug.ui.launch.StopPubServeAction;
 import com.google.dart.tools.deploy.Activator;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -228,6 +229,8 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
   private boolean scrollLock;
 
+  private OpenObservatoryAction openObservatoryAction;
+
   public DartConsoleView() {
     DartConsoleManager.getManager().consoleViewOpened(this);
   }
@@ -250,6 +253,10 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     stopPubServeAction = new StopPubServeAction();
     stopPubServeAction.setImageDescriptor(Activator.getImageDescriptor("icons/full/obj16/psstop.gif"));
     stopPubServeAction.setDisabledImageDescriptor(Activator.getImageDescriptor("icons/full/obj16/psstop_g.gif"));
+
+    openObservatoryAction = new OpenObservatoryAction();
+    openObservatoryAction.setImageDescriptor(Activator.getImageDescriptor("icons/full/obj16/open_browser.gif"));
+    openObservatoryAction.setDisabledImageDescriptor(Activator.getImageDescriptor("icons/full/obj16/open_browser_g.gif"));
 
     updateToolBar();
   }
@@ -320,6 +327,9 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
           control.append(NEW_LINE);
         }
       }
+
+      openObservatoryAction.updateEnablement(process.getLaunch());
+
     }
   }
 
@@ -555,6 +565,8 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     if (!(console instanceof ProcessConsole)) {
       toolbar.add(stopPubServeAction);
       toolbar.add(new Separator());
+    } else {
+      toolbar.add(openObservatoryAction);
     }
 
     toolbar.add(terminateAction);

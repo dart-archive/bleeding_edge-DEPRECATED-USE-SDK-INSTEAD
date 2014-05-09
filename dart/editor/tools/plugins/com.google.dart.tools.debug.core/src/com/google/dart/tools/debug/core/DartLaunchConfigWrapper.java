@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.core;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -49,6 +50,7 @@ public class DartLaunchConfigWrapper {
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
   private static final String OPEN_OBSERVATORY = "openObservatory";
   private static final String PAUSE_ISOLATE_ON_EXIT = "pauseIsolateOnExit";
+  private static final String OBSERVATORY_PORT = "observatoryPort";
   private static final String SHOW_LAUNCH_OUTPUT = "showLaunchOutput";
 
   // --enable-experimental-webkit-features and --enable-devtools-experiments
@@ -261,6 +263,16 @@ public class DartLaunchConfigWrapper {
     }
   }
 
+  public int getObservatoryPort() {
+    try {
+      return launchConfig.getAttribute(OBSERVATORY_PORT, -1);
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return -1;
+    }
+  }
+
   public boolean getPauseIsolateOnExit() {
     try {
       return launchConfig.getAttribute(PAUSE_ISOLATE_ON_EXIT, false);
@@ -444,6 +456,14 @@ public class DartLaunchConfigWrapper {
     }
   }
 
+  public void save() {
+    try {
+      getWorkingCopy().doSave();
+    } catch (CoreException e) {
+      DartCore.logError(e);
+    }
+  }
+
   /**
    * @see #getApplicationName()
    */
@@ -495,6 +515,10 @@ public class DartLaunchConfigWrapper {
 
   public void setLaunchObservatory(boolean value) {
     getWorkingCopy().setAttribute(OPEN_OBSERVATORY, value);
+  }
+
+  public void setObservatoryPort(int value) {
+    getWorkingCopy().setAttribute(OBSERVATORY_PORT, value);
   }
 
   public void setPauseIsolateOnExit(boolean value) {

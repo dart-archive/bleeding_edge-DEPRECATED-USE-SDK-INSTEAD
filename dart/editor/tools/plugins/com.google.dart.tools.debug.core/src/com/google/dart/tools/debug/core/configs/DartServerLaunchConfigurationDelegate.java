@@ -79,7 +79,8 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
   public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor, InstrumentationBuilder instrumentation) throws CoreException {
 
-    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
+    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(
+        configuration.getWorkingCopy());
 
     launchConfig.markAsLaunched();
 
@@ -173,10 +174,15 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
 
     if (launchConfig.getLaunchObservatory()) {
       observatoryPort = NetUtils.findUnusedPort(0);
+
+      launchConfig.setObservatoryPort(observatoryPort);
+      launchConfig.save();
+
       commandsList.add("--enable-vm-service:" + observatoryPort);
 
       if (launchConfig.getPauseIsolateOnExit()) {
         commandsList.add("--pause-isolates-on-exit");
+        commandsList.add("--trace_service_pause_events");
       }
     }
 
