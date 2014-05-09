@@ -27,6 +27,11 @@ import com.google.dart.engine.element.PropertyAccessorElement;
  */
 public interface InterfaceType extends ParameterizedType {
   /**
+   * An empty array of types.
+   */
+  InterfaceType[] EMPTY_ARRAY = new InterfaceType[0];
+
+  /**
    * Return an array containing all of the accessors (getters and setters) declared in this type.
    * 
    * @return the accessors declared in this type

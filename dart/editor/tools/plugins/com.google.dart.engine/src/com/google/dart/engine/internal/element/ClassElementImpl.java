@@ -27,7 +27,6 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.TypeParameterElement;
-import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
@@ -61,12 +60,12 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    * An array containing all of the mixins that are applied to the class being extended in order to
    * derive the superclass of this class.
    */
-  private InterfaceType[] mixins = InterfaceTypeImpl.EMPTY_ARRAY;
+  private InterfaceType[] mixins = InterfaceType.EMPTY_ARRAY;
 
   /**
    * An array containing all of the interfaces that are implemented by this class.
    */
-  private InterfaceType[] interfaces = InterfaceTypeImpl.EMPTY_ARRAY;
+  private InterfaceType[] interfaces = InterfaceType.EMPTY_ARRAY;
 
   /**
    * An array containing all of the methods contained in this class.

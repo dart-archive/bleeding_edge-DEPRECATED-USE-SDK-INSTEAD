@@ -102,8 +102,6 @@ public class TypeHierarchyContentProvider_OLD implements ITreeContentProvider {
     }
   }
 
-  public static final InterfaceType[] NO_TYPES = new InterfaceType[0];
-
   private static final SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
 
   private static SuperItem createSuperItem(Set<InterfaceType> addedTypes, InterfaceType type) {
@@ -245,7 +243,7 @@ public class TypeHierarchyContentProvider_OLD implements ITreeContentProvider {
           superList.add(0, item);
           type = item.type;
         }
-        superList.add(new SuperItem(inputType, NO_TYPES));
+        superList.add(new SuperItem(inputType, InterfaceType.EMPTY_ARRAY));
         // sub types
         scheduleSubTypesSearch(viewer, inputClass);
       }
