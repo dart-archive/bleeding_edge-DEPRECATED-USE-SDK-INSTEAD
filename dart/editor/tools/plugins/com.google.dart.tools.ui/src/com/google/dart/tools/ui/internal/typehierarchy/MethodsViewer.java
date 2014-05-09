@@ -10,7 +10,7 @@ import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.actions.MemberFilterActionGroup;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
-import com.google.dart.tools.ui.internal.typehierarchy.TypeHierarchyContentProvider.TypeItem;
+import com.google.dart.tools.ui.internal.typehierarchy.TypeHierarchyContentProvider_OLD.TypeItem;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;

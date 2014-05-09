@@ -196,8 +196,8 @@ public class TypeHierarchyViewPart extends ViewPart {
     typesViewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
     Tree tree = typesViewer.getTree();
 
-    typesViewer.setContentProvider(new TypeHierarchyContentProvider());
-    typesViewer.setLabelProvider(new HierarchyLabelProvider(Predicates.alwaysFalse()));
+    typesViewer.setContentProvider(new TypeHierarchyContentProvider_OLD());
+    typesViewer.setLabelProvider(new TypeHierarchyLabelProvider_OLD(Predicates.alwaysFalse()));
     // register "viewer" as selection provide for this view
     IViewSite site = getViewSite();
     site.setSelectionProvider(typesViewer);

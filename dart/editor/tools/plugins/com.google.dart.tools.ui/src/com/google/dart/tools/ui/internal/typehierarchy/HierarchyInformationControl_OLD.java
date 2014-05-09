@@ -30,11 +30,11 @@ import org.eclipse.swt.widgets.Tree;
 /**
  * Show hierarchy in light-weight control.
  */
-public class HierarchyInformationControl extends AbstractInformationControl {
-  private TypeHierarchyContentProvider contentProvider;
-  private HierarchyLabelProvider labelProvider;
+public class HierarchyInformationControl_OLD extends AbstractInformationControl {
+  private TypeHierarchyContentProvider_OLD contentProvider;
+  private TypeHierarchyLabelProvider_OLD labelProvider;
 
-  public HierarchyInformationControl(Shell parent, int shellStyle, int treeStyle) {
+  public HierarchyInformationControl_OLD(Shell parent, int shellStyle, int treeStyle) {
     super(parent, shellStyle, treeStyle, DartEditorActionDefinitionIds.OPEN_HIERARCHY, true);
   }
 
@@ -62,10 +62,10 @@ public class HierarchyInformationControl extends AbstractInformationControl {
     TreeViewer treeViewer = new TreeViewer(tree);
     treeViewer.setAutoExpandLevel(AbstractTreeViewer.ALL_LEVELS);
 
-    contentProvider = new TypeHierarchyContentProvider();
+    contentProvider = new TypeHierarchyContentProvider_OLD();
     treeViewer.setContentProvider(contentProvider);
 
-    labelProvider = new HierarchyLabelProvider(contentProvider.getLightPredicate());
+    labelProvider = new TypeHierarchyLabelProvider_OLD(contentProvider.getLightPredicate());
     ColoringLabelProvider coloringLabelProvider = new ColoringLabelProvider(labelProvider);
     treeViewer.setLabelProvider(coloringLabelProvider);
     coloringLabelProvider.setOwnerDrawEnabled(true);

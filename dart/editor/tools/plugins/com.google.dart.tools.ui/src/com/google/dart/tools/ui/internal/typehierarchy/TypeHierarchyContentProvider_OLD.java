@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class TypeHierarchyContentProvider implements ITreeContentProvider {
+public class TypeHierarchyContentProvider_OLD implements ITreeContentProvider {
   public static class SuperItem extends TypeItem {
     private final InterfaceType[] withTypes;
     private final InterfaceType[] implementsTypes;

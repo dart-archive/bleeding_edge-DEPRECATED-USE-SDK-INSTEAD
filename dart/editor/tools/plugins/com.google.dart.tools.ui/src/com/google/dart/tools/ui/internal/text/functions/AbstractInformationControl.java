@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
-import com.google.dart.engine.element.Element;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
@@ -760,10 +758,10 @@ public abstract class AbstractInformationControl extends PopupDialog implements
     setInfoText(getStatusFieldText());
   }
 
-  private Element findElement(TreeItem[] items) {
+  private Object findElement(TreeItem[] items) {
     ILabelProvider labelProvider = (ILabelProvider) fTreeViewer.getLabelProvider();
     for (int i = 0; i < items.length; i++) {
-      Element element = (Element) items[i].getData();
+      Object element = items[i].getData();
       if (fStringMatcher == null) {
         return element;
       }
@@ -783,35 +781,20 @@ public abstract class AbstractInformationControl extends PopupDialog implements
     return null;
   }
 
-  private DartElement findElement_OLD(TreeItem[] items) {
-    ILabelProvider labelProvider = (ILabelProvider) fTreeViewer.getLabelProvider();
-    for (int i = 0; i < items.length; i++) {
-      DartElement element = (DartElement) items[i].getData();
-      if (fStringMatcher == null) {
-        return element;
-      }
-
-      if (element != null) {
-        String label = labelProvider.getText(element);
-        if (fStringMatcher.match(label)) {
-          return element;
-        }
-      }
-
-      element = findElement_OLD(items[i].getItems());
-      if (element != null) {
-        return element;
-      }
-    }
-    return null;
-  }
-
   private void gotoSelectedElement() {
     Object selectedElement = getSelectedElement();
-    if (selectedElement instanceof Element) {
+    if (selectedElement instanceof com.google.dart.engine.element.Element) {
       try {
-        DartUI.openInEditor((Element) selectedElement);
+        DartUI.openInEditor((com.google.dart.engine.element.Element) selectedElement);
       } catch (CoreException ex) {
+        DartToolsPlugin.log(ex);
+      }
+      dispose();
+    }
+    if (selectedElement instanceof com.google.dart.server.Element) {
+      try {
+        DartUI.openInEditor(null, (com.google.dart.server.Element) selectedElement);
+      } catch (Exception ex) {
         DartToolsPlugin.log(ex);
       }
       dispose();

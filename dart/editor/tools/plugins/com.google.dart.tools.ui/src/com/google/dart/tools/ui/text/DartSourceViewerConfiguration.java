@@ -46,7 +46,8 @@ import com.google.dart.tools.ui.internal.text.functions.DartPresentationReconcil
 import com.google.dart.tools.ui.internal.text.functions.HTMLAnnotationHover;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.text.functions.SingleTokenDartScanner;
-import com.google.dart.tools.ui.internal.typehierarchy.HierarchyInformationControl;
+import com.google.dart.tools.ui.internal.typehierarchy.HierarchyInformationControl_NEW;
+import com.google.dart.tools.ui.internal.typehierarchy.HierarchyInformationControl_OLD;
 import com.google.dart.tools.ui.internal.util.CodeFormatterUtil;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
@@ -137,7 +138,11 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
       public IInformationControl createInformationControl(Shell parent) {
         int shellStyle = SWT.RESIZE;
         int treeStyle = SWT.V_SCROLL | SWT.H_SCROLL;
-        return new HierarchyInformationControl(parent, shellStyle, treeStyle);
+        if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+          return new HierarchyInformationControl_NEW(parent, shellStyle, treeStyle);
+        } else {
+          return new HierarchyInformationControl_OLD(parent, shellStyle, treeStyle);
+        }
       }
     };
   }

@@ -22,11 +22,10 @@ import com.google.dart.engine.element.polymer.PolymerTagDartElement;
 import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.NavigationRegion;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
+import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
@@ -50,21 +49,7 @@ public class OpenAction extends AbstractDartSelectionAction {
     AssistContext assistContext = selection.getContext();
     String contextId = assistContext.getAnalysisContextId();
     Source source = assistContext.getSource();
-    return getNavigationTargets(contextId, source, offset);
-  }
-
-  /**
-   * Returns navigation targets for the given context, may be empty, but not {@code null}.
-   */
-  public static com.google.dart.server.Element[] getNavigationTargets(String contextId,
-      Source source, int offset) {
-    NavigationRegion[] regions = DartCore.getAnalysisServerData().getNavigation(contextId, source);
-    for (NavigationRegion navigationRegion : regions) {
-      if (navigationRegion.containsInclusive(offset)) {
-        return navigationRegion.getTargets();
-      }
-    }
-    return com.google.dart.server.Element.EMPTY_ARRAY;
+    return NewSelectionConverter.getNavigationTargets(contextId, source, offset);
   }
 
   /**

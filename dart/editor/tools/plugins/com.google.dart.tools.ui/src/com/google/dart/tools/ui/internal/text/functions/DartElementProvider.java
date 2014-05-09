@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
+import com.google.dart.engine.source.Source;
+import com.google.dart.server.Element;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
@@ -71,7 +74,18 @@ public class DartElementProvider implements IInformationProvider, IInformationPr
         }
       }
 
-      return NewSelectionConverter.getElementAtOffset(fEditor);
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        String contextId = fEditor.getInputAnalysisContextId();
+        Source source = fEditor.getInputSource();
+        int offset = subject.getOffset();
+        Element[] targets = NewSelectionConverter.getNavigationTargets(contextId, source, offset);
+        if (targets.length == 0) {
+          return null;
+        }
+        return targets[0];
+      } else {
+        return NewSelectionConverter.getElementAtOffset(fEditor);
+      }
 
     } catch (DartModelException e) {
       return null;
