@@ -41,14 +41,14 @@ public class SourceSetBasedProviderTest extends TestCase {
 
   public void test_apply_ALL() throws Exception {
     when(sourceSet.getKind()).thenReturn(SourceSetKind.ALL);
-    SourceSetBaseProvider provider = newProvider();
+    SourceSetBasedProvider provider = newProvider();
     assertTrue(provider.apply(source));
   }
 
   public void test_apply_EXPLICITLY_ADDED() throws Exception {
     addedSources.add(sourceA);
     when(sourceSet.getKind()).thenReturn(SourceSetKind.EXPLICITLY_ADDED);
-    SourceSetBaseProvider provider = newProvider();
+    SourceSetBasedProvider provider = newProvider();
     assertTrue(provider.apply(sourceA));
     assertFalse(provider.apply(sourceB));
   }
@@ -56,7 +56,7 @@ public class SourceSetBasedProviderTest extends TestCase {
   public void test_apply_LIST() throws Exception {
     when(sourceSet.getKind()).thenReturn(SourceSetKind.LIST);
     when(sourceSet.getSources()).thenReturn(new Source[] {sourceA});
-    SourceSetBaseProvider provider = newProvider();
+    SourceSetBasedProvider provider = newProvider();
     assertTrue(provider.apply(sourceA));
     assertFalse(provider.apply(sourceB));
   }
@@ -65,7 +65,7 @@ public class SourceSetBasedProviderTest extends TestCase {
     when(sourceSet.getKind()).thenReturn(SourceSetKind.NON_SDK);
     when(sourceA.isInSystemLibrary()).thenReturn(true);
     when(sourceB.isInSystemLibrary()).thenReturn(false);
-    SourceSetBaseProvider provider = newProvider();
+    SourceSetBasedProvider provider = newProvider();
     assertFalse(provider.apply(sourceA));
     assertTrue(provider.apply(sourceB));
   }
@@ -105,6 +105,8 @@ public class SourceSetBasedProviderTest extends TestCase {
   }
 
   public void test_computeNewSources_LIST_2_LIST() throws Exception {
+    knownSources.clear();
+    addedSources.clear();
     when(sourceSetA.getKind()).thenReturn(SourceSetKind.LIST);
     when(sourceSetB.getKind()).thenReturn(SourceSetKind.LIST);
     // [A] -> [A] => []
@@ -171,7 +173,7 @@ public class SourceSetBasedProviderTest extends TestCase {
   }
 
   public void test_toString() throws Exception {
-    SourceSetBaseProvider provider = new SourceSetBaseProvider(
+    SourceSetBasedProvider provider = new SourceSetBasedProvider(
         SourceSet.EXPLICITLY_ADDED,
         null,
         null);
@@ -194,8 +196,8 @@ public class SourceSetBasedProviderTest extends TestCase {
   }
 
   private void assertNewSourcesEqualTo(Source... expected) {
-    SourceSetBaseProvider providerA = newProviderA();
-    SourceSetBaseProvider providerB = newProviderB();
+    SourceSetBasedProvider providerA = newProviderA();
+    SourceSetBasedProvider providerB = newProviderB();
     Set<Source> actualSet = providerB.computeNewSources(providerA);
     assertSetIsEqualTo(actualSet, expected);
   }
@@ -205,15 +207,15 @@ public class SourceSetBasedProviderTest extends TestCase {
     assertThat(actualSet).isEqualTo(expectedSet);
   }
 
-  private SourceSetBaseProvider newProvider() {
-    return new SourceSetBaseProvider(sourceSet, knownSources, addedSources);
+  private SourceSetBasedProvider newProvider() {
+    return new SourceSetBasedProvider(sourceSet, knownSources, addedSources);
   }
 
-  private SourceSetBaseProvider newProviderA() {
-    return new SourceSetBaseProvider(sourceSetA, knownSources, addedSources);
+  private SourceSetBasedProvider newProviderA() {
+    return new SourceSetBasedProvider(sourceSetA, knownSources, addedSources);
   }
 
-  private SourceSetBaseProvider newProviderB() {
-    return new SourceSetBaseProvider(sourceSetB, knownSources, addedSources);
+  private SourceSetBasedProvider newProviderB() {
+    return new SourceSetBasedProvider(sourceSetB, knownSources, addedSources);
   }
 }

@@ -208,7 +208,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   /**
    * A table mapping context id's to the subscriptions for notifications associated with them.
    */
-  private final Map<String, Map<NotificationKind, SourceSetBaseProvider>> notificationMap = Maps.newHashMap();
+  private final Map<String, Map<NotificationKind, SourceSetBasedProvider>> notificationMap = Maps.newHashMap();
 
   /**
    * The listener that will receive notification when new analysis results become available.
@@ -504,12 +504,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     // schedule analysis again
     schedulePerformAnalysisOperation(contextId, true);
     // schedule notifications
-    Map<NotificationKind, SourceSetBaseProvider> notifications = notificationMap.get(contextId);
+    Map<NotificationKind, SourceSetBasedProvider> notifications = notificationMap.get(contextId);
     log("\tnotifications: %s", notifications);
     if (notifications != null) {
-      for (Entry<NotificationKind, SourceSetBaseProvider> entry : notifications.entrySet()) {
+      for (Entry<NotificationKind, SourceSetBasedProvider> entry : notifications.entrySet()) {
         NotificationKind notificationKind = entry.getKey();
-        SourceSetBaseProvider sourceProvider = entry.getValue();
+        SourceSetBasedProvider sourceProvider = entry.getValue();
         for (ChangeNotice changeNotice : notices) {
           Source source = changeNotice.getSource();
           if (sourceProvider.apply(source)) {
@@ -565,7 +565,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     AnalysisContext analysisContext = getAnalysisContext(contextId);
     Set<Source> knownSources = getSourcesMap(contextId, contextKnownSourcesMap);
     Set<Source> addedSources = getSourcesMap(contextId, contextAddedSourcesMap);
-    Map<NotificationKind, SourceSetBaseProvider> notifications = notificationMap.get(contextId);
+    Map<NotificationKind, SourceSetBasedProvider> notifications = notificationMap.get(contextId);
     if (notifications == null) {
       notifications = Maps.newHashMap();
       notificationMap.put(contextId, notifications);
@@ -574,8 +574,8 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     for (Entry<NotificationKind, SourceSet> entry : subscriptions.entrySet()) {
       NotificationKind kind = entry.getKey();
       SourceSet sourceSet = entry.getValue();
-      SourceSetBaseProvider oldProvider = notifications.get(kind);
-      SourceSetBaseProvider newProvider = new SourceSetBaseProvider(
+      SourceSetBasedProvider oldProvider = notifications.get(kind);
+      SourceSetBasedProvider newProvider = new SourceSetBasedProvider(
           sourceSet,
           knownSources,
           addedSources);

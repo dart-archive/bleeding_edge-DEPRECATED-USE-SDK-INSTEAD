@@ -15,6 +15,7 @@
 package com.google.dart.server.internal.local;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.SourceSet;
@@ -27,21 +28,21 @@ import java.util.Set;
  * 
  * @coverage dart.server.local
  */
-public class SourceSetBaseProvider {
+public class SourceSetBasedProvider {
   private final SourceSet set;
   private final Set<Source> listedSources;
   private final Set<Source> knownSources;
   private final Set<Source> addedSources;
 
   /**
-   * Initialize a newly created {@link SourceSetBaseProvider}.
+   * Initialize a newly created {@link SourceSetBasedProvider}.
    * 
    * @param set the {@link SourceSet} on which this provider is based
    * @param knownSources the <em>mutable</em> set of all known {@link Source}s
    * @param addedSources the <em>mutable</em> set of all the {@link Source}s which were added
    *          directly
    */
-  public SourceSetBaseProvider(SourceSet set, Set<Source> knownSources, Set<Source> addedSources) {
+  public SourceSetBasedProvider(SourceSet set, Set<Source> knownSources, Set<Source> addedSources) {
     this.set = set;
     this.listedSources = set.getKind() == SourceSetKind.LIST
         ? ImmutableSet.copyOf(set.getSources()) : ImmutableSet.<Source> of();
@@ -70,9 +71,15 @@ public class SourceSetBaseProvider {
    * Returns {@link Source}s which have not been allowed by the given old provider, but are allowed
    * by this one.
    */
-  public Set<Source> computeNewSources(SourceSetBaseProvider oldProvider) {
+  public Set<Source> computeNewSources(SourceSetBasedProvider oldProvider) {
+    // prepare all sources
+    Iterable<Source> allSources = Iterables.concat(knownSources, listedSources);
+    if (oldProvider != null) {
+      allSources = Iterables.concat(allSources, oldProvider.listedSources);
+    }
+    // check every source
     Set<Source> result = Sets.newHashSet();
-    for (Source source : knownSources) {
+    for (Source source : allSources) {
       if (apply(source) && (oldProvider == null || !oldProvider.apply(source))) {
         result.add(source);
       }
