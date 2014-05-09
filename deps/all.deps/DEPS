@@ -34,7 +34,7 @@ vars = {
   "junit_rev" : "@19997",
   "mockito_rev" : "@19997",
   "snakeyaml_rev" : "@19997",
-  "stripjar_rev" : "@20110",
+  "websocket_rev" : "@35854",
   "WebCore_rev" : "@34173",
   "weberknecht_rev" : "@33599",
   "bootstrap_css_rev" : "@28387",
@@ -91,7 +91,7 @@ deps = {
   "dart/third_party/junit": "/third_party/junit" + Var("junit_rev"),
   "dart/third_party/mockito": "/third_party/mockito" + Var("mockito_rev"),
   "dart/third_party/snakeyaml": "/third_party/snakeyaml" + Var("snakeyaml_rev"),
-  "dart/third_party/stripjar": "/third_party/stripjar" + Var("stripjar_rev"),
+  "dart/third_party/websocket": "/third_party/websocket" + Var("websocket_rev"),
   "dart/third_party/d8": "/third_party/d8" + Var("d8_rev"),
   "dart/third_party/WebCore": "/third_party/WebCore" + Var("WebCore_rev"),
   "dart/third_party/weberknecht":
