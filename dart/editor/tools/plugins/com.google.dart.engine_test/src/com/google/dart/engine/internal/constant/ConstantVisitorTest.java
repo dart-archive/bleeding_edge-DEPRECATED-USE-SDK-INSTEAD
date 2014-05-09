@@ -13,10 +13,11 @@
  */
 package com.google.dart.engine.internal.constant;
 
-import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
@@ -24,7 +25,9 @@ import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.object.DartObjectImpl;
+import com.google.dart.engine.internal.object.IntState;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
+import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.scanner.Keyword;
 
 import static com.google.dart.engine.ast.AstFactory.booleanLiteral;
@@ -38,7 +41,10 @@ import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
 import static com.google.dart.engine.element.ElementFactory.library;
 
-public class ConstantVisitorTest extends EngineTestCase {
+import java.math.BigInteger;
+import java.util.HashMap;
+
+public class ConstantVisitorTest extends ResolverTestCase {
   public void test_visitConditionalExpression_false() {
     Expression thenExpression = integer(1L);
     Expression elseExpression = integer(0L);
@@ -112,10 +118,45 @@ public class ConstantVisitorTest extends EngineTestCase {
     assertValue(1L, expression.accept(new ConstantVisitor(new TestTypeProvider())));
   }
 
+  public void test_visitSimpleIdentifier_inEnvironment() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const a = b;",
+        "const b = 3;"));
+    HashMap<String, DartObjectImpl> environment = new HashMap<String, DartObjectImpl>();
+    DartObjectImpl six = new DartObjectImpl(getTypeProvider().getIntType(), new IntState(
+        BigInteger.valueOf(6L)));
+    environment.put("b", six);
+    assertValue(6, evaluateConstant(compilationUnit, "a", environment));
+  }
+
+  public void test_visitSimpleIdentifier_notInEnvironment() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const a = b;",
+        "const b = 3;"));
+    HashMap<String, DartObjectImpl> environment = new HashMap<String, DartObjectImpl>();
+    DartObjectImpl six = new DartObjectImpl(getTypeProvider().getIntType(), new IntState(
+        BigInteger.valueOf(6L)));
+    environment.put("c", six);
+    assertValue(3, evaluateConstant(compilationUnit, "a", environment));
+  }
+
+  public void test_visitSimpleIdentifier_withoutEnvironment() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const a = b;",
+        "const b = 3;"));
+    assertValue(3, evaluateConstant(compilationUnit, "a", null));
+  }
+
   private void assertValue(long expectedValue, EvaluationResultImpl result) {
     assertInstanceOf(ValidResult.class, result);
     DartObjectImpl value = ((ValidResult) result).getValue();
     assertEquals("int", value.getType().getName());
     assertEquals(expectedValue, value.getIntValue().longValue());
+  }
+
+  private EvaluationResultImpl evaluateConstant(CompilationUnit compilationUnit, String name,
+      HashMap<String, DartObjectImpl> lexicalEnvironment) throws AnalysisException {
+    Expression expression = findTopLevelConstantExpression(compilationUnit, name);
+    return expression.accept(new ConstantVisitor(getTypeProvider(), lexicalEnvironment));
   }
 }

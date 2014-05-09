@@ -15,6 +15,10 @@ package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.TopLevelVariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
@@ -161,6 +165,19 @@ public class ResolverTestCase extends EngineTestCase {
     return library;
   }
 
+  protected Expression findTopLevelConstantExpression(CompilationUnit compilationUnit, String name) {
+    for (CompilationUnitMember member : compilationUnit.getDeclarations()) {
+      if (member instanceof TopLevelVariableDeclaration) {
+        for (VariableDeclaration variable : ((TopLevelVariableDeclaration) member).getVariables().getVariables()) {
+          if (variable.getName().getName().equals(name)) {
+            return variable.getInitializer();
+          }
+        }
+      }
+    }
+    return null; // Not found
+  }
+
   protected AnalysisContext getAnalysisContext() {
     return analysisContext;
   }
@@ -217,6 +234,12 @@ public class ResolverTestCase extends EngineTestCase {
   protected CompilationUnit resolveCompilationUnit(Source source, LibraryElement library)
       throws Exception {
     return analysisContext.resolveCompilationUnit(source, library);
+  }
+
+  protected CompilationUnit resolveSource(String sourceText) throws AnalysisException {
+    Source source = addSource(sourceText);
+    LibraryElement library = getAnalysisContext().computeLibraryElement(source);
+    return getAnalysisContext().resolveCompilationUnit(source, library);
   }
 
   @Override

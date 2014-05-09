@@ -346,27 +346,8 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     return ((InstanceCreationExpression) expression).getEvaluationResult();
   }
 
-  private Expression findTopLevelConstantExpression(CompilationUnit compilationUnit, String name) {
-    for (CompilationUnitMember member : compilationUnit.getDeclarations()) {
-      if (member instanceof TopLevelVariableDeclaration) {
-        for (VariableDeclaration variable : ((TopLevelVariableDeclaration) member).getVariables().getVariables()) {
-          if (variable.getName().getName().equals(name)) {
-            return variable.getInitializer();
-          }
-        }
-      }
-    }
-    return null; // Not found
-  }
-
   private ConstantValueComputer makeConstantValueComputer() {
     return new ValidatingConstantValueComputer(new TestTypeProvider());
-  }
-
-  private CompilationUnit resolveSource(String sourceText) throws AnalysisException {
-    Source source = addSource(sourceText);
-    LibraryElement library = getAnalysisContext().computeLibraryElement(source);
-    return getAnalysisContext().resolveCompilationUnit(source, library);
   }
 
   private void validate(boolean shouldBeValid, VariableDeclarationList declarationList) {

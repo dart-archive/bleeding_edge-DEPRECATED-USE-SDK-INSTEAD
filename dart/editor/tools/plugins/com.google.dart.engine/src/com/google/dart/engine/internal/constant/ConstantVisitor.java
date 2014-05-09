@@ -131,13 +131,31 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
    */
   private DartObjectImpl nullObject;
 
+  private final HashMap<String, DartObjectImpl> lexicalEnvironment;
+
   /**
    * Initialize a newly created constant visitor.
    * 
    * @param typeProvider the type provider used to access known types
+   * @param lexicalEnvironment values which should override simpleIdentifiers, or null if no
+   *          overriding is necessary.
    */
   public ConstantVisitor(TypeProvider typeProvider) {
     this.typeProvider = typeProvider;
+    this.lexicalEnvironment = null;
+  }
+
+  /**
+   * Initialize a newly created constant visitor.
+   * 
+   * @param typeProvider the type provider used to access known types
+   * @param lexicalEnvironment values which should override simpleIdentifiers, or null if no
+   *          overriding is necessary.
+   */
+  public ConstantVisitor(TypeProvider typeProvider,
+      HashMap<String, DartObjectImpl> lexicalEnvironment) {
+    this.typeProvider = typeProvider;
+    this.lexicalEnvironment = lexicalEnvironment;
   }
 
   @Override
@@ -415,6 +433,9 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
 
   @Override
   public EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
+    if (lexicalEnvironment != null && lexicalEnvironment.containsKey(node.getName())) {
+      return new ValidResult(lexicalEnvironment.get(node.getName()));
+    }
     return getConstantValue(node, node.getStaticElement());
   }
 
