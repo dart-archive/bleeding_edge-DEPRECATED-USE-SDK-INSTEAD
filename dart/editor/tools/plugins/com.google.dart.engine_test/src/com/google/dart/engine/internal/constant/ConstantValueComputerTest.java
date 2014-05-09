@@ -17,14 +17,18 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.resolver.ResolverTestCase;
@@ -203,11 +207,113 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     validate(true, ((TopLevelVariableDeclaration) members.get(0)).getVariables());
   }
 
+  public void test_dependencyOnConstructor() throws Exception {
+    // x depends on "const A()"
+    assertProperDependencies(createSource(//
+        "class A {",
+        "  const A();",
+        "}",
+        "const x = const A();"));
+  }
+
+  public void test_dependencyOnConstructorArgument() throws Exception {
+    // "const A(x)" depends on x
+    assertProperDependencies(createSource(//
+        "class A {",
+        "  const A(this.next);",
+        "  final A next;",
+        "}",
+        "const A x = const A(null);",
+        "const A y = const A(x);"));
+  }
+
+  public void test_dependencyOnConstructorArgument_unresolvedConstructor() throws Exception {
+    // "const A.a(x)" depends on x even if the constructor A.a can't be found.
+    // TODO(paulberry): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is redundant and
+    // probably shouldn't be issued.
+    assertProperDependencies(
+        createSource(//
+            "class A {",
+            "}",
+            "const int x = 1;",
+            "const A y = const A.a(x);"),
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+        CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR);
+  }
+
+  public void test_dependencyOnConstructorInitializer() throws Exception {
+    // "const A()" depends on x
+    assertProperDependencies(createSource(//
+        "const int x = 1;",
+        "class A {",
+        "  const A() : v = x;",
+        "  final int v;",
+        "}"));
+  }
+
   public void test_dependencyOnVariable() throws Exception {
     // x depends on y
     assertProperDependencies(createSource(//
         "const x = y + 1;",
         "const y = 2;"));
+  }
+
+  public void test_instanceCreationExpression_redirect() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const foo = const A();",
+        "class A {",
+        "  const factory A() = B;",
+        "}",
+        "class B implements A {",
+        "  const B();",
+        "}"));
+    assertType(evaluateInstanceCreationExpression(compilationUnit, "foo"), "B");
+  }
+
+  public void test_instanceCreationExpression_redirect_cycle() throws Exception {
+    // It is an error to have a cycle in factory redirects; however, we need
+    // to make sure that even if the error occurs, attempting to evaluate the
+    // constant will terminate.
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const foo = const A();",
+        "class A {",
+        "  const factory A() = A.b;",
+        "  const factory A.b() = A;",
+        "}"));
+    assertValidUnknown(evaluateInstanceCreationExpression(compilationUnit, "foo"));
+  }
+
+  public void test_instanceCreationExpression_redirect_extern() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const foo = const A();",
+        "class A {",
+        "  external const factory A();",
+        "}"));
+    assertValidUnknown(evaluateInstanceCreationExpression(compilationUnit, "foo"));
+  }
+
+  public void test_instanceCreationExpression_redirect_nonConst() throws Exception {
+    // It is an error for a const factory constructor redirect to a non-const
+    // constructor; however, we need to make sure that even if the error
+    // attempting to evaluate the constant won't cause a crash.
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const foo = const A();",
+        "class A {",
+        "  const factory A() = A.b;",
+        "  A.b();",
+        "}"));
+    assertValidUnknown(evaluateInstanceCreationExpression(compilationUnit, "foo"));
+  }
+
+  public void test_instanceCreationExpression_symbol() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource("const foo = const Symbol('a');"));
+    EvaluationResultImpl evaluationResult = evaluateInstanceCreationExpression(
+        compilationUnit,
+        "foo");
+    assertInstanceOf(ValidResult.class, evaluationResult);
+    DartObjectImpl value = ((ValidResult) evaluationResult).getValue();
+    assertEquals(getTypeProvider().getSymbolType(), value.getType());
+    assertEquals("a", value.getValue());
   }
 
   private void assertProperDependencies(String sourceText, ErrorCode... expectedErrorCodes)
@@ -222,8 +328,45 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     assertErrors(source, expectedErrorCodes);
   }
 
+  private void assertType(EvaluationResultImpl result, String typeName) {
+    assertInstanceOf(ValidResult.class, result);
+    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertEquals(typeName, value.getType().getName());
+  }
+
+  private void assertValidUnknown(EvaluationResultImpl result) {
+    assertInstanceOf(ValidResult.class, result);
+    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertTrue(value.isUnknown());
+  }
+
+  private EvaluationResultImpl evaluateInstanceCreationExpression(CompilationUnit compilationUnit,
+      String name) throws AnalysisException {
+    Expression expression = findTopLevelConstantExpression(compilationUnit, name);
+    return ((InstanceCreationExpression) expression).getEvaluationResult();
+  }
+
+  private Expression findTopLevelConstantExpression(CompilationUnit compilationUnit, String name) {
+    for (CompilationUnitMember member : compilationUnit.getDeclarations()) {
+      if (member instanceof TopLevelVariableDeclaration) {
+        for (VariableDeclaration variable : ((TopLevelVariableDeclaration) member).getVariables().getVariables()) {
+          if (variable.getName().getName().equals(name)) {
+            return variable.getInitializer();
+          }
+        }
+      }
+    }
+    return null; // Not found
+  }
+
   private ConstantValueComputer makeConstantValueComputer() {
     return new ValidatingConstantValueComputer(new TestTypeProvider());
+  }
+
+  private CompilationUnit resolveSource(String sourceText) throws AnalysisException {
+    Source source = addSource(sourceText);
+    LibraryElement library = getAnalysisContext().computeLibraryElement(source);
+    return getAnalysisContext().resolveCompilationUnit(source, library);
   }
 
   private void validate(boolean shouldBeValid, VariableDeclarationList declarationList) {

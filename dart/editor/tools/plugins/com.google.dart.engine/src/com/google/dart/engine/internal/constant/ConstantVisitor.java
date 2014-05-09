@@ -44,15 +44,11 @@ import com.google.dart.engine.ast.SymbolLiteral;
 import com.google.dart.engine.ast.visitor.UnifyingAstVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
-import com.google.dart.engine.element.FieldElement;
-import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -75,11 +71,9 @@ import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.InterfaceType;
-import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 
 /**
  * Instances of the class {@code ConstantVisitor} evaluate constant expressions to produce their
@@ -263,86 +257,10 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       // TODO(brianwilkerson) Figure out which error to report.
       return error(node, null);
     }
-    ConstructorElement constructor = node.getStaticElement();
-    if (constructor != null && constructor.isConst()) {
-      NodeList<Expression> arguments = node.getArgumentList().getArguments();
-      int argumentCount = arguments.size();
-      DartObjectImpl[] argumentValues = new DartObjectImpl[argumentCount];
-      HashMap<String, DartObjectImpl> namedArgumentValues = new HashMap<String, DartObjectImpl>();
-      for (int i = 0; i < argumentCount; i++) {
-        Expression argument = arguments.get(i);
-        if (argument instanceof NamedExpression) {
-          NamedExpression namedExpression = (NamedExpression) argument;
-          String name = namedExpression.getName().getLabel().getName();
-          namedArgumentValues.put(name, valueOf(namedExpression.getExpression()));
-          argumentValues[i] = getNull();
-        } else {
-          argumentValues[i] = valueOf(argument);
-        }
-      }
-      HashSet<ConstructorElement> constructorsVisited = new HashSet<ConstructorElement>();
-      InterfaceType definingClass = (InterfaceType) constructor.getReturnType();
-      while (constructor.isFactory()) {
-        if (definingClass.getElement().getLibrary().isDartCore()) {
-          String className = definingClass.getName();
-          if (className.equals("Symbol") && argumentCount == 1) {
-            String argumentValue = argumentValues[0].getStringValue();
-            if (argumentValue != null) {
-              return valid(definingClass, new SymbolState(argumentValue));
-            }
-          }
-        }
-        constructorsVisited.add(constructor);
-        ConstructorElement redirectedConstructor = constructor.getRedirectedConstructor();
-        if (redirectedConstructor == null) {
-          // This can happen if constructor is an external factory constructor.  Since there is no
-          // constructor to delegate to, we currently can't evaluate the constant.
-          // TODO(paulberry): if the constructor is one of {bool,int,String}.fromEnvironment(),
-          // we may be able to infer the value based on -D flags provided to the analyzer (see
-          // dartbug.com/17234).
-          return validWithUnknownValue(definingClass);
-        }
-        if (!redirectedConstructor.isConst()) {
-          // Delegating to a non-const constructor--this is not allowed (and
-          // is checked elsewhere--see [ErrorVerifier.checkForRedirectToNonConstConstructor()]).
-          // So if we encounter it just consider it an unknown value to suppress further errors.
-          return validWithUnknownValue(definingClass);
-        }
-        if (constructorsVisited.contains(redirectedConstructor)) {
-          // Cycle in redirecting factory constructors--this is not allowed
-          // and is checked elsewhere--see [ErrorVerifier.checkForRecursiveFactoryRedirect()]).
-          // So if we encounter it just consider it an unknown value to suppress further errors.
-          return validWithUnknownValue(definingClass);
-        }
-        constructor = redirectedConstructor;
-        definingClass = (InterfaceType) constructor.getReturnType();
-      }
-      HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
-      ParameterElement[] parameters = constructor.getParameters();
-      int parameterCount = parameters.length;
-      for (int i = 0; i < parameterCount; i++) {
-        ParameterElement parameter = parameters[i];
-        if (parameter.isInitializingFormal()) {
-          FieldElement field = ((FieldFormalParameterElement) parameter).getField();
-          if (field != null) {
-            String fieldName = field.getName();
-            if (parameter.getParameterKind() == ParameterKind.NAMED) {
-              DartObjectImpl argumentValue = namedArgumentValues.get(parameter.getName());
-              if (argumentValue != null) {
-                fieldMap.put(fieldName, argumentValue);
-              }
-            } else if (i < argumentCount) {
-              fieldMap.put(fieldName, argumentValues[i]);
-              // Otherwise, the parameter is assumed to be an optional positional parameter for which
-              // no value was provided.
-            }
-          }
-        }
-      }
-      // TODO(brianwilkerson) This doesn't handle fields initialized in an initializer. We should be
-      // able to handle fields initialized by the superclass' constructor fairly easily, but other
-      // initializers will be harder.
-      return valid(definingClass, new GenericState(fieldMap));
+    beforeGetEvaluationResult(node);
+    EvaluationResultImpl result = node.getEvaluationResult();
+    if (result != null) {
+      return result;
     }
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
@@ -539,6 +457,53 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
   }
 
   /**
+   * Return an object representing the value 'null'.
+   * 
+   * @return an object representing the value 'null'
+   */
+  DartObjectImpl getNull() {
+    if (nullObject == null) {
+      nullObject = new DartObjectImpl(typeProvider.getNullType(), NullState.NULL_STATE);
+    }
+    return nullObject;
+  }
+
+  ValidResult valid(InterfaceType type, InstanceState state) {
+    return new ValidResult(new DartObjectImpl(type, state));
+  }
+
+  ValidResult validWithUnknownValue(InterfaceType type) {
+    if (type.getElement().getLibrary().isDartCore()) {
+      String typeName = type.getName();
+      if (typeName.equals("bool")) {
+        return valid(type, BoolState.UNKNOWN_VALUE);
+      } else if (typeName.equals("double")) {
+        return valid(type, DoubleState.UNKNOWN_VALUE);
+      } else if (typeName.equals("int")) {
+        return valid(type, IntState.UNKNOWN_VALUE);
+      } else if (typeName.equals("String")) {
+        return valid(type, StringState.UNKNOWN_VALUE);
+      }
+    }
+    return valid(type, GenericState.UNKNOWN_VALUE);
+  }
+
+  /**
+   * Return the value of the given expression, or a representation of 'null' if the expression
+   * cannot be evaluated.
+   * 
+   * @param expression the expression whose value is to be returned
+   * @return the value of the given expression
+   */
+  DartObjectImpl valueOf(Expression expression) {
+    EvaluationResultImpl expressionValue = expression.accept(this);
+    if (expressionValue instanceof ValidResult) {
+      return ((ValidResult) expressionValue).getValue();
+    }
+    return getNull();
+  }
+
+  /**
    * Return a result object representing an error associated with the given node.
    * 
    * @param node the AST node associated with the error
@@ -580,18 +545,6 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
   }
 
   /**
-   * Return an object representing the value 'null'.
-   * 
-   * @return an object representing the value 'null'
-   */
-  private DartObjectImpl getNull() {
-    if (nullObject == null) {
-      nullObject = new DartObjectImpl(typeProvider.getNullType(), NullState.NULL_STATE);
-    }
-    return nullObject;
-  }
-
-  /**
    * Return the union of the errors encoded in the given results.
    * 
    * @param leftResult the first set of errors, or {@code null} if there was no previous collection
@@ -609,40 +562,5 @@ public class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       }
     }
     return leftResult;
-  }
-
-  private ValidResult valid(InterfaceType type, InstanceState state) {
-    return new ValidResult(new DartObjectImpl(type, state));
-  }
-
-  private ValidResult validWithUnknownValue(InterfaceType type) {
-    if (type.getElement().getLibrary().isDartCore()) {
-      String typeName = type.getName();
-      if (typeName.equals("bool")) {
-        return valid(type, BoolState.UNKNOWN_VALUE);
-      } else if (typeName.equals("double")) {
-        return valid(type, DoubleState.UNKNOWN_VALUE);
-      } else if (typeName.equals("int")) {
-        return valid(type, IntState.UNKNOWN_VALUE);
-      } else if (typeName.equals("String")) {
-        return valid(type, StringState.UNKNOWN_VALUE);
-      }
-    }
-    return valid(type, GenericState.UNKNOWN_VALUE);
-  }
-
-  /**
-   * Return the value of the given expression, or a representation of 'null' if the expression
-   * cannot be evaluated.
-   * 
-   * @param expression the expression whose value is to be returned
-   * @return the value of the given expression
-   */
-  private DartObjectImpl valueOf(Expression expression) {
-    EvaluationResultImpl expressionValue = expression.accept(this);
-    if (expressionValue instanceof ValidResult) {
-      return ((ValidResult) expressionValue).getValue();
-    }
-    return getNull();
   }
 }

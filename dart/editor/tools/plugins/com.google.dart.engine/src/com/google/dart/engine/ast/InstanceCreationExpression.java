@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
@@ -50,6 +51,11 @@ public class InstanceCreationExpression extends Expression {
    * if the AST structure has not been resolved or if the constructor could not be resolved.
    */
   private ConstructorElement staticElement;
+
+  /**
+   * The result of evaluating this expression, if it is constant.
+   */
+  private EvaluationResultImpl result;
 
   /**
    * Initialize a newly created instance creation expression.
@@ -96,6 +102,17 @@ public class InstanceCreationExpression extends Expression {
   @Override
   public Token getEndToken() {
     return argumentList.getEndToken();
+  }
+
+  /**
+   * Return the result of evaluating this constant as a compile-time constant expression, or
+   * {@code null} if this variable is not a 'const' expression or an error prevented the result from
+   * being computed.
+   * 
+   * @return the result of evaluating this constant
+   */
+  public EvaluationResultImpl getEvaluationResult() {
+    return result;
   }
 
   /**
@@ -149,6 +166,16 @@ public class InstanceCreationExpression extends Expression {
    */
   public void setConstructorName(ConstructorName constructorName) {
     this.constructorName = constructorName;
+  }
+
+  /**
+   * Set the result of evaluating this expression as a compile-time constant expression to the given
+   * result.
+   * 
+   * @param result the result of evaluating this expression
+   */
+  public void setEvaluationResult(EvaluationResultImpl result) {
+    this.result = result;
   }
 
   /**

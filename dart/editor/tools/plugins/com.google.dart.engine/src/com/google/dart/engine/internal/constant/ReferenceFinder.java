@@ -14,9 +14,12 @@
 package com.google.dart.engine.internal.constant;
 
 import com.google.dart.engine.ast.AstNode;
+import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
@@ -30,9 +33,9 @@ import java.util.HashMap;
  */
 public class ReferenceFinder extends RecursiveAstVisitor<Void> {
   /**
-   * The element representing the variable whose initializer will be visited.
+   * The element representing the construct that will be visited.
    */
-  private VariableDeclaration source;
+  private AstNode source;
 
   /**
    * A graph in which the nodes are the constant variables and the edges are from each variable to
@@ -43,7 +46,12 @@ public class ReferenceFinder extends RecursiveAstVisitor<Void> {
   /**
    * A table mapping constant variables to the declarations of those variables.
    */
-  private HashMap<VariableElement, VariableDeclaration> declarationMap;
+  private HashMap<VariableElement, VariableDeclaration> variableDeclarationMap;
+
+  /**
+   * A table mapping constant constructors to the declarations of those constructors.
+   */
+  private HashMap<ConstructorElement, ConstructorDeclaration> constructorDeclarationMap;
 
   /**
    * Initialize a newly created reference finder to find references from the given variable to other
@@ -52,14 +60,26 @@ public class ReferenceFinder extends RecursiveAstVisitor<Void> {
    * @param source the element representing the variable whose initializer will be visited
    * @param referenceGraph a graph recording which variables (heads) reference which other variables
    *          (tails) in their initializers
-   * @param declarationMap A table mapping constant variables to the declarations of those
+   * @param variableDeclarationMap A table mapping constant variables to the declarations of those
    *          variables.
+   * @param constructorDeclarationMap A table mapping constant constructors to the declarations of
+   *          those constructors.
    */
-  public ReferenceFinder(VariableDeclaration source, DirectedGraph<AstNode> referenceGraph,
-      HashMap<VariableElement, VariableDeclaration> declarationMap) {
+  public ReferenceFinder(AstNode source, DirectedGraph<AstNode> referenceGraph,
+      HashMap<VariableElement, VariableDeclaration> variableDeclarationMap,
+      HashMap<ConstructorElement, ConstructorDeclaration> constructorDeclarationMap) {
     this.source = source;
     this.referenceGraph = referenceGraph;
-    this.declarationMap = declarationMap;
+    this.variableDeclarationMap = variableDeclarationMap;
+    this.constructorDeclarationMap = constructorDeclarationMap;
+  }
+
+  @Override
+  public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (node.isConst()) {
+      referenceGraph.addEdge(source, node);
+    }
+    return null;
   }
 
   @Override
@@ -71,9 +91,9 @@ public class ReferenceFinder extends RecursiveAstVisitor<Void> {
     if (element instanceof VariableElement) {
       VariableElement variable = (VariableElement) element;
       if (variable.isConst()) {
-        VariableDeclaration variableDeclaration = declarationMap.get(variable);
+        VariableDeclaration variableDeclaration = variableDeclarationMap.get(variable);
         // The declaration will be null when the variable is not defined in the compilation units
-        // that were added used to produce the declarationMap.  In such cases, the variable should
+        // that were used to produce the variableDeclarationMap.  In such cases, the variable should
         // already have a value associated with it, but we don't bother to check because there's
         // nothing we can do about it at this point.
         if (variableDeclaration != null) {

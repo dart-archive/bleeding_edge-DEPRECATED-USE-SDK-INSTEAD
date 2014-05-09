@@ -13,11 +13,15 @@
  */
 package com.google.dart.engine.internal.constant;
 
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.VariableElement;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -32,10 +36,34 @@ public class ConstantFinder extends RecursiveAstVisitor<Void> {
   private HashMap<VariableElement, VariableDeclaration> variableMap = new HashMap<VariableElement, VariableDeclaration>();
 
   /**
+   * A table mapping constant constructors to the declarations of those constructors.
+   */
+  private HashMap<ConstructorElement, ConstructorDeclaration> constructorMap = new HashMap<ConstructorElement, ConstructorDeclaration>();
+
+  /**
+   * A collection of constant constructor invocations.
+   */
+  private ArrayList<InstanceCreationExpression> constructorInvocations = new ArrayList<InstanceCreationExpression>();
+
+  /**
    * Initialize a newly created constant finder.
    */
   public ConstantFinder() {
     super();
+  }
+
+  /**
+   * Return a collection of constant constructor invocations.
+   */
+  public ArrayList<InstanceCreationExpression> getConstructorInvocations() {
+    return constructorInvocations;
+  }
+
+  /**
+   * Return a table mapping constant constructors to the declarations of those constructors.
+   */
+  public HashMap<ConstructorElement, ConstructorDeclaration> getConstructorMap() {
+    return constructorMap;
   }
 
   /**
@@ -45,6 +73,27 @@ public class ConstantFinder extends RecursiveAstVisitor<Void> {
    */
   public HashMap<VariableElement, VariableDeclaration> getVariableMap() {
     return variableMap;
+  }
+
+  @Override
+  public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+    super.visitConstructorDeclaration(node);
+    if (node.getConstKeyword() != null) {
+      ConstructorElement element = node.getElement();
+      if (element != null) {
+        constructorMap.put(element, node);
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    super.visitInstanceCreationExpression(node);
+    if (node.isConst()) {
+      constructorInvocations.add(node);
+    }
+    return null;
   }
 
   @Override
