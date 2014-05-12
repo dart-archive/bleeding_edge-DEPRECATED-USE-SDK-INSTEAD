@@ -137,29 +137,14 @@ public class ConstantValueComputer {
       expression.getArgumentList().accept(referenceFinder);
     }
     beforeGraphWalk();
-    while (!referenceGraph.isEmpty()) {
-      AstNode node = referenceGraph.removeSink();
-      while (node != null) {
-        computeValueFor(node);
-        node = referenceGraph.removeSink();
-      }
-      if (!referenceGraph.isEmpty()) {
-        List<AstNode> constantsInCycle = referenceGraph.findCycle();
-        if (constantsInCycle == null) {
-          //
-          // This should not happen. Either the graph should be empty, or there should be at least
-          // one sink, or there should be a cycle. If this does happen we exit to prevent an
-          // infinite loop.
-          //
-          AnalysisEngine.getInstance().getLogger().logError(
-              "Exiting constant value computer with " + referenceGraph.getNodeCount()
-                  + " constants that are neither sinks nor in a cycle");
-          return;
-        }
+    ArrayList<ArrayList<AstNode>> topologicalSort = referenceGraph.computeTopologicalSort();
+    for (ArrayList<AstNode> constantsInCycle : topologicalSort) {
+      if (constantsInCycle.size() == 1) {
+        computeValueFor(constantsInCycle.get(0));
+      } else {
         for (AstNode constant : constantsInCycle) {
           generateCycleError(constantsInCycle, constant);
         }
-        referenceGraph.removeAllNodes(constantsInCycle);
       }
     }
   }

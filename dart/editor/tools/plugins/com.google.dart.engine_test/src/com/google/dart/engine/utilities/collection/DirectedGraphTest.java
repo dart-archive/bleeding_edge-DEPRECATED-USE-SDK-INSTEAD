@@ -25,17 +25,6 @@ public class DirectedGraphTest extends EngineTestCase {
   private static class Node {
   }
 
-  public void fail_findCycle() {
-    Node node1 = new Node();
-    Node node2 = new Node();
-    DirectedGraph<Node> graph = new DirectedGraph<Node>();
-    assertNull(graph.findCycle());
-    graph.addEdge(node1, node2);
-    assertNull(graph.findCycle());
-    graph.addEdge(node2, node1);
-    assertNotNull(graph.findCycle());
-  }
-
   public void test_addEdge() {
     DirectedGraph<Node> graph = new DirectedGraph<Node>();
     assertTrue(graph.isEmpty());
@@ -195,5 +184,40 @@ public class DirectedGraphTest extends EngineTestCase {
     assertSame(node2, graph.removeSink());
     assertSame(node1, graph.removeSink());
     assertTrue(graph.isEmpty());
+  }
+
+  public void test_topologicalSort_noCycles() {
+    Node node1 = new Node();
+    Node node2 = new Node();
+    Node node3 = new Node();
+    DirectedGraph<Node> graph = new DirectedGraph<Node>();
+    graph.addEdge(node1, node2);
+    graph.addEdge(node1, node3);
+    graph.addEdge(node2, node3);
+    ArrayList<ArrayList<Node>> topologicalSort = graph.computeTopologicalSort();
+    assertSizeOfList(3, topologicalSort);
+    assertSizeOfList(1, topologicalSort.get(0));
+    assertEquals(node3, topologicalSort.get(0).get(0));
+    assertSizeOfList(1, topologicalSort.get(1));
+    assertEquals(node2, topologicalSort.get(1).get(0));
+    assertSizeOfList(1, topologicalSort.get(2));
+    assertEquals(node1, topologicalSort.get(2).get(0));
+  }
+
+  public void test_topologicalSort_withCycles() {
+    Node node1 = new Node();
+    Node node2 = new Node();
+    Node node3 = new Node();
+    Node node4 = new Node();
+    DirectedGraph<Node> graph = new DirectedGraph<Node>();
+    graph.addEdge(node1, node2);
+    graph.addEdge(node2, node1);
+    graph.addEdge(node1, node3);
+    graph.addEdge(node3, node4);
+    graph.addEdge(node4, node3);
+    ArrayList<ArrayList<Node>> topologicalSort = graph.computeTopologicalSort();
+    assertSizeOfList(2, topologicalSort);
+    assertContains(topologicalSort.get(0).toArray(), node3, node4);
+    assertContains(topologicalSort.get(1).toArray(), node1, node2);
   }
 }

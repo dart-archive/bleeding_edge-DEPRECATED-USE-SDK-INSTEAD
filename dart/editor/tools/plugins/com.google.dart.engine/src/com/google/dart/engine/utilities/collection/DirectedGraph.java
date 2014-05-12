@@ -97,26 +97,19 @@ public class DirectedGraph<N> {
     private HashMap<N, NodeInfo<N>> nodeMap = new HashMap<N, NodeInfo<N>>();
 
     /**
+     * A list of all strongly connected components found, in topological sort order (each node in a
+     * strongly connected component only has edges that point to nodes in the same component or
+     * earlier components).
+     */
+    private ArrayList<ArrayList<N>> allComponents = new ArrayList<ArrayList<N>>();
+
+    /**
      * Initialize a newly created finder.
      */
     public SccFinder(DirectedGraph<N> graph) {
       super();
       this.graph = graph;
     }
-
-//    public HashSet<ArrayList<N>> allComponents() {
-//      for (N node : edges.keySet()) {
-//        NodeInfo<N> nodeInfo = nodeMap.get(node);
-//        if (nodeInfo == null) {
-//          strongConnect(node);
-//        }
-//      }
-//      HashSet<ArrayList<N>> components = new HashSet<ArrayList<N>>();
-//      for (NodeInfo<N> info : nodeMap.values()) {
-//        components.add(info.component);
-//      }
-//      return components;
-//    }
 
     /**
      * Return a list containing the nodes that are part of the strongly connected component that
@@ -128,6 +121,21 @@ public class DirectedGraph<N> {
      */
     public ArrayList<N> componentContaining(N node) {
       return strongConnect(node).component;
+    }
+
+    /**
+     * Run Tarjan's algorithm and return the resulting list of strongly connected components. The
+     * list is in topological sort order (each node in a strongly connected component only has edges
+     * that point to nodes in the same component or earlier components).
+     */
+    public ArrayList<ArrayList<N>> computeTopologicalSort() {
+      for (N node : graph.edges.keySet()) {
+        NodeInfo<N> nodeInfo = nodeMap.get(node);
+        if (nodeInfo == null) {
+          strongConnect(node);
+        }
+      }
+      return allComponents;
     }
 
     /**
@@ -193,6 +201,7 @@ public class DirectedGraph<N> {
           component.add(w);
           nodeMap.get(w).component = component;
         } while (w != v);
+        allComponents.add(component);
       }
       return vInfo;
     }
@@ -250,13 +259,14 @@ public class DirectedGraph<N> {
   }
 
   /**
-   * Return a list of nodes that form a cycle, or {@code null} if there are no cycles in this graph.
-   * 
-   * @return a list of nodes that form a cycle
+   * Run a topological sort of the graph. Since the graph may contain cycles, this results in a list
+   * of strongly connected components rather than a list of nodes. The nodes in each strongly
+   * connected components only have edges that point to nodes in the same component or earlier
+   * components.
    */
-  public List<N> findCycle() {
-    // TODO(brianwilkerson) Implement this.
-    return null;
+  public ArrayList<ArrayList<N>> computeTopologicalSort() {
+    SccFinder<N> finder = new SccFinder<N>(this);
+    return finder.computeTopologicalSort();
   }
 
   /**
