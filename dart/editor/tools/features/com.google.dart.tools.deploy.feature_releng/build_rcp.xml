@@ -415,6 +415,7 @@ build system.  The PDE build system has to run under Eclipse.
                 <include name="guava/**" />
                 <include name="json/**" />
                 <include name="snakeyaml/**" />
+                <include name="gson/**" />
             </fileset>
         </copy>
 
