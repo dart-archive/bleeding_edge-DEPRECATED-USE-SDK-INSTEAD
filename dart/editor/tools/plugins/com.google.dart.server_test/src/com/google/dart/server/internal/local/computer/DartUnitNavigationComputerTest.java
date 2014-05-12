@@ -64,6 +64,39 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
     assertNull(validator.findRegion(source, "noo", 3));
   }
 
+  public void test_instanceCreation_named() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", makeSource(//
+        "class A {",
+        "  A.named() {}",
+        "}",
+        "",
+        "main() {",
+        "  new A.named();",
+        "}"));
+    prepareNavigationRegions(contextId, source);
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
+    validator.hasRegion(source, "new A.named").isIn(source, "named() {}").hasLength(
+        "named".length());
+  }
+
+  public void test_instanceCreation_unnamed() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", makeSource(//
+        "class A {",
+        "  A() {}",
+        "}",
+        "",
+        "main() {",
+        "  new A();",
+        "}"));
+    prepareNavigationRegions(contextId, source);
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
+    validator.hasRegion(source, "new A").isIn(source, "A() {}").hasLength(0);
+  }
+
   public void test_operator_int() throws Exception {
     String contextId = createContext("test");
     Source source = addSource(contextId, "/test.dart", makeSource(//
@@ -133,7 +166,6 @@ public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
     validator.hasRegion(source, "+= 2;", 2).isInSdk().hasLength(1);
   }
 
-  // XXX
   public void test_partOf() throws Exception {
     String contextId = createContext("test");
     Source unitSource = addSource(contextId, "/test-unit.dart", "part of lib;");

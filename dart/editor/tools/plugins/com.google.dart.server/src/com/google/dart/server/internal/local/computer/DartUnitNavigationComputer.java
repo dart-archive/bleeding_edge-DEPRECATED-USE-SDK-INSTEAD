@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PostfixExpression;
@@ -96,6 +97,12 @@ public class DartUnitNavigationComputer {
       }
 
       @Override
+      public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+        addRegion_nodeStart_nodeStart(node, node.getArgumentList(), node.getStaticElement());
+        return super.visitInstanceCreationExpression(node);
+      }
+
+      @Override
       public Void visitPartDirective(PartDirective node) {
         addRegion_tokenStart_nodeEnd(node.getKeyword(), node.getUri(), node.getElement());
         return super.visitPartDirective(node);
@@ -141,6 +148,12 @@ public class DartUnitNavigationComputer {
         offset,
         length,
         new com.google.dart.server.Element[] {target}));
+  }
+
+  private void addRegion_nodeStart_nodeStart(AstNode a, AstNode b, Element element) {
+    int offset = a.getOffset();
+    int length = b.getOffset() - offset;
+    addRegion(offset, length, element);
   }
 
   private void addRegion_tokenStart_nodeEnd(Token a, AstNode b, Element element) {
