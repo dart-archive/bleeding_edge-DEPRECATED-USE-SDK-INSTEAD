@@ -996,6 +996,9 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       // Generate the type name.
       // The error code will never be generated via type propagation
       Type targetType = getStaticType(target);
+      if (targetType instanceof InterfaceType && !targetType.isObject()) {
+        targetType = ((InterfaceType) targetType).getSuperclass();
+      }
       String targetTypeName = targetType == null ? null : targetType.getName();
       resolver.reportErrorForNode(
           StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
