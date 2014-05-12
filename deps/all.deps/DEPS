@@ -27,6 +27,7 @@ vars = {
   "eclipse_rev" : "@31921",
   "fest_rev" : "@19997",
   "firefox_jsshell_rev" : "@35614",
+  "gson_rev" : "@36048",
   "gsutil_rev" : "@33376",
   "guava_rev" : "@19997",
   "hamcrest_rev" : "@19997",
@@ -84,6 +85,7 @@ deps = {
   "dart/third_party/fest": "/third_party/fest" + Var("fest_rev"),
   "dart/third_party/firefox_jsshell":
       "/third_party/firefox_jsshell" + Var("firefox_jsshell_rev"),
+  "dart/third_party/gson": "/third_party/gson" + Var("gson_rev"),
   "dart/third_party/gsutil": "/third_party/gsutil" + Var("gsutil_rev"),
   "dart/third_party/guava": "/third_party/guava" + Var("guava_rev"),
   "dart/third_party/hamcrest": "/third_party/hamcrest" + Var("hamcrest_rev"),
