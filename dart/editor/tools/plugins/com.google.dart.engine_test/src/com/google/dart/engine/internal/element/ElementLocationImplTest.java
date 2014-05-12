@@ -22,6 +22,15 @@ public class ElementLocationImplTest extends EngineTestCase {
     assertEquals(encoding, location.getEncoding());
   }
 
+  /**
+   * For example unnamed constructor.
+   */
+  public void test_create_encoding_emptyLast() {
+    String encoding = "a;b;c;";
+    ElementLocationImpl location = new ElementLocationImpl(encoding);
+    assertEquals(encoding, location.getEncoding());
+  }
+
   public void test_equals_equal() {
     String encoding = "a;b;c";
     ElementLocationImpl first = new ElementLocationImpl(encoding);

@@ -29,6 +29,7 @@ import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
@@ -483,6 +484,34 @@ public class AnalysisContextImplTest extends EngineTestCase {
     ElementLocation location = classObject.getLocation();
     Element element = context.getElement(location);
     assertSame(classObject, element);
+  }
+
+  public void test_getElement_constructor_named() throws Exception {
+    Source source = addSource("/lib.dart", createSource(//
+        "class A {",
+        "  A.named() {}",
+        "}"));
+    analyzeAll_assertFinished();
+    LibraryElement library = context.computeLibraryElement(source);
+    ClassElement classA = findClass(library.getDefiningCompilationUnit(), "A");
+    ConstructorElement constructor = classA.getConstructors()[0];
+    ElementLocation location = constructor.getLocation();
+    Element element = context.getElement(location);
+    assertSame(constructor, element);
+  }
+
+  public void test_getElement_constructor_unnamed() throws Exception {
+    Source source = addSource("/lib.dart", createSource(//
+        "class A {",
+        "  A() {}",
+        "}"));
+    analyzeAll_assertFinished();
+    LibraryElement library = context.computeLibraryElement(source);
+    ClassElement classA = findClass(library.getDefiningCompilationUnit(), "A");
+    ConstructorElement constructor = classA.getConstructors()[0];
+    ElementLocation location = constructor.getLocation();
+    Element element = context.getElement(location);
+    assertSame(constructor, element);
   }
 
   public void test_getErrors_dart_none() throws Exception {

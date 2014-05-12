@@ -156,9 +156,7 @@ public class ElementLocationImpl implements ElementLocation {
         index++;
       }
     }
-    if (builder.length() > 0) {
-      components.add(builder.toString());
-    }
+    components.add(builder.toString());
     return components.toArray(new String[components.size()]);
   }
 
