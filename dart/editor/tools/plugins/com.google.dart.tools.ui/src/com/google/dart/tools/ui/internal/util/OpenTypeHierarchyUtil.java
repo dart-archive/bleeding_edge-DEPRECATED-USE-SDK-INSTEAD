@@ -13,39 +13,17 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
-import com.google.dart.engine.element.Element;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartUIMessages;
-import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.typehierarchy.TypeHierarchyViewPart;
 
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 
 public class OpenTypeHierarchyUtil {
 
-  public static TypeHierarchyViewPart open(DartElement[] candidates, IWorkbenchWindow window) {
-    Assert.isTrue(candidates != null && candidates.length != 0);
-
-    DartElement input = null;
-    if (candidates.length > 1) {
-      String title = DartUIMessages.OpenTypeHierarchyUtil_selectionDialog_title;
-      String message = DartUIMessages.OpenTypeHierarchyUtil_selectionDialog_message;
-      input = SelectionConverter.selectJavaElement(candidates, window.getShell(), title, message);
-    } else {
-      input = candidates[0];
-    }
-    if (input == null) {
-      return null;
-    }
-
-    return openInViewPart(window, input);
-  }
-
-  public static TypeHierarchyViewPart open(Element element, IWorkbenchWindow window) {
+  public static TypeHierarchyViewPart open(Object element, IWorkbenchWindow window) {
     if (element != null) {
       return openInViewPart(window, element);
     }

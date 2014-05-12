@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.typehierarchy;
 
 import com.google.common.base.Predicates;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.OpenAction;
@@ -60,7 +61,7 @@ public class TypeHierarchyViewPart extends ViewPart {
 
   private static final String TAG_RATIO = "ratio"; //$NON-NLS-1$
 
-  private/*ClassElement*/Object inputType;
+  private Object inputType;
   private IMemento fMemento;
 
   private SashForm fTypeMethodsSplitter;
@@ -155,20 +156,28 @@ public class TypeHierarchyViewPart extends ViewPart {
   /**
    * Sets the input to a new element.
    */
-  public void setInputElement(/*Element*/Object element) {
-    // may be not a Type
-    if (!(element instanceof com.google.dart.tools.core.model.Type)
-        && !(element instanceof ClassElement)) {
-      typesViewer.setInput(null);
-      methodsViewer.setInputType(null);
-      return;
+  public void setInputElement(Object element) {
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      // show hierarchy
+      inputType = element;
+      fPagebook.showPage(fTypeMethodsSplitter);
+      typesViewer.setInput(inputType);
+      typesViewer.expandToLevel(inputType, 1);
+      typesViewer.setSelection(new StructuredSelection(inputType));
+    } else {
+      // may be not a Type
+      if (!(element instanceof ClassElement)) {
+        typesViewer.setInput(null);
+        methodsViewer.setInputType(null);
+        return;
+      }
+      // show hierarchy
+      inputType = element;
+      fPagebook.showPage(fTypeMethodsSplitter);
+      typesViewer.setInput(new Object[] {inputType});
+      typesViewer.expandToLevel(inputType, 1);
+      typesViewer.setSelection(new StructuredSelection(inputType));
     }
-    // show hierarchy
-    inputType = element;
-    fPagebook.showPage(fTypeMethodsSplitter);
-    typesViewer.setInput(new Object[] {inputType});
-    typesViewer.expandToLevel(inputType, 1);
-    typesViewer.setSelection(new StructuredSelection(inputType));
   }
 
   private void contextMenuAboutToShow(IMenuManager menu) {
@@ -196,8 +205,13 @@ public class TypeHierarchyViewPart extends ViewPart {
     typesViewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
     Tree tree = typesViewer.getTree();
 
-    typesViewer.setContentProvider(new TypeHierarchyContentProvider_OLD());
-    typesViewer.setLabelProvider(new TypeHierarchyLabelProvider_OLD(Predicates.alwaysFalse()));
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      typesViewer.setContentProvider(new TypeHierarchyContentProvider_NEW());
+      typesViewer.setLabelProvider(new TypeHierarchyLabelProvider_NEW(Predicates.alwaysFalse()));
+    } else {
+      typesViewer.setContentProvider(new TypeHierarchyContentProvider_OLD());
+      typesViewer.setLabelProvider(new TypeHierarchyLabelProvider_OLD(Predicates.alwaysFalse()));
+    }
     // register "viewer" as selection provide for this view
     IViewSite site = getViewSite();
     site.setSelectionProvider(typesViewer);

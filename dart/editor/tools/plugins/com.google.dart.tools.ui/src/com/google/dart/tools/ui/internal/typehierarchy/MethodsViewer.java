@@ -117,6 +117,10 @@ public class MethodsViewer extends TableViewer {
     if (_inputType instanceof TypeItem) {
       _inputType = ((TypeItem) _inputType).element;
     }
+    if (!(_inputType instanceof ClassElement)) {
+      setInput(null);
+      return;
+    }
     this.inputType = (ClassElement) _inputType;
     // may be no type
     if (inputType == null) {

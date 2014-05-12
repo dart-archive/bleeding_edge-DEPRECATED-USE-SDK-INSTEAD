@@ -59,6 +59,10 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
       return false;
     }
 
+    public Element getElement() {
+      return element;
+    }
+
     @Override
     public int hashCode() {
       return element.hashCode();

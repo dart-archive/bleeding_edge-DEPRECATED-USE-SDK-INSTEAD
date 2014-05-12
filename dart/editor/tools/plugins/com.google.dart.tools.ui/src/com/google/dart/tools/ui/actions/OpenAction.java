@@ -124,8 +124,19 @@ public class OpenAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    Element element = getSelectionElement(selection);
-    openElement(element);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      com.google.dart.server.Element element = getSelectionElement_NEW(selection);
+      if (element != null) {
+        try {
+          DartUI.openInEditor(null, element);
+        } catch (Throwable e) {
+          ExceptionHandler.handle(e, getText(), "Exception during open.");
+        }
+      }
+    } else {
+      Element element = getSelectionElement(selection);
+      openElement(element);
+    }
   }
 
   @Override

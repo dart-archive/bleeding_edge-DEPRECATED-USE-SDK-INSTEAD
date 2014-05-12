@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.IMenuManager;
@@ -23,34 +24,42 @@ import org.eclipse.ui.IWorkbenchSite;
  * Action group that with "Open..." actions
  */
 public class OpenViewActionGroup extends AbstractDartSelectionActionGroup {
-  private OpenTypeHierarchyAction thAction;
+  private AbstractDartSelectionAction typeHierarchyAction;
 
   public OpenViewActionGroup(DartEditor editor) {
     super(editor);
-    thAction = new OpenTypeHierarchyAction(editor);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      typeHierarchyAction = new OpenTypeHierarchyAction_NEW(editor);
+    } else {
+      typeHierarchyAction = new OpenTypeHierarchyAction_OLD(editor);
+    }
     initActions();
-    addActions(thAction);
+    addActions(typeHierarchyAction);
     addActionDartSelectionListeners();
   }
 
   public OpenViewActionGroup(IWorkbenchSite site) {
     super(site);
-    thAction = new OpenTypeHierarchyAction(site);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      typeHierarchyAction = new OpenTypeHierarchyAction_NEW(site);
+    } else {
+      typeHierarchyAction = new OpenTypeHierarchyAction_OLD(site);
+    }
     initActions();
-    addActions(thAction);
+    addActions(typeHierarchyAction);
     addActionSelectionListeners();
   }
 
   @Override
   public void dispose() {
     super.dispose();
-    thAction = null;
+    typeHierarchyAction = null;
   }
 
   @Override
   public void fillActionBars(IActionBars actionBars) {
     super.fillActionBars(actionBars);
-    actionBars.setGlobalActionHandler(DartActionConstants.OPEN_TYPE_HIERARCHY, thAction);
+    actionBars.setGlobalActionHandler(DartActionConstants.OPEN_TYPE_HIERARCHY, typeHierarchyAction);
   }
 
   @Override
@@ -62,8 +71,8 @@ public class OpenViewActionGroup extends AbstractDartSelectionActionGroup {
    * Initializes definition attributes of actions.
    */
   private void initActions() {
-    thAction.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_TYPE_HIERARCHY);
-    thAction.setId(DartEditorActionDefinitionIds.OPEN_TYPE_HIERARCHY);
+    typeHierarchyAction.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_TYPE_HIERARCHY);
+    typeHierarchyAction.setId(DartEditorActionDefinitionIds.OPEN_TYPE_HIERARCHY);
     // TODO(scheglov)
 //    part.setAction("OpenTypeHierarchy", fOpenTypeHierarchy); //$NON-NLS-1$
   }
