@@ -90,6 +90,7 @@
               <include name="guava/**" />
               <include name="json/**" />
               <include name="snakeyaml/**" />
+              <include name="gson**" />
           </fileset>
       </copy>
 
