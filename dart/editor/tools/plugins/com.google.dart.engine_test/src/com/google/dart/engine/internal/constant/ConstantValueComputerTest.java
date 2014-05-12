@@ -35,20 +35,20 @@ import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.collection.DirectedGraph;
 import com.google.dart.engine.utilities.logging.TestLogger;
 
 import java.util.HashMap;
-import java.util.HashSet;
 
 public class ConstantValueComputerTest extends ResolverTestCase {
   class ValidatingConstantVisitor extends ConstantVisitor {
-    private HashMap<AstNode, HashSet<AstNode>> capturedDependencies;
+    private DirectedGraph<AstNode> referenceGraph;
     private AstNode nodeBeingEvaluated;
 
     public ValidatingConstantVisitor(TypeProvider typeProvider,
-        HashMap<AstNode, HashSet<AstNode>> capturedDependencies, AstNode nodeBeingEvaluated) {
+        DirectedGraph<AstNode> referenceGraph, AstNode nodeBeingEvaluated) {
       super(typeProvider);
-      this.capturedDependencies = capturedDependencies;
+      this.referenceGraph = referenceGraph;
       this.nodeBeingEvaluated = nodeBeingEvaluated;
     }
 
@@ -58,14 +58,13 @@ public class ConstantValueComputerTest extends ResolverTestCase {
 
       // If we are getting the evaluation result for a node in the graph, make sure we properly
       // recorded the dependency.
-      if (capturedDependencies.containsKey(node)) {
-        assertTrue(capturedDependencies.get(nodeBeingEvaluated).contains(node));
+      if (referenceGraph.getNodes().contains(node)) {
+        assertTrue(referenceGraph.containsPath(nodeBeingEvaluated, node));
       }
     }
   }
 
   private class ValidatingConstantValueComputer extends ConstantValueComputer {
-    private HashMap<AstNode, HashSet<AstNode>> capturedDependencies;
     private AstNode nodeBeingEvaluated;
 
     public ValidatingConstantValueComputer(TypeProvider typeProvider) {
@@ -85,30 +84,14 @@ public class ConstantValueComputerTest extends ResolverTestCase {
       // If we are getting the constant initializers for a node in the graph, make sure we properly
       // recorded the dependency.
       ConstructorDeclaration node = constructorDeclarationMap.get(constructor);
-      if (node != null && capturedDependencies.containsKey(node)) {
-        assertTrue(capturedDependencies.get(nodeBeingEvaluated).contains(node));
-      }
-    }
-
-    @Override
-    protected void beforeGraphWalk() {
-      super.beforeGraphWalk();
-
-      // Capture the dependency info in referenceGraph so that we can check it later.  (We need
-      // to capture it now, before nodes get removed from the graph).
-      capturedDependencies = new HashMap<AstNode, HashSet<AstNode>>();
-      for (AstNode head : referenceGraph.getNodes()) {
-        HashSet<AstNode> tails = new HashSet<AstNode>();
-        for (AstNode tail : referenceGraph.getTails(head)) {
-          tails.add(tail);
-        }
-        capturedDependencies.put(head, tails);
+      if (node != null && referenceGraph.getNodes().contains(node)) {
+        assertTrue(referenceGraph.containsPath(nodeBeingEvaluated, node));
       }
     }
 
     @Override
     protected ConstantVisitor createConstantVisitor() {
-      return new ValidatingConstantVisitor(typeProvider, capturedDependencies, nodeBeingEvaluated);
+      return new ValidatingConstantVisitor(typeProvider, referenceGraph, nodeBeingEvaluated);
     }
   }
 

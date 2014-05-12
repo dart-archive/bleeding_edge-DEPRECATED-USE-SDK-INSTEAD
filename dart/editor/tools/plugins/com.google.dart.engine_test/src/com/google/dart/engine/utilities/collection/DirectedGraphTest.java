@@ -39,6 +39,53 @@ public class DirectedGraphTest extends EngineTestCase {
     assertFalse(graph.isEmpty());
   }
 
+  public void test_containsPath_noCycles() {
+    Node node1 = new Node();
+    Node node2 = new Node();
+    Node node3 = new Node();
+    DirectedGraph<Node> graph = new DirectedGraph<Node>();
+    graph.addEdge(node1, node2);
+    graph.addEdge(node2, node3);
+    assertTrue(graph.containsPath(node1, node1));
+    assertTrue(graph.containsPath(node1, node2));
+    assertTrue(graph.containsPath(node1, node3));
+    assertFalse(graph.containsPath(node2, node1));
+    assertTrue(graph.containsPath(node2, node2));
+    assertTrue(graph.containsPath(node2, node3));
+    assertFalse(graph.containsPath(node3, node1));
+    assertFalse(graph.containsPath(node3, node2));
+    assertTrue(graph.containsPath(node3, node3));
+  }
+
+  public void test_containsPath_withCycles() {
+    Node node1 = new Node();
+    Node node2 = new Node();
+    Node node3 = new Node();
+    Node node4 = new Node();
+    DirectedGraph<Node> graph = new DirectedGraph<Node>();
+    graph.addEdge(node1, node2);
+    graph.addEdge(node2, node1);
+    graph.addEdge(node1, node3);
+    graph.addEdge(node3, node4);
+    graph.addEdge(node4, node3);
+    assertTrue(graph.containsPath(node1, node1));
+    assertTrue(graph.containsPath(node1, node2));
+    assertTrue(graph.containsPath(node1, node3));
+    assertTrue(graph.containsPath(node1, node4));
+    assertTrue(graph.containsPath(node2, node1));
+    assertTrue(graph.containsPath(node2, node2));
+    assertTrue(graph.containsPath(node2, node3));
+    assertTrue(graph.containsPath(node2, node4));
+    assertFalse(graph.containsPath(node3, node1));
+    assertFalse(graph.containsPath(node3, node2));
+    assertTrue(graph.containsPath(node3, node3));
+    assertTrue(graph.containsPath(node3, node4));
+    assertFalse(graph.containsPath(node4, node1));
+    assertFalse(graph.containsPath(node4, node2));
+    assertTrue(graph.containsPath(node4, node3));
+    assertTrue(graph.containsPath(node4, node4));
+  }
+
   public void test_creation() {
     assertNotNull(new DirectedGraph<Node>());
   }

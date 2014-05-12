@@ -183,7 +183,6 @@ public class ConstantValueComputer {
       }
       expression.getArgumentList().accept(referenceFinder);
     }
-    beforeGraphWalk();
     ArrayList<ArrayList<AstNode>> topologicalSort = referenceGraph.computeTopologicalSort();
     for (ArrayList<AstNode> constantsInCycle : topologicalSort) {
       if (constantsInCycle.size() == 1) {
@@ -209,13 +208,6 @@ public class ConstantValueComputer {
    * checking.
    */
   protected void beforeGetConstantInitializers(ConstructorElement constructor) {
-  }
-
-  /**
-   * This method is called just before walking through [referenceGraph] to compute constant values.
-   * Unit tests will override this method to introduce additional error checking.
-   */
-  protected void beforeGraphWalk() {
   }
 
   /**

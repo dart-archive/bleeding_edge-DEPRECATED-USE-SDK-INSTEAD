@@ -270,6 +270,14 @@ public class DirectedGraph<N> {
   }
 
   /**
+   * Return true if the graph contains at least one path from {@code source} to {@code destination}.
+   */
+  public boolean containsPath(N source, N destination) {
+    HashSet<N> nodesVisited = new HashSet<N>();
+    return containsPathInternal(source, destination, nodesVisited);
+  }
+
+  /**
    * Return a list of nodes that form a cycle containing the given node. If the node is not part of
    * this graph, then a list containing only the node itself will be returned.
    * 
@@ -381,6 +389,24 @@ public class DirectedGraph<N> {
     }
     removeNode(sink);
     return sink;
+  }
+
+  private boolean containsPathInternal(N source, N destination, HashSet<N> nodesVisited) {
+    if (source == destination) {
+      return true;
+    }
+    HashSet<N> tails = edges.get(source);
+    if (tails != null) {
+      nodesVisited.add(source);
+      for (N tail : tails) {
+        if (!nodesVisited.contains(tail)) {
+          if (containsPathInternal(tail, destination, nodesVisited)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   /**
