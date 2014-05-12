@@ -46,6 +46,7 @@ import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.Element;
+import com.google.dart.server.FixableErrorCodesConsumer;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.InternalAnalysisServer;
 import com.google.dart.server.MinorRefactoringsConsumer;
@@ -278,6 +279,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @Override
   public Map<String, AnalysisContext> getContextMap() {
     return contextMap;
+  }
+
+  @Override
+  public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer) {
+    // TODO(scheglov) implement
   }
 
   @Override

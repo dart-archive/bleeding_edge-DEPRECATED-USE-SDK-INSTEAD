@@ -17,6 +17,7 @@ import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.source.Source;
 
 import java.util.Map;
@@ -106,6 +107,15 @@ public interface AnalysisServer {
    * @param contextId the identifier of the context to be deleted
    */
   public void deleteContext(String contextId);
+
+  /**
+   * Reports with a set of {@link ErrorCode}s for which server may be able to {@link #computeFixes}
+   * in the given context.
+   * 
+   * @param contextId the identifier of the context
+   * @param consumer the results listener
+   */
+  public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer);
 
   /**
    * Remove the given listener from the list of listeners that will receive notification when new

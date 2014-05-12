@@ -8,6 +8,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.Element;
+import com.google.dart.server.FixableErrorCodesConsumer;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.MinorRefactoringsConsumer;
 import com.google.dart.server.NotificationKind;
@@ -63,6 +64,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void deleteContext(String contextId) {
     // TODO (jwren) implement
+  }
+
+  @Override
+  public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer) {
+    // TODO(scheglov) implement
   }
 
   @Override
