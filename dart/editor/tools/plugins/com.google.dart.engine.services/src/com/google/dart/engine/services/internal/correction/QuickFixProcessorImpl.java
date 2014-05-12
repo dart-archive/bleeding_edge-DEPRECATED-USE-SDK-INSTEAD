@@ -808,42 +808,44 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   }
 
   private void addFix_createFunction_forFunctionType() throws Exception {
-    SimpleIdentifier nameNode = (SimpleIdentifier) node;
-    // prepare argument expression (to get parameter)
-    ClassElement targetElement;
-    Expression argument;
-    {
-      Expression target = CorrectionUtils.getQualifiedPropertyTarget(node);
-      if (target != null) {
-        Type targetType = target.getBestType();
-        if (targetType != null && targetType.getElement() instanceof ClassElement) {
-          targetElement = (ClassElement) targetType.getElement();
-          argument = (Expression) target.getParent();
+    if (node instanceof SimpleIdentifier) {
+      SimpleIdentifier nameNode = (SimpleIdentifier) node;
+      // prepare argument expression (to get parameter)
+      ClassElement targetElement;
+      Expression argument;
+      {
+        Expression target = CorrectionUtils.getQualifiedPropertyTarget(node);
+        if (target != null) {
+          Type targetType = target.getBestType();
+          if (targetType != null && targetType.getElement() instanceof ClassElement) {
+            targetElement = (ClassElement) targetType.getElement();
+            argument = (Expression) target.getParent();
+          } else {
+            return;
+          }
         } else {
-          return;
+          ClassDeclaration enclosingClass = node.getAncestor(ClassDeclaration.class);
+          targetElement = enclosingClass != null ? enclosingClass.getElement() : null;
+          argument = nameNode;
         }
-      } else {
-        ClassDeclaration enclosingClass = node.getAncestor(ClassDeclaration.class);
-        targetElement = enclosingClass != null ? enclosingClass.getElement() : null;
-        argument = nameNode;
       }
-    }
-    // should be argument of some invocation
-    ParameterElement parameterElement = argument.getBestParameterElement();
-    if (parameterElement == null) {
-      return;
-    }
-    // should be parameter of function type
-    Type parameterType = parameterElement.getType();
-    if (!(parameterType instanceof FunctionType)) {
-      return;
-    }
-    FunctionType functionType = (FunctionType) parameterType;
-    // add proposal
-    if (targetElement != null) {
-      addProposal_createFunction_method(targetElement, functionType);
-    } else {
-      addProposal_createFunction_function(functionType);
+      // should be argument of some invocation
+      ParameterElement parameterElement = argument.getBestParameterElement();
+      if (parameterElement == null) {
+        return;
+      }
+      // should be parameter of function type
+      Type parameterType = parameterElement.getType();
+      if (!(parameterType instanceof FunctionType)) {
+        return;
+      }
+      FunctionType functionType = (FunctionType) parameterType;
+      // add proposal
+      if (targetElement != null) {
+        addProposal_createFunction_method(targetElement, functionType);
+      } else {
+        addProposal_createFunction_function(functionType);
+      }
     }
   }
 
