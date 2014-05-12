@@ -27,6 +27,7 @@ public class TestAll {
     suite.addTestSuite(CreateContextOperationTest.class);
     suite.addTestSuite(DeleteContextOperationTest.class);
     suite.addTestSuite(GetContextOperationTest.class);
+    suite.addTestSuite(GetFixableErrorCodesOperationTest.class);
     suite.addTestSuite(PerformAnalysisOperationTest.class);
     suite.addTestSuite(SearchReferencesOperationTest.class);
     suite.addTestSuite(ServerOperationQueueTest.class);

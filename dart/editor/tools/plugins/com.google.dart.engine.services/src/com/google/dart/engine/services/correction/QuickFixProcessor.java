@@ -15,6 +15,7 @@
 package com.google.dart.engine.services.correction;
 
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.services.assist.AssistContext;
 
 /**
@@ -26,6 +27,11 @@ public interface QuickFixProcessor {
    */
   CorrectionProposal[] computeProposals(AssistContext context, AnalysisError problem)
       throws Exception;
+
+  /**
+   * Returns {@link ErrorCode}s for which this processor may compute fixes.
+   */
+  ErrorCode[] getFixableErrorCodes();
 
   /**
    * @return the {@code true} if {@link QuickFixProcessor} can produce {@link CorrectionProposal}(s)

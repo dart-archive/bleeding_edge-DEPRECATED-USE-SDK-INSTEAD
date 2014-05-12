@@ -29,6 +29,7 @@ import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.internal.context.ChangeNoticeImpl;
@@ -71,6 +72,7 @@ import com.google.dart.server.internal.local.operation.ComputeTypeHierarchyOpera
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
 import com.google.dart.server.internal.local.operation.GetContextOperation;
+import com.google.dart.server.internal.local.operation.GetFixableErrorCodesOperation;
 import com.google.dart.server.internal.local.operation.NotificationOperation;
 import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
 import com.google.dart.server.internal.local.operation.SearchReferencesOperation;
@@ -283,7 +285,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 
   @Override
   public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer) {
-    // TODO(scheglov) implement
+    operationQueue.add(new GetFixableErrorCodesOperation(contextId, consumer));
   }
 
   @Override
@@ -433,6 +435,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     }
     // remove from index
     index.removeContext(context);
+  }
+
+  public void internalGetFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer) {
+    ErrorCode[] fixableErrorCodes = DartUnitFixesComputer.getFixableErrorCodes();
+    consumer.computed(fixableErrorCodes);
   }
 
   /**

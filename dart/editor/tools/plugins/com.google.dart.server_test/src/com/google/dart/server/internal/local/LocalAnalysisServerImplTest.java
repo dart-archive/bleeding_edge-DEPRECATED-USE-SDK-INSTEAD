@@ -19,12 +19,14 @@ import com.google.common.collect.Lists;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.FixableErrorCodesConsumer;
 import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SourceSet;
@@ -132,18 +134,34 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
     serverListener.assertServerErrorsWithCodes(AnalysisServerErrorCode.EXCEPTION);
   }
 
+  public void test_getFixableErrorCodes() throws Exception {
+    String contextId = createContext("test");
+    final ErrorCode[][] errorCodesPtr = {null};
+    server.getFixableErrorCodes(contextId, new FixableErrorCodesConsumer() {
+      @Override
+      public void computed(ErrorCode[] errorCodes) {
+        errorCodesPtr[0] = errorCodes;
+      }
+    });
+    server.test_waitForWorkerComplete();
+    // check result
+    ErrorCode[] errorCodes = errorCodesPtr[0];
+    assertNotNull(errorCodes);
+    assertThat(errorCodes).isNotEmpty();
+  }
+
   public void test_getVersion() throws Exception {
     assertEquals("0.0.1", server.version());
   }
 
   public void test_internal_getContext() throws Exception {
-    String contextId = createContext("testA");
+    String contextId = createContext("test");
     // Ensure that getContext waits for the context to be created
     assertNotNull(server.getContext(contextId));
   }
 
   public void test_internal_getContext_getContextMap() throws Exception {
-    String contextId = createContext("testA");
+    String contextId = createContext("test");
     server.test_waitForWorkerComplete();
     assertNotNull(server.getContext(contextId));
     assertNotNull(server.getContextMap().get(contextId));

@@ -18,6 +18,7 @@ import com.google.common.collect.Maps;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
@@ -35,6 +36,14 @@ import java.util.Map;
  */
 @DartOmit
 public class DartUnitFixesComputer {
+  /**
+   * Returns {@link ErrorCode}s for which this processor may compute fixes.
+   */
+  public static ErrorCode[] getFixableErrorCodes() {
+    QuickFixProcessor processor = CorrectionProcessors.getQuickFixProcessor();
+    return processor.getFixableErrorCodes();
+  }
+
   private final SearchEngine searchEngine;
   private final String contextId;
   private final AnalysisContext context;

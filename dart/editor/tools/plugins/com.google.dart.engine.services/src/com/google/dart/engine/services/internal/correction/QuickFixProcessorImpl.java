@@ -170,7 +170,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
     }
   }
-
   /**
    * Described location for newly created {@link ConstructorDeclaration}.
    */
@@ -185,6 +184,38 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       this.suffix = suffix;
     }
   }
+
+  private static final ErrorCode[] FIXABLE_ERROR_CODES = {
+      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+      CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
+      CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+      CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+      CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+      //
+      HintCode.DIVISION_OPTIMIZATION,
+      HintCode.TYPE_CHECK_IS_NOT_NULL,
+      HintCode.TYPE_CHECK_IS_NULL,
+      HintCode.UNNECESSARY_CAST,
+      HintCode.UNUSED_IMPORT,
+      //
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.GETTER_WITH_PARAMETERS,
+      //
+      StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+      StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS,
+      StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
+      StaticWarningCode.UNDEFINED_CLASS,
+      StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
+      StaticWarningCode.UNDEFINED_IDENTIFIER,
+      //
+      StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+      StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, StaticTypeWarningCode.UNDEFINED_FUNCTION,
+      StaticTypeWarningCode.UNDEFINED_GETTER, StaticTypeWarningCode.UNDEFINED_METHOD};
 
   private static final CorrectionProposal[] NO_PROPOSALS = {};
 
@@ -273,6 +304,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   }
 
   private final List<CorrectionProposal> proposals = Lists.newArrayList();
+
   private final List<Edit> textEdits = Lists.newArrayList();
   private AnalysisError problem;
   private Source source;
@@ -280,17 +312,17 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private LibraryElement unitLibraryElement;
   private File unitFile;
   private File unitLibraryFile;
-
   private File unitLibraryFolder;
-  private AstNode node;
 
+  private AstNode node;
   private AstNode coveredNode;
+
   private int selectionOffset;
   private int selectionLength;
-
   private CorrectionUtils utils;
 
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
+
   private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
   private final Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
   private SourceRange endRange = null;
@@ -443,6 +475,11 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     } finally {
       instrumentation.log();
     }
+  }
+
+  @Override
+  public ErrorCode[] getFixableErrorCodes() {
+    return FIXABLE_ERROR_CODES;
   }
 
   @Override

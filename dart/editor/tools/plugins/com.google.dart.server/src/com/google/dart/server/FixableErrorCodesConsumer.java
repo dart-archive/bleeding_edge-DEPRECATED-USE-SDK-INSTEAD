@@ -28,5 +28,5 @@ public interface FixableErrorCodesConsumer {
    * 
    * @param errorCodes an array of fixable {@link ErrorCode}
    */
-  public void computedFixes(ErrorCode[] errorCodes);
+  public void computed(ErrorCode[] errorCodes);
 }
