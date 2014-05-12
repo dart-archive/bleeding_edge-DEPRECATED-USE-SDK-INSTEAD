@@ -52,6 +52,18 @@ public class NavigationRegionsAssert {
   }
 
   /**
+   * Verifies that there are no {@link NavigationRegion} that starts with the given "search" and has
+   * the given length.
+   */
+  public void hasNoRegion(Source source, String search, int length) throws Exception {
+    NavigationRegion region = findRegion(source, search, length);
+    if (region != null) {
+      Assert.fail("Unexpected region\n'" + search + "' with length=" + length + " in\n"
+          + StringUtils.join(regions, "\n"));
+    }
+  }
+
+  /**
    * Finds the {@link NavigationRegion} that for the given "search", validates that it exists and
    * returns the corresponding {@link ElementAssert}.
    */

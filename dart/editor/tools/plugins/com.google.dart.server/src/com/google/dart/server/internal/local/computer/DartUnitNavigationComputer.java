@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
@@ -68,6 +69,22 @@ public class DartUnitNavigationComputer {
       public Void visitBinaryExpression(BinaryExpression node) {
         addRegionForToken(node.getOperator(), node.getBestElement());
         return super.visitBinaryExpression(node);
+      }
+
+      @Override
+      public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+        // associate constructor with "T" or "T.name"
+        {
+          AstNode firstNode = node.getReturnType();
+          AstNode lastNode = node.getName();
+          if (lastNode == null) {
+            lastNode = firstNode;
+          }
+          if (firstNode != null && lastNode != null) {
+            addRegion_nodeStart_nodeEnd(firstNode, lastNode, node.getElement());
+          }
+        }
+        return super.visitConstructorDeclaration(node);
       }
 
       @Override
@@ -128,7 +145,11 @@ public class DartUnitNavigationComputer {
 
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
-        addRegionForNode(node, node.getBestElement());
+        if (node.getParent() instanceof ConstructorDeclaration) {
+          // we have already recorded a region for this constructor name
+        } else {
+          addRegionForNode(node, node.getBestElement());
+        }
         return super.visitSimpleIdentifier(node);
       }
     });
@@ -148,6 +169,12 @@ public class DartUnitNavigationComputer {
         offset,
         length,
         new com.google.dart.server.Element[] {target}));
+  }
+
+  private void addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
+    int offset = a.getOffset();
+    int length = b.getEnd() - offset;
+    addRegion(offset, length, element);
   }
 
   private void addRegion_nodeStart_nodeStart(AstNode a, AstNode b, Element element) {

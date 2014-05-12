@@ -19,9 +19,56 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.internal.local.AbstractLocalServerTest;
+import com.google.dart.server.internal.local.asserts.ElementAssert;
 import com.google.dart.server.internal.local.asserts.NavigationRegionsAssert;
 
 public class DartUnitNavigationComputerTest extends AbstractLocalServerTest {
+  public void test_constructor_named() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", makeSource(//
+        "class A {",
+        "  A.named(int p) {}",
+        "}"));
+    prepareNavigationRegions(contextId, source);
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
+    {
+      ElementAssert elementAssert = validator.hasRegion(
+          source,
+          "A.named(int p) {}",
+          "A.named".length());
+      elementAssert.isIn(source, "named(int p) {}").hasLength("named".length());
+    }
+    // no separate regions for "A" and "named"
+    validator.hasNoRegion(source, "A.named(", "A".length());
+    validator.hasNoRegion(source, "named(", "named".length());
+    // validate that we don't forget to resolve parameters
+    {
+      ElementAssert elementAssert = validator.hasRegion(source, "int p) {}", "int".length());
+      elementAssert.isInSdk();
+    }
+  }
+
+  public void test_constructor_unnamed() throws Exception {
+    String contextId = createContext("test");
+    Source source = addSource(contextId, "/test.dart", makeSource(//
+        "class A {",
+        "  A(int p) {}",
+        "}"));
+    prepareNavigationRegions(contextId, source);
+    // validate
+    NavigationRegionsAssert validator = serverListener.assertNavigationRegions(contextId, source);
+    {
+      ElementAssert elementAssert = validator.hasRegion(source, "A(int p) {}", "A".length());
+      elementAssert.isIn(source, "A(int p) {}").hasLength(0);
+    }
+    // validate that we don't forget to resolve parameters
+    {
+      ElementAssert elementAssert = validator.hasRegion(source, "int p) {}", "int".length());
+      elementAssert.isInSdk();
+    }
+  }
+
   public void test_fieldFormalParameter() throws Exception {
     String contextId = createContext("test");
     Source source = addSource(contextId, "/test.dart", makeSource(//
