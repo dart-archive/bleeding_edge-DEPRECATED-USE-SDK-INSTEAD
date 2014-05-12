@@ -17,6 +17,7 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.NodeList;
@@ -24,6 +25,7 @@ import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
@@ -77,6 +79,18 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     }
 
     @Override
+    protected void beforeGetConstantInitializers(ConstructorElement constructor) {
+      super.beforeGetConstantInitializers(constructor);
+
+      // If we are getting the constant initializers for a node in the graph, make sure we properly
+      // recorded the dependency.
+      ConstructorDeclaration node = constructorDeclarationMap.get(constructor);
+      if (node != null && capturedDependencies.containsKey(node)) {
+        assertTrue(capturedDependencies.get(nodeBeingEvaluated).contains(node));
+      }
+    }
+
+    @Override
     protected void beforeGraphWalk() {
       super.beforeGraphWalk();
 
@@ -96,7 +110,6 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     protected ConstantVisitor createConstantVisitor() {
       return new ValidatingConstantVisitor(typeProvider, capturedDependencies, nodeBeingEvaluated);
     }
-
   }
 
   public void test_computeValues_cycle() throws Exception {
@@ -244,11 +257,110 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         "}"));
   }
 
+  public void test_dependencyOnFactoryRedirect() throws Exception {
+    // a depends on A.foo() depends on A.bar()
+    assertProperDependencies(createSource(//
+        "const A a = const A.foo();",
+        "class A {",
+        "  factory const A.foo() = A.bar;",
+        "  const A.bar();",
+        "}"));
+  }
+
+  public void test_dependencyOnFactoryRedirectWithTypeParams() throws Exception {
+    assertProperDependencies(createSource(//
+        "class A {",
+        "  const factory A(var a) = B<int>;",
+        "}",
+        "",
+        "class B<T> implements A {",
+        "  final T x;",
+        "  const B(this.x);",
+        "}",
+        "",
+        "const A a = const A(10);"));
+  }
+
   public void test_dependencyOnVariable() throws Exception {
     // x depends on y
     assertProperDependencies(createSource(//
         "const x = y + 1;",
         "const y = 2;"));
+  }
+
+  public void test_instanceCreationExpression_computedField() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const foo = const A(4, 5);",
+        "class A {",
+        "  const A(int i, int j) : k = 2 * i + j;",
+        "  final int k;",
+        "}"));
+    EvaluationResultImpl result = evaluateInstanceCreationExpression(compilationUnit, "foo");
+    HashMap<String, DartObjectImpl> fields = assertType(result, "A");
+    assertSizeOfMap(1, fields);
+    assertIntField(fields, "k", 13L);
+  }
+
+  public void test_instanceCreationExpression_computedField_usesConstConstructor() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const foo = const A(3);",
+        "class A {",
+        "  const A(int i) : b = const B(4);",
+        "  final int b;",
+        "}",
+        "class B {",
+        "  const B(this.k);",
+        "  final int k;",
+        "}"));
+    EvaluationResultImpl result = evaluateInstanceCreationExpression(compilationUnit, "foo");
+    HashMap<String, DartObjectImpl> fieldsOfA = assertType(result, "A");
+    assertSizeOfMap(1, fieldsOfA);
+    HashMap<String, DartObjectImpl> fieldsOfB = assertFieldType(fieldsOfA, "b", "B");
+    assertSizeOfMap(1, fieldsOfB);
+    assertIntField(fieldsOfB, "k", 4L);
+  }
+
+  public void test_instanceCreationExpression_computedField_usesStaticConst() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const foo = const A(3);",
+        "class A {",
+        "  const A(int i) : k = i + B.bar;",
+        "  final int k;",
+        "}",
+        "class B {",
+        "  static const bar = 4;",
+        "}"));
+    EvaluationResultImpl result = evaluateInstanceCreationExpression(compilationUnit, "foo");
+    HashMap<String, DartObjectImpl> fields = assertType(result, "A");
+    assertSizeOfMap(1, fields);
+    assertIntField(fields, "k", 7L);
+  }
+
+  public void test_instanceCreationExpression_computedField_usesToplevelConst() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const foo = const A(3);",
+        "const bar = 4;",
+        "class A {",
+        "  const A(int i) : k = i + bar;",
+        "  final int k;",
+        "}"));
+    EvaluationResultImpl result = evaluateInstanceCreationExpression(compilationUnit, "foo");
+    HashMap<String, DartObjectImpl> fields = assertType(result, "A");
+    assertSizeOfMap(1, fields);
+    assertIntField(fields, "k", 7L);
+  }
+
+  public void test_instanceCreationExpression_fieldFormalParameter() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const foo = const A(42);",
+        "class A {",
+        "  int x;",
+        "  const A(this.x)",
+        "}"));
+    EvaluationResultImpl result = evaluateInstanceCreationExpression(compilationUnit, "foo");
+    HashMap<String, DartObjectImpl> fields = assertType(result, "A");
+    assertSizeOfMap(1, fields);
+    assertIntField(fields, "x", 42L);
   }
 
   public void test_instanceCreationExpression_redirect() throws Exception {
@@ -298,6 +410,24 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     assertValidUnknown(evaluateInstanceCreationExpression(compilationUnit, "foo"));
   }
 
+  public void test_instanceCreationExpression_redirectWithTypeParams() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "class A {",
+        "  const factory A(var a) = B<int>;",
+        "}",
+        "",
+        "class B<T> implements A {",
+        "  final T x;",
+        "  const B(this.x);",
+        "}",
+        "",
+        "const A a = const A(10);"));
+    EvaluationResultImpl result = evaluateInstanceCreationExpression(compilationUnit, "a");
+    HashMap<String, DartObjectImpl> fields = assertType(result, "B");
+    assertSizeOfMap(1, fields);
+    assertIntField(fields, "x", 10L);
+  }
+
   public void test_instanceCreationExpression_symbol() throws Exception {
     CompilationUnit compilationUnit = resolveSource(createSource("const foo = const Symbol('a');"));
     EvaluationResultImpl evaluationResult = evaluateInstanceCreationExpression(
@@ -307,6 +437,20 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     DartObjectImpl value = ((ValidResult) evaluationResult).getValue();
     assertEquals(getTypeProvider().getSymbolType(), value.getType());
     assertEquals("a", value.getValue());
+  }
+
+  private HashMap<String, DartObjectImpl> assertFieldType(HashMap<String, DartObjectImpl> fields,
+      String fieldName, String expectedType) {
+    DartObjectImpl field = fields.get(fieldName);
+    assertEquals(expectedType, field.getType().getName());
+    return field.getFields();
+  }
+
+  private void assertIntField(HashMap<String, DartObjectImpl> fields, String fieldName,
+      long expectedValue) {
+    DartObjectImpl field = fields.get(fieldName);
+    assertEquals("int", field.getType().getName());
+    assertEquals(expectedValue, field.getIntValue().longValue());
   }
 
   private void assertProperDependencies(String sourceText, ErrorCode... expectedErrorCodes)
@@ -321,10 +465,11 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     assertErrors(source, expectedErrorCodes);
   }
 
-  private void assertType(EvaluationResultImpl result, String typeName) {
+  private HashMap<String, DartObjectImpl> assertType(EvaluationResultImpl result, String typeName) {
     assertInstanceOf(ValidResult.class, result);
     DartObjectImpl value = ((ValidResult) result).getValue();
     assertEquals(typeName, value.getType().getName());
+    return value.getFields();
   }
 
   private void assertValidUnknown(EvaluationResultImpl result) {

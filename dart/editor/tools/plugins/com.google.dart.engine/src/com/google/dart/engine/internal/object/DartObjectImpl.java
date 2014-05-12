@@ -20,6 +20,7 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 
 /**
  * Instances of the class {@code DartObjectImpl} represent an instance of a Dart class.
@@ -211,6 +212,10 @@ public class DartObjectImpl implements DartObject {
       return ((DoubleState) state).getValue();
     }
     return null;
+  }
+
+  public HashMap<String, DartObjectImpl> getFields() {
+    return state.getFields();
   }
 
   @Override

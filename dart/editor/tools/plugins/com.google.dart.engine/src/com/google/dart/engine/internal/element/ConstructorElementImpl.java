@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
@@ -23,6 +24,8 @@ import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.translation.DartName;
+
+import java.util.List;
 
 /**
  * Instances of the class {@code ConstructorElementImpl} implement a {@code ConstructorElement}.
@@ -39,6 +42,12 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
    * The constructor to which this constructor is redirecting.
    */
   private ConstructorElement redirectedConstructor;
+
+  /**
+   * The initializers for this constructor (used for evaluating constant instance creation
+   * expressions).
+   */
+  private List<ConstructorInitializer> constantInitializers;
 
   /**
    * Initialize a newly created constructor element to have the given name.
@@ -64,6 +73,10 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
     return visitor.visitConstructorElement(this);
+  }
+
+  public List<ConstructorInitializer> getConstantInitializers() {
+    return constantInitializers;
   }
 
   @Override
@@ -125,6 +138,16 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
    */
   public void setConst(boolean isConst) {
     setModifier(Modifier.CONST, isConst);
+  }
+
+  /**
+   * Set the initializers for this constructor (used for evaluating constant instance creation
+   * expressions).
+   * 
+   * @param cloneNodeList
+   */
+  public void setConstantInitializers(List<ConstructorInitializer> constantInitializers) {
+    this.constantInitializers = constantInitializers;
   }
 
   /**

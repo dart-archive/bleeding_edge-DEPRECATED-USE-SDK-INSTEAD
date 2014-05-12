@@ -25,6 +25,16 @@ import java.util.List;
  * results or properties associated with the nodes.
  */
 public class AstCloner implements AstVisitor<AstNode> {
+  @SuppressWarnings("unchecked")
+  public <E extends AstNode> List<E> cloneNodeList(NodeList<E> nodes) {
+    int count = nodes.size();
+    ArrayList<E> clonedNodes = new ArrayList<E>(count);
+    for (int i = 0; i < count; i++) {
+      clonedNodes.add((E) (nodes.get(i)).accept(this));
+    }
+    return clonedNodes;
+  }
+
   @Override
   public AdjacentStrings visitAdjacentStrings(AdjacentStrings node) {
     return new AdjacentStrings(cloneNodeList(node.getStrings()));
@@ -907,20 +917,10 @@ public class AstCloner implements AstVisitor<AstNode> {
   }
 
   @SuppressWarnings("unchecked")
-  private <E extends AstNode> E cloneNode(E node) {
+  protected <E extends AstNode> E cloneNode(E node) {
     if (node == null) {
       return null;
     }
     return (E) node.accept(this);
-  }
-
-  @SuppressWarnings("unchecked")
-  private <E extends AstNode> List<E> cloneNodeList(NodeList<E> nodes) {
-    int count = nodes.size();
-    ArrayList<E> clonedNodes = new ArrayList<E>(count);
-    for (int i = 0; i < count; i++) {
-      clonedNodes.add((E) (nodes.get(i)).accept(this));
-    }
-    return clonedNodes;
   }
 }

@@ -77,6 +77,11 @@ public class GenericState extends InstanceState {
   }
 
   @Override
+  public HashMap<String, DartObjectImpl> getFields() {
+    return fieldMap;
+  }
+
+  @Override
   public String getTypeName() {
     return "user defined type";
   }

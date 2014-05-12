@@ -15,6 +15,8 @@ package com.google.dart.engine.internal.object;
 
 import com.google.dart.engine.error.CompileTimeErrorCode;
 
+import java.util.HashMap;
+
 /**
  * The class {@code InstanceState} defines the behavior of objects representing the state of a Dart
  * object.
@@ -134,6 +136,14 @@ public abstract class InstanceState {
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
   public abstract BoolState equalEqual(InstanceState rightOperand) throws EvaluationException;
+
+  /**
+   * If this represents a generic dart object, return a map from its fieldnames to their values.
+   * Otherwise return null.
+   */
+  public HashMap<String, DartObjectImpl> getFields() {
+    return null;
+  }
 
   /**
    * Return the name of the type of this value.
