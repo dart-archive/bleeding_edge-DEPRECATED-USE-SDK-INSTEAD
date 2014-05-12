@@ -16,20 +16,17 @@ package com.google.dart.server.internal.local.computer;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.AstNode;
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.visitor.ElementLocator;
-import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
+import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.translation.DartOmit;
 import com.google.dart.server.SearchResult;
@@ -44,7 +41,7 @@ import java.util.List;
  * @coverage dart.server.local
  */
 @DartOmit
-public class DartUnitReferencesComputer {
+public class ElementReferencesComputer {
   /**
    * This is used only for testing purposes and allows tests to check the behavior in case an
    * unknown {@link MatchKind}.
@@ -92,20 +89,18 @@ public class DartUnitReferencesComputer {
     }
   }
 
-  private SearchEngine searchEngine;
+  private final SearchEngine searchEngine;
   private final String contextId;
-  private final Source source;
-  private final CompilationUnit unit;
-  private final int offset;
+  private final AnalysisContext context;
+  private final com.google.dart.server.Element element;
   private final SearchResultsConsumer consumer;
 
-  public DartUnitReferencesComputer(SearchEngine searchEngine, String contextId, Source source,
-      CompilationUnit unit, int offset, SearchResultsConsumer consumer) {
+  public ElementReferencesComputer(SearchEngine searchEngine, AnalysisContext context,
+      com.google.dart.server.Element element, SearchResultsConsumer consumer) {
     this.searchEngine = searchEngine;
-    this.contextId = contextId;
-    this.source = source;
-    this.unit = unit;
-    this.offset = offset;
+    this.contextId = element.getContextId();
+    this.context = context;
+    this.element = element;
     this.consumer = consumer;
   }
 
@@ -113,8 +108,9 @@ public class DartUnitReferencesComputer {
    * Computes {@link SearchResult}s and notifies the {@link SearchResultsConsumer}.
    */
   public void compute() {
-    AstNode node = new NodeLocator(offset).searchWithin(unit);
-    Element element = ElementLocator.locateWithOffset(node, offset);
+    String elementLocationEncoding = element.getId();
+    ElementLocationImpl elementLocation = new ElementLocationImpl(elementLocationEncoding);
+    Element element = context.getElement(elementLocation);
     // tweak element
     if (element instanceof PropertyAccessorElement) {
       element = ((PropertyAccessorElement) element).getVariable();
@@ -130,7 +126,7 @@ public class DartUnitReferencesComputer {
           SearchResultKind.VARIABLE_DECLARATION,
           element.getNameOffset(),
           element.getName().length());
-      consumer.computedReferences(contextId, source, offset, new SearchResult[] {result}, false);
+      consumer.computed(new SearchResult[] {result}, false);
     }
     // do search
     if (element != null) {
@@ -143,12 +139,7 @@ public class DartUnitReferencesComputer {
         }
         results.add(result);
       }
-      consumer.computedReferences(
-          contextId,
-          source,
-          offset,
-          results.toArray(new SearchResult[results.size()]),
-          false);
+      consumer.computed(results.toArray(new SearchResult[results.size()]), false);
     }
   }
 

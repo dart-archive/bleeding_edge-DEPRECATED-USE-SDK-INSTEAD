@@ -96,7 +96,6 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
     DartEditor editor = selection.getEditor();
     final String contextId = editor.getInputAnalysisContextId();
     final Source source = editor.getInputSource();
-    final int offset = selection.getOffset();
     if (contextId == null || source == null) {
       return;
     }
@@ -107,6 +106,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
     }
     // do search
     final Element[] elements = OpenAction.getNavigationTargets(selection);
+    final Element element = elements != null ? elements[0] : null;
     view.showPage(new SearchResultPage_NEW(view, "Searching for references...", contextId) {
 
       @Override
@@ -116,7 +116,10 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
 
       @Override
       protected String getQueryElementName() {
-        return elements[0].getName();
+        if (element == null) {
+          return "<unknown>";
+        }
+        return element.getName();
       }
 
       @Override
@@ -127,22 +130,21 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
       @Override
       protected List<SearchResult> runQuery() {
         final List<SearchResult> allResults = Lists.newArrayList();
-        final CountDownLatch latch = new CountDownLatch(1);
-        DartCore.getAnalysisServer().searchReferences(
-            contextId,
-            source,
-            offset,
-            new SearchResultsConsumer() {
-              @Override
-              public void computedReferences(String contextId, Source source, int offset,
-                  SearchResult[] searchResults, boolean isLastResult) {
-                Collections.addAll(allResults, searchResults);
-                if (isLastResult) {
-                  latch.countDown();
+        if (element != null) {
+          final CountDownLatch latch = new CountDownLatch(1);
+          DartCore.getAnalysisServer().searchElementReferences(
+              element,
+              new SearchResultsConsumer() {
+                @Override
+                public void computed(SearchResult[] searchResults, boolean isLastResult) {
+                  Collections.addAll(allResults, searchResults);
+                  if (isLastResult) {
+                    latch.countDown();
+                  }
                 }
-              }
-            });
-        Uninterruptibles.awaitUninterruptibly(latch, 2000, TimeUnit.MILLISECONDS);
+              });
+          Uninterruptibles.awaitUninterruptibly(latch, 2000, TimeUnit.MILLISECONDS);
+        }
 //        System.out.println(StringUtils.join(allResults, "\n"));
         return allResults;
       }

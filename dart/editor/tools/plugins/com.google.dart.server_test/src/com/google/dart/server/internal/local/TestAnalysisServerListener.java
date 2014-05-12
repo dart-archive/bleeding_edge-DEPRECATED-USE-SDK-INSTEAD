@@ -23,6 +23,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.Element;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
@@ -215,6 +216,21 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
       outlineMap.put(contextId, outlines);
     }
     outlines.put(source, outline);
+  }
+
+  /**
+   * Returns a navigation {@link Element} at the given position.
+   */
+  public Element findNavigationElement(String contextId, Source source, int offset) {
+    NavigationRegion[] regions = getNavigationRegions(contextId, source);
+    if (regions != null) {
+      for (NavigationRegion navigationRegion : regions) {
+        if (navigationRegion.containsInclusive(offset)) {
+          return navigationRegion.getTargets()[0];
+        }
+      }
+    }
+    return null;
   }
 
   /**

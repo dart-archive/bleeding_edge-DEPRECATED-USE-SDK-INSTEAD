@@ -77,8 +77,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void searchReferences(String contextId, Source source, int offset,
-      SearchResultsConsumer consumer) {
+  public void searchElementReferences(Element element, SearchResultsConsumer consumer) {
     // TODO (jwren) implement
   }
 

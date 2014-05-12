@@ -18,7 +18,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.Element;
-import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.TypeHierarchyConsumer;
@@ -424,16 +423,10 @@ public class TypeHierarchyComputerTest extends AbstractLocalServerTest {
         contextId,
         ImmutableMap.of(NotificationKind.NAVIGATION, SourceSet.EXPLICITLY_ADDED));
     server.test_waitForWorkerComplete();
-    // find navigation reqion with Element
-    NavigationRegion[] regions = serverListener.getNavigationRegions(contextId, source);
-    for (NavigationRegion navigationRegion : regions) {
-      if (navigationRegion.containsInclusive(offset)) {
-        return navigationRegion.getTargets()[0];
-      }
-    }
-    // not found
-    fail("Not found element at " + offset);
-    return null;
+    // find navigation region with Element
+    Element element = serverListener.findNavigationElement(contextId, source, offset);
+    assertNotNull("Not found element at " + offset, element);
+    return element;
   }
 
   private Element findElement(String search) {

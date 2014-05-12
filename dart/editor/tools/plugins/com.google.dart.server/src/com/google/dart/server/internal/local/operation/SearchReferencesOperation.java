@@ -16,6 +16,7 @@ package com.google.dart.server.internal.local.operation;
 
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.Element;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
@@ -27,15 +28,12 @@ import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
  */
 public class SearchReferencesOperation implements ContextServerOperation {
   private final String contextId;
-  private final Source source;
-  private final int offset;
+  private final Element element;
   private final SearchResultsConsumer consumer;
 
-  public SearchReferencesOperation(String contextId, Source source, int offset,
-      SearchResultsConsumer consumer) {
-    this.contextId = contextId;
-    this.source = source;
-    this.offset = offset;
+  public SearchReferencesOperation(Element element, SearchResultsConsumer consumer) {
+    this.contextId = element.getContextId();
+    this.element = element;
     this.consumer = consumer;
   }
 
@@ -51,6 +49,6 @@ public class SearchReferencesOperation implements ContextServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalSearchReferences(contextId, source, offset, consumer);
+    server.internalSearchElementReferences(contextId, element, consumer);
   }
 }

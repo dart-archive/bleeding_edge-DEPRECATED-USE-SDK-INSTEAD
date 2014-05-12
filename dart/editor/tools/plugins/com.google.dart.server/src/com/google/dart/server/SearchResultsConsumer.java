@@ -13,8 +13,6 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.source.Source;
-
 /**
  * The interface {@code SearchReferencesConsumer} defines the behavior of objects that consume
  * {@link SearchResult}s.
@@ -26,11 +24,8 @@ public interface SearchResultsConsumer {
    * {@link SearchResult}s have been computed.
    * 
    * @param contextId the identifier of the context to search within
-   * @param source the {@link Source} with element
-   * @param offset the offset within the {@code source}
    * @param searchResults an array of {@link SearchResult}s computed so far
    * @param isLastResult is {@code true} if this is the last set of results
    */
-  public void computedReferences(String contextId, Source source, int offset,
-      SearchResult[] searchResults, boolean isLastResult);
+  public void computed(SearchResult[] searchResults, boolean isLastResult);
 }

@@ -126,16 +126,14 @@ public interface AnalysisServer {
   public void removeAnalysisServerListener(AnalysisServerListener listener);
 
   /**
-   * Searches for references to the element at the given offset in the given {@link Source}. The
-   * given consumer is invoked asynchronously on a different thread.
+   * Searches for references to the given element. If the given element is a class member, then also
+   * references to all corresponding members in the class hierarchy are searched. The given consumer
+   * is invoked asynchronously on a different thread.
    * 
-   * @param contextId the identifier of the context to search within
-   * @param source the {@link Source} with element
-   * @param offset the offset within the {@code source}
+   * @param element the element to find references to, not {@code null}
    * @param consumer the results listener
    */
-  public void searchReferences(String contextId, Source source, int offset,
-      SearchResultsConsumer consumer);
+  public void searchElementReferences(Element element, SearchResultsConsumer consumer);
 
   /**
    * Set the options controlling analysis within a context to the given set of options.

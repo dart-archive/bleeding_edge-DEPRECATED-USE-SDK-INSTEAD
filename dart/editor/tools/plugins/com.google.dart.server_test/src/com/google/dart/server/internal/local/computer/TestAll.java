@@ -24,8 +24,8 @@ public class TestAll {
     suite.addTestSuite(DartUnitMinorRefactoringsComputerTest.class);
     suite.addTestSuite(DartUnitNavigationComputerTest.class);
     suite.addTestSuite(DartUnitOutlineComputerTest.class);
-    suite.addTestSuite(DartUnitReferencesComputerTest.class);
     suite.addTestSuite(ElementImplTest.class);
+    suite.addTestSuite(ElementReferencesComputerTest.class);
     suite.addTestSuite(HighlightRegionImplTest.class);
     suite.addTestSuite(NavigationRegionImplTest.class);
     suite.addTestSuite(OutlineImplTest.class);

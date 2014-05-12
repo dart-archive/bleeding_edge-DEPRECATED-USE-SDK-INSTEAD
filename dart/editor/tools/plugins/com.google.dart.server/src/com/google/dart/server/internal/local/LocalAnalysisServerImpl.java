@@ -61,7 +61,7 @@ import com.google.dart.server.internal.local.computer.DartUnitHighlightsComputer
 import com.google.dart.server.internal.local.computer.DartUnitMinorRefactoringsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
 import com.google.dart.server.internal.local.computer.DartUnitOutlineComputer;
-import com.google.dart.server.internal.local.computer.DartUnitReferencesComputer;
+import com.google.dart.server.internal.local.computer.ElementReferencesComputer;
 import com.google.dart.server.internal.local.computer.TypeHierarchyComputer;
 import com.google.dart.server.internal.local.operation.ApplyAnalysisDeltaOperation;
 import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
@@ -528,20 +528,13 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   /**
-   * Implementation for {@link #searchReferences(String, Source, int, SearchResultsConsumer)}.
+   * Implementation for {@link #searchElementReferences(Element, SearchResultsConsumer)}.
    */
-  public void internalSearchReferences(String contextId, Source source, int offset,
+  public void internalSearchElementReferences(String contextId, Element element,
       SearchResultsConsumer consumer) throws Exception {
-    AnalysisContext analysisContext = getAnalysisContext(contextId);
-    Source[] librarySources = analysisContext.getLibrariesContaining(source);
-    if (librarySources.length != 0) {
-      Source librarySource = librarySources[0];
-      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
-      if (unit != null) {
-        new DartUnitReferencesComputer(searchEngine, contextId, source, unit, offset, consumer).compute();
-      }
-    }
-    consumer.computedReferences(contextId, source, offset, SearchResult.EMPTY_ARRAY, true);
+    AnalysisContext context = getAnalysisContext(contextId);
+    new ElementReferencesComputer(searchEngine, context, element, consumer).compute();
+    consumer.computed(SearchResult.EMPTY_ARRAY, true);
   }
 
   /**
@@ -616,9 +609,8 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   @Override
-  public void searchReferences(String contextId, Source source, int offset,
-      SearchResultsConsumer consumer) {
-    operationQueue.add(new SearchReferencesOperation(contextId, source, offset, consumer));
+  public void searchElementReferences(Element element, SearchResultsConsumer consumer) {
+    operationQueue.add(new SearchReferencesOperation(element, consumer));
   }
 
   @Override

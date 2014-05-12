@@ -14,7 +14,7 @@
 
 package com.google.dart.server.internal.local.operation;
 
-import com.google.dart.engine.source.Source;
+import com.google.dart.server.Element;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
@@ -23,18 +23,20 @@ import junit.framework.TestCase;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class SearchReferencesOperationTest extends TestCase {
   private LocalAnalysisServerImpl server = mock(LocalAnalysisServerImpl.class);
-  private Source source = mock(Source.class);
 
   public void test_perform() throws Exception {
+    Element element = mock(Element.class);
     SearchResultsConsumer consumer = mock(SearchResultsConsumer.class);
-    SearchReferencesOperation operation = new SearchReferencesOperation("id", source, 42, consumer);
+    when(element.getContextId()).thenReturn("id");
+    SearchReferencesOperation operation = new SearchReferencesOperation(element, consumer);
     assertSame(ServerOperationPriority.SEARCH, operation.getPriority());
     assertEquals("id", operation.getContextId());
     // perform
     operation.performOperation(server);
-    verify(server, times(1)).internalSearchReferences("id", source, 42, consumer);
+    verify(server, times(1)).internalSearchElementReferences("id", element, consumer);
   }
 }
