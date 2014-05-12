@@ -37,6 +37,11 @@
 			<locationURI>DART_TRUNK/third_party/commons-lang/</locationURI>
 		</link>
 		<link>
+			<name>lib/gson</name>
+			<type>2</type>
+			<locationURI>DART_TRUNK/third_party/gson</locationURI>
+		</link>
+		<link>
 			<name>lib/guava</name>
 			<type>2</type>
 			<locationURI>DART_TRUNK/third_party/guava</locationURI>

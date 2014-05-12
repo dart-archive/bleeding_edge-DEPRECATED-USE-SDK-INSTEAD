@@ -21,6 +21,8 @@ import java.util.Map;
 /**
  * This {@link AnalysisServer} calls out to the analysis server written in Dart and communicates
  * with the server over standard IO streams.
+ * 
+ * @coverage dart.server.remote
  */
 public class RemoteAnalysisServerImpl implements AnalysisServer {
 
