@@ -40,6 +40,9 @@ import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
 import com.google.dart.engine.utilities.source.SourceRange;
 
+import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getExpressionParentPrecedence;
+import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getExpressionPrecedence;
+
 import java.text.MessageFormat;
 import java.util.List;
 
@@ -135,16 +138,17 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
       Statement declarationStatement = variableNode.getAncestor(VariableDeclarationStatement.class);
       change.addEdit(new Edit(utils.getLinesRange(declarationStatement), ""));
     }
-    // prepare source
-    String initializerSource;
-    {
-      Expression initializer = variableNode.getInitializer();
-      initializerSource = utils.getText(initializer);
-    }
+    // prepare initializer
+    Expression initializer = variableNode.getInitializer();
+    String initializerSource = utils.getText(initializer);
+    int initializerPrecedence = getExpressionPrecedence(initializer);
     // replace references
     for (SearchMatch reference : references) {
       SourceRange range = reference.getSourceRange();
-      String sourceForReference = getSourceForReference(range, initializerSource);
+      String sourceForReference = getSourceForReference(
+          range,
+          initializerSource,
+          initializerPrecedence);
       change.addEdit(new Edit(range, sourceForReference));
     }
     return change;
@@ -168,20 +172,24 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
   /**
    * @return the source which should be used to replace reference with given {@link SourceRange}.
    */
-  private String getSourceForReference(SourceRange range, String source) {
-    if (isIdentifierInStringInterpolation(range.getOffset())) {
+  private String getSourceForReference(SourceRange range, String source, int precedence) {
+    int offset = range.getOffset();
+    AstNode node = utils.findNode(offset);
+    AstNode parent = node.getParent();
+    if (isIdentifierStringInterpolation(parent)) {
       return "{" + source + "}";
-    } else {
-      return source;
     }
+    if (precedence < getExpressionParentPrecedence(node)) {
+      return "(" + source + ")";
+    }
+    return source;
   }
 
   /**
-   * @return <code>true</code> if given offset of the reference has form <code>$name</code>.
+   * @return <code>true</code> if the given node is a string interpolation in form
+   *         <code>$name</code>.
    */
-  private boolean isIdentifierInStringInterpolation(int offset) {
-    AstNode node = utils.findNode(offset);
-    AstNode parent = node.getParent();
+  private boolean isIdentifierStringInterpolation(AstNode parent) {
     if (parent instanceof InterpolationExpression) {
       InterpolationExpression element = (InterpolationExpression) parent;
       return element.getBeginToken().getType() == TokenType.STRING_INTERPOLATION_IDENTIFIER;

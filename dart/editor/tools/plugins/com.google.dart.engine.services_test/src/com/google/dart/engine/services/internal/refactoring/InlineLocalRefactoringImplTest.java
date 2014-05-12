@@ -138,6 +138,56 @@ public class InlineLocalRefactoringImplTest extends RefactoringImplTest {
     assert_fatalError_selection();
   }
 
+  public void test_OK_cascade_intoCascade() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "  bar() {}",
+        "}",
+        "main() {",
+        "  A test = new A()..foo();",
+        "  test..bar();",
+        "}");
+    selection = findOffset("test = ");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "  bar() {}",
+        "}",
+        "main() {",
+        "  new A()..foo()..bar();",
+        "}");
+  }
+
+  public void test_OK_cascade_intoNotCascade() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "  bar() {}",
+        "}",
+        "main() {",
+        "  A test = new A()..foo();",
+        "  test.bar();",
+        "}");
+    selection = findOffset("test = ");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "  bar() {}",
+        "}",
+        "main() {",
+        "  (new A()..foo()).bar();",
+        "}");
+  }
+
   public void test_OK_intoStringInterpolation() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
