@@ -1053,7 +1053,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           SourceEntry entry = getReadableSourceEntry(source);
           if (entry instanceof DartEntry) {
             DartEntry dartEntry = (DartEntry) entry;
-            removeFromParts(source, dartEntry);
             DartEntryImpl dartCopy = dartEntry.getWritableCopy();
             dartCopy.invalidateAllResolutionInformation();
             cache.put(source, dartCopy);
@@ -1065,7 +1064,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               priority = SourcePriority.NORMAL_PART;
             }
             workManager.add(source, priority);
-
           } else if (entry instanceof HtmlEntry) {
             HtmlEntry htmlEntry = (HtmlEntry) entry;
             HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();

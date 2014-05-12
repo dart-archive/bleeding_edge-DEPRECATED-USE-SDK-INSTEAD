@@ -950,6 +950,22 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertEquals(libSource, importNode.getSource());
   }
 
+  public void test_performAnalysisTask_addPart() throws Exception {
+    Source libSource = addSource("/lib.dart", createSource(//
+        "library lib;",
+        "part 'part.dart';"));
+    // run all tasks without part
+    analyzeAll_assertFinished();
+    // add part and run all tasks
+    Source partSource = addSource("/part.dart", createSource(//
+        "part of lib;",
+        ""));
+    analyzeAll_assertFinished();
+    // "libSource" should be here 
+    Source[] librariesWithPart = context.getLibrariesContaining(partSource);
+    assertContains(librariesWithPart, libSource);
+  }
+
   public void test_performAnalysisTask_changeLibraryContents() throws Exception {
     Source libSource = addSource("/test.dart", "library lib; part 'test-part.dart';");
     Source partSource = addSource("/test-part.dart", "part of lib;");
