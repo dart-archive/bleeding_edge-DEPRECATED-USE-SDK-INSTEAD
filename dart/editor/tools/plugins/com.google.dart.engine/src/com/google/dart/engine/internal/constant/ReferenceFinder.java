@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.ConstructorElement;
@@ -99,6 +100,23 @@ public class ReferenceFinder extends RecursiveAstVisitor<Void> {
         if (variableDeclaration != null) {
           referenceGraph.addEdge(source, variableDeclaration);
         }
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    super.visitSuperConstructorInvocation(node);
+    ConstructorElement constructor = node.getStaticElement();
+    if (constructor != null && constructor.isConst()) {
+      ConstructorDeclaration constructorDeclaration = constructorDeclarationMap.get(constructor);
+      // The declaration will be null when the constructor is not defined in the compilation
+      // units that were used to produce the constructorDeclarationMap.  In such cases, the
+      // constructor should already have its initializer AST's stored in it, but we don't bother
+      // to check because there's nothing we can do about it at this point.
+      if (constructorDeclaration != null) {
+        referenceGraph.addEdge(source, constructorDeclaration);
       }
     }
     return null;

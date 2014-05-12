@@ -27,6 +27,11 @@ public class GenericState extends InstanceState {
   private HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
 
   /**
+   * Pseudo-field that we use to represent fields in the superclass.
+   */
+  public static final String SUPERCLASS_FIELD = "(super)";
+
+  /**
    * A state that can be used to represent an object whose state is not known.
    */
   public static final GenericState UNKNOWN_VALUE = new GenericState(

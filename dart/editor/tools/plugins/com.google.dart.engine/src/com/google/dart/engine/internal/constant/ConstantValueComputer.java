@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.constant;
 
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
@@ -24,6 +25,7 @@ import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -82,6 +84,14 @@ public class ConstantValueComputer {
       SimpleIdentifier identifier = super.visitSimpleIdentifier(node);
       identifier.setStaticElement(node.getStaticElement());
       return identifier;
+    }
+
+    @Override
+    public SuperConstructorInvocation visitSuperConstructorInvocation(
+        SuperConstructorInvocation node) {
+      SuperConstructorInvocation invocation = super.visitSuperConstructorInvocation(node);
+      invocation.setStaticElement(node.getStaticElement());
+      return invocation;
     }
   }
 
@@ -239,10 +249,7 @@ public class ConstantValueComputer {
         return;
       }
       ConstantVisitor constantVisitor = createConstantVisitor();
-      EvaluationResultImpl result = evaluateInstanceCreationExpression(
-          expression,
-          constructor,
-          constantVisitor);
+      EvaluationResultImpl result = evaluateConstructorCall(expression.getArgumentList(), constructor, constantVisitor);
       expression.setEvaluationResult(result);
     } else if (constNode instanceof ConstructorDeclaration) {
       ConstructorDeclaration declaration = (ConstructorDeclaration) constNode;
@@ -258,10 +265,9 @@ public class ConstantValueComputer {
     }
   }
 
-  private EvaluationResultImpl evaluateInstanceCreationExpression(
-      InstanceCreationExpression expression, ConstructorElement constructor,
-      ConstantVisitor constantVisitor) {
-    NodeList<Expression> arguments = expression.getArgumentList().getArguments();
+  private EvaluationResultImpl evaluateConstructorCall(ArgumentList argumentList,
+      ConstructorElement constructor, ConstantVisitor constantVisitor) {
+    NodeList<Expression> arguments = argumentList.getArguments();
     int argumentCount = arguments.size();
     DartObjectImpl[] argumentValues = new DartObjectImpl[argumentCount];
     HashMap<String, DartObjectImpl> namedArgumentValues = new HashMap<String, DartObjectImpl>();
@@ -341,7 +347,6 @@ public class ConstantValueComputer {
     // TODO(paulberry): Don't bother with the code below if there were invalid parameters.
     ConstantVisitor initializerVisitor = new ConstantVisitor(typeProvider, parameterMap);
     for (ConstructorInitializer initializer : initializers) {
-      // TODO(paulberry): Handle SuperConstructorInvocation
       if (initializer instanceof ConstructorFieldInitializer) {
         ConstructorFieldInitializer constructorFieldInitializer = (ConstructorFieldInitializer) initializer;
         Expression initializerExpression = constructorFieldInitializer.getExpression();
@@ -353,6 +358,20 @@ public class ConstantValueComputer {
           // a synthetic token)?
           String fieldName = constructorFieldInitializer.getFieldName().getName();
           fieldMap.put(fieldName, value);
+        }
+      } else if (initializer instanceof SuperConstructorInvocation) {
+        SuperConstructorInvocation superConstructorInvocation = (SuperConstructorInvocation) initializer;
+        ConstructorElement superConstructor = superConstructorInvocation.getStaticElement();
+        if (superConstructor != null && superConstructor.isConst()) {
+          EvaluationResultImpl evaluationResult = evaluateConstructorCall(
+              superConstructorInvocation.getArgumentList(),
+              superConstructor,
+              initializerVisitor);
+          // TODO(paulberry): Do we need to propagate errors here?
+          if (evaluationResult instanceof ValidResult) {
+            DartObjectImpl value = ((ValidResult) evaluationResult).getValue();
+            fieldMap.put(GenericState.SUPERCLASS_FIELD, value);
+          }
         }
       }
     }

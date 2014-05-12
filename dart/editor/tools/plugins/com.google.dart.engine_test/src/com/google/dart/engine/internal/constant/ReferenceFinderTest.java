@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.ConstructorElement;
@@ -34,6 +35,7 @@ import static com.google.dart.engine.ast.AstFactory.constructorDeclaration;
 import static com.google.dart.engine.ast.AstFactory.formalParameterList;
 import static com.google.dart.engine.ast.AstFactory.identifier;
 import static com.google.dart.engine.ast.AstFactory.instanceCreationExpression;
+import static com.google.dart.engine.ast.AstFactory.superConstructorInvocation;
 import static com.google.dart.engine.ast.AstFactory.typeName;
 import static com.google.dart.engine.ast.AstFactory.variableDeclaration;
 import static com.google.dart.engine.ast.AstFactory.variableDeclarationList;
@@ -93,6 +95,28 @@ public class ReferenceFinderTest extends EngineTestCase {
     assertNoArcs();
   }
 
+  public void test_visitSuperConstructorInvocation_const() {
+    visitNode(makeTailSuperConstructorInvocation("A", true, true));
+    assertOneArc(tail);
+  }
+
+  public void test_visitSuperConstructorInvocation_nonConst() {
+    visitNode(makeTailSuperConstructorInvocation("A", false, true));
+    assertNoArcs();
+  }
+
+  public void test_visitSuperConstructorInvocation_notInMap() {
+    visitNode(makeTailSuperConstructorInvocation("A", true, false));
+    assertNoArcs();
+  }
+
+  public void test_visitSuperConstructorInvocation_unresolved() {
+    SuperConstructorInvocation superConstructorInvocation = superConstructorInvocation();
+    tail = superConstructorInvocation;
+    visitNode(superConstructorInvocation);
+    assertNoArcs();
+  }
+
   @Override
   protected void setUp() {
     referenceGraph = new DirectedGraph<AstNode>();
@@ -146,6 +170,28 @@ public class ReferenceFinderTest extends EngineTestCase {
     }
     instanceCreationExpression.setStaticElement(constructorElement);
     return instanceCreationExpression;
+  }
+
+  private SuperConstructorInvocation makeTailSuperConstructorInvocation(String name,
+      boolean isConst, boolean inMap) {
+    ArrayList<ConstructorInitializer> initializers = new ArrayList<ConstructorInitializer>();
+    ConstructorDeclaration constructorDeclaration = constructorDeclaration(
+        identifier(name),
+        null,
+        formalParameterList(),
+        initializers);
+    tail = constructorDeclaration;
+    if (isConst) {
+      constructorDeclaration.setConstKeyword(new KeywordToken(Keyword.CONST, 0));
+    }
+    ClassElementImpl classElement = classElement(name);
+    SuperConstructorInvocation superConstructorInvocation = superConstructorInvocation();
+    ConstructorElementImpl constructorElement = constructorElement(classElement, name, isConst);
+    if (inMap) {
+      constructorDeclarationMap.put(constructorElement, constructorDeclaration);
+    }
+    superConstructorInvocation.setStaticElement(constructorElement);
+    return superConstructorInvocation;
   }
 
   private SimpleIdentifier makeTailVariable(String name, boolean isConst, boolean inMap) {

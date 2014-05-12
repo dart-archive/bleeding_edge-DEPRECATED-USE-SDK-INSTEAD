@@ -31,6 +31,7 @@ import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.object.DartObjectImpl;
+import com.google.dart.engine.internal.object.GenericState;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.resolver.ResolverTestCase;
@@ -240,6 +241,33 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         "}"));
   }
 
+  public void test_dependencyOnExplicitSuperConstructor() throws Exception {
+    // b depends on B() depends on A()
+    assertProperDependencies(createSource(//
+        "class A {",
+        "  const A(this.x);",
+        "  final int x;",
+        "}",
+        "class B extends A {",
+        "  const B() : super(5);",
+        "}",
+        "const B b = const B();"));
+  }
+
+  public void test_dependencyOnExplicitSuperConstructorParameters() throws Exception {
+    // b depends on B() depends on i
+    assertProperDependencies(createSource(//
+        "class A {",
+        "  const A(this.x);",
+        "  final int x;",
+        "}",
+        "class B extends A {",
+        "  const B() : super(i);",
+        "}",
+        "const B b = const B();",
+        "const int i = 5;"));
+  }
+
   public void test_dependencyOnFactoryRedirect() throws Exception {
     // a depends on A.foo() depends on A.bar()
     assertProperDependencies(createSource(//
@@ -331,6 +359,29 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     HashMap<String, DartObjectImpl> fields = assertType(result, "A");
     assertSizeOfMap(1, fields);
     assertIntField(fields, "k", 7L);
+  }
+
+  public void test_instanceCreationExpression_explicitSuper() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const foo = const B(4, 5);",
+        "class A {",
+        "  const A(this.x);",
+        "  final int x;",
+        "}",
+        "class B extends A {",
+        "  const B(int x, this.y) : super(x * 2);",
+        "  final int y;",
+        "}"));
+    EvaluationResultImpl result = evaluateInstanceCreationExpression(compilationUnit, "foo");
+    HashMap<String, DartObjectImpl> fields = assertType(result, "B");
+    assertSizeOfMap(2, fields);
+    assertIntField(fields, "y", 5L);
+    HashMap<String, DartObjectImpl> superclassFields = assertFieldType(
+        fields,
+        GenericState.SUPERCLASS_FIELD,
+        "A");
+    assertSizeOfMap(1, superclassFields);
+    assertIntField(superclassFields, "x", 8L);
   }
 
   public void test_instanceCreationExpression_fieldFormalParameter() throws Exception {
