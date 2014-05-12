@@ -15,6 +15,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
+  "android_content_shell_rev" : "@35765",
   "apache_ant_rev" : "@19997",
   "apache_compress_rev" : "@19997",
   "args4j_rev" : "@19997",
@@ -66,6 +67,8 @@ deps = {
       Var("chromium_url") + "/trunk/src/net/third_party/nss" + Var("nss_rev"),
 
   "dart/third_party/7zip": "/third_party/7zip" + Var("7zip_rev"),
+  "dart/third_party/android_content_shell": 
+      "/third_party/android_content_shell" + Var("android_content_shell_rev"),
   "dart/third_party/apache_ant":
       "/third_party/apache_ant" + Var("apache_ant_rev"),
   "dart/third_party/apache_compress":
