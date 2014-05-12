@@ -13,6 +13,7 @@
  */
 package com.google.dart.server.internal.remote.utilities;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.dart.engine.context.AnalysisDelta;
 import com.google.gson.JsonElement;
@@ -28,9 +29,16 @@ import java.util.Map;
  * Tests for {@link RequestUtilities}.
  */
 public class RequestUtilitiesTest extends TestCase {
-
   public void test_generateContextApplyAnalysisDeltaRequest_emptyAnalysisMap() throws Exception {
-    JsonElement expected = new JsonParser().parse("{\"id\":\"id\",\"method\":\"context.applyAnalysisDelta\",\"params\":{\"contextId\":\"CONTEXT_ID\",\"delta\":{}}}");
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'id',",
+        "  'method': 'context.applyAnalysisDelta',",
+        "  'params': {",
+        "    'contextId': 'CONTEXT_ID',",
+        "    'delta': {}",
+        "  }",
+        "}");
     JsonElement actual = RequestUtilities.generateContextApplyAnalysisDeltaRequest(
         "id",
         "CONTEXT_ID",
@@ -39,7 +47,20 @@ public class RequestUtilitiesTest extends TestCase {
   }
 
   public void test_generateContextApplyAnalysisDeltaRequest_withAnalysisMap() throws Exception {
-    JsonElement expected = new JsonParser().parse("{\"id\":\"id\",\"method\":\"context.applyAnalysisDelta\",\"params\":{\"contextId\":\"CONTEXT_ID\",\"delta\":{\"one\":\"ALL\",\"two\":\"ERRORS\",\"three\":\"RESOLVED\",\"four\":\"NONE\"}}}");
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'id',",
+        "  'method': 'context.applyAnalysisDelta',",
+        "  'params': {",
+        "    'contextId': 'CONTEXT_ID',",
+        "    'delta': {",
+        "      'one': 'ALL',",
+        "      'two': 'ERRORS',",
+        "      'three': 'RESOLVED',",
+        "      'four': 'NONE'",
+        "    }",
+        "  }",
+        "}");
     Map<String, AnalysisDelta.AnalysisLevel> analysisMap = new LinkedHashMap<String, AnalysisDelta.AnalysisLevel>();
     analysisMap.put("one", AnalysisDelta.AnalysisLevel.ALL);
     analysisMap.put("two", AnalysisDelta.AnalysisLevel.ERRORS);
@@ -61,7 +82,17 @@ public class RequestUtilitiesTest extends TestCase {
   }
 
   public void test_generateContextGetMinorRefactoringsRequest() throws Exception {
-    JsonElement expected = new JsonParser().parse("{\"id\":\"id\",\"method\":\"context.getMinorRefactorings\",\"params\":{\"contextId\":\"CONTEXT_ID\",\"source\":\"source\",\"offset\":1,\"length\":2}}");
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'id',",
+        "  'method': 'context.getMinorRefactorings',",
+        "  'params': {",
+        "    'contextId': 'CONTEXT_ID',",
+        "    'source': 'source',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
     JsonElement actual = RequestUtilities.generateContextGetMinorRefactoringsRequest(
         "id",
         "CONTEXT_ID",
@@ -72,7 +103,15 @@ public class RequestUtilitiesTest extends TestCase {
   }
 
   public void test_generateServerCreateContextRequest() throws Exception {
-    JsonElement expected = new JsonParser().parse("{\"id\":\"id\",\"method\":\"server.createContext\",\"params\":{\"contextId\":\"CONTEXT_ID\",\"sdkDirectory\":\"/sdk/path\"}}");
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'id',",
+        "  'method': 'server.createContext',",
+        "  'params': {",
+        "    'contextId': 'CONTEXT_ID',",
+        "    'sdkDirectory': '/sdk/path'",
+        "  }",
+        "}");
     JsonElement actual = RequestUtilities.generateServerCreateContextRequest(
         "id",
         "CONTEXT_ID",
@@ -82,9 +121,20 @@ public class RequestUtilitiesTest extends TestCase {
   }
 
   public void test_generateServerCreateContextRequest_withPackageMap() throws Exception {
-    JsonElement expected = new JsonParser().parse("{\"id\":\"id\",\"method\":\"server.createContext\","
-        + "\"params\":{\"contextId\":\"CONTEXT_ID\",\"sdkDirectory\":\"/SDK/PATH\","
-        + "\"packageMap\":{\"one\":[\"1\"],\"two\":[\"2\",\"2\"],\"three\":[\"3\",\"3\",\"3\"]}}}");
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'id',",
+        "  'method': 'server.createContext',",
+        "  'params': {",
+        "    'contextId': 'CONTEXT_ID',",
+        "    'sdkDirectory': '/SDK/PATH',",
+        "    'packageMap': {",
+        "      'one': ['1'],",
+        "      'two': ['2', '2'],",
+        "      'three': ['3', '3', '3']",
+        "    }",
+        "  }",
+        "}");
     Map<String, List<String>> packageMap = new LinkedHashMap<String, List<String>>();
     packageMap.put("one", ImmutableList.of("1"));
     packageMap.put("two", ImmutableList.of("2", "2"));
@@ -98,32 +148,61 @@ public class RequestUtilitiesTest extends TestCase {
   }
 
   public void test_generateServerDeleteContextRequest() throws Exception {
-    JsonElement expected = new JsonParser().parse("{\"id\":\"id\",\"method\":\"server.deleteContext\",\"params\":{\"contextId\":\"CONTEXT_ID\"}}");
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'id',",
+        "  'method': 'server.deleteContext',",
+        "  'params': {",
+        "    'contextId': 'CONTEXT_ID'",
+        "  }",
+        "}");
     JsonElement actual = RequestUtilities.generateServerDeleteContextRequest("id", "CONTEXT_ID");
     assertEquals(expected, actual);
   }
 
   public void test_generateServerShutdownRequest() throws Exception {
-    assertEquals(
-        new JsonParser().parse("{\"id\":\"\",\"method\":\"server.shutdown\"}"),
-        RequestUtilities.generateServerShutdownRequest(""));
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '',",
+        "  'method': 'server.shutdown'",
+        "}");
+    assertEquals(expected, RequestUtilities.generateServerShutdownRequest(""));
   }
 
   public void test_generateServerShutdownRequest_withId() throws Exception {
-    assertEquals(
-        new JsonParser().parse("{\"id\":\"ID\",\"method\":\"server.shutdown\"}"),
-        RequestUtilities.generateServerShutdownRequest("ID"));
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'ID',",
+        "  'method': 'server.shutdown'",
+        "}");
+    assertEquals(expected, RequestUtilities.generateServerShutdownRequest("ID"));
   }
 
   public void test_generateServerVersionRequest() throws Exception {
-    assertEquals(
-        new JsonParser().parse("{\"id\":\"\",\"method\":\"server.version\"}"),
-        RequestUtilities.generateServerVersionRequest(""));
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '',",
+        "  'method': 'server.version'",
+        "}");
+    assertEquals(expected, RequestUtilities.generateServerVersionRequest(""));
   }
 
   public void test_generateServerVersionRequest_withId() throws Exception {
-    assertEquals(
-        new JsonParser().parse("{\"id\":\"ID\",\"method\":\"server.version\"}"),
-        RequestUtilities.generateServerVersionRequest("ID"));
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'ID',",
+        "  'method': 'server.version'",
+        "}");
+    assertEquals(expected, RequestUtilities.generateServerVersionRequest("ID"));
+  }
+
+  /**
+   * Builds a JSON string from the given lines. Replaces single quotes with double quotes. Then
+   * parses this string as a {@link JsonElement}.
+   */
+  private JsonElement parseJson(String... lines) {
+    String json = Joiner.on('\n').join(lines);
+    json = json.replace('\'', '"');
+    return new JsonParser().parse(json);
   }
 }
