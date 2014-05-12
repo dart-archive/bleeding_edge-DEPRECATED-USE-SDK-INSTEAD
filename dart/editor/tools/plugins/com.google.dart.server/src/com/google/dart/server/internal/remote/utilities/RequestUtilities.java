@@ -66,9 +66,9 @@ public class RequestUtilities {
    */
   public static JsonObject generateContextApplyAnalysisDeltaRequest(String idValue,
       String contextIdValue, Map<String, AnalysisDelta.AnalysisLevel> analysisMap) {
-    LinkedHashMap<String, Object> params = new LinkedHashMap<String, Object>(2);
-    params.put("contextId", contextIdValue);
-    params.put("delta", analysisMap);
+    JsonObject params = new JsonObject();
+    params.addProperty("contextId", contextIdValue);
+    params.add("delta", buildJsonObject(analysisMap));
     return buildJsonObjectRequest(idValue, METHOD_CONTEXT_APPLY_ANALYSIS_DELTA, params);
   }
 
@@ -123,11 +123,11 @@ public class RequestUtilities {
    */
   public static JsonObject generateContextGetMinorRefactoringsRequest(String idValue,
       String contextIdValue, String source, int offset, int length) {
-    LinkedHashMap<String, Object> params = new LinkedHashMap<String, Object>(4);
-    params.put("contextId", contextIdValue);
-    params.put("source", source);
-    params.put("offset", offset);
-    params.put("length", length);
+    JsonObject params = new JsonObject();
+    params.addProperty("contextId", contextIdValue);
+    params.addProperty("source", source);
+    params.addProperty("offset", offset);
+    params.addProperty("length", length);
     return buildJsonObjectRequest(idValue, METHOD_CONTEXT_GET_MINOR_REFACTORINGS, params);
   }
 
@@ -178,11 +178,11 @@ public class RequestUtilities {
    */
   public static JsonObject generateServerCreateContextRequest(String idValue,
       String contextIdValue, String sdkDirectoryValue, Map<String, List<String>> packageMap) {
-    LinkedHashMap<String, Object> params = new LinkedHashMap<String, Object>(3);
-    params.put("contextId", contextIdValue);
-    params.put("sdkDirectory", sdkDirectoryValue);
-    if (packageMap != null) {
-      params.put("packageMap", packageMap);
+    JsonObject params = new JsonObject();
+    params.addProperty("contextId", contextIdValue);
+    params.addProperty("sdkDirectory", sdkDirectoryValue);
+    if (packageMap != null && !packageMap.isEmpty()) {
+      params.add("packageMap", buildJsonObject(packageMap));
     }
     return buildJsonObjectRequest(idValue, METHOD_SERVER_CREATE_CONTEXT, params);
   }
@@ -201,8 +201,8 @@ public class RequestUtilities {
    * </pre>
    */
   public static JsonObject generateServerDeleteContextRequest(String idValue, String contextIdValue) {
-    LinkedHashMap<String, Object> params = new LinkedHashMap<String, Object>(1);
-    params.put("contextId", contextIdValue);
+    JsonObject params = new JsonObject();
+    params.addProperty("contextId", contextIdValue);
     return buildJsonObjectRequest(idValue, METHOD_SERVER_DELETE_CONTEXT, params);
   }
 
@@ -243,9 +243,9 @@ public class RequestUtilities {
   }
 
   @SuppressWarnings("unchecked")
-  private static JsonElement buildJsonObject(LinkedHashMap<String, Object> map) {
+  private static JsonElement buildJsonObject(Map<String, ? extends Object> map) {
     JsonObject jsonObject = new JsonObject();
-    for (Entry<String, Object> entry : map.entrySet()) {
+    for (Entry<String, ? extends Object> entry : map.entrySet()) {
       String key = entry.getKey();
       Object value = entry.getValue();
       if (value instanceof String) {
@@ -268,12 +268,12 @@ public class RequestUtilities {
   }
 
   private static JsonObject buildJsonObjectRequest(String idValue, String methodValue,
-      LinkedHashMap<String, Object> params) {
+      JsonObject params) {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty(ID, idValue);
     jsonObject.addProperty(METHOD, methodValue);
     if (params != null) {
-      jsonObject.add(PARAMS, buildJsonObject(params));
+      jsonObject.add(PARAMS, params);
     }
     return jsonObject;
   }

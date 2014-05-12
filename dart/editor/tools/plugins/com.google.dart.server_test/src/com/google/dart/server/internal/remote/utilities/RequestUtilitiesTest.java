@@ -30,11 +30,11 @@ import java.util.Map;
 public class RequestUtilitiesTest extends TestCase {
 
   public void test_generateContextApplyAnalysisDeltaRequest_emptyAnalysisMap() throws Exception {
-    JsonElement expected = new JsonParser().parse("{\"id\":\"id\",\"method\":\"context.applyAnalysisDelta\",\"params\":{\"contextId\":\"CONTEXT_ID\"}}");
+    JsonElement expected = new JsonParser().parse("{\"id\":\"id\",\"method\":\"context.applyAnalysisDelta\",\"params\":{\"contextId\":\"CONTEXT_ID\",\"delta\":{}}}");
     JsonElement actual = RequestUtilities.generateContextApplyAnalysisDeltaRequest(
         "id",
         "CONTEXT_ID",
-        null);
+        new LinkedHashMap<String, AnalysisDelta.AnalysisLevel>());
     assertEquals(expected, actual);
   }
 
