@@ -126,6 +126,24 @@ public interface AnalysisServer {
   public void removeAnalysisServerListener(AnalysisServerListener listener);
 
   /**
+   * Searches for declarations of class members with the given name. The given consumer is invoked
+   * asynchronously on a different thread.
+   * 
+   * @param name the name of a member
+   * @param consumer the results listener
+   */
+  public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer);
+
+  /**
+   * Searches for resolved and unresolved references to class members with the given name. The given
+   * consumer is invoked asynchronously on a different thread.
+   * 
+   * @param name the name of a member
+   * @param consumer the results listener
+   */
+  public void searchClassMemberReferences(String name, SearchResultsConsumer consumer);
+
+  /**
    * Searches for references to the given element.
    * <p>
    * If the given element is a class member, then also references to all corresponding members in

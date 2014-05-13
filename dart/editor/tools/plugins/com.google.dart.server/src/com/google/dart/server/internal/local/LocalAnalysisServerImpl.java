@@ -616,6 +616,16 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   @Override
+  public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void searchClassMemberReferences(String name, SearchResultsConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
   public void searchElementReferences(Element element, boolean withPotential,
       SearchResultsConsumer consumer) {
     // TODO(scheglov) support for "withPotential"
