@@ -321,6 +321,19 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         "const A a = const A(10);"));
   }
 
+  public void test_dependencyOnImplicitSuperConstructor() throws Exception {
+    // b depends on B() depends on A()
+    assertProperDependencies(createSource(//
+        "class A {",
+        "  const A() : x = 5;",
+        "  final int x;",
+        "}",
+        "class B extends A {",
+        "  const B();",
+        "}",
+        "const B b = const B();"));
+  }
+
   public void test_dependencyOnOptionalParameterDefault() throws Exception {
     // a depends on A() depends on B()
     assertProperDependencies(createSource(//
@@ -477,6 +490,29 @@ public class ConstantValueComputerTest extends ResolverTestCase {
   public void test_instanceCreationExpression_fieldFormalParameter_unnamedOptionalWithoutDefault()
       throws Exception {
     checkInstanceCreationOptionalParams(true, false, false);
+  }
+
+  public void test_instanceCreationExpression_implicitSuper() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const foo = const B(4);",
+        "class A {",
+        "  const A() : x(3);",
+        "  final int x;",
+        "}",
+        "class B extends A {",
+        "  const B(this.y);",
+        "  final int y;",
+        "}"));
+    EvaluationResultImpl result = evaluateInstanceCreationExpression(compilationUnit, "foo");
+    HashMap<String, DartObjectImpl> fields = assertType(result, "B");
+    assertSizeOfMap(2, fields);
+    assertIntField(fields, "y", 4L);
+    HashMap<String, DartObjectImpl> superclassFields = assertFieldType(
+        fields,
+        GenericState.SUPERCLASS_FIELD,
+        "A");
+    assertSizeOfMap(1, superclassFields);
+    assertIntField(superclassFields, "x", 3L);
   }
 
   public void test_instanceCreationExpression_redirect() throws Exception {

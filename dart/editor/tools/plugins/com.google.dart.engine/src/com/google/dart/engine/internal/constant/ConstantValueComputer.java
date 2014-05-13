@@ -14,7 +14,6 @@
 package com.google.dart.engine.internal.constant;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
@@ -175,7 +174,26 @@ public class ConstantValueComputer {
           variableDeclarationMap,
           constructorDeclarationMap);
       referenceGraph.addNode(declaration);
-      declaration.getInitializers().accept(referenceFinder);
+      boolean superInvocationFound = false;
+      NodeList<ConstructorInitializer> initializers = declaration.getInitializers();
+      for (ConstructorInitializer initializer : initializers) {
+        if (initializer instanceof SuperConstructorInvocation) {
+          superInvocationFound = true;
+        }
+        initializer.accept(referenceFinder);
+      }
+      if (!superInvocationFound) {
+        // No explicit superconstructor invocation found, so we need to manually insert
+        // a reference to the implicit superconstructor.
+        InterfaceType superclass = ((InterfaceType) entry.getKey().getReturnType()).getSuperclass();
+        if (superclass != null && !superclass.isObject()) {
+          ConstructorElement unnamedConstructor = superclass.getElement().getUnnamedConstructor();
+          ConstructorDeclaration superConstructorDeclaration = constructorDeclarationMap.get(unnamedConstructor);
+          if (superConstructorDeclaration != null) {
+            referenceGraph.addEdge(declaration, superConstructorDeclaration);
+          }
+        }
+      }
       for (FormalParameter parameter : declaration.getParameters().getParameters()) {
         referenceGraph.addNode(parameter);
         referenceGraph.addEdge(declaration, parameter);
@@ -276,7 +294,7 @@ public class ConstantValueComputer {
       }
       ConstantVisitor constantVisitor = createConstantVisitor();
       EvaluationResultImpl result = evaluateConstructorCall(
-          expression.getArgumentList(),
+          expression.getArgumentList().getArguments(),
           constructor,
           constantVisitor);
       expression.setEvaluationResult(result);
@@ -305,9 +323,8 @@ public class ConstantValueComputer {
     }
   }
 
-  private EvaluationResultImpl evaluateConstructorCall(ArgumentList argumentList,
+  private EvaluationResultImpl evaluateConstructorCall(NodeList<Expression> arguments,
       ConstructorElement constructor, ConstantVisitor constantVisitor) {
-    NodeList<Expression> arguments = argumentList.getArguments();
     int argumentCount = arguments.size();
     DartObjectImpl[] argumentValues = new DartObjectImpl[argumentCount];
     HashMap<String, DartObjectImpl> namedArgumentValues = new HashMap<String, DartObjectImpl>();
@@ -413,22 +430,41 @@ public class ConstantValueComputer {
         }
       } else if (initializer instanceof SuperConstructorInvocation) {
         SuperConstructorInvocation superConstructorInvocation = (SuperConstructorInvocation) initializer;
-        ConstructorElement superConstructor = superConstructorInvocation.getStaticElement();
-        if (superConstructor != null && superConstructor.isConst()) {
-          EvaluationResultImpl evaluationResult = evaluateConstructorCall(
-              superConstructorInvocation.getArgumentList(),
-              superConstructor,
-              initializerVisitor);
-          // TODO(paulberry): Do we need to propagate errors here?
-          if (evaluationResult instanceof ValidResult) {
-            DartObjectImpl value = ((ValidResult) evaluationResult).getValue();
-            fieldMap.put(GenericState.SUPERCLASS_FIELD, value);
-          }
-        }
+        evaluateSuperConstructorCall(
+            fieldMap,
+            superConstructorInvocation.getStaticElement(),
+            superConstructorInvocation.getArgumentList().getArguments(),
+            initializerVisitor);
       }
     }
-    // TODO(paulberry) : Handle implicit SuperConstructorInvocation
+    InterfaceType superclass = definingClass.getSuperclass();
+    if (!fieldMap.containsKey(GenericState.SUPERCLASS_FIELD) && superclass != null
+        && !superclass.isObject()) {
+      // There was no explicit call to super, so make an implicit call.
+      NodeList<Expression> noArgs = new NodeList<Expression>(null);
+      evaluateSuperConstructorCall(
+          fieldMap,
+          superclass.getElement().getUnnamedConstructor(),
+          noArgs,
+          initializerVisitor);
+    }
     return constantVisitor.valid(definingClass, new GenericState(fieldMap));
+  }
+
+  private void evaluateSuperConstructorCall(HashMap<String, DartObjectImpl> fieldMap,
+      ConstructorElement superConstructor, NodeList<Expression> superArguments,
+      ConstantVisitor initializerVisitor) {
+    if (superConstructor != null && superConstructor.isConst()) {
+      EvaluationResultImpl evaluationResult = evaluateConstructorCall(
+          superArguments,
+          superConstructor,
+          initializerVisitor);
+      // TODO(paulberry): Do we need to propagate errors here?
+      if (evaluationResult instanceof ValidResult) {
+        DartObjectImpl value = ((ValidResult) evaluationResult).getValue();
+        fieldMap.put(GenericState.SUPERCLASS_FIELD, value);
+      }
+    }
   }
 
   /**
