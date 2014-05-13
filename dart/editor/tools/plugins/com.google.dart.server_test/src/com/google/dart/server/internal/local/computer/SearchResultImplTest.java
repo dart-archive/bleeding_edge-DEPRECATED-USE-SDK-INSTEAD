@@ -28,12 +28,13 @@ public class SearchResultImplTest extends TestCase {
   public void test_access() throws Exception {
     SearchResultKind kind = SearchResultKind.TYPE_REFERENCE;
     Element[] path = new Element[0];
-    SearchResultImpl searchResult = new SearchResultImpl(path, source, kind, 10, 20);
+    SearchResultImpl searchResult = new SearchResultImpl(path, source, kind, 10, 20, true);
     assertSame(path, searchResult.getPath());
     assertSame(source, searchResult.getSource());
     assertSame(kind, searchResult.getKind());
     assertEquals(10, searchResult.getOffset());
     assertEquals(20, searchResult.getLength());
+    assertTrue(searchResult.isPotential());
     // toString()
     assertNotNull(searchResult.toString());
   }

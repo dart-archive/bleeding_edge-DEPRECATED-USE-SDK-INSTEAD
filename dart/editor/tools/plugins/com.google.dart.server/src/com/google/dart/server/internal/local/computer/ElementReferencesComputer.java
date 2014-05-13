@@ -73,6 +73,7 @@ public class ElementReferencesComputer {
       case FUNCTION_REFERENCE:
         return SearchResultKind.FUNCTION_REFERENCE;
       case METHOD_INVOCATION:
+      case NAME_INVOCATION_UNRESOLVED:
         return SearchResultKind.METHOD_INVOCATION;
       case METHOD_REFERENCE:
         return SearchResultKind.METHOD_REFERENCE;
@@ -137,18 +138,36 @@ public class ElementReferencesComputer {
             refElement.getSource(),
             SearchResultKind.VARIABLE_DECLARATION,
             refElement.getNameOffset(),
-            refElement.getName().length());
+            refElement.getName().length(),
+            false);
         consumer.computed(new SearchResult[] {result}, false);
       }
       // do search
       List<SearchResult> results = Lists.newArrayList();
       List<SearchMatch> searchMatches = searchEngine.searchReferences(refElement, null, null);
       for (SearchMatch match : searchMatches) {
-        SearchResultImpl result = newSearchResult(match);
+        SearchResultImpl result = newSearchResult(match, false);
         if (result == null) {
           continue;
         }
         results.add(result);
+      }
+      consumer.computed(results.toArray(new SearchResult[results.size()]), false);
+    }
+    // report potential references
+    {
+      List<SearchResult> results = Lists.newArrayList();
+      List<SearchMatch> matches = searchEngine.searchQualifiedMemberReferences(
+          element.getName(),
+          null,
+          null);
+      for (SearchMatch match : matches) {
+        if (match.getKind() == MatchKind.NAME_INVOCATION_UNRESOLVED) {
+          SearchResultImpl result = newSearchResult(match, true);
+          if (result != null) {
+            results.add(result);
+          }
+        }
       }
       consumer.computed(results.toArray(new SearchResult[results.size()]), false);
     }
@@ -195,7 +214,7 @@ public class ElementReferencesComputer {
     return false;
   }
 
-  private SearchResultImpl newSearchResult(SearchMatch match) {
+  private SearchResultImpl newSearchResult(SearchMatch match, boolean isPotential) {
     MatchKind matchKind = match.getKind();
     SearchResultKind kind = getSearchResultKind(matchKind);
     if (kind == null) {
@@ -208,6 +227,7 @@ public class ElementReferencesComputer {
         matchElement.getSource(),
         kind,
         matchRange.getOffset(),
-        matchRange.getLength());
+        matchRange.getLength(),
+        isPotential);
   }
 }

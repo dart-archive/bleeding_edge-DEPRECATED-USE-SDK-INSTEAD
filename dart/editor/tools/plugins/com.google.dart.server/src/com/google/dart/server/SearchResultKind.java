@@ -60,6 +60,11 @@ public enum SearchResultKind {
   METHOD_REFERENCE,
 
   /**
+   * A reference to a name, unresolved.
+   */
+  NAME_REFERENCE_UNRESOLVED,
+
+  /**
    * A reference to a property accessor.
    */
   PROPERTY_ACCESSOR_REFERENCE,

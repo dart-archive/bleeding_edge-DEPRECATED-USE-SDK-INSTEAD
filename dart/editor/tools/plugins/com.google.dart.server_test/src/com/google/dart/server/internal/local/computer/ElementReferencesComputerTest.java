@@ -59,22 +59,6 @@ public class ElementReferencesComputerTest extends AbstractLocalServerTest {
     assertHasResult(".named(2);", ".named".length(), SearchResultKind.CONSTRUCTOR_REFERENCE);
   }
 
-  // TODO(scheglov) restore when we will able to get CONSTRUCTOR element
-//  public void test_constructor_unnamed() throws Exception {
-//    createContextWithSingleSource(makeSource(//
-//        "class A {",
-//        "  A(p);",
-//        "}",
-//        "main() {",
-//        "  new A(1);",
-//        "  new A(2);",
-//        "}"));
-//    doSearch("new A(1);");
-//    assertThat(searchResults).hasSize(2);
-//    assertHasResult("(1);", "".length(), SearchResultKind.CONSTRUCTOR_REFERENCE);
-//    assertHasResult("(2);", "".length(), SearchResultKind.CONSTRUCTOR_REFERENCE);
-//  }
-
   public void test_field_explicit() throws Exception {
     createContextWithSingleSource(makeSource(//
         "class A {",
@@ -102,6 +86,22 @@ public class ElementReferencesComputerTest extends AbstractLocalServerTest {
     assertHasResult("fff += 30", SearchResultKind.FIELD_WRITE);
     assertHasResult("fff); // in main()", SearchResultKind.FIELD_READ);
   }
+
+  // TODO(scheglov) restore when we will able to get CONSTRUCTOR element
+//  public void test_constructor_unnamed() throws Exception {
+//    createContextWithSingleSource(makeSource(//
+//        "class A {",
+//        "  A(p);",
+//        "}",
+//        "main() {",
+//        "  new A(1);",
+//        "  new A(2);",
+//        "}"));
+//    doSearch("new A(1);");
+//    assertThat(searchResults).hasSize(2);
+//    assertHasResult("(1);", "".length(), SearchResultKind.CONSTRUCTOR_REFERENCE);
+//    assertHasResult("(2);", "".length(), SearchResultKind.CONSTRUCTOR_REFERENCE);
+//  }
 
   public void test_field_implicit() throws Exception {
     createContextWithSingleSource(makeSource(//
@@ -465,6 +465,33 @@ public class ElementReferencesComputerTest extends AbstractLocalServerTest {
           "CLASS B",
           "COMPILATION_UNIT test.dart",
           "LIBRARY my_lib"), getPathString(path));
+    }
+  }
+
+  public void test_potential_method() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "class A {",
+        "  test(p) {}",
+        "}",
+        "main(A a, p) {",
+        "  a.test(1);",
+        "  p.test(2);",
+        "}"));
+    doSearch("test(p) {}");
+    assertThat(searchResults).hasSize(2);
+    {
+      SearchResult searchResult = assertHasResult(
+          "test(1);",
+          "test".length(),
+          SearchResultKind.METHOD_INVOCATION);
+      assertFalse(searchResult.isPotential());
+    }
+    {
+      SearchResult searchResult = assertHasResult(
+          "test(2);",
+          "test".length(),
+          SearchResultKind.METHOD_INVOCATION);
+      assertTrue(searchResult.isPotential());
     }
   }
 

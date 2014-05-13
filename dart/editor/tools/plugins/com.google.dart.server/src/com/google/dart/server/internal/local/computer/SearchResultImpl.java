@@ -30,14 +30,16 @@ public class SearchResultImpl implements SearchResult {
   private final SearchResultKind kind;
   private final int offset;
   private final int length;
+  private final boolean isPotential;
 
   public SearchResultImpl(Element[] path, Source source, SearchResultKind kind, int offset,
-      int length) {
+      int length, boolean isPotential) {
     this.path = path;
     this.source = source;
     this.kind = kind;
     this.offset = offset;
     this.length = length;
+    this.isPotential = isPotential;
   }
 
   @Override
@@ -67,8 +69,7 @@ public class SearchResultImpl implements SearchResult {
 
   @Override
   public boolean isPotential() {
-    // TODO(scheglov) support for "potential"
-    return false;
+    return isPotential;
   }
 
   @Override

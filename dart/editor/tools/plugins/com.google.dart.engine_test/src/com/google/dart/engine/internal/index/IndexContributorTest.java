@@ -651,6 +651,27 @@ public class IndexContributorTest extends AbstractDartTest {
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
+  public void test_isInvokedByUnresolved() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(p) {",
+        "  p.test(42);",
+        "}");
+    // set elements
+    Element mainElement = findElement("main(p) {");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    NameElementImpl nameElement = new NameElementImpl("test");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_INVOKED_BY_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("test(42);"), "test"));
+    assertRecordedRelation(relations, nameElement, IndexConstants.IS_INVOKED_BY_UNRESOLVED, null);
+  }
+
   public void test_isMixedInBy_ClassDeclaration() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

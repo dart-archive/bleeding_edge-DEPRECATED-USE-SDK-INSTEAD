@@ -150,13 +150,14 @@ public interface IndexConstants {
    * referenced at a specific location (the right operand). This is used for qualified resolved
    * references to methods and fields.
    */
-  Relationship IS_REFERENCED_BY_QUALIFIED_RESOLVED = Relationship.getRelationship("is-referenced-by_qualified-resolved");
+  Relationship IS_REFERENCED_BY_QUALIFIED_RESOLVED = Relationship.getRelationship("is-referenced-by-qualified-resolved");
+
   /**
    * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is
    * referenced at a specific location (the right operand). This is used for qualified unresolved
    * references to methods and fields.
    */
-  Relationship IS_REFERENCED_BY_QUALIFIED_UNRESOLVED = Relationship.getRelationship("is-referenced-by_qualified-unresolved");
+  Relationship IS_REFERENCED_BY_QUALIFIED_UNRESOLVED = Relationship.getRelationship("is-referenced-by-qualified-unresolved");
 
   /**
    * The relationship used to indicate that an element (the left-operand) is referenced at a
@@ -187,6 +188,12 @@ public interface IndexConstants {
    * location (the right operand). This is used for methods.
    */
   Relationship IS_INVOKED_BY_UNQUALIFIED = Relationship.getRelationship("is-invoked-by-unqualified");
+
+  /**
+   * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is invoked
+   * at a specific location (the right operand). This is used for unresolved invocations.
+   */
+  Relationship IS_INVOKED_BY_UNRESOLVED = Relationship.getRelationship("is-invoked-by-unresolved");
 
   /**
    * Reference to some {@link AngularElement}.

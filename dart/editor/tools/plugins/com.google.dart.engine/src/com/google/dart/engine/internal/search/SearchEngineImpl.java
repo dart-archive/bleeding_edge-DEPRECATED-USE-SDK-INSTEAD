@@ -306,7 +306,7 @@ public class SearchEngineImpl implements SearchEngine {
       SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
-    listener = new CountingSearchListener(2, listener);
+    listener = new CountingSearchListener(3, listener);
     index.getRelationships(
         new NameElementImpl(name),
         IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
@@ -315,6 +315,10 @@ public class SearchEngineImpl implements SearchEngine {
         new NameElementImpl(name),
         IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
         newCallback(MatchKind.NAME_REFERENCE_UNRESOLVED, scope, listener));
+    index.getRelationships(
+        new NameElementImpl(name),
+        IndexConstants.IS_INVOKED_BY_UNRESOLVED,
+        newCallback(MatchKind.NAME_INVOCATION_UNRESOLVED, scope, listener));
   }
 
   @Override
