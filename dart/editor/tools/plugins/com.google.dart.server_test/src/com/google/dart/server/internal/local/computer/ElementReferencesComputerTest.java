@@ -59,6 +59,21 @@ public class ElementReferencesComputerTest extends AbstractLocalServerTest {
     assertHasResult(".named(2);", ".named".length(), SearchResultKind.CONSTRUCTOR_REFERENCE);
   }
 
+  public void test_constructor_unnamed() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "class A {",
+        "  A(p);",
+        "}",
+        "main() {",
+        "  new A(1);",
+        "  new A(2);",
+        "}"));
+    doSearch("A(p);");
+    assertThat(searchResults).hasSize(2);
+    assertHasResult("(1);", "".length(), SearchResultKind.CONSTRUCTOR_REFERENCE);
+    assertHasResult("(2);", "".length(), SearchResultKind.CONSTRUCTOR_REFERENCE);
+  }
+
   public void test_field_explicit() throws Exception {
     createContextWithSingleSource(makeSource(//
         "class A {",
@@ -86,22 +101,6 @@ public class ElementReferencesComputerTest extends AbstractLocalServerTest {
     assertHasResult("fff += 30", SearchResultKind.FIELD_WRITE);
     assertHasResult("fff); // in main()", SearchResultKind.FIELD_READ);
   }
-
-  // TODO(scheglov) restore when we will able to get CONSTRUCTOR element
-//  public void test_constructor_unnamed() throws Exception {
-//    createContextWithSingleSource(makeSource(//
-//        "class A {",
-//        "  A(p);",
-//        "}",
-//        "main() {",
-//        "  new A(1);",
-//        "  new A(2);",
-//        "}"));
-//    doSearch("new A(1);");
-//    assertThat(searchResults).hasSize(2);
-//    assertHasResult("(1);", "".length(), SearchResultKind.CONSTRUCTOR_REFERENCE);
-//    assertHasResult("(2);", "".length(), SearchResultKind.CONSTRUCTOR_REFERENCE);
-//  }
 
   public void test_field_implicit() throws Exception {
     createContextWithSingleSource(makeSource(//
