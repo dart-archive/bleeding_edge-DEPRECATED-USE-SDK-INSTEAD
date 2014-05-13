@@ -29,7 +29,9 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextPresentationListener;
 import org.eclipse.jface.text.Position;
@@ -67,6 +69,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
   private final String contextId;
   private final Source source;
   private final IDocument document;
+  private final IDocumentListener documentListener;
   private HighlightPosition[] positions;
 
   public SemanticHighlightingManager_NEW(DartSourceViewer viewer, String contextId, Source source) {
@@ -78,6 +81,17 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
     analysisServerData.subscribeHighlights(contextId, source, this);
     viewer.prependTextPresentationListener(this);
+    documentListener = new IDocumentListener() {
+      @Override
+      public void documentAboutToBeChanged(DocumentEvent event) {
+      }
+
+      @Override
+      public void documentChanged(DocumentEvent event) {
+        clearHighlightPositions();
+      }
+    };
+    document.addDocumentListener(documentListener);
   }
 
   @Override
@@ -128,13 +142,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
 
   @Override
   public void computedHighlights(String contextId, Source source, HighlightRegion[] highlights) {
-    // stop tracking HighlightPosition(s)
-    if (positions != null) {
-      for (HighlightPosition position : positions) {
-        document.removePosition(position);
-      }
-      positions = null;
-    }
+    clearHighlightPositions();
     // create and track HighlightPosition(s)
     HighlightPosition[] newPositions = new HighlightPosition[highlights.length];
     for (int i = 0; i < highlights.length; i++) {
@@ -160,6 +168,17 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
     analysisServerData.unsubscribeHighlights(contextId, source, this);
     viewer.removeTextPresentationListener(this);
+    document.removeDocumentListener(documentListener);
+    clearHighlightPositions();
+  }
+
+  private void clearHighlightPositions() {
+    if (positions != null) {
+      for (HighlightPosition position : positions) {
+        document.removePosition(position);
+      }
+      positions = null;
+    }
   }
 
   private String getThemeKey(HighlightType type) {
