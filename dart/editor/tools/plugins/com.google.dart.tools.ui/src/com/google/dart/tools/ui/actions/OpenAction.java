@@ -156,9 +156,11 @@ public class OpenAction extends AbstractDartSelectionAction {
     }
     // no element - beep
     if (element == null) {
-      IEditorStatusLine statusLine = (IEditorStatusLine) editor.getAdapter(IEditorStatusLine.class);
-      if (statusLine != null) {
-        statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null);
+      if (editor != null) {
+        IEditorStatusLine statusLine = (IEditorStatusLine) editor.getAdapter(IEditorStatusLine.class);
+        if (statusLine != null) {
+          statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null);
+        }
       }
       getShell().getDisplay().beep();
       return;
