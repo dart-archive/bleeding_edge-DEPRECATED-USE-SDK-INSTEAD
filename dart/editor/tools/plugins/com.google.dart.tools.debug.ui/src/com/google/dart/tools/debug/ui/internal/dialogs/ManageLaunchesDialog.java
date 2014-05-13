@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
@@ -352,6 +353,11 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     IDialogSettings workbenchSettings = WorkbenchPlugin.getDefault().getDialogSettings();
     IDialogSettings section = workbenchSettings.getSection(settingsName);
 
+    if (DartDebugCorePlugin.getPlugin().getClearDialogSettings()) {
+      section = null;
+      DartDebugCorePlugin.getPlugin().setClearLaunchesDialogSettings(false);
+    }
+
     if (section == null) {
       section = workbenchSettings.addNewSection(settingsName);
     }
@@ -442,7 +448,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     GridLayoutFactory.fillDefaults().margins(12, 6).applyTo(parent);
 
     SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL);
-    GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(725, 370).applyTo(
+    GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(725, 415).applyTo(
         sashForm);
 
     Composite leftComposite = new Composite(sashForm, SWT.NONE);

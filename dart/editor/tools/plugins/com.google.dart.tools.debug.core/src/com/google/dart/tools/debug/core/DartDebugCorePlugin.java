@@ -106,6 +106,9 @@ public class DartDebugCorePlugin extends Plugin {
 
   public static final String PREFS_SHOW_RUN_RESUME_DIALOG = "showRunResumeDialog";
 
+  // TODO(keertip): preference used to clear manage launches dialog settings, remove after 1.5   
+  private static final String PREFS_CLEAR_LAUNCHES_DIALOG_SETTINGS = "launchesDialogSettings";
+
   private static long loggingStart = System.currentTimeMillis();
 
   /**
@@ -263,6 +266,10 @@ public class DartDebugCorePlugin extends Plugin {
     return getPrefs().get(PREFS_BROWSER_NAME, "");
   }
 
+  public boolean getClearDialogSettings() {
+    return getPrefs().getBoolean(PREFS_CLEAR_LAUNCHES_DIALOG_SETTINGS, true);
+  }
+
   /**
    * Returns the path to the Dart VM executable, if it has been set. Otherwise, this method returns
    * the empty string.
@@ -321,6 +328,16 @@ public class DartDebugCorePlugin extends Plugin {
     prefs.putBoolean(PREFS_DEFAULT_BROWSER, useDefault);
     prefs.put(PREFS_BROWSER_NAME, name);
     prefs.put(PREFS_BROWSER_ARGS, args);
+
+    try {
+      getPrefs().flush();
+    } catch (BackingStoreException exception) {
+      logError(exception);
+    }
+  }
+
+  public void setClearLaunchesDialogSettings(boolean value) {
+    getPrefs().putBoolean(PREFS_CLEAR_LAUNCHES_DIALOG_SETTINGS, value);
 
     try {
       getPrefs().flush();
