@@ -382,7 +382,8 @@ public abstract class SearchResultPage_NEW extends SearchPage {
       if (kind == SearchResultKind.FIELD_READ || kind == SearchResultKind.VARIABLE_READ) {
         return READ;
       }
-      if (kind == SearchResultKind.FIELD_WRITE || kind == SearchResultKind.VARIABLE_DECLARATION
+      if (kind == SearchResultKind.FIELD_READ_WRITE || kind == SearchResultKind.FIELD_WRITE
+          || kind == SearchResultKind.VARIABLE_DECLARATION
           || kind == SearchResultKind.VARIABLE_WRITE
           || kind == SearchResultKind.VARIABLE_READ_WRITE) {
         return WRITE;
@@ -955,10 +956,7 @@ public abstract class SearchResultPage_NEW extends SearchPage {
   private static final Predicate<SearchResult> FILTER_POTENTIAL = new Predicate<SearchResult>() {
     @Override
     public boolean apply(SearchResult input) {
-      // TODO(scheglov) add support for potential matches
-      return false;
-//      return input.getKind() == MatchKind.NAME_REFERENCE_RESOLVED
-//          || input.getKind() == MatchKind.NAME_REFERENCE_UNRESOLVED;
+      return input.isPotential();
     }
   };
 
