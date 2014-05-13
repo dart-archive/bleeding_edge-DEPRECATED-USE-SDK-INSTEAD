@@ -669,7 +669,11 @@ public class IndexContributorTest extends AbstractDartTest {
         nameElement,
         IndexConstants.IS_INVOKED_BY_UNRESOLVED,
         new ExpectedLocation(mainElement, findOffset("test(42);"), "test"));
-    assertRecordedRelation(relations, nameElement, IndexConstants.IS_INVOKED_BY_UNRESOLVED, null);
+    assertNoRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_READ_BY_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("test(42);"), "test"));
   }
 
   public void test_isMixedInBy_ClassDeclaration() throws Exception {
@@ -755,6 +759,26 @@ public class IndexContributorTest extends AbstractDartTest {
         new ExpectedLocation(mainElement, findOffset("v);"), "v"));
   }
 
+  public void test_isReadByUnresolved() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(p) {",
+        "  print(p.test);",
+        "}");
+    // set elements
+    Element mainElement = findElement("main(p) {");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    NameElementImpl nameElement = new NameElementImpl("test");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_READ_BY_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("test);"), "test"));
+  }
+
   public void test_isReadWrittenBy_ParameterElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -794,6 +818,26 @@ public class IndexContributorTest extends AbstractDartTest {
         variableElement,
         IndexConstants.IS_READ_WRITTEN_BY,
         new ExpectedLocation(mainElement, findOffset("v += 1"), "v"));
+  }
+
+  public void test_isReadWrittenByUnresolved() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(p) {",
+        "  p.test += 42;",
+        "}");
+    // set elements
+    Element mainElement = findElement("main(p) {");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    NameElementImpl nameElement = new NameElementImpl("test");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_READ_WRITTEN_BY_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("test += 42;"), "test"));
   }
 
   public void test_isReferencedBy_ClassElement() throws Exception {
@@ -2120,6 +2164,26 @@ public class IndexContributorTest extends AbstractDartTest {
         varElement,
         IndexConstants.IS_WRITTEN_BY,
         new ExpectedLocation(mainElement, findOffset("v = 1;"), "v"));
+  }
+
+  public void test_isWrittenByUnresolved() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(p) {",
+        "  p.test = 42;",
+        "}");
+    // set elements
+    Element mainElement = findElement("main(p) {");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    NameElementImpl nameElement = new NameElementImpl("test");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_WRITTEN_BY_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("test = 42;"), "test"));
   }
 
   public void test_unresolvedUnit() throws Exception {

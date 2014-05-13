@@ -196,6 +196,24 @@ public interface IndexConstants {
   Relationship IS_INVOKED_BY_UNRESOLVED = Relationship.getRelationship("is-invoked-by-unresolved");
 
   /**
+   * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is read at
+   * a specific location (the right operand).
+   */
+  Relationship IS_READ_BY_UNRESOLVED = Relationship.getRelationship("is-read-by-unresolved");
+
+  /**
+   * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is both
+   * read and written at a specific location (the right operand).
+   */
+  Relationship IS_READ_WRITTEN_BY_UNRESOLVED = Relationship.getRelationship("is-read-written-by-unresolved");
+
+  /**
+   * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is written
+   * at a specific location (the right operand).
+   */
+  Relationship IS_WRITTEN_BY_UNRESOLVED = Relationship.getRelationship("is-written-by-unresolved");
+
+  /**
    * Reference to some {@link AngularElement}.
    */
   Relationship ANGULAR_REFERENCE = Relationship.getRelationship("angular-reference");

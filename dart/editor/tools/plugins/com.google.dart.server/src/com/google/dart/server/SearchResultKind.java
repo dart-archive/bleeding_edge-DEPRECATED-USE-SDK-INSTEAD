@@ -35,6 +35,11 @@ public enum SearchResultKind {
   FIELD_READ,
 
   /**
+   * A reference to a field in which it is read and written.
+   */
+  FIELD_READ_WRITE,
+
+  /**
    * A reference to a field in which it is written.
    */
   FIELD_WRITE,

@@ -467,6 +467,40 @@ public class ElementReferencesComputerTest extends AbstractLocalServerTest {
     }
   }
 
+  public void test_potential_field() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "class A {",
+        "  var test; // declaration",
+        "}",
+        "main(p) {",
+        "  print(p.test); // get",
+        "  p.test = 1;",
+        "  p.test += 2;",
+        "}"));
+    doSearch("test; // declaration");
+    {
+      SearchResult searchResult = assertHasResult(
+          "test); // get",
+          "test".length(),
+          SearchResultKind.FIELD_READ);
+      assertTrue(searchResult.isPotential());
+    }
+    {
+      SearchResult searchResult = assertHasResult(
+          "test = 1;",
+          "test".length(),
+          SearchResultKind.FIELD_WRITE);
+      assertTrue(searchResult.isPotential());
+    }
+    {
+      SearchResult searchResult = assertHasResult(
+          "test += 2;",
+          "test".length(),
+          SearchResultKind.FIELD_READ_WRITE);
+      assertTrue(searchResult.isPotential());
+    }
+  }
+
   public void test_potential_method() throws Exception {
     createContextWithSingleSource(makeSource(//
         "class A {",

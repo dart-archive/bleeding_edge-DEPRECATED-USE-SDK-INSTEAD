@@ -306,7 +306,7 @@ public class SearchEngineImpl implements SearchEngine {
       SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
-    listener = new CountingSearchListener(3, listener);
+    listener = new CountingSearchListener(6, listener);
     index.getRelationships(
         new NameElementImpl(name),
         IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
@@ -315,10 +315,23 @@ public class SearchEngineImpl implements SearchEngine {
         new NameElementImpl(name),
         IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
         newCallback(MatchKind.NAME_REFERENCE_UNRESOLVED, scope, listener));
+    // granular unresolved operations
     index.getRelationships(
         new NameElementImpl(name),
         IndexConstants.IS_INVOKED_BY_UNRESOLVED,
         newCallback(MatchKind.NAME_INVOCATION_UNRESOLVED, scope, listener));
+    index.getRelationships(
+        new NameElementImpl(name),
+        IndexConstants.IS_READ_BY_UNRESOLVED,
+        newCallback(MatchKind.NAME_READ_UNRESOLVED, scope, listener));
+    index.getRelationships(
+        new NameElementImpl(name),
+        IndexConstants.IS_READ_WRITTEN_BY_UNRESOLVED,
+        newCallback(MatchKind.NAME_READ_WRITE_UNRESOLVED, scope, listener));
+    index.getRelationships(
+        new NameElementImpl(name),
+        IndexConstants.IS_WRITTEN_BY_UNRESOLVED,
+        newCallback(MatchKind.NAME_WRITE_UNRESOLVED, scope, listener));
   }
 
   @Override

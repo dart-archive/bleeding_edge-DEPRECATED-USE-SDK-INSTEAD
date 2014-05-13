@@ -694,6 +694,21 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
     if (isAlreadyHandledName(node)) {
       return null;
     }
+    // record unresolved read/write
+    if (element == null) {
+      boolean inGetterContext = node.inGetterContext();
+      boolean inSetterContext = node.inSetterContext();
+      if (inGetterContext && inSetterContext) {
+        store.recordRelationship(
+            nameElement,
+            IndexConstants.IS_READ_WRITTEN_BY_UNRESOLVED,
+            location);
+      } else if (inGetterContext) {
+        store.recordRelationship(nameElement, IndexConstants.IS_READ_BY_UNRESOLVED, location);
+      } else if (inSetterContext) {
+        store.recordRelationship(nameElement, IndexConstants.IS_WRITTEN_BY_UNRESOLVED, location);
+      }
+    }
     // record specific relations
     if (element instanceof ClassElement || element instanceof FunctionElement
         || element instanceof FunctionTypeAliasElement || element instanceof LabelElement

@@ -65,8 +65,12 @@ public class ElementReferencesComputer {
       case FIELD_REFERENCE:
         return SearchResultKind.FIELD_REFERENCE;
       case FIELD_READ:
+      case NAME_READ_UNRESOLVED:
         return SearchResultKind.FIELD_READ;
+      case NAME_READ_WRITE_UNRESOLVED:
+        return SearchResultKind.FIELD_READ_WRITE;
       case FIELD_WRITE:
+      case NAME_WRITE_UNRESOLVED:
         return SearchResultKind.FIELD_WRITE;
       case FUNCTION_EXECUTION:
         return SearchResultKind.FUNCTION_INVOCATION;
@@ -162,7 +166,10 @@ public class ElementReferencesComputer {
           null,
           null);
       for (SearchMatch match : matches) {
-        if (match.getKind() == MatchKind.NAME_INVOCATION_UNRESOLVED) {
+        MatchKind kind = match.getKind();
+        if (kind == MatchKind.NAME_INVOCATION_UNRESOLVED || kind == MatchKind.NAME_READ_UNRESOLVED
+            || kind == MatchKind.NAME_READ_WRITE_UNRESOLVED
+            || kind == MatchKind.NAME_WRITE_UNRESOLVED) {
           SearchResultImpl result = newSearchResult(match, true);
           if (result != null) {
             results.add(result);

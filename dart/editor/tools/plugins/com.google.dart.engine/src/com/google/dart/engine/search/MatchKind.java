@@ -144,6 +144,21 @@ public enum MatchKind {
   NAME_INVOCATION_UNRESOLVED,
 
   /**
+   * A reference to a name in which the name's value is being read.
+   */
+  NAME_READ_UNRESOLVED,
+
+  /**
+   * A reference to a name in which the name's value is being read and written.
+   */
+  NAME_READ_WRITE_UNRESOLVED,
+
+  /**
+   * A reference to a name in which the name's value is being written.
+   */
+  NAME_WRITE_UNRESOLVED,
+
+  /**
    * A reference to a name, unresolved.
    */
   NAME_REFERENCE_UNRESOLVED,
