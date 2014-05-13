@@ -79,14 +79,15 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void searchElementReferences(Element element, SearchResultsConsumer consumer) {
+  public void searchElementReferences(Element element, boolean withPotential,
+      SearchResultsConsumer consumer) {
     // TODO (jwren) implement
   }
 
   @Override
   public void searchTopLevelDeclarations(String contextId, String pattern,
       SearchResultsConsumer consumer) {
-    // TODO(csheglov) implement
+    // TODO(scheglov) implement
   }
 
   @Override

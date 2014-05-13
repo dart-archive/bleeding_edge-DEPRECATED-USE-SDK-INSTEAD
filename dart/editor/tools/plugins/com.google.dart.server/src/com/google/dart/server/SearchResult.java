@@ -62,4 +62,11 @@ public interface SearchResult {
    * @return the source containing the result
    */
   public Source getSource();
+
+  /**
+   * Return {@code true} is this search result is a potential reference to a class member.
+   * 
+   * @return {@code true} is this search result is a potential reference to a class member
+   */
+  public boolean isPotential();
 }

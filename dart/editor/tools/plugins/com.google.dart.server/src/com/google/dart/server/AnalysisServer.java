@@ -126,14 +126,22 @@ public interface AnalysisServer {
   public void removeAnalysisServerListener(AnalysisServerListener listener);
 
   /**
-   * Searches for references to the given element. If the given element is a class member, then also
-   * references to all corresponding members in the class hierarchy are searched. The given consumer
-   * is invoked asynchronously on a different thread.
+   * Searches for references to the given element.
+   * <p>
+   * If the given element is a class member, then also references to all corresponding members in
+   * the class hierarchy are searched.
+   * <p>
+   * If the given element is a class member and {@code withPotential} is {@code true}, then
+   * potential references should also be reported.
+   * <p>
+   * The given consumer is invoked asynchronously on a different thread.
    * 
    * @param element the element to find references to, not {@code null}
+   * @param withPotential is {@code true} if potential references should also be reported
    * @param consumer the results listener
    */
-  public void searchElementReferences(Element element, SearchResultsConsumer consumer);
+  public void searchElementReferences(Element element, boolean withPotential,
+      SearchResultsConsumer consumer);
 
   /**
    * Searches the given context for declarations of top-level elements with names matching the given

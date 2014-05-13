@@ -605,7 +605,7 @@ public class ElementReferencesComputerTest extends AbstractLocalServerTest {
     // do request
     if (element != null) {
       final CountDownLatch latch = new CountDownLatch(1);
-      server.searchElementReferences(element, new SearchResultsConsumer() {
+      server.searchElementReferences(element, true, new SearchResultsConsumer() {
         @Override
         public void computed(SearchResult[] _searchResults, boolean isLastResult) {
           Collections.addAll(searchResults, _searchResults);

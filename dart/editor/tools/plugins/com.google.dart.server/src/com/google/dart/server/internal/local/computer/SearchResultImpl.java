@@ -66,6 +66,12 @@ public class SearchResultImpl implements SearchResult {
   }
 
   @Override
+  public boolean isPotential() {
+    // TODO(scheglov) support for "potential"
+    return false;
+  }
+
+  @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("[source=");

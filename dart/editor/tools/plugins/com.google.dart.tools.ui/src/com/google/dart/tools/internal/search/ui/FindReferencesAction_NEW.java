@@ -134,6 +134,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
           final CountDownLatch latch = new CountDownLatch(1);
           DartCore.getAnalysisServer().searchElementReferences(
               element,
+              true,
               new SearchResultsConsumer() {
                 @Override
                 public void computed(SearchResult[] searchResults, boolean isLastResult) {
