@@ -16,11 +16,13 @@ package com.google.dart.server.internal.remote.utilities;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.dart.engine.context.AnalysisDelta;
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 import junit.framework.TestCase;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,7 @@ import java.util.Map;
  * Tests for {@link RequestUtilities}.
  */
 public class RequestUtilitiesTest extends TestCase {
+
   public void test_generateContextApplyAnalysisDeltaRequest_emptyAnalysisMap() throws Exception {
     JsonElement expected = parseJson(//
         "{",
@@ -99,6 +102,96 @@ public class RequestUtilitiesTest extends TestCase {
         "source",
         1,
         2);
+    assertEquals(expected, actual);
+  }
+
+  public void test_generateContextSetOptionsRequest_defaultsValues() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'id',",
+        "  'method': 'context.setOptions',",
+        "  'params': {",
+        "    'contextId': 'CONTEXT_ID',",
+        "    'options': {",
+        "      'analyzeAngular': true,",
+        "      'analyzePolymer': true,",
+        "      'cacheSize': 64,",
+        "      'enableDeferredLoading': true,",
+        "      'generateDart2jsHints': true,",
+        "      'generateHints': true",
+        "    }",
+        "  }",
+        "}");
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    JsonElement actual = RequestUtilities.generateContextSetOptionsRequest(
+        "id",
+        "CONTEXT_ID",
+        options);
+    assertEquals(expected, actual);
+  }
+
+  public void test_generateContextSetOptionsRequest_notDefaultValues() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'id',",
+        "  'method': 'context.setOptions',",
+        "  'params': {",
+        "    'contextId': 'CONTEXT_ID',",
+        "    'options': {",
+        "      'analyzeAngular': false,",
+        "      'analyzePolymer': false,",
+        "      'cacheSize': 1,",
+        "      'enableDeferredLoading': false,",
+        "      'generateDart2jsHints': false,",
+        "      'generateHints': false",
+        "    }",
+        "  }",
+        "}");
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.setAnalyzeAngular(false);
+    options.setAnalyzePolymer(false);
+    options.setCacheSize(1);
+    options.setEnableDeferredLoading(false);
+    options.setDart2jsHint(false);
+    options.setHint(false);
+    JsonElement actual = RequestUtilities.generateContextSetOptionsRequest(
+        "id",
+        "CONTEXT_ID",
+        options);
+    assertEquals(expected, actual);
+  }
+
+  public void test_generateContextSetPrioritySourcesRequest() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'id',",
+        "  'method': 'context.setPrioritySources',",
+        "  'params': {",
+        "    'contextId': 'CONTEXT_ID',",
+        "    'sources': ['1','2','3','4']",
+        "  }",
+        "}");
+    JsonElement actual = RequestUtilities.generateContextSetPrioritySourcesRequest(
+        "id",
+        "CONTEXT_ID",
+        ImmutableList.of("1", "2", "3", "4"));
+    assertEquals(expected, actual);
+  }
+
+  public void test_generateContextSetPrioritySourcesRequest_emptySources() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'id',",
+        "  'method': 'context.setPrioritySources',",
+        "  'params': {",
+        "    'contextId': 'CONTEXT_ID',",
+        "    'sources': []",
+        "  }",
+        "}");
+    JsonElement actual = RequestUtilities.generateContextSetPrioritySourcesRequest(
+        "id",
+        "CONTEXT_ID",
+        new ArrayList<String>());
     assertEquals(expected, actual);
   }
 

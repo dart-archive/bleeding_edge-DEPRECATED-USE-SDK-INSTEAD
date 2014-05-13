@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote.utilities;
 
 import com.google.dart.engine.context.AnalysisDelta;
+import com.google.dart.engine.context.AnalysisOptions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -35,6 +36,8 @@ public class RequestUtilities {
   private static final String METHOD = "method";
   private static final String PARAMS = "params";
 
+  private static final String NULL = "null";
+
   // Server domain
   private static final String METHOD_SERVER_CREATE_CONTEXT = "server.createContext";
   private static final String METHOD_SERVER_DELETE_CONTEXT = "server.deleteContext";
@@ -47,7 +50,7 @@ public class RequestUtilities {
   private static final String METHOD_CONTEXT_GET_FIXES = "context.getFixes";
   private static final String METHOD_CONTEXT_GET_MINOR_REFACTORINGS = "context.getMinorRefactorings";
   private static final String METHOD_CONTEXT_SET_OPTIONS = "context.setOptions";
-  private static final String METHOD_CONTEXT_PRIORITY_SOURCES = "context.setPrioritySources";
+  private static final String METHOD_CONTEXT_SET_PRIORITY_SOURCES = "context.setPrioritySources";
   private static final String METHOD_CONTEXT_SUBSCRIBE = "context.subscribe";
 
   /**
@@ -132,33 +135,78 @@ public class RequestUtilities {
   }
 
   /**
-   * Generate and return a {@value #METHOD_CONTEXT_PRIORITY_SOURCES} request.
-   * 
-   * <pre>
-   * </pre>
-   */
-  public static JsonObject generateContextPrioritySourcesRequest() {
-    throw new Error("not yet implemented");
-  }
-
-  /**
    * Generate and return a {@value #METHOD_CONTEXT_SET_OPTIONS} request.
    * 
    * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "context.setOptions"
+   *   "params": {
+   *     "contextId": ContextId
+   *     "options": AnalysisOptions
+   *   }
+   * }
    * </pre>
    */
-  public static JsonObject generateContextSetOptionsRequest() {
-    throw new Error("not yet implemented");
+  public static JsonObject generateContextSetOptionsRequest(String idValue, String contextIdValue,
+      AnalysisOptions options) {
+    // Create the json object from the passed AnalysisOptions
+    JsonObject optionsJsonObject = new JsonObject();
+    optionsJsonObject.addProperty("analyzeAngular", options.getAnalyzeAngular());
+    optionsJsonObject.addProperty("analyzePolymer", options.getAnalyzePolymer());
+    optionsJsonObject.addProperty("cacheSize", options.getCacheSize());
+    optionsJsonObject.addProperty("enableDeferredLoading", options.getEnableDeferredLoading());
+    optionsJsonObject.addProperty("generateDart2jsHints", options.getDart2jsHint());
+    optionsJsonObject.addProperty("generateHints", options.getHint());
+
+    JsonObject params = new JsonObject();
+    params.addProperty("contextId", contextIdValue);
+    params.add("options", optionsJsonObject);
+    return buildJsonObjectRequest(idValue, METHOD_CONTEXT_SET_OPTIONS, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_CONTEXT_SET_PRIORITY_SOURCES} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "context.setPrioritySources"
+   *   "params": {
+   *     "contextId": ContextId
+   *     "sources": List&lt;Source&gt;
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateContextSetPrioritySourcesRequest(String idValue,
+      String contextIdValue, List<String> sources) {
+    // TODO (jwren) Should this method take a List<Source> instead? Where should the conversion from
+    // Sources to Strings take place?
+    JsonObject params = new JsonObject();
+    params.addProperty("contextId", contextIdValue);
+    params.add("sources", buildJsonArray(sources));
+    return buildJsonObjectRequest(idValue, METHOD_CONTEXT_SET_PRIORITY_SOURCES, params);
   }
 
   /**
    * Generate and return a {@value #METHOD_CONTEXT_SUBSCRIBE} request.
    * 
    * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "context.subscribe"
+   *   "params": {
+   *     "contextId": ContextId
+   *     "subscriptions": Map&lt;NotificationKind, SourceSet&gt;
+   *   }
+   * }
+
    * </pre>
    */
   public static JsonObject generateContextSubscribeRequest() {
-    throw new Error("not yet implemented");
+    // TODO (jwren) implement
+    return null;
   }
 
   /**
@@ -243,10 +291,20 @@ public class RequestUtilities {
   }
 
   @SuppressWarnings("unchecked")
-  private static JsonElement buildJsonObject(Map<String, ? extends Object> map) {
+  private static JsonElement buildJsonObject(Map<? extends Object, ? extends Object> map) {
     JsonObject jsonObject = new JsonObject();
-    for (Entry<String, ? extends Object> entry : map.entrySet()) {
-      String key = entry.getKey();
+    for (Entry<? extends Object, ? extends Object> entry : map.entrySet()) {
+      Object keyObject = entry.getKey();
+      String key;
+      if (keyObject instanceof String) {
+        key = (String) keyObject;
+//      } else if (keyObject instanceof NotificationKind) {
+//        key = "CONTEXT_" + ((NotificationKind) keyObject).name();
+//      } else if (keyObject instanceof SourceSetKind) {
+//        key = ((SourceSetKind) keyObject).name();
+      } else {
+        key = NULL;
+      }
       Object value = entry.getValue();
       if (value instanceof String) {
         jsonObject.addProperty(key, (String) value);
@@ -258,6 +316,8 @@ public class RequestUtilities {
         jsonObject.add(key, buildJsonObject((LinkedHashMap<String, Object>) value));
       } else if (value instanceof List<?>) {
         jsonObject.add(key, buildJsonArray((List<String>) value));
+      } else {
+        jsonObject.addProperty(key, NULL);
       }
     }
     return jsonObject;
