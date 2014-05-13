@@ -637,7 +637,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
       }
       recordRelationship(element, relationship, location);
     }
-    if (element instanceof FunctionElement) {
+    if (element instanceof FunctionElement || element instanceof VariableElement) {
       Location location = createLocationFromNode(name);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY, location);
     }

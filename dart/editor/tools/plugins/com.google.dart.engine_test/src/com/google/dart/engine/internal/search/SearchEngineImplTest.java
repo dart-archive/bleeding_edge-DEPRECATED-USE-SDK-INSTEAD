@@ -786,6 +786,10 @@ public class SearchEngineImplTest extends EngineTestCase {
       Location location = new Location(elementD, 4, 40);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
+    {
+      Location location = new Location(elementD, 5, 50);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_INVOKED_BY, location);
+    }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
@@ -795,7 +799,8 @@ public class SearchEngineImplTest extends EngineTestCase {
         new ExpectedMatch(elementA, MatchKind.VARIABLE_READ, 1, 10),
         new ExpectedMatch(elementB, MatchKind.VARIABLE_WRITE, 2, 20),
         new ExpectedMatch(elementC, MatchKind.VARIABLE_READ_WRITE, 3, 30),
-        new ExpectedMatch(elementD, MatchKind.NAMED_PARAMETER_REFERENCE, 4, 40));
+        new ExpectedMatch(elementD, MatchKind.NAMED_PARAMETER_REFERENCE, 4, 40),
+        new ExpectedMatch(elementD, MatchKind.FUNCTION_EXECUTION, 5, 50));
   }
 
   public void test_searchReferences_PropertyAccessorElement_getter() throws Exception {
@@ -937,6 +942,10 @@ public class SearchEngineImplTest extends EngineTestCase {
       Location location = new Location(elementC, 3, 30);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_READ_WRITTEN_BY, location);
     }
+    {
+      Location location = new Location(elementD, 4, 40);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_INVOKED_BY, location);
+    }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
@@ -944,7 +953,8 @@ public class SearchEngineImplTest extends EngineTestCase {
         matches,
         new ExpectedMatch(elementA, MatchKind.VARIABLE_READ, 1, 10),
         new ExpectedMatch(elementB, MatchKind.VARIABLE_WRITE, 2, 20),
-        new ExpectedMatch(elementC, MatchKind.VARIABLE_READ_WRITE, 3, 30));
+        new ExpectedMatch(elementC, MatchKind.VARIABLE_READ_WRITE, 3, 30),
+        new ExpectedMatch(elementD, MatchKind.FUNCTION_EXECUTION, 4, 40));
   }
 
   public void test_searchSubtypes() throws Exception {

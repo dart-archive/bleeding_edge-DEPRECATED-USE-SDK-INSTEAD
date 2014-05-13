@@ -32,6 +32,7 @@ import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -532,6 +533,49 @@ public class IndexContributorTest extends AbstractDartTest {
         referencedElement,
         IndexConstants.IS_INVOKED_BY,
         new ExpectedLocation(mainElement, findOffset("foo();"), "foo"));
+  }
+
+  public void test_isInvokedBy_LocalVariableElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v;",
+        "  v();",
+        "}",
+        "");
+    // set elements
+    Element mainElement = findElement("main(");
+    LocalVariableElement referencedElement = findElement("v;");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        referencedElement,
+        IndexConstants.IS_INVOKED_BY,
+        new ExpectedLocation(mainElement, findOffset("v();"), "v"));
+  }
+
+  public void test_isInvokedBy_ParameterElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(p()) {",
+        "  p();",
+        "}",
+        "");
+    // set elements
+    Element mainElement = findElement("main(");
+    ParameterElement referencedElement = findElement("p()) {");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        referencedElement,
+        IndexConstants.IS_INVOKED_BY,
+        new ExpectedLocation(mainElement, findOffset("p();"), "p"));
   }
 
   public void test_isInvokedByQualified_MethodElement() throws Exception {
