@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.HighlightRegion;
@@ -45,6 +46,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   private final Map<String, Set<Source>> navigationSubscriptions = Maps.newHashMap();
   private final Map<String, Map<Source, Set<AnalysisServerOutlineListener>>> outlineSubscriptions = Maps.newHashMap();
   private final Map<String, Map<Source, Set<AnalysisServerHighlightsListener>>> highlightsSubscriptions = Maps.newHashMap();
+  private final Map<String, Set<ErrorCode>> fixableErrorCodesData = Maps.newHashMap();
 
   private AnalysisServer server;
 
@@ -83,6 +85,16 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
     navigationSubscriptions.remove(contextId);
     outlineSubscriptions.remove(contextId);
     highlightsSubscriptions.remove(contextId);
+    fixableErrorCodesData.remove(contextId);
+  }
+
+  @Override
+  public boolean isFixableErrorCode(String contextId, ErrorCode errorCode) {
+    Set<ErrorCode> fixableErrorCodes = fixableErrorCodesData.get(contextId);
+    if (fixableErrorCodes == null) {
+      return false;
+    }
+    return fixableErrorCodes.contains(errorCode);
   }
 
   /**
@@ -251,5 +263,12 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
     for (AnalysisServerOutlineListener listener : subscriptions) {
       listener.computedOutline(contextId, source, outline);
     }
+  }
+
+  /**
+   * Remembers the {@link ErrorCode} that may be fixed in the given context.
+   */
+  void internalSetFixableErrorCodes(String contextId, ErrorCode[] errorCodes) {
+    fixableErrorCodesData.put(contextId, Sets.newHashSet(errorCodes));
   }
 }

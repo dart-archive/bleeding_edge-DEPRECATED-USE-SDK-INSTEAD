@@ -15,6 +15,7 @@
 package com.google.dart.tools.core.analysis.model;
 
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.HighlightRegion;
@@ -39,6 +40,11 @@ public interface AnalysisServerData {
    * empty, but not {@code null}.
    */
   NavigationRegion[] getNavigation(String contextId, Source source);
+
+  /**
+   * Returns {@code true} if the given {@link ErrorCode} may be fixed in the given context.
+   */
+  boolean isFixableErrorCode(String contextId, ErrorCode errorCode);
 
   /**
    * Specifies that the client wants to be notified about new {@link HighlightRegion}s.

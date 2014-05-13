@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text.correction;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.server.FixesConsumer;
@@ -45,10 +46,8 @@ public class QuickFixProcessor {
    */
   public static boolean hasFix(String contextId, AnalysisError problem) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      // TODO(scheglov) Actually we don't need fixes here.
-      // Consider sending fixable ErrorCode(s) from server and caching it locally.
-      // One time, at context creation.
-      return getFixes(contextId, problem).length != 0;
+      ErrorCode errorCode = problem.getErrorCode();
+      return DartCore.getAnalysisServerData().isFixableErrorCode(contextId, errorCode);
     } else {
       return CorrectionProcessors.getQuickFixProcessor().hasFix(problem);
     }

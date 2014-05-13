@@ -17,6 +17,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
@@ -32,6 +33,7 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.UriResolver;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.FixableErrorCodesConsumer;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SourceSet;
 import com.google.dart.tools.core.CmdLineOptions;
@@ -906,6 +908,14 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
           projectResource.getName(),
           sdkPath,
           packageMap);
+      analysisServer.getFixableErrorCodes(defaultContextId, new FixableErrorCodesConsumer() {
+        @Override
+        public void computed(ErrorCode[] errorCodes) {
+          ((AnalysisServerDataImpl) DartCore.getAnalysisServerData()).internalSetFixableErrorCodes(
+              defaultContextId,
+              errorCodes);
+        }
+      });
       analysisServer.subscribe(
           defaultContextId,
           ImmutableMap.of(NotificationKind.ERRORS, SourceSet.EXPLICITLY_ADDED));
