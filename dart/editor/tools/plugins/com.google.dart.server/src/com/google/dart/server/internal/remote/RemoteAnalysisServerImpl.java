@@ -84,6 +84,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
+  public void searchTopLevelDeclarations(String contextId, String pattern,
+      SearchResultsConsumer consumer) {
+    // TODO(csheglov) implement
+  }
+
+  @Override
   public void setOptions(String contextId, AnalysisOptions options) {
     // TODO (jwren) implement
   }

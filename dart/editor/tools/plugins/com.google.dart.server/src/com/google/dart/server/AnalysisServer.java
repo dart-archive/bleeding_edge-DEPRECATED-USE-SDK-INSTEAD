@@ -136,6 +136,17 @@ public interface AnalysisServer {
   public void searchElementReferences(Element element, SearchResultsConsumer consumer);
 
   /**
+   * Searches the given context for declarations of top-level elements with names matching the given
+   * pattern. The given consumer is invoked asynchronously on a different thread.
+   * 
+   * @param contextId the context to search declarations in, {@code null} to search in the universe
+   * @param pattern the regular expression to match names against, not {@code null}
+   * @param consumer the results listener
+   */
+  public void searchTopLevelDeclarations(String contextId, String pattern,
+      SearchResultsConsumer consumer);
+
+  /**
    * Set the options controlling analysis within a context to the given set of options.
    * 
    * @param contextId the identifier of the context to which the options are to be applied

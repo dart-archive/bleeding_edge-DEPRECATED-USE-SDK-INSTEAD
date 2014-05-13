@@ -621,6 +621,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   @Override
+  public void searchTopLevelDeclarations(String contextId, String pattern,
+      SearchResultsConsumer consumer) {
+    // TODO(csheglov) implement
+  }
+
+  @Override
   public void setOptions(String contextId, AnalysisOptions options) {
     operationQueue.add(new SetOptionsOperation(contextId, options));
   }
