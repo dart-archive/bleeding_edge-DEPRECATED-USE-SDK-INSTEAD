@@ -232,6 +232,20 @@ build system.  The PDE build system has to run under Eclipse.
         <!-- copy the dart.js file into the samples directory -->
         <copy todir="${samples.out.dir}" file="${build.source.root}/pkg/browser/lib/dart.js"/>
     </target>
+	
+	<target name="buildMobile">		
+		<!-- create the android directory -->
+		<property name="android.out.dir" value="${build.stage.include.dir}/android" />
+		
+		<!-- delete old apk -->
+		<delete dir="${android.out.dir}"/>
+		
+		<copy todir="${android.out.dir}">
+			<fileset dir="${build.source.root}/third_party/android_content_shell">
+				<include name="*.apk"/>
+			</fileset>
+		</copy>	
+	</target>
 
     <!-- - - - - - - - - - - - - - - - - - -
           target: installSdk
@@ -257,7 +271,7 @@ build system.  The PDE build system has to run under Eclipse.
           target: setupDevWorkspace
          - - - - - - - - - - - - - - - - - -->
     <target name="setupDevWorkspace"
-            depends="initDevWorkspace, buildSamples, installSdk">
+            depends="initDevWorkspace, buildSamples, buildMobile, installSdk">
     </target>
 
     <!-- - - - - - - - - - - - - - - - - -
@@ -323,7 +337,7 @@ build system.  The PDE build system has to run under Eclipse.
     <!--
     copy the code from the svn structure to the PDE structure and get rid of the linked resources
     -->
-    <target name="setupBuild" depends="init, installSdk, setupRuntimeEclipse, buildSamples" >
+    <target name="setupBuild" depends="init, installSdk, setupRuntimeEclipse, buildSamples, buildMobile" >
         <setupTargetEclipse location="${build.target}" eclipse="${build.target.eclipse.version}"
                             arch="${build.eclipse.arch}" />
 
