@@ -476,7 +476,23 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitBinaryExpression(BinaryExpression node) {
-    checkForArgumentTypeNotAssignableForArgument(node.getRightOperand());
+    Token operator = node.getOperator();
+    TokenType type = operator.getType();
+    if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
+      String lexeme = operator.getLexeme();
+      checkForAssignability(
+          node.getLeftOperand(),
+          boolType,
+          StaticTypeWarningCode.NON_BOOL_OPERAND,
+          lexeme);
+      checkForAssignability(
+          node.getRightOperand(),
+          boolType,
+          StaticTypeWarningCode.NON_BOOL_OPERAND,
+          lexeme);
+    } else {
+      checkForArgumentTypeNotAssignableForArgument(node.getRightOperand());
+    }
     return super.visitBinaryExpression(node);
   }
 
@@ -2052,6 +2068,32 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       problemReported |= checkForArgumentTypeNotAssignableForArgument(argument);
     }
     return problemReported;
+  }
+
+  /**
+   * Check that the static type of the given expression is assignable to the given type. If it
+   * isn't, report an error with the given error code.
+   * 
+   * @param expression the expression being tested
+   * @param type the type that the expression must be assignable to
+   * @param errorCode the error code to be reported
+   * @param arguments the arguments to pass in when creating the error
+   * @return {@code true} if an error was reported
+   */
+  private boolean checkForAssignability(Expression expression, InterfaceType type,
+      ErrorCode errorCode, Object... arguments) {
+    if (expression == null) {
+      return false;
+    }
+    Type expressionType = expression.getStaticType();
+    if (expressionType == null) {
+      return false;
+    }
+    if (expressionType.isAssignableTo(type)) {
+      return false;
+    }
+    errorReporter.reportErrorForNode(errorCode, expression, arguments);
+    return true;
   }
 
   /**

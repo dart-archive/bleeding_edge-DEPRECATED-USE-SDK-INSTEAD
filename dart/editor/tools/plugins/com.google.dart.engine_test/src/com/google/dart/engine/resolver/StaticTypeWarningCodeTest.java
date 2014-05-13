@@ -432,6 +432,46 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonBoolOperand_and_left() throws Exception {
+    Source source = addSource(createSource(//
+        "bool f(int left, bool right) {",
+        "  return left && right;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.NON_BOOL_OPERAND);
+    verify(source);
+  }
+
+  public void test_nonBoolOperand_and_right() throws Exception {
+    Source source = addSource(createSource(//
+        "bool f(bool left, String right) {",
+        "  return left && right;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.NON_BOOL_OPERAND);
+    verify(source);
+  }
+
+  public void test_nonBoolOperand_or_left() throws Exception {
+    Source source = addSource(createSource(//
+        "bool f(List<int> left, bool right) {",
+        "  return left || right;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.NON_BOOL_OPERAND);
+    verify(source);
+  }
+
+  public void test_nonBoolOperand_or_right() throws Exception {
+    Source source = addSource(createSource(//
+        "bool f(bool left, double right) {",
+        "  return left || right;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.NON_BOOL_OPERAND);
+    verify(source);
+  }
+
   public void test_nonTypeAsTypeArgument_notAType() throws Exception {
     Source source = addSource(createSource(//
         "int A;",

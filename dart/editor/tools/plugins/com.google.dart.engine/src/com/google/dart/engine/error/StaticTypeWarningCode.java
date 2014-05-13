@@ -168,6 +168,14 @@ public enum StaticTypeWarningCode implements ErrorCode {
   NON_BOOL_NEGATION_EXPRESSION("Negation argument must have a static type of 'bool'"),
 
   /**
+   * 12.21 Logical Boolean Expressions: It is a static type warning if the static types of both of
+   * <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> may not be assigned to bool.
+   * 
+   * @param operator the lexeme of the logical operator
+   */
+  NON_BOOL_OPERAND("The operands of the '%s' operator must be assignable to 'bool'"),
+
+  /**
    * 15.8 Parameterized Types: It is a static type warning if <i>A<sub>i</sub>, 1 &lt;= i &lt;=
    * n</i> does not denote a type in the enclosing lexical scope.
    */

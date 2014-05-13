@@ -2685,6 +2685,46 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonBoolOperand_and_bool() throws Exception {
+    Source source = addSource(createSource(//
+        "bool f(bool left, bool right) {",
+        "  return left && right;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_nonBoolOperand_and_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "bool f(left, dynamic right) {",
+        "  return left && right;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_nonBoolOperand_or_bool() throws Exception {
+    Source source = addSource(createSource(//
+        "bool f(bool left, bool right) {",
+        "  return left || right;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_nonBoolOperand_or_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "bool f(dynamic left, right) {",
+        "  return left || right;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_nonConstantDefaultValue_function_named() throws Exception {
     Source source = addSource(createSource(//
     "f({x : 2 + 3}) {}"));

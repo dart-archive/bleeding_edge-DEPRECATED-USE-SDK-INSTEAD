@@ -558,7 +558,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_constEvalTypeBool_binary_leftTrue() throws Exception {
     Source source = addSource("const C = (true || 0);");
     resolve(source);
-    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, HintCode.DEAD_CODE);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.NON_BOOL_OPERAND,
+        HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -3219,7 +3223,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(String p) : a = p && true;",
         "}"));
     resolve(source);
-    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.NON_BOOL_OPERAND);
     verify(source);
   }
 
@@ -3230,7 +3237,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(String p) : a = true && p;",
         "}"));
     resolve(source);
-    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.NON_BOOL_OPERAND);
     verify(source);
   }
 
@@ -4417,7 +4427,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(bool p) : a = " + expr + ";",
         "}"));
     resolve(source);
-    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.NON_BOOL_OPERAND);
     verify(source);
     reset();
   }
