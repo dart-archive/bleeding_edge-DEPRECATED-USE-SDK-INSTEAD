@@ -20,7 +20,9 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorInitializer;
+import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
@@ -34,8 +36,10 @@ import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.element.member.ConstructorMember;
+import com.google.dart.engine.internal.element.member.ParameterMember;
 import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.object.GenericState;
 import com.google.dart.engine.internal.object.SymbolState;
@@ -172,6 +176,21 @@ public class ConstantValueComputer {
           constructorDeclarationMap);
       referenceGraph.addNode(declaration);
       declaration.getInitializers().accept(referenceFinder);
+      for (FormalParameter parameter : declaration.getParameters().getParameters()) {
+        referenceGraph.addNode(parameter);
+        referenceGraph.addEdge(declaration, parameter);
+        if (parameter instanceof DefaultFormalParameter) {
+          Expression defaultValue = ((DefaultFormalParameter) parameter).getDefaultValue();
+          if (defaultValue != null) {
+            ReferenceFinder parameterReferenceFinder = new ReferenceFinder(
+                parameter,
+                referenceGraph,
+                variableDeclarationMap,
+                constructorDeclarationMap);
+            defaultValue.accept(parameterReferenceFinder);
+          }
+        }
+      }
     }
     for (InstanceCreationExpression expression : constructorInvocations) {
       referenceGraph.addNode(expression);
@@ -221,6 +240,13 @@ public class ConstantValueComputer {
   }
 
   /**
+   * This method is called just before getting a parameter's default value. Unit tests will override
+   * this method to introduce additional error checking.
+   */
+  protected void beforeGetParameterDefault(ParameterElement parameter) {
+  }
+
+  /**
    * Create the ConstantVisitor used to evaluate constants. Unit tests will override this method to
    * introduce additional error checking.
    */
@@ -249,18 +275,32 @@ public class ConstantValueComputer {
         return;
       }
       ConstantVisitor constantVisitor = createConstantVisitor();
-      EvaluationResultImpl result = evaluateConstructorCall(expression.getArgumentList(), constructor, constantVisitor);
+      EvaluationResultImpl result = evaluateConstructorCall(
+          expression.getArgumentList(),
+          constructor,
+          constantVisitor);
       expression.setEvaluationResult(result);
     } else if (constNode instanceof ConstructorDeclaration) {
       ConstructorDeclaration declaration = (ConstructorDeclaration) constNode;
       NodeList<ConstructorInitializer> initializers = declaration.getInitializers();
       ConstructorElementImpl constructor = (ConstructorElementImpl) declaration.getElement();
       constructor.setConstantInitializers(new InitializerCloner().cloneNodeList(initializers));
+    } else if (constNode instanceof FormalParameter) {
+      if (constNode instanceof DefaultFormalParameter) {
+        DefaultFormalParameter parameter = ((DefaultFormalParameter) constNode);
+        ParameterElement element = parameter.getElement();
+        Expression defaultValue = parameter.getDefaultValue();
+        if (defaultValue != null) {
+          EvaluationResultImpl result = defaultValue.accept(createConstantVisitor());
+          ((ParameterElementImpl) element).setEvaluationResult(result);
+        }
+      }
     } else {
       // Should not happen.
       AnalysisEngine.getInstance().getLogger().logError(
           "Constant value computer trying to compute the value of a node which is not a "
-              + "VariableDeclaration, InstanceCreationExpression, or ConstructorDeclaration");
+              + "VariableDeclaration, InstanceCreationExpression, FormalParameter, or "
+              + "ConstructorDeclaration");
       return;
     }
   }
@@ -322,14 +362,26 @@ public class ConstantValueComputer {
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       ParameterElement parameter = parameters[i];
+      while (parameter instanceof ParameterMember) {
+        parameter = ((ParameterMember) parameter).getBaseElement();
+      }
       DartObjectImpl argumentValue = null;
       if (parameter.getParameterKind() == ParameterKind.NAMED) {
         argumentValue = namedArgumentValues.get(parameter.getName());
       } else if (i < argumentCount) {
         argumentValue = argumentValues[i];
-        // Otherwise, the parameter is assumed to be an optional positional parameter for which
-        // no value was provided.
-        // TODO(paulberry): do we need to set a default value in this case?
+      }
+      if (argumentValue == null && parameter instanceof ParameterElementImpl) {
+        // The parameter is an optional positional parameter for which no value was provided, so
+        // use the default value.
+        beforeGetParameterDefault(parameter);
+        EvaluationResultImpl evaluationResult = ((ParameterElementImpl) parameter).getEvaluationResult();
+        if (evaluationResult instanceof ValidResult) {
+          argumentValue = ((ValidResult) evaluationResult).getValue();
+        } else if (evaluationResult == null) {
+          // No default was provided, so the default value is null.
+          argumentValue = constantVisitor.getNull();
+        }
       }
       if (argumentValue != null) {
         if (parameter.isInitializingFormal()) {

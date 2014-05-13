@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
@@ -27,6 +28,7 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.VariableElementImpl;
@@ -87,6 +89,33 @@ public class ConstantValueComputerTest extends ResolverTestCase {
       ConstructorDeclaration node = constructorDeclarationMap.get(constructor);
       if (node != null && referenceGraph.getNodes().contains(node)) {
         assertTrue(referenceGraph.containsPath(nodeBeingEvaluated, node));
+      }
+    }
+
+    @Override
+    protected void beforeGetParameterDefault(ParameterElement parameter) {
+      super.beforeGetParameterDefault(parameter);
+
+      // Find the ConstructorElement and figure out which parameter we're talking about.
+      ConstructorElement constructor = parameter.getAncestor(ConstructorElement.class);
+      int parameterIndex;
+      ParameterElement[] parameters = constructor.getParameters();
+      int numParameters = parameters.length;
+      for (parameterIndex = 0; parameterIndex < numParameters; parameterIndex++) {
+        if (parameters[parameterIndex] == parameter) {
+          break;
+        }
+      }
+      assertTrue(parameterIndex < numParameters);
+
+      // If we are getting the default parameter for a constructor in the graph, make sure we properly
+      // recorded the dependency on the parameter.
+      ConstructorDeclaration constructorNode = constructorDeclarationMap.get(constructor);
+      if (constructorNode != null) {
+        FormalParameter parameterNode = constructorNode.getParameters().getParameters().get(
+            parameterIndex);
+        assertTrue(referenceGraph.getNodes().contains(parameterNode));
+        assertTrue(referenceGraph.containsPath(nodeBeingEvaluated, parameterNode));
       }
     }
 
@@ -292,6 +321,19 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         "const A a = const A(10);"));
   }
 
+  public void test_dependencyOnOptionalParameterDefault() throws Exception {
+    // a depends on A() depends on B()
+    assertProperDependencies(createSource(//
+        "class A {",
+        "  const A([x = const B()]) : b = x;",
+        "  final B b;",
+        "}",
+        "class B {",
+        "  const B();",
+        "}",
+        "const A a = const A();"));
+  }
+
   public void test_dependencyOnVariable() throws Exception {
     // x depends on y
     assertProperDependencies(createSource(//
@@ -310,6 +352,26 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     HashMap<String, DartObjectImpl> fields = assertType(result, "A");
     assertSizeOfMap(1, fields);
     assertIntField(fields, "k", 13L);
+  }
+
+  public void test_instanceCreationExpression_computedField_namedOptionalWithDefault()
+      throws Exception {
+    checkInstanceCreationOptionalParams(false, true, true);
+  }
+
+  public void test_instanceCreationExpression_computedField_namedOptionalWithoutDefault()
+      throws Exception {
+    checkInstanceCreationOptionalParams(false, true, false);
+  }
+
+  public void test_instanceCreationExpression_computedField_unnamedOptionalWithDefault()
+      throws Exception {
+    checkInstanceCreationOptionalParams(false, false, true);
+  }
+
+  public void test_instanceCreationExpression_computedField_unnamedOptionalWithoutDefault()
+      throws Exception {
+    checkInstanceCreationOptionalParams(false, false, false);
   }
 
   public void test_instanceCreationExpression_computedField_usesConstConstructor() throws Exception {
@@ -395,6 +457,26 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     HashMap<String, DartObjectImpl> fields = assertType(result, "A");
     assertSizeOfMap(1, fields);
     assertIntField(fields, "x", 42L);
+  }
+
+  public void test_instanceCreationExpression_fieldFormalParameter_namedOptionalWithDefault()
+      throws Exception {
+    checkInstanceCreationOptionalParams(true, true, true);
+  }
+
+  public void test_instanceCreationExpression_fieldFormalParameter_namedOptionalWithoutDefault()
+      throws Exception {
+    checkInstanceCreationOptionalParams(true, true, false);
+  }
+
+  public void test_instanceCreationExpression_fieldFormalParameter_unnamedOptionalWithDefault()
+      throws Exception {
+    checkInstanceCreationOptionalParams(true, false, true);
+  }
+
+  public void test_instanceCreationExpression_fieldFormalParameter_unnamedOptionalWithoutDefault()
+      throws Exception {
+    checkInstanceCreationOptionalParams(true, false, false);
   }
 
   public void test_instanceCreationExpression_redirect() throws Exception {
@@ -487,6 +569,11 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     assertEquals(expectedValue, field.getIntValue().longValue());
   }
 
+  private void assertNullField(HashMap<String, DartObjectImpl> fields, String fieldName) {
+    DartObjectImpl field = fields.get(fieldName);
+    assertTrue(field.isNull());
+  }
+
   private void assertProperDependencies(String sourceText, ErrorCode... expectedErrorCodes)
       throws AnalysisException {
     Source source = addSource(sourceText);
@@ -510,6 +597,34 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     assertInstanceOf(ValidResult.class, result);
     DartObjectImpl value = ((ValidResult) result).getValue();
     assertTrue(value.isUnknown());
+  }
+
+  private void checkInstanceCreationOptionalParams(boolean isFieldFormal, boolean isNamed,
+      boolean hasDefault) throws AnalysisException {
+    String fieldName = "j";
+    String paramName = isFieldFormal ? fieldName : "i";
+    String formalParam = (isFieldFormal ? "this." : "int ") + paramName
+        + (hasDefault ? " = 3" : "");
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "const x = const A();",
+        "const y = const A(" + (isNamed ? paramName + ": " : "") + "10);",
+        "class A {",
+        "  const A(" + (isNamed ? "{" + formalParam + "}" : "[" + formalParam + "]") + ")"
+            + (isFieldFormal ? "" : " : " + fieldName + " = " + paramName) + ";",
+        "  final int " + fieldName + ";",
+        "}"));
+    EvaluationResultImpl x = evaluateInstanceCreationExpression(compilationUnit, "x");
+    HashMap<String, DartObjectImpl> fieldsOfX = assertType(x, "A");
+    assertSizeOfMap(1, fieldsOfX);
+    if (hasDefault) {
+      assertIntField(fieldsOfX, fieldName, 3L);
+    } else {
+      assertNullField(fieldsOfX, fieldName);
+    }
+    EvaluationResultImpl y = evaluateInstanceCreationExpression(compilationUnit, "y");
+    HashMap<String, DartObjectImpl> fieldsOfY = assertType(y, "A");
+    assertSizeOfMap(1, fieldsOfY);
+    assertIntField(fieldsOfY, fieldName, 10L);
   }
 
   private EvaluationResultImpl evaluateInstanceCreationExpression(CompilationUnit compilationUnit,
