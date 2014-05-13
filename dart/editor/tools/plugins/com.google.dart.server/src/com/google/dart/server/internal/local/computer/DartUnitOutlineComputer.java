@@ -35,6 +35,7 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
+import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
@@ -91,10 +92,11 @@ public class DartUnitOutlineComputer {
               TypeName fieldType = fields.getType();
               String fieldTypeName = fieldType != null ? fieldType.toSource() : "";
               for (VariableDeclaration field : fields.getVariables()) {
-                newField(
+                newVariableOutline(
                     classOutline,
                     classChildren,
                     fieldTypeName,
+                    ElementKind.FIELD,
                     field,
                     fieldDeclaration.isStatic());
               }
@@ -106,6 +108,23 @@ public class DartUnitOutlineComputer {
           }
         }
         classOutline.setChildren(classChildren.toArray(new Outline[classChildren.size()]));
+      }
+      if (unitMember instanceof TopLevelVariableDeclaration) {
+        TopLevelVariableDeclaration fieldDeclaration = (TopLevelVariableDeclaration) unitMember;
+        VariableDeclarationList fields = fieldDeclaration.getVariables();
+        if (fields != null) {
+          TypeName fieldType = fields.getType();
+          String fieldTypeName = fieldType != null ? fieldType.toSource() : "";
+          for (VariableDeclaration field : fields.getVariables()) {
+            newVariableOutline(
+                unitOutline,
+                unitChildren,
+                fieldTypeName,
+                ElementKind.TOP_LEVEL_VARIABLE,
+                field,
+                false);
+          }
+        }
       }
       if (unitMember instanceof FunctionDeclaration) {
         FunctionDeclaration functionDeclaration = (FunctionDeclaration) unitMember;
@@ -347,28 +366,6 @@ public class DartUnitOutlineComputer {
     addLocalFunctionOutlines(outline, constructorDeclaration.getBody());
   }
 
-  private void newField(OutlineImpl classOutline, List<Outline> children, String fieldTypeName,
-      VariableDeclaration field, boolean isStatic) {
-    SimpleIdentifier nameNode = field.getName();
-    String name = nameNode.getName();
-    ElementImpl element = new ElementImpl(
-        contextId,
-        ElementImpl.createId(field.getElement()),
-        source,
-        ElementKind.FIELD,
-        name,
-        nameNode.getOffset(),
-        nameNode.getLength(),
-        null,
-        fieldTypeName,
-        false,
-        isStatic,
-        StringUtilities.startsWithChar(name, '_'));
-    SourceRegion sourceRegion = getSourceRegion(field);
-    OutlineImpl outline = new OutlineImpl(classOutline, element, sourceRegion);
-    children.add(outline);
-  }
-
   private void newFunctionOutline(Outline parent, List<Outline> children,
       FunctionDeclaration functionDeclaration) {
     TypeName returnType = functionDeclaration.getReturnType();
@@ -475,5 +472,27 @@ public class DartUnitOutlineComputer {
         false,
         false);
     return new OutlineImpl(null, element, new SourceRegionImpl(unit.getOffset(), unit.getLength()));
+  }
+
+  private void newVariableOutline(OutlineImpl classOutline, List<Outline> children,
+      String typeName, ElementKind kind, VariableDeclaration variable, boolean isStatic) {
+    SimpleIdentifier nameNode = variable.getName();
+    String name = nameNode.getName();
+    ElementImpl element = new ElementImpl(
+        contextId,
+        ElementImpl.createId(variable.getElement()),
+        source,
+        kind,
+        name,
+        nameNode.getOffset(),
+        nameNode.getLength(),
+        null,
+        typeName,
+        false,
+        isStatic,
+        StringUtilities.startsWithChar(name, '_'));
+    SourceRegion sourceRegion = getSourceRegion(variable);
+    OutlineImpl outline = new OutlineImpl(classOutline, element, sourceRegion);
+    children.add(outline);
   }
 }

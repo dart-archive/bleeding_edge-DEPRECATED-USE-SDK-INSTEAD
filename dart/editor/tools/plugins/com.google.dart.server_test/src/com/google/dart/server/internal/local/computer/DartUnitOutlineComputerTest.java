@@ -371,6 +371,79 @@ public class DartUnitOutlineComputerTest extends AbstractLocalServerTest {
     }
   }
 
+  public void test_getSourceRange_inUnit_inVariableList() throws Exception {
+    String contextId = createContext("test");
+    String code = makeSource(//
+        "int fieldA, fieldB, fieldC; // marker",
+        "int fieldD; // marker2",
+        "");
+    Source source = addSource(contextId, "/test.dart", code);
+    server.subscribe(
+        contextId,
+        ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(source)));
+    server.test_waitForWorkerComplete();
+    // validate
+    Outline unitOutline = serverListener.getOutline(contextId, source);
+    Outline[] outlines = unitOutline.getChildren();
+    assertThat(outlines).hasSize(4);
+    // fieldA
+    {
+      Outline outline = outlines[0];
+      Element element = outline.getElement();
+      assertSame(ElementKind.TOP_LEVEL_VARIABLE, element.getKind());
+      assertEquals("fieldA", element.getName());
+      {
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        int offset = 0;
+        int end = code.indexOf(", fieldB");
+        assertEquals(offset, sourceRegion.getOffset());
+        assertEquals(end - offset, sourceRegion.getLength());
+      }
+    }
+    // fieldB
+    {
+      Outline outline = outlines[1];
+      Element element = outline.getElement();
+      assertSame(ElementKind.TOP_LEVEL_VARIABLE, element.getKind());
+      assertEquals("fieldB", element.getName());
+      {
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        int offset = code.indexOf(", fieldB");
+        int end = code.indexOf(", fieldC");
+        assertEquals(offset, sourceRegion.getOffset());
+        assertEquals(end - offset, sourceRegion.getLength());
+      }
+    }
+    // fieldC
+    {
+      Outline outline = outlines[2];
+      Element element = outline.getElement();
+      assertSame(ElementKind.TOP_LEVEL_VARIABLE, element.getKind());
+      assertEquals("fieldC", element.getName());
+      {
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        int offset = code.indexOf(", fieldC");
+        int end = code.indexOf(" // marker");
+        assertEquals(offset, sourceRegion.getOffset());
+        assertEquals(end - offset, sourceRegion.getLength());
+      }
+    }
+    // fieldD
+    {
+      Outline outline = outlines[3];
+      Element element = outline.getElement();
+      assertSame(ElementKind.TOP_LEVEL_VARIABLE, element.getKind());
+      assertEquals("fieldD", element.getName());
+      {
+        SourceRegion sourceRegion = outline.getSourceRegion();
+        int offset = code.indexOf(" // marker");
+        int end = code.indexOf(" // marker2");
+        assertEquals(offset, sourceRegion.getOffset());
+        assertEquals(end - offset, sourceRegion.getLength());
+      }
+    }
+  }
+
   public void test_localFunctions() throws Exception {
     String contextId = createContext("test");
     String code = makeSource(//
