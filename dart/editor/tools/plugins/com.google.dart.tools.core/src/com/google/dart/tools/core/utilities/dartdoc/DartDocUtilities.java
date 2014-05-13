@@ -501,7 +501,9 @@ public final class DartDocUtilities {
         sb.append("\n");
       }
       str = sb.toString();
-      str = str.substring(0, str.length() - 1);
+      if (str.length() > 0) {
+        str = str.substring(0, str.length() - 1);
+      }
     }
 
     return str;
