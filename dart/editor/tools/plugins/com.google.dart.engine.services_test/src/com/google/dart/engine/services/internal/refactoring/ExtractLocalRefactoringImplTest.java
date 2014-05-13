@@ -266,6 +266,156 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     assertRefactoringStatusOK(refactoring.checkLocalName("res"));
   }
 
+  public void test_const_argument_inConstInstanceCreation() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  const A(int a, int b);",
+        "}",
+        "main() {",
+        "  const A(1, 2);",
+        "}");
+    // create refactoring
+    setSelectionString("1");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  const A(int a, int b);",
+        "}",
+        "main() {",
+        "  const res = 1;",
+        "  const A(res, 2);",
+        "}");
+  }
+
+  public void test_const_element_inBinaryExpression() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const [1 + 2, 3];",
+        "}");
+    // create refactoring
+    setSelectionString("1");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const res = 1;",
+        "  const [res + 2, 3];",
+        "}");
+  }
+
+  public void test_const_element_inConditionalExpression() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(bool b) {",
+        "  const [b ? 1 : 2, 3];",
+        "}");
+    // create refactoring
+    setSelectionString("1");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(bool b) {",
+        "  const res = 1;",
+        "  const [b ? res : 2, 3];",
+        "}");
+  }
+
+  public void test_const_element_inConstListLiteral() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const [1, 2];",
+        "}");
+    // create refactoring
+    setSelectionString("1");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const res = 1;",
+        "  const [res, 2];",
+        "}");
+  }
+
+  public void test_const_element_inParenthesis() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const [(1), 2];",
+        "}");
+    // create refactoring
+    setSelectionString("1");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const res = 1;",
+        "  const [(res), 2];",
+        "}");
+  }
+
+  public void test_const_element_inPrefixExpression() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const [!true, 3];",
+        "}");
+    // create refactoring
+    setSelectionString("true");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const res = true;",
+        "  const [!res, 3];",
+        "}");
+  }
+
+  public void test_const_key_inConstMapLiteral() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const {1: 2};",
+        "}");
+    // create refactoring
+    setSelectionString("1");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const res = 1;",
+        "  const {res: 2};",
+        "}");
+  }
+
+  public void test_const_value_inConstMapLiteral() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const {1: 2};",
+        "}");
+    // create refactoring
+    setSelectionString("2");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const res = 2;",
+        "  const {1: res};",
+        "}");
+  }
+
   public void test_fragmentExpression_leadingNotWhitespace() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

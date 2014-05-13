@@ -17,14 +17,22 @@ package com.google.dart.engine.services.internal.refactoring;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.Literal;
+import com.google.dart.engine.ast.MapLiteralEntry;
+import com.google.dart.engine.ast.ParenthesizedExpression;
+import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.TypedLiteral;
 import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.ExecutableElement;
@@ -145,8 +153,9 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
       if (stringLiteralPart != null) {
         declarationSource = "var " + localName + " = " + "'" + stringLiteralPart + "';";
       } else {
+        String keyword = getDeclarationKeyword();
         String initializerSource = utils.getText(selectionRange);
-        declarationSource = "var " + localName + " = " + initializerSource + ";";
+        declarationSource = keyword + " " + localName + " = " + initializerSource + ";";
       }
       // prepare location for declaration
       Statement targetStatement = findTargetStatement(occurrences);
@@ -285,6 +294,14 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
       return (Statement) firstParents.get(commonIndex + 1);
     } else {
       return commonParent.getAncestor(Statement.class);
+    }
+  }
+
+  private String getDeclarationKeyword() {
+    if (isPartOfConstantExpression(rootExpression)) {
+      return "const";
+    } else {
+      return "var";
     }
   }
 
@@ -457,5 +474,22 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
     ExtractExpressionAnalyzer analyzer = new ExtractExpressionAnalyzer(range);
     utils.getUnit().accept(analyzer);
     return analyzer.getStatus().isOK();
+  }
+
+  private boolean isPartOfConstantExpression(AstNode node) {
+    if (node instanceof TypedLiteral) {
+      return ((TypedLiteral) node).getConstKeyword() != null;
+    }
+    if (node instanceof InstanceCreationExpression) {
+      InstanceCreationExpression creation = (InstanceCreationExpression) node;
+      return creation.isConst();
+    }
+    if (node instanceof ArgumentList || node instanceof ConditionalExpression
+        || node instanceof BinaryExpression || node instanceof ParenthesizedExpression
+        || node instanceof PrefixExpression || node instanceof Literal
+        || node instanceof MapLiteralEntry) {
+      return isPartOfConstantExpression(node.getParent());
+    }
+    return false;
   }
 }
