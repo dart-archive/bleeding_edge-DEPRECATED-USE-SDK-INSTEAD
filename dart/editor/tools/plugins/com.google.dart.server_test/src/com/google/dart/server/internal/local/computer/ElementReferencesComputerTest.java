@@ -179,6 +179,55 @@ public class ElementReferencesComputerTest extends AbstractLocalServerTest {
     assertEquals(source, searchResult.getSource());
   }
 
+  public void test_hierarchyMembers_field_explicit() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "class A {",
+        "  int fff; // in A",
+        "}",
+        "class B extends A {",
+        "  int fff; // in B",
+        "}",
+        "class C extends B {",
+        "  int fff; // in C",
+        "}",
+        "main(A a, B b, C c) {",
+        "  a.fff = 10;",
+        "  b.fff = 20;",
+        "  c.fff = 30;",
+        "}"));
+    doSearch("fff; // in B");
+    assertThat(searchResults).hasSize(6);
+    assertHasResult("fff; // in A", SearchResultKind.VARIABLE_DECLARATION);
+    assertHasResult("fff; // in B", SearchResultKind.VARIABLE_DECLARATION);
+    assertHasResult("fff; // in C", SearchResultKind.VARIABLE_DECLARATION);
+    assertHasResult("fff = 10;", SearchResultKind.FIELD_WRITE);
+    assertHasResult("fff = 20;", SearchResultKind.FIELD_WRITE);
+    assertHasResult("fff = 30;", SearchResultKind.FIELD_WRITE);
+  }
+
+  public void test_hierarchyMembers_method() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "class A {",
+        "  mmm() {} // in A",
+        "}",
+        "class B extends A {",
+        "  mmm() {} // in B",
+        "}",
+        "class C extends B {",
+        "  mmm() {} // in C",
+        "}",
+        "main(A a, B b, C c) {",
+        "  a.mmm(10);",
+        "  b.mmm(20);",
+        "  c.mmm(30);",
+        "}"));
+    doSearch("mmm() {} // in B");
+    assertThat(searchResults).hasSize(3);
+    assertHasResult("mmm(10);", SearchResultKind.METHOD_INVOCATION);
+    assertHasResult("mmm(20);", SearchResultKind.METHOD_INVOCATION);
+    assertHasResult("mmm(30);", SearchResultKind.METHOD_INVOCATION);
+  }
+
   public void test_localVariable() throws Exception {
     createContextWithSingleSource(makeSource(//
         "main() {",

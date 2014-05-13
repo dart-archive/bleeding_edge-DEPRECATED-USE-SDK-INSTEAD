@@ -17,8 +17,8 @@ package com.google.dart.server.internal.local.computer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.ClassMemberElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -27,6 +27,7 @@ import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.services.util.HierarchyUtils;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.translation.DartOmit;
 import com.google.dart.server.SearchResult;
@@ -34,6 +35,7 @@ import com.google.dart.server.SearchResultKind;
 import com.google.dart.server.SearchResultsConsumer;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * A computer for reference {@link SearchResult}s.
@@ -108,30 +110,39 @@ public class ElementReferencesComputer {
    * Computes {@link SearchResult}s and notifies the {@link SearchResultsConsumer}.
    */
   public void compute() {
-    String elementLocationEncoding = element.getId();
-    ElementLocationImpl elementLocation = new ElementLocationImpl(elementLocationEncoding);
-    Element element = context.getElement(elementLocation);
+    Element element = findEngineElement();
     // tweak element
     if (element instanceof PropertyAccessorElement) {
       element = ((PropertyAccessorElement) element).getVariable();
     }
-    if (element instanceof FieldFormalParameterElement) {
-      element = ((FieldFormalParameterElement) element).getField();
-    }
-    // include variable declaration into search results
-    if (isVariableLikeElement(element)) {
-      SearchResultImpl result = new SearchResultImpl(
-          computePath(element),
-          element.getSource(),
-          SearchResultKind.VARIABLE_DECLARATION,
-          element.getNameOffset(),
-          element.getName().length());
-      consumer.computed(new SearchResult[] {result}, false);
-    }
-    // do search
+    // prepare Element(s) to find references to
+    Element[] refElements = {};
     if (element != null) {
+      if (element instanceof ClassMemberElement) {
+        ClassMemberElement member = (ClassMemberElement) element;
+        Set<ClassMemberElement> hierarchyMembers = HierarchyUtils.getHierarchyMembers(
+            searchEngine,
+            member);
+        refElements = hierarchyMembers.toArray(new Element[hierarchyMembers.size()]);
+      } else {
+        refElements = new Element[] {element};
+      }
+    }
+    // process each 'refElement'
+    for (Element refElement : refElements) {
+      // include variable declaration into search results
+      if (isVariableLikeElement(refElement)) {
+        SearchResultImpl result = new SearchResultImpl(
+            computePath(refElement),
+            refElement.getSource(),
+            SearchResultKind.VARIABLE_DECLARATION,
+            refElement.getNameOffset(),
+            refElement.getName().length());
+        consumer.computed(new SearchResult[] {result}, false);
+      }
+      // do search
       List<SearchResult> results = Lists.newArrayList();
-      List<SearchMatch> searchMatches = searchEngine.searchReferences(element, null, null);
+      List<SearchMatch> searchMatches = searchEngine.searchReferences(refElement, null, null);
       for (SearchMatch match : searchMatches) {
         SearchResultImpl result = newSearchResult(match);
         if (result == null) {
@@ -163,6 +174,12 @@ public class ElementReferencesComputer {
       engineElement = engineElement.getEnclosingElement();
     }
     return path.toArray(new com.google.dart.server.Element[path.size()]);
+  }
+
+  private Element findEngineElement() {
+    String elementLocationEncoding = element.getId();
+    ElementLocationImpl elementLocation = new ElementLocationImpl(elementLocationEncoding);
+    return context.getElement(elementLocation);
   }
 
   private boolean isVariableLikeElement(Element element) {
