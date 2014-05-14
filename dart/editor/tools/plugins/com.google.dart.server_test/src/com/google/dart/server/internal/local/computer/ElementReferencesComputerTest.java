@@ -626,11 +626,11 @@ public class ElementReferencesComputerTest extends AbstractLocalServerTest {
         "  fff();",
         "}"));
     // do simulation
-    ElementReferencesComputer.test_simulateUknownMatchKind = true;
+    SearchResultConverter.test_simulateUknownMatchKind = true;
     try {
       doSearch("fff();");
     } finally {
-      ElementReferencesComputer.test_simulateUknownMatchKind = false;
+      SearchResultConverter.test_simulateUknownMatchKind = false;
     }
     // no errors
     serverListener.assertNoServerErrors();

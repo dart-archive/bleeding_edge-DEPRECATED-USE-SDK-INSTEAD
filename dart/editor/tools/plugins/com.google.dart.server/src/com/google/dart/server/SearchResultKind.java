@@ -20,6 +20,11 @@ package com.google.dart.server;
  */
 public enum SearchResultKind {
   /**
+   * A declaration of a class.
+   */
+  CLASS_DECLARATION,
+
+  /**
    * A reference to a constructor.
    */
   CONSTRUCTOR_REFERENCE,
@@ -45,6 +50,11 @@ public enum SearchResultKind {
   FIELD_WRITE,
 
   /**
+   * A declaration of a function.
+   */
+  FUNCTION_DECLARATION,
+
+  /**
    * A reference to a function in which it is invoked.
    */
   FUNCTION_INVOCATION,
@@ -53,6 +63,11 @@ public enum SearchResultKind {
    * A reference to a function in which it is referenced.
    */
   FUNCTION_REFERENCE,
+
+  /**
+   * A declaration of a function type.
+   */
+  FUNCTION_TYPE_DECLARATION,
 
   /**
    * A reference to a method in which it is invoked.

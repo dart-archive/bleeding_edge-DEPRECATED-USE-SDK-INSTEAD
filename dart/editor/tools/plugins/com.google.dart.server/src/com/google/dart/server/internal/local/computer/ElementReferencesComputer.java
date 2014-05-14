@@ -14,7 +14,7 @@
 
 package com.google.dart.server.internal.local.computer;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassMemberElement;
@@ -28,7 +28,6 @@ import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.util.HierarchyUtils;
-import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.translation.DartOmit;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
@@ -44,70 +43,19 @@ import java.util.Set;
  */
 @DartOmit
 public class ElementReferencesComputer {
-  /**
-   * This is used only for testing purposes and allows tests to check the behavior in case an
-   * unknown {@link MatchKind}.
-   */
-  @VisibleForTesting
-  public static boolean test_simulateUknownMatchKind = false;
-
-  /**
-   * Returns the {@link SearchResultKind} that corresponds to the {@link MatchKind}, may be
-   * {@code null} if unknown.
-   */
-  private static SearchResultKind getSearchResultKind(MatchKind matchKind) {
-    if (test_simulateUknownMatchKind) {
-      matchKind = MatchKind.CLASS_DECLARATION;
-    }
-    switch (matchKind) {
-      case CONSTRUCTOR_REFERENCE:
-        return SearchResultKind.CONSTRUCTOR_REFERENCE;
-      case FIELD_REFERENCE:
-        return SearchResultKind.FIELD_REFERENCE;
-      case FIELD_READ:
-      case NAME_READ_UNRESOLVED:
-        return SearchResultKind.FIELD_READ;
-      case NAME_READ_WRITE_UNRESOLVED:
-        return SearchResultKind.FIELD_READ_WRITE;
-      case FIELD_WRITE:
-      case NAME_WRITE_UNRESOLVED:
-        return SearchResultKind.FIELD_WRITE;
-      case FUNCTION_EXECUTION:
-        return SearchResultKind.FUNCTION_INVOCATION;
-      case FUNCTION_REFERENCE:
-        return SearchResultKind.FUNCTION_REFERENCE;
-      case METHOD_INVOCATION:
-      case NAME_INVOCATION_UNRESOLVED:
-        return SearchResultKind.METHOD_INVOCATION;
-      case METHOD_REFERENCE:
-        return SearchResultKind.METHOD_REFERENCE;
-      case TYPE_REFERENCE:
-      case FUNCTION_TYPE_REFERENCE:
-      case TYPE_PARAMETER_REFERENCE:
-        return SearchResultKind.TYPE_REFERENCE;
-      case VARIABLE_READ:
-        return SearchResultKind.VARIABLE_READ;
-      case VARIABLE_READ_WRITE:
-        return SearchResultKind.VARIABLE_READ_WRITE;
-      case VARIABLE_WRITE:
-        return SearchResultKind.VARIABLE_WRITE;
-      default:
-        return null;
-    }
-  }
-
   private final SearchEngine searchEngine;
-  private final String contextId;
+  private final SearchResultConverter converter;
   private final AnalysisContext context;
   private final com.google.dart.server.Element element;
   private final boolean withPotential;
   private final SearchResultsConsumer consumer;
 
-  public ElementReferencesComputer(SearchEngine searchEngine, AnalysisContext context,
+  public ElementReferencesComputer(SearchEngine searchEngine,
+      Function<AnalysisContext, String> contextToIdFunction, AnalysisContext context,
       com.google.dart.server.Element element, boolean withPotential, SearchResultsConsumer consumer) {
     this.searchEngine = searchEngine;
+    this.converter = new SearchResultConverter(contextToIdFunction);
     this.withPotential = withPotential;
-    this.contextId = element.getContextId();
     this.context = context;
     this.element = element;
     this.consumer = consumer;
@@ -139,20 +87,19 @@ public class ElementReferencesComputer {
     for (Element refElement : refElements) {
       // include variable declaration into search results
       if (isVariableLikeElement(refElement)) {
-        SearchResultImpl result = new SearchResultImpl(
-            computePath(refElement),
-            refElement.getSource(),
+        SearchResult result = converter.newSearchResult(
             SearchResultKind.VARIABLE_DECLARATION,
+            false,
+            refElement,
             refElement.getNameOffset(),
-            refElement.getName().length(),
-            false);
+            refElement.getName().length());
         consumer.computed(new SearchResult[] {result}, false);
       }
       // do search
       List<SearchResult> results = Lists.newArrayList();
       List<SearchMatch> searchMatches = searchEngine.searchReferences(refElement, null, null);
       for (SearchMatch match : searchMatches) {
-        SearchResultImpl result = newSearchResult(match, false);
+        SearchResult result = converter.newSearchResult(match, false);
         if (result == null) {
           continue;
         }
@@ -172,7 +119,7 @@ public class ElementReferencesComputer {
         if (kind == MatchKind.NAME_INVOCATION_UNRESOLVED || kind == MatchKind.NAME_READ_UNRESOLVED
             || kind == MatchKind.NAME_READ_WRITE_UNRESOLVED
             || kind == MatchKind.NAME_WRITE_UNRESOLVED) {
-          SearchResultImpl result = newSearchResult(match, true);
+          SearchResult result = converter.newSearchResult(match, true);
           if (result != null) {
             results.add(result);
           }
@@ -180,28 +127,6 @@ public class ElementReferencesComputer {
       }
       consumer.computed(results.toArray(new SearchResult[results.size()]), false);
     }
-  }
-
-  private com.google.dart.server.Element[] computePath(Element engineElement) {
-    List<com.google.dart.server.Element> path = Lists.newArrayList();
-    while (engineElement != null) {
-      switch (engineElement.getKind()) {
-        case CLASS:
-        case COMPILATION_UNIT:
-        case CONSTRUCTOR:
-        case FUNCTION:
-        case FUNCTION_TYPE_ALIAS:
-        case LIBRARY:
-        case METHOD:
-          ElementImpl element = ElementImpl.create(contextId, engineElement);
-          path.add(element);
-          break;
-        default:
-          break;
-      }
-      engineElement = engineElement.getEnclosingElement();
-    }
-    return path.toArray(new com.google.dart.server.Element[path.size()]);
   }
 
   private Element findEngineElement() {
@@ -221,22 +146,5 @@ public class ElementReferencesComputer {
       return !((PropertyInducingElement) element).isSynthetic();
     }
     return false;
-  }
-
-  private SearchResultImpl newSearchResult(SearchMatch match, boolean isPotential) {
-    MatchKind matchKind = match.getKind();
-    SearchResultKind kind = getSearchResultKind(matchKind);
-    if (kind == null) {
-      return null;
-    }
-    Element matchElement = match.getElement();
-    SourceRange matchRange = match.getSourceRange();
-    return new SearchResultImpl(
-        computePath(matchElement),
-        matchElement.getSource(),
-        kind,
-        matchRange.getOffset(),
-        matchRange.getLength(),
-        isPotential);
   }
 }

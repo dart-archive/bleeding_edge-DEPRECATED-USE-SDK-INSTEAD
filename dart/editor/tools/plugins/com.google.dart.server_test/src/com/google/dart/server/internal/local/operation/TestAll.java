@@ -30,6 +30,7 @@ public class TestAll {
     suite.addTestSuite(GetFixableErrorCodesOperationTest.class);
     suite.addTestSuite(PerformAnalysisOperationTest.class);
     suite.addTestSuite(SearchElementReferencesOperationTest.class);
+    suite.addTestSuite(SearchTopLevelDeclarationsOperationTest.class);
     suite.addTestSuite(ServerOperationQueueTest.class);
     suite.addTestSuite(SetOptionsOperationTest.class);
     suite.addTestSuite(SetPrioritySourcesOperationTest.class);

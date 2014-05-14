@@ -15,6 +15,7 @@
 package com.google.dart.server.internal.local;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -63,6 +64,7 @@ import com.google.dart.server.internal.local.computer.DartUnitMinorRefactoringsC
 import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
 import com.google.dart.server.internal.local.computer.DartUnitOutlineComputer;
 import com.google.dart.server.internal.local.computer.ElementReferencesComputer;
+import com.google.dart.server.internal.local.computer.TopLevelDeclarationsComputer;
 import com.google.dart.server.internal.local.computer.TypeHierarchyComputer;
 import com.google.dart.server.internal.local.operation.ApplyAnalysisDeltaOperation;
 import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
@@ -76,6 +78,7 @@ import com.google.dart.server.internal.local.operation.GetFixableErrorCodesOpera
 import com.google.dart.server.internal.local.operation.NotificationOperation;
 import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
 import com.google.dart.server.internal.local.operation.SearchElementReferencesOperation;
+import com.google.dart.server.internal.local.operation.SearchTopLevelDeclarationsOperation;
 import com.google.dart.server.internal.local.operation.ServerOperation;
 import com.google.dart.server.internal.local.operation.ServerOperationQueue;
 import com.google.dart.server.internal.local.operation.SetOptionsOperation;
@@ -192,6 +195,21 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
    * A table mapping context id's to the analysis contexts associated with them.
    */
   private final Map<String, AnalysisContext> contextMap = Maps.newHashMap();
+
+  /**
+   * A table mapping context analysis contexts to id's associated with them.
+   */
+  private final Map<AnalysisContext, String> contextIdMap = Maps.newHashMap();
+
+  /**
+   * A function mapping analysis contexts to id's associated with them.
+   */
+  private final Function<AnalysisContext, String> contextToIdFunction = new Function<AnalysisContext, String>() {
+    @Override
+    public String apply(AnalysisContext context) {
+      return contextIdMap.get(context);
+    }
+  };
 
   /**
    * A table mapping context id's to the sources known in the associated contexts.
@@ -540,7 +558,28 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   public void internalSearchElementReferences(String contextId, Element element,
       boolean withPotential, SearchResultsConsumer consumer) throws Exception {
     AnalysisContext context = getAnalysisContext(contextId);
-    new ElementReferencesComputer(searchEngine, context, element, withPotential, consumer).compute();
+    new ElementReferencesComputer(
+        searchEngine,
+        contextToIdFunction,
+        context,
+        element,
+        withPotential,
+        consumer).compute();
+    consumer.computed(SearchResult.EMPTY_ARRAY, true);
+  }
+
+  /**
+   * Implementation for {@link #searchTopLevelDeclarations(String, String, SearchResultsConsumer)}.
+   */
+  public void internalSearchTopLevelDeclarations(String contextId, String pattern,
+      SearchResultsConsumer consumer) throws Exception {
+    AnalysisContext context = contextId != null ? getAnalysisContext(contextId) : null;
+    new TopLevelDeclarationsComputer(
+        searchEngine,
+        contextToIdFunction,
+        context,
+        pattern,
+        consumer).compute();
     consumer.computed(SearchResult.EMPTY_ARRAY, true);
   }
 
@@ -634,7 +673,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @Override
   public void searchTopLevelDeclarations(String contextId, String pattern,
       SearchResultsConsumer consumer) {
-    // TODO(scheglov) implement
+    operationQueue.add(new SearchTopLevelDeclarationsOperation(contextId, pattern, consumer));
   }
 
   @Override
