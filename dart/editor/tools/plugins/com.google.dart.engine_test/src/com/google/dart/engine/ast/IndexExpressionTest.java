@@ -26,84 +26,84 @@ import static com.google.dart.engine.ast.AstFactory.prefixExpression;
 public class IndexExpressionTest extends EngineTestCase {
   public void test_inGetterContext_assignment_compound_left() throws Exception {
     IndexExpression expression = indexExpression(identifier("a"), identifier("b"));
-    // a[i] += ?
-    assignmentExpression(expression, TokenType.PLUS_EQ, null);
+    // a[b] += c
+    assignmentExpression(expression, TokenType.PLUS_EQ, identifier("c"));
     assertTrue(expression.inGetterContext());
   }
 
   public void test_inGetterContext_assignment_simple_left() throws Exception {
     IndexExpression expression = indexExpression(identifier("a"), identifier("b"));
-    // a[i] = ?
-    assignmentExpression(expression, TokenType.EQ, null);
+    // a[b] = c
+    assignmentExpression(expression, TokenType.EQ, identifier("c"));
     assertFalse(expression.inGetterContext());
   }
 
   public void test_inGetterContext_nonAssignment() throws Exception {
     IndexExpression expression = indexExpression(identifier("a"), identifier("b"));
-    // a[i] + ?
-    binaryExpression(expression, TokenType.PLUS, null);
+    // a[b] + c
+    binaryExpression(expression, TokenType.PLUS, identifier("c"));
     assertTrue(expression.inGetterContext());
   }
 
   public void test_inSetterContext_assignment_compound_left() throws Exception {
     IndexExpression expression = indexExpression(identifier("a"), identifier("b"));
-    // a[i] += ?
-    assignmentExpression(expression, TokenType.PLUS_EQ, null);
+    // a[b] += c
+    assignmentExpression(expression, TokenType.PLUS_EQ, identifier("c"));
     assertTrue(expression.inSetterContext());
   }
 
   public void test_inSetterContext_assignment_compound_right() throws Exception {
     IndexExpression expression = indexExpression(identifier("a"), identifier("b"));
-    // ? += a[i]
-    assignmentExpression(null, TokenType.PLUS_EQ, expression);
+    // c += a[b]
+    assignmentExpression(identifier("c"), TokenType.PLUS_EQ, expression);
     assertFalse(expression.inSetterContext());
   }
 
   public void test_inSetterContext_assignment_simple_left() throws Exception {
     IndexExpression expression = indexExpression(identifier("a"), identifier("b"));
-    // a[i] = ?
-    assignmentExpression(expression, TokenType.EQ, null);
+    // a[b] = c
+    assignmentExpression(expression, TokenType.EQ, identifier("c"));
     assertTrue(expression.inSetterContext());
   }
 
   public void test_inSetterContext_assignment_simple_right() throws Exception {
     IndexExpression expression = indexExpression(identifier("a"), identifier("b"));
-    // ? = a[i]
-    assignmentExpression(null, TokenType.EQ, expression);
+    // c = a[b]
+    assignmentExpression(identifier("c"), TokenType.EQ, expression);
     assertFalse(expression.inSetterContext());
   }
 
   public void test_inSetterContext_nonAssignment() throws Exception {
     IndexExpression expression = indexExpression(identifier("a"), identifier("b"));
-    binaryExpression(expression, TokenType.PLUS, null);
-    // a[i] + ?
+    binaryExpression(expression, TokenType.PLUS, identifier("c"));
+    // a[b] + cc
     assertFalse(expression.inSetterContext());
   }
 
   public void test_inSetterContext_postfix() throws Exception {
     IndexExpression expression = indexExpression(identifier("a"), identifier("b"));
     postfixExpression(expression, TokenType.PLUS_PLUS);
-    // a[i]++
+    // a[b]++
     assertTrue(expression.inSetterContext());
   }
 
   public void test_inSetterContext_prefix_bang() throws Exception {
     IndexExpression expression = indexExpression(identifier("a"), identifier("b"));
-    // !a[i]
+    // !a[b]
     prefixExpression(TokenType.BANG, expression);
     assertFalse(expression.inSetterContext());
   }
 
   public void test_inSetterContext_prefix_minusMinus() throws Exception {
     IndexExpression expression = indexExpression(identifier("a"), identifier("b"));
-    // --a[i]
+    // --a[b]
     prefixExpression(TokenType.MINUS_MINUS, expression);
     assertTrue(expression.inSetterContext());
   }
 
   public void test_inSetterContext_prefix_plusPlus() throws Exception {
     IndexExpression expression = indexExpression(identifier("a"), identifier("b"));
-    // ++a[i]
+    // ++a[b]
     prefixExpression(TokenType.PLUS_PLUS, expression);
     assertTrue(expression.inSetterContext());
   }
