@@ -1082,6 +1082,29 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_equalKeysInMap_withEqualTypeParams() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  const A();",
+        "}",
+        "var m = {const A<int>(): 0, const A<int>(): 1};"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.EQUAL_KEYS_IN_MAP);
+    verify(source);
+  }
+
+  public void test_equalKeysInMap_withUnequalTypeParams() throws Exception {
+    // No error should be produced because A<int> and A<num> are different types.
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  const A();",
+        "}",
+        "var m = {const A<int>(): 0, const A<num>(): 1};"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_exportDuplicatedLibraryName() throws Exception {
     Source source = addSource(createSource(//
         "library test;",

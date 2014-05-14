@@ -86,7 +86,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
 
       // If we are getting the constant initializers for a node in the graph, make sure we properly
       // recorded the dependency.
-      ConstructorDeclaration node = constructorDeclarationMap.get(constructor);
+      ConstructorDeclaration node = findConstructorDeclaration(constructor);
       if (node != null && referenceGraph.getNodes().contains(node)) {
         assertTrue(referenceGraph.containsPath(nodeBeingEvaluated, node));
       }
@@ -575,7 +575,27 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         "",
         "const A a = const A(10);"));
     EvaluationResultImpl result = evaluateInstanceCreationExpression(compilationUnit, "a");
-    HashMap<String, DartObjectImpl> fields = assertType(result, "B");
+    HashMap<String, DartObjectImpl> fields = assertType(result, "B<int>");
+    assertSizeOfMap(1, fields);
+    assertIntField(fields, "x", 10L);
+  }
+
+  public void test_instanceCreationExpression_redirectWithTypeSubstitution() throws Exception {
+    // To evaluate the redirection of A<int>, A's template argument (T=int) must be substituted
+    // into B's template argument (B<U> where U=T) to get B<int>. 
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "class A<T> {",
+        "  const factory A(var a) = B<T>;",
+        "}",
+        "",
+        "class B<U> implements A {",
+        "  final U x;",
+        "  const B(this.x);",
+        "}",
+        "",
+        "const A<int> a = const A<int>(10);"));
+    EvaluationResultImpl result = evaluateInstanceCreationExpression(compilationUnit, "a");
+    HashMap<String, DartObjectImpl> fields = assertType(result, "B<int>");
     assertSizeOfMap(1, fields);
     assertIntField(fields, "x", 10L);
   }
@@ -591,10 +611,34 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     assertEquals("a", value.getValue());
   }
 
+  public void test_instanceCreationExpression_withSupertypeParams_explicit() throws Exception {
+    checkInstanceCreation_withSupertypeParams(true);
+  }
+
+  public void test_instanceCreationExpression_withSupertypeParams_implicit() throws Exception {
+    checkInstanceCreation_withSupertypeParams(false);
+  }
+
+  public void test_instanceCreationExpression_withTypeParams() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "class C<E> {",
+        "  const C();",
+        "}",
+        "const c_int = const C<int>();",
+        "const c_num = const C<num>();"));
+    EvaluationResultImpl c_int = evaluateInstanceCreationExpression(compilationUnit, "c_int");
+    assertType(c_int, "C<int>");
+    DartObjectImpl c_int_value = ((ValidResult) c_int).getValue();
+    EvaluationResultImpl c_num = evaluateInstanceCreationExpression(compilationUnit, "c_num");
+    assertType(c_num, "C<num>");
+    DartObjectImpl c_num_value = ((ValidResult) c_num).getValue();
+    assertFalse(c_int_value.equals(c_num_value));
+  }
+
   private HashMap<String, DartObjectImpl> assertFieldType(HashMap<String, DartObjectImpl> fields,
       String fieldName, String expectedType) {
     DartObjectImpl field = fields.get(fieldName);
-    assertEquals(expectedType, field.getType().getName());
+    assertEquals(expectedType, field.getType().getDisplayName());
     return field.getFields();
   }
 
@@ -625,7 +669,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
   private HashMap<String, DartObjectImpl> assertType(EvaluationResultImpl result, String typeName) {
     assertInstanceOf(ValidResult.class, result);
     DartObjectImpl value = ((ValidResult) result).getValue();
-    assertEquals(typeName, value.getType().getName());
+    assertEquals(typeName, value.getType().getDisplayName());
     return value.getFields();
   }
 
@@ -633,6 +677,33 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     assertInstanceOf(ValidResult.class, result);
     DartObjectImpl value = ((ValidResult) result).getValue();
     assertTrue(value.isUnknown());
+  }
+
+  private void checkInstanceCreation_withSupertypeParams(boolean isExplicit)
+      throws AnalysisException {
+    String superCall = isExplicit ? " : super()" : "";
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+        "class A<T> {",
+        "  const A();",
+        "}",
+        "class B<T, U> extends A<T> {",
+        "  const B()" + superCall + ";",
+        "}",
+        "class C<T, U> extends A<U> {",
+        "  const C()" + superCall + ";",
+        "}",
+        "const b_int_num = const B<int, num>();",
+        "const c_int_num = const C<int, num>();"));
+    EvaluationResultImpl b_int_num = evaluateInstanceCreationExpression(
+        compilationUnit,
+        "b_int_num");
+    HashMap<String, DartObjectImpl> b_int_num_fields = assertType(b_int_num, "B<int, num>");
+    assertFieldType(b_int_num_fields, GenericState.SUPERCLASS_FIELD, "A<int>");
+    EvaluationResultImpl c_int_num = evaluateInstanceCreationExpression(
+        compilationUnit,
+        "c_int_num");
+    HashMap<String, DartObjectImpl> c_int_num_fields = assertType(c_int_num, "C<int, num>");
+    assertFieldType(c_int_num_fields, GenericState.SUPERCLASS_FIELD, "A<num>");
   }
 
   private void checkInstanceCreationOptionalParams(boolean isFieldFormal, boolean isNamed,

@@ -188,7 +188,7 @@ public class ConstantValueComputer {
         InterfaceType superclass = ((InterfaceType) entry.getKey().getReturnType()).getSuperclass();
         if (superclass != null && !superclass.isObject()) {
           ConstructorElement unnamedConstructor = superclass.getElement().getUnnamedConstructor();
-          ConstructorDeclaration superConstructorDeclaration = constructorDeclarationMap.get(unnamedConstructor);
+          ConstructorDeclaration superConstructorDeclaration = findConstructorDeclaration(unnamedConstructor);
           if (superConstructorDeclaration != null) {
             referenceGraph.addEdge(declaration, superConstructorDeclaration);
           }
@@ -217,7 +217,7 @@ public class ConstantValueComputer {
         break;
       }
       constructor = followConstantRedirectionChain(constructor);
-      ConstructorDeclaration declaration = constructorDeclarationMap.get(constructor);
+      ConstructorDeclaration declaration = findConstructorDeclaration(constructor);
       // An instance creation expression depends both on the constructor and the arguments passed
       // to it.
       ReferenceFinder referenceFinder = new ReferenceFinder(
@@ -270,6 +270,10 @@ public class ConstantValueComputer {
    */
   protected ConstantVisitor createConstantVisitor() {
     return new ConstantVisitor(typeProvider);
+  }
+
+  protected ConstructorDeclaration findConstructorDeclaration(ConstructorElement constructor) {
+    return constructorDeclarationMap.get(getConstructorBase(constructor));
   }
 
   /**
@@ -361,11 +365,9 @@ public class ConstantValueComputer {
       // suppress further errors.
       return constantVisitor.validWithUnknownValue(definingClass);
     }
-    while (constructor instanceof ConstructorMember) {
-      constructor = ((ConstructorMember) constructor).getBaseElement();
-    }
     beforeGetConstantInitializers(constructor);
-    List<ConstructorInitializer> initializers = ((ConstructorElementImpl) constructor).getConstantInitializers();
+    ConstructorElementImpl constructorBase = (ConstructorElementImpl) getConstructorBase(constructor);
+    List<ConstructorInitializer> initializers = constructorBase.getConstantInitializers();
     if (initializers == null) {
       // This can happen in some cases where there are compile errors in the code being analyzed
       // (for example if the code is trying to create a const instance using a non-const
@@ -375,7 +377,7 @@ public class ConstantValueComputer {
     }
     HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
     HashMap<String, DartObjectImpl> parameterMap = new HashMap<String, DartObjectImpl>();
-    ParameterElement[] parameters = constructor.getParameters();
+    ParameterElement[] parameters = constructorBase.getParameters();
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       ParameterElement parameter = parameters[i];
@@ -415,6 +417,8 @@ public class ConstantValueComputer {
     }
     // TODO(paulberry): Don't bother with the code below if there were invalid parameters.
     ConstantVisitor initializerVisitor = new ConstantVisitor(typeProvider, parameterMap);
+    String superName = null;
+    NodeList<Expression> superArguments = null;
     for (ConstructorInitializer initializer : initializers) {
       if (initializer instanceof ConstructorFieldInitializer) {
         ConstructorFieldInitializer constructorFieldInitializer = (ConstructorFieldInitializer) initializer;
@@ -430,23 +434,25 @@ public class ConstantValueComputer {
         }
       } else if (initializer instanceof SuperConstructorInvocation) {
         SuperConstructorInvocation superConstructorInvocation = (SuperConstructorInvocation) initializer;
-        evaluateSuperConstructorCall(
-            fieldMap,
-            superConstructorInvocation.getStaticElement(),
-            superConstructorInvocation.getArgumentList().getArguments(),
-            initializerVisitor);
+        SimpleIdentifier name = superConstructorInvocation.getConstructorName();
+        if (name != null) {
+          superName = name.getName();
+        }
+        superArguments = superConstructorInvocation.getArgumentList().getArguments();
       }
     }
+    // Evaluate explicit or implicit call to super().
     InterfaceType superclass = definingClass.getSuperclass();
-    if (!fieldMap.containsKey(GenericState.SUPERCLASS_FIELD) && superclass != null
-        && !superclass.isObject()) {
-      // There was no explicit call to super, so make an implicit call.
-      NodeList<Expression> noArgs = new NodeList<Expression>(null);
-      evaluateSuperConstructorCall(
-          fieldMap,
-          superclass.getElement().getUnnamedConstructor(),
-          noArgs,
-          initializerVisitor);
+    if (superclass != null && !superclass.isObject()) {
+      ConstructorElement superConstructor = superclass.lookUpConstructor(
+          superName,
+          constructor.getLibrary());
+      if (superConstructor != null) {
+        if (superArguments == null) {
+          superArguments = new NodeList<Expression>(null);
+        }
+        evaluateSuperConstructorCall(fieldMap, superConstructor, superArguments, initializerVisitor);
+      }
     }
     return constantVisitor.valid(definingClass, new GenericState(fieldMap));
   }
@@ -489,9 +495,6 @@ public class ConstantValueComputer {
 
       constructorsVisited.add(constructor);
       ConstructorElement redirectedConstructor = constructor.getRedirectedConstructor();
-      if (redirectedConstructor instanceof ConstructorMember) {
-        redirectedConstructor = ((ConstructorMember) redirectedConstructor).getBaseElement();
-      }
       if (redirectedConstructor == null) {
         // This can happen if constructor is an external factory constructor.
         break;
@@ -521,5 +524,12 @@ public class ConstantValueComputer {
    */
   private void generateCycleError(List<AstNode> constantsInCycle, AstNode constant) {
     // TODO(brianwilkerson) Implement this.
+  }
+
+  private ConstructorElement getConstructorBase(ConstructorElement constructor) {
+    while (constructor instanceof ConstructorMember) {
+      constructor = ((ConstructorMember) constructor).getBaseElement();
+    }
+    return constructor;
   }
 }
