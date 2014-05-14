@@ -32,11 +32,11 @@ public class SearchReferencesOperationTest extends TestCase {
     Element element = mock(Element.class);
     SearchResultsConsumer consumer = mock(SearchResultsConsumer.class);
     when(element.getContextId()).thenReturn("id");
-    SearchReferencesOperation operation = new SearchReferencesOperation(element, consumer);
+    SearchReferencesOperation operation = new SearchReferencesOperation(element, true, consumer);
     assertSame(ServerOperationPriority.SEARCH, operation.getPriority());
     assertEquals("id", operation.getContextId());
     // perform
     operation.performOperation(server);
-    verify(server, times(1)).internalSearchElementReferences("id", element, consumer);
+    verify(server, times(1)).internalSearchElementReferences("id", element, true, consumer);
   }
 }

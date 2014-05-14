@@ -42,6 +42,7 @@ public class ElementReferencesComputerTest extends AbstractLocalServerTest {
   private String contextId;
   private String code;
   private Source source;
+  private boolean withPotential = true;
   private List<SearchResult> searchResults = Lists.newArrayList();
 
   public void test_constructor_named() throws Exception {
@@ -467,6 +468,21 @@ public class ElementReferencesComputerTest extends AbstractLocalServerTest {
     }
   }
 
+  public void test_potential_disabled() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "class A {",
+        "  test(p) {}",
+        "}",
+        "main(A a, p) {",
+        "  a.test(1);",
+        "  p.test(2);",
+        "}"));
+    withPotential = false;
+    doSearch("test(p) {}");
+    assertThat(searchResults).hasSize(1);
+    assertHasResult("test(1);", "test".length(), SearchResultKind.METHOD_INVOCATION);
+  }
+
   public void test_potential_field() throws Exception {
     createContextWithSingleSource(makeSource(//
         "class A {",
@@ -665,7 +681,7 @@ public class ElementReferencesComputerTest extends AbstractLocalServerTest {
     // do request
     if (element != null) {
       final CountDownLatch latch = new CountDownLatch(1);
-      server.searchElementReferences(element, true, new SearchResultsConsumer() {
+      server.searchElementReferences(element, withPotential, new SearchResultsConsumer() {
         @Override
         public void computed(SearchResult[] _searchResults, boolean isLastResult) {
           Collections.addAll(searchResults, _searchResults);

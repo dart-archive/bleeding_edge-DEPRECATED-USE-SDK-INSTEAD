@@ -100,11 +100,13 @@ public class ElementReferencesComputer {
   private final String contextId;
   private final AnalysisContext context;
   private final com.google.dart.server.Element element;
+  private final boolean withPotential;
   private final SearchResultsConsumer consumer;
 
   public ElementReferencesComputer(SearchEngine searchEngine, AnalysisContext context,
-      com.google.dart.server.Element element, SearchResultsConsumer consumer) {
+      com.google.dart.server.Element element, boolean withPotential, SearchResultsConsumer consumer) {
     this.searchEngine = searchEngine;
+    this.withPotential = withPotential;
     this.contextId = element.getContextId();
     this.context = context;
     this.element = element;
@@ -159,7 +161,7 @@ public class ElementReferencesComputer {
       consumer.computed(results.toArray(new SearchResult[results.size()]), false);
     }
     // report potential references
-    {
+    if (withPotential) {
       List<SearchResult> results = Lists.newArrayList();
       List<SearchMatch> matches = searchEngine.searchQualifiedMemberReferences(
           element.getName(),

@@ -29,11 +29,14 @@ import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 public class SearchReferencesOperation implements ContextServerOperation {
   private final String contextId;
   private final Element element;
+  private final boolean withPotential;
   private final SearchResultsConsumer consumer;
 
-  public SearchReferencesOperation(Element element, SearchResultsConsumer consumer) {
+  public SearchReferencesOperation(Element element, boolean withPotential,
+      SearchResultsConsumer consumer) {
     this.contextId = element.getContextId();
     this.element = element;
+    this.withPotential = withPotential;
     this.consumer = consumer;
   }
 
@@ -49,6 +52,6 @@ public class SearchReferencesOperation implements ContextServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalSearchElementReferences(contextId, element, consumer);
+    server.internalSearchElementReferences(contextId, element, withPotential, consumer);
   }
 }

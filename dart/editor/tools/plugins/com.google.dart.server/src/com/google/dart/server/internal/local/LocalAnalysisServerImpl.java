@@ -538,9 +538,9 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
    * Implementation for {@link #searchElementReferences(Element, SearchResultsConsumer)}.
    */
   public void internalSearchElementReferences(String contextId, Element element,
-      SearchResultsConsumer consumer) throws Exception {
+      boolean withPotential, SearchResultsConsumer consumer) throws Exception {
     AnalysisContext context = getAnalysisContext(contextId);
-    new ElementReferencesComputer(searchEngine, context, element, consumer).compute();
+    new ElementReferencesComputer(searchEngine, context, element, withPotential, consumer).compute();
     consumer.computed(SearchResult.EMPTY_ARRAY, true);
   }
 
@@ -628,8 +628,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @Override
   public void searchElementReferences(Element element, boolean withPotential,
       SearchResultsConsumer consumer) {
-    // TODO(scheglov) support for "withPotential"
-    operationQueue.add(new SearchReferencesOperation(element, consumer));
+    operationQueue.add(new SearchReferencesOperation(element, withPotential, consumer));
   }
 
   @Override
