@@ -1,0 +1,18 @@
+﻿{
+    CaptureDate = "2014-05-14 14:56:46 +0000";
+    CaptureHost = kyodai;
+    CaptureScreenSize =     (
+        1920,
+        1200
+    );
+    HasAlpha = 1;
+    HonorAlpha = 1;
+    HotSpotX = 47;
+    HotSpotY = 7;
+    LastKnownLocationX = 0;
+    LastKnownLocationY = 0;
+    OriginalLocationX = 47;
+    OriginalLocationY = 302;
+    Pulsing = 0;
+    Scale = 1;
+}
