@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.scanner.Token;
@@ -65,6 +66,19 @@ public class AssignmentExpression extends Expression {
    * @param rightHandSide the expression used to compute the right hand side
    */
   public AssignmentExpression(Expression leftHandSide, Token operator, Expression rightHandSide) {
+    if (leftHandSide == null || rightHandSide == null) {
+      String message;
+      if (leftHandSide == null) {
+        if (rightHandSide == null) {
+          message = "Both the left-hand and right-hand sides are null";
+        } else {
+          message = "The left-hand size is null";
+        }
+      } else {
+        message = "The right-hand size is null";
+      }
+      AnalysisEngine.getInstance().getLogger().logError(message, new Exception(message));
+    }
     this.leftHandSide = becomeParentOf(leftHandSide);
     this.operator = operator;
     this.rightHandSide = becomeParentOf(rightHandSide);

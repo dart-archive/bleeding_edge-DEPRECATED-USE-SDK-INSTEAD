@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -97,17 +98,17 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
 
   @Override
   public Boolean visitAsExpression(AsExpression node) {
-    return node.getExpression().accept(this);
+    return nodeExits(node.getExpression());
   }
 
   @Override
   public Boolean visitAssertStatement(AssertStatement node) {
-    return node.getCondition().accept(this);
+    return nodeExits(node.getCondition());
   }
 
   @Override
   public Boolean visitAssignmentExpression(AssignmentExpression node) {
-    return node.getLeftHandSide().accept(this) || node.getRightHandSide().accept(this);
+    return nodeExits(node.getLeftHandSide()) || nodeExits(node.getRightHandSide());
   }
 
   @Override
@@ -137,8 +138,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
       }
     }
     Expression rhsExpression = node.getRightOperand();
-    return (lhsExpression != null && lhsExpression.accept(this))
-        || (rhsExpression != null && rhsExpression.accept(this));
+    return nodeExits(lhsExpression) || nodeExits(rhsExpression);
   }
 
   @Override
@@ -148,7 +148,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
 
   @Override
   public Boolean visitBlockFunctionBody(BlockFunctionBody node) {
-    return node.getBlock().accept(this);
+    return nodeExits(node.getBlock());
   }
 
   @Override
@@ -159,11 +159,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
 
   @Override
   public Boolean visitCascadeExpression(CascadeExpression node) {
-    Expression target = node.getTarget();
-    if (target.accept(this)) {
-      return true;
-    }
-    return visitExpressions(node.getCascadeSections());
+    return nodeExits(node.getTarget()) || visitExpressions(node.getCascadeSections());
   }
 
   @Override
@@ -173,7 +169,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
     Expression elseStatement = node.getElseExpression();
     // TODO(jwren) Do we want to take constant expressions into account, evaluate if(false) {}
     // differently than if(<condition>), when <condition> evaluates to a constant false value?
-    if (conditionExpression.accept(this)) {
+    if (nodeExits(conditionExpression)) {
       return true;
     }
     if (thenStatement == null || elseStatement == null) {
@@ -193,7 +189,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
     enclosingBlockContainsBreak = false;
     try {
       Expression conditionExpression = node.getCondition();
-      if (conditionExpression.accept(this)) {
+      if (nodeExits(conditionExpression)) {
         return true;
       }
       // TODO(jwren) Do we want to take all constant expressions into account?
@@ -201,7 +197,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
         BooleanLiteral booleanLiteral = (BooleanLiteral) conditionExpression;
         // If do {} while (true), and the body doesn't return or the body doesn't have a break, then
         // return true.
-        boolean blockReturns = node.getBody().accept(this);
+        boolean blockReturns = nodeExits(node.getBody());
         if (booleanLiteral.getValue() && (blockReturns || !enclosingBlockContainsBreak)) {
           return true;
         }
@@ -219,7 +215,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
 
   @Override
   public Boolean visitExpressionStatement(ExpressionStatement node) {
-    return node.getExpression().accept(this);
+    return nodeExits(node.getExpression());
   }
 
   @Override
@@ -227,7 +223,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
     boolean outerBreakValue = enclosingBlockContainsBreak;
     enclosingBlockContainsBreak = false;
     try {
-      return node.getIterator().accept(this);
+      return nodeExits(node.getIterator());
     } finally {
       enclosingBlockContainsBreak = outerBreakValue;
     }
@@ -242,11 +238,11 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
           && visitVariableDeclarations(node.getVariables().getVariables())) {
         return true;
       }
-      if (node.getInitialization() != null && node.getInitialization().accept(this)) {
+      if (node.getInitialization() != null && nodeExits(node.getInitialization())) {
         return true;
       }
       Expression conditionExpression = node.getCondition();
-      if (conditionExpression != null && conditionExpression.accept(this)) {
+      if (conditionExpression != null && nodeExits(conditionExpression)) {
         return true;
       }
       if (visitExpressions(node.getUpdaters())) {
@@ -258,7 +254,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
       boolean implicitOrExplictTrue = conditionExpression == null
           || (conditionExpression instanceof BooleanLiteral && ((BooleanLiteral) conditionExpression).getValue());
       if (implicitOrExplictTrue) {
-        boolean blockReturns = node.getBody().accept(this);
+        boolean blockReturns = nodeExits(node.getBody());
         if (blockReturns || !enclosingBlockContainsBreak) {
           return true;
         }
@@ -281,7 +277,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
 
   @Override
   public Boolean visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    if (node.getFunction().accept(this)) {
+    if (nodeExits(node.getFunction())) {
       return true;
     }
     return node.getArgumentList().accept(this);
@@ -297,7 +293,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
     Expression conditionExpression = node.getCondition();
     Statement thenStatement = node.getThenStatement();
     Statement elseStatement = node.getElseStatement();
-    if (conditionExpression.accept(this)) {
+    if (nodeExits(conditionExpression)) {
       return true;
     }
     // TODO(jwren) Do we want to take all constant expressions into account?
@@ -305,25 +301,25 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
       BooleanLiteral booleanLiteral = (BooleanLiteral) conditionExpression;
       if (booleanLiteral.getValue()) {
         // if(true) ...
-        return thenStatement.accept(this);
+        return nodeExits(thenStatement);
       } else if (elseStatement != null) {
         // if (false) ...
-        return elseStatement.accept(this);
+        return nodeExits(elseStatement);
       }
     }
     if (thenStatement == null || elseStatement == null) {
       return false;
     }
-    return thenStatement.accept(this) && elseStatement.accept(this);
+    return nodeExits(thenStatement) && nodeExits(elseStatement);
   }
 
   @Override
   public Boolean visitIndexExpression(IndexExpression node) {
     Expression target = node.getRealTarget();
-    if (target != null && target.accept(this)) {
+    if (nodeExits(target)) {
       return true;
     }
-    if (node.getIndex().accept(this)) {
+    if (nodeExits(node.getIndex())) {
       return true;
     }
     return false;
@@ -331,7 +327,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
 
   @Override
   public Boolean visitInstanceCreationExpression(InstanceCreationExpression node) {
-    return node.getArgumentList().accept(this);
+    return nodeExits(node.getArgumentList());
   }
 
   @Override
@@ -360,7 +356,7 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
     if (target != null && target.accept(this)) {
       return true;
     }
-    return node.getArgumentList().accept(this);
+    return nodeExits(node.getArgumentList());
   }
 
   @Override
@@ -458,11 +454,11 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
 
   @Override
   public Boolean visitTryStatement(TryStatement node) {
-    if (node.getBody().accept(this)) {
+    if (nodeExits(node.getBody())) {
       return true;
     }
     Block finallyBlock = node.getFinallyBlock();
-    if (finallyBlock != null && finallyBlock.accept(this)) {
+    if (nodeExits(finallyBlock)) {
       return true;
     }
     return false;
@@ -521,6 +517,19 @@ public class ExitDetector extends GeneralizingAstVisitor<Boolean> {
     } finally {
       enclosingBlockContainsBreak = outerBreakValue;
     }
+  }
+
+  /**
+   * Return {@code true} if the given node exits.
+   * 
+   * @param node the node being tested
+   * @return {@code true} if the given node exits
+   */
+  private boolean nodeExits(AstNode node) {
+    if (node == null) {
+      return false;
+    }
+    return node.accept(this);
   }
 
   private boolean visitExpressions(NodeList<Expression> expressions) {
