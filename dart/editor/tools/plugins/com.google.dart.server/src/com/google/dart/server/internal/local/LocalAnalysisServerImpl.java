@@ -75,7 +75,7 @@ import com.google.dart.server.internal.local.operation.GetContextOperation;
 import com.google.dart.server.internal.local.operation.GetFixableErrorCodesOperation;
 import com.google.dart.server.internal.local.operation.NotificationOperation;
 import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
-import com.google.dart.server.internal.local.operation.SearchReferencesOperation;
+import com.google.dart.server.internal.local.operation.SearchElementReferencesOperation;
 import com.google.dart.server.internal.local.operation.ServerOperation;
 import com.google.dart.server.internal.local.operation.ServerOperationQueue;
 import com.google.dart.server.internal.local.operation.SetOptionsOperation;
@@ -535,7 +535,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   /**
-   * Implementation for {@link #searchElementReferences(Element, SearchResultsConsumer)}.
+   * Implementation for {@link #searchElementReferences(Element, boolean, SearchResultsConsumer)}.
    */
   public void internalSearchElementReferences(String contextId, Element element,
       boolean withPotential, SearchResultsConsumer consumer) throws Exception {
@@ -628,7 +628,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @Override
   public void searchElementReferences(Element element, boolean withPotential,
       SearchResultsConsumer consumer) {
-    operationQueue.add(new SearchReferencesOperation(element, withPotential, consumer));
+    operationQueue.add(new SearchElementReferencesOperation(element, withPotential, consumer));
   }
 
   @Override

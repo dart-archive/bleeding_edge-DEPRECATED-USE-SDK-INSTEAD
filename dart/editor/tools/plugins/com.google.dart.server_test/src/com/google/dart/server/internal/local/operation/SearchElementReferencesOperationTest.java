@@ -25,14 +25,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class SearchReferencesOperationTest extends TestCase {
+public class SearchElementReferencesOperationTest extends TestCase {
   private LocalAnalysisServerImpl server = mock(LocalAnalysisServerImpl.class);
 
   public void test_perform() throws Exception {
     Element element = mock(Element.class);
     SearchResultsConsumer consumer = mock(SearchResultsConsumer.class);
     when(element.getContextId()).thenReturn("id");
-    SearchReferencesOperation operation = new SearchReferencesOperation(element, true, consumer);
+    SearchElementReferencesOperation operation = new SearchElementReferencesOperation(
+        element,
+        true,
+        consumer);
     assertSame(ServerOperationPriority.SEARCH, operation.getPriority());
     assertEquals("id", operation.getContextId());
     // perform

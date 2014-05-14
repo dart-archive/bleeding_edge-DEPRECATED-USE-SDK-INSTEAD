@@ -14,7 +14,6 @@
 
 package com.google.dart.server.internal.local.operation;
 
-import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.Element;
 import com.google.dart.server.SearchResultsConsumer;
@@ -22,23 +21,15 @@ import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
  * An operation for
- * {@link AnalysisServer#searchReferences(String, Source, int, SearchResultsConsumer)}.
+ * {@link AnalysisServer#searchElementReferences(Element, boolean, SearchResultsConsumer)}.
  * 
  * @coverage dart.server.local
  */
-public class SearchReferencesOperation implements ContextServerOperation {
+public class SearchElementReferencesOperation implements ContextServerOperation {
   private final String contextId;
   private final Element element;
   private final boolean withPotential;
   private final SearchResultsConsumer consumer;
-
-  public SearchReferencesOperation(Element element, boolean withPotential,
-      SearchResultsConsumer consumer) {
-    this.contextId = element.getContextId();
-    this.element = element;
-    this.withPotential = withPotential;
-    this.consumer = consumer;
-  }
 
   @Override
   public String getContextId() {
@@ -53,5 +44,13 @@ public class SearchReferencesOperation implements ContextServerOperation {
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
     server.internalSearchElementReferences(contextId, element, withPotential, consumer);
+  }
+
+  public SearchElementReferencesOperation(Element element, boolean withPotential,
+      SearchResultsConsumer consumer) {
+    this.contextId = element.getContextId();
+    this.element = element;
+    this.withPotential = withPotential;
+    this.consumer = consumer;
   }
 }
