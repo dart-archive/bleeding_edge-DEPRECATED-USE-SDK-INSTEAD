@@ -191,27 +191,51 @@ public interface IndexConstants {
 
   /**
    * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is invoked
-   * at a specific location (the right operand). This is used for unresolved invocations.
+   * at a specific location (the right operand). This is used for resolved invocations.
    */
-  Relationship IS_INVOKED_BY_UNRESOLVED = Relationship.getRelationship("is-invoked-by-unresolved");
+  Relationship NAME_IS_INVOKED_BY_RESOLVED = Relationship.getRelationship("name-is-invoked-by-resolved");
 
   /**
    * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is read at
    * a specific location (the right operand).
    */
-  Relationship IS_READ_BY_UNRESOLVED = Relationship.getRelationship("is-read-by-unresolved");
+  Relationship NAME_IS_READ_BY_RESOLVED = Relationship.getRelationship("name-is-read-by-resolved");
 
   /**
    * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is both
    * read and written at a specific location (the right operand).
    */
-  Relationship IS_READ_WRITTEN_BY_UNRESOLVED = Relationship.getRelationship("is-read-written-by-unresolved");
+  Relationship NAME_IS_READ_WRITTEN_BY_RESOLVED = Relationship.getRelationship("name-is-read-written-by-resolved");
 
   /**
    * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is written
    * at a specific location (the right operand).
    */
-  Relationship IS_WRITTEN_BY_UNRESOLVED = Relationship.getRelationship("is-written-by-unresolved");
+  Relationship NAME_IS_WRITTEN_BY_RESOLVED = Relationship.getRelationship("name-is-written-by-resolved");
+
+  /**
+   * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is invoked
+   * at a specific location (the right operand). This is used for unresolved invocations.
+   */
+  Relationship NAME_IS_INVOKED_BY_UNRESOLVED = Relationship.getRelationship("name-is-invoked-by-unresolved");
+
+  /**
+   * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is read at
+   * a specific location (the right operand).
+   */
+  Relationship NAME_IS_READ_BY_UNRESOLVED = Relationship.getRelationship("name-is-read-by-unresolved");
+
+  /**
+   * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is both
+   * read and written at a specific location (the right operand).
+   */
+  Relationship NAME_IS_READ_WRITTEN_BY_UNRESOLVED = Relationship.getRelationship("name-is-read-written-by-unresolved");
+
+  /**
+   * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is written
+   * at a specific location (the right operand).
+   */
+  Relationship NAME_IS_WRITTEN_BY_UNRESOLVED = Relationship.getRelationship("name-is-written-by-unresolved");
 
   /**
    * Reference to some {@link AngularElement}.

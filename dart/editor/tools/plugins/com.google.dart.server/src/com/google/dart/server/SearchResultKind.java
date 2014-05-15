@@ -80,6 +80,11 @@ public enum SearchResultKind {
   METHOD_REFERENCE,
 
   /**
+   * A reference to a name, resolved.
+   */
+  NAME_REFERENCE_RESOLVED,
+
+  /**
    * A reference to a name, unresolved.
    */
   NAME_REFERENCE_UNRESOLVED,

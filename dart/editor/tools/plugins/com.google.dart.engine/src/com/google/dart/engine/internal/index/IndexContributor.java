@@ -641,10 +641,13 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
       Location location = createLocationFromNode(name);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY, location);
     }
-    if (element == null) {
+    // name invocation
+    {
       Element nameElement = new NameElementImpl(name.getName());
       Location location = createLocationFromNode(name);
-      store.recordRelationship(nameElement, IndexConstants.IS_INVOKED_BY_UNRESOLVED, location);
+      Relationship kind = element != null ? IndexConstants.NAME_IS_INVOKED_BY_RESOLVED
+          : IndexConstants.NAME_IS_INVOKED_BY_UNRESOLVED;
+      store.recordRelationship(nameElement, kind, location);
     }
     recordImportElementReferenceWithoutPrefix(name);
     return super.visitMethodInvocation(node);
@@ -694,19 +697,22 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
     if (isAlreadyHandledName(node)) {
       return null;
     }
-    // record unresolved read/write
-    if (element == null) {
+    // record name read/write
+    {
       boolean inGetterContext = node.inGetterContext();
       boolean inSetterContext = node.inSetterContext();
       if (inGetterContext && inSetterContext) {
-        store.recordRelationship(
-            nameElement,
-            IndexConstants.IS_READ_WRITTEN_BY_UNRESOLVED,
-            location);
+        Relationship kind = element != null ? IndexConstants.NAME_IS_READ_WRITTEN_BY_RESOLVED
+            : IndexConstants.NAME_IS_READ_WRITTEN_BY_UNRESOLVED;
+        store.recordRelationship(nameElement, kind, location);
       } else if (inGetterContext) {
-        store.recordRelationship(nameElement, IndexConstants.IS_READ_BY_UNRESOLVED, location);
+        Relationship kind = element != null ? IndexConstants.NAME_IS_READ_BY_RESOLVED
+            : IndexConstants.NAME_IS_READ_BY_UNRESOLVED;
+        store.recordRelationship(nameElement, kind, location);
       } else if (inSetterContext) {
-        store.recordRelationship(nameElement, IndexConstants.IS_WRITTEN_BY_UNRESOLVED, location);
+        Relationship kind = element != null ? IndexConstants.NAME_IS_WRITTEN_BY_RESOLVED
+            : IndexConstants.NAME_IS_WRITTEN_BY_UNRESOLVED;
+        store.recordRelationship(nameElement, kind, location);
       }
     }
     // record specific relations

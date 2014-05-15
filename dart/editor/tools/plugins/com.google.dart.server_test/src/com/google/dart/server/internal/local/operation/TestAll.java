@@ -29,6 +29,7 @@ public class TestAll {
     suite.addTestSuite(GetContextOperationTest.class);
     suite.addTestSuite(GetFixableErrorCodesOperationTest.class);
     suite.addTestSuite(PerformAnalysisOperationTest.class);
+    suite.addTestSuite(SearchClassMemberReferencesOperationTest.class);
     suite.addTestSuite(SearchElementReferencesOperationTest.class);
     suite.addTestSuite(SearchTopLevelDeclarationsOperationTest.class);
     suite.addTestSuite(ServerOperationQueueTest.class);

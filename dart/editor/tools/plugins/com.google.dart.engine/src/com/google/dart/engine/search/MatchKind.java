@@ -139,6 +139,26 @@ public enum MatchKind {
   NAME_REFERENCE_RESOLVED,
 
   /**
+   * An invocation of a name, resolved.
+   */
+  NAME_INVOCATION_RESOLVED,
+
+  /**
+   * A reference to a name in which the name's value is being read.
+   */
+  NAME_READ_RESOLVED,
+
+  /**
+   * A reference to a name in which the name's value is being read and written.
+   */
+  NAME_READ_WRITE_RESOLVED,
+
+  /**
+   * A reference to a name in which the name's value is being written.
+   */
+  NAME_WRITE_RESOLVED,
+
+  /**
    * An invocation of a name, unresolved.
    */
   NAME_INVOCATION_UNRESOLVED,

@@ -83,6 +83,8 @@ public class SearchResultImpl implements SearchResult {
     builder.append(offset);
     builder.append(", length=");
     builder.append(length);
+    builder.append(", potential=");
+    builder.append(isPotential);
     builder.append(", path=");
     builder.append(path);
     builder.append("]");

@@ -119,11 +119,14 @@ public class SearchResultConverter {
       case FIELD_REFERENCE:
         return SearchResultKind.FIELD_REFERENCE;
       case FIELD_READ:
+      case NAME_READ_RESOLVED:
       case NAME_READ_UNRESOLVED:
         return SearchResultKind.FIELD_READ;
+      case NAME_READ_WRITE_RESOLVED:
       case NAME_READ_WRITE_UNRESOLVED:
         return SearchResultKind.FIELD_READ_WRITE;
       case FIELD_WRITE:
+      case NAME_WRITE_RESOLVED:
       case NAME_WRITE_UNRESOLVED:
         return SearchResultKind.FIELD_WRITE;
       case FUNCTION_DECLARATION:
@@ -135,6 +138,7 @@ public class SearchResultConverter {
       case FUNCTION_TYPE_DECLARATION:
         return SearchResultKind.FUNCTION_TYPE_DECLARATION;
       case METHOD_INVOCATION:
+      case NAME_INVOCATION_RESOLVED:
       case NAME_INVOCATION_UNRESOLVED:
         return SearchResultKind.METHOD_INVOCATION;
       case METHOD_REFERENCE:
