@@ -1,5 +1,8 @@
 ﻿util.selectMenuItem "Tools", "Outline"
 TypeText downArrow
 util.expandTreeNode
+if (util.isMacOSX()) then
+	TypeText enter
+end if
 
 (* Outline view cannot be closed with Cmd-W *)
