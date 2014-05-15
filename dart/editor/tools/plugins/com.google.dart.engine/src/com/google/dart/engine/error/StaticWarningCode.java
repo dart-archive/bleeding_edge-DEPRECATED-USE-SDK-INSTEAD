@@ -778,7 +778,8 @@ public enum StaticWarningCode implements ErrorCode {
    * 
    * @param name the name of the type that is deferred and being used in a type annotation
    */
-  TYPE_ANNOTATION_DEFERRED_CLASS("The deferred type '%s' cannot be used in a declaration"),
+  TYPE_ANNOTATION_DEFERRED_CLASS(
+      "The deferred type '%s' cannot be used in a declaration, cast or type test"),
 
   /**
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type available in the

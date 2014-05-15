@@ -2672,6 +2672,38 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typeAnnotationDeferredClass_asExpression() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f(var v) {",
+        "  v as a.A;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void test_typeAnnotationDeferredClass_catchClause() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f(var v) {",
+        "  try {",
+        "  } on a.A {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
   public void test_typeAnnotationDeferredClass_fieldFormalParameter() throws Exception {
     addNamedSource("/lib1.dart", createSource(//
         "library lib1;",
@@ -2710,6 +2742,21 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "library root;",
         "import 'lib1.dart' deferred as a;",
         "f(a.A g()) {}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
+    verify(source);
+  }
+
+  public void test_typeAnnotationDeferredClass_isExpression() throws Exception {
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source = addSource(createSource(//
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f(var v) {",
+        "  bool b = v is a.A;",
+        "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS);
     verify(source);

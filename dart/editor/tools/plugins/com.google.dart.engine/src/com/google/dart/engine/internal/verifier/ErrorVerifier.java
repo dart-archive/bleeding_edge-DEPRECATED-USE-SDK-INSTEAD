@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.verifier;
 
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.AstNode;
@@ -59,6 +60,7 @@ import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
@@ -454,6 +456,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   @Override
+  public Void visitAsExpression(AsExpression node) {
+    checkForTypeAnnotationDeferredClass(node.getType());
+    return super.visitAsExpression(node);
+  }
+
+  @Override
   public Void visitAssertStatement(AssertStatement node) {
     checkForNonBoolExpression(node);
     return super.visitAssertStatement(node);
@@ -533,6 +541,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     boolean previousIsInCatchClause = isInCatchClause;
     try {
       isInCatchClause = true;
+      checkForTypeAnnotationDeferredClass(node.getExceptionType());
       return super.visitCatchClause(node);
     } finally {
       isInCatchClause = previousIsInCatchClause;
@@ -887,6 +896,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     } finally {
       isInConstInstanceCreation = false;
     }
+  }
+
+  @Override
+  public Void visitIsExpression(IsExpression node) {
+    checkForTypeAnnotationDeferredClass(node.getType());
+    return super.visitIsExpression(node);
   }
 
   @Override
