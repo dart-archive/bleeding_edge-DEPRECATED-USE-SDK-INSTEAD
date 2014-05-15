@@ -195,6 +195,20 @@ to selectContextImageMenuItem with contextLocator, menuItem
   set the SearchRectangle to origRect
 end selectContextImageMenuItem
 
+(* Select the menuImage from the context menu available by right-clicking at contextLocator *)
+to selectContextImageMenuImage with contextLocator, menuImage (* 2 images *)
+  put the SearchRectangle into origRect
+  put ImageLocation(contextLocator) into imageLocation
+  Click imageLocation
+  RightClick imageLocation (*contextLocator*)
+  put mouselocation() - (15,0) into UL
+  put UL + (500,500) into BR
+  set the SearchRectangle to (UL,BR)
+  xWait 0.1
+  Click menuImage
+  set the SearchRectangle to origRect
+end selectContextImageMenuImage
+
 (* Enter term (slowly) and wait a bit *)
 to typeSlowly with term
   SetOption KeyDownDelay, 0.002
@@ -221,7 +235,7 @@ to openPreferences
     selectMenuItem "Dart Editor", "Preferences"
   else if isLinux() then
     selectMenuItem "Tools", "Preferences"
-  else (* windows *)
+    else (* windows *)
     selectMenuItem "Tools", "Preferences"
   end if
 end openPreferences

@@ -1,0 +1,8 @@
+﻿(* Disable analysis of resources folder *)
+util.selectContextImageMenuImage "resources folder", "do not analyze"
+(* Ensure it was disabled by re-enabling it *)
+util.selectContextImageMenuImage "resources folder", "do analyze"
+(* Ensure it was enabled by disabling it again *)
+util.selectContextImageMenuImage "resources folder", "do not analyze"
+(* Restore original state *)
+util.selectContextImageMenuImage "resources folder", "do analyze"
