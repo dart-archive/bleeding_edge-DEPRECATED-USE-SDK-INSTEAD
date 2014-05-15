@@ -123,6 +123,15 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
     return super.showPossibleQuickAssists();
   }
 
+  public void showProblemToFix() {
+    if (problemToFix == null) {
+      return;
+    }
+    int offset = problemToFix.getOffset();
+    viewer.setSelectedRange(offset, 0);
+    viewer.revealRange(offset, 0);
+  }
+
   /**
    * Finds {@link AnalysisError} corresponding to the given {@link Annotation}. May be {@code null}
    * if underlying {@link DartEditor} has no resolved unit.
@@ -270,12 +279,6 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
       // not found
       if (problemToFix == null) {
         return;
-      }
-      // show problem
-      {
-        int offset = problemToFix.getOffset();
-        viewer.setSelectedRange(offset, 0);
-        viewer.revealRange(offset, 0);
       }
     } catch (Throwable e) {
       DartToolsPlugin.log(e);

@@ -71,16 +71,20 @@ public class DartCorrectionProcessor implements
     // prepare proposals
     List<ICompletionProposal> proposals = Lists.newArrayList();
     // add Quick Fixes
-    AnalysisError problemToFix = assistant.getProblemToFix();
     try {
       QuickFixProcessor qfProcessor = new QuickFixProcessor();
+      AnalysisError problemToFix = assistant.getProblemToFix();
       ICompletionProposal[] fixProposals = qfProcessor.computeFix(contextUI, problemToFix);
       Collections.addAll(proposals, fixProposals);
+      // show problem only if there is are fixes
+      if (fixProposals.length != 0) {
+        assistant.showProblemToFix();
+      }
     } catch (Throwable e) {
       DartToolsPlugin.log(e);
     }
     // add Quick Assists
-    if (problemToFix == null) {
+    if (proposals.isEmpty()) {
       QuickAssistProcessor qaProcessor = new QuickAssistProcessor();
       ICompletionProposal[] assistProposals = qaProcessor.getAssists(contextUI);
       Collections.addAll(proposals, assistProposals);
