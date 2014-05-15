@@ -344,6 +344,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
    */
   public void internalComputeFixes(String contextId, AnalysisError[] errors, FixesConsumer consumer)
       throws Exception {
+    log("internalComputeFixes: %s", errors.length);
     AnalysisContext analysisContext = getAnalysisContext(contextId);
     for (AnalysisError error : errors) {
       Source source = error.getSource();
@@ -468,8 +469,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     Source source = changeNotice.getSource();
     log("internalNotification: %s with %s", kind, changeNotice);
     switch (kind) {
-      case ERRORS:
-        listener.computedErrors(contextId, source, changeNotice.getErrors());
+      case ERRORS: {
+        AnalysisError[] errors = changeNotice.getErrors();
+        log("\tERRORS %s", errors.length);
+        listener.computedErrors(contextId, source, errors);
+      }
         break;
       case HIGHLIGHTS: {
         CompilationUnit dartUnit = changeNotice.getCompilationUnit();
@@ -574,12 +578,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   public void internalSearchTopLevelDeclarations(String contextId, String pattern,
       SearchResultsConsumer consumer) throws Exception {
     AnalysisContext context = contextId != null ? getAnalysisContext(contextId) : null;
-    new TopLevelDeclarationsComputer(
-        searchEngine,
-        contextToIdFunction,
-        context,
-        pattern,
-        consumer).compute();
+    new TopLevelDeclarationsComputer(searchEngine, contextToIdFunction, context, pattern, consumer).compute();
     consumer.computed(SearchResult.EMPTY_ARRAY, true);
   }
 

@@ -220,7 +220,6 @@ public class DartUnitHighlightsComputerTest extends AbstractLocalServerTest {
   }
 
   public void test_BUILT_IN_partOf() throws Exception {
-    server.test_setLog(true);
     contextId = createContext("test");
     addSource(contextId, "/test_lib.dart", makeSource(//
         "library a;",

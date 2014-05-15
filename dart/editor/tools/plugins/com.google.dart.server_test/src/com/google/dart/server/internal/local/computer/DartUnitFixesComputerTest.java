@@ -84,6 +84,7 @@ public class DartUnitFixesComputerTest extends AbstractLocalServerTest {
   }
 
   public void test_removeUnusedImport() throws Exception {
+    server.test_setLog(true);
     String initial = makeSource(//
         "import 'dart:math';",
         "",
@@ -95,6 +96,12 @@ public class DartUnitFixesComputerTest extends AbstractLocalServerTest {
         "}");
     createContextWithSingleSource(initial);
     assert_applySourceProposal(CorrectionKind.QF_REMOVE_UNUSED_IMPORT, expected);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    server.test_setLog(false);
+    super.tearDown();
   }
 
   /**
@@ -119,7 +126,9 @@ public class DartUnitFixesComputerTest extends AbstractLocalServerTest {
   private void computeProposals() throws Exception {
     // prepare errors
     server.test_waitForWorkerComplete();
+    log("computeProposals: worker completed");
     AnalysisError[] errors = serverListener.getErrors(source);
+    log("computeProposals: %s error(s)", errors.length);
     if (errors.length != 1) {
       fail("Exactly 1 error expected, but " + errors.length + " found.\n"
           + StringUtils.join(errors, "\n"));
@@ -162,5 +171,10 @@ public class DartUnitFixesComputerTest extends AbstractLocalServerTest {
       }
     }
     return null;
+  }
+
+  private void log(String msg, Object... arguments) {
+    String message = String.format(msg, arguments);
+    System.out.println(message);
   }
 }
