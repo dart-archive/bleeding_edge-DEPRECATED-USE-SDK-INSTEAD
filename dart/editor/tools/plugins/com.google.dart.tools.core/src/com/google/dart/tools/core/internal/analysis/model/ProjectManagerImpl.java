@@ -93,12 +93,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
    */
   private IResourceChangeListener resourceChangeListener = new WorkspaceDeltaProcessor(this);
 
-  private DartIgnoreListener ignoreListener = new ProjectManagerIgnoreListener(
-      this,
-      ResourcesPlugin.getWorkspace().getRoot(),
-      AnalysisManager.getInstance(),
-      AnalysisMarkerManager.getInstance(),
-      getIndex());
+  private final DartIgnoreListener ignoreListener;
 
   public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, String sdkContextId, Index index,
       DartIgnoreManager ignoreManager) {
@@ -106,6 +101,12 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     this.resource = resource;
     this.index = index;
     this.ignoreManager = ignoreManager;
+    this.ignoreListener = new ProjectManagerIgnoreListener(
+        this,
+        ResourcesPlugin.getWorkspace().getRoot(),
+        AnalysisManager.getInstance(),
+        AnalysisMarkerManager.getInstance(),
+        index);
   }
 
   @Override
