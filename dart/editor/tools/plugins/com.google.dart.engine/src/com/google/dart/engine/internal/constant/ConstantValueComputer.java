@@ -297,7 +297,7 @@ public class ConstantValueComputer {
         return;
       }
       ConstantVisitor constantVisitor = createConstantVisitor();
-      EvaluationResultImpl result = evaluateConstructorCall(
+      ValidResult result = evaluateConstructorCall(
           expression.getArgumentList().getArguments(),
           constructor,
           constantVisitor);
@@ -327,7 +327,7 @@ public class ConstantValueComputer {
     }
   }
 
-  private EvaluationResultImpl evaluateConstructorCall(NodeList<Expression> arguments,
+  private ValidResult evaluateConstructorCall(NodeList<Expression> arguments,
       ConstructorElement constructor, ConstantVisitor constantVisitor) {
     int argumentCount = arguments.size();
     DartObjectImpl[] argumentValues = new DartObjectImpl[argumentCount];
@@ -415,7 +415,6 @@ public class ConstantValueComputer {
         }
       }
     }
-    // TODO(paulberry): Don't bother with the code below if there were invalid parameters.
     ConstantVisitor initializerVisitor = new ConstantVisitor(typeProvider, parameterMap);
     String superName = null;
     NodeList<Expression> superArguments = null;
@@ -424,11 +423,8 @@ public class ConstantValueComputer {
         ConstructorFieldInitializer constructorFieldInitializer = (ConstructorFieldInitializer) initializer;
         Expression initializerExpression = constructorFieldInitializer.getExpression();
         EvaluationResultImpl evaluationResult = initializerExpression.accept(initializerVisitor);
-        // TODO(paulberry): Do we need to propagate errors here?
         if (evaluationResult instanceof ValidResult) {
           DartObjectImpl value = ((ValidResult) evaluationResult).getValue();
-          // TODO(paulberry): what happens if the initializer doesn't have a field name (e.g. it's
-          // a synthetic token)?
           String fieldName = constructorFieldInitializer.getFieldName().getName();
           fieldMap.put(fieldName, value);
         }
@@ -461,15 +457,11 @@ public class ConstantValueComputer {
       ConstructorElement superConstructor, NodeList<Expression> superArguments,
       ConstantVisitor initializerVisitor) {
     if (superConstructor != null && superConstructor.isConst()) {
-      EvaluationResultImpl evaluationResult = evaluateConstructorCall(
+      ValidResult evaluationResult = evaluateConstructorCall(
           superArguments,
           superConstructor,
           initializerVisitor);
-      // TODO(paulberry): Do we need to propagate errors here?
-      if (evaluationResult instanceof ValidResult) {
-        DartObjectImpl value = ((ValidResult) evaluationResult).getValue();
-        fieldMap.put(GenericState.SUPERCLASS_FIELD, value);
-      }
+      fieldMap.put(GenericState.SUPERCLASS_FIELD, evaluationResult.getValue());
     }
   }
 
