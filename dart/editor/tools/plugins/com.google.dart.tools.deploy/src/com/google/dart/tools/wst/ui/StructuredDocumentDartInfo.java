@@ -19,13 +19,15 @@ import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
 
 import org.eclipse.core.filebuffers.FileBuffers;
 import org.eclipse.core.filebuffers.ITextFileBuffer;
 import org.eclipse.core.filebuffers.ITextFileBufferManager;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 
@@ -48,7 +50,15 @@ public class StructuredDocumentDartInfo {
     // prepare Source
     Source source = new FileBasedSource(file);
     // prepare IResource
-    IResource resource = ResourceUtil.getResource(file);
+    IResource resource;
+    {
+      IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+      IFile[] files = workspaceRoot.findFilesForLocationURI(file.toURI());
+      if (files.length == 0) {
+        return null;
+      }
+      resource = files[0];
+    }
     if (resource == null) {
       return null;
     }
