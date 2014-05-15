@@ -12,7 +12,7 @@ vars.update({
   "multivm_chromium_branch": "/chrome/trunk/src",
   "multivm_chromium_revision": "269467",
   "chromium_base_revision": "269467",
-  "perf_scripts_dart_branch": "/branches/bleeding_edge/dart/tools/bots",
+  "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
   "multivm_blink_revision": "173994",
 })
@@ -41,7 +41,11 @@ deps.update({
   "src":
     Var("multivm_base") + Var("multivm_chromium_branch") + "@" +
         Var("multivm_chromium_revision"),
-  "src/dart/tools/bots": Var("perf_scripts_dart_branch"),
+
+# We cannot check out src/dart/tools because dart/tools/gyp includes files
+# that are automatically found and that break the build.
+  "src/dart/tools/bots": Var("dart_tools_branch") + "/bots",
+  "src/dart/tools/dartium": Var("dart_tools_branch") + "/dartium"
 })
 
 deps_os['win'].update({
