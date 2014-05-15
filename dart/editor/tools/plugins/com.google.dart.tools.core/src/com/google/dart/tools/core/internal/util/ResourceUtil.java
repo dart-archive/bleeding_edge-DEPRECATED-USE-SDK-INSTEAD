@@ -116,7 +116,16 @@ public class ResourceUtil {
     if (file == null) {
       return null;
     }
-    return getResource(getCanonicalUri(file));
+    if (file.isDirectory()) {
+      return getResource(getCanonicalUri(file));
+    } else {
+      IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+      IFile[] files = workspaceRoot.findFilesForLocationURI(file.toURI());
+      if (files.length == 0) {
+        return null;
+      }
+      return files[0];
+    }
   }
 
   /**
