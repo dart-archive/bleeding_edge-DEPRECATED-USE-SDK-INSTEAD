@@ -704,6 +704,28 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_assignmentToFinal_postfixMinusMinus() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  final x = 0;",
+        "  x--;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
+  public void test_assignmentToFinal_postfixPlusPlus() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  final x = 0;",
+        "  x++;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
   public void test_assignmentToFinal_prefixMinusMinus() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -720,22 +742,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "f() {",
         "  final x = 0;",
         "  ++x;",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL);
-    verify(source);
-  }
-
-  public void test_assignmentToFinal_propertyAccess() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  int get x => 0;",
-        "}",
-        "class B {",
-        "  static A a;",
-        "}",
-        "main() {",
-        "  B.a.x = 0;",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL);
@@ -770,6 +776,36 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "f() { x = 1; }"));
     resolve(source);
     assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
+  public void test_assignmentToFinalNoSetter_prefixedIdentifier() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get x => 0;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.x = 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER);
+    verify(source);
+  }
+
+  public void test_assignmentToFinalNoSetter_propertyAccess() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get x => 0;",
+        "}",
+        "class B {",
+        "  static A a;",
+        "}",
+        "main() {",
+        "  B.a.x = 0;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER);
     verify(source);
   }
 

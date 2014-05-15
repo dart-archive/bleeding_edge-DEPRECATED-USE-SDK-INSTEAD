@@ -82,6 +82,13 @@ public enum StaticWarningCode implements ErrorCode {
   ASSIGNMENT_TO_FINAL("'%s' cannot be used as a setter, it is final"),
 
   /**
+   * 5 Variables: Attempting to assign to a final variable elsewhere will cause a NoSuchMethodError
+   * to be thrown, because no setter is defined for it. The assignment will also give rise to a
+   * static warning for the same reason.
+   */
+  ASSIGNMENT_TO_FINAL_NO_SETTER("No setter named '%s' in class '%s'"),
+
+  /**
    * 12.18 Assignment: It is as static warning if an assignment of the form <i>v = e</i> occurs
    * inside a top level or static function (be it function, method, getter, or setter) or variable
    * initializer and there is neither a local variable declaration with name <i>v</i> nor setter

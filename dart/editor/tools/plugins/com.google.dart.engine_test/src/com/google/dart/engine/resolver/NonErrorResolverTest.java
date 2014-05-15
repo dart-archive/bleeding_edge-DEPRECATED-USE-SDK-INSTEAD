@@ -193,6 +193,38 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_assignmentToFinalNoSetter_prefixedIdentifier() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get x => 0;",
+        "  set x(v) {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.x = 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_assignmentToFinalNoSetter_propertyAccess() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get x => 0;",
+        "  set x(v) {}",
+        "}",
+        "class B {",
+        "  static A a;",
+        "}",
+        "main() {",
+        "  B.a.x = 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_assignmentToFinals_importWithPrefix() throws Exception {
     Source source = addSource(createSource(//
         "library lib;",

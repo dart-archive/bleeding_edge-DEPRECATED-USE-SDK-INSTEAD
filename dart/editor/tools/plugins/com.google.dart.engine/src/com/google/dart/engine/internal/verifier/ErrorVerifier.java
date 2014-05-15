@@ -124,6 +124,7 @@ import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.internal.constant.ValidResult;
+import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
@@ -2146,6 +2147,15 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         return true;
       }
       if (variable.isFinal()) {
+        if (variable instanceof FieldElementImpl
+            && ((FieldElementImpl) variable).getSetter() == null && variable.isSynthetic()) {
+          errorReporter.reportErrorForNode(
+              StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
+              highlightedNode,
+              variable.getName(),
+              variable.getEnclosingElement().getDisplayName());
+          return true;
+        }
         errorReporter.reportErrorForNode(
             StaticWarningCode.ASSIGNMENT_TO_FINAL,
             highlightedNode,
