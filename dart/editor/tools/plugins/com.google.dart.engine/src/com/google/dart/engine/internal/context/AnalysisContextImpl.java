@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.constant.DeclaredVariables;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisDelta;
@@ -884,6 +885,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private SourceFactory sourceFactory;
 
   /**
+   * The set of declared variables used when computing constant values.
+   */
+  private DeclaredVariables declaredVariables = new DeclaredVariables();
+
+  /**
    * A source representing the core library.
    */
   private Source coreLibrarySource;
@@ -1378,6 +1384,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     source.getContentsToReceiver(receiver);
+  }
+
+  @Override
+  public DeclaredVariables getDeclaredVariables() {
+    return declaredVariables;
   }
 
   @Override

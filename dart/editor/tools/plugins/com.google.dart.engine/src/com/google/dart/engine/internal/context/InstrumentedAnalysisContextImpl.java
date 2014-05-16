@@ -2,6 +2,7 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.constant.DeclaredVariables;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisDelta;
@@ -343,6 +344,11 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   @DartOmit
   public void getContentsToReceiver(Source source, ContentReceiver receiver) throws Exception {
     basis.getContentsToReceiver(source, receiver);
+  }
+
+  @Override
+  public DeclaredVariables getDeclaredVariables() {
+    return basis.getDeclaredVariables();
   }
 
   @Override

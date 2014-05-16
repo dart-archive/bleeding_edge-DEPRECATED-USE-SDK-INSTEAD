@@ -14,6 +14,7 @@
 package com.google.dart.engine.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.constant.DeclaredVariables;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
@@ -259,6 +260,13 @@ public interface AnalysisContext {
   @Deprecated
   @DartOmit
   public void getContentsToReceiver(Source source, ContentReceiver receiver) throws Exception;
+
+  /**
+   * Return the set of declared variables used when computing constant values.
+   * 
+   * @return the set of declared variables used when computing constant values
+   */
+  public DeclaredVariables getDeclaredVariables();
 
   /**
    * Return the element referenced by the given location, or {@code null} if the element is not

@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.constant.DeclaredVariables;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisDelta;
@@ -172,6 +173,12 @@ public class TestAnalysisContext implements InternalAnalysisContext {
   @Deprecated
   public void getContentsToReceiver(Source source, ContentReceiver receiver) throws Exception {
     fail("Unexpected invocation of getContentsToReceiver");
+  }
+
+  @Override
+  public DeclaredVariables getDeclaredVariables() {
+    fail("Unexpected invocation of getDeclaredVariables");
+    return null;
   }
 
   @Override

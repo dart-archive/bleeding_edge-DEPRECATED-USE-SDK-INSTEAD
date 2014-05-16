@@ -1,6 +1,7 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.constant.DeclaredVariables;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisDelta;
@@ -113,6 +114,11 @@ public class MockContext implements InternalAnalysisContext {
   }
 
   private AnalysisOptions options = new AnalysisOptionsImpl();
+
+  /**
+   * The set of declared variables used when computing constant values.
+   */
+  private DeclaredVariables declaredVariables = new DeclaredVariables();
 
   private static final String APPLY_CHANGES = "applyChanges";
   private static final String EXTRACT_CONTEXT = "extractContext";
@@ -377,6 +383,11 @@ public class MockContext implements InternalAnalysisContext {
     } else {
       source.getContentsToReceiver(receiver);
     }
+  }
+
+  @Override
+  public DeclaredVariables getDeclaredVariables() {
+    return declaredVariables;
   }
 
   @Override

@@ -474,6 +474,11 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertEquals(content, contents.getData().toString());
   }
 
+  public void test_getDeclaredVariables() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    assertNotNull(context.getDeclaredVariables());
+  }
+
   public void test_getElement() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
