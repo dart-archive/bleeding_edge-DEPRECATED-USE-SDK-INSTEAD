@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.search.ui.FindDeclarationsAction;
+import com.google.dart.tools.internal.search.ui.FindDeclarationsAction_NEW;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniBoxImages;
@@ -121,7 +123,11 @@ public class WhoDeclaresElement extends OmniElement {
 
   @Override
   protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
-    FindDeclarationsAction.doSearch(searchText);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      FindDeclarationsAction_NEW.doSearch(searchText);
+    } else {
+      FindDeclarationsAction.doSearch(searchText);
+    }
   }
 
   protected String getSearchText() {
