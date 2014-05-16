@@ -30,17 +30,20 @@ public class AndroidSdkManager {
 
   private static final String CONTENT_SHELL_APK = "content_shell-android-arm-release.apk";
 
+  private static final String ANDROID_DIRECTORY_NAME = "android";
+
   private static AndroidSdkManager manager = new AndroidSdkManager();
 
   public static AndroidSdkManager getManager() {
     return manager;
   }
 
-  // TODO(keertip): get the apk into the dart-sdk
-  // for now assume apk is in dart-sdk/chromium directory
+  // the apk is in installdir/android
   public String getContentShellApkLocation() {
-    return DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory().getAbsolutePath()
-        + File.separator + CONTENT_SHELL_APK;
+    File androidDir = new File(
+        DartSdkManager.getManager().getSdk().getDirectory().getParentFile(),
+        ANDROID_DIRECTORY_NAME);
+    return androidDir.getAbsolutePath() + File.separator + CONTENT_SHELL_APK;
   }
 
   public String getSdkLocationPreference() {
