@@ -14,7 +14,7 @@ vars.update({
   "chromium_base_revision": "269467",
   "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
-  "multivm_blink_revision": "173994",
+  "multivm_blink_revision": "174207",
 })
 
 def massage_deps(deps):
