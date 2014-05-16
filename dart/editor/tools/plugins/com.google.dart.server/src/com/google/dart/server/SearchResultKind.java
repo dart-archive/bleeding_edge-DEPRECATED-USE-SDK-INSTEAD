@@ -25,6 +25,11 @@ public enum SearchResultKind {
   CLASS_DECLARATION,
 
   /**
+   * A declaration of a class member.
+   */
+  CLASS_MEMBER_DECLARATION,
+
+  /**
    * A reference to a constructor.
    */
   CONSTRUCTOR_REFERENCE,

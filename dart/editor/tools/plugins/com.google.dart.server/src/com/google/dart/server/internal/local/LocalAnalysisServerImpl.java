@@ -58,6 +58,7 @@ import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.TypeHierarchyItem;
+import com.google.dart.server.internal.local.computer.ClassMemberDeclarationsComputer;
 import com.google.dart.server.internal.local.computer.ClassMemberReferencesComputer;
 import com.google.dart.server.internal.local.computer.DartUnitFixesComputer;
 import com.google.dart.server.internal.local.computer.DartUnitHighlightsComputer;
@@ -78,6 +79,7 @@ import com.google.dart.server.internal.local.operation.GetContextOperation;
 import com.google.dart.server.internal.local.operation.GetFixableErrorCodesOperation;
 import com.google.dart.server.internal.local.operation.NotificationOperation;
 import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
+import com.google.dart.server.internal.local.operation.SearchClassMemberDeclarationsOperation;
 import com.google.dart.server.internal.local.operation.SearchClassMemberReferencesOperation;
 import com.google.dart.server.internal.local.operation.SearchElementReferencesOperation;
 import com.google.dart.server.internal.local.operation.SearchTopLevelDeclarationsOperation;
@@ -559,6 +561,15 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   /**
+   * Implementation for {@link #searchClassMemberDeclarations(String, SearchResultsConsumer)}.
+   */
+  public void internalSearchClassMemberDeclarations(String name, SearchResultsConsumer consumer)
+      throws Exception {
+    new ClassMemberDeclarationsComputer(searchEngine, contextToIdFunction, name, consumer).compute();
+    consumer.computed(SearchResult.EMPTY_ARRAY, true);
+  }
+
+  /**
    * Implementation for {@link #searchClassMemberReferences(String, SearchResultsConsumer)}.
    */
   public void internalSearchClassMemberReferences(String name, SearchResultsConsumer consumer)
@@ -666,7 +677,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 
   @Override
   public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer) {
-    // TODO(scheglov) implement
+    operationQueue.add(new SearchClassMemberDeclarationsOperation(name, consumer));
   }
 
   @Override

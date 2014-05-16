@@ -55,6 +55,13 @@ public class SearchResultConverter {
     if (kind == null) {
       return null;
     }
+    return newSearchResult(match, kind, isPotential);
+  }
+
+  /**
+   * Creates a new {@link SearchResult} from the given information.
+   */
+  public SearchResult newSearchResult(SearchMatch match, SearchResultKind kind, boolean isPotential) {
     Element matchElement = match.getElement();
     SourceRange matchRange = match.getSourceRange();
     return newSearchResult(
@@ -143,6 +150,8 @@ public class SearchResultConverter {
         return SearchResultKind.METHOD_INVOCATION;
       case METHOD_REFERENCE:
         return SearchResultKind.METHOD_REFERENCE;
+      case NAME_DECLARATION:
+        return SearchResultKind.CLASS_MEMBER_DECLARATION;
       case TYPE_REFERENCE:
       case FUNCTION_TYPE_REFERENCE:
       case TYPE_PARAMETER_REFERENCE:
