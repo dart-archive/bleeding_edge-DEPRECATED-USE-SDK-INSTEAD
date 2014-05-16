@@ -84,7 +84,6 @@ public class DartUnitFixesComputerTest extends AbstractLocalServerTest {
   }
 
   public void test_removeUnusedImport() throws Exception {
-    server.test_setLog(true);
     String initial = makeSource(//
         "import 'dart:math';",
         "",
@@ -96,6 +95,12 @@ public class DartUnitFixesComputerTest extends AbstractLocalServerTest {
         "}");
     createContextWithSingleSource(initial);
     assert_applySourceProposal(CorrectionKind.QF_REMOVE_UNUSED_IMPORT, expected);
+  }
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    server.test_setLog(true);
   }
 
   @Override
