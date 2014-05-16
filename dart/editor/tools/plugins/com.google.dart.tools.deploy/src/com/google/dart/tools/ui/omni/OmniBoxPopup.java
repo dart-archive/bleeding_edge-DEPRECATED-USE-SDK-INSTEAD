@@ -13,14 +13,16 @@
  */
 package com.google.dart.tools.ui.omni;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.omni.elements.FileProvider;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
 import com.google.dart.tools.ui.omni.elements.TextSearchElement;
 import com.google.dart.tools.ui.omni.elements.TextSearchProvider;
-import com.google.dart.tools.ui.omni.elements.TypeElement;
-import com.google.dart.tools.ui.omni.elements.TypeProvider;
+import com.google.dart.tools.ui.omni.elements.TopLevelElementProvider_NEW;
+import com.google.dart.tools.ui.omni.elements.TypeElement_OLD;
+import com.google.dart.tools.ui.omni.elements.TypeProvider_OLD;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.runtime.Assert;
@@ -763,7 +765,7 @@ public class OmniBoxPopup extends BasePopupDialog {
       Object data = item.getData();
       if (data instanceof OmniEntry) {
         OmniElement element = ((OmniEntry) data).element;
-        if (element instanceof TypeElement) {
+        if (element instanceof TypeElement_OLD) {
           return element;
         }
       }
@@ -867,14 +869,25 @@ public class OmniBoxPopup extends BasePopupDialog {
 
     IProgressMonitor pm = getProgressMonitor();
 
-    return new OmniProposalProvider[] {
-        new PreviousPicksProvider(), new TextSearchProvider(this), new TypeProvider(pm),
-        new FileProvider(pm),
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      return new OmniProposalProvider[] {
+          new PreviousPicksProvider(), new TextSearchProvider(this),
+          new TopLevelElementProvider_NEW(pm), new FileProvider(pm),
 //        new EditorProvider(),
 //        new ActionProvider(),
 //        new PreferenceProvider(),
 //        new ViewProvider()
-    };
+      };
+    } else {
+      return new OmniProposalProvider[] {
+          new PreviousPicksProvider(), new TextSearchProvider(this), new TypeProvider_OLD(pm),
+          new FileProvider(pm),
+//        new EditorProvider(),
+//        new ActionProvider(),
+//        new PreferenceProvider(),
+//        new ViewProvider()
+      };
+    }
   }
 
   private OmniEntry getCurrentSelection() {
@@ -977,9 +990,16 @@ public class OmniBoxPopup extends BasePopupDialog {
     //to ensure a refresh --- if/when other provides go async, this special casing should 
     //get generalized
     for (OmniProposalProvider provider : providers) {
-      if (provider instanceof TypeProvider) {
-        needsRefresh = !((TypeProvider) provider).isSearchComplete();
-        provider.reset();
+      if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        if (provider instanceof TypeProvider_OLD) {
+          needsRefresh = !((TypeProvider_OLD) provider).isSearchComplete();
+          provider.reset();
+        }
+      } else {
+        if (provider instanceof TopLevelElementProvider_NEW) {
+          needsRefresh = !((TopLevelElementProvider_NEW) provider).isSearchComplete();
+          provider.reset();
+        }
       }
     }
 

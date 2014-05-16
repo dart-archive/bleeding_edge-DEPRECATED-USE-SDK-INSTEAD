@@ -36,6 +36,31 @@ public class ElementLabelProvider_NEW extends LabelProvider implements
   private static final ImageDescriptorRegistry registry = DartToolsPlugin.getImageDescriptorRegistry();
   private static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
 
+  public static ImageDescriptor getImageDescriptor(Element element) {
+    ElementKind kind = element.getKind();
+    ImageDescriptor base = getBaseImageDescriptor(kind, element.isPrivate());
+    if (base == null) {
+      return null;
+    }
+    int flags = 0;
+    if (kind == ElementKind.CONSTRUCTOR) {
+      flags |= DartElementImageDescriptor.CONSTRUCTOR;
+    }
+    if (kind == ElementKind.GETTER) {
+      flags |= DartElementImageDescriptor.GETTER;
+    }
+    if (kind == ElementKind.SETTER) {
+      flags |= DartElementImageDescriptor.SETTER;
+    }
+    if (element.isAbstract()) {
+      flags |= DartElementImageDescriptor.ABSTRACT;
+    }
+    if (element.isStatic()) {
+      flags |= DartElementImageDescriptor.STATIC;
+    }
+    return new DartElementImageDescriptor(base, flags, SIZE);
+  }
+
   private static ImageDescriptor getBaseImageDescriptor(ElementKind kind, boolean isPrivate) {
     if (kind == ElementKind.CLASS || kind == ElementKind.CLASS_TYPE_ALIAS) {
       return isPrivate ? DartPluginImages.DESC_DART_CLASS_PRIVATE
@@ -67,31 +92,6 @@ public class ElementLabelProvider_NEW extends LabelProvider implements
       return DartPluginImages.DESC_DART_TEST_GROUP;
     }
     return null;
-  }
-
-  private static ImageDescriptor getImageDescriptor(Element element) {
-    ElementKind kind = element.getKind();
-    ImageDescriptor base = getBaseImageDescriptor(kind, element.isPrivate());
-    if (base == null) {
-      return null;
-    }
-    int flags = 0;
-    if (kind == ElementKind.CONSTRUCTOR) {
-      flags |= DartElementImageDescriptor.CONSTRUCTOR;
-    }
-    if (kind == ElementKind.GETTER) {
-      flags |= DartElementImageDescriptor.GETTER;
-    }
-    if (kind == ElementKind.SETTER) {
-      flags |= DartElementImageDescriptor.SETTER;
-    }
-    if (element.isAbstract()) {
-      flags |= DartElementImageDescriptor.ABSTRACT;
-    }
-    if (element.isStatic()) {
-      flags |= DartElementImageDescriptor.STATIC;
-    }
-    return new DartElementImageDescriptor(base, flags, SIZE);
   }
 
   @Override

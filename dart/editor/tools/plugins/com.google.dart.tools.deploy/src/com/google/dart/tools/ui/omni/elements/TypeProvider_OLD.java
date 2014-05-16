@@ -41,7 +41,7 @@ import java.util.Set;
 /**
  * Provider for class elements.
  */
-public class TypeProvider extends OmniProposalProvider {
+public class TypeProvider_OLD extends OmniProposalProvider {
 
   /**
    * Place holder to indicate that a search is still in progress.
@@ -103,7 +103,7 @@ public class TypeProvider extends OmniProposalProvider {
 
   private OmniElement searchPlaceHolderElement;
 
-  public TypeProvider(IProgressMonitor progressMonitor) {
+  public TypeProvider_OLD(IProgressMonitor progressMonitor) {
     this.progressMonitor = progressMonitor;
   }
 
@@ -197,8 +197,8 @@ public class TypeProvider extends OmniProposalProvider {
                   return;
                 }
                 // OK, add omni element
-                results.add(new com.google.dart.tools.ui.omni.elements.TypeElement(
-                    TypeProvider.this,
+                results.add(new com.google.dart.tools.ui.omni.elements.TypeElement_OLD(
+                    TypeProvider_OLD.this,
                     element));
               }
 

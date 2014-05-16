@@ -174,7 +174,6 @@ public abstract class OmniElement {
   }
 
   public OmniEntry match(String filter, OmniProposalProvider providerForMatching) {
-
     String sortLabel = getMatchText();
     int index = sortLabel.toLowerCase().indexOf(filter);
     if (index != -1) {
