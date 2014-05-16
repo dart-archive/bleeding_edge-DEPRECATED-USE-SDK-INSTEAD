@@ -30,6 +30,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
@@ -237,9 +238,47 @@ public class ResolverTestCase extends EngineTestCase {
   }
 
   protected CompilationUnit resolveSource(String sourceText) throws AnalysisException {
-    Source source = addSource(sourceText);
+    return resolveSource("/test.dart", sourceText);
+  }
+
+  protected CompilationUnit resolveSource(String fileName, String sourceText)
+      throws AnalysisException {
+    Source source = addNamedSource(fileName, sourceText);
     LibraryElement library = getAnalysisContext().computeLibraryElement(source);
     return getAnalysisContext().resolveCompilationUnit(source, library);
+  }
+
+  protected Source resolveSources(String[] sourceTexts) throws AnalysisException {
+    for (int i = 0; i < sourceTexts.length; i++) {
+      CompilationUnit unit = resolveSource("/lib" + (i + 1) + ".dart", sourceTexts[i]);
+      // reference the source if this is the last source
+      if (i + 1 == sourceTexts.length) {
+        return unit.getElement().getSource();
+      }
+    }
+    return null;
+  }
+
+  protected void resolveWithAndWithoutExperimental(String[] strSources,
+      ErrorCode[] codesWithoutExperimental, ErrorCode[] codesWithExperimental) throws Exception {
+
+    // Setup analysis context as non-experimental
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.setEnableDeferredLoading(false);
+    resetWithOptions(options);
+
+    // Analysis and assertions
+    Source source = resolveSources(strSources);
+    assertErrors(source, codesWithoutExperimental);
+    verify(source);
+
+    // Setup analysis context as experimental
+    reset();
+
+    // Analysis and assertions
+    source = resolveSources(strSources);
+    assertErrors(source, codesWithExperimental);
+    verify(source);
   }
 
   @Override

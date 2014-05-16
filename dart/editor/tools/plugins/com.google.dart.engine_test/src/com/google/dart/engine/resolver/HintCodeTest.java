@@ -13,9 +13,11 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
+import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class HintCodeTest extends ResolverTestCase {
@@ -763,17 +765,17 @@ public class HintCodeTest extends ResolverTestCase {
   }
 
   public void test_importDeferredLibraryWithLoadFunction() throws Exception {
-    addNamedSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "loadLibrary() {}",
-        "f() {}"));
-    Source source = addSource(createSource(//
-        "library root;",
-        "import 'lib1.dart' deferred as lib1;",
-        "main() { lib1.f(); }"));
-    resolve(source);
-    assertErrors(source, HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION);
-    verify(source);
+    resolveWithAndWithoutExperimental(
+        new String[] {createSource(//
+            "library lib1;",
+            "loadLibrary() {}",
+            "f() {}"), //
+            createSource(//
+                "library root;",
+                "import 'lib1.dart' deferred as lib1;",
+                "main() { lib1.f(); }")},
+        new ErrorCode[] {ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED},
+        new ErrorCode[] {HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION});
   }
 
   public void test_invalidAssignment_instanceVariable() throws Exception {
