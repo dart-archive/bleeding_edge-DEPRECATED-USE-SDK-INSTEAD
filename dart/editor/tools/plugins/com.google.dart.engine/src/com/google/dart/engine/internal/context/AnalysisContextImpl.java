@@ -2691,7 +2691,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       } catch (AnalysisException exception) {
         throw exception;
       } catch (Exception exception) {
-        throw new AnalysisException(exception);
+        throw new AnalysisException("Exception", exception);
       }
       state = dartEntry.getState(descriptor);
     }
@@ -2785,7 +2785,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       } catch (AnalysisException exception) {
         throw exception;
       } catch (Exception exception) {
-        throw new AnalysisException(exception);
+        throw new AnalysisException("Exception", exception);
       }
       state = htmlEntry.getState(descriptor);
     }

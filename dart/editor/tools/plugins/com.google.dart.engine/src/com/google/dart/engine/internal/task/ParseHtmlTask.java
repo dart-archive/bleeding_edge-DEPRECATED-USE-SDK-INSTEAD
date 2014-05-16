@@ -191,7 +191,7 @@ public class ParseHtmlTask extends AnalysisTask {
       errors = errorListener.getErrorsForSource(source);
       referencedLibraries = getLibrarySources();
     } catch (Exception exception) {
-      throw new AnalysisException(exception);
+      throw new AnalysisException("Exception", exception);
     }
   }
 

@@ -148,7 +148,7 @@ public class ScanDartTask extends AnalysisTask {
       lineInfo = new LineInfo(scanner.getLineStarts());
       errors = errorListener.getErrorsForSource(source);
     } catch (Exception exception) {
-      throw new AnalysisException(exception);
+      throw new AnalysisException("Exception", exception);
     } finally {
       timeCounterScan.stop();
     }

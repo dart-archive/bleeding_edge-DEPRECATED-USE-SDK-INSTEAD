@@ -101,7 +101,7 @@ public class SDKAnalysisTest extends TestCase {
       Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
       parser.parseCompilationUnit(token);
     } catch (Exception exception) {
-      throw new AnalysisException(exception);
+      throw new AnalysisException("Exception", exception);
     }
   }
 
@@ -112,7 +112,7 @@ public class SDKAnalysisTest extends TestCase {
           context.getContents(source).getData()), errorListener);
       scanner.tokenize();
     } catch (Exception exception) {
-      throw new AnalysisException(exception);
+      throw new AnalysisException("Exception", exception);
     }
   }
 }

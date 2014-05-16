@@ -582,7 +582,7 @@ public class SimpleResolverTest extends ResolverTestCase {
       }
     });
     if (thrownException[0] != null) {
-      throw new AnalysisException(thrownException[0]);
+      throw new AnalysisException("Exception", thrownException[0]);
     }
     assertTrue(found[0]);
   }

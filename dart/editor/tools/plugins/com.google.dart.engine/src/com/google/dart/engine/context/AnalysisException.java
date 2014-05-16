@@ -13,16 +13,21 @@
  */
 package com.google.dart.engine.context;
 
+import com.google.dart.engine.utilities.translation.DartOmit;
+import com.google.dart.engine.utilities.translation.DartOptional;
+
 /**
  * Instances of the class {@code AnalysisException} represent an exception that occurred during the
  * analysis of one or more sources.
  * 
  * @coverage dart.engine
  */
+@DartOmit
 public class AnalysisException extends Exception {
   /**
    * Initialize a newly created exception.
    */
+  @DartOmit
   public AnalysisException() {
     super();
   }
@@ -32,6 +37,7 @@ public class AnalysisException extends Exception {
    * 
    * @param message the message associated with the exception
    */
+  @DartOmit
   public AnalysisException(String message) {
     super(message);
   }
@@ -42,16 +48,7 @@ public class AnalysisException extends Exception {
    * @param message the message associated with the exception
    * @param cause the underlying exception that caused this exception
    */
-  public AnalysisException(String message, Throwable cause) {
+  public AnalysisException(@DartOptional String message, @DartOptional Throwable cause) {
     super(message, cause);
-  }
-
-  /**
-   * Initialize a newly created exception to have the given cause.
-   * 
-   * @param cause the underlying exception that caused this exception
-   */
-  public AnalysisException(Throwable cause) {
-    super(cause);
   }
 }

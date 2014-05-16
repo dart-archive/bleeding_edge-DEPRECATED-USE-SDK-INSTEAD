@@ -276,6 +276,7 @@ public class MainEngine {
           new GuavaSemanticProcessor(context),
           new JUnitSemanticProcessor(context),
           new EngineAnnotationProcessor(context),
+          new EngineExceptionProcessor(context),
           new UniqueMemberNamesSemanticProcessor(context),
           new RenameConstructorsSemanticProcessor(context),
           new EngineSemanticProcessor(context),
@@ -596,6 +597,7 @@ public class MainEngine {
     unit.getDirectives().add(
         importDirective("utilities_collection.dart", null, importShowCombinator("TokenMap")));
     unit.getDirectives().add(importDirective("element.dart", null));
+    unit.getDirectives().add(importDirective("constant.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "ast/") || isEnginePath(file, "utilities/ast/")) {
