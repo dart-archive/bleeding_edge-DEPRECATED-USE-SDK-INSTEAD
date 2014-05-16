@@ -28,6 +28,7 @@ import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
+import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -50,6 +51,57 @@ import java.util.concurrent.TimeUnit;
  * @coverage dart.editor.ui.search
  */
 public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
+  /**
+   * Shows "Search" view with references to non-local elements with given name.
+   */
+  public static void searchNameUses(final String name) {
+    try {
+      SearchView view = (SearchView) DartToolsPlugin.showView(SearchView.ID);
+      view.showPage(new SearchResultPage_NEW(view, "Searching for references...", null) {
+        @Override
+        protected boolean canUseFilterPotential() {
+          return false;
+        }
+
+        @Override
+        protected IProject getCurrentProject() {
+          return findCurrentProject();
+        }
+
+        @Override
+        protected String getQueryElementName() {
+          return name;
+        }
+
+        @Override
+        protected String getQueryKindName() {
+          return "references";
+        }
+
+        @Override
+        protected List<SearchResult> runQuery() {
+          final List<SearchResult> allResults = Lists.newArrayList();
+          final CountDownLatch latch = new CountDownLatch(1);
+          DartCore.getAnalysisServer().searchClassMemberReferences(
+              name,
+              new SearchResultsConsumer() {
+                @Override
+                public void computed(SearchResult[] searchResults, boolean isLastResult) {
+                  Collections.addAll(allResults, searchResults);
+                  if (isLastResult) {
+                    latch.countDown();
+                  }
+                }
+              });
+          Uninterruptibles.awaitUninterruptibly(latch, 15, TimeUnit.MINUTES);
+          return allResults;
+        }
+      });
+    } catch (Throwable e) {
+      ExceptionHandler.handle(e, "Find references", "Exception during search.");
+    }
+  }
+
   /**
    * Finds the "current" project. That is the project of the active editor.
    */
@@ -144,9 +196,8 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
                   }
                 }
               });
-          Uninterruptibles.awaitUninterruptibly(latch, 2000, TimeUnit.MILLISECONDS);
+          Uninterruptibles.awaitUninterruptibly(latch, 15, TimeUnit.MINUTES);
         }
-//        System.out.println(StringUtils.join(allResults, "\n"));
         return allResults;
       }
     });
@@ -155,7 +206,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    // TODO(scheglov)
+    // TODO(scheglov) Analysis Server: implement search for an Element in outline view
 //    Element element = getSelectionElement(selection);
 //    doSearch(element, null);
   }

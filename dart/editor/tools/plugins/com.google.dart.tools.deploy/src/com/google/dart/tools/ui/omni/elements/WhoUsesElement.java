@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.search.ui.FindReferencesAction;
+import com.google.dart.tools.internal.search.ui.FindReferencesAction_NEW;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniBoxImages;
@@ -121,8 +123,11 @@ public class WhoUsesElement extends OmniElement {
 
   @Override
   protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
-    // TODO(scheglov)
-    FindReferencesAction.searchNameUses(searchText);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      FindReferencesAction_NEW.searchNameUses(searchText);
+    } else {
+      FindReferencesAction.searchNameUses(searchText);
+    }
   }
 
   protected String getSearchText() {
