@@ -51,6 +51,7 @@ import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
+import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.SymbolLiteral;
 import com.google.dart.engine.ast.ThisExpression;
@@ -784,42 +785,43 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
       recordPropagatedType(node, staticPropagatedType);
     }
 
+    boolean needPropagatedType = true;
     String methodName = methodNameNode.getName();
-
-    // Future.then(closure) return type is:
-    // 1) the returned Future type, if the closure returns a Future;
-    // 2) Future<valueType>, if the closure returns a value.
     if (methodName.equals("then")) {
       Expression target = node.getRealTarget();
-      Type targetType = target == null ? null : target.getBestType();
-      if (isAsyncFutureType(targetType)) {
-        NodeList<Expression> arguments = node.getArgumentList().getArguments();
-        if (arguments.size() == 1) {
-          // TODO(brianwilkerson) Handle the case where both arguments are provided.
-          Expression closureArg = arguments.get(0);
-          if (closureArg instanceof FunctionExpression) {
-            FunctionExpression closureExpr = (FunctionExpression) closureArg;
-            Type returnType = computePropagatedReturnType(closureExpr.getElement());
-            if (returnType != null) {
-              // prepare the type of the returned Future
-              InterfaceTypeImpl newFutureType;
-              if (isAsyncFutureType(returnType)) {
-                newFutureType = (InterfaceTypeImpl) returnType;
-              } else {
-                InterfaceType futureType = (InterfaceType) targetType;
-                newFutureType = new InterfaceTypeImpl(futureType.getElement());
-                newFutureType.setTypeArguments(new Type[] {returnType});
+      if (target != null) {
+        Type targetType = target.getBestType();
+        if (isAsyncFutureType(targetType)) {
+          // Future.then(closure) return type is:
+          // 1) the returned Future type, if the closure returns a Future;
+          // 2) Future<valueType>, if the closure returns a value.
+          NodeList<Expression> arguments = node.getArgumentList().getArguments();
+          if (arguments.size() == 1) {
+            // TODO(brianwilkerson) Handle the case where both arguments are provided.
+            Expression closureArg = arguments.get(0);
+            if (closureArg instanceof FunctionExpression) {
+              FunctionExpression closureExpr = (FunctionExpression) closureArg;
+              Type returnType = computePropagatedReturnType(closureExpr.getElement());
+              if (returnType != null) {
+                // prepare the type of the returned Future
+                InterfaceTypeImpl newFutureType;
+                if (isAsyncFutureType(returnType)) {
+                  newFutureType = (InterfaceTypeImpl) returnType;
+                } else {
+                  InterfaceType futureType = (InterfaceType) targetType;
+                  newFutureType = new InterfaceTypeImpl(futureType.getElement());
+                  newFutureType.setTypeArguments(new Type[] {returnType});
+                }
+                // set the 'then' invocation type
+                recordPropagatedType(node, newFutureType);
+                needPropagatedType = false;
+                return null;
               }
-              // set the 'then' invocation type
-              recordPropagatedType(node, newFutureType);
-              return null;
             }
           }
         }
       }
-    }
-
-    if (methodName.equals("$dom_createEvent")) {
+    } else if (methodName.equals("$dom_createEvent")) {
       Expression target = node.getRealTarget();
       if (target != null) {
         Type targetType = target.getBestType();
@@ -831,6 +833,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
             Type returnType = getFirstArgumentAsType(library, node.getArgumentList());
             if (returnType != null) {
               recordPropagatedType(node, returnType);
+              needPropagatedType = false;
             }
           }
         }
@@ -845,6 +848,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
             Type returnType = getFirstArgumentAsQuery(library, node.getArgumentList());
             if (returnType != null) {
               recordPropagatedType(node, returnType);
+              needPropagatedType = false;
             }
           }
         }
@@ -858,20 +862,25 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
             Type returnType = getFirstArgumentAsQuery(library, node.getArgumentList());
             if (returnType != null) {
               recordPropagatedType(node, returnType);
+              needPropagatedType = false;
             }
           }
         }
       }
     } else if (methodName.equals("$dom_createElement")) {
       Expression target = node.getRealTarget();
-      Type targetType = target.getBestType();
-      if (targetType instanceof InterfaceType
-          && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals("Document"))) {
-        LibraryElement library = targetType.getElement().getLibrary();
-        if (isHtmlLibrary(library)) {
-          Type returnType = getFirstArgumentAsQuery(library, node.getArgumentList());
-          if (returnType != null) {
-            recordPropagatedType(node, returnType);
+      if (target != null) {
+        Type targetType = target.getBestType();
+        if (targetType instanceof InterfaceType
+            && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals(
+                "Document"))) {
+          LibraryElement library = targetType.getElement().getLibrary();
+          if (isHtmlLibrary(library)) {
+            Type returnType = getFirstArgumentAsQuery(library, node.getArgumentList());
+            if (returnType != null) {
+              recordPropagatedType(node, returnType);
+              needPropagatedType = false;
+            }
           }
         }
       }
@@ -881,8 +890,35 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
           node.getArgumentList());
       if (returnType != null) {
         recordPropagatedType(node, returnType);
+        needPropagatedType = false;
       }
-    } else {
+    } else if (methodName.equals("getContext")) {
+      Expression target = node.getRealTarget();
+      if (target != null) {
+        Type targetType = target.getBestType();
+        if (targetType instanceof InterfaceType && (targetType.getName().equals("CanvasElement"))) {
+          NodeList<Expression> arguments = node.getArgumentList().getArguments();
+          if (arguments.size() == 1) {
+            Expression argument = arguments.get(0);
+            if (argument instanceof StringLiteral) {
+              String value = ((StringLiteral) argument).getStringValue();
+              if ("2d".equals(value)) {
+                PropertyAccessorElement getter = ((InterfaceType) targetType).getElement().getGetter(
+                    "context2D");
+                if (getter != null) {
+                  Type returnType = getter.getReturnType();
+                  if (returnType != null) {
+                    recordPropagatedType(node, returnType);
+                    needPropagatedType = false;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if (needPropagatedType) {
       Element propagatedElement = methodNameNode.getPropagatedElement();
       if (propagatedElement != staticMethodElement) {
         // Record static return type of the propagated element.

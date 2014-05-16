@@ -170,6 +170,22 @@ public class TypePropagationTest extends ResolverTestCase {
     }
   }
 
+  public void test_CanvasElement_getContext() throws Exception {
+    String code = createSource(//
+        "import 'dart:html';",
+        "main(CanvasElement canvas) {",
+        "  var context = canvas.getContext('2d');",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+
+    SimpleIdentifier identifier = findNode(unit, code, "context", SimpleIdentifier.class);
+    assertEquals("CanvasRenderingContext2D", identifier.getPropagatedType().getName());
+  }
+
   public void test_forEach() throws Exception {
     String code = createSource(//
         "main() {",

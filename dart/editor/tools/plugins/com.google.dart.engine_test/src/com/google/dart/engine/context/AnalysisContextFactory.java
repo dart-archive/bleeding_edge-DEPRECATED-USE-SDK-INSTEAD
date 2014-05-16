@@ -43,6 +43,7 @@ import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
 import static com.google.dart.engine.element.ElementFactory.functionElement;
+import static com.google.dart.engine.element.ElementFactory.getterElement;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
 import static com.google.dart.engine.element.ElementFactory.methodElementWithParameters;
 import static com.google.dart.engine.element.ElementFactory.namedParameter;
@@ -208,6 +209,18 @@ public final class AnalysisContextFactory {
     htmlUnit.setSource(htmlSource);
     ClassElementImpl elementElement = classElement("Element");
     InterfaceType elementType = elementElement.getType();
+    ClassElementImpl canvasElement = classElement("CanvasElement", elementType);
+    ClassElementImpl contextElement = classElement("CanvasRenderingContext");
+    InterfaceType contextElementType = contextElement.getType();
+    ClassElementImpl context2dElement = classElement("CanvasRenderingContext2D", contextElementType);
+    canvasElement.setMethods(new MethodElement[] {methodElement(
+        "getContext",
+        contextElementType,
+        provider.getStringType())});
+    canvasElement.setAccessors(new PropertyAccessorElement[] {getterElement(
+        "context2D",
+        false,
+        context2dElement.getType())});
     ClassElementImpl documentElement = classElement("Document", elementType);
     ClassElementImpl htmlDocumentElement = classElement("HtmlDocument", documentElement.getType());
     htmlDocumentElement.setMethods(new MethodElement[] {methodElement(
@@ -216,9 +229,10 @@ public final class AnalysisContextFactory {
         new Type[] {provider.getStringType()})});
     htmlUnit.setTypes(new ClassElement[] {
         classElement("AnchorElement", elementType), classElement("BodyElement", elementType),
-        classElement("ButtonElement", elementType), classElement("DivElement", elementType),
-        documentElement, elementElement, htmlDocumentElement,
-        classElement("InputElement", elementType), classElement("SelectElement", elementType)});
+        classElement("ButtonElement", elementType), canvasElement, contextElement,
+        context2dElement, classElement("DivElement", elementType), documentElement, elementElement,
+        htmlDocumentElement, classElement("InputElement", elementType),
+        classElement("SelectElement", elementType)});
     htmlUnit.setFunctions(new FunctionElement[] {functionElement(
         "query",
         elementElement,
