@@ -55,6 +55,18 @@ public interface AnalysisServer {
   public void applyChanges(String contextId, ChangeSet changeSet);
 
   /**
+   * Computes code completion suggestions at the given position in the {@link Source}. The given
+   * consumer is invoked asynchronously on a different thread.
+   * 
+   * @param contextId the identifier of the context to compute hierarchy within
+   * @param source the {@link Source} to perform refactorings within
+   * @param offset the offset within the {@code source}
+   * @param consumer the results listener
+   */
+  public void computeCompletionSuggestions(String contextId, Source source, int offset,
+      CompletionSuggestionsConsumer consumer);
+
+  /**
    * Computes the set of fixes that are available for problems related to the given error. The given
    * consumer is invoked asynchronously on a different thread.
    * 

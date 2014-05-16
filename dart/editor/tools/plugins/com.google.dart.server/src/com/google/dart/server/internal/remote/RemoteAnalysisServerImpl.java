@@ -7,6 +7,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.CompletionSuggestionsConsumer;
 import com.google.dart.server.Element;
 import com.google.dart.server.FixableErrorCodesConsumer;
 import com.google.dart.server.FixesConsumer;
@@ -39,6 +40,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void applyChanges(String contextId, ChangeSet changeSet) {
     // TODO (jwren) implement
+  }
+
+  @Override
+  public void computeCompletionSuggestions(String contextId, Source source, int offset,
+      CompletionSuggestionsConsumer consumer) {
+    // TODO(scheglov) implement
   }
 
   @Override
@@ -125,5 +132,4 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     // TODO (jwren) implement
     return null;
   }
-
 }

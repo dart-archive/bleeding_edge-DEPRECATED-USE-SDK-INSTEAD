@@ -47,6 +47,7 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.CompletionSuggestionsConsumer;
 import com.google.dart.server.Element;
 import com.google.dart.server.FixableErrorCodesConsumer;
 import com.google.dart.server.FixesConsumer;
@@ -258,6 +259,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @Override
   public void applyChanges(String contextId, ChangeSet changeSet) {
     operationQueue.add(new ApplyChangesOperation(contextId, changeSet));
+  }
+
+  @Override
+  public void computeCompletionSuggestions(String contextId, Source source, int offset,
+      CompletionSuggestionsConsumer consumer) {
+    // TODO(scheglov) implement
   }
 
   @Override
