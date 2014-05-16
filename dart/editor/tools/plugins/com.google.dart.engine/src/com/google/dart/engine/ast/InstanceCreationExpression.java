@@ -165,7 +165,7 @@ public class InstanceCreationExpression extends Expression {
    * @param constructorName the name of the constructor to be invoked
    */
   public void setConstructorName(ConstructorName constructorName) {
-    this.constructorName = constructorName;
+    this.constructorName = becomeParentOf(constructorName);
   }
 
   /**

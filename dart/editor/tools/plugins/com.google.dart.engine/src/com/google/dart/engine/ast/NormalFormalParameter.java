@@ -114,6 +114,16 @@ public abstract class NormalFormalParameter extends FormalParameter {
     this.identifier = becomeParentOf(identifier);
   }
 
+  /**
+   * Set the metadata associated with this node to the given metadata.
+   * 
+   * @param metadata the metadata to be associated with this node
+   */
+  public void setMetadata(List<Annotation> metadata) {
+    this.metadata.clear();
+    this.metadata.addAll(metadata);
+  }
+
   @Override
   public void visitChildren(AstVisitor<?> visitor) {
     //

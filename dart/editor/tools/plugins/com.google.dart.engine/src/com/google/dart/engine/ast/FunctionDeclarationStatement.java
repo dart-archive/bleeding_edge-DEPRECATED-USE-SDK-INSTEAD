@@ -65,7 +65,7 @@ public class FunctionDeclarationStatement extends Statement {
    * 
    * @param functionDeclaration the function declaration being wrapped
    */
-  public void setFunctionExpression(FunctionDeclaration functionDeclaration) {
+  public void setFunctionDeclaration(FunctionDeclaration functionDeclaration) {
     this.functionDeclaration = becomeParentOf(functionDeclaration);
   }
 

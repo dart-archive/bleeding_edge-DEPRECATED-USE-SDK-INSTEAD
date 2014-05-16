@@ -304,7 +304,7 @@ public class ForStatement extends Statement {
    * @param variableList the declaration of the loop variables
    */
   public void setVariables(VariableDeclarationList variableList) {
-    variableList = becomeParentOf(variableList);
+    this.variableList = becomeParentOf(variableList);
   }
 
   @Override

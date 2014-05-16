@@ -87,7 +87,7 @@ public class CommentReference extends AstNode {
    * @param identifier the identifier being referenced
    */
   public void setIdentifier(Identifier identifier) {
-    identifier = becomeParentOf(identifier);
+    this.identifier = becomeParentOf(identifier);
   }
 
   /**

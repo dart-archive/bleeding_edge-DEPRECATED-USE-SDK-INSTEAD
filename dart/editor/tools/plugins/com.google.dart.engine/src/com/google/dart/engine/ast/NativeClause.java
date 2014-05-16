@@ -45,7 +45,7 @@ public class NativeClause extends AstNode {
    */
   public NativeClause(Token keyword, StringLiteral name) {
     this.keyword = keyword;
-    this.name = name;
+    this.name = becomeParentOf(name);
   }
 
   @Override
@@ -96,7 +96,7 @@ public class NativeClause extends AstNode {
    * @param name the name of the native object that implements the class.
    */
   public void setName(StringLiteral name) {
-    this.name = name;
+    this.name = becomeParentOf(name);
   }
 
   @Override

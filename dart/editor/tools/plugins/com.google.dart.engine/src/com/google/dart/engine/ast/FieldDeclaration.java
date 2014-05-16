@@ -87,6 +87,15 @@ public class FieldDeclaration extends ClassMember {
   }
 
   /**
+   * Return the semicolon terminating the declaration.
+   * 
+   * @return the semicolon terminating the declaration
+   */
+  public Token getSemicolon() {
+    return semicolon;
+  }
+
+  /**
    * Return the token representing the 'static' keyword, or {@code null} if the fields are not
    * static.
    * 
@@ -94,15 +103,6 @@ public class FieldDeclaration extends ClassMember {
    */
   public Token getStaticKeyword() {
     return staticKeyword;
-  }
-
-  /**
-   * Return the semicolon terminating the declaration.
-   * 
-   * @return the semicolon terminating the declaration
-   */
-  public Token getSemicolon() {
-    return semicolon;
   }
 
   /**
@@ -120,16 +120,7 @@ public class FieldDeclaration extends ClassMember {
    * @param fieldList the fields being declared
    */
   public void setFields(VariableDeclarationList fieldList) {
-    fieldList = becomeParentOf(fieldList);
-  }
-
-  /**
-   * Set the token representing the 'static' keyword to the given token.
-   * 
-   * @param keyword the token representing the 'static' keyword
-   */
-  public void setStaticKeyword(Token keyword) {
-    this.staticKeyword = keyword;
+    this.fieldList = becomeParentOf(fieldList);
   }
 
   /**
@@ -139,6 +130,15 @@ public class FieldDeclaration extends ClassMember {
    */
   public void setSemicolon(Token semicolon) {
     this.semicolon = semicolon;
+  }
+
+  /**
+   * Set the token representing the 'static' keyword to the given token.
+   * 
+   * @param keyword the token representing the 'static' keyword
+   */
+  public void setStaticKeyword(Token keyword) {
+    this.staticKeyword = keyword;
   }
 
   @Override

@@ -137,6 +137,15 @@ public class DeclaredIdentifier extends Declaration {
   }
 
   /**
+   * Set the name of the variable being declared to the given name.
+   * 
+   * @param identifier the new name of the variable being declared
+   */
+  public void setIdentifier(SimpleIdentifier identifier) {
+    this.identifier = becomeParentOf(identifier);
+  }
+
+  /**
    * Set the token representing either the 'final', 'const' or 'var' keyword to the given token.
    * 
    * @param keyword the token representing either the 'final', 'const' or 'var' keyword

@@ -98,6 +98,15 @@ public class NativeFunctionBody extends FunctionBody {
     return stringLiteral;
   }
 
+  /**
+   * Set the string literal representing the string after the 'native' token to the given string.
+   * 
+   * @param stringLiteral the string literal representing the string after the 'native' token
+   */
+  public void setStringLiteral(StringLiteral stringLiteral) {
+    this.stringLiteral = becomeParentOf(stringLiteral);
+  }
+
   @Override
   public void visitChildren(AstVisitor<?> visitor) {
     safelyVisitChild(stringLiteral, visitor);

@@ -372,7 +372,7 @@ public class ClassDeclaration extends CompilationUnitMember {
    * @param nativeClause the native clause for this class
    */
   public void setNativeClause(NativeClause nativeClause) {
-    this.nativeClause = nativeClause;
+    this.nativeClause = becomeParentOf(nativeClause);
   }
 
   /**
@@ -390,7 +390,7 @@ public class ClassDeclaration extends CompilationUnitMember {
    * @param typeParameters the type parameters for the class
    */
   public void setTypeParameters(TypeParameterList typeParameters) {
-    this.typeParameters = typeParameters;
+    this.typeParameters = becomeParentOf(typeParameters);
   }
 
   /**

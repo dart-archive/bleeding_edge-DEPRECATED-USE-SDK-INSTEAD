@@ -463,6 +463,18 @@ public final class AstFactory {
         body);
   }
 
+  public static ForEachStatement forEachStatement(SimpleIdentifier identifier, Expression iterator,
+      Statement body) {
+    return new ForEachStatement(
+        tokenFromKeyword(Keyword.FOR),
+        tokenFromType(TokenType.OPEN_PAREN),
+        identifier,
+        tokenFromKeyword(Keyword.IN),
+        iterator,
+        tokenFromType(TokenType.CLOSE_PAREN),
+        body);
+  }
+
   public static FormalParameterList formalParameterList(FormalParameter... parameters) {
     return new FormalParameterList(
         tokenFromType(TokenType.OPEN_PAREN),
@@ -732,7 +744,7 @@ public final class AstFactory {
       Expression... elements) {
     return new ListLiteral(
         keyword == null ? null : tokenFromKeyword(keyword),
-        null,
+        typeArguments,
         tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
         list(elements),
         tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));

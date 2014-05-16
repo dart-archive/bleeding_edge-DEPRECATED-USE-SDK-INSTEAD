@@ -85,7 +85,7 @@ public abstract class TypedLiteral extends Literal {
    * @param typeArguments the type argument associated with this literal
    */
   public void setTypeArguments(TypeArgumentList typeArguments) {
-    this.typeArguments = typeArguments;
+    this.typeArguments = becomeParentOf(typeArguments);
   }
 
   @Override

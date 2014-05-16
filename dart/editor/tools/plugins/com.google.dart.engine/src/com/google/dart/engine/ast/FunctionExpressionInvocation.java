@@ -157,7 +157,7 @@ public class FunctionExpressionInvocation extends Expression {
    * @param function the expression producing the function being invoked
    */
   public void setFunction(Expression function) {
-    function = becomeParentOf(function);
+    this.function = becomeParentOf(function);
   }
 
   /**

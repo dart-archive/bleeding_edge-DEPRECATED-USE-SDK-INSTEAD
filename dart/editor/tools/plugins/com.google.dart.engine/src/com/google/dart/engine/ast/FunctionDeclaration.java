@@ -180,7 +180,7 @@ public class FunctionDeclaration extends CompilationUnitMember {
    * @param functionExpression the function expression being wrapped
    */
   public void setFunctionExpression(FunctionExpression functionExpression) {
-    functionExpression = becomeParentOf(functionExpression);
+    this.functionExpression = becomeParentOf(functionExpression);
   }
 
   /**
@@ -189,7 +189,7 @@ public class FunctionDeclaration extends CompilationUnitMember {
    * @param identifier the name of the function
    */
   public void setName(SimpleIdentifier identifier) {
-    name = becomeParentOf(identifier);
+    this.name = becomeParentOf(identifier);
   }
 
   /**
@@ -204,10 +204,10 @@ public class FunctionDeclaration extends CompilationUnitMember {
   /**
    * Set the return type of the function to the given name.
    * 
-   * @param name the return type of the function
+   * @param returnType the return type of the function
    */
-  public void setReturnType(TypeName name) {
-    returnType = becomeParentOf(name);
+  public void setReturnType(TypeName returnType) {
+    this.returnType = becomeParentOf(returnType);
   }
 
   @Override

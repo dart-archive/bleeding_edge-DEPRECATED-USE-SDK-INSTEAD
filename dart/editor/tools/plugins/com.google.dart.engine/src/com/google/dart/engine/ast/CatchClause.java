@@ -249,7 +249,7 @@ public class CatchClause extends AstNode {
    * @param exceptionType the type of exceptions caught by this catch clause
    */
   public void setExceptionType(TypeName exceptionType) {
-    this.exceptionType = exceptionType;
+    this.exceptionType = becomeParentOf(exceptionType);
   }
 
   /**
