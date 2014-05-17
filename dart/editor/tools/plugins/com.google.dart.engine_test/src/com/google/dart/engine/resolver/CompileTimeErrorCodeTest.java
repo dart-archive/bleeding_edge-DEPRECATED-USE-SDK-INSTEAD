@@ -3711,6 +3711,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_recursiveInterfaceInheritance_mixin() throws Exception {
+    Source source = addSource(createSource(//
+        "class M1 = Object with M2;",
+        "class M2 = Object with M1;"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
+    verify(source);
+  }
+
   public void test_recursiveInterfaceInheritance_tail() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A implements A {}",
@@ -3771,6 +3783,14 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B = A with M implements B;"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS);
+    verify(source);
+  }
+
+  public void test_recursiveInterfaceInheritanceBaseCaseWith() throws Exception {
+    Source source = addSource(createSource(//
+    "class M = Object with M;"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH);
     verify(source);
   }
 
@@ -4154,26 +4174,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     "typedef A<T extends A>();"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
-    verify(source);
-  }
-
-  public void test_typeAliasCannotRereferenceItself_mixin_direct() throws Exception {
-    Source source = addSource(createSource(//
-    "class M = Object with M;"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
-    verify(source);
-  }
-
-  public void test_typeAliasCannotRereferenceItself_mixin_indirect() throws Exception {
-    Source source = addSource(createSource(//
-        "class M1 = Object with M2;",
-        "class M2 = Object with M1;"));
-    resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
     verify(source);
   }
 

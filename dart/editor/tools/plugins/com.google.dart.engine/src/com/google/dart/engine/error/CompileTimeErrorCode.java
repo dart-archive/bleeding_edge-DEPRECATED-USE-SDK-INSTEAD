@@ -1187,6 +1187,18 @@ public enum CompileTimeErrorCode implements ErrorCode {
   RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS("'%s' cannot implement itself"),
 
   /**
+   * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
+   * superinterface of itself.
+   * <p>
+   * 8.1 Superinterfaces: It is a compile-time error if an interface is a superinterface of itself.
+   * <p>
+   * 7.9 Superclasses: It is a compile-time error if a class <i>C</i> is a superclass of itself.
+   * 
+   * @param className the name of the class that implements itself recursively
+   */
+  RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH("'%s' cannot use itself as a mixin"),
+
+  /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
    * <i>k'</i> is not a constant constructor.
    */

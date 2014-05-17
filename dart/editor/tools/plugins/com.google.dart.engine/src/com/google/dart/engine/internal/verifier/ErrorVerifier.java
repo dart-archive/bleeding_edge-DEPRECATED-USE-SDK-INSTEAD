@@ -622,7 +622,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         checkForExtendsDeferredClassInTypeAlias(node);
         checkForImplementsDeferredClass(implementsClause);
         checkForRecursiveInterfaceInheritance(enclosingClass);
-        checkForTypeAliasCannotReferenceItself_mixin(node);
         checkForNonAbstractClassInheritsAbstractMember(node.getName());
       }
     } finally {
@@ -5108,21 +5107,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
-   * This verifies that the given class type alias does not reference itself.
-   * 
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
-   */
-  private boolean checkForTypeAliasCannotReferenceItself_mixin(ClassTypeAlias node) {
-    ClassElement element = node.getElement();
-    if (!hasTypedefSelfReference(element)) {
-      return false;
-    }
-    errorReporter.reportErrorForNode(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node);
-    return true;
-  }
-
-  /**
    * This verifies that the passed type name is not a deferred type.
    * 
    * @param expression the expression to evaluate
@@ -5565,6 +5549,26 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
+   * Return the error code that should be used when the given class references itself directly.
+   * 
+   * @param classElt the class that references itself
+   * @return the error code that should be used
+   */
+  private ErrorCode getBaseCaseErrorCode(ClassElement classElt) {
+    InterfaceType supertype = classElt.getSupertype();
+    if (supertype != null && enclosingClass.equals(supertype.getElement())) {
+      return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS;
+    }
+    InterfaceType[] mixins = classElt.getMixins();
+    for (int i = 0; i < mixins.length; i++) {
+      if (enclosingClass.equals(mixins[i].getElement())) {
+        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH;
+      }
+    }
+    return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS;
+  }
+
+  /**
    * Returns the Type (return type) for a given getter.
    * 
    * @param propertyAccessorElement
@@ -5870,11 +5874,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     return false;
   }
 
-  private boolean isUserDefinedObject(EvaluationResultImpl result) {
-    return result == null
-        || (result instanceof ValidResult && ((ValidResult) result).isUserDefinedObject());
-  }
-
 //
 //  /**
 //   * Return {@code true} iff the passed {@link ClassElement} has a concrete implementation of the
@@ -5966,6 +5965,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 //    return false;
 //  }
 
+  private boolean isUserDefinedObject(EvaluationResultImpl result) {
+    return result == null
+        || (result instanceof ValidResult && ((ValidResult) result).isUserDefinedObject());
+  }
+
   /**
    * This checks the class declaration is not a superinterface to itself.
    * 
@@ -5975,6 +5979,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE
    * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
    * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS
+   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
    */
   private boolean safeCheckForRecursiveInterfaceInheritance(ClassElement classElt,
       ArrayList<ClassElement> path) {
@@ -6001,13 +6006,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
             builder.toString());
         return true;
       } else { // size == 1
-        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
-        InterfaceType supertype = classElt.getSupertype();
-        ErrorCode errorCode = supertype != null && enclosingClass.equals(supertype.getElement())
-            ? CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
-            : CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS;
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS or
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
         errorReporter.reportErrorForOffset(
-            errorCode,
+            getBaseCaseErrorCode(classElt),
             enclosingClass.getNameOffset(),
             enclosingClassName.length(),
             enclosingClassName);
@@ -6027,6 +6030,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     InterfaceType[] interfaceTypes = classElt.getInterfaces();
     for (InterfaceType interfaceType : interfaceTypes) {
       if (safeCheckForRecursiveInterfaceInheritance(interfaceType.getElement(), path)) {
+        return true;
+      }
+    }
+    InterfaceType[] mixinTypes = classElt.getMixins();
+    for (InterfaceType mixinType : mixinTypes) {
+      if (safeCheckForRecursiveInterfaceInheritance(mixinType.getElement(), path)) {
         return true;
       }
     }
