@@ -19,7 +19,7 @@ package com.google.dart.server;
  * 
  * @coverage dart.server
  */
-public interface CompletionSuggestionsConsumer {
+public interface CompletionSuggestionsConsumer extends Consumer {
   /**
    * A set of the fixable {@link CompletionSuggestion}s has been computed.
    * 

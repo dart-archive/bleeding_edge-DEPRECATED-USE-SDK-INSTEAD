@@ -21,7 +21,7 @@ import com.google.dart.engine.error.ErrorCode;
  * 
  * @coverage dart.server
  */
-public interface FixableErrorCodesConsumer {
+public interface FixableErrorCodesConsumer extends Consumer {
   /**
    * A set of the fixable {@link ErrorCode}s has been computed. Note that not every fixable
    * {@link ErrorCode} can be always fixed.

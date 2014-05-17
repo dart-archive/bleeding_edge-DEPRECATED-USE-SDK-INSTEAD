@@ -13,20 +13,10 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.services.correction.CorrectionProposal;
-
 /**
- * The interface {@code MinorRefactoringsConsumer} defines the behavior of objects that consume
- * minor refactorings {@link CorrectionProposal}s.
+ * The interface {@code Consumer} is a marker interface for all consumers interfaces.
  * 
  * @coverage dart.server
  */
-public interface MinorRefactoringsConsumer extends Consumer {
-  /**
-   * A set {@link CorrectionProposal}s has been computed.
-   * 
-   * @param proposals an array of computed {@link CorrectionProposal}s
-   * @param isLastResult is {@code true} if this is the last set of results
-   */
-  public void computedProposals(CorrectionProposal[] proposals, boolean isLastResult);
+public interface Consumer {
 }

@@ -24,7 +24,7 @@ import java.util.Map;
  * 
  * @coverage dart.server
  */
-public interface FixesConsumer {
+public interface FixesConsumer extends Consumer {
   /**
    * A set fixes has been computed. Note that not every {@link AnalysisError} can be fixed, so not
    * for all of the any fixes will be returned.

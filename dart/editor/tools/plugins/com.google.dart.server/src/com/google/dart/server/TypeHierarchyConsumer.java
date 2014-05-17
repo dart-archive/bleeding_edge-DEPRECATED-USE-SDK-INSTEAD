@@ -19,7 +19,7 @@ package com.google.dart.server;
  * 
  * @coverage dart.server
  */
-public interface TypeHierarchyConsumer {
+public interface TypeHierarchyConsumer extends Consumer {
   /**
    * Type hierarchy has been computed.
    * 

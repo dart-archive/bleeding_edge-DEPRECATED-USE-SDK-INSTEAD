@@ -19,7 +19,7 @@ package com.google.dart.server;
  * 
  * @coverage dart.server
  */
-public interface SearchResultsConsumer {
+public interface SearchResultsConsumer extends Consumer {
   /**
    * {@link SearchResult}s have been computed.
    * 
