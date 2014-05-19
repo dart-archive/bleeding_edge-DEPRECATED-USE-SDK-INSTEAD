@@ -30,6 +30,7 @@ import com.google.dart.server.FixableErrorCodesConsumer;
 import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.SourceSet;
+import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.local.operation.ServerOperation;
 import com.google.dart.server.internal.local.operation.ServerOperationPriority;
 
@@ -151,7 +152,12 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
   }
 
   public void test_getVersion() throws Exception {
-    assertEquals("0.0.1", server.version());
+    server.version(new VersionConsumer() {
+      @Override
+      public void computedVersion(String version) {
+        assertEquals("0.0.1", version);
+      }
+    });
   }
 
   public void test_internal_getContext() throws Exception {

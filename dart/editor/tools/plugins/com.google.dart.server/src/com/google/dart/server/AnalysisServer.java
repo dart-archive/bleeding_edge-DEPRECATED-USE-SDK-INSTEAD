@@ -219,7 +219,7 @@ public interface AnalysisServer {
   /**
    * Return the version number of the analysis server.
    * 
-   * @return the version number of the analysis server
+   * @param consumer the results listener
    */
-  public String version();
+  public void version(VersionConsumer consumer);
 }

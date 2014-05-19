@@ -11,16 +11,19 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.server.internal.remote;
+package com.google.dart.server.internal.integration;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(com.google.dart.server.internal.remote.utilities.TestAll.suite());
-    suite.addTestSuite(RemoteAnalysisServerImplTest.class);
-    return suite;
+public class LocalAnalysisServerImplIntegrationTest extends AbstractServerIntegrationTest {
+
+  @Override
+  protected void initServer() {
+    server = new LocalAnalysisServerImpl();
+  }
+
+  @Override
+  protected void waitForAllServerResponses() throws Exception {
+    ((LocalAnalysisServerImpl) server).test_waitForWorkerComplete();
   }
 }

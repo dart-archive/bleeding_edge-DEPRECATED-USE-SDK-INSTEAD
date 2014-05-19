@@ -60,6 +60,7 @@ import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.TypeHierarchyItem;
+import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.local.computer.ClassMemberDeclarationsComputer;
 import com.google.dart.server.internal.local.computer.ClassMemberReferencesComputer;
 import com.google.dart.server.internal.local.computer.DartUnitCompletionSuggestionsComputer;
@@ -797,8 +798,8 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   @Override
-  public String version() {
-    return VERSION;
+  public void version(VersionConsumer consumer) {
+    consumer.computedVersion(VERSION);
   }
 
   /**

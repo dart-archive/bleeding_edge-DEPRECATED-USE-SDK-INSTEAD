@@ -11,16 +11,19 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.server.internal.remote;
+package com.google.dart.server;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(com.google.dart.server.internal.remote.utilities.TestAll.suite());
-    suite.addTestSuite(RemoteAnalysisServerImplTest.class);
-    return suite;
-  }
+/**
+ * The interface {@code VersionConsumer} defines the behavior of objects that consume the
+ * {@link String} version.
+ * 
+ * @coverage dart.server
+ */
+public interface VersionConsumer extends Consumer {
+  /**
+   * The {@link String} version that has been retrieved.
+   * 
+   * @param version the {@link String} version that has been retrieved
+   */
+  public void computedVersion(String version);
 }
