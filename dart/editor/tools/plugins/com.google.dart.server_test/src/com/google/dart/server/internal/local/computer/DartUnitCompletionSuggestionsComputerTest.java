@@ -17,6 +17,7 @@ package com.google.dart.server.internal.local.computer;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.CompletionSuggestionKind;
 import com.google.dart.server.CompletionSuggestionsConsumer;
@@ -56,12 +57,14 @@ public class DartUnitCompletionSuggestionsComputerTest extends AbstractLocalServ
     {
       CompletionSuggestion suggestion = assertHasSuggestion("AAA");
       assertSame(CompletionSuggestionKind.CLASS, suggestion.getKind());
+      String actual = suggestion.getComment();
+      actual = StringUtils.replace(actual, OSUtilities.LINE_SEPARATOR, "\n");
       assertEquals(makeSource(//
           "/**",
           " * 000",
           " * 111",
           " * 222",
-          " */"), suggestion.getComment());
+          " */"), actual);
     }
   }
 
@@ -80,10 +83,12 @@ public class DartUnitCompletionSuggestionsComputerTest extends AbstractLocalServ
     {
       CompletionSuggestion suggestion = assertHasSuggestion("AAA");
       assertSame(CompletionSuggestionKind.CLASS, suggestion.getKind());
+      String actual = suggestion.getComment();
+      actual = StringUtils.replace(actual, OSUtilities.LINE_SEPARATOR, "\n");
       assertEquals(makeSource(//
           "/// 000",
           "/// 111",
-          "/// 222"), suggestion.getComment());
+          "/// 222"), actual);
     }
   }
 
