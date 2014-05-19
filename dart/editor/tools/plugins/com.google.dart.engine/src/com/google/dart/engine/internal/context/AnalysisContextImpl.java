@@ -5635,12 +5635,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry == null) {
       sourceEntry = createSourceEntry(source, true);
     } else {
-      SourceEntryImpl sourceCopy = sourceEntry.getWritableCopy();
-      long newTime = getModificationStamp(source);
-      sourceCopy.setModificationTime(newTime);
-      sourceCopy.setExplicitlyAdded(true);
-      // TODO(brianwilkerson) Understand why we're not invalidating the cached data.
-      cache.put(source, sourceCopy);
+      sourceChanged(source);
+      sourceEntry = cache.get(source);
     }
     if (sourceEntry instanceof HtmlEntry) {
       workManager.add(source, SourcePriority.HTML);
@@ -5678,7 +5674,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
 
       for (Source library : librariesToInvalidate) {
-//    for (Source library : containingLibraries) {
         invalidateLibraryResolution(library);
       }
 
