@@ -647,6 +647,27 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source, source2);
   }
 
+  public void test_unusedImport_as_equalPrefixes() throws Exception {
+    // 18818
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart' as one;",
+        "import 'lib2.dart' as one;",
+        "one.A a;",
+        "one.B b;"));
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source3 = addNamedSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class B {}"));
+    resolve(source);
+    assertErrors(source);
+    assertNoErrors(source2);
+    assertNoErrors(source3);
+    verify(source, source2, source3);
+  }
+
   public void test_unusedImport_core_library() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
@@ -736,8 +757,8 @@ public class NonHintCodeTest extends ResolverTestCase {
   public void test_unusedImport_prefix_topLevelFunction() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
-        "import 'lib1.dart' hide topLevelFunction;",
-        "import 'lib1.dart' as one show topLevelFunction;",
+        "import 'lib1.dart' hide topLevelFunction;", // used by One o
+        "import 'lib1.dart' as one show topLevelFunction;", // used by one.top...
         "class A {",
         "  static void x() {",
         "    One o;",

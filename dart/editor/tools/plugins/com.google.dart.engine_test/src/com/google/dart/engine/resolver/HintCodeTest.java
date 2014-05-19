@@ -75,6 +75,26 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_unusedImport_as_equalPrefixes() throws Exception {
+    // See todo at ImportsVerifier.prefixElementMap.
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart' as one;",
+        "import 'lib2.dart' as one;", // unused
+        "one.A a;"));
+    Source source2 = addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    Source source3 = addNamedSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class B {}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNUSED_IMPORT);
+    assertNoErrors(source2);
+    assertNoErrors(source3);
+    verify(source, source2, source3);
+  }
+
   public void test_argumentTypeNotAssignable_functionType() throws Exception {
     Source source = addSource(createSource(//
         // 17290
@@ -760,7 +780,7 @@ public class HintCodeTest extends ResolverTestCase {
         "class A {}",
         "class B {}"));
     resolve(source);
-    assertErrors(source, HintCode.DUPLICATE_IMPORT, HintCode.UNUSED_IMPORT);
+    assertErrors(source, HintCode.DUPLICATE_IMPORT);
     verify(source);
   }
 

@@ -102,12 +102,16 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
   private final HashMap<ImportDirective, Namespace> namespaceMap;
 
   /**
-   * This is a map between prefix elements and the import directive from which they are derived. In
+   * This is a map between prefix elements and the import directives from which they are derived. In
    * cases where a type is referenced via a prefix element, the import directive can be marked as
    * used (removed from the unusedImports) by looking at the resolved {@code lib} in {@code lib.X},
    * instead of looking at which library the {@code lib.X} resolves.
+   * <p>
+   * TODO (jwren) Since multiple {@link ImportDirective}s can share the same {@link PrefixElement},
+   * it is possible to have an unreported unused import in situations where two imports use the same
+   * prefix and at least one import directive is used.
    */
-  private final HashMap<PrefixElement, ImportDirective> prefixElementMap;
+  private final HashMap<PrefixElement, ArrayList<ImportDirective>> prefixElementMap;
 
   /**
    * Create a new instance of the {@link ImportsVerifier}.
@@ -120,7 +124,7 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
     this.duplicateImports = new ArrayList<ImportDirective>();
     this.libraryMap = new HashMap<LibraryElement, ArrayList<ImportDirective>>();
     this.namespaceMap = new HashMap<ImportDirective, Namespace>();
-    this.prefixElementMap = new HashMap<PrefixElement, ImportDirective>();
+    this.prefixElementMap = new HashMap<PrefixElement, ArrayList<ImportDirective>>();
   }
 
   /**
@@ -188,7 +192,12 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
                 Element element = prefixIdentifier.getStaticElement();
                 if (element instanceof PrefixElement) {
                   PrefixElement prefixElementKey = (PrefixElement) element;
-                  prefixElementMap.put(prefixElementKey, importDirective);
+                  ArrayList<ImportDirective> list = prefixElementMap.get(prefixElementKey);
+                  if (list == null) {
+                    list = new ArrayList<ImportDirective>(1);
+                    prefixElementMap.put(prefixElementKey, list);
+                  }
+                  list.add(importDirective);
                 }
                 // TODO (jwren) Can the element ever not be a PrefixElement?
               }
@@ -266,7 +275,11 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
     SimpleIdentifier prefixIdentifier = node.getPrefix();
     Element element = prefixIdentifier.getStaticElement();
     if (element instanceof PrefixElement) {
-      unusedImports.remove(prefixElementMap.get(element));
+      ArrayList<ImportDirective> importDirectives = prefixElementMap.get(element);
+      for (ImportDirective importDirective : importDirectives) {
+        unusedImports.remove(importDirective);
+      }
+
       return null;
     }
     // Otherwise, pass the prefixed identifier element and name onto visitIdentifier.
@@ -350,7 +363,10 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
       }
       return null;
     } else if (element instanceof PrefixElement) {
-      unusedImports.remove(prefixElementMap.get(element));
+      ArrayList<ImportDirective> importDirectives = prefixElementMap.get(element);
+      for (ImportDirective importDirective : importDirectives) {
+        unusedImports.remove(importDirective);
+      }
       return null;
     } else if (!(element.getEnclosingElement() instanceof CompilationUnitElement)) {
       // Identifiers that aren't a prefix element and whose enclosing element isn't a
