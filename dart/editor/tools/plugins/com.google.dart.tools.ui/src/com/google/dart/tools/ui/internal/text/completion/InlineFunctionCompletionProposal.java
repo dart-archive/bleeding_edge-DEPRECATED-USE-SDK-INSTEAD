@@ -85,8 +85,10 @@ public class InlineFunctionCompletionProposal extends DartTypeCompletionProposal
   public InlineFunctionCompletionProposal(CompilationUnit cu, char[][] paramNames,
       char[][] paramTypes, String typeName, int start, int length, int lengthIdentifier,
       int relevance) {
-    super(
-        "", cu, start, length, lengthIdentifier, null, getDisplayName(paramNames, paramTypes, typeName), relevance, null); //$NON-NLS-1$
+    super("", cu, start, length, lengthIdentifier, null, getDisplayName(
+        paramNames,
+        paramTypes,
+        typeName), relevance, null, null);
     this.typeName = typeName;
     this.paramNames = paramNames;
     this.paramTypes = paramTypes;

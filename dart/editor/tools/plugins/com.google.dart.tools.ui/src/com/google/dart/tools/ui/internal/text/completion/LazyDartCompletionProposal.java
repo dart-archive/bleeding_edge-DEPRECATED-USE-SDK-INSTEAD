@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.completion;
 
-import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -400,8 +399,9 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
   }
 
   protected ProposalInfo computeProposalInfo() {
-    Element element = fProposal.getElement();
-    String html = DartTextHover.getElementDocumentationHtml(null, element);
+    String html = DartTextHover.getElementDocumentationHtml(
+        fProposal.getElementDocSummary(),
+        fProposal.getElementDocDetails());
     return new ProposalInfo(fProposal, html);
   }
 

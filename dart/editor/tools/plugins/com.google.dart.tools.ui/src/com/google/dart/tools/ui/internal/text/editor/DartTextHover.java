@@ -18,8 +18,8 @@ import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.services.util.DartDocUtilities;
 import com.google.dart.engine.type.Type;
-import com.google.dart.tools.core.utilities.dartdoc.DartDocUtilities;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 
@@ -53,6 +53,22 @@ public class DartTextHover extends DefaultTextHover implements ITextHoverExtensi
    */
   public static void addContributer(ITextHover hoverContributor) {
     hoverContributors.add(hoverContributor);
+  }
+
+  public static String getElementDocumentationHtml(String textSummary, String dartdoc) {
+    if (textSummary != null) {
+
+      StringBuffer docs = new StringBuffer();
+      docs.append("<b>" + textSummary + "</b>");
+
+      if (dartdoc != null) {
+        docs.append("<br><br>");
+        docs.append(dartdoc);
+      }
+
+      return docs.toString().trim();
+    }
+    return null;
   }
 
   public static String getElementDocumentationHtml(Type type, Element element) {

@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.completion;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.completion.ProposalKind;
+import com.google.dart.engine.services.util.DartDocUtilities;
 import com.google.dart.tools.core.completion.CompletionProposal;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -58,8 +59,15 @@ public class ProxyProposal extends CompletionProposal {
   }
 
   @Override
-  public Element getElement() {
-    return proposal.getElement();
+  public String getElementDocDetails() {
+    Element element = proposal.getElement();
+    return DartDocUtilities.getDartDocAsHtml(element);
+  }
+
+  @Override
+  public String getElementDocSummary() {
+    Element element = proposal.getElement();
+    return DartDocUtilities.getTextSummaryAsHtml(null, element);
   }
 
   @Override
@@ -201,10 +209,6 @@ public class ProxyProposal extends CompletionProposal {
 
   public boolean isSetter() {
     return proposal.getKind() == ProposalKind.SETTER;
-  }
-
-  com.google.dart.engine.services.completion.CompletionProposal getProposal() {
-    return proposal;
   }
 
   private char[][] copyStrings(String[] strings) {

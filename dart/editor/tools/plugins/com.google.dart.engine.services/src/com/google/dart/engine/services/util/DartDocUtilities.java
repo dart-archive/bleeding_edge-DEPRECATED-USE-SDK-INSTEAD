@@ -12,8 +12,9 @@
  * the License.
  */
 
-package com.google.dart.tools.core.utilities.dartdoc;
+package com.google.dart.engine.services.util;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -37,7 +38,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.DartCore;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -262,7 +262,7 @@ public final class DartDocUtilities {
                     defaultValueRange.getEnd()));
               }
             } catch (Exception e) {
-              DartCore.logError(e);
+              AnalysisEngine.getInstance().getLogger().logError("Exception in gettting summary", e);
             }
           }
         }
@@ -370,7 +370,7 @@ public final class DartDocUtilities {
       String docString = element.computeDocumentationComment();
       return getDartDocAsHtml(docString);
     } catch (AnalysisException e) {
-      DartCore.logError(e);
+      AnalysisEngine.getInstance().getLogger().logError("Exception in gettting documentation", e);
     }
 
     return null;

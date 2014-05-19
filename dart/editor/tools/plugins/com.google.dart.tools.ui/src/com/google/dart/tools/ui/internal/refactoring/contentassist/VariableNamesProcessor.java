@@ -73,6 +73,7 @@ public class VariableNamesProcessor implements IContentAssistProcessor,
           image,
           tempName,
           0,
+          null,
           null);
       proposals.add(proposal);
     }

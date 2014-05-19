@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.completion;
 
-import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.mock.ui.StubUtility;
@@ -47,7 +46,7 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
 
   public DartTypeCompletionProposal(String replacementString, CompilationUnit cu,
       int replacementOffset, int replacementLength, int replacementLengthIdentifier, Image image,
-      StyledString displayString, int relevance, Element element) {
+      StyledString displayString, int relevance, String elementDocSummary, String elementDocDetails) {
     this(
         replacementString,
         cu,
@@ -58,12 +57,14 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
         displayString,
         relevance,
         null,
-        element);
+        elementDocSummary,
+        elementDocDetails);
   }
 
   public DartTypeCompletionProposal(String replacementString, CompilationUnit cu,
       int replacementOffset, int replacementLength, int replacementLengthIdentifier, Image image,
-      StyledString displayString, int relevance, String fullyQualifiedTypeName, Element element) {
+      StyledString displayString, int relevance, String fullyQualifiedTypeName,
+      String elementDocSummary, String elementDocDetails) {
     this(
         replacementString,
         cu,
@@ -74,13 +75,15 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
         displayString,
         relevance,
         fullyQualifiedTypeName,
-        element,
+        elementDocSummary,
+        elementDocDetails,
         null);
   }
 
   public DartTypeCompletionProposal(String replacementString, CompilationUnit cu,
       int replacementOffset, int replacementLength, int replacementLengthIdentifier, Image image,
-      StyledString displayString, int relevance, String fullyQualifiedTypeName, Element element,
+      StyledString displayString, int relevance, String fullyQualifiedTypeName,
+      String elementDocSummary, String elementDocDetails,
       DartContentAssistInvocationContext invocationContext) {
     super(
         replacementString,
@@ -91,7 +94,8 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
         displayString,
         relevance,
         false,
-        element,
+        elementDocSummary,
+        elementDocDetails,
         invocationContext);
     fCompilationUnit = cu;
     fFullyQualifiedTypeName = fullyQualifiedTypeName;

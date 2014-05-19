@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.completion;
 
-import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
@@ -25,7 +24,8 @@ import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.swt.graphics.Image;
 
 public class DartCompletionProposal extends AbstractDartCompletionProposal {
-  private Element element;
+  private String elementDocSummary;
+  private String elementDocDetails;
 
   /**
    * Creates a new completion proposal. All fields are initialized based on the provided
@@ -41,7 +41,7 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
    */
   public DartCompletionProposal(String replacementString, int replacementOffset,
       int replacementLength, int replacementLengthIdentifier, Image image, String displayString,
-      int relevance, Element element) {
+      int relevance, String elementDocSummary, String elementDocDetails) {
     this(
         replacementString,
         replacementOffset,
@@ -51,7 +51,8 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
         new StyledString(displayString),
         relevance,
         false,
-        element);
+        elementDocSummary,
+        elementDocDetails);
   }
 
   /**
@@ -69,7 +70,8 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
    */
   public DartCompletionProposal(String replacementString, int replacementOffset,
       int replacementLength, int replacementLengthIdentifier, Image image,
-      StyledString displayString, int relevance, boolean inJavadoc, Element element) {
+      StyledString displayString, int relevance, boolean inJavadoc, String elementDocSummary,
+      String elementDocDetails) {
     this(
         replacementString,
         replacementOffset,
@@ -79,7 +81,8 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
         displayString,
         relevance,
         inJavadoc,
-        element,
+        elementDocSummary,
+        elementDocDetails,
         null);
   }
 
@@ -100,9 +103,11 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
    */
   public DartCompletionProposal(String replacementString, int replacementOffset,
       int replacementLength, int replacementLengthIdentifier, Image image,
-      StyledString displayString, int relevance, boolean inJavadoc, Element element,
-      DartContentAssistInvocationContext invocationContext) {
+      StyledString displayString, int relevance, boolean inJavadoc, String elementDocSummary,
+      String elementDocDetails, DartContentAssistInvocationContext invocationContext) {
     super(invocationContext);
+    this.elementDocSummary = elementDocSummary;
+    this.elementDocDetails = elementDocDetails;
     Assert.isNotNull(replacementString);
     Assert.isTrue(replacementOffset >= 0);
     Assert.isTrue(replacementLength >= 0);
@@ -131,7 +136,6 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
     setCursorPosition(cursorPos);
     setInDartDoc(inJavadoc);
     setSortString(displayString == null ? replacementString : displayString.getString());
-    setElement(element);
   }
 
   /**
@@ -148,7 +152,7 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
    */
   public DartCompletionProposal(String replacementString, int replacementOffset,
       int replacementLength, int replacementLengthIdentifier, Image image,
-      StyledString displayString, int relevance, Element element) {
+      StyledString displayString, int relevance, String elementDocSummary, String elementDocDetails) {
     this(
         replacementString,
         replacementOffset,
@@ -158,11 +162,8 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
         displayString,
         relevance,
         false,
-        element);
-  }
-
-  public Element getElement() {
-    return element;
+        elementDocSummary,
+        elementDocDetails);
   }
 
   @Override
@@ -178,13 +179,10 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
     }
   }
 
-  public void setElement(Element element) {
-    this.element = element;
-  }
-
   @Override
   protected ProposalInfo getProposalInfo() {
-    String html = DartTextHover.getElementDocumentationHtml(null, element);
+    // TODO(scheglov)
+    String html = DartTextHover.getElementDocumentationHtml(elementDocSummary, elementDocDetails);
     return new ProposalInfo(null, html);
   }
 

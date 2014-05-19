@@ -125,7 +125,16 @@ public class GetterSetterCompletionProposal extends DartTypeCompletionProposal i
   public GetterSetterCompletionProposal(Field field, int start, int length, int lengthIdentifier,
       boolean isGetter, int relevance) throws DartModelException {
     super(
-        "", field.getCompilationUnit(), start, length, lengthIdentifier, DartPluginImages.get(DartPluginImages.IMG_MISC_PUBLIC), getDisplayName(field, isGetter), relevance, null); //$NON-NLS-1$
+        "",
+        field.getCompilationUnit(),
+        start,
+        length,
+        lengthIdentifier,
+        DartPluginImages.get(DartPluginImages.IMG_MISC_PUBLIC),
+        getDisplayName(field, isGetter),
+        relevance,
+        null,
+        null);
     Assert.isNotNull(field);
 
     fField = field;

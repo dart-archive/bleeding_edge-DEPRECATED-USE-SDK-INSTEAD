@@ -118,8 +118,9 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
 
   public MethodDeclarationCompletionProposal(Type type, String methodName, String returnTypeSig,
       int start, int length, int lengthIdentifier, int relevance) {
-    super(
-        "", type.getCompilationUnit(), start, length, lengthIdentifier, null, getDisplayName(methodName, returnTypeSig), relevance, null); //$NON-NLS-1$
+    super("", type.getCompilationUnit(), start, length, lengthIdentifier, null, getDisplayName(
+        methodName,
+        returnTypeSig), relevance, null, null);
     Assert.isNotNull(type);
     Assert.isNotNull(methodName);
 

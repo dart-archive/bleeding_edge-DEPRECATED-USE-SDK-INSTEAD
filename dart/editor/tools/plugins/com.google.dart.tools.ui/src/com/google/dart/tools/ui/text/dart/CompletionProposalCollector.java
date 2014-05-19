@@ -751,7 +751,8 @@ public class CompletionProposalCollector extends CompletionRequestor {
         label,
         relevance,
         getContext().isInJavadoc(),
-        proposal.getElement(),
+        proposal.getElementDocSummary(),
+        proposal.getElementDocDetails(),
         getInvocationContext());
     // TODO(scheglov) implement documentation comment
 //    if (fDartProject != null) {
@@ -779,7 +780,8 @@ public class CompletionProposalCollector extends CompletionRequestor {
         image,
         label,
         relevance,
-        proposal.getElement());
+        proposal.getElementDocSummary(),
+        proposal.getElementDocDetails());
   }
 
 //  /**
@@ -855,7 +857,8 @@ public class CompletionProposalCollector extends CompletionRequestor {
         null,
         label,
         relevance,
-        proposal.getElement());
+        proposal.getElementDocSummary(),
+        proposal.getElementDocDetails());
   }
 
   private IDartCompletionProposal createLabelProposal(CompletionProposal proposal) {
@@ -873,7 +876,8 @@ public class CompletionProposalCollector extends CompletionRequestor {
         null,
         label,
         relevance,
-        proposal.getElement());
+        proposal.getElementDocSummary(),
+        proposal.getElementDocDetails());
   }
 
   private IDartCompletionProposal createLibraryPrefixProposal(CompletionProposal proposal) {
@@ -892,7 +896,8 @@ public class CompletionProposalCollector extends CompletionRequestor {
         image,
         label,
         relevance,
-        proposal.getElement());
+        proposal.getElementDocSummary(),
+        proposal.getElementDocDetails());
   }
 
   private IDartCompletionProposal createLocalVariableProposal(CompletionProposal proposal) {
@@ -910,7 +915,8 @@ public class CompletionProposalCollector extends CompletionRequestor {
         image,
         label,
         relevance,
-        proposal.getElement());
+        proposal.getElementDocSummary(),
+        proposal.getElementDocDetails());
     dartProposal.setTriggerCharacters(VAR_TRIGGER);
     return dartProposal;
   }
