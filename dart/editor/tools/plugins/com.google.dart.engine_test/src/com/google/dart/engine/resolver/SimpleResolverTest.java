@@ -17,23 +17,29 @@ import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionStatement;
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
@@ -590,17 +596,26 @@ public class SimpleResolverTest extends ResolverTestCase {
   public void test_metadata_class() throws Exception {
     Source source = addSource(createSource(//
         "const A = null;",
-        "@A class C {}"));
+        "@A class C<A> {}"));
     LibraryElement library = resolve(source);
     assertNotNull(library);
-    CompilationUnitElement unit = library.getDefiningCompilationUnit();
-    assertNotNull(unit);
-    ClassElement[] classes = unit.getTypes();
+    CompilationUnitElement unitElement = library.getDefiningCompilationUnit();
+    assertNotNull(unitElement);
+    ClassElement[] classes = unitElement.getTypes();
     assertLength(1, classes);
     ElementAnnotation[] annotations = classes[0].getMetadata();
     assertLength(1, annotations);
     assertNoErrors(source);
     verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSizeOfList(2, declarations);
+    Element expectedElement = ((TopLevelVariableDeclaration) declarations.get(0)).getVariables().getVariables().get(
+        0).getName().getStaticElement();
+    assertInstanceOf(PropertyInducingElement.class, expectedElement);
+    expectedElement = ((PropertyInducingElement) expectedElement).getGetter();
+    Element actualElement = ((ClassDeclaration) declarations.get(1)).getMetadata().get(0).getName().getStaticElement();
+    assertSame(expectedElement, actualElement);
   }
 
   public void test_metadata_field() throws Exception {
@@ -764,6 +779,31 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertLength(1, annotations2);
     assertNoErrors(source);
     verify(source);
+  }
+
+  public void test_metadata_typedef() throws Exception {
+    Source source = addSource(createSource(//
+        "const A = null;",
+        "@A typedef F<A>();"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unitElement = library.getDefiningCompilationUnit();
+    assertNotNull(unitElement);
+    FunctionTypeAliasElement[] aliases = unitElement.getFunctionTypeAliases();
+    assertLength(1, aliases);
+    ElementAnnotation[] annotations = aliases[0].getMetadata();
+    assertLength(1, annotations);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSizeOfList(2, declarations);
+    Element expectedElement = ((TopLevelVariableDeclaration) declarations.get(0)).getVariables().getVariables().get(
+        0).getName().getStaticElement();
+    assertInstanceOf(PropertyInducingElement.class, expectedElement);
+    expectedElement = ((PropertyInducingElement) expectedElement).getGetter();
+    Element actualElement = ((FunctionTypeAlias) declarations.get(1)).getMetadata().get(0).getName().getStaticElement();
+    assertSame(expectedElement, actualElement);
   }
 
   public void test_method_fromMixin() throws Exception {

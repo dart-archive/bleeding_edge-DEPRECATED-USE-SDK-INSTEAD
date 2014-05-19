@@ -46,6 +46,7 @@ import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.IsExpression;
@@ -125,6 +126,12 @@ public class ResolverVisitor extends ScopedVisitor {
    * the current node is not contained in a class.
    */
   private ClassDeclaration enclosingClassDeclaration = null;
+
+  /**
+   * The function type alias representing the function type containing the current node, or
+   * {@code null} if the current node is not contained in a function type alias.
+   */
+  private FunctionTypeAlias enclosingFunctionTypeAlias = null;
 
   /**
    * The element representing the function containing the current node, or {@code null} if the
@@ -232,7 +239,8 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitAnnotation(Annotation node) {
-    if (node.getParent() == enclosingClassDeclaration) {
+    AstNode parent = node.getParent();
+    if (parent == enclosingClassDeclaration || parent == enclosingFunctionTypeAlias) {
       return null;
     }
     return super.visitAnnotation(node);
@@ -519,17 +527,6 @@ public class ResolverVisitor extends ScopedVisitor {
     return super.visitEmptyFunctionBody(node);
   }
 
-//  @Override
-//  public Void visitEmptyFunctionBody(EmptyFunctionBody node) {
-//    overrideManager.enterScope();
-//    try {
-//      super.visitEmptyFunctionBody(node);
-//    } finally {
-//      overrideManager.exitScope();
-//    }
-//    return null;
-//  }
-
   @Override
   public Void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     safelyVisit(commentBeforeFunction);
@@ -541,6 +538,17 @@ public class ResolverVisitor extends ScopedVisitor {
     }
     return null;
   }
+
+//  @Override
+//  public Void visitEmptyFunctionBody(EmptyFunctionBody node) {
+//    overrideManager.enterScope();
+//    try {
+//      super.visitEmptyFunctionBody(node);
+//    } finally {
+//      overrideManager.exitScope();
+//    }
+//    return null;
+//  }
 
   @Override
   public Void visitFieldDeclaration(FieldDeclaration node) {
@@ -614,6 +622,22 @@ public class ResolverVisitor extends ScopedVisitor {
     inferFunctionExpressionsParametersTypes(node.getArgumentList());
     safelyVisit(node.getArgumentList());
     node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @Override
+  public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    // Resolve the metadata in the library scope.
+    if (node.getMetadata() != null) {
+      node.getMetadata().accept(this);
+    }
+    FunctionTypeAlias outerAlias = enclosingFunctionTypeAlias;
+    enclosingFunctionTypeAlias = node;
+    try {
+      super.visitFunctionTypeAlias(node);
+    } finally {
+      enclosingFunctionTypeAlias = outerAlias;
+    }
     return null;
   }
 
