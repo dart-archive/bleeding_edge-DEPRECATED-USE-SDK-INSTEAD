@@ -107,13 +107,15 @@ public class ServerOperationQueue {
    */
   @VisibleForTesting
   public void removeWithContextId(String contextId) {
-    for (LinkedList<ServerOperation> otherQueue : operationQueues) {
-      for (Iterator<ServerOperation> iter = otherQueue.iterator(); iter.hasNext();) {
-        ServerOperation otherOperation = iter.next();
-        if (otherOperation instanceof ContextServerOperation) {
-          String otherContextId = ((ContextServerOperation) otherOperation).getContextId();
-          if (otherContextId.equals(contextId)) {
-            iter.remove();
+    synchronized (operationsLock) {
+      for (LinkedList<ServerOperation> otherQueue : operationQueues) {
+        for (Iterator<ServerOperation> iter = otherQueue.iterator(); iter.hasNext();) {
+          ServerOperation otherOperation = iter.next();
+          if (otherOperation instanceof ContextServerOperation) {
+            String otherContextId = ((ContextServerOperation) otherOperation).getContextId();
+            if (otherContextId.equals(contextId)) {
+              iter.remove();
+            }
           }
         }
       }
