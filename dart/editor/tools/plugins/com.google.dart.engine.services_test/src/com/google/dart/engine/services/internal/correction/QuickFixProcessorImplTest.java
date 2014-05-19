@@ -2065,6 +2065,39 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "}"));
   }
 
+  public void test_undefinedMethod_hint_createQualified_fromInstance() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  var a = new A();",
+        "  a.myUndefinedMethod();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  void myUndefinedMethod() {",
+            "  }",
+            "}",
+            "main() {",
+            "  var a = new A();",
+            "  a.myUndefinedMethod();",
+            "}",
+            ""));
+    // linked positions
+    {
+      Map<String, List<SourceRange>> expected = Maps.newHashMap();
+      expected.put("NAME", getResultRanges("myUndefinedMethod();", "myUndefinedMethod() {"));
+      expected.put("RETURN_TYPE", getResultRanges("void myUndefinedMethod()"));
+      assertEquals(expected, resultProposal.getLinkedPositions());
+    }
+  }
+
   public void test_undefinedMethod_useSimilar_qualified() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",

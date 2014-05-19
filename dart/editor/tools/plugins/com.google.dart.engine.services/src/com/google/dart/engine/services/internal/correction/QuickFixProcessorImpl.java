@@ -197,6 +197,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       HintCode.TYPE_CHECK_IS_NULL,
       HintCode.UNNECESSARY_CAST,
       HintCode.UNUSED_IMPORT,
+      HintCode.UNDEFINED_METHOD,
       //
       ParserErrorCode.EXPECTED_TOKEN,
       ParserErrorCode.GETTER_WITH_PARAMETERS,
@@ -455,7 +456,8 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (errorCode == StaticTypeWarningCode.UNDEFINED_GETTER) {
         addFix_createFunction_forFunctionType();
       }
-      if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
+      if (errorCode == HintCode.UNDEFINED_METHOD
+          || errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
         addFix_undefinedMethod_useSimilar();
         addFix_undefinedMethod_create();
         addFix_undefinedFunction_create();
@@ -494,7 +496,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == HintCode.DIVISION_OPTIMIZATION
         || errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL || errorCode == HintCode.TYPE_CHECK_IS_NULL
         || errorCode == HintCode.UNNECESSARY_CAST || errorCode == ParserErrorCode.EXPECTED_TOKEN
-        || errorCode == HintCode.UNUSED_IMPORT
+        || errorCode == HintCode.UNUSED_IMPORT || errorCode == HintCode.UNDEFINED_METHOD
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
         || errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
         || errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS
