@@ -100,7 +100,6 @@ import com.google.dart.engine.utilities.collection.DirectedGraph;
 import com.google.dart.engine.utilities.collection.ListUtilities;
 import com.google.dart.engine.utilities.collection.MapIterator;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
-import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.engine.utilities.translation.DartOmit;
 
@@ -1106,9 +1105,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         StringBuilder builder = new StringBuilder();
         Token[] tokens = comment.getTokens();
         for (int i = 0; i < tokens.length; i++) {
-          if (i > 0) {
-            builder.append(OSUtilities.LINE_SEPARATOR);
-          }
           builder.append(tokens[i].getLexeme());
         }
         return builder.toString();

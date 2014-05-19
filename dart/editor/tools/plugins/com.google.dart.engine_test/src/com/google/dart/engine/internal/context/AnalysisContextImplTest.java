@@ -268,21 +268,30 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNull(context.computeDocumentationComment(null));
   }
 
-  public void test_computeDocumentationComment_singleLine_multiple() throws Exception {
+  public void test_computeDocumentationComment_singleLine_multiple_EOL_n() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
-    String comment = createSource(//
-        "/// line 1",
-        "/// line 2",
-        "/// line 3");
-    Source source = addSource("/test.dart", createSource(//
-        comment,
-        "class A {}"));
+    String comment = "/// line 1\n" + "/// line 2\n" + "/// line 3\n";
+    Source source = addSource("/test.dart", comment + "class A {}");
     LibraryElement libraryElement = context.computeLibraryElement(source);
     assertNotNull(libraryElement);
     ClassElement classElement = libraryElement.getDefiningCompilationUnit().getTypes()[0];
     assertNotNull(libraryElement);
-    assertEquals(comment.trim(), context.computeDocumentationComment(classElement));
+    String actual = context.computeDocumentationComment(classElement);
+    assertEquals(comment, actual);
+  }
+
+  public void test_computeDocumentationComment_singleLine_multiple_EOL_rn() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    String comment = "/// line 1\r\n" + "/// line 2\r\n" + "/// line 3\r\n";
+    Source source = addSource("/test.dart", comment + "class A {}");
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    assertNotNull(libraryElement);
+    ClassElement classElement = libraryElement.getDefiningCompilationUnit().getTypes()[0];
+    assertNotNull(libraryElement);
+    String actual = context.computeDocumentationComment(classElement);
+    assertEquals(comment, actual);
   }
 
   public void test_computeErrors_dart_none() throws Exception {

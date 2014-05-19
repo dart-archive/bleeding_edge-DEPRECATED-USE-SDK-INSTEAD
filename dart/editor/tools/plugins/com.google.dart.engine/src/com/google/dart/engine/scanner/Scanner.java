@@ -1054,7 +1054,15 @@ public class Scanner {
       if (-1 == next) {
         appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, 0));
         return next;
-      } else if ('\n' == next || '\r' == next) {
+      } else if ('\n' == next) {
+        next = reader.advance();
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, -1));
+        return next;
+      } else if ('\r' == next) {
+        next = reader.advance();
+        if (next == '\n') {
+          next = reader.advance();
+        }
         appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, -1));
         return next;
       }
