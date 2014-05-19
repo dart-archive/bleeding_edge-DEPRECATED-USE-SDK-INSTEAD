@@ -24,43 +24,43 @@ def nextPrefPane(region, title):
 
 def selectEditorPrefPane():
   "Select the Editor preferences pane by name."
-  _selectPrefPane("EditorPaneTitle.png")
+  _selectPrefPane(p("EditorPaneTitle.png"))
 
 def selectFontsPrefPane():
   "Select the Fonts preferences pane by name."
-  _selectPrefPane("FontsPaneTitle.png")
+  _selectPrefPane(p("FontsPaneTitle.png"))
 
 def selectHintsPrefPane():
   "Select the Hints preferences pane by name."
-  _selectPrefPane("HintsPaneTitle.png")
+  _selectPrefPane(p("HintsPaneTitle.png"))
 
 def selectKeyBindingsPane():
   "Select the Key Bindings preferences pane by name."
-  _selectPrefPane("KeyBindingsPaneTitle.png")
+  _selectPrefPane(p("KeyBindingsPaneTitle.png"))
 
 def selectRunandDebugPrefPane():
   "Select the Run and Debug preferences pane by name."
-  _selectPrefPane("RunandDebugPaneTitle.png")
+  _selectPrefPane(p("RunandDebugPaneTitle.png"))
 
 def selectUpdatePrefPane():
   "Select the Update preferences pane by name."
-  _selectPrefPane("UpdatePaneTitle.png")
+  _selectPrefPane(p("UpdatePaneTitle.png"))
 
 def selectVisualThemePrefPane():
   "Select the Visual Theme preferences pane by name."
-  _selectPrefPane("VisualThemePaneTitle.png")
+  _selectPrefPane(p("VisualThemePaneTitle.png"))
 
 def testPrefPaneNav():
   "Test arrow-key navigaiton of preference panes."
   util.open_preferences()
   t=_prefTitleRegion()
-  firstPrefPane(t, "EditorPaneTitle.png")
-  nextPrefPane(t, "FontsPaneTitle.png")
-  nextPrefPane(t, "HintsPaneTitle.png")
-  nextPrefPane(t, "KeyBindingsPaneTitle.png")
-  nextPrefPane(t, "RunandDebugPaneTitle.png")
-  nextPrefPane(t, "UpdatePaneTitle.png")
-  nextPrefPane(t, "VisualThemePaneTitle.png")
+  firstPrefPane(t, p("EditorPaneTitle.png"))
+  nextPrefPane(t, p("FontsPaneTitle.png"))
+  nextPrefPane(t, p("HintsPaneTitle.png"))
+  nextPrefPane(t, p("KeyBindingsPaneTitle.png"))
+  nextPrefPane(t, p("RunandDebugPaneTitle.png"))
+  nextPrefPane(t, p("UpdatePaneTitle.png"))
+  nextPrefPane(t, p("VisualThemePaneTitle.png"))
   wait(2)
   util.dismiss_dialog()
 

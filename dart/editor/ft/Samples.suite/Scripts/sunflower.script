@@ -1,8 +1,9 @@
-util.init
+﻿util.init
 util.openWelcomePage
 Click "sunflower icon"
 util.xWait 10
 Click "run button"
+util.dismissMacWarning
 util.xWaitFor 30, "browser right arrow button" (* extra-long wait to allow for paging *)
 Click "browser right arrow button"
 util.xWaitFor 10,"sunflower slider"

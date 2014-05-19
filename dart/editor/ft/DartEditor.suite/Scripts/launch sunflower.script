@@ -1,7 +1,7 @@
 ﻿(* Run normally *)
 Click "run button"
-util.xWait 5
-util.xWaitFor 20, "browser right arrow button"
+util.dismissMacWarning
+util.xWaitFor 30, "browser right arrow button"
 Click "browser right arrow button"
 util.xWaitFor 20,"sunflower slider"
 Click "sunflower slider"
@@ -17,6 +17,7 @@ put (ImageLocation(Text:"void draw",CaseSensitive:"yes",ValidCharacters:"*",dpi:
 DoubleClick declLoc + (offset,0)
 Click "run button"
 util.xWait 2
+util.dismissMacWarning
 Click (1000,40) (* work-around for broken debug UX on linux *)
 util.xWaitFor 10, "debug line indicator"
 DoubleClick declLoc + (offset,0)

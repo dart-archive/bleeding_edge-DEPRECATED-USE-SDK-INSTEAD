@@ -132,6 +132,16 @@ to deleteOutput
   set the SearchRectangle to origRect
 end deleteOutput
 
+to dismissMacWarning
+  if isMacOSX() then
+    if imageFound("mac warning icon") then
+      click "mac warning icon"
+      wait 2
+      TypeText escape
+    end if
+  end if
+end dismissMacWarning
+
 (* Delete the project identified by the given image. *)
 to deleteProject project
   set the SearchRectangle to ((0,75),(300,1200))
@@ -235,7 +245,7 @@ to openPreferences
     selectMenuItem "Dart Editor", "Preferences"
   else if isLinux() then
     selectMenuItem "Tools", "Preferences"
-    else (* windows *)
+  else (* windows *)
     selectMenuItem "Tools", "Preferences"
   end if
 end openPreferences
@@ -270,6 +280,7 @@ to startDartEditor
   set the SearchRectangle to ()
   if isMacOSX()
     SetOption ForceScreenRefresh, true
+    dismissMacWarning
   end if
 end startDartEditor
 
@@ -388,27 +399,28 @@ end expandTreeNode
 to endOfLine
   if isMacOSX() then
     doKeyCmd(rightArrow)
-  else
-    TypeText EndKey
-  end if
-end endOfLine
-
+    else
+      TypeText EndKey
+      end if
+      end endOfLine
+      
 to quickOutline
   TypeText optionKey,o
-end quickOutline
-
+  end quickOutline
+  
 to newline
   if isMacOSX() then
     TypeText enter
-  else
-    TypeText return
-  end if
-end newline
-
+    else
+      TypeText return
+      end if
+      end newline
+      
 to nextWord
   doKeyCmd(rightArrow)
-end nextWord
-
+  end nextWord
+  
 to prevWord
   doKeyCmd(leftArrow)
-end nextWord
+  end nextWord
+  

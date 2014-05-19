@@ -1,4 +1,4 @@
-openLab 0
+﻿openLab 0
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 util.expandTreeNode
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
@@ -6,6 +6,7 @@ TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 
 Click "run button"
 util.xWaitFor 10,"browser right arrow button"
+util.dismissMacWarning
 Click (Text:"Untitled",CaseSensitive:"yes")
 Click "plus file"
 Click "red stripe"
