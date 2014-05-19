@@ -21,6 +21,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ClassMemberDeclarationsComputerTest.class);
     suite.addTestSuite(ClassMemberReferencesComputerTest.class);
+    suite.addTestSuite(DartUnitCompletionSuggestionsComputerTest.class);
     suite.addTestSuite(DartUnitFixesComputerTest.class);
     suite.addTestSuite(DartUnitHighlightsComputerTest.class);
     suite.addTestSuite(DartUnitMinorRefactoringsComputerTest.class);

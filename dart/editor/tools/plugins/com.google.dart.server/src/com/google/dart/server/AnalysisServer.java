@@ -58,8 +58,8 @@ public interface AnalysisServer {
    * Computes code completion suggestions at the given position in the {@link Source}. The given
    * consumer is invoked asynchronously on a different thread.
    * 
-   * @param contextId the identifier of the context to compute hierarchy within
-   * @param source the {@link Source} to perform refactorings within
+   * @param contextId the identifier of the context to compute suggestions within
+   * @param source the {@link Source} to perform completion within
    * @param offset the offset within the {@code source}
    * @param consumer the results listener
    */

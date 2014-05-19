@@ -38,7 +38,7 @@ public class SearchResultConverter {
    * unknown {@link MatchKind}.
    */
   @VisibleForTesting
-  public static boolean test_simulateUknownMatchKind = false;
+  public static boolean test_simulateUnknownMatchKind = false;
 
   private final Function<AnalysisContext, String> contextToIdFunction;
 
@@ -115,7 +115,7 @@ public class SearchResultConverter {
    * {@code null} if unknown.
    */
   private SearchResultKind getSearchResultKind(MatchKind matchKind) {
-    if (test_simulateUknownMatchKind) {
+    if (test_simulateUnknownMatchKind) {
       matchKind = MatchKind.WITH_REFERENCE;
     }
     switch (matchKind) {

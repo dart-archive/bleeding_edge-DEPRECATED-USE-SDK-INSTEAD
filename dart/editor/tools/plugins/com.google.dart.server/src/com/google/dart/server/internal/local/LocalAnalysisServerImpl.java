@@ -47,6 +47,7 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.CompletionSuggestionsConsumer;
 import com.google.dart.server.Element;
 import com.google.dart.server.FixableErrorCodesConsumer;
@@ -61,6 +62,7 @@ import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.TypeHierarchyItem;
 import com.google.dart.server.internal.local.computer.ClassMemberDeclarationsComputer;
 import com.google.dart.server.internal.local.computer.ClassMemberReferencesComputer;
+import com.google.dart.server.internal.local.computer.DartUnitCompletionSuggestionsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitFixesComputer;
 import com.google.dart.server.internal.local.computer.DartUnitHighlightsComputer;
 import com.google.dart.server.internal.local.computer.DartUnitMinorRefactoringsComputer;
@@ -71,6 +73,7 @@ import com.google.dart.server.internal.local.computer.TopLevelDeclarationsComput
 import com.google.dart.server.internal.local.computer.TypeHierarchyComputer;
 import com.google.dart.server.internal.local.operation.ApplyAnalysisDeltaOperation;
 import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
+import com.google.dart.server.internal.local.operation.ComputeCompletionSuggestionsOperation;
 import com.google.dart.server.internal.local.operation.ComputeFixesOperation;
 import com.google.dart.server.internal.local.operation.ComputeMinorRefactoringsOperation;
 import com.google.dart.server.internal.local.operation.ComputeTypeHierarchyOperation;
@@ -264,7 +267,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @Override
   public void computeCompletionSuggestions(String contextId, Source source, int offset,
       CompletionSuggestionsConsumer consumer) {
-    // TODO(scheglov) implement
+    operationQueue.add(new ComputeCompletionSuggestionsOperation(
+        contextId,
+        source,
+        offset,
+        offset,
+        consumer));
   }
 
   @Override
@@ -348,6 +356,30 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     getSourcesMap(contextId, contextAddedSourcesMap).addAll(changeSet.getAddedSources());
     context.applyChanges(changeSet);
     schedulePerformAnalysisOperation(contextId, false);
+  }
+
+  /**
+   * Implementation for {@link #computeCompletionSuggestions}.
+   */
+  public void internalComputeCompletionSuggestions(String contextId, Source source, int offset,
+      int length, CompletionSuggestionsConsumer consumer) throws Exception {
+    AnalysisContext analysisContext = getAnalysisContext(contextId);
+    Source[] librarySources = analysisContext.getLibrariesContaining(source);
+    if (librarySources.length != 0) {
+      Source librarySource = librarySources[0];
+      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+      CompletionSuggestion[] suggestions = CompletionSuggestion.EMPTY_ARRAY;
+      if (unit != null) {
+        suggestions = new DartUnitCompletionSuggestionsComputer(
+            searchEngine,
+            contextId,
+            analysisContext,
+            source,
+            unit,
+            offset).compute();
+      }
+      consumer.computed(suggestions);
+    }
   }
 
   /**

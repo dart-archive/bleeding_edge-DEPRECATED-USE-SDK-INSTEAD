@@ -25,6 +25,11 @@ public interface CompletionSuggestion {
   int RELEVANCE_HIGH = 20;
 
   /**
+   * An empty array of suggestions.
+   */
+  CompletionSuggestion[] EMPTY_ARRAY = new CompletionSuggestion[0];
+
+  /**
    * This character is used to specify location of the cursor after completion.
    */
   char CURSOR_MARKER = 0x2758;

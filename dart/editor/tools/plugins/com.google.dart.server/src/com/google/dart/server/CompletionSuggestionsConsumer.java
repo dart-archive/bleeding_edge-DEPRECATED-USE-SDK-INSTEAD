@@ -21,7 +21,7 @@ package com.google.dart.server;
  */
 public interface CompletionSuggestionsConsumer extends Consumer {
   /**
-   * A set of the fixable {@link CompletionSuggestion}s has been computed.
+   * A set of {@link CompletionSuggestion}s has been computed.
    * 
    * @param suggestions an array of {@link CompletionSuggestion}s
    */
