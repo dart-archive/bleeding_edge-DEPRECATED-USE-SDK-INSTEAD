@@ -3,7 +3,12 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{name.title}</title>
+    
+    <script async type="application/dart" src="{name.lower}.dart"></script>
+    <script async src="packages/browser/dart.js"></script>
+    
     <link rel="stylesheet" href="{name.lower}.css">
   </head>
   <body>
@@ -15,7 +20,5 @@
       <p id="sample_text_id">Click me!</p>
     </div>
 
-    <script type="application/dart" src="{name.lower}.dart"></script>
-    <script src="packages/browser/dart.js"></script>
   </body>
 </html>
