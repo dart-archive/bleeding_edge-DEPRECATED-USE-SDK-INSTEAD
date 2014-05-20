@@ -1056,14 +1056,16 @@ public class Scanner {
         return next;
       } else if ('\n' == next) {
         next = reader.advance();
-        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, -1));
+        int endDelta = next != -1 ? -1 : 0;
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, endDelta));
         return next;
       } else if ('\r' == next) {
         next = reader.advance();
         if (next == '\n') {
           next = reader.advance();
         }
-        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, -1));
+        int endDelta = next != -1 ? -1 : 0;
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, endDelta));
         return next;
       }
     }

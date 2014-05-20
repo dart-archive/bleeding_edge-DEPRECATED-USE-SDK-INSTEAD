@@ -838,7 +838,8 @@ public class ScannerTest extends TestCase {
     //
     // Test with a trailing end-of-line marker
     //
-    token = scan(source + OSUtilities.LINE_SEPARATOR);
+    String sourceWithEOL = source + OSUtilities.LINE_SEPARATOR;
+    token = scan(sourceWithEOL);
     assertNotNull(token);
     assertEquals(TokenType.EOF, token.getType());
 
@@ -846,8 +847,13 @@ public class ScannerTest extends TestCase {
     assertNotNull(comment);
     assertEquals(commentType, comment.getType());
     assertEquals(0, comment.getOffset());
-    assertEquals(source.length(), comment.getLength());
-    assertEquals(source, comment.getLexeme());
+    if (comment.getType() == TokenType.SINGLE_LINE_COMMENT) {
+      assertEquals(sourceWithEOL.length(), comment.getLength());
+      assertEquals(sourceWithEOL, comment.getLexeme());
+    } else {
+      assertEquals(source.length(), comment.getLength());
+      assertEquals(source, comment.getLexeme());
+    }
   }
 
   /**
