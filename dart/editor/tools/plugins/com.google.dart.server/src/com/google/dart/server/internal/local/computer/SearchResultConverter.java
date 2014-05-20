@@ -150,8 +150,6 @@ public class SearchResultConverter {
         return SearchResultKind.METHOD_INVOCATION;
       case METHOD_REFERENCE:
         return SearchResultKind.METHOD_REFERENCE;
-      case NAME_DECLARATION:
-        return SearchResultKind.CLASS_MEMBER_DECLARATION;
       case TYPE_REFERENCE:
       case FUNCTION_TYPE_REFERENCE:
       case TYPE_PARAMETER_REFERENCE:
