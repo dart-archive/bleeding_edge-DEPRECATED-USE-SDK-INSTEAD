@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote;
 
 import com.google.common.base.Joiner;
+import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -25,19 +26,19 @@ import com.google.gson.JsonParser;
 public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_version() throws Exception {
-//    server.test_putOnConsumerMap("id", new VersionConsumer() {
-//      @Override
-//      public void computedVersion(String version) {
-//        assertEquals("0.0.1", version);
-//      }
-//    });
-//    responseFromServer(parseJson(//
-//        "{",
-//        "  'id': 'id',",
-//        "  'result': {",
-//        "    'version': '0.0.1'",
-//        "  }",
-//        "}").toString());
+    server.test_putOnConsumerMap("id", new VersionConsumer() {
+      @Override
+      public void computedVersion(String version) {
+        assertEquals("0.0.1", version);
+      }
+    });
+    responseFromServer(parseJson(//
+        "{",
+        "  'id': 'id',",
+        "  'result': {",
+        "    'version': '0.0.1'",
+        "  }",
+        "}").toString());
   }
 
   /**

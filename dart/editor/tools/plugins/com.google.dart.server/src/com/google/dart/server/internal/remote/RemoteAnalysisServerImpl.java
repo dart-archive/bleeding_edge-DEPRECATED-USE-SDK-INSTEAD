@@ -49,7 +49,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
     private final InputStream inputStream;
 
-    ServerResponseReaderThread(InputStream inputStream) {
+    public ServerResponseReaderThread(InputStream inputStream) {
       this.inputStream = inputStream;
     }
 
