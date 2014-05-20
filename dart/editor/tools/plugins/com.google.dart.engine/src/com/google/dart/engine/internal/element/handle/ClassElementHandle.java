@@ -181,8 +181,30 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public MethodElement lookUpConcreteMethod(String methodName, LibraryElement library) {
+    return getActualElement().lookUpConcreteMethod(methodName, library);
+  }
+
+  @Override
   public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
     return getActualElement().lookUpGetter(getterName, library);
+  }
+
+  @Override
+  public PropertyAccessorElement lookUpInheritedConcreteGetter(String methodName,
+      LibraryElement library) {
+    return getActualElement().lookUpInheritedConcreteGetter(methodName, library);
+  }
+
+  @Override
+  public MethodElement lookUpInheritedConcreteMethod(String methodName, LibraryElement library) {
+    return getActualElement().lookUpInheritedConcreteMethod(methodName, library);
+  }
+
+  @Override
+  public PropertyAccessorElement lookUpInheritedConcreteSetter(String methodName,
+      LibraryElement library) {
+    return getActualElement().lookUpInheritedConcreteSetter(methodName, library);
   }
 
   @Override

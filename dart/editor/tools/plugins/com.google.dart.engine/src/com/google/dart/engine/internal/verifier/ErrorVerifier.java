@@ -2273,13 +2273,24 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    */
   private boolean checkForConcreteClassWithAbstractMember(MethodDeclaration node) {
     if (node.isAbstract() && enclosingClass != null && !enclosingClass.isAbstract()) {
-      SimpleIdentifier methodName = node.getName();
-      errorReporter.reportErrorForNode(
-          StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-          methodName,
-          methodName.getName(),
-          enclosingClass.getDisplayName());
-      return true;
+      SimpleIdentifier nameNode = node.getName();
+      String memberName = nameNode.getName();
+      ExecutableElement overriddenMember;
+      if (node.isGetter()) {
+        overriddenMember = enclosingClass.lookUpInheritedConcreteGetter(memberName, currentLibrary);
+      } else if (node.isSetter()) {
+        overriddenMember = enclosingClass.lookUpInheritedConcreteSetter(memberName, currentLibrary);
+      } else {
+        overriddenMember = enclosingClass.lookUpInheritedConcreteMethod(memberName, currentLibrary);
+      }
+      if (overriddenMember == null) {
+        errorReporter.reportErrorForNode(
+            StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+            nameNode,
+            memberName,
+            enclosingClass.getDisplayName());
+        return true;
+      }
     }
     return false;
   }

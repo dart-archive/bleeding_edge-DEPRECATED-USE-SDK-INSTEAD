@@ -214,7 +214,126 @@ public class ClassElementImplTest extends EngineTestCase {
     assertTrue(classA.hasStaticMember());
   }
 
+  public void test_lookUpConcreteMethod_declared() {
+    // class A {
+    //   m() {}
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement method = methodElement(methodName, null);
+    classA.setMethods(new MethodElement[] {method});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertSame(method, classA.lookUpConcreteMethod(methodName, library));
+  }
+
+  public void test_lookUpConcreteMethod_declaredAbstract() {
+    // class A {
+    //   m();
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElementImpl method = methodElement(methodName, null);
+    method.setAbstract(true);
+    classA.setMethods(new MethodElement[] {method});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertNull(classA.lookUpConcreteMethod(methodName, library));
+  }
+
+  public void test_lookUpConcreteMethod_declaredAbstractAndInherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    //   m();
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement inheritedMethod = methodElement(methodName, null);
+    classA.setMethods(new MethodElement[] {inheritedMethod});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    MethodElementImpl method = methodElement(methodName, null);
+    method.setAbstract(true);
+    classB.setMethods(new MethodElement[] {method});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertSame(inheritedMethod, classB.lookUpConcreteMethod(methodName, library));
+  }
+
+  public void test_lookUpConcreteMethod_declaredAndInherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    //   m() {}
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement inheritedMethod = methodElement(methodName, null);
+    classA.setMethods(new MethodElement[] {inheritedMethod});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    MethodElement method = methodElement(methodName, null);
+    classB.setMethods(new MethodElement[] {method});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertSame(method, classB.lookUpConcreteMethod(methodName, library));
+  }
+
+  public void test_lookUpConcreteMethod_declaredAndInheritedAbstract() {
+    // abstract class A {
+    //   m();
+    // }
+    // class B extends A {
+    //   m() {}
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    classA.setAbstract(true);
+    String methodName = "m";
+    MethodElementImpl inheritedMethod = methodElement(methodName, null);
+    inheritedMethod.setAbstract(true);
+    classA.setMethods(new MethodElement[] {inheritedMethod});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    MethodElement method = methodElement(methodName, null);
+    classB.setMethods(new MethodElement[] {method});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertSame(method, classB.lookUpConcreteMethod(methodName, library));
+  }
+
+  public void test_lookUpConcreteMethod_inherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement inheritedMethod = methodElement(methodName, null);
+    classA.setMethods(new MethodElement[] {inheritedMethod});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertSame(inheritedMethod, classB.lookUpConcreteMethod(methodName, library));
+  }
+
+  public void test_lookUpConcreteMethod_undeclared() {
+    // class A {
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertNull(classA.lookUpConcreteMethod("m", library));
+  }
+
   public void test_lookUpGetter_declared() {
+    // class A {
+    //   get g {}
+    // }
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String getterName = "g";
@@ -225,6 +344,11 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpGetter_inherited() {
+    // class A {
+    //   get g {}
+    // }
+    // class B extends A {
+    // }
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String getterName = "g";
@@ -237,6 +361,8 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpGetter_undeclared() {
+    // class A {
+    // }
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
@@ -244,6 +370,10 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpGetter_undeclared_recursive() {
+    // class A extends B {
+    // }
+    // class B extends A {
+    // }
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     ClassElementImpl classB = classElement("B", classA.getType());
@@ -253,7 +383,245 @@ public class ClassElementImplTest extends EngineTestCase {
     assertNull(classA.lookUpGetter("g", library));
   }
 
+  public void test_lookUpInheritedConcreteGetter_declared() {
+    // class A {
+    //   get g {}
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String getterName = "g";
+    PropertyAccessorElement getter = getterElement(getterName, false, null);
+    classA.setAccessors(new PropertyAccessorElement[] {getter});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertNull(classA.lookUpInheritedConcreteGetter(getterName, library));
+  }
+
+  public void test_lookUpInheritedConcreteGetter_inherited() {
+    // class A {
+    //   get g {}
+    // }
+    // class B extends A {
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String getterName = "g";
+    PropertyAccessorElement inheritedGetter = getterElement(getterName, false, null);
+    classA.setAccessors(new PropertyAccessorElement[] {inheritedGetter});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertSame(inheritedGetter, classB.lookUpInheritedConcreteGetter(getterName, library));
+  }
+
+  public void test_lookUpInheritedConcreteGetter_undeclared() {
+    // class A {
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertNull(classA.lookUpInheritedConcreteGetter("g", library));
+  }
+
+  public void test_lookUpInheritedConcreteGetter_undeclared_recursive() {
+    // class A extends B {
+    // }
+    // class B extends A {
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    classA.setSupertype(classB.getType());
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertNull(classA.lookUpInheritedConcreteGetter("g", library));
+  }
+
+  public void test_lookUpInheritedConcreteMethod_declared() {
+    // class A {
+    //   m() {}
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement method = methodElement(methodName, null);
+    classA.setMethods(new MethodElement[] {method});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertNull(classA.lookUpInheritedConcreteMethod(methodName, library));
+  }
+
+  public void test_lookUpInheritedConcreteMethod_declaredAbstractAndInherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    //   m();
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement inheritedMethod = methodElement(methodName, null);
+    classA.setMethods(new MethodElement[] {inheritedMethod});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    MethodElementImpl method = methodElement(methodName, null);
+    method.setAbstract(true);
+    classB.setMethods(new MethodElement[] {method});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertSame(inheritedMethod, classB.lookUpInheritedConcreteMethod(methodName, library));
+  }
+
+  public void test_lookUpInheritedConcreteMethod_declaredAndInherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    //   m() {}
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement inheritedMethod = methodElement(methodName, null);
+    classA.setMethods(new MethodElement[] {inheritedMethod});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    MethodElement method = methodElement(methodName, null);
+    classB.setMethods(new MethodElement[] {method});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertSame(inheritedMethod, classB.lookUpInheritedConcreteMethod(methodName, library));
+  }
+
+  public void test_lookUpInheritedConcreteMethod_declaredAndInheritedAbstract() {
+    // abstract class A {
+    //   m();
+    // }
+    // class B extends A {
+    //   m() {}
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    classA.setAbstract(true);
+    String methodName = "m";
+    MethodElementImpl inheritedMethod = methodElement(methodName, null);
+    inheritedMethod.setAbstract(true);
+    classA.setMethods(new MethodElement[] {inheritedMethod});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    MethodElement method = methodElement(methodName, null);
+    classB.setMethods(new MethodElement[] {method});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertNull(classB.lookUpInheritedConcreteMethod(methodName, library));
+  }
+
+  public void test_lookUpInheritedConcreteMethod_declaredAndInheritedWithAbstractBetween() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    //   m();
+    // }
+    // class C extends B {
+    //   m() {}
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement inheritedMethod = methodElement(methodName, null);
+    classA.setMethods(new MethodElement[] {inheritedMethod});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    MethodElementImpl abstractMethod = methodElement(methodName, null);
+    abstractMethod.setAbstract(true);
+    classB.setMethods(new MethodElement[] {abstractMethod});
+    ClassElementImpl classC = classElement("C", classB.getType());
+    MethodElementImpl method = methodElement(methodName, null);
+    classC.setMethods(new MethodElement[] {method});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB, classC});
+    assertSame(inheritedMethod, classC.lookUpInheritedConcreteMethod(methodName, library));
+  }
+
+  public void test_lookUpInheritedConcreteMethod_inherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement inheritedMethod = methodElement(methodName, null);
+    classA.setMethods(new MethodElement[] {inheritedMethod});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertSame(inheritedMethod, classB.lookUpInheritedConcreteMethod(methodName, library));
+  }
+
+  public void test_lookUpInheritedConcreteMethod_undeclared() {
+    // class A {
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertNull(classA.lookUpInheritedConcreteMethod("m", library));
+  }
+
+  public void test_lookUpInheritedConcreteSetter_declared() {
+    // class A {
+    //   set g(x) {}
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String setterName = "s";
+    PropertyAccessorElement setter = setterElement(setterName, false, null);
+    classA.setAccessors(new PropertyAccessorElement[] {setter});
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertNull(classA.lookUpInheritedConcreteSetter(setterName, library));
+  }
+
+  public void test_lookUpInheritedConcreteSetter_inherited() {
+    // class A {
+    //   set g(x) {}
+    // }
+    // class B extends A {
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    String setterName = "s";
+    PropertyAccessorElement setter = setterElement(setterName, false, null);
+    classA.setAccessors(new PropertyAccessorElement[] {setter});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertSame(setter, classB.lookUpInheritedConcreteSetter(setterName, library));
+  }
+
+  public void test_lookUpInheritedConcreteSetter_undeclared() {
+    // class A {
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertNull(classA.lookUpInheritedConcreteSetter("s", library));
+  }
+
+  public void test_lookUpInheritedConcreteSetter_undeclared_recursive() {
+    // class A extends B {
+    // }
+    // class B extends A {
+    // }
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    classA.setSupertype(classB.getType());
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertNull(classA.lookUpInheritedConcreteSetter("s", library));
+  }
+
   public void test_lookUpInheritedMethod_declared() {
+    // class A {
+    //   m() {}
+    // }
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String methodName = "m";
@@ -264,6 +632,12 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpInheritedMethod_declaredAndInherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    //   m() {}
+    // }
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String methodName = "m";
@@ -278,6 +652,11 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpInheritedMethod_inherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    // }
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String methodName = "m";
@@ -290,6 +669,8 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpInheritedMethod_undeclared() {
+    // class A {
+    // }
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
@@ -336,6 +717,9 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpSetter_declared() {
+    // class A {
+    //   set g(x) {}
+    // }
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String setterName = "s";
@@ -346,6 +730,11 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpSetter_inherited() {
+    // class A {
+    //   set g(x) {}
+    // }
+    // class B extends A {
+    // }
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String setterName = "s";
@@ -358,6 +747,8 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpSetter_undeclared() {
+    // class A {
+    // }
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
@@ -365,6 +756,10 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpSetter_undeclared_recursive() {
+    // class A extends B {
+    // }
+    // class B extends A {
+    // }
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     ClassElementImpl classB = classElement("B", classA.getType());

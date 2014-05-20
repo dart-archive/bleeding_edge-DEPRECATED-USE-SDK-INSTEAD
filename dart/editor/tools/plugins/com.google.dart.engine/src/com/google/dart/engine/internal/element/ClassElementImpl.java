@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
@@ -373,31 +374,30 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public MethodElement lookUpConcreteMethod(String methodName, LibraryElement library) {
+    return internalLookUpConcreteMethod(methodName, library, true);
+  }
+
+  @Override
   public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    ClassElement currentElement = this;
-    while (currentElement != null && !visitedClasses.contains(currentElement)) {
-      visitedClasses.add(currentElement);
-      PropertyAccessorElement element = currentElement.getGetter(getterName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
-      for (InterfaceType mixin : currentElement.getMixins()) {
-        ClassElement mixinElement = mixin.getElement();
-        if (mixinElement != null) {
-          element = mixinElement.getGetter(getterName);
-          if (element != null && element.isAccessibleIn(library)) {
-            return element;
-          }
-        }
-      }
-      InterfaceType supertype = currentElement.getSupertype();
-      if (supertype == null) {
-        return null;
-      }
-      currentElement = supertype.getElement();
-    }
-    return null;
+    return internalLookUpGetter(getterName, library, true);
+  }
+
+  @Override
+  public PropertyAccessorElement lookUpInheritedConcreteGetter(String getterName,
+      LibraryElement library) {
+    return internalLookUpConcreteGetter(getterName, library, false);
+  }
+
+  @Override
+  public MethodElement lookUpInheritedConcreteMethod(String methodName, LibraryElement library) {
+    return internalLookUpConcreteMethod(methodName, library, false);
+  }
+
+  @Override
+  public PropertyAccessorElement lookUpInheritedConcreteSetter(String setterName,
+      LibraryElement library) {
+    return internalLookUpConcreteSetter(setterName, library, false);
   }
 
   @Override
@@ -412,30 +412,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @Override
   public PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library) {
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    ClassElement currentElement = this;
-    while (currentElement != null && !visitedClasses.contains(currentElement)) {
-      visitedClasses.add(currentElement);
-      PropertyAccessorElement element = currentElement.getSetter(setterName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
-      for (InterfaceType mixin : currentElement.getMixins()) {
-        ClassElement mixinElement = mixin.getElement();
-        if (mixinElement != null) {
-          element = mixinElement.getSetter(setterName);
-          if (element != null && element.isAccessibleIn(library)) {
-            return element;
-          }
-        }
-      }
-      InterfaceType supertype = currentElement.getSupertype();
-      if (supertype == null) {
-        return null;
-      }
-      currentElement = supertype.getElement();
-    }
-    return null;
+    return internalLookUpSetter(setterName, library, true);
   }
 
   /**
@@ -632,6 +609,78 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     }
   }
 
+  private PropertyAccessorElement internalLookUpConcreteGetter(String getterName,
+      LibraryElement library, boolean includeThisClass) {
+    PropertyAccessorElement getter = internalLookUpGetter(getterName, library, includeThisClass);
+    while (getter != null && getter.isAbstract()) {
+      Element definingClass = getter.getEnclosingElement();
+      if (!(definingClass instanceof ClassElementImpl)) {
+        return null;
+      }
+      getter = ((ClassElementImpl) definingClass).internalLookUpGetter(getterName, library, false);
+    }
+    return getter;
+  }
+
+  private MethodElement internalLookUpConcreteMethod(String methodName, LibraryElement library,
+      boolean includeThisClass) {
+    MethodElement method = internalLookUpMethod(methodName, library, includeThisClass);
+    while (method != null && method.isAbstract()) {
+      ClassElement definingClass = method.getEnclosingElement();
+      if (definingClass == null) {
+        return null;
+      }
+      method = definingClass.lookUpInheritedMethod(methodName, library);
+    }
+    return method;
+  }
+
+  private PropertyAccessorElement internalLookUpConcreteSetter(String setterName,
+      LibraryElement library, boolean includeThisClass) {
+    PropertyAccessorElement setter = internalLookUpSetter(setterName, library, includeThisClass);
+    while (setter != null && setter.isAbstract()) {
+      Element definingClass = setter.getEnclosingElement();
+      if (!(definingClass instanceof ClassElementImpl)) {
+        return null;
+      }
+      setter = ((ClassElementImpl) definingClass).internalLookUpSetter(setterName, library, false);
+    }
+    return setter;
+  }
+
+  private PropertyAccessorElement internalLookUpGetter(String getterName, LibraryElement library,
+      boolean includeThisClass) {
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    ClassElement currentElement = this;
+    if (includeThisClass) {
+      PropertyAccessorElement element = currentElement.getGetter(getterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    while (currentElement != null && visitedClasses.add(currentElement)) {
+      for (InterfaceType mixin : currentElement.getMixins()) {
+        ClassElement mixinElement = mixin.getElement();
+        if (mixinElement != null) {
+          PropertyAccessorElement element = mixinElement.getGetter(getterName);
+          if (element != null && element.isAccessibleIn(library)) {
+            return element;
+          }
+        }
+      }
+      InterfaceType supertype = currentElement.getSupertype();
+      if (supertype == null) {
+        return null;
+      }
+      currentElement = supertype.getElement();
+      PropertyAccessorElement element = currentElement.getGetter(getterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   private MethodElement internalLookUpMethod(String methodName, LibraryElement library,
       boolean includeThisClass) {
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
@@ -658,6 +707,39 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
       }
       currentElement = supertype.getElement();
       MethodElement element = currentElement.getMethod(methodName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  private PropertyAccessorElement internalLookUpSetter(String setterName, LibraryElement library,
+      boolean includeThisClass) {
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    ClassElement currentElement = this;
+    if (includeThisClass) {
+      PropertyAccessorElement element = currentElement.getSetter(setterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    while (currentElement != null && visitedClasses.add(currentElement)) {
+      for (InterfaceType mixin : currentElement.getMixins()) {
+        ClassElement mixinElement = mixin.getElement();
+        if (mixinElement != null) {
+          PropertyAccessorElement element = mixinElement.getSetter(setterName);
+          if (element != null && element.isAccessibleIn(library)) {
+            return element;
+          }
+        }
+      }
+      InterfaceType supertype = currentElement.getSupertype();
+      if (supertype == null) {
+        return null;
+      }
+      currentElement = supertype.getElement();
+      PropertyAccessorElement element = currentElement.getSetter(setterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }

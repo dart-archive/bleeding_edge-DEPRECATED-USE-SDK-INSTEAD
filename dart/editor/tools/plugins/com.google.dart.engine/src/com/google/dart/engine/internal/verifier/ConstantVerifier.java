@@ -374,14 +374,7 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
     }
     ClassElement classElement = (ClassElement) element;
     // lookup for ==
-    MethodElement method = classElement.lookUpMethod("==", currentLibrary);
-    while (method != null && method.isAbstract()) {
-      ClassElement definingClass = method.getEnclosingElement();
-      if (definingClass == null) {
-        return false;
-      }
-      method = definingClass.lookUpInheritedMethod("==", currentLibrary);
-    }
+    MethodElement method = classElement.lookUpConcreteMethod("==", currentLibrary);
     if (method == null || method.getEnclosingElement().getType().isObject()) {
       return false;
     }

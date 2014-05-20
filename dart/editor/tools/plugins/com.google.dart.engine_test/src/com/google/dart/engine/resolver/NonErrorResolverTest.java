@@ -497,6 +497,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_concreteClassWithAbstractMember_inherited() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "}",
+        "class B extends A {",
+        "  m();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_conflictingInstanceGetterAndSuperclassMember_instance() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
