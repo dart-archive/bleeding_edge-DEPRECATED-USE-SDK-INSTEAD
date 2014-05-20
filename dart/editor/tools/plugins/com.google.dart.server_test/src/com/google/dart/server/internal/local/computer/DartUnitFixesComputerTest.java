@@ -132,6 +132,7 @@ public class DartUnitFixesComputerTest extends AbstractLocalServerTest {
     // prepare errors
     server.test_waitForWorkerComplete();
     log("computeProposals: worker completed");
+    serverListener.assertNoServerErrors();
     AnalysisError[] errors = serverListener.getErrors(source);
     log("computeProposals: %s error(s)", errors.length);
     if (errors.length != 1) {

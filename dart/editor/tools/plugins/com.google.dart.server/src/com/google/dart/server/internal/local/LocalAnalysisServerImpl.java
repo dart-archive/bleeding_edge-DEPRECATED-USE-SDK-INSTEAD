@@ -515,10 +515,13 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     switch (kind) {
       case ERRORS: {
         AnalysisError[] errors = changeNotice.getErrors();
+        if (errors == null) {
+          errors = AnalysisError.NO_ERRORS;
+        }
         log("\tERRORS %s", errors.length);
         listener.computedErrors(contextId, source, errors);
-      }
         break;
+      }
       case HIGHLIGHTS: {
         CompilationUnit dartUnit = changeNotice.getCompilationUnit();
         log("\tHIGHLIGHTS %s", dartUnit);
@@ -539,7 +542,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         }
         break;
       }
-      case OUTLINE:
+      case OUTLINE: {
         CompilationUnit dartUnit = changeNotice.getCompilationUnit();
         if (dartUnit != null) {
           listener.computedOutline(contextId, source, new DartUnitOutlineComputer(
@@ -548,6 +551,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
               dartUnit).compute());
         }
         break;
+      }
     }
   }
 
