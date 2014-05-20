@@ -6,7 +6,6 @@ import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.CompletionSuggestionsConsumer;
@@ -29,7 +28,9 @@ import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.util.LinkedHashMap;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -65,18 +66,21 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
             continue;
           }
           String idString = idJsonPrimitive.getAsString();
+          Consumer consumer = null;
           synchronized (consumerMapLock) {
-            Consumer consumer = consumerMap.get(idString);
-            if (consumer == null) {
-              // TODO (jwren) handle this error case
-              continue;
-            }
-            // TODO(jwren) handle error responses:
+            consumer = consumerMap.get(idString);
+          }
+          if (consumer == null) {
+            // TODO (jwren) handle this error case
+            continue;
+          }
+          // TODO(jwren) handle error responses:
 //              JsonObject errorObject = (JsonObject) element.get("error");
-            JsonObject resultObject = (JsonObject) element.get("result");
-            if (consumer instanceof VersionConsumer) {
-              processVersionConsumer((VersionConsumer) consumer, resultObject);
-            }
+          JsonObject resultObject = (JsonObject) element.get("result");
+          if (consumer instanceof VersionConsumer) {
+            processVersionConsumer((VersionConsumer) consumer, resultObject);
+          }
+          synchronized (consumerMapLock) {
             consumerMap.remove(idString);
           }
         }
@@ -93,22 +97,18 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   /**
+   * A mapping between {@link String} ids' and the associated {@link Consumer} that was passed when
+   * the request was made.
+   */
+  private final HashMap<String, Consumer> consumerMap;
+
+  /**
    * The object used to synchronize access to {@link #consumerMap}.
    */
   private final Object consumerMapLock = new Object();
 
-  /**
-   * A mapping between {@link String} ids' and the associated {@link Consumer} that was passed when
-   * the request was made.
-   */
-  private LinkedHashMap<String, Consumer> consumerMap = new LinkedHashMap<String, Consumer>();
-
-  /**
-   * The process running the analysis server.
-   */
-  private Process process;
-
   private final String runtimePath;
+
   private final String analysisServerPath;
 
   /**
@@ -117,12 +117,18 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   private final AtomicInteger nextId = new AtomicInteger();
 
   /**
+   * The {@link Writer} for responses to the server.
+   */
+  private PrintWriter printWriter;
+
+  /**
    * Create an instance of {@link RemoteAnalysisServerImpl} using some runtime (Dart VM) path, and
    * some analysis server path.
    */
   public RemoteAnalysisServerImpl(String runtimePath, String analysisServerPath) {
     this.runtimePath = runtimePath;
     this.analysisServerPath = analysisServerPath;
+    this.consumerMap = new HashMap<String, Consumer>();
   }
 
   @Override
@@ -181,11 +187,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void getVersion(VersionConsumer consumer) {
     String id = generateUniqueId();
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateServerVersionRequest(id).toString()
-            + System.getProperty("line.separator"),
-        consumer);
+    sendRequestToServer(id, RequestUtilities.generateServerVersionRequest(id).toString(), consumer);
   }
 
   public void initServerAndReaderThread() throws IOException {
@@ -196,7 +198,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     StreamUtilities.readResponse(inputStream);
     ServerResponseReaderThread thread = new ServerResponseReaderThread(inputStream);
     thread.start();
-    this.process = process;
+    OutputStreamWriter outputStreamWriter = new OutputStreamWriter(process.getOutputStream());
+    printWriter = new PrintWriter(outputStreamWriter);
   }
 
   @Override
@@ -247,8 +250,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @VisibleForTesting
-  public void test_putOnConsumerMap(String id, Consumer consumer) {
-    consumerMap.put(id, consumer);
+  public void test_setPrintWriter(PrintWriter printWriter) {
+    this.printWriter = printWriter;
   }
 
   @VisibleForTesting
@@ -265,7 +268,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    * @return a unique {@link String} id to be used in the requests sent to the analysis server
    */
   private String generateUniqueId() {
-    return nextId.getAndIncrement() + StringUtilities.EMPTY;
+    return Integer.toString(nextId.getAndIncrement());
   }
 
   /**
@@ -278,15 +281,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    * @param consumer the {@link Consumer}
    */
   private void sendRequestToServer(String id, String requestJson, Consumer consumer) {
-    OutputStreamWriter writer = new OutputStreamWriter(process.getOutputStream());
-    try {
-      writer.write(requestJson);
-      writer.flush();
-      synchronized (consumerMapLock) {
-        consumerMap.put(id, consumer);
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
+    synchronized (consumerMapLock) {
+      consumerMap.put(id, consumer);
     }
+    printWriter.println(requestJson);
+    printWriter.flush();
   }
 }

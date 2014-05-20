@@ -13,6 +13,7 @@
  */
 package com.google.dart.server.internal.remote;
 
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl.ServerResponseReaderThread;
 
 import junit.framework.TestCase;
@@ -38,6 +39,8 @@ public abstract class AbstractRemoteServerTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     server = new RemoteAnalysisServerImpl("", "");
+    // Set a print writer so that we won't get a NPE when calls are made on the writer.
+    server.test_setPrintWriter(new PrintStringWriter());
   }
 
   @Override

@@ -34,7 +34,7 @@ public abstract class AbstractServerIntegrationTest extends TestCase {
     assertEquals("0.0.1", versionPtr[0]);
   }
 
-  protected abstract void initServer();
+  protected abstract void initServer() throws Exception;
 
   @Override
   protected void setUp() throws Exception {

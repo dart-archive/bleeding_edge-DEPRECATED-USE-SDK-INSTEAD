@@ -15,12 +15,10 @@ package com.google.dart.server.internal.integration;
 
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
 
-import java.io.IOException;
-
 public class RemoteAnalysisServerImplIntegrationTest extends AbstractServerIntegrationTest {
 
   @Override
-  protected void initServer() {
+  protected void initServer() throws Exception {
     String runtimePath = System.getProperty("com.google.dart.runtime");
     String analysisServerPath = System.getProperty("com.google.dart.analysis.server");
     if (runtimePath == null) {
@@ -32,12 +30,7 @@ public class RemoteAnalysisServerImplIntegrationTest extends AbstractServerInteg
     RemoteAnalysisServerImpl remoteServer = new RemoteAnalysisServerImpl(
         runtimePath,
         analysisServerPath);
-    try {
-      remoteServer.initServerAndReaderThread();
-    } catch (IOException e) {
-      e.printStackTrace();
-      fail();
-    }
+    remoteServer.initServerAndReaderThread();
     server = remoteServer;
   }
 

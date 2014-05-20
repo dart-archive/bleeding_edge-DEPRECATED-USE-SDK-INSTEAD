@@ -25,20 +25,23 @@ import com.google.gson.JsonParser;
  */
 public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
-  public void test_version() throws Exception {
-    server.test_putOnConsumerMap("id", new VersionConsumer() {
+  public void test_getVersion() throws Exception {
+    final String[] versionPtr = {null};
+    server.getVersion(new VersionConsumer() {
       @Override
       public void computedVersion(String version) {
-        assertEquals("0.0.1", version);
+        versionPtr[0] = version;
       }
     });
     responseFromServer(parseJson(//
         "{",
-        "  'id': 'id',",
+        "  'id': '0',",
         "  'result': {",
         "    'version': '0.0.1'",
         "  }",
         "}").toString());
+    server.test_waitForWorkerComplete();
+    assertEquals("0.0.1", versionPtr[0]);
   }
 
   /**
