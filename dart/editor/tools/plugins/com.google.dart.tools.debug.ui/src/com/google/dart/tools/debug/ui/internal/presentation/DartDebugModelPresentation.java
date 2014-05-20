@@ -30,6 +30,7 @@ import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.ILineBreakpoint;
 import org.eclipse.debug.core.model.IStackFrame;
@@ -47,6 +48,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 
@@ -163,8 +165,15 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
       return new FileEditorInput((IFile) element);
     }
 
-    if (element instanceof ILineBreakpoint) {
-      return new FileEditorInput((IFile) ((ILineBreakpoint) element).getMarker().getResource());
+    if (element instanceof DartBreakpoint) {
+      IFile file = ((DartBreakpoint) element).getFile();
+      if (file != null) {
+        return new FileEditorInput(file);
+      }
+
+      return new FileStoreEditorInput(EFS.getLocalFileSystem().getStore(
+          new Path(((DartBreakpoint) element).getFilePath())));
+
     }
 
     if (element instanceof LocalFileStorage) {
@@ -375,10 +384,15 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
    * @return
    */
   protected String getBreakpointText(DartBreakpoint bp) {
-    String text = bp.getFile().getProject().getName() + ", "
-        + bp.getFile().getProjectRelativePath().toPortableString() + ", line "
-        + NumberFormat.getNumberInstance().format(bp.getLine());
+    String text = "";
+    IFile file = bp.getFile();
+    if (file != null) {
+      text = file.getProject().getName() + ", " + file.getProjectRelativePath().toPortableString()
+          + ", line " + NumberFormat.getNumberInstance().format(bp.getLine());
 
+    } else {
+      text = bp.getName() + ", line " + NumberFormat.getNumberInstance().format(bp.getLine());
+    }
     String lineInfo = getLineExtract(bp);
 
     if (lineInfo != null) {
@@ -435,7 +449,8 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
 
   private String getLineExtract(DartBreakpoint bp) {
     try {
-      Reader r = new InputStreamReader(bp.getFile().getContents(), bp.getFile().getCharset());
+
+      Reader r = new InputStreamReader(bp.getContents(), bp.getCharset());
 
       List<String> lines = CharStreams.readLines(r);
 
@@ -447,8 +462,6 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
         return lineStr.length() == 0 ? null : lineStr;
       }
     } catch (IOException ioe) {
-      return null;
-    } catch (CoreException ce) {
       return null;
     }
 

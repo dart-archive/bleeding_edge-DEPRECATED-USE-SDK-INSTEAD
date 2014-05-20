@@ -22,7 +22,7 @@ import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import junit.framework.TestCase;
 
-import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 
 import java.io.File;
 
@@ -35,7 +35,7 @@ public class BreakpointManagerTest extends TestCase {
     }
 
     @Override
-    protected String resolvePathToPackage(IFile resource, String filePath) {
+    protected String resolvePathToPackage(IResource resource, String filePath) {
       File directory = createFile("/src/foo/bar/baz/lib");
       File dir2 = createFile("/gen/foo/bar/baz");
       String packages = "{\"packages\":{\"unittest\": [\"/dart/unittest/lib\"],"

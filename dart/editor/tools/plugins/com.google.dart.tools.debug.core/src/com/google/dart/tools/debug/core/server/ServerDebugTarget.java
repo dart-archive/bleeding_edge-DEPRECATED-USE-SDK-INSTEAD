@@ -21,6 +21,7 @@ import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
@@ -358,7 +359,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
       return false;
     }
 
-    if (currentProject == null) {
+    if (currentProject == null || ((DartBreakpoint) breakpoint).getFile() == null) {
       return true;
     } else {
       return currentProject.equals(((DartBreakpoint) breakpoint).getFile().getProject());
@@ -477,10 +478,13 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
         DartBreakpoint breakpoint = (DartBreakpoint) bp;
 
         if (breakpoint.getLine() == line) {
-          String bpUrl = breakpoint.getFile().getLocationURI().toString();
+          IFile file = breakpoint.getFile();
+          if (file != null) {
+            String bpUrl = file.getLocationURI().toString();
 
-          if (bpUrl.equals(url)) {
-            return breakpoint;
+            if (bpUrl.equals(url)) {
+              return breakpoint;
+            }
           }
         }
       }

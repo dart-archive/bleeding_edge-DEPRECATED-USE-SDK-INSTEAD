@@ -15,11 +15,14 @@
 package com.google.dart.tools.debug.ui.internal.breakpoints;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.debug.ui.actions.IRunToLineTarget;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
@@ -53,6 +56,15 @@ public class DartBreakpointAdapterFactory implements IAdapterFactory {
         if (DartCore.isDartLikeFileName(name) || name.endsWith(".html") || name.endsWith(".htm")) {
           return new DartBreakpointAdapter();
         }
+      } else if (editorPart instanceof CompilationUnitEditor) {
+        IEditorInput input = editorPart.getEditorInput();
+        if (input instanceof FileStoreEditorInput) {
+          String path = ((FileStoreEditorInput) input).getURI().getPath();
+          if (DartCore.isDartLikeFileName(path)) {
+            return new DartBreakpointAdapter();
+          }
+        }
+
       }
     }
 

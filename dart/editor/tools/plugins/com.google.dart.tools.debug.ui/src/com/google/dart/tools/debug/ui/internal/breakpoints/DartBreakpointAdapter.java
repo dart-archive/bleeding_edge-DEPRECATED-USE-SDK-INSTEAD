@@ -17,6 +17,7 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.model.IBreakpoint;
@@ -27,7 +28,9 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 
 /**
@@ -65,6 +68,16 @@ public class DartBreakpointAdapter implements IToggleBreakpointsTarget {
 
     if (editor != null) {
       IResource resource = (IResource) editor.getEditorInput().getAdapter(IResource.class);
+
+      // if no resource is associated
+      String filePath = null;
+      if (resource == null) {
+        resource = ResourcesPlugin.getWorkspace().getRoot();
+        IEditorInput input = editor.getEditorInput();
+        if (input instanceof FileStoreEditorInput) {
+          filePath = ((FileStoreEditorInput) input).getURI().getPath();
+        }
+      }
 
       ITextSelection textSelection = (ITextSelection) selection;
 
@@ -106,7 +119,7 @@ public class DartBreakpointAdapter implements IToggleBreakpointsTarget {
 
       }
 
-      DartBreakpoint breakpoint = new DartBreakpoint(resource, lineNumber);
+      DartBreakpoint breakpoint = new DartBreakpoint(resource, lineNumber, filePath);
       DebugPlugin.getDefault().getBreakpointManager().addBreakpoint(breakpoint);
     }
   }

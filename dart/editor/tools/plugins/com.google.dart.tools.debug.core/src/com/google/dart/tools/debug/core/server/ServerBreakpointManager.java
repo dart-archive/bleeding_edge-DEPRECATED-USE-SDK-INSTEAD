@@ -138,8 +138,8 @@ class ServerBreakpointManager implements IBreakpointListener {
       if (lineNo != dartBreakpoint.getLine()) {
         ignoredBreakpoints.add(dartBreakpoint);
 
-        String message = "[breakpoint in " + dartBreakpoint.getFile().getName()
-            + " moved from line " + dartBreakpoint.getLine() + " to " + lineNo + "]";
+        String message = "[breakpoint in " + dartBreakpoint.getName() + " moved from line "
+            + dartBreakpoint.getLine() + " to " + lineNo + "]";
         target.writeToStdout(message);
 
         dartBreakpoint.updateLineNumber(lineNo);
@@ -149,23 +149,32 @@ class ServerBreakpointManager implements IBreakpointListener {
 
   private void addBreakpoint(VmIsolate isolate, final DartBreakpoint breakpoint) {
     if (breakpoint.isBreakpointEnabled()) {
-      String url = getAbsoluteUrlForResource(breakpoint.getFile());
+
+      String url = null;
+      IFile file = breakpoint.getFile();
+      if (file != null) {
+        url = getAbsoluteUrlForResource(file);
+      }
+
       int line = breakpoint.getLine();
 
       try {
         VmInterruptResult interruptResult = getConnection().interruptConditionally(isolate);
 
-        getConnection().setBreakpoint(isolate, url, line, new VmCallback<VmBreakpoint>() {
-          @Override
-          public void handleResult(VmResult<VmBreakpoint> result) {
-            if (!result.isError()) {
-              addCreatedBreakpoint(breakpoint, result.getResult());
+        if (url != null) {
+          getConnection().setBreakpoint(isolate, url, line, new VmCallback<VmBreakpoint>() {
+            @Override
+            public void handleResult(VmResult<VmBreakpoint> result) {
+              if (!result.isError()) {
+                addCreatedBreakpoint(breakpoint, result.getResult());
+              }
             }
-          }
-        });
+          });
+        }
 
-        url = getPubUrlForResource(breakpoint.getFile());
-
+        if (file != null) {
+          url = getPubUrlForResource(file);
+        }
         if (url != null) {
           getConnection().setBreakpoint(isolate, url, line, new VmCallback<VmBreakpoint>() {
             @Override

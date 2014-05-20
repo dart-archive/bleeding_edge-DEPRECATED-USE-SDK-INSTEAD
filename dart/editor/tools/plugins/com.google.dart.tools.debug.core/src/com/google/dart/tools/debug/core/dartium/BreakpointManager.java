@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.core.dartium;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.webkit.WebkitBreakpoint;
@@ -28,6 +29,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitScript;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarkerDelta;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.DebugPlugin;
@@ -198,7 +200,13 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
         DartBreakpoint breakpoint = (DartBreakpoint) bp;
 
         if (breakpoint.getLine() == line) {
-          String bpUrl = getResourceResolver().getUrlForResource(breakpoint.getFile());
+          IFile file = breakpoint.getFile();
+          String bpUrl = null;
+          if (file != null) {
+            bpUrl = getResourceResolver().getUrlForResource(file);
+          } else {
+            bpUrl = breakpoint.getFilePath();
+          }
 
           if (bpUrl != null && bpUrl.equals(url)) {
             return breakpoint;
@@ -211,7 +219,7 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
   }
 
   @VisibleForTesting
-  public String getPackagePath(String regex, IFile resource) {
+  public String getPackagePath(String regex, IResource resource) {
     Path path = new Path(regex);
     int i = 0;
     if (regex.indexOf(LIB_DIRECTORY_PATH) != -1) {
@@ -244,7 +252,7 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
       if (breakpoint.getLine() != eclipseLine) {
         ignoredBreakpoints.add(breakpoint);
 
-        String message = "[breakpoint in " + breakpoint.getFile().getName() + " moved from line "
+        String message = "[breakpoint in " + breakpoint.getName() + " moved from line "
             + breakpoint.getLine() + " to " + eclipseLine + "]";
         debugTarget.writeToStdout(message);
 
@@ -259,7 +267,7 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
   }
 
   @VisibleForTesting
-  protected String resolvePathToPackage(IFile resource, String filePath) {
+  protected String resolvePathToPackage(IResource resource, String filePath) {
     return DartCore.getProjectManager().resolvePathToPackage(resource, filePath);
   }
 
@@ -279,7 +287,14 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
 
   private void addBreakpoint(final DartBreakpoint breakpoint) throws IOException {
     if (breakpoint.isBreakpointEnabled()) {
-      String regex = getResourceResolver().getUrlRegexForResource(breakpoint.getFile());
+
+      String regex = null;
+      IFile file = breakpoint.getFile();
+      if (file != null) {
+        regex = getResourceResolver().getUrlRegexForResource(file);
+      } else {
+        regex = getUrlRegexForNonResource(breakpoint);
+      }
 
       if (regex == null) {
         return;
@@ -292,10 +307,10 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
       if (packagesIndex != -1) {
         // convert xxx/packages/foo/foo.dart to *foo/foo.dart
         regex = regex.substring(packagesIndex + PACKAGES_DIRECTORY_PATH.length());
-      } else if (isInSelfLinkedLib(breakpoint.getFile())) {
+      } else if (file != null && isInSelfLinkedLib(file)) {
         // Check if source is located in the "lib" directory; if there is a link to it from the 
         // packages directory breakpoint should be /packages/...
-        String packageName = DartCore.getSelfLinkedPackageName(breakpoint.getFile());
+        String packageName = DartCore.getSelfLinkedPackageName(file);
 
         if (packageName != null) {
           // Create a breakpoint for self-links.
@@ -321,7 +336,16 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
 
       // check if it is a file in a package, if so replace regex with package uri path
       // TODO(keertip): revisit when moved to calling pub for package info
-      String packagePath = getPackagePath(regex, breakpoint.getFile());
+      IResource resource = null;
+      if (file != null) {
+        resource = file;
+      } else {
+        DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
+            debugTarget.getLaunch().getLaunchConfiguration());
+        resource = wrapper.getProject();
+      }
+
+      String packagePath = getPackagePath(regex, resource);
       if (packagePath != null) {
         regex = packagePath;
       }
@@ -344,34 +368,36 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
       // source mapping.
       SourceMapManager sourceMapManager = debugTarget.getSourceMapManager();
 
-      if (sourceMapManager != null && sourceMapManager.isMapTarget(breakpoint.getFile())) {
-        List<SourceMapManager.SourceLocation> locations = sourceMapManager.getReverseMappingsFor(
-            breakpoint.getFile(),
-            line);
+      if (file != null) {
+        if (sourceMapManager != null && sourceMapManager.isMapTarget(file)) {
+          List<SourceMapManager.SourceLocation> locations = sourceMapManager.getReverseMappingsFor(
+              file,
+              line);
 
-        for (SourceMapManager.SourceLocation location : locations) {
-          String mappedRegex = getResourceResolver().getUrlRegexForResource(location.getFile());
+          for (SourceMapManager.SourceLocation location : locations) {
+            String mappedRegex = getResourceResolver().getUrlRegexForResource(location.getFile());
 
-          if (mappedRegex != null) {
-            if (DartDebugCorePlugin.LOGGING) {
-              System.out.println("breakpoint [" + regex + "," + breakpoint.getLine()
-                  + ",-1] ==> mapped to [" + mappedRegex + "," + location.getLine() + ","
-                  + location.getColumn() + "]");
-            }
+            if (mappedRegex != null) {
+              if (DartDebugCorePlugin.LOGGING) {
+                System.out.println("breakpoint [" + regex + "," + breakpoint.getLine()
+                    + ",-1] ==> mapped to [" + mappedRegex + "," + location.getLine() + ","
+                    + location.getColumn() + "]");
+              }
 
-            debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(
-                null,
-                mappedRegex,
-                location.getLine(),
-                location.getColumn(),
-                new WebkitCallback<String>() {
-                  @Override
-                  public void handleResult(WebkitResult<String> result) {
-                    if (!result.isError()) {
-                      addToBreakpointMap(breakpoint, result.getResult(), false);
+              debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(
+                  null,
+                  mappedRegex,
+                  location.getLine(),
+                  location.getColumn(),
+                  new WebkitCallback<String>() {
+                    @Override
+                    public void handleResult(WebkitResult<String> result) {
+                      if (!result.isError()) {
+                        addToBreakpointMap(breakpoint, result.getResult(), false);
+                      }
                     }
-                  }
-                });
+                  });
+            }
           }
         }
       }
@@ -380,6 +406,23 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
 
   private IResourceResolver getResourceResolver() {
     return debugTarget.getResourceResolver();
+  }
+
+  private String getUrlRegexForNonResource(DartBreakpoint breakpoint) {
+    String url = breakpoint.getFilePath();
+    Path path = new Path(url);
+    int i = 0;
+    if (url.indexOf("lib") != -1) {
+      // find lib
+      while (i < path.segmentCount() && !path.segment(i).equals("lib")) {
+        i++;
+      }
+    }
+    // get the library name
+    if (i > 2) {
+      url = path.removeFirstSegments(i - 2).toPortableString();
+    }
+    return url;
   }
 
   private boolean isInSelfLinkedLib(IFile file) {
