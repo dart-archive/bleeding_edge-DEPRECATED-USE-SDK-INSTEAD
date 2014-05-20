@@ -55,6 +55,17 @@ public interface AnalysisServer {
   public void applyChanges(String contextId, ChangeSet changeSet);
 
   /**
+   * Performs the final validation and computes a change to apply the specific refactoring. This
+   * method may be invoked several times, for example after changing options using
+   * {@link #setRefactoringExtractLocalOptions(String, boolean, String)}. When done,
+   * {@link #deleteRefactoring(String)} should be invoked.
+   * 
+   * @param refactoringId the identifier of the refactoring to apply
+   * @param consumer the results listener
+   */
+  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer);
+
+  /**
    * Computes code completion suggestions at the given position in the {@link Source}. The given
    * consumer is invoked asynchronously on a different thread.
    * 
@@ -113,12 +124,34 @@ public interface AnalysisServer {
   public String createContext(String name, String sdkDirectory, Map<String, String> packageMap);
 
   /**
+   * Create a new "Extract Local" refactoring. The refactoring that is created will persist until
+   * {@link #deleteRefactoring(String)} is used to delete it. Clients, therefore, are responsible
+   * for managing the lifetime of refactorings.
+   * 
+   * @param contextId the identifier of the context to create refactoring within
+   * @param source the {@link Source} to create refactoring within
+   * @param offset the offset within the {@code source}
+   * @param length the length of the selected code within the {@code source}
+   * @param consumer the results listener
+   */
+  public void createRefactoringExtractLocal(String contextId, Source source, int offset,
+      int length, RefactoringExtractLocalConsumer consumer);
+
+  /**
    * Delete the context with the given id. Future attempts to use the context id will result in an
    * error being returned.
    * 
    * @param contextId the identifier of the context to be deleted
    */
   public void deleteContext(String contextId);
+
+  /**
+   * Delete the refactoring with the given id. Future attempts to use the refactoring id will result
+   * in an error being returned.
+   * 
+   * @param refactoringId the identifier of the refactoring to be deleted
+   */
+  public void deleteRefactoring(String refactoringId);
 
   /**
    * Reports with a set of {@link ErrorCode}s for which server may be able to {@link #computeFixes}
@@ -206,6 +239,17 @@ public interface AnalysisServer {
    * @param sources the sources to be given priority over other sources
    */
   public void setPrioritySources(String contextId, Source[] sources);
+
+  /**
+   * Set the options for the "Extract Local" refactoring instance.
+   * 
+   * @param refactoringId the identifier of the refactoring to which the options are to be applied
+   * @param allOccurrences is {@code true} if all of the expression occurrences should be extracted
+   * @param name the name of the variable
+   * @param consumer the results listener
+   */
+  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
+      String name, RefactoringOptionsValidationConsumer consumer);
 
   /**
    * Cleanly shutdown the analysis server.

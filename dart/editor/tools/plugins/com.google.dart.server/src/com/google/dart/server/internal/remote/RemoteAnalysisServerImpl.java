@@ -15,6 +15,9 @@ import com.google.dart.server.FixableErrorCodesConsumer;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.MinorRefactoringsConsumer;
 import com.google.dart.server.NotificationKind;
+import com.google.dart.server.RefactoringApplyConsumer;
+import com.google.dart.server.RefactoringExtractLocalConsumer;
+import com.google.dart.server.RefactoringOptionsValidationConsumer;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.SourceSet;
 import com.google.dart.server.TypeHierarchyConsumer;
@@ -147,6 +150,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
+  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
   public void computeCompletionSuggestions(String contextId, Source source, int offset,
       CompletionSuggestionsConsumer consumer) {
     // TODO(scheglov) implement
@@ -175,8 +183,19 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
+  public void createRefactoringExtractLocal(String contextId, Source source, int offset,
+      int length, RefactoringExtractLocalConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
   public void deleteContext(String contextId) {
     // TODO (jwren) implement
+  }
+
+  @Override
+  public void deleteRefactoring(String refactoringId) {
+    // TODO(scheglov) implement
   }
 
   @Override
@@ -237,6 +256,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void setPrioritySources(String contextId, Source[] sources) {
     // TODO (jwren) implement
+  }
+
+  @Override
+  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
+      String name, RefactoringOptionsValidationConsumer consumer) {
+    // TODO(scheglov) implement
   }
 
   @Override

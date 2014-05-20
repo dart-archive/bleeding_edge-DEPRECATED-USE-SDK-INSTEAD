@@ -55,6 +55,9 @@ import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.InternalAnalysisServer;
 import com.google.dart.server.MinorRefactoringsConsumer;
 import com.google.dart.server.NotificationKind;
+import com.google.dart.server.RefactoringApplyConsumer;
+import com.google.dart.server.RefactoringExtractLocalConsumer;
+import com.google.dart.server.RefactoringOptionsValidationConsumer;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.SourceSet;
@@ -78,11 +81,11 @@ import com.google.dart.server.internal.local.operation.ComputeCompletionSuggesti
 import com.google.dart.server.internal.local.operation.ComputeFixesOperation;
 import com.google.dart.server.internal.local.operation.ComputeMinorRefactoringsOperation;
 import com.google.dart.server.internal.local.operation.ComputeTypeHierarchyOperation;
-import com.google.dart.server.internal.local.operation.GetVersionOperation;
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
 import com.google.dart.server.internal.local.operation.GetContextOperation;
 import com.google.dart.server.internal.local.operation.GetFixableErrorCodesOperation;
+import com.google.dart.server.internal.local.operation.GetVersionOperation;
 import com.google.dart.server.internal.local.operation.NotificationOperation;
 import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
 import com.google.dart.server.internal.local.operation.SearchClassMemberDeclarationsOperation;
@@ -267,6 +270,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   @Override
+  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
   public void computeCompletionSuggestions(String contextId, Source source, int offset,
       CompletionSuggestionsConsumer consumer) {
     operationQueue.add(new ComputeCompletionSuggestionsOperation(
@@ -306,8 +314,19 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   @Override
+  public void createRefactoringExtractLocal(String contextId, Source source, int offset,
+      int length, RefactoringExtractLocalConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
   public void deleteContext(String contextId) {
     operationQueue.add(new DeleteContextOperation(contextId));
+  }
+
+  @Override
+  public void deleteRefactoring(String refactoringId) {
+    // TODO(scheglov) implement
   }
 
   @Override
@@ -767,6 +786,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     } else {
       priorityContexts.remove(contextId);
     }
+  }
+
+  @Override
+  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
+      String name, RefactoringOptionsValidationConsumer consumer) {
+    // TODO(scheglov) implement
   }
 
   @Override
