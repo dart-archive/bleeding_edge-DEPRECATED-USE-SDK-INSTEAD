@@ -35,11 +35,11 @@ import java.util.Arrays;
 
 public class DartIgnoreManagerTest extends TestCase {
 
-  private final class MockIgnoreFile extends DartIgnoreFile {
+  private final class CountingMockIgnoreFile extends DartIgnoreFile {
     private boolean loaded = false;
     private int storeCount = 0;
 
-    private MockIgnoreFile(File file) {
+    private CountingMockIgnoreFile(File file) {
       super(file);
     }
 
@@ -76,7 +76,7 @@ public class DartIgnoreManagerTest extends TestCase {
   private static final String FILE_PATH = FILE.getAbsolutePath();
   private static final String NORMALIZED_PATH = FILE_PATH.replace(File.separatorChar, '/');
 
-  private MockIgnoreFile storage;
+  private CountingMockIgnoreFile storage;
   private DartIgnoreManager manager;
   private DartIgnoreListener listener;
   private String[] initialContent = new String[] {};
@@ -338,7 +338,7 @@ public class DartIgnoreManagerTest extends TestCase {
 
   @Override
   protected void setUp() throws Exception {
-    storage = new MockIgnoreFile(new File("ignore-test"));
+    storage = new CountingMockIgnoreFile(new File("ignore-test"));
     manager = new DartIgnoreManager(storage);
     listener = mock(DartIgnoreListener.class);
     manager.addListener(listener);

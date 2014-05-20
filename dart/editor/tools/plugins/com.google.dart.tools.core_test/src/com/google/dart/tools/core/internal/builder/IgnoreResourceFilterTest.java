@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.tools.core.internal.model.DartIgnoreFile;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
+import com.google.dart.tools.core.internal.model.MockIgnoreFile;
 import com.google.dart.tools.core.mock.MockProject;
 
 import junit.framework.TestCase;
@@ -23,34 +23,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.mockito.Mockito;
 
-import java.io.File;
-import java.io.IOException;
-
 public class IgnoreResourceFilterTest extends TestCase {
-
-  private final class MockIgnoreFile extends DartIgnoreFile {
-
-    private MockIgnoreFile() {
-      super(new File("/tmp/does/not/exist/ignores.txt"));
-    }
-
-    @Override
-    public void initFile() throws IOException {
-      // do not write to disk
-    }
-
-    @Override
-    public DartIgnoreFile load() throws IOException {
-      // do not read from disk
-      return this;
-    }
-
-    @Override
-    public DartIgnoreFile store() throws IOException {
-      // do not write to disk
-      return this;
-    }
-  }
 
   private MockProject project;
   private DartIgnoreManager ignoreManager;

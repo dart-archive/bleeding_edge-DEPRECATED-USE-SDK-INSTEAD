@@ -29,8 +29,8 @@ import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
 import com.google.dart.tools.core.internal.builder.MockContext;
 import com.google.dart.tools.core.internal.builder.TestProjects;
-import com.google.dart.tools.core.internal.model.DartIgnoreFile;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
+import com.google.dart.tools.core.internal.model.MockIgnoreFile;
 import com.google.dart.tools.core.mock.MockContainer;
 import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockFolder;
@@ -52,33 +52,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.io.File;
-import java.io.IOException;
 
 public class ProjectManagerIgnoreListenerTest extends TestCase {
-
-  private final class MockIgnoreFile extends DartIgnoreFile {
-
-    private MockIgnoreFile() {
-      super(new File("/tmp/does/not/exist/ignores.txt"));
-    }
-
-    @Override
-    public void initFile() throws IOException {
-      // do not write to disk
-    }
-
-    @Override
-    public DartIgnoreFile load() throws IOException {
-      // do not read from disk
-      return this;
-    }
-
-    @Override
-    public DartIgnoreFile store() throws IOException {
-      // do not write to disk
-      return this;
-    }
-  }
 
   private DartIgnoreManager ignoreManager;
   private MockWorkspaceRoot rootContainer;

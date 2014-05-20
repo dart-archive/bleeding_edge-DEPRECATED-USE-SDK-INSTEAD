@@ -18,8 +18,9 @@ Require-Bundle: com.google.dart.engine,
  com.google.dart.engine_test;visibility:=reexport
 Export-Package: com.google.dart.tools.core,
  com.google.dart.tools.core.internal.builder,
+ com.google.dart.tools.core.internal.model,
+ com.google.dart.tools.core.mock,
  com.google.dart.tools.core.test,
  com.google.dart.tools.core.test.util,
- com.google.dart.tools.core.mock,
  com.google.dart.tools.core.testutil
 Bundle-ClassPath: .
