@@ -23,10 +23,10 @@ import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
  * 
  * @coverage dart.server.local
  */
-public class ComputeVersionOperation implements ServerOperation {
+public class GetVersionOperation implements ServerOperation {
   private final VersionConsumer consumer;
 
-  public ComputeVersionOperation(VersionConsumer consumer) {
+  public GetVersionOperation(VersionConsumer consumer) {
     this.consumer = consumer;
   }
 

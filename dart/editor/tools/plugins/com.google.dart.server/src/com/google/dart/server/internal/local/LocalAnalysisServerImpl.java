@@ -78,7 +78,7 @@ import com.google.dart.server.internal.local.operation.ComputeCompletionSuggesti
 import com.google.dart.server.internal.local.operation.ComputeFixesOperation;
 import com.google.dart.server.internal.local.operation.ComputeMinorRefactoringsOperation;
 import com.google.dart.server.internal.local.operation.ComputeTypeHierarchyOperation;
-import com.google.dart.server.internal.local.operation.ComputeVersionOperation;
+import com.google.dart.server.internal.local.operation.GetVersionOperation;
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
 import com.google.dart.server.internal.local.operation.GetContextOperation;
@@ -334,7 +334,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 
   @Override
   public void getVersion(VersionConsumer consumer) {
-    operationQueue.add(new ComputeVersionOperation(consumer));
+    operationQueue.add(new GetVersionOperation(consumer));
   }
 
   /**

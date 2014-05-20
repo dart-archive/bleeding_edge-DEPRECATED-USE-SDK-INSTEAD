@@ -22,12 +22,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class ComputeVersionOperationTest extends TestCase {
+public class GetVersionOperationTest extends TestCase {
   private LocalAnalysisServerImpl server = mock(LocalAnalysisServerImpl.class);
 
   public void test_perform() throws Exception {
     VersionConsumer consumer = mock(VersionConsumer.class);
-    ComputeVersionOperation operation = new ComputeVersionOperation(consumer);
+    GetVersionOperation operation = new GetVersionOperation(consumer);
     assertSame(ServerOperationPriority.VERSION, operation.getPriority());
     // perform
     operation.performOperation(server);
