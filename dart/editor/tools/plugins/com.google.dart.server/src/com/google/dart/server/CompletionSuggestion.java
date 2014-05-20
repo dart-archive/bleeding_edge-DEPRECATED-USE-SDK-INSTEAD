@@ -34,11 +34,13 @@ public interface CompletionSuggestion {
    */
   char CURSOR_MARKER = 0x2758;
 
-  String getComment();
-
   String getCompletion();
 
   String getDeclaringType();
+
+  String getElementDocDetails();
+
+  String getElementDocSummary();
 
   CompletionSuggestionKind getKind();
 

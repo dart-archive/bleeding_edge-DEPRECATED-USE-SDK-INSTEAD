@@ -39,51 +39,6 @@ public class DartUnitCompletionSuggestionsComputerTest extends AbstractLocalServ
   private int completionOffset;
   private List<CompletionSuggestion> suggestions = Lists.newArrayList();
 
-  public void test_class_comment_block() throws Exception {
-    createContextWithSingleSource(makeSource(//
-        "/**",
-        " * 000",
-        " * 111",
-        " * 222",
-        " */",
-        "class AAA {",
-        "}",
-        "main() {",
-        "  AA!",
-        "}"));
-    computeProposals();
-    // AAA
-    {
-      CompletionSuggestion suggestion = assertHasSuggestion("AAA");
-      assertSame(CompletionSuggestionKind.CLASS, suggestion.getKind());
-      assertEquals(makeSource(//
-          "/**",
-          " * 000",
-          " * 111",
-          " * 222",
-          " */"), suggestion.getComment());
-    }
-  }
-
-  public void test_class_comment_lines() throws Exception {
-    createContextWithSingleSource(makeSource(//
-        "/// 000",
-        "/// 111",
-        "/// 222",
-        "class AAA {",
-        "}",
-        "main() {",
-        "  AA!",
-        "}"));
-    computeProposals();
-    // AAA
-    {
-      CompletionSuggestion suggestion = assertHasSuggestion("AAA");
-      assertSame(CompletionSuggestionKind.CLASS, suggestion.getKind());
-      assertEquals("/// 000\n" + "/// 111\n" + "/// 222\n", suggestion.getComment());
-    }
-  }
-
   public void test_computeDocumentationComment_exception() throws Exception {
     Element element = mock(Element.class);
     Error exception = new Error();
@@ -101,6 +56,69 @@ public class DartUnitCompletionSuggestionsComputerTest extends AbstractLocalServ
     assertEquals(
         "my comment",
         DartUnitCompletionSuggestionsComputer.computeDocumentationComment(element));
+  }
+
+  public void test_elementDoc_class_block() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "/**",
+        " * 000",
+        " * 111",
+        " * 222",
+        " */",
+        "class AAA {",
+        "}",
+        "main() {",
+        "  AA!",
+        "}"));
+    computeProposals();
+    {
+      CompletionSuggestion suggestion = assertHasSuggestion("AAA");
+      assertSame(CompletionSuggestionKind.CLASS, suggestion.getKind());
+      assertEquals("AAA", suggestion.getElementDocSummary());
+      assertEquals(makeSource(//
+          "/**",
+          " * 000",
+          " * 111",
+          " * 222",
+          " */"), suggestion.getElementDocDetails());
+    }
+  }
+
+  public void test_elementDoc_class_lines() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "/// 000",
+        "/// 111",
+        "/// 222",
+        "class AAA {",
+        "}",
+        "main() {",
+        "  AA!",
+        "}"));
+    computeProposals();
+    {
+      CompletionSuggestion suggestion = assertHasSuggestion("AAA");
+      assertSame(CompletionSuggestionKind.CLASS, suggestion.getKind());
+      assertEquals("AAA", suggestion.getElementDocSummary());
+      assertEquals("/// 000\n" + "/// 111\n" + "/// 222\n", suggestion.getElementDocDetails());
+    }
+  }
+
+  public void test_elementDoc_function() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "/// My comment",
+        "int fff(int a, [double b, String c]) {",
+        "  return 42;",
+        "}",
+        "main() {",
+        "  ff!",
+        "}"));
+    computeProposals();
+    {
+      CompletionSuggestion suggestion = assertHasSuggestion("fff");
+      assertSame(CompletionSuggestionKind.FUNCTION, suggestion.getKind());
+      assertEquals("int fff(int a, [double b, String c])", suggestion.getElementDocSummary());
+      assertEquals("/// My comment\n", suggestion.getElementDocDetails());
+    }
   }
 
   public void test_method() throws Exception {
@@ -232,6 +250,7 @@ public class DartUnitCompletionSuggestionsComputerTest extends AbstractLocalServ
           }
         });
     latch.await(600, TimeUnit.SECONDS);
+    serverListener.assertNoServerErrors();
   }
 
   private void createContextWithSingleSource(String code) {

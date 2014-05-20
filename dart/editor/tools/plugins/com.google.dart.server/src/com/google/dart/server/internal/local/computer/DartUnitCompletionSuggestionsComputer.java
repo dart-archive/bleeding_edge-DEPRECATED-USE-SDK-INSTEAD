@@ -26,6 +26,7 @@ import com.google.dart.engine.services.completion.CompletionFactory;
 import com.google.dart.engine.services.completion.CompletionProposal;
 import com.google.dart.engine.services.completion.CompletionRequestor;
 import com.google.dart.engine.services.completion.ProposalKind;
+import com.google.dart.engine.services.util.DartDocUtilities;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.server.CompletionSuggestion;
@@ -78,8 +79,11 @@ public class DartUnitCompletionSuggestionsComputer {
       public void accept(CompletionProposal proposal) {
         Element proposalElement = proposal.getElement();
         ProposalKind proposalKind = proposal.getKind();
+        String elementDocSummary = DartDocUtilities.getTextSummary(null, proposalElement);
+        String elementDocDetails = computeDocumentationComment(proposalElement);
         suggestions.add(new CompletionSuggestionImpl(
-            computeDocumentationComment(proposalElement),
+            elementDocSummary,
+            elementDocDetails,
             proposal.getCompletion(),
             proposal.getDeclaringType(),
             getKind(proposalKind),

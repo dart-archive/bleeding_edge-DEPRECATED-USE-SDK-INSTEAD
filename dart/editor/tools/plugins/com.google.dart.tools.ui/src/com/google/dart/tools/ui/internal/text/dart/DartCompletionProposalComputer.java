@@ -13,9 +13,16 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.server.CompletionSuggestion;
+import com.google.dart.server.CompletionSuggestionsConsumer;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.internal.completion.AnalysisUtil;
+import com.google.dart.tools.core.internal.completion.InternalCompletionContext;
+import com.google.dart.tools.core.internal.completion.ProxyProposal_NEW;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.Messages;
@@ -50,6 +57,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Computes Java completion proposals and context infos.
@@ -410,7 +419,7 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
   @SuppressWarnings("deprecation")
   private List<ICompletionProposal> internalCreateCompletionProposals(int offset,
       DartContentAssistInvocationContext context) {
-    CompletionProposalCollector collector = createCollector(context);
+    final CompletionProposalCollector collector = createCollector(context);
     collector.setInvocationContext(context);
 
     collector.setAllowsRequiredProposals(
@@ -465,21 +474,41 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
 
     collector.setFavoriteReferences(getFavoriteStaticMembers());
 
-    try {
-      com.google.dart.engine.services.completion.CompletionEngine engine;
-      com.google.dart.engine.services.completion.CompletionFactory factory;
-      AnalysisUtil util = new AnalysisUtil();
-      util.setRequestor(collector);
-      factory = new com.google.dart.engine.services.completion.CompletionFactory();
-      engine = new com.google.dart.engine.services.completion.CompletionEngine(util, factory);
-      engine.complete(context.getAssistContext());
-    } catch (OperationCanceledException x) {
-      IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(
-          IBindingService.class);
-      String keyBinding = bindingSvc.getBestActiveBindingFormattedFor(IWorkbenchCommandConstants.EDIT_CONTENT_ASSIST);
-      fErrorMessage = Messages.format(
-          DartTextMessages.CompletionProcessor_error_javaCompletion_took_too_long_message,
-          keyBinding);
+    AssistContext assistContext = context.getAssistContext();
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      collector.acceptContext(new InternalCompletionContext());
+      final CountDownLatch latch = new CountDownLatch(1);
+      DartCore.getAnalysisServer().computeCompletionSuggestions(
+          assistContext.getAnalysisContextId(),
+          assistContext.getSource(),
+          offset,
+          new CompletionSuggestionsConsumer() {
+            @Override
+            public void computed(CompletionSuggestion[] suggestions) {
+              for (CompletionSuggestion suggestion : suggestions) {
+                collector.accept(new ProxyProposal_NEW(suggestion));
+              }
+              latch.countDown();
+            }
+          });
+      Uninterruptibles.awaitUninterruptibly(latch, 2000, TimeUnit.MILLISECONDS);
+    } else {
+      try {
+        com.google.dart.engine.services.completion.CompletionFactory factory;
+        AnalysisUtil util = new AnalysisUtil();
+        util.setRequestor(collector);
+        factory = new com.google.dart.engine.services.completion.CompletionFactory();
+        com.google.dart.engine.services.completion.CompletionEngine engine;
+        engine = new com.google.dart.engine.services.completion.CompletionEngine(util, factory);
+        engine.complete(assistContext);
+      } catch (OperationCanceledException x) {
+        IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(
+            IBindingService.class);
+        String keyBinding = bindingSvc.getBestActiveBindingFormattedFor(IWorkbenchCommandConstants.EDIT_CONTENT_ASSIST);
+        fErrorMessage = Messages.format(
+            DartTextMessages.CompletionProcessor_error_javaCompletion_took_too_long_message,
+            keyBinding);
+      }
     }
 
     ICompletionProposal[] javaProposals = collector.getDartCompletionProposals();

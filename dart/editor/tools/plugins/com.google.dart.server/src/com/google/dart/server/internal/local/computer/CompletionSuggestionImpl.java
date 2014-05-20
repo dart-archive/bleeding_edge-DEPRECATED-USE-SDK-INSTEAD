@@ -23,9 +23,10 @@ import com.google.dart.server.CompletionSuggestionKind;
  * @coverage dart.server.local
  */
 public class CompletionSuggestionImpl implements CompletionSuggestion {
-  private final String comment;
   private final String completion;
   private final String declaringType;
+  private final String elementDocSummary;
+  private final String elementDocDetails;
   private final CompletionSuggestionKind kind;
   private final int location;
   private final String parameterName;
@@ -42,14 +43,16 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
   private final boolean isDeprecated;
   private final boolean isPotentialMatch;
 
-  public CompletionSuggestionImpl(String comment, String completion, String declaringType,
-      CompletionSuggestionKind kind, int location, String parameterName, String[] parameterNames,
-      String parameterType, String[] parameterTypes, int positionalParameterCount, int relevance,
-      int replacementLength, int replacementLengthIdentifier, String returnType, boolean hasNamed,
-      boolean hasPositional, boolean isDeprecated, boolean isPotentialMatch) {
-    this.comment = comment;
+  public CompletionSuggestionImpl(String elementDocSummary, String elementDocDetails,
+      String completion, String declaringType, CompletionSuggestionKind kind, int location,
+      String parameterName, String[] parameterNames, String parameterType, String[] parameterTypes,
+      int positionalParameterCount, int relevance, int replacementLength,
+      int replacementLengthIdentifier, String returnType, boolean hasNamed, boolean hasPositional,
+      boolean isDeprecated, boolean isPotentialMatch) {
     this.completion = completion;
     this.declaringType = declaringType;
+    this.elementDocSummary = elementDocSummary;
+    this.elementDocDetails = elementDocDetails;
     this.kind = kind;
     this.location = location;
     this.parameterName = parameterName;
@@ -68,11 +71,6 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
   }
 
   @Override
-  public String getComment() {
-    return comment;
-  }
-
-  @Override
   public String getCompletion() {
     return completion;
   }
@@ -80,6 +78,16 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
   @Override
   public String getDeclaringType() {
     return declaringType;
+  }
+
+  @Override
+  public String getElementDocDetails() {
+    return elementDocDetails;
+  }
+
+  @Override
+  public String getElementDocSummary() {
+    return elementDocSummary;
   }
 
   @Override
