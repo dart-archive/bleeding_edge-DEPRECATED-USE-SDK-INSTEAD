@@ -121,6 +121,49 @@ public class StringUtilitiesTest extends TestCase {
     assertTrue(StringUtilities.isTagName("a-b"));
   }
 
+  public void test_printListOfQuotedNames_empty() {
+    try {
+      StringUtilities.printListOfQuotedNames(new String[0]);
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
+  public void test_printListOfQuotedNames_five() {
+    assertEquals(
+        "'a', 'b', 'c', 'd' and 'e'",
+        StringUtilities.printListOfQuotedNames(new String[] {"a", "b", "c", "d", "e"}));
+  }
+
+  public void test_printListOfQuotedNames_null() {
+    try {
+      StringUtilities.printListOfQuotedNames(null);
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
+  public void test_printListOfQuotedNames_one() {
+    try {
+      StringUtilities.printListOfQuotedNames(new String[] {"a"});
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
+  public void test_printListOfQuotedNames_three() {
+    assertEquals(
+        "'a', 'b' and 'c'",
+        StringUtilities.printListOfQuotedNames(new String[] {"a", "b", "c"}));
+  }
+
+  public void test_printListOfQuotedNames_two() {
+    assertEquals("'a' and 'b'", StringUtilities.printListOfQuotedNames(new String[] {"a", "b"}));
+  }
+
   public void test_startsWith2() {
     assertTrue(StringUtilities.startsWith2("ab", 0, 'a', 'b')); // all
     assertTrue(StringUtilities.startsWith2("abcdefghi", 0, 'a', 'b')); // first

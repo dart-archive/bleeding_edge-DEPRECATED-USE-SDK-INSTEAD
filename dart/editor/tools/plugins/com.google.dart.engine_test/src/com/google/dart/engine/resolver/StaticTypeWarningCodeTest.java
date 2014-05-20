@@ -39,10 +39,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "library lib2;",
         "f() {}"));
     resolve(source);
-    assertErrors(
-        source,
-        StaticWarningCode.AMBIGUOUS_IMPORT,
-        StaticTypeWarningCode.UNDEFINED_FUNCTION);
+    assertErrors(source, StaticWarningCode.AMBIGUOUS_IMPORT);
   }
 
   public void test_expectedOneListTypeArgument() throws Exception {

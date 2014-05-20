@@ -22,6 +22,9 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
+import com.google.dart.engine.utilities.general.StringUtilities;
+
+import java.util.Arrays;
 
 /**
  * Instances of the class {@code LibraryImportScope} represent the scope containing all of the names
@@ -72,7 +75,8 @@ public class LibraryImportScope extends Scope {
   }
 
   @Override
-  protected Element internalLookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
+  protected Element internalLookup(Identifier identifier, String name,
+      LibraryElement referencingLibrary) {
     Element foundElement = localLookup(name, referencingLibrary);
     if (foundElement != null) {
       return foundElement;
@@ -96,18 +100,19 @@ public class LibraryImportScope extends Scope {
     if (foundElement instanceof MultiplyDefinedElementImpl) {
       String foundEltName = foundElement.getDisplayName();
       Element[] conflictingMembers = ((MultiplyDefinedElementImpl) foundElement).getConflictingElements();
-      String libName1 = getLibraryName(conflictingMembers[0], "");
-      String libName2 = getLibraryName(conflictingMembers[1], "");
-      // TODO (jwren) Change the error message to include a list of all library names instead of
-      // just the first two
+      int count = conflictingMembers.length;
+      String[] libraryNames = new String[count];
+      for (int i = 0; i < count; i++) {
+        libraryNames[i] = getLibraryName(conflictingMembers[i], "");
+      }
+      Arrays.sort(libraryNames);
       errorListener.onError(new AnalysisError(
           getSource(identifier),
           identifier.getOffset(),
           identifier.getLength(),
           StaticWarningCode.AMBIGUOUS_IMPORT,
           foundEltName,
-          libName1,
-          libName2));
+          StringUtilities.printListOfQuotedNames(libraryNames)));
       return foundElement;
     }
     if (foundElement != null) {

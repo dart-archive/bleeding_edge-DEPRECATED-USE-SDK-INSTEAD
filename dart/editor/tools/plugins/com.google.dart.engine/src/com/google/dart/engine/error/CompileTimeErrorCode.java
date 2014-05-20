@@ -31,7 +31,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * @param firstLibraryName the name of the first library that the type is found
    * @param secondLibraryName the name of the second library that the type is found
    */
-  AMBIGUOUS_EXPORT("The element '%s' is defined in the libraries '%s' and '%s'"),
+  AMBIGUOUS_EXPORT("The name '%s' is defined in the libraries '%s' and '%s'"),
 
   /**
    * 12.33 Argument Definition Test: It is a compile time error if <i>v</i> does not denote a formal

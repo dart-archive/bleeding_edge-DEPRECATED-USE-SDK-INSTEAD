@@ -36,7 +36,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param firstLibraryName the name of the first library that the type is found
    * @param secondLibraryName the name of the second library that the type is found
    */
-  AMBIGUOUS_IMPORT("The type '%s' is defined in the libraries '%s' and '%s'"),
+  AMBIGUOUS_IMPORT("The name '%s' is defined in the libraries %s"),
 
   /**
    * 12.11.1 New: It is a static warning if the static type of <i>a<sub>i</sub>, 1 &lt;= i &lt;= n+

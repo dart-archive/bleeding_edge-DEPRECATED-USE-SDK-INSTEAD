@@ -1405,6 +1405,9 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
       }
     } else if (element instanceof ExecutableElement) {
       return null;
+    } else if (element instanceof MultiplyDefinedElement) {
+      // The error has already been reported
+      return null;
     } else if (element == null && target instanceof SuperExpression) {
       // TODO(jwren) We should split the UNDEFINED_METHOD into two error codes, this one, and
       // a code that describes the situation where the method was found, but it was not

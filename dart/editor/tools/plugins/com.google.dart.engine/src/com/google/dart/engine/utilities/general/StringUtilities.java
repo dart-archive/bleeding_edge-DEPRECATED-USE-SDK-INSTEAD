@@ -306,6 +306,36 @@ public final class StringUtilities {
   }
 
   /**
+   * Produce a string containing all of the names in the given array, surrounded by single quotes,
+   * and separated by commas. The list must contain at least two elements.
+   * 
+   * @param names the names to be printed
+   * @return the result of printing the names
+   */
+  public static String printListOfQuotedNames(String[] names) {
+    if (names == null) {
+      throw new IllegalArgumentException("The list must not be null");
+    }
+    int count = names.length;
+    if (count < 2) {
+      throw new IllegalArgumentException("The list must contain at least two names");
+    }
+    StringBuilder builder = new StringBuilder();
+    builder.append("'");
+    builder.append(names[0]);
+    builder.append("'");
+    for (int i = 1; i < count - 1; i++) {
+      builder.append(", '");
+      builder.append(names[i]);
+      builder.append("'");
+    }
+    builder.append(" and '");
+    builder.append(names[count - 1]);
+    builder.append("'");
+    return builder.toString();
+  }
+
+  /**
    * Return {@code true} if the two-character substring occurs at the given index in the given
    * string.
    * 
