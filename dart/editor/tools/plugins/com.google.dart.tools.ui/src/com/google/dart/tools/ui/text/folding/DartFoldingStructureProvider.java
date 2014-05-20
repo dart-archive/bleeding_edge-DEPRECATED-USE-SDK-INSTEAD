@@ -847,6 +847,17 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
         while (nextComment != null && nextComment != token
             && nextComment.getLexeme().startsWith("//")) {
           l = nextComment.getEnd() - s;
+          // strip the last trailing EOL
+          {
+            String lexeme = nextComment.getLexeme();
+            if (lexeme.endsWith("\r\n")) {
+              l -= 2;
+            }
+            if (lexeme.endsWith("\n")) {
+              l -= 1;
+            }
+          }
+          // check if the next token is also EOL comment
           nextComment = nextComment.getNext();
         }
         comment = nextComment;
