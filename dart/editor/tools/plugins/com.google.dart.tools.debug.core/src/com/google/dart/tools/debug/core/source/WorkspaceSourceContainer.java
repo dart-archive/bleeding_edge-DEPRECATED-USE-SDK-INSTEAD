@@ -14,7 +14,7 @@
 
 package com.google.dart.tools.debug.core.source;
 
-import com.google.dart.tools.core.internal.util.ResourceUtil2;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -76,7 +76,7 @@ public class WorkspaceSourceContainer extends AbstractSourceContainer {
       }
 
       // look for file among all resources, no filtering
-      resource = ResourceUtil2.getFile(file);
+      resource = ResourceUtil.getFile(file);
 
       if (resource != null) {
         return resource;
