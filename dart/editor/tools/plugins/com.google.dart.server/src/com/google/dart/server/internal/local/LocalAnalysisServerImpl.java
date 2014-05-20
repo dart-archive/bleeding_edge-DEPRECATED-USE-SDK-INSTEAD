@@ -78,6 +78,7 @@ import com.google.dart.server.internal.local.operation.ComputeCompletionSuggesti
 import com.google.dart.server.internal.local.operation.ComputeFixesOperation;
 import com.google.dart.server.internal.local.operation.ComputeMinorRefactoringsOperation;
 import com.google.dart.server.internal.local.operation.ComputeTypeHierarchyOperation;
+import com.google.dart.server.internal.local.operation.ComputeVersionOperation;
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
 import com.google.dart.server.internal.local.operation.GetContextOperation;
@@ -331,6 +332,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     return index;
   }
 
+  @Override
+  public void getVersion(VersionConsumer consumer) {
+    operationQueue.add(new ComputeVersionOperation(consumer));
+  }
+
   /**
    * Implementation for {@link #applyAnalysisDelta(String, AnalysisDelta)}.
    */
@@ -503,6 +509,13 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   public void internalGetFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer) {
     ErrorCode[] fixableErrorCodes = DartUnitFixesComputer.getFixableErrorCodes();
     consumer.computed(fixableErrorCodes);
+  }
+
+  /**
+   * Implementation for {@link #getVersion(String)}.
+   */
+  public void internalGetVersion(VersionConsumer consumer) throws Exception {
+    consumer.computedVersion(VERSION);
   }
 
   /**
@@ -799,11 +812,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     while (!operationQueue.isEmpty()) {
       Thread.yield();
     }
-  }
-
-  @Override
-  public void version(VersionConsumer consumer) {
-    consumer.computedVersion(VERSION);
   }
 
   /**

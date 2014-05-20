@@ -130,6 +130,13 @@ public interface AnalysisServer {
   public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer);
 
   /**
+   * Return the version number of the analysis server.
+   * 
+   * @param consumer the results listener
+   */
+  public void getVersion(VersionConsumer consumer);
+
+  /**
    * Remove the given listener from the list of listeners that will receive notification when new
    * analysis results become available.
    * 
@@ -215,11 +222,4 @@ public interface AnalysisServer {
    * @param subscriptions a table mapping notification kinds to the source sets
    */
   public void subscribe(String contextId, Map<NotificationKind, SourceSet> subscriptions);
-
-  /**
-   * Return the version number of the analysis server.
-   * 
-   * @param consumer the results listener
-   */
-  public void version(VersionConsumer consumer);
 }

@@ -152,12 +152,15 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
   }
 
   public void test_getVersion() throws Exception {
-    server.version(new VersionConsumer() {
+    final String[] versionPtr = {null};
+    server.getVersion(new VersionConsumer() {
       @Override
       public void computedVersion(String version) {
-        assertEquals("0.0.1", version);
+        versionPtr[0] = version;
       }
     });
+    server.test_waitForWorkerComplete();
+    assertEquals("0.0.1", versionPtr[0]);
   }
 
   public void test_internal_getContext() throws Exception {

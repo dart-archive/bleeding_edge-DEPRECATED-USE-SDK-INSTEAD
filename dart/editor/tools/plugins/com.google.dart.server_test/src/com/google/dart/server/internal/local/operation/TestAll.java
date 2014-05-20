@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(ComputeFixesOperationTest.class);
     suite.addTestSuite(ComputeMinorRefactoringsOperationTest.class);
     suite.addTestSuite(ComputeTypeHierarchyOperationTest.class);
+    suite.addTestSuite(ComputeVersionOperationTest.class);
     suite.addTestSuite(CreateContextOperationTest.class);
     suite.addTestSuite(DeleteContextOperationTest.class);
     suite.addTestSuite(GetContextOperationTest.class);

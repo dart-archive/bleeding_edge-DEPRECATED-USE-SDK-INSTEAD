@@ -22,14 +22,16 @@ public abstract class AbstractServerIntegrationTest extends TestCase {
 
   protected AnalysisServer server;
 
-  public void test_version() throws Exception {
-    server.version(new VersionConsumer() {
+  public void test_getVersion() throws Exception {
+    final String[] versionPtr = {null};
+    server.getVersion(new VersionConsumer() {
       @Override
       public void computedVersion(String version) {
-        assertEquals("0.0.1", version);
+        versionPtr[0] = version;
       }
     });
     waitForAllServerResponses();
+    assertEquals("0.0.1", versionPtr[0]);
   }
 
   protected abstract void initServer();

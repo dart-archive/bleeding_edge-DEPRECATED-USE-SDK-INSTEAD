@@ -93,11 +93,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   /**
-   * The unique ID for the next request.
-   */
-  private final AtomicInteger nextId = new AtomicInteger();
-
-  /**
    * The object used to synchronize access to {@link #consumerMap}.
    */
   private final Object consumerMapLock = new Object();
@@ -115,6 +110,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   private final String runtimePath;
   private final String analysisServerPath;
+
+  /**
+   * The unique ID for the next request.
+   */
+  private final AtomicInteger nextId = new AtomicInteger();
 
   /**
    * Create an instance of {@link RemoteAnalysisServerImpl} using some runtime (Dart VM) path, and
@@ -176,6 +176,16 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer) {
     // TODO(scheglov) implement
+  }
+
+  @Override
+  public void getVersion(VersionConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateServerVersionRequest(id).toString()
+            + System.getProperty("line.separator"),
+        consumer);
   }
 
   public void initServerAndReaderThread() throws IOException {
@@ -246,16 +256,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     while (!consumerMap.isEmpty()) {
       Thread.yield();
     }
-  }
-
-  @Override
-  public void version(VersionConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateServerVersionRequest(id).toString()
-            + System.getProperty("line.separator"),
-        consumer);
   }
 
   /**

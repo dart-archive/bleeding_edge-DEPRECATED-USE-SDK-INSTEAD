@@ -14,23 +14,29 @@
 
 package com.google.dart.server.internal.local.operation;
 
+import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.VersionConsumer;
+import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
+
 /**
- * The enumeration {@code ServerOperationPriority} defines the priority levels used to organize
- * {@link ServerOperation}s in an optimal order. A smaller ordinal value equates to a higher
- * priority.
+ * An operation for {@link AnalysisServer#getVersion(VersionConsumer)}.
  * 
  * @coverage dart.server.local
  */
-public enum ServerOperationPriority {
-  SHUTDOWN,
-  VERSION,
-  SERVER,
-  CONTEXT_CHANGE,
-  CONTEXT_NOTIFICATION,
-  CONTEXT_ANALYSIS_PRIORITY_CONTINUE,
-  CONTEXT_ANALYSIS_PRIORITY,
-  CONTEXT_ANALYSIS_CONTINUE,
-  CONTEXT_ANALYSIS,
-  SEARCH,
-  REFACTORING
+public class ComputeVersionOperation implements ServerOperation {
+  private final VersionConsumer consumer;
+
+  public ComputeVersionOperation(VersionConsumer consumer) {
+    this.consumer = consumer;
+  }
+
+  @Override
+  public ServerOperationPriority getPriority() {
+    return ServerOperationPriority.VERSION;
+  }
+
+  @Override
+  public void performOperation(LocalAnalysisServerImpl server) throws Exception {
+    server.internalGetVersion(consumer);
+  }
 }
