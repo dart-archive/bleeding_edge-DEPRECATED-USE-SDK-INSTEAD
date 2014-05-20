@@ -21,7 +21,6 @@ import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
-import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.coverage.CoverageManager;
 import com.google.dart.tools.debug.core.server.ServerDebugTarget;
 import com.google.dart.tools.debug.core.server.ServerRemoteProcess;
@@ -91,7 +90,6 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
 
     launchVM(launch, launchConfig, enableDebugging, monitor);
 
-    launchObservatory(launchConfig);
   }
 
   @Override
@@ -172,18 +170,19 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
       commandsList.add("--debug:" + connectionPort);
     }
 
-    if (launchConfig.getLaunchObservatory()) {
-      observatoryPort = NetUtils.findUnusedPort(0);
+    observatoryPort = NetUtils.findUnusedPort(0);
 
-      launchConfig.setObservatoryPort(observatoryPort);
-      launchConfig.save();
+    launchConfig.setObservatoryPort(observatoryPort);
+    launchConfig.save();
 
-      commandsList.add("--enable-vm-service:" + observatoryPort);
+    commandsList.add("--enable-vm-service:" + observatoryPort);
+    commandsList.add("--trace_service_pause_events");
 
-      if (launchConfig.getPauseIsolateOnExit()) {
-        commandsList.add("--pause-isolates-on-exit");
-        commandsList.add("--trace_service_pause_events");
-      }
+    if (launchConfig.getPauseIsolateOnExit()) {
+      commandsList.add("--pause-isolates-on-exit");
+    }
+    if (launchConfig.getPauseIsolateOnStart()) {
+      commandsList.add("--pause-isolates-on-start");
     }
 
     String coverageTempDir = null;
@@ -321,14 +320,6 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     } catch (IllegalThreadStateException ex) {
       return false;
     }
-  }
-
-  private void launchObservatory(DartLaunchConfigWrapper launchConfig) {
-
-    if (launchConfig.getLaunchObservatory() && observatoryPort != -1) {
-      DebugUIHelper.getHelper().openBrowserTab("http://localhost:" + observatoryPort);
-    }
-
   }
 
   private void sleep(int millis) {

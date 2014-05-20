@@ -87,8 +87,8 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     }
   };
   private Text vmArgumentsText;
-  private Button observatoryButton;
   private Button pauseOnExitButton;
+  private Button pauseOnStartButton;
 
   public DartServerMainTab() {
 
@@ -184,20 +184,18 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
       }
     });
 
-    observatoryButton = new Button(group, SWT.CHECK);
-    observatoryButton.setText("Open Observatory");
-    observatoryButton.addSelectionListener(new SelectionAdapter() {
+    pauseOnStartButton = new Button(group, SWT.CHECK);
+    pauseOnStartButton.setText("Pause isolate on start");
+    pauseOnStartButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
-        pauseOnExitButton.setEnabled(observatoryButton.getSelection());
         notifyPanelChanged();
       }
     });
-    GridDataFactory.swtDefaults().span(3, 1).grab(true, false).applyTo(observatoryButton);
+    GridDataFactory.swtDefaults().span(3, 1).grab(true, false).applyTo(pauseOnStartButton);
 
     pauseOnExitButton = new Button(group, SWT.CHECK);
     pauseOnExitButton.setText("Pause isolate on exit");
-    pauseOnExitButton.setEnabled(false);
     pauseOnExitButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
@@ -255,9 +253,8 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     argsText.setText(dartLauncher.getArguments());
     checkedModeButton.setSelection(dartLauncher.getCheckedMode());
     vmArgumentsText.setText(dartLauncher.getVmArguments());
-    observatoryButton.setSelection(dartLauncher.getLaunchObservatory());
     pauseOnExitButton.setSelection(dartLauncher.getPauseIsolateOnExit());
-    pauseOnExitButton.setEnabled(dartLauncher.getLaunchObservatory());
+    pauseOnStartButton.setSelection(dartLauncher.getPauseIsolateOnStart());
   }
 
   @Override
@@ -274,8 +271,8 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setArguments(argsText.getText().trim());
     dartLauncher.setCheckedMode(checkedModeButton.getSelection());
     dartLauncher.setVmArguments(vmArgumentsText.getText().trim());
-    dartLauncher.setLaunchObservatory(observatoryButton.getSelection());
     dartLauncher.setPauseIsolateOnExit(pauseOnExitButton.getSelection());
+    dartLauncher.setPauseIsolateOnStart(pauseOnStartButton.getSelection());
   }
 
   @Override
@@ -286,8 +283,8 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setArguments("");
 
     dartLauncher.setCheckedMode(false);
-    dartLauncher.setLaunchObservatory(false);
     dartLauncher.setPauseIsolateOnExit(false);
+    dartLauncher.setPauseIsolateOnStart(false);
   }
 
   protected void handleCwdBrowseButton() {

@@ -48,8 +48,8 @@ public class DartLaunchConfigWrapper {
   private static final String LAUNCH_CONTENT_SHELL = "runContentShell";
 
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
-  private static final String OPEN_OBSERVATORY = "openObservatory";
   private static final String PAUSE_ISOLATE_ON_EXIT = "pauseIsolateOnExit";
+  private static final String PAUSE_ISOLATE_ON_START = "pauseIsolateOnStart";
   private static final String OBSERVATORY_PORT = "observatoryPort";
   private static final String SHOW_LAUNCH_OUTPUT = "showLaunchOutput";
 
@@ -253,16 +253,6 @@ public class DartLaunchConfigWrapper {
     }
   }
 
-  public boolean getLaunchObservatory() {
-    try {
-      return launchConfig.getAttribute(OPEN_OBSERVATORY, false);
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return false;
-    }
-  }
-
   public int getObservatoryPort() {
     try {
       return launchConfig.getAttribute(OBSERVATORY_PORT, -1);
@@ -276,6 +266,16 @@ public class DartLaunchConfigWrapper {
   public boolean getPauseIsolateOnExit() {
     try {
       return launchConfig.getAttribute(PAUSE_ISOLATE_ON_EXIT, false);
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return false;
+    }
+  }
+
+  public boolean getPauseIsolateOnStart() {
+    try {
+      return launchConfig.getAttribute(PAUSE_ISOLATE_ON_START, false);
     } catch (CoreException e) {
       DartDebugCorePlugin.logError(e);
 
@@ -513,16 +513,16 @@ public class DartLaunchConfigWrapper {
     getWorkingCopy().setAttribute(LAUNCH_CONTENT_SHELL, value);
   }
 
-  public void setLaunchObservatory(boolean value) {
-    getWorkingCopy().setAttribute(OPEN_OBSERVATORY, value);
-  }
-
   public void setObservatoryPort(int value) {
     getWorkingCopy().setAttribute(OBSERVATORY_PORT, value);
   }
 
   public void setPauseIsolateOnExit(boolean value) {
     getWorkingCopy().setAttribute(PAUSE_ISOLATE_ON_EXIT, value);
+  }
+
+  public void setPauseIsolateOnStart(boolean value) {
+    getWorkingCopy().setAttribute(PAUSE_ISOLATE_ON_START, value);
   }
 
   /**
