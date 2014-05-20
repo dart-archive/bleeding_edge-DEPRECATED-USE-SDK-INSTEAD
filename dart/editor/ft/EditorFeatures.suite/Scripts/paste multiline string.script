@@ -1,0 +1,39 @@
+﻿(* Create a file named multi.dart for testing multi-line strings *)
+util.selectMenuItem "File", "New File"
+typetext "multi"
+util.xWait 0.2
+typetext enter
+
+(* Define a multi-line string *)
+typetext {{
+var s = """
+first line
+   second line indented 3 spaces
+ third line indented 1 space
+last not indented
+""";//
+}}
+util.endOfLine
+typetext enter
+
+(* Copy the string *)
+util.selectAll
+util.copyText
+typetext rightArrow
+
+(* Define a function *)
+typetext {{
+f() {
+// paste text on next line at this indent level
+}}
+typetext rightArrow
+
+(* Paste the string *)
+util.pasteText
+util.saveFile
+(* NOTE: This is currently broken. This test needs additional verification that the paste succeeded. *)
+
+(* Restore state by deleting new file and activating previous editor *)
+util.deleteFile "multi.dart"
+typetext return
+util.activateEditor

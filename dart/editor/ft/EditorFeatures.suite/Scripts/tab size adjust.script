@@ -1,0 +1,83 @@
+﻿(* Create a file named tabsize.html for testing indentation settings *)
+util.selectMenuItem "File", "New File"
+typetext "tabsize.html"
+util.xWait 0.2
+typetext enter
+
+(* Adjust indent preference to 4-spaces using tabs *)
+util.openPreferences
+util.choosePreference "Editor"
+set the searchRectangle to ((650,200),(1300,800))
+put imageLocation((Text:"indentat",CaseSensitive:"yes",ValidCharacters:"*")) into indentLoc
+put (120,0) into offset
+click indentLoc + offset (* focus to spaces per indent *)
+util.selectAll
+typetext "4"
+click (Text:"using",CaseSensitive:"yes",ValidCharacters:"*")
+set the searchRectangle to ()
+util.closePreferences
+
+(* Add code with indentation *)
+util.selectAll
+util.cutText
+typetext {{
+<html>
+<body>
+}}
+typetext enter, tab
+typetext {{
+<p>
+<script type=""
+}}
+typetext leftArrow
+typetext "application/dart"
+typetext rightArrow,">", enter
+util.selectToStartOfLine (* work around bug *)
+typetext {{
+f() {
+var x;
+}
+}}
+typetext enter
+util.selectToStartOfLine (* work around bug *)
+util.cutText
+util.endOfLine
+typetext return
+typetext {{
+</body>
+</html>
+}}
+typetext return
+util.saveFile (* No more content changes *)
+
+(* Verify dart code indentation *)
+typetext upArrow,upArrow,upArrow,upArrow,upArrow
+typetext shiftKey, rightArrow, rightArrow, rightArrow, rightArrow
+typetext shiftKey, rightArrow, rightArrow, rightArrow
+click "tab var x"
+
+(* Verify html indentation *)
+typetext upArrow, upArrow, upArrow
+util.endOfLine
+typetext rightArrow
+typetext shiftKey, rightArrow, rightArrow, rightArrow, rightArrow
+typetext shiftKey, rightArrow, rightArrow, rightArrow, rightArrow
+click "tab script tag"
+
+(* Restore preference setting *)
+util.openPreferences
+util.choosePreference "Editor"
+set the searchRectangle to ((650,200),(1300,800))
+put imageLocation((Text:"indentat",CaseSensitive:"yes",ValidCharacters:"*")) into indentLoc
+put (120,0) into offset
+click indentLoc + offset (* focus to spaces per indent *)
+util.selectAll
+typetext "2"
+click (Text:"using",CaseSensitive:"yes",ValidCharacters:"*")
+set the searchRectangle to ()
+util.closePreferences
+
+(* Restore state by deleting new file and activating previous editor *)
+util.deleteFile "tabsize.html"
+typetext return
+util.activateEditor

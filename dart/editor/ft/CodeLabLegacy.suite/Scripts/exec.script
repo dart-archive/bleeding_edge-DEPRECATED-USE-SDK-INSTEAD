@@ -1,7 +1,7 @@
 ﻿params server, passwd, port
 
 if the paramCount > 0 then
-	Connect (serverID: server, portNum: port, password: passwd, visible: "No")
+  Connect (serverID: server, portNum: port, password: passwd, visible: "No")
 end if
 util.startDartEditor
 Run "doit"

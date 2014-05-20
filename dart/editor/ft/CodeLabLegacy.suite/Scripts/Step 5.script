@@ -1,4 +1,4 @@
-openLab 5
+﻿openLab 5
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 util.expandTreeNode (* expand web *)
 util.xWait 1

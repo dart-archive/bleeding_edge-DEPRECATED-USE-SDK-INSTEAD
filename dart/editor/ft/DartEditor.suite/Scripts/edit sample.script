@@ -1,4 +1,4 @@
-DoubleClick(Text:"sample.dart") (* activate editor *)
+﻿DoubleClick(Text:"sample.dart") (* activate editor *)
 util.xWait 2
 DoubleClick(Text:"import")
 util.selectAll

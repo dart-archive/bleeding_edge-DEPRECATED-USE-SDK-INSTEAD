@@ -11,7 +11,7 @@ util.exitChromium
 set the SearchRectangle to ()
 put -60 into offset
 if (util's isLinux) then
-	put -60 into offset
+  put -60 into offset
 end if
 put (ImageLocation(Text:"void draw",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)) into declLoc
 DoubleClick declLoc + (offset,0)

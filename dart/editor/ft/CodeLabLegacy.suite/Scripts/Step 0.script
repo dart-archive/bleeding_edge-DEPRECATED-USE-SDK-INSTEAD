@@ -20,7 +20,7 @@ DoubleClick (Text:"app.dart",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharact
 set the SearchRectangle to ()
 put -80 into offset
 if (util's isLinux) then
-	put -100 into offset
+  put -100 into offset
 end if
 DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes",ValidCharacters:"*",dpi:94)) + (offset,0)
 Click "run button"

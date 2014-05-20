@@ -1,4 +1,4 @@
-util.newline
+﻿util.newline
 TypeText "t() {"
 util.newline
 TypeText "reverseText(null);" (* add ref to function in sample.dart *)

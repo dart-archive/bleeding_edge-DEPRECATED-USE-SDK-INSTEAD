@@ -1,4 +1,4 @@
-openLab 1
+﻿openLab 1
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 util.expandTreeNode
 TypeText downArrow,downArrow,downArrow,downArrow
@@ -38,7 +38,7 @@ TypeText escape
 TypeText downArrow
 TypeText backspace,backspace
 repeat 10 times
-	TypeText downArrow
+  TypeText downArrow
 end repeat
 TypeText deleteKey,deleteKey
 

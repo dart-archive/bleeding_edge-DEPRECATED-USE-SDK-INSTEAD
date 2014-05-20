@@ -1,4 +1,4 @@
-util.nextEditor 1 (* assume only two editors open *)
+﻿util.nextEditor 1 (* assume only two editors open *)
 TypeText upArrow
 TypeText upArrow
 TypeText upArrow (* now at top of file *)

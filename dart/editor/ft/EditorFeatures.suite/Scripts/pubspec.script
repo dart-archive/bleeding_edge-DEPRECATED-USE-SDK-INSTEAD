@@ -14,9 +14,9 @@ Click (Text:"stagexl",CaseSensitive:"yes",ValidCharacters:"*", \
     IgnoreSpaces:"yes",ignoreUnderscores:"no",dpi:94)
 if not (the platform is "Linux") then
   (* The Linux-based OCR engine can't find 0, so don't even try *)
-  set the SearchRectangle to ((900,400),(1400,500))
+  set the SearchRectangle to ((900,400),(1400,600))
   util.xWaitFor 10, (Text:">=0.9",CaseSensitive:"yes",ValidCharacters:"*",\
-      IgnoreSpaces:"yes",ignoreUnderscores:"no",dpi:94)
+      IgnoreSpaces:"yes",ignoreUnderscores:"yes",dpi:94)
   set the SearchRectangle to ()
 end if
 

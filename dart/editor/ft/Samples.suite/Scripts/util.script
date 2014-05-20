@@ -132,6 +132,7 @@ to deleteOutput
   set the SearchRectangle to origRect
 end deleteOutput
 
+(* Dismiss a system-level Mac OSX warning. *)
 to dismissMacWarning
   if isMacOSX() then
     if imageFound("mac warning icon") then
@@ -141,6 +142,23 @@ to dismissMacWarning
     end if
   end if
 end dismissMacWarning
+
+(* Delete the named file. *)
+to deleteFile file
+  set the SearchRectangle to ((0,75),(300,1200))
+  Click "dart sdk"
+  xWait 0.2
+  put ImageLocation((Text:file,CaseSensitive:"yes",ValidCharacters:"*")) into loc
+  Click loc
+  xWait 0.2
+  RightClick loc (* select file and show context menu *)
+  put mouselocation() - (15,0) into UL
+  put UL + (500,500) into BR
+  set the SearchRectangle to (UL,BR)
+  xWait 0.2
+  Click(Text:"Delete",CaseSensitive:"Yes",ValidCharacters:"*") (* delete it *)
+  set the SearchRectangle to ()
+end deleteFile
 
 (* Delete the project identified by the given image. *)
 to deleteProject project
@@ -399,28 +417,43 @@ end expandTreeNode
 to endOfLine
   if isMacOSX() then
     doKeyCmd(rightArrow)
-    else
-      TypeText EndKey
-      end if
-      end endOfLine
-      
+  else
+    TypeText EndKey
+  end if
+end endOfLine
+
+to startOfLine
+  if isMacOSX() then
+    doKeyCmd(leftArrow)
+  else
+    TypeText HomeKey
+  end if
+end startOfLine
+
+to selectToStartOfLine
+  if isMacOSX() then
+    doShiftKeyCmd(leftArrow)
+  else
+    TypeText ShiftKey,HomeKey
+  end if
+end selectToStartOfLine
+
 to quickOutline
   TypeText optionKey,o
-  end quickOutline
-  
+end quickOutline
+
 to newline
   if isMacOSX() then
     TypeText enter
-    else
-      TypeText return
-      end if
-      end newline
-      
+  else
+    TypeText return
+  end if
+end newline
+
 to nextWord
   doKeyCmd(rightArrow)
-  end nextWord
-  
+end nextWord
+
 to prevWord
   doKeyCmd(leftArrow)
-  end nextWord
-  
+end nextWord
