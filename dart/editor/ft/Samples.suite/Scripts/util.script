@@ -278,6 +278,9 @@ to choosePreference with name
   xWait 0.5
   typetext downArrow
   set BR = loc + (300, 100)
+  if (isMacOSX()) then
+    set loc = loc - (200,0)
+  end if
   set the searchRectangle to (loc,BR)
   xWaitFor 5, (Text: name)
   set the searchRectangle to ()
