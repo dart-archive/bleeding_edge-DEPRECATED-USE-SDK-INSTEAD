@@ -11,7 +11,7 @@ vars.update({
   "dartium_base": "http://src.chromium.org",
   "dartium_chromium_branch": "/chrome/branches/dart/1916/src",
   "dartium_chromium_revision": "265493",
-  "chromium_base_revision": "251904",
+  "chromium_base_revision": "260298",
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/1916",
   "dartium_webkit_revision": "174419",
