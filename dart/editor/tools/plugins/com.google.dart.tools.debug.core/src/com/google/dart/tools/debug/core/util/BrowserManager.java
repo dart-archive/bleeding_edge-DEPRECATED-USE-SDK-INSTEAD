@@ -37,7 +37,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IProcess;
 
@@ -226,11 +225,6 @@ public class BrowserManager {
 
     // avg: 55ms
     timer.startTask(browserName + " startup");
-
-    if (!launch.getLaunchConfiguration().getType().getIdentifier().equals(
-        DartDebugCorePlugin.PUBSERVE_LAUNCH_CONFIG_ID)) {
-      url = resolveLaunchUrl(launch.getLaunchConfiguration(), file, url, resolver);
-    }
 
     url = launchConfig.appendQueryParams(url);
 
@@ -608,19 +602,6 @@ public class BrowserManager {
     thread.start();
 
     return output;
-  }
-
-  /**
-   * @param file
-   * @throws CoreException
-   */
-  private String resolveLaunchUrl(ILaunchConfiguration config, IFile file, String url,
-      IResourceResolver resolver) throws CoreException {
-    if (file != null) {
-      return resolver.getUrlForResource(file);
-    }
-
-    return url;
   }
 
   private void sleep(int millis) {

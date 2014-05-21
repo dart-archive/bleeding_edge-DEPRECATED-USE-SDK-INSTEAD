@@ -18,20 +18,23 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
+import com.google.dart.tools.debug.core.DebugUIHelper;
+import com.google.dart.tools.debug.core.pubserve.PubCallback;
+import com.google.dart.tools.debug.core.pubserve.PubResult;
+import com.google.dart.tools.debug.core.pubserve.PubServeManager;
+import com.google.dart.tools.debug.core.pubserve.PubServeResourceResolver;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
-import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.util.LaunchConfigResourceResolver;
-import com.google.dart.tools.debug.core.util.ResourceServer;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
 import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
 import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -50,6 +53,47 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
   private static Semaphore launchSemaphore = new Semaphore(1);
 
   private IChromiumTabChooser tabChooser;
+
+  protected static ILaunch launch;
+
+  protected static DartLaunchConfigWrapper launchConfig;
+
+  private static PubCallback<String> pubConnectionCallback = new PubCallback<String>() {
+
+    @Override
+    public void handleResult(PubResult<String> result) {
+      if (result.isError()) {
+        DebugUIHelper.getHelper().showError(
+            "Launch Error",
+            "Pub serve communication error: " + result.getErrorMessage());
+        return;
+      }
+
+      try {
+        String launchUrl = result.getResult();
+        launchInDartium(launchUrl, launch, launchConfig);
+      } catch (CoreException e) {
+        DartDebugCorePlugin.logError(e);
+        DebugUIHelper.getHelper().showError("Dartium Launch Error", e.getMessage());
+      }
+    }
+  };
+
+  private static boolean enableDebugging;
+
+  private static void launchInDartium(final String url, ILaunch launch,
+      DartLaunchConfigWrapper launchConfig) throws CoreException {
+
+    BrowserManager manager = BrowserManager.getManager();
+    manager.launchBrowser(
+        launch,
+        launchConfig,
+        url,
+        new NullProgressMonitor(),
+        enableDebugging,
+        new LaunchConfigResourceResolver(launchConfig));
+
+  }
 
   /**
    * Create a new DartChromiumLaunchConfigurationDelegate.
@@ -71,12 +115,13 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
           + "' is not supported."));
     }
 
-    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
+    DartiumLaunchConfigurationDelegate.launch = launch;
+    launchConfig = new DartLaunchConfigWrapper(configuration);
 
     // If we're in the process of launching Dartium, don't allow a second launch to occur.
     if (launchSemaphore.tryAcquire()) {
       try {
-        launchImpl(launchConfig, mode, launch, monitor);
+        launchImpl(mode, monitor);
       } finally {
         launchSemaphore.release();
       }
@@ -100,24 +145,8 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
     }
   }
 
-  private IResourceResolver getResourceServer() throws CoreException {
+  private void launchImpl(String mode, IProgressMonitor monitor) throws CoreException {
 
-    ResourceServer resourceResolver;
-    try {
-      resourceResolver = ResourceServerManager.getServer();
-    } catch (IOException ioe) {
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartDebugCorePlugin.PLUGIN_ID,
-          ioe.getMessage(),
-          ioe));
-    }
-
-    return resourceResolver;
-  }
-
-  private void launchImpl(DartLaunchConfigWrapper launchConfig, String mode, ILaunch launch,
-      IProgressMonitor monitor) throws CoreException {
     launchConfig.markAsLaunched();
 
     boolean enableDebugging = ILaunchManager.DEBUG_MODE.equals(mode)
@@ -135,29 +164,30 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
             DartDebugCorePlugin.PLUGIN_ID,
             "HTML file could not be found"));
       }
-      url = resource.getLocationURI().toString();
+
+      // launch pub serve
+      PubServeManager manager = PubServeManager.getManager();
+      try {
+        manager.serve(launchConfig, pubConnectionCallback);
+      } catch (Exception e) {
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            "Could not start pub serve or connect to pub\n" + manager.getStdErrorString(),
+            e));
+      }
+
     } else {
       url = launchConfig.getUrl();
-    }
 
-    BrowserManager manager = BrowserManager.getManager();
-
-    if (resource instanceof IFile) {
-      manager.launchBrowser(
-          launch,
-          launchConfig,
-          (IFile) resource,
-          monitor,
-          enableDebugging,
-          getResourceServer());
-    } else {
-      manager.launchBrowser(
+      BrowserManager.getManager().launchBrowser(
           launch,
           launchConfig,
           url,
           monitor,
           enableDebugging,
-          new LaunchConfigResourceResolver(launchConfig));
+          // TODO(keertip): refactor for use with different pub serves
+          new PubServeResourceResolver());
     }
   }
 
