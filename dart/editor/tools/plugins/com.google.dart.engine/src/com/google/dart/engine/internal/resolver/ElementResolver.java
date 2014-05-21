@@ -2769,6 +2769,15 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
                   staticOrPropagatedEnclosingElt.getDisplayName());
             }
           } else {
+            if (staticOrPropagatedEnclosingElt instanceof ClassElement) {
+              InterfaceType targetType = ((ClassElement) staticOrPropagatedEnclosingElt).getType();
+              if (targetType != null && targetType.isDartCoreFunction()
+                  && propertyName.getName().equals(FunctionElement.CALL_METHOD_NAME)) {
+                // TODO(brianwilkerson) Can we ever resolve the function being invoked?
+                //resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
+                return;
+              }
+            }
             ErrorCode errorCode = shouldReportMissingMember_static
                 ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER;
             if (doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
