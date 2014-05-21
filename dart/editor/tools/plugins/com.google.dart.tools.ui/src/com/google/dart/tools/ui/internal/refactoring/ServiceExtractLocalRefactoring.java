@@ -42,8 +42,8 @@ public class ServiceExtractLocalRefactoring extends ServiceRefactoring {
     return refactoring.guessNames();
   }
 
-  public boolean replaceAllOccurrences() {
-    return refactoring.replaceAllOccurrences();
+  public boolean hasSeveralOccurrences() {
+    return refactoring.hasSeveralOccurrences();
   }
 
   public void setLocalName(String localName) {

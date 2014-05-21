@@ -597,6 +597,31 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     assertThat(names).contains("helloBob", "bob");
   }
 
+  public void test_hasSeveralOccurrences_false() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1 + 2;",
+        "}");
+    // create refactoring
+    setSelectionString("1 + 2");
+    createRefactoring();
+    assertFalse(refactoring.hasSeveralOccurrences());
+  }
+
+  public void test_hasSeveralOccurrences_true() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1 + 2;",
+        "  int b = 1 + 2;",
+        "}");
+    // create refactoring
+    setSelectionString("1 + 2");
+    createRefactoring();
+    assertTrue(refactoring.hasSeveralOccurrences());
+  }
+
   public void test_occurences_disableOccurences() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1044,8 +1069,6 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     refactoring.setReplaceAllOccurrences(replaceAllOccurences);
     // prepare status
     refactoringStatus = refactoring.checkAllConditions(pm);
-    // just to get coverage
-    assertEquals(replaceAllOccurences, refactoring.replaceAllOccurrences());
   }
 
   /**

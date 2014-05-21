@@ -80,6 +80,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
   private Expression rootExpression;
   private Expression singleExpression;
   private String stringLiteralPart;
+  private List<SourceRange> occurrences = Lists.newArrayList();
 
   private String localName;
   private boolean replaceAllOccurrences = true;
@@ -124,6 +125,11 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
       // selection
       result.merge(checkSelection());
       pm.worked(1);
+      // occurrences
+      if (!result.hasFatalError()) {
+        occurrences = getOccurrences();
+      }
+      pm.worked(1);
       // done
       return result;
     } finally {
@@ -143,7 +149,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
     // prepare occurrences
     List<SourceRange> occurrences;
     if (replaceAllOccurrences) {
-      occurrences = getOccurrences();
+      occurrences = this.occurrences;
     } else {
       occurrences = ImmutableList.of(selectionRange);
     }
@@ -202,8 +208,8 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
   }
 
   @Override
-  public boolean replaceAllOccurrences() {
-    return replaceAllOccurrences;
+  public boolean hasSeveralOccurrences() {
+    return occurrences.size() > 1;
   }
 
   @Override

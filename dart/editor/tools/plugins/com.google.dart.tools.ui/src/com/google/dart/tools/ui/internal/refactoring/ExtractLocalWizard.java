@@ -25,15 +25,6 @@ import org.eclipse.ui.PlatformUI;
 public class ExtractLocalWizard extends ServiceRefactoringWizard {
 
   private static class ExtractLocalInputPage extends TextInputWizardPage {
-    private static Button createCheckbox(Composite parent, String title, boolean value,
-        RowLayouter layouter) {
-      Button checkBox = new Button(parent, SWT.CHECK);
-      checkBox.setText(title);
-      checkBox.setSelection(value);
-      layouter.perform(checkBox);
-      return checkBox;
-    }
-
     private final boolean initialValid;
     private static final String DESCRIPTION = RefactoringMessages.ExtractLocalInputPage_enter_name;
     private final String[] nameProposals;
@@ -93,14 +84,18 @@ public class ExtractLocalWizard extends ServiceRefactoringWizard {
     }
 
     private void addReplaceAllCheckbox(Composite result, RowLayouter layouter) {
-      String title = RefactoringMessages.ExtractLocalInputPage_replace_all;
-      boolean defaultValue = getExtractLocalRefactoring().replaceAllOccurrences();
-      final Button checkBox = createCheckbox(result, title, defaultValue, layouter);
-      getExtractLocalRefactoring().setReplaceAllOccurrences(checkBox.getSelection());
+      final ServiceExtractLocalRefactoring refactoring = getExtractLocalRefactoring();
+      final Button checkBox = new Button(result, SWT.CHECK);
+      layouter.perform(checkBox);
+      checkBox.setText(RefactoringMessages.ExtractLocalInputPage_replace_all);
+      checkBox.setEnabled(refactoring.hasSeveralOccurrences());
+      if (refactoring.hasSeveralOccurrences()) {
+        checkBox.setSelection(true);
+      }
       checkBox.addSelectionListener(new SelectionAdapter() {
         @Override
         public void widgetSelected(SelectionEvent e) {
-          getExtractLocalRefactoring().setReplaceAllOccurrences(checkBox.getSelection());
+          refactoring.setReplaceAllOccurrences(checkBox.getSelection());
         }
       });
     }

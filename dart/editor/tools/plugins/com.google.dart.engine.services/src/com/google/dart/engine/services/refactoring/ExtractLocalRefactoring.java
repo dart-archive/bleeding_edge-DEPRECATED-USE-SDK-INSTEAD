@@ -33,9 +33,9 @@ public interface ExtractLocalRefactoring extends Refactoring {
   String[] guessNames();
 
   /**
-   * @return <code>true</code> if all occurrences of the selected expression should be replaced.
+   * @return <code>true</code> if there are several occurrences of the selected expression.
    */
-  boolean replaceAllOccurrences();
+  boolean hasSeveralOccurrences();
 
   /**
    * Sets the name for new local variable.
