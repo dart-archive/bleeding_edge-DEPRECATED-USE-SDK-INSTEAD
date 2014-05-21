@@ -1054,18 +1054,8 @@ public class Scanner {
       if (-1 == next) {
         appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, 0));
         return next;
-      } else if ('\n' == next) {
-        next = reader.advance();
-        int endDelta = next != -1 ? -1 : 0;
-        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, endDelta));
-        return next;
-      } else if ('\r' == next) {
-        next = reader.advance();
-        if (next == '\n') {
-          next = reader.advance();
-        }
-        int endDelta = next != -1 ? -1 : 0;
-        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, endDelta));
+      } else if ('\n' == next || '\r' == next) {
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, reader.getString(tokenStart, -1));
         return next;
       }
     }

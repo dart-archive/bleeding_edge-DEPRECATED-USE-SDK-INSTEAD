@@ -87,9 +87,11 @@ public interface AnalysisContext {
 
   /**
    * Return the documentation comment for the given element as it appears in the original source
-   * (complete with the beginning and ending delimiters), or {@code null} if the element does not
-   * have a documentation comment associated with it. This can be a long-running operation if the
-   * information needed to access the comment is not cached.
+   * (complete with the beginning and ending delimiters) for block documentation comments, or lines
+   * starting with {@code "///"} and separated with {@code "\n"} characters for end-of-line
+   * documentation comments, or {@code null} if the element does not have a documentation comment
+   * associated with it. This can be a long-running operation if the information needed to access
+   * the comment is not cached.
    * <p>
    * <b>Note:</b> This method cannot be used in an async environment.
    * 

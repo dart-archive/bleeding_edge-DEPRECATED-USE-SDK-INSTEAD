@@ -1105,6 +1105,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         StringBuilder builder = new StringBuilder();
         Token[] tokens = comment.getTokens();
         for (int i = 0; i < tokens.length; i++) {
+          if (i > 0) {
+            builder.append("\n");
+          }
           builder.append(tokens[i].getLexeme());
         }
         return builder.toString();

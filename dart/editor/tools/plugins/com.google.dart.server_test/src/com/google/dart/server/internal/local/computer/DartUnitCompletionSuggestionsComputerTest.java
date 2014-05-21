@@ -99,7 +99,7 @@ public class DartUnitCompletionSuggestionsComputerTest extends AbstractLocalServ
       CompletionSuggestion suggestion = assertHasSuggestion("AAA");
       assertSame(CompletionSuggestionKind.CLASS, suggestion.getKind());
       assertEquals("AAA", suggestion.getElementDocSummary());
-      assertEquals("/// 000\n" + "/// 111\n" + "/// 222\n", suggestion.getElementDocDetails());
+      assertEquals("/// 000\n" + "/// 111\n" + "/// 222", suggestion.getElementDocDetails());
     }
   }
 
@@ -117,7 +117,7 @@ public class DartUnitCompletionSuggestionsComputerTest extends AbstractLocalServ
       CompletionSuggestion suggestion = assertHasSuggestion("fff");
       assertSame(CompletionSuggestionKind.FUNCTION, suggestion.getKind());
       assertEquals("int fff(int a, [double b, String c])", suggestion.getElementDocSummary());
-      assertEquals("/// My comment\n", suggestion.getElementDocDetails());
+      assertEquals("/// My comment", suggestion.getElementDocDetails());
     }
   }
 

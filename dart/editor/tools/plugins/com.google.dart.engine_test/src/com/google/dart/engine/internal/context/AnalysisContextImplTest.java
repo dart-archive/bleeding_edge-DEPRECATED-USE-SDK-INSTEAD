@@ -278,7 +278,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     ClassElement classElement = libraryElement.getDefiningCompilationUnit().getTypes()[0];
     assertNotNull(libraryElement);
     String actual = context.computeDocumentationComment(classElement);
-    assertEquals(comment, actual);
+    assertEquals("/// line 1\n" + "/// line 2\n" + "/// line 3", actual);
   }
 
   public void test_computeDocumentationComment_singleLine_multiple_EOL_rn() throws Exception {
@@ -291,7 +291,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     ClassElement classElement = libraryElement.getDefiningCompilationUnit().getTypes()[0];
     assertNotNull(libraryElement);
     String actual = context.computeDocumentationComment(classElement);
-    assertEquals(comment, actual);
+    assertEquals("/// line 1\n" + "/// line 2\n" + "/// line 3", actual);
   }
 
   public void test_computeErrors_dart_none() throws Exception {
