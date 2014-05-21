@@ -9,12 +9,12 @@ execfile(os.path.join(path, 'dartium.deps', 'DEPS.chromium')) # Include proper C
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_base": "http://src.chromium.org",
-  "dartium_chromium_branch": "/chrome/branches/dart/1847/src",
-  "dartium_chromium_revision": "264987",
+  "dartium_chromium_branch": "/chrome/branches/dart/1916/src",
+  "dartium_chromium_revision": "265493",
   "chromium_base_revision": "251904",
   "dart_branch": "/branches/bleeding_edge",
-  "dartium_webkit_branch": "/blink/branches/dart/1847",
-  "dartium_webkit_revision": "173908",
+  "dartium_webkit_branch": "/blink/branches/dart/1916",
+  "dartium_webkit_revision": "174419",
   "bootstrap_css_rev" : "@28387",
 
   "co19_rev": "@722",
