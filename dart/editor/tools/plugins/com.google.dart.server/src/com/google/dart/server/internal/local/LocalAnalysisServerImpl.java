@@ -571,9 +571,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         }
         // OK, register this refactoring
         String refactoringId = "extractLocal-" + nextRefactoringId++;
-        // TODO(scheglov) add "hasSeveralOccurrences" API into ExtractLocalRefactoring
         refactoringMap.put(refactoringId, refactoring);
-        consumer.computed(refactoringId, status, true, refactoring.guessNames());
+        consumer.computed(
+            refactoringId,
+            status,
+            refactoring.hasSeveralOccurrences(),
+            refactoring.guessNames());
       }
     }
   }

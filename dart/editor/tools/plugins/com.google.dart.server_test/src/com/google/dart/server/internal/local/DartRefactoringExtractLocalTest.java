@@ -71,6 +71,31 @@ public class DartRefactoringExtractLocalTest extends DartRefactoringTest {
     assertNull(refactoring_proposedNames);
   }
 
+  public void test_create_hasSeveralOccurrences_false() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "main() {",
+        "  print(1 + 2);",
+        "}"));
+    // prepare refactoring
+    setSelectionAtRange("1 + 2");
+    createRefactoring();
+    assertRefactoringStatusOK(refactoring_status);
+    assertFalse(refactoring_hasSeveralOccurrences);
+  }
+
+  public void test_create_hasSeveralOccurrences_true() throws Exception {
+    createContextWithSingleSource(makeSource(//
+        "main() {",
+        "  print(1 + 2);",
+        "  print(1 + 2);",
+        "}"));
+    // prepare refactoring
+    setSelectionAtRange("1 + 2");
+    createRefactoring();
+    assertRefactoringStatusOK(refactoring_status);
+    assertTrue(refactoring_hasSeveralOccurrences);
+  }
+
   public void test_deleteRefactoring_noSuchId() throws Exception {
     server.deleteRefactoring("no-such-id");
     server.test_waitForWorkerComplete();
