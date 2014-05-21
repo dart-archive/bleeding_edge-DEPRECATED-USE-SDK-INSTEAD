@@ -50,6 +50,11 @@ public class AndroidSdkManager {
     return DartCore.getPlugin().getPrefs().get(ANDROID_SDK_LOCATION_PREFERENCE, "");
   }
 
+  public boolean isAdbInstalled() {
+    File adbFile = getAdbExecutable();
+    return adbFile != null && adbFile.exists();
+  }
+
   public void setSdkLocationPreference(String location) {
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     prefs.put(ANDROID_SDK_LOCATION_PREFERENCE, location);

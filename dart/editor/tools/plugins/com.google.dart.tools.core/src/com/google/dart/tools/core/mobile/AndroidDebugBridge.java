@@ -46,6 +46,8 @@ public class AndroidDebugBridge {
   private static String[] UNINSTALL_CMD = new String[] {
       "shell", "pm", "uninstall", "-k", "org.chromium.content_shell_apk"};
 
+  private ProcessRunner runner;
+
   public AndroidDebugBridge() {
     this(AndroidSdkManager.getManager().getAdbExecutable());
   }
@@ -64,11 +66,37 @@ public class AndroidDebugBridge {
    */
   public boolean installContentShellApk() {
     // TODO(keertip): process error to check if apk is already installed
-    // Do we need to remove and reinstall?
 
     List<String> args = buildAdbCommand(INSTALL_CMD);
     args.add(AndroidSdkManager.getManager().getContentShellApkLocation());
-    return runAdb(args, "ADB: install dart content shell browser");
+    if (runAdb(args, "ADB: install dart content shell browser")) {
+      String message = runner.getStdOut();
+      // if the apk is present, message is Failure [INSTALL_FAILED_ALREADY_EXISTS]   
+      if (message.toLowerCase().contains("already_exists")) {
+        // TODO(keertip): check version and reinstall
+        // DartCore.getConsole().println(message);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Checks if a device is connected and adb can detect it
+   * 
+   * @return true if adb can detect a device
+   */
+  public boolean isDeviceConnected() {
+    List<String> args = buildAdbCommand(DEVICES_CMD);
+    if (runAdb(args, "")) {
+      //List of devices attached 
+      //04f5385f95d80610  device
+      String message = runner.getStdOut();
+      if (message.length() > 27) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -152,15 +180,14 @@ public class AndroidDebugBridge {
     int exitCode = 1;
     ProcessBuilder builder = new ProcessBuilder();
     builder.command(args);
-    ProcessRunner runner = new ProcessRunner(builder);
-    DartCore.getConsole().printSeparator(message);
+    runner = new ProcessRunner(builder);
+    if (!message.isEmpty()) {
+      DartCore.getConsole().printSeparator(message);
+    }
     try {
       exitCode = runner.runSync(null);
       if (exitCode != 0) {
         DartCore.getConsole().println(runner.getStdErr());
-      } else {
-        // TODO(keertip): filter messages 
-        DartCore.getConsole().printSeparator(runner.getStdOut());
       }
 
     } catch (IOException e) {

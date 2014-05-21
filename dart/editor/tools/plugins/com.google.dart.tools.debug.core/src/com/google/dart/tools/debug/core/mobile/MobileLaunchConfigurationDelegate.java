@@ -103,7 +103,13 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
 
     AndroidDebugBridge devBridge = new AndroidDebugBridge();
 
-    // TODO(keertip): first check if there is a device attached
+    if (!devBridge.isDeviceConnected()) {
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          "No devices connected."));
+    }
+
     if (wrapper.getLaunchContentShell()) {
       // TODO(keertip): CoreException if adb fails
       if (devBridge.installContentShellApk()) {

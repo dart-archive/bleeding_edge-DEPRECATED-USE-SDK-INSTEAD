@@ -18,6 +18,7 @@ import com.google.dart.tools.core.mobile.AndroidSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
 import com.google.dart.tools.debug.core.util.RemoteConnectionPreferenceManager;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -36,6 +37,7 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -61,6 +63,8 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
   private Text androidSdkText;
 
   private Button remoteConnectButton;
+
+  private static String ANDROID_SDK_URL = "http://developer.android.com/sdk/index.html";
 
   /**
    * Create a new preference page.
@@ -166,6 +170,17 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     });
 
     androidSdkText.setText(AndroidSdkManager.getManager().getSdkLocationPreference());
+
+    Link infoLink = new Link(androidGroup, SWT.NONE);
+    infoLink.setText("<a href=\"" + ANDROID_SDK_URL + "\">Download the Android SDK</a>");
+    GridDataFactory.swtDefaults().span(3, 1).applyTo(infoLink);
+    infoLink.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        ExternalBrowserUtil.openInExternalBrowser(ANDROID_SDK_URL);
+      }
+    });
+
   }
 
   private void createBrowserConfig(Composite composite, int labelWidth) {
