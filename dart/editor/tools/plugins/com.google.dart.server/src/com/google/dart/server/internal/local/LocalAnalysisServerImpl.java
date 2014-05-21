@@ -39,7 +39,13 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
+import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.correction.CorrectionProposal;
+import com.google.dart.engine.services.refactoring.ExtractLocalRefactoring;
+import com.google.dart.engine.services.refactoring.Refactoring;
+import com.google.dart.engine.services.refactoring.RefactoringFactory;
+import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
@@ -78,12 +84,15 @@ import com.google.dart.server.internal.local.computer.TopLevelDeclarationsComput
 import com.google.dart.server.internal.local.computer.TypeHierarchyComputer;
 import com.google.dart.server.internal.local.operation.ApplyAnalysisDeltaOperation;
 import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
+import com.google.dart.server.internal.local.operation.ApplyRefactoringOperation;
 import com.google.dart.server.internal.local.operation.ComputeCompletionSuggestionsOperation;
 import com.google.dart.server.internal.local.operation.ComputeFixesOperation;
 import com.google.dart.server.internal.local.operation.ComputeMinorRefactoringsOperation;
 import com.google.dart.server.internal.local.operation.ComputeTypeHierarchyOperation;
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
+import com.google.dart.server.internal.local.operation.CreateRefactoringExtractLocalOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
+import com.google.dart.server.internal.local.operation.DeleteRefactoringOperation;
 import com.google.dart.server.internal.local.operation.GetContextOperation;
 import com.google.dart.server.internal.local.operation.GetFixableErrorCodesOperation;
 import com.google.dart.server.internal.local.operation.GetVersionOperation;
@@ -97,6 +106,7 @@ import com.google.dart.server.internal.local.operation.ServerOperation;
 import com.google.dart.server.internal.local.operation.ServerOperationQueue;
 import com.google.dart.server.internal.local.operation.SetOptionsOperation;
 import com.google.dart.server.internal.local.operation.SetPrioritySourcesOperation;
+import com.google.dart.server.internal.local.operation.SetRefactoringExtractLocalOptionsOperation;
 import com.google.dart.server.internal.local.operation.ShutdownOperation;
 import com.google.dart.server.internal.local.operation.SubscribeOperation;
 import com.google.dart.server.internal.local.source.FileResource;
@@ -108,7 +118,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * In-process implementation of {@link AnalysisServer}.
@@ -203,7 +212,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   /**
    * The unique ID for the next context.
    */
-  private final AtomicInteger nextId = new AtomicInteger();
+  private int nextContextId = 0;
+
+  /**
+   * The unique ID for the next context.
+   */
+  private int nextRefactoringId = 0;
 
   /**
    * A table mapping context id's to the analysis contexts associated with them.
@@ -246,6 +260,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   private final Map<String, Map<NotificationKind, SourceSetBasedProvider>> notificationMap = Maps.newHashMap();
 
   /**
+   * A table mapping refactoring id's to the refactorings associated with them.
+   */
+  private final Map<String, Refactoring> refactoringMap = Maps.newHashMap();
+
+  /**
    * The listener that will receive notification when new analysis results become available.
    */
   private final BroadcastAnalysisServerListener listener = new BroadcastAnalysisServerListener();
@@ -272,7 +291,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 
   @Override
   public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
-    // TODO(scheglov) implement
+    operationQueue.add(new ApplyRefactoringOperation(refactoringId, consumer));
   }
 
   @Override
@@ -309,7 +328,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 
   @Override
   public String createContext(String name, String sdkDirectory, Map<String, String> packageMap) {
-    String contextId = name + "-" + nextId.getAndIncrement();
+    String contextId = name + "-" + nextContextId++;
     operationQueue.add(new CreateContextOperation(contextId, sdkDirectory, packageMap));
     return contextId;
   }
@@ -317,7 +336,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @Override
   public void createRefactoringExtractLocal(String contextId, Source source, int offset,
       int length, RefactoringExtractLocalConsumer consumer) {
-    // TODO(scheglov) implement
+    operationQueue.add(new CreateRefactoringExtractLocalOperation(
+        contextId,
+        source,
+        offset,
+        length,
+        consumer));
   }
 
   @Override
@@ -327,7 +351,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 
   @Override
   public void deleteRefactoring(String refactoringId) {
-    // TODO(scheglov) implement
+    operationQueue.add(new DeleteRefactoringOperation(refactoringId));
   }
 
   @Override
@@ -383,6 +407,17 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     getSourcesMap(contextId, contextAddedSourcesMap).addAll(changeSet.getAddedSources());
     context.applyChanges(changeSet);
     schedulePerformAnalysisOperation(contextId, false);
+  }
+
+  public void internalApplyRefactoring(String refactoringId, RefactoringApplyConsumer consumer)
+      throws Exception {
+    Refactoring refactoring = getRefactoring(refactoringId);
+    RefactoringStatus status = refactoring.checkFinalConditions(null);
+    Change change = null;
+    if (!status.hasFatalError()) {
+      change = refactoring.createChange(null);
+    }
+    consumer.computed(status, change);
   }
 
   /**
@@ -508,6 +543,42 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   /**
+   * Implementation for {@link #createRefactoringExtractLocal}.
+   */
+  public void internalCreateRefactoringExtractLocal(String contextId, Source source, int offset,
+      int length, RefactoringExtractLocalConsumer consumer) throws Exception {
+    AnalysisContext analysisContext = getAnalysisContext(contextId);
+    Source[] librarySources = analysisContext.getLibrariesContaining(source);
+    if (librarySources.length != 0) {
+      Source librarySource = librarySources[0];
+      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+      if (unit != null) {
+        // prepare context
+        AssistContext assistContext = new AssistContext(
+            searchEngine,
+            analysisContext,
+            contextId,
+            source,
+            unit,
+            offset,
+            length);
+        // prepare refactoring
+        ExtractLocalRefactoring refactoring = RefactoringFactory.createExtractLocalRefactoring(assistContext);
+        RefactoringStatus status = refactoring.checkInitialConditions(null);
+        // fail if FATAL
+        if (status.hasFatalError()) {
+          consumer.computed(null, status, false, null);
+        }
+        // OK, register this refactoring
+        String refactoringId = "extractLocal-" + nextRefactoringId++;
+        // TODO(scheglov) add "hasSeveralOccurrences" API into ExtractLocalRefactoring
+        refactoringMap.put(refactoringId, refactoring);
+        consumer.computed(refactoringId, status, true, refactoring.guessNames());
+      }
+    }
+  }
+
+  /**
    * Implementation for {@link #deleteContext(String)}.
    */
   public void internalDeleteContext(String contextId) throws Exception {
@@ -524,6 +595,13 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     }
     // remove from index
     index.removeContext(context);
+  }
+
+  public void internalDeleteRefactoring(String refactoringId) {
+    Refactoring refactoring = refactoringMap.remove(refactoringId);
+    if (refactoring == null) {
+      onServerError(AnalysisServerErrorCode.INVALID_REFACTORING_ID, refactoring);
+    }
   }
 
   public void internalGetFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer) {
@@ -699,6 +777,15 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     schedulePerformAnalysisOperation(contextId, false);
   }
 
+  public void internalSetRefactoringExtractLocalOptions(String refactoringId,
+      boolean allOccurrences, String name, RefactoringOptionsValidationConsumer consumer) {
+    ExtractLocalRefactoring refactoring = (ExtractLocalRefactoring) getRefactoring(refactoringId);
+    refactoring.setReplaceAllOccurrences(allOccurrences);
+    refactoring.setLocalName(name);
+    RefactoringStatus status = refactoring.checkLocalName(name);
+    consumer.computed(status);
+  }
+
   /**
    * Implementation for {@link #subscribe(String, Map)}.
    */
@@ -794,7 +881,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @Override
   public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
       String name, RefactoringOptionsValidationConsumer consumer) {
-    // TODO(scheglov) implement
+    operationQueue.add(new SetRefactoringExtractLocalOptionsOperation(
+        refactoringId,
+        allOccurrences,
+        name,
+        consumer));
   }
 
   @Override
@@ -811,6 +902,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @VisibleForTesting
   public void test_addOperation(ServerOperation operation) {
     operationQueue.add(operation);
+  }
+
+  @VisibleForTesting
+  public Map<String, Refactoring> test_getRefactoringMap() {
+    return refactoringMap;
   }
 
   @VisibleForTesting
@@ -843,7 +939,9 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   /**
-   * Returns the {@link AnalysisContext} for the given identifier, maybe {@code null}.
+   * Returns the {@link AnalysisContext} for the given identifier, not null.
+   * 
+   * @throws AnalysisServerErrorException if there are no context with the given identifier
    */
   private AnalysisContext getAnalysisContext(String contextId) {
     AnalysisContext context = contextMap.get(contextId);
@@ -851,6 +949,21 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
       throw new AnalysisServerErrorException(AnalysisServerErrorCode.INVALID_CONTEXT_ID, contextId);
     }
     return context;
+  }
+
+  /**
+   * Returns the {@link Refactoring} for the given identifier, not {@code null}.
+   * 
+   * @throws AnalysisServerErrorException if there are no refactoring with the given identifier
+   */
+  private Refactoring getRefactoring(String contextId) {
+    Refactoring refactoring = refactoringMap.get(contextId);
+    if (refactoring == null) {
+      throw new AnalysisServerErrorException(
+          AnalysisServerErrorCode.INVALID_REFACTORING_ID,
+          contextId);
+    }
+    return refactoring;
   }
 
   private DartSdk getSdk(String contextId, String directory) {
@@ -866,7 +979,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         delta.setAnalysisLevel(factory.forUri(uri), AnalysisLevel.RESOLVED);
       }
       context.applyAnalysisDelta(delta);
-      String sdkContextId = "dart-sdk-internal-" + nextId.getAndIncrement();
+      String sdkContextId = "dart-sdk-internal-" + nextContextId++;
       contextMap.put(sdkContextId, context);
       schedulePerformAnalysisOperation(sdkContextId, false);
     }

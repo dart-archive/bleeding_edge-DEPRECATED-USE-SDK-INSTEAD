@@ -21,12 +21,15 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ApplyAnalysisDeltaOperationTest.class);
     suite.addTestSuite(ApplyChangesOperationTest.class);
+    suite.addTestSuite(ApplyRefactoringOperationTest.class);
     suite.addTestSuite(ComputeCompletionSuggestionsOperationTest.class);
     suite.addTestSuite(ComputeFixesOperationTest.class);
     suite.addTestSuite(ComputeMinorRefactoringsOperationTest.class);
     suite.addTestSuite(ComputeTypeHierarchyOperationTest.class);
     suite.addTestSuite(CreateContextOperationTest.class);
+    suite.addTestSuite(CreateRefactoringExtractLocalOperationTest.class);
     suite.addTestSuite(DeleteContextOperationTest.class);
+    suite.addTestSuite(DeleteRefactoringOperationTest.class);
     suite.addTestSuite(GetContextOperationTest.class);
     suite.addTestSuite(GetFixableErrorCodesOperationTest.class);
     suite.addTestSuite(GetVersionOperationTest.class);
@@ -38,6 +41,7 @@ public class TestAll {
     suite.addTestSuite(ServerOperationQueueTest.class);
     suite.addTestSuite(SetOptionsOperationTest.class);
     suite.addTestSuite(SetPrioritySourcesOperationTest.class);
+    suite.addTestSuite(SetRefactoringExtractLocalOptionsOperationTest.class);
     suite.addTestSuite(ShutdownOperationTest.class);
     suite.addTestSuite(SubscribeOperationTest.class);
     return suite;

@@ -23,7 +23,8 @@ package com.google.dart.server;
 public enum AnalysisServerErrorCode {
   DISCONNECTED("The connection to the server has been lost"),
   EXCEPTION("An exception happened %s"),
-  INVALID_CONTEXT_ID("Cannot find a context with the id '%s'");
+  INVALID_CONTEXT_ID("Cannot find a context with the id '%s'"),
+  INVALID_REFACTORING_ID("Cannot find a refactoring with the id '%s'");
 
   /**
    * The template used to create the message to be displayed for this error.
