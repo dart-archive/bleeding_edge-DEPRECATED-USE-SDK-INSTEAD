@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
+import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
@@ -734,8 +735,10 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
           CompilationUnit unit = analysisContext.resolveCompilationUnit(unitSource, librarySource);
           log("\t\tunit: %s", unit);
           if (unit != null) {
+            AnalysisErrorInfo errorsInfo = analysisContext.getErrors(unitSource);
             ChangeNoticeImpl changeNotice = new ChangeNoticeImpl(unitSource);
             changeNotice.setCompilationUnit(unit);
+            changeNotice.setErrors(errorsInfo.getErrors(), errorsInfo.getLineInfo());
             log("\t\tadd NotificationOperation: %s with %s", kind, changeNotice);
             operationQueue.add(new NotificationOperation(contextId, changeNotice, kind));
           }
