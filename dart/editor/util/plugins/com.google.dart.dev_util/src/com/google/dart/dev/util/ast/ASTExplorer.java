@@ -36,6 +36,7 @@ import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
@@ -473,6 +474,8 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
         SimpleIdentifier identifier = (SimpleIdentifier) inputElement;
         propertyMap.put("staticElement", toString(identifier.getStaticElement()));
         propertyMap.put("propagatedElement", toString(identifier.getPropagatedElement()));
+      } else if (inputElement instanceof SimpleStringLiteral) {
+        propertyMap.put("value", toString(((SimpleStringLiteral) inputElement).getValue()));
       }
     }
 
@@ -485,6 +488,13 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
         name = "- unnamed -";
       }
       return name + " (" + element.getClass().getSimpleName() + ")";
+    }
+
+    private String toString(String string) {
+      if (string == null) {
+        return "null";
+      }
+      return string;
     }
 
     private String toString(Type type) {
