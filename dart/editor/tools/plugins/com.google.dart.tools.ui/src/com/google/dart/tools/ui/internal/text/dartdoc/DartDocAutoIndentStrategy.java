@@ -32,10 +32,19 @@ public class DartDocAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy
   }
 
   @Override
-  public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
-    if (c.length == 0 && c.text != null
-        && TextUtilities.endsWith(d.getLegalLineDelimiters(), c.text) != -1) {
-      autoIndentAfterNewLine(d, c);
+  public void customizeDocumentCommand(IDocument document, DocumentCommand command) {
+    if (command.text != null) {
+      if (command.length == 0) {
+        String[] lineDelimiters = document.getLegalLineDelimiters();
+        int idx = TextUtilities.endsWith(lineDelimiters, command.text);
+        if (idx > -1) {
+          if (lineDelimiters[idx].equals(command.text)) {
+            // auto-indent only if adding a newline and nothing else
+            autoIndentAfterNewLine(document, command);
+          }
+          return;
+        }
+      }
     }
   }
 
