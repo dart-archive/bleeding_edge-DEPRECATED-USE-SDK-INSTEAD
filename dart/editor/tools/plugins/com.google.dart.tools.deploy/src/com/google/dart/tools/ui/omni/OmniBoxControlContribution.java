@@ -302,10 +302,10 @@ public class OmniBoxControlContribution {
   @SuppressWarnings("deprecation")
   private void handleKeyPressed(KeyEvent e) {
 
-    if (e.character == '\0') {
-      return;
-    }
     if (e.keyCode == 'f' && (e.stateMask & SWT.MOD1) == SWT.MOD1) {
+      if (e.character == '\0') {
+        return;
+      }
       // special treatment to activate the text search when requested
       IWorkbench wb = PlatformUI.getWorkbench();
       IBindingService bindings = (IBindingService) wb.getService(IBindingService.class);
