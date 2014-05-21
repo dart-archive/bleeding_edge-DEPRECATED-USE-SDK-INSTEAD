@@ -23,17 +23,20 @@ import com.google.dart.server.SourceSet;
 import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
-import com.google.dart.server.internal.remote.utilities.StreamUtilities;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -51,17 +54,29 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    */
   public class ServerResponseReaderThread extends Thread {
 
-    private final InputStream inputStream;
+    private String[] lines = null;
 
-    public ServerResponseReaderThread(InputStream inputStream) {
-      this.inputStream = inputStream;
+    public ServerResponseReaderThread() {
+    }
+
+    @VisibleForTesting
+    public ServerResponseReaderThread(String[] lines) {
+      this.lines = lines;
     }
 
     @Override
     public void run() {
       while (true) {
-        String response = StreamUtilities.readResponse(inputStream);
-        if (!response.trim().isEmpty()) {
+        List<String> responses = null;
+        if (lines == null) {
+          responses = readResponse();
+        } else {
+          responses = new ArrayList<String>(lines.length);
+          for (String line : lines) {
+            responses.add(line);
+          }
+        }
+        for (String response : responses) {
           JsonObject element = (JsonObject) new JsonParser().parse(response);
           JsonPrimitive idJsonPrimitive = (JsonPrimitive) element.get("id");
           if (idJsonPrimitive == null) {
@@ -123,6 +138,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    * The {@link Writer} for responses to the server.
    */
   private PrintWriter printWriter;
+
+  private BufferedReader bufferedReader;
 
   /**
    * Create an instance of {@link RemoteAnalysisServerImpl} using some runtime (Dart VM) path, and
@@ -210,15 +227,34 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   public void initServerAndReaderThread() throws IOException {
+    //
+    // Initialize the process using runtimePath and analysisServerPath
+    //
     ProcessBuilder processBuilder = new ProcessBuilder(runtimePath, analysisServerPath);
     Process process = processBuilder.start();
-    InputStream inputStream = process.getInputStream();
-    // TODO (jwren) swallow {"event":"server.connected"} response, connected state should be asserted
-    StreamUtilities.readResponse(inputStream);
-    ServerResponseReaderThread thread = new ServerResponseReaderThread(inputStream);
-    thread.start();
-    OutputStreamWriter outputStreamWriter = new OutputStreamWriter(process.getOutputStream());
-    printWriter = new PrintWriter(outputStreamWriter);
+
+    //
+    // Initialize the reader for the input stream from the process
+    //
+    bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
+
+    //
+    // TODO (jwren) The following swallows the {"event":"server.connected"} response, but the
+    // connected state should be asserted.
+    // TODO (jwren) We also need to wait for the "server.connected" response, which we currently are
+    // not doing.
+    //
+    readResponse();
+
+    //
+    // Create and start the ServerResponseReaderThread thread.
+    //
+    new ServerResponseReaderThread().start();
+
+    //
+    // Initialize the print writer.
+    //
+    printWriter = new PrintWriter(new OutputStreamWriter(process.getOutputStream()));
   }
 
   @Override
@@ -294,6 +330,19 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    */
   private String generateUniqueId() {
     return Integer.toString(nextId.getAndIncrement());
+  }
+
+  private List<String> readResponse() {
+    List<String> lines = new ArrayList<String>(1);
+    try {
+      String currentLine;
+      while (bufferedReader.ready() && (currentLine = bufferedReader.readLine()) != null) {
+        lines.add(currentLine.trim());
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return lines;
   }
 
   /**

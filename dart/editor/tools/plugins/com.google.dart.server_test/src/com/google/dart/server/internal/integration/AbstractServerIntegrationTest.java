@@ -34,6 +34,30 @@ public abstract class AbstractServerIntegrationTest extends TestCase {
     assertEquals("0.0.1", versionPtr[0]);
   }
 
+  public void test_getVersion2() throws Exception {
+    // This tests that when two responses are sent back at the same time, that the responses are
+    // handled appropriately.
+    // On the remote server side, this verifies that when two server responses happen on the input
+    // stream, that they are read correctly.
+    final String[] versionPtr1 = {null};
+    final String[] versionPtr2 = {null};
+    server.getVersion(new VersionConsumer() {
+      @Override
+      public void computedVersion(String version) {
+        versionPtr1[0] = version;
+      }
+    });
+    server.getVersion(new VersionConsumer() {
+      @Override
+      public void computedVersion(String version) {
+        versionPtr2[0] = version;
+      }
+    });
+    waitForAllServerResponses();
+    assertEquals("0.0.1", versionPtr1[0]);
+    assertEquals("0.0.1", versionPtr2[0]);
+  }
+
   protected abstract void initServer() throws Exception;
 
   @Override

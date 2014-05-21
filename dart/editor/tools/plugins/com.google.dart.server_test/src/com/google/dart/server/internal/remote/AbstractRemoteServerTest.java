@@ -18,20 +18,18 @@ import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl.ServerRes
 
 import junit.framework.TestCase;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
 public abstract class AbstractRemoteServerTest extends TestCase {
 
   protected RemoteAnalysisServerImpl server;
 
   protected ServerResponseReaderThread readerThread;
 
-  InputStream inputStream;
-
   protected void responseFromServer(String response) {
-    inputStream = new ByteArrayInputStream(response.getBytes());
-    readerThread = server.new ServerResponseReaderThread(inputStream);
+    responseFromServer(new String[] {response});
+  }
+
+  protected void responseFromServer(String[] responses) {
+    readerThread = server.new ServerResponseReaderThread(responses);
     readerThread.start();
   }
 
