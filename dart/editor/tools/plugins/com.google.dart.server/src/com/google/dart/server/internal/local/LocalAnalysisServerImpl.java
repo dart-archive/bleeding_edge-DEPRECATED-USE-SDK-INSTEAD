@@ -114,6 +114,8 @@ import com.google.dart.server.internal.local.source.PackageMapUriResolver;
 import com.google.dart.server.internal.local.source.Resource;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -164,7 +166,9 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         } catch (AnalysisServerErrorException serverException) {
           onServerError(serverException.error);
         } catch (Throwable e) {
-          onServerError(AnalysisServerErrorCode.EXCEPTION, e.getMessage());
+          StringWriter sw = new StringWriter();
+          e.printStackTrace(new PrintWriter(sw));
+          onServerError(AnalysisServerErrorCode.EXCEPTION, sw.toString());
         }
         operationQueue.markLastOperationCompleted();
       }
@@ -568,6 +572,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         // fail if FATAL
         if (status.hasFatalError()) {
           consumer.computed(null, status, false, null);
+          return;
         }
         // OK, register this refactoring
         String refactoringId = "extractLocal-" + nextRefactoringId++;

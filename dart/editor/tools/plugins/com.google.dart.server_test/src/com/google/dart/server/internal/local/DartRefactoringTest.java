@@ -44,6 +44,7 @@ public class DartRefactoringTest extends AbstractLocalServerTest {
   public static void assertRefactoringStatus(RefactoringStatus status,
       RefactoringStatusSeverity expectedSeverity, String expectedMessage,
       SourceRange expectedContextRange) {
+    assertNotNull(status);
     assertSame(status.getMessage(), expectedSeverity, status.getSeverity());
     if (expectedSeverity != RefactoringStatusSeverity.OK) {
       RefactoringStatusEntry entry = status.getEntryWithHighestSeverity();

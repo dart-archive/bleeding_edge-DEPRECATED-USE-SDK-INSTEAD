@@ -198,6 +198,7 @@ public class DartRefactoringExtractLocalTest extends DartRefactoringTest {
           }
         });
     Uninterruptibles.awaitUninterruptibly(latch, 600, TimeUnit.SECONDS);
+    serverListener.assertNoServerErrors();
   }
 
   private String getChangeResult(Source source, String initialCode) {
