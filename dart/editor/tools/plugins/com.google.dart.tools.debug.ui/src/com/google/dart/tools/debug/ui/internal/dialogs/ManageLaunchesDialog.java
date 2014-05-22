@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -481,15 +480,8 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
     for (final ILaunchConfigurationType configType : manager.getLaunchConfigurationTypes()) {
 
-      if (!configType.getIdentifier().contains("mobile")) {
-        CreateLaunchAction action = new CreateLaunchAction(this, configType);
-        toolBarManager.add(action);
-      } else {
-        if (configType.getIdentifier().contains("mobile") && DartCoreDebug.ENABLE_MOBILE) {
-          CreateLaunchAction action = new CreateLaunchAction(this, configType);
-          toolBarManager.add(action);
-        }
-      }
+      CreateLaunchAction action = new CreateLaunchAction(this, configType);
+      toolBarManager.add(action);
     }
 
     //toolBarManager.add(new Separator());

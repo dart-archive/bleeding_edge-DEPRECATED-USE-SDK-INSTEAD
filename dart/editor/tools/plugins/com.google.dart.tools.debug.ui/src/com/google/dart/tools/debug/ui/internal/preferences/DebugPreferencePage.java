@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.ui.internal.preferences;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.mobile.AndroidSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
@@ -93,9 +92,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     RemoteConnectionPreferenceManager.getManager().setAllowRemoteConnectionPreference(
         remoteConnectButton.getSelection());
 
-    if (DartCoreDebug.ENABLE_MOBILE) {
-      AndroidSdkManager.getManager().setSdkLocationPreference(androidSdkText.getText().trim());
-    }
+    AndroidSdkManager.getManager().setSdkLocationPreference(androidSdkText.getText().trim());
     return true;
   }
 
@@ -135,9 +132,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
     createRemoteConnectionConfig(composite);
 
-    if (DartCoreDebug.ENABLE_MOBILE) {
-      createAndroidSdkConfig(composite, labelWidth);
-    }
+    createAndroidSdkConfig(composite, labelWidth);
 
     return composite;
   }

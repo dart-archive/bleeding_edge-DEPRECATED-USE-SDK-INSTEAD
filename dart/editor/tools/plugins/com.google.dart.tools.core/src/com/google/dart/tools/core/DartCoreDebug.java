@@ -67,7 +67,6 @@ public class DartCoreDebug {
   public static final boolean ENABLE_THEMES = true; //isOptionTrue("experimental/themes");
   public static final boolean ENABLE_TAB_COLORING = isOptionTrue("experimental/tabColors");
   public static final boolean ENABLE_HTML_VALIDATION = isOptionTrue("experimental/validateHtml");
-  public static final boolean ENABLE_MOBILE = isOptionTrue("experimental/mobile");
   public static final boolean ENABLE_COVERAGE = isOptionTrue("experimental/coverage");
   public static final boolean ENABLE_ANALYSIS_SERVER = isOptionTrue("experimental/analysisServer");
 
