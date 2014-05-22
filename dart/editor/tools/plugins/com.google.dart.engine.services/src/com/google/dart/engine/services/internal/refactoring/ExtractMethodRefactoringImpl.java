@@ -51,7 +51,7 @@ import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.services.refactoring.ExtractMethodRefactoring;
 import com.google.dart.engine.services.refactoring.NamingConventions;
-import com.google.dart.engine.services.refactoring.ParameterInfo;
+import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
@@ -87,10 +87,10 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     }
   }
 
-  private class Parameter extends ParameterInfoImpl {
+  private class ParameterInternalImpl extends ParameterImpl {
     final List<SourceRange> ranges = Lists.newArrayList();
 
-    public Parameter(String typeName, String name) {
+    public ParameterInternalImpl(String typeName, String name) {
       super(typeName, name);
     }
   }
@@ -155,8 +155,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   private ExtractMethodAnalyzer selectionAnalyzer;
 
   private final Set<String> usedNames = Sets.newHashSet();
-  private final List<ParameterInfo> parameters = Lists.newArrayList();
-  private final Map<String, Parameter> parametersMap = Maps.newHashMap();
+  private final List<Parameter> parameters = Lists.newArrayList();
+  private final Map<String, ParameterInternalImpl> parametersMap = Maps.newHashMap();
   private Type returnType;
   private String returnVariableName;
   private AstNode parentMember;
@@ -252,9 +252,9 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   @Override
   public RefactoringStatus checkParameterNames() {
     RefactoringStatus result = new RefactoringStatus();
-    for (ParameterInfo parameter : parameters) {
+    for (Parameter parameter : parameters) {
       result.merge(NamingConventions.validateParameterName(parameter.getNewName()));
-      for (ParameterInfo other : parameters) {
+      for (Parameter other : parameters) {
         if (parameter != other && StringUtils.equals(other.getNewName(), parameter.getNewName())) {
           result.addError(MessageFormat.format(
               "Parameter ''{0}'' already exists",
@@ -319,7 +319,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           if (!extractGetter) {
             sb.append("(");
             boolean firstParameter = true;
-            for (ParameterInfo parameter : parameters) {
+            for (Parameter parameter : parameters) {
               // may be comma
               if (firstParameter) {
                 firstParameter = false;
@@ -430,7 +430,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   @Override
-  public List<ParameterInfo> getParameters() {
+  public List<Parameter> getParameters() {
     return parameters;
   }
 
@@ -459,7 +459,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       sb.append("(");
       // add all parameters
       boolean firstParameter = true;
-      for (ParameterInfo parameter : parameters) {
+      for (Parameter parameter : parameters) {
         // may be comma
         if (firstParameter) {
           firstParameter = false;
@@ -589,7 +589,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     String source = utils.getText(selectionRange);
     // prepare ReplaceEdit operations to replace variables with parameters
     List<Edit> replaceEdits = Lists.newArrayList();
-    for (Parameter parameter : parametersMap.values()) {
+    for (ParameterInternalImpl parameter : parametersMap.values()) {
       List<SourceRange> ranges = parameter.ranges;
       for (SourceRange range : ranges) {
         replaceEdits.add(new Edit(
@@ -837,11 +837,11 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
             if (!isDeclaredInSelection(variableElement)) {
               String variableName = variableElement.getDisplayName();
               // add parameter
-              Parameter parameter = parametersMap.get(variableName);
+              ParameterInternalImpl parameter = parametersMap.get(variableName);
               if (parameter == null) {
                 Type parameterType = node.getBestType();
                 String parameterTypeName = utils.getTypeSource(parameterType);
-                parameter = new Parameter(parameterTypeName, variableName);
+                parameter = new ParameterInternalImpl(parameterTypeName, variableName);
                 parameters.add(parameter);
                 parametersMap.put(variableName, parameter);
               }

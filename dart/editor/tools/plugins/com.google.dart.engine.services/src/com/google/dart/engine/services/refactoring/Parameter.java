@@ -15,10 +15,9 @@
 package com.google.dart.engine.services.refactoring;
 
 /**
- * Information about method parameter.
+ * Information about a method parameter.
  */
-public interface ParameterInfo {
-
+public interface Parameter {
   String getDefaultValue();
 
   String getNewName();

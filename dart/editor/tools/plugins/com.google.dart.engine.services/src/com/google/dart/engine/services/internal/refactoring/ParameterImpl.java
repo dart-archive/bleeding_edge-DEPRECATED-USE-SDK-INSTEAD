@@ -13,17 +13,17 @@
  */
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.services.refactoring.ParameterInfo;
+import com.google.dart.engine.services.refactoring.Parameter;
 
 /**
- * Information about method parameter.
+ * An implementation of {@link Parameter}.
  */
-public class ParameterInfoImpl implements ParameterInfo {
+public class ParameterImpl implements Parameter {
   private String newTypeName;
   private final String oldName;
   private String newName;
 
-  public ParameterInfoImpl(String typeName, String name) {
+  public ParameterImpl(String typeName, String name) {
     oldName = name;
     newName = oldName;
     newTypeName = typeName;

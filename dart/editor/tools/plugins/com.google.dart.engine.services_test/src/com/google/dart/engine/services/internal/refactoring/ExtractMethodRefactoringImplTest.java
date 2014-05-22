@@ -16,7 +16,7 @@ package com.google.dart.engine.services.internal.refactoring;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.refactoring.ExtractMethodRefactoring;
-import com.google.dart.engine.services.refactoring.ParameterInfo;
+import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 
@@ -562,7 +562,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     // update parameters
     {
-      List<ParameterInfo> parameters = refactoring.getParameters();
+      List<Parameter> parameters = refactoring.getParameters();
       assertThat(parameters).hasSize(2);
       parameters.get(0).setNewName("dup");
       parameters.get(1).setNewName("dup");
@@ -590,7 +590,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     // update parameters
     {
-      List<ParameterInfo> parameters = refactoring.getParameters();
+      List<Parameter> parameters = refactoring.getParameters();
       assertThat(parameters).hasSize(2);
       parameters.get(0).setNewName("a");
     }
@@ -1807,7 +1807,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     // update parameters
     {
-      List<ParameterInfo> parameters = refactoring.getParameters();
+      List<Parameter> parameters = refactoring.getParameters();
       assertThat(parameters).hasSize(2);
       parameters.get(0).setNewName("par1");
       parameters.get(1).setNewName("param2");
@@ -1843,9 +1843,9 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     // update parameters
     {
-      List<ParameterInfo> parameters = refactoring.getParameters();
+      List<Parameter> parameters = refactoring.getParameters();
       assertThat(parameters).hasSize(2);
-      ParameterInfo p = parameters.remove(1);
+      Parameter p = parameters.remove(1);
       parameters.add(0, p);
     }
     // apply refactoring
@@ -1906,7 +1906,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     // update parameters
     {
-      List<ParameterInfo> parameters = refactoring.getParameters();
+      List<Parameter> parameters = refactoring.getParameters();
       assertThat(parameters).hasSize(3);
       parameters.get(0).setNewTypeName("num");
       parameters.get(1).setNewTypeName("dynamic");

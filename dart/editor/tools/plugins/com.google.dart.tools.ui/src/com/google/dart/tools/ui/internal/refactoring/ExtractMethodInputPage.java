@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.engine.services.refactoring.ParameterInfo;
+import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.tools.internal.corext.refactoring.StubTypeContext;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -103,7 +103,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
           RefactoringMessages.ExtractMethodInputPage_parameters,
           new IParameterListChangeListener.Empty() {
             @Override
-            public void parameterChanged(ParameterInfo parameter) {
+            public void parameterChanged(Parameter parameter) {
               parameterModified();
             }
 
@@ -339,7 +339,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 
   private RefactoringStatus validateParameters() {
     RefactoringStatus result = new RefactoringStatus();
-    for (ParameterInfo parameter : fRefactoring.getParameters()) {
+    for (Parameter parameter : fRefactoring.getParameters()) {
       if ("".equals(parameter.getNewName())) {
         result.addFatalError(RefactoringMessages.ExtractMethodInputPage_validation_emptyParameterName);
         return result;

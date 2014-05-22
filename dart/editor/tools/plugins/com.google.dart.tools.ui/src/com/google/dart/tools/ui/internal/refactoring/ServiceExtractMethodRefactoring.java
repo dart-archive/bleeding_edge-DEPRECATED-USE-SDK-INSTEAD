@@ -15,7 +15,7 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.engine.services.refactoring.ExtractMethodRefactoring;
-import com.google.dart.engine.services.refactoring.ParameterInfo;
+import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.engine.services.status.RefactoringStatus;
 
 import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils.toLTK;
@@ -59,7 +59,7 @@ public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
     return refactoring.getNumberOfDuplicates();
   }
 
-  public List<ParameterInfo> getParameters() {
+  public List<Parameter> getParameters() {
     return refactoring.getParameters();
   }
 

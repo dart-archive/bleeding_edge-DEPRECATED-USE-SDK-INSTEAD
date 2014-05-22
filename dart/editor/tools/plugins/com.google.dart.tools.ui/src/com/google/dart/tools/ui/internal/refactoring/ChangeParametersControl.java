@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.engine.services.refactoring.ParameterInfo;
+import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.tools.internal.corext.refactoring.StubTypeContext;
 import com.google.dart.tools.ui.internal.dialogs.TableTextCellEditor;
 import com.google.dart.tools.ui.internal.dialogs.TextFieldNavigationHandler;
@@ -109,7 +109,7 @@ public class ChangeParametersControl extends Composite {
     @Override
     @SuppressWarnings("unchecked")
     public Object[] getElements(Object inputElement) {
-      return removeMarkedAsDeleted((List<ParameterInfo>) inputElement);
+      return removeMarkedAsDeleted((List<Parameter>) inputElement);
     }
 
     @Override
@@ -117,15 +117,15 @@ public class ChangeParametersControl extends Composite {
       // do nothing
     }
 
-    private ParameterInfo[] removeMarkedAsDeleted(List<ParameterInfo> paramInfos) {
-      List<ParameterInfo> result = new ArrayList<ParameterInfo>(paramInfos.size());
-      for (Iterator<ParameterInfo> iter = paramInfos.iterator(); iter.hasNext();) {
-        ParameterInfo info = iter.next();
-        if (!info.isDeleted()) {
-          result.add(info);
+    private Parameter[] removeMarkedAsDeleted(List<Parameter> parameters) {
+      List<Parameter> result = new ArrayList<Parameter>(parameters.size());
+      for (Iterator<Parameter> iter = parameters.iterator(); iter.hasNext();) {
+        Parameter parameter = iter.next();
+        if (!parameter.isDeleted()) {
+          result.add(parameter);
         }
       }
-      return result.toArray(new ParameterInfo[result.size()]);
+      return result.toArray(new Parameter[result.size()]);
     }
   }
 
@@ -138,15 +138,15 @@ public class ChangeParametersControl extends Composite {
 
     @Override
     public String getColumnText(Object element, int columnIndex) {
-      ParameterInfo info = (ParameterInfo) element;
+      Parameter parameter = (Parameter) element;
       switch (columnIndex) {
         case TYPE_PROP:
-          return info.getNewTypeName();
+          return parameter.getNewTypeName();
         case NEWNAME_PROP:
-          return info.getNewName();
+          return parameter.getNewName();
         case DEFAULT_PROP:
-          if (info.isAdded()) {
-            return info.getDefaultValue();
+          if (parameter.isAdded()) {
+            return parameter.getDefaultValue();
           } else {
             return "-"; //$NON-NLS-1$
           }
@@ -157,8 +157,8 @@ public class ChangeParametersControl extends Composite {
 
     @Override
     public Font getFont(Object element, int columnIndex) {
-      ParameterInfo info = (ParameterInfo) element;
-      if (info.isAdded()) {
+      Parameter parameter = (Parameter) element;
+      if (parameter.isAdded()) {
         return JFaceResources.getFontRegistry().getBold(JFaceResources.DIALOG_FONT);
       } else {
         return null;
@@ -169,13 +169,13 @@ public class ChangeParametersControl extends Composite {
   private class ParametersCellModifier implements ICellModifier {
     @Override
     public boolean canModify(Object element, String property) {
-      Assert.isTrue(element instanceof ParameterInfo);
+      Assert.isTrue(element instanceof Parameter);
       if (property.equals(PROPERTIES[TYPE_PROP])) {
         return fMode.canChangeTypes();
       } else if (property.equals(PROPERTIES[NEWNAME_PROP])) {
         return true;
       } else if (property.equals(PROPERTIES[DEFAULT_PROP])) {
-        return (((ParameterInfo) element).isAdded());
+        return (((Parameter) element).isAdded());
       }
       Assert.isTrue(false);
       return false;
@@ -183,13 +183,13 @@ public class ChangeParametersControl extends Composite {
 
     @Override
     public Object getValue(Object element, String property) {
-      Assert.isTrue(element instanceof ParameterInfo);
+      Assert.isTrue(element instanceof Parameter);
       if (property.equals(PROPERTIES[TYPE_PROP])) {
-        return ((ParameterInfo) element).getNewTypeName();
+        return ((Parameter) element).getNewTypeName();
       } else if (property.equals(PROPERTIES[NEWNAME_PROP])) {
-        return ((ParameterInfo) element).getNewName();
+        return ((Parameter) element).getNewName();
       } else if (property.equals(PROPERTIES[DEFAULT_PROP])) {
-        return ((ParameterInfo) element).getDefaultValue();
+        return ((Parameter) element).getDefaultValue();
       }
       Assert.isTrue(false);
       return null;
@@ -200,26 +200,26 @@ public class ChangeParametersControl extends Composite {
       if (element instanceof TableItem) {
         element = ((TableItem) element).getData();
       }
-      if (!(element instanceof ParameterInfo)) {
+      if (!(element instanceof Parameter)) {
         return;
       }
       boolean unchanged;
-      ParameterInfo parameterInfo = (ParameterInfo) element;
+      Parameter parameter = (Parameter) element;
       if (property.equals(PROPERTIES[NEWNAME_PROP])) {
-        unchanged = parameterInfo.getNewName().equals(value);
-        parameterInfo.setNewName((String) value);
+        unchanged = parameter.getNewName().equals(value);
+        parameter.setNewName((String) value);
       } else if (property.equals(PROPERTIES[DEFAULT_PROP])) {
-        unchanged = parameterInfo.getDefaultValue().equals(value);
-        parameterInfo.setDefaultValue((String) value);
+        unchanged = parameter.getDefaultValue().equals(value);
+        parameter.setDefaultValue((String) value);
       } else if (property.equals(PROPERTIES[TYPE_PROP])) {
-        unchanged = parameterInfo.getNewTypeName().equals(value);
-        parameterInfo.setNewTypeName((String) value);
+        unchanged = parameter.getNewTypeName().equals(value);
+        parameter.setNewTypeName((String) value);
       } else {
         throw new IllegalStateException();
       }
       if (!unchanged) {
-        ChangeParametersControl.this.fListener.parameterChanged(parameterInfo);
-        ChangeParametersControl.this.fTableViewer.update(parameterInfo, new String[] {property});
+        ChangeParametersControl.this.fListener.parameterChanged(parameter);
+        ChangeParametersControl.this.fTableViewer.update(parameter, new String[] {property});
       }
     }
   }
@@ -232,12 +232,12 @@ public class ChangeParametersControl extends Composite {
 
   private static final int ROW_COUNT = 7;
 
-  private static void moveUp(List<ParameterInfo> elements, List<ParameterInfo> move) {
-    List<ParameterInfo> res = new ArrayList<ParameterInfo>(elements.size());
-    List<ParameterInfo> deleted = new ArrayList<ParameterInfo>();
-    ParameterInfo floating = null;
-    for (Iterator<ParameterInfo> iter = elements.iterator(); iter.hasNext();) {
-      ParameterInfo curr = iter.next();
+  private static void moveUp(List<Parameter> elements, List<Parameter> move) {
+    List<Parameter> res = new ArrayList<Parameter>(elements.size());
+    List<Parameter> deleted = new ArrayList<Parameter>();
+    Parameter floating = null;
+    for (Iterator<Parameter> iter = elements.iterator(); iter.hasNext();) {
+      Parameter curr = iter.next();
       if (move.contains(curr)) {
         res.add(curr);
       } else if (curr.isDeleted()) {
@@ -254,14 +254,14 @@ public class ChangeParametersControl extends Composite {
     }
     res.addAll(deleted);
     elements.clear();
-    for (Iterator<ParameterInfo> iter = res.iterator(); iter.hasNext();) {
+    for (Iterator<Parameter> iter = res.iterator(); iter.hasNext();) {
       elements.add(iter.next());
     }
   }
 
   private final Mode fMode;
   private final IParameterListChangeListener fListener;
-  private List<ParameterInfo> fParameterInfos;
+  private List<Parameter> fParameters;
   private final StubTypeContext fTypeContext;
 
   private final String[] fParamNameProposals;
@@ -322,10 +322,10 @@ public class ChangeParametersControl extends Composite {
     createButtonComposite(this);
   }
 
-  public void editParameter(ParameterInfo info) {
+  public void editParameter(Parameter parameter) {
     fTableViewer.getControl().setFocus();
-    if (!info.isDeleted()) {
-      fTableViewer.setSelection(new StructuredSelection(info), true);
+    if (!parameter.isDeleted()) {
+      fTableViewer.setSelection(new StructuredSelection(parameter), true);
       updateButtonsEnabledState();
       editColumnOrNextPossible(NEWNAME_PROP);
       return;
@@ -334,12 +334,12 @@ public class ChangeParametersControl extends Composite {
 
   // ---- Parameter table -----------------------------------------------------------------------------------
 
-  public void setInput(List<ParameterInfo> parameterInfos) {
-    Assert.isNotNull(parameterInfos);
-    fParameterInfos = parameterInfos;
-    fTableViewer.setInput(fParameterInfos);
-    if (fParameterInfos.size() > 0) {
-      fTableViewer.setSelection(new StructuredSelection(fParameterInfos.get(0)));
+  public void setInput(List<Parameter> parameters) {
+    Assert.isNotNull(parameters);
+    fParameters = parameters;
+    fTableViewer.setInput(fParameters);
+    if (fParameters.size() > 0) {
+      fTableViewer.setSelection(new StructuredSelection(fParameters.get(0)));
     }
   }
 
@@ -391,7 +391,7 @@ public class ChangeParametersControl extends Composite {
     editors[NEWNAME_PROP].setActivationListener(new TableTextCellEditor.IActivationListener() {
       @Override
       public void activate() {
-        ParameterInfo[] selected = getSelectedElements();
+        Parameter[] selected = getSelectedElements();
         if (selected.length == 1 && fNameContentAssistHandler != null) {
           fNameContentAssistHandler.setEnabled(selected[0].isAdded());
         }
@@ -491,7 +491,7 @@ public class ChangeParametersControl extends Composite {
         if (savedSelection == null) {
           return;
         }
-        ParameterInfo[] selection = getSelectedElements();
+        Parameter[] selection = getSelectedElements();
         if (selection.length == 0) {
           return;
         }
@@ -555,18 +555,18 @@ public class ChangeParametersControl extends Composite {
       @Override
       public void widgetSelected(SelectionEvent e) {
         try {
-          ParameterInfo[] selected = getSelectedElements();
+          Parameter[] selected = getSelectedElements();
           Assert.isTrue(selected.length == 1);
-          ParameterInfo parameterInfo = selected[0];
+          Parameter parameter = selected[0];
           ParameterEditDialog dialog = new ParameterEditDialog(
               getShell(),
-              parameterInfo,
+              parameter,
               fMode.canChangeTypes(),
               fMode.canChangeDefault(),
               fTypeContext);
           dialog.open();
-          fListener.parameterChanged(parameterInfo);
-          fTableViewer.update(parameterInfo, PROPERTIES);
+          fListener.parameterChanged(parameter);
+          fTableViewer.update(parameter, PROPERTIES);
         } finally {
           fTableViewer.getControl().setFocus();
         }
@@ -674,7 +674,7 @@ public class ChangeParametersControl extends Composite {
   }
 
   private void editColumnOrNextPossible(int column) {
-    ParameterInfo[] selected = getSelectedElements();
+    Parameter[] selected = getSelectedElements();
     if (selected.length != 1) {
       return;
     }
@@ -689,7 +689,7 @@ public class ChangeParametersControl extends Composite {
   }
 
   private void editColumnOrPrevPossible(int column) {
-    ParameterInfo[] selected = getSelectedElements();
+    Parameter[] selected = getSelectedElements();
     if (selected.length != 1) {
       return;
     }
@@ -704,31 +704,31 @@ public class ChangeParametersControl extends Composite {
   }
 
   private int getNotDeletedInfosCount() {
-    if (fParameterInfos == null) {
+    if (fParameters == null) {
       return 0;
     }
     int result = 0;
-    for (Iterator<ParameterInfo> iter = fParameterInfos.iterator(); iter.hasNext();) {
-      ParameterInfo info = iter.next();
-      if (!info.isDeleted()) {
+    for (Iterator<Parameter> iter = fParameters.iterator(); iter.hasNext();) {
+      Parameter parameter = iter.next();
+      if (!parameter.isDeleted()) {
         result++;
       }
     }
     return result;
   }
 
-  private ParameterInfo[] getSelectedElements() {
+  private Parameter[] getSelectedElements() {
     ISelection selection = fTableViewer.getSelection();
     if (selection == null) {
-      return new ParameterInfo[0];
+      return new Parameter[0];
     }
 
     if (!(selection instanceof IStructuredSelection)) {
-      return new ParameterInfo[0];
+      return new Parameter[0];
     }
 
     List<?> selected = ((IStructuredSelection) selection).toList();
-    return selected.toArray(new ParameterInfo[selected.size()]);
+    return selected.toArray(new Parameter[selected.size()]);
   }
 
   private Table getTable() {
@@ -770,14 +770,14 @@ public class ChangeParametersControl extends Composite {
 
   //---- change order ----------------------------------------------------------------------------------------
 
-  private void moveDown(ParameterInfo[] selection) {
-    Collections.reverse(fParameterInfos);
-    moveUp(fParameterInfos, Arrays.asList(selection));
-    Collections.reverse(fParameterInfos);
+  private void moveDown(Parameter[] selection) {
+    Collections.reverse(fParameters);
+    moveUp(fParameters, Arrays.asList(selection));
+    Collections.reverse(fParameters);
   }
 
-  private void moveUp(ParameterInfo[] selection) {
-    moveUp(fParameterInfos, Arrays.asList(selection));
+  private void moveUp(Parameter[] selection) {
+    moveUp(fParameters, Arrays.asList(selection));
   }
 
   private int nextColumn(int column) {

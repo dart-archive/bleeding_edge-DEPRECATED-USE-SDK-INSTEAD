@@ -15,14 +15,14 @@
 package com.google.dart.engine.services.refactoring;
 
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
-import com.google.dart.engine.services.internal.refactoring.ParameterInfoImpl;
+import com.google.dart.engine.services.internal.refactoring.ParameterImpl;
 
 /**
- * Test for {@link ParameterInfoImpl}.
+ * Test for {@link ParameterImpl}.
  */
 public class ParameterInfoTest extends AbstractDartTest {
   public void test_methodStubs() throws Exception {
-    ParameterInfoImpl parameter = new ParameterInfoImpl("int", "test");
+    ParameterImpl parameter = new ParameterImpl("int", "test");
     assertSame(null, parameter.getDefaultValue());
     assertEquals(false, parameter.isAdded());
     assertEquals(false, parameter.isDeleted());
@@ -31,14 +31,14 @@ public class ParameterInfoTest extends AbstractDartTest {
   }
 
   public void test_new() throws Exception {
-    ParameterInfoImpl parameter = new ParameterInfoImpl("int", "test");
+    ParameterImpl parameter = new ParameterImpl("int", "test");
     assertEquals("test", parameter.getOldName());
     assertEquals("test", parameter.getNewName());
     assertEquals("int", parameter.getNewTypeName());
   }
 
   public void test_setNewName() throws Exception {
-    ParameterInfoImpl parameter = new ParameterInfoImpl("int", "test");
+    ParameterImpl parameter = new ParameterImpl("int", "test");
     // initial state
     assertEquals("test", parameter.getOldName());
     assertEquals("test", parameter.getNewName());
@@ -51,7 +51,7 @@ public class ParameterInfoTest extends AbstractDartTest {
   }
 
   public void test_setNewTypeName() throws Exception {
-    ParameterInfoImpl parameter = new ParameterInfoImpl("int", "test");
+    ParameterImpl parameter = new ParameterImpl("int", "test");
     // initial state
     assertEquals("int", parameter.getNewTypeName());
     // set new name

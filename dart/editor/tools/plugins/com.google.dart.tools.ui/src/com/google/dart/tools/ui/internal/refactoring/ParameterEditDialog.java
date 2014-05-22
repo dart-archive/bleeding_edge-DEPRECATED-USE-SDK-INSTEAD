@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.engine.services.refactoring.ParameterInfo;
+import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
@@ -42,7 +42,7 @@ import org.eclipse.swt.widgets.Text;
  */
 public class ParameterEditDialog extends StatusDialog {
 
-  private final ParameterInfo fParameter;
+  private final Parameter fParameter;
   private final boolean fEditType;
   private final boolean fEditDefault;
 //  private final StubTypeContext fContext;
@@ -58,7 +58,7 @@ public class ParameterEditDialog extends StatusDialog {
    * @param context the <code>IPackageFragment</code> for type ContentAssist. Can be
    *          <code>null</code> if <code>canEditType</code> is <code>false</code>.
    */
-  public ParameterEditDialog(Shell parentShell, ParameterInfo parameter, boolean canEditType,
+  public ParameterEditDialog(Shell parentShell, Parameter parameter, boolean canEditType,
       boolean canEditDefault, StubTypeContext context) {
     super(parentShell);
     fParameter = parameter;

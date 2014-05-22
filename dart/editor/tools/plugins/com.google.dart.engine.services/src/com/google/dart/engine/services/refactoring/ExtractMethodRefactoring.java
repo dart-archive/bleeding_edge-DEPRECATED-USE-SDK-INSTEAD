@@ -16,7 +16,7 @@ package com.google.dart.engine.services.refactoring;
 
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Statement;
-import com.google.dart.engine.services.internal.refactoring.ParameterInfoImpl;
+import com.google.dart.engine.services.internal.refactoring.ParameterImpl;
 import com.google.dart.engine.services.status.RefactoringStatus;
 
 import java.util.List;
@@ -52,10 +52,10 @@ public interface ExtractMethodRefactoring extends Refactoring {
   int getNumberOfDuplicates();
 
   /**
-   * @return {@link ParameterInfoImpl}s describing parameters of the extracted expression of
+   * @return {@link ParameterImpl}s describing parameters of the extracted expression of
    *         statements.
    */
-  List<ParameterInfo> getParameters();
+  List<Parameter> getParameters();
 
   /**
    * @return <code>true</code> if all occurrences of selected expression or statement should be

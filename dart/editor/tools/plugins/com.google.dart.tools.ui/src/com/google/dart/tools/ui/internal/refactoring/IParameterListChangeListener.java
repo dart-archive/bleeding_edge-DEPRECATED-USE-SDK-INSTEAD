@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.engine.services.refactoring.ParameterInfo;
+import com.google.dart.engine.services.refactoring.Parameter;
 
 /**
  * @coverage dart.editor.ui.refactoring.ui
@@ -25,11 +25,11 @@ public interface IParameterListChangeListener {
    */
   class Empty implements IParameterListChangeListener {
     @Override
-    public void parameterAdded(ParameterInfo parameter) {
+    public void parameterAdded(Parameter parameter) {
     }
 
     @Override
-    public void parameterChanged(ParameterInfo parameter) {
+    public void parameterChanged(Parameter parameter) {
     }
 
     @Override
@@ -42,14 +42,14 @@ public interface IParameterListChangeListener {
    * 
    * @param parameter the parameter that has been added.
    */
-  void parameterAdded(ParameterInfo parameter);
+  void parameterAdded(Parameter parameter);
 
   /**
    * Gets fired when the given parameter has changed
    * 
    * @param parameter the parameter that has changed.
    */
-  void parameterChanged(ParameterInfo parameter);
+  void parameterChanged(Parameter parameter);
 
   /**
    * Gets fired if the parameter list got modified by reordering or removing parameters (note that
