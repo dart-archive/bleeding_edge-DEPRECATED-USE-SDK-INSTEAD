@@ -14,63 +14,18 @@
 
 package com.google.dart.server.internal.local;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
-import com.google.dart.engine.context.ChangeSet;
-import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
-import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.TestSource;
+import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.internal.shared.AbstractServerTest;
 
-import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
-
-import junit.framework.TestCase;
-
-import java.util.Map;
-
-public class AbstractLocalServerTest extends TestCase {
-  protected static String makeSource(String... lines) {
-    return Joiner.on("\n").join(lines);
-  }
-
+/**
+ * Abstract base for {@link LocalAnalysisServerImpl} tests.
+ */
+public class AbstractLocalServerTest extends AbstractServerTest {
   protected LocalAnalysisServerImpl server;
-  protected TestAnalysisServerListener serverListener = new TestAnalysisServerListener();
-
-  protected final void addSource(String contextId, Source source) {
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source);
-    server.applyChanges(contextId, changeSet);
-  }
-
-  protected final Source addSource(String contextId, String fileName, String contents) {
-    Source source = new TestSource(createFile(fileName), contents);
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source);
-    changeSet.changedContent(source, contents);
-    server.applyChanges(contextId, changeSet);
-    return source;
-  }
-
-  /**
-   * Creates some test context and returns its identifier.
-   */
-  protected final String createContext(String name) {
-    String sdkPath = DirectoryBasedDartSdk.getDefaultSdkDirectory().getAbsolutePath();
-    Map<String, String> packagesMap = ImmutableMap.of("analyzer", "some/path");
-    return server.createContext(name, sdkPath, packagesMap);
-  }
 
   @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  protected AnalysisServer createServer() {
     server = new LocalAnalysisServerImpl();
-    server.addAnalysisServerListener(serverListener);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    server.shutdown();
-    server = null;
-    serverListener = null;
-    super.tearDown();
+    return server;
   }
 }

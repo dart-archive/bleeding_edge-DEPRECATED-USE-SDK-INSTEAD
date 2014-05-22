@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.server.internal.local;
+package com.google.dart.server.internal.shared;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -71,14 +71,15 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   /**
    * Returns {@link NavigationRegionsAssert} for the given context and {@link Source}.
    */
-  public NavigationRegionsAssert assertNavigationRegions(String contextId, Source source) {
+  public synchronized NavigationRegionsAssert assertNavigationRegions(String contextId,
+      Source source) {
     return new NavigationRegionsAssert(getNavigationRegions(contextId, source));
   }
 
   /**
    * Asserts that there was no {@link AnalysisServerError} reported.
    */
-  public void assertNoServerErrors() {
+  public synchronized void assertNoServerErrors() {
     assertThat(serverErrors).isEmpty();
   }
 
@@ -177,7 +178,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   /**
    * Removes all of reported {@link NavigationRegion}s.
    */
-  public void clearNavigationRegions() {
+  public synchronized void clearNavigationRegions() {
     navigationMap.clear();
   }
 
@@ -221,7 +222,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   /**
    * Returns a navigation {@link Element} at the given position.
    */
-  public Element findNavigationElement(String contextId, Source source, int offset) {
+  public synchronized Element findNavigationElement(String contextId, Source source, int offset) {
     NavigationRegion[] regions = getNavigationRegions(contextId, source);
     if (regions != null) {
       for (NavigationRegion navigationRegion : regions) {
