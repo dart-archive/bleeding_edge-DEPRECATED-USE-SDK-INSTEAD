@@ -18,6 +18,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -82,10 +84,16 @@ public class DartPrioritySourcesHelper {
   private static final PriorityOrderRequest SHUTDOWN_REQUEST = new PriorityOrderRequest(null, null);
 
   private final IWorkbench workbench;
+  private final DartIgnoreManager ignoreManager;
   private final BlockingQueue<PriorityOrderRequest> requestQueue = new LinkedBlockingQueue<PriorityOrderRequest>();
 
   public DartPrioritySourcesHelper(IWorkbench workbench) {
+    this(workbench, DartCore.getProjectManager().getIgnoreManager());
+  }
+
+  public DartPrioritySourcesHelper(IWorkbench workbench, DartIgnoreManager ignoreManager) {
     this.workbench = workbench;
+    this.ignoreManager = ignoreManager;
   }
 
   /**
@@ -173,7 +181,7 @@ public class DartPrioritySourcesHelper {
     for (DartPrioritySourceEditor editor : editors) {
       if (editor.getInputAnalysisContext() == context) {
         Source source = editor.getInputSource();
-        if (source != null) {
+        if (source != null && ignoreManager.isAnalyzed(source.getFullName())) {
           sources.add(source);
         }
       }
@@ -200,6 +208,7 @@ public class DartPrioritySourcesHelper {
    */
   private void internalStart(IWorkbenchPage activePage) {
     // make source of the currently visible editors a priority ones
+    // but exclude those sources that are marked as do-not-analyze
     {
       Map<AnalysisContext, List<Source>> contextMap = Maps.newHashMap();
       List<DartPrioritySourceEditor> editors = getVisibleEditors();
@@ -291,7 +300,9 @@ public class DartPrioritySourcesHelper {
       List<Source> sources = getVisibleSourcesForContext(context);
       sources.remove(source);
       if (isOpen) {
-        sources.add(0, source);
+        if (ignoreManager.isAnalyzed(source.getFullName())) {
+          sources.add(0, source);
+        }
       }
       updateAnalysisPriorityOrderInBackground(context, sources);
     }

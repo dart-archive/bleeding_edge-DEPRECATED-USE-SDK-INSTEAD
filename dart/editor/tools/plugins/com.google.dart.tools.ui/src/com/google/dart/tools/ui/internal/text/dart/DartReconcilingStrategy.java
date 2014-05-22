@@ -29,6 +29,7 @@ import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.DocumentEvent;
@@ -55,6 +56,11 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * The manager used by the receiver to request background analysis (not {@code null}).
    */
   private final AnalysisManager analysisManager;
+
+  /**
+   * The ignore manager used by the receiver to determine if a source should be analyzed.
+   */
+  private final DartIgnoreManager ignoreManager;
 
   /**
    * The document with source to be reconciled. This is set by the {@link IReconciler} and should
@@ -136,17 +142,21 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * @param editor the editor (not {@code null})
    */
   public DartReconcilingStrategy(DartReconcilingEditor editor) {
-    this(editor, AnalysisManager.getInstance());
+    this(editor, AnalysisManager.getInstance(), DartCore.getProjectManager().getIgnoreManager());
   }
 
   /**
    * Construct a new instance for the specified editor.
    * 
    * @param editor the editor (not {@code null})
+   * @param analysisManager the analysis manager (not {@code null})
+   * @param ignoreManager the ignore manager (not {@code null})
    */
-  public DartReconcilingStrategy(DartReconcilingEditor editor, AnalysisManager analysisManager) {
+  public DartReconcilingStrategy(DartReconcilingEditor editor, AnalysisManager analysisManager,
+      DartIgnoreManager ignoreManager) {
     this.editor = editor;
     this.analysisManager = analysisManager;
+    this.ignoreManager = ignoreManager;
     editor.setDartReconcilingStrategy(this);
 
     // Cleanup the receiver when editor is closed
@@ -176,19 +186,21 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       return;
     }
     if (!applyResolvedUnit()) {
-      try {
-        AnalysisContext context = editor.getInputAnalysisContext();
-        Source source = editor.getInputSource();
-        if (context != null && source != null) {
-          // TODO (danrubel): Push this into background analysis
-          // once AnalysisWorker notifies listeners when units are parsed before resolved
-          CompilationUnit unit = context.parseCompilationUnit(source);
-          editor.applyResolvedUnit(unit);
-          performAnalysisInBackground();
-        }
-      } catch (AnalysisException e) {
-        if (!(e.getCause() instanceof IOException)) {
-          DartCore.logError("Parse failed for " + editor.getTitle(), e);
+      Source source = editor.getInputSource();
+      if (ignoreManager.isAnalyzed(source.getFullName())) {
+        try {
+          AnalysisContext context = editor.getInputAnalysisContext();
+          if (context != null && source != null) {
+            // TODO (danrubel): Push this into background analysis
+            // once AnalysisWorker notifies listeners when units are parsed before resolved
+            CompilationUnit unit = context.parseCompilationUnit(source);
+            editor.applyResolvedUnit(unit);
+            performAnalysisInBackground();
+          }
+        } catch (AnalysisException e) {
+          if (!(e.getCause() instanceof IOException)) {
+            DartCore.logError("Parse failed for " + editor.getTitle(), e);
+          }
         }
       }
     }

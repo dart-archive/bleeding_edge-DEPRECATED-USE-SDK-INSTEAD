@@ -27,6 +27,8 @@ import com.google.dart.engine.source.TestSource;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
+import com.google.dart.tools.core.internal.model.MockIgnoreFile;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
@@ -52,8 +54,10 @@ public class DartReconcilingStrategyTest extends TestCase {
     public void assertBackgroundAnalysis(int expected) {
       assertEquals(expected, backgroundAnalysisCount);
       AnalysisWorker[] workers = getQueueWorkers();
-      assertEquals(1, workers.length);
-      assertSame(mockContext, workers[0].getContext());
+      assertEquals(expected > 0 ? 1 : 0, workers.length);
+      if (expected > 0) {
+        assertSame(mockContext, workers[0].getContext());
+      }
     }
 
     @Override
@@ -191,8 +195,11 @@ public class DartReconcilingStrategyTest extends TestCase {
   MockContext mockContext = new MockContext();
   Document mockDocument = new Document(INITIAL_CONTENTS);
   MockAnalysisManager analysisManager = new MockAnalysisManager();
-  DartReconcilingStrategy strategy = new DartReconcilingStrategy(mockEditor, analysisManager) {
-  };
+  DartIgnoreManager ignoreManager = new DartIgnoreManager(new MockIgnoreFile());
+  DartReconcilingStrategy strategy = new DartReconcilingStrategy(
+      mockEditor,
+      analysisManager,
+      ignoreManager);
 
   /**
    * Assert reconciler clears cached contents when disposed
@@ -262,6 +269,22 @@ public class DartReconcilingStrategyTest extends TestCase {
     mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
     mockContext.assertSetContentsCount(0);
     assertNotNull(mockEditor.getAppliedCompilationUnit());
+  }
+
+  /**
+   * Assert ignored source is not analyzed
+   */
+  public void test_initialReconcile_ignoredSource() throws Exception {
+    ignoreManager.addToIgnores(mockSource.getFullName());
+    strategy.initialReconcile();
+
+    mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
+    mockContext.assertSetContentsCount(0);
+    analysisManager.assertBackgroundAnalysis(0);
+
+    analysisManager.performAnalysis(null);
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
   }
 
   /**
@@ -342,6 +365,38 @@ public class DartReconcilingStrategyTest extends TestCase {
     analysisManager.performAnalysis(null);
 
     assertNotNull(mockEditor.getAppliedCompilationUnit());
+  }
+
+  /**
+   * Assert that a document change clears the cached unit and a resolve resets it
+   */
+  public void test_reconcile_ignoredSource() throws Exception {
+    ignoreManager.addToIgnores(mockSource.getFullName());
+    String insertedText = "//comment\n";
+
+    strategy.initialReconcile();
+    mockContext.assertSetChangedContentsCount(0, 0, 0, 0);
+    mockContext.assertSetContentsCount(0);
+    analysisManager.assertBackgroundAnalysis(0);
+    analysisManager.performAnalysis(null);
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+
+    mockDocument.replace(3, 7, insertedText);
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+
+    strategy.reconcile();
+    waitForBackgroundThread();
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
+    analysisManager.assertBackgroundAnalysis(1);
+    mockContext.assertSetChangedContentsCount(1, 3, 7, insertedText.length());
+    mockContext.assertSetContentsCount(0);
+
+    analysisManager.performAnalysis(null);
+
+    assertNull(mockEditor.getAppliedCompilationUnit());
   }
 
   /**

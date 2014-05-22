@@ -18,6 +18,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
+import com.google.dart.tools.core.internal.model.MockIgnoreFile;
 
 import junit.framework.TestCase;
 
@@ -47,6 +49,7 @@ import java.util.Map;
  * Test for {@link DartPrioritySourcesHelper}.
  */
 public class DartPrioritySourcesHelperTest extends TestCase {
+  private DartIgnoreManager ignoreManager;
   private DartPrioritySourcesHelper helper;
   private Display display = mock(Display.class);
   private IWorkbenchWindow workbenchWindow = mock(IWorkbenchWindow.class);
@@ -138,6 +141,20 @@ public class DartPrioritySourcesHelperTest extends TestCase {
     assertPrioritySources(contextB, sourceC);
   }
 
+  public void test_sourceIgnored() throws Exception {
+    ignoreManager.addToIgnores("/sourceA.dart");
+    when(prioritySourceEditorB.getInputAnalysisContext()).thenReturn(contextA);
+    helper.start();
+    // [] + A(ignored) = []
+    when(prioritySourceEditorA.isVisible()).thenReturn(true);
+    notifyPartVisible(editorRefA);
+    assertPrioritySources(contextA);
+    // [] + B = [B]
+    when(prioritySourceEditorB.isVisible()).thenReturn(true);
+    notifyPartVisible(editorRefB);
+    assertPrioritySources(contextA, sourceB);
+  }
+
   public void test_unusedPartListenerMethods() throws Exception {
     helper.start();
     for (IPartListener2 listener : listeners) {
@@ -153,7 +170,8 @@ public class DartPrioritySourcesHelperTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    helper = new DartPrioritySourcesHelper(workbench);
+    ignoreManager = new DartIgnoreManager(new MockIgnoreFile());
+    helper = new DartPrioritySourcesHelper(workbench, ignoreManager);
     // perform "asyncExec" synchronously
     doAnswer(new Answer<Void>() {
       @Override
@@ -195,6 +213,9 @@ public class DartPrioritySourcesHelperTest extends TestCase {
     when(sourceA.toString()).thenReturn("sourceA");
     when(sourceB.toString()).thenReturn("sourceB");
     when(sourceC.toString()).thenReturn("sourceC");
+    when(sourceA.getFullName()).thenReturn("/sourceA.dart");
+    when(sourceB.getFullName()).thenReturn("/sourceB.dart");
+    when(sourceC.getFullName()).thenReturn("/sourceC.dart");
     // record priority sources
     recordContextPrioritySources(contextA);
     recordContextPrioritySources(contextB);
