@@ -81,8 +81,25 @@ public class DartRefactoringTest extends AbstractLocalServerTest {
     this.source = addSource(contextId, "/test.dart", code);
   }
 
+  protected final int findEnd(String search) {
+    return findOffset(search) + search.length();
+  }
+
   protected final void setSelectionAtRange(String search) {
-    selectionOffset = code.indexOf(search);
+    selectionOffset = findOffset(search);
     selectionLength = search.length();
+  }
+
+  protected final void setSelectionFromStartEndComments() throws Exception {
+    selectionOffset = findEnd("// start") + "\n".length();
+    selectionLength = findOffset("// end") - selectionOffset;
+  }
+
+  private int findOffset(String search) {
+    int offset = code.indexOf(search);
+    if (offset == -1) {
+      fail("Not found '" + search + "' in " + code);
+    }
+    return offset;
   }
 }

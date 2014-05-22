@@ -43,6 +43,7 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.refactoring.ExtractLocalRefactoring;
+import com.google.dart.engine.services.refactoring.ExtractMethodRefactoring;
 import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
@@ -94,6 +95,7 @@ import com.google.dart.server.internal.local.operation.ComputeMinorRefactoringsO
 import com.google.dart.server.internal.local.operation.ComputeTypeHierarchyOperation;
 import com.google.dart.server.internal.local.operation.CreateContextOperation;
 import com.google.dart.server.internal.local.operation.CreateRefactoringExtractLocalOperation;
+import com.google.dart.server.internal.local.operation.CreateRefactoringExtractMethodOperation;
 import com.google.dart.server.internal.local.operation.DeleteContextOperation;
 import com.google.dart.server.internal.local.operation.DeleteRefactoringOperation;
 import com.google.dart.server.internal.local.operation.GetContextOperation;
@@ -110,6 +112,7 @@ import com.google.dart.server.internal.local.operation.ServerOperationQueue;
 import com.google.dart.server.internal.local.operation.SetOptionsOperation;
 import com.google.dart.server.internal.local.operation.SetPrioritySourcesOperation;
 import com.google.dart.server.internal.local.operation.SetRefactoringExtractLocalOptionsOperation;
+import com.google.dart.server.internal.local.operation.SetRefactoringExtractMethodOptionsOperation;
 import com.google.dart.server.internal.local.operation.ShutdownOperation;
 import com.google.dart.server.internal.local.operation.SubscribeOperation;
 import com.google.dart.server.internal.local.source.FileResource;
@@ -354,7 +357,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   @Override
   public void createRefactoringExtractMethod(String contextId, Source source, int offset,
       int length, RefactoringExtractMethodConsumer consumer) {
-    // TODO(scheglov) implement
+    operationQueue.add(new CreateRefactoringExtractMethodOperation(
+        contextId,
+        source,
+        offset,
+        length,
+        consumer));
   }
 
   @Override
@@ -596,6 +604,50 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   /**
+   * Implementation for {@link #createRefactoringExtractMethod}.
+   */
+  public void internalCreateRefactoringExtractMethod(String contextId, Source source, int offset,
+      int length, RefactoringExtractMethodConsumer consumer) throws Exception {
+    AnalysisContext analysisContext = getAnalysisContext(contextId);
+    Source[] librarySources = analysisContext.getLibrariesContaining(source);
+    if (librarySources.length != 0) {
+      Source librarySource = librarySources[0];
+      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+      if (unit != null) {
+        // prepare context
+        AssistContext assistContext = new AssistContext(
+            searchEngine,
+            analysisContext,
+            contextId,
+            source,
+            unit,
+            offset,
+            length);
+        // prepare refactoring
+        ExtractMethodRefactoring refactoring = RefactoringFactory.createExtractMethodRefactoring(assistContext);
+        RefactoringStatus status = refactoring.checkInitialConditions(null);
+        // fail if FATAL
+        if (status.hasFatalError()) {
+          consumer.computed(null, status, 0, false, null);
+          return;
+        }
+        // OK, register this refactoring
+        String refactoringId = "extractMethod-" + nextRefactoringId++;
+        refactoringMap.put(refactoringId, refactoring);
+        // TODO(scheglov) include an ID into parameters to track order and reference ranges
+        // TODO(scheglov) replace getNumberOfDuplicates() with getNumOccurrences()
+        List<Parameter> parameters = refactoring.getParameters();
+        consumer.computed(
+            refactoringId,
+            status,
+            1 + refactoring.getNumberOfDuplicates(),
+            refactoring.canExtractGetter(),
+            parameters.toArray(new Parameter[parameters.size()]));
+      }
+    }
+  }
+
+  /**
    * Implementation for {@link #deleteContext(String)}.
    */
   public void internalDeleteContext(String contextId) throws Exception {
@@ -803,6 +855,19 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     consumer.computed(status);
   }
 
+  public void internalSetRefactoringExtractLocalOptions(String refactoringId, String name,
+      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
+      RefactoringExtractMethodOptionsValidationConsumer consumer) {
+    ExtractMethodRefactoring refactoring = (ExtractMethodRefactoring) getRefactoring(refactoringId);
+    refactoring.setReplaceAllOccurrences(allOccurrences);
+    refactoring.setMethodName(name);
+    refactoring.setExtractGetter(asGetter);
+    RefactoringStatus status = refactoring.checkMethodName();
+    // TODO(scheglov) getSignature() should use the set name as checkMethodName() does 
+    // TODO(scheglov) we need setParameters()  (and IDs)
+    consumer.computed(status, refactoring.getSignature(name));
+  }
+
   /**
    * Implementation for {@link #subscribe(String, Map)}.
    */
@@ -907,9 +972,15 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 
   @Override
   public void setRefactoringExtractMethodOptions(String refactoringId, String name,
-      boolean extractGetter, boolean allOccurrences, Parameter[] parameters,
+      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
       RefactoringExtractMethodOptionsValidationConsumer consumer) {
-    // TODO(scheglov) implement
+    operationQueue.add(new SetRefactoringExtractMethodOptionsOperation(
+        refactoringId,
+        name,
+        asGetter,
+        allOccurrences,
+        parameters,
+        consumer));
   }
 
   @Override

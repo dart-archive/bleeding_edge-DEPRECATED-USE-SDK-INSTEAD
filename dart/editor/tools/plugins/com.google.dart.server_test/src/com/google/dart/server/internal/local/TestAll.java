@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTest(com.google.dart.server.internal.local.source.TestAll.suite());
     suite.addTestSuite(BroadcastAnalysisServerListenerTest.class);
     suite.addTestSuite(DartRefactoringExtractLocalTest.class);
+    suite.addTestSuite(DartRefactoringExtractMethodTest.class);
     suite.addTestSuite(ImplicitSourceSetTest.class);
     suite.addTestSuite(ListSourceSetTest.class);
     suite.addTestSuite(LocalAnalysisServerImplTest.class);

@@ -271,14 +271,13 @@ public interface AnalysisServer {
    * 
    * @param refactoringId the identifier of the refactoring to which the options are to be applied
    * @param name the name of the method to extract
-   * @param extractGetter is {@code true} if a getter should be extracted instead of a regular
-   *          method
+   * @param asGetter is {@code true} if a getter should be extracted instead of a regular method
    * @param allOccurrences is {@code true} if all of the expression occurrences should be extracted
    * @param parameters the parameters of the extracted method
    * @param consumer the results listener
    */
   public void setRefactoringExtractMethodOptions(String refactoringId, String name,
-      boolean extractGetter, boolean allOccurrences, Parameter[] parameters,
+      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
       RefactoringExtractMethodOptionsValidationConsumer consumer);
 
   /**

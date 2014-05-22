@@ -28,6 +28,7 @@ public class TestAll {
     suite.addTestSuite(ComputeTypeHierarchyOperationTest.class);
     suite.addTestSuite(CreateContextOperationTest.class);
     suite.addTestSuite(CreateRefactoringExtractLocalOperationTest.class);
+    suite.addTestSuite(CreateRefactoringExtractMethodOperationTest.class);
     suite.addTestSuite(DeleteContextOperationTest.class);
     suite.addTestSuite(DeleteRefactoringOperationTest.class);
     suite.addTestSuite(GetContextOperationTest.class);
