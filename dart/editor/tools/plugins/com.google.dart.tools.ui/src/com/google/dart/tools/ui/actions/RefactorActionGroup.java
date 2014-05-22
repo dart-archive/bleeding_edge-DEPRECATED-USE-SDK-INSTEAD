@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.IMenuManager;
@@ -29,7 +30,7 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
   public static final String GROUP_REORG = "reorgGroup";
 
   private RenameAction renameAction;
-  private ExtractLocalAction extractLocalAction;
+  private AbstractRefactoringAction extractLocalAction;
   private ExtractMethodAction extractMethodAction;
   private InlineAction inlineAction;
   private ConvertMethodToGetterAction convertMethodToGetterAction;
@@ -38,7 +39,11 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
   public RefactorActionGroup(DartEditor editor) {
     super(editor);
     renameAction = new RenameAction(editor);
-    extractLocalAction = new ExtractLocalAction(editor);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      extractLocalAction = new ExtractLocalAction_NEW(editor);
+    } else {
+      extractLocalAction = new ExtractLocalAction_OLD(editor);
+    }
     extractMethodAction = new ExtractMethodAction(editor);
     inlineAction = new InlineAction(editor);
     convertMethodToGetterAction = new ConvertMethodToGetterAction(editor);

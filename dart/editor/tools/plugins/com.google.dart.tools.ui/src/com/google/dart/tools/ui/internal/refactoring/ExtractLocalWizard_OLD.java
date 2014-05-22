@@ -22,7 +22,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class ExtractLocalWizard extends ServiceRefactoringWizard {
+public class ExtractLocalWizard_OLD extends ServiceRefactoringWizard {
 
   private static class ExtractLocalInputPage extends TextInputWizardPage {
     private final boolean initialValid;
@@ -107,7 +107,7 @@ public class ExtractLocalWizard extends ServiceRefactoringWizard {
 
   static final String DIALOG_SETTING_SECTION = "ExtractLocalWizard"; //$NON-NLS-1$
 
-  public ExtractLocalWizard(ServiceExtractLocalRefactoring ref) {
+  public ExtractLocalWizard_OLD(ServiceExtractLocalRefactoring ref) {
     super(ref, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE);
     setDefaultPageTitle(RefactoringMessages.ExtractLocalWizard_defaultPageTitle);
   }
