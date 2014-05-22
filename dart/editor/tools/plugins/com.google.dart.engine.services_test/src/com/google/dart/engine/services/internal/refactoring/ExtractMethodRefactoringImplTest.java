@@ -1362,8 +1362,8 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     selectionStart = findOffset("getButton().text); // marker");
     selectionEnd = findOffset("); // marker");
     createRefactoring();
-    // check number of duplicates
-    assertEquals(0, refactoring.getNumberOfDuplicates());
+    // check number of occurrences
+    assertEquals(1, refactoring.getNumberOfOccurrences());
     // apply refactoring
     assertSuccessfulRefactoring(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1397,8 +1397,8 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     selectionStart = findOffset("v1 +");
     selectionEnd = findOffset("; // marker");
     createRefactoring();
-    // check number of duplicates
-    assertEquals(3, refactoring.getNumberOfDuplicates());
+    // check number of occurrences
+    assertEquals(4, refactoring.getNumberOfOccurrences());
     // apply refactoring
     assertSuccessfulRefactoring(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -2374,8 +2374,8 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "");
     setSelectionFromStartEndComments();
     createRefactoring();
-    // check number of duplicates
-    assertEquals(0, refactoring.getNumberOfDuplicates());
+    // check number of occurrences
+    assertEquals(1, refactoring.getNumberOfOccurrences());
     // apply refactoring
     assertSuccessfulRefactoring(
         "// filler filler filler filler filler filler filler filler filler filler",

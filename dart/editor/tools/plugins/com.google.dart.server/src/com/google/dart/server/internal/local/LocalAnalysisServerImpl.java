@@ -635,12 +635,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         String refactoringId = "extractMethod-" + nextRefactoringId++;
         refactoringMap.put(refactoringId, refactoring);
         // TODO(scheglov) include an ID into parameters to track order and reference ranges
-        // TODO(scheglov) replace getNumberOfDuplicates() with getNumOccurrences()
         List<Parameter> parameters = refactoring.getParameters();
         consumer.computed(
             refactoringId,
             status,
-            1 + refactoring.getNumberOfDuplicates(),
+            refactoring.getNumberOfOccurrences(),
             refactoring.canExtractGetter(),
             parameters.toArray(new Parameter[parameters.size()]));
       }
@@ -846,6 +845,9 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     schedulePerformAnalysisOperation(contextId, false);
   }
 
+  /**
+   * Implementation for {@link #setRefactoringExtractLocalOptions}.
+   */
   public void internalSetRefactoringExtractLocalOptions(String refactoringId,
       boolean allOccurrences, String name, RefactoringOptionsValidationConsumer consumer) {
     ExtractLocalRefactoring refactoring = (ExtractLocalRefactoring) getRefactoring(refactoringId);
@@ -855,17 +857,20 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     consumer.computed(status);
   }
 
+  /**
+   * Implementation for {@link #setRefactoringExtractMethodOptions}.
+   */
   public void internalSetRefactoringExtractLocalOptions(String refactoringId, String name,
       boolean asGetter, boolean allOccurrences, Parameter[] parameters,
       RefactoringExtractMethodOptionsValidationConsumer consumer) {
     ExtractMethodRefactoring refactoring = (ExtractMethodRefactoring) getRefactoring(refactoringId);
-    refactoring.setReplaceAllOccurrences(allOccurrences);
     refactoring.setMethodName(name);
+    refactoring.setReplaceAllOccurrences(allOccurrences);
     refactoring.setExtractGetter(asGetter);
-    RefactoringStatus status = refactoring.checkMethodName();
-    // TODO(scheglov) getSignature() should use the set name as checkMethodName() does 
     // TODO(scheglov) we need setParameters()  (and IDs)
-    consumer.computed(status, refactoring.getSignature());
+    RefactoringStatus status = refactoring.checkMethodName();
+    String signature = refactoring.getSignature();
+    consumer.computed(status, signature);
   }
 
   /**

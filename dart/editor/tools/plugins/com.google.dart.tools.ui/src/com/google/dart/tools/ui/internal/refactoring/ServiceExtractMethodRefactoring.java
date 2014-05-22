@@ -55,8 +55,8 @@ public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
     return refactoring.getExtractGetter();
   }
 
-  public int getNumberOfDuplicates() {
-    return refactoring.getNumberOfDuplicates();
+  public int getNumberOfOccurrences() {
+    return refactoring.getNumberOfOccurrences();
   }
 
   public List<Parameter> getParameters() {

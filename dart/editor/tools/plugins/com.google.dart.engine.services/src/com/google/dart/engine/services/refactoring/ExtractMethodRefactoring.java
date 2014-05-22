@@ -46,10 +46,9 @@ public interface ExtractMethodRefactoring extends Refactoring {
   boolean getExtractGetter();
 
   /**
-   * @return the number of other occurrences of the same source as selection (but not including
-   *         selection itself).
+   * @return the number of occurrences of the same source as selection.
    */
-  int getNumberOfDuplicates();
+  int getNumberOfOccurrences();
 
   /**
    * @return {@link ParameterImpl}s describing parameters of the extracted expression of statements.

@@ -425,8 +425,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   @Override
-  public int getNumberOfDuplicates() {
-    return occurrences.size() - 1;
+  public int getNumberOfOccurrences() {
+    return occurrences.size();
   }
 
   @Override
