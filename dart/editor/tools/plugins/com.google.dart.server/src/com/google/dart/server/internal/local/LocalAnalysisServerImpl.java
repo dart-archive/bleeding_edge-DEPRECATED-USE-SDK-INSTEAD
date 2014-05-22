@@ -43,6 +43,7 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.refactoring.ExtractLocalRefactoring;
+import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.engine.services.status.RefactoringStatus;
@@ -64,6 +65,8 @@ import com.google.dart.server.MinorRefactoringsConsumer;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringExtractLocalConsumer;
+import com.google.dart.server.RefactoringExtractMethodConsumer;
+import com.google.dart.server.RefactoringExtractMethodOptionsValidationConsumer;
 import com.google.dart.server.RefactoringOptionsValidationConsumer;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultsConsumer;
@@ -346,6 +349,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         offset,
         length,
         consumer));
+  }
+
+  @Override
+  public void createRefactoringExtractMethod(String contextId, Source source, int offset,
+      int length, RefactoringExtractMethodConsumer consumer) {
+    // TODO(scheglov) implement
   }
 
   @Override
@@ -894,6 +903,13 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         allOccurrences,
         name,
         consumer));
+  }
+
+  @Override
+  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
+      boolean extractGetter, boolean allOccurrences, Parameter[] parameters,
+      RefactoringExtractMethodOptionsValidationConsumer consumer) {
+    // TODO(scheglov) implement
   }
 
   @Override

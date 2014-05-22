@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.engine.source.Source;
 
 import java.util.Map;
@@ -138,6 +139,20 @@ public interface AnalysisServer {
       int length, RefactoringExtractLocalConsumer consumer);
 
   /**
+   * Create a new "Extract Method" refactoring. The refactoring that is created will persist until
+   * {@link #deleteRefactoring(String)} is used to delete it. Clients, therefore, are responsible
+   * for managing the lifetime of refactorings.
+   * 
+   * @param contextId the identifier of the context to create refactoring within
+   * @param source the {@link Source} to create refactoring within
+   * @param offset the offset within the {@code source}
+   * @param length the length of the selected code within the {@code source}
+   * @param consumer the results listener
+   */
+  public void createRefactoringExtractMethod(String contextId, Source source, int offset,
+      int length, RefactoringExtractMethodConsumer consumer);
+
+  /**
    * Delete the context with the given id. Future attempts to use the context id will result in an
    * error being returned.
    * 
@@ -250,6 +265,21 @@ public interface AnalysisServer {
    */
   public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
       String name, RefactoringOptionsValidationConsumer consumer);
+
+  /**
+   * Set the options for the "Extract Method" refactoring instance.
+   * 
+   * @param refactoringId the identifier of the refactoring to which the options are to be applied
+   * @param name the name of the method to extract
+   * @param extractGetter is {@code true} if a getter should be extracted instead of a regular
+   *          method
+   * @param allOccurrences is {@code true} if all of the expression occurrences should be extracted
+   * @param parameters the parameters of the extracted method
+   * @param consumer the results listener
+   */
+  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
+      boolean extractGetter, boolean allOccurrences, Parameter[] parameters,
+      RefactoringExtractMethodOptionsValidationConsumer consumer);
 
   /**
    * Cleanly shutdown the analysis server.

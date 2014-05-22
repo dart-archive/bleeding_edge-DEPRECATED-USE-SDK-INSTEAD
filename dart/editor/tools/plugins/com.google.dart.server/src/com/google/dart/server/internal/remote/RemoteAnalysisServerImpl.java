@@ -5,6 +5,7 @@ import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
@@ -17,6 +18,8 @@ import com.google.dart.server.MinorRefactoringsConsumer;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringExtractLocalConsumer;
+import com.google.dart.server.RefactoringExtractMethodConsumer;
+import com.google.dart.server.RefactoringExtractMethodOptionsValidationConsumer;
 import com.google.dart.server.RefactoringOptionsValidationConsumer;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.SourceSet;
@@ -206,6 +209,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
+  public void createRefactoringExtractMethod(String contextId, Source source, int offset,
+      int length, RefactoringExtractMethodConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
   public void deleteContext(String contextId) {
     // TODO (jwren) implement
   }
@@ -297,6 +306,13 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
       String name, RefactoringOptionsValidationConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
+      boolean extractGetter, boolean allOccurrences, Parameter[] parameters,
+      RefactoringExtractMethodOptionsValidationConsumer consumer) {
     // TODO(scheglov) implement
   }
 
