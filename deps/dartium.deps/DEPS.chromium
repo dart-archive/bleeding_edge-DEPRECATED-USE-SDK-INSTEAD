@@ -660,9 +660,9 @@ hooks = [
     # src/tools/export_tarball - please keep them in sync.
     "name": "lastchange",
     "pattern": ".",
-    "action": ["python", "src/build/util/lastchange.py",
-               "-s", "src/third_party/WebKit",
-               "-o", "src/build/util/LASTCHANGE.blink"],
+    "action": ["python", "-c",
+        "f=open('src/build/util/LASTCHANGE.blink','w'); f.write('LASTCHANGE=" +
+        Var('webkit_revision') + "\\n')" ],
   },
   # Pull GN binaries. This needs to be before running GYP below.
   {
