@@ -13,6 +13,7 @@
  */
 package com.google.dart.server.internal.integration;
 
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.VersionConsumer;
 
@@ -56,6 +57,15 @@ public abstract class AbstractServerIntegrationTest extends TestCase {
     waitForAllServerResponses();
     assertEquals("0.0.1", versionPtr1[0]);
     assertEquals("0.0.1", versionPtr2[0]);
+  }
+
+  public void test_setOptions() throws Exception {
+    server.setOptions("contextId", new AnalysisOptionsImpl());
+    waitForAllServerResponses();
+  }
+
+  public void test_shutdown() throws Exception {
+    server.shutdown();
   }
 
   protected abstract void initServer() throws Exception;

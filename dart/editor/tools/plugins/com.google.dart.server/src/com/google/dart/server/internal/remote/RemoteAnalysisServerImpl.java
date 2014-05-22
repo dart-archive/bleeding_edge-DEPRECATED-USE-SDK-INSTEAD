@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2014, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.google.dart.server.internal.remote;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -90,10 +103,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
           Consumer consumer = null;
           synchronized (consumerMapLock) {
             consumer = consumerMap.get(idString);
-          }
-          if (consumer == null) {
-            // TODO (jwren) handle this error case
-            continue;
           }
           // TODO(jwren) handle error responses:
 //              JsonObject errorObject = (JsonObject) element.get("error");
@@ -295,12 +304,24 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void setOptions(String contextId, AnalysisOptions options) {
-    // TODO (jwren) implement
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateContextSetOptionsRequest(id, contextId, options).toString(),
+        null);
   }
 
   @Override
   public void setPrioritySources(String contextId, Source[] sources) {
-    // TODO (jwren) implement
+    List<String> strSources = new ArrayList<String>(sources.length);
+    for (int i = 0; i < sources.length; i++) {
+      strSources.add(sources[i].getEncoding());
+    }
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateContextSetPrioritySourcesRequest(id, contextId, strSources).toString(),
+        null);
   }
 
   @Override
@@ -318,7 +339,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void shutdown() {
-    // TODO (jwren) implement
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateServerShutdownRequest(id).toString(), null);
   }
 
   @Override
