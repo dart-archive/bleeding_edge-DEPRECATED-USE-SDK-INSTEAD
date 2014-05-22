@@ -3709,6 +3709,15 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     return true;
   }
 
+  /**
+   * This checks whether the given {@link executableElement} collides with the name of a static
+   * method in one of its superclasses, and reports the appropriate warning if it does.
+   * 
+   * @param executableElement the method to check.
+   * @param errorNameTarget the node to report problems on.
+   * @return {@code true} if and only if a warning was generated.
+   * @see StaticTypeWarningCode#INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
+   */
   private boolean checkForInstanceMethodNameCollidesWithSuperclassStatic(
       ExecutableElement executableElement, SimpleIdentifier errorNameTarget) {
     String executableElementName = executableElement.getName();
