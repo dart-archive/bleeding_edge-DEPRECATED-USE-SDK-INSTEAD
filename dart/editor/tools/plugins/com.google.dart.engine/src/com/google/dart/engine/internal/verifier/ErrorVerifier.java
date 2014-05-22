@@ -1364,66 +1364,6 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     }
     String executableElementName = executableElement.getName();
 
-    // SWC.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
-    if (overriddenExecutable == null) {
-      if (!isGetter && !isSetter && !executableElement.isOperator()) {
-        HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-        InterfaceType superclassType = enclosingClass.getSupertype();
-        ClassElement superclassElement = superclassType == null ? null
-            : superclassType.getElement();
-        boolean executableElementPrivate = Identifier.isPrivateName(executableElementName);
-        while (superclassElement != null && !visitedClasses.contains(superclassElement)) {
-          visitedClasses.add(superclassElement);
-          LibraryElement superclassLibrary = superclassElement.getLibrary();
-          // Check fields.
-          FieldElement[] fieldElts = superclassElement.getFields();
-          for (FieldElement fieldElt : fieldElts) {
-            // We need the same name.
-            if (!fieldElt.getName().equals(executableElementName)) {
-              continue;
-            }
-            // Ignore if private in a different library - cannot collide.
-            if (executableElementPrivate && !currentLibrary.equals(superclassLibrary)) {
-              continue;
-            }
-            // instance vs. static
-            if (fieldElt.isStatic()) {
-              errorReporter.reportErrorForNode(
-                  StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
-                  errorNameTarget,
-                  executableElementName,
-                  fieldElt.getEnclosingElement().getDisplayName());
-              return true;
-            }
-          }
-          // Check methods.
-          MethodElement[] methodElements = superclassElement.getMethods();
-          for (MethodElement methodElement : methodElements) {
-            // We need the same name.
-            if (!methodElement.getName().equals(executableElementName)) {
-              continue;
-            }
-            // Ignore if private in a different library - cannot collide.
-            if (executableElementPrivate && !currentLibrary.equals(superclassLibrary)) {
-              continue;
-            }
-            // instance vs. static
-            if (methodElement.isStatic()) {
-              errorReporter.reportErrorForNode(
-                  StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
-                  errorNameTarget,
-                  executableElementName,
-                  methodElement.getEnclosingElement().getDisplayName());
-              return true;
-            }
-          }
-          superclassType = superclassElement.getSupertype();
-          superclassElement = superclassType == null ? null : superclassType.getElement();
-        }
-      }
-      return false;
-    }
-
     FunctionType overridingFT = executableElement.getType();
     FunctionType overriddenFT = overriddenExecutable.getType();
     InterfaceType enclosingType = enclosingClass.getType();
@@ -1677,6 +1617,16 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
         enclosingClass,
         executableElement.getName());
+
+    if (overriddenExecutable == null) {
+      // Nothing is overridden, so we just have to check if the new name collides
+      // with a static defined in the superclass.
+      // TODO(paulberry): currently we don't do this check if the new element
+      // overrides a method in an interface (see issue 18947).
+      return checkForInstanceMethodNameCollidesWithSuperclassStatic(
+          executableElement,
+          errorNameTarget);
+    }
 
     //
     // If the result is a MultiplyInheritedExecutableElement call
@@ -3757,6 +3707,66 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         name,
         name.getName());
     return true;
+  }
+
+  private boolean checkForInstanceMethodNameCollidesWithSuperclassStatic(
+      ExecutableElement executableElement, SimpleIdentifier errorNameTarget) {
+    String executableElementName = executableElement.getName();
+    if (!(executableElement instanceof PropertyAccessorElement) && !executableElement.isOperator()) {
+      HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+      InterfaceType superclassType = enclosingClass.getSupertype();
+      ClassElement superclassElement = superclassType == null ? null : superclassType.getElement();
+      boolean executableElementPrivate = Identifier.isPrivateName(executableElementName);
+      while (superclassElement != null && !visitedClasses.contains(superclassElement)) {
+        visitedClasses.add(superclassElement);
+        LibraryElement superclassLibrary = superclassElement.getLibrary();
+        // Check fields.
+        FieldElement[] fieldElts = superclassElement.getFields();
+        for (FieldElement fieldElt : fieldElts) {
+          // We need the same name.
+          if (!fieldElt.getName().equals(executableElementName)) {
+            continue;
+          }
+          // Ignore if private in a different library - cannot collide.
+          if (executableElementPrivate && !currentLibrary.equals(superclassLibrary)) {
+            continue;
+          }
+          // instance vs. static
+          if (fieldElt.isStatic()) {
+            errorReporter.reportErrorForNode(
+                StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
+                errorNameTarget,
+                executableElementName,
+                fieldElt.getEnclosingElement().getDisplayName());
+            return true;
+          }
+        }
+        // Check methods.
+        MethodElement[] methodElements = superclassElement.getMethods();
+        for (MethodElement methodElement : methodElements) {
+          // We need the same name.
+          if (!methodElement.getName().equals(executableElementName)) {
+            continue;
+          }
+          // Ignore if private in a different library - cannot collide.
+          if (executableElementPrivate && !currentLibrary.equals(superclassLibrary)) {
+            continue;
+          }
+          // instance vs. static
+          if (methodElement.isStatic()) {
+            errorReporter.reportErrorForNode(
+                StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
+                errorNameTarget,
+                executableElementName,
+                methodElement.getEnclosingElement().getDisplayName());
+            return true;
+          }
+        }
+        superclassType = superclassElement.getSupertype();
+        superclassElement = superclassType == null ? null : superclassType.getElement();
+      }
+    }
+    return false;
   }
 
   /**
