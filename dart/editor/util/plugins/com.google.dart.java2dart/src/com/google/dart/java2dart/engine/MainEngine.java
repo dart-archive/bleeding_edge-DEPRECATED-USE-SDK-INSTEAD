@@ -487,7 +487,6 @@ public class MainEngine {
     {
       CompilationUnit library = buildEngineLibrary();
       String source = getFormattedSource(library);
-      source = replaceSourceFragment(source, "OSUtilities.LINE_SEPARATOR", "'\\n'");
       // TODO(scheglov) restore NgRepeatProcessor
       source = replaceSourceFragment(
           source,
@@ -780,6 +779,7 @@ public class MainEngine {
     unit.getDirectives().add(
         importDirective("parser.dart", null, importShowCombinator("Parser", "IncrementalParser")));
     unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
+    unit.getDirectives().add(importDirective("constant.dart", null));
     unit.getDirectives().add(importDirective("element.dart", null));
     unit.getDirectives().add(importDirective("resolver.dart", null));
     unit.getDirectives().add(importDirective("html.dart", "ht"));

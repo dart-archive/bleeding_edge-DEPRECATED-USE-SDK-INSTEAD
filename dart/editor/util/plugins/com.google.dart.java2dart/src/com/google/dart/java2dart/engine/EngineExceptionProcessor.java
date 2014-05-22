@@ -108,7 +108,6 @@ public class EngineExceptionProcessor extends SemanticProcessor {
           AstNode parent = node.getParent();
           if (parent instanceof ArgumentList || parent instanceof AssignmentExpression
               && ((AssignmentExpression) parent).getRightHandSide() == node) {
-            System.out.println(parent);
             Block block = node.getAncestor(Block.class);
             if (block != null && block.getParent() instanceof CatchClause) {
               CatchClause catchClause = (CatchClause) block.getParent();
