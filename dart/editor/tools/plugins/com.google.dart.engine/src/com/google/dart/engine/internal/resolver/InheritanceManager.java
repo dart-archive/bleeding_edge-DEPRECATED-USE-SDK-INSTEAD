@@ -643,13 +643,8 @@ public class InheritanceManager {
           visitedInterfaces.remove(superclassElement);
         }
       } else {
-        MemberMap map = interfaceLookup.get(classElt);
-        if (map != null) {
-          lookupMaps.add(map);
-        } else {
-          interfaceLookup.put(superclassElement, resultMap);
-          return resultMap;
-        }
+        interfaceLookup.put(classElt, resultMap);
+        return resultMap;
       }
     }
 
@@ -685,13 +680,8 @@ public class InheritanceManager {
             visitedInterfaces.remove(mixinElement);
           }
         } else {
-          MemberMap map = interfaceLookup.get(classElt);
-          if (map != null) {
-            lookupMaps.add(map);
-          } else {
-            interfaceLookup.put(mixinElement, resultMap);
-            return resultMap;
-          }
+          interfaceLookup.put(classElt, resultMap);
+          return resultMap;
         }
       }
     }
@@ -727,13 +717,8 @@ public class InheritanceManager {
             visitedInterfaces.remove(interfaceElement);
           }
         } else {
-          MemberMap map = interfaceLookup.get(classElt);
-          if (map != null) {
-            lookupMaps.add(map);
-          } else {
-            interfaceLookup.put(interfaceElement, resultMap);
-            return resultMap;
-          }
+          interfaceLookup.put(classElt, resultMap);
+          return resultMap;
         }
       }
     }
