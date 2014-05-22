@@ -380,8 +380,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
               annotations += returnTypeName + " ";
             }
             // just return expression
-            declarationSource = annotations + getSignature(methodName) + " => "
-                + returnExpressionSource + ";";
+            declarationSource = annotations + getSignature() + " => " + returnExpressionSource
+                + ";";
           }
           // statements
           if (selectionStatements != null) {
@@ -393,7 +393,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
             } else {
               annotations += "void ";
             }
-            declarationSource = annotations + getSignature(methodName) + " {" + eol;
+            declarationSource = annotations + getSignature() + " {" + eol;
             declarationSource += returnExpressionSource;
             if (returnVariableName != null) {
               declarationSource += prefix + "  return " + returnVariableName + ";" + eol;
@@ -449,7 +449,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   @Override
-  public String getSignature(String methodName) {
+  public String getSignature() {
     StringBuilder sb = new StringBuilder();
     if (extractGetter) {
       sb.append("get ");

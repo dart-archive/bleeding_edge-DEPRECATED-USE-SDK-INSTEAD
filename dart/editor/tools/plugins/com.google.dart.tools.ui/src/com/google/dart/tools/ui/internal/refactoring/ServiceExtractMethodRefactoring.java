@@ -67,8 +67,8 @@ public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
     return refactoring.getReplaceAllOccurrences();
   }
 
-  public String getSignature(String methodName) {
-    return refactoring.getSignature(methodName);
+  public String getSignature() {
+    return refactoring.getSignature();
   }
 
   public void setExtractGetter(boolean extractGetter) {

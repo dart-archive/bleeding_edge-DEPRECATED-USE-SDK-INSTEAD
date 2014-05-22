@@ -52,8 +52,7 @@ public interface ExtractMethodRefactoring extends Refactoring {
   int getNumberOfDuplicates();
 
   /**
-   * @return {@link ParameterImpl}s describing parameters of the extracted expression of
-   *         statements.
+   * @return {@link ParameterImpl}s describing parameters of the extracted expression of statements.
    */
   List<Parameter> getParameters();
 
@@ -66,7 +65,7 @@ public interface ExtractMethodRefactoring extends Refactoring {
   /**
    * @return the signature of the extracted method.
    */
-  String getSignature(String methodName);
+  String getSignature();
 
   /**
    * Specifies if getter should be extracted instead of normal method.

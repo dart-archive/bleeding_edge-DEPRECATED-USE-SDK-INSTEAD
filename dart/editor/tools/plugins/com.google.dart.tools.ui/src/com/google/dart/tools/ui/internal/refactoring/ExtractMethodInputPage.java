@@ -194,7 +194,8 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
       if (fFirstTime) {
         fFirstTime = false;
         setPageComplete(false);
-        updatePreview(getText());
+        fRefactoring.setMethodName("methodName");
+        updatePreview();
         fTextField.setFocus();
       } else {
         setPageComplete(validatePage(true));
@@ -279,7 +280,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 //  }
 
   private void parameterModified() {
-    updatePreview(getText());
+    updatePreview();
     setPageComplete(validatePage(false));
   }
 
@@ -287,26 +288,22 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
     fRefactoring.setMethodName(text);
     RefactoringStatus status = validatePage(true);
     if (!status.hasFatalError()) {
-      updatePreview(text);
+      updatePreview();
     } else {
       fSignaturePreviewDocument.set(""); //$NON-NLS-1$
     }
     setPageComplete(status);
   }
 
-  private void updatePreview(String text) {
+  private void updatePreview() {
     if (fSignaturePreview == null) {
       return;
-    }
-
-    if (text.length() == 0) {
-      text = "someMethodName"; //$NON-NLS-1$
     }
 
     int top = fSignaturePreview.getTextWidget().getTopPixel();
     String signature;
     try {
-      signature = fRefactoring.getSignature(text);
+      signature = fRefactoring.getSignature();
     } catch (IllegalArgumentException e) {
       signature = ""; //$NON-NLS-1$
     }

@@ -865,7 +865,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     RefactoringStatus status = refactoring.checkMethodName();
     // TODO(scheglov) getSignature() should use the set name as checkMethodName() does 
     // TODO(scheglov) we need setParameters()  (and IDs)
-    consumer.computed(status, refactoring.getSignature(name));
+    consumer.computed(status, refactoring.getSignature());
   }
 
   /**
