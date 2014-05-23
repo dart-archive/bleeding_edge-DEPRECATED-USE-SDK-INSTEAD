@@ -15,8 +15,8 @@ import '../web/localized.dart';
  * A trivial test to get the analyzer plugged into this sample. See
  * searchable_list_test.dart.
  */
-@initMethod
 main() {
+  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

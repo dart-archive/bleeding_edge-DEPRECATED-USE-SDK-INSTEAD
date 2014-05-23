@@ -18,8 +18,8 @@ import 'utils.dart';
  * switches from back and forth between "Active" and "All". This will make some
  * nodes to be hidden and readded to the page.
  */
-@initMethod
 main() {
+  initPolymer();
   useHtmlConfiguration();
 
   ShadowRoot root;

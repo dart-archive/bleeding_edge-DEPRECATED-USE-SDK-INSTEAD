@@ -32,8 +32,8 @@ Node findWithText(Node node, String text) {
  * This test runs the TodoMVC app, adds a few todos, marks some as done
  * programatically, and clicks on a checkbox to mark others via the UI.
  */
-@initMethod
 main() {
+  initPolymer();
   useHtmlConfiguration();
 
   TodoModel model;
