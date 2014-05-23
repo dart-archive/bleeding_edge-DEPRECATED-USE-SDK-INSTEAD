@@ -13,8 +13,6 @@ import com.google.dart.engine.internal.index.IndexImpl;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
-import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.InternalAnalysisServer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -23,7 +21,6 @@ import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -55,8 +52,6 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -197,16 +192,18 @@ public class AnalysisView extends ViewPart {
 
     Set<AnalysisContext> visited = new HashSet<AnalysisContext>();
 
-    AnalysisServer server = DartCore.getAnalysisServer();
-    if (server instanceof InternalAnalysisServer) {
-      Map<String, AnalysisContext> contextMap = ((InternalAnalysisServer) server).getContextMap();
-      for (Entry<String, AnalysisContext> entry : contextMap.entrySet()) {
-        String name = new Path(entry.getKey()).lastSegment();
-        addContext(queueWorkers, activeWorker, contexts, name,
-            (InternalAnalysisContext) entry.getValue());
-        visited.add(entry.getValue());
-      }
-    }
+    // TODO(scheglov) restore or remove for the new API
+//    AnalysisServer server = DartCore.getAnalysisServer();
+//    if (server instanceof InternalAnalysisServer) {
+//      Map<String, AnalysisContext> contextMap = ((InternalAnalysisServer) server).getContextMap();
+//      for (Entry<String, AnalysisContext> entry : contextMap.entrySet()) {
+//        String name = new Path(entry.getKey()).lastSegment();
+//        addContext(queueWorkers, activeWorker, contexts, name,
+//            (InternalAnalysisContext) entry.getValue());
+//        visited.add(entry.getValue());
+//      }
+//    }
+
     //
     // Show both analysis server and project manager contexts during this transition
     //
