@@ -19,19 +19,36 @@ import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
+import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.AnalysisService;
+import com.google.dart.server.CompletionSuggestionsConsumer;
+import com.google.dart.server.ContentChange;
+import com.google.dart.server.Element;
+import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.InternalAnalysisServer;
+import com.google.dart.server.MinorRefactoringsConsumer;
 import com.google.dart.server.NotificationKind;
+import com.google.dart.server.RefactoringApplyConsumer;
+import com.google.dart.server.RefactoringExtractLocalConsumer;
+import com.google.dart.server.RefactoringExtractMethodConsumer;
+import com.google.dart.server.RefactoringExtractMethodOptionsValidationConsumer;
+import com.google.dart.server.RefactoringOptionsValidationConsumer;
+import com.google.dart.server.SearchResultsConsumer;
+import com.google.dart.server.ServerService;
+import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.local.operation.GetVersionOperation;
 import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
@@ -311,13 +328,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 //  }
 
   @Override
-  public Index getIndex() {
-    return index;
+  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
   }
 
   @Override
-  public void getVersion(VersionConsumer consumer) {
-    operationQueue.add(new GetVersionOperation(consumer));
+  public void createRefactoringExtractLocal(String file, int offset, int length,
+      RefactoringExtractLocalConsumer consumer) {
   }
 
 //  /**
@@ -593,11 +609,9 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 //    consumer.computed(fixableErrorCodes);
 //  }
 
-  /**
-   * Implementation for {@link #getVersion(String)}.
-   */
-  public void internalGetVersion(VersionConsumer consumer) throws Exception {
-    consumer.computedVersion(VERSION);
+  @Override
+  public void createRefactoringExtractMethod(String file, int offset, int length,
+      RefactoringExtractMethodConsumer consumer) {
   }
 
 //  /**
@@ -840,8 +854,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 //  }
 
   @Override
-  public void removeAnalysisServerListener(AnalysisServerListener listener) {
-    this.listener.removeListener(listener);
+  public void deleteRefactoring(String refactoringId) {
   }
 
 //  @Override
@@ -905,9 +918,8 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 //  }
 
   @Override
-  public void shutdown() {
-    operationQueue.add(ShutdownOperation.INSTANCE);
-    index.stop();
+  public void getCompletionSuggestions(String file, int offset,
+      CompletionSuggestionsConsumer consumer) {
   }
 
 //  @Override
@@ -915,19 +927,22 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 //    operationQueue.add(new SubscribeOperation(contextId, subscriptions));
 //  }
 
-  @VisibleForTesting
-  public void test_addOperation(ServerOperation operation) {
-    operationQueue.add(operation);
+  @Override
+  public void getFixes(List<AnalysisError> errors, FixesConsumer consumer) {
   }
 
-  @VisibleForTesting
-  public Map<String, Refactoring> test_getRefactoringMap() {
-    return refactoringMap;
+  @Override
+  public Index getIndex() {
+    return index;
   }
 
-  @VisibleForTesting
-  public void test_pingListeners() {
-    listener.computedErrors(null, null, null);
+  @Override
+  public void getMinorRefactorings(String file, int offset, int length,
+      MinorRefactoringsConsumer consumer) {
+  }
+
+  @Override
+  public void getTypeHierarchy(Element element, TypeHierarchyConsumer consumer) {
   }
 
 //  /**
@@ -937,21 +952,21 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 //    test_analyzedContexts = analyzedContexts;
 //  }
 
-  @VisibleForTesting
-  public void test_setLog(boolean log) {
-    this.test_log = log;
+  @Override
+  public void getVersion(VersionConsumer consumer) {
+    operationQueue.add(new GetVersionOperation(consumer));
   }
 
-  @VisibleForTesting
-  public void test_setPaused(boolean paused) {
-    this.test_paused = paused;
+  /**
+   * Implementation for {@link #getVersion(String)}.
+   */
+  public void internalGetVersion(VersionConsumer consumer) throws Exception {
+    consumer.computedVersion(VERSION);
   }
 
-  @VisibleForTesting
-  public void test_waitForWorkerComplete() {
-    while (!operationQueue.isEmpty()) {
-      Thread.yield();
-    }
+  @Override
+  public void removeAnalysisServerListener(AnalysisServerListener listener) {
+    this.listener.removeListener(listener);
   }
 
 //  /**
@@ -1014,6 +1029,100 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 //    return sources;
 //  }
 
+  @Override
+  public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer) {
+  }
+
+  @Override
+  public void searchClassMemberReferences(String name, SearchResultsConsumer consumer) {
+  }
+
+  @Override
+  public void searchElementReferences(Element element, boolean withPotential,
+      SearchResultsConsumer consumer) {
+  }
+
+  @Override
+  public void searchTopLevelDeclarations(String pattern, SearchResultsConsumer consumer) {
+  }
+
+  @Override
+  public void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths) {
+  }
+
+  @Override
+  public void setAnalysisSubscriptions(Map<AnalysisService, List<String>> subscriptions) {
+  }
+
+  @Override
+  public void setContent(Map<String, ContentChange> files) {
+  }
+
+  @Override
+  public void setPriorityFiles(List<String> files) {
+  }
+
+  @Override
+  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
+      String name, RefactoringOptionsValidationConsumer consumer) {
+  }
+
+  @Override
+  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
+      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
+      RefactoringExtractMethodOptionsValidationConsumer consumer) {
+  }
+
+  @Override
+  public void setServerSubscriptions(List<ServerService> subscriptions) {
+  }
+
+  @Override
+  public void shutdown() {
+    operationQueue.add(ShutdownOperation.INSTANCE);
+    index.stop();
+  }
+
+  @VisibleForTesting
+  public void test_addOperation(ServerOperation operation) {
+    operationQueue.add(operation);
+  }
+
+  @VisibleForTesting
+  public Map<String, Refactoring> test_getRefactoringMap() {
+    return refactoringMap;
+  }
+
+  @VisibleForTesting
+  public void test_pingListeners() {
+    listener.computedErrors(null, null);
+  }
+
+  @VisibleForTesting
+  public void test_setLog(boolean log) {
+    this.test_log = log;
+  }
+
+  @VisibleForTesting
+  public void test_setPaused(boolean paused) {
+    this.test_paused = paused;
+  }
+
+  @VisibleForTesting
+  public void test_waitForWorkerComplete() {
+    while (!operationQueue.isEmpty()) {
+      Thread.yield();
+    }
+  }
+
+  @Override
+  public void updateAnalysisOptions(AnalysisOptions options) {
+  }
+
+  @Override
+  public void updateSdks(List<String> added, List<String> removed, String defaultSdk) {
+  }
+
   private void log(String msg, Object... arguments) {
     if (test_log) {
       String message = String.format(msg, arguments);
@@ -1027,7 +1136,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
    * @param error the error to report
    */
   private void onServerError(AnalysisServerError error) {
-    listener.onServerError(error);
+    listener.serverError(error);
   }
 
   /**

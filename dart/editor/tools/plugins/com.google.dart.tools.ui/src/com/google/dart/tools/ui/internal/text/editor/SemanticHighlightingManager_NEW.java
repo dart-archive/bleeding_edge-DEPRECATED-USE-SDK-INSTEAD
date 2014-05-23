@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
@@ -66,20 +65,18 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
   }
 
   private final DartSourceViewer viewer;
-  private final String contextId;
-  private final Source source;
+  private final String file;
   private final IDocument document;
   private final IDocumentListener documentListener;
   private HighlightPosition[] positions;
 
-  public SemanticHighlightingManager_NEW(DartSourceViewer viewer, String contextId, Source source) {
+  public SemanticHighlightingManager_NEW(DartSourceViewer viewer, String file) {
     this.viewer = viewer;
-    this.contextId = contextId;
-    this.source = source;
+    this.file = file;
     this.document = viewer.getDocument();
     // subscribe
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
-    analysisServerData.subscribeHighlights(contextId, source, this);
+    analysisServerData.subscribeHighlights(file, this);
     viewer.prependTextPresentationListener(this);
     documentListener = new IDocumentListener() {
       @Override
@@ -141,7 +138,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
   }
 
   @Override
-  public void computedHighlights(String contextId, Source source, HighlightRegion[] highlights) {
+  public void computedHighlights(String file, HighlightRegion[] highlights) {
     clearHighlightPositions();
     // create and track HighlightPosition(s)
     HighlightPosition[] newPositions = new HighlightPosition[highlights.length];
@@ -166,7 +163,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
 
   public void dispose() {
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
-    analysisServerData.unsubscribeHighlights(contextId, source, this);
+    analysisServerData.unsubscribeHighlights(file, this);
     viewer.removeTextPresentationListener(this);
     document.removeDocumentListener(documentListener);
     clearHighlightPositions();

@@ -11,19 +11,23 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
-package com.google.dart.tools.core.analysis.model;
-
-import com.google.dart.server.Outline;
+package com.google.dart.server;
 
 /**
- * Used by {@link AnalysisServerData} to notify clients that new {@link Outline} is ready.
+ * The interface {@code AnalysisStatus} defines the behavior of objects that indicate the current
+ * state of analysis.
  * 
- * @coverage dart.tools.core.model
+ * @coverage dart.server
  */
-public interface AnalysisServerOutlineListener {
+public interface AnalysisStatus {
   /**
-   * Called when {@link Outline} for a particular file is ready.
+   * Returns the name of the current target of analysis, {@code null} if {@link #isAnalyzing} is
+   * {@code false}.
    */
-  void computedOutline(String file, Outline outline);
+  String getAnalysisTarget();
+
+  /**
+   * Returns {@code true} if analysis is currently being performed.
+   */
+  boolean isAnalyzing();
 }

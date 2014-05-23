@@ -11,19 +11,16 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
-package com.google.dart.tools.core.analysis.model;
-
-import com.google.dart.server.Outline;
+package com.google.dart.server;
 
 /**
- * Used by {@link AnalysisServerData} to notify clients that new {@link Outline} is ready.
+ * An enumeration of the services provided by the analysis domain.
  * 
- * @coverage dart.tools.core.model
+ * @coverage dart.server
  */
-public interface AnalysisServerOutlineListener {
-  /**
-   * Called when {@link Outline} for a particular file is ready.
-   */
-  void computedOutline(String file, Outline outline);
+public enum AnalysisService {
+  ERRORS,
+  HIGHLIGHT,
+  NAVIGATION,
+  OUTLINE;
 }

@@ -14,7 +14,6 @@
 package com.google.dart.server;
 
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.source.Source;
 
 /**
  * The interface {@code AnalysisServerListener} defines the behavior of objects that listen for
@@ -24,52 +23,62 @@ import com.google.dart.engine.source.Source;
  */
 public interface AnalysisServerListener {
   /**
-   * A new collection of errors has been computed for the given source.
+   * Reports the errors associated with a given file.
    * 
-   * @param contextId the id of the context in which the source was analyzed
-   * @param source the source for which new errors have been computed
-   * @param errors the errors that should be reported for the source
+   * @param file the file containing the errors
+   * @param errors the errors contained in the file
    */
-  public void computedErrors(String contextId, Source source, AnalysisError[] errors);
+  public void computedErrors(String file, AnalysisError[] errors);
 
   /**
-   * A new collection of highlight regions has been computed for the given source. Each highlight
+   * A new collection of highlight regions has been computed for the given file. Each highlight
    * region represents a particular syntactic or semantic meaning associated with some range. Note
    * that the highlight regions that are returned can overlap other highlight regions if there is
    * more than one meaning associated with a particular region.
    * 
-   * @param contextId the id of the context in which the source was analyzed
-   * @param source the source for which new highlight regions have been computed
-   * @param highlights the highlight regions associated with the source
+   * @param file the file containing the highlight regions
+   * @param highlights the highlight regions contained in the file
    */
-  public void computedHighlights(String contextId, Source source, HighlightRegion[] highlights);
+  public void computedHighlights(String file, HighlightRegion[] highlights);
 
   /**
-   * A new collection of navigation regions has been computed for the given source. Each navigation
+   * A new collection of navigation regions has been computed for the given file. Each navigation
    * region represents a list of targets associated with some range. The lists will usually contain
    * a single target, but can contain more in the case of a part that is included in multiple
    * libraries or an Dart code that is compiled against multiple versions of a package. Note that
    * the navigation regions that are returned do not overlap other navigation regions.
    * 
-   * @param contextId the id of the context in which the source was analyzed
-   * @param source the source for which new highlight regions have been computed
+   * @param file the file containing the navigation regions
    * @param highlights the highlight regions associated with the source
    */
-  public void computedNavigation(String contextId, Source source, NavigationRegion[] targets);
+  public void computedNavigation(String file, NavigationRegion[] targets);
 
   /**
-   * A new outline has been computed for the given source.
+   * A new outline has been computed for the given file.
    * 
-   * @param contextId the id of the context in which the source was analyzed
-   * @param source the source for which new highlight regions have been computed
-   * @param outline the outline associated with the source
+   * @param file the file with which the outline is associated
+   * @param outline the outline associated with the file
    */
-  public void computedOutline(String contextId, Source source, Outline outline);
+  public void computedOutline(String file, Outline outline);
+
+  /**
+   * Reports that the server is running. This notification is issued once after the server has
+   * started running to let the client know that it started correctly.
+   */
+  public void serverConnected();
 
   /**
    * An error happened in the {@link AnalysisServer}.
    * 
    * @param error the error to report
    */
-  public void onServerError(AnalysisServerError error);
+  public void serverError(AnalysisServerError error);
+
+  /**
+   * Reports the current status of the server.
+   * 
+   * @param analysis the current status of analysis, including whether analysis is being performed
+   *          and if so what is being analyzed.
+   */
+  public void serverStatus(AnalysisStatus analysis);
 }

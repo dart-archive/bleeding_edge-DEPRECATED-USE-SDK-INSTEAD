@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.core.analysis.model;
 
-import com.google.dart.engine.source.Source;
 import com.google.dart.server.HighlightRegion;
 
 /**
@@ -24,7 +23,7 @@ import com.google.dart.server.HighlightRegion;
  */
 public interface AnalysisServerHighlightsListener {
   /**
-   * Called when {@link HighlightRegion}s for a particular {@link Source} are ready.
+   * Called when {@link HighlightRegion}s for a particular file are ready.
    */
-  void computedHighlights(String contextId, Source source, HighlightRegion[] highlights);
+  void computedHighlights(String file, HighlightRegion[] highlights);
 }

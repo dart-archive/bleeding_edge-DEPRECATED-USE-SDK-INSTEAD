@@ -17,7 +17,6 @@ import com.google.common.collect.Lists;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -171,12 +170,14 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
 
   private AnalysisError[] getErrorsTimeBoxed(final AssistContext context) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      String contextId = context.getAnalysisContextId();
-      Source source = context.getSource();
-      if (contextId == null || source == null) {
-        return AnalysisError.NO_ERRORS;
-      }
-      return DartCore.getAnalysisServerData().getErrors(contextId, source);
+      // TODO(scheglov) restore or remove for the new API
+      return AnalysisError.NO_ERRORS;
+//      String contextId = context.getAnalysisContextId();
+//      Source source = context.getSource();
+//      if (contextId == null || source == null) {
+//        return AnalysisError.NO_ERRORS;
+//      }
+//      return DartCore.getAnalysisServerData().getErrors(contextId, source);
     } else {
       return TimeboxUtils.runObject(new RunnableObject<AnalysisError[]>() {
         @Override

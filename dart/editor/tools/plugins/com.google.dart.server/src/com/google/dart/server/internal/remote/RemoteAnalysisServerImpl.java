@@ -14,9 +14,26 @@
 package com.google.dart.server.internal.remote;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.services.refactoring.Parameter;
+import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.AnalysisService;
+import com.google.dart.server.CompletionSuggestionsConsumer;
 import com.google.dart.server.Consumer;
+import com.google.dart.server.ContentChange;
+import com.google.dart.server.Element;
+import com.google.dart.server.FixesConsumer;
+import com.google.dart.server.MinorRefactoringsConsumer;
+import com.google.dart.server.RefactoringApplyConsumer;
+import com.google.dart.server.RefactoringExtractLocalConsumer;
+import com.google.dart.server.RefactoringExtractMethodConsumer;
+import com.google.dart.server.RefactoringExtractMethodOptionsValidationConsumer;
+import com.google.dart.server.RefactoringOptionsValidationConsumer;
+import com.google.dart.server.SearchResultsConsumer;
+import com.google.dart.server.ServerService;
+import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
 import com.google.gson.JsonObject;
@@ -33,6 +50,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -147,76 +165,50 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     // TODO (jwren) implement
   }
 
-//  @Override
-//  public void applyAnalysisDelta(String contextId, AnalysisDelta delta) {
-//    // TODO (jwren) implement
-//  }
-//
-//  @Override
-//  public void applyChanges(String contextId, ChangeSet changeSet) {
-//    // TODO (jwren) implement
-//  }
-//
-//  @Override
-//  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
-//    // TODO(scheglov) implement
-//  }
-//
-//  @Override
-//  public void computeCompletionSuggestions(String contextId, Source source, int offset,
-//      CompletionSuggestionsConsumer consumer) {
-//    // TODO(scheglov) implement
-//  }
-//
-//  @Override
-//  public void computeFixes(String contextId, AnalysisError[] errors, FixesConsumer consumer) {
-//    // TODO (jwren) implement
-//  }
-//
-//  @Override
-//  public void computeMinorRefactorings(String contextId, Source source, int offset, int length,
-//      MinorRefactoringsConsumer consumer) {
-//    // TODO (jwren) implement
-//  }
-//
-//  @Override
-//  public void computeTypeHierarchy(String contextId, Element element, TypeHierarchyConsumer consumer) {
-//    // TODO (jwren) implement
-//  }
-//
-//  @Override
-//  public String createContext(String name, String sdkDirectory, Map<String, String> packageMap) {
-//    // TODO (jwren) implement
-//    return null;
-//  }
-//
-//  @Override
-//  public void createRefactoringExtractLocal(String contextId, Source source, int offset,
-//      int length, RefactoringExtractLocalConsumer consumer) {
-//    // TODO(scheglov) implement
-//  }
-//
-//  @Override
-//  public void createRefactoringExtractMethod(String contextId, Source source, int offset,
-//      int length, RefactoringExtractMethodConsumer consumer) {
-//    // TODO(scheglov) implement
-//  }
-//
-//  @Override
-//  public void deleteContext(String contextId) {
-//    // TODO (jwren) implement
-//  }
-//
-//  @Override
-//  public void deleteRefactoring(String refactoringId) {
-//    // TODO(scheglov) implement
-//  }
-//
-//  @Override
-//  public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer) {
-//    // TODO(scheglov) implement
-//  }
-//
+  @Override
+  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void createRefactoringExtractLocal(String file, int offset, int length,
+      RefactoringExtractLocalConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void createRefactoringExtractMethod(String file, int offset, int length,
+      RefactoringExtractMethodConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void deleteRefactoring(String refactoringId) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void getCompletionSuggestions(String file, int offset,
+      CompletionSuggestionsConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void getFixes(List<AnalysisError> errors, FixesConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void getMinorRefactorings(String file, int offset, int length,
+      MinorRefactoringsConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void getTypeHierarchy(Element element, TypeHierarchyConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
   @Override
   public void getVersion(VersionConsumer consumer) {
     String id = generateUniqueId();
@@ -259,73 +251,70 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     // TODO (jwren) implement
   }
 
-//  @Override
-//  public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer) {
-//    // TODO(scheglov) implement
-//  }
-//
-//  @Override
-//  public void searchClassMemberReferences(String name, SearchResultsConsumer consumer) {
-//    // TODO(scheglov) implement
-//  }
-//
-//  @Override
-//  public void searchElementReferences(Element element, boolean withPotential,
-//      SearchResultsConsumer consumer) {
-//    // TODO (jwren) implement
-//  }
-//
-//  @Override
-//  public void searchTopLevelDeclarations(String contextId, String pattern,
-//      SearchResultsConsumer consumer) {
-//    // TODO(scheglov) implement
-//  }
-//
-//  @Override
-//  public void setOptions(String contextId, AnalysisOptions options) {
-//    String id = generateUniqueId();
-//    sendRequestToServer(
-//        id,
-//        RequestUtilities.generateContextSetOptionsRequest(id, contextId, options).toString(),
-//        null);
-//  }
-//
-//  @Override
-//  public void setPrioritySources(String contextId, Source[] sources) {
-//    List<String> strSources = new ArrayList<String>(sources.length);
-//    for (int i = 0; i < sources.length; i++) {
-//      strSources.add(sources[i].getEncoding());
-//    }
-//    String id = generateUniqueId();
-//    sendRequestToServer(
-//        id,
-//        RequestUtilities.generateContextSetPrioritySourcesRequest(id, contextId, strSources).toString(),
-//        null);
-//  }
-//
-//  @Override
-//  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
-//      String name, RefactoringOptionsValidationConsumer consumer) {
-//    // TODO(scheglov) implement
-//  }
-//
-//  @Override
-//  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
-//      boolean extractGetter, boolean allOccurrences, Parameter[] parameters,
-//      RefactoringExtractMethodOptionsValidationConsumer consumer) {
-//    // TODO(scheglov) implement
-//  }
+  @Override
+  public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void searchClassMemberReferences(String name, SearchResultsConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void searchElementReferences(Element element, boolean withPotential,
+      SearchResultsConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void searchTopLevelDeclarations(String pattern, SearchResultsConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void setAnalysisSubscriptions(Map<AnalysisService, List<String>> subscriptions) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void setContent(Map<String, ContentChange> files) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void setPriorityFiles(List<String> files) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
+      String name, RefactoringOptionsValidationConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
+      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
+      RefactoringExtractMethodOptionsValidationConsumer consumer) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void setServerSubscriptions(List<ServerService> subscriptions) {
+    // TODO(scheglov) implement
+  }
 
   @Override
   public void shutdown() {
     String id = generateUniqueId();
     sendRequestToServer(id, RequestUtilities.generateServerShutdownRequest(id).toString(), null);
   }
-
-//  @Override
-//  public void subscribe(String contextId, Map<NotificationKind, SourceSet> subscriptions) {
-//    // TODO (jwren) implement
-//  }
 
   @VisibleForTesting
   public void test_setPrintWriter(PrintWriter printWriter) {
@@ -337,6 +326,16 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     while (!consumerMap.isEmpty()) {
       Thread.yield();
     }
+  }
+
+  @Override
+  public void updateAnalysisOptions(AnalysisOptions options) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void updateSdks(List<String> added, List<String> removed, String defaultSdk) {
+    // TODO(scheglov) implement
   }
 
   /**

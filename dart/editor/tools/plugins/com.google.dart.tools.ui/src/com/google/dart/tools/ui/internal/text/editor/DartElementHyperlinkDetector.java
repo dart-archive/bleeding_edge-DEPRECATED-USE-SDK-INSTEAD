@@ -26,7 +26,6 @@ import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
-import com.google.dart.engine.source.Source;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -86,12 +85,9 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
     }
 
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      String contextId = editor.getInputAnalysisContextId();
-      Source source = editor.getInputSource();
-      if (contextId != null && source != null) {
-        NavigationRegion[] navigationRegions = DartCore.getAnalysisServerData().getNavigation(
-            contextId,
-            source);
+      String file = editor.getInputFilePath();
+      if (file != null) {
+        NavigationRegion[] navigationRegions = DartCore.getAnalysisServerData().getNavigation(file);
         for (NavigationRegion navigationRegion : navigationRegions) {
           if (navigationRegion.containsInclusive(offset)) {
             return new IHyperlink[] {new DartNavigationRegionHyperlink_NEW(

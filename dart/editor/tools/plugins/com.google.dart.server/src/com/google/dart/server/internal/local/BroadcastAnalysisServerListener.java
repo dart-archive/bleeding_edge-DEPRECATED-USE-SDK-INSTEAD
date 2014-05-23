@@ -16,9 +16,9 @@ package com.google.dart.server.internal.local;
 
 import com.google.common.collect.Lists;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
@@ -50,37 +50,51 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedErrors(String contextId, Source source, AnalysisError[] errors) {
+  public void computedErrors(String file, AnalysisError[] errors) {
     for (AnalysisServerListener listener : getListeners()) {
-      listener.computedErrors(contextId, source, errors);
+      listener.computedErrors(file, errors);
     }
   }
 
   @Override
-  public void computedHighlights(String contextId, Source source, HighlightRegion[] highlights) {
+  public void computedHighlights(String file, HighlightRegion[] highlights) {
     for (AnalysisServerListener listener : getListeners()) {
-      listener.computedHighlights(contextId, source, highlights);
+      listener.computedHighlights(file, highlights);
     }
   }
 
   @Override
-  public void computedNavigation(String contextId, Source source, NavigationRegion[] targets) {
+  public void computedNavigation(String file, NavigationRegion[] targets) {
     for (AnalysisServerListener listener : getListeners()) {
-      listener.computedNavigation(contextId, source, targets);
+      listener.computedNavigation(file, targets);
     }
   }
 
   @Override
-  public void computedOutline(String contextId, Source source, Outline outline) {
+  public void computedOutline(String file, Outline outline) {
     for (AnalysisServerListener listener : getListeners()) {
-      listener.computedOutline(contextId, source, outline);
+      listener.computedOutline(file, outline);
     }
   }
 
   @Override
-  public void onServerError(AnalysisServerError error) {
+  public void serverConnected() {
     for (AnalysisServerListener listener : getListeners()) {
-      listener.onServerError(error);
+      listener.serverConnected();
+    }
+  }
+
+  @Override
+  public void serverError(AnalysisServerError error) {
+    for (AnalysisServerListener listener : getListeners()) {
+      listener.serverError(error);
+    }
+  }
+
+  @Override
+  public void serverStatus(AnalysisStatus analysis) {
+    for (AnalysisServerListener listener : getListeners()) {
+      listener.serverStatus(analysis);
     }
   }
 

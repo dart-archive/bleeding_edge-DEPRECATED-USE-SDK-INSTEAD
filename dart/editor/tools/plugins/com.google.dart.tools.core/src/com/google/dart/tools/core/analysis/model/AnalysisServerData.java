@@ -30,51 +30,49 @@ import com.google.dart.server.Outline;
  */
 public interface AnalysisServerData {
   /**
-   * Returns {@link AnalysisError}s associated with the given context and {@link Source}. May be
-   * empty, but not {@code null}.
+   * Returns {@link AnalysisError}s associated with the given file. May be empty, but not
+   * {@code null}.
    */
-  AnalysisError[] getErrors(String contextId, Source source);
+  AnalysisError[] getErrors(String file);
 
   /**
    * Returns {@link NavigationRegion}s associated with the given context and {@link Source}. May be
    * empty, but not {@code null}.
    */
-  NavigationRegion[] getNavigation(String contextId, Source source);
+  NavigationRegion[] getNavigation(String file);
 
   /**
-   * Returns {@code true} if the given {@link ErrorCode} may be fixed in the given context.
+   * Returns {@code true} if the given {@link ErrorCode} may be fixed in the given file.
    */
-  boolean isFixableErrorCode(String contextId, ErrorCode errorCode);
+  boolean isFixableErrorCode(String file, ErrorCode errorCode);
 
   /**
    * Specifies that the client wants to be notified about new {@link HighlightRegion}s.
    */
-  void subscribeHighlights(String contextId, Source source,
-      AnalysisServerHighlightsListener listener);
+  void subscribeHighlights(String file, AnalysisServerHighlightsListener listener);
 
   /**
-   * Specifies that the client wants to request {@link #getNavigation(String, Source)}.
+   * Specifies that the client wants to request navigation regions.
    */
-  void subscribeNavigation(String contextId, Source source);
+  void subscribeNavigation(String file);
 
   /**
    * Specifies that the client wants to be notified about new {@link Outline}.
    */
-  void subscribeOutline(String contextId, Source source, AnalysisServerOutlineListener listener);
+  void subscribeOutline(String file, AnalysisServerOutlineListener listener);
 
   /**
    * Specifies that the client doesn't want to be notified about {@link HighlightRegion}s anymore.
    */
-  void unsubscribeHighlights(String contextId, Source source,
-      AnalysisServerHighlightsListener listener);
+  void unsubscribeHighlights(String file, AnalysisServerHighlightsListener listener);
 
   /**
-   * Specifies that the client doesn't need navigation information for the given source anymore.
+   * Specifies that the client doesn't need navigation information for the given file anymore.
    */
-  void unsubscribeNavigation(String contextId, Source source);
+  void unsubscribeNavigation(String file);
 
   /**
    * Specifies that the client doesn't want to be notified about {@link Outline} anymore.
    */
-  void unsubscribeOutline(String contextId, Source source, AnalysisServerOutlineListener listener);
+  void unsubscribeOutline(String file, AnalysisServerOutlineListener listener);
 }

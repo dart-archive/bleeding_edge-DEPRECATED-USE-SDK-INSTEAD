@@ -23,6 +23,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.Element;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
@@ -41,11 +42,11 @@ import java.util.Map;
  * Mock implementation of {@link AnalysisServerListener}.
  */
 public class TestAnalysisServerListener implements AnalysisServerListener {
-  private final Map<Source, AnalysisError[]> sourcesErrors = Maps.newHashMap();
   private final List<AnalysisServerError> serverErrors = Lists.newArrayList();
-  private final Map<String, Map<Source, NavigationRegion[]>> navigationMap = Maps.newHashMap();
-  private final Map<String, Map<Source, Outline>> outlineMap = Maps.newHashMap();
-  private final Map<String, Map<Source, HighlightRegion[]>> highlightsMap = Maps.newHashMap();
+  private final Map<String, AnalysisError[]> sourcesErrors = Maps.newHashMap();
+  private final Map<String, HighlightRegion[]> highlightsMap = Maps.newHashMap();
+  private final Map<String, NavigationRegion[]> navigationMap = Maps.newHashMap();
+  private final Map<String, Outline> outlineMap = Maps.newHashMap();
 
   /**
    * Assert that the number of errors that have been gathered matches the number of errors that are
@@ -69,11 +70,10 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   /**
-   * Returns {@link NavigationRegionsAssert} for the given context and {@link Source}.
+   * Returns {@link NavigationRegionsAssert} for the given file.
    */
-  public synchronized NavigationRegionsAssert assertNavigationRegions(String contextId,
-      Source source) {
-    return new NavigationRegionsAssert(getNavigationRegions(contextId, source));
+  public synchronized NavigationRegionsAssert assertNavigationRegions(String file) {
+    return new NavigationRegionsAssert(getNavigationRegions(file));
   }
 
   /**
@@ -183,47 +183,30 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public synchronized void computedErrors(String contextId, Source source, AnalysisError[] errors) {
-    sourcesErrors.put(source, errors);
+  public synchronized void computedErrors(String file, AnalysisError[] errors) {
+    sourcesErrors.put(file, errors);
   }
 
   @Override
-  public synchronized void computedHighlights(String contextId, Source source,
-      HighlightRegion[] highlights) {
-    Map<Source, HighlightRegion[]> sourceHighlights = highlightsMap.get(contextId);
-    if (sourceHighlights == null) {
-      sourceHighlights = Maps.newHashMap();
-      highlightsMap.put(contextId, sourceHighlights);
-    }
-    sourceHighlights.put(source, highlights);
+  public synchronized void computedHighlights(String file, HighlightRegion[] highlights) {
+    highlightsMap.put(file, highlights);
   }
 
   @Override
-  public synchronized void computedNavigation(String contextId, Source source,
-      NavigationRegion[] targets) {
-    Map<Source, NavigationRegion[]> navigations = navigationMap.get(contextId);
-    if (navigations == null) {
-      navigations = Maps.newHashMap();
-      navigationMap.put(contextId, navigations);
-    }
-    navigations.put(source, targets);
+  public synchronized void computedNavigation(String file, NavigationRegion[] targets) {
+    navigationMap.put(file, targets);
   }
 
   @Override
-  public synchronized void computedOutline(String contextId, Source source, Outline outline) {
-    Map<Source, Outline> outlines = outlineMap.get(contextId);
-    if (outlines == null) {
-      outlines = Maps.newHashMap();
-      outlineMap.put(contextId, outlines);
-    }
-    outlines.put(source, outline);
+  public synchronized void computedOutline(String file, Outline outline) {
+    outlineMap.put(file, outline);
   }
 
   /**
    * Returns a navigation {@link Element} at the given position.
    */
-  public synchronized Element findNavigationElement(String contextId, Source source, int offset) {
-    NavigationRegion[] regions = getNavigationRegions(contextId, source);
+  public synchronized Element findNavigationElement(String file, int offset) {
+    NavigationRegion[] regions = getNavigationRegions(file);
     if (regions != null) {
       for (NavigationRegion navigationRegion : regions) {
         if (navigationRegion.containsInclusive(offset)) {
@@ -246,43 +229,39 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   /**
-   * Returns {@link HighlightRegion}s for the given context and {@link Source}, maybe {@code null}
-   * if have not been ever notified.
+   * Returns {@link HighlightRegion}s for the given file, maybe {@code null} if have not been ever
+   * notified.
    */
-  public synchronized HighlightRegion[] getHighlightRegions(String contextId, Source source) {
-    Map<Source, HighlightRegion[]> sourceHighlights = highlightsMap.get(contextId);
-    if (sourceHighlights == null) {
-      return null;
-    }
-    return sourceHighlights.get(source);
+  public synchronized HighlightRegion[] getHighlightRegions(String file) {
+    return highlightsMap.get(file);
   }
 
   /**
-   * Returns {@link NavigationRegion}s for the given context and {@link Source}, maybe {@code null}
-   * if have not been ever notified.
+   * Returns {@link NavigationRegion}s for the given file, maybe {@code null} if have not been ever
+   * notified.
    */
-  public synchronized NavigationRegion[] getNavigationRegions(String contextId, Source source) {
-    Map<Source, NavigationRegion[]> navigations = navigationMap.get(contextId);
-    if (navigations == null) {
-      return null;
-    }
-    return navigations.get(source);
+  public synchronized NavigationRegion[] getNavigationRegions(String file) {
+    return navigationMap.get(file);
   }
 
   /**
    * Returns {@link Outline} for the given context and {@link Source}, maybe {@code null} if have
    * not been ever notified.
    */
-  public synchronized Outline getOutline(String contextId, Source source) {
-    Map<Source, Outline> outlines = outlineMap.get(contextId);
-    if (outlines == null) {
-      return null;
-    }
-    return outlines.get(source);
+  public synchronized Outline getOutline(String file) {
+    return outlineMap.get(file);
   }
 
   @Override
-  public synchronized void onServerError(AnalysisServerError error) {
+  public void serverConnected() {
+  }
+
+  @Override
+  public synchronized void serverError(AnalysisServerError error) {
     serverErrors.add(error);
+  }
+
+  @Override
+  public void serverStatus(AnalysisStatus analysis) {
   }
 }

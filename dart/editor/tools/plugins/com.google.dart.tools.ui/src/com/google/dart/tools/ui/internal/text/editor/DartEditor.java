@@ -1724,7 +1724,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   private AnalysisServerOutlineListener analysisServerOutlineListener = new AnalysisServerOutlineListener() {
     @Override
-    public void computedOutline(String contextId, Source source, final Outline outline) {
+    public void computedOutline(String file, final Outline outline) {
       DartEditor.this.outline = outline;
       Display.getDefault().asyncExec(new Runnable() {
         @Override
@@ -2026,11 +2026,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   public void dispose() {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
-      String contextId = getInputAnalysisContextId();
-      Source source = getInputSource();
-      if (contextId != null && source != null) {
-        analysisServerData.unsubscribeNavigation(contextId, source);
-        analysisServerData.unsubscribeOutline(contextId, source, analysisServerOutlineListener);
+      String file = getInputFilePath();
+      if (file != null) {
+        analysisServerData.unsubscribeNavigation(file);
+        analysisServerData.unsubscribeOutline(file, analysisServerOutlineListener);
       }
     }
 
@@ -2333,6 +2332,15 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   public com.google.dart.engine.element.CompilationUnitElement getInputElement() {
     com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
     return unit == null ? null : unit.getElement();
+  }
+
+  public String getInputFilePath() {
+    // may be workspace IFile
+    if (inputResourceFile != null) {
+      return inputResourceFile.getLocation().toOSString();
+    }
+    // TODO(scheglov) Analysis Server
+    return null;
   }
 
   @Override
@@ -3963,10 +3971,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return;
     }
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
-    String contextId = getInputAnalysisContextId();
-    Source source = getInputSource();
-    if (contextId != null && source != null) {
-      analysisServerData.subscribeOutline(contextId, source, analysisServerOutlineListener);
+    String file = getInputFilePath();
+    if (file != null) {
+      analysisServerData.subscribeOutline(null, analysisServerOutlineListener);
     }
   }
 
@@ -4649,13 +4656,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     // TODO(scheglov) Analysis Server: remove this old method
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
-      String contextId = getInputAnalysisContextId();
-      Source source = getInputSource();
-      if (contextId != null && source != null) {
+      String file = getInputFilePath();
+      if (file != null) {
         analysisServerHighlightManager = new SemanticHighlightingManager_NEW(
             (DartSourceViewer) getSourceViewer(),
-            contextId,
-            source);
+            file);
       }
       return;
     }
@@ -4698,10 +4703,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
       AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
-      String contextId = getInputAnalysisContextId();
-      Source source = getInputSource();
-      if (contextId != null && source != null) {
-        analysisServerData.subscribeNavigation(contextId, source);
+      String file = getInputFilePath();
+      if (file != null) {
+        analysisServerData.subscribeNavigation(file);
       }
     }
 

@@ -32,48 +32,48 @@ public class BroadcastAnalysisServerListenerTest extends TestCase {
   public void test_addAnalysisServerListener_ignoreDuplicate() throws Exception {
     broadcast.addListener(listenerA);
     broadcast.addListener(listenerA);
-    broadcast.computedErrors(null, null, null);
-    verify(listenerA, times(1)).computedErrors(null, null, null);
+    broadcast.computedErrors(null, null);
+    verify(listenerA, times(1)).computedErrors(null, null);
   }
 
   public void test_addListener() throws Exception {
     broadcast.addListener(listenerA);
     broadcast.addListener(listenerB);
-    broadcast.computedErrors(null, null, null);
-    verify(listenerA, times(1)).computedErrors(null, null, null);
-    verify(listenerB, times(1)).computedErrors(null, null, null);
+    broadcast.computedErrors(null, null);
+    verify(listenerA, times(1)).computedErrors(null, null);
+    verify(listenerB, times(1)).computedErrors(null, null);
   }
 
   public void test_computedErrors() throws Exception {
     broadcast.addListener(listenerA);
     broadcast.addListener(listenerB);
-    broadcast.computedErrors(null, null, null);
-    verify(listenerA, times(1)).computedErrors(null, null, null);
-    verify(listenerB, times(1)).computedErrors(null, null, null);
+    broadcast.computedErrors(null, null);
+    verify(listenerA, times(1)).computedErrors(null, null);
+    verify(listenerB, times(1)).computedErrors(null, null);
   }
 
   public void test_computedHighlights() throws Exception {
     broadcast.addListener(listenerA);
     broadcast.addListener(listenerB);
-    broadcast.computedHighlights(null, null, null);
-    verify(listenerA, times(1)).computedHighlights(null, null, null);
-    verify(listenerB, times(1)).computedHighlights(null, null, null);
+    broadcast.computedHighlights(null, null);
+    verify(listenerA, times(1)).computedHighlights(null, null);
+    verify(listenerB, times(1)).computedHighlights(null, null);
   }
 
   public void test_computedNavigation() throws Exception {
     broadcast.addListener(listenerA);
     broadcast.addListener(listenerB);
-    broadcast.computedNavigation(null, null, null);
-    verify(listenerA, times(1)).computedNavigation(null, null, null);
-    verify(listenerB, times(1)).computedNavigation(null, null, null);
+    broadcast.computedNavigation(null, null);
+    verify(listenerA, times(1)).computedNavigation(null, null);
+    verify(listenerB, times(1)).computedNavigation(null, null);
   }
 
   public void test_computedOutline() throws Exception {
     broadcast.addListener(listenerA);
     broadcast.addListener(listenerB);
-    broadcast.computedOutline(null, null, null);
-    verify(listenerA, times(1)).computedOutline(null, null, null);
-    verify(listenerB, times(1)).computedOutline(null, null, null);
+    broadcast.computedOutline(null, null);
+    verify(listenerA, times(1)).computedOutline(null, null);
+    verify(listenerB, times(1)).computedOutline(null, null);
   }
 
   public void test_onServerError() throws Exception {
@@ -82,15 +82,15 @@ public class BroadcastAnalysisServerListenerTest extends TestCase {
     AnalysisServerError error = new AnalysisServerError(
         AnalysisServerErrorCode.DISCONNECTED,
         "Connection lost");
-    broadcast.onServerError(error);
-    verify(listenerA, times(1)).onServerError(error);
-    verify(listenerB, times(1)).onServerError(error);
+    broadcast.serverError(error);
+    verify(listenerA, times(1)).serverError(error);
+    verify(listenerB, times(1)).serverError(error);
   }
 
   public void test_removeListener() throws Exception {
     broadcast.addListener(listenerA);
     broadcast.removeListener(listenerA);
-    broadcast.computedErrors(null, null, null);
-    verify(listenerA, times(0)).computedErrors(null, null, null);
+    broadcast.computedErrors(null, null);
+    verify(listenerA, times(0)).computedErrors(null, null);
   }
 }

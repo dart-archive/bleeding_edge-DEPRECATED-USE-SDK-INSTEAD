@@ -28,12 +28,12 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
     server.addAnalysisServerListener(listener);
     // ping listener
     server.test_pingListeners();
-    verify(listener, times(1)).computedErrors(null, null, null);
+    verify(listener, times(1)).computedErrors(null, null);
     reset(listener);
     // add second time, still one time
     server.addAnalysisServerListener(listener);
     server.test_pingListeners();
-    verify(listener, times(1)).computedErrors(null, null, null);
+    verify(listener, times(1)).computedErrors(null, null);
     reset(listener);
   }
 
@@ -194,12 +194,12 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
     server.addAnalysisServerListener(listener);
     // ping listener
     server.test_pingListeners();
-    verify(listener, times(1)).computedErrors(null, null, null);
+    verify(listener, times(1)).computedErrors(null, null);
     reset(listener);
     // remove listener
     server.removeAnalysisServerListener(listener);
     server.test_pingListeners();
-    verify(listener, times(0)).computedErrors(null, null, null);
+    verify(listener, times(0)).computedErrors(null, null);
     reset(listener);
   }
 

@@ -16,10 +16,8 @@ package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
-import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
@@ -38,60 +36,44 @@ import java.util.Set;
  * @coverage dart.tools.core.model
  */
 public class AnalysisServerDataImpl implements AnalysisServerData {
-  private final Map<String, Map<Source, AnalysisError[]>> errorData = Maps.newHashMap();
-  private final Map<String, Map<Source, NavigationRegion[]>> navigationData = Maps.newHashMap();
-  private final Map<String, Set<Source>> navigationSubscriptions = Maps.newHashMap();
-  private final Map<String, Map<Source, Set<AnalysisServerOutlineListener>>> outlineSubscriptions = Maps.newHashMap();
-  private final Map<String, Map<Source, Set<AnalysisServerHighlightsListener>>> highlightsSubscriptions = Maps.newHashMap();
-  private final Map<String, Set<ErrorCode>> fixableErrorCodesData = Maps.newHashMap();
+  // TODO(scheglov) restore or remove for the new API
+//  private final Map<String, Set<Source>> navigationSubscriptions = Maps.newHashMap();
+  private final Map<String, Set<AnalysisServerHighlightsListener>> highlightsSubscriptions = Maps.newHashMap();
+  private final Map<String, Set<AnalysisServerOutlineListener>> outlineSubscriptions = Maps.newHashMap();
+  private final Map<String, AnalysisError[]> errorData = Maps.newHashMap();
+  private final Map<String, NavigationRegion[]> navigationData = Maps.newHashMap();
+  // TODO(scheglov) restore or remove for the new API
+//  private final Map<String, Set<ErrorCode>> fixableErrorCodesData = Maps.newHashMap();
 
   private AnalysisServer server;
 
   @Override
-  public AnalysisError[] getErrors(String contextId, Source source) {
-    Map<Source, AnalysisError[]> contextErrors = errorData.get(contextId);
-    if (contextErrors == null) {
+  public AnalysisError[] getErrors(String file) {
+    AnalysisError[] errors = errorData.get(file);
+    if (errors == null) {
       return AnalysisError.NO_ERRORS;
     }
-    AnalysisError[] sourceErrors = contextErrors.get(source);
-    if (sourceErrors == null) {
-      return AnalysisError.NO_ERRORS;
-    }
-    return sourceErrors;
+    return errors;
   }
 
   @Override
-  public NavigationRegion[] getNavigation(String contextId, Source source) {
-    Map<Source, NavigationRegion[]> contextRegions = navigationData.get(contextId);
-    if (contextRegions == null) {
-      return NavigationRegion.EMPTY_ARRAY;
-    }
-    NavigationRegion[] sourceRegions = contextRegions.get(source);
+  public NavigationRegion[] getNavigation(String file) {
+    NavigationRegion[] sourceRegions = navigationData.get(file);
     if (sourceRegions == null) {
       return NavigationRegion.EMPTY_ARRAY;
     }
     return sourceRegions;
   }
 
-  /**
-   * Deletes all the data associated with the given context.
-   */
-  public void internalDeleteContext(String contextId) {
-    errorData.remove(contextId);
-    navigationData.remove(contextId);
-    navigationSubscriptions.remove(contextId);
-    outlineSubscriptions.remove(contextId);
-    highlightsSubscriptions.remove(contextId);
-    fixableErrorCodesData.remove(contextId);
-  }
-
   @Override
-  public boolean isFixableErrorCode(String contextId, ErrorCode errorCode) {
-    Set<ErrorCode> fixableErrorCodes = fixableErrorCodesData.get(contextId);
-    if (fixableErrorCodes == null) {
-      return false;
-    }
-    return fixableErrorCodes.contains(errorCode);
+  public boolean isFixableErrorCode(String file, ErrorCode errorCode) {
+    // TODO(scheglov) restore or remove for the new API
+    return false;
+//    Set<ErrorCode> fixableErrorCodes = fixableErrorCodesData.get(contextId);
+//    if (fixableErrorCodes == null) {
+//      return false;
+//    }
+//    return fixableErrorCodes.contains(errorCode);
   }
 
   /**
@@ -102,8 +84,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public void subscribeHighlights(String contextId, Source source,
-      AnalysisServerHighlightsListener listener) {
+  public void subscribeHighlights(String file, AnalysisServerHighlightsListener listener) {
     // TODO(scheglov) restore or remove for the new API
 //    Map<Source, Set<AnalysisServerHighlightsListener>> sourceSubscriptions = highlightsSubscriptions.get(contextId);
 //    if (sourceSubscriptions == null) {
@@ -124,7 +105,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public void subscribeNavigation(String contextId, Source source) {
+  public void subscribeNavigation(String file) {
     // TODO(scheglov) restore or remove for the new API
 //    Set<Source> sources = navigationSubscriptions.get(contextId);
 //    if (sources == null) {
@@ -139,8 +120,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public void subscribeOutline(String contextId, Source source,
-      AnalysisServerOutlineListener listener) {
+  public void subscribeOutline(String file, AnalysisServerOutlineListener listener) {
     // TODO(scheglov) restore or remove for the new API
 //    Map<Source, Set<AnalysisServerOutlineListener>> sourceSubscriptions = outlineSubscriptions.get(contextId);
 //    if (sourceSubscriptions == null) {
@@ -161,8 +141,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public void unsubscribeHighlights(String contextId, Source source,
-      AnalysisServerHighlightsListener listener) {
+  public void unsubscribeHighlights(String file, AnalysisServerHighlightsListener listener) {
     // TODO(scheglov) restore or remove for the new API
 //    Map<Source, Set<AnalysisServerHighlightsListener>> sourceSubscriptions = highlightsSubscriptions.get(contextId);
 //    if (sourceSubscriptions == null) {
@@ -184,7 +163,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public void unsubscribeNavigation(String contextId, Source source) {
+  public void unsubscribeNavigation(String file) {
     // TODO(scheglov) restore or remove for the new API
 //    Set<Source> sources = navigationSubscriptions.get(contextId);
 //    if (sources == null) {
@@ -198,8 +177,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
-  public void unsubscribeOutline(String contextId, Source source,
-      AnalysisServerOutlineListener listener) {
+  public void unsubscribeOutline(String file, AnalysisServerOutlineListener listener) {
     // TODO(scheglov) restore or remove for the new API
 //    Map<Source, Set<AnalysisServerOutlineListener>> sourceSubscriptions = outlineSubscriptions.get(contextId);
 //    if (sourceSubscriptions == null) {
@@ -220,58 +198,41 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
 //    }
   }
 
-  void internalComputedErrors(String contextId, Source source, AnalysisError[] errors) {
-    Map<Source, AnalysisError[]> contextErrors = errorData.get(contextId);
-    if (contextErrors == null) {
-      contextErrors = Maps.newHashMap();
-      errorData.put(contextId, contextErrors);
-    }
-    contextErrors.put(source, errors);
+  void internalComputedErrors(String file, AnalysisError[] errors) {
+    errorData.put(file, errors);
   }
 
-  void internalComputedHighlights(String contextId, Source source, HighlightRegion[] highlights) {
-    Map<Source, Set<AnalysisServerHighlightsListener>> sourceSubscriptions = highlightsSubscriptions.get(contextId);
-    if (sourceSubscriptions == null) {
-      return;
-    }
-    Set<AnalysisServerHighlightsListener> subscriptions = sourceSubscriptions.get(source);
+  void internalComputedHighlights(String file, HighlightRegion[] highlights) {
+    Set<AnalysisServerHighlightsListener> subscriptions = highlightsSubscriptions.get(file);
     if (subscriptions == null) {
       return;
     }
     subscriptions = ImmutableSet.copyOf(subscriptions);
     for (AnalysisServerHighlightsListener listener : subscriptions) {
-      listener.computedHighlights(contextId, source, highlights);
+      listener.computedHighlights(file, highlights);
     }
   }
 
-  void internalComputedNavigation(String contextId, Source source, NavigationRegion[] targets) {
-    Map<Source, NavigationRegion[]> contextRegions = navigationData.get(contextId);
-    if (contextRegions == null) {
-      contextRegions = Maps.newHashMap();
-      navigationData.put(contextId, contextRegions);
-    }
-    contextRegions.put(source, targets);
+  void internalComputedNavigation(String file, NavigationRegion[] targets) {
+    navigationData.put(file, targets);
   }
 
-  void internalComputedOutline(String contextId, Source source, Outline outline) {
-    Map<Source, Set<AnalysisServerOutlineListener>> sourceSubscriptions = outlineSubscriptions.get(contextId);
-    if (sourceSubscriptions == null) {
-      return;
-    }
-    Set<AnalysisServerOutlineListener> subscriptions = sourceSubscriptions.get(source);
+  void internalComputedOutline(String file, Outline outline) {
+    Set<AnalysisServerOutlineListener> subscriptions = outlineSubscriptions.get(file);
     if (subscriptions == null) {
       return;
     }
     subscriptions = ImmutableSet.copyOf(subscriptions);
     for (AnalysisServerOutlineListener listener : subscriptions) {
-      listener.computedOutline(contextId, source, outline);
+      listener.computedOutline(file, outline);
     }
   }
 
   /**
    * Remembers the {@link ErrorCode} that may be fixed in the given context.
    */
-  void internalSetFixableErrorCodes(String contextId, ErrorCode[] errorCodes) {
-    fixableErrorCodesData.put(contextId, Sets.newHashSet(errorCodes));
+  void internalSetFixableErrorCodes(String file, ErrorCode[] errorCodes) {
+    // TODO(scheglov) restore or remove for the new API
+//    fixableErrorCodesData.put(contextId, Sets.newHashSet(errorCodes));
   }
 }

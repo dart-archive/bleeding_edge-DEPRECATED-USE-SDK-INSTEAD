@@ -13,6 +13,12 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.services.refactoring.Parameter;
+
+import java.util.List;
+import java.util.Map;
+
 /**
  * The interface {@code AnalysisServer} defines the behavior of objects that interface to an
  * analysis server.
@@ -28,136 +34,101 @@ public interface AnalysisServer {
    */
   public void addAnalysisServerListener(AnalysisServerListener listener);
 
-//  /**
-//   * Inform the specified context that the specified sources should be analyzed as indicated.
-//   * 
-//   * @param contextId the identifier of the context to be notified
-//   * @param delta indications of what analysis should be performed
-//   */
-//  public void applyAnalysisDelta(String contextId, AnalysisDelta delta);
-//
-//  /**
-//   * Inform the specified context that the changes encoded in the change set have been made. Any
-//   * invalidated analysis results will be flushed from the context.
-//   * 
-//   * @param contextId the identifier of the context to which the changes are to be applied
-//   * @param changeSet the change set to be applied
-//   */
-//  public void applyChanges(String contextId, ChangeSet changeSet);
-//
-//  /**
-//   * Performs the final validation and computes a change to apply the specific refactoring. This
-//   * method may be invoked several times, for example after changing options using
-//   * {@link #setRefactoringExtractLocalOptions(String, boolean, String)}. When done,
-//   * {@link #deleteRefactoring(String)} should be invoked.
-//   * 
-//   * @param refactoringId the identifier of the refactoring to apply
-//   * @param consumer the results listener
-//   */
-//  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer);
-//
-//  /**
-//   * Computes code completion suggestions at the given position in the {@link Source}. The given
-//   * consumer is invoked asynchronously on a different thread.
-//   * 
-//   * @param contextId the identifier of the context to compute suggestions within
-//   * @param source the {@link Source} to perform completion within
-//   * @param offset the offset within the {@code source}
-//   * @param consumer the results listener
-//   */
-//  public void computeCompletionSuggestions(String contextId, Source source, int offset,
-//      CompletionSuggestionsConsumer consumer);
-//
-//  /**
-//   * Computes the set of fixes that are available for problems related to the given error. The given
-//   * consumer is invoked asynchronously on a different thread.
-//   * 
-//   * @param contextId the identifier of the context in which the source was analyzed
-//   * @param errors the errors for which fixes are being requested
-//   * @param consumer the results listener
-//   */
-//  public void computeFixes(String contextId, AnalysisError[] errors, FixesConsumer consumer);
-//
-//  /**
-//   * Computes a set of minor refactorings which can be performed at the given offset in the given
-//   * {@link Source}. The given consumer is invoked asynchronously on a different thread.
-//   * 
-//   * @param contextId the identifier of the context to perform refactorings within
-//   * @param source the {@link Source} to perform refactorings within
-//   * @param offset the offset within the {@code source}
-//   * @param length the length of the selected code within the {@code source}
-//   * @param consumer the results listener
-//   */
-//  public void computeMinorRefactorings(String contextId, Source source, int offset, int length,
-//      MinorRefactoringsConsumer consumer);
-//
-//  /**
-//   * Computes a type hierarchy for the given {@link Element} - class or member. The given consumer
-//   * is invoked asynchronously on a different thread.
-//   * 
-//   * @param contextId the identifier of the context to compute hierarchy within
-//   * @param element the {@link Element} to compute hierarchy for
-//   * @param consumer the results listener
-//   */
-//  public void computeTypeHierarchy(String contextId, Element element, TypeHierarchyConsumer consumer);
-//
-//  /**
-//   * Create a new context in which analysis can be performed. The context that is created will
-//   * persist until {@link #deleteContext(String)} is used to delete it. Clients, therefore, are
-//   * responsible for managing the lifetime of contexts.
-//   * 
-//   * @param name the name of the context, used for debugging purposes
-//   * @param sdkDirectory the path to the root directory of the Dart SDK
-//   * @param packageMap a table mapping package names to the path of the directory containing the
-//   *          package
-//   * @return an identifier used to identify the context that was created
-//   */
-//  public String createContext(String name, String sdkDirectory, Map<String, String> packageMap);
-//
-//  /**
-//   * Create a new "Extract Local" refactoring. The refactoring that is created will persist until
-//   * {@link #deleteRefactoring(String)} is used to delete it. Clients, therefore, are responsible
-//   * for managing the lifetime of refactorings.
-//   * 
-//   * @param contextId the identifier of the context to create refactoring within
-//   * @param source the {@link Source} to create refactoring within
-//   * @param offset the offset within the {@code source}
-//   * @param length the length of the selected code within the {@code source}
-//   * @param consumer the results listener
-//   */
-//  public void createRefactoringExtractLocal(String contextId, Source source, int offset,
-//      int length, RefactoringExtractLocalConsumer consumer);
-//
-//  /**
-//   * Create a new "Extract Method" refactoring. The refactoring that is created will persist until
-//   * {@link #deleteRefactoring(String)} is used to delete it. Clients, therefore, are responsible
-//   * for managing the lifetime of refactorings.
-//   * 
-//   * @param contextId the identifier of the context to create refactoring within
-//   * @param source the {@link Source} to create refactoring within
-//   * @param offset the offset within the {@code source}
-//   * @param length the length of the selected code within the {@code source}
-//   * @param consumer the results listener
-//   */
-//  public void createRefactoringExtractMethod(String contextId, Source source, int offset,
-//      int length, RefactoringExtractMethodConsumer consumer);
-//
-//  /**
-//   * Delete the context with the given id. Future attempts to use the context id will result in an
-//   * error being returned.
-//   * 
-//   * @param contextId the identifier of the context to be deleted
-//   */
-//  public void deleteContext(String contextId);
-//
-//  /**
-//   * Delete the refactoring with the given id. Future attempts to use the refactoring id will result
-//   * in an error being returned.
-//   * 
-//   * @param refactoringId the identifier of the refactoring to be deleted
-//   */
-//  public void deleteRefactoring(String refactoringId);
-//
+  /**
+   * Performs the final validation and computes a change to apply the specific refactoring. This
+   * method may be invoked several times, for example after changing options using
+   * {@link #setRefactoringExtractLocalOptions(String, boolean, String)}. When done,
+   * {@link #deleteRefactoring(String)} should be invoked.
+   * 
+   * @param refactoringId the identifier of the refactoring to apply
+   * @param consumer the results listener
+   */
+  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer);
+
+  /**
+   * Create a new "Extract Local" refactoring. The refactoring that is created will persist until
+   * {@link #deleteRefactoring(String)} is used to delete it. Clients, therefore, are responsible
+   * for managing the lifetime of refactorings.
+   * 
+   * @param file the file to create refactoring within
+   * @param offset the offset within the file
+   * @param length the length of the selected code within the file
+   * @param consumer the results listener
+   */
+  public void createRefactoringExtractLocal(String file, int offset, int length,
+      RefactoringExtractLocalConsumer consumer);
+
+  /**
+   * Create a new "Extract Method" refactoring. The refactoring that is created will persist until
+   * {@link #deleteRefactoring(String)} is used to delete it. Clients, therefore, are responsible
+   * for managing the lifetime of refactorings.
+   * 
+   * @param file the file to create refactoring within
+   * @param offset the offset within the file
+   * @param length the length of the selected code within the file
+   * @param consumer the results listener
+   */
+  public void createRefactoringExtractMethod(String file, int offset, int length,
+      RefactoringExtractMethodConsumer consumer);
+
+  /**
+   * Delete the refactoring with the given id. Future attempts to use the refactoring id will result
+   * in an error being returned.
+   * 
+   * @param refactoringId the identifier of the refactoring to be deleted
+   */
+  public void deleteRefactoring(String refactoringId);
+
+  /**
+   * Computes code completion suggestions at the given position in the file. The given consumer is
+   * invoked asynchronously on a different thread.
+   * 
+   * @param file the file containing the point at which suggestions are to be made
+   * @param offset the offset within the {@code source}
+   * @param consumer the results listener
+   */
+  public void getCompletionSuggestions(String file, int offset,
+      CompletionSuggestionsConsumer consumer);
+
+  /**
+   * Computes a set of fixes that are available for the given list of errors. The given consumer is
+   * invoked asynchronously on a different thread.
+   * 
+   * @param errors the errors for which fixes are being requested
+   * @param consumer the results listener
+   */
+  public void getFixes(List<AnalysisError> errors, FixesConsumer consumer);
+
+  /**
+   * Computes a the set of minor refactorings that are available at the given location. A minor
+   * refactoring is distinguished from a regular refactoring primarily by the fact that it affects a
+   * single file and does not require user input in order to be performed. The given consumer is
+   * invoked asynchronously on a different thread.
+   * 
+   * @param file the file containing the range for which refactorings are being requested
+   * @param offset the offset of the region used to compute the refactorings
+   * @param length the length of the region used to compute the refactorings
+   * @param consumer the results listener
+   */
+  public void getMinorRefactorings(String file, int offset, int length,
+      MinorRefactoringsConsumer consumer);
+
+  /**
+   * Computes a type hierarchy for the given {@link Element} - class or member. The given consumer
+   * is invoked asynchronously on a different thread.
+   * 
+   * @param element the {@link Element} to compute hierarchy for
+   * @param consumer the results listener
+   */
+  public void getTypeHierarchy(Element element, TypeHierarchyConsumer consumer);
+
+  /**
+   * Return the version number of the analysis server.
+   * 
+   * @param consumer the results listener
+   */
+  public void getVersion(VersionConsumer consumer);
+
 //  /**
 //   * Reports with a set of {@link ErrorCode}s for which server may be able to {@link #computeFixes}
 //   * in the given context.
@@ -168,13 +139,6 @@ public interface AnalysisServer {
 //  public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer);
 
   /**
-   * Return the version number of the analysis server.
-   * 
-   * @param consumer the results listener
-   */
-  public void getVersion(VersionConsumer consumer);
-
-  /**
    * Remove the given listener from the list of listeners that will receive notification when new
    * analysis results become available.
    * 
@@ -182,107 +146,150 @@ public interface AnalysisServer {
    */
   public void removeAnalysisServerListener(AnalysisServerListener listener);
 
-//  /**
-//   * Searches for declarations of class members with the given name. The given consumer is invoked
-//   * asynchronously on a different thread.
-//   * 
-//   * @param name the name of a member
-//   * @param consumer the results listener
-//   */
-//  public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer);
-//
-//  /**
-//   * Searches for resolved and unresolved references to class members with the given name. The given
-//   * consumer is invoked asynchronously on a different thread.
-//   * 
-//   * @param name the name of a member
-//   * @param consumer the results listener
-//   */
-//  public void searchClassMemberReferences(String name, SearchResultsConsumer consumer);
-//
-//  /**
-//   * Searches for references to the given element.
-//   * <p>
-//   * If the given element is a class member, then also references to all corresponding members in
-//   * the class hierarchy are searched.
-//   * <p>
-//   * If the given element is a class member and {@code withPotential} is {@code true}, then
-//   * potential references should also be reported.
-//   * <p>
-//   * The given consumer is invoked asynchronously on a different thread.
-//   * 
-//   * @param element the element to find references to, not {@code null}
-//   * @param withPotential is {@code true} if potential references should also be reported
-//   * @param consumer the results listener
-//   */
-//  public void searchElementReferences(Element element, boolean withPotential,
-//      SearchResultsConsumer consumer);
-//
-//  /**
-//   * Searches the given context for declarations of top-level elements with names matching the given
-//   * pattern. The given consumer is invoked asynchronously on a different thread.
-//   * 
-//   * @param contextId the context to search declarations in, {@code null} to search in the universe
-//   * @param pattern the regular expression to match names against, not {@code null}
-//   * @param consumer the results listener
-//   */
-//  public void searchTopLevelDeclarations(String contextId, String pattern,
-//      SearchResultsConsumer consumer);
-//
-//  /**
-//   * Set the options controlling analysis within a context to the given set of options.
-//   * 
-//   * @param contextId the identifier of the context to which the options are to be applied
-//   * @param options the options to be applied
-//   */
-//  public void setOptions(String contextId, AnalysisOptions options);
-//
-//  /**
-//   * Set the priority sources in the specified context to the sources in the given array.
-//   * 
-//   * @param contextId the identifier of the context to which the priority sources are to be applied
-//   * @param sources the sources to be given priority over other sources
-//   */
-//  public void setPrioritySources(String contextId, Source[] sources);
-//
-//  /**
-//   * Set the options for the "Extract Local" refactoring instance.
-//   * 
-//   * @param refactoringId the identifier of the refactoring to which the options are to be applied
-//   * @param allOccurrences is {@code true} if all of the expression occurrences should be extracted
-//   * @param name the name of the variable
-//   * @param consumer the results listener
-//   */
-//  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
-//      String name, RefactoringOptionsValidationConsumer consumer);
-//
-//  /**
-//   * Set the options for the "Extract Method" refactoring instance.
-//   * 
-//   * @param refactoringId the identifier of the refactoring to which the options are to be applied
-//   * @param name the name of the method to extract
-//   * @param asGetter is {@code true} if a getter should be extracted instead of a regular method
-//   * @param allOccurrences is {@code true} if all of the expression occurrences should be extracted
-//   * @param parameters the parameters of the extracted method
-//   * @param consumer the results listener
-//   */
-//  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
-//      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
-//      RefactoringExtractMethodOptionsValidationConsumer consumer);
+  /**
+   * Searches for declarations of class members with the given name. The given consumer is invoked
+   * asynchronously on a different thread.
+   * 
+   * @param name the name of a member
+   * @param consumer the results listener
+   */
+  public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer);
+
+  /**
+   * Searches for resolved and unresolved references to class members with the given name. The given
+   * consumer is invoked asynchronously on a different thread.
+   * 
+   * @param name the name of a member
+   * @param consumer the results listener
+   */
+  public void searchClassMemberReferences(String name, SearchResultsConsumer consumer);
+
+  /**
+   * Searches for references to the given element.
+   * <p>
+   * If the given element is a class member, then also references to all corresponding members in
+   * the class hierarchy are searched.
+   * <p>
+   * If the given element is a class member and {@code withPotential} is {@code true}, then
+   * potential references should also be reported.
+   * <p>
+   * The given consumer is invoked asynchronously on a different thread.
+   * 
+   * @param element the element to find references to, not {@code null}
+   * @param withPotential is {@code true} if potential references should also be reported
+   * @param consumer the results listener
+   */
+  public void searchElementReferences(Element element, boolean withPotential,
+      SearchResultsConsumer consumer);
+
+  /**
+   * Searches the given context for declarations of top-level elements with names matching the given
+   * pattern. The given consumer is invoked asynchronously on a different thread.
+   * 
+   * @param pattern the regular expression to match names against, not {@code null}
+   * @param consumer the results listener
+   */
+  public void searchTopLevelDeclarations(String pattern, SearchResultsConsumer consumer);
+
+  /**
+   * Sets the root paths used to determine which files to analyze. The set of files to be analyzed
+   * are all of the files in one of the included paths that are not also in one of the excluded
+   * paths.
+   * 
+   * @param includedPaths a list of the files and directories that should be analyzed
+   * @param excludedPaths a list of the files and directories within the included directories that
+   *          should <em>not</em> be analyzed
+   */
+  public void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths);
+
+  /**
+   * Subscribe for services. All previous subscriptions are replaced by the current set of
+   * subscriptions. If a given service is not included as a key in the map then no files will be
+   * subscribed to the service, exactly as if the service had been included in the map with an
+   * explicit empty list of files.
+   * 
+   * @param subscriptions a list of the services being subscribed to.
+   */
+  public void setAnalysisSubscriptions(Map<AnalysisService, List<String>> subscriptions);
+
+  /**
+   * Set the content of one or more files.
+   * 
+   * @param files a table mapping the files whose content has changed to a description of the
+   *          content
+   */
+  public void setContent(Map<String, ContentChange> files);
+
+  /**
+   * Set the priority files to the files in the given list. A priority file is a file that is given
+   * priority when scheduling which analysis work to do first. The list typically contains those
+   * files that are visible to the user and those for which analysis results will have the biggest
+   * impact on the user experience.
+   * 
+   * @param files the files that are to be a priority for analysis
+   */
+  public void setPriorityFiles(List<String> files);
+
+  /**
+   * Set the options for the "Extract Local" refactoring instance.
+   * 
+   * @param refactoringId the identifier of the refactoring to which the options are to be applied
+   * @param allOccurrences is {@code true} if all of the expression occurrences should be extracted
+   * @param name the name of the variable
+   * @param consumer the results listener
+   */
+  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
+      String name, RefactoringOptionsValidationConsumer consumer);
+
+  /**
+   * Set the options for the "Extract Method" refactoring instance.
+   * 
+   * @param refactoringId the identifier of the refactoring to which the options are to be applied
+   * @param name the name of the method to extract
+   * @param asGetter is {@code true} if a getter should be extracted instead of a regular method
+   * @param allOccurrences is {@code true} if all of the expression occurrences should be extracted
+   * @param parameters the parameters of the extracted method
+   * @param consumer the results listener
+   */
+  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
+      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
+      RefactoringExtractMethodOptionsValidationConsumer consumer);
+
+  /**
+   * Subscribe for server services.
+   * <p>
+   * All previous subscriptions are replaced by the given set of subscriptions.
+   * 
+   * @param subscriptions a list of the services being subscribed to.
+   */
+  public void setServerSubscriptions(List<ServerService> subscriptions);
 
   /**
    * Cleanly shutdown the analysis server.
    */
   public void shutdown();
 
-//  /**
-//   * Updates subscriptions for one or more notifications.
-//   * <p>
-//   * The source sets associated with notification kinds that are not included in the map are not
-//   * changed.
-//   * 
-//   * @param contextId the identifier of the context for which the subscriptions are to be updated
-//   * @param subscriptions a table mapping notification kinds to the source sets
-//   */
-//  public void subscribe(String contextId, Map<NotificationKind, SourceSet> subscriptions);
+  /**
+   * Update the options controlling analysis based on the given set of options. Any options that are
+   * {@code null} will not be changed. If there are options that are not valid an error will be
+   * reported but the values of the valid options will still be updated.
+   * 
+   * @param options the options that are to control analysis
+   */
+  public void updateAnalysisOptions(AnalysisOptions options);
+
+  /**
+   * Update the set of SDK locations known to the server by adding and removing the given paths. If
+   * there are multiple SDK locations with the same version number, the last such location will be
+   * used and the other locations will be implicitly removed.
+   * 
+   * @param added the list of directories to be added to the set of SDK locations known to the
+   *          server.
+   * @param removed the list of directories to be removed from the set of SDK locations known to the
+   *          server
+   * @param defaultSdk the directory containing the SDK to be used when there are no version
+   *          constraints on the SDK. If no default SDK is specified then the default will not be
+   *          changed.
+   */
+  public void updateSdks(List<String> added, List<String> removed, String defaultSdk);
 }

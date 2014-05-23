@@ -15,16 +15,12 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
-
-import org.eclipse.core.resources.IResource;
 
 /**
  * Implementation of {@link AnalysisServerListener} for the Eclipse workspace.
@@ -37,39 +33,43 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedErrors(String contextId, Source source, AnalysisError[] errors) {
-    dataImpl.internalComputedErrors(contextId, source, errors);
-    IResource resource = DartCore.getProjectManager().getResource(source);
-    if (resource != null) {
-      // TODO(scheglov) Analysis Server: LineInfo
-      AnalysisMarkerManager.getInstance().queueErrors(resource, null, errors);
-    }
+  public void computedErrors(String file, AnalysisError[] errors) {
+    // TODO(scheglov) restore or remove for the new API
+//    dataImpl.internalComputedErrors(contextId, source, errors);
+//    IResource resource = DartCore.getProjectManager().getResource(source);
+//    if (resource != null) {
+//      // TODO(scheglov) Analysis Server: LineInfo
+//      AnalysisMarkerManager.getInstance().queueErrors(resource, null, errors);
+//    }
   }
 
   @Override
-  public void computedHighlights(String contextId, Source source, HighlightRegion[] highlights) {
-    dataImpl.internalComputedHighlights(contextId, source, highlights);
+  public void computedHighlights(String file, HighlightRegion[] highlights) {
+    dataImpl.internalComputedHighlights(file, highlights);
   }
 
   @Override
-  public void computedNavigation(String contextId, Source source, NavigationRegion[] targets) {
-    dataImpl.internalComputedNavigation(contextId, source, targets);
+  public void computedNavigation(String file, NavigationRegion[] targets) {
+    dataImpl.internalComputedNavigation(file, targets);
   }
 
   @Override
-  public void computedOutline(String contextId, Source source, Outline outline) {
-    dataImpl.internalComputedOutline(contextId, source, outline);
-  }
-
-  /**
-   * Deletes all the data associated with the given context.
-   */
-  public void internalDeleteContext(String contextId) {
-    dataImpl.internalDeleteContext(contextId);
+  public void computedOutline(String file, Outline outline) {
+    dataImpl.internalComputedOutline(file, outline);
   }
 
   @Override
-  public void onServerError(AnalysisServerError error) {
+  public void serverConnected() {
+    // TODO(scheglov) Analysis Server
+  }
+
+  @Override
+  public void serverError(AnalysisServerError error) {
+    // TODO(scheglov) Analysis Server
+  }
+
+  @Override
+  public void serverStatus(AnalysisStatus analysis) {
     // TODO(scheglov) Analysis Server
   }
 }
