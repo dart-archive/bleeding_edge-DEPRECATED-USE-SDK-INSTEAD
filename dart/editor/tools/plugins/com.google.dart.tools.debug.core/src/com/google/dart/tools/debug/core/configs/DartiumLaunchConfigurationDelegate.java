@@ -25,6 +25,7 @@ import com.google.dart.tools.debug.core.pubserve.PubServeManager;
 import com.google.dart.tools.debug.core.pubserve.PubServeResourceResolver;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
+import com.google.dart.tools.debug.core.util.LaunchConfigResourceResolver;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
 import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
 import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
@@ -161,6 +162,7 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
             e));
       }
     } else {
+      // launch url
       url = launchConfig.getUrl();
 
       BrowserManager.getManager().launchBrowser(
@@ -169,8 +171,7 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
           url,
           monitor,
           enableDebugging,
-          // TODO(keertip): refactor for use with different pub serves
-          new PubServeResourceResolver());
+          new LaunchConfigResourceResolver(launchConfig));
     }
   }
 
@@ -178,6 +179,7 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
       DartLaunchConfigWrapper launchConfig) throws CoreException {
     BrowserManager manager = BrowserManager.getManager();
 
+    // TODO(keertip): refactor resolver for use with different pub serves
     manager.launchBrowser(
         launch,
         launchConfig,
@@ -185,6 +187,6 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
         new NullProgressMonitor(),
         enableDebugging,
         new PubServeResourceResolver());
-    //new LaunchConfigResourceResolver(launchConfig));
+
   }
 }
