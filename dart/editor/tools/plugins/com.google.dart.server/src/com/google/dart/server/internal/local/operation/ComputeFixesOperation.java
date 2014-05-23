@@ -47,6 +47,7 @@ public class ComputeFixesOperation implements ContextServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalComputeFixes(contextId, errors, consumer);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalComputeFixes(contextId, errors, consumer);
   }
 }

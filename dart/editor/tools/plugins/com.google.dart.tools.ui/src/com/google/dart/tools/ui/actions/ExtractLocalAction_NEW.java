@@ -13,33 +13,16 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.dart.engine.services.status.RefactoringStatus;
-import com.google.dart.engine.source.Source;
-import com.google.dart.server.RefactoringExtractLocalConsumer;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.refactoring.ExtractLocalWizard_NEW;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
-import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.ServerExtractLocalRefactoring;
-import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
-import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.progress.IProgressService;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * {@link Action} for "Extract Local" refactoring.
@@ -89,72 +72,73 @@ public class ExtractLocalAction_NEW extends AbstractRefactoringAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    final String contextId = selection.getEditor().getInputAnalysisContextId();
-    final Source source = selection.getEditor().getInputSource();
-    if (contextId == null || source == null) {
-      return;
-    }
-    final int offset = selection.getOffset();
-    final int length = selection.getLength();
-    // prepare refactoring
-    refactoring = null;
-    Control focusControl = Display.getCurrent().getFocusControl();
-    try {
-      IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
-      progressService.busyCursorWhile(new IRunnableWithProgress() {
-        @Override
-        public void run(IProgressMonitor pm) throws InterruptedException {
-          final CountDownLatch latch = new CountDownLatch(1);
-          DartCore.getAnalysisServer().createRefactoringExtractLocal(
-              contextId,
-              source,
-              offset,
-              length,
-              new RefactoringExtractLocalConsumer() {
-                @Override
-                public void computed(String refactoringId, RefactoringStatus status,
-                    boolean hasSeveralOccurrences, String[] proposedNames) {
-                  refactoring = new ServerExtractLocalRefactoring(
-                      refactoringId,
-                      status,
-                      hasSeveralOccurrences,
-                      proposedNames);
-                  latch.countDown();
-                }
-              });
-          while (true) {
-            if (pm.isCanceled()) {
-              throw new InterruptedException();
-            }
-            if (Uninterruptibles.awaitUninterruptibly(latch, 10, TimeUnit.MILLISECONDS)) {
-              break;
-            }
-          }
-        }
-      });
-    } catch (Throwable e) {
-      return;
-    } finally {
-      if (focusControl != null) {
-        focusControl.setFocus();
-      }
-    }
-    if (refactoring == null) {
-      return;
-    }
-    // open dialog
-    try {
-      new RefactoringStarter().activate(
-          new ExtractLocalWizard_NEW(refactoring),
-          getShell(),
-          RefactoringMessages.ExtractLocalAction_dialog_title,
-          RefactoringSaveHelper.SAVE_NOTHING);
-    } catch (Throwable e) {
-      ExceptionHandler.handle(
-          e,
-          "Extract Local",
-          "Unexpected exception occurred. See the error log for more details.");
-    }
+    // TODO(scheglov) restore or remove for the new API
+//    final String contextId = selection.getEditor().getInputAnalysisContextId();
+//    final Source source = selection.getEditor().getInputSource();
+//    if (contextId == null || source == null) {
+//      return;
+//    }
+//    final int offset = selection.getOffset();
+//    final int length = selection.getLength();
+//    // prepare refactoring
+//    refactoring = null;
+//    Control focusControl = Display.getCurrent().getFocusControl();
+//    try {
+//      IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
+//      progressService.busyCursorWhile(new IRunnableWithProgress() {
+//        @Override
+//        public void run(IProgressMonitor pm) throws InterruptedException {
+//          final CountDownLatch latch = new CountDownLatch(1);
+//          DartCore.getAnalysisServer().createRefactoringExtractLocal(
+//              contextId,
+//              source,
+//              offset,
+//              length,
+//              new RefactoringExtractLocalConsumer() {
+//                @Override
+//                public void computed(String refactoringId, RefactoringStatus status,
+//                    boolean hasSeveralOccurrences, String[] proposedNames) {
+//                  refactoring = new ServerExtractLocalRefactoring(
+//                      refactoringId,
+//                      status,
+//                      hasSeveralOccurrences,
+//                      proposedNames);
+//                  latch.countDown();
+//                }
+//              });
+//          while (true) {
+//            if (pm.isCanceled()) {
+//              throw new InterruptedException();
+//            }
+//            if (Uninterruptibles.awaitUninterruptibly(latch, 10, TimeUnit.MILLISECONDS)) {
+//              break;
+//            }
+//          }
+//        }
+//      });
+//    } catch (Throwable e) {
+//      return;
+//    } finally {
+//      if (focusControl != null) {
+//        focusControl.setFocus();
+//      }
+//    }
+//    if (refactoring == null) {
+//      return;
+//    }
+//    // open dialog
+//    try {
+//      new RefactoringStarter().activate(
+//          new ExtractLocalWizard_NEW(refactoring),
+//          getShell(),
+//          RefactoringMessages.ExtractLocalAction_dialog_title,
+//          RefactoringSaveHelper.SAVE_NOTHING);
+//    } catch (Throwable e) {
+//      ExceptionHandler.handle(
+//          e,
+//          "Extract Local",
+//          "Unexpected exception occurred. See the error log for more details.");
+//    }
   }
 
   @Override

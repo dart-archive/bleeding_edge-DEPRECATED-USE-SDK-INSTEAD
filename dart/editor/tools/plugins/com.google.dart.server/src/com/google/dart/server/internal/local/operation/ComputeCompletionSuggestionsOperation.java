@@ -52,6 +52,7 @@ public class ComputeCompletionSuggestionsOperation implements ContextServerOpera
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalComputeCompletionSuggestions(contextId, source, offset, length, consumer);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalComputeCompletionSuggestions(contextId, source, offset, length, consumer);
   }
 }

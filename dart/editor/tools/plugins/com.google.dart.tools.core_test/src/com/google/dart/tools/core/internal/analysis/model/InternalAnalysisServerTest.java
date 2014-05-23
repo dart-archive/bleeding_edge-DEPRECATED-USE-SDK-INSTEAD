@@ -27,9 +27,10 @@ public class InternalAnalysisServerTest extends TestCase {
 
   final InternalAnalysisServer server = ((InternalAnalysisServer) DartCore.getAnalysisServer());
 
-  public void test_getContextMap() {
-    assertNotNull(server.getContextMap());
-  }
+// TODO(scheglov) restore or remove for the new API
+//  public void test_getContextMap() {
+//    assertNotNull(server.getContextMap());
+//  }
 
   public void test_getIndex() throws Exception {
     assertNotNull(server.getIndex());

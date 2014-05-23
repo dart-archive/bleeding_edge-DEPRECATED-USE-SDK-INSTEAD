@@ -14,15 +14,9 @@
 
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.services.status.RefactoringStatus;
-import com.google.dart.server.RefactoringOptionsValidationConsumer;
-import com.google.dart.tools.core.DartCore;
 
 import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils.toLTK;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * LTK wrapper around Analysis Server 'Extract Local' refactoring.
@@ -68,22 +62,23 @@ public class ServerExtractLocalRefactoring extends ServerRefactoring {
   }
 
   private RefactoringStatus setOptions() {
-    final RefactoringStatus[] statusPtr = {null};
-    final CountDownLatch latch = new CountDownLatch(1);
-    DartCore.getAnalysisServer().setRefactoringExtractLocalOptions(
-        id,
-        replaceAllOccurrences,
-        name,
-        new RefactoringOptionsValidationConsumer() {
-          @Override
-          public void computed(RefactoringStatus status) {
-            statusPtr[0] = status;
-            latch.countDown();
-          }
-        });
-    if (Uninterruptibles.awaitUninterruptibly(latch, 100, TimeUnit.MILLISECONDS)) {
-      return statusPtr[0];
-    }
+    // TODO(scheglov) restore or remove for the new API
+//    final RefactoringStatus[] statusPtr = {null};
+//    final CountDownLatch latch = new CountDownLatch(1);
+//    DartCore.getAnalysisServer().setRefactoringExtractLocalOptions(
+//        id,
+//        replaceAllOccurrences,
+//        name,
+//        new RefactoringOptionsValidationConsumer() {
+//          @Override
+//          public void computed(RefactoringStatus status) {
+//            statusPtr[0] = status;
+//            latch.countDown();
+//          }
+//        });
+//    if (Uninterruptibles.awaitUninterruptibly(latch, 100, TimeUnit.MILLISECONDS)) {
+//      return statusPtr[0];
+//    }
     return RefactoringStatus.createFatalErrorStatus("Timeout");
   }
 }

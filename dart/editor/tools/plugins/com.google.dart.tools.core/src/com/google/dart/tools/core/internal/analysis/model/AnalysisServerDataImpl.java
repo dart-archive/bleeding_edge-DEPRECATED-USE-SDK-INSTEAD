@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.core.internal.analysis.model;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -23,9 +22,7 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.HighlightRegion;
-import com.google.dart.server.ListSourceSet;
 import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.NotificationKind;
 import com.google.dart.server.Outline;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
@@ -107,114 +104,120 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   @Override
   public void subscribeHighlights(String contextId, Source source,
       AnalysisServerHighlightsListener listener) {
-    Map<Source, Set<AnalysisServerHighlightsListener>> sourceSubscriptions = highlightsSubscriptions.get(contextId);
-    if (sourceSubscriptions == null) {
-      sourceSubscriptions = Maps.newHashMap();
-      highlightsSubscriptions.put(contextId, sourceSubscriptions);
-    }
-    Set<AnalysisServerHighlightsListener> subscriptions = sourceSubscriptions.get(source);
-    if (subscriptions == null) {
-      subscriptions = Sets.newHashSet();
-      sourceSubscriptions.put(source, subscriptions);
-    }
-    if (subscriptions.add(listener)) {
-      Set<Source> sourceSet = sourceSubscriptions.keySet();
-      server.subscribe(
-          contextId,
-          ImmutableMap.of(NotificationKind.HIGHLIGHTS, ListSourceSet.create(sourceSet)));
-    }
+    // TODO(scheglov) restore or remove for the new API
+//    Map<Source, Set<AnalysisServerHighlightsListener>> sourceSubscriptions = highlightsSubscriptions.get(contextId);
+//    if (sourceSubscriptions == null) {
+//      sourceSubscriptions = Maps.newHashMap();
+//      highlightsSubscriptions.put(contextId, sourceSubscriptions);
+//    }
+//    Set<AnalysisServerHighlightsListener> subscriptions = sourceSubscriptions.get(source);
+//    if (subscriptions == null) {
+//      subscriptions = Sets.newHashSet();
+//      sourceSubscriptions.put(source, subscriptions);
+//    }
+//    if (subscriptions.add(listener)) {
+//      Set<Source> sourceSet = sourceSubscriptions.keySet();
+//      server.subscribe(
+//          contextId,
+//          ImmutableMap.of(NotificationKind.HIGHLIGHTS, ListSourceSet.create(sourceSet)));
+//    }
   }
 
   @Override
   public void subscribeNavigation(String contextId, Source source) {
-    Set<Source> sources = navigationSubscriptions.get(contextId);
-    if (sources == null) {
-      sources = Sets.newHashSet();
-      navigationSubscriptions.put(contextId, sources);
-    }
-    if (sources.add(source)) {
-      server.subscribe(
-          contextId,
-          ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(sources)));
-    }
+    // TODO(scheglov) restore or remove for the new API
+//    Set<Source> sources = navigationSubscriptions.get(contextId);
+//    if (sources == null) {
+//      sources = Sets.newHashSet();
+//      navigationSubscriptions.put(contextId, sources);
+//    }
+//    if (sources.add(source)) {
+//      server.subscribe(
+//          contextId,
+//          ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(sources)));
+//    }
   }
 
   @Override
   public void subscribeOutline(String contextId, Source source,
       AnalysisServerOutlineListener listener) {
-    Map<Source, Set<AnalysisServerOutlineListener>> sourceSubscriptions = outlineSubscriptions.get(contextId);
-    if (sourceSubscriptions == null) {
-      sourceSubscriptions = Maps.newHashMap();
-      outlineSubscriptions.put(contextId, sourceSubscriptions);
-    }
-    Set<AnalysisServerOutlineListener> subscriptions = sourceSubscriptions.get(source);
-    if (subscriptions == null) {
-      subscriptions = Sets.newHashSet();
-      sourceSubscriptions.put(source, subscriptions);
-    }
-    if (subscriptions.add(listener)) {
-      Set<Source> sourceSet = sourceSubscriptions.keySet();
-      server.subscribe(
-          contextId,
-          ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(sourceSet)));
-    }
+    // TODO(scheglov) restore or remove for the new API
+//    Map<Source, Set<AnalysisServerOutlineListener>> sourceSubscriptions = outlineSubscriptions.get(contextId);
+//    if (sourceSubscriptions == null) {
+//      sourceSubscriptions = Maps.newHashMap();
+//      outlineSubscriptions.put(contextId, sourceSubscriptions);
+//    }
+//    Set<AnalysisServerOutlineListener> subscriptions = sourceSubscriptions.get(source);
+//    if (subscriptions == null) {
+//      subscriptions = Sets.newHashSet();
+//      sourceSubscriptions.put(source, subscriptions);
+//    }
+//    if (subscriptions.add(listener)) {
+//      Set<Source> sourceSet = sourceSubscriptions.keySet();
+//      server.subscribe(
+//          contextId,
+//          ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(sourceSet)));
+//    }
   }
 
   @Override
   public void unsubscribeHighlights(String contextId, Source source,
       AnalysisServerHighlightsListener listener) {
-    Map<Source, Set<AnalysisServerHighlightsListener>> sourceSubscriptions = highlightsSubscriptions.get(contextId);
-    if (sourceSubscriptions == null) {
-      return;
-    }
-    Set<AnalysisServerHighlightsListener> subscriptions = sourceSubscriptions.get(source);
-    if (subscriptions == null) {
-      return;
-    }
-    if (subscriptions.remove(listener)) {
-      if (subscriptions.isEmpty()) {
-        sourceSubscriptions.remove(source);
-        Set<Source> sourceSet = sourceSubscriptions.keySet();
-        server.subscribe(
-            contextId,
-            ImmutableMap.of(NotificationKind.HIGHLIGHTS, ListSourceSet.create(sourceSet)));
-      }
-    }
+    // TODO(scheglov) restore or remove for the new API
+//    Map<Source, Set<AnalysisServerHighlightsListener>> sourceSubscriptions = highlightsSubscriptions.get(contextId);
+//    if (sourceSubscriptions == null) {
+//      return;
+//    }
+//    Set<AnalysisServerHighlightsListener> subscriptions = sourceSubscriptions.get(source);
+//    if (subscriptions == null) {
+//      return;
+//    }
+//    if (subscriptions.remove(listener)) {
+//      if (subscriptions.isEmpty()) {
+//        sourceSubscriptions.remove(source);
+//        Set<Source> sourceSet = sourceSubscriptions.keySet();
+//        server.subscribe(
+//            contextId,
+//            ImmutableMap.of(NotificationKind.HIGHLIGHTS, ListSourceSet.create(sourceSet)));
+//      }
+//    }
   }
 
   @Override
   public void unsubscribeNavigation(String contextId, Source source) {
-    Set<Source> sources = navigationSubscriptions.get(contextId);
-    if (sources == null) {
-      return;
-    }
-    if (sources.remove(source)) {
-      server.subscribe(
-          contextId,
-          ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(sources)));
-    }
+    // TODO(scheglov) restore or remove for the new API
+//    Set<Source> sources = navigationSubscriptions.get(contextId);
+//    if (sources == null) {
+//      return;
+//    }
+//    if (sources.remove(source)) {
+//      server.subscribe(
+//          contextId,
+//          ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(sources)));
+//    }
   }
 
   @Override
   public void unsubscribeOutline(String contextId, Source source,
       AnalysisServerOutlineListener listener) {
-    Map<Source, Set<AnalysisServerOutlineListener>> sourceSubscriptions = outlineSubscriptions.get(contextId);
-    if (sourceSubscriptions == null) {
-      return;
-    }
-    Set<AnalysisServerOutlineListener> subscriptions = sourceSubscriptions.get(source);
-    if (subscriptions == null) {
-      return;
-    }
-    if (subscriptions.remove(listener)) {
-      if (subscriptions.isEmpty()) {
-        sourceSubscriptions.remove(source);
-        Set<Source> sourceSet = sourceSubscriptions.keySet();
-        server.subscribe(
-            contextId,
-            ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(sourceSet)));
-      }
-    }
+    // TODO(scheglov) restore or remove for the new API
+//    Map<Source, Set<AnalysisServerOutlineListener>> sourceSubscriptions = outlineSubscriptions.get(contextId);
+//    if (sourceSubscriptions == null) {
+//      return;
+//    }
+//    Set<AnalysisServerOutlineListener> subscriptions = sourceSubscriptions.get(source);
+//    if (subscriptions == null) {
+//      return;
+//    }
+//    if (subscriptions.remove(listener)) {
+//      if (subscriptions.isEmpty()) {
+//        sourceSubscriptions.remove(source);
+//        Set<Source> sourceSet = sourceSubscriptions.keySet();
+//        server.subscribe(
+//            contextId,
+//            ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(sourceSet)));
+//      }
+//    }
   }
 
   void internalComputedErrors(String contextId, Source source, AnalysisError[] errors) {

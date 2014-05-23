@@ -56,6 +56,7 @@ public class SetPrioritySourcesOperation implements ContextServerOperation, Merg
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalSetPrioritySources(contextId, sources);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalSetPrioritySources(contextId, sources);
   }
 }

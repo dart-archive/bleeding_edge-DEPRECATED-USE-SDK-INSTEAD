@@ -14,12 +14,9 @@
 package com.google.dart.tools.internal.search.ui;
 
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.Element;
 import com.google.dart.server.SearchResult;
-import com.google.dart.server.SearchResultsConsumer;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.actions.OpenAction;
@@ -28,7 +25,6 @@ import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
-import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -40,10 +36,7 @@ import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Finds references of the selected entity in the workspace.
@@ -55,51 +48,52 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
    * Shows "Search" view with references to non-local elements with given name.
    */
   public static void searchNameUses(final String name) {
-    try {
-      SearchView view = (SearchView) DartToolsPlugin.showView(SearchView.ID);
-      view.showPage(new SearchResultPage_NEW(view, "Searching for references...", null) {
-        @Override
-        protected boolean canUseFilterPotential() {
-          return false;
-        }
-
-        @Override
-        protected IProject getCurrentProject() {
-          return findCurrentProject();
-        }
-
-        @Override
-        protected String getQueryElementName() {
-          return name;
-        }
-
-        @Override
-        protected String getQueryKindName() {
-          return "references";
-        }
-
-        @Override
-        protected List<SearchResult> runQuery() {
-          final List<SearchResult> allResults = Lists.newArrayList();
-          final CountDownLatch latch = new CountDownLatch(1);
-          DartCore.getAnalysisServer().searchClassMemberReferences(
-              name,
-              new SearchResultsConsumer() {
-                @Override
-                public void computed(SearchResult[] searchResults, boolean isLastResult) {
-                  Collections.addAll(allResults, searchResults);
-                  if (isLastResult) {
-                    latch.countDown();
-                  }
-                }
-              });
-          Uninterruptibles.awaitUninterruptibly(latch, 15, TimeUnit.MINUTES);
-          return allResults;
-        }
-      });
-    } catch (Throwable e) {
-      ExceptionHandler.handle(e, "Find references", "Exception during search.");
-    }
+    // TODO(scheglov) restore or remove for the new API
+//    try {
+//      SearchView view = (SearchView) DartToolsPlugin.showView(SearchView.ID);
+//      view.showPage(new SearchResultPage_NEW(view, "Searching for references...", null) {
+//        @Override
+//        protected boolean canUseFilterPotential() {
+//          return false;
+//        }
+//
+//        @Override
+//        protected IProject getCurrentProject() {
+//          return findCurrentProject();
+//        }
+//
+//        @Override
+//        protected String getQueryElementName() {
+//          return name;
+//        }
+//
+//        @Override
+//        protected String getQueryKindName() {
+//          return "references";
+//        }
+//
+//        @Override
+//        protected List<SearchResult> runQuery() {
+//          final List<SearchResult> allResults = Lists.newArrayList();
+//          final CountDownLatch latch = new CountDownLatch(1);
+//          DartCore.getAnalysisServer().searchClassMemberReferences(
+//              name,
+//              new SearchResultsConsumer() {
+//                @Override
+//                public void computed(SearchResult[] searchResults, boolean isLastResult) {
+//                  Collections.addAll(allResults, searchResults);
+//                  if (isLastResult) {
+//                    latch.countDown();
+//                  }
+//                }
+//              });
+//          Uninterruptibles.awaitUninterruptibly(latch, 15, TimeUnit.MINUTES);
+//          return allResults;
+//        }
+//      });
+//    } catch (Throwable e) {
+//      ExceptionHandler.handle(e, "Find references", "Exception during search.");
+//    }
   }
 
   /**
@@ -182,22 +176,23 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
       @Override
       protected List<SearchResult> runQuery() {
         final List<SearchResult> allResults = Lists.newArrayList();
-        if (element != null) {
-          final CountDownLatch latch = new CountDownLatch(1);
-          DartCore.getAnalysisServer().searchElementReferences(
-              element,
-              true,
-              new SearchResultsConsumer() {
-                @Override
-                public void computed(SearchResult[] searchResults, boolean isLastResult) {
-                  Collections.addAll(allResults, searchResults);
-                  if (isLastResult) {
-                    latch.countDown();
-                  }
-                }
-              });
-          Uninterruptibles.awaitUninterruptibly(latch, 15, TimeUnit.MINUTES);
-        }
+        // TODO(scheglov) restore or remove for the new API
+//        if (element != null) {
+//          final CountDownLatch latch = new CountDownLatch(1);
+//          DartCore.getAnalysisServer().searchElementReferences(
+//              element,
+//              true,
+//              new SearchResultsConsumer() {
+//                @Override
+//                public void computed(SearchResult[] searchResults, boolean isLastResult) {
+//                  Collections.addAll(allResults, searchResults);
+//                  if (isLastResult) {
+//                    latch.countDown();
+//                  }
+//                }
+//              });
+//          Uninterruptibles.awaitUninterruptibly(latch, 15, TimeUnit.MINUTES);
+//        }
         return allResults;
       }
     });

@@ -690,6 +690,7 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static ProjectManager getProjectManager() {
     synchronized (projectManagerLock) {
       if (projectManager == null) {
+        // TODO(scheglov) restore or remove for the new API
         projectManager = new ProjectManagerImpl(
             ResourcesPlugin.getWorkspace().getRoot(),
             DartSdkManager.getManager().getSdk(),

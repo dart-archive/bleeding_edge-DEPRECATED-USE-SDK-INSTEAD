@@ -16,115 +16,33 @@ package com.google.dart.server.internal.local;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.AnalysisDelta;
-import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
-import com.google.dart.engine.context.AnalysisErrorInfo;
-import com.google.dart.engine.context.AnalysisOptions;
-import com.google.dart.engine.context.AnalysisResult;
-import com.google.dart.engine.context.ChangeNotice;
-import com.google.dart.engine.context.ChangeSet;
-import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
-import com.google.dart.engine.internal.context.ChangeNoticeImpl;
 import com.google.dart.engine.sdk.DartSdk;
-import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
-import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.engine.services.change.Change;
-import com.google.dart.engine.services.correction.CorrectionProposal;
-import com.google.dart.engine.services.refactoring.ExtractLocalRefactoring;
-import com.google.dart.engine.services.refactoring.ExtractMethodRefactoring;
-import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.engine.services.refactoring.Refactoring;
-import com.google.dart.engine.services.refactoring.RefactoringFactory;
-import com.google.dart.engine.services.status.RefactoringStatus;
-import com.google.dart.engine.source.DartUriResolver;
-import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.CompletionSuggestion;
-import com.google.dart.server.CompletionSuggestionsConsumer;
-import com.google.dart.server.Element;
-import com.google.dart.server.FixableErrorCodesConsumer;
-import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.InternalAnalysisServer;
-import com.google.dart.server.MinorRefactoringsConsumer;
 import com.google.dart.server.NotificationKind;
-import com.google.dart.server.RefactoringApplyConsumer;
-import com.google.dart.server.RefactoringExtractLocalConsumer;
-import com.google.dart.server.RefactoringExtractMethodConsumer;
-import com.google.dart.server.RefactoringExtractMethodOptionsValidationConsumer;
-import com.google.dart.server.RefactoringOptionsValidationConsumer;
-import com.google.dart.server.SearchResult;
-import com.google.dart.server.SearchResultsConsumer;
-import com.google.dart.server.SourceSet;
-import com.google.dart.server.TypeHierarchyConsumer;
-import com.google.dart.server.TypeHierarchyItem;
 import com.google.dart.server.VersionConsumer;
-import com.google.dart.server.internal.local.computer.ClassMemberDeclarationsComputer;
-import com.google.dart.server.internal.local.computer.ClassMemberReferencesComputer;
-import com.google.dart.server.internal.local.computer.DartUnitCompletionSuggestionsComputer;
-import com.google.dart.server.internal.local.computer.DartUnitFixesComputer;
-import com.google.dart.server.internal.local.computer.DartUnitHighlightsComputer;
-import com.google.dart.server.internal.local.computer.DartUnitMinorRefactoringsComputer;
-import com.google.dart.server.internal.local.computer.DartUnitNavigationComputer;
-import com.google.dart.server.internal.local.computer.DartUnitOutlineComputer;
-import com.google.dart.server.internal.local.computer.ElementReferencesComputer;
-import com.google.dart.server.internal.local.computer.TopLevelDeclarationsComputer;
-import com.google.dart.server.internal.local.computer.TypeHierarchyComputer;
-import com.google.dart.server.internal.local.operation.ApplyAnalysisDeltaOperation;
-import com.google.dart.server.internal.local.operation.ApplyChangesOperation;
-import com.google.dart.server.internal.local.operation.ApplyRefactoringOperation;
-import com.google.dart.server.internal.local.operation.ComputeCompletionSuggestionsOperation;
-import com.google.dart.server.internal.local.operation.ComputeFixesOperation;
-import com.google.dart.server.internal.local.operation.ComputeMinorRefactoringsOperation;
-import com.google.dart.server.internal.local.operation.ComputeTypeHierarchyOperation;
-import com.google.dart.server.internal.local.operation.CreateContextOperation;
-import com.google.dart.server.internal.local.operation.CreateRefactoringExtractLocalOperation;
-import com.google.dart.server.internal.local.operation.CreateRefactoringExtractMethodOperation;
-import com.google.dart.server.internal.local.operation.DeleteContextOperation;
-import com.google.dart.server.internal.local.operation.DeleteRefactoringOperation;
-import com.google.dart.server.internal.local.operation.GetContextOperation;
-import com.google.dart.server.internal.local.operation.GetFixableErrorCodesOperation;
 import com.google.dart.server.internal.local.operation.GetVersionOperation;
-import com.google.dart.server.internal.local.operation.NotificationOperation;
 import com.google.dart.server.internal.local.operation.PerformAnalysisOperation;
-import com.google.dart.server.internal.local.operation.SearchClassMemberDeclarationsOperation;
-import com.google.dart.server.internal.local.operation.SearchClassMemberReferencesOperation;
-import com.google.dart.server.internal.local.operation.SearchElementReferencesOperation;
-import com.google.dart.server.internal.local.operation.SearchTopLevelDeclarationsOperation;
 import com.google.dart.server.internal.local.operation.ServerOperation;
 import com.google.dart.server.internal.local.operation.ServerOperationQueue;
-import com.google.dart.server.internal.local.operation.SetOptionsOperation;
-import com.google.dart.server.internal.local.operation.SetPrioritySourcesOperation;
-import com.google.dart.server.internal.local.operation.SetRefactoringExtractLocalOptionsOperation;
-import com.google.dart.server.internal.local.operation.SetRefactoringExtractMethodOptionsOperation;
 import com.google.dart.server.internal.local.operation.ShutdownOperation;
-import com.google.dart.server.internal.local.operation.SubscribeOperation;
-import com.google.dart.server.internal.local.source.FileResource;
-import com.google.dart.server.internal.local.source.PackageMapUriResolver;
-import com.google.dart.server.internal.local.source.Resource;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -289,108 +207,108 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     this.listener.addListener(listener);
   }
 
-  @Override
-  public void applyAnalysisDelta(String contextId, AnalysisDelta delta) {
-    operationQueue.add(new ApplyAnalysisDeltaOperation(contextId, delta));
-  }
-
-  @Override
-  public void applyChanges(String contextId, ChangeSet changeSet) {
-    operationQueue.add(new ApplyChangesOperation(contextId, changeSet));
-  }
-
-  @Override
-  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
-    operationQueue.add(new ApplyRefactoringOperation(refactoringId, consumer));
-  }
-
-  @Override
-  public void computeCompletionSuggestions(String contextId, Source source, int offset,
-      CompletionSuggestionsConsumer consumer) {
-    operationQueue.add(new ComputeCompletionSuggestionsOperation(
-        contextId,
-        source,
-        offset,
-        offset,
-        consumer));
-  }
-
-  @Override
-  public void computeFixes(String contextId, AnalysisError[] errors, FixesConsumer consumer) {
-    operationQueue.add(new ComputeFixesOperation(contextId, errors, consumer));
-  }
-
-  @Override
-  public void computeMinorRefactorings(String contextId, Source source, int offset, int length,
-      MinorRefactoringsConsumer consumer) {
-    operationQueue.add(new ComputeMinorRefactoringsOperation(
-        contextId,
-        source,
-        offset,
-        length,
-        consumer));
-  }
-
-  @Override
-  public void computeTypeHierarchy(String contextId, Element element, TypeHierarchyConsumer consumer) {
-    operationQueue.add(new ComputeTypeHierarchyOperation(contextId, element, consumer));
-  }
-
-  @Override
-  public String createContext(String name, String sdkDirectory, Map<String, String> packageMap) {
-    String contextId = name + "-" + nextContextId++;
-    operationQueue.add(new CreateContextOperation(contextId, sdkDirectory, packageMap));
-    return contextId;
-  }
-
-  @Override
-  public void createRefactoringExtractLocal(String contextId, Source source, int offset,
-      int length, RefactoringExtractLocalConsumer consumer) {
-    operationQueue.add(new CreateRefactoringExtractLocalOperation(
-        contextId,
-        source,
-        offset,
-        length,
-        consumer));
-  }
-
-  @Override
-  public void createRefactoringExtractMethod(String contextId, Source source, int offset,
-      int length, RefactoringExtractMethodConsumer consumer) {
-    operationQueue.add(new CreateRefactoringExtractMethodOperation(
-        contextId,
-        source,
-        offset,
-        length,
-        consumer));
-  }
-
-  @Override
-  public void deleteContext(String contextId) {
-    operationQueue.add(new DeleteContextOperation(contextId));
-  }
-
-  @Override
-  public void deleteRefactoring(String refactoringId) {
-    operationQueue.add(new DeleteRefactoringOperation(refactoringId));
-  }
-
-  @Override
-  public AnalysisContext getContext(String contextId) {
-    GetContextOperation operation = new GetContextOperation(contextId);
-    operationQueue.add(operation);
-    return operation.getContext();
-  }
-
-  @Override
-  public Map<String, AnalysisContext> getContextMap() {
-    return contextMap;
-  }
-
-  @Override
-  public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer) {
-    operationQueue.add(new GetFixableErrorCodesOperation(contextId, consumer));
-  }
+//  @Override
+//  public void applyAnalysisDelta(String contextId, AnalysisDelta delta) {
+//    operationQueue.add(new ApplyAnalysisDeltaOperation(contextId, delta));
+//  }
+//
+//  @Override
+//  public void applyChanges(String contextId, ChangeSet changeSet) {
+//    operationQueue.add(new ApplyChangesOperation(contextId, changeSet));
+//  }
+//
+//  @Override
+//  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
+//    operationQueue.add(new ApplyRefactoringOperation(refactoringId, consumer));
+//  }
+//
+//  @Override
+//  public void computeCompletionSuggestions(String contextId, Source source, int offset,
+//      CompletionSuggestionsConsumer consumer) {
+//    operationQueue.add(new ComputeCompletionSuggestionsOperation(
+//        contextId,
+//        source,
+//        offset,
+//        offset,
+//        consumer));
+//  }
+//
+//  @Override
+//  public void computeFixes(String contextId, AnalysisError[] errors, FixesConsumer consumer) {
+//    operationQueue.add(new ComputeFixesOperation(contextId, errors, consumer));
+//  }
+//
+//  @Override
+//  public void computeMinorRefactorings(String contextId, Source source, int offset, int length,
+//      MinorRefactoringsConsumer consumer) {
+//    operationQueue.add(new ComputeMinorRefactoringsOperation(
+//        contextId,
+//        source,
+//        offset,
+//        length,
+//        consumer));
+//  }
+//
+//  @Override
+//  public void computeTypeHierarchy(String contextId, Element element, TypeHierarchyConsumer consumer) {
+//    operationQueue.add(new ComputeTypeHierarchyOperation(contextId, element, consumer));
+//  }
+//
+//  @Override
+//  public String createContext(String name, String sdkDirectory, Map<String, String> packageMap) {
+//    String contextId = name + "-" + nextContextId++;
+//    operationQueue.add(new CreateContextOperation(contextId, sdkDirectory, packageMap));
+//    return contextId;
+//  }
+//
+//  @Override
+//  public void createRefactoringExtractLocal(String contextId, Source source, int offset,
+//      int length, RefactoringExtractLocalConsumer consumer) {
+//    operationQueue.add(new CreateRefactoringExtractLocalOperation(
+//        contextId,
+//        source,
+//        offset,
+//        length,
+//        consumer));
+//  }
+//
+//  @Override
+//  public void createRefactoringExtractMethod(String contextId, Source source, int offset,
+//      int length, RefactoringExtractMethodConsumer consumer) {
+//    operationQueue.add(new CreateRefactoringExtractMethodOperation(
+//        contextId,
+//        source,
+//        offset,
+//        length,
+//        consumer));
+//  }
+//
+//  @Override
+//  public void deleteContext(String contextId) {
+//    operationQueue.add(new DeleteContextOperation(contextId));
+//  }
+//
+//  @Override
+//  public void deleteRefactoring(String refactoringId) {
+//    operationQueue.add(new DeleteRefactoringOperation(refactoringId));
+//  }
+//
+//  @Override
+//  public AnalysisContext getContext(String contextId) {
+//    GetContextOperation operation = new GetContextOperation(contextId);
+//    operationQueue.add(operation);
+//    return operation.getContext();
+//  }
+//
+//  @Override
+//  public Map<String, AnalysisContext> getContextMap() {
+//    return contextMap;
+//  }
+//
+//  @Override
+//  public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer) {
+//    operationQueue.add(new GetFixableErrorCodesOperation(contextId, consumer));
+//  }
 
   @Override
   public Index getIndex() {
@@ -402,278 +320,278 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     operationQueue.add(new GetVersionOperation(consumer));
   }
 
-  /**
-   * Implementation for {@link #applyAnalysisDelta(String, AnalysisDelta)}.
-   */
-  public void internalApplyAnalysisDelta(String contextId, AnalysisDelta delta) {
-    AnalysisContext context = getAnalysisContext(contextId);
-    Set<Source> sourcesMap = getSourcesMap(contextId, contextAddedSourcesMap);
-    for (Entry<Source, AnalysisLevel> entry : delta.getAnalysisLevels().entrySet()) {
-      Source source = entry.getKey();
-      if (entry.getValue() == AnalysisLevel.NONE) {
-        sourcesMap.remove(source);
-      } else {
-        sourcesMap.add(source);
-      }
-    }
-    context.applyAnalysisDelta(delta);
-    schedulePerformAnalysisOperation(contextId, false);
-  }
-
-  /**
-   * Implementation for {@link #applyChanges(String, ChangeSet)}.
-   */
-  public void internalApplyChanges(String contextId, ChangeSet changeSet) throws Exception {
-    AnalysisContext context = getAnalysisContext(contextId);
-    getSourcesMap(contextId, contextAddedSourcesMap).addAll(changeSet.getAddedSources());
-    context.applyChanges(changeSet);
-    schedulePerformAnalysisOperation(contextId, false);
-  }
-
-  public void internalApplyRefactoring(String refactoringId, RefactoringApplyConsumer consumer)
-      throws Exception {
-    Refactoring refactoring = getRefactoring(refactoringId);
-    RefactoringStatus status = refactoring.checkFinalConditions(null);
-    Change change = null;
-    if (!status.hasFatalError()) {
-      change = refactoring.createChange(null);
-    }
-    consumer.computed(status, change);
-  }
-
-  /**
-   * Implementation for {@link #computeCompletionSuggestions}.
-   */
-  public void internalComputeCompletionSuggestions(String contextId, Source source, int offset,
-      int length, CompletionSuggestionsConsumer consumer) throws Exception {
-    AnalysisContext analysisContext = getAnalysisContext(contextId);
-    Source[] librarySources = analysisContext.getLibrariesContaining(source);
-    if (librarySources.length != 0) {
-      Source librarySource = librarySources[0];
-      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
-      CompletionSuggestion[] suggestions = CompletionSuggestion.EMPTY_ARRAY;
-      if (unit != null) {
-        suggestions = new DartUnitCompletionSuggestionsComputer(
-            searchEngine,
-            contextId,
-            analysisContext,
-            source,
-            unit,
-            offset).compute();
-      }
-      consumer.computed(suggestions);
-    }
-  }
-
-  /**
-   * Implementation for {@link #computeFixes(String, AnalysisError[], FixesConsumer)}.
-   */
-  public void internalComputeFixes(String contextId, AnalysisError[] errors, FixesConsumer consumer)
-      throws Exception {
-    log("internalComputeFixes: %s", errors.length);
-    AnalysisContext analysisContext = getAnalysisContext(contextId);
-    for (AnalysisError error : errors) {
-      Source source = error.getSource();
-      Source[] librarySources = analysisContext.getLibrariesContaining(source);
-      if (librarySources.length != 0) {
-        Source librarySource = librarySources[0];
-        CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
-        if (unit != null) {
-          new DartUnitFixesComputer(searchEngine, contextId, analysisContext, unit, error, consumer).compute();
-        }
-      }
-    }
-    // send "done" notification
-    consumer.computedFixes(Maps.<AnalysisError, CorrectionProposal[]> newHashMap(), true);
-  }
-
-  /**
-   * Implementation for
-   * {@link #computeMinorRefactorings(String, Source, int, MinorRefactoringsConsumer)}.
-   */
-  public void internalComputeMinorRefactorings(String contextId, Source source, int offset,
-      int length, MinorRefactoringsConsumer consumer) throws Exception {
-    AnalysisContext analysisContext = getAnalysisContext(contextId);
-    Source[] librarySources = analysisContext.getLibrariesContaining(source);
-    if (librarySources.length != 0) {
-      Source librarySource = librarySources[0];
-      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
-      if (unit != null) {
-        new DartUnitMinorRefactoringsComputer(
-            searchEngine,
-            contextId,
-            analysisContext,
-            source,
-            unit,
-            offset,
-            length,
-            consumer).compute();
-      }
-    }
-    consumer.computedProposals(CorrectionProposal.EMPTY_ARRAY, true);
-  }
-
-  /**
-   * Implementation for {@link #computeTypeHierarchy(String, Element, TypeHierarchyConsumer)}.
-   */
-  public void internalComputeTypeHierarchy(String contextId, Element element,
-      TypeHierarchyConsumer consumer) throws Exception {
-    TypeHierarchyItem result = null;
-    // prepare context
-    AnalysisContext analysisContext = getAnalysisContext(contextId);
-    Source source = element.getSource();
-    Source[] librarySources = analysisContext.getLibrariesContaining(source);
-    // compute
-    if (librarySources.length != 0) {
-      Source librarySource = librarySources[0];
-      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
-      if (unit != null) {
-        CompilationUnitElement unitElement = unit.getElement();
-        result = new TypeHierarchyComputer(searchEngine, contextId, unitElement, element).compute();
-      }
-    }
-    // done
-    consumer.computedHierarchy(result);
-  }
-
-  /**
-   * Implementation for {@link #createContext(String, String, Map)}.
-   */
-  public void internalCreateContext(String contextId, String sdkDirectory,
-      Map<String, String> packageMap) throws Exception {
-    AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
-    DartSdk sdk = getSdk(contextId, sdkDirectory);
-    // prepare package map
-    Map<String, Resource> packageResourceMap = Maps.newHashMap();
-    for (Entry<String, String> entry : packageMap.entrySet()) {
-      String packageName = entry.getKey();
-      String packageDirName = entry.getValue();
-      File packageDir = new File(packageDirName);
-      FileResource packageResource = new FileResource(packageDir);
-      packageResourceMap.put(packageName, packageResource);
-    }
-    // set source factory
-    SourceFactory sourceFactory = new SourceFactory(
-        new DartUriResolver(sdk),
-        new FileUriResolver(),
-        new PackageMapUriResolver(packageResourceMap));
-    context.setSourceFactory(sourceFactory);
-    // add context
-    contextMap.put(contextId, context);
-    schedulePerformAnalysisOperation(contextId, false);
-  }
-
-  /**
-   * Implementation for {@link #createRefactoringExtractLocal}.
-   */
-  public void internalCreateRefactoringExtractLocal(String contextId, Source source, int offset,
-      int length, RefactoringExtractLocalConsumer consumer) throws Exception {
-    AnalysisContext analysisContext = getAnalysisContext(contextId);
-    Source[] librarySources = analysisContext.getLibrariesContaining(source);
-    if (librarySources.length != 0) {
-      Source librarySource = librarySources[0];
-      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
-      if (unit != null) {
-        // prepare context
-        AssistContext assistContext = new AssistContext(
-            searchEngine,
-            analysisContext,
-            contextId,
-            source,
-            unit,
-            offset,
-            length);
-        // prepare refactoring
-        ExtractLocalRefactoring refactoring = RefactoringFactory.createExtractLocalRefactoring(assistContext);
-        RefactoringStatus status = refactoring.checkInitialConditions(null);
-        // fail if FATAL
-        if (status.hasFatalError()) {
-          consumer.computed(null, status, false, null);
-          return;
-        }
-        // OK, register this refactoring
-        String refactoringId = "extractLocal-" + nextRefactoringId++;
-        refactoringMap.put(refactoringId, refactoring);
-        consumer.computed(
-            refactoringId,
-            status,
-            refactoring.hasSeveralOccurrences(),
-            refactoring.guessNames());
-      }
-    }
-  }
-
-  /**
-   * Implementation for {@link #createRefactoringExtractMethod}.
-   */
-  public void internalCreateRefactoringExtractMethod(String contextId, Source source, int offset,
-      int length, RefactoringExtractMethodConsumer consumer) throws Exception {
-    AnalysisContext analysisContext = getAnalysisContext(contextId);
-    Source[] librarySources = analysisContext.getLibrariesContaining(source);
-    if (librarySources.length != 0) {
-      Source librarySource = librarySources[0];
-      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
-      if (unit != null) {
-        // prepare context
-        AssistContext assistContext = new AssistContext(
-            searchEngine,
-            analysisContext,
-            contextId,
-            source,
-            unit,
-            offset,
-            length);
-        // prepare refactoring
-        ExtractMethodRefactoring refactoring = RefactoringFactory.createExtractMethodRefactoring(assistContext);
-        RefactoringStatus status = refactoring.checkInitialConditions(null);
-        // fail if FATAL
-        if (status.hasFatalError()) {
-          consumer.computed(null, status, 0, false, null);
-          return;
-        }
-        // OK, register this refactoring
-        String refactoringId = "extractMethod-" + nextRefactoringId++;
-        refactoringMap.put(refactoringId, refactoring);
-        consumer.computed(
-            refactoringId,
-            status,
-            refactoring.getNumberOfOccurrences(),
-            refactoring.canExtractGetter(),
-            refactoring.getParameters());
-      }
-    }
-  }
-
-  /**
-   * Implementation for {@link #deleteContext(String)}.
-   */
-  public void internalDeleteContext(String contextId) throws Exception {
-    // stop processing this context
-    operationQueue.removeWithContextId(contextId);
-    // remove associated information
-    contextKnownSourcesMap.remove(contextId);
-    contextAddedSourcesMap.remove(contextId);
-    notificationMap.remove(contextId);
-    // prepare context
-    AnalysisContext context = contextMap.remove(contextId);
-    if (context == null) {
-      throw new AnalysisServerErrorException(AnalysisServerErrorCode.INVALID_CONTEXT_ID, contextId);
-    }
-    // remove from index
-    index.removeContext(context);
-  }
-
-  public void internalDeleteRefactoring(String refactoringId) {
-    Refactoring refactoring = refactoringMap.remove(refactoringId);
-    if (refactoring == null) {
-      onServerError(AnalysisServerErrorCode.INVALID_REFACTORING_ID, refactoring);
-    }
-  }
-
-  public void internalGetFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer) {
-    ErrorCode[] fixableErrorCodes = DartUnitFixesComputer.getFixableErrorCodes();
-    consumer.computed(fixableErrorCodes);
-  }
+//  /**
+//   * Implementation for {@link #applyAnalysisDelta(String, AnalysisDelta)}.
+//   */
+//  public void internalApplyAnalysisDelta(String contextId, AnalysisDelta delta) {
+//    AnalysisContext context = getAnalysisContext(contextId);
+//    Set<Source> sourcesMap = getSourcesMap(contextId, contextAddedSourcesMap);
+//    for (Entry<Source, AnalysisLevel> entry : delta.getAnalysisLevels().entrySet()) {
+//      Source source = entry.getKey();
+//      if (entry.getValue() == AnalysisLevel.NONE) {
+//        sourcesMap.remove(source);
+//      } else {
+//        sourcesMap.add(source);
+//      }
+//    }
+//    context.applyAnalysisDelta(delta);
+//    schedulePerformAnalysisOperation(contextId, false);
+//  }
+//
+//  /**
+//   * Implementation for {@link #applyChanges(String, ChangeSet)}.
+//   */
+//  public void internalApplyChanges(String contextId, ChangeSet changeSet) throws Exception {
+//    AnalysisContext context = getAnalysisContext(contextId);
+//    getSourcesMap(contextId, contextAddedSourcesMap).addAll(changeSet.getAddedSources());
+//    context.applyChanges(changeSet);
+//    schedulePerformAnalysisOperation(contextId, false);
+//  }
+//
+//  public void internalApplyRefactoring(String refactoringId, RefactoringApplyConsumer consumer)
+//      throws Exception {
+//    Refactoring refactoring = getRefactoring(refactoringId);
+//    RefactoringStatus status = refactoring.checkFinalConditions(null);
+//    Change change = null;
+//    if (!status.hasFatalError()) {
+//      change = refactoring.createChange(null);
+//    }
+//    consumer.computed(status, change);
+//  }
+//
+//  /**
+//   * Implementation for {@link #computeCompletionSuggestions}.
+//   */
+//  public void internalComputeCompletionSuggestions(String contextId, Source source, int offset,
+//      int length, CompletionSuggestionsConsumer consumer) throws Exception {
+//    AnalysisContext analysisContext = getAnalysisContext(contextId);
+//    Source[] librarySources = analysisContext.getLibrariesContaining(source);
+//    if (librarySources.length != 0) {
+//      Source librarySource = librarySources[0];
+//      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+//      CompletionSuggestion[] suggestions = CompletionSuggestion.EMPTY_ARRAY;
+//      if (unit != null) {
+//        suggestions = new DartUnitCompletionSuggestionsComputer(
+//            searchEngine,
+//            contextId,
+//            analysisContext,
+//            source,
+//            unit,
+//            offset).compute();
+//      }
+//      consumer.computed(suggestions);
+//    }
+//  }
+//
+//  /**
+//   * Implementation for {@link #computeFixes(String, AnalysisError[], FixesConsumer)}.
+//   */
+//  public void internalComputeFixes(String contextId, AnalysisError[] errors, FixesConsumer consumer)
+//      throws Exception {
+//    log("internalComputeFixes: %s", errors.length);
+//    AnalysisContext analysisContext = getAnalysisContext(contextId);
+//    for (AnalysisError error : errors) {
+//      Source source = error.getSource();
+//      Source[] librarySources = analysisContext.getLibrariesContaining(source);
+//      if (librarySources.length != 0) {
+//        Source librarySource = librarySources[0];
+//        CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+//        if (unit != null) {
+//          new DartUnitFixesComputer(searchEngine, contextId, analysisContext, unit, error, consumer).compute();
+//        }
+//      }
+//    }
+//    // send "done" notification
+//    consumer.computedFixes(Maps.<AnalysisError, CorrectionProposal[]> newHashMap(), true);
+//  }
+//
+//  /**
+//   * Implementation for
+//   * {@link #computeMinorRefactorings(String, Source, int, MinorRefactoringsConsumer)}.
+//   */
+//  public void internalComputeMinorRefactorings(String contextId, Source source, int offset,
+//      int length, MinorRefactoringsConsumer consumer) throws Exception {
+//    AnalysisContext analysisContext = getAnalysisContext(contextId);
+//    Source[] librarySources = analysisContext.getLibrariesContaining(source);
+//    if (librarySources.length != 0) {
+//      Source librarySource = librarySources[0];
+//      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+//      if (unit != null) {
+//        new DartUnitMinorRefactoringsComputer(
+//            searchEngine,
+//            contextId,
+//            analysisContext,
+//            source,
+//            unit,
+//            offset,
+//            length,
+//            consumer).compute();
+//      }
+//    }
+//    consumer.computedProposals(CorrectionProposal.EMPTY_ARRAY, true);
+//  }
+//
+//  /**
+//   * Implementation for {@link #computeTypeHierarchy(String, Element, TypeHierarchyConsumer)}.
+//   */
+//  public void internalComputeTypeHierarchy(String contextId, Element element,
+//      TypeHierarchyConsumer consumer) throws Exception {
+//    TypeHierarchyItem result = null;
+//    // prepare context
+//    AnalysisContext analysisContext = getAnalysisContext(contextId);
+//    Source source = element.getSource();
+//    Source[] librarySources = analysisContext.getLibrariesContaining(source);
+//    // compute
+//    if (librarySources.length != 0) {
+//      Source librarySource = librarySources[0];
+//      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+//      if (unit != null) {
+//        CompilationUnitElement unitElement = unit.getElement();
+//        result = new TypeHierarchyComputer(searchEngine, contextId, unitElement, element).compute();
+//      }
+//    }
+//    // done
+//    consumer.computedHierarchy(result);
+//  }
+//
+//  /**
+//   * Implementation for {@link #createContext(String, String, Map)}.
+//   */
+//  public void internalCreateContext(String contextId, String sdkDirectory,
+//      Map<String, String> packageMap) throws Exception {
+//    AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
+//    DartSdk sdk = getSdk(contextId, sdkDirectory);
+//    // prepare package map
+//    Map<String, Resource> packageResourceMap = Maps.newHashMap();
+//    for (Entry<String, String> entry : packageMap.entrySet()) {
+//      String packageName = entry.getKey();
+//      String packageDirName = entry.getValue();
+//      File packageDir = new File(packageDirName);
+//      FileResource packageResource = new FileResource(packageDir);
+//      packageResourceMap.put(packageName, packageResource);
+//    }
+//    // set source factory
+//    SourceFactory sourceFactory = new SourceFactory(
+//        new DartUriResolver(sdk),
+//        new FileUriResolver(),
+//        new PackageMapUriResolver(packageResourceMap));
+//    context.setSourceFactory(sourceFactory);
+//    // add context
+//    contextMap.put(contextId, context);
+//    schedulePerformAnalysisOperation(contextId, false);
+//  }
+//
+//  /**
+//   * Implementation for {@link #createRefactoringExtractLocal}.
+//   */
+//  public void internalCreateRefactoringExtractLocal(String contextId, Source source, int offset,
+//      int length, RefactoringExtractLocalConsumer consumer) throws Exception {
+//    AnalysisContext analysisContext = getAnalysisContext(contextId);
+//    Source[] librarySources = analysisContext.getLibrariesContaining(source);
+//    if (librarySources.length != 0) {
+//      Source librarySource = librarySources[0];
+//      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+//      if (unit != null) {
+//        // prepare context
+//        AssistContext assistContext = new AssistContext(
+//            searchEngine,
+//            analysisContext,
+//            contextId,
+//            source,
+//            unit,
+//            offset,
+//            length);
+//        // prepare refactoring
+//        ExtractLocalRefactoring refactoring = RefactoringFactory.createExtractLocalRefactoring(assistContext);
+//        RefactoringStatus status = refactoring.checkInitialConditions(null);
+//        // fail if FATAL
+//        if (status.hasFatalError()) {
+//          consumer.computed(null, status, false, null);
+//          return;
+//        }
+//        // OK, register this refactoring
+//        String refactoringId = "extractLocal-" + nextRefactoringId++;
+//        refactoringMap.put(refactoringId, refactoring);
+//        consumer.computed(
+//            refactoringId,
+//            status,
+//            refactoring.hasSeveralOccurrences(),
+//            refactoring.guessNames());
+//      }
+//    }
+//  }
+//
+//  /**
+//   * Implementation for {@link #createRefactoringExtractMethod}.
+//   */
+//  public void internalCreateRefactoringExtractMethod(String contextId, Source source, int offset,
+//      int length, RefactoringExtractMethodConsumer consumer) throws Exception {
+//    AnalysisContext analysisContext = getAnalysisContext(contextId);
+//    Source[] librarySources = analysisContext.getLibrariesContaining(source);
+//    if (librarySources.length != 0) {
+//      Source librarySource = librarySources[0];
+//      CompilationUnit unit = analysisContext.resolveCompilationUnit(source, librarySource);
+//      if (unit != null) {
+//        // prepare context
+//        AssistContext assistContext = new AssistContext(
+//            searchEngine,
+//            analysisContext,
+//            contextId,
+//            source,
+//            unit,
+//            offset,
+//            length);
+//        // prepare refactoring
+//        ExtractMethodRefactoring refactoring = RefactoringFactory.createExtractMethodRefactoring(assistContext);
+//        RefactoringStatus status = refactoring.checkInitialConditions(null);
+//        // fail if FATAL
+//        if (status.hasFatalError()) {
+//          consumer.computed(null, status, 0, false, null);
+//          return;
+//        }
+//        // OK, register this refactoring
+//        String refactoringId = "extractMethod-" + nextRefactoringId++;
+//        refactoringMap.put(refactoringId, refactoring);
+//        consumer.computed(
+//            refactoringId,
+//            status,
+//            refactoring.getNumberOfOccurrences(),
+//            refactoring.canExtractGetter(),
+//            refactoring.getParameters());
+//      }
+//    }
+//  }
+//
+//  /**
+//   * Implementation for {@link #deleteContext(String)}.
+//   */
+//  public void internalDeleteContext(String contextId) throws Exception {
+//    // stop processing this context
+//    operationQueue.removeWithContextId(contextId);
+//    // remove associated information
+//    contextKnownSourcesMap.remove(contextId);
+//    contextAddedSourcesMap.remove(contextId);
+//    notificationMap.remove(contextId);
+//    // prepare context
+//    AnalysisContext context = contextMap.remove(contextId);
+//    if (context == null) {
+//      throw new AnalysisServerErrorException(AnalysisServerErrorCode.INVALID_CONTEXT_ID, contextId);
+//    }
+//    // remove from index
+//    index.removeContext(context);
+//  }
+//
+//  public void internalDeleteRefactoring(String refactoringId) {
+//    Refactoring refactoring = refactoringMap.remove(refactoringId);
+//    if (refactoring == null) {
+//      onServerError(AnalysisServerErrorCode.INVALID_REFACTORING_ID, refactoring);
+//    }
+//  }
+//
+//  public void internalGetFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer) {
+//    ErrorCode[] fixableErrorCodes = DartUnitFixesComputer.getFixableErrorCodes();
+//    consumer.computed(fixableErrorCodes);
+//  }
 
   /**
    * Implementation for {@link #getVersion(String)}.
@@ -682,309 +600,309 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     consumer.computedVersion(VERSION);
   }
 
-  /**
-   * Sends one of the {@link NotificationKind}s.
-   */
-  public void internalNotification(String contextId, ChangeNotice changeNotice,
-      NotificationKind kind) throws Exception {
-    Source source = changeNotice.getSource();
-    log("internalNotification: %s with %s", kind, changeNotice);
-    switch (kind) {
-      case ERRORS: {
-        AnalysisError[] errors = changeNotice.getErrors();
-        if (errors == null) {
-          errors = AnalysisError.NO_ERRORS;
-        }
-        log("\tERRORS %s", errors.length);
-        listener.computedErrors(contextId, source, errors);
-        break;
-      }
-      case HIGHLIGHTS: {
-        CompilationUnit dartUnit = changeNotice.getCompilationUnit();
-        log("\tHIGHLIGHTS %s", dartUnit);
-        if (dartUnit != null) {
-          listener.computedHighlights(
-              contextId,
-              source,
-              new DartUnitHighlightsComputer(dartUnit).compute());
-        }
-        break;
-      }
-      case NAVIGATION: {
-        CompilationUnit dartUnit = changeNotice.getCompilationUnit();
-        if (dartUnit != null) {
-          listener.computedNavigation(contextId, source, new DartUnitNavigationComputer(
-              contextId,
-              dartUnit).compute());
-        }
-        break;
-      }
-      case OUTLINE: {
-        CompilationUnit dartUnit = changeNotice.getCompilationUnit();
-        if (dartUnit != null) {
-          listener.computedOutline(contextId, source, new DartUnitOutlineComputer(
-              contextId,
-              source,
-              dartUnit).compute());
-        }
-        break;
-      }
-    }
-  }
-
-  /**
-   * Performs analysis in the given {@link AnalysisContext}.
-   */
-  public void internalPerformAnalysis(String contextId) throws Exception {
-    if (test_analyzedContexts != null) {
-      test_analyzedContexts.add(contextId);
-    }
-    AnalysisContext context = getAnalysisContext(contextId);
-    Set<Source> knownSources = getSourcesMap(contextId, contextKnownSourcesMap);
-    // prepare results
-    AnalysisResult result = context.performAnalysisTask();
-    ChangeNotice[] notices = result.getChangeNotices();
-    log("internalPerformAnalysis: %s", result.getTaskClassName());
-    if (notices == null) {
-      return;
-    }
-    // remember known sources
-    for (ChangeNotice changeNotice : notices) {
-      Source source = changeNotice.getSource();
-      log("\tsource: %s", source);
-      knownSources.add(source);
-    }
-    // index units
-    for (ChangeNotice changeNotice : notices) {
-      CompilationUnit dartUnit = changeNotice.getCompilationUnit();
-      if (dartUnit != null) {
-        index.indexUnit(context, dartUnit);
-      }
-    }
-    // schedule analysis again
-    schedulePerformAnalysisOperation(contextId, true);
-    // schedule notifications
-    Map<NotificationKind, SourceSetBasedProvider> notifications = notificationMap.get(contextId);
-    log("\tnotifications: %s", notifications);
-    if (notifications != null) {
-      for (Entry<NotificationKind, SourceSetBasedProvider> entry : notifications.entrySet()) {
-        NotificationKind notificationKind = entry.getKey();
-        SourceSetBasedProvider sourceProvider = entry.getValue();
-        for (ChangeNotice changeNotice : notices) {
-          Source source = changeNotice.getSource();
-          if (sourceProvider.apply(source)) {
-            log("\tadd NotificationOperation: %s with %s", notificationKind, changeNotice);
-            operationQueue.add(new NotificationOperation(contextId, changeNotice, notificationKind));
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Implementation for {@link #searchClassMemberDeclarations(String, SearchResultsConsumer)}.
-   */
-  public void internalSearchClassMemberDeclarations(String name, SearchResultsConsumer consumer)
-      throws Exception {
-    new ClassMemberDeclarationsComputer(searchEngine, contextToIdFunction, name, consumer).compute();
-    consumer.computed(SearchResult.EMPTY_ARRAY, true);
-  }
-
-  /**
-   * Implementation for {@link #searchClassMemberReferences(String, SearchResultsConsumer)}.
-   */
-  public void internalSearchClassMemberReferences(String name, SearchResultsConsumer consumer)
-      throws Exception {
-    new ClassMemberReferencesComputer(searchEngine, contextToIdFunction, name, consumer).compute();
-    consumer.computed(SearchResult.EMPTY_ARRAY, true);
-  }
-
-  /**
-   * Implementation for {@link #searchElementReferences(Element, boolean, SearchResultsConsumer)}.
-   */
-  public void internalSearchElementReferences(String contextId, Element element,
-      boolean withPotential, SearchResultsConsumer consumer) throws Exception {
-    AnalysisContext context = getAnalysisContext(contextId);
-    new ElementReferencesComputer(
-        searchEngine,
-        contextToIdFunction,
-        context,
-        element,
-        withPotential,
-        consumer).compute();
-    consumer.computed(SearchResult.EMPTY_ARRAY, true);
-  }
-
-  /**
-   * Implementation for {@link #searchTopLevelDeclarations(String, String, SearchResultsConsumer)}.
-   */
-  public void internalSearchTopLevelDeclarations(String contextId, String pattern,
-      SearchResultsConsumer consumer) throws Exception {
-    AnalysisContext context = contextId != null ? getAnalysisContext(contextId) : null;
-    new TopLevelDeclarationsComputer(searchEngine, contextToIdFunction, context, pattern, consumer).compute();
-    consumer.computed(SearchResult.EMPTY_ARRAY, true);
-  }
-
-  /**
-   * Implementation for {@link #setOptions(String, AnalysisOptions)}.
-   */
-  public void internalSetOptions(String contextId, AnalysisOptions options) throws Exception {
-    AnalysisContext context = getAnalysisContext(contextId);
-    context.setAnalysisOptions(options);
-    schedulePerformAnalysisOperation(contextId, false);
-  }
-
-  /**
-   * Implementation for {@link #setPrioritySources(String, Source[])}.
-   */
-  public void internalSetPrioritySources(String contextId, Source[] sources) throws Exception {
-    AnalysisContext context = getAnalysisContext(contextId);
-    context.setAnalysisPriorityOrder(Lists.newArrayList(sources));
-    schedulePerformAnalysisOperation(contextId, false);
-  }
-
-  /**
-   * Implementation for {@link #setRefactoringExtractLocalOptions}.
-   */
-  public void internalSetRefactoringExtractLocalOptions(String refactoringId,
-      boolean allOccurrences, String name, RefactoringOptionsValidationConsumer consumer) {
-    ExtractLocalRefactoring refactoring = (ExtractLocalRefactoring) getRefactoring(refactoringId);
-    refactoring.setReplaceAllOccurrences(allOccurrences);
-    refactoring.setLocalName(name);
-    RefactoringStatus status = refactoring.checkLocalName(name);
-    consumer.computed(status);
-  }
-
-  /**
-   * Implementation for {@link #setRefactoringExtractMethodOptions}.
-   */
-  public void internalSetRefactoringExtractLocalOptions(String refactoringId, String name,
-      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
-      RefactoringExtractMethodOptionsValidationConsumer consumer) {
-    ExtractMethodRefactoring refactoring = (ExtractMethodRefactoring) getRefactoring(refactoringId);
-    refactoring.setMethodName(name);
-    refactoring.setReplaceAllOccurrences(allOccurrences);
-    refactoring.setExtractGetter(asGetter);
-    refactoring.setParameters(parameters);
-    RefactoringStatus status = refactoring.checkMethodName();
-    String signature = refactoring.getSignature();
-    consumer.computed(status, signature);
-  }
-
-  /**
-   * Implementation for {@link #subscribe(String, Map)}.
-   */
-  public void internalSubscribe(String contextId, Map<NotificationKind, SourceSet> subscriptions)
-      throws Exception {
-    log("internalSubscribe: %s", subscriptions);
-    AnalysisContext analysisContext = getAnalysisContext(contextId);
-    Set<Source> knownSources = getSourcesMap(contextId, contextKnownSourcesMap);
-    Set<Source> addedSources = getSourcesMap(contextId, contextAddedSourcesMap);
-    Map<NotificationKind, SourceSetBasedProvider> notifications = notificationMap.get(contextId);
-    if (notifications == null) {
-      notifications = Maps.newHashMap();
-      notificationMap.put(contextId, notifications);
-    }
-    // prepare new sources to send notifications for
-    for (Entry<NotificationKind, SourceSet> entry : subscriptions.entrySet()) {
-      NotificationKind kind = entry.getKey();
-      SourceSet sourceSet = entry.getValue();
-      SourceSetBasedProvider oldProvider = notifications.get(kind);
-      SourceSetBasedProvider newProvider = new SourceSetBasedProvider(
-          sourceSet,
-          knownSources,
-          addedSources);
-      // schedule notification operations for new sources
-      Set<Source> newSources = newProvider.computeNewSources(oldProvider);
-      log("\tnewSources: %s", newSources);
-      for (Source unitSource : newSources) {
-        log("\tunitSource: %s", unitSource);
-        Source[] librarySources = analysisContext.getLibrariesContaining(unitSource);
-        log("\t\tlibrarySources: %s", librarySources.length);
-        if (librarySources.length != 0) {
-          Source librarySource = librarySources[0];
-          log("\t\tlibrarySource: %s", librarySource);
-          CompilationUnit unit = analysisContext.resolveCompilationUnit(unitSource, librarySource);
-          log("\t\tunit: %s", unit);
-          if (unit != null) {
-            AnalysisErrorInfo errorsInfo = analysisContext.getErrors(unitSource);
-            ChangeNoticeImpl changeNotice = new ChangeNoticeImpl(unitSource);
-            changeNotice.setCompilationUnit(unit);
-            changeNotice.setErrors(errorsInfo.getErrors(), errorsInfo.getLineInfo());
-            log("\t\tadd NotificationOperation: %s with %s", kind, changeNotice);
-            operationQueue.add(new NotificationOperation(contextId, changeNotice, kind));
-          }
-        }
-      }
-      // put new provider
-      notifications.put(kind, newProvider);
-    }
-  }
+//  /**
+//   * Sends one of the {@link NotificationKind}s.
+//   */
+//  public void internalNotification(String contextId, ChangeNotice changeNotice,
+//      NotificationKind kind) throws Exception {
+//    Source source = changeNotice.getSource();
+//    log("internalNotification: %s with %s", kind, changeNotice);
+//    switch (kind) {
+//      case ERRORS: {
+//        AnalysisError[] errors = changeNotice.getErrors();
+//        if (errors == null) {
+//          errors = AnalysisError.NO_ERRORS;
+//        }
+//        log("\tERRORS %s", errors.length);
+//        listener.computedErrors(contextId, source, errors);
+//        break;
+//      }
+//      case HIGHLIGHTS: {
+//        CompilationUnit dartUnit = changeNotice.getCompilationUnit();
+//        log("\tHIGHLIGHTS %s", dartUnit);
+//        if (dartUnit != null) {
+//          listener.computedHighlights(
+//              contextId,
+//              source,
+//              new DartUnitHighlightsComputer(dartUnit).compute());
+//        }
+//        break;
+//      }
+//      case NAVIGATION: {
+//        CompilationUnit dartUnit = changeNotice.getCompilationUnit();
+//        if (dartUnit != null) {
+//          listener.computedNavigation(contextId, source, new DartUnitNavigationComputer(
+//              contextId,
+//              dartUnit).compute());
+//        }
+//        break;
+//      }
+//      case OUTLINE: {
+//        CompilationUnit dartUnit = changeNotice.getCompilationUnit();
+//        if (dartUnit != null) {
+//          listener.computedOutline(contextId, source, new DartUnitOutlineComputer(
+//              contextId,
+//              source,
+//              dartUnit).compute());
+//        }
+//        break;
+//      }
+//    }
+//  }
+//
+//  /**
+//   * Performs analysis in the given {@link AnalysisContext}.
+//   */
+//  public void internalPerformAnalysis(String contextId) throws Exception {
+//    if (test_analyzedContexts != null) {
+//      test_analyzedContexts.add(contextId);
+//    }
+//    AnalysisContext context = getAnalysisContext(contextId);
+//    Set<Source> knownSources = getSourcesMap(contextId, contextKnownSourcesMap);
+//    // prepare results
+//    AnalysisResult result = context.performAnalysisTask();
+//    ChangeNotice[] notices = result.getChangeNotices();
+//    log("internalPerformAnalysis: %s", result.getTaskClassName());
+//    if (notices == null) {
+//      return;
+//    }
+//    // remember known sources
+//    for (ChangeNotice changeNotice : notices) {
+//      Source source = changeNotice.getSource();
+//      log("\tsource: %s", source);
+//      knownSources.add(source);
+//    }
+//    // index units
+//    for (ChangeNotice changeNotice : notices) {
+//      CompilationUnit dartUnit = changeNotice.getCompilationUnit();
+//      if (dartUnit != null) {
+//        index.indexUnit(context, dartUnit);
+//      }
+//    }
+//    // schedule analysis again
+//    schedulePerformAnalysisOperation(contextId, true);
+//    // schedule notifications
+//    Map<NotificationKind, SourceSetBasedProvider> notifications = notificationMap.get(contextId);
+//    log("\tnotifications: %s", notifications);
+//    if (notifications != null) {
+//      for (Entry<NotificationKind, SourceSetBasedProvider> entry : notifications.entrySet()) {
+//        NotificationKind notificationKind = entry.getKey();
+//        SourceSetBasedProvider sourceProvider = entry.getValue();
+//        for (ChangeNotice changeNotice : notices) {
+//          Source source = changeNotice.getSource();
+//          if (sourceProvider.apply(source)) {
+//            log("\tadd NotificationOperation: %s with %s", notificationKind, changeNotice);
+//            operationQueue.add(new NotificationOperation(contextId, changeNotice, notificationKind));
+//          }
+//        }
+//      }
+//    }
+//  }
+//
+//  /**
+//   * Implementation for {@link #searchClassMemberDeclarations(String, SearchResultsConsumer)}.
+//   */
+//  public void internalSearchClassMemberDeclarations(String name, SearchResultsConsumer consumer)
+//      throws Exception {
+//    new ClassMemberDeclarationsComputer(searchEngine, contextToIdFunction, name, consumer).compute();
+//    consumer.computed(SearchResult.EMPTY_ARRAY, true);
+//  }
+//
+//  /**
+//   * Implementation for {@link #searchClassMemberReferences(String, SearchResultsConsumer)}.
+//   */
+//  public void internalSearchClassMemberReferences(String name, SearchResultsConsumer consumer)
+//      throws Exception {
+//    new ClassMemberReferencesComputer(searchEngine, contextToIdFunction, name, consumer).compute();
+//    consumer.computed(SearchResult.EMPTY_ARRAY, true);
+//  }
+//
+//  /**
+//   * Implementation for {@link #searchElementReferences(Element, boolean, SearchResultsConsumer)}.
+//   */
+//  public void internalSearchElementReferences(String contextId, Element element,
+//      boolean withPotential, SearchResultsConsumer consumer) throws Exception {
+//    AnalysisContext context = getAnalysisContext(contextId);
+//    new ElementReferencesComputer(
+//        searchEngine,
+//        contextToIdFunction,
+//        context,
+//        element,
+//        withPotential,
+//        consumer).compute();
+//    consumer.computed(SearchResult.EMPTY_ARRAY, true);
+//  }
+//
+//  /**
+//   * Implementation for {@link #searchTopLevelDeclarations(String, String, SearchResultsConsumer)}.
+//   */
+//  public void internalSearchTopLevelDeclarations(String contextId, String pattern,
+//      SearchResultsConsumer consumer) throws Exception {
+//    AnalysisContext context = contextId != null ? getAnalysisContext(contextId) : null;
+//    new TopLevelDeclarationsComputer(searchEngine, contextToIdFunction, context, pattern, consumer).compute();
+//    consumer.computed(SearchResult.EMPTY_ARRAY, true);
+//  }
+//
+//  /**
+//   * Implementation for {@link #setOptions(String, AnalysisOptions)}.
+//   */
+//  public void internalSetOptions(String contextId, AnalysisOptions options) throws Exception {
+//    AnalysisContext context = getAnalysisContext(contextId);
+//    context.setAnalysisOptions(options);
+//    schedulePerformAnalysisOperation(contextId, false);
+//  }
+//
+//  /**
+//   * Implementation for {@link #setPrioritySources(String, Source[])}.
+//   */
+//  public void internalSetPrioritySources(String contextId, Source[] sources) throws Exception {
+//    AnalysisContext context = getAnalysisContext(contextId);
+//    context.setAnalysisPriorityOrder(Lists.newArrayList(sources));
+//    schedulePerformAnalysisOperation(contextId, false);
+//  }
+//
+//  /**
+//   * Implementation for {@link #setRefactoringExtractLocalOptions}.
+//   */
+//  public void internalSetRefactoringExtractLocalOptions(String refactoringId,
+//      boolean allOccurrences, String name, RefactoringOptionsValidationConsumer consumer) {
+//    ExtractLocalRefactoring refactoring = (ExtractLocalRefactoring) getRefactoring(refactoringId);
+//    refactoring.setReplaceAllOccurrences(allOccurrences);
+//    refactoring.setLocalName(name);
+//    RefactoringStatus status = refactoring.checkLocalName(name);
+//    consumer.computed(status);
+//  }
+//
+//  /**
+//   * Implementation for {@link #setRefactoringExtractMethodOptions}.
+//   */
+//  public void internalSetRefactoringExtractLocalOptions(String refactoringId, String name,
+//      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
+//      RefactoringExtractMethodOptionsValidationConsumer consumer) {
+//    ExtractMethodRefactoring refactoring = (ExtractMethodRefactoring) getRefactoring(refactoringId);
+//    refactoring.setMethodName(name);
+//    refactoring.setReplaceAllOccurrences(allOccurrences);
+//    refactoring.setExtractGetter(asGetter);
+//    refactoring.setParameters(parameters);
+//    RefactoringStatus status = refactoring.checkMethodName();
+//    String signature = refactoring.getSignature();
+//    consumer.computed(status, signature);
+//  }
+//
+//  /**
+//   * Implementation for {@link #subscribe(String, Map)}.
+//   */
+//  public void internalSubscribe(String contextId, Map<NotificationKind, SourceSet> subscriptions)
+//      throws Exception {
+//    log("internalSubscribe: %s", subscriptions);
+//    AnalysisContext analysisContext = getAnalysisContext(contextId);
+//    Set<Source> knownSources = getSourcesMap(contextId, contextKnownSourcesMap);
+//    Set<Source> addedSources = getSourcesMap(contextId, contextAddedSourcesMap);
+//    Map<NotificationKind, SourceSetBasedProvider> notifications = notificationMap.get(contextId);
+//    if (notifications == null) {
+//      notifications = Maps.newHashMap();
+//      notificationMap.put(contextId, notifications);
+//    }
+//    // prepare new sources to send notifications for
+//    for (Entry<NotificationKind, SourceSet> entry : subscriptions.entrySet()) {
+//      NotificationKind kind = entry.getKey();
+//      SourceSet sourceSet = entry.getValue();
+//      SourceSetBasedProvider oldProvider = notifications.get(kind);
+//      SourceSetBasedProvider newProvider = new SourceSetBasedProvider(
+//          sourceSet,
+//          knownSources,
+//          addedSources);
+//      // schedule notification operations for new sources
+//      Set<Source> newSources = newProvider.computeNewSources(oldProvider);
+//      log("\tnewSources: %s", newSources);
+//      for (Source unitSource : newSources) {
+//        log("\tunitSource: %s", unitSource);
+//        Source[] librarySources = analysisContext.getLibrariesContaining(unitSource);
+//        log("\t\tlibrarySources: %s", librarySources.length);
+//        if (librarySources.length != 0) {
+//          Source librarySource = librarySources[0];
+//          log("\t\tlibrarySource: %s", librarySource);
+//          CompilationUnit unit = analysisContext.resolveCompilationUnit(unitSource, librarySource);
+//          log("\t\tunit: %s", unit);
+//          if (unit != null) {
+//            AnalysisErrorInfo errorsInfo = analysisContext.getErrors(unitSource);
+//            ChangeNoticeImpl changeNotice = new ChangeNoticeImpl(unitSource);
+//            changeNotice.setCompilationUnit(unit);
+//            changeNotice.setErrors(errorsInfo.getErrors(), errorsInfo.getLineInfo());
+//            log("\t\tadd NotificationOperation: %s with %s", kind, changeNotice);
+//            operationQueue.add(new NotificationOperation(contextId, changeNotice, kind));
+//          }
+//        }
+//      }
+//      // put new provider
+//      notifications.put(kind, newProvider);
+//    }
+//  }
 
   @Override
   public void removeAnalysisServerListener(AnalysisServerListener listener) {
     this.listener.removeListener(listener);
   }
 
-  @Override
-  public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer) {
-    operationQueue.add(new SearchClassMemberDeclarationsOperation(name, consumer));
-  }
-
-  @Override
-  public void searchClassMemberReferences(String name, SearchResultsConsumer consumer) {
-    operationQueue.add(new SearchClassMemberReferencesOperation(name, consumer));
-  }
-
-  @Override
-  public void searchElementReferences(Element element, boolean withPotential,
-      SearchResultsConsumer consumer) {
-    operationQueue.add(new SearchElementReferencesOperation(element, withPotential, consumer));
-  }
-
-  @Override
-  public void searchTopLevelDeclarations(String contextId, String pattern,
-      SearchResultsConsumer consumer) {
-    operationQueue.add(new SearchTopLevelDeclarationsOperation(contextId, pattern, consumer));
-  }
-
-  @Override
-  public void setOptions(String contextId, AnalysisOptions options) {
-    operationQueue.add(new SetOptionsOperation(contextId, options));
-  }
-
-  @Override
-  public void setPrioritySources(String contextId, Source[] sources) {
-    operationQueue.add(new SetPrioritySourcesOperation(contextId, sources));
-    if (sources.length != 0) {
-      priorityContexts.add(contextId);
-    } else {
-      priorityContexts.remove(contextId);
-    }
-  }
-
-  @Override
-  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
-      String name, RefactoringOptionsValidationConsumer consumer) {
-    operationQueue.add(new SetRefactoringExtractLocalOptionsOperation(
-        refactoringId,
-        allOccurrences,
-        name,
-        consumer));
-  }
-
-  @Override
-  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
-      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
-      RefactoringExtractMethodOptionsValidationConsumer consumer) {
-    operationQueue.add(new SetRefactoringExtractMethodOptionsOperation(
-        refactoringId,
-        name,
-        asGetter,
-        allOccurrences,
-        parameters,
-        consumer));
-  }
+//  @Override
+//  public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer) {
+//    operationQueue.add(new SearchClassMemberDeclarationsOperation(name, consumer));
+//  }
+//
+//  @Override
+//  public void searchClassMemberReferences(String name, SearchResultsConsumer consumer) {
+//    operationQueue.add(new SearchClassMemberReferencesOperation(name, consumer));
+//  }
+//
+//  @Override
+//  public void searchElementReferences(Element element, boolean withPotential,
+//      SearchResultsConsumer consumer) {
+//    operationQueue.add(new SearchElementReferencesOperation(element, withPotential, consumer));
+//  }
+//
+//  @Override
+//  public void searchTopLevelDeclarations(String contextId, String pattern,
+//      SearchResultsConsumer consumer) {
+//    operationQueue.add(new SearchTopLevelDeclarationsOperation(contextId, pattern, consumer));
+//  }
+//
+//  @Override
+//  public void setOptions(String contextId, AnalysisOptions options) {
+//    operationQueue.add(new SetOptionsOperation(contextId, options));
+//  }
+//
+//  @Override
+//  public void setPrioritySources(String contextId, Source[] sources) {
+//    operationQueue.add(new SetPrioritySourcesOperation(contextId, sources));
+//    if (sources.length != 0) {
+//      priorityContexts.add(contextId);
+//    } else {
+//      priorityContexts.remove(contextId);
+//    }
+//  }
+//
+//  @Override
+//  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
+//      String name, RefactoringOptionsValidationConsumer consumer) {
+//    operationQueue.add(new SetRefactoringExtractLocalOptionsOperation(
+//        refactoringId,
+//        allOccurrences,
+//        name,
+//        consumer));
+//  }
+//
+//  @Override
+//  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
+//      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
+//      RefactoringExtractMethodOptionsValidationConsumer consumer) {
+//    operationQueue.add(new SetRefactoringExtractMethodOptionsOperation(
+//        refactoringId,
+//        name,
+//        asGetter,
+//        allOccurrences,
+//        parameters,
+//        consumer));
+//  }
 
   @Override
   public void shutdown() {
@@ -992,10 +910,10 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     index.stop();
   }
 
-  @Override
-  public void subscribe(String contextId, Map<NotificationKind, SourceSet> subscriptions) {
-    operationQueue.add(new SubscribeOperation(contextId, subscriptions));
-  }
+//  @Override
+//  public void subscribe(String contextId, Map<NotificationKind, SourceSet> subscriptions) {
+//    operationQueue.add(new SubscribeOperation(contextId, subscriptions));
+//  }
 
   @VisibleForTesting
   public void test_addOperation(ServerOperation operation) {
@@ -1012,12 +930,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     listener.computedErrors(null, null, null);
   }
 
-  /**
-   * Sets the {@link List} to record analyzed contexts into.
-   */
-  public void test_setAnalyzedContexts(List<String> analyzedContexts) {
-    test_analyzedContexts = analyzedContexts;
-  }
+//  /**
+//   * Sets the {@link List} to record analyzed contexts into.
+//   */
+//  public void test_setAnalyzedContexts(List<String> analyzedContexts) {
+//    test_analyzedContexts = analyzedContexts;
+//  }
 
   @VisibleForTesting
   public void test_setLog(boolean log) {
@@ -1036,65 +954,65 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     }
   }
 
-  /**
-   * Returns the {@link AnalysisContext} for the given identifier, not null.
-   * 
-   * @throws AnalysisServerErrorException if there are no context with the given identifier
-   */
-  private AnalysisContext getAnalysisContext(String contextId) {
-    AnalysisContext context = contextMap.get(contextId);
-    if (context == null) {
-      throw new AnalysisServerErrorException(AnalysisServerErrorCode.INVALID_CONTEXT_ID, contextId);
-    }
-    return context;
-  }
-
-  /**
-   * Returns the {@link Refactoring} for the given identifier, not {@code null}.
-   * 
-   * @throws AnalysisServerErrorException if there are no refactoring with the given identifier
-   */
-  private Refactoring getRefactoring(String contextId) {
-    Refactoring refactoring = refactoringMap.get(contextId);
-    if (refactoring == null) {
-      throw new AnalysisServerErrorException(
-          AnalysisServerErrorCode.INVALID_REFACTORING_ID,
-          contextId);
-    }
-    return refactoring;
-  }
-
-  private DartSdk getSdk(String contextId, String directory) {
-    DartSdk sdk = sdkMap.get(directory);
-    if (sdk == null) {
-      File directoryFile = new File(directory);
-      sdk = new DirectoryBasedDartSdk(directoryFile);
-      sdkMap.put(directory, sdk);
-      AnalysisContext context = sdk.getContext();
-      SourceFactory factory = context.getSourceFactory();
-      AnalysisDelta delta = new AnalysisDelta();
-      for (String uri : sdk.getUris()) {
-        delta.setAnalysisLevel(factory.forUri(uri), AnalysisLevel.RESOLVED);
-      }
-      context.applyAnalysisDelta(delta);
-      String sdkContextId = "dart-sdk-internal-" + nextContextId++;
-      contextMap.put(sdkContextId, context);
-      schedulePerformAnalysisOperation(sdkContextId, false);
-    }
-    return sdk;
-  }
-
-  /**
-   * Returns an existing or just added {@link Source} set associated with the given context.
-   */
-  private Set<Source> getSourcesMap(String contextId, Map<String, Set<Source>> contextSourcesMap) {
-    Set<Source> sources = contextSourcesMap.get(contextId);
-    if (sources == null) {
-      sources = Sets.newHashSet();
-      contextSourcesMap.put(contextId, sources);
-    }
-    return sources;
-  }
+//  /**
+//   * Returns the {@link AnalysisContext} for the given identifier, not null.
+//   * 
+//   * @throws AnalysisServerErrorException if there are no context with the given identifier
+//   */
+//  private AnalysisContext getAnalysisContext(String contextId) {
+//    AnalysisContext context = contextMap.get(contextId);
+//    if (context == null) {
+//      throw new AnalysisServerErrorException(AnalysisServerErrorCode.INVALID_CONTEXT_ID, contextId);
+//    }
+//    return context;
+//  }
+//
+//  /**
+//   * Returns the {@link Refactoring} for the given identifier, not {@code null}.
+//   * 
+//   * @throws AnalysisServerErrorException if there are no refactoring with the given identifier
+//   */
+//  private Refactoring getRefactoring(String contextId) {
+//    Refactoring refactoring = refactoringMap.get(contextId);
+//    if (refactoring == null) {
+//      throw new AnalysisServerErrorException(
+//          AnalysisServerErrorCode.INVALID_REFACTORING_ID,
+//          contextId);
+//    }
+//    return refactoring;
+//  }
+//
+//  private DartSdk getSdk(String contextId, String directory) {
+//    DartSdk sdk = sdkMap.get(directory);
+//    if (sdk == null) {
+//      File directoryFile = new File(directory);
+//      sdk = new DirectoryBasedDartSdk(directoryFile);
+//      sdkMap.put(directory, sdk);
+//      AnalysisContext context = sdk.getContext();
+//      SourceFactory factory = context.getSourceFactory();
+//      AnalysisDelta delta = new AnalysisDelta();
+//      for (String uri : sdk.getUris()) {
+//        delta.setAnalysisLevel(factory.forUri(uri), AnalysisLevel.RESOLVED);
+//      }
+//      context.applyAnalysisDelta(delta);
+//      String sdkContextId = "dart-sdk-internal-" + nextContextId++;
+//      contextMap.put(sdkContextId, context);
+//      schedulePerformAnalysisOperation(sdkContextId, false);
+//    }
+//    return sdk;
+//  }
+//
+//  /**
+//   * Returns an existing or just added {@link Source} set associated with the given context.
+//   */
+//  private Set<Source> getSourcesMap(String contextId, Map<String, Set<Source>> contextSourcesMap) {
+//    Set<Source> sources = contextSourcesMap.get(contextId);
+//    if (sources == null) {
+//      sources = Sets.newHashSet();
+//      contextSourcesMap.put(contextId, sources);
+//    }
+//    return sources;
+//  }
 
   private void log(String msg, Object... arguments) {
     if (test_log) {

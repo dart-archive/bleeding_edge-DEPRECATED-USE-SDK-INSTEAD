@@ -51,6 +51,7 @@ public class SearchElementReferencesOperation implements ContextServerOperation 
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalSearchElementReferences(contextId, element, withPotential, consumer);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalSearchElementReferences(contextId, element, withPotential, consumer);
   }
 }

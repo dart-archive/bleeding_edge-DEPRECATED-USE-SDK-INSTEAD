@@ -42,6 +42,7 @@ public class NotificationOperation implements ServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalNotification(contextId, changeNotice, kind);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalNotification(contextId, changeNotice, kind);
   }
 }

@@ -48,6 +48,7 @@ public class SearchTopLevelDeclarationsOperation implements ContextServerOperati
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalSearchTopLevelDeclarations(contextId, pattern, consumer);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalSearchTopLevelDeclarations(contextId, pattern, consumer);
   }
 }

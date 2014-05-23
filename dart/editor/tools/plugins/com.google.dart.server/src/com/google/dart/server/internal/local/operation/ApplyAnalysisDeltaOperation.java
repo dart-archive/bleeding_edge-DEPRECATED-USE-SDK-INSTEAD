@@ -42,6 +42,7 @@ public class ApplyAnalysisDeltaOperation implements ContextServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalApplyAnalysisDelta(contextId, delta);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalApplyAnalysisDelta(contextId, delta);
   }
 }

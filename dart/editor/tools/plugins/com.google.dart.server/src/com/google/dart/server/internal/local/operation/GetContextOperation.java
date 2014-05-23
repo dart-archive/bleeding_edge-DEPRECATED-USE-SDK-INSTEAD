@@ -55,7 +55,8 @@ public class GetContextOperation implements ContextServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    context = server.getContextMap().get(contextId);
-    latch.countDown();
+    // TODO(scheglov) restore or remove for the new API
+//    context = server.getContextMap().get(contextId);
+//    latch.countDown();
   }
 }

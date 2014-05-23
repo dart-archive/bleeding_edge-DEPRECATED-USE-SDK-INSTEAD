@@ -14,20 +14,14 @@
 
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.status.RefactoringStatus;
-import com.google.dart.server.RefactoringApplyConsumer;
-import com.google.dart.tools.core.DartCore;
 
 import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils.toLTK;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * LTK wrapper around Analysis Server refactoring.
@@ -51,25 +45,27 @@ public class ServerRefactoring extends org.eclipse.ltk.core.refactoring.Refactor
   public org.eclipse.ltk.core.refactoring.RefactoringStatus checkFinalConditions(IProgressMonitor pm)
       throws CoreException, OperationCanceledException {
     pm.beginTask("Checking final conditions", IProgressMonitor.UNKNOWN);
-    final CountDownLatch latch = new CountDownLatch(1);
-    DartCore.getAnalysisServer().applyRefactoring(id, new RefactoringApplyConsumer() {
-      @Override
-      public void computed(RefactoringStatus _status, Change _change) {
-        finalStatus = _status;
-        change = _change;
-        latch.countDown();
-      }
-    });
-    while (true) {
-      if (pm.isCanceled()) {
-        throw new OperationCanceledException();
-      }
-      if (Uninterruptibles.awaitUninterruptibly(latch, 10, TimeUnit.MILLISECONDS)) {
-        pm.done();
-        break;
-      }
-    }
-    return toLTK(finalStatus);
+    // TODO(scheglov) restore or remove for the new API
+//    final CountDownLatch latch = new CountDownLatch(1);
+//    DartCore.getAnalysisServer().applyRefactoring(id, new RefactoringApplyConsumer() {
+//      @Override
+//      public void computed(RefactoringStatus _status, Change _change) {
+//        finalStatus = _status;
+//        change = _change;
+//        latch.countDown();
+//      }
+//    });
+//    while (true) {
+//      if (pm.isCanceled()) {
+//        throw new OperationCanceledException();
+//      }
+//      if (Uninterruptibles.awaitUninterruptibly(latch, 10, TimeUnit.MILLISECONDS)) {
+//        pm.done();
+//        break;
+//      }
+//    }
+//    return toLTK(finalStatus);
+    return new org.eclipse.ltk.core.refactoring.RefactoringStatus();
   }
 
   @Override

@@ -61,6 +61,7 @@ public class SubscribeOperation implements ContextServerOperation, MergeableOper
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalSubscribe(contextId, subscriptions);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalSubscribe(contextId, subscriptions);
   }
 }

@@ -17,9 +17,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.server.Element;
-import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.TypeHierarchyItem;
-import com.google.dart.tools.core.DartCore;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -153,23 +151,24 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
 
   @Override
   public void inputChanged(final Viewer viewer, Object oldInput, Object newInput) {
-    superList.clear();
-    superToSubsMap.clear();
-    subToSuperMap.clear();
-    if (!(newInput instanceof Element)) {
-      return;
-    }
-    Element element = (Element) newInput;
-    String contextId = element.getContextId();
-    DartCore.getAnalysisServer().computeTypeHierarchy(
-        contextId,
-        element,
-        new TypeHierarchyConsumer() {
-          @Override
-          public void computedHierarchy(TypeHierarchyItem target) {
-            inputHierarchyChanged(viewer, target);
-          }
-        });
+    // TODO(scheglov) restore or remove for the new API
+//    superList.clear();
+//    superToSubsMap.clear();
+//    subToSuperMap.clear();
+//    if (!(newInput instanceof Element)) {
+//      return;
+//    }
+//    Element element = (Element) newInput;
+//    String contextId = element.getContextId();
+//    DartCore.getAnalysisServer().computeTypeHierarchy(
+//        contextId,
+//        element,
+//        new TypeHierarchyConsumer() {
+//          @Override
+//          public void computedHierarchy(TypeHierarchyItem target) {
+//            inputHierarchyChanged(viewer, target);
+//          }
+//        });
   }
 
   /**

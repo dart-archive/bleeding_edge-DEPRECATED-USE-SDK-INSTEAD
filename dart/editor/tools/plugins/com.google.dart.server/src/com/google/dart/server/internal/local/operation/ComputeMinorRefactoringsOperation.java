@@ -53,6 +53,7 @@ public class ComputeMinorRefactoringsOperation implements ContextServerOperation
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalComputeMinorRefactorings(contextId, source, offset, length, consumer);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalComputeMinorRefactorings(contextId, source, offset, length, consumer);
   }
 }

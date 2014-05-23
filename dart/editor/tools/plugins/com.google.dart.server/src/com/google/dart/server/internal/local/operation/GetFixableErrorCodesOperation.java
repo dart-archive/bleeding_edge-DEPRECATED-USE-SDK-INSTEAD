@@ -45,6 +45,7 @@ public class GetFixableErrorCodesOperation implements ContextServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalGetFixableErrorCodes(contextId, consumer);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalGetFixableErrorCodes(contextId, consumer);
   }
 }

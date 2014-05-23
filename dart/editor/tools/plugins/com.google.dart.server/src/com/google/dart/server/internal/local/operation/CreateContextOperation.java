@@ -48,6 +48,7 @@ public class CreateContextOperation implements ContextServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalCreateContext(contextId, sdkDirectory, packageMap);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalCreateContext(contextId, sdkDirectory, packageMap);
   }
 }

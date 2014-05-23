@@ -13,11 +13,8 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
@@ -32,10 +29,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.UriResolver;
-import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.FixableErrorCodesConsumer;
-import com.google.dart.server.NotificationKind;
-import com.google.dart.server.SourceSet;
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -72,7 +65,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -236,11 +228,9 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
         IPath key = entry.getKey();
         if (path.equals(key) || path.isPrefixOf(key)) {
           if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-            // TODO(scheglov) Analysis Server
-            String contextId = entry.getValue().getContextId();
-//            stopWorkers(contextId);
-            DartCore.getAnalysisServer().deleteContext(contextId);
-//            index.removeContext(contextId);
+            // TODO(scheglov) restore or remove for the new API
+//            String contextId = entry.getValue().getContextId();
+//            DartCore.getAnalysisServer().deleteContext(contextId);
           } else {
             AnalysisContext context = entry.getValue().getContext();
             stopWorkers(context);
@@ -254,11 +244,9 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       // Reset the state if discarding the entire project
       if (projectResource.equals(container)) {
         if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-          // TODO(scheglov) Analysis Server
-//          stopWorkers(defaultContext);
-          DartCore.getAnalysisServer().deleteContext(defaultContextId);
-//          index.removeContext(defaultContext);
-          defaultContextId = null;
+          // TODO(scheglov) restore or remove for the new API
+//          DartCore.getAnalysisServer().deleteContext(defaultContextId);
+//          defaultContextId = null;
         } else {
           stopWorkers(defaultContext);
           defaultContext.dispose();
@@ -886,43 +874,45 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     boolean hasPubspec = projectResource.getFile(PUBSPEC_FILE_NAME).exists();
     defaultPackageResolver = getPackageUriResolver(projectResource, getSdk(), hasPubspec);
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      String sdkPath = ((DirectoryBasedDartSdk) getSdk()).getDirectory().getAbsolutePath();
-      // TODO(scheglov) Analysis Server: get packages map from Pub
-      Map<String, String> packageMap;
-      {
-        packageMap = Maps.newHashMap();
-        File projectDir = projectResource.getLocation().toFile();
-        File packagesDir = new File(projectDir, "packages");
-        File[] listFiles = packagesDir.listFiles();
-        if (listFiles != null) {
-          for (File packageFile : listFiles) {
-            try {
-              packageMap.put(packageFile.getName(), packageFile.getCanonicalPath());
-            } catch (IOException e) {
-            }
-          }
-        }
-      }
-      AnalysisServer analysisServer = DartCore.getAnalysisServer();
-      defaultContextId = analysisServer.createContext(
-          projectResource.getName(),
-          sdkPath,
-          packageMap);
-      analysisServer.getFixableErrorCodes(defaultContextId, new FixableErrorCodesConsumer() {
-        @Override
-        public void computed(ErrorCode[] errorCodes) {
-          ((AnalysisServerDataImpl) DartCore.getAnalysisServerData()).internalSetFixableErrorCodes(
-              defaultContextId,
-              errorCodes);
-        }
-      });
-      analysisServer.subscribe(
-          defaultContextId,
-          ImmutableMap.of(NotificationKind.ERRORS, SourceSet.EXPLICITLY_ADDED));
-      defaultResourceMap = new SimpleResourceMapImpl(
-          projectResource,
-          defaultContext,
-          defaultContextId);
+      // TODO(scheglov) restore or remove for the new API
+      defaultContextId = "not-a-real-context";
+//      String sdkPath = ((DirectoryBasedDartSdk) getSdk()).getDirectory().getAbsolutePath();
+//      // TODO(scheglov) Analysis Server: get packages map from Pub
+//      Map<String, String> packageMap;
+//      {
+//        packageMap = Maps.newHashMap();
+//        File projectDir = projectResource.getLocation().toFile();
+//        File packagesDir = new File(projectDir, "packages");
+//        File[] listFiles = packagesDir.listFiles();
+//        if (listFiles != null) {
+//          for (File packageFile : listFiles) {
+//            try {
+//              packageMap.put(packageFile.getName(), packageFile.getCanonicalPath());
+//            } catch (IOException e) {
+//            }
+//          }
+//        }
+//      }
+//      AnalysisServer analysisServer = DartCore.getAnalysisServer();
+//      defaultContextId = analysisServer.createContext(
+//          projectResource.getName(),
+//          sdkPath,
+//          packageMap);
+//      analysisServer.getFixableErrorCodes(defaultContextId, new FixableErrorCodesConsumer() {
+//        @Override
+//        public void computed(ErrorCode[] errorCodes) {
+//          ((AnalysisServerDataImpl) DartCore.getAnalysisServerData()).internalSetFixableErrorCodes(
+//              defaultContextId,
+//              errorCodes);
+//        }
+//      });
+//      analysisServer.subscribe(
+//          defaultContextId,
+//          ImmutableMap.of(NotificationKind.ERRORS, SourceSet.EXPLICITLY_ADDED));
+//      defaultResourceMap = new SimpleResourceMapImpl(
+//          projectResource,
+//          defaultContext,
+//          defaultContextId);
     } else {
       defaultContext = initContext(
           factory.createContext(),

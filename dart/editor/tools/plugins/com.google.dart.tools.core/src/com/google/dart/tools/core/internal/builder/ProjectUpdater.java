@@ -44,13 +44,14 @@ public class ProjectUpdater implements DeltaListener {
    */
   public void applyChanges() {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      for (Entry<String, ChangeSet> entry : contextChangeMapNew.entrySet()) {
-        String contextId = entry.getKey();
-        ChangeSet changeSet = entry.getValue();
-        if (!changeSet.isEmpty()) {
-          DartCore.getAnalysisServer().applyChanges(contextId, changeSet);
-        }
-      }
+      // TODO(scheglov) restore or remove for the new API
+//      for (Entry<String, ChangeSet> entry : contextChangeMapNew.entrySet()) {
+//        String contextId = entry.getKey();
+//        ChangeSet changeSet = entry.getValue();
+//        if (!changeSet.isEmpty()) {
+//          DartCore.getAnalysisServer().applyChanges(contextId, changeSet);
+//        }
+//      }
     } else {
       for (Entry<AnalysisContext, ChangeSet> entry : contextChangeMap.entrySet()) {
         AnalysisContext context = entry.getKey();

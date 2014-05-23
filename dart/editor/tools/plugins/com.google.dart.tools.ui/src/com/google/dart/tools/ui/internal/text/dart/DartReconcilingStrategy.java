@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.internal.text.dart;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
@@ -330,12 +329,13 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private void sourceChanged(String code) {
     Source source = editor.getInputSource();
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      String contextId = editor.getInputAnalysisContextId();
-      if (contextId != null && source != null) {
-        ChangeSet changeSet = new ChangeSet();
-        changeSet.changedContent(source, code);
-        DartCore.getAnalysisServer().applyChanges(contextId, changeSet);
-      }
+      // TODO(scheglov) restore or remove for the new API
+//      String contextId = editor.getInputAnalysisContextId();
+//      if (contextId != null && source != null) {
+//        ChangeSet changeSet = new ChangeSet();
+//        changeSet.changedContent(source, code);
+//        DartCore.getAnalysisServer().applyChanges(contextId, changeSet);
+//      }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();
       if (context != null && source != null) {
@@ -361,12 +361,13 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private void sourceChanged(String code, int offset, int oldLength, int newLength) {
     Source source = editor.getInputSource();
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      String contextId = editor.getInputAnalysisContextId();
-      if (contextId != null && source != null) {
-        ChangeSet changeSet = new ChangeSet();
-        changeSet.changedRange(source, code, offset, oldLength, newLength);
-        DartCore.getAnalysisServer().applyChanges(contextId, changeSet);
-      }
+      // TODO(scheglov) restore or remove for the new API
+//      String contextId = editor.getInputAnalysisContextId();
+//      if (contextId != null && source != null) {
+//        ChangeSet changeSet = new ChangeSet();
+//        changeSet.changedRange(source, code, offset, oldLength, newLength);
+//        DartCore.getAnalysisServer().applyChanges(contextId, changeSet);
+//      }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();
       if (context != null && source != null) {

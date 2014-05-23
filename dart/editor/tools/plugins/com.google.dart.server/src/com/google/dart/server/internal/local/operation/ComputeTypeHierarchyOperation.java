@@ -49,6 +49,7 @@ public class ComputeTypeHierarchyOperation implements ContextServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalComputeTypeHierarchy(contextId, element, consumer);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalComputeTypeHierarchy(contextId, element, consumer);
   }
 }

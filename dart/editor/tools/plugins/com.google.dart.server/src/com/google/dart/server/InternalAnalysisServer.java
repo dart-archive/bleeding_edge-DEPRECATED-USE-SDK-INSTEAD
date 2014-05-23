@@ -13,10 +13,7 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
-
-import java.util.Map;
 
 /**
  * This gives access to the internals of the AnalysisServer. This is a temporary access point to
@@ -26,20 +23,20 @@ import java.util.Map;
  */
 public interface InternalAnalysisServer {
 
-  /**
-   * Answer the context for the given identifier.
-   * 
-   * @param contextId the context identifier
-   * @return the context or {@code null} if none is currently associated with that identifier
-   */
-  public AnalysisContext getContext(String contextId);
-
-  /**
-   * A map of all contexts known to the analysis server.
-   * 
-   * @return a map of context identifier to context
-   */
-  public Map<String, AnalysisContext> getContextMap();
+//  /**
+//   * Answer the context for the given identifier.
+//   * 
+//   * @param contextId the context identifier
+//   * @return the context or {@code null} if none is currently associated with that identifier
+//   */
+//  public AnalysisContext getContext(String contextId);
+//
+//  /**
+//   * A map of all contexts known to the analysis server.
+//   * 
+//   * @return a map of context identifier to context
+//   */
+//  public Map<String, AnalysisContext> getContextMap();
 
   /**
    * Answer the index used by the analysis server

@@ -44,6 +44,7 @@ public class ApplyChangesOperation implements ContextServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalApplyChanges(contextId, changeSet);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalApplyChanges(contextId, changeSet);
   }
 }

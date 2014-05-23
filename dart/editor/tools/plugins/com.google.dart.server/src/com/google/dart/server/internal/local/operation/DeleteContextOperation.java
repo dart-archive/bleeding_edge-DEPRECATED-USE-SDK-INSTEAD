@@ -36,6 +36,7 @@ public class DeleteContextOperation implements ServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalDeleteContext(contextId);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalDeleteContext(contextId);
   }
 }

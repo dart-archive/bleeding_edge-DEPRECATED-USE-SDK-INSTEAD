@@ -50,12 +50,13 @@ public class SetRefactoringExtractMethodOptionsOperation implements ServerOperat
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalSetRefactoringExtractLocalOptions(
-        refactoringId,
-        name,
-        asGetter,
-        allOccurrences,
-        parameters,
-        consumer);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalSetRefactoringExtractLocalOptions(
+//        refactoringId,
+//        name,
+//        asGetter,
+//        allOccurrences,
+//        parameters,
+//        consumer);
   }
 }

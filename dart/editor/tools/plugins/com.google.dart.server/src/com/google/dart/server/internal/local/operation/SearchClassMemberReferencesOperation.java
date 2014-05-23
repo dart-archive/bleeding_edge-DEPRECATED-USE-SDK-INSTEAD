@@ -40,6 +40,7 @@ public class SearchClassMemberReferencesOperation implements ServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalSearchClassMemberReferences(name, consumer);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalSearchClassMemberReferences(name, consumer);
   }
 }

@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.core.model;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.DartCore;
@@ -364,10 +363,11 @@ public class DartSdkManager {
       sdk = new DirectoryBasedDartSdk(sdkDir);
       // create an artificial context for SDK
       if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-        sdkContextId = DartCore.getAnalysisServer().createContext(
-            sdkDir.getAbsolutePath(),
-            sdkDir.getAbsolutePath(),
-            ImmutableMap.<String, String> of());
+        // TODO(scheglov) restore or remove for the new API
+//        sdkContextId = DartCore.getAnalysisServer().createContext(
+//            sdkDir.getAbsolutePath(),
+//            sdkDir.getAbsolutePath(),
+//            ImmutableMap.<String, String> of());
       }
     } else {
       sdk = NONE;

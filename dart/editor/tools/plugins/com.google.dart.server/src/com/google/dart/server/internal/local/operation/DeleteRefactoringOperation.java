@@ -36,6 +36,7 @@ public class DeleteRefactoringOperation implements ServerOperation {
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalDeleteRefactoring(refactoringId);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalDeleteRefactoring(refactoringId);
   }
 }

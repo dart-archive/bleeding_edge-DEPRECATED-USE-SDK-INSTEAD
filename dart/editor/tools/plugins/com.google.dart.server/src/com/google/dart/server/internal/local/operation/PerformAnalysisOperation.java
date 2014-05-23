@@ -68,6 +68,7 @@ public class PerformAnalysisOperation implements ContextServerOperation, Mergeab
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalPerformAnalysis(contextId);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalPerformAnalysis(contextId);
   }
 }

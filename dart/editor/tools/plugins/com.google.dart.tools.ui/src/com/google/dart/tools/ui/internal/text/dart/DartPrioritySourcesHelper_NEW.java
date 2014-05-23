@@ -30,7 +30,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * Helper for updating the order in which sources are analyzed in contexts associated with editors.
@@ -156,13 +155,14 @@ public class DartPrioritySourcesHelper_NEW {
         }
       }
       // schedule priority sources setting
-      for (Entry<String, List<Source>> entry : contextMap.entrySet()) {
-        String contextId = entry.getKey();
-        List<Source> prioritySources = entry.getValue();
-        analysisServer.setPrioritySources(
-            contextId,
-            prioritySources.toArray(new Source[prioritySources.size()]));
-      }
+      // TODO(scheglov) restore or remove for the new API
+//      for (Entry<String, List<Source>> entry : contextMap.entrySet()) {
+//        String contextId = entry.getKey();
+//        List<Source> prioritySources = entry.getValue();
+//        analysisServer.setPrioritySources(
+//            contextId,
+//            prioritySources.toArray(new Source[prioritySources.size()]));
+//      }
     }
     // track visible editors
     activePage.addPartListener(new IPartListener2() {
@@ -229,7 +229,8 @@ public class DartPrioritySourcesHelper_NEW {
       if (isOpen) {
         sources.add(0, source);
       }
-      analysisServer.setPrioritySources(contextId, sources.toArray(new Source[sources.size()]));
+      // TODO(scheglov) restore or remove for the new API
+//      analysisServer.setPrioritySources(contextId, sources.toArray(new Source[sources.size()]));
     }
   }
 }

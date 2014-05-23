@@ -52,6 +52,7 @@ public class CreateRefactoringExtractLocalOperation implements ContextServerOper
 
   @Override
   public void performOperation(LocalAnalysisServerImpl server) throws Exception {
-    server.internalCreateRefactoringExtractLocal(contextId, source, offset, length, consumer);
+    // TODO(scheglov) restore or remove for the new API
+//    server.internalCreateRefactoringExtractLocal(contextId, source, offset, length, consumer);
   }
 }

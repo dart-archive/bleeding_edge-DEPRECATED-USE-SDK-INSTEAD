@@ -13,30 +13,17 @@
  */
 package com.google.dart.tools.internal.search.ui;
 
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.dart.server.SearchResult;
-import com.google.dart.server.SearchResultsConsumer;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
-import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Finds declarations similar to the selected in the workspace.
@@ -48,55 +35,56 @@ public class FindDeclarationsAction_NEW extends AbstractDartSelectionAction {
    * Asks {@link SearchView} to execute query and display results.
    */
   public static void doSearch(final String name) {
-    try {
-      SearchView view = (SearchView) DartToolsPlugin.showView(SearchView.ID);
-      if (view == null) {
-        return;
-      }
-      String taskName = "Searching for declarations of '" + name + "'...";
-      view.showPage(new SearchResultPage_NEW(view, taskName, null) {
-        @Override
-        protected boolean canUseFilterPotential() {
-          return false;
-        }
-
-        @Override
-        protected IProject getCurrentProject() {
-          return FindReferencesAction.findCurrentProject();
-        }
-
-        @Override
-        protected String getQueryElementName() {
-          return name;
-        }
-
-        @Override
-        protected String getQueryKindName() {
-          return "declarations";
-        }
-
-        @Override
-        protected List<SearchResult> runQuery() {
-          final List<SearchResult> allResults = Lists.newArrayList();
-          final CountDownLatch latch = new CountDownLatch(1);
-          DartCore.getAnalysisServer().searchClassMemberDeclarations(
-              name,
-              new SearchResultsConsumer() {
-                @Override
-                public void computed(SearchResult[] searchResults, boolean isLastResult) {
-                  Collections.addAll(allResults, searchResults);
-                  if (isLastResult) {
-                    latch.countDown();
-                  }
-                }
-              });
-          Uninterruptibles.awaitUninterruptibly(latch, 15, TimeUnit.MINUTES);
-          return allResults;
-        }
-      });
-    } catch (Throwable e) {
-      ExceptionHandler.handle(e, "Find Declarations", "Exception during search.");
-    }
+    // TODO(scheglov) restore or remove for the new API
+//    try {
+//      SearchView view = (SearchView) DartToolsPlugin.showView(SearchView.ID);
+//      if (view == null) {
+//        return;
+//      }
+//      String taskName = "Searching for declarations of '" + name + "'...";
+//      view.showPage(new SearchResultPage_NEW(view, taskName, null) {
+//        @Override
+//        protected boolean canUseFilterPotential() {
+//          return false;
+//        }
+//
+//        @Override
+//        protected IProject getCurrentProject() {
+//          return FindReferencesAction.findCurrentProject();
+//        }
+//
+//        @Override
+//        protected String getQueryElementName() {
+//          return name;
+//        }
+//
+//        @Override
+//        protected String getQueryKindName() {
+//          return "declarations";
+//        }
+//
+//        @Override
+//        protected List<SearchResult> runQuery() {
+//          final List<SearchResult> allResults = Lists.newArrayList();
+//          final CountDownLatch latch = new CountDownLatch(1);
+//          DartCore.getAnalysisServer().searchClassMemberDeclarations(
+//              name,
+//              new SearchResultsConsumer() {
+//                @Override
+//                public void computed(SearchResult[] searchResults, boolean isLastResult) {
+//                  Collections.addAll(allResults, searchResults);
+//                  if (isLastResult) {
+//                    latch.countDown();
+//                  }
+//                }
+//              });
+//          Uninterruptibles.awaitUninterruptibly(latch, 15, TimeUnit.MINUTES);
+//          return allResults;
+//        }
+//      });
+//    } catch (Throwable e) {
+//      ExceptionHandler.handle(e, "Find Declarations", "Exception during search.");
+//    }
   }
 
 //  /**

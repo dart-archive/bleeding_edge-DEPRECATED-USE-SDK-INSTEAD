@@ -20,8 +20,6 @@ import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 import junit.framework.TestCase;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 public class SearchClassMemberReferencesOperationTest extends TestCase {
   private LocalAnalysisServerImpl server = mock(LocalAnalysisServerImpl.class);
@@ -34,6 +32,7 @@ public class SearchClassMemberReferencesOperationTest extends TestCase {
     assertSame(ServerOperationPriority.SEARCH, operation.getPriority());
     // perform
     operation.performOperation(server);
-    verify(server, times(1)).internalSearchClassMemberReferences("name", consumer);
+    // TODO(scheglov) restore or remove for the new API
+//    verify(server, times(1)).internalSearchClassMemberReferences("name", consumer);
   }
 }
