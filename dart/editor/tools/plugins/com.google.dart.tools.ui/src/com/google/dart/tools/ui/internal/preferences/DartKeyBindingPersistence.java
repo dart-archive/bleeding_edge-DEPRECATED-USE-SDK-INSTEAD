@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.preferences;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.DartUiException;
@@ -207,8 +208,12 @@ public class DartKeyBindingPersistence {
             if (pc != null) {
               Command cmd = pc.getCommand();
               if (cmd != null) {
-                if (commandName.equals(pc.getName())) {
-                  return binding;
+                try {
+                  if (commandName.equals(pc.getName())) {
+                    return binding;
+                  }
+                } catch (NotDefinedException e) {
+                  DartCore.logError("Dropping key binding for " + commandName);
                 }
               }
             }
@@ -263,16 +268,10 @@ public class DartKeyBindingPersistence {
     List<Map<String, String>> newBindings;
     newBindings = readKeyBindingsFromStream(new InputSource(reader));
     for (Map<String, String> map : newBindings) {
-      if (!map.get(XML_ATTRIBUTE_COMMANDID).equals("Generate JavaScript")) {
-        updateKeyBinding(map);
-      }
+      updateKeyBinding(map);
     }
 
-    try {
-      bindingService.savePreferences(bindingManager.getActiveScheme(), bindingManager.getBindings());
-    } catch (IOException e) {
-      throw createException(e, DESERIALIZATION_PROBLEM);
-    }
+    saveKeyBindingPreferences();
   }
 
   /**
@@ -283,11 +282,7 @@ public class DartKeyBindingPersistence {
     prefs.setValue(CUSTOM_KEY_BINDING_STRING, "");
     bindingService.readRegistryAndPreferences(commandService);
     initBindingManager(); // deletes all USER bindings
-    try {
-      bindingService.savePreferences(bindingManager.getActiveScheme(), bindingManager.getBindings());
-    } catch (IOException e) {
-      throw createException(e, DESERIALIZATION_PROBLEM);
-    }
+    saveKeyBindingPreferences();
   }
 
   /**
@@ -419,6 +414,17 @@ public class DartKeyBindingPersistence {
     }
     return handler.getBindings();
 
+  }
+
+  /**
+   * Serialize the current key bindings and store them in the preference for next startup.
+   */
+  private void saveKeyBindingPreferences() throws DartUiException {
+    try {
+      bindingService.savePreferences(bindingManager.getActiveScheme(), bindingManager.getBindings());
+    } catch (IOException e) {
+      throw createException(e, DESERIALIZATION_PROBLEM);
+    }
   }
 
   private Binding[] sort(Binding[] bindings) {
