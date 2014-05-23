@@ -25,7 +25,6 @@ import com.google.dart.tools.debug.core.pubserve.PubServeManager;
 import com.google.dart.tools.debug.core.pubserve.PubServeResourceResolver;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
-import com.google.dart.tools.debug.core.util.LaunchConfigResourceResolver;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
 import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
 import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
@@ -58,8 +57,7 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
 
   protected static DartLaunchConfigWrapper launchConfig;
 
-  private static PubCallback<String> pubConnectionCallback = new PubCallback<String>() {
-
+  private PubCallback<String> pubConnectionCallback = new PubCallback<String>() {
     @Override
     public void handleResult(PubResult<String> result) {
       if (result.isError()) {
@@ -79,21 +77,7 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
     }
   };
 
-  private static boolean enableDebugging;
-
-  private static void launchInDartium(final String url, ILaunch launch,
-      DartLaunchConfigWrapper launchConfig) throws CoreException {
-
-    BrowserManager manager = BrowserManager.getManager();
-    manager.launchBrowser(
-        launch,
-        launchConfig,
-        url,
-        new NullProgressMonitor(),
-        enableDebugging,
-        new LaunchConfigResourceResolver(launchConfig));
-
-  }
+  private boolean enableDebugging;
 
   /**
    * Create a new DartChromiumLaunchConfigurationDelegate.
@@ -146,10 +130,9 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
   }
 
   private void launchImpl(String mode, IProgressMonitor monitor) throws CoreException {
-
     launchConfig.markAsLaunched();
 
-    boolean enableDebugging = ILaunchManager.DEBUG_MODE.equals(mode)
+    enableDebugging = ILaunchManager.DEBUG_MODE.equals(mode)
         && !DartCoreDebug.DISABLE_DARTIUM_DEBUGGER;
 
     // Launch the browser - show errors if we couldn't.
@@ -167,6 +150,7 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
 
       // launch pub serve
       PubServeManager manager = PubServeManager.getManager();
+
       try {
         manager.serve(launchConfig, pubConnectionCallback);
       } catch (Exception e) {
@@ -176,7 +160,6 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
             "Could not start pub serve or connect to pub\n" + manager.getStdErrorString(),
             e));
       }
-
     } else {
       url = launchConfig.getUrl();
 
@@ -191,4 +174,17 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
     }
   }
 
+  private void launchInDartium(final String url, ILaunch launch,
+      DartLaunchConfigWrapper launchConfig) throws CoreException {
+    BrowserManager manager = BrowserManager.getManager();
+
+    manager.launchBrowser(
+        launch,
+        launchConfig,
+        url,
+        new NullProgressMonitor(),
+        enableDebugging,
+        new PubServeResourceResolver());
+    //new LaunchConfigResourceResolver(launchConfig));
+  }
 }

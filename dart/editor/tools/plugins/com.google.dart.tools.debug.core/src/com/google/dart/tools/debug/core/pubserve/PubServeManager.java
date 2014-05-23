@@ -55,7 +55,7 @@ public class PubServeManager {
   }
 
   public String getStdErrorString() {
-    return pubserve.getStdErrorString();
+    return pubserve == null ? "" : pubserve.getStdErrorString();
   }
 
   /**

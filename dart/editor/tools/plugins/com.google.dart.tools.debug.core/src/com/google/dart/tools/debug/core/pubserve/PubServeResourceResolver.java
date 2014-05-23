@@ -54,7 +54,6 @@ public class PubServeResourceResolver implements IResourceResolver {
       latch.countDown();
     }
   }
-
   private class UrlForFileCallback implements PubCallback<String> {
 
     private CountDownLatch latch;
@@ -74,6 +73,10 @@ public class PubServeResourceResolver implements IResourceResolver {
       }
       latch.countDown();
     }
+  }
+
+  public PubServeResourceResolver() {
+
   }
 
   @Override
