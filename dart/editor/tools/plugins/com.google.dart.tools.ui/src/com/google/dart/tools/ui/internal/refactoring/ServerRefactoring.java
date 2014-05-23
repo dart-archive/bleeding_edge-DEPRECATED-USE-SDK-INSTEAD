@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.services.change.Change;
-import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.tools.core.DartCore;
@@ -31,7 +30,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * LTK wrapper around Engine Services {@link Refactoring}.
+ * LTK wrapper around Analysis Server refactoring.
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */

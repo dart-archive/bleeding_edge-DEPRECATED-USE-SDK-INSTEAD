@@ -634,14 +634,12 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         // OK, register this refactoring
         String refactoringId = "extractMethod-" + nextRefactoringId++;
         refactoringMap.put(refactoringId, refactoring);
-        // TODO(scheglov) include an ID into parameters to track order and reference ranges
-        List<Parameter> parameters = refactoring.getParameters();
         consumer.computed(
             refactoringId,
             status,
             refactoring.getNumberOfOccurrences(),
             refactoring.canExtractGetter(),
-            parameters.toArray(new Parameter[parameters.size()]));
+            refactoring.getParameters());
       }
     }
   }
@@ -867,7 +865,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
     refactoring.setMethodName(name);
     refactoring.setReplaceAllOccurrences(allOccurrences);
     refactoring.setExtractGetter(asGetter);
-    // TODO(scheglov) we need setParameters()  (and IDs)
+    refactoring.setParameters(parameters);
     RefactoringStatus status = refactoring.checkMethodName();
     String signature = refactoring.getSignature();
     consumer.computed(status, signature);

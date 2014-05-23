@@ -16,10 +16,7 @@ package com.google.dart.engine.services.refactoring;
 
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Statement;
-import com.google.dart.engine.services.internal.refactoring.ParameterImpl;
 import com.google.dart.engine.services.status.RefactoringStatus;
-
-import java.util.List;
 
 /**
  * {@link Refactoring} to extract {@link Expression} or {@link Statement}s into method.
@@ -51,9 +48,9 @@ public interface ExtractMethodRefactoring extends Refactoring {
   int getNumberOfOccurrences();
 
   /**
-   * @return {@link ParameterImpl}s describing parameters of the extracted expression of statements.
+   * @return {@link Parameter}s describing parameters of the extracted expression of statements.
    */
-  List<Parameter> getParameters();
+  Parameter[] getParameters();
 
   /**
    * @return <code>true</code> if all occurrences of selected expression or statement should be
@@ -75,6 +72,11 @@ public interface ExtractMethodRefactoring extends Refactoring {
    * Sets the name for new method.
    */
   void setMethodName(String methodName);
+
+  /**
+   * Sets reordered or/and updated {@link Parameter}s.
+   */
+  void setParameters(Parameter[] parameters);
 
   /**
    * Specifies if all occurrences of the selected expression or statements should be replaced.

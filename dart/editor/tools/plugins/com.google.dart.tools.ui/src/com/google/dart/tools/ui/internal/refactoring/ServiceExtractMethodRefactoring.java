@@ -14,11 +14,16 @@
 
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.common.collect.Lists;
 import com.google.dart.engine.services.refactoring.ExtractMethodRefactoring;
 import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.engine.services.status.RefactoringStatus;
 
 import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils.toLTK;
+
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 
 import java.util.List;
 
@@ -29,6 +34,7 @@ import java.util.List;
  */
 public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
   private final ExtractMethodRefactoring refactoring;
+  private List<Parameter> parameters;
 
   public ServiceExtractMethodRefactoring(ExtractMethodRefactoring refactoring) {
     super(refactoring);
@@ -37,6 +43,21 @@ public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
 
   public boolean canExtractGetter() {
     return refactoring.canExtractGetter();
+  }
+
+  @Override
+  public org.eclipse.ltk.core.refactoring.RefactoringStatus checkFinalConditions(IProgressMonitor pm)
+      throws CoreException, OperationCanceledException {
+    refactoring.setParameters(parameters.toArray(new Parameter[parameters.size()]));
+    return super.checkFinalConditions(pm);
+  }
+
+  @Override
+  public org.eclipse.ltk.core.refactoring.RefactoringStatus checkInitialConditions(
+      IProgressMonitor pm) throws CoreException, OperationCanceledException {
+    org.eclipse.ltk.core.refactoring.RefactoringStatus status = super.checkInitialConditions(pm);
+    parameters = Lists.newArrayList(refactoring.getParameters());
+    return status;
   }
 
   public org.eclipse.ltk.core.refactoring.RefactoringStatus checkMethodName() {
@@ -60,7 +81,7 @@ public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
   }
 
   public List<Parameter> getParameters() {
-    return refactoring.getParameters();
+    return parameters;
   }
 
   public boolean getReplaceAllOccurrences() {

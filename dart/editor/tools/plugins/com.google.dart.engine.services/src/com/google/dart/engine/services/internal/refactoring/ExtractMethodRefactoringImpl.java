@@ -62,6 +62,7 @@ import com.google.dart.engine.utilities.source.SourceRangeFactory;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -84,14 +85,6 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     public Occurrence(SourceRange range, boolean isSelection) {
       this.range = range;
       this.isSelection = isSelection;
-    }
-  }
-
-  private class ParameterInternalImpl extends ParameterImpl {
-    final List<SourceRange> ranges = Lists.newArrayList();
-
-    public ParameterInternalImpl(String typeName, String name) {
-      super(typeName, name);
     }
   }
 
@@ -156,7 +149,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
 
   private final Set<String> usedNames = Sets.newHashSet();
   private final List<Parameter> parameters = Lists.newArrayList();
-  private final Map<String, ParameterInternalImpl> parametersMap = Maps.newHashMap();
+  private final Map<String, Parameter> parametersMap = Maps.newHashMap();
+  private final Map<String, List<SourceRange>> parameterReferencesMap = Maps.newHashMap();
   private Type returnType;
   private String returnVariableName;
   private AstNode parentMember;
@@ -430,8 +424,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   @Override
-  public List<Parameter> getParameters() {
-    return parameters;
+  public Parameter[] getParameters() {
+    return parameters.toArray(new Parameter[parameters.size()]);
   }
 
   @Override
@@ -494,8 +488,26 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   @Override
+  public void setParameters(Parameter[] parameters) {
+    this.parameters.clear();
+    Collections.addAll(this.parameters, parameters);
+  }
+
+  @Override
   public void setReplaceAllOccurrences(boolean replaceAllOccurrences) {
     this.replaceAllOccurrences = replaceAllOccurrences;
+  }
+
+  /**
+   * Adds a new reference to the parameter with the given name.
+   */
+  private void addParameterReference(String name, SourceRange range) {
+    List<SourceRange> references = parameterReferencesMap.get(name);
+    if (references == null) {
+      references = Lists.newArrayList();
+      parameterReferencesMap.put(name, references);
+    }
+    references.add(range);
   }
 
   /**
@@ -589,13 +601,15 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     String source = utils.getText(selectionRange);
     // prepare ReplaceEdit operations to replace variables with parameters
     List<Edit> replaceEdits = Lists.newArrayList();
-    for (ParameterInternalImpl parameter : parametersMap.values()) {
-      List<SourceRange> ranges = parameter.ranges;
-      for (SourceRange range : ranges) {
-        replaceEdits.add(new Edit(
-            range.getOffset() - selectionRange.getOffset(),
-            range.getLength(),
-            parameter.getNewName()));
+    for (Parameter parameter : parametersMap.values()) {
+      List<SourceRange> ranges = parameterReferencesMap.get(parameter.getOldName());
+      if (ranges != null) {
+        for (SourceRange range : ranges) {
+          replaceEdits.add(new Edit(
+              range.getOffset() - selectionRange.getOffset(),
+              range.getLength(),
+              parameter.getNewName()));
+        }
       }
     }
     // apply replacements
@@ -815,10 +829,12 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   /**
-   * Fills {@link #parameters} with information about used variables, which should be turned into
-   * parameters.
+   * Prepares information about used variables, which should be turned into parameters.
    */
   private RefactoringStatus initializeParameters() {
+    parameters.clear();
+    parametersMap.clear();
+    parameterReferencesMap.clear();
     RefactoringStatus result = new RefactoringStatus();
     final List<VariableElement> assignedUsedVariables = Lists.newArrayList();
     unitNode.accept(new GeneralizingAstVisitor<Void>() {
@@ -837,16 +853,16 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
             if (!isDeclaredInSelection(variableElement)) {
               String variableName = variableElement.getDisplayName();
               // add parameter
-              ParameterInternalImpl parameter = parametersMap.get(variableName);
+              Parameter parameter = parametersMap.get(variableName);
               if (parameter == null) {
                 Type parameterType = node.getBestType();
                 String parameterTypeName = utils.getTypeSource(parameterType);
-                parameter = new ParameterInternalImpl(parameterTypeName, variableName);
+                parameter = new ParameterImpl(parameterTypeName, variableName);
                 parameters.add(parameter);
                 parametersMap.put(variableName, parameter);
               }
               // add reference to parameter
-              parameter.ranges.add(nodeRange);
+              addParameterReference(variableName, nodeRange);
             }
             // remember, if assigned and used after selection
             if (isLeftHandOfAssignment(node) && isUsedAfterSelection(variableElement)) {
