@@ -602,9 +602,34 @@ public class InheritanceManager {
     MemberMap resultMap = interfaceLookup.get(classElt);
     if (resultMap != null) {
       return resultMap;
-    } else {
-      resultMap = new MemberMap();
     }
+    ArrayList<MemberMap> lookupMaps = gatherInterfaceLookupMaps(classElt, visitedInterfaces);
+    if (lookupMaps == null) {
+      resultMap = new MemberMap();
+    } else {
+      HashMap<String, ArrayList<ExecutableElement>> unionMap = unionInterfaceLookupMaps(lookupMaps);
+      resultMap = resolveInheritanceLookup(classElt, unionMap);
+    }
+    interfaceLookup.put(classElt, resultMap);
+    return resultMap;
+  }
+
+  /**
+   * Collect a list of interface lookup maps whose elements correspond to all of the classes
+   * directly above {@link classElt} in the class hierarchy (the direct superclass if any, all
+   * mixins, and all direct superinterfaces). Each item in the list is the interface lookup map
+   * returned by {@link computeInterfaceLookupMap} for the corresponding super, except with type
+   * parameters appropriately substituted.
+   * 
+   * @param classElt the class element to query
+   * @param visitedInterfaces a set of visited classes passed back into this method when it calls
+   *          itself recursively
+   * @return {@code null} if there was a problem (such as a loop in the class hierarchy) or if there
+   *         are no classes above this one in the class hierarchy. Otherwise, a list of interface
+   *         lookup maps.
+   */
+  private ArrayList<MemberMap> gatherInterfaceLookupMaps(ClassElement classElt,
+      HashSet<ClassElement> visitedInterfaces) {
     InterfaceType supertype = classElt.getSupertype();
     ClassElement superclassElement = supertype != null ? supertype.getElement() : null;
     InterfaceType[] mixins = classElt.getMixins();
@@ -643,8 +668,7 @@ public class InheritanceManager {
           visitedInterfaces.remove(superclassElement);
         }
       } else {
-        interfaceLookup.put(classElt, resultMap);
-        return resultMap;
+        return null;
       }
     }
 
@@ -680,8 +704,7 @@ public class InheritanceManager {
             visitedInterfaces.remove(mixinElement);
           }
         } else {
-          interfaceLookup.put(classElt, resultMap);
-          return resultMap;
+          return null;
         }
       }
     }
@@ -717,72 +740,106 @@ public class InheritanceManager {
             visitedInterfaces.remove(interfaceElement);
           }
         } else {
-          interfaceLookup.put(classElt, resultMap);
-          return resultMap;
+          return null;
         }
       }
     }
     if (lookupMaps.size() == 0) {
-      interfaceLookup.put(classElt, resultMap);
-      return resultMap;
+      return null;
     }
+    return lookupMaps;
+  }
 
-    //
-    // Union all of the lookupMaps together into unionMap, grouping the ExecutableElements into a
-    // list where none of the elements are equal where equality is determined by having equal
-    // function types. (We also take note too of the kind of the element: ()->int and () -> int may
-    // not be equal if one is a getter and the other is a method.)
-    //
-    HashMap<String, ArrayList<ExecutableElement>> unionMap = new HashMap<String, ArrayList<ExecutableElement>>();
-    for (MemberMap lookupMap : lookupMaps) {
-      int lookupMapSize = lookupMap.getSize();
-      for (int i = 0; i < lookupMapSize; i++) {
-        // Get the string key, if null, break.
-        String key = lookupMap.getKey(i);
-        if (key == null) {
-          break;
-        }
-
-        // Get the list value out of the unionMap
-        ArrayList<ExecutableElement> list = unionMap.get(key);
-
-        // If we haven't created such a map for this key yet, do create it and put the list entry
-        // into the unionMap.
-        if (list == null) {
-          list = new ArrayList<ExecutableElement>(4);
-          unionMap.put(key, list);
-        }
-
-        // Fetch the entry out of this lookupMap
-        ExecutableElement newExecutableElementEntry = lookupMap.getValue(i);
-
-        if (list.isEmpty()) {
-          // If the list is empty, just the new value
-          list.add(newExecutableElementEntry);
-        } else {
-          // Otherwise, only add the newExecutableElementEntry if it isn't already in the list, this
-          // covers situation where a class inherits two methods (or two getters) that are
-          // identical.
-          boolean alreadyInList = false;
-          boolean isMethod1 = newExecutableElementEntry instanceof MethodElement;
-          for (ExecutableElement executableElementInList : list) {
-            boolean isMethod2 = executableElementInList instanceof MethodElement;
-            if (isMethod1 == isMethod2
-                && executableElementInList.getType().equals(newExecutableElementEntry.getType())) {
-              alreadyInList = true;
-              break;
-            }
-          }
-          if (!alreadyInList) {
-            list.add(newExecutableElementEntry);
-          }
-        }
+  /**
+   * Given some {@link ClassElement}, this method finds and returns the {@link ExecutableElement} of
+   * the passed name in the class element. Static members, members in super types and members not
+   * accessible from the current library are not considered.
+   * 
+   * @param classElt the class element to query
+   * @param memberName the name of the member to lookup in the class
+   * @return the found {@link ExecutableElement}, or {@code null} if no such member was found
+   */
+  private ExecutableElement lookupMemberInClass(ClassElement classElt, String memberName) {
+    MethodElement[] methods = classElt.getMethods();
+    for (MethodElement method : methods) {
+      if (memberName.equals(method.getName()) && method.isAccessibleIn(library)
+          && !method.isStatic()) {
+        return method;
       }
     }
+    PropertyAccessorElement[] accessors = classElt.getAccessors();
+    for (PropertyAccessorElement accessor : accessors) {
+      if (memberName.equals(accessor.getName()) && accessor.isAccessibleIn(library)
+          && !accessor.isStatic()) {
+        return accessor;
+      }
+    }
+    return null;
+  }
 
-    //
-    // Loop through the entries in the unionMap, adding them to the resultMap appropriately.
-    //
+  /**
+   * Record the passed map with the set of all members (methods, getters and setters) in the type
+   * into the passed map.
+   * 
+   * @param map some non-{@code null} map to put the methods and accessors from the passed
+   *          {@link ClassElement} into
+   * @param type the type that will be recorded into the passed map
+   * @param doIncludeAbstract {@code true} if abstract members will be put into the map
+   */
+  private void recordMapWithClassMembers(MemberMap map, InterfaceType type,
+      boolean doIncludeAbstract) {
+    MethodElement[] methods = type.getMethods();
+    for (MethodElement method : methods) {
+      if (method.isAccessibleIn(library) && !method.isStatic()
+          && (doIncludeAbstract || !method.isAbstract())) {
+        map.put(method.getName(), method);
+      }
+    }
+    PropertyAccessorElement[] accessors = type.getAccessors();
+    for (PropertyAccessorElement accessor : accessors) {
+      if (accessor.isAccessibleIn(library) && !accessor.isStatic()
+          && (doIncludeAbstract || !accessor.isAbstract())) {
+        map.put(accessor.getName(), accessor);
+      }
+    }
+  }
+
+  /**
+   * This method is used to report errors on when they are found computing inheritance information.
+   * See {@link ErrorVerifier#checkForInconsistentMethodInheritance()} to see where these generated
+   * error codes are reported back into the analysis engine.
+   * 
+   * @param classElt the location of the source for which the exception occurred
+   * @param offset the offset of the location of the error
+   * @param length the length of the location of the error
+   * @param errorCode the error code to be associated with this error
+   * @param arguments the arguments used to build the error message
+   */
+  private void reportError(ClassElement classElt, int offset, int length, ErrorCode errorCode,
+      Object... arguments) {
+    HashSet<AnalysisError> errorSet = errorsInClassElement.get(classElt);
+    if (errorSet == null) {
+      errorSet = new HashSet<AnalysisError>();
+      errorsInClassElement.put(classElt, errorSet);
+    }
+    errorSet.add(new AnalysisError(classElt.getSource(), offset, length, errorCode, arguments));
+  }
+
+  /**
+   * Given the set of methods defined by classes above {@link classElt} in the class hierarchy,
+   * apply the appropriate inheritance rules to determine those methods inherited by or overridden
+   * by {@link classElt}. Also report static warnings
+   * {@link StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE} and
+   * {@link StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD} if appropriate.
+   * 
+   * @param classElt the class element to query.
+   * @param unionMap a mapping from method name to the set of unique (in terms of signature) methods
+   *          defined in superclasses of {@link classElt}.
+   * @return the inheritance lookup map for {@link classElt}.
+   */
+  private MemberMap resolveInheritanceLookup(ClassElement classElt,
+      HashMap<String, ArrayList<ExecutableElement>> unionMap) {
+    MemberMap resultMap = new MemberMap();
     for (Entry<String, ArrayList<ExecutableElement>> entry : unionMap.entrySet()) {
       String key = entry.getKey();
       ArrayList<ExecutableElement> list = entry.getValue();
@@ -922,83 +979,7 @@ public class InheritanceManager {
         }
       }
     }
-    interfaceLookup.put(classElt, resultMap);
     return resultMap;
-  }
-
-  /**
-   * Given some {@link ClassElement}, this method finds and returns the {@link ExecutableElement} of
-   * the passed name in the class element. Static members, members in super types and members not
-   * accessible from the current library are not considered.
-   * 
-   * @param classElt the class element to query
-   * @param memberName the name of the member to lookup in the class
-   * @return the found {@link ExecutableElement}, or {@code null} if no such member was found
-   */
-  private ExecutableElement lookupMemberInClass(ClassElement classElt, String memberName) {
-    MethodElement[] methods = classElt.getMethods();
-    for (MethodElement method : methods) {
-      if (memberName.equals(method.getName()) && method.isAccessibleIn(library)
-          && !method.isStatic()) {
-        return method;
-      }
-    }
-    PropertyAccessorElement[] accessors = classElt.getAccessors();
-    for (PropertyAccessorElement accessor : accessors) {
-      if (memberName.equals(accessor.getName()) && accessor.isAccessibleIn(library)
-          && !accessor.isStatic()) {
-        return accessor;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Record the passed map with the set of all members (methods, getters and setters) in the type
-   * into the passed map.
-   * 
-   * @param map some non-{@code null} map to put the methods and accessors from the passed
-   *          {@link ClassElement} into
-   * @param type the type that will be recorded into the passed map
-   * @param doIncludeAbstract {@code true} if abstract members will be put into the map
-   */
-  private void recordMapWithClassMembers(MemberMap map, InterfaceType type,
-      boolean doIncludeAbstract) {
-    MethodElement[] methods = type.getMethods();
-    for (MethodElement method : methods) {
-      if (method.isAccessibleIn(library) && !method.isStatic()
-          && (doIncludeAbstract || !method.isAbstract())) {
-        map.put(method.getName(), method);
-      }
-    }
-    PropertyAccessorElement[] accessors = type.getAccessors();
-    for (PropertyAccessorElement accessor : accessors) {
-      if (accessor.isAccessibleIn(library) && !accessor.isStatic()
-          && (doIncludeAbstract || !accessor.isAbstract())) {
-        map.put(accessor.getName(), accessor);
-      }
-    }
-  }
-
-  /**
-   * This method is used to report errors on when they are found computing inheritance information.
-   * See {@link ErrorVerifier#checkForInconsistentMethodInheritance()} to see where these generated
-   * error codes are reported back into the analysis engine.
-   * 
-   * @param classElt the location of the source for which the exception occurred
-   * @param offset the offset of the location of the error
-   * @param length the length of the location of the error
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
-   */
-  private void reportError(ClassElement classElt, int offset, int length, ErrorCode errorCode,
-      Object... arguments) {
-    HashSet<AnalysisError> errorSet = errorsInClassElement.get(classElt);
-    if (errorSet == null) {
-      errorSet = new HashSet<AnalysisError>();
-      errorsInClassElement.put(classElt, errorSet);
-    }
-    errorSet.add(new AnalysisError(classElt.getSource(), offset, length, errorCode, arguments));
   }
 
   /**
@@ -1021,5 +1002,65 @@ public class InheritanceManager {
         map.setValue(i, executableElement);
       }
     }
+  }
+
+  /**
+   * Union all of the {@link lookupMaps} together into a single map, grouping the ExecutableElements
+   * into a list where none of the elements are equal where equality is determined by having equal
+   * function types. (We also take note too of the kind of the element: ()->int and () -> int may
+   * not be equal if one is a getter and the other is a method.)
+   * 
+   * @param lookupMaps the maps to be unioned together.
+   * @return the resulting union map.
+   */
+  private HashMap<String, ArrayList<ExecutableElement>> unionInterfaceLookupMaps(
+      ArrayList<MemberMap> lookupMaps) {
+    HashMap<String, ArrayList<ExecutableElement>> unionMap = new HashMap<String, ArrayList<ExecutableElement>>();
+    for (MemberMap lookupMap : lookupMaps) {
+      int lookupMapSize = lookupMap.getSize();
+      for (int i = 0; i < lookupMapSize; i++) {
+        // Get the string key, if null, break.
+        String key = lookupMap.getKey(i);
+        if (key == null) {
+          break;
+        }
+
+        // Get the list value out of the unionMap
+        ArrayList<ExecutableElement> list = unionMap.get(key);
+
+        // If we haven't created such a map for this key yet, do create it and put the list entry
+        // into the unionMap.
+        if (list == null) {
+          list = new ArrayList<ExecutableElement>(4);
+          unionMap.put(key, list);
+        }
+
+        // Fetch the entry out of this lookupMap
+        ExecutableElement newExecutableElementEntry = lookupMap.getValue(i);
+
+        if (list.isEmpty()) {
+          // If the list is empty, just the new value
+          list.add(newExecutableElementEntry);
+        } else {
+          // Otherwise, only add the newExecutableElementEntry if it isn't already in the list, this
+          // covers situation where a class inherits two methods (or two getters) that are
+          // identical.
+          boolean alreadyInList = false;
+          boolean isMethod1 = newExecutableElementEntry instanceof MethodElement;
+          for (ExecutableElement executableElementInList : list) {
+            boolean isMethod2 = executableElementInList instanceof MethodElement;
+            if (isMethod1 == isMethod2
+                && executableElementInList.getType().equals(newExecutableElementEntry.getType())) {
+              alreadyInList = true;
+              break;
+            }
+          }
+          if (!alreadyInList) {
+            list.add(newExecutableElementEntry);
+          }
+        }
+      }
+    }
+    return unionMap;
   }
 }
