@@ -14,11 +14,12 @@
 package com.google.dart.server.internal.integration;
 
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
+import com.google.dart.server.internal.remote.StdioServerSocket;
 
 public class RemoteAnalysisServerImplIntegrationTest extends AbstractServerIntegrationTest {
-
   @Override
   protected void initServer() throws Exception {
+    // prepare environment
     String runtimePath = System.getProperty("com.google.dart.runtime");
     String analysisServerPath = System.getProperty("com.google.dart.analysis.server");
     if (runtimePath == null) {
@@ -27,11 +28,13 @@ public class RemoteAnalysisServerImplIntegrationTest extends AbstractServerInteg
     if (analysisServerPath == null) {
       fail("Add the analysis server (com.google.dart.analysis.server) as a JVM argument");
     }
-    RemoteAnalysisServerImpl remoteServer = new RemoteAnalysisServerImpl(
-        runtimePath,
-        analysisServerPath);
-    remoteServer.initServerAndReaderThread();
-    server = remoteServer;
+    // start the server process
+    StdioServerSocket serverSocket = new StdioServerSocket(runtimePath, analysisServerPath);
+    serverSocket.start();
+    // start the server interface
+    server = new RemoteAnalysisServerImpl(
+        serverSocket.getRequestSink(),
+        serverSocket.getResponseStream());
   }
 
   @Override

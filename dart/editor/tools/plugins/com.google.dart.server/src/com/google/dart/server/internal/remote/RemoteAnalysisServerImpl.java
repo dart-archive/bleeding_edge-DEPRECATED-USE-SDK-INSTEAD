@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Maps;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.server.AnalysisOptions;
@@ -37,18 +38,8 @@ import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -62,47 +53,35 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   /**
-   * A thread which reads output from a passed {@link InputStream}, parses the input, and then calls
-   * the associated {@link Consumer} from {@link RemoteAnalysisServerImpl#consumerMap}.
+   * A thread which reads responses from the {@link ResponseStream} and calls the associated
+   * {@link Consumer}s from {@link RemoteAnalysisServerImpl#consumerMap}.
    */
   public class ServerResponseReaderThread extends Thread {
-
-    private String[] lines = null;
-
     public ServerResponseReaderThread() {
-    }
-
-    @VisibleForTesting
-    public ServerResponseReaderThread(String[] lines) {
-      this.lines = lines;
+      setDaemon(true);
+      setName("ServerResponseReaderThread");
     }
 
     @Override
     public void run() {
       while (true) {
-        List<String> responses = null;
-        if (lines == null) {
-          responses = readResponse();
-        } else {
-          responses = new ArrayList<String>(lines.length);
-          for (String line : lines) {
-            responses.add(line);
-          }
-        }
-        for (String response : responses) {
-          JsonObject element = (JsonObject) new JsonParser().parse(response);
+        try {
+          JsonObject element = responseStream.take();
+          // prepare ID
           JsonPrimitive idJsonPrimitive = (JsonPrimitive) element.get("id");
           if (idJsonPrimitive == null) {
             // TODO (jwren) handle this case
             continue;
           }
           String idString = idJsonPrimitive.getAsString();
+          // prepare consumer
           Consumer consumer = null;
           synchronized (consumerMapLock) {
             consumer = consumerMap.get(idString);
           }
           // TODO(jwren) handle error responses:
 //              JsonObject errorObject = (JsonObject) element.get("error");
+          // handle result
           JsonObject resultObject = (JsonObject) element.get("result");
           if (consumer instanceof VersionConsumer) {
             processVersionConsumer((VersionConsumer) consumer, resultObject);
@@ -110,54 +89,43 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
           synchronized (consumerMapLock) {
             consumerMap.remove(idString);
           }
-        }
-        if (consumerMap.isEmpty()) {
-          Thread.yield();
+        } catch (Throwable e) {
+          // TODO(scheglov) decide how to handle exceptions
+          e.printStackTrace();
         }
       }
     }
 
-    private void processVersionConsumer(VersionConsumer versionConsumer, JsonObject resultObject) {
-      String version = resultObject.get("version").getAsString();
-      versionConsumer.computedVersion(version);
+    private void processVersionConsumer(VersionConsumer consumer, JsonObject result) {
+      String version = result.get("version").getAsString();
+      consumer.computedVersion(version);
     }
   }
+
+  private final RequestSink requestSink;
+
+  private final ResponseStream responseStream;
 
   /**
    * A mapping between {@link String} ids' and the associated {@link Consumer} that was passed when
    * the request was made.
    */
-  private final HashMap<String, Consumer> consumerMap;
+  private final Map<String, Consumer> consumerMap = Maps.newHashMap();
 
   /**
    * The object used to synchronize access to {@link #consumerMap}.
    */
   private final Object consumerMapLock = new Object();
 
-  private final String runtimePath;
-
-  private final String analysisServerPath;
-
   /**
    * The unique ID for the next request.
    */
   private final AtomicInteger nextId = new AtomicInteger();
 
-  /**
-   * The {@link Writer} for responses to the server.
-   */
-  private PrintWriter printWriter;
-
-  private BufferedReader bufferedReader;
-
-  /**
-   * Create an instance of {@link RemoteAnalysisServerImpl} using some runtime (Dart VM) path, and
-   * some analysis server path.
-   */
-  public RemoteAnalysisServerImpl(String runtimePath, String analysisServerPath) {
-    this.runtimePath = runtimePath;
-    this.analysisServerPath = analysisServerPath;
-    this.consumerMap = new HashMap<String, Consumer>();
+  public RemoteAnalysisServerImpl(RequestSink requestSink, ResponseStream responseStream) {
+    this.requestSink = requestSink;
+    this.responseStream = responseStream;
+    new ServerResponseReaderThread().start();
   }
 
   @Override
@@ -212,38 +180,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void getVersion(VersionConsumer consumer) {
     String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateServerVersionRequest(id).toString(), consumer);
-  }
-
-  public void initServerAndReaderThread() throws IOException {
-    //
-    // Initialize the process using runtimePath and analysisServerPath
-    //
-    ProcessBuilder processBuilder = new ProcessBuilder(runtimePath, analysisServerPath);
-    Process process = processBuilder.start();
-
-    //
-    // Initialize the reader for the input stream from the process
-    //
-    bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
-
-    //
-    // TODO (jwren) The following swallows the {"event":"server.connected"} response, but the
-    // connected state should be asserted.
-    // TODO (jwren) We also need to wait for the "server.connected" response, which we currently are
-    // not doing.
-    //
-    readResponse();
-
-    //
-    // Create and start the ServerResponseReaderThread thread.
-    //
-    new ServerResponseReaderThread().start();
-
-    //
-    // Initialize the print writer.
-    //
-    printWriter = new PrintWriter(new OutputStreamWriter(process.getOutputStream()));
+    sendRequestToServer(id, RequestUtilities.generateServerVersionRequest(id), consumer);
   }
 
   @Override
@@ -313,12 +250,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void shutdown() {
     String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateServerShutdownRequest(id).toString(), null);
-  }
-
-  @VisibleForTesting
-  public void test_setPrintWriter(PrintWriter printWriter) {
-    this.printWriter = printWriter;
+    sendRequestToServer(id, RequestUtilities.generateServerShutdownRequest(id), null);
   }
 
   @VisibleForTesting
@@ -348,33 +280,17 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     return Integer.toString(nextId.getAndIncrement());
   }
 
-  private List<String> readResponse() {
-    List<String> lines = new ArrayList<String>(1);
-    try {
-      String currentLine;
-      while (bufferedReader.ready() && (currentLine = bufferedReader.readLine()) != null) {
-        lines.add(currentLine.trim());
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return lines;
-  }
-
   /**
-   * Given some {@link String} id, a {@link String} Json request, and the associated consumer, this
-   * method writes the request to standard out, and stores the id/ consumer key/ value pair in
-   * {@link #consumerMap}.
+   * Associates the request with the {@link Consumer} and sends the request.
    * 
-   * @param id the {@link String} used in the request Json object
-   * @param requestJson the {@link String} representation of the Json object
-   * @param consumer the {@link Consumer}
+   * @param id the identifier of the request
+   * @param request the request to send
+   * @param consumer the {@link Consumer} to process a response, may be {@code null}
    */
-  private void sendRequestToServer(String id, String requestJson, Consumer consumer) {
+  private void sendRequestToServer(String id, JsonObject request, Consumer consumer) {
     synchronized (consumerMapLock) {
       consumerMap.put(id, consumer);
     }
-    printWriter.println(requestJson);
-    printWriter.flush();
+    requestSink.add(request);
   }
 }

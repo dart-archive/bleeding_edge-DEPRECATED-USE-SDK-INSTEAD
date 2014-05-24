@@ -13,42 +13,29 @@
  */
 package com.google.dart.server.internal.remote;
 
-import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl.ServerResponseReaderThread;
 import com.google.dart.server.internal.shared.AbstractServerTest;
 
 public abstract class AbstractRemoteServerTest extends AbstractServerTest {
-
   protected RemoteAnalysisServerImpl server;
-
-  protected ServerResponseReaderThread readerThread;
+  protected TestRequestSink requestSink = new TestRequestSink();
+  protected TestResponseStream responseStream = new TestResponseStream();
 
   @Override
   protected AnalysisServer createServer() {
-    server = new RemoteAnalysisServerImpl("", "");
+    server = new RemoteAnalysisServerImpl(requestSink, responseStream);
     return server;
   }
 
-  protected void responseFromServer(String response) {
-    responseFromServer(new String[] {response});
-  }
-
-  protected void responseFromServer(String[] responses) {
-    readerThread = server.new ServerResponseReaderThread(responses);
-    readerThread.start();
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    // Set a print writer so that we won't get a NPE when calls are made on the writer.
-    server.test_setPrintWriter(new PrintStringWriter());
+  protected final void putResponse(String... lines) throws Exception {
+    responseStream.put(lines);
   }
 
   @Override
   protected void tearDown() throws Exception {
     super.tearDown();
-    server.test_setPrintWriter(null);
+    server = null;
+    requestSink = null;
+    responseStream = null;
   }
 }

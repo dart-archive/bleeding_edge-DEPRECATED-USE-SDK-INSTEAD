@@ -13,11 +13,8 @@
  */
 package com.google.dart.server.internal.remote;
 
-import com.google.common.base.Joiner;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 
 /**
  * Unit tests for {@link RemoteAnalysisServerImpl}, for integration tests which actually uses the
@@ -33,13 +30,13 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         versionPtr[0] = version;
       }
     });
-    responseFromServer(parseJson(//
+    putResponse(//
         "{",
         "  'id': '0',",
         "  'result': {",
         "    'version': '0.0.1'",
         "  }",
-        "}").toString());
+        "}");
     server.test_waitForWorkerComplete();
     assertEquals("0.0.1", versionPtr[0]);
   }
@@ -68,21 +65,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_shutdown() throws Exception {
     server.shutdown();
-    responseFromServer(parseJson(//
+    putResponse(//
         "{",
         "  'id': '0'",
-        "}").toString());
+        "}");
     server.test_waitForWorkerComplete();
   }
-
-  /**
-   * Builds a JSON string from the given lines. Replaces single quotes with double quotes. Then
-   * parses this string as a {@link JsonElement}.
-   */
-  private JsonElement parseJson(String... lines) {
-    String json = Joiner.on('\n').join(lines);
-    json = json.replace('\'', '"');
-    return new JsonParser().parse(json);
-  }
-
 }
