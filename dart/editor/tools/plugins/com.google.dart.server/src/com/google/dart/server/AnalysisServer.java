@@ -213,14 +213,6 @@ public interface AnalysisServer {
   public void setAnalysisSubscriptions(Map<AnalysisService, List<String>> subscriptions);
 
   /**
-   * Set the content of one or more files.
-   * 
-   * @param files a table mapping the files whose content has changed to a description of the
-   *          content
-   */
-  public void setContent(Map<String, ContentChange> files);
-
-  /**
    * Set the priority files to the files in the given list. A priority file is a file that is given
    * priority when scheduling which analysis work to do first. The list typically contains those
    * files that are visible to the user and those for which analysis results will have the biggest
@@ -277,6 +269,15 @@ public interface AnalysisServer {
    * @param options the options that are to control analysis
    */
   public void updateAnalysisOptions(AnalysisOptions options);
+
+  /**
+   * Update the content of one or more files. Files that were previously updated but not included in
+   * this update remain unchanged.
+   * 
+   * @param files a table mapping the files whose content has changed to a description of the
+   *          content
+   */
+  public void updateContent(Map<String, ContentChange> files);
 
   /**
    * Update the set of SDK locations known to the server by adding and removing the given paths. If

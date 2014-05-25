@@ -1055,10 +1055,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   @Override
-  public void setContent(Map<String, ContentChange> files) {
-  }
-
-  @Override
   public void setPriorityFiles(List<String> files) {
   }
 
@@ -1117,6 +1113,10 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 
   @Override
   public void updateAnalysisOptions(AnalysisOptions options) {
+  }
+
+  @Override
+  public void updateContent(Map<String, ContentChange> files) {
   }
 
   @Override

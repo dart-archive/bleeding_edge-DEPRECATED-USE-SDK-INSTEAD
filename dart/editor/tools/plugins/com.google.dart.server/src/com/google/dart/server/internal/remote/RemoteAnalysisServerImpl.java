@@ -220,11 +220,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void setContent(Map<String, ContentChange> files) {
-    // TODO(scheglov) implement
-  }
-
-  @Override
   public void setPriorityFiles(List<String> files) {
     // TODO(scheglov) implement
   }
@@ -262,6 +257,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void updateAnalysisOptions(AnalysisOptions options) {
+    // TODO(scheglov) implement
+  }
+
+  @Override
+  public void updateContent(Map<String, ContentChange> files) {
     // TODO(scheglov) implement
   }
 
