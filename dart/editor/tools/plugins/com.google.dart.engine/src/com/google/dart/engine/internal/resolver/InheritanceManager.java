@@ -69,8 +69,8 @@ public class InheritanceManager {
    * <li><i>h = max(numberOfPositionals(m<sub>i</sub>)),</i></li>
    * <li><i>r = min(numberOfRequiredParams(m<sub>i</sub>)), for all <i>i</i>, 1 <= i <= k.</i></li>
    * </ul>
-   * If <i>r <= h</i> then <i>I</i> has a method named <i>n</i>, with <i>r</i> required parameters
-   * of type <b>dynamic</b>, <i>h</i> positional parameters of type <b>dynamic</b>, named parameters
+   * Then <i>I</i> has a method named <i>n</i>, with <i>r</i> required parameters of type
+   * <b>dynamic</b>, <i>h</i> positional parameters of type <b>dynamic</b>, named parameters
    * <i>s</i> of type <b>dynamic</b> and return type <b>dynamic</b>.
    * <p>
    * TODO (jwren) Associate a propagated type to the synthetic method element using least upper
@@ -92,9 +92,6 @@ public class InheritanceManager {
         r = numOfRequiredParams;
       }
       namedParametersList.addAll(getNamedParameterNames(element));
-    }
-    if (r > h) {
-      return null;
     }
     return createSyntheticExecutableElement(
         elementArrayToMerge,
@@ -1001,9 +998,7 @@ public class InheritanceManager {
                 elementArrayToMerge[i] = elements[subtypesOfAllOtherTypesIndexes.get(i)];
               }
               ExecutableElement mergedExecutableElement = computeMergedExecutableElement(elementArrayToMerge);
-              if (mergedExecutableElement != null) {
-                resultMap.put(key, mergedExecutableElement);
-              }
+              resultMap.put(key, mergedExecutableElement);
             }
           }
         } else {
