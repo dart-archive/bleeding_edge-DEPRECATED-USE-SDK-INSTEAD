@@ -22,7 +22,6 @@ import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -520,14 +519,19 @@ public class DeleteResourceAction extends SelectionListenerAction {
 
     List<IResource> resourceList = Arrays.asList(resources);
 
+    IProject project = null;
     List<IResource> folders = new ArrayList<IResource>();
     List<IResource> files = new ArrayList<IResource>();
     for (IResource resource : resources) {
       if (!resourceList.contains(resource.getParent())) {
         if (resource.getType() == IResource.FILE) {
           files.add(resource);
+          project = resource.getProject();
         } else {
           folders.add(resource);
+          if (!(resource instanceof IProject)) {
+            project = resource.getProject();
+          }
         }
       }
     }
@@ -565,9 +569,9 @@ public class DeleteResourceAction extends SelectionListenerAction {
         process.waitFor();
       }
 
-      ResourcesPlugin.getWorkspace().getRoot().refreshLocal(
-          IResource.DEPTH_INFINITE,
-          new NullProgressMonitor());
+      if (project != null) {
+        project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+      }
       EditorUtility.closeOrphanedEditors();
 
     } catch (Exception e) {
