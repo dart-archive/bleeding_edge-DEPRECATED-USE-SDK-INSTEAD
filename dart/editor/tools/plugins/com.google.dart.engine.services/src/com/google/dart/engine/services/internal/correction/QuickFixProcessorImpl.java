@@ -16,6 +16,7 @@ package com.google.dart.engine.services.internal.correction;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -144,29 +145,29 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
    * Helper for finding {@link Element} with name closest to the given.
    */
   private static class ClosestElementFinder {
-    private final Class<?> targetClass;
     private final String targetName;
+    private final Predicate<Element> predicate;
     Element element = null;
     int distance = Integer.MAX_VALUE;
 
-    public ClosestElementFinder(Class<?> targetClass, String targetName) {
-      this.targetClass = targetClass;
+    public ClosestElementFinder(String targetName, Predicate<Element> predicate) {
       this.targetName = targetName;
+      this.predicate = predicate;
     }
 
-    void update(Element member) {
-      if (targetClass.isInstance(member)) {
-        int memberDistance = StringUtils.getLevenshteinDistance(member.getName(), targetName);
+    void update(Element element) {
+      if (predicate.apply(element)) {
+        int memberDistance = StringUtils.getLevenshteinDistance(element.getName(), targetName);
         if (memberDistance < distance) {
-          element = member;
-          distance = memberDistance;
+          this.element = element;
+          this.distance = memberDistance;
         }
       }
     }
 
-    void update(Iterable<? extends Element> members) {
-      for (Element member : members) {
-        update(member);
+    void update(Iterable<? extends Element> elements) {
+      for (Element element : elements) {
+        update(element);
       }
     }
   }
@@ -1311,7 +1312,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private void addFix_undefinedClass_useSimilar() {
     if (mayBeTypeIdentifier(node)) {
       String name = ((SimpleIdentifier) node).getName();
-      final ClosestElementFinder finder = new ClosestElementFinder(ClassElement.class, name);
+      final ClosestElementFinder finder = new ClosestElementFinder(name, new Predicate<Element>() {
+        @Override
+        public boolean apply(Element element) {
+          return element instanceof ClassElement;
+        }
+      });
       // find closest element
       {
         // elements of this library
@@ -1400,7 +1406,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private void addFix_undefinedFunction_useSimilar() throws Exception {
     if (node instanceof SimpleIdentifier) {
       String name = ((SimpleIdentifier) node).getName();
-      final ClosestElementFinder finder = new ClosestElementFinder(FunctionElement.class, name);
+      final ClosestElementFinder finder = new ClosestElementFinder(name, new Predicate<Element>() {
+        @Override
+        public boolean apply(Element element) {
+          return element instanceof FunctionElement;
+        }
+      });
       // this library
       unitLibraryElement.accept(new RecursiveElementVisitor<Void>() {
         @Override
@@ -1664,20 +1675,29 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     if (node instanceof SimpleIdentifier && node.getParent() instanceof MethodInvocation) {
       MethodInvocation invocation = (MethodInvocation) node.getParent();
       String name = ((SimpleIdentifier) node).getName();
-      ClosestElementFinder finder = new ClosestElementFinder(MethodElement.class, name);
+      ClosestElementFinder finder = new ClosestElementFinder(name, new Predicate<Element>() {
+        @Override
+        public boolean apply(Element element) {
+          if (element instanceof MethodElement) {
+            MethodElement methodElement = (MethodElement) element;
+            return !methodElement.isOperator();
+          }
+          return false;
+        }
+      });
       // unqualified invocation
       Expression target = invocation.getRealTarget();
       if (target == null) {
         ClassDeclaration clazz = invocation.getAncestor(ClassDeclaration.class);
         if (clazz != null) {
-          ClassElement clazzElement = clazz.getElement();
-          updateFinderWithClassMembers(finder, clazzElement);
+          ClassElement classElement = clazz.getElement();
+          updateFinderWithClassMembers(finder, classElement);
         }
       } else {
         Type type = target.getBestType();
         if (type instanceof InterfaceType) {
-          ClassElement clazzElement = ((InterfaceType) type).getElement();
-          updateFinderWithClassMembers(finder, clazzElement);
+          ClassElement classElement = ((InterfaceType) type).getElement();
+          updateFinderWithClassMembers(finder, classElement);
         }
       }
       // if we have close enough element, suggest to use it
@@ -2186,10 +2206,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     endRange = null;
   }
 
-  private void updateFinderWithClassMembers(final ClosestElementFinder finder,
-      ClassElement clazzElement) {
-    if (clazzElement != null) {
-      List<Element> members = HierarchyUtils.getMembers(clazzElement, false);
+  private void updateFinderWithClassMembers(ClosestElementFinder finder, ClassElement classElement) {
+    if (classElement != null) {
+      List<Element> members = HierarchyUtils.getMembers(classElement, false);
       finder.update(members);
     }
   }

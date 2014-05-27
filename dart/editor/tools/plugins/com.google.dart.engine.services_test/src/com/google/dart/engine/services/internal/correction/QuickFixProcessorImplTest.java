@@ -2098,6 +2098,15 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     }
   }
 
+  public void test_undefinedMethod_useSimilar_ignoreOperators() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(Object object) {",
+        "  object.then();",
+        "}");
+    assertNoFix(CorrectionKind.QF_CHANGE_TO);
+  }
+
   public void test_undefinedMethod_useSimilar_qualified() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
