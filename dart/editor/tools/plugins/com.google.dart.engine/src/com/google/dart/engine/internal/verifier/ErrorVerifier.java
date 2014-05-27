@@ -1431,12 +1431,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     // SWC.INVALID_METHOD_OVERRIDE_RETURN_TYPE
     if (!overriddenFTReturnType.equals(VoidTypeImpl.getInstance())
         && !overridingFTReturnType.isAssignableTo(overriddenFTReturnType)) {
-      errorReporter.reportErrorForNode(
+      errorReporter.reportTypeErrorForNode(
           !isGetter ? StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE
               : StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
           errorNameTarget,
-          overridingFTReturnType.getDisplayName(),
-          overriddenFTReturnType.getDisplayName(),
+          overridingFTReturnType,
+          overriddenFTReturnType,
           overriddenExecutable.getEnclosingElement().getDisplayName());
       return true;
     }
@@ -1448,12 +1448,12 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     int parameterIndex = 0;
     for (int i = 0; i < overridingNormalPT.length; i++) {
       if (!overridingNormalPT[i].isAssignableTo(overriddenNormalPT[i])) {
-        errorReporter.reportErrorForNode(
+        errorReporter.reportTypeErrorForNode(
             !isSetter ? StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
                 : StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE,
             parameterLocations[parameterIndex],
-            overridingNormalPT[i].getDisplayName(),
-            overriddenNormalPT[i].getDisplayName(),
+            overridingNormalPT[i],
+            overriddenNormalPT[i],
             overriddenExecutable.getEnclosingElement().getDisplayName());
         return true;
       }
@@ -1463,11 +1463,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     // SWC.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE
     for (int i = 0; i < overriddenPositionalPT.length; i++) {
       if (!overridingPositionalPT[i].isAssignableTo(overriddenPositionalPT[i])) {
-        errorReporter.reportErrorForNode(
+        errorReporter.reportTypeErrorForNode(
             StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE,
             parameterLocations[parameterIndex],
-            overridingPositionalPT[i].getDisplayName(),
-            overriddenPositionalPT[i].getDisplayName(),
+            overridingPositionalPT[i],
+            overriddenPositionalPT[i],
             overriddenExecutable.getEnclosingElement().getDisplayName());
         return true;
       }
@@ -1498,11 +1498,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           }
         }
         if (parameterToSelect != null) {
-          errorReporter.reportErrorForNode(
+          errorReporter.reportTypeErrorForNode(
               StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE,
               parameterLocationToSelect,
-              overridingType.getDisplayName(),
-              overriddenNamedPTEntry.getValue().getDisplayName(),
+              overridingType,
+              overriddenNamedPTEntry.getValue(),
               overriddenExecutable.getEnclosingElement().getDisplayName());
           return true;
         }
@@ -1936,11 +1936,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     //
     if (actualStaticType != null && expectedStaticType != null) {
       if (!actualStaticType.isAssignableTo(expectedStaticType)) {
-        errorReporter.reportErrorForNode(
+        errorReporter.reportTypeErrorForNode(
             errorCode,
             expression,
-            actualStaticType.getDisplayName(),
-            expectedStaticType.getDisplayName());
+            actualStaticType,
+            expectedStaticType);
         return true;
       }
     }
@@ -3313,17 +3313,17 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     }
     // report problem
     if (isEnclosingConstructorConst) {
-      errorReporter.reportErrorForNode(
+      errorReporter.reportTypeErrorForNode(
           CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
           expression,
-          staticType.getDisplayName(),
-          fieldType.getDisplayName());
+          staticType,
+          fieldType);
     } else {
-      errorReporter.reportErrorForNode(
+      errorReporter.reportTypeErrorForNode(
           StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
           expression,
-          staticType.getDisplayName(),
-          fieldType.getDisplayName());
+          staticType,
+          fieldType);
     }
     return true;
     // TODO(brianwilkerson) Define a hint corresponding to these errors and report it if appropriate.
@@ -3334,17 +3334,17 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 //    }
 //    // report problem
 //    if (isEnclosingConstructorConst) {
-//      errorReporter.reportError(
+//      errorReporter.reportTypeErrorForNode(
 //          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
 //          expression,
-//          (propagatedType == null ? staticType : propagatedType).getDisplayName(),
-//          fieldType.getDisplayName());
+//          propagatedType == null ? staticType : propagatedType,
+//          fieldType);
 //    } else {
-//      errorReporter.reportError(
+//      errorReporter.reportTypeErrorForNode(
 //          StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
 //          expression,
-//          (propagatedType == null ? staticType : propagatedType).getDisplayName(),
-//          fieldType.getDisplayName());
+//          propagatedType == null ? staticType : propagatedType,
+//          fieldType);
 //    }
 //    return true;
   }
@@ -3823,21 +3823,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
         : leftVariableElement.getType();
     Type staticRightType = getStaticType(rhs);
     if (!staticRightType.isAssignableTo(leftType)) {
-      String leftName = leftType.getDisplayName();
-      String rightName = staticRightType.getDisplayName();
-      if (leftName.equals(rightName)) {
-        Element leftElement = leftType.getElement();
-        Element rightElement = staticRightType.getElement();
-        if (leftElement != null && rightElement != null) {
-          leftName = leftElement.getExtendedDisplayName();
-          rightName = rightElement.getExtendedDisplayName();
-        }
-      }
-      errorReporter.reportErrorForNode(
+      errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.INVALID_ASSIGNMENT,
           rhs,
-          rightName,
-          leftName);
+          staticRightType,
+          leftType);
       return true;
     }
     return false;
@@ -3870,21 +3860,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return false;
     }
     if (!rightType.isAssignableTo(leftType)) {
-      String leftName = leftType.getDisplayName();
-      String rightName = rightType.getDisplayName();
-      if (leftName.equals(rightName)) {
-        Element leftElement = leftType.getElement();
-        Element rightElement = rightType.getElement();
-        if (leftElement != null && rightElement != null) {
-          leftName = leftElement.getExtendedDisplayName();
-          rightName = rightElement.getExtendedDisplayName();
-        }
-      }
-      errorReporter.reportErrorForNode(
+      errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.INVALID_ASSIGNMENT,
           rhs,
-          rightName,
-          leftName);
+          rightType,
+          leftType);
       return true;
     }
     return false;
@@ -4145,20 +4125,20 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     // it is dynamic which is assignable to everything).
     if (setterType != null && getterType != null && !getterType.isAssignableTo(setterType)) {
       if (enclosingClassForCounterpart == null) {
-        errorReporter.reportErrorForNode(
+        errorReporter.reportTypeErrorForNode(
             StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
             accessorDeclaration,
             accessorTextName,
-            setterType.getDisplayName(),
-            getterType.getDisplayName());
+            setterType,
+            getterType);
         return true;
       } else {
-        errorReporter.reportErrorForNode(
+        errorReporter.reportTypeErrorForNode(
             StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,
             accessorDeclaration,
             accessorTextName,
-            setterType.getDisplayName(),
-            getterType.getDisplayName(),
+            setterType,
+            getterType,
             enclosingClassForCounterpart.getDisplayName());
       }
     }
@@ -4994,11 +4974,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       if (staticReturnType.isVoid() || staticReturnType.isDynamic() || staticReturnType.isBottom()) {
         return false;
       }
-      errorReporter.reportErrorForNode(
+      errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
           returnExpression,
-          staticReturnType.getDisplayName(),
-          expectedReturnType.getDisplayName(),
+          staticReturnType,
+          expectedReturnType,
           enclosingFunction.getDisplayName());
       return true;
     }
@@ -5006,11 +4986,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (isStaticAssignable) {
       return false;
     }
-    errorReporter.reportErrorForNode(
+    errorReporter.reportTypeErrorForNode(
         StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
         returnExpression,
-        staticReturnType.getDisplayName(),
-        expectedReturnType.getDisplayName(),
+        staticReturnType,
+        expectedReturnType,
         enclosingFunction.getDisplayName());
     return true;
     // TODO(brianwilkerson) Define a hint corresponding to the warning and report it if appropriate.
@@ -5019,11 +4999,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
 //    if (isStaticAssignable || isPropagatedAssignable) {
 //      return false;
 //    }
-//    errorReporter.reportError(
+//    errorReporter.reportTypeErrorForNode(
 //        StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
 //        returnExpression,
-//        staticReturnType.getDisplayName(),
-//        expectedReturnType.getDisplayName(),
+//        staticReturnType,
+//        expectedReturnType,
 //        enclosingFunction.getDisplayName());
 //    return true;
   }
@@ -5181,11 +5161,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           } else {
             errorCode = StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
           }
-          errorReporter.reportErrorForNode(
-              errorCode,
-              argTypeName,
-              argType.getDisplayName(),
-              boundType.getDisplayName());
+          errorReporter.reportTypeErrorForNode(errorCode, argTypeName, argType, boundType);
           foundError = true;
         }
       }
@@ -5370,11 +5346,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
                 node.getIdentifier().getName());
           } else if (declaredType != null && fieldType != null
               && !declaredType.isAssignableTo(fieldType)) {
-            errorReporter.reportErrorForNode(
+            errorReporter.reportTypeErrorForNode(
                 StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
                 node,
-                declaredType.getDisplayName(),
-                fieldType.getDisplayName());
+                declaredType,
+                fieldType);
           }
         } else {
           if (fieldElement.isSynthetic()) {

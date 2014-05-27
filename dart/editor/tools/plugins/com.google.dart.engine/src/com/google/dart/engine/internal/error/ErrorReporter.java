@@ -21,6 +21,9 @@ import com.google.dart.engine.error.AnalysisErrorWithProperties;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.Type;
+
+import java.util.HashSet;
 
 /**
  * Instances of the class {@code ErrorReporter} wrap an error listener with utility methods used to
@@ -91,22 +94,30 @@ public class ErrorReporter {
    * Report an error with the given error code and arguments.
    * 
    * @param errorCode the error code of the error to be reported
+   * @param element the element which name should be used as the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  public void reportErrorForElement(ErrorCode errorCode, Element element, Object... arguments) {
+    reportErrorForOffset(
+        errorCode,
+        element.getNameOffset(),
+        element.getDisplayName().length(),
+        arguments);
+  }
+
+  /**
+   * Report an error with the given error code and arguments.
+   * <p>
+   * If the arguments contain the names of two or more types, the method
+   * {@link #reportTypeErrorForNode(ErrorCode, AstNode, Object...)} should be used and the types
+   * themselves (rather than their names) should be passed as arguments.
+   * 
+   * @param errorCode the error code of the error to be reported
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
   public void reportErrorForNode(ErrorCode errorCode, AstNode node, Object... arguments) {
     reportErrorForOffset(errorCode, node.getOffset(), node.getLength(), arguments);
-  }
-
-  /**
-   * Report an error with the given error code and arguments.
-   * 
-   * @param errorCode the error code of the error to be reported
-   * @param element the element which name should be used as the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
-   */
-  public void reportErrorForElement(ErrorCode errorCode, Element element, Object... arguments) {
-    reportErrorForOffset(errorCode, element.getNameOffset(), element.getDisplayName().length(), arguments);
   }
 
   /**
@@ -133,6 +144,24 @@ public class ErrorReporter {
   }
 
   /**
+   * Report an error with the given error code and arguments. The arguments are expected to contain
+   * two or more types. Convert the types into strings by using the display names of the types,
+   * unless there are two or more types with the same names, in which case the extended display
+   * names of the types will be used in order to clarify the message.
+   * <p>
+   * If there are not two or more types in the argument list, the method
+   * {@link #reportErrorForNode(ErrorCode, AstNode, Object...)} should be used instead.
+   * 
+   * @param errorCode the error code of the error to be reported
+   * @param node the node specifying the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  public void reportTypeErrorForNode(ErrorCode errorCode, AstNode node, Object... arguments) {
+    convertTypeNames(arguments);
+    reportErrorForOffset(errorCode, node.getOffset(), node.getLength(), arguments);
+  }
+
+  /**
    * Set the source to be used when reporting errors. Setting the source to {@code null} will cause
    * the default source to be used.
    * 
@@ -140,5 +169,58 @@ public class ErrorReporter {
    */
   public void setSource(Source source) {
     this.source = source == null ? defaultSource : source;
+  }
+
+  /**
+   * Given an array of arguments that is expected to contain two or more types, convert the types
+   * into strings by using the display names of the types, unless there are two or more types with
+   * the same names, in which case the extended display names of the types will be used in order to
+   * clarify the message.
+   * 
+   * @param arguments the arguments that are to be converted
+   */
+  private void convertTypeNames(Object[] arguments) {
+    if (hasEqualTypeNames(arguments)) {
+      int count = arguments.length;
+      for (int i = 0; i < count; i++) {
+        Object argument = arguments[i];
+        if (argument instanceof Type) {
+          Type type = (Type) argument;
+          Element element = type.getElement();
+          if (element == null) {
+            arguments[i] = type.getDisplayName();
+          } else {
+            arguments[i] = element.getExtendedDisplayName();
+          }
+        }
+      }
+    } else {
+      int count = arguments.length;
+      for (int i = 0; i < count; i++) {
+        Object argument = arguments[i];
+        if (argument instanceof Type) {
+          arguments[i] = ((Type) argument).getDisplayName();
+        }
+      }
+    }
+  }
+
+  /**
+   * Return {@code true} if the given array of arguments contains two or more types with the same
+   * display name.
+   * 
+   * @param arguments the arguments being tested
+   * @return {@code true} if the array of arguments contains two or more types with the same display
+   *         name
+   */
+  private boolean hasEqualTypeNames(Object[] arguments) {
+    int count = arguments.length;
+    HashSet<String> typeNames = new HashSet<String>(count);
+    for (int i = 0; i < count; i++) {
+      if (arguments[i] instanceof Type && typeNames.add(((Type) arguments[i]).getDisplayName())) {
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -345,11 +345,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
 
     if (actualBestType != null && expectedBestType != null) {
       if (!actualBestType.isAssignableTo(expectedBestType)) {
-        errorReporter.reportErrorForNode(
-            hintCode,
-            expression,
-            actualBestType.getDisplayName(),
-            expectedBestType.getDisplayName());
+        errorReporter.reportTypeErrorForNode(hintCode, expression, actualBestType, expectedBestType);
         return true;
       }
     }
@@ -543,17 +539,11 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
     Type bestRightType = rhs.getBestType();
     if (leftType != null && bestRightType != null) {
       if (!bestRightType.isAssignableTo(leftType)) {
-        String leftName = leftType.getDisplayName();
-        String rightName = bestRightType.getDisplayName();
-        if (leftName.equals(rightName)) {
-          Element leftElement = leftType.getElement();
-          Element rightElement = bestRightType.getElement();
-          if (leftElement != null && rightElement != null) {
-            leftName = leftElement.getExtendedDisplayName();
-            rightName = rightElement.getExtendedDisplayName();
-          }
-        }
-        errorReporter.reportErrorForNode(HintCode.INVALID_ASSIGNMENT, rhs, rightName, leftName);
+        errorReporter.reportTypeErrorForNode(
+            HintCode.INVALID_ASSIGNMENT,
+            rhs,
+            bestRightType,
+            leftType);
         return true;
       }
     }
