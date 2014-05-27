@@ -14,10 +14,13 @@
 package com.google.dart.server.internal.remote.utilities;
 
 import com.google.common.base.Joiner;
+import com.google.dart.server.ServerService;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 import junit.framework.TestCase;
+
+import java.util.ArrayList;
 
 /**
  * Tests for {@link RequestUtilities}.
@@ -272,7 +275,23 @@ public class RequestUtilitiesTest extends TestCase {
         "    'subscriptions': []",
         "  }",
         "}");
-    assertEquals(expected, RequestUtilities.generateServerSetSubscriptions("ID"));
+    assertEquals(
+        expected,
+        RequestUtilities.generateServerSetSubscriptions("ID", new ArrayList<ServerService>(0)));
+  }
+
+  public void test_generateServerSetSubscriptions_status() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'ID',",
+        "  'method': 'server.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': [STATUS]",
+        "  }",
+        "}");
+    ArrayList<ServerService> subscriptions = new ArrayList<ServerService>();
+    subscriptions.add(ServerService.STATUS);
+    assertEquals(expected, RequestUtilities.generateServerSetSubscriptions("ID", subscriptions));
   }
 
   public void test_generateServerShutdownRequest() throws Exception {

@@ -53,6 +53,24 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   /**
+   * For requests that do not have a {@link Consumer}, this object is created as a place holder so
+   * that if an error occurs after the request, an error can be reported.
+   */
+  public static class LocalConsumer implements Consumer {
+    private final JsonObject request;
+
+    public LocalConsumer(JsonObject request) {
+      this.request = request;
+    }
+
+    @SuppressWarnings("unused")
+    private JsonObject getRequest() {
+      return request;
+    }
+
+  }
+
+  /**
    * A thread which reads responses from the {@link ResponseStream} and calls the associated
    * {@link Consumer}s from {@link RemoteAnalysisServerImpl#consumerMap}.
    */
@@ -79,8 +97,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
           synchronized (consumerMapLock) {
             consumer = consumerMap.get(idString);
           }
-          // TODO(jwren) handle error responses:
-//              JsonObject errorObject = (JsonObject) element.get("error");
+          // TODO(jwren) handle error
+          @SuppressWarnings("unused")
+          JsonObject errorObject = (JsonObject) element.get("error");
           // handle result
           JsonObject resultObject = (JsonObject) element.get("result");
           if (consumer instanceof VersionConsumer) {
@@ -96,8 +115,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       }
     }
 
-    private void processVersionConsumer(VersionConsumer consumer, JsonObject result) {
-      String version = result.get("version").getAsString();
+    private void processVersionConsumer(VersionConsumer consumer, JsonObject resultObject) {
+      String version = resultObject.get("version").getAsString();
       consumer.computedVersion(version);
     }
   }
@@ -239,7 +258,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void setServerSubscriptions(List<ServerService> subscriptions) {
-    // TODO(scheglov) implement
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateServerSetSubscriptions(id, subscriptions));
   }
 
   @Override
@@ -281,11 +301,22 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   /**
-   * Associates the request with the {@link Consumer} and sends the request.
+   * Sends the request, and associates the request with a {@link LocalConsumer}, a simple consumer
+   * which only holds onto the the request {@link JsonObject}, for the purposes of error reporting.
    * 
    * @param id the identifier of the request
    * @param request the request to send
-   * @param consumer the {@link Consumer} to process a response, may be {@code null}
+   */
+  private void sendRequestToServer(String id, JsonObject request) {
+    sendRequestToServer(id, request, new LocalConsumer(request));
+  }
+
+  /**
+   * Sends the request and associates the request with the passed {@link Consumer}.
+   * 
+   * @param id the identifier of the request
+   * @param request the request to send
+   * @param consumer the {@link Consumer} to process a response
    */
   private void sendRequestToServer(String id, JsonObject request, Consumer consumer) {
     synchronized (consumerMapLock) {

@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote.utilities;
 
 import com.google.dart.engine.context.AnalysisDelta;
+import com.google.dart.server.ServerService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -280,10 +281,14 @@ public class RequestUtilities {
    * }
    * </pre>
    */
-  public static JsonObject generateServerSetSubscriptions(String idValue) {
-    // TODO (jwren) fill in values to the "subscriptions" parameter after we have the java enum
+  public static JsonObject generateServerSetSubscriptions(String idValue,
+      List<ServerService> subscriptions) {
     JsonObject params = new JsonObject();
-    params.add("subscriptions", buildJsonArray(new ArrayList<String>()));
+    ArrayList<String> strSubscriptions = new ArrayList<String>(subscriptions.size());
+    for (ServerService subscription : subscriptions) {
+      strSubscriptions.add(subscription.name());
+    }
+    params.add("subscriptions", buildJsonArray(strSubscriptions));
     return buildJsonObjectRequest(idValue, METHOD_SERVER_SET_SUBSCRIPTIONS, params);
   }
 

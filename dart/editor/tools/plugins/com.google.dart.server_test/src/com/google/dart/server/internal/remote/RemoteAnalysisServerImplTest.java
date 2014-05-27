@@ -13,8 +13,11 @@
  */
 package com.google.dart.server.internal.remote;
 
+import com.google.dart.server.ServerService;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
+
+import java.util.ArrayList;
 
 /**
  * Unit tests for {@link RemoteAnalysisServerImpl}, for integration tests which actually uses the
@@ -61,6 +64,15 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 //        "  'id': '0'",
 //        "}").toString());
 //    server.test_waitForWorkerComplete();
+  }
+
+  public void test_setServerSubscriptions() throws Exception {
+    server.setServerSubscriptions(new ArrayList<ServerService>());
+    putResponse(//
+        "{",
+        "  'id': '0'",
+        "}");
+    server.test_waitForWorkerComplete();
   }
 
   public void test_shutdown() throws Exception {
