@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.type.Type;
+
 /**
  * The interface {@code PropertyInducingElement} defines the behavior of elements representing a
  * variable that has an associated getter and possibly a setter. Note that explicitly defined
@@ -39,6 +41,14 @@ public interface PropertyInducingElement extends VariableElement {
    * @return the getter associated with this variable
    */
   public PropertyAccessorElement getGetter();
+
+  /**
+   * Return the propagated type of this variable, or {@code null} if type propagation has not been
+   * performed, for example because the variable is not final.
+   * 
+   * @return the propagated type of this variable
+   */
+  public Type getPropagatedType();
 
   /**
    * Return the setter associated with this variable, or {@code null} if the variable is effectively

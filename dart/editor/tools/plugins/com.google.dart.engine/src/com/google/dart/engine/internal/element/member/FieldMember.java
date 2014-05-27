@@ -86,6 +86,11 @@ public class FieldMember extends VariableMember implements FieldElement {
   }
 
   @Override
+  public Type getPropagatedType() {
+    return substituteFor(getBaseElement().getPropagatedType());
+  }
+
+  @Override
   public PropertyAccessorElement getSetter() {
     return PropertyAccessorMember.from(getBaseElement().getSetter(), getDefiningType());
   }

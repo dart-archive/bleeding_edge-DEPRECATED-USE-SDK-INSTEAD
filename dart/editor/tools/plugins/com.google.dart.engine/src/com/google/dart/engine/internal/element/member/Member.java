@@ -219,6 +219,9 @@ public abstract class Member implements Element {
    */
   @SuppressWarnings("unchecked")
   protected <E extends Type> E substituteFor(E type) {
+    if (type == null) {
+      return null;
+    }
     Type[] argumentTypes = definingType.getTypeArguments();
     Type[] parameterTypes = TypeParameterTypeImpl.getTypes(definingType.getTypeParameters());
     return (E) type.substitute(argumentTypes, parameterTypes);

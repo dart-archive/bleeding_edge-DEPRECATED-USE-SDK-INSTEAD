@@ -73,6 +73,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
@@ -1017,6 +1018,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
     SimpleIdentifier prefixedIdentifier = node.getIdentifier();
     Element staticElement = prefixedIdentifier.getStaticElement();
     Type staticType = dynamicType;
+    Type propagatedType = null;
     if (staticElement instanceof ClassElement) {
       if (isNotTypeLiteral(node)) {
         staticType = ((ClassElement) staticElement).getType();
@@ -1035,6 +1037,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
       staticType = getTypeOfProperty(
           (PropertyAccessorElement) staticElement,
           node.getPrefix().getStaticType());
+      propagatedType = getPropertyPropagatedType(staticElement, propagatedType);
     } else if (staticElement instanceof ExecutableElement) {
       staticType = ((ExecutableElement) staticElement).getType();
     } else if (staticElement instanceof TypeParameterElement) {
@@ -1046,7 +1049,6 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
     recordStaticType(node, staticType);
 
     Element propagatedElement = prefixedIdentifier.getPropagatedElement();
-    Type propagatedType = null;
     if (propagatedElement instanceof ClassElement) {
       if (isNotTypeLiteral(node)) {
         propagatedType = ((ClassElement) propagatedElement).getType();
@@ -1061,6 +1063,7 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
       propagatedType = getTypeOfProperty(
           (PropertyAccessorElement) propagatedElement,
           node.getPrefix().getStaticType());
+      propagatedType = getPropertyPropagatedType(propagatedElement, propagatedType);
     } else if (propagatedElement instanceof ExecutableElement) {
       propagatedType = ((ExecutableElement) propagatedElement).getType();
     } else if (propagatedElement instanceof TypeParameterElement) {
@@ -1283,7 +1286,14 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
     recordStaticType(node, staticType);
     // TODO(brianwilkerson) I think we want to repeat the logic above using the propagated element
     // to get another candidate for the propagated type.
-    Type propagatedType = overrideManager.getType(element);
+    Type propagatedType = getPropertyPropagatedType(element, null);
+    if (propagatedType == null) {
+      Type overriddenType = overrideManager.getType(element);
+      if (propagatedType == null || overriddenType != null
+          && overriddenType.isMoreSpecificThan(propagatedType)) {
+        propagatedType = overriddenType;
+      }
+    }
     if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
       recordPropagatedType(node, propagatedType);
     }
@@ -1628,6 +1638,24 @@ public class StaticTypeAnalyzer extends SimpleAstVisitor<Void> {
   private Type getFirstArgumentAsTypeWithMap(LibraryElement library, ArgumentList argumentList,
       HashMap<String, String> nameMap) {
     return getElementNameAsType(library, getFirstArgumentAsString(argumentList), nameMap);
+  }
+
+  /**
+   * Return the propagated type of the given {@link Element}, or {@code null}.
+   */
+  private Type getPropertyPropagatedType(Element element, Type currentType) {
+    if (element instanceof PropertyAccessorElement) {
+      PropertyAccessorElement accessor = (PropertyAccessorElement) element;
+      if (accessor.isGetter()) {
+        PropertyInducingElement variable = accessor.getVariable();
+        Type propagatedType = variable.getPropagatedType();
+        if (currentType == null || propagatedType != null
+            && propagatedType.isMoreSpecificThan(currentType)) {
+          return propagatedType;
+        }
+      }
+    }
+    return currentType;
   }
 
   /**

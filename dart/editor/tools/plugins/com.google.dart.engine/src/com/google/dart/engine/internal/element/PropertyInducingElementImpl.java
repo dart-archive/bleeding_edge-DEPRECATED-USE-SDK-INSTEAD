@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
+import com.google.dart.engine.type.Type;
 
 /**
  * Instances of the class {@code PropertyInducingElementImpl} implement a
@@ -35,6 +36,12 @@ public abstract class PropertyInducingElementImpl extends VariableElementImpl im
    * {@code final} and therefore does not have a setter associated with it.
    */
   private PropertyAccessorElement setter;
+
+  /**
+   * The propagated type of this variable, or {@code null} if type propagation has not been
+   * performed.
+   */
+  private Type propagatedType;
 
   /**
    * An empty array of elements.
@@ -66,6 +73,11 @@ public abstract class PropertyInducingElementImpl extends VariableElementImpl im
   }
 
   @Override
+  public Type getPropagatedType() {
+    return propagatedType;
+  }
+
+  @Override
   public PropertyAccessorElement getSetter() {
     return setter;
   }
@@ -77,6 +89,15 @@ public abstract class PropertyInducingElementImpl extends VariableElementImpl im
    */
   public void setGetter(PropertyAccessorElement getter) {
     this.getter = getter;
+  }
+
+  /**
+   * Set the propagated type of this variable to the given type.
+   * 
+   * @param propagatedType the propagated type of this variable
+   */
+  public void setPropagatedType(Type propagatedType) {
+    this.propagatedType = propagatedType;
   }
 
   /**

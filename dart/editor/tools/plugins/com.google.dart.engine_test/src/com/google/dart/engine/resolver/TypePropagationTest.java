@@ -186,6 +186,137 @@ public class TypePropagationTest extends ResolverTestCase {
     assertEquals("CanvasRenderingContext2D", identifier.getPropagatedType().getName());
   }
 
+  public void test_finalPropertyInducingVariable_classMember_instance() throws Exception {
+    addNamedSource("/lib.dart", createSource(//
+        "class A {",
+        "  final v = 0;",
+        "}"));
+    String code = createSource(//
+        "import 'lib.dart';",
+        "f(A a) {",
+        "  return a.v; // marker",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "v; // marker", SimpleIdentifier.class);
+      assertSame(getTypeProvider().getDynamicType(), identifier.getStaticType());
+      assertSame(getTypeProvider().getIntType(), identifier.getPropagatedType());
+    }
+  }
+
+  public void test_finalPropertyInducingVariable_classMember_instance_inherited() throws Exception {
+    addNamedSource("/lib.dart", createSource(//
+        "class A {",
+        "  final v = 0;",
+        "}"));
+    String code = createSource(//
+        "import 'lib.dart';",
+        "class B extends A {",
+        "  m() {",
+        "    return v; // marker",
+        "  }",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "v; // marker", SimpleIdentifier.class);
+      assertSame(getTypeProvider().getDynamicType(), identifier.getStaticType());
+      assertSame(getTypeProvider().getIntType(), identifier.getPropagatedType());
+    }
+  }
+
+  public void test_finalPropertyInducingVariable_classMember_instance_propagatedTarget()
+      throws Exception {
+    addNamedSource("/lib.dart", createSource(//
+        "class A {",
+        "  final v = 0;",
+        "}"));
+    String code = createSource(//
+        "import 'lib.dart';",
+        "f(p) {",
+        "  if (p is A) {",
+        "    return p.v; // marker",
+        "  }",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "v; // marker", SimpleIdentifier.class);
+      assertSame(getTypeProvider().getDynamicType(), identifier.getStaticType());
+      assertSame(getTypeProvider().getIntType(), identifier.getPropagatedType());
+    }
+  }
+
+  public void test_finalPropertyInducingVariable_classMember_static() throws Exception {
+    addNamedSource("/lib.dart", createSource(//
+        "class A {",
+        "  static final V = 0;",
+        "}"));
+    String code = createSource(//
+        "import 'lib.dart';",
+        "f() {",
+        "  return A.V; // marker",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "V; // marker", SimpleIdentifier.class);
+      assertSame(getTypeProvider().getDynamicType(), identifier.getStaticType());
+      assertSame(getTypeProvider().getIntType(), identifier.getPropagatedType());
+    }
+  }
+
+  public void test_finalPropertyInducingVariable_topLevelVaraible_prefixed() throws Exception {
+    addNamedSource("/lib.dart", "final V = 0;");
+    String code = createSource(//
+        "import 'lib.dart' as p;",
+        "f() {",
+        "  var v2 = p.V; // prefixed",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "V; // prefixed", SimpleIdentifier.class);
+      assertSame(getTypeProvider().getDynamicType(), identifier.getStaticType());
+      assertSame(getTypeProvider().getIntType(), identifier.getPropagatedType());
+    }
+  }
+
+  public void test_finalPropertyInducingVariable_topLevelVaraible_simple() throws Exception {
+    addNamedSource("/lib.dart", "final V = 0;");
+    String code = createSource(//
+        "import 'lib.dart';",
+        "f() {",
+        "  return V; // simple",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "V; // simple", SimpleIdentifier.class);
+      assertSame(getTypeProvider().getDynamicType(), identifier.getStaticType());
+      assertSame(getTypeProvider().getIntType(), identifier.getPropagatedType());
+    }
+  }
+
   public void test_forEach() throws Exception {
     String code = createSource(//
         "main() {",

@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
+import com.google.dart.engine.type.Type;
 
 /**
  * The abstract class {@code PropertyInducingElementHandle} implements the behavior common to
@@ -36,6 +37,11 @@ public abstract class PropertyInducingElementHandle extends VariableElementHandl
   @Override
   public PropertyAccessorElement getGetter() {
     return getActualElement().getGetter();
+  }
+
+  @Override
+  public Type getPropagatedType() {
+    return getActualElement().getPropagatedType();
   }
 
   @Override

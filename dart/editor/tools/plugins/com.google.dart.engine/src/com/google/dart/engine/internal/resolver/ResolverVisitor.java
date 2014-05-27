@@ -83,6 +83,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.scanner.TokenType;
@@ -1005,14 +1006,15 @@ public class ResolverVisitor extends ScopedVisitor {
     if (potentialType == null || potentialType.isBottom()) {
       return;
     }
-    if (element instanceof PropertyInducingElement) {
-      PropertyInducingElement variable = (PropertyInducingElement) element;
-      if (!variable.isConst() && !variable.isFinal()) {
-        return;
-      }
-    }
     Type currentType = getBestType(element);
     if (currentType == null || !currentType.isMoreSpecificThan(potentialType)) {
+      if (element instanceof PropertyInducingElement) {
+        PropertyInducingElement variable = (PropertyInducingElement) element;
+        if (!variable.isConst() && !variable.isFinal()) {
+          return;
+        }
+        ((PropertyInducingElementImpl) variable).setPropagatedType(potentialType);
+      }
       overrideManager.setType(element, potentialType);
     }
   }
