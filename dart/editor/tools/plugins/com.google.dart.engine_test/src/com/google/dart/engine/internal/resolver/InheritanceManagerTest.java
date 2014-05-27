@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.resolver;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -43,6 +44,7 @@ import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
 import static com.google.dart.engine.element.ElementFactory.setterElement;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 public class InheritanceManagerTest extends EngineTestCase {
@@ -1108,6 +1110,63 @@ public class InheritanceManagerTest extends EngineTestCase {
     classA.setAccessors(new PropertyAccessorElement[] {setterS});
     assertNull(inheritanceManager.lookupMember(classA, setterName));
     assertNoErrors(classA);
+  }
+
+  public void test_lookupOverrides_noParentClasses() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElementImpl methodM = methodElement(methodName, typeProvider.getIntType());
+    classA.setMethods(new MethodElement[] {methodM});
+    assertSizeOfList(0, inheritanceManager.lookupOverrides(classA, methodName));
+    assertNoErrors(classA);
+  }
+
+  public void test_lookupOverrides_overrideBaseClass() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElementImpl methodMinA = methodElement(methodName, typeProvider.getIntType());
+    classA.setMethods(new MethodElement[] {methodMinA});
+    ClassElementImpl classB = classElement("B", classA.getType());
+    MethodElementImpl methodMinB = methodElement(methodName, typeProvider.getIntType());
+    classB.setMethods(new MethodElement[] {methodMinB});
+    ArrayList<ExecutableElement> overrides = inheritanceManager.lookupOverrides(classB, methodName);
+    assertEqualsIgnoreOrder(new Object[] {methodMinA}, overrides.toArray());
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_lookupOverrides_overrideInterface() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElementImpl methodMinA = methodElement(methodName, typeProvider.getIntType());
+    classA.setMethods(new MethodElement[] {methodMinA});
+    ClassElementImpl classB = classElement("B");
+    classB.setInterfaces(new InterfaceType[] {classA.getType()});
+    MethodElementImpl methodMinB = methodElement(methodName, typeProvider.getIntType());
+    classB.setMethods(new MethodElement[] {methodMinB});
+    ArrayList<ExecutableElement> overrides = inheritanceManager.lookupOverrides(classB, methodName);
+    assertEqualsIgnoreOrder(new Object[] {methodMinA}, overrides.toArray());
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_lookupOverrides_overrideTwoInterfaces() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElementImpl methodMinA = methodElement(methodName, typeProvider.getIntType());
+    classA.setMethods(new MethodElement[] {methodMinA});
+    ClassElementImpl classB = classElement("B");
+    MethodElementImpl methodMinB = methodElement(methodName, typeProvider.getDoubleType());
+    classB.setMethods(new MethodElement[] {methodMinB});
+    ClassElementImpl classC = classElement("C");
+    classC.setInterfaces(new InterfaceType[] {classA.getType(), classB.getType()});
+    MethodElementImpl methodMinC = methodElement(methodName, typeProvider.getNumType());
+    classC.setMethods(new MethodElement[] {methodMinC});
+    ArrayList<ExecutableElement> overrides = inheritanceManager.lookupOverrides(classC, methodName);
+    assertEqualsIgnoreOrder(new Object[] {methodMinA, methodMinB}, overrides.toArray());
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+    assertNoErrors(classC);
   }
 
   private void assertErrors(ClassElement classElt, ErrorCode... expectedErrorCodes) {

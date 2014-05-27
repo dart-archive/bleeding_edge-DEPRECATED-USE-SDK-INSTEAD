@@ -1614,11 +1614,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     //
     // Compute the overridden executable from the InheritanceManager
     //
-    ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
+    ArrayList<ExecutableElement> overriddenExecutables = inheritanceManager.lookupOverrides(
         enclosingClass,
         executableElement.getName());
 
-    if (overriddenExecutable == null) {
+    if (overriddenExecutables.isEmpty()) {
       // Nothing is overridden, so we just have to check if the new name collides
       // with a static defined in the superclass.
       // TODO(paulberry): currently we don't do this check if the new element
@@ -1628,34 +1628,17 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
           errorNameTarget);
     }
 
-    //
-    // If the result is a MultiplyInheritedExecutableElement call
-    // checkForAllInvalidOverrideErrorCodes on all of the elements, until an error is found.
-    //
-    if (overriddenExecutable instanceof MultiplyInheritedExecutableElement) {
-      MultiplyInheritedExecutableElement multiplyInheritedElement = (MultiplyInheritedExecutableElement) overriddenExecutable;
-      ExecutableElement[] overriddenElement = multiplyInheritedElement.getInheritedElements();
-      for (int i = 0; i < overriddenElement.length; i++) {
-        if (checkForAllInvalidOverrideErrorCodes(
-            executableElement,
-            overriddenElement[i],
-            parameters,
-            parameterLocations,
-            errorNameTarget)) {
-          return true;
-        }
+    for (ExecutableElement overriddenElement : overriddenExecutables) {
+      if (checkForAllInvalidOverrideErrorCodes(
+          executableElement,
+          overriddenElement,
+          parameters,
+          parameterLocations,
+          errorNameTarget)) {
+        return true;
       }
-      return false;
     }
-    //
-    // Otherwise, just call checkForAllInvalidOverrideErrorCodes.
-    //
-    return checkForAllInvalidOverrideErrorCodes(
-        executableElement,
-        overriddenExecutable,
-        parameters,
-        parameterLocations,
-        errorNameTarget);
+    return false;
   }
 
   /**

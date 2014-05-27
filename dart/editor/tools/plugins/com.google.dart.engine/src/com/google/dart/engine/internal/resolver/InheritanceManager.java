@@ -18,6 +18,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.MultiplyInheritedExecutableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.AnalysisError;
@@ -365,6 +366,42 @@ public class InheritanceManager {
         iteratorMember.getType(),
         memberName,
         interfaceType);
+  }
+
+  /**
+   * Determine the set of methods which is overridden by the given class member. If no member is
+   * inherited, an empty list is returned. If one of the inherited members is a
+   * {@link MultiplyInheritedExecutableElement}, then it is expanded into its constituent inherited
+   * elements.
+   * 
+   * @param classElt the class to query
+   * @param memberName the name of the class member to query
+   * @return a list of overridden methods
+   */
+  public ArrayList<ExecutableElement> lookupOverrides(ClassElement classElt, String memberName) {
+    ArrayList<ExecutableElement> result = new ArrayList<ExecutableElement>();
+    if (memberName == null || memberName.isEmpty()) {
+      return result;
+    }
+    ArrayList<MemberMap> interfaceMaps = gatherInterfaceLookupMaps(
+        classElt,
+        new HashSet<ClassElement>());
+    if (interfaceMaps != null) {
+      for (MemberMap interfaceMap : interfaceMaps) {
+        ExecutableElement overriddenElement = interfaceMap.get(memberName);
+        if (overriddenElement != null) {
+          if (overriddenElement instanceof MultiplyInheritedExecutableElement) {
+            MultiplyInheritedExecutableElement multiplyInheritedElement = (MultiplyInheritedExecutableElement) overriddenElement;
+            for (ExecutableElement element : multiplyInheritedElement.getInheritedElements()) {
+              result.add(element);
+            }
+          } else {
+            result.add(overriddenElement);
+          }
+        }
+      }
+    }
+    return result;
   }
 
   /**

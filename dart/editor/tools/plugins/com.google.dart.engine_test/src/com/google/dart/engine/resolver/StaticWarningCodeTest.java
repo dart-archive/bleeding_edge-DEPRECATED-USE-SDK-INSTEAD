@@ -22,60 +22,6 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticWarningCodeTest extends ResolverTestCase {
-  public void fail_invalidGetterOverrideReturnType_twoInterfaces_conflicting() throws Exception {
-    // 17983
-    Source source = addSource(createSource(//
-        "abstract class I<U> {",
-        "  U get g => null;",
-        "}",
-        "abstract class J<V> {",
-        "  V get g => null;",
-        "}",
-        "class B implements I<int>, J<String> {",
-        "  double get g => null;",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE);
-    verify(source);
-  }
-
-  public void fail_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting()
-      throws Exception {
-    // 17983
-    // language/override_inheritance_generic_test/08
-    Source source = addSource(createSource(//
-        "abstract class I<U> {",
-        "  m(U u) => null;",
-        "}",
-        "abstract class J<V> {",
-        "  m(V v) => null;",
-        "}",
-        "class B implements I<int>, J<String> {",
-        "  m(double d) {}",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE);
-    verify(source);
-  }
-
-  public void fail_invalidSetterOverrideNormalParamType_twoInterfaces_conflicting()
-      throws Exception {
-    // 17983
-    Source source = addSource(createSource(//
-        "abstract class I<U> {",
-        "  set s(U u) {}",
-        "}",
-        "abstract class J<V> {",
-        "  set s(V v) {}",
-        "}",
-        "class B implements I<int>, J<String> {",
-        "  set s(double d) {}",
-        "}"));
-    resolve(source);
-    assertErrors(source, StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE);
-    verify(source);
-  }
-
   public void fail_undefinedGetter() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -1526,6 +1472,22 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidGetterOverrideReturnType_twoInterfaces_conflicting() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class I<U> {",
+        "  U get g => null;",
+        "}",
+        "abstract class J<V> {",
+        "  V get g => null;",
+        "}",
+        "class B implements I<int>, J<String> {",
+        "  double get g => null;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE);
+    verify(source);
+  }
+
   public void test_invalidMethodOverrideNamedParamType() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1592,6 +1554,24 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "abstract class A implements I, J {}",
         "class B extends A {",
         "  m(String n) {}",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting()
+      throws Exception {
+    // language/override_inheritance_generic_test/08
+    Source source = addSource(createSource(//
+        "abstract class I<U> {",
+        "  m(U u) => null;",
+        "}",
+        "abstract class J<V> {",
+        "  m(V v) => null;",
+        "}",
+        "class B implements I<int>, J<String> {",
+        "  m(double d) {}",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE);
@@ -1873,6 +1853,23 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "abstract class A implements I, J {}",
         "class B extends A {",
         "  set setter14(String _) => null;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidSetterOverrideNormalParamType_twoInterfaces_conflicting()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class I<U> {",
+        "  set s(U u) {}",
+        "}",
+        "abstract class J<V> {",
+        "  set s(V v) {}",
+        "}",
+        "class B implements I<int>, J<String> {",
+        "  set s(double d) {}",
         "}"));
     resolve(source);
     assertErrors(source, StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE);
