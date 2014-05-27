@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -198,8 +198,6 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     }
   }
 
-  private static final String NEW_LINE = System.getProperty("line.separator");
-
   public static final String VIEW_ID = "com.google.dart.tools.ui.console";
 
   private Composite parent;
@@ -319,17 +317,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     // Show cmdline used to launch process
     if (console instanceof ProcessConsole) {
       IProcess process = ((ProcessConsole) console).getProcess();
-      String cmdline = process.getAttribute(IProcess.ATTR_CMDLINE);
-      if (cmdline != null) {
-        StyledText control = (StyledText) page.getControl();
-        if (control != null && !control.isDisposed()) {
-          control.append(cmdline);
-          control.append(NEW_LINE);
-        }
-      }
-
       openObservatoryAction.updateEnablement(process.getLaunch());
-
     }
   }
 
@@ -504,29 +492,22 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     if (console instanceof ProcessConsole) {
       IProcess process = ((ProcessConsole) console).getProcess();
 
-      String name = "";
       String configName = process.getLaunch().getLaunchConfiguration().getName();
+      String name = "<" + configName + "> ";
 
       if (process.isTerminated()) {
         try {
-          name = "<" + configName + "> exit code=" + process.getExitValue();
+          name = name + " exit code = " + process.getExitValue();
         } catch (DebugException ex) {
           // ignore
         }
-
         bringToFront();
       }
 
       setContentDescription(name);
+      setPartName(configName);
     } else {
       setContentDescription("");
-    }
-
-    if (console instanceof ProcessConsole) {
-      IProcess process = ((ProcessConsole) console).getProcess();
-
-      setPartName(process.getLaunch().getLaunchConfiguration().getName());
-    } else {
       setPartName("Tools Output");
     }
   }
