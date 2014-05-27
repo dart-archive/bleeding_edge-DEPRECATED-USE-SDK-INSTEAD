@@ -51,7 +51,7 @@ public class StdioServerSocket {
   public void start() throws Exception {
     ProcessBuilder processBuilder = new ProcessBuilder(runtimePath, analysisServerPath);
     Process process = processBuilder.start();
-    requestSink = new ByteRequestStream(process.getOutputStream());
+    requestSink = new ByteRequestSink(process.getOutputStream());
     responseStream = new ByteResponseStream(process.getInputStream());
   }
 }

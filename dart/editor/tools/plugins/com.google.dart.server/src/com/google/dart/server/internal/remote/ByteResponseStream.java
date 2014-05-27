@@ -22,7 +22,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
- * An {@link InputStream} based implementation of {@link ResponseStream}.
+ * An {@link InputStream} based implementation of {@link ResponseStream}. Each line must contain
+ * exactly one complete JSON object.
+ * 
+ * @coverage dart.server.remote
  */
 public class ByteResponseStream implements ResponseStream {
   /**

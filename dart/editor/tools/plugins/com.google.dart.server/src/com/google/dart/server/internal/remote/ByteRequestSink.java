@@ -22,8 +22,10 @@ import java.io.PrintWriter;
 
 /**
  * An {@link OutputStream} based implementation of {@link RequestSink}.
+ * 
+ * @coverage dart.server.remote
  */
-public class ByteRequestStream implements RequestSink {
+public class ByteRequestSink implements RequestSink {
   /**
    * The {@link PrintWriter} to print JSON strings to.
    */
@@ -34,7 +36,7 @@ public class ByteRequestStream implements RequestSink {
    * 
    * @param stream the byte stream to write JSON strings to
    */
-  public ByteRequestStream(OutputStream stream) {
+  public ByteRequestSink(OutputStream stream) {
     writer = new PrintWriter(new OutputStreamWriter(stream, Charsets.UTF_8));
   }
 
@@ -42,5 +44,6 @@ public class ByteRequestStream implements RequestSink {
   public void add(JsonObject request) {
     String text = request.toString();
     writer.println(text);
+    writer.flush();
   }
 }
