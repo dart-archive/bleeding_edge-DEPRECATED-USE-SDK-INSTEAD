@@ -143,6 +143,11 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
         + "    var y = values[1];</pre>", DartDocUtilities.getDartDocAsHtml(element));
   }
 
+  public void test_getDartDocAsHtml_Element_null() throws Exception {
+    Element element = null;
+    assertSame(null, DartDocUtilities.getDartDocAsHtml(element));
+  }
+
   public void test_method_doc() throws Exception {
     AstNode id = findNodeIn("x", createSource(//
         "/// My method",

@@ -365,14 +365,15 @@ public final class DartDocUtilities {
    * Return the prettified DartDoc text for the given element.
    */
   public static String getDartDocAsHtml(Element element) {
-
+    if (element == null) {
+      return null;
+    }
     try {
       String docString = element.computeDocumentationComment();
       return getDartDocAsHtml(docString);
     } catch (AnalysisException e) {
       AnalysisEngine.getInstance().getLogger().logError("Exception in gettting documentation", e);
     }
-
     return null;
   }
 
