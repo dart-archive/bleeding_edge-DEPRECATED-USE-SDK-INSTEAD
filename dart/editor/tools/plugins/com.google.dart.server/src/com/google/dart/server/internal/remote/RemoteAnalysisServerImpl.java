@@ -180,7 +180,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void getVersion(VersionConsumer consumer) {
     String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateServerVersionRequest(id), consumer);
+    sendRequestToServer(id, RequestUtilities.generateServerGetVersionRequest(id), consumer);
   }
 
   @Override

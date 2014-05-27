@@ -14,243 +14,265 @@
 package com.google.dart.server.internal.remote.utilities;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-import com.google.dart.engine.context.AnalysisDelta;
-import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 import junit.framework.TestCase;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Tests for {@link RequestUtilities}.
  */
 public class RequestUtilitiesTest extends TestCase {
 
-  public void test_generateContextApplyAnalysisDeltaRequest_emptyAnalysisMap() throws Exception {
+//  public void test_generateContextApplyAnalysisDeltaRequest_emptyAnalysisMap() throws Exception {
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': 'id',",
+//        "  'method': 'context.applyAnalysisDelta',",
+//        "  'params': {",
+//        "    'contextId': 'CONTEXT_ID',",
+//        "    'delta': {}",
+//        "  }",
+//        "}");
+//    JsonElement actual = RequestUtilities.generateContextApplyAnalysisDeltaRequest(
+//        "id",
+//        "CONTEXT_ID",
+//        new LinkedHashMap<String, AnalysisDelta.AnalysisLevel>());
+//    assertEquals(expected, actual);
+//  }
+//
+//  public void test_generateContextApplyAnalysisDeltaRequest_withAnalysisMap() throws Exception {
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': 'id',",
+//        "  'method': 'context.applyAnalysisDelta',",
+//        "  'params': {",
+//        "    'contextId': 'CONTEXT_ID',",
+//        "    'delta': {",
+//        "      'one': 'ALL',",
+//        "      'two': 'ERRORS',",
+//        "      'three': 'RESOLVED',",
+//        "      'four': 'NONE'",
+//        "    }",
+//        "  }",
+//        "}");
+//    Map<String, AnalysisDelta.AnalysisLevel> analysisMap = new LinkedHashMap<String, AnalysisDelta.AnalysisLevel>();
+//    analysisMap.put("one", AnalysisDelta.AnalysisLevel.ALL);
+//    analysisMap.put("two", AnalysisDelta.AnalysisLevel.ERRORS);
+//    analysisMap.put("three", AnalysisDelta.AnalysisLevel.RESOLVED);
+//    analysisMap.put("four", AnalysisDelta.AnalysisLevel.NONE);
+//    JsonElement actual = RequestUtilities.generateContextApplyAnalysisDeltaRequest(
+//        "id",
+//        "CONTEXT_ID",
+//        analysisMap);
+//    assertEquals(expected, actual);
+//  }
+//
+//  public void test_generateContextApplySourceDeltaRequest() throws Exception {
+//    // TODO(jwren)
+//  }
+//
+//  public void test_generateContextGetFixesRequest() throws Exception {
+//    // TODO(jwren)
+//  }
+//
+//  public void test_generateContextGetMinorRefactoringsRequest() throws Exception {
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': 'id',",
+//        "  'method': 'context.getMinorRefactorings',",
+//        "  'params': {",
+//        "    'contextId': 'CONTEXT_ID',",
+//        "    'source': 'source',",
+//        "    'offset': 1,",
+//        "    'length': 2",
+//        "  }",
+//        "}");
+//    JsonElement actual = RequestUtilities.generateContextGetMinorRefactoringsRequest(
+//        "id",
+//        "CONTEXT_ID",
+//        "source",
+//        1,
+//        2);
+//    assertEquals(expected, actual);
+//  }
+//
+//  public void test_generateContextSetOptionsRequest_defaultsValues() throws Exception {
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': 'id',",
+//        "  'method': 'context.setOptions',",
+//        "  'params': {",
+//        "    'contextId': 'CONTEXT_ID',",
+//        "    'options': {",
+//        "      'analyzeAngular': true,",
+//        "      'analyzePolymer': true,",
+//        "      'cacheSize': 64,",
+//        "      'enableDeferredLoading': true,",
+//        "      'generateDart2jsHints': true,",
+//        "      'generateHints': true",
+//        "    }",
+//        "  }",
+//        "}");
+//    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+//    JsonElement actual = RequestUtilities.generateContextSetOptionsRequest(
+//        "id",
+//        "CONTEXT_ID",
+//        options);
+//    assertEquals(expected, actual);
+//  }
+//
+//  public void test_generateContextSetOptionsRequest_notDefaultValues() throws Exception {
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': 'id',",
+//        "  'method': 'context.setOptions',",
+//        "  'params': {",
+//        "    'contextId': 'CONTEXT_ID',",
+//        "    'options': {",
+//        "      'analyzeAngular': false,",
+//        "      'analyzePolymer': false,",
+//        "      'cacheSize': 1,",
+//        "      'enableDeferredLoading': false,",
+//        "      'generateDart2jsHints': false,",
+//        "      'generateHints': false",
+//        "    }",
+//        "  }",
+//        "}");
+//    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+//    options.setAnalyzeAngular(false);
+//    options.setAnalyzePolymer(false);
+//    options.setCacheSize(1);
+//    options.setEnableDeferredLoading(false);
+//    options.setDart2jsHint(false);
+//    options.setHint(false);
+//    JsonElement actual = RequestUtilities.generateContextSetOptionsRequest(
+//        "id",
+//        "CONTEXT_ID",
+//        options);
+//    assertEquals(expected, actual);
+//  }
+//
+//  public void test_generateContextSetPrioritySourcesRequest() throws Exception {
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': 'id',",
+//        "  'method': 'context.setPrioritySources',",
+//        "  'params': {",
+//        "    'contextId': 'CONTEXT_ID',",
+//        "    'sources': ['1','2','3','4']",
+//        "  }",
+//        "}");
+//    JsonElement actual = RequestUtilities.generateContextSetPrioritySourcesRequest(
+//        "id",
+//        "CONTEXT_ID",
+//        ImmutableList.of("1", "2", "3", "4"));
+//    assertEquals(expected, actual);
+//  }
+//
+//  public void test_generateContextSetPrioritySourcesRequest_emptySources() throws Exception {
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': 'id',",
+//        "  'method': 'context.setPrioritySources',",
+//        "  'params': {",
+//        "    'contextId': 'CONTEXT_ID',",
+//        "    'sources': []",
+//        "  }",
+//        "}");
+//    JsonElement actual = RequestUtilities.generateContextSetPrioritySourcesRequest(
+//        "id",
+//        "CONTEXT_ID",
+//        new ArrayList<String>());
+//    assertEquals(expected, actual);
+//  }
+//
+//  public void test_generateServerCreateContextRequest() throws Exception {
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': 'id',",
+//        "  'method': 'server.createContext',",
+//        "  'params': {",
+//        "    'contextId': 'CONTEXT_ID',",
+//        "    'sdkDirectory': '/sdk/path'",
+//        "  }",
+//        "}");
+//    JsonElement actual = RequestUtilities.generateServerCreateContextRequest(
+//        "id",
+//        "CONTEXT_ID",
+//        "/sdk/path",
+//        null);
+//    assertEquals(expected, actual);
+//  }
+//
+//  public void test_generateServerCreateContextRequest_withPackageMap() throws Exception {
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': 'id',",
+//        "  'method': 'server.createContext',",
+//        "  'params': {",
+//        "    'contextId': 'CONTEXT_ID',",
+//        "    'sdkDirectory': '/SDK/PATH',",
+//        "    'packageMap': {",
+//        "      'one': ['1'],",
+//        "      'two': ['2', '2'],",
+//        "      'three': ['3', '3', '3']",
+//        "    }",
+//        "  }",
+//        "}");
+//    Map<String, List<String>> packageMap = new LinkedHashMap<String, List<String>>();
+//    packageMap.put("one", ImmutableList.of("1"));
+//    packageMap.put("two", ImmutableList.of("2", "2"));
+//    packageMap.put("three", ImmutableList.of("3", "3", "3"));
+//    JsonElement actual = RequestUtilities.generateServerCreateContextRequest(
+//        "id",
+//        "CONTEXT_ID",
+//        "/SDK/PATH",
+//        packageMap);
+//    assertEquals(expected, actual);
+//  }
+//
+//  public void test_generateServerDeleteContextRequest() throws Exception {
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': 'id',",
+//        "  'method': 'server.deleteContext',",
+//        "  'params': {",
+//        "    'contextId': 'CONTEXT_ID'",
+//        "  }",
+//        "}");
+//    JsonElement actual = RequestUtilities.generateServerDeleteContextRequest("id", "CONTEXT_ID");
+//    assertEquals(expected, actual);
+//  }
+
+  public void test_generateServerGetVersionRequest() throws Exception {
     JsonElement expected = parseJson(//
         "{",
-        "  'id': 'id',",
-        "  'method': 'context.applyAnalysisDelta',",
-        "  'params': {",
-        "    'contextId': 'CONTEXT_ID',",
-        "    'delta': {}",
-        "  }",
+        "  'id': '',",
+        "  'method': 'server.getVersion'",
         "}");
-    JsonElement actual = RequestUtilities.generateContextApplyAnalysisDeltaRequest(
-        "id",
-        "CONTEXT_ID",
-        new LinkedHashMap<String, AnalysisDelta.AnalysisLevel>());
-    assertEquals(expected, actual);
+    assertEquals(expected, RequestUtilities.generateServerGetVersionRequest(""));
   }
 
-  public void test_generateContextApplyAnalysisDeltaRequest_withAnalysisMap() throws Exception {
+  public void test_generateServerGetVersionRequest_withId() throws Exception {
     JsonElement expected = parseJson(//
         "{",
-        "  'id': 'id',",
-        "  'method': 'context.applyAnalysisDelta',",
-        "  'params': {",
-        "    'contextId': 'CONTEXT_ID',",
-        "    'delta': {",
-        "      'one': 'ALL',",
-        "      'two': 'ERRORS',",
-        "      'three': 'RESOLVED',",
-        "      'four': 'NONE'",
-        "    }",
-        "  }",
+        "  'id': 'ID',",
+        "  'method': 'server.getVersion'",
         "}");
-    Map<String, AnalysisDelta.AnalysisLevel> analysisMap = new LinkedHashMap<String, AnalysisDelta.AnalysisLevel>();
-    analysisMap.put("one", AnalysisDelta.AnalysisLevel.ALL);
-    analysisMap.put("two", AnalysisDelta.AnalysisLevel.ERRORS);
-    analysisMap.put("three", AnalysisDelta.AnalysisLevel.RESOLVED);
-    analysisMap.put("four", AnalysisDelta.AnalysisLevel.NONE);
-    JsonElement actual = RequestUtilities.generateContextApplyAnalysisDeltaRequest(
-        "id",
-        "CONTEXT_ID",
-        analysisMap);
-    assertEquals(expected, actual);
+    assertEquals(expected, RequestUtilities.generateServerGetVersionRequest("ID"));
   }
 
-  public void test_generateContextApplySourceDeltaRequest() throws Exception {
-    // TODO(jwren)
-  }
-
-  public void test_generateContextGetFixesRequest() throws Exception {
-    // TODO(jwren)
-  }
-
-  public void test_generateContextGetMinorRefactoringsRequest() throws Exception {
+  public void test_generateServerSetSubscriptions() throws Exception {
     JsonElement expected = parseJson(//
         "{",
-        "  'id': 'id',",
-        "  'method': 'context.getMinorRefactorings',",
+        "  'id': 'ID',",
+        "  'method': 'server.setSubscriptions',",
         "  'params': {",
-        "    'contextId': 'CONTEXT_ID',",
-        "    'source': 'source',",
-        "    'offset': 1,",
-        "    'length': 2",
+        "    'subscriptions': []",
         "  }",
         "}");
-    JsonElement actual = RequestUtilities.generateContextGetMinorRefactoringsRequest(
-        "id",
-        "CONTEXT_ID",
-        "source",
-        1,
-        2);
-    assertEquals(expected, actual);
-  }
-
-  public void test_generateContextSetOptionsRequest_defaultsValues() throws Exception {
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': 'id',",
-        "  'method': 'context.setOptions',",
-        "  'params': {",
-        "    'contextId': 'CONTEXT_ID',",
-        "    'options': {",
-        "      'analyzeAngular': true,",
-        "      'analyzePolymer': true,",
-        "      'cacheSize': 64,",
-        "      'enableDeferredLoading': true,",
-        "      'generateDart2jsHints': true,",
-        "      'generateHints': true",
-        "    }",
-        "  }",
-        "}");
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    JsonElement actual = RequestUtilities.generateContextSetOptionsRequest(
-        "id",
-        "CONTEXT_ID",
-        options);
-    assertEquals(expected, actual);
-  }
-
-  public void test_generateContextSetOptionsRequest_notDefaultValues() throws Exception {
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': 'id',",
-        "  'method': 'context.setOptions',",
-        "  'params': {",
-        "    'contextId': 'CONTEXT_ID',",
-        "    'options': {",
-        "      'analyzeAngular': false,",
-        "      'analyzePolymer': false,",
-        "      'cacheSize': 1,",
-        "      'enableDeferredLoading': false,",
-        "      'generateDart2jsHints': false,",
-        "      'generateHints': false",
-        "    }",
-        "  }",
-        "}");
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.setAnalyzeAngular(false);
-    options.setAnalyzePolymer(false);
-    options.setCacheSize(1);
-    options.setEnableDeferredLoading(false);
-    options.setDart2jsHint(false);
-    options.setHint(false);
-    JsonElement actual = RequestUtilities.generateContextSetOptionsRequest(
-        "id",
-        "CONTEXT_ID",
-        options);
-    assertEquals(expected, actual);
-  }
-
-  public void test_generateContextSetPrioritySourcesRequest() throws Exception {
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': 'id',",
-        "  'method': 'context.setPrioritySources',",
-        "  'params': {",
-        "    'contextId': 'CONTEXT_ID',",
-        "    'sources': ['1','2','3','4']",
-        "  }",
-        "}");
-    JsonElement actual = RequestUtilities.generateContextSetPrioritySourcesRequest(
-        "id",
-        "CONTEXT_ID",
-        ImmutableList.of("1", "2", "3", "4"));
-    assertEquals(expected, actual);
-  }
-
-  public void test_generateContextSetPrioritySourcesRequest_emptySources() throws Exception {
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': 'id',",
-        "  'method': 'context.setPrioritySources',",
-        "  'params': {",
-        "    'contextId': 'CONTEXT_ID',",
-        "    'sources': []",
-        "  }",
-        "}");
-    JsonElement actual = RequestUtilities.generateContextSetPrioritySourcesRequest(
-        "id",
-        "CONTEXT_ID",
-        new ArrayList<String>());
-    assertEquals(expected, actual);
-  }
-
-  public void test_generateServerCreateContextRequest() throws Exception {
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': 'id',",
-        "  'method': 'server.createContext',",
-        "  'params': {",
-        "    'contextId': 'CONTEXT_ID',",
-        "    'sdkDirectory': '/sdk/path'",
-        "  }",
-        "}");
-    JsonElement actual = RequestUtilities.generateServerCreateContextRequest(
-        "id",
-        "CONTEXT_ID",
-        "/sdk/path",
-        null);
-    assertEquals(expected, actual);
-  }
-
-  public void test_generateServerCreateContextRequest_withPackageMap() throws Exception {
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': 'id',",
-        "  'method': 'server.createContext',",
-        "  'params': {",
-        "    'contextId': 'CONTEXT_ID',",
-        "    'sdkDirectory': '/SDK/PATH',",
-        "    'packageMap': {",
-        "      'one': ['1'],",
-        "      'two': ['2', '2'],",
-        "      'three': ['3', '3', '3']",
-        "    }",
-        "  }",
-        "}");
-    Map<String, List<String>> packageMap = new LinkedHashMap<String, List<String>>();
-    packageMap.put("one", ImmutableList.of("1"));
-    packageMap.put("two", ImmutableList.of("2", "2"));
-    packageMap.put("three", ImmutableList.of("3", "3", "3"));
-    JsonElement actual = RequestUtilities.generateServerCreateContextRequest(
-        "id",
-        "CONTEXT_ID",
-        "/SDK/PATH",
-        packageMap);
-    assertEquals(expected, actual);
-  }
-
-  public void test_generateServerDeleteContextRequest() throws Exception {
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': 'id',",
-        "  'method': 'server.deleteContext',",
-        "  'params': {",
-        "    'contextId': 'CONTEXT_ID'",
-        "  }",
-        "}");
-    JsonElement actual = RequestUtilities.generateServerDeleteContextRequest("id", "CONTEXT_ID");
-    assertEquals(expected, actual);
+    assertEquals(expected, RequestUtilities.generateServerSetSubscriptions("ID"));
   }
 
   public void test_generateServerShutdownRequest() throws Exception {
@@ -269,24 +291,6 @@ public class RequestUtilitiesTest extends TestCase {
         "  'method': 'server.shutdown'",
         "}");
     assertEquals(expected, RequestUtilities.generateServerShutdownRequest("ID"));
-  }
-
-  public void test_generateServerVersionRequest() throws Exception {
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '',",
-        "  'method': 'server.version'",
-        "}");
-    assertEquals(expected, RequestUtilities.generateServerVersionRequest(""));
-  }
-
-  public void test_generateServerVersionRequest_withId() throws Exception {
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': 'ID',",
-        "  'method': 'server.version'",
-        "}");
-    assertEquals(expected, RequestUtilities.generateServerVersionRequest("ID"));
   }
 
   /**

@@ -14,7 +14,6 @@
 package com.google.dart.server.internal.integration;
 
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.VersionConsumer;
 
 import junit.framework.TestCase;
 
@@ -22,41 +21,42 @@ public abstract class AbstractServerIntegrationTest extends TestCase {
 
   protected AnalysisServer server;
 
-  public void test_getVersion() throws Exception {
-    final String[] versionPtr = {null};
-    server.getVersion(new VersionConsumer() {
-      @Override
-      public void computedVersion(String version) {
-        versionPtr[0] = version;
-      }
-    });
-    waitForAllServerResponses();
-    assertEquals("0.0.1", versionPtr[0]);
-  }
-
-  public void test_getVersion2() throws Exception {
-    // This tests that when two responses are sent back at the same time, that the responses are
-    // handled appropriately.
-    // On the remote server side, this verifies that when two server responses happen on the input
-    // stream, that they are read correctly.
-    final String[] versionPtr1 = {null};
-    final String[] versionPtr2 = {null};
-    server.getVersion(new VersionConsumer() {
-      @Override
-      public void computedVersion(String version) {
-        versionPtr1[0] = version;
-      }
-    });
-    server.getVersion(new VersionConsumer() {
-      @Override
-      public void computedVersion(String version) {
-        versionPtr2[0] = version;
-      }
-    });
-    waitForAllServerResponses();
-    assertEquals("0.0.1", versionPtr1[0]);
-    assertEquals("0.0.1", versionPtr2[0]);
-  }
+  //TODO(jwren) restore or remove for the new API
+//  public void test_getVersion() throws Exception {
+//    final String[] versionPtr = {null};
+//    server.getVersion(new VersionConsumer() {
+//      @Override
+//      public void computedVersion(String version) {
+//        versionPtr[0] = version;
+//      }
+//    });
+//    waitForAllServerResponses();
+//    assertEquals("0.0.1", versionPtr[0]);
+//  }
+//
+//  public void test_getVersion2() throws Exception {
+//    // This tests that when two responses are sent back at the same time, that the responses are
+//    // handled appropriately.
+//    // On the remote server side, this verifies that when two server responses happen on the input
+//    // stream, that they are read correctly.
+//    final String[] versionPtr1 = {null};
+//    final String[] versionPtr2 = {null};
+//    server.getVersion(new VersionConsumer() {
+//      @Override
+//      public void computedVersion(String version) {
+//        versionPtr1[0] = version;
+//      }
+//    });
+//    server.getVersion(new VersionConsumer() {
+//      @Override
+//      public void computedVersion(String version) {
+//        versionPtr2[0] = version;
+//      }
+//    });
+//    waitForAllServerResponses();
+//    assertEquals("0.0.1", versionPtr1[0]);
+//    assertEquals("0.0.1", versionPtr2[0]);
+//  }
 
   // TODO(scheglov) restore or remove for the new API
 //  public void test_setOptions() throws Exception {
