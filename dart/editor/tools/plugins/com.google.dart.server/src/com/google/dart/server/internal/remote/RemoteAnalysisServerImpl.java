@@ -275,7 +275,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void updateContent(Map<String, ContentChange> files) {
-    // TODO(scheglov) implement
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateAnalysisUpdateContent(id, files));
   }
 
   @Override

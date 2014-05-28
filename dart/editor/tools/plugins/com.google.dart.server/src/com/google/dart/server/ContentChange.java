@@ -19,25 +19,63 @@ package com.google.dart.server;
  * 
  * @coverage dart.server
  */
-public interface ContentChange {
+public class ContentChange {
+  private final String content;
+  private final boolean incremental;
+  private final int offset;
+  private final int oldLength;
+  private final int newLength;
+
+  public ContentChange(String content) {
+    this.content = content;
+    this.incremental = false;
+    this.offset = 0;
+    this.oldLength = 0;
+    this.newLength = 0;
+  }
+
+  public ContentChange(String content, int offset, int oldLength, int newLength) {
+    this.content = content;
+    this.incremental = true;
+    this.offset = offset;
+    this.oldLength = oldLength;
+    this.newLength = newLength;
+  }
+
   /**
    * The new content of the file, or {@code null} if the content of the file should be read from
    * disk.
    */
-  public String getContent();
+  public String getContent() {
+    return content;
+  }
 
   /**
    * The (optional) length of the region that was added.
    */
-  public int getNewLength();
+  public int getNewLength() {
+    return newLength;
+  }
 
   /**
    * The (optional) offset of the region that was modified.
    */
-  public int getOffset();
+  public int getOffset() {
+    return offset;
+  }
 
   /**
    * The (optional) length of the region that was removed.
    */
-  public int getOldLength();
+  public int getOldLength() {
+    return oldLength;
+  }
+
+  /**
+   * Is {@code true} if this is an incremental change, so {@link #getOffset()},
+   * {@link #getOldLength()} and {@link #getNewLength()} values are set.
+   */
+  public boolean isIncremental() {
+    return incremental;
+  }
 }

@@ -13,13 +13,21 @@
  */
 package com.google.dart.server.internal.remote;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.parser.ParserErrorCode;
+import com.google.dart.server.ContentChange;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Unit tests for {@link RemoteAnalysisServerImpl}, for integration tests which actually uses the
@@ -59,6 +67,35 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "/test.dart",
         ParserErrorCode.ABSTRACT_CLASS_MEMBER,
         CompileTimeErrorCode.AMBIGUOUS_EXPORT);
+  }
+
+  public void test_analysis_updateContent() throws Exception {
+    Map<String, ContentChange> files = ImmutableMap.of(
+        "/fileA.dart",
+        new ContentChange("aaa"),
+        "/fileB.dart",
+        new ContentChange("bbb", 1, 2, 3));
+    server.updateContent(files);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateContent',",
+        "  'params': {",
+        "    'files': {",
+        "      '/fileA.dart': {",
+        "        content: 'aaa'",
+        "      },",
+        "      '/fileB.dart': {",
+        "        content: 'bbb',",
+        "        offset: 1,",
+        "        oldLength: 2,",
+        "        newLength: 3",
+        "      }",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
   }
 
   public void test_getVersion() throws Exception {
@@ -118,5 +155,14 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'id': '0'",
         "}");
     server.test_waitForWorkerComplete();
+  }
+
+  /**
+   * Builds a JSON string from the given lines.
+   */
+  private JsonElement parseJson(String... lines) {
+    String json = Joiner.on('\n').join(lines);
+    json = json.replace('\'', '"');
+    return new JsonParser().parse(json);
   }
 }

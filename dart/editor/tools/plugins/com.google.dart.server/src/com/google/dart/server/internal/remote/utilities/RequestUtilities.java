@@ -15,6 +15,7 @@ package com.google.dart.server.internal.remote.utilities;
 
 import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.server.AnalysisError;
+import com.google.dart.server.ContentChange;
 import com.google.dart.server.ServerService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -22,7 +23,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -49,6 +49,7 @@ public class RequestUtilities {
   private static final String METHOD_ANALYSIS_GET_FIXES = "analysis.getFixes";
   private static final String METHOD_ANALYSIS_GET_MINOR_REFACTORINGS = "analysis.getMinorRefactorings";
   private static final String METHOD_ANALYSIS_SET_ROOTS = "analysis.setAnalysisRoots";
+  private static final String METHOD_ANALYSIS_UPDATE_CONTENT = "analysis.updateContent";
 
 //  private static final String METHOD_ANALYSIS_SET_PRIORITY_FILES = "analysis.setPriorityFiles";
 //  private static final String METHOD_ANALYSIS_SET_SUBSCRIPTIONS = "analysis.setSubscriptions";
@@ -311,6 +312,26 @@ public class RequestUtilities {
 //  }
 
   /**
+   * Generate and return a {@value #METHOD_ANALYSIS_UPDATE_CONTENT} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.updateContent"
+   *   "params": {
+   *     "files": Map&lt;FilePath, ContentChange&gt;
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisUpdateContent(String idValue,
+      Map<String, ContentChange> files) {
+    JsonObject params = new JsonObject();
+    params.add("files", buildJsonObject(files));
+    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_UPDATE_CONTENT, params);
+  }
+
+  /**
    * Generate and return a {@value #METHOD_SERVER_GET_VERSION} request.
    * 
    * <pre>
@@ -384,6 +405,17 @@ public class RequestUtilities {
     return jsonArray;
   }
 
+  private static JsonObject buildJsonContentChangeObject(ContentChange change) {
+    JsonObject errorJsonObject = new JsonObject();
+    errorJsonObject.addProperty("content", change.getContent());
+    if (change.isIncremental()) {
+      errorJsonObject.addProperty("offset", change.getOffset());
+      errorJsonObject.addProperty("oldLength", change.getOldLength());
+      errorJsonObject.addProperty("newLength", change.getNewLength());
+    }
+    return errorJsonObject;
+  }
+
   @SuppressWarnings("unchecked")
   private static JsonElement buildJsonObject(Map<? extends Object, ? extends Object> map) {
     JsonObject jsonObject = new JsonObject();
@@ -406,10 +438,12 @@ public class RequestUtilities {
         jsonObject.addProperty(key, (Integer) value);
       } else if (value instanceof AnalysisDelta.AnalysisLevel) {
         jsonObject.addProperty(key, ((AnalysisDelta.AnalysisLevel) value).name());
-      } else if (value instanceof LinkedHashMap<?, ?>) {
-        jsonObject.add(key, buildJsonObject((LinkedHashMap<String, Object>) value));
+      } else if (value instanceof Map<?, ?>) {
+        jsonObject.add(key, buildJsonObject((Map<String, Object>) value));
       } else if (value instanceof List<?>) {
         jsonObject.add(key, buildJsonArray((List<String>) value));
+      } else if (value instanceof ContentChange) {
+        jsonObject.add(key, buildJsonContentChangeObject((ContentChange) value));
       } else {
         jsonObject.addProperty(key, NULL);
       }

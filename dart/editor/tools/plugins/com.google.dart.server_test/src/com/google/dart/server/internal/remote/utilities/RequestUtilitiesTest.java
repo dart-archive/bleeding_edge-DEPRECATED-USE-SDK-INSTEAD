@@ -15,8 +15,10 @@ package com.google.dart.server.internal.remote.utilities;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.server.AnalysisError;
+import com.google.dart.server.ContentChange;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.internal.remote.processor.AnalysisErrorImpl;
 import com.google.gson.JsonElement;
@@ -26,6 +28,7 @@ import junit.framework.TestCase;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Tests for {@link RequestUtilities}.
@@ -354,6 +357,35 @@ public class RequestUtilitiesTest extends TestCase {
         "0",
         new ArrayList<String>(0),
         new ArrayList<String>(0)));
+  }
+
+  public void test_generateAnalysisUpdateContents() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': 'ID',",
+        "  'method': 'analysis.updateContent',",
+        "  'params': {",
+        "    'files': {",
+        "      '/fileA.dart': {",
+        "        content: 'aaa'",
+        "      },",
+        "      '/fileB.dart': {",
+        "        content: 'bbb',",
+        "        offset: 1,",
+        "        oldLength: 2,",
+        "        newLength: 3",
+        "      }",
+        "    }",
+        "  }",
+        "}");
+    ArrayList<ServerService> subscriptions = new ArrayList<ServerService>();
+    subscriptions.add(ServerService.STATUS);
+    Map<String, ContentChange> files = ImmutableMap.of(
+        "/fileA.dart",
+        new ContentChange("aaa"),
+        "/fileB.dart",
+        new ContentChange("bbb", 1, 2, 3));
+    assertEquals(expected, RequestUtilities.generateAnalysisUpdateContent("ID", files));
   }
 
   public void test_generateServerGetVersionRequest() throws Exception {
