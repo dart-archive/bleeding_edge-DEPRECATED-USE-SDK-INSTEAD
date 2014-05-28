@@ -59,4 +59,9 @@ public enum PolymerCode implements ErrorCode {
   public ErrorType getType() {
     return ErrorType.POLYMER;
   }
+
+  @Override
+  public String getUniqueName() {
+    return getClass().getSimpleName() + '.' + name();
+  }
 }

@@ -54,4 +54,11 @@ public interface ErrorCode {
    * @return the type of the error
    */
   public ErrorType getType();
+
+  /**
+   * Return a unique name for this error code.
+   * 
+   * @return a unique name for this error code
+   */
+  public String getUniqueName();
 }

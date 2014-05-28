@@ -367,4 +367,9 @@ public enum StaticTypeWarningCode implements ErrorCode {
   public ErrorType getType() {
     return ErrorType.STATIC_TYPE_WARNING;
   }
+
+  @Override
+  public String getUniqueName() {
+    return getClass().getSimpleName() + '.' + name();
+  }
 }

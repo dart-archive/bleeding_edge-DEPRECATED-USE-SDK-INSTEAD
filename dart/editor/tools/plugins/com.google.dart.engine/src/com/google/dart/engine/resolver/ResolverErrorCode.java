@@ -96,4 +96,9 @@ public enum ResolverErrorCode implements ErrorCode {
   public ErrorType getType() {
     return type;
   }
+
+  @Override
+  public String getUniqueName() {
+    return getClass().getSimpleName() + '.' + name();
+  }
 }

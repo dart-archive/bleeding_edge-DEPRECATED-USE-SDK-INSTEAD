@@ -273,4 +273,9 @@ public enum HintCode implements ErrorCode {
   public ErrorType getType() {
     return ErrorType.HINT;
   }
+
+  @Override
+  public String getUniqueName() {
+    return getClass().getSimpleName() + '.' + name();
+  }
 }

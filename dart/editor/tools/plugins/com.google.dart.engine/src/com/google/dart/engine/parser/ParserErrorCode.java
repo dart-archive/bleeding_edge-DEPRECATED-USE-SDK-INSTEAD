@@ -249,4 +249,9 @@ public enum ParserErrorCode implements ErrorCode {
   public ErrorType getType() {
     return ErrorType.SYNTACTIC_ERROR;
   }
+
+  @Override
+  public String getUniqueName() {
+    return getClass().getSimpleName() + '.' + name();
+  }
 }

@@ -67,4 +67,9 @@ public enum AngularCode implements ErrorCode {
   public ErrorType getType() {
     return ErrorType.ANGULAR;
   }
+
+  @Override
+  public String getUniqueName() {
+    return getClass().getSimpleName() + '.' + name();
+  }
 }

@@ -95,4 +95,9 @@ public enum PubSuggestionCode implements ErrorCode {
   public ErrorType getType() {
     return ErrorType.PUB_SUGGESTION;
   }
+
+  @Override
+  public String getUniqueName() {
+    return getClass().getSimpleName() + '.' + name();
+  }
 }

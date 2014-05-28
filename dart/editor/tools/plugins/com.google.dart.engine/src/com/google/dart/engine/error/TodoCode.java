@@ -66,4 +66,8 @@ public enum TodoCode implements ErrorCode {
     return ErrorType.TODO;
   }
 
+  @Override
+  public String getUniqueName() {
+    return getClass().getSimpleName() + '.' + name();
+  }
 }
