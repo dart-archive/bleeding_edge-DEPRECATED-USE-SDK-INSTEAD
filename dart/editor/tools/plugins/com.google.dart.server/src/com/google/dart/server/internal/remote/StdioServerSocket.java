@@ -17,6 +17,8 @@ import com.google.common.base.Preconditions;
 
 /**
  * A remote server socket over standard input and output.
+ * 
+ * @coverage dart.server.remote
  */
 public class StdioServerSocket {
   private final String runtimePath;

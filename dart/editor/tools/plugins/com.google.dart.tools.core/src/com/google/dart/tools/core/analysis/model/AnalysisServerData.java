@@ -14,9 +14,9 @@
 
 package com.google.dart.tools.core.analysis.model;
 
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;

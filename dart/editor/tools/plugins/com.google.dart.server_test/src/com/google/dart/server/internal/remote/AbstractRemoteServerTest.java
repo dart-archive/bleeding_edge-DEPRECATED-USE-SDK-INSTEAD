@@ -15,9 +15,11 @@ package com.google.dart.server.internal.remote;
 
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.internal.shared.AbstractServerTest;
+import com.google.dart.server.internal.shared.TestAnalysisServerListener;
 
 public abstract class AbstractRemoteServerTest extends AbstractServerTest {
   protected RemoteAnalysisServerImpl server;
+  protected TestAnalysisServerListener listener = new TestAnalysisServerListener();
   protected TestRequestSink requestSink = new TestRequestSink();
   protected TestResponseStream responseStream = new TestResponseStream();
 
@@ -32,10 +34,18 @@ public abstract class AbstractRemoteServerTest extends AbstractServerTest {
   }
 
   @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    server.addAnalysisServerListener(listener);
+  }
+
+  @Override
   protected void tearDown() throws Exception {
-    super.tearDown();
+    server.removeAnalysisServerListener(listener);
     server = null;
+    listener = null;
     requestSink = null;
     responseStream = null;
+    super.tearDown();
   }
 }

@@ -16,10 +16,9 @@ package com.google.dart.server.internal.shared;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
-import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
@@ -35,6 +34,8 @@ import junit.framework.AssertionFailedError;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,20 +54,14 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    * given and that they have the expected error codes. The order in which the errors were gathered
    * is ignored.
    * 
-   * @param source the source to check errors for
+   * @param file the file to check errors for
    * @param expectedErrorCodes the error codes of the errors that should have been gathered
    * @throws AssertionFailedError if a different number of errors have been gathered than were
    *           expected
    */
-  public synchronized void assertErrorsWithCodes(Source source, ErrorCode... expectedErrorCodes) {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    AnalysisError[] errors = sourcesErrors.get(source);
-    if (errors != null) {
-      for (AnalysisError error : errors) {
-        listener.onError(error);
-      }
-    }
-    listener.assertErrorsWithCodes(expectedErrorCodes);
+  public synchronized void assertErrorsWithCodes(String file, ErrorCode... expectedErrorCodes) {
+    AnalysisError[] errors = getErrors(file);
+    assertErrorsWithCodes(errors, expectedErrorCodes);
   }
 
   /**
@@ -218,10 +213,10 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   /**
-   * Returns {@link AnalysisError} for the given {@link Source}, may be empty, but not {@code null}.
+   * Returns {@link AnalysisError} for the given file, may be empty, but not {@code null}.
    */
-  public synchronized AnalysisError[] getErrors(Source source) {
-    AnalysisError[] errors = sourcesErrors.get(source);
+  public synchronized AnalysisError[] getErrors(String file) {
+    AnalysisError[] errors = sourcesErrors.get(file);
     if (errors == null) {
       return AnalysisError.NO_ERRORS;
     }
@@ -263,5 +258,106 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void serverStatus(AnalysisStatus analysis) {
+  }
+
+  /**
+   * Assert that the number of errors that have been given matches the number of errors that are
+   * given and that they have the expected error codes. The order in which the errors were gathered
+   * is ignored.
+   * 
+   * @param errors the errors to validate
+   * @param expectedErrorCodes the error codes of the errors that should have been gathered
+   * @throws AssertionFailedError if a different number of errors have been gathered than were
+   *           expected
+   */
+  private void assertErrorsWithCodes(AnalysisError[] errors, ErrorCode... expectedErrorCodes) {
+    StringBuilder builder = new StringBuilder();
+    //
+    // Verify that the expected error codes have a non-empty message.
+    //
+    for (ErrorCode errorCode : expectedErrorCodes) {
+      Assert.assertFalse("Empty error code message", errorCode.getMessage().isEmpty());
+    }
+    //
+    // Compute the expected number of each type of error.
+    //
+    HashMap<ErrorCode, Integer> expectedCounts = new HashMap<ErrorCode, Integer>();
+    for (ErrorCode code : expectedErrorCodes) {
+      Integer count = expectedCounts.get(code);
+      if (count == null) {
+        count = Integer.valueOf(1);
+      } else {
+        count = Integer.valueOf(count.intValue() + 1);
+      }
+      expectedCounts.put(code, count);
+    }
+    //
+    // Compute the actual number of each type of error.
+    //
+    HashMap<ErrorCode, ArrayList<AnalysisError>> errorsByCode = new HashMap<ErrorCode, ArrayList<AnalysisError>>();
+    for (AnalysisError error : errors) {
+      ErrorCode code = error.getErrorCode();
+      ArrayList<AnalysisError> list = errorsByCode.get(code);
+      if (list == null) {
+        list = new ArrayList<AnalysisError>();
+        errorsByCode.put(code, list);
+      }
+      list.add(error);
+    }
+    //
+    // Compare the expected and actual number of each type of error.
+    //
+    for (Map.Entry<ErrorCode, Integer> entry : expectedCounts.entrySet()) {
+      ErrorCode code = entry.getKey();
+      int expectedCount = entry.getValue().intValue();
+      int actualCount;
+      ArrayList<AnalysisError> list = errorsByCode.remove(code);
+      if (list == null) {
+        actualCount = 0;
+      } else {
+        actualCount = list.size();
+      }
+      if (actualCount != expectedCount) {
+        if (builder.length() == 0) {
+          builder.append("Expected ");
+        } else {
+          builder.append("; ");
+        }
+        builder.append(expectedCount);
+        builder.append(" errors of type ");
+        builder.append(code.getClass().getSimpleName() + "." + code);
+        builder.append(", found ");
+        builder.append(actualCount);
+      }
+    }
+    //
+    // Check that there are no more errors in the actual-errors map, otherwise, record message.
+    //
+    for (Map.Entry<ErrorCode, ArrayList<AnalysisError>> entry : errorsByCode.entrySet()) {
+      ErrorCode code = entry.getKey();
+      ArrayList<AnalysisError> actualErrors = entry.getValue();
+      int actualCount = actualErrors.size();
+      if (builder.length() == 0) {
+        builder.append("Expected ");
+      } else {
+        builder.append("; ");
+      }
+      builder.append("0 errors of type ");
+      builder.append(code.getClass().getSimpleName() + "." + code);
+      builder.append(", found ");
+      builder.append(actualCount);
+      builder.append(" (");
+      for (int i = 0; i < actualErrors.size(); i++) {
+        AnalysisError error = actualErrors.get(i);
+        if (i > 0) {
+          builder.append(", ");
+        }
+        builder.append(error.getOffset());
+      }
+      builder.append(")");
+    }
+    if (builder.length() > 0) {
+      Assert.fail(builder.toString());
+    }
   }
 }

@@ -15,23 +15,33 @@
 package com.google.dart.server.internal.remote;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.LinkedList;
 
 /**
  * A test implementation of {@link ResponseStream}.
  */
 public class TestResponseStream implements ResponseStream {
-  private final BlockingQueue<JsonObject> responses = new LinkedBlockingQueue<JsonObject>();
+  private final Object lock = new Object();
+  private final LinkedList<JsonObject> responses = Lists.newLinkedList();
+  private boolean lastRequestProcessed;
+
+  @Override
+  public void lastRequestProcessed() {
+    lastRequestProcessed = true;
+  }
 
   /**
    * Puts the given response into the queue.
    */
   public void put(JsonObject response) throws Exception {
-    responses.put(response);
+    synchronized (lock) {
+      responses.addLast(response);
+      lock.notifyAll();
+    }
   }
 
   /**
@@ -45,7 +55,31 @@ public class TestResponseStream implements ResponseStream {
   }
 
   @Override
-  public JsonObject take() throws Exception {
-    return responses.take();
+  public JsonObject take() {
+    synchronized (lock) {
+      while (true) {
+        if (!responses.isEmpty()) {
+          lastRequestProcessed = false;
+          return responses.removeFirst();
+        }
+        try {
+          lock.wait();
+        } catch (InterruptedException e) {
+          continue;
+        }
+      }
+    }
+  }
+
+  public void waitForEmpty() {
+    while (!isEmpty()) {
+      Thread.yield();
+    }
+  }
+
+  private boolean isEmpty() {
+    synchronized (lock) {
+      return lastRequestProcessed && responses.isEmpty();
+    }
   }
 }

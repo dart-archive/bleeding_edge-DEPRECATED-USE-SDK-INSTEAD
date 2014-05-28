@@ -14,13 +14,19 @@
 
 package com.google.dart.tools.core.internal.analysis.model;
 
-import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
+import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager_NEW;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
+
+import org.eclipse.core.resources.IResource;
+
+import java.io.File;
 
 /**
  * Implementation of {@link AnalysisServerListener} for the Eclipse workspace.
@@ -33,14 +39,16 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedErrors(String file, AnalysisError[] errors) {
-    // TODO(scheglov) restore or remove for the new API
-//    dataImpl.internalComputedErrors(contextId, source, errors);
-//    IResource resource = DartCore.getProjectManager().getResource(source);
-//    if (resource != null) {
-//      // TODO(scheglov) Analysis Server: LineInfo
-//      AnalysisMarkerManager.getInstance().queueErrors(resource, null, errors);
-//    }
+  public void computedErrors(String filePath, AnalysisError[] errors) {
+    dataImpl.internalComputedErrors(filePath, errors);
+    File file = new File(filePath);
+    if (file.exists()) {
+      IResource resource = ResourceUtil.getResource(file);
+      if (resource != null) {
+        // TODO(scheglov) Analysis Server: LineInfo
+        AnalysisMarkerManager_NEW.getInstance().queueErrors(resource, null, errors);
+      }
+    }
   }
 
   @Override

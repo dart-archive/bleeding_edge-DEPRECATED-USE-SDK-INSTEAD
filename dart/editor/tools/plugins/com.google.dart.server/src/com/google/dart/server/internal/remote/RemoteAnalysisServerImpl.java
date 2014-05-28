@@ -36,7 +36,10 @@ import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
+import com.google.dart.server.internal.local.BroadcastAnalysisServerListener;
+import com.google.dart.server.internal.remote.processor.NotificationErrorsProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
@@ -51,7 +54,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @coverage dart.server.remote
  */
 public class RemoteAnalysisServerImpl implements AnalysisServer {
-
   /**
    * For requests that do not have a {@link Consumer}, this object is created as a place holder so
    * that if an error occurs after the request, an error can be reported.
@@ -84,29 +86,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     public void run() {
       while (true) {
         try {
-          JsonObject element = responseStream.take();
-          // prepare ID
-          JsonPrimitive idJsonPrimitive = (JsonPrimitive) element.get("id");
-          if (idJsonPrimitive == null) {
-            // TODO (jwren) handle this case
-            continue;
-          }
-          String idString = idJsonPrimitive.getAsString();
-          // prepare consumer
-          Consumer consumer = null;
-          synchronized (consumerMapLock) {
-            consumer = consumerMap.get(idString);
-          }
-          // TODO(jwren) handle error
-          @SuppressWarnings("unused")
-          JsonObject errorObject = (JsonObject) element.get("error");
-          // handle result
-          JsonObject resultObject = (JsonObject) element.get("result");
-          if (consumer instanceof VersionConsumer) {
-            processVersionConsumer((VersionConsumer) consumer, resultObject);
-          }
-          synchronized (consumerMapLock) {
-            consumerMap.remove(idString);
+          JsonObject response = responseStream.take();
+          try {
+            processResponse(response);
+          } finally {
+            responseStream.lastRequestProcessed();
           }
         } catch (Throwable e) {
           // TODO(scheglov) decide how to handle exceptions
@@ -114,16 +98,18 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
         }
       }
     }
-
-    private void processVersionConsumer(VersionConsumer consumer, JsonObject resultObject) {
-      String version = resultObject.get("version").getAsString();
-      consumer.computedVersion(version);
-    }
   }
+
+  private static final String ANALYSIS_NOTIFICATION_ERRORS = "analysis.errors";
 
   private final RequestSink requestSink;
 
   private final ResponseStream responseStream;
+
+  /**
+   * The listener that will receive notification when new analysis results become available.
+   */
+  private final BroadcastAnalysisServerListener listener = new BroadcastAnalysisServerListener();
 
   /**
    * A mapping between {@link String} ids' and the associated {@link Consumer} that was passed when
@@ -149,7 +135,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void addAnalysisServerListener(AnalysisServerListener listener) {
-    // TODO (jwren) implement
+    this.listener.addListener(listener);
   }
 
   @Override
@@ -204,7 +190,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void removeAnalysisServerListener(AnalysisServerListener listener) {
-    // TODO (jwren) implement
+    this.listener.removeListener(listener);
   }
 
   @Override
@@ -230,7 +216,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths) {
-    // TODO(scheglov) implement
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateAnalysisSetAnalysisRoots(id, includedPaths, excludedPaths));
   }
 
   @Override
@@ -298,6 +287,65 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    */
   private String generateUniqueId() {
     return Integer.toString(nextId.getAndIncrement());
+  }
+
+  /**
+   * Attempts to handle the given {@link JsonObject} as a notification.
+   * 
+   * @return {@code true} if it was handled or {@code false} otherwise
+   */
+  private boolean processNotification(JsonObject response) throws Exception {
+    // prepare notification kind
+    String event;
+    {
+      JsonElement eventElement = response.get("event");
+      if (eventElement == null || !eventElement.isJsonPrimitive()) {
+        return false;
+      }
+      event = eventElement.getAsString();
+    }
+    // handle each supported notification kind
+    if (event.equals(ANALYSIS_NOTIFICATION_ERRORS)) {
+      new NotificationErrorsProcessor(listener).process(response);
+      return true;
+    }
+    // it is a notification, even if we did not handle it
+    return true;
+  }
+
+  private void processResponse(JsonObject response) throws Exception {
+    // handle notification
+    if (processNotification(response)) {
+      return;
+    }
+    // prepare ID
+    JsonPrimitive idJsonPrimitive = (JsonPrimitive) response.get("id");
+    if (idJsonPrimitive == null) {
+      // TODO (jwren) handle this case
+      return;
+    }
+    String idString = idJsonPrimitive.getAsString();
+    // prepare consumer
+    Consumer consumer = null;
+    synchronized (consumerMapLock) {
+      consumer = consumerMap.get(idString);
+    }
+    // TODO(jwren) handle error
+    @SuppressWarnings("unused")
+    JsonObject errorObject = (JsonObject) response.get("error");
+    // handle result
+    JsonObject resultObject = (JsonObject) response.get("result");
+    if (consumer instanceof VersionConsumer) {
+      processVersionConsumer((VersionConsumer) consumer, resultObject);
+    }
+    synchronized (consumerMapLock) {
+      consumerMap.remove(idString);
+    }
+  }
+
+  private void processVersionConsumer(VersionConsumer consumer, JsonObject resultObject) {
+    String version = resultObject.get("version").getAsString();
+    consumer.computedVersion(version);
   }
 
   /**

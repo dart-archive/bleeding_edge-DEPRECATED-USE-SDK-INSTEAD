@@ -13,6 +13,8 @@
  */
 package com.google.dart.server.internal.remote;
 
+import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
@@ -24,6 +26,40 @@ import java.util.ArrayList;
  * remote server, see {@link RemoteAnalysisServerImplIntegrationTest}.
  */
 public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
+
+  public void test_analysis_notification_errors() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'analysis.errors',",
+        "  'params': {",
+        "    'file': '/test.dart',",
+        "    'errors' : [",
+        "      {",
+        "        'file': '/the/same/file.dart',",
+        "        'errorCode': 'ParserErrorCode.ABSTRACT_CLASS_MEMBER',",
+        "        'offset': 1,",
+        "        'length': 2,",
+        "        'message': 'message A',",
+        "        'correction': 'correction A'",
+        "      },",
+        "      {",
+        "        'file': '/the/same/file.dart',",
+        "        'errorCode': 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',",
+        "        'offset': 10,",
+        "        'length': 20,",
+        "        'message': 'message B',",
+        "        'correction': 'correction B'",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    listener.assertErrorsWithCodes(
+        "/test.dart",
+        ParserErrorCode.ABSTRACT_CLASS_MEMBER,
+        CompileTimeErrorCode.AMBIGUOUS_EXPORT);
+  }
 
   public void test_getVersion() throws Exception {
     final String[] versionPtr = {null};

@@ -15,12 +15,15 @@ package com.google.dart.tools.core;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.index.Index;
+import com.google.dart.engine.index.IndexFactory;
+import com.google.dart.engine.index.MemoryIndexStore;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.InternalAnalysisServer;
+import com.google.dart.server.internal.remote.StdioServerSocket;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -458,9 +461,30 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static AnalysisServer getAnalysisServer() {
     synchronized (analysisServerLock) {
       if (analysisServer == null) {
-        analysisServer = new com.google.dart.server.internal.local.LocalAnalysisServerImpl();
-        analysisServerDataImpl.setServer(analysisServer);
-        analysisServer.addAnalysisServerListener(analysisServerListener);
+        // TODO(scheglov) remove local analysis server
+//        analysisServer = new com.google.dart.server.internal.local.LocalAnalysisServerImpl();
+        String runtimePath = System.getProperty("com.google.dart.runtime");
+        String analysisServerPath = System.getProperty("com.google.dart.analysis.server");
+        if (runtimePath == null) {
+          DartCore.logError("Add the dart runtime (com.google.dart.runtime) as a JVM argument");
+          System.exit(1);
+        }
+        if (analysisServerPath == null) {
+          DartCore.logError("Add the analysis server (com.google.dart.analysis.server) as a JVM argument");
+          System.exit(1);
+        }
+        try {
+          StdioServerSocket socket = new StdioServerSocket(runtimePath, analysisServerPath);
+          socket.start();
+          analysisServer = new com.google.dart.server.internal.remote.RemoteAnalysisServerImpl(
+              socket.getRequestSink(),
+              socket.getResponseStream());
+          analysisServerDataImpl.setServer(analysisServer);
+          analysisServer.addAnalysisServerListener(analysisServerListener);
+        } catch (Throwable e) {
+          DartCore.logError("Enable to start stdio server");
+          System.exit(1);
+        }
       }
     }
     return analysisServer;
@@ -690,12 +714,27 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static ProjectManager getProjectManager() {
     synchronized (projectManagerLock) {
       if (projectManager == null) {
-        // TODO(scheglov) restore or remove for the new API
+        // start index
+        final Index index;
+        {
+          MemoryIndexStore indexStore = IndexFactory.newMemoryIndexStore();
+          index = IndexFactory.newIndex(indexStore);
+          Thread thread = new Thread() {
+            @Override
+            public void run() {
+              index.run();
+            }
+          };
+          thread.setName("Index Thread");
+          thread.setDaemon(true);
+          thread.start();
+        }
+        // create ProjectManagerImpl
         projectManager = new ProjectManagerImpl(
             ResourcesPlugin.getWorkspace().getRoot(),
             DartSdkManager.getManager().getSdk(),
             DartSdkManager.getManager().getSdkContextId(),
-            ((InternalAnalysisServer) getAnalysisServer()).getIndex(),
+            index,
             DartIgnoreManager.getInstance());
       }
     }
@@ -1691,7 +1730,12 @@ public class DartCore extends Plugin implements DartSdkListener {
 
     try {
       getProjectManager().stop();
-      getAnalysisServer().shutdown();
+
+      synchronized (analysisServerLock) {
+        if (analysisServer != null) {
+          analysisServer.shutdown();
+        }
+      }
 
       if (DartCoreDebug.METRICS) {
         StringWriter writer = new StringWriter();

@@ -11,23 +11,17 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.server.internal.remote;
+package com.google.dart.server.internal.remote.processor;
 
-import com.google.gson.JsonObject;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
-/**
- * A source of remote server responses.
- * 
- * @coverage dart.server.remote
- */
-public interface ResponseStream {
-  /**
-   * Notifies this {@link ResponseStream} that the last taken response has been processed.
-   */
-  void lastRequestProcessed();
-
-  /**
-   * Takes the the next response from the stream. Blocks if no response available.
-   */
-  JsonObject take() throws Exception;
+public class TestAll {
+  public static Test suite() {
+    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTest(com.google.dart.server.internal.remote.utilities.TestAll.suite());
+    suite.addTestSuite(AnalysisErrorImplTest.class);
+    suite.addTestSuite(NotificationErrorsProcessorTest.class);
+    return suite;
+  }
 }

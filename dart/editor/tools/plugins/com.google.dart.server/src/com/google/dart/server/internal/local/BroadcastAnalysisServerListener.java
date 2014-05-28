@@ -15,7 +15,7 @@
 package com.google.dart.server.internal.local;
 
 import com.google.common.collect.Lists;
-import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisStatus;
@@ -77,6 +77,18 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
     }
   }
 
+  /**
+   * Remove the given listener from the list of listeners that will receive notification when new
+   * analysis results become available.
+   * 
+   * @param listener the listener to be removed
+   */
+  public void removeListener(AnalysisServerListener listener) {
+    synchronized (listeners) {
+      listeners.remove(listener);
+    }
+  }
+
   @Override
   public void serverConnected() {
     for (AnalysisServerListener listener : getListeners()) {
@@ -95,18 +107,6 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   public void serverStatus(AnalysisStatus analysis) {
     for (AnalysisServerListener listener : getListeners()) {
       listener.serverStatus(analysis);
-    }
-  }
-
-  /**
-   * Remove the given listener from the list of listeners that will receive notification when new
-   * analysis results become available.
-   * 
-   * @param listener the listener to be removed
-   */
-  public void removeListener(AnalysisServerListener listener) {
-    synchronized (listeners) {
-      listeners.remove(listener);
     }
   }
 

@@ -43,6 +43,10 @@ public class ByteResponseStream implements ResponseStream {
   }
 
   @Override
+  public void lastRequestProcessed() {
+  }
+
+  @Override
   public JsonObject take() throws Exception {
     String line = reader.readLine();
     return (JsonObject) new JsonParser().parse(line);

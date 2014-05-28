@@ -43,6 +43,7 @@ public class RequestUtilities {
   private static final String METHOD_SERVER_GET_VERSION = "server.getVersion";
   private static final String METHOD_SERVER_SHUTDOWN = "server.shutdown";
   private static final String METHOD_SERVER_SET_SUBSCRIPTIONS = "server.setSubscriptions";
+  private static final String METHOD_ANALYSIS_SET_ROOTS = "analysis.setAnalysisRoots";
 
   // Context domain
 //  private static final String METHOD_CONTEXT_APPLY_ANALYSIS_DELTA = "context.applyAnalysisDelta";
@@ -253,6 +254,28 @@ public class RequestUtilities {
 //    params.addProperty("contextId", contextIdValue);
 //    return buildJsonObjectRequest(idValue, METHOD_SERVER_DELETE_CONTEXT, params);
 //  }
+
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_SET_ROOTS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.setAnalysisRoots"
+   *   "params": {
+   *     "included": List&lt;FilePath&gt;
+   *     "excluded": List&lt;FilePath&gt;
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisSetAnalysisRoots(String id, List<String> included,
+      List<String> excluded) {
+    JsonObject params = new JsonObject();
+    params.add("included", buildJsonArray(included));
+    params.add("excluded", buildJsonArray(excluded));
+    return buildJsonObjectRequest(id, METHOD_ANALYSIS_SET_ROOTS, params);
+  }
 
   /**
    * Generate and return a {@value #METHOD_SERVER_GET_VERSION} request.
