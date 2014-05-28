@@ -622,6 +622,19 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_unnecessaryCast_generics() throws Exception {
+    // dartbug.com/18953
+    Source source = addSource(createSource(//
+        "import 'dart:async';",
+        "Future<int> f() => new Future.value(0);",
+        "void g(bool c) {",
+        "  (c ? f(): new Future.value(0) as Future<int>).then((int value) {});",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_unnecessaryCast_type_dynamic() throws Exception {
     Source source = addSource(createSource(//
         "m(v) {",

@@ -657,7 +657,7 @@ public class BestPracticesVerifier extends RecursiveAstVisitor<Void> {
     // !(x instanceof TypeParameterType) checks.
     if (lhsType != null && rhsType != null && !lhsType.isDynamic() && !rhsType.isDynamic()
         && !(lhsType instanceof TypeParameterType) && !(rhsType instanceof TypeParameterType)
-        && lhsType.isSubtypeOf(rhsType)) {
+        && lhsType.isMoreSpecificThan(rhsType)) {
       errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
       return true;
     }

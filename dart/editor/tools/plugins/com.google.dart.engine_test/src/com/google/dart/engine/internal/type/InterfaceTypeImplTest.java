@@ -1031,6 +1031,17 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertTrue(type.isMoreSpecificThan(DynamicTypeImpl.getInstance()));
   }
 
+  public void test_isMoreSpecificThan_generic() {
+    ClassElement classA = classElement("A", "E");
+    ClassElement classB = classElement("B");
+    Type dynamicType = DynamicTypeImpl.getInstance();
+    InterfaceType typeAOfDynamic = classA.getType().substitute(new Type[] {dynamicType});
+    InterfaceType typeAOfB = classA.getType().substitute(new Type[] {classB.getType()});
+
+    assertFalse(typeAOfDynamic.isMoreSpecificThan(typeAOfB));
+    assertTrue(typeAOfB.isMoreSpecificThan(typeAOfDynamic));
+  }
+
   public void test_isMoreSpecificThan_self() {
     InterfaceType type = classElement("A").getType();
 
@@ -1166,6 +1177,17 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     FunctionType functionType = functionElement("f", new ClassElement[] {stringType.getElement()}).getType();
 
     assertTrue(classA.getType().isSubtypeOf(functionType));
+  }
+
+  public void test_isSubtypeOf_generic() {
+    ClassElement classA = classElement("A", "E");
+    ClassElement classB = classElement("B");
+    Type dynamicType = DynamicTypeImpl.getInstance();
+    InterfaceType typeAOfDynamic = classA.getType().substitute(new Type[] {dynamicType});
+    InterfaceType typeAOfB = classA.getType().substitute(new Type[] {classB.getType()});
+
+    assertTrue(typeAOfDynamic.isSubtypeOf(typeAOfB));
+    assertTrue(typeAOfB.isSubtypeOf(typeAOfDynamic));
   }
 
   public void test_isSubtypeOf_interface() {
