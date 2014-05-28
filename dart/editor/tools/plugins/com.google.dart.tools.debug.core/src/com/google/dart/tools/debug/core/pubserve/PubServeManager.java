@@ -97,7 +97,9 @@ public class PubServeManager {
       throws IOException {
     String path = getPathFromWorkingDir(resource);
     if (path != null) {
-      pubserve.sendGetUrlCommand(path, callback);
+      if (pubserve.isAlive()) {
+        pubserve.sendGetUrlCommand(path, callback);
+      }
     } else {
       DartCore.logInformation("Path from working directory not found for resource "
           + resource.getName());
