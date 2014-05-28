@@ -13,11 +13,8 @@
  */
 package com.google.dart.tools.debug.ui.internal.preferences;
 
-import com.google.dart.tools.core.mobile.AndroidSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
-import com.google.dart.tools.debug.core.util.RemoteConnectionPreferenceManager;
-import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -32,11 +29,9 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -58,12 +53,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
   private Button selectBrowserButton;
 
   private Text browserArgumentText;
-
-  private Text androidSdkText;
-
-  private Button remoteConnectButton;
-
-  private static String ANDROID_SDK_URL = "http://developer.android.com/sdk/index.html";
 
   /**
    * Create a new preference page.
@@ -89,10 +78,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
         browserNameText.getText().trim(),
         browserArgumentText.getText().trim());
 
-    RemoteConnectionPreferenceManager.getManager().setAllowRemoteConnectionPreference(
-        remoteConnectButton.getSelection());
-
-    AndroidSdkManager.getManager().setSdkLocationPreference(androidSdkText.getText().trim());
     return true;
   }
 
@@ -130,52 +115,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
     createBrowserConfig(composite, labelWidth);
 
-    createRemoteConnectionConfig(composite);
-
-    createAndroidSdkConfig(composite, labelWidth);
-
     return composite;
-  }
-
-  private void createAndroidSdkConfig(Composite composite, int labelWidth) {
-    Group androidGroup = new Group(composite, SWT.NONE);
-    androidGroup.setText("Android SDK");
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(androidGroup);
-    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(androidGroup);
-    ((GridLayout) androidGroup.getLayout()).marginBottom = 5;
-
-    Label sdkLabel = new Label(androidGroup, SWT.NONE);
-    sdkLabel.setText("SDK Location:");
-    GridDataFactory.swtDefaults().hint(labelWidth, -1).applyTo(sdkLabel);
-
-    androidSdkText = new Text(androidGroup, SWT.BORDER | SWT.SINGLE);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
-        androidSdkText);
-
-    Button selectSdkButton = new Button(androidGroup, SWT.PUSH);
-    selectSdkButton.setText(DebugPreferenceMessages.DebugPreferencePage_Select);
-    PixelConverter converter = new PixelConverter(selectSdkButton);
-    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
-    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(selectSdkButton);
-    selectSdkButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        handleSdkConfigBrowseButton();
-      }
-    });
-
-    androidSdkText.setText(AndroidSdkManager.getManager().getSdkLocationPreference());
-
-    Link infoLink = new Link(androidGroup, SWT.NONE);
-    infoLink.setText("<a href=\"" + ANDROID_SDK_URL + "\">Download the Android SDK</a>");
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(infoLink);
-    infoLink.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        ExternalBrowserUtil.openInExternalBrowser(ANDROID_SDK_URL);
-      }
-    });
-
   }
 
   private void createBrowserConfig(Composite composite, int labelWidth) {
@@ -230,18 +170,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     initFromPrefs();
   }
 
-  private void createRemoteConnectionConfig(Composite composite) {
-    Group remoteGroup = new Group(composite, SWT.NONE);
-    remoteGroup.setText("Remote Connection");
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(remoteGroup);
-    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(remoteGroup);
-    ((GridLayout) remoteGroup.getLayout()).marginBottom = 5;
-
-    remoteConnectButton = new Button(remoteGroup, SWT.CHECK);
-    remoteConnectButton.setText("Allow connections from non-localhost address");
-    remoteConnectButton.setSelection(RemoteConnectionPreferenceManager.getManager().getAllowRemoteConnectionPrefs());
-  }
-
   private void handleBrowserConfigBrowseButton() {
     FileDialog fd = new FileDialog(getShell(), SWT.OPEN);
 
@@ -249,16 +177,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
     if (filePath != null) {
       browserNameText.setText(filePath);
-    }
-  }
-
-  private void handleSdkConfigBrowseButton() {
-    DirectoryDialog dirDialog = new DirectoryDialog(getShell(), SWT.OPEN);
-
-    String dirPath = dirDialog.open();
-
-    if (dirPath != null) {
-      androidSdkText.setText(dirPath);
     }
   }
 

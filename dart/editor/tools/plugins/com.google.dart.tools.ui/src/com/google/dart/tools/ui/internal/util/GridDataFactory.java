@@ -383,6 +383,15 @@ public final class GridDataFactory {
     return this;
   }
 
+  /**
+   * Sets the indent of the control within the cell in pixels.
+   */
+  public GridDataFactory indent(int hIndex, int vIndent) {
+    data.horizontalIndent = vIndent;
+    data.verticalIndent = vIndent;
+    return this;
+  }
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Indent
@@ -401,6 +410,14 @@ public final class GridDataFactory {
    */
   public GridDataFactory indentHorizontalChars(int hIndent) {
     data.horizontalIndent = convertWidthInCharsToPixels(hIndent);
+    return this;
+  }
+
+  /**
+   * Sets the indent of the control within the cell in pixels.
+   */
+  public GridDataFactory indentVertical(int vIndent) {
+    data.verticalIndent = vIndent;
     return this;
   }
 

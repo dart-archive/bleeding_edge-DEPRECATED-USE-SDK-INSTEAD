@@ -67,6 +67,14 @@ public final class GridLayoutFactory {
   }
 
   /**
+   * Sets the bottom margins.
+   */
+  public GridLayoutFactory marginBottom(int margins) {
+    layout.marginBottom = margins;
+    return this;
+  }
+
+  /**
    * Sets the vertical margins.
    */
   public GridLayoutFactory marginHeight(int margins) {
@@ -79,6 +87,15 @@ public final class GridLayoutFactory {
    */
   public GridLayoutFactory margins(int margins) {
     layout.marginWidth = layout.marginHeight = margins;
+    return this;
+  }
+
+  /**
+   * Sets the horizontal/vertical margins.
+   */
+  public GridLayoutFactory margins(int h, int v) {
+    layout.marginWidth = h;
+    layout.marginHeight = v;
     return this;
   }
 
@@ -103,6 +120,15 @@ public final class GridLayoutFactory {
    */
   public GridLayoutFactory noSpacing() {
     layout.horizontalSpacing = layout.verticalSpacing = 0;
+    return this;
+  }
+
+  /**
+   * Sets spacing.
+   */
+  public GridLayoutFactory spacing(int h, int v) {
+    layout.horizontalSpacing = h;
+    layout.verticalSpacing = v;
     return this;
   }
 
