@@ -9,21 +9,21 @@ execfile(os.path.join(path, 'clank.deps', 'DEPS.chromium')) # Include proper Chr
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "dartium_base": "http://src.chromium.org",
-  "dartium_chromium_branch": "/chrome/branches/dart/1916/src",
-  "dartium_chromium_revision": "265493",
-  "chromium_base_revision": "260298",
+  "dartium_chromium_branch": "/chrome/branches/dart/1985/src",
+  "dartium_chromium_revision": "272160",
+  "chromium_base_revision": "269467",
   "clank_url": "https://chrome-internal.googlesource.com/clank/",
   # This revision number should be kept in sync with the version of clank that
   # uses a similar chromium revision to that mentioned just above in
   # "chromium_revision". You can check which might be a good revision at:
   # https://chrome-internal.googlesource.com/clank/internal/apps/+log/1916
-  "clank_rev": "b54057ea34270fcaf926e05a54b8e565e7f5cbad",
+  "clank_rev": "1824a75e1d4e757c992ccdcb953b94c9b82bf936",
   "chrome_internal": "https://chrome-internal.googlesource.com/",
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
-  "dartium_webkit_branch": "/blink/branches/dart/1916",
-  "dartium_webkit_revision": "174556",
+  "dartium_webkit_branch": "/blink/branches/dart/1985",
+  "dartium_webkit_revision": "174962",
   "bootstrap_css_rev" : "@28387",
   "co19_rev": "@722",
   "gsutil_rev" : "@33376",
@@ -96,6 +96,16 @@ hooks.append({
   'action': ['python',
              'src/dart/tools/bots/set_reference_build_revision.py',
              Var('chromium_base_revision')],
+})
+hooks.append({
+  # Peg the blink version number in LASTCHANGE.blink to be the upstream
+  # webkit_revision number so that chrome remote devtools pulls assets from
+  # the right place.
+  "name": "lastchange",
+  "pattern": ".",
+  "action": ["python", "-c",
+      "f=open('src/build/util/LASTCHANGE.blink','w'); f.write('LASTCHANGE=" +
+      Var('webkit_revision') + "\\n')" ],
 })
 
 target_os = ['android']
