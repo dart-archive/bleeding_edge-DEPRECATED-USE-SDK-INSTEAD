@@ -51,7 +51,6 @@ import java.util.HashMap;
  * @coverage dart.engine.resolver
  */
 public class ImportsVerifier extends RecursiveAstVisitor<Void> {
-
   /**
    * This is set to {@code true} if the current compilation unit which is being visited is the
    * defining compilation unit for the library, its value can be set with
@@ -206,7 +205,6 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
             // Initialize libraryMap: libraryElement -> importDirective
             //
             putIntoLibraryMap(libraryElement, importDirective);
-
             //
             // For this new addition to the libraryMap, also recursively add any exports from the
             // libraryElement
@@ -276,10 +274,11 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
     Element element = prefixIdentifier.getStaticElement();
     if (element instanceof PrefixElement) {
       ArrayList<ImportDirective> importDirectives = prefixElementMap.get(element);
-      for (ImportDirective importDirective : importDirectives) {
-        unusedImports.remove(importDirective);
+      if (importDirectives != null) {
+        for (ImportDirective importDirective : importDirectives) {
+          unusedImports.remove(importDirective);
+        }
       }
-
       return null;
     }
     // Otherwise, pass the prefixed identifier element and name onto visitIdentifier.
@@ -354,8 +353,8 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
     if (element == null) {
       return null;
     }
-
-    // If the element is multiply defined then call this method recursively for each of the conflicting elements.
+    // If the element is multiply defined then call this method recursively for each of the
+    // conflicting elements.
     if (element instanceof MultiplyDefinedElement) {
       MultiplyDefinedElement multiplyDefinedElement = (MultiplyDefinedElement) element;
       for (Element elt : multiplyDefinedElement.getConflictingElements()) {
@@ -364,8 +363,10 @@ public class ImportsVerifier extends RecursiveAstVisitor<Void> {
       return null;
     } else if (element instanceof PrefixElement) {
       ArrayList<ImportDirective> importDirectives = prefixElementMap.get(element);
-      for (ImportDirective importDirective : importDirectives) {
-        unusedImports.remove(importDirective);
+      if (importDirectives != null) {
+        for (ImportDirective importDirective : importDirectives) {
+          unusedImports.remove(importDirective);
+        }
       }
       return null;
     } else if (!(element.getEnclosingElement() instanceof CompilationUnitElement)) {

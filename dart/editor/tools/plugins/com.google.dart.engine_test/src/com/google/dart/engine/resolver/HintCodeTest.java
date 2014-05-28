@@ -21,7 +21,6 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class HintCodeTest extends ResolverTestCase {
-
   public void fail_deadCode_statementAfterRehrow() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
