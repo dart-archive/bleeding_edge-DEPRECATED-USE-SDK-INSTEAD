@@ -66,7 +66,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     ((GridLayout) group.getLayout()).marginBottom = 4;
 
     dartBrowserButton = new Button(group, SWT.CHECK);
-    dartBrowserButton.setText("Launch in Dart Content Shell Browser");
+    dartBrowserButton.setText("Launch in a Dart Content Shell Browser");
     dartBrowserButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
@@ -109,12 +109,12 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
    */
   @Override
   public Image getImage() {
-    return DartDebugUIPlugin.getImage("phone.png"); //$NON-NLS-1$
+    return DartDebugUIPlugin.getImage("android.png"); //$NON-NLS-1$
   }
 
   @Override
   public String getMessage() {
-    return "Create a configuration to launch a Dart application in a browser on a device";
+    return "Create a configuration to launch a Dart application in a browser on a device. Installs a shell browser with Dart VM on the device.";
   }
 
   /**

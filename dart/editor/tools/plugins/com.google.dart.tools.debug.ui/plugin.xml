@@ -76,7 +76,7 @@
       </launchConfigurationTypeImage>
        <launchConfigurationTypeImage
             configTypeID="com.google.dart.tools.debug.core.mobileLaunchConfig"
-            icon="icons/phone.png"
+            icon="icons/android.png"
             id="com.google.dart.tools.debug.ui.mobileLaunchImage">
       </launchConfigurationTypeImage>
    </extension>
