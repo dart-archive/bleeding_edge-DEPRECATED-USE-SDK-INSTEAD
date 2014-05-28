@@ -15,8 +15,8 @@ package com.google.dart.server.internal.remote;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.services.refactoring.Parameter;
+import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
@@ -168,13 +168,17 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void getFixes(List<AnalysisError> errors, FixesConsumer consumer) {
-    // TODO(scheglov) implement
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateAnalysisGetFixes(id, errors), consumer);
   }
 
   @Override
   public void getMinorRefactorings(String file, int offset, int length,
       MinorRefactoringsConsumer consumer) {
-    // TODO(scheglov) implement
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateAnalysisGetMinorRefactoringsRequest(id, file, offset, length));
   }
 
   @Override
@@ -372,4 +376,5 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     }
     requestSink.add(request);
   }
+
 }

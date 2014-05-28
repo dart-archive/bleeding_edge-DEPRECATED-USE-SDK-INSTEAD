@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote.utilities;
 
 import com.google.dart.engine.context.AnalysisDelta;
+import com.google.dart.server.AnalysisError;
 import com.google.dart.server.ServerService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -36,23 +37,93 @@ public class RequestUtilities {
   private static final String ID = "id";
   private static final String METHOD = "method";
   private static final String PARAMS = "params";
-
   private static final String NULL = "null";
+  private static final String FILE = "file";
 
   // Server domain
   private static final String METHOD_SERVER_GET_VERSION = "server.getVersion";
   private static final String METHOD_SERVER_SHUTDOWN = "server.shutdown";
   private static final String METHOD_SERVER_SET_SUBSCRIPTIONS = "server.setSubscriptions";
+
+  // Analysis domain
+  private static final String METHOD_ANALYSIS_GET_FIXES = "analysis.getFixes";
+  private static final String METHOD_ANALYSIS_GET_MINOR_REFACTORINGS = "analysis.getMinorRefactorings";
   private static final String METHOD_ANALYSIS_SET_ROOTS = "analysis.setAnalysisRoots";
 
-  // Context domain
-//  private static final String METHOD_CONTEXT_APPLY_ANALYSIS_DELTA = "context.applyAnalysisDelta";
-//  private static final String METHOD_CONTEXT_APPLY_SOURCE_DELTA = "context.applySourceDelta";
-//  private static final String METHOD_CONTEXT_GET_FIXES = "context.getFixes";
-//  private static final String METHOD_CONTEXT_GET_MINOR_REFACTORINGS = "context.getMinorRefactorings";
-//  private static final String METHOD_CONTEXT_SET_OPTIONS = "context.setOptions";
-//  private static final String METHOD_CONTEXT_SET_PRIORITY_SOURCES = "context.setPrioritySources";
-//  private static final String METHOD_CONTEXT_SUBSCRIBE = "context.subscribe";
+//  private static final String METHOD_ANALYSIS_SET_PRIORITY_FILES = "analysis.setPriorityFiles";
+//  private static final String METHOD_ANALYSIS_SET_SUBSCRIPTIONS = "analysis.setSubscriptions";
+//  private static final String METHOD_ANALYSIS_UPDATE_CONTENT = "analysis.updateContent";
+//  private static final String METHOD_ANALYSIS_UPDATE_OPTIONS = "analysis.updateOptions";
+//  private static final String METHOD_ANALYSIS_UPDATE_SDKS = "analysis.updateSdks";
+
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_GET_FIXES} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.getFixes"
+   *   "params": {
+   *     "errors": List&lt;AnalysisError&gt;
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisGetFixes(String idValue, List<AnalysisError> errors) {
+    JsonObject params = new JsonObject();
+    JsonArray jsonArray = new JsonArray();
+    for (AnalysisError error : errors) {
+      jsonArray.add(buildJsonAnalysisErrorObject(error));
+    }
+    params.add("errors", jsonArray);
+    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_GET_FIXES, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_GET_MINOR_REFACTORINGS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.getMinorRefactorings"
+   *   "params": {
+   *     "file": FilePath
+   *     "offset": int
+   *     "length": int
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisGetMinorRefactoringsRequest(String idValue, String file,
+      int offset, int length) {
+    JsonObject params = new JsonObject();
+    params.addProperty(FILE, file);
+    params.addProperty("offset", offset);
+    params.addProperty("length", length);
+    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_GET_MINOR_REFACTORINGS, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_SET_ROOTS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.setAnalysisRoots"
+   *   "params": {
+   *     "included": List&lt;FilePath&gt;
+   *     "excluded": List&lt;FilePath&gt;
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisSetAnalysisRoots(String id, List<String> included,
+      List<String> excluded) {
+    JsonObject params = new JsonObject();
+    params.add("included", buildJsonArray(included));
+    params.add("excluded", buildJsonArray(excluded));
+    return buildJsonObjectRequest(id, METHOD_ANALYSIS_SET_ROOTS, params);
+  }
 
 //  /**
 //   * Generate and return a {@value #METHOD_CONTEXT_APPLY_ANALYSIS_DELTA} request.
@@ -117,22 +188,6 @@ public class RequestUtilities {
 //  public static JsonObject generateContextGetFixesRequest() {
 //    // TODO(jwren) Fix object TBD in Server API
 //    throw new Error("not yet implemented");
-//  }
-//
-//  /**
-//   * Generate and return a {@value #METHOD_CONTEXT_GET_MINOR_REFACTORINGS} request.
-//   * 
-//   * <pre>
-//   * </pre>
-//   */
-//  public static JsonObject generateContextGetMinorRefactoringsRequest(String idValue,
-//      String contextIdValue, String source, int offset, int length) {
-//    JsonObject params = new JsonObject();
-//    params.addProperty("contextId", contextIdValue);
-//    params.addProperty("source", source);
-//    params.addProperty("offset", offset);
-//    params.addProperty("length", length);
-//    return buildJsonObjectRequest(idValue, METHOD_CONTEXT_GET_MINOR_REFACTORINGS, params);
 //  }
 //
 //  /**
@@ -256,28 +311,6 @@ public class RequestUtilities {
 //  }
 
   /**
-   * Generate and return a {@value #METHOD_ANALYSIS_SET_ROOTS} request.
-   * 
-   * <pre>
-   * request: {
-   *   "id": String
-   *   "method": "analysis.setAnalysisRoots"
-   *   "params": {
-   *     "included": List&lt;FilePath&gt;
-   *     "excluded": List&lt;FilePath&gt;
-   *   }
-   * }
-   * </pre>
-   */
-  public static JsonObject generateAnalysisSetAnalysisRoots(String id, List<String> included,
-      List<String> excluded) {
-    JsonObject params = new JsonObject();
-    params.add("included", buildJsonArray(included));
-    params.add("excluded", buildJsonArray(excluded));
-    return buildJsonObjectRequest(id, METHOD_ANALYSIS_SET_ROOTS, params);
-  }
-
-  /**
    * Generate and return a {@value #METHOD_SERVER_GET_VERSION} request.
    * 
    * <pre>
@@ -327,6 +360,20 @@ public class RequestUtilities {
    */
   public static JsonObject generateServerShutdownRequest(String idValue) {
     return buildJsonObjectRequest(idValue, METHOD_SERVER_SHUTDOWN);
+  }
+
+  private static JsonObject buildJsonAnalysisErrorObject(AnalysisError error) {
+    JsonObject errorJsonObject = new JsonObject();
+    errorJsonObject.addProperty(FILE, error.getFile());
+    errorJsonObject.addProperty("errorCode", error.getErrorCode().getUniqueName());
+    errorJsonObject.addProperty("offset", error.getOffset());
+    errorJsonObject.addProperty("length", error.getLength());
+    errorJsonObject.addProperty("message", error.getMessage());
+    String correction = error.getCorrection();
+    if (correction != null) {
+      errorJsonObject.addProperty("correction", correction);
+    }
+    return errorJsonObject;
   }
 
   private static JsonElement buildJsonArray(List<String> list) {

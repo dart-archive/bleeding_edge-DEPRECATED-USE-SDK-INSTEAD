@@ -14,13 +14,18 @@
 package com.google.dart.server.internal.remote.utilities;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import com.google.dart.engine.parser.ParserErrorCode;
+import com.google.dart.server.AnalysisError;
 import com.google.dart.server.ServerService;
+import com.google.dart.server.internal.remote.processor.AnalysisErrorImpl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 import junit.framework.TestCase;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Tests for {@link RequestUtilities}.
@@ -247,6 +252,109 @@ public class RequestUtilitiesTest extends TestCase {
 //    JsonElement actual = RequestUtilities.generateServerDeleteContextRequest("id", "CONTEXT_ID");
 //    assertEquals(expected, actual);
 //  }
+
+  public void test_generateAnalysisGetFixes_noCorrection() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.getFixes',",
+        "  'params': {",
+        "    'errors': [",
+        "      {",
+        "        'file': 'file0',",
+        "        'errorCode': 'ParserErrorCode.ABSTRACT_CLASS_MEMBER',",
+        "        'offset': 1,",
+        "        'length': 2,",
+        "        'message': 'msg'",
+        "      }]",
+        "  }",
+        "}");
+    List<AnalysisError> errors = ImmutableList.of((AnalysisError) new AnalysisErrorImpl(
+        "file0",
+        ParserErrorCode.ABSTRACT_CLASS_MEMBER,
+        1,
+        2,
+        "msg",
+        null));
+    assertEquals(expected, RequestUtilities.generateAnalysisGetFixes("0", errors));
+  }
+
+  public void test_generateAnalysisGetFixes_withCorrection() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.getFixes',",
+        "  'params': {",
+        "    'errors': [",
+        "      {",
+        "        'file': 'file0',",
+        "        'errorCode': 'ParserErrorCode.ABSTRACT_CLASS_MEMBER',",
+        "        'offset': 1,",
+        "        'length': 2,",
+        "        'message': 'msg',",
+        "        'correction': 'correction'",
+        "      }]",
+        "  }",
+        "}");
+    List<AnalysisError> errors = ImmutableList.of((AnalysisError) new AnalysisErrorImpl(
+        "file0",
+        ParserErrorCode.ABSTRACT_CLASS_MEMBER,
+        1,
+        2,
+        "msg",
+        "correction"));
+    assertEquals(expected, RequestUtilities.generateAnalysisGetFixes("0", errors));
+  }
+
+  public void test_generateAnalysisGetMinorRefactorings() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.getMinorRefactorings',",
+        "  'params': {",
+        "    'file': 'file0',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertEquals(
+        expected,
+        RequestUtilities.generateAnalysisGetMinorRefactoringsRequest("0", "file0", 1, 2));
+  }
+
+  public void test_generateAnalysisSetAnalysisRoots() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setAnalysisRoots',",
+        "  'params': {",
+        "    'included': ['file0', 'file1', 'file2'],",
+        "    'excluded': ['file3', 'file4', 'file5']",
+        "  }",
+        "}");
+    assertEquals(
+        expected,
+        RequestUtilities.generateAnalysisSetAnalysisRoots(
+            "0",
+            ImmutableList.of("file0", "file1", "file2"),
+            ImmutableList.of("file3", "file4", "file5")));
+  }
+
+  public void test_generateAnalysisSetAnalysisRoots_emptyLists() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setAnalysisRoots',",
+        "  'params': {",
+        "    'included': [],",
+        "    'excluded': []",
+        "  }",
+        "}");
+    assertEquals(expected, RequestUtilities.generateAnalysisSetAnalysisRoots(
+        "0",
+        new ArrayList<String>(0),
+        new ArrayList<String>(0)));
+  }
 
   public void test_generateServerGetVersionRequest() throws Exception {
     JsonElement expected = parseJson(//
