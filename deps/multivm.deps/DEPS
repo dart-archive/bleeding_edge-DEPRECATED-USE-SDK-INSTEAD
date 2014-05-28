@@ -13,7 +13,7 @@ vars.update({
   "multivm_chromium_revision": "272007",
   "chromium_base_revision": "272007",
   "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
-  "dart_tools_revision": "36416",
+  "dart_tools_revision": "36741",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
   "multivm_blink_revision": "174884",
 })
