@@ -266,6 +266,25 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     assertRefactoringStatusOK(refactoring.checkLocalName("res"));
   }
 
+  public void test_completeStatementExpression() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Object o;",
+        "  o.toString();",
+        "}");
+    // create refactoring
+    setSelectionString("o.toString()");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Object o;",
+        "  var res = o.toString();",
+        "}");
+  }
+
   public void test_const_argument_inConstInstanceCreation() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

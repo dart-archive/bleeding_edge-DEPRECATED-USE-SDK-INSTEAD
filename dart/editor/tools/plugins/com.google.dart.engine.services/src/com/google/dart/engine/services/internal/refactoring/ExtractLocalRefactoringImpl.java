@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.Literal;
 import com.google.dart.engine.ast.MapLiteralEntry;
@@ -79,6 +80,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
   private ExtractExpressionAnalyzer selectionAnalyzer;
   private Expression rootExpression;
   private Expression singleExpression;
+  private boolean wholeStatementExpression;
   private String stringLiteralPart;
   private List<SourceRange> occurrences = Lists.newArrayList();
 
@@ -152,6 +154,15 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
       occurrences = this.occurrences;
     } else {
       occurrences = ImmutableList.of(selectionRange);
+    }
+    // If the whole expression of a statement is selected, like '1 + 2',
+    // then convert it into a variable declaration statement.
+    if (wholeStatementExpression && occurrences.size() == 1) {
+      String keyword = getDeclarationKeyword();
+      String declarationSource = keyword + " " + localName + " = ";
+      Edit edit = new Edit(singleExpression.getOffset(), 0, declarationSource);
+      change.addEdit(edit, "Add variable declaration");
+      return change;
     }
     // add variable declaration
     {
@@ -259,6 +270,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
       if (selectedNode instanceof Expression) {
         rootExpression = (Expression) selectedNode;
         singleExpression = rootExpression;
+        wholeStatementExpression = singleExpression.getParent() instanceof ExpressionStatement;
         return new RefactoringStatus();
       }
     }
