@@ -275,75 +275,6 @@ public class RequestUtilitiesTest extends TestCase {
     }
   }
 
-  public void test_generateAnalysisGetFixes_noCorrection() throws Exception {
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'analysis.getFixes',",
-        "  'params': {",
-        "    'errors': [",
-        "      {",
-        "        'file': 'file0',",
-        "        'errorCode': 'ParserErrorCode.ABSTRACT_CLASS_MEMBER',",
-        "        'offset': 1,",
-        "        'length': 2,",
-        "        'message': 'msg'",
-        "      }]",
-        "  }",
-        "}");
-    List<AnalysisError> errors = ImmutableList.of((AnalysisError) new AnalysisErrorImpl(
-        "file0",
-        ParserErrorCode.ABSTRACT_CLASS_MEMBER,
-        1,
-        2,
-        "msg",
-        null));
-    assertEquals(expected, RequestUtilities.generateAnalysisGetFixes("0", errors));
-  }
-
-  public void test_generateAnalysisGetFixes_withCorrection() throws Exception {
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'analysis.getFixes',",
-        "  'params': {",
-        "    'errors': [",
-        "      {",
-        "        'file': 'file0',",
-        "        'errorCode': 'ParserErrorCode.ABSTRACT_CLASS_MEMBER',",
-        "        'offset': 1,",
-        "        'length': 2,",
-        "        'message': 'msg',",
-        "        'correction': 'correction'",
-        "      }]",
-        "  }",
-        "}");
-    List<AnalysisError> errors = ImmutableList.of((AnalysisError) new AnalysisErrorImpl(
-        "file0",
-        ParserErrorCode.ABSTRACT_CLASS_MEMBER,
-        1,
-        2,
-        "msg",
-        "correction"));
-    assertEquals(expected, RequestUtilities.generateAnalysisGetFixes("0", errors));
-  }
-
-  public void test_generateAnalysisGetMinorRefactorings() throws Exception {
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'analysis.getMinorRefactorings',",
-        "  'params': {",
-        "    'file': 'file0',",
-        "    'offset': 1,",
-        "    'length': 2",
-        "  }",
-        "}");
-    assertEquals(
-        expected,
-        RequestUtilities.generateAnalysisGetMinorRefactoringsRequest("0", "file0", 1, 2));
-  }
-
   public void test_generateAnalysisSetAnalysisRoots() throws Exception {
     JsonElement expected = parseJson(//
         "{",
@@ -407,13 +338,82 @@ public class RequestUtilitiesTest extends TestCase {
     assertEquals(expected, RequestUtilities.generateAnalysisUpdateContent("ID", files));
   }
 
+  public void test_generateEditGetAssists() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getAssists',",
+        "  'params': {",
+        "    'file': 'file0',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertEquals(expected, RequestUtilities.generateEditGetAssists("0", "file0", 1, 2));
+  }
+
+  public void test_generateEditGetFixes_noCorrection() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'params': {",
+        "    'errors': [",
+        "      {",
+        "        'file': 'file0',",
+        "        'errorCode': 'ParserErrorCode.ABSTRACT_CLASS_MEMBER',",
+        "        'offset': 1,",
+        "        'length': 2,",
+        "        'message': 'msg'",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    List<AnalysisError> errors = ImmutableList.of((AnalysisError) new AnalysisErrorImpl(
+        "file0",
+        ParserErrorCode.ABSTRACT_CLASS_MEMBER,
+        1,
+        2,
+        "msg",
+        null));
+    assertEquals(expected, RequestUtilities.generateEditGetFixes("0", errors));
+  }
+
+  public void test_generateEditGetFixes_withCorrection() throws Exception {
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'params': {",
+        "    'errors': [",
+        "      {",
+        "        'file': 'file0',",
+        "        'errorCode': 'ParserErrorCode.ABSTRACT_CLASS_MEMBER',",
+        "        'offset': 1,",
+        "        'length': 2,",
+        "        'message': 'msg',",
+        "        'correction': 'correction'",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    List<AnalysisError> errors = ImmutableList.of((AnalysisError) new AnalysisErrorImpl(
+        "file0",
+        ParserErrorCode.ABSTRACT_CLASS_MEMBER,
+        1,
+        2,
+        "msg",
+        "correction"));
+    assertEquals(expected, RequestUtilities.generateEditGetFixes("0", errors));
+  }
+
   public void test_generateServerGetVersionRequest() throws Exception {
     JsonElement expected = parseJson(//
         "{",
         "  'id': '',",
         "  'method': 'server.getVersion'",
         "}");
-    assertEquals(expected, RequestUtilities.generateServerGetVersionRequest(""));
+    assertEquals(expected, RequestUtilities.generateServerGetVersion(""));
   }
 
   public void test_generateServerGetVersionRequest_withId() throws Exception {
@@ -422,7 +422,7 @@ public class RequestUtilitiesTest extends TestCase {
         "  'id': 'ID',",
         "  'method': 'server.getVersion'",
         "}");
-    assertEquals(expected, RequestUtilities.generateServerGetVersionRequest("ID"));
+    assertEquals(expected, RequestUtilities.generateServerGetVersion("ID"));
   }
 
   public void test_generateServerSetSubscriptions() throws Exception {
@@ -459,7 +459,7 @@ public class RequestUtilitiesTest extends TestCase {
         "  'id': '',",
         "  'method': 'server.shutdown'",
         "}");
-    assertEquals(expected, RequestUtilities.generateServerShutdownRequest(""));
+    assertEquals(expected, RequestUtilities.generateServerShutdown(""));
   }
 
   public void test_generateServerShutdownRequest_withId() throws Exception {
@@ -468,7 +468,7 @@ public class RequestUtilitiesTest extends TestCase {
         "  'id': 'ID',",
         "  'method': 'server.shutdown'",
         "}");
-    assertEquals(expected, RequestUtilities.generateServerShutdownRequest("ID"));
+    assertEquals(expected, RequestUtilities.generateServerShutdown("ID"));
   }
 
   /**

@@ -44,10 +44,12 @@ public class RequestUtilities {
   private static final String METHOD_SERVER_SET_SUBSCRIPTIONS = "server.setSubscriptions";
 
   // Analysis domain
-  private static final String METHOD_ANALYSIS_GET_FIXES = "analysis.getFixes";
-  private static final String METHOD_ANALYSIS_GET_MINOR_REFACTORINGS = "analysis.getMinorRefactorings";
   private static final String METHOD_ANALYSIS_SET_ROOTS = "analysis.setAnalysisRoots";
   private static final String METHOD_ANALYSIS_UPDATE_CONTENT = "analysis.updateContent";
+
+  // Edit domain
+  private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
+  private static final String METHOD_EDIT_GET_ASSISTS = "edit.getAssists";
 
 //  private static final String METHOD_ANALYSIS_SET_PRIORITY_FILES = "analysis.setPriorityFiles";
 //  private static final String METHOD_ANALYSIS_SET_SUBSCRIPTIONS = "analysis.setSubscriptions";
@@ -98,57 +100,12 @@ public class RequestUtilities {
       return jsonObject;
     } else if (object instanceof ContentChange) {
       return buildJsonObjectContentChange((ContentChange) object);
+    } else if (object instanceof AnalysisError) {
+      return buildJsonObjectAnalysisError((AnalysisError) object);
     } else if (object instanceof ServerService) {
       return new JsonPrimitive(((ServerService) object).name());
     }
     throw new IllegalArgumentException("Unable to convert to JSON: " + object);
-  }
-
-  /**
-   * Generate and return a {@value #METHOD_ANALYSIS_GET_FIXES} request.
-   * 
-   * <pre>
-   * request: {
-   *   "id": String
-   *   "method": "analysis.getFixes"
-   *   "params": {
-   *     "errors": List&lt;AnalysisError&gt;
-   *   }
-   * }
-   * </pre>
-   */
-  public static JsonObject generateAnalysisGetFixes(String idValue, List<AnalysisError> errors) {
-    JsonObject params = new JsonObject();
-    JsonArray jsonArray = new JsonArray();
-    for (AnalysisError error : errors) {
-      jsonArray.add(buildJsonObjectAnalysisError(error));
-    }
-    params.add("errors", jsonArray);
-    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_GET_FIXES, params);
-  }
-
-  /**
-   * Generate and return a {@value #METHOD_ANALYSIS_GET_MINOR_REFACTORINGS} request.
-   * 
-   * <pre>
-   * request: {
-   *   "id": String
-   *   "method": "analysis.getMinorRefactorings"
-   *   "params": {
-   *     "file": FilePath
-   *     "offset": int
-   *     "length": int
-   *   }
-   * }
-   * </pre>
-   */
-  public static JsonObject generateAnalysisGetMinorRefactoringsRequest(String idValue, String file,
-      int offset, int length) {
-    JsonObject params = new JsonObject();
-    params.addProperty(FILE, file);
-    params.addProperty("offset", offset);
-    params.addProperty("length", length);
-    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_GET_MINOR_REFACTORINGS, params);
   }
 
   /**
@@ -171,6 +128,50 @@ public class RequestUtilities {
     params.add("included", buildJsonElement(included));
     params.add("excluded", buildJsonElement(excluded));
     return buildJsonObjectRequest(id, METHOD_ANALYSIS_SET_ROOTS, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_UPDATE_CONTENT} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.updateContent"
+   *   "params": {
+   *     "files": Map&lt;FilePath, ContentChange&gt;
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisUpdateContent(String idValue,
+      Map<String, ContentChange> files) {
+    JsonObject params = new JsonObject();
+    params.add("files", buildJsonElement(files));
+    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_UPDATE_CONTENT, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_EDIT_GET_ASSISTS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "edit.getAssists"
+   *   "params": {
+   *     "file": FilePath
+   *     "offset": int
+   *     "length": int
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateEditGetAssists(String idValue, String file, int offset,
+      int length) {
+    JsonObject params = new JsonObject();
+    params.addProperty(FILE, file);
+    params.addProperty("offset", offset);
+    params.addProperty("length", length);
+    return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_ASSISTS, params);
   }
 
 //  /**
@@ -359,23 +360,22 @@ public class RequestUtilities {
 //  }
 
   /**
-   * Generate and return a {@value #METHOD_ANALYSIS_UPDATE_CONTENT} request.
+   * Generate and return a {@value #METHOD_EDIT_GET_FIXES} request.
    * 
    * <pre>
    * request: {
    *   "id": String
-   *   "method": "analysis.updateContent"
+   *   "method": "analysis.getFixes"
    *   "params": {
-   *     "files": Map&lt;FilePath, ContentChange&gt;
+   *     "errors": List&lt;AnalysisError&gt;
    *   }
    * }
    * </pre>
    */
-  public static JsonObject generateAnalysisUpdateContent(String idValue,
-      Map<String, ContentChange> files) {
+  public static JsonObject generateEditGetFixes(String idValue, List<AnalysisError> errors) {
     JsonObject params = new JsonObject();
-    params.add("files", buildJsonElement(files));
-    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_UPDATE_CONTENT, params);
+    params.add("errors", buildJsonElement(errors));
+    return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_FIXES, params);
   }
 
   /**
@@ -388,7 +388,7 @@ public class RequestUtilities {
    * }
    * </pre>
    */
-  public static JsonObject generateServerGetVersionRequest(String idValue) {
+  public static JsonObject generateServerGetVersion(String idValue) {
     return buildJsonObjectRequest(idValue, METHOD_SERVER_GET_VERSION);
   }
 
@@ -422,7 +422,7 @@ public class RequestUtilities {
    * }
    * </pre>
    */
-  public static JsonObject generateServerShutdownRequest(String idValue) {
+  public static JsonObject generateServerShutdown(String idValue) {
     return buildJsonObjectRequest(idValue, METHOD_SERVER_SHUTDOWN);
   }
 

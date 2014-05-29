@@ -15,20 +15,20 @@
 package com.google.dart.server.internal.local.operation;
 
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.MinorRefactoringsConsumer;
+import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 import junit.framework.TestCase;
 
 import static org.mockito.Mockito.mock;
 
-public class ComputeMinorRefactoringsOperationTest extends TestCase {
+public class GetAssistsOperationTest extends TestCase {
   private LocalAnalysisServerImpl server = mock(LocalAnalysisServerImpl.class);
   private Source source = mock(Source.class);
 
   public void test_perform() throws Exception {
-    MinorRefactoringsConsumer consumer = mock(MinorRefactoringsConsumer.class);
-    ComputeMinorRefactoringsOperation operation = new ComputeMinorRefactoringsOperation(
+    AssistsConsumer consumer = mock(AssistsConsumer.class);
+    ComputeAssistsOperation operation = new ComputeAssistsOperation(
         "id",
         source,
         42,

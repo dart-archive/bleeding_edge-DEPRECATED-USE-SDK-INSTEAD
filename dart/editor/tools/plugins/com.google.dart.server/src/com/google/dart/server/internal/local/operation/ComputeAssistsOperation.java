@@ -16,24 +16,23 @@ package com.google.dart.server.internal.local.operation;
 
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.MinorRefactoringsConsumer;
+import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
- * An operation for
- * {@link AnalysisServer#computeMinorRefactorings(String, Source, int, MinorRefactoringsConsumer)}.
+ * An operation for {@link AnalysisServer#getAssists(String, int, int, AssistsConsumer)}.
  * 
  * @coverage dart.server.local
  */
-public class ComputeMinorRefactoringsOperation implements ContextServerOperation {
+public class ComputeAssistsOperation implements ContextServerOperation {
   private final String contextId;
   private final Source source;
   private final int offset;
   private final int length;
-  private final MinorRefactoringsConsumer consumer;
+  private final AssistsConsumer consumer;
 
-  public ComputeMinorRefactoringsOperation(String contextId, Source source, int offset, int length,
-      MinorRefactoringsConsumer consumer) {
+  public ComputeAssistsOperation(String contextId, Source source, int offset, int length,
+      AssistsConsumer consumer) {
     this.contextId = contextId;
     this.source = source;
     this.offset = offset;

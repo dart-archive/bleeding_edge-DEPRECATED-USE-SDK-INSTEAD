@@ -23,7 +23,7 @@ import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.translation.DartOmit;
-import com.google.dart.server.MinorRefactoringsConsumer;
+import com.google.dart.server.AssistsConsumer;
 
 /**
  * A computer for {@link CorrectionProposal}s in a Dart {@link CompilationUnit}.
@@ -31,7 +31,7 @@ import com.google.dart.server.MinorRefactoringsConsumer;
  * @coverage dart.server.local
  */
 @DartOmit
-public class DartUnitMinorRefactoringsComputer {
+public class DartUnitAssistsComputer {
   private final SearchEngine searchEngine;
   private final String contextId;
   private final AnalysisContext context;
@@ -39,11 +39,11 @@ public class DartUnitMinorRefactoringsComputer {
   private final CompilationUnit unit;
   private final int offset;
   private final int length;
-  private final MinorRefactoringsConsumer consumer;
+  private final AssistsConsumer consumer;
 
-  public DartUnitMinorRefactoringsComputer(SearchEngine searchEngine, String contextId,
+  public DartUnitAssistsComputer(SearchEngine searchEngine, String contextId,
       AnalysisContext context, Source source, CompilationUnit unit, int offset, int length,
-      MinorRefactoringsConsumer consumer) {
+      AssistsConsumer consumer) {
     this.searchEngine = searchEngine;
     this.contextId = contextId;
     this.context = context;
@@ -68,6 +68,7 @@ public class DartUnitMinorRefactoringsComputer {
         length);
     QuickAssistProcessor processor = CorrectionProcessors.getQuickAssistProcessor();
     CorrectionProposal[] proposals = processor.getProposals(assistContext);
-    consumer.computedProposals(proposals, false);
+    // API on consumer has changed
+//    consumer.computedProposals(proposals, false);
   }
 }

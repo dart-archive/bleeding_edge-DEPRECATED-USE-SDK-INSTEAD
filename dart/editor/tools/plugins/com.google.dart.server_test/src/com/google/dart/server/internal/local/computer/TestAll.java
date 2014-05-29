@@ -24,7 +24,7 @@ public class TestAll {
     suite.addTestSuite(DartUnitCompletionSuggestionsComputerTest.class);
     suite.addTestSuite(DartUnitFixesComputerTest.class);
     suite.addTestSuite(DartUnitHighlightsComputerTest.class);
-    suite.addTestSuite(DartUnitMinorRefactoringsComputerTest.class);
+    suite.addTestSuite(DartUnitAssistsComputerTest.class);
     suite.addTestSuite(DartUnitNavigationComputerTest.class);
     suite.addTestSuite(DartUnitOutlineComputerTest.class);
     suite.addTestSuite(ElementImplTest.class);

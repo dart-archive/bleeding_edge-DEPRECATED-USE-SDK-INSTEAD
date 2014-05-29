@@ -26,7 +26,7 @@ import com.google.dart.server.internal.local.AbstractLocalServerTest;
 import java.util.List;
 
 // TODO(scheglov) restore or remove for the new API
-public class DartUnitMinorRefactoringsComputerTest extends AbstractLocalServerTest {
+public class DartUnitAssistsComputerTest extends AbstractLocalServerTest {
   private final static String EOL = "\n";
 
   /**

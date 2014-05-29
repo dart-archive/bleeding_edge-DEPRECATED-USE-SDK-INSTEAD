@@ -13,20 +13,20 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.services.correction.CorrectionProposal;
+import com.google.dart.engine.services.change.SourceChange;
 
 /**
- * The interface {@code MinorRefactoringsConsumer} defines the behavior of objects that consume
- * minor refactorings {@link CorrectionProposal}s.
+ * The interface {@code AssistsConsumer} defines the behavior of objects that consume assists
+ * {@link SourceChange}s.
  * 
  * @coverage dart.server
  */
-public interface MinorRefactoringsConsumer extends Consumer {
+public interface AssistsConsumer extends Consumer {
   /**
-   * A set {@link CorrectionProposal}s has been computed.
+   * A set of {@link SourceChange}s that have been computed.
    * 
-   * @param proposals an array of computed {@link CorrectionProposal}s
+   * @param proposals an array of computed {@link SourceChange}s
    * @param isLastResult is {@code true} if this is the last set of results
    */
-  public void computedProposals(CorrectionProposal[] proposals, boolean isLastResult);
+  public void computedSourceChanges(SourceChange[] sourceChanges, boolean isLastResult);
 }

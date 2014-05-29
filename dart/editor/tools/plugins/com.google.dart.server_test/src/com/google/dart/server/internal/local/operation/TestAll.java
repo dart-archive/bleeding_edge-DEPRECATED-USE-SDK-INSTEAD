@@ -24,13 +24,13 @@ public class TestAll {
     suite.addTestSuite(ApplyRefactoringOperationTest.class);
     suite.addTestSuite(ComputeCompletionSuggestionsOperationTest.class);
     suite.addTestSuite(ComputeFixesOperationTest.class);
-    suite.addTestSuite(ComputeMinorRefactoringsOperationTest.class);
     suite.addTestSuite(ComputeTypeHierarchyOperationTest.class);
     suite.addTestSuite(CreateContextOperationTest.class);
     suite.addTestSuite(CreateRefactoringExtractLocalOperationTest.class);
     suite.addTestSuite(CreateRefactoringExtractMethodOperationTest.class);
     suite.addTestSuite(DeleteContextOperationTest.class);
     suite.addTestSuite(DeleteRefactoringOperationTest.class);
+    suite.addTestSuite(GetAssistsOperationTest.class);
     suite.addTestSuite(GetContextOperationTest.class);
     suite.addTestSuite(GetFixableErrorCodesOperationTest.class);
     suite.addTestSuite(GetVersionOperationTest.class);

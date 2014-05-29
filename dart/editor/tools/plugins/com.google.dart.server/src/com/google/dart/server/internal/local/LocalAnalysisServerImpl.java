@@ -34,12 +34,12 @@ import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisService;
+import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.CompletionSuggestionsConsumer;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.InternalAnalysisServer;
-import com.google.dart.server.MinorRefactoringsConsumer;
 import com.google.dart.server.NotificationKind;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringExtractLocalConsumer;
@@ -918,8 +918,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 //  }
 
   @Override
-  public void getCompletionSuggestions(String file, int offset,
-      CompletionSuggestionsConsumer consumer) {
+  public void getAssists(String file, int offset, int length, AssistsConsumer consumer) {
   }
 
 //  @Override
@@ -928,17 +927,17 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 //  }
 
   @Override
+  public void getCompletionSuggestions(String file, int offset,
+      CompletionSuggestionsConsumer consumer) {
+  }
+
+  @Override
   public void getFixes(List<AnalysisError> errors, FixesConsumer consumer) {
   }
 
   @Override
   public Index getIndex() {
     return index;
-  }
-
-  @Override
-  public void getMinorRefactorings(String file, int offset, int length,
-      MinorRefactoringsConsumer consumer) {
   }
 
   @Override

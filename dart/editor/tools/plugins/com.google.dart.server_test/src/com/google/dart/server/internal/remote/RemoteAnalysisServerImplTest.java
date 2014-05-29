@@ -18,14 +18,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.server.ContentChange;
-import com.google.dart.server.ServerService;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -98,6 +96,14 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
+  public void test_getAssists() throws Exception {
+    // TODO (jwren) specification not yet stable
+  }
+
+  public void test_getFixes() throws Exception {
+    // TODO (jwren) specification for notification back from server is TBD
+  }
+
   public void test_getVersion() throws Exception {
     final String[] versionPtr = {null};
     server.getVersion(new VersionConsumer() {
@@ -115,37 +121,6 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     server.test_waitForWorkerComplete();
     assertEquals("0.0.1", versionPtr[0]);
-  }
-
-  public void test_setOptions() throws Exception {
-    // TODO(scheglov) restore or remove for the new API
-//    server.setOptions("contextId", new AnalysisOptionsImpl());
-//    responseFromServer(parseJson(//
-//        "{",
-//        "  'id': '0'",
-//        "}").toString());
-//    server.test_waitForWorkerComplete();
-  }
-
-  public void test_setPrioritySources() throws Exception {
-    // TODO(scheglov) restore or remove for the new API
-//    String contextId = "id";
-//    Source source = addSource(contextId, "test.dart", makeSource(""));
-//    server.setPrioritySources(contextId, new Source[] {source});
-//    responseFromServer(parseJson(//
-//        "{",
-//        "  'id': '0'",
-//        "}").toString());
-//    server.test_waitForWorkerComplete();
-  }
-
-  public void test_setServerSubscriptions() throws Exception {
-    server.setServerSubscriptions(new ArrayList<ServerService>());
-    putResponse(//
-        "{",
-        "  'id': '0'",
-        "}");
-    server.test_waitForWorkerComplete();
   }
 
   public void test_shutdown() throws Exception {

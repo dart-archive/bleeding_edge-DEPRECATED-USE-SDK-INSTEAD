@@ -79,6 +79,19 @@ public interface AnalysisServer {
   public void deleteRefactoring(String refactoringId);
 
   /**
+   * Computes the set of assits that are available at the given location. An assist is distinguished
+   * from a refactoring primarily by the fact that it affects a single file and does not require
+   * user input in order to be performed. The given consumer is invoked asynchronously on a
+   * different thread.
+   * 
+   * @param file the file containing the range for which assists are being requested
+   * @param offset the offset of the region used to compute the assists
+   * @param length the length of the region used to compute the assists
+   * @param consumer the results listener
+   */
+  public void getAssists(String file, int offset, int length, AssistsConsumer consumer);
+
+  /**
    * Computes code completion suggestions at the given position in the file. The given consumer is
    * invoked asynchronously on a different thread.
    * 
@@ -97,20 +110,6 @@ public interface AnalysisServer {
    * @param consumer the results listener
    */
   public void getFixes(List<AnalysisError> errors, FixesConsumer consumer);
-
-  /**
-   * Computes a the set of minor refactorings that are available at the given location. A minor
-   * refactoring is distinguished from a regular refactoring primarily by the fact that it affects a
-   * single file and does not require user input in order to be performed. The given consumer is
-   * invoked asynchronously on a different thread.
-   * 
-   * @param file the file containing the range for which refactorings are being requested
-   * @param offset the offset of the region used to compute the refactorings
-   * @param length the length of the region used to compute the refactorings
-   * @param consumer the results listener
-   */
-  public void getMinorRefactorings(String file, int offset, int length,
-      MinorRefactoringsConsumer consumer);
 
   /**
    * Computes a type hierarchy for the given {@link Element} - class or member. The given consumer

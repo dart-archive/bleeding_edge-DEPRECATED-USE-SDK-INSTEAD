@@ -21,12 +21,12 @@ import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisService;
+import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.CompletionSuggestionsConsumer;
 import com.google.dart.server.Consumer;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
 import com.google.dart.server.FixesConsumer;
-import com.google.dart.server.MinorRefactoringsConsumer;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringExtractLocalConsumer;
 import com.google.dart.server.RefactoringExtractMethodConsumer;
@@ -161,6 +161,15 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
+  public void getAssists(String file, int offset, int length, AssistsConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateEditGetAssists(id, file, offset, length),
+        consumer);
+  }
+
+  @Override
   public void getCompletionSuggestions(String file, int offset,
       CompletionSuggestionsConsumer consumer) {
     // TODO(scheglov) implement
@@ -169,16 +178,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void getFixes(List<AnalysisError> errors, FixesConsumer consumer) {
     String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateAnalysisGetFixes(id, errors), consumer);
-  }
-
-  @Override
-  public void getMinorRefactorings(String file, int offset, int length,
-      MinorRefactoringsConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateAnalysisGetMinorRefactoringsRequest(id, file, offset, length));
+    sendRequestToServer(id, RequestUtilities.generateEditGetFixes(id, errors), consumer);
   }
 
   @Override
@@ -189,7 +189,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void getVersion(VersionConsumer consumer) {
     String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateServerGetVersionRequest(id), consumer);
+    sendRequestToServer(id, RequestUtilities.generateServerGetVersion(id), consumer);
   }
 
   @Override
@@ -258,7 +258,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void shutdown() {
     String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateServerShutdownRequest(id), null);
+    sendRequestToServer(id, RequestUtilities.generateServerShutdown(id), null);
   }
 
   @VisibleForTesting
