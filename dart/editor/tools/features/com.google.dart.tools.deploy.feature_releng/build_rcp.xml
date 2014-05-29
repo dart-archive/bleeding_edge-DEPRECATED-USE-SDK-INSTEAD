@@ -245,6 +245,10 @@ build system.  The PDE build system has to run under Eclipse.
 				<include name="*.apk"/>
 			</fileset>
 		</copy>	
+
+		<copy todir="${android.out.dir}/adb">
+			<fileset dir="${build.source.root}/third_party/android_adb/1.0.31"/>
+		</copy>
 	</target>
 
     <!-- - - - - - - - - - - - - - - - - - -

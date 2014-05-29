@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.mobile;
 
+import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
 
@@ -32,6 +33,8 @@ public class AndroidSdkManager {
 
   private static final String ANDROID_DIRECTORY_NAME = "android";
 
+  private static final String ADB_DIRECTORY_NAME = "adb";
+
   private static AndroidSdkManager manager = new AndroidSdkManager();
 
   public static AndroidSdkManager getManager() {
@@ -40,9 +43,7 @@ public class AndroidSdkManager {
 
   // the apk is in installdir/android
   public String getContentShellApkLocation() {
-    File androidDir = new File(
-        DartSdkManager.getManager().getSdk().getDirectory().getParentFile(),
-        ANDROID_DIRECTORY_NAME);
+    File androidDir = getAndroidDir();
     return androidDir.getAbsolutePath() + File.separator + CONTENT_SHELL_APK;
   }
 
@@ -67,11 +68,24 @@ public class AndroidSdkManager {
   }
 
   File getAdbExecutable() {
-    String sdkLocation = getSdkLocationPreference();
-    if (!sdkLocation.isEmpty()) {
-      return new File(sdkLocation, "platform-tools" + File.separator + "adb");
+    File androidDir = getAndroidDir();
+    File adbDir = new File(androidDir, ADB_DIRECTORY_NAME);
+    File adbFile;
+    if (DartCore.isLinux()) {
+      adbFile = new File(new File(adbDir, "linux"), "adb");
+    } else if (DartCore.isMac()) {
+      adbFile = new File(new File(adbDir, "macosx"), "adb");
+    } else if (DartCore.isWindows()) {
+      adbFile = new File(new File(adbDir, "windows"), "adb.exe");
+    } else {
+      return null;
     }
-    return null;
+    return FileUtilities.ensureExecutable(adbFile) ? adbFile : null;
   }
 
+  private File getAndroidDir() {
+    return new File(
+        DartSdkManager.getManager().getSdk().getDirectory().getParentFile(),
+        ANDROID_DIRECTORY_NAME);
+  }
 }
