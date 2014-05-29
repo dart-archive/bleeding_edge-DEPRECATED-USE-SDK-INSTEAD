@@ -30,7 +30,7 @@ util.xWait 30
 util.xWaitFor 10.0, "pubspec lock" (* confirm file creation *)
 Click "run button"
 set the SearchRectangle to ((200,200),(700,700))
-util.xWaitFor 10,(Text:"click count",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
+util.xWaitFor 30,(Text:"click count",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
 set the SearchRectangle to ()
 util.exitChromium
 util.deleteProject "sample project"
@@ -55,7 +55,7 @@ if util.isMacOSX() then
 else
   set the SearchRectangle to ((700,400),(1200,800))
 end if
-util.xWaitFor 10,(Text:"Click me!",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
+util.xWaitFor 30,(Text:"Click me!",CaseSensitive:"yes",IgnoreSpaces:"yes",ValidCharacters:"*",dpi:94)
 set the SearchRectangle to ()
 if (util.isLinux()) then
   Click "close window X"
