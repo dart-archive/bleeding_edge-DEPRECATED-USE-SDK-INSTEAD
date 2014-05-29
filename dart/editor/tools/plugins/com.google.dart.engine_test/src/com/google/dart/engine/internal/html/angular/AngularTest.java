@@ -204,11 +204,7 @@ abstract public class AngularTest extends EngineTestCase {
   }
 
   /**
-   * Assert that no errors have been reported against the given source.
-   * 
-   * @param source the source against which no errors should have been reported
-   * @throws AnalysisException if the reported errors could not be computed
-   * @throws AssertionFailedError if any errors have been reported
+   * Assert that no errors have been reported against the {@link #indexSource}.
    */
   protected final void assertNoErrors() throws AnalysisException {
     assertErrors(indexSource);
@@ -216,6 +212,13 @@ abstract public class AngularTest extends EngineTestCase {
 
   protected final void assertNoErrors(Source source) throws AnalysisException {
     assertErrors(source);
+  }
+
+  /**
+   * Assert that no errors have been reported against the {@link #mainSource}.
+   */
+  protected final void assertNoMainErrors() throws AnalysisException {
+    assertErrors(mainSource);
   }
 
   /**

@@ -41,6 +41,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.VariableElement;
@@ -405,9 +406,20 @@ public class AngularCompilationUnitBuilder {
     Element element = annotation.getElement();
     if (element instanceof ConstructorElement) {
       ConstructorElement constructorElement = (ConstructorElement) element;
-      return constructorElement.getReturnType().getDisplayName().equals(name);
+      if (!constructorElement.getReturnType().getDisplayName().equals(name)) {
+        return false;
+      }
+      return isAngularLibraryElement(constructorElement);
     }
     return false;
+  }
+
+  /**
+   * Checks if the given {@link Element} is a part of the Angular library.
+   */
+  private boolean isAngularLibraryElement(Element element) {
+    LibraryElement library = element.getLibrary();
+    return library != null && library.getName() != null && library.getName().startsWith("angular");
   }
 
   private void parseComponent() {

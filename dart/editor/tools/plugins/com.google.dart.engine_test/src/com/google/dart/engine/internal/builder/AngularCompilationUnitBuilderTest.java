@@ -563,6 +563,25 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
     assertEquals(-1, component.getTemplateUriOffset());
   }
 
+  /**
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=19023
+   */
+  public void test_NgComponent_notAngular() throws Exception {
+    contextHelper.addSource("/my_template.html", "");
+    contextHelper.addSource("/my_styles.css", "");
+    String mainContent = createSource(//
+        "class Component {",
+        "  const Component(a, b);",
+        "}",
+        "",
+        "@Component('foo', 42)",
+        "class MyComponent {",
+        "}");
+    resolveMainSource(mainContent);
+    assertNoMainErrors();
+  }
+
   public void test_NgComponent_properties_fieldFromSuper() throws Exception {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
