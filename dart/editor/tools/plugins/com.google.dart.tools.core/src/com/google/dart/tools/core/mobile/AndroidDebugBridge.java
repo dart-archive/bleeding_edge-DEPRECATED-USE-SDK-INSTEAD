@@ -122,8 +122,6 @@ public class AndroidDebugBridge {
    */
   public boolean launchContentShell(String url) {
 
-    setupPortForwarding();
-
     List<String> args = buildAdbCommand(LAUNCH_URL_IN_CC_CMD);
     args.add(url);
     return runAdb(args, "ADB: launch dart content shell browser");

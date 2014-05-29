@@ -107,7 +107,7 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
       throw new CoreException(new Status(
           IStatus.ERROR,
           DartDebugCorePlugin.PLUGIN_ID,
-          "No devices connected."));
+          "No devices detected.\n\nConnect device, enable USB debugging and try again."));
     }
 
     if (wrapper.getLaunchContentShell()) {
