@@ -132,8 +132,7 @@ public class PubServeManager {
         // terminate existing pub serve if any
         pubserve.dispose();
       }
-      pubserve = new PubServe(appDir);
-      serveDirectory(wrapper.getApplicationResource());
+      pubserve = new PubServe(appDir, getPubServeRootDir(appDir, resource));
     }
 
     sendGetUrlCommand(resource, pubConnectionCallback);

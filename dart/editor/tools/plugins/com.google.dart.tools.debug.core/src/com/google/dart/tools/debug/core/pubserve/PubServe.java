@@ -88,10 +88,10 @@ public class PubServe {
    * @param dirToServeName - name of the directory to be served
    * @throws Exception
    */
-  PubServe(IContainer workingDir) throws Exception {
+  PubServe(IContainer workingDir, String directoryToServe) throws Exception {
     console = DartCore.getConsole();
     this.workingDir = workingDir;
-    runPubServe();
+    runPubServe(directoryToServe);
     connectToPub();
   }
 
@@ -136,6 +136,18 @@ public class PubServe {
   }
 
   /**
+   * Send a urlToAssetId command to the current pub serve
+   * 
+   * @param url
+   * @param callback
+   * @throws IOException
+   */
+  void sendGetAssetIdCommand(String url, PubCallback<PubAsset> callback) throws IOException {
+    PubCommands command = pubConnection.getCommands();
+    command.urlToAssetId(url, callback);
+  }
+
+  /**
    * Send a pathToUrl command to the current pub serve
    * 
    * @param path
@@ -147,18 +159,6 @@ public class PubServe {
 
     PubCommands command = pubConnection.getCommands();
     command.pathToUrl(path, callback);
-  }
-
-  /**
-   * Send a urlToAssetId command to the current pub serve
-   * 
-   * @param url
-   * @param callback
-   * @throws IOException
-   */
-  void sendGetAssetIdCommand(String url, PubCallback<PubAsset> callback) throws IOException {
-    PubCommands command = pubConnection.getCommands();
-    command.urlToAssetId(url, callback);
   }
 
   /**
@@ -193,7 +193,7 @@ public class PubServe {
     }
   }
 
-  private List<String> buildPubServeCommand() {
+  private List<String> buildPubServeCommand(String directoryToServe) {
     DirectoryBasedDartSdk sdk = DartSdkManager.getManager().getSdk();
     File pubFile = sdk.getPubExecutable();
     List<String> args = new ArrayList<String>();
@@ -207,6 +207,7 @@ public class PubServe {
       args.add(pubFile.getAbsolutePath());
     }
     args.add(SERVE_COMMAND);
+    args.add(directoryToServe);
     args.add("--admin-port");
     portNumber = Integer.toString(NetUtils.findUnusedPort(0));
     args.add(portNumber);
@@ -264,12 +265,12 @@ public class PubServe {
     return true;
   }
 
-  private boolean runPubServe() {
+  private boolean runPubServe(String directoryToServe) {
 
     stdOut = new StringBuilder();
     stdError = new StringBuilder();
 
-    List<String> args = buildPubServeCommand();
+    List<String> args = buildPubServeCommand(directoryToServe);
 
     ProcessBuilder builder = new ProcessBuilder();
     builder.command(args);
@@ -309,6 +310,7 @@ public class PubServe {
     if (isTerminated()) {
       return false;
     }
+    servedDirs.add(directoryToServe);
 
     return true;
   }
