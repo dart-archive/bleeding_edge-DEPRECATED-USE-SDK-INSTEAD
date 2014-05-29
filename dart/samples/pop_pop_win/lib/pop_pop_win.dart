@@ -1,3 +1,6 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 library pop_pop_win;
 
 import 'dart:async';
@@ -10,11 +13,7 @@ import 'src/audio.dart';
 import 'src/platform.dart';
 import 'src/stage.dart';
 
-const String _ASSET_DIR = 'resources/';
-
-const String _TRANSPARENT_TEXTURE = '${_ASSET_DIR}images/transparent.json';
-const String _OPAQUE_TEXTURE = '${_ASSET_DIR}images/opaque.json';
-const String _TRANSPARENT_STATIC_TEXTURE = '${_ASSET_DIR}images/static.json';
+const String _ASSET_DIR = 'packages/pop_pop_win/assets';
 
 Future startGame(PlatformTarget platform) {
   initPlatform(platform);
@@ -29,7 +28,7 @@ Future startGame(PlatformTarget platform) {
 
   //have to load the loading bar first...
   var resourceManager = new ResourceManager()
-      ..addTextureAtlas("static", "resources/images/static.json",
+      ..addTextureAtlas("static", '$_ASSET_DIR/images/static.json',
           TextureAtlasFormat.JSON);
 
   return resourceManager.load()
@@ -59,12 +58,12 @@ void _initialLoad(ResourceManager resourceManager, Stage stage) {
       ..addTo(stage);
 
   resourceManager
-      ..addTextureAtlas('opaque', 'resources/images/opaque.json',
+      ..addTextureAtlas('opaque', '$_ASSET_DIR/images/opaque.json',
           TextureAtlasFormat.JSON)
-      ..addTextureAtlas('animated', 'resources/images/animated.json',
+      ..addTextureAtlas('animated', '$_ASSET_DIR/images/animated.json',
           TextureAtlasFormat.JSON);
 
-  resourceManager.addSoundSprite('audio', 'resources/audio/audio.json');
+  resourceManager.addSoundSprite('audio', '$_ASSET_DIR/audio/audio.json');
 
   resourceManager.onProgress.listen((e) {
     bar.ratio = resourceManager.finishedResources.length /

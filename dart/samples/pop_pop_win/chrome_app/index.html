@@ -3,19 +3,18 @@
   <head>
     <meta charset="utf-8">
     <title>Pop, Pop, Win!</title>
-    <link rel="shortcut icon" href="favicon.ico" />
     <link rel='stylesheet' type='text/css' href='packages/pop_pop_win/assets/style.css' />
-    <link href='http://fonts.googleapis.com/css?family=Josefin+Sans:400,700|Slackey' rel='stylesheet' type='text/css'>
+    <link href='fonts/fonts.css' rel='stylesheet' type='text/css'>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <script type="application/dart" src="game_web.dart"></script>
-    <script src="packages/browser/dart.js"></script>
   </head>
   <body>
     <canvas id='gameCanvas' width='2048' height='1536' style="width:100%; height:100%; top:0; left:0;"></canvas>
     <div id='popup'>
       <div id='about'>
         <h1>About</h1>
+        <!-- TODO(kevmoo) update package app for difficulty
         <p class="difficulty">Set Difficulty: <a href="#7">Easy</a> | <a href="#11">Medium</a> | <a href="#16">Hard</a> | <a href="#24">Extreme</a></p>
+        -->
         <p>Developed with <a href="http://www.dartlang.org/" target="_blank">Dart</a> and <a href="http://www.stagexl.org/" target="_blank">StageXL</a></p>
       </div>
       <div id='help'>
@@ -32,5 +31,6 @@
         <p>Unfreeze a balloon the same way: shift- or right-click.</p>
       </div>
     </div>
+    <script src="game_app.dart.precompiled.js"></script>
   </body>
 </html>
