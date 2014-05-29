@@ -64,15 +64,17 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
       // TODO(keertip): change to localhost and pubserve once port forwarding is setup right
       try {
         server = ResourceServerManager.getServer();
+        String resPath = resource.getFullPath().toPortableString();
+        String localAddress = server.getLocalAddress();
+        if (localAddress == null) {
+          // TODO (danrubel) Improve UX to help user work through this issue
+          throw new CoreException(new Status(
+              IStatus.ERROR,
+              DartDebugCorePlugin.PLUGIN_ID,
+              "Unable to get local IP address"));
+        }
 
-        URI uri = new URI(
-            "http",
-            null,
-            server.getLocalAddress(),
-            server.getPort(),
-            resource.getFullPath().toPortableString(),
-            null,
-            null);
+        URI uri = new URI("http", null, localAddress, server.getPort(), resPath, null, null);
 
         launchUrl = uri.toString();
         // launchUrl = server.getUrlForFile((File) resource);
@@ -82,7 +84,7 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
         throw new CoreException(new Status(
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,
-            "Unable to launch on device",
+            "Unable to launch on device: " + e.getLocalizedMessage(),
             e));
       }
     } else {
