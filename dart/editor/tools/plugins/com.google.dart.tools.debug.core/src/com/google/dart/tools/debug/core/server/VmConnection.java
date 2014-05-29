@@ -1381,6 +1381,8 @@ public class VmConnection {
   }
 
   private JSONObject readJson(Reader in) throws IOException {
+    final int MAX_PRINT_LENGTH = 2000;
+
     StringBuilder builder = new StringBuilder();
 
     boolean inQuote = false;
@@ -1426,7 +1428,12 @@ public class VmConnection {
                 str = str.replace("\n", "\\n");
               }
 
-              DartDebugCorePlugin.log("<== " + str);
+              if (str.length() > MAX_PRINT_LENGTH) {
+                DartDebugCorePlugin.log("<== " + str.substring(0, MAX_PRINT_LENGTH) + "...");
+                DartDebugCorePlugin.log("<== (long line: " + str.length() + " chars)");
+              } else {
+                DartDebugCorePlugin.log("<== " + str);
+              }
 
               return new JSONObject(str);
             } catch (JSONException e) {
