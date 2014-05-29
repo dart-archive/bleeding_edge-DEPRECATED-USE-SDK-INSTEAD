@@ -45,17 +45,12 @@ public class RequestUtilities {
 
   // Analysis domain
   private static final String METHOD_ANALYSIS_SET_ROOTS = "analysis.setAnalysisRoots";
+  private static final String METHOD_ANALYSIS_SET_PRIORITY_FILES = "analysis.setPriorityFiles";
   private static final String METHOD_ANALYSIS_UPDATE_CONTENT = "analysis.updateContent";
 
   // Edit domain
   private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
   private static final String METHOD_EDIT_GET_ASSISTS = "edit.getAssists";
-
-//  private static final String METHOD_ANALYSIS_SET_PRIORITY_FILES = "analysis.setPriorityFiles";
-//  private static final String METHOD_ANALYSIS_SET_SUBSCRIPTIONS = "analysis.setSubscriptions";
-//  private static final String METHOD_ANALYSIS_UPDATE_CONTENT = "analysis.updateContent";
-//  private static final String METHOD_ANALYSIS_UPDATE_OPTIONS = "analysis.updateOptions";
-//  private static final String METHOD_ANALYSIS_UPDATE_SDKS = "analysis.updateSdks";
 
   @VisibleForTesting
   public static JsonElement buildJsonElement(Object object) {
@@ -128,6 +123,25 @@ public class RequestUtilities {
     params.add("included", buildJsonElement(included));
     params.add("excluded", buildJsonElement(excluded));
     return buildJsonObjectRequest(id, METHOD_ANALYSIS_SET_ROOTS, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_SET_PRIORITY_FILES} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.setPriorityFiles"
+   *   "params": {
+   *     "files": List&lt;FilePath&gt;
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisSetPriorityFiles(String id, List<String> files) {
+    JsonObject params = new JsonObject();
+    params.add("files", buildJsonElement(files));
+    return buildJsonObjectRequest(id, METHOD_ANALYSIS_SET_PRIORITY_FILES, params);
   }
 
   /**

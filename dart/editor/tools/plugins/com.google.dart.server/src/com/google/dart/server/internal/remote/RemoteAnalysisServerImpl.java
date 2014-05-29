@@ -233,7 +233,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void setPriorityFiles(List<String> files) {
-    // TODO(scheglov) implement
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateAnalysisSetPriorityFiles(id, files));
   }
 
   @Override
