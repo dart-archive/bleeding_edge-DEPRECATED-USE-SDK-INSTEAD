@@ -84,6 +84,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewSite;
@@ -625,14 +626,21 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
             instrumentation.data("FileName", file.getName());
 
             String editorId = IDE.getEditorDescriptor(file).getId();
+            boolean isTooComplex = false;
             if (DartUI.ID_CU_EDITOR.equals(editorId)) {
               // Gracefully degrade by opening a simpler text editor on too complex files.
               if (DartUI.isTooComplexDartFile(file)) {
+                isTooComplex = true;
                 instrumentation.metric("isTooComplexDartFile", true);
                 editorId = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
               }
             }
-            getViewSite().getPage().openEditor(new FileEditorInput(file), editorId);
+            IEditorPart editor = getViewSite().getPage().openEditor(
+                new FileEditorInput(file),
+                editorId);
+            if (isTooComplex) {
+              DartUI.showTooComplexDartFileWarning(editor);
+            }
           } catch (PartInitException e) {
             DartToolsPlugin.log(e);
           }

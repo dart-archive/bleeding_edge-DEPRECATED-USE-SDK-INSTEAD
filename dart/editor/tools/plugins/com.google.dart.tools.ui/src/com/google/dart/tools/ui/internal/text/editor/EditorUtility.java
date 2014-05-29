@@ -982,14 +982,19 @@ public class EditorUtility {
       IEditorDescriptor desc = IDE.getEditorDescriptor(file, true);
 
       String editorId = desc.getId();
+      boolean isTooComplex = false;
       editorId = maybeSwapDefaultEditorDescriptor(editorId);
       if (DartUI.isTooComplexDartFile(file)) {
+        isTooComplex = true;
         editorId = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
       }
 
-      IEditorPart editorPart = IDE.openEditor(p, file, editorId, activate);
-      initializeHighlightRange(editorPart);
-      return editorPart;
+      IEditorPart editor = IDE.openEditor(p, file, editorId, activate);
+      if (isTooComplex) {
+        DartUI.showTooComplexDartFileWarning(editor);
+      }
+      initializeHighlightRange(editor);
+      return editor;
     } catch (RuntimeException e) {
       instrumentation.metric("Exception", e.getClass().toString());
       instrumentation.data("Exception", e.toString());

@@ -904,6 +904,16 @@ public final class DartUI {
     EditorUtility.revealInEditor(part, element);
   }
 
+  /**
+   * A shared method to show the warning about "too complex" Dart file.
+   */
+  public static void showTooComplexDartFileWarning(IEditorPart editor) {
+    if (editor != null) {
+      editor.getEditorSite().getActionBars().getStatusLineManager().setErrorMessage(
+          "This file is too complex to open it in the Dart editor.");
+    }
+  }
+
   private static Color createColor(IPreferenceStore store, String key, Display display) {
     // TODO(messick) Remove display or use it instead of color manager
     RGB rgb = null;
