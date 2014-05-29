@@ -13,12 +13,14 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.server.ContentChange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
@@ -43,6 +45,7 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcilingStrategyExtension {
 
@@ -329,13 +332,12 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private void sourceChanged(String code) {
     Source source = editor.getInputSource();
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      // TODO(scheglov) restore or remove for the new API
-//      String contextId = editor.getInputAnalysisContextId();
-//      if (contextId != null && source != null) {
-//        ChangeSet changeSet = new ChangeSet();
-//        changeSet.changedContent(source, code);
-//        DartCore.getAnalysisServer().applyChanges(contextId, changeSet);
-//      }
+      String file = editor.getInputFilePath();
+      if (file != null) {
+        ContentChange change = new ContentChange(code);
+        Map<String, ContentChange> files = ImmutableMap.of(file, change);
+        DartCore.getAnalysisServer().updateContent(files);
+      }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();
       if (context != null && source != null) {
@@ -361,13 +363,12 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private void sourceChanged(String code, int offset, int oldLength, int newLength) {
     Source source = editor.getInputSource();
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      // TODO(scheglov) restore or remove for the new API
-//      String contextId = editor.getInputAnalysisContextId();
-//      if (contextId != null && source != null) {
-//        ChangeSet changeSet = new ChangeSet();
-//        changeSet.changedRange(source, code, offset, oldLength, newLength);
-//        DartCore.getAnalysisServer().applyChanges(contextId, changeSet);
-//      }
+      String file = editor.getInputFilePath();
+      if (file != null) {
+        ContentChange change = new ContentChange(code, offset, oldLength, newLength);
+        Map<String, ContentChange> files = ImmutableMap.of(file, change);
+        DartCore.getAnalysisServer().updateContent(files);
+      }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();
       if (context != null && source != null) {

@@ -164,6 +164,12 @@ public class DartReconcilingStrategyTest extends TestCase {
     }
 
     @Override
+    public String getInputFilePath() {
+      // TODO(scheglov) Analysis Server
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Project getInputProject() {
       // TODO (danrubel): test null and non-null project
       return null;

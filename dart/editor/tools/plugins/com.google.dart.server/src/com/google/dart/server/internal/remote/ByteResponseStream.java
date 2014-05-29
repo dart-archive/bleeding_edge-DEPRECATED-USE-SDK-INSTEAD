@@ -48,7 +48,13 @@ public class ByteResponseStream implements ResponseStream {
 
   @Override
   public JsonObject take() throws Exception {
-    String line = reader.readLine();
-    return (JsonObject) new JsonParser().parse(line);
+    while (true) {
+      String line = reader.readLine();
+//      System.out.println(line);
+//      if (!line.startsWith("{")) {
+//        continue;
+//      }
+      return (JsonObject) new JsonParser().parse(line);
+    }
   }
 }

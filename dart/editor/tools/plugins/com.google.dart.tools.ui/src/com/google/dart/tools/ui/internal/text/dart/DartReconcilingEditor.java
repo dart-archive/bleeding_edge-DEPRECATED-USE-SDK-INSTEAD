@@ -54,6 +54,13 @@ public interface DartReconcilingEditor {
   String getInputAnalysisContextId();
 
   /**
+   * Answer the full path of the file being displayed in this editor.
+   * 
+   * @return the full path or {@code null} if none
+   */
+  String getInputFilePath();
+
+  /**
    * Answer the project containing the source being displayed in this editor.
    * 
    * @return the {@link Project} or {@code null} if none
