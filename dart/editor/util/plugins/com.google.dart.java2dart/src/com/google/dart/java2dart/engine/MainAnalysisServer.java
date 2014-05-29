@@ -126,11 +126,15 @@ public class MainAnalysisServer {
     engineFolder = engineFolder.getCanonicalFile();
     // configure Context
     context.addClasspathFile(new File("../../../../third_party/guava/r13/guava-13.0.1.jar"));
+    context.addClasspathFile(new File(
+        "../../../../third_party/commons-lang/3.2.1/commons-lang3-3.2.1.jar"));
     context.addClasspathFile(new File("../../../../third_party/junit/v4_8_2/junit.jar"));
     context.addSourceFolder(engineFolder);
+    context.addSourceFolder(serviceFolder);
     context.addSourceFolder(serverFolder);
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/"));
     context.addSourceFiles(new File(serverFolder, "com/google/dart/server/"));
+    context.removeSourceFiles(new File(serverFolder, "com/google/dart/server/internal/remote/"));
     context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/assist"));
     context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/change"));
     context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/completion"));
@@ -343,12 +347,19 @@ public class MainAnalysisServer {
             "package:analyzer/src/generated/source.dart",
             null,
             importShowCombinator("Source")));
+    unit.getDirectives().add(
+        importDirective(
+            "package:analysis_services/src/generated/change.dart",
+            null,
+            importShowCombinator("SourceChange")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
-      if (isServerPath(file, "Element.java") || isServerPath(file, "ElementKind.java")
-          || isServerPath(file, "HighlightRegion.java") || isServerPath(file, "HighlightType.java")
-          || isServerPath(file, "ListSourceSet.java")
-          || isServerPath(file, "MinorRefactoringsConsumer.java")
+      if (isServerPath(file, "AssistsConsumer.java")
+          || isServerPath(file, "CompletionSuggestion.java")
+          || isServerPath(file, "CompletionSuggestionKind.java")
+          || isServerPath(file, "Consumer.java") || isServerPath(file, "Element.java")
+          || isServerPath(file, "ElementKind.java") || isServerPath(file, "HighlightRegion.java")
+          || isServerPath(file, "HighlightType.java") || isServerPath(file, "ListSourceSet.java")
           || isServerPath(file, "NavigationRegion.java")
           || isServerPath(file, "NotificationKind.java") || isServerPath(file, "Outline.java")
           || isServerPath(file, "OutlineKind.java") || isServerPath(file, "SearchResult.java")
@@ -356,6 +367,7 @@ public class MainAnalysisServer {
           || isServerPath(file, "SearchResultsConsumer.java")
           || isServerPath(file, "SourceRegion.java") || isServerPath(file, "SourceSet.java")
           || isServerPath(file, "SourceSetKind.java")
+          || isServerPath(file, "TypeHierarchyItem.java")
           || isServerPath(file, "internal/local/ImplicitSourceSet.java")) {
         addNotRemovedCompiationUnitEntries(unit, entry.getValue());
       }

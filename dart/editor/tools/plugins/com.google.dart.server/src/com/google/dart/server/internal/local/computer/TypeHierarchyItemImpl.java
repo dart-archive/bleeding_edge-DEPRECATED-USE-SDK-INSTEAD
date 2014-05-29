@@ -31,7 +31,7 @@ public class TypeHierarchyItemImpl implements TypeHierarchyItem {
   private final TypeHierarchyItem extendedType;
   private final TypeHierarchyItem[] mixedTypes;
   private final TypeHierarchyItem[] implementedTypes;
-  private TypeHierarchyItem[] subTypes = TypeHierarchyItemImpl.EMPTY_ARRAY;
+  private TypeHierarchyItem[] subTypes = TypeHierarchyItem.EMPTY_ARRAY;
 
   public TypeHierarchyItemImpl(String name, Element classElement, Element memberElement,
       TypeHierarchyItem extendedType, TypeHierarchyItem[] mixedTypes,

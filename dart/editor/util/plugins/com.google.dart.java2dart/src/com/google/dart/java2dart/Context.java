@@ -560,6 +560,17 @@ public class Context {
     }
   }
 
+  /**
+   * Specifies that all files in given folder should not be translated.
+   */
+  public void removeSourceFiles(File folder) {
+    Assert.isLegal(folder.exists(), "Folder '" + folder + "' does not exist.");
+    Assert.isLegal(folder.isDirectory(), "Folder '" + folder + "' is not a folder.");
+    folder = folder.getAbsoluteFile();
+    Collection<File> folderFiles = FileUtils.listFiles(folder, JAVA_EXTENSION, true);
+    sourceFiles.removeAll(folderFiles);
+  }
+
   public void renameConstructor(ConstructorDeclaration node, String name) {
     IMethodBinding binding = getConstructorBinding(node);
     //

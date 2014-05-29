@@ -29,6 +29,7 @@ import com.google.dart.engine.services.completion.ProposalKind;
 import com.google.dart.engine.services.util.DartDocUtilities;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.translation.DartOmit;
 import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.CompletionSuggestionKind;
 
@@ -39,7 +40,53 @@ import java.util.List;
  * 
  * @coverage dart.server.local
  */
+@DartOmit
 public class DartUnitCompletionSuggestionsComputer {
+  @DartOmit
+  private static class CompletionRequestorConverter implements CompletionRequestor {
+    private final List<CompletionSuggestion> suggestions;
+
+    private CompletionRequestorConverter(List<CompletionSuggestion> suggestions) {
+      this.suggestions = suggestions;
+    }
+
+    @Override
+    public void accept(CompletionProposal proposal) {
+      Element proposalElement = proposal.getElement();
+      ProposalKind proposalKind = proposal.getKind();
+      String elementDocSummary = DartDocUtilities.getTextSummary(null, proposalElement);
+      String elementDocDetails = computeDocumentationComment(proposalElement);
+      suggestions.add(new CompletionSuggestionImpl(
+          elementDocSummary,
+          elementDocDetails,
+          proposal.getCompletion(),
+          proposal.getDeclaringType(),
+          getKind(proposalKind),
+          proposal.getLocation(),
+          proposal.getParameterName(),
+          proposal.getParameterNames(),
+          proposal.getParameterType(),
+          proposal.getParameterTypes(),
+          proposal.getPositionalParameterCount(),
+          proposal.getRelevance(),
+          proposal.getReplacementLength(),
+          proposal.getReplacementLengthIdentifier(),
+          proposal.getReturnType(),
+          proposal.hasNamed(),
+          proposal.hasPositional(),
+          proposal.isDeprecated(),
+          proposal.isPotentialMatch()));
+    }
+
+    @Override
+    public void beginReporting() {
+    }
+
+    @Override
+    public void endReporting() {
+    }
+  }
+
   @VisibleForTesting
   public static String computeDocumentationComment(Element element) {
     if (element == null) {
@@ -52,11 +99,16 @@ public class DartUnitCompletionSuggestionsComputer {
     }
   }
 
+  private static CompletionSuggestionKind getKind(ProposalKind kind) {
+    return CompletionSuggestionKind.valueOf(kind.name());
+  }
+
   private final SearchEngine searchEngine;
   private final String analysisContextId;
   private final AnalysisContext analysisContext;
   private final Source source;
   private final CompilationUnit unit;
+
   private final int offset;
 
   public DartUnitCompletionSuggestionsComputer(SearchEngine searchEngine, String analysisContextId,
@@ -74,43 +126,7 @@ public class DartUnitCompletionSuggestionsComputer {
    */
   public CompletionSuggestion[] compute() {
     final List<CompletionSuggestion> suggestions = Lists.newArrayList();
-    CompletionRequestor requestor = new CompletionRequestor() {
-      @Override
-      public void accept(CompletionProposal proposal) {
-        Element proposalElement = proposal.getElement();
-        ProposalKind proposalKind = proposal.getKind();
-        String elementDocSummary = DartDocUtilities.getTextSummary(null, proposalElement);
-        String elementDocDetails = computeDocumentationComment(proposalElement);
-        suggestions.add(new CompletionSuggestionImpl(
-            elementDocSummary,
-            elementDocDetails,
-            proposal.getCompletion(),
-            proposal.getDeclaringType(),
-            getKind(proposalKind),
-            proposal.getLocation(),
-            proposal.getParameterName(),
-            proposal.getParameterNames(),
-            proposal.getParameterType(),
-            proposal.getParameterTypes(),
-            proposal.getPositionalParameterCount(),
-            proposal.getRelevance(),
-            proposal.getReplacementLength(),
-            proposal.getReplacementLengthIdentifier(),
-            proposal.getReturnType(),
-            proposal.hasNamed(),
-            proposal.hasPositional(),
-            proposal.isDeprecated(),
-            proposal.isPotentialMatch()));
-      }
-
-      @Override
-      public void beginReporting() {
-      }
-
-      @Override
-      public void endReporting() {
-      }
-    };
+    CompletionRequestor requestor = new CompletionRequestorConverter(suggestions);
     CompletionFactory completionFactory = new CompletionFactory();
     CompletionEngine engine = new CompletionEngine(requestor, completionFactory);
     //
@@ -123,9 +139,5 @@ public class DartUnitCompletionSuggestionsComputer {
         new SourceRange(offset, 0));
     engine.complete(assistContext);
     return suggestions.toArray(new CompletionSuggestion[suggestions.size()]);
-  }
-
-  private CompletionSuggestionKind getKind(ProposalKind kind) {
-    return CompletionSuggestionKind.valueOf(kind.name());
   }
 }

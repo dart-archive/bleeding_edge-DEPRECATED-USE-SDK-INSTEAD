@@ -23,6 +23,7 @@ import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.utilities.translation.DartOmit;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
 import com.google.dart.server.TypeHierarchyItem;
@@ -37,6 +38,7 @@ import java.util.Set;
  * 
  * @coverage dart.server.local
  */
+@DartOmit
 public class TypeHierarchyComputer {
   private final SearchEngine searchEngine;
   private final String contextId;

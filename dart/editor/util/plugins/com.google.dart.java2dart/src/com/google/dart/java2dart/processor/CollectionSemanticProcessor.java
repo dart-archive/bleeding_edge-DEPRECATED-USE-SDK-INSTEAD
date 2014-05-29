@@ -256,6 +256,10 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           replaceNode(node, methodInvocation(args.get(0), "sort", args.get(1)));
           return null;
         }
+        if (isMethodInClass(node, "add", "org.apache.commons.lang3.ArrayUtils") && args.size() == 3) {
+          nameNode.setToken(TokenFactory.token("addAt"));
+          return null;
+        }
         if (isMethodInClass(node, "noneOf", "java.util.EnumSet")) {
           replaceNode(node, instanceCreationExpression(Keyword.NEW, typeName("Set")));
           return null;

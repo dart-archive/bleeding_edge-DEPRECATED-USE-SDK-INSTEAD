@@ -27,6 +27,7 @@ import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.translation.DartOmit;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
@@ -67,6 +68,7 @@ import java.util.Set;
  * 
  * @coverage dart.server.local
  */
+@DartOmit
 public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysisServer {
   /**
    * The thread that runs {@link #index}.

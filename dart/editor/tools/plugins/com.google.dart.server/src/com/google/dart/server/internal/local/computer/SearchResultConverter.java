@@ -22,6 +22,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.translation.DartOmit;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
 
@@ -32,6 +33,7 @@ import java.util.List;
  * 
  * @coverage dart.server.local
  */
+@DartOmit
 public class SearchResultConverter {
   /**
    * This is used only for testing purposes and allows tests to check the behavior in case an
