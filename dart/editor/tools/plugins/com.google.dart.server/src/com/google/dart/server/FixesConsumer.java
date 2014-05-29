@@ -13,7 +13,6 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 
 import java.util.Map;

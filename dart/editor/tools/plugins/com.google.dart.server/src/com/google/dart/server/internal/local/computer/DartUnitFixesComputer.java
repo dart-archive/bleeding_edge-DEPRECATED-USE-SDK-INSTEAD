@@ -77,6 +77,7 @@ public class DartUnitFixesComputer {
     CorrectionProposal[] proposals = processor.computeProposals(assistContext, error);
     Map<AnalysisError, CorrectionProposal[]> fixesMap = Maps.newHashMap();
     fixesMap.put(error, proposals);
-    consumer.computedFixes(fixesMap, false);
+    // API change, the "AnalysisError" is generated above is the wrong "AnalysisError"
+    //consumer.computedFixes(fixesMap, false);
   }
 }

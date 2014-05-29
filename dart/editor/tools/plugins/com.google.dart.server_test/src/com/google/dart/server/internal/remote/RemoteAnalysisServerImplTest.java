@@ -14,16 +14,25 @@
 package com.google.dart.server.internal.remote;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.parser.ParserErrorCode;
+import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.correction.CorrectionProposal;
+import com.google.dart.server.AnalysisError;
+import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.ContentChange;
+import com.google.dart.server.FixesConsumer;
+import com.google.dart.server.ServerService;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
+import com.google.dart.server.internal.remote.processor.AnalysisErrorImpl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -67,6 +76,38 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         CompileTimeErrorCode.AMBIGUOUS_EXPORT);
   }
 
+  public void test_analysis_setAnalysisRoots() throws Exception {
+    server.setAnalysisRoots(
+        ImmutableList.of("/fileA.dart", "/fileB.dart"),
+        ImmutableList.of("/fileC.dart", "/fileD.dart"));
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setAnalysisRoots',",
+        "  'params': {",
+        "    'included': ['/fileA.dart', '/fileB.dart'],",
+        "    'excluded': ['/fileC.dart', '/fileD.dart']",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_setAnalysisRoots_emptyLists() throws Exception {
+    server.setAnalysisRoots(new ArrayList<String>(0), new ArrayList<String>(0));
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setAnalysisRoots',",
+        "  'params': {",
+        "    'included': [],",
+        "    'excluded': []",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
   public void test_analysis_updateContent() throws Exception {
     Map<String, ContentChange> files = ImmutableMap.of(
         "/fileA.dart",
@@ -96,15 +137,98 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
-  public void test_getAssists() throws Exception {
-    // TODO (jwren) specification not yet stable
+  public void test_edit_getAssists() throws Exception {
+    server.getAssists("/fileA.dart", 1, 2, new AssistsConsumer() {
+      @Override
+      public void computedSourceChanges(SourceChange[] sourceChanges, boolean isLastResult) {
+        // TODO (jwren) not yet tested, specification still in flux
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getAssists',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
   }
 
-  public void test_getFixes() throws Exception {
-    // TODO (jwren) specification for notification back from server is TBD
+  public void test_edit_getFixes() throws Exception {
+    List<AnalysisError> errors = ImmutableList.of((AnalysisError) new AnalysisErrorImpl(
+        "/fileA.dart",
+        ParserErrorCode.ABSTRACT_CLASS_MEMBER,
+        1,
+        2,
+        "msg",
+        null));
+    server.getFixes(errors, new FixesConsumer() {
+      @Override
+      public void computedFixes(Map<AnalysisError, CorrectionProposal[]> fixesMap,
+          boolean isLastResult) {
+        // TODO (jwren) specification for notification back from server is TBD
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'params': {",
+        "    'errors': [",
+        "      {",
+        "        'file': '/fileA.dart',",
+        "        'errorCode': 'ParserErrorCode.ABSTRACT_CLASS_MEMBER',",
+        "        'offset': 1,",
+        "        'length': 2,",
+        "        'message': 'msg'",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
   }
 
-  public void test_getVersion() throws Exception {
+  public void test_edit_getFixes_withCorrection() throws Exception {
+    List<AnalysisError> errors = ImmutableList.of((AnalysisError) new AnalysisErrorImpl(
+        "/fileA.dart",
+        ParserErrorCode.ABSTRACT_CLASS_MEMBER,
+        1,
+        2,
+        "msg",
+        "correction"));
+    server.getFixes(errors, new FixesConsumer() {
+      @Override
+      public void computedFixes(Map<AnalysisError, CorrectionProposal[]> fixesMap,
+          boolean isLastResult) {
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'params': {",
+        "    'errors': [",
+        "      {",
+        "        'file': '/fileA.dart',",
+        "        'errorCode': 'ParserErrorCode.ABSTRACT_CLASS_MEMBER',",
+        "        'offset': 1,",
+        "        'length': 2,",
+        "        'message': 'msg',",
+        "        'correction': 'correction'",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_server_getVersion() throws Exception {
     final String[] versionPtr = {null};
     server.getVersion(new VersionConsumer() {
       @Override
@@ -112,6 +236,14 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         versionPtr[0] = version;
       }
     });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'server.getVersion'",
+        "}");
+    assertTrue(requests.contains(expected));
+
     putResponse(//
         "{",
         "  'id': '0',",
@@ -123,13 +255,45 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals("0.0.1", versionPtr[0]);
   }
 
-  public void test_shutdown() throws Exception {
-    server.shutdown();
-    putResponse(//
+  public void test_server_setSubscriptions() throws Exception {
+    server.setServerSubscriptions(new ArrayList<ServerService>(0));
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
         "{",
-        "  'id': '0'",
+        "  'id': '0',",
+        "  'method': 'server.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': []",
+        "  }",
         "}");
-    server.test_waitForWorkerComplete();
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_server_setSubscriptions_status() throws Exception {
+    ArrayList<ServerService> subscriptions = new ArrayList<ServerService>();
+    subscriptions.add(ServerService.STATUS);
+    server.setServerSubscriptions(subscriptions);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'server.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': [STATUS]",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_server_shutdown() throws Exception {
+    server.shutdown();
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'server.shutdown'",
+        "}");
+    assertTrue(requests.contains(expected));
   }
 
   /**
