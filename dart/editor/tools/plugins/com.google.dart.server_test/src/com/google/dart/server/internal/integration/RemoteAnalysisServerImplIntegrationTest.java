@@ -20,14 +20,18 @@ public class RemoteAnalysisServerImplIntegrationTest extends AbstractServerInteg
   @Override
   protected void initServer() throws Exception {
     // prepare environment
-    String runtimePath = System.getProperty("com.google.dart.runtime");
-    String analysisServerPath = System.getProperty("com.google.dart.analysis.server");
-    if (runtimePath == null) {
-      fail("Add the dart runtime (com.google.dart.runtime) as a JVM argument");
+    String sdkPath = System.getProperty("com.google.dart.sdk");
+    if (sdkPath == null) {
+      fail("Add the dart sdk (com.google.dart.sdk) as a JVM argument");
+      System.exit(1);
     }
-    if (analysisServerPath == null) {
-      fail("Add the analysis server (com.google.dart.analysis.server) as a JVM argument");
+    String svnRoot = System.getProperty("com.google.dart.svnRoot");
+    if (svnRoot == null) {
+      fail("Add the dart svnRoot (com.google.dart.svnRoot) as a JVM argument");
+      System.exit(1);
     }
+    String runtimePath = sdkPath + "/bin/dart";
+    String analysisServerPath = svnRoot + "/pkg/analysis_server/bin/server.dart";
     // start the server process
     StdioServerSocket serverSocket = new StdioServerSocket(runtimePath, analysisServerPath);
     serverSocket.start();

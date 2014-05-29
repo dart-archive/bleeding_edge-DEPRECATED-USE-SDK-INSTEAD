@@ -9,8 +9,7 @@ can be done by including a VM argument of the following form:
 
 followed by the path to the root of the Dart SDK.
 
-Furthermore, in order to be able to execute the remote server tests, a path to the runtime and the
-dart server need to be included, this can be done with the following two arguments:
+Furthermore, in order to be able to execute the remote server tests, a path to the dart server is
+computed from some dart svn root, this is passed with the following argument:
 
--Dcom.google.dart.runtime=<path to dart trunk>/dart/sdk/bin/dart
--Dcom.google.dart.analysis.server=<path to dart trunk>/dart/pkg/analysis_server/bin/server.dart
+-Dcom.google.dart.svnRoot=
