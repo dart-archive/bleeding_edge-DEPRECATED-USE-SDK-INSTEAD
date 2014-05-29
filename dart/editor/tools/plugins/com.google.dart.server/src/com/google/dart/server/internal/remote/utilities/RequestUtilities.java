@@ -13,7 +13,7 @@
  */
 package com.google.dart.server.internal.remote.utilities;
 
-import com.google.dart.engine.context.AnalysisDelta;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.ServerService;
@@ -22,7 +22,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,7 +36,6 @@ public class RequestUtilities {
   private static final String ID = "id";
   private static final String METHOD = "method";
   private static final String PARAMS = "params";
-  private static final String NULL = "null";
   private static final String FILE = "file";
 
   // Server domain
@@ -57,6 +55,55 @@ public class RequestUtilities {
 //  private static final String METHOD_ANALYSIS_UPDATE_OPTIONS = "analysis.updateOptions";
 //  private static final String METHOD_ANALYSIS_UPDATE_SDKS = "analysis.updateSdks";
 
+  @VisibleForTesting
+  public static JsonElement buildJsonElement(Object object) {
+    if (object instanceof Boolean) {
+      return new JsonPrimitive((Boolean) object);
+    } else if (object instanceof Number) {
+      return new JsonPrimitive((Number) object);
+    } else if (object instanceof String) {
+      return new JsonPrimitive((String) object);
+    } else if (object instanceof List<?>) {
+      List<?> list = (List<?>) object;
+      JsonArray jsonArray = new JsonArray();
+      for (Object item : list) {
+        JsonElement jsonItem = buildJsonElement(item);
+        jsonArray.add(jsonItem);
+      }
+      return jsonArray;
+    } else if (object instanceof Map<?, ?>) {
+      Map<?, ?> map = (Map<?, ?>) object;
+      JsonObject jsonObject = new JsonObject();
+      for (Entry<?, ?> entry : map.entrySet()) {
+        Object key = entry.getKey();
+        // prepare string key
+        String keyString;
+        if (key instanceof String) {
+          keyString = (String) key;
+//        } else if (keyObject instanceof NotificationKind) {
+//          key = "CONTEXT_" + ((NotificationKind) keyObject).name();
+//        } else if (keyObject instanceof SourceSetKind) {
+//          key = ((SourceSetKind) keyObject).name();
+        } else {
+          throw new IllegalArgumentException("Unable to convert to string: " + getClassName(key));
+        }
+        // prepare JsonElement value
+        Object value = entry.getValue();
+        JsonElement valueJson = buildJsonElement(value);
+        // put a property into the JSON object
+        if (keyString != null && valueJson != null) {
+          jsonObject.add(keyString, valueJson);
+        }
+      }
+      return jsonObject;
+    } else if (object instanceof ContentChange) {
+      return buildJsonObjectContentChange((ContentChange) object);
+    } else if (object instanceof ServerService) {
+      return new JsonPrimitive(((ServerService) object).name());
+    }
+    throw new IllegalArgumentException("Unable to convert to JSON: " + object);
+  }
+
   /**
    * Generate and return a {@value #METHOD_ANALYSIS_GET_FIXES} request.
    * 
@@ -74,7 +121,7 @@ public class RequestUtilities {
     JsonObject params = new JsonObject();
     JsonArray jsonArray = new JsonArray();
     for (AnalysisError error : errors) {
-      jsonArray.add(buildJsonAnalysisErrorObject(error));
+      jsonArray.add(buildJsonObjectAnalysisError(error));
     }
     params.add("errors", jsonArray);
     return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_GET_FIXES, params);
@@ -121,8 +168,8 @@ public class RequestUtilities {
   public static JsonObject generateAnalysisSetAnalysisRoots(String id, List<String> included,
       List<String> excluded) {
     JsonObject params = new JsonObject();
-    params.add("included", buildJsonArray(included));
-    params.add("excluded", buildJsonArray(excluded));
+    params.add("included", buildJsonElement(included));
+    params.add("excluded", buildJsonElement(excluded));
     return buildJsonObjectRequest(id, METHOD_ANALYSIS_SET_ROOTS, params);
   }
 
@@ -327,7 +374,7 @@ public class RequestUtilities {
   public static JsonObject generateAnalysisUpdateContent(String idValue,
       Map<String, ContentChange> files) {
     JsonObject params = new JsonObject();
-    params.add("files", buildJsonObject(files));
+    params.add("files", buildJsonElement(files));
     return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_UPDATE_CONTENT, params);
   }
 
@@ -361,11 +408,7 @@ public class RequestUtilities {
   public static JsonObject generateServerSetSubscriptions(String idValue,
       List<ServerService> subscriptions) {
     JsonObject params = new JsonObject();
-    ArrayList<String> strSubscriptions = new ArrayList<String>(subscriptions.size());
-    for (ServerService subscription : subscriptions) {
-      strSubscriptions.add(subscription.name());
-    }
-    params.add("subscriptions", buildJsonArray(strSubscriptions));
+    params.add("subscriptions", buildJsonElement(subscriptions));
     return buildJsonObjectRequest(idValue, METHOD_SERVER_SET_SUBSCRIPTIONS, params);
   }
 
@@ -383,7 +426,7 @@ public class RequestUtilities {
     return buildJsonObjectRequest(idValue, METHOD_SERVER_SHUTDOWN);
   }
 
-  private static JsonObject buildJsonAnalysisErrorObject(AnalysisError error) {
+  private static JsonObject buildJsonObjectAnalysisError(AnalysisError error) {
     JsonObject errorJsonObject = new JsonObject();
     errorJsonObject.addProperty(FILE, error.getFile());
     errorJsonObject.addProperty("errorCode", error.getErrorCode().getUniqueName());
@@ -397,15 +440,7 @@ public class RequestUtilities {
     return errorJsonObject;
   }
 
-  private static JsonElement buildJsonArray(List<String> list) {
-    JsonArray jsonArray = new JsonArray();
-    for (String string : list) {
-      jsonArray.add(new JsonPrimitive(string));
-    }
-    return jsonArray;
-  }
-
-  private static JsonObject buildJsonContentChangeObject(ContentChange change) {
+  private static JsonObject buildJsonObjectContentChange(ContentChange change) {
     JsonObject errorJsonObject = new JsonObject();
     errorJsonObject.addProperty("content", change.getContent());
     if (change.isIncremental()) {
@@ -414,41 +449,6 @@ public class RequestUtilities {
       errorJsonObject.addProperty("newLength", change.getNewLength());
     }
     return errorJsonObject;
-  }
-
-  @SuppressWarnings("unchecked")
-  private static JsonElement buildJsonObject(Map<? extends Object, ? extends Object> map) {
-    JsonObject jsonObject = new JsonObject();
-    for (Entry<? extends Object, ? extends Object> entry : map.entrySet()) {
-      Object keyObject = entry.getKey();
-      String key;
-      if (keyObject instanceof String) {
-        key = (String) keyObject;
-//      } else if (keyObject instanceof NotificationKind) {
-//        key = "CONTEXT_" + ((NotificationKind) keyObject).name();
-//      } else if (keyObject instanceof SourceSetKind) {
-//        key = ((SourceSetKind) keyObject).name();
-      } else {
-        key = NULL;
-      }
-      Object value = entry.getValue();
-      if (value instanceof String) {
-        jsonObject.addProperty(key, (String) value);
-      } else if (value instanceof Integer) {
-        jsonObject.addProperty(key, (Integer) value);
-      } else if (value instanceof AnalysisDelta.AnalysisLevel) {
-        jsonObject.addProperty(key, ((AnalysisDelta.AnalysisLevel) value).name());
-      } else if (value instanceof Map<?, ?>) {
-        jsonObject.add(key, buildJsonObject((Map<String, Object>) value));
-      } else if (value instanceof List<?>) {
-        jsonObject.add(key, buildJsonArray((List<String>) value));
-      } else if (value instanceof ContentChange) {
-        jsonObject.add(key, buildJsonContentChangeObject((ContentChange) value));
-      } else {
-        jsonObject.addProperty(key, NULL);
-      }
-    }
-    return jsonObject;
   }
 
   private static JsonObject buildJsonObjectRequest(String idValue, String methodValue) {
@@ -464,6 +464,13 @@ public class RequestUtilities {
       jsonObject.add(PARAMS, params);
     }
     return jsonObject;
+  }
+
+  /**
+   * Return the name of the given object, may be {@code "null"} string.
+   */
+  private static String getClassName(Object object) {
+    return object != null ? object.getClass().getName() : "null";
   }
 
   private RequestUtilities() {

@@ -16,6 +16,7 @@ package com.google.dart.server.internal.remote.utilities;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.ContentChange;
@@ -255,6 +256,24 @@ public class RequestUtilitiesTest extends TestCase {
 //    JsonElement actual = RequestUtilities.generateServerDeleteContextRequest("id", "CONTEXT_ID");
 //    assertEquals(expected, actual);
 //  }
+
+  public void test_buildJsonElement_map_nullKey() throws Exception {
+    try {
+      Map<String, String> map = Maps.newHashMap();
+      map.put(null, "bar");
+      RequestUtilities.buildJsonElement(map);
+      fail();
+    } catch (IllegalArgumentException e) {
+    }
+  }
+
+  public void test_buildJsonElement_null() throws Exception {
+    try {
+      RequestUtilities.buildJsonElement(null);
+      fail();
+    } catch (IllegalArgumentException e) {
+    }
+  }
 
   public void test_generateAnalysisGetFixes_noCorrection() throws Exception {
     JsonElement expected = parseJson(//
