@@ -178,7 +178,7 @@ public class LibraryResolver {
         // This will be true unless the library being analyzed is the core library.
         coreLibrary = createLibrary(coreLibrarySource);
         if (coreLibrary == null) {
-          throw new AnalysisException("Core library does not exist");
+          LibraryResolver2.missingCoreLibrary(analysisContext, coreLibrarySource);
         }
       }
       instrumentation.metric("createLibrary", "complete");
@@ -263,7 +263,7 @@ public class LibraryResolver {
         // This will be true unless the library being analyzed is the core library.
         coreLibrary = createLibraryOrNull(coreLibrarySource);
         if (coreLibrary == null) {
-          throw new AnalysisException("Core library does not exist");
+          LibraryResolver2.missingCoreLibrary(analysisContext, coreLibrarySource);
         }
       }
       instrumentation.metric("createLibrary", "complete");

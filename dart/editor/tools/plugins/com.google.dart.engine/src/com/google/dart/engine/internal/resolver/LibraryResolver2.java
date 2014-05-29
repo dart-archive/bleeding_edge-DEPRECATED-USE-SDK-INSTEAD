@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExportElement;
@@ -52,6 +53,7 @@ import com.google.dart.engine.internal.element.ShowElementCombinatorImpl;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
@@ -59,6 +61,7 @@ import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,6 +73,40 @@ import java.util.List;
  * @coverage dart.engine.resolver
  */
 public class LibraryResolver2 {
+  /**
+   * Report that the core library could not be resolved in the given analysis context and throw an
+   * exception.
+   * 
+   * @param analysisContext the analysis context in which the failure occurred
+   * @param coreLibrarySource the source representing the core library
+   * @throws AnalysisException always
+   */
+  public static void missingCoreLibrary(AnalysisContext analysisContext, Source coreLibrarySource)
+      throws AnalysisException {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("ErrorNoCoreLibrary");
+    try {
+      DartSdk sdk = analysisContext.getSourceFactory().getDartSdk();
+      if (sdk == null) {
+        instrumentation.data("sdkPath", "--null--");
+      } else if (sdk instanceof DirectoryBasedDartSdk) {
+        File directory = ((DirectoryBasedDartSdk) sdk).getDirectory();
+        if (directory == null) {
+          instrumentation.data("sdkDirectoryIsNull", true);
+        } else {
+          instrumentation.data("sdkDirectoryIsNull", false);
+          instrumentation.data("sdkPath", directory.getAbsolutePath());
+          instrumentation.data("sdkDirectoryExists", directory.exists());
+        }
+      } else {
+        instrumentation.data("sdkPath", "--unknown--");
+      }
+      instrumentation.data("coreLibraryPath", coreLibrarySource.getFullName());
+    } finally {
+      instrumentation.log();
+    }
+    throw new AnalysisException("Could not resolve dart:core");
+  }
+
   /**
    * The analysis context in which the libraries are being analyzed.
    */
@@ -189,7 +226,7 @@ public class LibraryResolver2 {
       instrumentation.metric("buildElementModels", "complete");
       LibraryElement coreElement = coreLibrary.getLibraryElement();
       if (coreElement == null) {
-        throw new AnalysisException("Could not resolve dart:core");
+        missingCoreLibrary(analysisContext, coreLibrarySource);
       }
       buildDirectiveModels();
       instrumentation.metric("buildDirectiveModels", "complete");
