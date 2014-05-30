@@ -15,6 +15,7 @@ package com.google.dart.server.internal.remote.utilities;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.server.AnalysisError;
+import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.ServerService;
@@ -49,6 +50,8 @@ public class RequestUtilities {
   private static final String METHOD_ANALYSIS_SET_PRIORITY_FILES = "analysis.setPriorityFiles";
   private static final String METHOD_ANALYSIS_SET_SUBSCRIPTIONS = "analysis.setSubscriptions";
   private static final String METHOD_ANALYSIS_UPDATE_CONTENT = "analysis.updateContent";
+  private static final String METHOD_ANALYSIS_UPDATE_OPTIONS = "analysis.updateOptions";
+  private static final String METHOD_ANALYSIS_UPDATE_SDKS = "analysis.updateSdks";
 
   // Edit domain
   private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
@@ -101,6 +104,8 @@ public class RequestUtilities {
       return buildJsonObjectContentChange((ContentChange) object);
     } else if (object instanceof AnalysisError) {
       return buildJsonObjectAnalysisError((AnalysisError) object);
+    } else if (object instanceof AnalysisOptions) {
+      return buildJsonObjectAnalysisOptions((AnalysisOptions) object);
     } else if (object instanceof ServerService) {
       return new JsonPrimitive(((ServerService) object).name());
     }
@@ -186,6 +191,51 @@ public class RequestUtilities {
     JsonObject params = new JsonObject();
     params.add("files", buildJsonElement(files));
     return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_UPDATE_CONTENT, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_UPDATE_OPTIONS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.updateOptions"
+   *   "params": {
+   *     "options": AnalysisOptions
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisUpdateOptions(String idValue, AnalysisOptions options) {
+    JsonObject params = new JsonObject();
+    params.add("options", buildJsonElement(options));
+    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_UPDATE_OPTIONS, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_UPDATE_SDKS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.updateSdks"
+   *   "params": {
+   *     "added": List&lt;FilePath&gt;
+   *     "removed": List&lt;FilePath&gt;
+   *     "default": FilePath
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisUpdateSdks(String idValue, List<String> added,
+      List<String> removed, String defaultSdk) {
+    JsonObject params = new JsonObject();
+    params.add("added", buildJsonElement(added));
+    params.add("removed", buildJsonElement(removed));
+    if (defaultSdk != null) {
+      params.addProperty("default", defaultSdk);
+    }
+    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_UPDATE_SDKS, params);
   }
 
   /**
@@ -476,6 +526,17 @@ public class RequestUtilities {
       errorJsonObject.addProperty("correction", correction);
     }
     return errorJsonObject;
+  }
+
+  private static JsonElement buildJsonObjectAnalysisOptions(AnalysisOptions options) {
+    JsonObject optionsJsonObject = new JsonObject();
+    optionsJsonObject.addProperty("analyzeAngular", options.getAnalyzeAngular());
+    optionsJsonObject.addProperty("analyzePolymer", options.getAnalyzePolymer());
+    optionsJsonObject.addProperty("enableDeferredLoading", options.getEnableDeferredLoading());
+    optionsJsonObject.addProperty("enableEnums", options.getEnableEnums());
+    optionsJsonObject.addProperty("generateDart2jsHints", options.getGenerateDart2jsHints());
+    optionsJsonObject.addProperty("generateHints", options.getGenerateHints());
+    return optionsJsonObject;
   }
 
   private static JsonObject buildJsonObjectContentChange(ContentChange change) {

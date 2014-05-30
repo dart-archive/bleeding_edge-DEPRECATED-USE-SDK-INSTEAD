@@ -24,43 +24,199 @@ public class AnalysisOptions {
   /**
    * True if the client wants Angular code to be analyzed.
    */
-  Boolean analyzeAngular;
+  private Boolean analyzeAngular;
 
   /**
    * True if the client wants Polymer code to be analyzed.
    */
-  Boolean analyzePolymer;
+  private Boolean analyzePolymer;
 
   /**
    * A table mapping groups of files (such as files in the SDK, files in packages, or explicitly
    * added files) to a list of the services that should be subscribed to for those files by default.
    */
-  Map<SourceSetKind, List<AnalysisService>> defaultServices;
+  private Map<SourceSetKind, List<AnalysisService>> defaultServices;
 
   /**
    * True if the client wants to enable support for the proposed async feature.
    */
-  Boolean enableAsync;
+  private Boolean enableAsync;
 
   /**
    * True if the client wants to enable support for the proposed deferred loading feature.
    */
-  Boolean enableDeferredLoading;
+  private Boolean enableDeferredLoading;
 
   /**
    * True if the client wants to enable support for the proposed enum feature.
    */
-  Boolean enableEnums;
+  private Boolean enableEnums;
 
   /**
    * True if hints that are specific to dart2js should be generated. This option is ignored if
    * either provideErrors or generateHints is false.
    */
-  Boolean generateDart2jsHints;
+  private Boolean generateDart2jsHints;
 
   /**
    * True is hints should be generated as part of generating errors and warnings. This option is
    * ignored if provideErrors is false.
    */
-  Boolean generateHints;
+  private Boolean generateHints;
+
+  /**
+   * Return the analyze angular option, true if the client wants Angular code to be analyzed.
+   * 
+   * @return the analyze angular option, true if the client wants Angular code to be analyzed
+   */
+  public Boolean getAnalyzeAngular() {
+    return analyzeAngular;
+  }
+
+  /**
+   * Return the analyze polymer option, true if the client wants Polymer code to be analyzed.
+   * 
+   * @return the analyze polymer option, true if the client wants Polymer code to be analyzed
+   */
+  public Boolean getAnalyzePolymer() {
+    return analyzePolymer;
+  }
+
+  /**
+   * Return the default services, a table mapping groups of files (such as files in the SDK, files
+   * in packages, or explicitly added files) to a list of the services that should be subscribed to
+   * for those files by default.
+   * 
+   * @return the default services map
+   */
+  public Map<SourceSetKind, List<AnalysisService>> getDefaultServices() {
+    return defaultServices;
+  }
+
+  /**
+   * Return the enable async option, true if the client wants to enable support for the proposed
+   * async feature.
+   * 
+   * @return the enable async option, true if the client wants to enable support for the proposed
+   *         async feature
+   */
+  public Boolean getEnableAsync() {
+    return enableAsync;
+  }
+
+  /**
+   * Return the enable deferred loading option, true if the client wants to enable support for the
+   * proposed deferred loading feature.
+   * 
+   * @return the enable deferred loading option, true if the client wants to enable support for the
+   *         proposed deferred loading feature
+   */
+  public Boolean getEnableDeferredLoading() {
+    return enableDeferredLoading;
+  }
+
+  /**
+   * Return the enable enums option, true if the client wants to enable support for the proposed
+   * enum feature
+   * 
+   * @return the enable enums option, true if the client wants to enable support for the proposed
+   *         enum feature
+   */
+  public Boolean getEnableEnums() {
+    return enableEnums;
+  }
+
+  /**
+   * Return the generate dart2js hints option, true if hints that are specific to dart2js should be
+   * generated. This option is ignored if either provideErrors or generateHints is false.
+   * 
+   * @return the generate dart2js hints option, true if hints that are specific to dart2js should be
+   *         generated
+   */
+  public Boolean getGenerateDart2jsHints() {
+    return generateDart2jsHints;
+  }
+
+  /**
+   * Return the generate hints option, true is hints should be generated as part of generating
+   * errors and warnings. This option is ignored if provideErrors is false.
+   * 
+   * @return the generate hints option, true is hints should be generated as part of generating
+   *         errors and warnings
+   */
+  public Boolean getGenerateHints() {
+    return generateHints;
+  }
+
+  /**
+   * Set the analyze angular option.
+   * 
+   * @param analyzeAngular the new value for the analyze angular option
+   */
+  public void setAnalyzeAngular(Boolean analyzeAngular) {
+    this.analyzeAngular = analyzeAngular;
+  }
+
+  /**
+   * Set the analyze polymer option.
+   * 
+   * @param analyzePolymer the new value for the analyze polymer option
+   */
+  public void setAnalyzePolymer(Boolean analyzePolymer) {
+    this.analyzePolymer = analyzePolymer;
+  }
+
+  /**
+   * Set the default services map.
+   * 
+   * @param defaultServices the new map for the default services option
+   */
+  public void setDefaultServices(Map<SourceSetKind, List<AnalysisService>> defaultServices) {
+    this.defaultServices = defaultServices;
+  }
+
+  /**
+   * Set the enable async option.
+   * 
+   * @param enableAsync the new value for the enable async option
+   */
+  public void setEnableAsync(Boolean enableAsync) {
+    this.enableAsync = enableAsync;
+  }
+
+  /**
+   * Set the enable deferred loading option.
+   * 
+   * @param enableDeferredLoading the new value for the enable deferred loading option
+   */
+  public void setEnableDeferredLoading(Boolean enableDeferredLoading) {
+    this.enableDeferredLoading = enableDeferredLoading;
+  }
+
+  /**
+   * Set the enable enums option.
+   * 
+   * @param enableEnums the new value for the enable enums option
+   */
+  public void setEnableEnums(Boolean enableEnums) {
+    this.enableEnums = enableEnums;
+  }
+
+  /**
+   * Set the generate dart2js hints option.
+   * 
+   * @param generateDart2jsHints the new value for the generate dart2js hints option
+   */
+  public void setGenerateDart2jsHints(Boolean generateDart2jsHints) {
+    this.generateDart2jsHints = generateDart2jsHints;
+  }
+
+  /**
+   * Set the generate hints option.
+   * 
+   * @param generateHints the new value for the generate hints option
+   */
+  public void setGenerateHints(Boolean generateHints) {
+    this.generateHints = generateHints;
+  }
 }

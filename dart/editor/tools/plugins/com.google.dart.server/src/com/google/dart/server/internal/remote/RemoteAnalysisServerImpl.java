@@ -274,7 +274,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void updateAnalysisOptions(AnalysisOptions options) {
-    // TODO(scheglov) implement
+    // TODO (jwren) Support for defaultServices and enableAsync not yet implemented,
+    // Server specification still in flux
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateAnalysisUpdateOptions(id, options));
   }
 
   @Override
@@ -285,7 +288,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void updateSdks(List<String> added, List<String> removed, String defaultSdk) {
-    // TODO(scheglov) implement
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateAnalysisUpdateSdks(id, added, removed, defaultSdk));
   }
 
   /**

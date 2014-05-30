@@ -283,12 +283,12 @@ public interface AnalysisServer {
    * used and the other locations will be implicitly removed.
    * 
    * @param added the list of directories to be added to the set of SDK locations known to the
-   *          server.
+   *          server
    * @param removed the list of directories to be removed from the set of SDK locations known to the
    *          server
    * @param defaultSdk the directory containing the SDK to be used when there are no version
-   *          constraints on the SDK. If no default SDK is specified then the default will not be
-   *          changed.
+   *          constraints on the SDK. If no default SDK is specified ({@code null} is passed) then
+   *          the default will not be changed.
    */
   public void updateSdks(List<String> added, List<String> removed, String defaultSdk);
 }

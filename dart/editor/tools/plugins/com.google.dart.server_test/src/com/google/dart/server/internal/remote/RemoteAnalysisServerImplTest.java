@@ -21,6 +21,7 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.server.AnalysisError;
+import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.ContentChange;
@@ -208,6 +209,62 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
+  public void test_analysis_updateAnalysisOptions_false() throws Exception {
+    AnalysisOptions options = new AnalysisOptions();
+    options.setAnalyzeAngular(false);
+    options.setAnalyzePolymer(false);
+    options.setEnableDeferredLoading(false);
+    options.setEnableEnums(false);
+    options.setGenerateDart2jsHints(false);
+    options.setGenerateHints(false);
+    server.updateAnalysisOptions(options);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateOptions',",
+        "  'params': {",
+        "    options: {",
+        "      'analyzeAngular': false,",
+        "      'analyzePolymer': false,",
+        "      'enableDeferredLoading': false,",
+        "      'enableEnums': false,",
+        "      'generateDart2jsHints': false,",
+        "      'generateHints': false",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateAnalysisOptions_true() throws Exception {
+    AnalysisOptions options = new AnalysisOptions();
+    options.setAnalyzeAngular(true);
+    options.setAnalyzePolymer(true);
+    options.setEnableDeferredLoading(true);
+    options.setEnableEnums(true);
+    options.setGenerateDart2jsHints(true);
+    options.setGenerateHints(true);
+    server.updateAnalysisOptions(options);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateOptions',",
+        "  'params': {",
+        "    options: {",
+        "      'analyzeAngular': true,",
+        "      'analyzePolymer': true,",
+        "      'enableDeferredLoading': true,",
+        "      'enableEnums': true,",
+        "      'generateDart2jsHints': true,",
+        "      'generateHints': true",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
   public void test_analysis_updateContent() throws Exception {
     Map<String, ContentChange> files = ImmutableMap.of(
         "/fileA.dart",
@@ -232,6 +289,43 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "        newLength: 3",
         "      }",
         "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateSdks() throws Exception {
+    server.updateSdks(
+        ImmutableList.of("/path/to/sdk/A", "/path/to/sdk/B"),
+        ImmutableList.of("/path/to/sdk/C", "/path/to/sdk/D"),
+        "/path/to/sdk/B");
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateSdks',",
+        "  'params': {",
+        "    'added': ['/path/to/sdk/A', '/path/to/sdk/B'],",
+        "    'removed': ['/path/to/sdk/C', '/path/to/sdk/D'],",
+        "    'default': '/path/to/sdk/B'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateSdks_nullDefaultSDK() throws Exception {
+    server.updateSdks(
+        ImmutableList.of("/path/to/sdk/A", "/path/to/sdk/B"),
+        ImmutableList.of("/path/to/sdk/C", "/path/to/sdk/D"),
+        null);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateSdks',",
+        "  'params': {",
+        "    'added': ['/path/to/sdk/A', '/path/to/sdk/B'],",
+        "    'removed': ['/path/to/sdk/C', '/path/to/sdk/D']",
         "  }",
         "}");
     assertTrue(requests.contains(expected));
