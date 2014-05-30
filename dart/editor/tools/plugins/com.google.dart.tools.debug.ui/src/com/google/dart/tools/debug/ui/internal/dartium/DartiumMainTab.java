@@ -62,6 +62,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private LaunchTargetComposite launchTargetGroup;
 
+  private Button usePubServeButton;
+
   /**
    * Create a new instance of DartServerMainTab.
    */
@@ -140,6 +142,22 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).span(2, 1).applyTo(
         argumentText);
 
+    // pub serve setting
+    group = new Group(composite, SWT.NONE);
+    group.setText("Pub settings");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
+    ((GridLayout) group.getLayout()).marginBottom = 5;
+    usePubServeButton = new Button(group, SWT.CHECK);
+    usePubServeButton.setText("Use pub serve to serve the application");
+    GridDataFactory.swtDefaults().span(3, 1).applyTo(usePubServeButton);
+    usePubServeButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        notifyPanelChanged();
+      }
+    });
+
     setControl(composite);
   }
 
@@ -182,21 +200,16 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       launchTargetGroup.setHtmlButtonSelection(false);
     }
 
-    if (checkedModeButton != null) {
-      checkedModeButton.setSelection(dartLauncher.getCheckedMode());
-    }
+    checkedModeButton.setSelection(dartLauncher.getCheckedMode());
 
-    if (showOutputButton != null) {
-      showOutputButton.setSelection(dartLauncher.getShowLaunchOutput());
-    }
+    showOutputButton.setSelection(dartLauncher.getShowLaunchOutput());
 
-    if (useWebComponentsButton != null) {
-      useWebComponentsButton.setSelection(dartLauncher.getUseWebComponents());
-    }
+    useWebComponentsButton.setSelection(dartLauncher.getUseWebComponents());
 
-    if (argumentText != null) {
-      argumentText.setText(dartLauncher.getArguments());
-    }
+    argumentText.setText(dartLauncher.getArguments());
+
+    usePubServeButton.setSelection(dartLauncher.getUsePubServe());
+
   }
 
   @Override
@@ -222,22 +235,18 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     }
 
     dartLauncher.setUrl(launchTargetGroup.getUrlString());
+
     dartLauncher.setSourceDirectoryName(launchTargetGroup.getSourceDirectory());
 
-    if (checkedModeButton != null) {
-      dartLauncher.setCheckedMode(checkedModeButton.getSelection());
-    }
+    dartLauncher.setCheckedMode(checkedModeButton.getSelection());
 
-    if (showOutputButton != null) {
-      dartLauncher.setShowLaunchOutput(showOutputButton.getSelection());
-    }
+    dartLauncher.setShowLaunchOutput(showOutputButton.getSelection());
 
-    if (useWebComponentsButton != null) {
-      dartLauncher.setUseWebComponents(useWebComponentsButton.getSelection());
-    }
-    if (argumentText != null) {
-      dartLauncher.setArguments(argumentText.getText().trim());
-    }
+    dartLauncher.setUseWebComponents(useWebComponentsButton.getSelection());
+
+    dartLauncher.setArguments(argumentText.getText().trim());
+
+    dartLauncher.setUsePubServe(usePubServeButton.getSelection());
   }
 
   @Override
@@ -245,6 +254,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
     dartLauncher.setShouldLaunchFile(true);
     dartLauncher.setApplicationName(""); //$NON-NLS-1$
+    dartLauncher.setUsePubServe(true);
   }
 
   private void notifyPanelChanged() {

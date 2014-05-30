@@ -26,10 +26,12 @@ import com.google.dart.tools.debug.core.pubserve.PubServeResourceResolver;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
 import com.google.dart.tools.debug.core.util.LaunchConfigResourceResolver;
+import com.google.dart.tools.debug.core.util.ResourceServer;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
 import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
 import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -130,6 +132,22 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
     }
   }
 
+  private ResourceServer getResourceServer() throws CoreException {
+
+    ResourceServer resourceResolver;
+    try {
+      resourceResolver = ResourceServerManager.getServer();
+    } catch (IOException ioe) {
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          ioe.getMessage(),
+          ioe));
+    }
+
+    return resourceResolver;
+  }
+
   private void launchImpl(String mode, IProgressMonitor monitor) throws CoreException {
     launchConfig.markAsLaunched();
 
@@ -149,17 +167,29 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
             "HTML file could not be found"));
       }
 
-      // launch pub serve
-      PubServeManager manager = PubServeManager.getManager();
+      if (launchConfig.getUsePubServe()) {
 
-      try {
-        manager.serve(launchConfig, pubConnectionCallback);
-      } catch (Exception e) {
-        throw new CoreException(new Status(
-            IStatus.ERROR,
-            DartDebugCorePlugin.PLUGIN_ID,
-            "Could not start pub serve or connect to pub\n" + manager.getStdErrorString(),
-            e));
+        // launch pub serve
+        PubServeManager manager = PubServeManager.getManager();
+
+        try {
+          manager.serve(launchConfig, pubConnectionCallback);
+        } catch (Exception e) {
+          throw new CoreException(new Status(
+              IStatus.ERROR,
+              DartDebugCorePlugin.PLUGIN_ID,
+              "Could not start pub serve or connect to pub\n" + manager.getStdErrorString(),
+              e));
+        }
+      } else { // use editor resource server
+
+        BrowserManager.getManager().launchBrowser(
+            launch,
+            launchConfig,
+            (IFile) resource,
+            monitor,
+            enableDebugging,
+            getResourceServer());
       }
     } else {
       // launch url

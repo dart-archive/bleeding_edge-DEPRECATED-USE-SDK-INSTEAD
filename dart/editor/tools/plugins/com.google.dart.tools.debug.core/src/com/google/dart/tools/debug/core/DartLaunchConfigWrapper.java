@@ -46,6 +46,7 @@ public class DartLaunchConfigWrapper {
   private static final String URL_QUERY_PARAMS = "urlQueryParams";
   private static final String DART2JS_FLAGS = "dart2jsFlags";
   private static final String LAUNCH_CONTENT_SHELL = "runContentShell";
+  private static final String USE_PUB_SERVE = "usePubServe";
 
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
   private static final String PAUSE_ISOLATE_ON_EXIT = "pauseIsolateOnExit";
@@ -388,6 +389,16 @@ public class DartLaunchConfigWrapper {
     }
   }
 
+  public boolean getUsePubServe() {
+    try {
+      return launchConfig.getAttribute(USE_PUB_SERVE, true);
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return true;
+    }
+  }
+
   public boolean getUseWebComponents() {
     try {
       return launchConfig.getAttribute(DARTIUM_USE_WEB_COMPONENTS, true);
@@ -563,6 +574,10 @@ public class DartLaunchConfigWrapper {
    */
   public void setUrlQueryParams(String value) {
     getWorkingCopy().setAttribute(URL_QUERY_PARAMS, value);
+  }
+
+  public void setUsePubServe(boolean value) {
+    getWorkingCopy().setAttribute(USE_PUB_SERVE, value);
   }
 
   public void setUseWebComponents(boolean value) {

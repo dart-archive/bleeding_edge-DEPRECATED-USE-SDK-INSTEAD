@@ -226,6 +226,12 @@ public class BrowserManager {
     // avg: 55ms
     timer.startTask(browserName + " startup");
 
+    if (!launchConfig.getUsePubServe()) {
+      // TODO(keertip): if file is passed in, url is null. Modify the method
+      // to return a url that makes sense in this case.
+      url = resolveLaunchUrl(file, url, resolver);
+    }
+
     url = launchConfig.appendQueryParams(url);
 
     // for now, check if browser is open, and connection is alive
@@ -602,6 +608,19 @@ public class BrowserManager {
     thread.start();
 
     return output;
+  }
+
+  /**
+   * @param file
+   * @throws CoreException
+   */
+  private String resolveLaunchUrl(IFile file, String url, IResourceResolver resolver)
+      throws CoreException {
+    if (file != null) {
+      return resolver.getUrlForResource(file);
+    }
+
+    return url;
   }
 
   private void sleep(int millis) {
