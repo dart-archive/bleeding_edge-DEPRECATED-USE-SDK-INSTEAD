@@ -18,7 +18,10 @@ import com.google.dart.tools.core.dart2js.ProcessRunner;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -48,6 +51,11 @@ public class AndroidDebugBridge {
 
   private ProcessRunner runner;
 
+  /**
+   * The identifiers of devices on which content shell has been installed during this session.
+   */
+  private static HashSet<String> contentShellInstallSet = new HashSet<String>();
+
   public AndroidDebugBridge() {
     this(AndroidSdkManager.getManager().getAdbExecutable());
   }
@@ -57,17 +65,53 @@ public class AndroidDebugBridge {
   }
 
   /**
+   * Gets the first device connected and detected by adb
+   * 
+   * @return the device id or {@code null} if no device detected
+   */
+  public String getConnectedDevice() {
+    List<String> args = buildAdbCommand(DEVICES_CMD);
+    if (runAdb(args, "")) {
+      //List of devices attached 
+      //04f5385f95d80610  device
+      LineNumberReader reader = new LineNumberReader(new StringReader(runner.getStdOut()));
+      try {
+        while (true) {
+          String line = reader.readLine();
+          if (line == null) {
+            break;
+          }
+          line = line.trim();
+          if (line.endsWith("\tdevice")) {
+            return line.substring(0, line.length() - 7).trim();
+          }
+        }
+      } catch (IOException e) {
+        //$FALL-THROUGH$
+      }
+    }
+    return null;
+  }
+
+  /**
    * Install the apk for the content shell onto the connected phone
    * <p>
    * adb install path/to/apk
    * </p>
    * 
+   * @param deviceId the identifier of the device on which to install the content shell
    * @return true if install was successful
    */
-  public boolean installContentShellApk() {
+  public boolean installContentShellApk(String deviceId) {
+    if (contentShellInstallSet.contains(deviceId)) {
+      return true;
+    }
     // TODO(keertip): process error to check if apk is already installed
-
     List<String> args = buildAdbCommand(INSTALL_CMD);
+    if (deviceId != null) {
+      args.add(1, "-s");
+      args.add(2, deviceId);
+    }
     args.add(AndroidSdkManager.getManager().getContentShellApkLocation());
     if (runAdb(args, "ADB: install dart content shell browser")) {
       String message = runner.getStdOut();
@@ -76,25 +120,8 @@ public class AndroidDebugBridge {
         // TODO(keertip): check version and reinstall
         // DartCore.getConsole().println(message);
       }
+      contentShellInstallSet.add(deviceId);
       return true;
-    }
-    return false;
-  }
-
-  /**
-   * Checks if a device is connected and adb can detect it
-   * 
-   * @return true if adb can detect a device
-   */
-  public boolean isDeviceConnected() {
-    List<String> args = buildAdbCommand(DEVICES_CMD);
-    if (runAdb(args, "")) {
-      //List of devices attached 
-      //04f5385f95d80610  device
-      String message = runner.getStdOut();
-      if (message.length() > 27) {
-        return true;
-      }
     }
     return false;
   }
@@ -120,9 +147,13 @@ public class AndroidDebugBridge {
    * 
    * @return true if launch was successful
    */
-  public boolean launchContentShell(String url) {
+  public boolean launchContentShell(String deviceId, String url) {
 
     List<String> args = buildAdbCommand(LAUNCH_URL_IN_CC_CMD);
+    if (deviceId != null) {
+      args.add(1, "-s");
+      args.add(2, deviceId);
+    }
     args.add(url);
     return runAdb(args, "ADB: launch dart content shell browser");
   }

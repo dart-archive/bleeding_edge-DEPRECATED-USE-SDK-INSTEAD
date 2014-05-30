@@ -105,7 +105,8 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
 
     AndroidDebugBridge devBridge = new AndroidDebugBridge();
 
-    if (!devBridge.isDeviceConnected()) {
+    String deviceId = devBridge.getConnectedDevice();
+    if (deviceId == null) {
       throw new CoreException(new Status(
           IStatus.ERROR,
           DartDebugCorePlugin.PLUGIN_ID,
@@ -114,8 +115,8 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
 
     if (wrapper.getLaunchContentShell()) {
       // TODO(keertip): CoreException if adb fails
-      if (devBridge.installContentShellApk()) {
-        devBridge.launchContentShell(launchUrl);
+      if (devBridge.installContentShellApk(deviceId)) {
+        devBridge.launchContentShell(deviceId, launchUrl);
       }
     } else {
       devBridge.launchChromeBrowser(launchUrl);
