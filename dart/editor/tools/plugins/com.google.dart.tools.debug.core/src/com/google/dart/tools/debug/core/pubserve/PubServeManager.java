@@ -20,7 +20,11 @@ import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ListenerList;
 
@@ -30,7 +34,7 @@ import java.io.IOException;
  * Manages the pub serve process for launches. Clients should call serve(DartLaunchconfigWrapper,
  * PubCallback<String>) to serve an application and get a url for launch.
  */
-public class PubServeManager {
+public class PubServeManager implements IResourceChangeListener {
 
   private static PubServeManager manager = new PubServeManager();
 
@@ -44,6 +48,10 @@ public class PubServeManager {
 
   private final ListenerList listeners = new ListenerList();
 
+  public PubServeManager() {
+
+  }
+
   public void addListener(IPubServeListener listener) {
     listeners.add(listener);
   }
@@ -52,6 +60,7 @@ public class PubServeManager {
     if (pubserve != null) {
       pubserve.dispose();
     }
+    ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
   }
 
   public String getStdErrorString() {
@@ -73,6 +82,22 @@ public class PubServeManager {
 
   public void removeListener(IPubServeListener listener) {
     listeners.remove(listener);
+  }
+
+  @Override
+  public void resourceChanged(IResourceChangeEvent event) {
+    if (event.getType() == IResourceChangeEvent.PRE_DELETE) {
+      IResource resource = event.getResource();
+      if (resource != null && resource instanceof IProject) {
+        IContainer pubServeWorkingDir = getCurrentServeWorkingDir();
+        if (pubServeWorkingDir != null) {
+          // if project that is being served is going to be deleted, stop pub serve
+          if (pubServeWorkingDir.getProject() == resource) {
+            terminatePubServe();
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -133,6 +158,7 @@ public class PubServeManager {
         pubserve.dispose();
       }
       pubserve = new PubServe(appDir, getPubServeRootDir(appDir, resource));
+      ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
     }
 
     sendGetUrlCommand(resource, pubConnectionCallback);
