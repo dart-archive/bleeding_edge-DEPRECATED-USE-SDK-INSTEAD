@@ -95,9 +95,9 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
       return performSdkCheck();
     }
 
-    if (AndroidSdkManager.getManager().getSdkLocationPreference().isEmpty()) {
-      return "Set Android SDK location in Preferences > Run & Debug";
-    }
+//    if (AndroidSdkManager.getManager().getSdkLocationPreference().isEmpty()) {
+//      return "Set Android SDK location in Preferences > Run & Debug";
+//    }
     if (!AndroidSdkManager.getManager().isAdbInstalled()) {
       return "Run Android SDK Manager to install platform tools";
     }
