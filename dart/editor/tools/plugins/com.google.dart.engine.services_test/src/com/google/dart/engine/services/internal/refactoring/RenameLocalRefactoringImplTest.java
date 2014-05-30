@@ -447,6 +447,33 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "}");
   }
 
+  public void test_createChange_parameter_namedInOtherFile() throws Exception {
+    indexTestUnit(//
+        "class A {",
+        "  A({test});",
+        "}");
+    Source source2 = addSource("/test2.dart", makeSource(//
+        "import 'Test.dart';",
+        "main() {",
+        "  new A(test: 2);",
+        "}"));
+    indexUnit(source2);
+    // configure refactoring
+    createRenameRefactoring("test});");
+    assertEquals("Rename Parameter", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(//
+        "class A {",
+        "  A({newName});",
+        "}");
+    assertChangeResult(refactoringChange, source2, makeSource(//
+        "import 'Test.dart';",
+        "main() {",
+        "  new A(newName: 2);",
+        "}"));
+  }
+
   public void test_createChange_sharedBetweenTwoLibraries() throws Exception {
     Source libSourceA = addSource(
         "/libA.dart",

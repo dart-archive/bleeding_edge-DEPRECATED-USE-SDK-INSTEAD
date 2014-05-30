@@ -23,7 +23,9 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.change.Change;
+import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.change.SourceChangeManager;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.Refactoring;
@@ -84,16 +86,22 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   @Override
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
-    SourceChange change = new SourceChange(getRefactoringName(), element.getSource());
+    SourceChangeManager changeManager = new SourceChangeManager();
     // update declaration
-    addDeclarationEdit(change, element);
+    {
+      Source source = element.getSource();
+      SourceChange change = changeManager.get(source);
+      addDeclarationEdit(change, element);
+    }
     // update references
     List<SearchMatch> refMatches = searchEngine.searchReferences(element, null, null);
     List<SourceReference> references = getSourceReferences(refMatches);
     for (SourceReference reference : references) {
-      addReferenceEdit(change, reference);
+      SourceChange refChange = changeManager.get(reference.source);
+      addReferenceEdit(refChange, reference);
     }
-    return change;
+    // prepare change
+    return new CompositeChange(getRefactoringName(), changeManager.getChanges());
   }
 
   @Override
