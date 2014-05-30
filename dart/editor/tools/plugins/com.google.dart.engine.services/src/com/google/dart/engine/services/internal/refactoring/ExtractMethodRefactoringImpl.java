@@ -35,6 +35,7 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.GeneralizingAstVisitor;
@@ -744,21 +745,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       @Override
       public Void visitBlock(Block node) {
         if (selectionStatements != null) {
-          List<Statement> blockStatements = node.getStatements();
-          int beginStatementIndex = 0;
-          int selectionCount = selectionStatements.size();
-          while (beginStatementIndex + selectionCount <= blockStatements.size()) {
-            SourceRange nodeRange = SourceRangeFactory.rangeStartEnd(
-                blockStatements.get(beginStatementIndex),
-                blockStatements.get(beginStatementIndex + selectionCount - 1));
-            boolean found = tryToFindOccurrence(nodeRange);
-            // next statement
-            if (found) {
-              beginStatementIndex += selectionCount;
-            } else {
-              beginStatementIndex++;
-            }
-          }
+          visitStatements(node.getStatements());
         }
         return super.visitBlock(node);
       }
@@ -793,6 +780,14 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         }
       }
 
+      @Override
+      public Void visitSwitchMember(SwitchMember node) {
+        if (selectionStatements != null) {
+          visitStatements(node.getStatements());
+        }
+        return super.visitSwitchMember(node);
+      }
+
       /**
        * Checks if given {@link SourceRange} matched selection source and adds {@link Occurrence}.
        */
@@ -824,6 +819,23 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         }
         // no match
         return false;
+      }
+
+      private void visitStatements(List<Statement> statements) {
+        int beginStatementIndex = 0;
+        int selectionCount = selectionStatements.size();
+        while (beginStatementIndex + selectionCount <= statements.size()) {
+          SourceRange nodeRange = SourceRangeFactory.rangeStartEnd(
+              statements.get(beginStatementIndex),
+              statements.get(beginStatementIndex + selectionCount - 1));
+          boolean found = tryToFindOccurrence(nodeRange);
+          // next statement
+          if (found) {
+            beginStatementIndex += selectionCount;
+          } else {
+            beginStatementIndex++;
+          }
+        }
       }
     });
   }

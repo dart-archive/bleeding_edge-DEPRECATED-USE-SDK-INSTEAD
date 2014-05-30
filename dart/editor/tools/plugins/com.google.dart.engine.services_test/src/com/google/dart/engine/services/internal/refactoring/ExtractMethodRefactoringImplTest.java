@@ -2337,6 +2337,48 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
+  public void test_statements_inSwitchMember() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo(int p) {",
+        "    switch (p) {",
+        "      case 0:",
+        "// start",
+        "        print(0);",
+        "// end",
+        "        break;",
+        "      default:",
+        "        break;",
+        "    }",
+        "  }",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo(int p) {",
+        "    switch (p) {",
+        "      case 0:",
+        "// start",
+        "        res();",
+        "// end",
+        "        break;",
+        "      default:",
+        "        break;",
+        "    }",
+        "  }",
+        "",
+        "  void res() {",
+        "    print(0);",
+        "  }",
+        "}",
+        "");
+  }
+
   public void test_statements_method() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
