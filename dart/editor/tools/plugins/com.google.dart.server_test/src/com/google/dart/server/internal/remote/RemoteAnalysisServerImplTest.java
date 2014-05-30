@@ -21,6 +21,7 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.server.AnalysisError;
+import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.FixesConsumer;
@@ -33,6 +34,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -117,6 +120,47 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'method': 'analysis.setPriorityFiles',",
         "  'params': {",
         "    'files': ['/fileA.dart', '/fileB.dart']",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_setSubscriptions() throws Exception {
+    LinkedHashMap<AnalysisService, List<String>> subscriptions = new LinkedHashMap<AnalysisService, List<String>>();
+    subscriptions.put(AnalysisService.ERRORS, new ArrayList<String>(0));
+    subscriptions.put(AnalysisService.HIGHLIGHT, ImmutableList.of("/fileA.dart"));
+    subscriptions.put(AnalysisService.NAVIGATION, ImmutableList.of("/fileB.dart", "/fileC.dart"));
+    subscriptions.put(
+        AnalysisService.OUTLINE,
+        ImmutableList.of("/fileD.dart", "/fileE.dart", "/fileF.dart"));
+
+    server.setAnalysisSubscriptions(subscriptions);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': {",
+        "      ERRORS: [],",
+        "      HIGHLIGHT: ['/fileA.dart'],",
+        "      NAVIGATION: ['/fileB.dart', '/fileC.dart'],",
+        "      OUTLINE: ['/fileD.dart', '/fileE.dart', '/fileF.dart']",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_setSubscriptions_emptyMap() throws Exception {
+    server.setAnalysisSubscriptions(new HashMap<AnalysisService, List<String>>(0));
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': {}",
         "  }",
         "}");
     assertTrue(requests.contains(expected));

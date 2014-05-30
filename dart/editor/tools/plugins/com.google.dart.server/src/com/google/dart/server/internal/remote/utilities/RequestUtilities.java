@@ -15,6 +15,7 @@ package com.google.dart.server.internal.remote.utilities;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.server.AnalysisError;
+import com.google.dart.server.AnalysisService;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.ServerService;
 import com.google.gson.JsonArray;
@@ -46,6 +47,7 @@ public class RequestUtilities {
   // Analysis domain
   private static final String METHOD_ANALYSIS_SET_ROOTS = "analysis.setAnalysisRoots";
   private static final String METHOD_ANALYSIS_SET_PRIORITY_FILES = "analysis.setPriorityFiles";
+  private static final String METHOD_ANALYSIS_SET_SUBSCRIPTIONS = "analysis.setSubscriptions";
   private static final String METHOD_ANALYSIS_UPDATE_CONTENT = "analysis.updateContent";
 
   // Edit domain
@@ -77,6 +79,8 @@ public class RequestUtilities {
         String keyString;
         if (key instanceof String) {
           keyString = (String) key;
+        } else if (key instanceof AnalysisService) {
+          keyString = ((AnalysisService) key).name();
 //        } else if (keyObject instanceof NotificationKind) {
 //          key = "CONTEXT_" + ((NotificationKind) keyObject).name();
 //        } else if (keyObject instanceof SourceSetKind) {
@@ -142,6 +146,26 @@ public class RequestUtilities {
     JsonObject params = new JsonObject();
     params.add("files", buildJsonElement(files));
     return buildJsonObjectRequest(id, METHOD_ANALYSIS_SET_PRIORITY_FILES, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_SET_SUBSCRIPTIONS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.setSubscriptions"
+   *   "params": {
+   *     "subscriptions": Map&gt;AnalysisService, List&lt;FilePath&gt;&gt;
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisSetSubscriptions(String id,
+      Map<AnalysisService, List<String>> subscriptions) {
+    JsonObject params = new JsonObject();
+    params.add("subscriptions", buildJsonElement(subscriptions));
+    return buildJsonObjectRequest(id, METHOD_ANALYSIS_SET_SUBSCRIPTIONS, params);
   }
 
   /**

@@ -228,7 +228,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void setAnalysisSubscriptions(Map<AnalysisService, List<String>> subscriptions) {
-    // TODO(scheglov) implement
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateAnalysisSetSubscriptions(id, subscriptions));
   }
 
   @Override
