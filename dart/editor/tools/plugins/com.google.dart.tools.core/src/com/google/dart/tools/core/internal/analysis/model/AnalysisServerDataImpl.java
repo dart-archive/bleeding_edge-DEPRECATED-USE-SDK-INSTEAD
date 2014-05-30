@@ -14,11 +14,15 @@
 
 package com.google.dart.tools.core.internal.analysis.model;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServer;
+import com.google.dart.server.AnalysisService;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
@@ -26,6 +30,7 @@ import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -85,23 +90,17 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
 
   @Override
   public void subscribeHighlights(String file, AnalysisServerHighlightsListener listener) {
-    // TODO(scheglov) restore or remove for the new API
-//    Map<Source, Set<AnalysisServerHighlightsListener>> sourceSubscriptions = highlightsSubscriptions.get(contextId);
-//    if (sourceSubscriptions == null) {
-//      sourceSubscriptions = Maps.newHashMap();
-//      highlightsSubscriptions.put(contextId, sourceSubscriptions);
-//    }
-//    Set<AnalysisServerHighlightsListener> subscriptions = sourceSubscriptions.get(source);
-//    if (subscriptions == null) {
-//      subscriptions = Sets.newHashSet();
-//      sourceSubscriptions.put(source, subscriptions);
-//    }
-//    if (subscriptions.add(listener)) {
-//      Set<Source> sourceSet = sourceSubscriptions.keySet();
-//      server.subscribe(
-//          contextId,
-//          ImmutableMap.of(NotificationKind.HIGHLIGHTS, ListSourceSet.create(sourceSet)));
-//    }
+    Set<AnalysisServerHighlightsListener> subscriptions = highlightsSubscriptions.get(file);
+    if (subscriptions == null) {
+      subscriptions = Sets.newHashSet();
+      highlightsSubscriptions.put(file, subscriptions);
+    }
+    if (subscriptions.add(listener)) {
+      Set<String> fileSet = highlightsSubscriptions.keySet();
+      List<String> fileList = Lists.newArrayList(fileSet);
+      // TODO(scheglov) new API requires full set of services and files
+      server.setAnalysisSubscriptions(ImmutableMap.of(AnalysisService.HIGHLIGHT, fileList));
+    }
   }
 
   @Override
@@ -143,23 +142,18 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   @Override
   public void unsubscribeHighlights(String file, AnalysisServerHighlightsListener listener) {
     // TODO(scheglov) restore or remove for the new API
-//    Map<Source, Set<AnalysisServerHighlightsListener>> sourceSubscriptions = highlightsSubscriptions.get(contextId);
-//    if (sourceSubscriptions == null) {
-//      return;
-//    }
-//    Set<AnalysisServerHighlightsListener> subscriptions = sourceSubscriptions.get(source);
-//    if (subscriptions == null) {
-//      return;
-//    }
-//    if (subscriptions.remove(listener)) {
-//      if (subscriptions.isEmpty()) {
-//        sourceSubscriptions.remove(source);
-//        Set<Source> sourceSet = sourceSubscriptions.keySet();
-//        server.subscribe(
-//            contextId,
-//            ImmutableMap.of(NotificationKind.HIGHLIGHTS, ListSourceSet.create(sourceSet)));
-//      }
-//    }
+    Set<AnalysisServerHighlightsListener> subscriptions = highlightsSubscriptions.get(file);
+    if (subscriptions == null) {
+      return;
+    }
+    if (subscriptions.remove(listener)) {
+      if (subscriptions.isEmpty()) {
+        Set<String> fileSet = highlightsSubscriptions.keySet();
+        List<String> fileList = Lists.newArrayList(fileSet);
+        // TODO(scheglov) new API requires full set of services and files
+        server.setAnalysisSubscriptions(ImmutableMap.of(AnalysisService.HIGHLIGHT, fileList));
+      }
+    }
   }
 
   @Override

@@ -25,6 +25,8 @@ import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.FixesConsumer;
+import com.google.dart.server.HighlightRegion;
+import com.google.dart.server.HighlightType;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
@@ -32,6 +34,8 @@ import com.google.dart.server.internal.remote.processor.AnalysisErrorImpl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,6 +81,44 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "/test.dart",
         ParserErrorCode.ABSTRACT_CLASS_MEMBER,
         CompileTimeErrorCode.AMBIGUOUS_EXPORT);
+  }
+
+  public void test_analysis_notification_highlights() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'analysis.highlights',",
+        "  'params': {",
+        "    'file': '/test.dart',",
+        "    'regions' : [",
+        "      {",
+        "        'type': 'CLASS',",
+        "        'offset': 1,",
+        "        'length': 2",
+        "      },",
+        "      {",
+        "        'type': 'FIELD',",
+        "        'offset': 10,",
+        "        'length': 20",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    HighlightRegion[] regions = listener.getHighlightRegions("/test.dart");
+    assertThat(regions).hasSize(2);
+    {
+      HighlightRegion error = regions[0];
+      assertSame(HighlightType.CLASS, error.getType());
+      assertEquals(1, error.getOffset());
+      assertEquals(2, error.getLength());
+    }
+    {
+      HighlightRegion error = regions[1];
+      assertSame(HighlightType.FIELD, error.getType());
+      assertEquals(10, error.getOffset());
+      assertEquals(20, error.getLength());
+    }
   }
 
   public void test_analysis_setAnalysisRoots() throws Exception {

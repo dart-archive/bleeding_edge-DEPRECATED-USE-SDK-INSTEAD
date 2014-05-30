@@ -38,6 +38,7 @@ import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.local.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.NotificationErrorsProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationHighlightsProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -101,6 +102,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   private static final String ANALYSIS_NOTIFICATION_ERRORS = "analysis.errors";
+  private static final String ANALYSIS_NOTIFICATION_HIGHTLIGHTS = "analysis.highlights";
 
   private final RequestSink requestSink;
 
@@ -314,6 +316,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     // handle each supported notification kind
     if (event.equals(ANALYSIS_NOTIFICATION_ERRORS)) {
       new NotificationErrorsProcessor(listener).process(response);
+      return true;
+    }
+    if (event.equals(ANALYSIS_NOTIFICATION_HIGHTLIGHTS)) {
+      new NotificationHighlightsProcessor(listener).process(response);
       return true;
     }
     // it is a notification, even if we did not handle it
