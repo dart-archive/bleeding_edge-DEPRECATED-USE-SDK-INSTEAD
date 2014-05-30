@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.ui.internal.mobile;
 
-import com.google.dart.tools.core.mobile.AndroidSdkManager;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
@@ -98,9 +97,9 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
 //    if (AndroidSdkManager.getManager().getSdkLocationPreference().isEmpty()) {
 //      return "Set Android SDK location in Preferences > Run & Debug";
 //    }
-    if (!AndroidSdkManager.getManager().isAdbInstalled()) {
-      return "Run Android SDK Manager to install platform tools";
-    }
+//    if (!AndroidSdkManager.getManager().isAdbInstalled()) {
+//      return "Run Android SDK Manager to install platform tools";
+//    }
     return launchTargetGroup.getErrorMessage();
   }
 
@@ -114,7 +113,8 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
 
   @Override
   public String getMessage() {
-    return "Create a configuration to launch a Dart application in a browser on a device. Installs a shell browser with Dart VM on the device.";
+    return "Create a configuration to launch a Dart application on a device."
+        + "This installs a browser with the Dart VM on the device and launches the app in it.";
   }
 
   /**
