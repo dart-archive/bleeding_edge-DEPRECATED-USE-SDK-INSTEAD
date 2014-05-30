@@ -111,7 +111,7 @@ public class DartLaunchConfigWrapper {
     if (path == null || path.length() == 0) {
       return null;
     } else {
-      return ResourcesPlugin.getWorkspace().getRoot().findMember(getApplicationName());
+      return ResourcesPlugin.getWorkspace().getRoot().findMember(path);
     }
   }
 

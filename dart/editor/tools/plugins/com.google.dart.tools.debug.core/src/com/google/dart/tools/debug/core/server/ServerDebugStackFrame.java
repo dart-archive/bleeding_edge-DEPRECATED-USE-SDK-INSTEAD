@@ -36,6 +36,7 @@ import org.eclipse.debug.core.model.IWatchExpressionListener;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -457,11 +458,22 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
           uri.toString());
 
       if (fileInfo != null) {
+        if (fileInfo.getResource() != null) {
+          try {
+            return new URI(
+                "file",
+                null,
+                fileInfo.getResource().getFullPath().toPortableString(),
+                null);
+          } catch (URISyntaxException e) {
+
+          }
+        }
+
         return fileInfo.getFile().toURI();
       }
     }
 
     return null;
   }
-
 }

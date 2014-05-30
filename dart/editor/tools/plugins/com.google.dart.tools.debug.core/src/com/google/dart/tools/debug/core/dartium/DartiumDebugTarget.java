@@ -359,7 +359,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
         @Override
         public void targetCrashed() {
-
+          handleTargetCrashed();
         }
       });
     }
@@ -557,6 +557,16 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
         DebugUIHelper.getHelper().handleDevtoolsDisconnect(this);
       }
+    }
+  }
+
+  protected void handleTargetCrashed() {
+    process.getStreamMonitor().messageAdded("<debug target crashed>");
+
+    try {
+      terminate();
+    } catch (DebugException e) {
+      DartDebugCorePlugin.logInfo(e);
     }
   }
 

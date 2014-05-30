@@ -21,7 +21,6 @@ import java.io.File;
  * Represents a file on disk either as a {@link IFile} or {@link File}
  */
 public class FileInfo implements IFileInfo {
-
   private IFile resource = null;
   private File file = null;
 
@@ -44,4 +43,14 @@ public class FileInfo implements IFileInfo {
     return resource;
   }
 
+  @Override
+  public String toString() {
+    if (resource != null) {
+      return resource.toString();
+    } else if (file != null) {
+      return file.toString();
+    } else {
+      return null;
+    }
+  }
 }
