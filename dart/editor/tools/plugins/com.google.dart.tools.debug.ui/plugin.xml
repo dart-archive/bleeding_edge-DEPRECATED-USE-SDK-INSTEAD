@@ -38,6 +38,13 @@
              properties="canLaunchDartium"
              type="org.eclipse.jface.viewers.ISelection">
        </propertyTester>
+       <propertyTester
+             class="com.google.dart.tools.debug.ui.launch.RunOnMobilePropertyTester"
+             id="com.google.dart.tools.debug.ui.run.mobilePropertyTester"
+             namespace="com.google.dart.tools.debug.ui.launch"
+             properties="canLaunchMobile"
+             type="org.eclipse.jface.viewers.ISelection">
+       </propertyTester>
    </extension>
 
    <extension
@@ -88,7 +95,7 @@
             class="com.google.dart.tools.debug.ui.internal.mobile.MobileLaunchConfigurationTabGroup"
             id="com.google.dart.tools.debug.core.mobileLaunchConfigTabGroup"
             type="com.google.dart.tools.debug.core.mobileLaunchConfig"
-            description="Run a Dart web application in a browser on a device">
+            description="Run a Dart web application in a browser on mobile">
       </launchConfigurationTabGroup>
       <launchConfigurationTabGroup
             class="com.google.dart.tools.debug.ui.internal.dartium.DartiumTabGroup"
@@ -116,6 +123,39 @@
             modes="run,debug">
          <configurationType
                id="com.google.dart.tools.debug.core.dartiumLaunchConfig">
+         </configurationType>
+         <contextualLaunch>
+            <enablement>
+               <with variable="selection">
+                  <count value="1">
+                  </count>
+                  <iterate>
+                     <adapt type="org.eclipse.core.resources.IResource">
+                        <or>
+                           <and>
+                              <test property="com.google.dart.tools.debug.isInDartProject"/>
+                              <or>
+                                 <test property="org.eclipse.core.resources.extension" value="html"/>
+                                 <test property="org.eclipse.core.resources.extension" value="dart"/>
+                              </or>
+                           </and>
+                           <test property="com.google.dart.tools.debug.isDartProject"/>
+                        </or>
+                     </adapt>
+                  </iterate>
+               </with>
+            </enablement>
+         </contextualLaunch>
+      </shortcut>
+      <shortcut
+            class="com.google.dart.tools.debug.ui.internal.mobile.MobileLaunchShortcut"
+            icon="icons/android.png"
+            id="com.google.dart.tools.debug.ui.dartMobileShortcut"
+            label="%dart.mobilelaunch.shortcut.label"
+            description="Run the selected application on Mobile"
+            modes="run,debug">
+         <configurationType
+               id="com.google.dart.tools.debug.core.mobileLaunchConfig">
          </configurationType>
          <contextualLaunch>
             <enablement>
@@ -443,6 +483,13 @@
       </command>
        <command
             categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.RunOnMobileHandler"
+            description="Run on Mobile"
+            id="com.google.dart.tools.debug.ui.run.mobile"
+            name="%runMobileName">
+      </command>
+       <command
+            categoryId="org.eclipse.ui.category.window"
             defaultHandler="com.google.dart.tools.debug.ui.launch.RunInServerHandler"
             description="Run"
             id="com.google.dart.tools.debug.ui.run.server"
@@ -575,6 +622,30 @@
                         <test
                               forcePluginActivation="true"
                               property="com.google.dart.tools.debug.ui.launch.canLaunchDartium">
+                        </test>
+                  </and>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="true"
+            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
+         <command
+               commandId="com.google.dart.tools.debug.ui.run.mobile"
+               icon="icons/android.png"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <and>
+                        <test
+                              forcePluginActivation="true"
+                              property="com.google.dart.tools.debug.ui.launch.canLaunchMobile">
                         </test>
                   </and>
                </with>

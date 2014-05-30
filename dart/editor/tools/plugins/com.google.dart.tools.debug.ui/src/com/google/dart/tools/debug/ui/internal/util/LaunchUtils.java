@@ -24,6 +24,7 @@ import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.browser.Messages;
 import com.google.dart.tools.debug.ui.internal.dartium.DartiumLaunchShortcut;
+import com.google.dart.tools.debug.ui.internal.mobile.MobileLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut;
 
 import org.eclipse.core.resources.IFile;
@@ -348,6 +349,15 @@ public class LaunchUtils {
     } else {
       return config.getName();
     }
+  }
+
+  public static ILaunchShortcut getMobileLaunchShortcut() {
+    for (ILaunchShortcut shortcut : getAllLaunchShortcuts()) {
+      if (shortcut instanceof MobileLaunchShortcut) {
+        return shortcut;
+      }
+    }
+    return null;
   }
 
   public static IResource getSelectedResource(IWorkbenchWindow window) {
