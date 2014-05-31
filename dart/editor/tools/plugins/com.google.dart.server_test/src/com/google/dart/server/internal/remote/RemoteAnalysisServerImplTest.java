@@ -171,7 +171,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   public void test_analysis_setSubscriptions() throws Exception {
     LinkedHashMap<AnalysisService, List<String>> subscriptions = new LinkedHashMap<AnalysisService, List<String>>();
     subscriptions.put(AnalysisService.ERRORS, new ArrayList<String>(0));
-    subscriptions.put(AnalysisService.HIGHLIGHT, ImmutableList.of("/fileA.dart"));
+    subscriptions.put(AnalysisService.HIGHLIGHTS, ImmutableList.of("/fileA.dart"));
     subscriptions.put(AnalysisService.NAVIGATION, ImmutableList.of("/fileB.dart", "/fileC.dart"));
     subscriptions.put(
         AnalysisService.OUTLINE,
@@ -186,7 +186,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'params': {",
         "    'subscriptions': {",
         "      ERRORS: [],",
-        "      HIGHLIGHT: ['/fileA.dart'],",
+        "      HIGHLIGHTS: ['/fileA.dart'],",
         "      NAVIGATION: ['/fileB.dart', '/fileC.dart'],",
         "      OUTLINE: ['/fileD.dart', '/fileE.dart', '/fileF.dart']",
         "    }",

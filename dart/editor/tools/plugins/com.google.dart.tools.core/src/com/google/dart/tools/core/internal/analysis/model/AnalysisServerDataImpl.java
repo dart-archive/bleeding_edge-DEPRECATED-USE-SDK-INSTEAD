@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.core.internal.analysis.model;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -47,6 +46,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   private final Map<String, Set<AnalysisServerOutlineListener>> outlineSubscriptions = Maps.newHashMap();
   private final Map<String, AnalysisError[]> errorData = Maps.newHashMap();
   private final Map<String, NavigationRegion[]> navigationData = Maps.newHashMap();
+  private final Map<AnalysisService, List<String>> analysisSubscriptions = Maps.newHashMap();
   // TODO(scheglov) restore or remove for the new API
 //  private final Map<String, Set<ErrorCode>> fixableErrorCodesData = Maps.newHashMap();
 
@@ -96,10 +96,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
       highlightsSubscriptions.put(file, subscriptions);
     }
     if (subscriptions.add(listener)) {
-      Set<String> fileSet = highlightsSubscriptions.keySet();
-      List<String> fileList = Lists.newArrayList(fileSet);
-      // TODO(scheglov) new API requires full set of services and files
-      server.setAnalysisSubscriptions(ImmutableMap.of(AnalysisService.HIGHLIGHT, fileList));
+      addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
     }
   }
 
@@ -141,17 +138,13 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
 
   @Override
   public void unsubscribeHighlights(String file, AnalysisServerHighlightsListener listener) {
-    // TODO(scheglov) restore or remove for the new API
     Set<AnalysisServerHighlightsListener> subscriptions = highlightsSubscriptions.get(file);
     if (subscriptions == null) {
       return;
     }
     if (subscriptions.remove(listener)) {
       if (subscriptions.isEmpty()) {
-        Set<String> fileSet = highlightsSubscriptions.keySet();
-        List<String> fileList = Lists.newArrayList(fileSet);
-        // TODO(scheglov) new API requires full set of services and files
-        server.setAnalysisSubscriptions(ImmutableMap.of(AnalysisService.HIGHLIGHT, fileList));
+        removeAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
       }
     }
   }
@@ -228,5 +221,36 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   void internalSetFixableErrorCodes(String file, ErrorCode[] errorCodes) {
     // TODO(scheglov) restore or remove for the new API
 //    fixableErrorCodesData.put(contextId, Sets.newHashSet(errorCodes));
+  }
+
+  /**
+   * Adds the given file to the subscription list for the given {@link AnalysisService}.
+   */
+  private void addAnalysisSubscription(AnalysisService service, String file) {
+    List<String> files = analysisSubscriptions.get(service);
+    if (files == null) {
+      files = Lists.newArrayList();
+      analysisSubscriptions.put(service, files);
+    }
+    if (!files.contains(file)) {
+      files.add(file);
+      server.setAnalysisSubscriptions(analysisSubscriptions);
+    }
+  }
+
+  /**
+   * Removes the given file from the subscription list for the given {@link AnalysisService}.
+   */
+  private void removeAnalysisSubscription(AnalysisService service, String file) {
+    List<String> files = analysisSubscriptions.get(service);
+    if (files == null) {
+      return;
+    }
+    if (files.remove(file)) {
+      if (files.isEmpty()) {
+        analysisSubscriptions.remove(service);
+      }
+      server.setAnalysisSubscriptions(analysisSubscriptions);
+    }
   }
 }

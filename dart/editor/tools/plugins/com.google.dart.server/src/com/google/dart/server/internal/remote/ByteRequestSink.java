@@ -43,6 +43,7 @@ public class ByteRequestSink implements RequestSink {
   @Override
   public void add(JsonObject request) {
     String text = request.toString();
+//    System.out.println(System.currentTimeMillis() + " => " + text);
     writer.println(text);
     writer.flush();
   }

@@ -50,7 +50,7 @@ public class ByteResponseStream implements ResponseStream {
   public JsonObject take() throws Exception {
     while (true) {
       String line = reader.readLine();
-//      System.out.println(line);
+//      System.out.println(System.currentTimeMillis() + " <= " + line);
 //      if (!line.startsWith("{")) {
 //        continue;
 //      }

@@ -20,7 +20,7 @@ package com.google.dart.server;
  */
 public enum AnalysisService {
   ERRORS,
-  HIGHLIGHT,
+  HIGHLIGHTS,
   NAVIGATION,
   OUTLINE;
 }
