@@ -71,7 +71,7 @@ public class AndroidDebugBridge {
    */
   public String getConnectedDevice() {
     List<String> args = buildAdbCommand(DEVICES_CMD);
-    if (runAdb(args, "")) {
+    if (runAdb(args)) {
       //List of devices attached 
       //04f5385f95d80610  device
       LineNumberReader reader = new LineNumberReader(new StringReader(runner.getStdOut()));
@@ -113,7 +113,7 @@ public class AndroidDebugBridge {
       args.add(2, deviceId);
     }
     args.add(AndroidSdkManager.getManager().getContentShellApkLocation());
-    if (runAdb(args, "ADB: install dart content shell browser")) {
+    if (runAdb(args, "ADB: install dart content shell browser", "This could take up to 30 seconds")) {
       String message = runner.getStdOut();
       // if the apk is present, message is Failure [INSTALL_FAILED_ALREADY_EXISTS]   
       if (message.toLowerCase().contains("already_exists")) {
@@ -205,13 +205,17 @@ public class AndroidDebugBridge {
     return args;
   }
 
-  private boolean runAdb(List<String> args, String message) {
+  private boolean runAdb(List<String> args, String... message) {
     int exitCode = 1;
     ProcessBuilder builder = new ProcessBuilder();
     builder.command(args);
     runner = new ProcessRunner(builder);
-    if (!message.isEmpty()) {
-      DartCore.getConsole().printSeparator(message);
+    for (int index = 0; index < message.length; index++) {
+      if (index == 0) {
+        DartCore.getConsole().printSeparator(message[index]);
+      } else {
+        DartCore.getConsole().println(message[index]);
+      }
     }
     try {
       exitCode = runner.runSync(null);
