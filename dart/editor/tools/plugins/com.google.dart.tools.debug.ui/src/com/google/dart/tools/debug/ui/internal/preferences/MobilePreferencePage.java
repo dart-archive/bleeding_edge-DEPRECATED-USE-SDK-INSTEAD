@@ -13,25 +13,16 @@
  */
 package com.google.dart.tools.debug.ui.internal.preferences;
 
-import com.google.dart.tools.core.mobile.AndroidSdkManager;
 import com.google.dart.tools.debug.core.util.RemoteConnectionPreferenceManager;
-import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.internal.util.GridDataFactory;
 import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
 
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -41,11 +32,11 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 public class MobilePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
   public static final String PAGE_ID = "com.google.dart.tools.debug.mobilePreferencePage"; //$NON-NLS-1$
 
-  private Text androidSdkText;
+//  private Text androidSdkText;
 
   private Button remoteConnectButton;
 
-  private static String ANDROID_SDK_URL = "http://developer.android.com/sdk/index.html";
+//  private static String ANDROID_SDK_URL = "http://developer.android.com/sdk/index.html";
 
   /**
    * Create a new preference page.
@@ -64,7 +55,7 @@ public class MobilePreferencePage extends PreferencePage implements IWorkbenchPr
     RemoteConnectionPreferenceManager.getManager().setAllowRemoteConnectionPreference(
         remoteConnectButton.getSelection());
 
-    AndroidSdkManager.getManager().setSdkLocationPreference(androidSdkText.getText().trim());
+//    AndroidSdkManager.getManager().setSdkLocationPreference(androidSdkText.getText().trim());
     return true;
   }
 
@@ -76,46 +67,46 @@ public class MobilePreferencePage extends PreferencePage implements IWorkbenchPr
 
     createRemoteConnectionConfig(composite);
 
-    createAndroidSdkConfig(composite);
+//    createAndroidSdkConfig(composite);
 
     return composite;
   }
 
-  private void createAndroidSdkConfig(Composite composite) {
-    Group androidGroup = new Group(composite, SWT.NONE);
-    androidGroup.setText("Android SDK");
-    GridDataFactory.create(androidGroup).grabHorizontal().fill();
-    GridLayoutFactory.create(androidGroup).columns(3).marginBottom(5);
-
-    Label sdkLabel = new Label(androidGroup, SWT.NONE);
-    sdkLabel.setText("SDK Location:");
-
-    androidSdkText = new Text(androidGroup, SWT.BORDER | SWT.SINGLE);
-    GridDataFactory.create(androidSdkText).grabHorizontal().fillHorizontal();
-
-    Button selectSdkButton = new Button(androidGroup, SWT.PUSH);
-    selectSdkButton.setText(DebugPreferenceMessages.DebugPreferencePage_Select);
-    GridDataFactory.create(selectSdkButton).hintWidthUnits(IDialogConstants.BUTTON_WIDTH);
-    selectSdkButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        handleSdkConfigBrowseButton();
-      }
-    });
-
-    androidSdkText.setText(AndroidSdkManager.getManager().getSdkLocationPreference());
-
-    Link infoLink = new Link(androidGroup, SWT.NONE);
-    infoLink.setText("<a href=\"" + ANDROID_SDK_URL + "\">Download the Android SDK</a>");
-    GridDataFactory.create(infoLink).spanHorizontal(3);
-    infoLink.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        ExternalBrowserUtil.openInExternalBrowser(ANDROID_SDK_URL);
-      }
-    });
-
-  }
+//  private void createAndroidSdkConfig(Composite composite) {
+//    Group androidGroup = new Group(composite, SWT.NONE);
+//    androidGroup.setText("Android SDK");
+//    GridDataFactory.create(androidGroup).grabHorizontal().fill();
+//    GridLayoutFactory.create(androidGroup).columns(3).marginBottom(5);
+//
+//    Label sdkLabel = new Label(androidGroup, SWT.NONE);
+//    sdkLabel.setText("SDK Location:");
+//
+//    androidSdkText = new Text(androidGroup, SWT.BORDER | SWT.SINGLE);
+//    GridDataFactory.create(androidSdkText).grabHorizontal().fillHorizontal();
+//
+//    Button selectSdkButton = new Button(androidGroup, SWT.PUSH);
+//    selectSdkButton.setText(DebugPreferenceMessages.DebugPreferencePage_Select);
+//    GridDataFactory.create(selectSdkButton).hintWidthUnits(IDialogConstants.BUTTON_WIDTH);
+//    selectSdkButton.addSelectionListener(new SelectionAdapter() {
+//      @Override
+//      public void widgetSelected(SelectionEvent e) {
+//        handleSdkConfigBrowseButton();
+//      }
+//    });
+//
+//    androidSdkText.setText(AndroidSdkManager.getManager().getSdkLocationPreference());
+//
+//    Link infoLink = new Link(androidGroup, SWT.NONE);
+//    infoLink.setText("<a href=\"" + ANDROID_SDK_URL + "\">Download the Android SDK</a>");
+//    GridDataFactory.create(infoLink).spanHorizontal(3);
+//    infoLink.addSelectionListener(new SelectionAdapter() {
+//      @Override
+//      public void widgetSelected(SelectionEvent e) {
+//        ExternalBrowserUtil.openInExternalBrowser(ANDROID_SDK_URL);
+//      }
+//    });
+//
+//  }
 
   private void createRemoteConnectionConfig(Composite composite) {
     Group remoteGroup = new Group(composite, SWT.NONE);
@@ -128,13 +119,13 @@ public class MobilePreferencePage extends PreferencePage implements IWorkbenchPr
     remoteConnectButton.setSelection(RemoteConnectionPreferenceManager.getManager().getAllowRemoteConnectionPrefs());
   }
 
-  private void handleSdkConfigBrowseButton() {
-    DirectoryDialog dirDialog = new DirectoryDialog(getShell(), SWT.OPEN);
-
-    String dirPath = dirDialog.open();
-
-    if (dirPath != null) {
-      androidSdkText.setText(dirPath);
-    }
-  }
+//  private void handleSdkConfigBrowseButton() {
+//    DirectoryDialog dirDialog = new DirectoryDialog(getShell(), SWT.OPEN);
+//
+//    String dirPath = dirDialog.open();
+//
+//    if (dirPath != null) {
+//      androidSdkText.setText(dirPath);
+//    }
+//  }
 }
