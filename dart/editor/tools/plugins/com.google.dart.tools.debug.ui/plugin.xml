@@ -584,6 +584,30 @@
             allPopups="true"
             locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
          <command
+               commandId="com.google.dart.tools.debug.ui.run.mobile"
+               icon="icons/android.png"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <and>
+                     <test
+                           forcePluginActivation="true"
+                           property="com.google.dart.tools.debug.ui.launch.canLaunchMobile">
+                     </test>
+                  </and>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="true"
+            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
+         <command
                commandId="com.google.dart.tools.debug.ui.run.browser"
                icon="icons/obj16/run_exc.png"
                style="push">
@@ -598,78 +622,6 @@
                         <test
                               forcePluginActivation="true"
                               property="com.google.dart.tools.debug.ui.launch.canLaunchBrowser">
-                        </test>
-                  </and>
-               </with>
-            </visibleWhen>
-         </command>
-      </menuContribution>
-      <menuContribution
-            allPopups="true"
-            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
-         <command
-               commandId="com.google.dart.tools.debug.ui.run.dartium"
-               icon="icons/obj16/run_exc.png"
-               style="push">
-            <visibleWhen
-                  checkEnabled="false">
-               <with
-                     variable="selection">
-                  <count
-                        value="1">
-                  </count>
-                  <and>
-                        <test
-                              forcePluginActivation="true"
-                              property="com.google.dart.tools.debug.ui.launch.canLaunchDartium">
-                        </test>
-                  </and>
-               </with>
-            </visibleWhen>
-         </command>
-      </menuContribution>
-      <menuContribution
-            allPopups="true"
-            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
-         <command
-               commandId="com.google.dart.tools.debug.ui.run.mobile"
-               icon="icons/android.png"
-               style="push">
-            <visibleWhen
-                  checkEnabled="false">
-               <with
-                     variable="selection">
-                  <count
-                        value="1">
-                  </count>
-                  <and>
-                        <test
-                              forcePluginActivation="true"
-                              property="com.google.dart.tools.debug.ui.launch.canLaunchMobile">
-                        </test>
-                  </and>
-               </with>
-            </visibleWhen>
-         </command>
-      </menuContribution>
-      <menuContribution
-            allPopups="true"
-            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
-         <command
-               commandId="com.google.dart.tools.debug.ui.run.chromeapp"
-               icon="icons/obj16/run_exc.png"
-               style="push">
-            <visibleWhen
-                  checkEnabled="false">
-               <with
-                     variable="selection">
-                  <count
-                        value="1">
-                  </count>
-                  <and>
-                        <test
-                              forcePluginActivation="true"
-                              property="com.google.dart.tools.debug.ui.launch.canLaunchChromeApp">
                         </test>
                   </and>
                </with>
@@ -696,6 +648,54 @@
                            forcePluginActivation="true"
                            property="com.google.dart.tools.debug.ui.launch.canRunAsJs">
                      </test>
+                  </and>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="true"
+            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
+         <command
+               commandId="com.google.dart.tools.debug.ui.run.dartium"
+               icon="icons/obj16/run_exc.png"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <and>
+                     <test
+                           forcePluginActivation="true"
+                           property="com.google.dart.tools.debug.ui.launch.canLaunchDartium">
+                     </test>
+                  </and>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="true"
+            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
+         <command
+               commandId="com.google.dart.tools.debug.ui.run.chromeapp"
+               icon="icons/obj16/run_exc.png"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <and>
+                        <test
+                              forcePluginActivation="true"
+                              property="com.google.dart.tools.debug.ui.launch.canLaunchChromeApp">
+                        </test>
                   </and>
                </with>
             </visibleWhen>
