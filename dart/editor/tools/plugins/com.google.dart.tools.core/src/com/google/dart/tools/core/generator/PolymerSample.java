@@ -26,7 +26,7 @@ public class PolymerSample extends AbstractSample {
 
   public PolymerSample() {
     super(
-        "Sample web application (using the polymer library)",
+        "Sample web application using the polymer library [mobile friendly]",
         "Create a sample web application using the Polymer (polymer) library");
 
     List<String[]> templates = new ArrayList<String[]>();
