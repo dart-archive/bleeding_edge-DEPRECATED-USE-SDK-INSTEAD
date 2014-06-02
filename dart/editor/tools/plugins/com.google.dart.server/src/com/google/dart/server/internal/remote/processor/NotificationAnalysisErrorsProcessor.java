@@ -43,7 +43,7 @@ import java.util.List;
  * 
  * @coverage dart.server.remote
  */
-public class NotificationErrorsProcessor {
+public class NotificationAnalysisErrorsProcessor extends NotificationProcessor {
   /**
    * Return the {@link ErrorCode} code for the given name, {@code null} if cannot be parsed.
    */
@@ -90,15 +90,14 @@ public class NotificationErrorsProcessor {
     return null;
   }
 
-  private final AnalysisServerListener listener;
-
-  public NotificationErrorsProcessor(AnalysisServerListener listener) {
-    this.listener = listener;
+  public NotificationAnalysisErrorsProcessor(AnalysisServerListener listener) {
+    super(listener);
   }
 
   /**
    * Process the given {@link JsonObject} notification and notify {@link #listener}.
    */
+  @Override
   public void process(JsonObject response) throws Exception {
     JsonObject paramsObject = response.get("params").getAsJsonObject();
     String file = paramsObject.get("file").getAsString();
@@ -126,7 +125,9 @@ public class NotificationErrorsProcessor {
       }
     }
     // notify listener
-    listener.computedErrors(file, analysisErrors.toArray(new AnalysisError[analysisErrors.size()]));
+    getListener().computedErrors(
+        file,
+        analysisErrors.toArray(new AnalysisError[analysisErrors.size()]));
   }
 
   /**

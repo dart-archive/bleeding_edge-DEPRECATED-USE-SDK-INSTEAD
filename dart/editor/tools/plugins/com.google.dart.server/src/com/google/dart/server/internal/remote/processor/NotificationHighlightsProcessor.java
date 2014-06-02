@@ -29,16 +29,16 @@ import java.util.List;
  * 
  * @coverage dart.server.remote
  */
-public class NotificationHighlightsProcessor {
-  private final AnalysisServerListener listener;
+public class NotificationHighlightsProcessor extends NotificationProcessor {
 
   public NotificationHighlightsProcessor(AnalysisServerListener listener) {
-    this.listener = listener;
+    super(listener);
   }
 
   /**
    * Process the given {@link JsonObject} notification and notify {@link #listener}.
    */
+  @Override
   public void process(JsonObject response) throws Exception {
     JsonObject paramsObject = response.get("params").getAsJsonObject();
     String file = paramsObject.get("file").getAsString();
@@ -58,6 +58,6 @@ public class NotificationHighlightsProcessor {
       }
     }
     // notify listener
-    listener.computedHighlights(file, regions.toArray(new HighlightRegion[regions.size()]));
+    getListener().computedHighlights(file, regions.toArray(new HighlightRegion[regions.size()]));
   }
 }

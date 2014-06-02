@@ -21,7 +21,6 @@ import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisService;
-import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.CompletionSuggestionsConsumer;
 import com.google.dart.server.Consumer;
@@ -35,12 +34,13 @@ import com.google.dart.server.RefactoringExtractMethodOptionsValidationConsumer;
 import com.google.dart.server.RefactoringOptionsValidationConsumer;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.ServerService;
-import com.google.dart.server.ServerStatus;
 import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.local.BroadcastAnalysisServerListener;
-import com.google.dart.server.internal.remote.processor.NotificationErrorsProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationHighlightsProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -107,10 +107,14 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     }
   }
 
+  // server domain
+  private static final String SERVER_NOTIFICATION_CONNECTED = "server.connected";
+  private static final String SERVER_NOTIFICATION_ERROR = "server.error";
+  private static final String SERVER_NOTIFICATION_STATUS = "server.status";
+
+  // analysis domain
   private static final String ANALYSIS_NOTIFICATION_ERRORS = "analysis.errors";
   private static final String ANALYSIS_NOTIFICATION_HIGHTLIGHTS = "analysis.highlights";
-
-  private static final String SERVER_STATUS = "server.status";
 
   private final RequestSink requestSink;
 
@@ -326,11 +330,21 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     String event = eventElement.getAsString();
     // handle each supported notification kind
     if (event.equals(ANALYSIS_NOTIFICATION_ERRORS)) {
-      new NotificationErrorsProcessor(listener).process(response);
+      // analysis.errors
+      new NotificationAnalysisErrorsProcessor(listener).process(response);
     } else if (event.equals(ANALYSIS_NOTIFICATION_HIGHTLIGHTS)) {
+      // analysis.highlights
       new NotificationHighlightsProcessor(listener).process(response);
-    } else if (event.equals(SERVER_STATUS)) {
-      processServerStatus(response);
+    } else if (event.equals(SERVER_NOTIFICATION_STATUS)) {
+      // server.status
+      new NotificationServerStatusProcessor(listener).process(response);
+    } else if (event.equals(SERVER_NOTIFICATION_ERROR)) {
+      // server.error
+      // TODO (jwren) implement support for server.connected
+//      new NotificationServerErrorProcessor(listener).process(response);
+    } else if (event.equals(SERVER_NOTIFICATION_CONNECTED)) {
+      // server.connected
+      new NotificationServerConnectedProcessor(listener).process(response);
     }
     // it is a notification, even if we did not handle it
     return true;
@@ -364,20 +378,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     synchronized (consumerMapLock) {
       consumerMap.remove(idString);
     }
-  }
-
-  private void processServerStatus(JsonObject response) {
-    ServerStatus serverStatus = new ServerStatus();
-    JsonObject paramsObject = response.get("params").getAsJsonObject();
-    JsonElement element = paramsObject.get("analysis");
-    if (element != null) {
-      JsonObject analysisObject = element.getAsJsonObject();
-      boolean analyzing = analysisObject.get("analyzing").getAsBoolean();
-      JsonElement targetElement = analysisObject.get("analysisTarget");
-      serverStatus.setAnalysisStatus(new AnalysisStatus(analyzing, targetElement == null ? null
-          : targetElement.getAsString()));
-    }
-    listener.serverStatus(serverStatus);
   }
 
   private void processVersionConsumer(VersionConsumer consumer, JsonObject resultObject) {

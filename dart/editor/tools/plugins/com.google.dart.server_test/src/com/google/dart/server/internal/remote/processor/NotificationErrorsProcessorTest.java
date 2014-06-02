@@ -38,7 +38,7 @@ import static org.fest.assertions.Assertions.assertThat;
 
 public class NotificationErrorsProcessorTest extends TestCase {
   private TestAnalysisServerListener listener = new TestAnalysisServerListener();
-  private NotificationErrorsProcessor processor = new NotificationErrorsProcessor(listener);
+  private NotificationAnalysisErrorsProcessor processor = new NotificationAnalysisErrorsProcessor(listener);
 
   public void test_getErrorCode() throws Exception {
     assertSame(AngularCode.MISSING_NAME, getErrorCode("AngularCode.MISSING_NAME"));
@@ -127,7 +127,7 @@ public class NotificationErrorsProcessorTest extends TestCase {
   }
 
   private ErrorCode getErrorCode(String name) {
-    return NotificationErrorsProcessor.getErrorCode(name);
+    return NotificationAnalysisErrorsProcessor.getErrorCode(name);
   }
 
   /**

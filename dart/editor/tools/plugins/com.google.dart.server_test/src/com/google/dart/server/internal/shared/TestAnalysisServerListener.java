@@ -22,6 +22,7 @@ import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.Element;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
@@ -48,6 +49,8 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   private final Map<String, HighlightRegion[]> highlightsMap = Maps.newHashMap();
   private final Map<String, NavigationRegion[]> navigationMap = Maps.newHashMap();
   private final Map<String, Outline> outlineMap = Maps.newHashMap();
+  private boolean serverConnected = false;
+  private ServerStatus serverStatus = null;
 
   /**
    * Assert that the number of errors that have been gathered matches the number of errors that are
@@ -76,6 +79,10 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    */
   public synchronized void assertNoServerErrors() {
     assertThat(serverErrors).isEmpty();
+  }
+
+  public synchronized void assertServerConnected(boolean expectedConnected) {
+    Assert.assertEquals(expectedConnected, serverConnected);
   }
 
   /**
@@ -170,6 +177,15 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
     }
   }
 
+  public synchronized void assertServerStatus(ServerStatus expectedStatus) {
+    AnalysisStatus actualAnalysisStatus = serverStatus.getAnalysisStatus();
+    AnalysisStatus expectedAnalysisStatus = expectedStatus.getAnalysisStatus();
+    Assert.assertEquals(expectedAnalysisStatus.isAnalyzing(), actualAnalysisStatus.isAnalyzing());
+    Assert.assertEquals(
+        expectedAnalysisStatus.getAnalysisTarget(),
+        actualAnalysisStatus.getAnalysisTarget());
+  }
+
   /**
    * Removes all of reported {@link NavigationRegion}s.
    */
@@ -248,7 +264,8 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverConnected() {
+  public synchronized void serverConnected() {
+    serverConnected = true;
   }
 
   @Override
@@ -257,7 +274,8 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverStatus(ServerStatus status) {
+  public synchronized void serverStatus(ServerStatus status) {
+    this.serverStatus = status;
   }
 
   /**

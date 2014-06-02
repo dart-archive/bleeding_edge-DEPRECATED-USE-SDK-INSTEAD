@@ -23,12 +23,14 @@ import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisService;
+import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
 import com.google.dart.server.ServerService;
+import com.google.dart.server.ServerStatus;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
 import com.google.dart.server.internal.remote.processor.AnalysisErrorImpl;
@@ -420,6 +422,52 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     assertTrue(requests.contains(expected));
+  }
+
+  public void test_notification_server_connected() throws Exception {
+    listener.assertServerConnected(false);
+    putResponse(//
+        "{",
+        "  'event': 'server.connected'",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    listener.assertServerConnected(true);
+  }
+
+  public void test_notification_server_status_false() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'server.status',",
+        "  'params': {",
+        "    'analysis': {",
+        "      analyzing: false",
+        "    }",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    ServerStatus serverStatus = new ServerStatus();
+    serverStatus.setAnalysisStatus(new AnalysisStatus(false, null));
+    listener.assertServerStatus(serverStatus);
+  }
+
+  public void test_notification_server_status_true() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'server.status',",
+        "  'params': {",
+        "    'analysis': {",
+        "      analyzing: true,",
+        "      analysisTarget: 'target0'",
+        "    }",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    ServerStatus serverStatus = new ServerStatus();
+    serverStatus.setAnalysisStatus(new AnalysisStatus(true, "target0"));
+    listener.assertServerStatus(serverStatus);
   }
 
   public void test_server_getVersion() throws Exception {
