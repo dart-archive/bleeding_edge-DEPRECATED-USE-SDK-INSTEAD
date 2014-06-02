@@ -17,10 +17,10 @@ package com.google.dart.tools.core.internal.analysis.model;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
+import com.google.dart.server.ServerStatus;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager_NEW;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 
@@ -77,7 +77,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverStatus(AnalysisStatus analysis) {
+  public void serverStatus(ServerStatus status) {
     // TODO(scheglov) Analysis Server
   }
 }

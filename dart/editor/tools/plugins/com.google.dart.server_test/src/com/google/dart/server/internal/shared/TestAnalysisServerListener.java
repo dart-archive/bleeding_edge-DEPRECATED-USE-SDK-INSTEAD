@@ -22,11 +22,11 @@ import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.Element;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
+import com.google.dart.server.ServerStatus;
 import com.google.dart.server.internal.local.asserts.NavigationRegionsAssert;
 
 import junit.framework.Assert;
@@ -257,7 +257,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverStatus(AnalysisStatus analysis) {
+  public void serverStatus(ServerStatus status) {
   }
 
   /**

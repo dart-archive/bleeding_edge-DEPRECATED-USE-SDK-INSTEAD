@@ -21,6 +21,7 @@ import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisService;
+import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.CompletionSuggestionsConsumer;
 import com.google.dart.server.Consumer;
@@ -34,6 +35,7 @@ import com.google.dart.server.RefactoringExtractMethodOptionsValidationConsumer;
 import com.google.dart.server.RefactoringOptionsValidationConsumer;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.ServerService;
+import com.google.dart.server.ServerStatus;
 import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.local.BroadcastAnalysisServerListener;
@@ -88,6 +90,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       while (true) {
         try {
           JsonObject response = responseStream.take();
+          if (response == null) {
+            // TODO(brianwilkerson) Signal that the remote process has crashed.
+            return;
+          }
           try {
             processResponse(response);
           } finally {
@@ -103,6 +109,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   private static final String ANALYSIS_NOTIFICATION_ERRORS = "analysis.errors";
   private static final String ANALYSIS_NOTIFICATION_HIGHTLIGHTS = "analysis.highlights";
+
+  private static final String SERVER_STATUS = "server.status";
 
   private final RequestSink requestSink;
 
@@ -311,22 +319,18 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    */
   private boolean processNotification(JsonObject response) throws Exception {
     // prepare notification kind
-    String event;
-    {
-      JsonElement eventElement = response.get("event");
-      if (eventElement == null || !eventElement.isJsonPrimitive()) {
-        return false;
-      }
-      event = eventElement.getAsString();
+    JsonElement eventElement = response.get("event");
+    if (eventElement == null || !eventElement.isJsonPrimitive()) {
+      return false;
     }
+    String event = eventElement.getAsString();
     // handle each supported notification kind
     if (event.equals(ANALYSIS_NOTIFICATION_ERRORS)) {
       new NotificationErrorsProcessor(listener).process(response);
-      return true;
-    }
-    if (event.equals(ANALYSIS_NOTIFICATION_HIGHTLIGHTS)) {
+    } else if (event.equals(ANALYSIS_NOTIFICATION_HIGHTLIGHTS)) {
       new NotificationHighlightsProcessor(listener).process(response);
-      return true;
+    } else if (event.equals(SERVER_STATUS)) {
+      processServerStatus(response);
     }
     // it is a notification, even if we did not handle it
     return true;
@@ -360,6 +364,20 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     synchronized (consumerMapLock) {
       consumerMap.remove(idString);
     }
+  }
+
+  private void processServerStatus(JsonObject response) {
+    ServerStatus serverStatus = new ServerStatus();
+    JsonObject paramsObject = response.get("params").getAsJsonObject();
+    JsonElement element = paramsObject.get("analysis");
+    if (element != null) {
+      JsonObject analysisObject = element.getAsJsonObject();
+      boolean analyzing = analysisObject.get("analyzing").getAsBoolean();
+      JsonElement targetElement = analysisObject.get("analysisTarget");
+      serverStatus.setAnalysisStatus(new AnalysisStatus(analyzing, targetElement == null ? null
+          : targetElement.getAsString()));
+    }
+    listener.serverStatus(serverStatus);
   }
 
   private void processVersionConsumer(VersionConsumer consumer, JsonObject resultObject) {

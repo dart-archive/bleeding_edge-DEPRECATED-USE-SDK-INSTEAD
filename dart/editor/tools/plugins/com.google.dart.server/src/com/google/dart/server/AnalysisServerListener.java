@@ -75,8 +75,7 @@ public interface AnalysisServerListener {
   /**
    * Reports the current status of the server.
    * 
-   * @param analysis the current status of analysis, including whether analysis is being performed
-   *          and if so what is being analyzed.
+   * @param status the current status of the server
    */
-  public void serverStatus(AnalysisStatus analysis);
+  public void serverStatus(ServerStatus status);
 }

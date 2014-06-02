@@ -14,20 +14,45 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code AnalysisStatus} defines the behavior of objects that indicate the current
- * state of analysis.
+ * Instances of the class {@code AnalysisStatus} represent the current state of analysis.
  * 
  * @coverage dart.server
  */
-public interface AnalysisStatus {
+public class AnalysisStatus {
   /**
-   * Returns the name of the current target of analysis, {@code null} if {@link #isAnalyzing} is
-   * {@code false}.
+   * A flag indicating whether analysis is currently being performed.
    */
-  String getAnalysisTarget();
+  private boolean isAnalyzing;
 
   /**
-   * Returns {@code true} if analysis is currently being performed.
+   * The name of the current target of analysis.
    */
-  boolean isAnalyzing();
+  private String analysisTarget;
+
+  /**
+   * Initialize a newly created status object.
+   */
+  public AnalysisStatus(boolean isAnalyzing, String analysisTarget) {
+    this.isAnalyzing = isAnalyzing;
+    this.analysisTarget = analysisTarget;
+  }
+
+  /**
+   * Return the name of the current target of analysis, {@code null} if {@link #isAnalyzing} is
+   * {@code false}.
+   * 
+   * @return the name of the current target of analysis
+   */
+  public String getAnalysisTarget() {
+    return analysisTarget;
+  }
+
+  /**
+   * Return {@code true} if analysis is currently being performed.
+   * 
+   * @return {@code true} if analysis is currently being performed
+   */
+  public boolean isAnalyzing() {
+    return isAnalyzing;
+  }
 }

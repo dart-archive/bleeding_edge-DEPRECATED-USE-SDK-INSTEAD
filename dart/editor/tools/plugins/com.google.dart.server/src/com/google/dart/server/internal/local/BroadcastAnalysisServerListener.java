@@ -18,10 +18,10 @@ import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
+import com.google.dart.server.ServerStatus;
 
 import java.util.List;
 
@@ -104,9 +104,9 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverStatus(AnalysisStatus analysis) {
+  public void serverStatus(ServerStatus status) {
     for (AnalysisServerListener listener : getListeners()) {
-      listener.serverStatus(analysis);
+      listener.serverStatus(status);
     }
   }
 
