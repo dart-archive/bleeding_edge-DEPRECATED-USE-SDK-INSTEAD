@@ -15,9 +15,8 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
-import com.google.dart.server.Element;
 import com.google.dart.server.NavigationRegion;
-import com.google.dart.tools.ui.DartUI;
+import com.google.dart.server.NavigationTarget;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Assert;
@@ -57,9 +56,11 @@ public class DartNavigationRegionHyperlink_NEW implements IHyperlink {
   public void open() {
     InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
     try {
-      Element[] targets = region.getTargets();
+      NavigationTarget[] targets = region.getTargets();
+      // Server API has changed, Element not returned in getTargets anymore
       if (targets.length != 0) {
-        DartUI.openInEditor(context, targets[0]);
+        throw new IllegalStateException("Not yet implemented: cannot open NavigationTargets.");
+//        DartUI.openInEditor(context, targets[0]);
       }
       instrumentation.metric("Run", "Completed");
     } catch (Throwable e) {

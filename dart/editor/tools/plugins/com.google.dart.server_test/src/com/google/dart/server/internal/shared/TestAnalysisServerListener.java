@@ -23,9 +23,9 @@ import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisStatus;
-import com.google.dart.server.Element;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.NavigationTarget;
 import com.google.dart.server.Outline;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.server.internal.local.asserts.NavigationRegionsAssert;
@@ -214,9 +214,9 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   /**
-   * Returns a navigation {@link Element} at the given position.
+   * Returns a navigation {@link NavigationTarget} at the given position.
    */
-  public synchronized Element findNavigationElement(String file, int offset) {
+  public synchronized NavigationTarget findNavigationElement(String file, int offset) {
     NavigationRegion[] regions = getNavigationRegions(file);
     if (regions != null) {
       for (NavigationRegion navigationRegion : regions) {

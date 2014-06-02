@@ -14,17 +14,15 @@
 
 package com.google.dart.server.internal.local.computer;
 
-import com.google.dart.server.Element;
-
 import junit.framework.TestCase;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class NavigationRegionImplTest extends TestCase {
-  private Element targetA = mock(Element.class);
-  private Element targetB = mock(Element.class);
-  private Element[] targets = {targetA, targetB};
+  private NavigationTargetImpl targetA = mock(NavigationTargetImpl.class);
+  private NavigationTargetImpl targetB = mock(NavigationTargetImpl.class);
+  private NavigationTargetImpl[] targets = {targetA, targetB};
 
   public void test_access() throws Exception {
     NavigationRegionImpl region = new NavigationRegionImpl(10, 20, targets);

@@ -14,21 +14,29 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code NavigationRegion} defines the behavior of objects representing a list of
- * elements with which a source region is associated.
+ * The interface {@code NavigationTarget} defines the object that some {@link NavigationRegion} is
+ * associated.
  * 
  * @coverage dart.server
  */
-public interface NavigationRegion extends SourceRegion {
+public interface NavigationTarget extends SourceRegion {
   /**
-   * An empty array of navigation regions.
+   * An empty array of navigation targets.
    */
-  NavigationRegion[] EMPTY_ARRAY = new NavigationRegion[0];
+  NavigationTarget[] EMPTY_ARRAY = new NavigationTarget[0];
 
   /**
-   * Return the {@link NavigationTarget}s associated with the region.
+   * Return the id of the element to which this target will navigate.
    * 
-   * @return the {@link NavigationTarget}s associated with the region
+   * @return the id of the element to which this target will navigate
    */
-  public NavigationTarget[] getTargets();
+  public String getElementId();
+
+  /**
+   * Return the file containing the element to which this target will navigate.
+   * 
+   * @return the file containing the element to which this target will navigate
+   */
+  public String getFile();
+
 }

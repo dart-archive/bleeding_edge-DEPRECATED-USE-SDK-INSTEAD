@@ -17,33 +17,45 @@ package com.google.dart.server.internal.local.computer;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.NavigationTarget;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * A concrete implementation of {@link NavigationRegion}.
  * 
  * @coverage dart.server.local
  */
-public class NavigationRegionImpl extends SourceRegionImpl implements NavigationRegion {
-  private NavigationTarget[] targets;
+public class NavigationTargetImpl extends SourceRegionImpl implements NavigationTarget {
+  private final String filePath;
+  private final String elementId;
 
-  public NavigationRegionImpl(int offset, int length, NavigationTarget[] targets) {
+  public NavigationTargetImpl(String filePath, int offset, int length, String elementId) {
     super(offset, length);
-    this.targets = targets;
+    this.filePath = filePath;
+    this.elementId = elementId;
   }
 
   @Override
-  public NavigationTarget[] getTargets() {
-    return targets;
+  public String getElementId() {
+    return elementId;
+  }
+
+  @Override
+  public String getFile() {
+    return filePath;
   }
 
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append(super.toString());
-    builder.append(" -> [");
-    builder.append(StringUtils.join(targets, ", "));
+    builder.append("[");
+    builder.append("file=");
+    builder.append(getFile());
+    builder.append(", offset=");
+    builder.append(getOffset());
+    builder.append(", length=");
+    builder.append(getLength());
+    builder.append(", elementId=");
+    builder.append(getElementId());
     builder.append("]");
     return builder.toString();
   }
+
 }

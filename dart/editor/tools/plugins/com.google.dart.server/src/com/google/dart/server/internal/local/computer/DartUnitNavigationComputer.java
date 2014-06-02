@@ -165,10 +165,12 @@ public class DartUnitNavigationComputer {
     if (target == null) {
       return;
     }
-    regions.add(new NavigationRegionImpl(
-        offset,
-        length,
-        new com.google.dart.server.Element[] {target}));
+    throw new IllegalStateException("Not yet implemented: API has changed in NavigationRegionImpl");
+    // API has changed in NavigationRegionImpl
+//    regions.add(new NavigationRegionImpl(
+//        offset,
+//        length,
+//        new com.google.dart.server.Element[] {target}));
   }
 
   private void addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {

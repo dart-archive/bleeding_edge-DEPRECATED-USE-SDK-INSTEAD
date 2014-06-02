@@ -29,6 +29,8 @@ import com.google.dart.server.ContentChange;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
+import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.NavigationTarget;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.server.VersionConsumer;
@@ -121,6 +123,87 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertSame(HighlightType.FIELD, error.getType());
       assertEquals(10, error.getOffset());
       assertEquals(20, error.getLength());
+    }
+  }
+
+  public void test_analysis_notification_navigation() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'analysis.navigation',",
+        "  'params': {",
+        "    'file': '/test.dart',",
+        "    'regions' : [",
+        "      {",
+        "        'offset': 1,",
+        "        'length': 2,",
+        "        'targets': [",
+        "          {",
+        "            'file': '/test2.dart',",
+        "            'offset': 3,",
+        "            'length': 4,",
+        "            'elementId': 'elementId0'",
+        "          },",
+        "          {",
+        "            'file': '/test3.dart',",
+        "            'offset': 5,",
+        "            'length': 6,",
+        "            'elementId': 'elementId1'",
+        "          }",
+        "        ]",
+        "      },",
+        "      {",
+        "        'offset': 10,",
+        "        'length': 20,",
+        "        'targets': [",
+        "          {",
+        "            'file': '/test4.dart',",
+        "            'offset': 30,",
+        "            'length': 40,",
+        "            'elementId': 'elementId2'",
+        "          }",
+        "        ]",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    NavigationRegion[] regions = listener.getNavigationRegions("/test.dart");
+    assertThat(regions).hasSize(2);
+    {
+      NavigationRegion region = regions[0];
+      assertEquals(1, region.getOffset());
+      assertEquals(2, region.getLength());
+      NavigationTarget[] targets = region.getTargets();
+      assertThat(targets).hasSize(2);
+      {
+        NavigationTarget target = targets[0];
+        assertEquals("/test2.dart", target.getFile());
+        assertEquals(3, target.getOffset());
+        assertEquals(4, target.getLength());
+        assertEquals("elementId0", target.getElementId());
+      }
+      {
+        NavigationTarget target = targets[1];
+        assertEquals("/test3.dart", target.getFile());
+        assertEquals(5, target.getOffset());
+        assertEquals(6, target.getLength());
+        assertEquals("elementId1", target.getElementId());
+      }
+    }
+    {
+      NavigationRegion region = regions[1];
+      assertEquals(10, region.getOffset());
+      assertEquals(20, region.getLength());
+      NavigationTarget[] targets = region.getTargets();
+      assertThat(targets).hasSize(1);
+      {
+        NavigationTarget target = targets[0];
+        assertEquals("/test4.dart", target.getFile());
+        assertEquals(30, target.getOffset());
+        assertEquals(40, target.getLength());
+        assertEquals("elementId2", target.getElementId());
+      }
     }
   }
 
