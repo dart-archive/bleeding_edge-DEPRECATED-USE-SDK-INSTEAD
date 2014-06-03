@@ -18,6 +18,10 @@ import com.google.dart.tools.core.mobile.AndroidDebugBridge;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
+import com.google.dart.tools.debug.core.DebugUIHelper;
+import com.google.dart.tools.debug.core.pubserve.PubCallback;
+import com.google.dart.tools.debug.core.pubserve.PubResult;
+import com.google.dart.tools.debug.core.pubserve.PubServeManager;
 import com.google.dart.tools.debug.core.util.ResourceServer;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
 
@@ -30,6 +34,7 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -38,11 +43,35 @@ import java.net.URISyntaxException;
  */
 public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate {
 
+  private PubCallback<String> pubConnectionCallback = new PubCallback<String>() {
+    @Override
+    public void handleResult(PubResult<String> result) {
+      if (result.isError()) {
+        DebugUIHelper.getHelper().showError(
+            "Launch Error",
+            "Pub serve communication error: " + result.getErrorMessage());
+        return;
+      }
+
+      try {
+        String launchUrl = result.getResult();
+        launchOnMobile(launchUrl);
+      } catch (CoreException e) {
+        DartDebugCorePlugin.logError(e);
+        DebugUIHelper.getHelper().showError("Dartium Launch Error", e.getMessage());
+      }
+    }
+
+  };
+
+  private DartLaunchConfigWrapper wrapper;
+  private static final String DEBUG_PORT = "9222";
+
   @Override
   public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor, InstrumentationBuilder instrumentation) throws CoreException {
 
-    DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(configuration);
+    wrapper = new DartLaunchConfigWrapper(configuration);
     wrapper.markAsLaunched();
 
     String launchUrl = "";
@@ -60,25 +89,25 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
       instrumentation.metric("Resource-Class", resource.getClass().toString());
       instrumentation.data("Resource-Name", resource.getName());
 
-      ResourceServer server;
-      // TODO(keertip): change to localhost and pubserve once port forwarding is setup right
       try {
-        server = ResourceServerManager.getServer();
-        String resPath = resource.getFullPath().toPortableString();
-        String localAddress = server.getLocalAddress();
-        if (localAddress == null) {
-          // TODO (danrubel) Improve UX to help user work through this issue
-          throw new CoreException(new Status(
-              IStatus.ERROR,
-              DartDebugCorePlugin.PLUGIN_ID,
-              "Unable to get local IP address"));
+        boolean usePubServe = true; // TODO(keertip): get from launch config
+        if (usePubServe) {
+          PubServeManager manager = PubServeManager.getManager();
+
+          try {
+            manager.serve(wrapper, pubConnectionCallback);
+          } catch (Exception e) {
+            throw new CoreException(new Status(
+                IStatus.ERROR,
+                DartDebugCorePlugin.PLUGIN_ID,
+                "Could not start pub serve or connect to pub\n" + manager.getStdErrorString(),
+                e));
+          }
+
+        } else {
+          launchUrl = getUrlFromResourceServer(resource);
+          launchOnMobile(launchUrl);
         }
-
-        URI uri = new URI("http", null, localAddress, server.getPort(), resPath, null, null);
-
-        launchUrl = uri.toString();
-        // launchUrl = server.getUrlForFile((File) resource);
-        wrapper.appendQueryParams(launchUrl);
 
       } catch (Exception e) {
         throw new CoreException(new Status(
@@ -94,6 +123,7 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
 
         if (scheme == null) { // add scheme else browser will not launch
           launchUrl = "http://" + launchUrl;
+          launchOnMobile(launchUrl);
         }
       } catch (URISyntaxException e) {
         throw new CoreException(new Status(
@@ -103,8 +133,14 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
       }
     }
 
-    AndroidDebugBridge devBridge = new AndroidDebugBridge();
+    DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
+  }
 
+  protected void launchOnMobile(String launchUrl) throws CoreException {
+
+    AndroidDebugBridge devBridge = AndroidDebugBridge.getAndroidDebugBridge();
+
+    devBridge.startAdbServer();
     String deviceId = devBridge.getConnectedDevice();
     if (deviceId == null) {
       throw new CoreException(new Status(
@@ -126,7 +162,27 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
     } else {
       devBridge.launchChromeBrowser(launchUrl);
     }
-
-    DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
   }
+
+  private String getUrlFromResourceServer(IResource resource) throws IOException, CoreException,
+      URISyntaxException {
+
+    ResourceServer server = ResourceServerManager.getServer();
+    String resPath = resource.getFullPath().toPortableString();
+    String localAddress = server.getLocalAddress();
+    if (localAddress == null) {
+      // TODO (danrubel) Improve UX to help user work through this issue
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          "Unable to get local IP address"));
+    }
+
+    URI uri = new URI("http", null, localAddress, server.getPort(), resPath, null, null);
+
+    String launchUrl = uri.toString();
+    launchUrl = wrapper.appendQueryParams(launchUrl);
+    return launchUrl;
+  }
+
 }
