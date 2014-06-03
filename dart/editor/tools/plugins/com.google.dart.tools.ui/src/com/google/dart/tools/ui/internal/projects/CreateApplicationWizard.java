@@ -69,6 +69,11 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
   private IFile createdFile;
   private IProject newProject;
 
+  public CreateApplicationWizard() {
+    super();
+    setWindowTitle("New Project");
+  }
+
   @Override
   public void addPages() {
     addPage(page = new NewApplicationCreationPage());
