@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.ui.internal.mobile;
 
+import com.google.dart.tools.core.mobile.AndroidDebugBridge;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
@@ -24,6 +25,8 @@ import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -31,18 +34,36 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Main tab for Mobile launch configurations
  */
 public class MobileMainTab extends AbstractLaunchConfigurationTab {
 
+  private static final String MOBILE_STATUS_PREFIX = "Mobile status: ";
+  private static final String DEVICE_CONNECTED = "Connected";
+  private static final String DEVICE_NOT_FOUND = "No mobile found or USB development not enabled on mobile";
+
   private LaunchTargetComposite launchTargetGroup;
   private Button dartBrowserButton;
   private Button installDartBrowserButton;
+  private Label statusLabel;
+
+  private boolean deviceConnected = false;
+  private final AtomicBoolean monitorDeviceConnection = new AtomicBoolean(false);
+
+  @Override
+  public void activated(ILaunchConfigurationWorkingCopy workingCopy) {
+    startMonitorDeviceConnectionInBackground(statusLabel.getDisplay());
+    super.activated(workingCopy);
+  }
 
   @Override
   public void createControl(Composite parent) {
@@ -82,6 +103,23 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     GridDataFactory.swtDefaults().span(2, 1).grab(true, false).indent(20, 0).applyTo(
         installDartBrowserButton);
 
+    // Status and setup group
+    group = new Group(composite, SWT.NONE);
+    group.setText("Status and first time setup");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(1).applyTo(group);
+    ((GridLayout) group.getLayout()).marginBottom = 4;
+
+    statusLabel = new Label(group, SWT.NONE);
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(statusLabel);
+    statusLabel.setText(MOBILE_STATUS_PREFIX);
+    statusLabel.addDisposeListener(new DisposeListener() {
+      @Override
+      public void widgetDisposed(DisposeEvent e) {
+        stopMonitorDeviceConnectionInBackground();
+      }
+    });
+
     setControl(composite);
   }
 
@@ -101,13 +139,9 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     if (performSdkCheck() != null) {
       return performSdkCheck();
     }
-
-//    if (AndroidSdkManager.getManager().getSdkLocationPreference().isEmpty()) {
-//      return "Set Android SDK location in Preferences > Run & Debug";
-//    }
-//    if (!AndroidSdkManager.getManager().isAdbInstalled()) {
-//      return "Run Android SDK Manager to install platform tools";
-//    }
+    if (!deviceConnected) {
+      return DEVICE_NOT_FOUND;
+    }
     return launchTargetGroup.getErrorMessage();
   }
 
@@ -204,4 +238,66 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     }
   }
 
+  /**
+   * Start the background process that monitors device connection via ADB
+   */
+  private void startMonitorDeviceConnectionInBackground(final Display display) {
+    if (!monitorDeviceConnection.get()) {
+      monitorDeviceConnection.set(true);
+      Thread thread = new Thread("Monitor mobile connection") {
+        @Override
+        public void run() {
+
+          AndroidDebugBridge devBridge = new AndroidDebugBridge();
+          boolean wasDeviceConnected = devBridge.getConnectedDevice() != null;
+          update(wasDeviceConnected);
+
+          while (monitorDeviceConnection.get()) {
+            final boolean isDeviceConnected = devBridge.getConnectedDevice() != null;
+            if (wasDeviceConnected != isDeviceConnected) {
+              wasDeviceConnected = isDeviceConnected;
+              update(isDeviceConnected);
+            }
+            try {
+              Thread.sleep(1000);
+            } catch (InterruptedException e) {
+              //$FALL-THROUGH$
+            }
+          }
+        }
+
+        private void update(final boolean isDeviceConnected) {
+          display.asyncExec(new Runnable() {
+            @Override
+            public void run() {
+              updateMobileStatus(isDeviceConnected);
+            }
+          });
+        }
+      };
+      thread.setDaemon(true);
+      thread.start();
+    }
+  }
+
+  /**
+   * Stop the background process that monitors device connection via ADB
+   */
+  private void stopMonitorDeviceConnectionInBackground() {
+    monitorDeviceConnection.set(false);
+  }
+
+  /**
+   * Update the mobile status. Must be called on the UI thread.
+   * 
+   * @param isDeviceConnected {@code true} if a mobile device is currently connected
+   */
+  private void updateMobileStatus(boolean isDeviceConnected) {
+    deviceConnected = isDeviceConnected;
+    if (statusLabel != null && !statusLabel.isDisposed()) {
+      statusLabel.setText(MOBILE_STATUS_PREFIX
+          + (deviceConnected ? DEVICE_CONNECTED : DEVICE_NOT_FOUND));
+      updateLaunchConfigurationDialog();
+    }
+  }
 }
