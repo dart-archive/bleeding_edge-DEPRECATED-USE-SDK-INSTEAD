@@ -68,6 +68,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   private final IWorkspaceRoot resource;
   private final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
   private final Index index;
+  private boolean indexEnabled = true;
   private final DartIgnoreManager ignoreManager;
   private final ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
 
@@ -78,11 +79,17 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
     @Override
     public void resolved(ResolvedEvent event) {
+      if (!indexEnabled) {
+        return;
+      }
       index.indexUnit(event.getContext(), event.getUnit());
     }
 
     @Override
     public void resolvedHtml(ResolvedHtmlEvent event) {
+      if (!indexEnabled) {
+        return;
+      }
       index.indexHtmlUnit(event.getContext(), event.getUnit());
     }
   };
@@ -117,6 +124,12 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         listeners.add(listener);
       }
     }
+  }
+
+  @Override
+  public void disableIndex() {
+    indexEnabled = false;
+    index.clear();
   }
 
   @Override

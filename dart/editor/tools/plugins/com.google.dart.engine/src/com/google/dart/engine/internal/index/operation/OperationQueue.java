@@ -99,6 +99,10 @@ public class OperationQueue {
    */
   public void enqueue(IndexOperation operation) {
     synchronized (nonQueryOperations) {
+      if (operation instanceof ClearOperation) {
+        queryOperations.clear();
+        nonQueryOperations.clear();
+      }
       if (operation instanceof RemoveSourceOperation) {
         Source source = ((RemoveSourceOperation) operation).getSource();
         removeForSource(source, nonQueryOperations);

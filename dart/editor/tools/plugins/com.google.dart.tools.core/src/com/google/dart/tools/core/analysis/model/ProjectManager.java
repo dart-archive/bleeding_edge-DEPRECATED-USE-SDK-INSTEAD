@@ -40,6 +40,14 @@ public interface ProjectManager extends ContextManager {
   void addProjectListener(ProjectListener listener);
 
   /**
+   * Disables and clear index.
+   * <p>
+   * This method should be used when JVM is about to run out of memory, so we need to disable the
+   * most memory consuming parts to keep Editor usable.
+   */
+  void disableIndex();
+
+  /**
    * Answer with the html file which has a reference to the library represented by the given source
    * 
    * @param source the source for a library

@@ -277,6 +277,16 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
+  public void clear() {
+    canonicalKeys.clear();
+    keyToLocations.clear();
+    contextToSourceToKeys.clear();
+    contextToSourceToLocations.clear();
+    contextToLibraryToUnits.clear();
+    contextToUnitToLibraries.clear();
+  }
+
+  @Override
   public Location[] getRelationships(Element element, Relationship relationship) {
     ElementRelationKey key = new ElementRelationKey(element, relationship);
     Set<Location> locations = keyToLocations.get(key);

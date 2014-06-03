@@ -52,6 +52,11 @@ public interface IndexStore {
   boolean aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement);
 
   /**
+   * Removes all of the information.
+   */
+  void clear();
+
+  /**
    * Return the locations of the elements that have the given relationship with the given element.
    * For example, if the element represents a method and the relationship is the is-referenced-by
    * relationship, then the returned locations will be all of the places where the method is
