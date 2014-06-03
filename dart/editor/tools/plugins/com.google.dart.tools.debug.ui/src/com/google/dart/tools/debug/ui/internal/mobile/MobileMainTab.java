@@ -248,7 +248,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
         @Override
         public void run() {
 
-          AndroidDebugBridge devBridge = new AndroidDebugBridge();
+          AndroidDebugBridge devBridge = AndroidDebugBridge.getAndroidDebugBridge();
           boolean wasDeviceConnected = devBridge.getConnectedDevice() != null;
           update(wasDeviceConnected);
 
