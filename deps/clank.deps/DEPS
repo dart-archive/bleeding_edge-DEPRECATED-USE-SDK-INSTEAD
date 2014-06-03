@@ -24,7 +24,6 @@ vars.update({
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/1985",
   "dartium_webkit_revision": "174962",
-  "bootstrap_css_rev" : "@28387",
   "co19_rev": "@722",
   "gsutil_rev" : "@33376",
 })
@@ -62,12 +61,6 @@ deps.update({
 
   "src/dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
       "/trunk/co19/tests/co19/src" + Var("co19_rev")),
-
-  "src/dart/runtime/bin/vmservice/client/web/bootstrap_css":
-    "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
-
-  "src/dart/runtime/bin/vmservice/client/deployed/web/bootstrap_css":
-    "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
 
   "src/dart/third_party/gsutil": 
     "/third_party/gsutil" + Var("gsutil_rev"),

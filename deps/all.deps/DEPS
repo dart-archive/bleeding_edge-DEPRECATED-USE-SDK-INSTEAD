@@ -40,7 +40,6 @@ vars = {
   "websocket_rev" : "@35854",
   "WebCore_rev" : "@34173",
   "weberknecht_rev" : "@33599",
-  "bootstrap_css_rev" : "@28387",
   "font_awesome_rev": "@31824",
 }
 
@@ -78,10 +77,6 @@ deps = {
       "/third_party/apache_compress" + Var("apache_compress_rev"),
   "dart/third_party/args4j": "/third_party/args4j" + Var("args4j_rev"),
   "dart/third_party/bzip2": "/third_party/bzip2" + Var("bzip2_rev"),
-  "dart/runtime/bin/vmservice/client/web/bootstrap_css":
-      "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
-  "dart/runtime/bin/vmservice/client/deployed/web/bootstrap_css":
-      "/third_party/bootstrap_css" + Var("bootstrap_css_rev"),
   "dart/third_party/chrome": "/third_party/chrome" + Var("chrome_rev"),
   "dart/third_party/commons-io":
       "/third_party/commons-io" + Var("commons-io_rev"),
