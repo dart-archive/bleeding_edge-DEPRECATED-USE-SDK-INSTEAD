@@ -93,8 +93,8 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
   }
 
   @Override
-  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor)
-      throws CoreException {
+  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor,
+      boolean usePubServe) throws CoreException {
     if (monitor == null) {
       monitor = new NullProgressMonitor();
     }

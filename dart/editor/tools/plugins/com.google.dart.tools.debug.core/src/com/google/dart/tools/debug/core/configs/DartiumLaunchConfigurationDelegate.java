@@ -25,6 +25,7 @@ import com.google.dart.tools.debug.core.pubserve.PubServeManager;
 import com.google.dart.tools.debug.core.pubserve.PubServeResourceResolver;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
+import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.util.LaunchConfigResourceResolver;
 import com.google.dart.tools.debug.core.util.ResourceServer;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
@@ -116,20 +117,19 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
   }
 
   @Override
-  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor)
-      throws CoreException {
+  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor,
+      boolean usePubServe) throws CoreException {
     BrowserManager browserManager = new BrowserManager();
 
+    IResourceResolver resolver = null;
     try {
-      return browserManager.performRemoteConnection(
-          tabChooser,
-          host,
-          port,
-          monitor,
-          ResourceServerManager.getServer());
+      resolver = usePubServe ? new PubServeResourceResolver() : ResourceServerManager.getServer();
     } catch (IOException e) {
       return null;
     }
+
+    return browserManager.performRemoteConnection(tabChooser, host, port, monitor, resolver);
+
   }
 
   private ResourceServer getResourceServer() throws CoreException {

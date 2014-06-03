@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
+import com.google.dart.tools.core.mobile.AndroidDebugBridge;
 import com.google.dart.tools.debug.core.configs.DartServerLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.configs.DartiumLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
@@ -41,6 +42,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -120,19 +122,24 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
     private IRemoteConnectionDelegate connectionDelegate;
     private String host;
     private int port;
+    private boolean usePubServe;
 
-    public ConnectionJob(IRemoteConnectionDelegate connectionDelegate, String host, int port) {
+    public ConnectionJob(IRemoteConnectionDelegate connectionDelegate, String host, int port,
+        boolean usePubServe) {
       super("Connecting...");
 
       this.connectionDelegate = connectionDelegate;
       this.host = host;
       this.port = port;
+      this.usePubServe = usePubServe;
     }
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
       try {
-        connectionDelegate.performRemoteConnection(host, port, monitor);
+        // TODO(keertip): add forwarding for chrome 
+        AndroidDebugBridge.getAndroidDebugBridge().setupPortForwarding(Integer.toString(port));
+        connectionDelegate.performRemoteConnection(host, port, monitor, usePubServe);
 
         // Show the debugger view.
         Display.getDefault().asyncExec(new Runnable() {
@@ -190,7 +197,7 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
       this.portDefault = portDefault;
     }
 
-    public void connection(String host, int port) {
+    public void connection(String host, int port, boolean usePubServe) {
       IRemoteConnectionDelegate connectionDelegate = null;
 
       switch (this) {
@@ -210,7 +217,7 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
       }
 
       if (connectionDelegate != null) {
-        Job job = new ConnectionJob(connectionDelegate, host, port);
+        Job job = new ConnectionJob(connectionDelegate, host, port, usePubServe);
         job.schedule();
       }
     }
@@ -252,6 +259,8 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
 
   private Text instructionsLabel;
 
+  private Button usePubServeButton;
+
   /**
    * Create a new RemoteConnectionDialog with the given shell as its parent.
    * 
@@ -288,12 +297,14 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
 
     String host = hostText.getText().trim();
     String port = portText.getText().trim();
+    boolean usePubServe = usePubServeButton.getSelection();
 
     IDialogSettings settings = getDialogSettings();
 
     settings.put("selected", connection.ordinal());
     settings.put(connection.name() + ".host", host);
     settings.put(connection.name() + ".port", port);
+    settings.put(connection.name() + ".usePubServe", usePubServe);
 
     int connectionPort;
 
@@ -308,7 +319,7 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
       return;
     }
 
-    connection.connection(host, connectionPort);
+    connection.connection(host, connectionPort, usePubServe);
 
     super.okPressed();
   }
@@ -347,6 +358,18 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
 
     portText = new Text(group, SWT.SINGLE | SWT.BORDER);
     GridDataFactory.fillDefaults().grab(true, false).applyTo(portText);
+
+    label = new Label(parent, SWT.NONE);
+    // pub setttings
+    group = new Group(parent, SWT.NONE);
+    group.setText("Pub settings");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+    GridLayoutFactory.fillDefaults().margins(12, 6).applyTo(group);
+
+    usePubServeButton = new Button(group, SWT.CHECK);
+    usePubServeButton.setText("Using pub to serve the application");
+    usePubServeButton.setSelection(true);
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(usePubServeButton);
 
     // spacer
     label = new Label(parent, SWT.NONE);

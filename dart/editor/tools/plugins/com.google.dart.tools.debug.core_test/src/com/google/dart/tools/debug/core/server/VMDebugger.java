@@ -66,7 +66,7 @@ public class VMDebugger {
 
         DartServerLaunchConfigurationDelegate delegate = new DartServerLaunchConfigurationDelegate();
 
-        debugTarget = delegate.performRemoteConnection(null, getConnectionPort(), null);
+        debugTarget = delegate.performRemoteConnection(null, getConnectionPort(), null, false);
 
         return;
       } catch (NumberFormatException nfe) {

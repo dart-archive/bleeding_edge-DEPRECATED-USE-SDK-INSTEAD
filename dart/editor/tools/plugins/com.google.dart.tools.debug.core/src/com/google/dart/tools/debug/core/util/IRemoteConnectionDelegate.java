@@ -30,9 +30,10 @@ public interface IRemoteConnectionDelegate extends ILaunchConfigurationDelegate 
    * @param host
    * @param port
    * @param monitor
+   * @param usePubServe
    * @throws CoreException
    */
-  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor)
-      throws CoreException;
+  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor,
+      boolean usePubServe) throws CoreException;
 
 }

@@ -44,10 +44,15 @@ public class AndroidDebugBridge {
   private static String[] STOP_APP_CMD = new String[] {
       "shell", "am", "force-stop", "org.chromium.content_shell_apk"};
 
-  private static String[] PORT_FORWARD_CMD = new String[] {"forward", "tcp:9222", "tcp:9222"};
+  private static final String CONTENT_SHELL_DEBUG_PORT = "localabstract:content_shell_devtools_remote";
+  private static final String CHROME_DEBUG_PORT = "localabstract:chrome_devtools_remote";
+
+  private static String[] PORT_FORWARD_CMD = new String[] {"forward"};
 
   private static String[] UNINSTALL_CMD = new String[] {
       "shell", "pm", "uninstall", "-k", "org.chromium.content_shell_apk"};
+
+  private static String[] START_SERVER_CMD = new String[] {"start-server"};
 
   private ProcessRunner runner;
 
@@ -56,8 +61,11 @@ public class AndroidDebugBridge {
    */
   private static HashSet<String> contentShellInstallSet = new HashSet<String>();
 
-  public AndroidDebugBridge() {
-    this(AndroidSdkManager.getManager().getAdbExecutable());
+  private static AndroidDebugBridge androidDebugBridge = new AndroidDebugBridge(
+      AndroidSdkManager.getManager().getAdbExecutable());
+
+  public static AndroidDebugBridge getAndroidDebugBridge() {
+    return androidDebugBridge;
   }
 
   AndroidDebugBridge(File adbExecutable) {
@@ -163,6 +171,27 @@ public class AndroidDebugBridge {
   }
 
   /**
+   * Setup port forwarding from machine to phone
+   * <p>
+   * adb forward tcp:<local-port> tcp:<remote-port>
+   * </p>
+   */
+  public boolean setupPortForwarding(String port) {
+    List<String> args = buildAdbCommand(PORT_FORWARD_CMD);
+    args.add("tcp:" + port);
+    args.add(CONTENT_SHELL_DEBUG_PORT);
+    return runAdb(args, "");
+  }
+
+  /**
+   * Starts the adb server
+   */
+  public void startAdbServer() {
+    List<String> args = buildAdbCommand(START_SERVER_CMD);
+    runAdb(args, "");
+  }
+
+  /**
    * Force stop (close) the content shell on the connected phone
    * <p>
    * adb shell am force-stop org.chromium.content_shell_apk
@@ -173,17 +202,6 @@ public class AndroidDebugBridge {
   public boolean stopApplication() {
     List<String> args = buildAdbCommand(STOP_APP_CMD);
     return runAdb(args, "ADB: stop application");
-  }
-
-  /**
-   * Setup port forwarding from machine to phone
-   * <p>
-   * adb forward tcp:<local-port> tcp:<remote-port>
-   * </p>
-   */
-  void setupPortForwarding() {
-    List<String> args = buildAdbCommand(PORT_FORWARD_CMD);
-    runAdb(args, "ADB: setup port forwarding");
   }
 
   /**
