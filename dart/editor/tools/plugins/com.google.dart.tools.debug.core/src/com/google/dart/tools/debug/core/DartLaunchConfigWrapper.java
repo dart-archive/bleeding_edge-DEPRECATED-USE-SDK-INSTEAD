@@ -45,6 +45,7 @@ public class DartLaunchConfigWrapper {
   private static final String SOURCE_DIRECTORY = "sourceDirectory";
   private static final String URL_QUERY_PARAMS = "urlQueryParams";
   private static final String DART2JS_FLAGS = "dart2jsFlags";
+  private static final String INSTALL_CONTENT_SHELL = "installContentShell";
   private static final String LAUNCH_CONTENT_SHELL = "runContentShell";
   private static final String USE_PUB_SERVE = "usePubServe";
 
@@ -224,6 +225,16 @@ public class DartLaunchConfigWrapper {
       DartDebugCorePlugin.logError(e);
 
       return "";
+    }
+  }
+
+  public boolean getInstallContentShell() {
+    try {
+      return launchConfig.getAttribute(INSTALL_CONTENT_SHELL, getLaunchContentShell());
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return false;
     }
   }
 
@@ -520,6 +531,10 @@ public class DartLaunchConfigWrapper {
     getWorkingCopy().setAttribute(APPLICATION_ENVIRONMENT, value);
   }
 
+  public void setInstallContentShell(boolean value) {
+    getWorkingCopy().setAttribute(INSTALL_CONTENT_SHELL, value);
+  }
+
   public void setLaunchContentShell(boolean value) {
     getWorkingCopy().setAttribute(LAUNCH_CONTENT_SHELL, value);
   }
@@ -608,5 +623,4 @@ public class DartLaunchConfigWrapper {
       getWorkingCopy().setMappedResources(null);
     }
   }
-
 }

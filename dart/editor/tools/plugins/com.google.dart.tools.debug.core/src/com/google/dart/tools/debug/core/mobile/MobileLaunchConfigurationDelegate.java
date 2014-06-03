@@ -114,10 +114,15 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
     }
 
     if (wrapper.getLaunchContentShell()) {
-      // TODO(keertip): CoreException if adb fails
-      if (devBridge.installContentShellApk(deviceId)) {
-        devBridge.launchContentShell(deviceId, launchUrl);
+      if (wrapper.getInstallContentShell()) {
+        if (!devBridge.installContentShellApk(deviceId)) {
+          throw new CoreException(new Status(
+              IStatus.ERROR,
+              DartDebugCorePlugin.PLUGIN_ID,
+              "Failed to install content shell on mobile"));
+        }
       }
+      devBridge.launchContentShell(deviceId, launchUrl);
     } else {
       devBridge.launchChromeBrowser(launchUrl);
     }

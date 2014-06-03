@@ -42,6 +42,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
 
   private LaunchTargetComposite launchTargetGroup;
   private Button dartBrowserButton;
+  private Button installDartBrowserButton;
 
   @Override
   public void createControl(Composite parent) {
@@ -70,9 +71,16 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
       @Override
       public void widgetSelected(SelectionEvent e) {
         notifyPanelChanged();
+        installDartBrowserButton.setEnabled(dartBrowserButton.getSelection());
+        installDartBrowserButton.setSelection(dartBrowserButton.getSelection());
       }
     });
     GridDataFactory.swtDefaults().span(2, 1).grab(true, false).applyTo(dartBrowserButton);
+
+    installDartBrowserButton = new Button(group, SWT.CHECK);
+    installDartBrowserButton.setText("Automatically install Dart Content Shell Browser on first mobile launch");
+    GridDataFactory.swtDefaults().span(2, 1).grab(true, false).indent(20, 0).applyTo(
+        installDartBrowserButton);
 
     setControl(composite);
   }
@@ -144,7 +152,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     }
 
     dartBrowserButton.setSelection(wrapper.getLaunchContentShell());
-
+    installDartBrowserButton.setSelection(wrapper.getInstallContentShell());
   }
 
   /**
@@ -171,6 +179,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     wrapper.setUrl(launchTargetGroup.getUrlString());
     wrapper.setSourceDirectoryName(launchTargetGroup.getSourceDirectory());
     wrapper.setLaunchContentShell(dartBrowserButton.getSelection());
+    wrapper.setInstallContentShell(installDartBrowserButton.getSelection());
   }
 
   @Override
