@@ -29,9 +29,9 @@ import java.util.List;
  * 
  * @coverage dart.server.remote
  */
-public class NotificationHighlightsProcessor extends NotificationProcessor {
+public class NotificationAnalysisHighlightsProcessor extends NotificationProcessor {
 
-  public NotificationHighlightsProcessor(AnalysisServerListener listener) {
+  public NotificationAnalysisHighlightsProcessor(AnalysisServerListener listener) {
     super(listener);
   }
 

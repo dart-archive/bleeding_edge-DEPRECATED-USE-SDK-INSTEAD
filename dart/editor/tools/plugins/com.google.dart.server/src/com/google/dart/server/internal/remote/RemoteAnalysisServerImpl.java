@@ -40,7 +40,7 @@ import com.google.dart.server.internal.local.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisNavigationProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisOutlineProcessor;
-import com.google.dart.server.internal.remote.processor.NotificationHighlightsProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationAnalysisHighlightsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
@@ -338,7 +338,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new NotificationAnalysisErrorsProcessor(listener).process(response);
     } else if (event.equals(ANALYSIS_NOTIFICATION_HIGHTLIGHTS)) {
       // analysis.highlights
-      new NotificationHighlightsProcessor(listener).process(response);
+      new NotificationAnalysisHighlightsProcessor(listener).process(response);
     } else if (event.equals(ANALYSIS_NOTIFICATION_NAVIGATION)) {
       // analysis.navigation
       new NotificationAnalysisNavigationProcessor(listener).process(response);
