@@ -11,44 +11,70 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package com.google.dart.server.internal.local.computer;
 
 import com.google.dart.engine.utilities.general.ObjectUtilities;
-import com.google.dart.server.Element;
+import com.google.dart.server.ElementKind;
 import com.google.dart.server.Outline;
-import com.google.dart.server.SourceRegion;
 
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
 
 /**
  * A concrete implementation of {@link Outline}.
  * 
  * @coverage dart.server.local
  */
-public class OutlineImpl implements Outline {
+public class OutlineImpl extends SourceRegionImpl implements Outline {
   private final Outline parent;
-  private final Element element;
-  private final SourceRegion sourceRegion;
+  private final ElementKind kind;
+  private final String name;
+  private final String arguments;
+  private final String returnType;
   private Outline[] children = Outline.EMPTY_ARRAY;
 
-  public OutlineImpl(Outline parent, Element element, SourceRegion sourceRegion) {
+  public OutlineImpl(Outline parent, int offset, int length, ElementKind kind, String name) {
+    this(parent, offset, length, kind, name, null, null);
+  }
+
+  public OutlineImpl(Outline parent, int offset, int length, ElementKind kind, String name,
+      String arguments, String returnType) {
+    super(offset, length);
     this.parent = parent;
-    this.element = element;
-    this.sourceRegion = sourceRegion;
+    this.kind = kind;
+    this.name = name;
+    this.arguments = arguments;
+    this.returnType = returnType;
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (obj == this) {
+  public boolean equals(Object object) {
+    if (object == this) {
       return true;
     }
-    if (!(obj instanceof OutlineImpl)) {
+    if (!(object instanceof OutlineImpl)) {
       return false;
     }
-    OutlineImpl other = (OutlineImpl) obj;
-    return ObjectUtilities.equals(other.element, element)
-        && ObjectUtilities.equals(other.parent, parent);
+    OutlineImpl other = (OutlineImpl) object;
+    if (ObjectUtilities.equals(other.parent, parent) && other.getOffset() == getOffset()
+        && other.getLength() == getLength() && other.kind == kind && other.name.equals(name)
+        && ObjectUtilities.equals(other.arguments, arguments)
+        && ObjectUtilities.equals(other.returnType, returnType)
+        && (other.children.length == children.length)) {
+      for (int i = 0; i < other.children.length; i++) {
+        if (!other.children[i].equals(children[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public String getArguments() {
+    return arguments;
   }
 
   @Override
@@ -57,8 +83,13 @@ public class OutlineImpl implements Outline {
   }
 
   @Override
-  public Element getElement() {
-    return element;
+  public ElementKind getKind() {
+    return kind;
+  }
+
+  @Override
+  public String getName() {
+    return name;
   }
 
   @Override
@@ -67,16 +98,18 @@ public class OutlineImpl implements Outline {
   }
 
   @Override
-  public SourceRegion getSourceRegion() {
-    return sourceRegion;
+  public String getReturnType() {
+    return returnType;
   }
 
   @Override
   public int hashCode() {
-    if (parent == null) {
-      return element.hashCode();
-    }
-    return ObjectUtilities.combineHashCodes(parent.hashCode(), element.hashCode());
+    return ObjectUtilities.combineHashCodes(
+        Arrays.hashCode(new int[] {
+            parent == null ? 0 : parent.hashCode(), kind.hashCode(), name.hashCode(),
+            arguments == null ? 0 : arguments.hashCode(),
+            returnType == null ? 0 : returnType.hashCode()}),
+        Arrays.hashCode(children));
   }
 
   public void setChildren(Outline[] children) {
@@ -86,8 +119,18 @@ public class OutlineImpl implements Outline {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append("[element=");
-    builder.append(element);
+    builder.append("[offset=");
+    builder.append(getOffset());
+    builder.append(", length=");
+    builder.append(getLength());
+    builder.append(", kind=");
+    builder.append(kind.name());
+    builder.append(", name=");
+    builder.append(name);
+    builder.append(", arguments=");
+    builder.append(arguments == null ? "null" : arguments);
+    builder.append(", returnType=");
+    builder.append(returnType == null ? "null" : returnType);
     builder.append(", children=[");
     builder.append(StringUtils.join(children, ", "));
     builder.append("]]");

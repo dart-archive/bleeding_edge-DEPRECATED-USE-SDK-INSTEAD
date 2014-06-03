@@ -14,9 +14,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.base.Objects;
-import com.google.dart.server.Element;
 import com.google.dart.server.Outline;
-import com.google.dart.server.SourceRegion;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -91,10 +89,11 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
         return NOT_ELEMENT;
       }
       Outline outline = (Outline) e;
-      if (outline.getElement().isPrivate()) {
-        return PRIVATE_ELEMENT;
-      }
-      return PUBLIC_ELEMENT;
+      throw new IllegalStateException("com.google.dart.server.Outline not yet supported.");
+//      if (outline.getElement().isPrivate()) {
+//        return PRIVATE_ELEMENT;
+//      }
+//      return PUBLIC_ELEMENT;
     }
 
     @Override
@@ -113,8 +112,8 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
         return 0;
       }
       // compare names
-      String name1 = ((Outline) e1).getElement().getName();
-      String name2 = ((Outline) e2).getElement().getName();
+      String name1 = ((Outline) e1).getName();
+      String name2 = ((Outline) e2).getName();
       if (name1 == null || name2 == null) {
         return 0;
       }
@@ -157,23 +156,26 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
 
     @Override
     public Image getImage(Object obj) {
-      Outline outline = (Outline) obj;
-      Element element = outline.getElement();
-      return elementLabelProvider.getImage(element);
+      throw new IllegalStateException("com.google.dart.server.Outline not yet supported.");
+//      Outline outline = (Outline) obj;
+//      Element element = outline.getElement();
+//      return elementLabelProvider.getImage(element);
     }
 
     @Override
     public StyledString getStyledText(Object obj) {
-      Outline outline = (Outline) obj;
-      Element element = outline.getElement();
-      return elementLabelProvider.getStyledText(element);
+      throw new IllegalStateException("com.google.dart.server.Outline not yet supported.");
+//      Outline outline = (Outline) obj;
+//      Element element = outline.getElement();
+//      return elementLabelProvider.getStyledText(element);
     }
 
     @Override
     public String getText(Object obj) {
-      Outline outline = (Outline) obj;
-      Element element = outline.getElement();
-      return elementLabelProvider.getText(element);
+      throw new IllegalStateException("com.google.dart.server.Outline not yet supported.");
+//      Outline outline = (Outline) obj;
+//      Element element = outline.getElement();
+//      return elementLabelProvider.getText(element);
     }
   }
 
@@ -189,8 +191,8 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
       if (!(e2 instanceof Outline)) {
         return 0;
       }
-      int offset1 = ((Outline) e1).getElement().getOffset();
-      int offset2 = ((Outline) e2).getElement().getOffset();
+      int offset1 = ((Outline) e1).getOffset();
+      int offset2 = ((Outline) e2).getOffset();
       return offset1 - offset2;
     }
   }
@@ -326,7 +328,8 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     @Override
     public boolean select(Viewer viewer, Object parentElement, Object o) {
       if (o instanceof Outline) {
-        return !((Outline) o).getElement().isPrivate();
+        throw new IllegalStateException("com.google.dart.server.Outline not yet supported.");
+//        return !((Outline) o).getElement().isPrivate();
       }
       return false;
     }
@@ -486,8 +489,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
         if (outline == null) {
           return null;
         }
-        SourceRegion sourceRegion = outline.getSourceRegion();
-        if (sourceRegion != null && !sourceRegion.containsInclusive(offset)) {
+        if (!outline.containsInclusive(offset)) {
           return null;
         }
         for (Outline child : outline.getChildren()) {

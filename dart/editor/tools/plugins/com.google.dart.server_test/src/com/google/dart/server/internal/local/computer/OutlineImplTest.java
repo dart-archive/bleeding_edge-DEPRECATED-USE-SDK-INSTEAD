@@ -14,7 +14,7 @@
 
 package com.google.dart.server.internal.local.computer;
 
-import com.google.dart.server.Element;
+import com.google.dart.server.ElementKind;
 import com.google.dart.server.Outline;
 
 import junit.framework.TestCase;
@@ -23,48 +23,31 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class OutlineImplTest extends TestCase {
-  private Element elementA = mock(Element.class);
-  private Element elementB = mock(Element.class);
-
   public void test_access() throws Exception {
+    Outline parent = mock(Outline.class);
     Outline childA = mock(Outline.class);
     Outline childB = mock(Outline.class);
     when(childA.toString()).thenReturn("childA");
     when(childB.toString()).thenReturn("childB");
-    Outline parent = childA;
     Outline[] children = new Outline[] {childA, childB};
-    OutlineImpl outline = new OutlineImpl(parent, elementA, new SourceRegionImpl(1, 2));
+    OutlineImpl outline = new OutlineImpl(
+        parent,
+        1,
+        2,
+        ElementKind.COMPILATION_UNIT,
+        "name0",
+        "args0",
+        "returnType0");
     assertSame(parent, outline.getParent());
-    assertEquals(new SourceRegionImpl(1, 2), outline.getSourceRegion());
-    assertSame(elementA, outline.getElement());
+    assertEquals(1, outline.getOffset());
+    assertEquals(2, outline.getLength());
+    assertEquals(ElementKind.COMPILATION_UNIT, outline.getKind());
+    assertEquals("name0", outline.getName());
+    assertEquals("args0", outline.getArguments());
+    assertEquals("returnType0", outline.getReturnType());
     // children
     outline.setChildren(children);
     assertEquals(children, outline.getChildren());
-    // toString
-    assertEquals("[element=elementA, children=[childA, childB]]", outline.toString());
   }
 
-  public void test_equals() throws Exception {
-    OutlineImpl outlineA = new OutlineImpl(null, elementA, new SourceRegionImpl(1, 2));
-    OutlineImpl outlineA2 = new OutlineImpl(null, elementA, new SourceRegionImpl(1, 2));
-    OutlineImpl outlineB = new OutlineImpl(null, elementB, new SourceRegionImpl(1, 2));
-    assertTrue(outlineA.equals(outlineA));
-    assertTrue(outlineA.equals(outlineA2));
-    assertFalse(outlineA.equals(this));
-    assertFalse(outlineA.equals(outlineB));
-  }
-
-  public void test_hashCode() throws Exception {
-    OutlineImpl unitOutline = new OutlineImpl(null, elementA, new SourceRegionImpl(1, 2));
-    unitOutline.hashCode();
-    OutlineImpl outline = new OutlineImpl(unitOutline, elementB, new SourceRegionImpl(10, 20));
-    outline.hashCode();
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    when(elementA.toString()).thenReturn("elementA");
-    when(elementB.toString()).thenReturn("elementB");
-    super.setUp();
-  }
 }

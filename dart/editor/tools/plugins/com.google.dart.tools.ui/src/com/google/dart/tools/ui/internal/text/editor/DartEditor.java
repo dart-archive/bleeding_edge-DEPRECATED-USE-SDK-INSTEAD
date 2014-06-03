@@ -2334,6 +2334,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return unit == null ? null : unit.getElement();
   }
 
+  @Override
   public String getInputFilePath() {
     // may be workspace IFile
     if (inputResourceFile != null) {
@@ -2606,10 +2607,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (outline == null) {
       return;
     }
-    com.google.dart.server.Element element = outline.getElement();
     // prepare range
-    int offset = element.getOffset();
-    int length = element.getLength();
+    int offset = outline.getOffset();
+    int length = outline.getLength();
     // prepare ISourceViewer
     ISourceViewer sourceViewer = getSourceViewer();
     if (sourceViewer == null) {

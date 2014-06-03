@@ -13,18 +13,25 @@
  */
 package com.google.dart.server;
 
-
 /**
  * The interface {@code Outline} defines the behavior of objects that represent an outline for an
  * element.
  * 
  * @coverage dart.server
  */
-public interface Outline {
+public interface Outline extends SourceRegion {
   /**
    * An empty array of outlines.
    */
   Outline[] EMPTY_ARRAY = new Outline[0];
+
+  /**
+   * Return the argument list for the element. If the element is not a method or function this field
+   * will not be defined. If the element has zero arguments, this field will have a value of "()".
+   * 
+   * @return the argument list for the element
+   */
+  public String getArguments();
 
   /**
    * Return an array containing the children outline. The array will be empty if the outline has no
@@ -35,11 +42,18 @@ public interface Outline {
   public Outline[] getChildren();
 
   /**
-   * Return the information about the element.
+   * Return the kind of the element.
    * 
-   * @return the information about the element
+   * @return the kind of the element
    */
-  public Element getElement();
+  public ElementKind getKind();
+
+  /**
+   * Return the name of the element. This is typically used as the label in the outline.
+   * 
+   * @return the name of the element
+   */
+  public String getName();
 
   /**
    * Return the outline that either physically or logically encloses this outline. This will be
@@ -50,9 +64,11 @@ public interface Outline {
   public Outline getParent();
 
   /**
-   * Return the source range associated with this outline.
+   * Return the return type of the element. If the element is not a method or function this field
+   * will not be defined. If the element does not have a declared return type, this field will
+   * contain an empty string.
    * 
-   * @return the source range associated with this outline
+   * @return the return type of the element
    */
-  public SourceRegion getSourceRegion();
+  public String getReturnType();
 }

@@ -26,11 +26,13 @@ import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.ContentChange;
+import com.google.dart.server.ElementKind;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.NavigationTarget;
+import com.google.dart.server.Outline;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.server.VersionConsumer;
@@ -205,6 +207,53 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         assertEquals("elementId2", target.getElementId());
       }
     }
+  }
+
+  public void test_analysis_notification_outline() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'analysis.outline',",
+        "  'params': {",
+        "    'file': '/test.dart',",
+        "    'outline' : {",
+        "      'kind': 'COMPILATION_UNIT',",
+        "      'name': 'name0',",
+        "      'offset': 1,",
+        "      'length': 2,",
+        "      'arguments': 'args0',",
+        "      'returnType': 'returnType0',",
+        "      'children': [",
+        "        {",
+        "          'kind': 'CLASS',",
+        "          'name': 'name1',",
+        "          'offset': 3,",
+        "          'length': 4",
+        "        }",
+        "      ]",
+        "    }",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    Outline outline = listener.getOutline("/test.dart");
+    // assertions on outline
+    assertThat(outline.getChildren()).hasSize(1);
+    assertEquals(ElementKind.COMPILATION_UNIT, outline.getKind());
+    assertEquals("name0", outline.getName());
+    assertEquals(1, outline.getOffset());
+    assertEquals(2, outline.getLength());
+    assertEquals("args0", outline.getArguments());
+    assertEquals("returnType0", outline.getReturnType());
+
+    // assertions on child
+    Outline child = outline.getChildren()[0];
+    assertThat(child.getChildren()).hasSize(0);
+    assertEquals(ElementKind.CLASS, child.getKind());
+    assertEquals("name1", child.getName());
+    assertEquals(3, child.getOffset());
+    assertEquals(4, child.getLength());
+    assertNull(child.getArguments());
+    assertNull(child.getReturnType());
   }
 
   public void test_analysis_setAnalysisRoots() throws Exception {

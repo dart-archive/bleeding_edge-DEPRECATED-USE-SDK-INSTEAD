@@ -39,6 +39,7 @@ import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.local.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisNavigationProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationAnalysisOutlineProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationHighlightsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
@@ -117,6 +118,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   private static final String ANALYSIS_NOTIFICATION_ERRORS = "analysis.errors";
   private static final String ANALYSIS_NOTIFICATION_HIGHTLIGHTS = "analysis.highlights";
   private static final String ANALYSIS_NOTIFICATION_NAVIGATION = "analysis.navigation";
+  private static final String ANALYSIS_NOTIFICATION_OUTLINE = "analysis.outline";
 
   private final RequestSink requestSink;
 
@@ -340,6 +342,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     } else if (event.equals(ANALYSIS_NOTIFICATION_NAVIGATION)) {
       // analysis.navigation
       new NotificationAnalysisNavigationProcessor(listener).process(response);
+    } else if (event.equals(ANALYSIS_NOTIFICATION_OUTLINE)) {
+      // analysis.outline
+      new NotificationAnalysisOutlineProcessor(listener).process(response);
     } else if (event.equals(SERVER_NOTIFICATION_STATUS)) {
       // server.status
       new NotificationServerStatusProcessor(listener).process(response);
