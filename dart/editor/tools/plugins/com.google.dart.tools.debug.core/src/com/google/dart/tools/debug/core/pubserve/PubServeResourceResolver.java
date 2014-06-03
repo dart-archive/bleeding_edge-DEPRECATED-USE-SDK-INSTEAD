@@ -23,6 +23,8 @@ import org.eclipse.core.resources.ResourcesPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -75,6 +77,9 @@ public class PubServeResourceResolver implements IResourceResolver {
     }
   }
 
+  private Map<String, String> urlToAsset = new HashMap<String, String>();
+  private Map<String, String> resourceToUrl = new HashMap<String, String>();
+
   public PubServeResourceResolver() {
 
   }
@@ -94,6 +99,11 @@ public class PubServeResourceResolver implements IResourceResolver {
   @Override
   public String getUrlForResource(IResource resource) {
 
+    String url = resourceToUrl.get(resource.getFullPath().toString());
+    if (url != null) {
+      return url;
+    }
+
     CountDownLatch latch = new CountDownLatch(1);
     final String[] done = new String[1];
 
@@ -107,6 +117,9 @@ public class PubServeResourceResolver implements IResourceResolver {
       latch.await(5000, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       // do nothing
+    }
+    if (done[0] != null) {
+      resourceToUrl.put(resource.getFullPath().toString(), done[0]);
     }
     return done[0];
   }
@@ -137,6 +150,12 @@ public class PubServeResourceResolver implements IResourceResolver {
 
   @Override
   public IResource resolveUrl(String url) {
+
+    String assetId = urlToAsset.get(url);
+    if (assetId != null) {
+      return getResourceForPath(assetId);
+    }
+
     CountDownLatch latch = new CountDownLatch(1);
     final String[] name = new String[1];
     final String[] path = new String[1];
@@ -155,13 +174,17 @@ public class PubServeResourceResolver implements IResourceResolver {
       // do nothing
     }
     if (path[0] != null) {
-      IContainer appDir = PubServeManager.getManager().getCurrentServeWorkingDir();
-      // TODO(keertip): check if appdir has pubfolder with same pubspec name
-      IResource resource = appDir.findMember(path[0]);
-      return resource;
-
+      urlToAsset.put(url, path[0]);
+      return getResourceForPath(path[0]);
     }
     return null;
+  }
+
+  private IResource getResourceForPath(final String path) {
+    IContainer appDir = PubServeManager.getManager().getCurrentServeWorkingDir();
+    // TODO(keertip): check if appdir has pubfolder with same pubspec name
+    IResource resource = appDir.findMember(path);
+    return resource;
   }
 
 }
