@@ -674,7 +674,33 @@ public class ScannerTest extends TestCase {
   }
 
   public void test_string_multi_unterminated() throws Exception {
-    assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''string");
+    assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        8,
+        "'''string",
+        new StringToken(TokenType.STRING, "'''string", 0));
+  }
+
+  public void test_string_multi_unterminated_interpolation_block() throws Exception {
+    assertErrorAndTokens( //
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        8,
+        "'''${name",
+        new StringToken(TokenType.STRING, "'''", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "${", 3),
+        new StringToken(TokenType.IDENTIFIER, "name", 5),
+        new StringToken(TokenType.STRING, "", 9));
+  }
+
+  public void test_string_multi_unterminated_interpolation_identifier() throws Exception {
+    assertErrorAndTokens( //
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        7,
+        "'''$name",
+        new StringToken(TokenType.STRING, "'''", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 3),
+        new StringToken(TokenType.IDENTIFIER, "name", 4),
+        new StringToken(TokenType.STRING, "", 8));
   }
 
   public void test_string_raw_multi_double() throws Exception {
@@ -686,7 +712,12 @@ public class ScannerTest extends TestCase {
   }
 
   public void test_string_raw_multi_unterminated() throws Exception {
-    assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, "r'''string");
+    String source = "r'''string";
+    assertErrorAndTokens( //
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        9,
+        source,
+        new StringToken(TokenType.STRING, source, 0));
   }
 
   public void test_string_raw_simple_double() throws Exception {
@@ -698,11 +729,20 @@ public class ScannerTest extends TestCase {
   }
 
   public void test_string_raw_simple_unterminated_eof() throws Exception {
-    assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "r'string");
+    String source = "r'string";
+    assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, source, new StringToken(
+        TokenType.STRING,
+        source,
+        0));
   }
 
   public void test_string_raw_simple_unterminated_eol() throws Exception {
-    assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "r'string\n");
+    String source = "r'string";
+    assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        8,
+        source + "\n",
+        new StringToken(TokenType.STRING, source, 0));
   }
 
   public void test_string_simple_double() throws Exception {
@@ -797,11 +837,42 @@ public class ScannerTest extends TestCase {
   }
 
   public void test_string_simple_unterminated_eof() throws Exception {
-    assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6, "'string");
+    String source = "'string";
+    assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6, source, new StringToken(
+        TokenType.STRING,
+        source,
+        0));
   }
 
   public void test_string_simple_unterminated_eol() throws Exception {
-    assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "'string\r");
+    String source = "'string";
+    assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        7,
+        source + "\r",
+        new StringToken(TokenType.STRING, source, 0));
+  }
+
+  public void test_string_simple_unterminated_interpolation_block() throws Exception {
+    assertErrorAndTokens( //
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        6,
+        "'${name",
+        new StringToken(TokenType.STRING, "'", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "${", 1),
+        new StringToken(TokenType.IDENTIFIER, "name", 3),
+        new StringToken(TokenType.STRING, "", 7));
+  }
+
+  public void test_string_simple_unterminated_interpolation_identifier() throws Exception {
+    assertErrorAndTokens( //
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        5,
+        "'$name",
+        new StringToken(TokenType.STRING, "'", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 1),
+        new StringToken(TokenType.IDENTIFIER, "name", 2),
+        new StringToken(TokenType.STRING, "", 6));
   }
 
   public void test_tilde() throws Exception {
@@ -853,8 +924,8 @@ public class ScannerTest extends TestCase {
   /**
    * Assert that scanning the given source produces an error with the given code.
    * 
-   * @param illegalCharacter
-   * @param i
+   * @param expectedError the error that should be produced
+   * @param expectedOffset the string offset that should be associated with the error
    * @param source the source to be scanned to produce the error
    */
   private void assertError(ScannerErrorCode expectedError, int expectedOffset, String source) {

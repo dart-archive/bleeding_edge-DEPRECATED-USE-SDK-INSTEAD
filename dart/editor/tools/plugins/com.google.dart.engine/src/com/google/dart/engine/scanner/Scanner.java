@@ -944,8 +944,8 @@ public class Scanner {
     while (next != -1) {
       if (next == '$') {
         appendStringToken(TokenType.STRING, reader.getString(start, -1));
-        beginToken();
         next = tokenizeStringInterpolation(start);
+        beginToken();
         start = reader.getOffset();
         continue;
       }
@@ -991,7 +991,11 @@ public class Scanner {
       }
     }
     reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
-    appendStringToken(TokenType.STRING, reader.getString(start, 0));
+    if (start == reader.getOffset()) {
+      appendStringTokenWithOffset(TokenType.STRING, "", 1);
+    } else {
+      appendStringToken(TokenType.STRING, reader.getString(start, 0));
+    }
     return reader.advance();
   }
 
@@ -1069,7 +1073,7 @@ public class Scanner {
         return reader.advance();
       } else if (next == '\r' || next == '\n') {
         reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
-        appendStringToken(TokenType.STRING, reader.getString(start, 0));
+        appendStringToken(TokenType.STRING, reader.getString(start, -1));
         return reader.advance();
       }
       next = reader.advance();
@@ -1085,14 +1089,20 @@ public class Scanner {
         next = reader.advance();
       } else if (next == '$') {
         appendStringToken(TokenType.STRING, reader.getString(start, -1));
-        beginToken();
         next = tokenizeStringInterpolation(start);
+        beginToken();
         start = reader.getOffset();
         continue;
       }
       if (next <= '\r' && (next == '\n' || next == '\r' || next == -1)) {
         reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
-        appendStringToken(TokenType.STRING, reader.getString(start, 0));
+        if (start == reader.getOffset()) {
+          appendStringTokenWithOffset(TokenType.STRING, "", 1);
+        } else if (next == -1) {
+          appendStringToken(TokenType.STRING, reader.getString(start, 0));
+        } else {
+          appendStringToken(TokenType.STRING, reader.getString(start, -1));
+        }
         return reader.advance();
       }
       next = reader.advance();
