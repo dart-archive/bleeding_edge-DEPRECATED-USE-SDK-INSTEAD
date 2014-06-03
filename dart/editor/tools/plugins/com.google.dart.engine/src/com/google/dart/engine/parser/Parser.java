@@ -6003,7 +6003,17 @@ public class Parser {
    * Skips a block with all containing blocks.
    */
   private void skipBlock() {
-    currentToken = ((BeginToken) currentToken).getEndToken().getNext();
+    Token endToken = ((BeginToken) currentToken).getEndToken();
+    if (endToken == null) {
+      endToken = currentToken.getNext();
+      while (endToken != currentToken) {
+        currentToken = endToken;
+        endToken = currentToken.getNext();
+      }
+      reportErrorForToken(ParserErrorCode.EXPECTED_TOKEN, currentToken.getPrevious(), "}");
+    } else {
+      currentToken = endToken.getNext();
+    }
   }
 
   /**

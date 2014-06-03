@@ -2937,6 +2937,16 @@ public class SimpleParserTest extends ParserTestCase {
     assertInstanceOf(EmptyFunctionBody.class, functionBody);
   }
 
+  public void test_parseFunctionBody_skip_block_invalid() throws Exception {
+    ParserTestCase.parseFunctionBodies = false;
+    FunctionBody functionBody = parse(
+        "parseFunctionBody",
+        new Object[] {false, null, false},
+        "{",
+        ParserErrorCode.EXPECTED_TOKEN);
+    assertInstanceOf(EmptyFunctionBody.class, functionBody);
+  }
+
   public void test_parseFunctionBody_skip_blocks() throws Exception {
     ParserTestCase.parseFunctionBodies = false;
     FunctionBody functionBody = parse(
