@@ -41,7 +41,7 @@ vars = {
   "WebCore_rev" : "@34173",
   "weberknecht_rev" : "@33599",
   "font_awesome_rev": "@31824",
-  "barback-0.13_rev": "@34853",
+  "barback-0.13.0_rev": "@34853",
 }
 
 deps = {
