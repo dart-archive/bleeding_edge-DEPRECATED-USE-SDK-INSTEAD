@@ -32,17 +32,22 @@ public class OutlineImplTest extends TestCase {
     Outline[] children = new Outline[] {childA, childB};
     OutlineImpl outline = new OutlineImpl(
         parent,
-        1,
-        2,
         ElementKind.COMPILATION_UNIT,
         "name0",
+        1,
+        2,
+        true,
+        true,
         "args0",
         "returnType0");
     assertSame(parent, outline.getParent());
-    assertEquals(1, outline.getOffset());
-    assertEquals(2, outline.getLength());
     assertEquals(ElementKind.COMPILATION_UNIT, outline.getKind());
     assertEquals("name0", outline.getName());
+    assertEquals(1, outline.getOffset());
+    assertEquals(2, outline.getLength());
+    assertTrue(outline.isAbstract());
+    assertFalse(outline.isPrivate());
+    assertTrue(outline.isStatic());
     assertEquals("args0", outline.getArguments());
     assertEquals("returnType0", outline.getReturnType());
     // children

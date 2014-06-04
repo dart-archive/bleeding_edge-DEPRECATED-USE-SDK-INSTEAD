@@ -61,6 +61,8 @@ public class NotificationAnalysisOutlineProcessor extends NotificationProcessor 
     String name = outlineObject.get("name").getAsString();
     int offset = outlineObject.get("offset").getAsInt();
     int length = outlineObject.get("length").getAsInt();
+    boolean isAbstract = outlineObject.get("isAbstract").getAsBoolean();
+    boolean isStatic = outlineObject.get("isStatic").getAsBoolean();
     String arguments = null;
     if (outlineObject.has("arguments")) {
       arguments = outlineObject.get("arguments").getAsString();
@@ -71,7 +73,16 @@ public class NotificationAnalysisOutlineProcessor extends NotificationProcessor 
     }
 
     // create outline object
-    OutlineImpl outline = new OutlineImpl(parent, offset, length, kind, name, arguments, returnType);
+    OutlineImpl outline = new OutlineImpl(
+        parent,
+        kind,
+        name,
+        offset,
+        length,
+        isAbstract,
+        isStatic,
+        arguments,
+        returnType);
 
     // compute children recursively
     List<Outline> childrenList = Lists.newArrayList();

@@ -423,10 +423,12 @@ public class DartUnitOutlineComputer {
   private OutlineImpl newUnitOutline() {
     return new OutlineImpl(
         null,
+        ElementKind.COMPILATION_UNIT,
+        unit.getElement().getDisplayName(),
         unit.getOffset(),
         unit.getLength(),
-        ElementKind.COMPILATION_UNIT,
-        unit.getElement().getDisplayName());
+        false,
+        false);
   }
 
 //  private void newVariableOutline(OutlineImpl classOutline, List<Outline> children,

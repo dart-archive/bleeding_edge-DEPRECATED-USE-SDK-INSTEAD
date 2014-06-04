@@ -71,4 +71,28 @@ public interface Outline extends SourceRegion {
    * @return the return type of the element
    */
   public String getReturnType();
+
+  /**
+   * True if the element is an abstract member of a class, or is an abstract class itself.
+   * 
+   * @return {@code true} if the element is an abstract member of a class, or is an abstract class
+   *         itself
+   */
+  public boolean isAbstract();
+
+  /**
+   * True if the element is private.
+   * 
+   * @return {@code true} if the element is private
+   */
+  public boolean isPrivate();
+
+  /**
+   * True if the element is a static member of a class or is a top-level function or field.
+   * 
+   * @return {@code true} if the element is a static member of a class or is a top-level function or
+   *         field
+   */
+  public boolean isStatic();
+
 }

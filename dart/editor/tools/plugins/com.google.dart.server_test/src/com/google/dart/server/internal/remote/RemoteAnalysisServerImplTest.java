@@ -220,14 +220,18 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "      'name': 'name0',",
         "      'offset': 1,",
         "      'length': 2,",
+        "      'isAbstract': false,",
+        "      'isStatic': false,",
         "      'arguments': 'args0',",
         "      'returnType': 'returnType0',",
         "      'children': [",
         "        {",
         "          'kind': 'CLASS',",
-        "          'name': 'name1',",
+        "          'name': '_name1',",
         "          'offset': 3,",
-        "          'length': 4",
+        "          'length': 4,",
+        "          'isAbstract': true,",
+        "          'isStatic': true",
         "        }",
         "      ]",
         "    }",
@@ -242,6 +246,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals("name0", outline.getName());
     assertEquals(1, outline.getOffset());
     assertEquals(2, outline.getLength());
+    assertFalse(outline.isAbstract());
+    assertFalse(outline.isStatic());
+    assertFalse(outline.isPrivate());
     assertEquals("args0", outline.getArguments());
     assertEquals("returnType0", outline.getReturnType());
 
@@ -249,9 +256,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     Outline child = outline.getChildren()[0];
     assertThat(child.getChildren()).hasSize(0);
     assertEquals(ElementKind.CLASS, child.getKind());
-    assertEquals("name1", child.getName());
+    assertEquals("_name1", child.getName());
     assertEquals(3, child.getOffset());
     assertEquals(4, child.getLength());
+    assertTrue(child.isAbstract());
+    assertTrue(child.isStatic());
+    assertTrue(child.isPrivate());
     assertNull(child.getArguments());
     assertNull(child.getReturnType());
   }

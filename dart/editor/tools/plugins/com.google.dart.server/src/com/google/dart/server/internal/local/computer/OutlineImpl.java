@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.local.computer;
 
 import com.google.dart.engine.utilities.general.ObjectUtilities;
+import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.server.ElementKind;
 import com.google.dart.server.Outline;
 
@@ -30,20 +31,25 @@ public class OutlineImpl extends SourceRegionImpl implements Outline {
   private final Outline parent;
   private final ElementKind kind;
   private final String name;
+  private final boolean isAbstract;
+  private final boolean isStatic;
   private final String arguments;
   private final String returnType;
   private Outline[] children = Outline.EMPTY_ARRAY;
 
-  public OutlineImpl(Outline parent, int offset, int length, ElementKind kind, String name) {
-    this(parent, offset, length, kind, name, null, null);
+  public OutlineImpl(Outline parent, ElementKind kind, String name, int offset, int length,
+      boolean isAbstract, boolean isStatic) {
+    this(parent, kind, name, offset, length, isAbstract, isStatic, null, null);
   }
 
-  public OutlineImpl(Outline parent, int offset, int length, ElementKind kind, String name,
-      String arguments, String returnType) {
+  public OutlineImpl(Outline parent, ElementKind kind, String name, int offset, int length,
+      boolean isAbstract, boolean isStatic, String arguments, String returnType) {
     super(offset, length);
     this.parent = parent;
     this.kind = kind;
     this.name = name;
+    this.isAbstract = isAbstract;
+    this.isStatic = isStatic;
     this.arguments = arguments;
     this.returnType = returnType;
   }
@@ -110,6 +116,24 @@ public class OutlineImpl extends SourceRegionImpl implements Outline {
             arguments == null ? 0 : arguments.hashCode(),
             returnType == null ? 0 : returnType.hashCode()}),
         Arrays.hashCode(children));
+  }
+
+  @Override
+  public boolean isAbstract() {
+    return isAbstract;
+  }
+
+  @Override
+  public boolean isPrivate() {
+    if (kind == ElementKind.COMPILATION_UNIT) {
+      return false;
+    }
+    return StringUtilities.startsWithChar(name, '_');
+  }
+
+  @Override
+  public boolean isStatic() {
+    return isStatic;
   }
 
   public void setChildren(Outline[] children) {
