@@ -65,7 +65,6 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
   };
 
   private DartLaunchConfigWrapper wrapper;
-  private static final String DEBUG_PORT = "9222";
 
   @Override
   public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch launch,
@@ -149,19 +148,15 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
           "No devices detected.\n\nConnect device, enable USB debugging and try again."));
     }
 
-    if (wrapper.getLaunchContentShell()) {
-      if (wrapper.getInstallContentShell()) {
-        if (!devBridge.installContentShellApk(deviceId)) {
-          throw new CoreException(new Status(
-              IStatus.ERROR,
-              DartDebugCorePlugin.PLUGIN_ID,
-              "Failed to install content shell on mobile"));
-        }
+    if (wrapper.getInstallContentShell()) {
+      if (!devBridge.installContentShellApk(deviceId)) {
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            "Failed to install content shell on mobile"));
       }
-      devBridge.launchContentShell(deviceId, launchUrl);
-    } else {
-      devBridge.launchChromeBrowser(launchUrl);
     }
+    devBridge.launchContentShell(deviceId, launchUrl);
   }
 
   private String getUrlFromResourceServer(IResource resource) throws IOException, CoreException,

@@ -27,8 +27,6 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -52,7 +50,6 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
   private static final String DEVICE_NOT_FOUND = "No mobile found or USB development not enabled on mobile";
 
   private LaunchTargetComposite launchTargetGroup;
-  private Button dartBrowserButton;
   private Button installDartBrowserButton;
   private Label statusLabel;
 
@@ -86,22 +83,9 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
     ((GridLayout) group.getLayout()).marginBottom = 4;
 
-    dartBrowserButton = new Button(group, SWT.CHECK);
-    dartBrowserButton.setText("Launch in a Dart Content Shell Browser");
-    dartBrowserButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        notifyPanelChanged();
-        installDartBrowserButton.setEnabled(dartBrowserButton.getSelection());
-        installDartBrowserButton.setSelection(dartBrowserButton.getSelection());
-      }
-    });
-    GridDataFactory.swtDefaults().span(2, 1).grab(true, false).applyTo(dartBrowserButton);
-
     installDartBrowserButton = new Button(group, SWT.CHECK);
-    installDartBrowserButton.setText("Automatically install Dart Content Shell Browser on first mobile launch");
-    GridDataFactory.swtDefaults().span(2, 1).grab(true, false).indent(20, 0).applyTo(
-        installDartBrowserButton);
+    installDartBrowserButton.setText("Automatically install Dart Content Shell Browser on first launch");
+    GridDataFactory.swtDefaults().span(2, 1).grab(true, false).applyTo(installDartBrowserButton);
 
     // Status and setup group
     group = new Group(composite, SWT.NONE);
@@ -185,7 +169,6 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
       launchTargetGroup.setHtmlButtonSelection(false);
     }
 
-    dartBrowserButton.setSelection(wrapper.getLaunchContentShell());
     installDartBrowserButton.setSelection(wrapper.getInstallContentShell());
   }
 
@@ -212,7 +195,6 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
 
     wrapper.setUrl(launchTargetGroup.getUrlString());
     wrapper.setSourceDirectoryName(launchTargetGroup.getSourceDirectory());
-    wrapper.setLaunchContentShell(dartBrowserButton.getSelection());
     wrapper.setInstallContentShell(installDartBrowserButton.getSelection());
   }
 

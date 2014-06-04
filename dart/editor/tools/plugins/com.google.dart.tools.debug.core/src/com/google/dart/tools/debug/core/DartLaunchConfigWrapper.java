@@ -230,7 +230,7 @@ public class DartLaunchConfigWrapper {
 
   public boolean getInstallContentShell() {
     try {
-      return launchConfig.getAttribute(INSTALL_CONTENT_SHELL, getLaunchContentShell());
+      return launchConfig.getAttribute(INSTALL_CONTENT_SHELL, true);
     } catch (CoreException e) {
       DartDebugCorePlugin.logError(e);
 
