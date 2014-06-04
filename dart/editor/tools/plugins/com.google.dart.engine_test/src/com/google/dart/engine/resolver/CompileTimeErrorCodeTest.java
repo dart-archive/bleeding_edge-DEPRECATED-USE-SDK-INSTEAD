@@ -2070,6 +2070,36 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_instanceMemberAccessFromFactory_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "  A();",
+        "  factory A.make() {",
+        "    m();",
+        "    return new A();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY);
+    verify(source);
+  }
+
+  public void test_instanceMemberAccessFromFactory_unnamed() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "  A._();",
+        "  factory A() {",
+        "    m();",
+        "    return new A._();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY);
+    verify(source);
+  }
+
   public void test_instanceMemberAccessFromStatic_field() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

@@ -668,7 +668,14 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.30 Identifier Reference: Otherwise, e is equivalent to the property extraction
    * <b>this</b>.<i>id</i>.
    */
-  INSTANCE_MEMBER_ACCESS_FROM_STATIC("Instance member cannot be accessed from static method"),
+  INSTANCE_MEMBER_ACCESS_FROM_FACTORY(
+      "Instance members cannot be accessed from a factory constructor"),
+
+  /**
+   * 12.30 Identifier Reference: Otherwise, e is equivalent to the property extraction
+   * <b>this</b>.<i>id</i>.
+   */
+  INSTANCE_MEMBER_ACCESS_FROM_STATIC("Instance members cannot be accessed from a static method"),
 
   /**
    * 11 Metadata: Metadata consists of a series of annotations, each of which begin with the

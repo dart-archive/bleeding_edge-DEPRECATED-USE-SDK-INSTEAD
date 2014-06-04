@@ -316,6 +316,11 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   private boolean isInStaticMethod;
 
   /**
+   * This is set to {@code true} iff the visitor is currently visiting a factory constructor.
+   */
+  private boolean isInFactory;
+
+  /**
    * This is set to {@code true} iff the visitor is currently visiting code in the SDK.
    */
   private boolean isInSystemLibrary;
@@ -659,6 +664,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       ConstructorElement constructorElement = node.getElement();
       enclosingFunction = constructorElement;
       isEnclosingConstructorConst = node.getConstKeyword() != null;
+      isInFactory = node.getFactoryKeyword() != null;
       checkForConstConstructorWithNonFinalField(node, constructorElement);
       checkForConstConstructorWithNonConstSuper(node);
       checkForConflictingConstructorNameAndMember(node, constructorElement);
@@ -675,6 +681,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       return super.visitConstructorDeclaration(node);
     } finally {
       isEnclosingConstructorConst = false;
+      isInFactory = false;
       enclosingFunction = outerFunction;
     }
   }
@@ -3503,8 +3510,8 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
    * @see CompileTimeErrorCode#INSTANCE_MEMBER_ACCESS_FROM_STATIC TODO(scheglov) rename thid method
    */
   private boolean checkForImplicitThisReferenceInInitializer(SimpleIdentifier node) {
-    if (!isInConstructorInitializer && !isInStaticMethod && !isInInstanceVariableInitializer
-        && !isInStaticVariableDeclaration) {
+    if (!isInConstructorInitializer && !isInStaticMethod && !isInFactory
+        && !isInInstanceVariableInitializer && !isInStaticVariableDeclaration) {
       return false;
     }
     // prepare element
@@ -3551,6 +3558,10 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (isInStaticMethod) {
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
+          node);
+    } else if (isInFactory) {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY,
           node);
     } else {
       errorReporter.reportErrorForNode(
