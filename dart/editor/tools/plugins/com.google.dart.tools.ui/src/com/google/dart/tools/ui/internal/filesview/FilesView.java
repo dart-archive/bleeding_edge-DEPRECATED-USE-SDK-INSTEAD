@@ -471,6 +471,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
 
     boolean isPackagesDir = isPackagesDir(selection);
+    boolean isFolder = isFolder(selection);
 
     // EDIT GROUP
 
@@ -478,7 +479,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
       manager.add(new Separator());
 
-      if (!isPackagesDir) {
+      if (!isFolder) {
         manager.add(copyAction);
       }
 
@@ -488,7 +489,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         manager.add(copyFilePathAction);
       }
 
-      if (!isPackagesDir) {
+      if (!isFolder) {
         manager.add(pasteAction);
       }
 
@@ -758,6 +759,16 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     return false;
   }
 
+  private boolean isFolder(IStructuredSelection selection) {
+    if (selection.isEmpty()) {
+      return false;
+    }
+
+    Object resource = selection.getFirstElement();
+    return resource instanceof IFolder;
+
+  }
+
   private boolean isInDartSdkNode(Object selection) {
     while (selection != null) {
       if (selection instanceof DartLibraryNode || selection instanceof DartSdkNode) {
@@ -771,15 +782,12 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   }
 
   private boolean isPackagesDir(IStructuredSelection selection) {
-
-    if (selection.isEmpty()) {
-      return false;
+    if (isFolder(selection)) {
+      Object resource = selection.getFirstElement();
+      return DartCore.isPackagesDirectory((IFolder) resource);
     }
 
-    Object resource = selection.getFirstElement();
-
-    return resource instanceof IFolder && DartCore.isPackagesDirectory((IFolder) resource);
-
+    return false;
   }
 
   private boolean isPubFile(Object file) {

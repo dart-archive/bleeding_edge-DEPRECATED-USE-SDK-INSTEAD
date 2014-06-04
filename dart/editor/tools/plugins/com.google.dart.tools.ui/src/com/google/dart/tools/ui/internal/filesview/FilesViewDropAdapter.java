@@ -19,6 +19,7 @@ import com.google.dart.tools.ui.internal.refactoring.MoveSupport;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -72,7 +73,7 @@ public class FilesViewDropAdapter extends NavigatorDropAdapter {
         resources = new IResource[selectionObjects.length];
         for (int i = 0; i < selectionObjects.length; i++) {
           Object o = selectionObjects[i];
-          if (o instanceof IResource) {
+          if (o instanceof IResource && !(o instanceof IFolder)) {
             resources[i] = (IResource) o;
           } else {
             return false;
