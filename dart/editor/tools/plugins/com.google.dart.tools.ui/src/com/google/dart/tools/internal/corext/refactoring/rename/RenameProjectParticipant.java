@@ -14,10 +14,13 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.pub.PubspecModel;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -33,6 +36,8 @@ import org.eclipse.ltk.core.refactoring.participants.RenameParticipant;
 import org.eclipse.ltk.core.refactoring.resource.ResourceChange;
 
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 
 /**
@@ -72,6 +77,8 @@ public class RenameProjectParticipant extends RenameParticipant {
         }
         // rename folder on disk
         currentFile.renameTo(newFile);
+        // rename pubspec if necessary
+        renamePubSpec(project);
       } catch (Throwable e) {
         DartCore.logError(e);
         return null;
@@ -82,6 +89,21 @@ public class RenameProjectParticipant extends RenameParticipant {
     @Override
     protected IResource getModifiedResource() {
       return project;
+    }
+
+    private void renamePubSpec(IProject newProject) {
+      IFile pubspec = newProject.getFile(DartCore.PUBSPEC_FILE_NAME);
+
+      if (pubspec != null) {
+        try {
+          Reader reader = new InputStreamReader(pubspec.getContents(), pubspec.getCharset());
+          PubspecModel model = new PubspecModel(pubspec, FileUtilities.getContents(reader));
+          model.setName(newName);
+          model.save();
+        } catch (Exception e) {
+
+        }
+      }
     }
   }
 
