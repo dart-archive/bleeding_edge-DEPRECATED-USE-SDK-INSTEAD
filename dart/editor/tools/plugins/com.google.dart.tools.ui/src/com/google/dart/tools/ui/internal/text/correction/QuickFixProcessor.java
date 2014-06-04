@@ -82,9 +82,10 @@ public class QuickFixProcessor {
       @Override
       public void run() throws Exception {
         if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-          String contextId = contextUI.getContext().getAnalysisContextId();
-          CorrectionProposal[] serviceProposals = getFixes(contextId, problem);
-          QuickAssistProcessor.addServiceProposals(proposals, serviceProposals);
+          // TODO(scheglov) Analysis Server: implement for new API
+//          String contextId = contextUI.getContext().getAnalysisContextId();
+//          CorrectionProposal[] serviceProposals = getFixes(contextId, problem);
+//          QuickAssistProcessor.addServiceProposals(proposals, serviceProposals);
         } else {
           com.google.dart.engine.services.correction.QuickFixProcessor serviceProcessor;
           serviceProcessor = CorrectionProcessors.getQuickFixProcessor();

@@ -2340,6 +2340,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (inputResourceFile != null) {
       return inputResourceFile.getLocation().toOSString();
     }
+    // may be Java file
+    if (inputJavaFile != null) {
+      return inputJavaFile.getAbsolutePath();
+    }
     // TODO(scheglov) Analysis Server
     return null;
   }
@@ -4581,14 +4585,14 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
       // TODO(scheglov) Analysis Server
       if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-        String analysisContextId = getInputAnalysisContextId();
-        if (analysisContextId == null) {
+        String file = getInputFilePath();
+        if (file == null) {
           return null;
         }
         return new AssistContext(
             null/*SearchEngineFactory.createSearchEngine(index)*/,
             null,
-            analysisContextId,
+            file,
             source,
             null,
             selectionOffset,

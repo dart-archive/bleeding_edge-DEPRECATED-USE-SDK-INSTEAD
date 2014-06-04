@@ -345,6 +345,10 @@ public class EditorUtility {
 
   public static IEditorInput getEditorInput(Object input) {
 
+    if (input instanceof File) {
+      return getEditorInput((File) input);
+    }
+
     if (input instanceof Source) {
       return getEditorInput((Source) input);
     }
@@ -840,6 +844,12 @@ public class EditorUtility {
 
     Source source = cu.getSource();
     return getEditorInput(source);
+  }
+
+  private static IEditorInput getEditorInput(File file) {
+    URI uri = file.toURI();
+    IFileStore fileStore = EFS.getLocalFileSystem().getStore(uri);
+    return new FileStoreEditorInput(fileStore);
   }
 
   private static IEditorInput getEditorInput(Source source) {

@@ -31,7 +31,7 @@ import com.google.dart.engine.utilities.source.SourceRange;
 public class AssistContext {
   private final SearchEngine searchEngine;
   private final AnalysisContext analysisContext;
-  private final String analysisContextId;
+  private final String file;
   private final Source source;
   private final CompilationUnit compilationUnit;
   private final int selectionOffset;
@@ -41,12 +41,11 @@ public class AssistContext {
   private Element coveredElement;
   private boolean coveredElementFound;
 
-  public AssistContext(SearchEngine searchEngine, AnalysisContext analysisContext,
-      String analysisContextId, Source source, CompilationUnit compilationUnit,
-      int selectionOffset, int selectionLength) {
+  public AssistContext(SearchEngine searchEngine, AnalysisContext analysisContext, String file,
+      Source source, CompilationUnit compilationUnit, int selectionOffset, int selectionLength) {
     this.searchEngine = searchEngine;
     this.analysisContext = analysisContext;
-    this.analysisContextId = analysisContextId;
+    this.file = file;
     this.source = source;
     this.compilationUnit = compilationUnit;
     this.selectionOffset = selectionOffset;
@@ -71,13 +70,6 @@ public class AssistContext {
    */
   public AnalysisContext getAnalysisContext() {
     return analysisContext;
-  }
-
-  /**
-   * @return the context id in which {@link Source} is analyzed.
-   */
-  public String getAnalysisContextId() {
-    return analysisContextId;
   }
 
   /**
@@ -140,6 +132,13 @@ public class AssistContext {
       return AnalysisError.NO_ERRORS;
     }
     return analysisContext.getErrors(source).getErrors();
+  }
+
+  /**
+   * @return the file path
+   */
+  public String getFile() {
+    return file;
   }
 
   /**

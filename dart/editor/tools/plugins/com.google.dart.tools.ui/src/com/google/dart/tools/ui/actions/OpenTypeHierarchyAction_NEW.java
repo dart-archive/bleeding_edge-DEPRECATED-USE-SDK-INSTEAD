@@ -13,12 +13,10 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.server.Element;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
-import com.google.dart.tools.ui.internal.util.OpenTypeHierarchyUtil;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -55,10 +53,11 @@ public class OpenTypeHierarchyAction_NEW extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    Element[] targets = OpenAction.getNavigationTargets(selection);
-    if (targets.length != 0) {
-      OpenTypeHierarchyUtil.open(targets[0], getSite().getWorkbenchWindow());
-    }
+    // TODO(scheglov) Analysis Server: implement for new API
+//    Element[] targets = OpenAction.getNavigationTargets(selection);
+//    if (targets.length != 0) {
+//      OpenTypeHierarchyUtil.open(targets[0], getSite().getWorkbenchWindow());
+//    }
   }
 
   @Override

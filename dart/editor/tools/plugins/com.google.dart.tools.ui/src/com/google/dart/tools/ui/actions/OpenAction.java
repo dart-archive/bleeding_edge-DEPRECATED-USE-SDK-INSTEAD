@@ -20,9 +20,12 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.polymer.PolymerTagDartElement;
 import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
+import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.server.NavigationTarget;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
+import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
@@ -41,14 +44,14 @@ public class OpenAction extends AbstractDartSelectionAction {
   /**
    * Returns navigation targets for the given context, may be empty, but not {@code null}.
    */
-  public static com.google.dart.server.Element[] getNavigationTargets(DartSelection selection) {
-    // TODO(scheglov) restore or remove for the new API
-    return com.google.dart.server.Element.EMPTY_ARRAY;
-//    int offset = selection.getOffset();
-//    AssistContext assistContext = selection.getContext();
-//    String file = assistContext.getAnalysisContextId();
-//    Source source = assistContext.getSource();
-//    return NewSelectionConverter.getNavigationTargets(contextId, source, offset);
+  public static NavigationTarget[] getNavigationTargets(DartSelection selection) {
+    int offset = selection.getOffset();
+    AssistContext assistContext = selection.getContext();
+    if (assistContext != null) {
+      String file = assistContext.getFile();
+      return NewSelectionConverter.getNavigationTargets(file, offset);
+    }
+    return NavigationTarget.EMPTY_ARRAY;
   }
 
   /**
@@ -98,10 +101,10 @@ public class OpenAction extends AbstractDartSelectionAction {
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      com.google.dart.server.Element[] targets = getNavigationTargets(selection);
-      for (com.google.dart.server.Element target : targets) {
+      NavigationTarget[] targets = getNavigationTargets(selection);
+      for (NavigationTarget target : targets) {
         try {
-          DartUI.openInEditor(editor.getInputResourceFile(), target);
+          DartUI.openInEditor(editor.getInputResourceFile(), target, true);
           return;
         } catch (Throwable e) {
           ExceptionHandler.handle(e, getText(), "Exception during open.");

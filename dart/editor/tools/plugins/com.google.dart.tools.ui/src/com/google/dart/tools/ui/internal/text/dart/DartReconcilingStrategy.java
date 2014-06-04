@@ -177,7 +177,9 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    */
   public void dispose() {
     // clear the cached source content to ensure the source will be read from disk
-    document.removeDocumentListener(documentListener);
+    if (document != null) {
+      document.removeDocumentListener(documentListener);
+    }
     AnalysisWorker.removeListener(analysisListener);
     sourceChanged(null);
   }
@@ -253,7 +255,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * Cache the document and add document changed and analysis result listeners.
    */
   @Override
-  public void setDocument(final IDocument document) {
+  public void setDocument(IDocument document) {
     if (this.document != null) {
       document.removeDocumentListener(documentListener);
     }

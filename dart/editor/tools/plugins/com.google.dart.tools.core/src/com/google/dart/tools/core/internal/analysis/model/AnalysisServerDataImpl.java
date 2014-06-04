@@ -40,8 +40,6 @@ import java.util.Set;
  * @coverage dart.tools.core.model
  */
 public class AnalysisServerDataImpl implements AnalysisServerData {
-  // TODO(scheglov) restore or remove for the new API
-//  private final Map<String, Set<Source>> navigationSubscriptions = Maps.newHashMap();
   private final Map<String, Set<AnalysisServerHighlightsListener>> highlightsSubscriptions = Maps.newHashMap();
   private final Map<String, Set<AnalysisServerOutlineListener>> outlineSubscriptions = Maps.newHashMap();
   private final Map<String, AnalysisError[]> errorData = Maps.newHashMap();
@@ -102,17 +100,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
 
   @Override
   public void subscribeNavigation(String file) {
-    // TODO(scheglov) restore or remove for the new API
-//    Set<Source> sources = navigationSubscriptions.get(contextId);
-//    if (sources == null) {
-//      sources = Sets.newHashSet();
-//      navigationSubscriptions.put(contextId, sources);
-//    }
-//    if (sources.add(source)) {
-//      server.subscribe(
-//          contextId,
-//          ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(sources)));
-//    }
+    addAnalysisSubscription(AnalysisService.NAVIGATION, file);
   }
 
   @Override
@@ -151,16 +139,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
 
   @Override
   public void unsubscribeNavigation(String file) {
-    // TODO(scheglov) restore or remove for the new API
-//    Set<Source> sources = navigationSubscriptions.get(contextId);
-//    if (sources == null) {
-//      return;
-//    }
-//    if (sources.remove(source)) {
-//      server.subscribe(
-//          contextId,
-//          ImmutableMap.of(NotificationKind.NAVIGATION, ListSourceSet.create(sources)));
-//    }
+    removeAnalysisSubscription(AnalysisService.NAVIGATION, file);
   }
 
   @Override

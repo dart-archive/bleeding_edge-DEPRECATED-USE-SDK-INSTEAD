@@ -19,10 +19,12 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchScope;
 import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.source.Source;
+import com.google.dart.server.NavigationTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
@@ -863,6 +865,28 @@ public final class DartUI {
   }
 
   /**
+   * Opens an editor with {@link NavigationTarget} in context of the given {@link IFile}.
+   * 
+   * @param context the {@link IResource} to open {@link NavigationTarget} in, may be {@code null}.
+   * @param target the {@link NavigationTarget} to open in reveal.
+   * @return the opened editor or {@code null} if by some reason editor was not opened.
+   */
+  public static IEditorPart openInEditor(IResource context, NavigationTarget target,
+      boolean activate) throws Exception {
+    if (target == null) {
+      return null;
+    }
+    String path = target.getFile();
+    IEditorPart editor = openFilePath(path, activate);
+    if (editor != null) {
+      int offset = target.getOffset();
+      int length = target.getLength();
+      EditorUtility.revealInEditor(editor, offset, length);
+    }
+    return editor;
+  }
+
+  /**
    * Opens an editor at the given position in the active page.
    */
   public static IEditorPart openInEditor(IResource context, Source source, boolean activate,
@@ -1006,6 +1030,17 @@ public final class DartUI {
       EditorUtility.revealInEditor(editor, offset, length);
     }
     return editor;
+  }
+
+  private static IEditorPart openFilePath(String path, boolean activate) throws PartInitException,
+      DartModelException {
+    File javaFile = new File(path);
+    IFile file = ResourceUtil.getFile(javaFile);
+    if (file != null) {
+      return openFile(file, activate);
+    }
+    // fallback for SDK, which sources are is not a IFile(s)
+    return EditorUtility.openInEditor(javaFile, activate);
   }
 
   private static IEditorPart openSource(ResourceMap map, Source source, boolean activate)
