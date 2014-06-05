@@ -1,10 +1,10 @@
-util.init
+﻿util.init
 util.openWelcomePage
 Click "todoMVC icon"
 util.xWaitFor 60, "pubspec lock"
 util.xWait 5 (* let analysis finish *)
 Click "run button"
-util.xWaitFor 20, "browser right arrow button"
+util.xWaitFor 30, "browser right arrow button"
 Click "browser right arrow button"
 util.xWaitFor 20,"todo title"
 put ImageRectangle("todo title") into todoRect

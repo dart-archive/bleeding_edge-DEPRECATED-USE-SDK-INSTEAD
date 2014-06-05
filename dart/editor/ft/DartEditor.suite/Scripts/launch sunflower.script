@@ -18,6 +18,7 @@ DoubleClick declLoc + (offset,0)
 Click "run button"
 util.xWait 2
 util.dismissMacWarning
+util.xWait 30 (* broken launch timing *)
 Click (1000,40) (* work-around for broken debug UX on linux *)
 util.xWaitFor 10, "debug line indicator"
 DoubleClick declLoc + (offset,0)
@@ -36,6 +37,7 @@ util.saveFile
 util.xWait 5
 util.runApp
 util.xWait 2
+util.xWait 30 (* broken launch timing *)
 Click (1000,40) (* work-around for broken debug UX on linux *)
 put the SearchRectangle into origRect
 set the SearchRectangle to ((0,800),(1920,1200))

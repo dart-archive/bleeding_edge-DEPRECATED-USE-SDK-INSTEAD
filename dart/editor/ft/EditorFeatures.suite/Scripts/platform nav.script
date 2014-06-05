@@ -3,8 +3,8 @@ put ImageLocation(Text:"platform_web.dart",CaseSensitive:"yes",ValidCharacters:"
     IgnoreSpaces:"yes",ignoreUnderscores:"no",dpi:94) into platformLoc
 Click platformLoc
 DoubleClick platformLoc
-set the SearchRectangle to ((0,100),(800,200))
-util.xWaitFor 10, (Text:"ppw_plat",CaseSensitive:"yes",ValidCharacters:"*",\
+set the SearchRectangle to ((0,100),(800,250))
+util.xWaitFor 10, (Text:"library",CaseSensitive:"yes",ValidCharacters:"*",\
     IgnoreSpaces:"yes",ignoreUnderscores:"no",dpi:94) 
 set the SearchRectangle to ()
 util.activateEditor
@@ -38,4 +38,3 @@ util.xWaitFor 10, (Text:"innerWidth",CaseSensitive:"yes",ValidCharacters:"*",\
 
 util.closeTab
 util.closeTab
-

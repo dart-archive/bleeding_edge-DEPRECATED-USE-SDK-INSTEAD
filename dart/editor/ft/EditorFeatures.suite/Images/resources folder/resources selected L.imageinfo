@@ -9,6 +9,7 @@
     HonorAlpha = 1;
     HotSpotX = 46;
     HotSpotY = 7;
+    ImageDescription = <>;
     LastKnownLocationX = 0;
     LastKnownLocationY = 0;
     OriginalLocationX = 27;

@@ -5,7 +5,7 @@ TypeText downArrow,downArrow,downArrow,downArrow,downArrow
 (*Run "check problems"*)
 
 Click "run button"
-util.xWaitFor 10,"browser right arrow button"
+util.xWaitFor 30,"browser right arrow button"
 util.dismissMacWarning
 Click (Text:"Untitled",CaseSensitive:"yes")
 Click "plus file"

@@ -25,7 +25,7 @@ to init
   if  connectioninfo().name is "vm127-m3:1 (chrome-bot)" then
     put 5 into universal waitFactor (* linux bot is slow *)
   else if  connectioninfo().name is "vm620-m3:1 (chrome-bot)" then
-    put 5 into universal waitFactor (* mac bot is slow *)
+    put 2 into universal waitFactor (* mac bot is slow *)
   else
     put 1 into universal waitFactor
   end if

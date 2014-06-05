@@ -4,7 +4,7 @@ Click "pop icon"
 util.xWaitFor 60, "pubspec lock"
 util.xWait 5 (* let analysis finish *)
 Click "run button"
-util.xWaitFor 10, "browser right arrow button"
+util.xWaitFor 30, "browser right arrow button"
 Click "browser right arrow button"
 util.xWaitFor 20,  "pop balloon"
 Click "pop balloon"
