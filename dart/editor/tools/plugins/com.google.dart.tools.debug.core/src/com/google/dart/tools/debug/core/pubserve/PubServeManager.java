@@ -19,11 +19,14 @@ import com.google.dart.tools.core.pub.IPubServeListener;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ListenerList;
@@ -96,6 +99,33 @@ public class PubServeManager implements IResourceChangeListener {
             terminatePubServe();
           }
         }
+      }
+    } else if (event.getDelta() != null && event.getDelta().getKind() == IResourceDelta.CHANGED) {
+      // TODO(keertip): remove when pub can detect changes to pubspec and restart pub serve
+      try {
+        event.getDelta().accept(new IResourceDeltaVisitor() {
+          @Override
+          public boolean visit(IResourceDelta delta) throws CoreException {
+            IResource res = delta.getResource();
+            if (res == null) {
+              return false;
+            }
+            if (res instanceof IFile) {
+              if (res.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
+                IContainer pubServeWorkingDir = getCurrentServeWorkingDir();
+                if (pubServeWorkingDir == res.getParent()) {
+                  DartCore.getConsole().printSeparator(
+                      "Stopping pub serve, " + res.getFullPath().toString() + " has changed");
+                  terminatePubServe();
+                }
+              }
+              return false;
+            }
+            return true;
+          }
+        });
+      } catch (CoreException e) {
+
       }
     }
   }
