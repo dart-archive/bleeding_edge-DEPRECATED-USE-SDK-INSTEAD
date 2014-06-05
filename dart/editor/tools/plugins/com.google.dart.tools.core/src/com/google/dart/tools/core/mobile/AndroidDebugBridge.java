@@ -147,6 +147,14 @@ public class AndroidDebugBridge {
   }
 
   /**
+   * Determine if a mobile device is connected and authorized.
+   */
+  public boolean isDeviceConnectedAndAuthorized() {
+    AndroidDevice device = getConnectedDevice();
+    return device != null && device.isAuthorized();
+  }
+
+  /**
    * Open the url in the chrome browser on the device
    * <p>
    * adb shell am start com.android.chrome/com.google.android.apps.chrome.Main -d url
@@ -258,5 +266,4 @@ public class AndroidDebugBridge {
     }
     return exitCode == 0 ? true : false;
   }
-
 }

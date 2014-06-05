@@ -13,10 +13,12 @@
  */
 package com.google.dart.tools.debug.ui.internal.mobile;
 
+import com.google.dart.tools.core.mobile.AndroidDebugBridge;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
+import com.google.dart.tools.debug.ui.internal.dialogs.ManageLaunchesDialog;
 import com.google.dart.tools.debug.ui.internal.util.AbstractLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
@@ -30,6 +32,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * A launch shortcut to allow users to launch Dart applications on Mobile.
@@ -104,6 +107,12 @@ public class MobileLaunchShortcut extends AbstractLaunchShortcut implements ILau
         DartUtil.logError(e);
         return;
       }
+    }
+
+    // If device is not connected or not authorized then open launch dialog
+    if (!AndroidDebugBridge.getAndroidDebugBridge().isDeviceConnectedAndAuthorized()) {
+      ManageLaunchesDialog.openAsync(PlatformUI.getWorkbench().getActiveWorkbenchWindow(), config);
+      return;
     }
 
     DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);

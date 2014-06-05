@@ -14,10 +14,12 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
+import com.google.dart.tools.core.mobile.AndroidDebugBridge;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.DebugInstrumentationUtilities;
+import com.google.dart.tools.debug.ui.internal.dialogs.ManageLaunchesDialog;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -190,6 +192,20 @@ public abstract class DartRunAbstractAction extends InstrumentedAction implement
           DebugUITools.getDefaultImageDescriptor(config)) {
         @Override
         public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
+
+          // If this is a mobile launch and device is not connected or not authorized
+          // then open launch dialog
+          try {
+            if (config.getType().getIdentifier().equals(DartDebugCorePlugin.MOBILE_LAUNCH_CONFIG_ID)) {
+              if (!AndroidDebugBridge.getAndroidDebugBridge().isDeviceConnectedAndAuthorized()) {
+                ManageLaunchesDialog.openAsync(window, config);
+                return;
+              }
+            }
+          } catch (CoreException e) {
+            //$FALL-THROUGH$
+          }
+
           launch(config, instrumentation);
         }
       };

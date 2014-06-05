@@ -63,6 +63,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -79,6 +80,21 @@ import java.util.List;
 @SuppressWarnings("restriction")
 public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConfigurationDialog,
     ILaunchConfigurationListener {
+
+  /**
+   * Asynchronously open the manage launches dialog with the given launch automatically selected.
+   */
+  public static void openAsync(final IWorkbenchWindow window, final ILaunchConfiguration config) {
+    final Display display = Display.getDefault();
+    display.asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        final ManageLaunchesDialog dialog = new ManageLaunchesDialog(window);
+        dialog.selectLaunchOnOpen(config);
+        dialog.open();
+      }
+    });
+  }
 
   private IWorkbenchWindow window;
 
@@ -213,6 +229,13 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     if (config != null) {
       launchesViewer.setSelection(new StructuredSelection(config));
     }
+  }
+
+  /**
+   * Select the specified launch configuration when the dialog opens.
+   */
+  public void selectLaunchOnOpen(ILaunchConfiguration config) {
+    selectedConfig = config;
   }
 
   @Override
@@ -585,23 +608,23 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
   }
 
   private void selectLaunchConfigFromPage() {
-    IResource resource = LaunchUtils.getSelectedResource(window);
 
-    if (resource != null) {
-
-      ILaunchConfiguration config = null;
-      List<ILaunchConfiguration> configs = LaunchUtils.getExistingLaunchesFor(resource);
-      if (!configs.isEmpty()) {
-        config = configs.get(0);
-      }
-
-      if (config != null) {
-        launchesViewer.setSelection(new StructuredSelection(config));
-        return;
+    ILaunchConfiguration config = selectedConfig;
+    if (config == null) {
+      IResource resource = LaunchUtils.getSelectedResource(window);
+      if (resource != null) {
+        List<ILaunchConfiguration> configs = LaunchUtils.getExistingLaunchesFor(resource);
+        if (!configs.isEmpty()) {
+          config = configs.get(0);
+        }
       }
     }
 
-    selectFirstLaunchConfig();
+    if (config != null) {
+      launchesViewer.setSelection(new StructuredSelection(config));
+    } else {
+      selectFirstLaunchConfig();
+    }
   }
 
   private void show(ILaunchConfiguration config) {
@@ -671,5 +694,4 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
       }
     }
   }
-
 }
