@@ -32,6 +32,7 @@ import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetter
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.FormatProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.SortMembersProposal;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
@@ -39,6 +40,7 @@ import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.source.ISourceViewer;
 
 import java.util.List;
 
@@ -63,12 +65,14 @@ public class QuickAssistProcessor {
 
   private AssistContext context;
   private DartEditor editor;
+  private ISourceViewer viewer;
   private DartSelection selection;
   private List<ICompletionProposal> proposals;
 
   public synchronized ICompletionProposal[] getAssists(AssistContextUI contextUI) {
     this.context = contextUI.getContext();
     this.editor = contextUI.getEditor();
+    this.viewer = editor.getViewer();
     this.selection = (DartSelection) editor.getSelectionProvider().getSelection();
     proposals = Lists.newArrayList();
     // not resolved yet
@@ -112,6 +116,7 @@ public class QuickAssistProcessor {
             addProposal_convertMethodToGetterRefactoring();
             addProposal_renameRefactoring();
             addProposal_format();
+            addProposal_sortMembers();
             // ask services
             com.google.dart.engine.services.correction.QuickAssistProcessor serviceProcessor;
             serviceProcessor = CorrectionProcessors.getQuickAssistProcessor();
@@ -160,6 +165,14 @@ public class QuickAssistProcessor {
     action.update(selection);
     if (action.isEnabled()) {
       proposals.add(new RenameRefactoringProposal(action, selection));
+    }
+  }
+
+  private void addProposal_sortMembers() {
+    Source source = context.getSource();
+    CompilationUnit unit = context.getCompilationUnit();
+    if (source != null && unit != null) {
+      proposals.add(new SortMembersProposal(viewer, source, unit));
     }
   }
 
