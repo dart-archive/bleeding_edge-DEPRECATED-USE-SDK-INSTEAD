@@ -116,7 +116,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     try {
       getConnection().getRuntime().callFunctionOn(
           value.getObjectId(),
-          "function(){return " + exprText + ";}",
+          "(){return " + exprText + ";}",
           null,
           false,
           new WebkitCallback<WebkitRemoteObject>() {

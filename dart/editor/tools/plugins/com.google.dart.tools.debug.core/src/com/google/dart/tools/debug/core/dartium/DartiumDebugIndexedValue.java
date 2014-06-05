@@ -90,7 +90,7 @@ public class DartiumDebugIndexedValue extends DartiumDebugValue implements IInde
 
     getConnection().getRuntime().callFunctionOn(
         listObject.getObjectId(),
-        "function(){return this[" + offset + "];}",
+        "()=>this[" + offset + "]",
         null,
         false,
         new WebkitCallback<WebkitRemoteObject>() {
