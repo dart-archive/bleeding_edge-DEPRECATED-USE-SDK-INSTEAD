@@ -441,7 +441,11 @@ public class PubYamlUtils {
         new Representer(),
         new DumperOptions(),
         new CustomResolver());
-    Map<String, Object> map = (Map<String, Object>) yaml.load(contents);
+    Object o = yaml.load(contents);
+    Map<String, Object> map = new HashMap<String, Object>();
+    if (o instanceof Map) {
+      map.putAll((Map<String, Object>) o);
+    }
     return map;
   }
 
