@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.ui.internal.mobile;
 
 import com.google.dart.tools.core.mobile.AndroidDebugBridge;
+import com.google.dart.tools.core.mobile.AndroidDevice;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
@@ -47,13 +48,14 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
 
   private static final String MOBILE_STATUS_PREFIX = "Mobile status: ";
   private static final String DEVICE_CONNECTED = "Connected";
+  private static final String DEVICE_NOT_AUTHORIZED = "Connected mobile is not authorized";
   private static final String DEVICE_NOT_FOUND = "No mobile found or USB development not enabled on mobile";
 
   private LaunchTargetComposite launchTargetGroup;
   private Button installDartBrowserButton;
   private Label statusLabel;
 
-  private boolean deviceConnected = false;
+  private AndroidDevice connectedDevice = null;
   private final AtomicBoolean monitorDeviceConnection = new AtomicBoolean(false);
 
   @Override
@@ -123,8 +125,11 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     if (performSdkCheck() != null) {
       return performSdkCheck();
     }
-    if (!deviceConnected) {
+    if (connectedDevice == null) {
       return DEVICE_NOT_FOUND;
+    }
+    if (!connectedDevice.isAuthorized()) {
+      return DEVICE_NOT_AUTHORIZED;
     }
     return launchTargetGroup.getErrorMessage();
   }
@@ -231,14 +236,14 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
         public void run() {
 
           AndroidDebugBridge devBridge = AndroidDebugBridge.getAndroidDebugBridge();
-          boolean wasDeviceConnected = devBridge.getConnectedDevice() != null;
-          update(wasDeviceConnected);
+          AndroidDevice oldDevice = devBridge.getConnectedDevice();
+          update(oldDevice);
 
           while (monitorDeviceConnection.get()) {
-            final boolean isDeviceConnected = devBridge.getConnectedDevice() != null;
-            if (wasDeviceConnected != isDeviceConnected) {
-              wasDeviceConnected = isDeviceConnected;
-              update(isDeviceConnected);
+            AndroidDevice newDevice = devBridge.getConnectedDevice();
+            if (!AndroidDevice.isEqual(oldDevice, newDevice)) {
+              oldDevice = newDevice;
+              update(oldDevice);
             }
             try {
               Thread.sleep(1000);
@@ -248,11 +253,11 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
           }
         }
 
-        private void update(final boolean isDeviceConnected) {
+        private void update(final AndroidDevice device) {
           display.asyncExec(new Runnable() {
             @Override
             public void run() {
-              updateMobileStatus(isDeviceConnected);
+              updateMobileStatus(device);
             }
           });
         }
@@ -274,11 +279,18 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
    * 
    * @param isDeviceConnected {@code true} if a mobile device is currently connected
    */
-  private void updateMobileStatus(boolean isDeviceConnected) {
-    deviceConnected = isDeviceConnected;
+  private void updateMobileStatus(AndroidDevice device) {
+    connectedDevice = device;
     if (statusLabel != null && !statusLabel.isDisposed()) {
-      statusLabel.setText(MOBILE_STATUS_PREFIX
-          + (deviceConnected ? DEVICE_CONNECTED : DEVICE_NOT_FOUND));
+      String status;
+      if (device == null) {
+        status = DEVICE_NOT_FOUND;
+      } else if (!device.isAuthorized()) {
+        status = DEVICE_NOT_AUTHORIZED;
+      } else {
+        status = DEVICE_CONNECTED;
+      }
+      statusLabel.setText(MOBILE_STATUS_PREFIX + status);
       updateLaunchConfigurationDialog();
     }
   }

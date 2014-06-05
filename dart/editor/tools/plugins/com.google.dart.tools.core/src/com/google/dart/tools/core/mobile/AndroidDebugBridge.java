@@ -35,6 +35,9 @@ public class AndroidDebugBridge {
   private static String[] INSTALL_CMD = new String[] {"install"};
   private static String[] DEVICES_CMD = new String[] {"devices"};
 
+  private static final String DEVICE_CONNECTED_SUFFIX = "\tdevice";
+  private static final String UNAUTHORIZED_SUFFIX = "\tunauthorized";
+
   private static String[] LAUNCH_URL_IN_CC_CMD = new String[] {
       "shell", "am", "start", "-n", "org.chromium.content_shell_apk/.ContentShellActivity", "-d"};
 
@@ -75,13 +78,15 @@ public class AndroidDebugBridge {
   /**
    * Gets the first device connected and detected by adb
    * 
-   * @return the device id or {@code null} if no device detected
+   * @return the device or {@code null} if no device detected
    */
-  public String getConnectedDevice() {
+  public AndroidDevice getConnectedDevice() {
     List<String> args = buildAdbCommand(DEVICES_CMD);
     if (runAdb(args)) {
       //List of devices attached 
       //04f5385f95d80610  device
+      //T062873654  unauthorized
+      String unauthorized = null;
       LineNumberReader reader = new LineNumberReader(new StringReader(runner.getStdOut()));
       try {
         while (true) {
@@ -90,12 +95,19 @@ public class AndroidDebugBridge {
             break;
           }
           line = line.trim();
-          if (line.endsWith("\tdevice")) {
-            return line.substring(0, line.length() - 7).trim();
+          if (line.endsWith(DEVICE_CONNECTED_SUFFIX)) {
+            String id = line.substring(0, line.length() - DEVICE_CONNECTED_SUFFIX.length()).trim();
+            return new AndroidDevice(id, true);
+          }
+          if (line.endsWith(UNAUTHORIZED_SUFFIX)) {
+            unauthorized = line.substring(0, line.length() - UNAUTHORIZED_SUFFIX.length()).trim();
           }
         }
       } catch (IOException e) {
         //$FALL-THROUGH$
+      }
+      if (unauthorized != null) {
+        return new AndroidDevice(unauthorized, false);
       }
     }
     return null;

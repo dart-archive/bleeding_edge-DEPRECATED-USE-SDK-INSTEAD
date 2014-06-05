@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.core.mobile;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.mobile.AndroidDebugBridge;
+import com.google.dart.tools.core.mobile.AndroidDevice;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
@@ -140,23 +141,29 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
     AndroidDebugBridge devBridge = AndroidDebugBridge.getAndroidDebugBridge();
 
     devBridge.startAdbServer();
-    String deviceId = devBridge.getConnectedDevice();
-    if (deviceId == null) {
+    AndroidDevice device = devBridge.getConnectedDevice();
+    if (device == null) {
       throw new CoreException(new Status(
           IStatus.ERROR,
           DartDebugCorePlugin.PLUGIN_ID,
           "No devices detected.\n\nConnect device, enable USB debugging and try again."));
     }
+    if (device.getDeviceId() == null) {
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          "Unauthorized device detected.\n\nAuthorize device and try again."));
+    }
 
     if (wrapper.getInstallContentShell()) {
-      if (!devBridge.installContentShellApk(deviceId)) {
+      if (!devBridge.installContentShellApk(device.getDeviceId())) {
         throw new CoreException(new Status(
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,
             "Failed to install content shell on mobile"));
       }
     }
-    devBridge.launchContentShell(deviceId, launchUrl);
+    devBridge.launchContentShell(device.getDeviceId(), launchUrl);
   }
 
   private String getUrlFromResourceServer(IResource resource) throws IOException, CoreException,
