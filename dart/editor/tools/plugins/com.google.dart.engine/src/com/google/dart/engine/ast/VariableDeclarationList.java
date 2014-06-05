@@ -150,6 +150,7 @@ public class VariableDeclarationList extends AnnotatedNode {
 
   @Override
   public void visitChildren(AstVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(type, visitor);
     variables.accept(visitor);
   }
