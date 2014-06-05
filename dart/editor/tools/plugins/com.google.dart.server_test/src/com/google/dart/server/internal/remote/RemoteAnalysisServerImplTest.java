@@ -218,18 +218,22 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'outline' : {",
         "      'kind': 'COMPILATION_UNIT',",
         "      'name': 'name0',",
-        "      'offset': 1,",
-        "      'length': 2,",
+        "      'nameOffset': 1,",
+        "      'nameLength': 2,",
+        "      'elementOffset': 3,",
+        "      'elementLength': 4,",
         "      'isAbstract': false,",
         "      'isStatic': false,",
-        "      'arguments': 'args0',",
+        "      'parameters': 'parameters0',",
         "      'returnType': 'returnType0',",
         "      'children': [",
         "        {",
         "          'kind': 'CLASS',",
         "          'name': '_name1',",
-        "          'offset': 3,",
-        "          'length': 4,",
+        "          'nameOffset': 10,",
+        "          'nameLength': 20,",
+        "          'elementOffset': 30,",
+        "          'elementLength': 40,",
         "          'isAbstract': true,",
         "          'isStatic': true",
         "        }",
@@ -244,12 +248,14 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertThat(outline.getChildren()).hasSize(1);
     assertEquals(ElementKind.COMPILATION_UNIT, outline.getKind());
     assertEquals("name0", outline.getName());
-    assertEquals(1, outline.getOffset());
-    assertEquals(2, outline.getLength());
+    assertEquals(1, outline.getNameOffset());
+    assertEquals(2, outline.getNameLength());
+    assertEquals(3, outline.getElementOffset());
+    assertEquals(4, outline.getElementLength());
     assertFalse(outline.isAbstract());
     assertFalse(outline.isStatic());
     assertFalse(outline.isPrivate());
-    assertEquals("args0", outline.getArguments());
+    assertEquals("parameters0", outline.getParameters());
     assertEquals("returnType0", outline.getReturnType());
 
     // assertions on child
@@ -257,12 +263,14 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertThat(child.getChildren()).hasSize(0);
     assertEquals(ElementKind.CLASS, child.getKind());
     assertEquals("_name1", child.getName());
-    assertEquals(3, child.getOffset());
-    assertEquals(4, child.getLength());
+    assertEquals(10, child.getNameOffset());
+    assertEquals(20, child.getNameLength());
+    assertEquals(30, child.getElementOffset());
+    assertEquals(40, child.getElementLength());
     assertTrue(child.isAbstract());
     assertTrue(child.isStatic());
     assertTrue(child.isPrivate());
-    assertNull(child.getArguments());
+    assertNull(child.getParameters());
     assertNull(child.getReturnType());
   }
 

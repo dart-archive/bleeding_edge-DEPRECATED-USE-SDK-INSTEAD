@@ -19,19 +19,25 @@ package com.google.dart.server;
  * 
  * @coverage dart.server
  */
-public interface Outline extends SourceRegion {
+public interface Outline {
   /**
    * An empty array of outlines.
    */
   Outline[] EMPTY_ARRAY = new Outline[0];
 
   /**
-   * Return the argument list for the element. If the element is not a method or function this field
-   * will not be defined. If the element has zero arguments, this field will have a value of "()".
-   * 
-   * @return the argument list for the element
+   * Check if <code>offset</code> is in [elementOffset, elementOffset + elementLength] interval.
    */
-  public String getArguments();
+  public boolean containsInclusive(int offset);
+
+  /**
+   * Return the parameter list for the element. If the element is not a method or function this
+   * field will not be defined. If the element has zero parameters, this field will have a value of
+   * "()".
+   * 
+   * @return the parameter list for the element
+   */
+  public String getParameters();
 
   /**
    * Return an array containing the children outline. The array will be empty if the outline has no
@@ -40,6 +46,16 @@ public interface Outline extends SourceRegion {
    * @return an array containing the children of the element
    */
   public Outline[] getChildren();
+
+  /**
+   * The length of the element.
+   */
+  public int getElementLength();
+
+  /**
+   * The offset of the first character of the element.
+   */
+  public int getElementOffset();
 
   /**
    * Return the kind of the element.
@@ -54,6 +70,16 @@ public interface Outline extends SourceRegion {
    * @return the name of the element
    */
   public String getName();
+
+  /**
+   * The length of the name of the element.
+   */
+  public int getNameLength();
+
+  /**
+   * The offset of the name of the element.
+   */
+  public int getNameOffset();
 
   /**
    * Return the outline that either physically or logically encloses this outline. This will be

@@ -15,7 +15,6 @@ package com.google.dart.server.internal.local.computer;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.ElementKind;
 import com.google.dart.server.Outline;
 
 /**
@@ -24,19 +23,20 @@ import com.google.dart.server.Outline;
  * @coverage dart.server.local
  */
 public class DartUnitOutlineComputer {
-  private static final String UNITTEST_LIBRARY = "unittest";
+//  private static final String UNITTEST_LIBRARY = "unittest";
 
-  private final CompilationUnit unit;
+//  private final CompilationUnit unit;
 
   public DartUnitOutlineComputer(String contextId, Source source, CompilationUnit unit) {
-    this.unit = unit;
+//    this.unit = unit;
   }
 
   /**
    * Returns the computed {@link Outline}s, not {@code null}.
    */
   public Outline compute() {
-    OutlineImpl unitOutline = newUnitOutline();
+    return null;
+//    OutlineImpl unitOutline = newUnitOutline();
 //    List<Outline> unitChildren = Lists.newArrayList();
 //    for (CompilationUnitMember unitMember : unit.getDeclarations()) {
 //      if (unitMember instanceof ClassDeclaration) {
@@ -103,7 +103,7 @@ public class DartUnitOutlineComputer {
 //      }
 //    }
 //    unitOutline.setChildren(unitChildren.toArray(new Outline[unitChildren.size()]));
-    return unitOutline;
+//    return unitOutline;
   }
 
 //  private void addLocalFunctionOutlines(final OutlineImpl parent, FunctionBody body) {
@@ -419,18 +419,20 @@ public class DartUnitOutlineComputer {
 //    children.add(outline);
 //    addLocalFunctionOutlines(outline, methodDeclaration.getBody());
 //  }
-
-  private OutlineImpl newUnitOutline() {
-    return new OutlineImpl(
-        null,
-        ElementKind.COMPILATION_UNIT,
-        unit.getElement().getDisplayName(),
-        unit.getOffset(),
-        unit.getLength(),
-        false,
-        false);
-  }
-
+//
+//  private OutlineImpl newUnitOutline() {
+//    return new OutlineImpl(
+//        null,
+//        ElementKind.COMPILATION_UNIT,
+//        unit.getElement().getDisplayName(),
+//        unit.getOffset(),
+//        unit.getLength(),
+//        0,
+//        0,
+//        false,
+//        false);
+//  }
+//
 //  private void newVariableOutline(OutlineImpl classOutline, List<Outline> children,
 //      String typeName, ElementKind kind, VariableDeclaration variable, boolean isStatic) {
 //    SimpleIdentifier nameNode = variable.getName();

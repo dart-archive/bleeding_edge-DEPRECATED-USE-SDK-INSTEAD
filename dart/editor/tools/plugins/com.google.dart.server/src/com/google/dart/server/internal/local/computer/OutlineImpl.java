@@ -20,38 +20,44 @@ import com.google.dart.server.Outline;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
-
 /**
  * A concrete implementation of {@link Outline}.
  * 
  * @coverage dart.server.local
  */
-public class OutlineImpl extends SourceRegionImpl implements Outline {
+public class OutlineImpl implements Outline {
   private final Outline parent;
   private final ElementKind kind;
   private final String name;
+  private final int nameOffset;
+  private final int nameLength;
+  private final int elementOffset;
+  private final int elementLength;
   private final boolean isAbstract;
   private final boolean isStatic;
-  private final String arguments;
+  private final String parameters;
   private final String returnType;
   private Outline[] children = Outline.EMPTY_ARRAY;
 
-  public OutlineImpl(Outline parent, ElementKind kind, String name, int offset, int length,
-      boolean isAbstract, boolean isStatic) {
-    this(parent, kind, name, offset, length, isAbstract, isStatic, null, null);
-  }
-
-  public OutlineImpl(Outline parent, ElementKind kind, String name, int offset, int length,
-      boolean isAbstract, boolean isStatic, String arguments, String returnType) {
-    super(offset, length);
+  public OutlineImpl(Outline parent, ElementKind kind, String name, int nameOffset, int nameLength,
+      int elementOffset, int elementLength, boolean isAbstract, boolean isStatic,
+      String parameters, String returnType) {
     this.parent = parent;
     this.kind = kind;
     this.name = name;
+    this.nameOffset = nameOffset;
+    this.nameLength = nameLength;
+    this.elementOffset = elementOffset;
+    this.elementLength = elementLength;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
-    this.arguments = arguments;
+    this.parameters = parameters;
     this.returnType = returnType;
+  }
+
+  @Override
+  public boolean containsInclusive(int offset) {
+    return elementOffset <= offset && offset <= elementOffset + elementLength;
   }
 
   @Override
@@ -63,29 +69,26 @@ public class OutlineImpl extends SourceRegionImpl implements Outline {
       return false;
     }
     OutlineImpl other = (OutlineImpl) object;
-    if (ObjectUtilities.equals(other.parent, parent) && other.getOffset() == getOffset()
-        && other.getLength() == getLength() && other.kind == kind && other.name.equals(name)
-        && ObjectUtilities.equals(other.arguments, arguments)
-        && ObjectUtilities.equals(other.returnType, returnType)
-        && (other.children.length == children.length)) {
-      for (int i = 0; i < other.children.length; i++) {
-        if (!other.children[i].equals(children[i])) {
-          return false;
-        }
-      }
+    if (other.kind == kind && other.name.equals(name) && other.getNameOffset() == getNameOffset()
+        && other.getNameLength() == getNameLength()) {
       return true;
     }
     return false;
   }
 
   @Override
-  public String getArguments() {
-    return arguments;
+  public Outline[] getChildren() {
+    return children;
   }
 
   @Override
-  public Outline[] getChildren() {
-    return children;
+  public int getElementLength() {
+    return elementLength;
+  }
+
+  @Override
+  public int getElementOffset() {
+    return elementOffset;
   }
 
   @Override
@@ -96,6 +99,21 @@ public class OutlineImpl extends SourceRegionImpl implements Outline {
   @Override
   public String getName() {
     return name;
+  }
+
+  @Override
+  public int getNameLength() {
+    return nameLength;
+  }
+
+  @Override
+  public int getNameOffset() {
+    return nameOffset;
+  }
+
+  @Override
+  public String getParameters() {
+    return parameters;
   }
 
   @Override
@@ -110,12 +128,7 @@ public class OutlineImpl extends SourceRegionImpl implements Outline {
 
   @Override
   public int hashCode() {
-    return ObjectUtilities.combineHashCodes(
-        Arrays.hashCode(new int[] {
-            parent == null ? 0 : parent.hashCode(), kind.hashCode(), name.hashCode(),
-            arguments == null ? 0 : arguments.hashCode(),
-            returnType == null ? 0 : returnType.hashCode()}),
-        Arrays.hashCode(children));
+    return ObjectUtilities.combineHashCodes(kind.hashCode(), name.hashCode());
   }
 
   @Override
@@ -127,6 +140,9 @@ public class OutlineImpl extends SourceRegionImpl implements Outline {
   public boolean isPrivate() {
     if (kind == ElementKind.COMPILATION_UNIT) {
       return false;
+    }
+    if (kind == ElementKind.CONSTRUCTOR) {
+      return name.contains("._");
     }
     return StringUtilities.startsWithChar(name, '_');
   }
@@ -143,16 +159,20 @@ public class OutlineImpl extends SourceRegionImpl implements Outline {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append("[offset=");
-    builder.append(getOffset());
-    builder.append(", length=");
-    builder.append(getLength());
-    builder.append(", kind=");
+    builder.append("[kind=");
     builder.append(kind.name());
     builder.append(", name=");
     builder.append(name);
+    builder.append(", nameOffset=");
+    builder.append(nameOffset);
+    builder.append(", nameLength=");
+    builder.append(nameLength);
+    builder.append(", elementOffset=");
+    builder.append(elementOffset);
+    builder.append(", elementLength=");
+    builder.append(elementLength);
     builder.append(", arguments=");
-    builder.append(arguments == null ? "null" : arguments);
+    builder.append(parameters == null ? "null" : parameters);
     builder.append(", returnType=");
     builder.append(returnType == null ? "null" : returnType);
     builder.append(", children=[");

@@ -2612,8 +2612,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return;
     }
     // prepare range
-    int offset = outline.getOffset();
-    int length = outline.getLength();
+    int offset = outline.getNameOffset();
+    int length = outline.getNameLength();
     // prepare ISourceViewer
     ISourceViewer sourceViewer = getSourceViewer();
     if (sourceViewer == null) {
@@ -3977,7 +3977,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     AnalysisServerData analysisServerData = DartCore.getAnalysisServerData();
     String file = getInputFilePath();
     if (file != null) {
-      analysisServerData.subscribeOutline(null, analysisServerOutlineListener);
+      analysisServerData.subscribeOutline(file, analysisServerOutlineListener);
     }
   }
 

@@ -59,14 +59,18 @@ public class NotificationAnalysisOutlineProcessor extends NotificationProcessor 
   private Outline computeOutline(Outline parent, JsonObject outlineObject) {
     ElementKind kind = getElementKind(outlineObject.get("kind").getAsString());
     String name = outlineObject.get("name").getAsString();
-    int offset = outlineObject.get("offset").getAsInt();
-    int length = outlineObject.get("length").getAsInt();
+    int nameOffset = outlineObject.get("nameOffset").getAsInt();
+    int nameLength = outlineObject.get("nameLength").getAsInt();
+    int elementOffset = outlineObject.get("elementOffset").getAsInt();
+    int elementLength = outlineObject.get("elementLength").getAsInt();
     boolean isAbstract = outlineObject.get("isAbstract").getAsBoolean();
     boolean isStatic = outlineObject.get("isStatic").getAsBoolean();
-    String arguments = null;
-    if (outlineObject.has("arguments")) {
-      arguments = outlineObject.get("arguments").getAsString();
+    // prepare parameters
+    String parameters = null;
+    if (outlineObject.has("parameters")) {
+      parameters = outlineObject.get("parameters").getAsString();
     }
+    // prepare return type
     String returnType = null;
     if (outlineObject.has("returnType")) {
       returnType = outlineObject.get("returnType").getAsString();
@@ -77,11 +81,13 @@ public class NotificationAnalysisOutlineProcessor extends NotificationProcessor 
         parent,
         kind,
         name,
-        offset,
-        length,
+        nameOffset,
+        nameLength,
+        elementOffset,
+        elementLength,
         isAbstract,
         isStatic,
-        arguments,
+        parameters,
         returnType);
 
     // compute children recursively

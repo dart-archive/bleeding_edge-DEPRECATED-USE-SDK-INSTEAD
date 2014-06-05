@@ -105,23 +105,14 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
 
   @Override
   public void subscribeOutline(String file, AnalysisServerOutlineListener listener) {
-    // TODO(scheglov) restore or remove for the new API
-//    Map<Source, Set<AnalysisServerOutlineListener>> sourceSubscriptions = outlineSubscriptions.get(contextId);
-//    if (sourceSubscriptions == null) {
-//      sourceSubscriptions = Maps.newHashMap();
-//      outlineSubscriptions.put(contextId, sourceSubscriptions);
-//    }
-//    Set<AnalysisServerOutlineListener> subscriptions = sourceSubscriptions.get(source);
-//    if (subscriptions == null) {
-//      subscriptions = Sets.newHashSet();
-//      sourceSubscriptions.put(source, subscriptions);
-//    }
-//    if (subscriptions.add(listener)) {
-//      Set<Source> sourceSet = sourceSubscriptions.keySet();
-//      server.subscribe(
-//          contextId,
-//          ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(sourceSet)));
-//    }
+    Set<AnalysisServerOutlineListener> subscriptions = outlineSubscriptions.get(file);
+    if (subscriptions == null) {
+      subscriptions = Sets.newHashSet();
+      outlineSubscriptions.put(file, subscriptions);
+    }
+    if (subscriptions.add(listener)) {
+      addAnalysisSubscription(AnalysisService.OUTLINE, file);
+    }
   }
 
   @Override
@@ -144,24 +135,15 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
 
   @Override
   public void unsubscribeOutline(String file, AnalysisServerOutlineListener listener) {
-    // TODO(scheglov) restore or remove for the new API
-//    Map<Source, Set<AnalysisServerOutlineListener>> sourceSubscriptions = outlineSubscriptions.get(contextId);
-//    if (sourceSubscriptions == null) {
-//      return;
-//    }
-//    Set<AnalysisServerOutlineListener> subscriptions = sourceSubscriptions.get(source);
-//    if (subscriptions == null) {
-//      return;
-//    }
-//    if (subscriptions.remove(listener)) {
-//      if (subscriptions.isEmpty()) {
-//        sourceSubscriptions.remove(source);
-//        Set<Source> sourceSet = sourceSubscriptions.keySet();
-//        server.subscribe(
-//            contextId,
-//            ImmutableMap.of(NotificationKind.OUTLINE, ListSourceSet.create(sourceSet)));
-//      }
-//    }
+    Set<AnalysisServerOutlineListener> subscriptions = outlineSubscriptions.get(file);
+    if (subscriptions == null) {
+      return;
+    }
+    if (subscriptions.remove(listener)) {
+      if (subscriptions.isEmpty()) {
+        removeAnalysisSubscription(AnalysisService.OUTLINE, file);
+      }
+    }
   }
 
   void internalComputedErrors(String file, AnalysisError[] errors) {
