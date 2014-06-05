@@ -270,6 +270,59 @@ public class MembersSorterTest extends RefactoringImplTest {
     assertSorting(initial, expected);
   }
 
+  public void test_directives() throws Exception {
+    verifyNoTestUnitErrors = false;
+    String initial = makeSource(//
+        "library lib;",
+        "",
+        "export 'dart:bbb';",
+        "import 'dart:bbb';",
+        "export 'package:bbb/bbb.dart';",
+        "import 'bbb/bbb.dart';",
+        "export 'dart:aaa';",
+        "export 'package:aaa/aaa.dart';",
+        "import 'package:bbb/bbb.dart';",
+        "export 'aaa/aaa.dart';",
+        "export 'bbb/bbb.dart';",
+        "part 'aaa/aaa.dart';",
+        "part 'bbb/bbb.dart';",
+        "import 'dart:aaa';",
+        "import 'package:aaa/aaa.dart';",
+        "import 'aaa/aaa.dart';",
+        "",
+        "main() {",
+        "}",
+        "");
+    String expected = makeSource(//
+        "library lib;",
+        "",
+        "import 'dart:aaa';",
+        "import 'dart:bbb';",
+        "",
+        "import 'package:aaa/aaa.dart';",
+        "import 'package:bbb/bbb.dart';",
+        "",
+        "import 'aaa/aaa.dart';",
+        "import 'bbb/bbb.dart';",
+        "",
+        "export 'dart:aaa';",
+        "export 'dart:bbb';",
+        "",
+        "export 'package:aaa/aaa.dart';",
+        "export 'package:bbb/bbb.dart';",
+        "",
+        "export 'aaa/aaa.dart';",
+        "export 'bbb/bbb.dart';",
+        "",
+        "part 'aaa/aaa.dart';",
+        "part 'bbb/bbb.dart';",
+        "",
+        "main() {",
+        "}",
+        "");
+    assertSorting(initial, expected);
+  }
+
   public void test_unitMembers_class() throws Exception {
     String initial = makeSource(//
         "class C {}",

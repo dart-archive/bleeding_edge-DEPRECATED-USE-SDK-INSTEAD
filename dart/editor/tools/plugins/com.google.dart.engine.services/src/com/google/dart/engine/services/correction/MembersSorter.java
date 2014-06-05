@@ -22,18 +22,24 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
+import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.services.change.Edit;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.source.Source;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -43,6 +49,41 @@ import java.util.List;
  * Sorter for unit members.
  */
 public class MembersSorter {
+  private static class DirectiveInfo implements Comparable<DirectiveInfo> {
+    private final Directive directive;
+    private final DirectivePriority priority;
+    private final String text;
+
+    public DirectiveInfo(Directive directive, DirectivePriority priority, String text) {
+      this.directive = directive;
+      this.priority = priority;
+      this.text = text;
+    }
+
+    @Override
+    public int compareTo(DirectiveInfo other) {
+      if (priority == other.priority) {
+        return text.compareTo(other.text);
+      }
+      return priority.ordinal() - other.priority.ordinal();
+    }
+
+    @Override
+    public String toString() {
+      return "(priority=" + priority + "; text=" + text + ")";
+    }
+  }
+
+  private static enum DirectivePriority {
+    DIRECTIVE_IMPORT_SDK,
+    DIRECTIVE_IMPORT_PKG,
+    DIRECTIVE_IMPORT_FILE,
+    DIRECTIVE_EXPORT_SDK,
+    DIRECTIVE_EXPORT_PKG,
+    DIRECTIVE_EXPORT_FILE,
+    DIRECTIVE_PART,
+  }
+
   private static class MemberInfo {
     PriorityItem item;
     String name;
@@ -175,13 +216,14 @@ public class MembersSorter {
   public SourceChange createChange() {
     String initialCode = code;
     sortClassesMembers();
+    sortUnitDirectives();
     sortUnitMembers();
     // is the any change?
     if (code.equals(initialCode)) {
       return null;
     }
     // replace content
-    change.addEdit(new Edit(0, code.length(), code));
+    change.addEdit(new Edit(0, initialCode.length(), code));
     return change;
   }
 
@@ -194,6 +236,17 @@ public class MembersSorter {
         ClassDeclaration classDeclaration = (ClassDeclaration) unitMember;
         sortClassMembers(classDeclaration);
       }
+    }
+  }
+
+  /**
+   * @return the EOL to use for {@link #code}.
+   */
+  private String getEndOfLine() {
+    if (code.contains("\r\n")) {
+      return "\r\n";
+    } else {
+      return "\n";
     }
   }
 
@@ -261,11 +314,82 @@ public class MembersSorter {
   }
 
   /**
+   * Sorts all {@link Directive}s.
+   */
+  private void sortUnitDirectives() {
+    List<DirectiveInfo> directives = Lists.newArrayList();
+    for (Directive directive : unit.getDirectives()) {
+      if (!(directive instanceof UriBasedDirective)) {
+        continue;
+      }
+      UriBasedDirective uriDirective = (UriBasedDirective) directive;
+      String uriContent = uriDirective.getUriContent();
+      DirectivePriority kind = null;
+      if (directive instanceof ImportDirective) {
+        if (uriContent.startsWith("dart:")) {
+          kind = DirectivePriority.DIRECTIVE_IMPORT_SDK;
+        } else if (uriContent.startsWith("package:")) {
+          kind = DirectivePriority.DIRECTIVE_IMPORT_PKG;
+        } else {
+          kind = DirectivePriority.DIRECTIVE_IMPORT_FILE;
+        }
+      }
+      if (directive instanceof ExportDirective) {
+        uriContent = ((ExportDirective) directive).getUriContent();
+        if (uriContent.startsWith("dart:")) {
+          kind = DirectivePriority.DIRECTIVE_EXPORT_SDK;
+        } else if (uriContent.startsWith("package:")) {
+          kind = DirectivePriority.DIRECTIVE_EXPORT_PKG;
+        } else {
+          kind = DirectivePriority.DIRECTIVE_EXPORT_FILE;
+        }
+      }
+      if (directive instanceof PartDirective) {
+        uriContent = ((PartDirective) directive).getUriContent();
+        kind = DirectivePriority.DIRECTIVE_PART;
+      }
+      if (kind != null) {
+        int offset = directive.getOffset();
+        int length = directive.getLength();
+        String text = code.substring(offset, offset + length);
+        directives.add(new DirectiveInfo(directive, kind, text));
+      }
+    }
+    // nothing to do
+    if (directives.isEmpty()) {
+      return;
+    }
+    int firstDirectiveOffset = directives.get(0).directive.getOffset();
+    int lastDirectiveEnd = directives.get(directives.size() - 1).directive.getEnd();
+    // do sort
+    Collections.sort(directives);
+    // append directives with grouping
+    String directivesCode;
+    {
+      StringBuilder sb = new StringBuilder();
+      String endOfLine = getEndOfLine();
+      DirectivePriority currentPriority = null;
+      for (DirectiveInfo directive : directives) {
+        if (currentPriority != directive.priority) {
+          if (sb.length() != 0) {
+            sb.append(endOfLine);
+          }
+          currentPriority = directive.priority;
+        }
+        sb.append(directive.text);
+        sb.append(endOfLine);
+      }
+      directivesCode = sb.toString();
+      directivesCode = StringUtils.chomp(directivesCode);
+    }
+    code = code.substring(0, firstDirectiveOffset) + directivesCode
+        + code.substring(lastDirectiveEnd);
+  }
+
+  /**
    * Sorts all {@link CompilationUnitMember}s.
    */
   private void sortUnitMembers() {
-    List<Directive> directives = unit.getDirectives();
-    // prepare information about unit members
     List<MemberInfo> members = Lists.newArrayList();
     for (CompilationUnitMember member : unit.getDeclarations()) {
       MemberKind kind = null;
