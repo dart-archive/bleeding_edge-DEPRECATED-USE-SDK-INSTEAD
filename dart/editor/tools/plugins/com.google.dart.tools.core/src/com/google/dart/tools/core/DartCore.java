@@ -480,7 +480,8 @@ public class DartCore extends Plugin implements DartSdkListener {
           socket.start();
           analysisServer = new com.google.dart.server.internal.remote.RemoteAnalysisServerImpl(
               socket.getRequestSink(),
-              socket.getResponseStream());
+              socket.getResponseStream(),
+              socket.getErrorStream());
           analysisServerDataImpl.setServer(analysisServer);
           analysisServer.addAnalysisServerListener(analysisServerListener);
         } catch (Throwable e) {

@@ -38,9 +38,9 @@ import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.local.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationAnalysisHighlightsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisNavigationProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisOutlineProcessor;
-import com.google.dart.server.internal.remote.processor.NotificationAnalysisHighlightsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
@@ -75,6 +75,32 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       return request;
     }
 
+  }
+
+  /**
+   * A thread which reads input from the {@link LineReaderStream}.
+   */
+  public class ServerErrorReaderThread extends Thread {
+    public ServerErrorReaderThread() {
+      setDaemon(true);
+      setName("ServerErrorReaderThread");
+    }
+
+    @Override
+    public void run() {
+      while (true) {
+        try {
+          String line = errorStream.readLine();
+          if (line == null) {
+            return;
+          }
+          System.err.println(line);
+        } catch (Exception e) {
+          // TODO (jwren) handle error messages
+          e.printStackTrace();
+        }
+      }
+    }
   }
 
   /**
@@ -124,6 +150,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   private final ResponseStream responseStream;
 
+  private final LineReaderStream errorStream;
+
   /**
    * The listener that will receive notification when new analysis results become available.
    */
@@ -146,9 +174,18 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   private final AtomicInteger nextId = new AtomicInteger();
 
   public RemoteAnalysisServerImpl(RequestSink requestSink, ResponseStream responseStream) {
+    this(requestSink, responseStream, null);
+  }
+
+  public RemoteAnalysisServerImpl(RequestSink requestSink, ResponseStream responseStream,
+      LineReaderStream errorStream) {
     this.requestSink = requestSink;
     this.responseStream = responseStream;
+    this.errorStream = errorStream;
     new ServerResponseReaderThread().start();
+    if (errorStream != null) {
+      new ServerErrorReaderThread().start();
+    }
   }
 
   @Override

@@ -38,7 +38,8 @@ public class RemoteAnalysisServerImplIntegrationTest extends AbstractServerInteg
     // start the server interface
     server = new RemoteAnalysisServerImpl(
         serverSocket.getRequestSink(),
-        serverSocket.getResponseStream());
+        serverSocket.getResponseStream(),
+        serverSocket.getErrorStream());
   }
 
   @Override

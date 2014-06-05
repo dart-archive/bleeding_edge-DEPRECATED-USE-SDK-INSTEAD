@@ -25,10 +25,19 @@ public class StdioServerSocket {
   private final String analysisServerPath;
   private RequestSink requestSink;
   private ResponseStream responseStream;
+  private ByteLineReaderStream errorStream;
 
   public StdioServerSocket(String runtimePath, String analysisServerPath) {
     this.runtimePath = runtimePath;
     this.analysisServerPath = analysisServerPath;
+  }
+
+  /**
+   * Return the error stream.
+   */
+  public ByteLineReaderStream getErrorStream() {
+    Preconditions.checkNotNull(errorStream, "Server is not started.");
+    return errorStream;
   }
 
   /**
@@ -55,5 +64,6 @@ public class StdioServerSocket {
     Process process = processBuilder.start();
     requestSink = new ByteRequestSink(process.getOutputStream());
     responseStream = new ByteResponseStream(process.getInputStream());
+    errorStream = new ByteLineReaderStream(process.getErrorStream());
   }
 }

@@ -14,20 +14,17 @@
 package com.google.dart.server.internal.remote;
 
 import com.google.common.base.Charsets;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
- * An {@link InputStream} based implementation of {@link ResponseStream}. Each line must contain
- * exactly one complete JSON object.
+ * An {@link InputStream} based implementation of {@link LineReaderStream}.
  * 
  * @coverage dart.server.remote
  */
-public class ByteResponseStream implements ResponseStream {
+public class ByteLineReaderStream implements LineReaderStream {
   /**
    * The {@link BufferedReader} to read JSON strings from.
    */
@@ -38,26 +35,16 @@ public class ByteResponseStream implements ResponseStream {
    * 
    * @param stream the byte stream to read JSON strings from
    */
-  public ByteResponseStream(InputStream stream) {
+  public ByteLineReaderStream(InputStream stream) {
     reader = new BufferedReader(new InputStreamReader(stream, Charsets.UTF_8));
   }
 
   @Override
-  public void lastRequestProcessed() {
-  }
-
-  @Override
-  public JsonObject take() throws Exception {
+  public String readLine() throws Exception {
     String line = reader.readLine();
-    if (line == null) {
-      return null;
-    }
-//      if (line.contains("\"event\":\"server.status\"")) {
-//        System.out.println(System.currentTimeMillis() + " <= " + line);
+//      if (line == null) {
+//        System.err.println(System.currentTimeMillis() + " <= --eof--");
 //      }
-//      if (!line.startsWith("{")) {
-//        continue;
-//      }
-    return (JsonObject) new JsonParser().parse(line);
+    return line;
   }
 }

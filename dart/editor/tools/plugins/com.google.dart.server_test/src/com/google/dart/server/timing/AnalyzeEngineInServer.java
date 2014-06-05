@@ -140,7 +140,8 @@ public class AnalyzeEngineInServer extends TimingTest {
     serverSocket.start();
     server = new RemoteAnalysisServerImpl(
         serverSocket.getRequestSink(),
-        serverSocket.getResponseStream());
+        serverSocket.getResponseStream(),
+        serverSocket.getErrorStream());
   }
 
   @Override
