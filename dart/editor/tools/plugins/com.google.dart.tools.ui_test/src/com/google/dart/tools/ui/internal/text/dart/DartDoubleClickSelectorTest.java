@@ -67,4 +67,16 @@ public class DartDoubleClickSelectorTest extends ParserTestCase {
     assertDoubleClickSelection(content, "{first$", "${first$second.length}", 0);
     assertDoubleClickSelection(content, "yyy", "first$second.length", 0);
   }
+
+  public void test_typeArgument() throws Exception {
+    String content = createSource(//
+        "import 'dart:math';",
+        "import 'dart:math' as m;",
+        "main() {",
+        "  List<Random> a;",
+        "  List<m.Random> a;",
+        "}");
+    assertDoubleClickSelection(content, "Rand", "Random", 0);
+    assertDoubleClickSelection(content, "m.Rand", "m.Random", 0);
+  }
 }

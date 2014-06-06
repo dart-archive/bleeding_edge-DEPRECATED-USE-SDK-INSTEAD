@@ -95,7 +95,6 @@ import com.google.dart.tools.ui.internal.viewsupport.IViewPartInputProvider;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 import com.google.dart.tools.ui.text.DartTextTools;
-import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 import com.google.dart.tools.ui.text.folding.IDartFoldingStructureProvider;
 import com.google.dart.tools.ui.text.folding.IDartFoldingStructureProviderExtension;
 
@@ -2885,7 +2884,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   @Override
   protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
 
-    fBracketMatcher.setSourceVersion(getPreferenceStore().getString(JavaScriptCore.COMPILER_SOURCE));
     support.setCharacterPairMatcher(fBracketMatcher);
     support.setMatchingCharacterPainterPreferenceKeys(MATCHING_BRACKETS, MATCHING_BRACKETS_COLOR);
 
@@ -3659,13 +3657,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           uninstallSemanticHighlighting();
         }
         return;
-      }
-
-      if (JavaScriptCore.COMPILER_SOURCE.equals(property)) {
-        if (event.getNewValue() instanceof String) {
-          fBracketMatcher.setSourceVersion((String) event.getNewValue());
-          // fall through as others are interested in source change as well.
-        }
       }
 
       ((DartSourceViewerConfiguration) getSourceViewerConfiguration()).handlePropertyChangeEvent(event);

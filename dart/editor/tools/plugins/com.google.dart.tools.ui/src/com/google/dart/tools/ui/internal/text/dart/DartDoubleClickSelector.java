@@ -357,7 +357,6 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
 
   @Override
   public void setSourceVersion(String version) {
-    fPairMatcher.setSourceVersion(version);
     fWordDetector.setSourceVersion(version);
   }
 

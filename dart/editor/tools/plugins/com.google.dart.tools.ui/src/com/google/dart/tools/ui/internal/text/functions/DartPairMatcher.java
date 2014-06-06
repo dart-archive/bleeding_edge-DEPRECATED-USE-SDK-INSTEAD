@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.text.functions;
 
 import com.google.dart.tools.ui.text.DartPartitions;
-import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -25,14 +24,7 @@ import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 /**
  * Helper class for match pairs of characters.
  */
-public final class DartPairMatcher extends DefaultCharacterPairMatcher implements
-    ISourceVersionDependent {
-
-  /**
-   * Stores the source version state.
-   */
-  private boolean fHighlightAngularBrackets = false;
-
+public final class DartPairMatcher extends DefaultCharacterPairMatcher {
   public DartPairMatcher(char[] pairs) {
     super(pairs, DartPartitions.DART_PARTITIONING);
   }
@@ -44,19 +36,6 @@ public final class DartPairMatcher extends DefaultCharacterPairMatcher implement
       return performMatch(document, offset);
     } catch (BadLocationException ble) {
       return null;
-    }
-  }
-
-  /*
-   * @see com.google.dart.tools.ui.functions.ISourceVersionDependent#setSourceVersion
-   * (java.lang.String)
-   */
-  @Override
-  public void setSourceVersion(String version) {
-    if (JavaScriptCore.VERSION_1_5.compareTo(version) <= 0) {
-      fHighlightAngularBrackets = true;
-    } else {
-      fHighlightAngularBrackets = false;
     }
   }
 
@@ -148,9 +127,6 @@ public final class DartPairMatcher extends DefaultCharacterPairMatcher implement
       return null;
     }
     final char prevChar = document.getChar(Math.max(offset - 1, 0));
-    if ((prevChar == '<' || prevChar == '>') && !fHighlightAngularBrackets) {
-      return null;
-    }
     if (prevChar == '<' && isLessThanOperator(document, offset - 1)) {
       return null;
     }
