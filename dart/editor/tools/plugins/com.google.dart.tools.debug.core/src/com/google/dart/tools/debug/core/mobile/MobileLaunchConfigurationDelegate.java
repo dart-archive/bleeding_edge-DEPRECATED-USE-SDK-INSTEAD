@@ -23,26 +23,75 @@ import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.pubserve.PubCallback;
 import com.google.dart.tools.debug.core.pubserve.PubResult;
 import com.google.dart.tools.debug.core.pubserve.PubServeManager;
+import com.google.dart.tools.debug.core.pubserve.PubServeResourceResolver;
+import com.google.dart.tools.debug.core.util.BrowserManager;
+import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
+import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.util.ResourceServer;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
+import com.google.dart.tools.debug.core.webkit.ChromiumTabInfo;
+import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
+import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.model.IDebugTarget;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 /**
  * A LaunchConfigurationDelegate to launch in the browser on a connected device.
  */
-public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate {
+public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate implements
+    IRemoteConnectionDelegate {
+
+  /**
+   * A class to choose a tab from the given list of tabs.
+   */
+  public static class ChromeTabChooser implements IChromiumTabChooser {
+    public ChromeTabChooser() {
+
+    }
+
+    @Override
+    public ChromiumTabInfo chooseTab(final List<ChromiumTabInfo> tabs) {
+      if (tabs.size() == 0) {
+        return null;
+      }
+
+      int tabCount = 0;
+
+      for (ChromiumTabInfo tab : tabs) {
+        if (!tab.isChromeExtension()) {
+          tabCount++;
+        }
+      }
+
+      if (tabCount == 1) {
+        return tabs.get(0);
+      }
+
+      for (ChromiumTabInfo tab : tabs) {
+        if (!tab.isChromeExtension()) {
+          return tab;
+        }
+
+      }
+
+      return new DefaultChromiumTabChooser().chooseTab(tabs);
+    }
+  }
 
   private PubCallback<String> pubConnectionCallback = new PubCallback<String>() {
     @Override
@@ -56,7 +105,7 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
 
       try {
         String launchUrl = result.getResult();
-        launchOnMobile(launchUrl);
+        launchOnMobile(launchUrl, true, new NullProgressMonitor());
       } catch (CoreException e) {
         DartDebugCorePlugin.logError(e);
         DebugUIHelper.getHelper().showError("Dartium Launch Error", e.getMessage());
@@ -67,6 +116,8 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
 
   private DartLaunchConfigWrapper wrapper;
 
+  private static final int REMOTE_DEBUG_PORT = 9224;
+
   @Override
   public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor, InstrumentationBuilder instrumentation) throws CoreException {
@@ -75,6 +126,8 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
     wrapper.markAsLaunched();
 
     String launchUrl = "";
+
+    boolean usePubServe = wrapper.getUsePubServe();
 
     if (wrapper.getShouldLaunchFile()) {
 
@@ -90,7 +143,6 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
       instrumentation.data("Resource-Name", resource.getName());
 
       try {
-        boolean usePubServe = true; // TODO(keertip): get from launch config
         if (usePubServe) {
           PubServeManager manager = PubServeManager.getManager();
 
@@ -106,7 +158,7 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
 
         } else {
           launchUrl = getUrlFromResourceServer(resource);
-          launchOnMobile(launchUrl);
+          launchOnMobile(launchUrl, usePubServe, monitor);
         }
 
       } catch (Exception e) {
@@ -123,7 +175,7 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
 
         if (scheme == null) { // add scheme else browser will not launch
           launchUrl = "http://" + launchUrl;
-          launchOnMobile(launchUrl);
+          launchOnMobile(launchUrl, usePubServe, monitor);
         }
       } catch (URISyntaxException e) {
         throw new CoreException(new Status(
@@ -136,7 +188,30 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
     DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
   }
 
-  protected void launchOnMobile(String launchUrl) throws CoreException {
+  @Override
+  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor,
+      boolean usePubServe) throws CoreException {
+
+    BrowserManager browserManager = new BrowserManager();
+
+    IResourceResolver resolver = null;
+    try {
+      resolver = usePubServe ? new PubServeResourceResolver() : ResourceServerManager.getServer();
+    } catch (IOException e) {
+      return null;
+    }
+
+    return browserManager.performRemoteConnection(
+        new ChromeTabChooser(),
+        host,
+        port,
+        monitor,
+        resolver);
+
+  }
+
+  protected void launchOnMobile(String launchUrl, boolean usePubServe, IProgressMonitor monitor)
+      throws CoreException {
 
     AndroidDebugBridge devBridge = AndroidDebugBridge.getAndroidDebugBridge();
 
@@ -164,6 +239,13 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
       }
     }
     devBridge.launchContentShell(device.getDeviceId(), launchUrl);
+
+    // check if remote connection is alive
+    if (!isRemoteConnected()) {
+      devBridge.setupPortForwarding(Integer.toString(REMOTE_DEBUG_PORT));
+      // TODO(keertip): check if host needs to be the ip for wifi connections
+      performRemoteConnection("localhost", REMOTE_DEBUG_PORT, monitor, usePubServe);
+    }
   }
 
   private String getUrlFromResourceServer(IResource resource) throws IOException, CoreException,
@@ -185,6 +267,21 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
     String launchUrl = uri.toString();
     launchUrl = wrapper.appendQueryParams(launchUrl);
     return launchUrl;
+  }
+
+  private boolean isRemoteConnected() {
+
+    IDebugTarget[] targets = DebugPlugin.getDefault().getLaunchManager().getDebugTargets();
+    for (IDebugTarget target : targets) {
+      try {
+        if (target.getName().equals("Remote") && !target.getProcess().isTerminated()) {
+          return true;
+        }
+      } catch (DebugException e) {
+
+      }
+    }
+    return false;
   }
 
 }
