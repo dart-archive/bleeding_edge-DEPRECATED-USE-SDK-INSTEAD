@@ -184,7 +184,7 @@ public class AnalyzeEngineInServer extends TimingTest {
     //
     // Wait for all work to be completed.
     //
-    waitForAnalysis(10000);
+    waitForAnalysis(20000);
   }
 
   @Override
