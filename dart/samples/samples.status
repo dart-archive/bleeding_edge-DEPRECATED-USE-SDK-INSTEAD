@@ -13,6 +13,7 @@ polymer_intl: Fail # Issue 18059
 build_dart: Skip
 build_dart_simple: Skip
 sample_extension: Skip
+third_party/todomvc/test/listorder_test: Pass, RuntimeError # Issue 19265
 
 [ $compiler == none && $browser ]
 pop_pop_win: Fail # Issues with package loading. TODO(kevmoo)
