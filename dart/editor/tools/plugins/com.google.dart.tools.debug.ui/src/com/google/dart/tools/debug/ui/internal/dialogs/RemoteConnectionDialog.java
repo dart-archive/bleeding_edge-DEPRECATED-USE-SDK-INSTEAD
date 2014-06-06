@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
-import com.google.dart.tools.core.mobile.AndroidDebugBridge;
 import com.google.dart.tools.debug.core.configs.DartServerLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.configs.DartiumLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
@@ -137,8 +136,7 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
     @Override
     protected IStatus run(IProgressMonitor monitor) {
       try {
-        // TODO(keertip): add forwarding for chrome 
-        AndroidDebugBridge.getAndroidDebugBridge().setupPortForwarding(Integer.toString(port));
+
         connectionDelegate.performRemoteConnection(host, port, monitor, usePubServe);
 
         // Show the debugger view.
@@ -261,6 +259,8 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
 
   private Button usePubServeButton;
 
+  private Group pubGroup;
+
   /**
    * Create a new RemoteConnectionDialog with the given shell as its parent.
    * 
@@ -360,23 +360,26 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
     GridDataFactory.fillDefaults().grab(true, false).applyTo(portText);
 
     label = new Label(parent, SWT.NONE);
-    // pub setttings
-    group = new Group(parent, SWT.NONE);
-    group.setText("Pub settings");
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.fillDefaults().margins(12, 6).applyTo(group);
-
-    usePubServeButton = new Button(group, SWT.CHECK);
-    usePubServeButton.setText("Using pub to serve the application");
-    usePubServeButton.setSelection(true);
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(usePubServeButton);
-
-    // spacer
-    label = new Label(parent, SWT.NONE);
 
     instructionsLabel = new Text(parent, SWT.WRAP | SWT.READ_ONLY);
     instructionsLabel.setBackground(parent.getBackground());
     GridDataFactory.fillDefaults().grab(true, false).hint(100, -1).applyTo(instructionsLabel);
+
+    // spacer
+    label = new Label(parent, SWT.NONE);
+
+    label = new Label(parent, SWT.NONE);
+    label = new Label(parent, SWT.NONE);
+
+    pubGroup = new Group(parent, SWT.NONE);
+    pubGroup.setText("Pub settings");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(pubGroup);
+    GridLayoutFactory.fillDefaults().margins(12, 6).applyTo(pubGroup);
+
+    usePubServeButton = new Button(pubGroup, SWT.CHECK);
+    usePubServeButton.setText("Using pub to serve the application");
+    usePubServeButton.setSelection(true);
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(usePubServeButton);
 
     try {
       exceptionsCombo.select(getDialogSettings().getInt("selected"));
@@ -427,6 +430,8 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
     IDialogSettings settings = getDialogSettings();
     hostText.setText(notNull(settings.get(connection.name() + ".host")));
     portText.setText(notNull(settings.get(connection.name() + ".port")));
+
+    pubGroup.setVisible(connection == ConnectionType.CHROME);
   }
 
   private String notNull(String str) {
