@@ -138,6 +138,13 @@ public class WebkitRuntime extends WebkitDomain {
    */
   public void callToString(String objectId, final WebkitCallback<String> callback)
       throws IOException {
+    if (objectId == null) {
+      WebkitResult<String> result = new WebkitResult<String>();
+      result.setResult(null);
+      callback.handleResult(result);
+      return;
+    }
+
     try {
       JSONObject request = new JSONObject();
 

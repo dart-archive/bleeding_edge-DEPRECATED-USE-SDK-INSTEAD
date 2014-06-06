@@ -60,6 +60,10 @@ public class WebkitCallFrame {
     frame.location = WebkitLocation.createFrom(object.getJSONObject("location"));
     frame.thisObject = WebkitRemoteObject.createFrom(object.getJSONObject("this"));
 
+    if ("null".equals(frame.thisObject.className)) {
+      frame.thisObject = null;
+    }
+
     if (object.has("scopeChain")) {
       frame.scopeChain = WebkitScope.createFrom(object.getJSONArray("scopeChain"));
     }
@@ -132,7 +136,7 @@ public class WebkitCallFrame {
   }
 
   public boolean isStaticMethod() {
-    return thisObject.getObjectId() == null;
+    return thisObject == null || thisObject.getObjectId() == null;
   }
 
   @Override

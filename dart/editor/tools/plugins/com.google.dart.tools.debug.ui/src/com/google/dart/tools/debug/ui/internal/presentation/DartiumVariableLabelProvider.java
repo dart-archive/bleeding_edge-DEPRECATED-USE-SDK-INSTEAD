@@ -109,6 +109,10 @@ public class DartiumVariableLabelProvider extends VariableLabelProvider {
         }
       }
 
+      if ("[[class]]".equals(variable.getName())) {
+        return "class";
+      }
+
       return dartiumVariable.getDisplayName();
     } else {
       return super.getVariableName(variable, context);

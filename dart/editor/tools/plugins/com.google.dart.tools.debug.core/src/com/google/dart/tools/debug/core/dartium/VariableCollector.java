@@ -295,6 +295,10 @@ class VariableCollector {
       }
     }
 
+    if (descriptor.getName().equals("this")) {
+      return true;
+    }
+
     return false;
   }
 

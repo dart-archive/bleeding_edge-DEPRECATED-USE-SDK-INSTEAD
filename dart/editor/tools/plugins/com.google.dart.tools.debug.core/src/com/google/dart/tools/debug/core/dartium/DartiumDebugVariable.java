@@ -153,7 +153,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
 
   @Override
   public boolean isStatic() {
-    return isStatic;
+    return isStatic || "[[class]]".equals(descriptor.getName());
   }
 
   @Override

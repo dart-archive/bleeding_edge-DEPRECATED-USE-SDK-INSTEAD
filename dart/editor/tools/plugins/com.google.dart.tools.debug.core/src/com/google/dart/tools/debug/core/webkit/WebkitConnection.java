@@ -319,10 +319,19 @@ public class WebkitConnection {
   }
 
   protected void processWebSocketMessage(WebSocketMessage message) {
-    try {
-      JSONObject object = new JSONObject(message.getText());
+    final int MAX_PRINT_LENGTH = 2000;
 
-      DartDebugCorePlugin.log("<== " + object);
+    try {
+      String text = message.getText();
+
+      if (text.length() > MAX_PRINT_LENGTH) {
+        DartDebugCorePlugin.log("<== " + text.substring(0, MAX_PRINT_LENGTH) + "...");
+        DartDebugCorePlugin.log("<== (long line: " + text.length() + " chars)");
+      } else {
+        DartDebugCorePlugin.log("<== " + text);
+      }
+
+      JSONObject object = new JSONObject(text);
 
       if (object.has("id")) {
         processResponse(object);

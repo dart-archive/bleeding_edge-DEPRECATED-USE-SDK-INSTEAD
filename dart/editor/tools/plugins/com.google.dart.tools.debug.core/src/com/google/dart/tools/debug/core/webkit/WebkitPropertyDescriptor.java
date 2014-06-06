@@ -128,7 +128,7 @@ public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescri
 
   @Override
   public int compareTo(WebkitPropertyDescriptor other) {
-    return getName().compareTo(other.getName());
+    return getName().toUpperCase().compareTo(other.getName().toUpperCase());
   }
 
   /**
