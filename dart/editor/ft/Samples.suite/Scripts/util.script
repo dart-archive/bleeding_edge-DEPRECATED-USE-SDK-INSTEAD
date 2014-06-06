@@ -307,34 +307,28 @@ end startDartEditor
 
 (* Exit the editor *)
 to stopDartEditor
+  stopProcess()
+end stopDartEditor
+
+to stopProcess
   if isMacOSX()
     TypeText commandKey,q
   else
     TypeText altKey,F4
   end if
-end stopDartEditor
+end stopProcess
 
-(* Force the editor to quit *)
-to killDartEditor
-  if isMacOSX()
-    shell "killall DartEditor.app"
-  else if isLinux()
-    shell "killall DartEditor"
-  else
-    throw "Error" "Not implemented: killDartEditor for Windows"
-  end if
-end killDartEditor
-
-(* Force dartium to quit *)
-to killDartium
-  if isMacOSX()
-    shell "killall Dartium.app"
-  else if isLinux()
-    shell "bash -c 'killall $HOME/Desktop/dart/chromium/chrome'"
-  else
-    throw "Error" "Not implemented: killDartium for Windows"
-  end if
-end killDartium
+(* Force all processes to quit *)
+to killAll
+  Click (100,100)
+  stopProcess()
+  Click (800,100)
+  stopProcess()
+  Click (100,800)
+  stopProcess()
+  Click (800,800)
+  stopProcess()
+end KillAll
 
 to doKeyCmd key
   if isMacOSX()
@@ -412,7 +406,7 @@ end saveFile
 to expandTreeNode
   if isMacOSX() then
     TypeText enter
-  else
+    else
     TypeText return
   end if
 end expandTreeNode
