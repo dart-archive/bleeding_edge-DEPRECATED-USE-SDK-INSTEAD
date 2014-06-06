@@ -28,6 +28,8 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -57,6 +59,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
 
   private AndroidDevice connectedDevice = null;
   private final AtomicBoolean monitorDeviceConnection = new AtomicBoolean(false);
+  private Button usePubServeButton;
 
   @Override
   public void activated(ILaunchConfigurationWorkingCopy workingCopy) {
@@ -88,6 +91,25 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     installDartBrowserButton = new Button(group, SWT.CHECK);
     installDartBrowserButton.setText("Automatically install Dart Content Shell Browser on first launch");
     GridDataFactory.swtDefaults().span(2, 1).grab(true, false).applyTo(installDartBrowserButton);
+
+    // pub serve setting
+    group = new Group(composite, SWT.NONE);
+    group.setText("Pub settings");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
+    ((GridLayout) group.getLayout()).marginBottom = 5;
+    usePubServeButton = new Button(group, SWT.CHECK);
+    usePubServeButton.setText("Use pub to serve the application");
+    GridDataFactory.swtDefaults().span(3, 1).applyTo(usePubServeButton);
+    usePubServeButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        notifyPanelChanged();
+      }
+    });
+    Label label = new Label(group, SWT.NONE);
+    label.setText("(requires port forwarding setup using Chrome > Tools > Inspect Devices)");
+    GridDataFactory.swtDefaults().span(3, 1).indent(18, 0).applyTo(label);
 
     // Status and setup group
     group = new Group(composite, SWT.NONE);
@@ -175,6 +197,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     }
 
     installDartBrowserButton.setSelection(wrapper.getInstallContentShell());
+    usePubServeButton.setSelection(wrapper.getUsePubServe());
   }
 
   /**
@@ -201,6 +224,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     wrapper.setUrl(launchTargetGroup.getUrlString());
     wrapper.setSourceDirectoryName(launchTargetGroup.getSourceDirectory());
     wrapper.setInstallContentShell(installDartBrowserButton.getSelection());
+    wrapper.setUsePubServe(usePubServeButton.getSelection());
   }
 
   @Override
@@ -209,6 +233,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     wrapper.setShouldLaunchFile(true);
     wrapper.setApplicationName(""); //$NON-NLS-1$
     wrapper.setLaunchContentShell(true);
+    wrapper.setUsePubServe(false);
   }
 
   private void notifyPanelChanged() {

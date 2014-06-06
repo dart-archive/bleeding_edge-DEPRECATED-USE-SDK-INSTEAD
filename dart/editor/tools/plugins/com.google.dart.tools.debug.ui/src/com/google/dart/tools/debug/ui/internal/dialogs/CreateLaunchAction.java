@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
@@ -88,6 +90,10 @@ class CreateLaunchAction extends InstrumentedAction implements IWorkbenchWindowA
 
       // TODO(devoncarew): init this launch config with a starting resource and name
 
+      if (configType.getIdentifier().equals(DartDebugCorePlugin.MOBILE_LAUNCH_CONFIG_ID)) {
+        DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(wc);
+        wrapper.setUsePubServe(false);
+      }
       wc.doSave();
 
       launchConfigurationDialog.selectLaunchConfiguration(wc.getName());

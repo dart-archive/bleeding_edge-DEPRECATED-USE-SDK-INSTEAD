@@ -99,6 +99,7 @@ public class MobileLaunchShortcut extends AbstractLaunchShortcut implements ILau
 
       launchWrapper.setApplicationName(resource.getFullPath().toString());
       launchWrapper.setProjectName(resource.getProject().getName());
+      launchWrapper.setUsePubServe(false);
       launchConfig.setMappedResources(new IResource[] {resource});
 
       try {
