@@ -60,6 +60,7 @@ import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.general.TimeCounter.TimeCounterHandle;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.engine.utilities.translation.DartBlockBody;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -81,6 +82,7 @@ public class LibraryResolver2 {
    * @param coreLibrarySource the source representing the core library
    * @throws AnalysisException always
    */
+  @DartBlockBody({"throw new AnalysisException(\"Could not resolve dart:core\");"})
   public static void missingCoreLibrary(AnalysisContext analysisContext, Source coreLibrarySource)
       throws AnalysisException {
     InstrumentationBuilder instrumentation = Instrumentation.builder("ErrorNoCoreLibrary");

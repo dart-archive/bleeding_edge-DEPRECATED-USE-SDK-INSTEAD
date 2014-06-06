@@ -90,14 +90,14 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
             node.getArgumentList().getArguments().clear();
             return null;
           }
-          // new HashMap(Map) -> new Map.from(Map)
+          // new HashMap(Map) -> new HashMap.from(Map)
           if (isMethodInClass2(methodBinding, "<init>(java.util.Map)", "java.util.HashMap")) {
             node.getConstructorName().setName(identifier("from"));
             return null;
           }
-          // new HashMap(5) -> new Map()
+          // new HashMap(5) -> new HashMap()
           if (JavaUtils.getQualifiedName(declaringClass).equals("java.util.HashMap")) {
-            ((SimpleIdentifier) node.getConstructorName().getType().getName()).setToken(token("Map"));
+            ((SimpleIdentifier) node.getConstructorName().getType().getName()).setToken(token("HashMap"));
             node.getArgumentList().getArguments().clear();
             return null;
           }
@@ -261,7 +261,7 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "noneOf", "java.util.EnumSet")) {
-          replaceNode(node, instanceCreationExpression(Keyword.NEW, typeName("Set")));
+          replaceNode(node, instanceCreationExpression(Keyword.NEW, typeName("HashSet")));
           return null;
         }
         return null;
@@ -297,15 +297,15 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
             return null;
           }
           if ("EnumSet".equals(name)) {
-            nameNode.setToken(token("Set"));
+            nameNode.setToken(token("HashSet"));
             return null;
           }
           if ("HashSet".equals(name)) {
-            nameNode.setToken(token("Set"));
+            nameNode.setToken(token("HashSet"));
             return null;
           }
           if ("HashMap".equals(name)) {
-            nameNode.setToken(token("Map"));
+            nameNode.setToken(token("HashMap"));
             return null;
           }
           if (JavaUtils.isTypeNamed(binding, "java.util.Map.Entry")) {

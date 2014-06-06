@@ -264,7 +264,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(//
         "class Test {",
         "  void main() {",
-        "    Set<MyEnum> set = new Set();",
+        "    HashSet<MyEnum> set = new HashSet();",
         "  }",
         "}");
   }
@@ -287,9 +287,9 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(
         "class Test {",
         "  void mainA() {",
-        "    Map<String, int> map = new Map<String, int>();",
+        "    HashMap<String, int> map = new HashMap<String, int>();",
         "  }",
-        "  Object mainB(Map<String, int> p) => new Map<String, int>.from(p);",
+        "  Object mainB(Map<String, int> p) => new HashMap<String, int>.from(p);",
         "}");
   }
 
@@ -297,24 +297,23 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
-        "import java.util.HashSet;",
-        "import java.util.Collection;",
+        "import java.util.*;",
         "public class Test {",
         "  public void testA() {",
         "    HashSet<String> result = new HashSet<String>(5);",
         "  }",
         "  public void testB(Collection<String> existing) {",
-        "    HashSet<String> result = new HashSet<String>(existing);",
+        "    Set<String> result = new HashSet<String>(existing);",
         "  }",
         "}");
     runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  void testA() {",
-        "    Set<String> result = new Set<String>();",
+        "    HashSet<String> result = new HashSet<String>();",
         "  }",
         "  void testB(Iterable<String> existing) {",
-        "    Set<String> result = new Set<String>.from(existing);",
+        "    Set<String> result = new HashSet<String>.from(existing);",
         "  }",
         "}");
   }
@@ -332,7 +331,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     runProcessor();
     assertFormattedSource(//
         "class Test {",
-        "  List<String> main(Set<String> items) => new List.from(items);",
+        "  List<String> main(HashSet<String> items) => new List.from(items);",
         "}");
   }
 
