@@ -169,11 +169,8 @@ public class QuickAssistProcessor {
   }
 
   private void addProposal_sortMembers() {
-    Source source = context.getSource();
     CompilationUnit unit = context.getCompilationUnit();
-    if (source != null && unit != null) {
-      proposals.add(new SortMembersProposal(viewer, source, unit));
-    }
+    proposals.add(new SortMembersProposal(viewer, unit));
   }
 
   /**

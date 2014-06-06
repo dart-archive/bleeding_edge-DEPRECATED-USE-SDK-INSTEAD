@@ -14,7 +14,6 @@
 
 package com.google.dart.engine.services.internal.correction;
 
-import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.MembersSorter;
 import com.google.dart.engine.services.internal.refactoring.RefactoringImplTest;
 
@@ -284,11 +283,11 @@ public class MembersSorterTest extends RefactoringImplTest {
         "import 'package:bbb/bbb.dart';",
         "export 'aaa/aaa.dart';",
         "export 'bbb/bbb.dart';",
-        "part 'aaa/aaa.dart';",
-        "part 'bbb/bbb.dart';",
         "import 'dart:aaa';",
         "import 'package:aaa/aaa.dart';",
         "import 'aaa/aaa.dart';",
+        "part 'bbb/bbb.dart';",
+        "part 'aaa/aaa.dart';",
         "",
         "main() {",
         "}",
@@ -503,9 +502,8 @@ public class MembersSorterTest extends RefactoringImplTest {
   }
 
   private void assertSorting(String initial, String expected) throws Exception {
-    parseTestUnit(initial);
-    MembersSorter sorter = new MembersSorter(testSource, testUnit);
-    SourceChange change = sorter.createChange();
-    assertChangeResult(change, testSource, expected);
+    MembersSorter sorter = new MembersSorter(initial, null);
+    String result = sorter.createSortedCode();
+    assertEquals(expected, result);
   }
 }

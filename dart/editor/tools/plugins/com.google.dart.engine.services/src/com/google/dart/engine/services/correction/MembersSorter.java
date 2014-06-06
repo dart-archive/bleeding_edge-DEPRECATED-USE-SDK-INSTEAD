@@ -34,10 +34,12 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.services.change.Edit;
-import com.google.dart.engine.services.change.SourceChange;
-import com.google.dart.engine.services.internal.correction.CorrectionUtils;
-import com.google.dart.engine.source.Source;
+import com.google.dart.engine.error.BooleanErrorListener;
+import com.google.dart.engine.parser.Parser;
+import com.google.dart.engine.scanner.CharSequenceReader;
+import com.google.dart.engine.scanner.CharacterReader;
+import com.google.dart.engine.scanner.Scanner;
+import com.google.dart.engine.scanner.Token;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -197,24 +199,35 @@ public class MembersSorter {
     return membersSorted;
   }
 
-  private final SourceChange change;
+  private final String initialCode;
   private final CompilationUnit unit;
-  private final CorrectionUtils utils;
 
   private String code;
 
-  public MembersSorter(Source source, CompilationUnit unit) throws Exception {
-    this.change = new SourceChange("Sort unit/class members", source);
-    this.unit = unit;
-    this.utils = new CorrectionUtils(unit);
-    this.code = utils.getText();
+  /**
+   * Initialize a newly created {@link MembersSorter}. Creates
+   * 
+   * @param code the Dart code
+   * @param unit an optional parsed {@link CompilationUnit} for the given "code", may be
+   *          {@code null}
+   */
+  public MembersSorter(String code, CompilationUnit unit) {
+    this.initialCode = code;
+    if (unit != null) {
+      this.unit = unit;
+    } else {
+      this.unit = parseUnit(code);
+    }
+    this.code = code;
   }
 
   /**
-   * Returns the {@link SourceChange} or {@code null} if no changes.
+   * Returns the sorted source or {@code null} if no changes.
    */
-  public SourceChange createChange() {
-    String initialCode = code;
+  public String createSortedCode() {
+    if (unit == null) {
+      return null;
+    }
     sortClassesMembers();
     sortUnitDirectives();
     sortUnitMembers();
@@ -222,9 +235,7 @@ public class MembersSorter {
     if (code.equals(initialCode)) {
       return null;
     }
-    // replace content
-    change.addEdit(new Edit(0, initialCode.length(), code));
-    return change;
+    return code;
   }
 
   /**
@@ -248,6 +259,22 @@ public class MembersSorter {
     } else {
       return "\n";
     }
+  }
+
+  private CompilationUnit parseUnit(String code) {
+    BooleanErrorListener listener = new BooleanErrorListener();
+    CharacterReader reader = new CharSequenceReader(code);
+    Scanner scanner = new Scanner(null, reader, listener);
+    Token token = scanner.tokenize();
+    if (listener.getErrorReported()) {
+      return null;
+    }
+    Parser parser = new Parser(null, listener);
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    if (listener.getErrorReported()) {
+      return null;
+    }
+    return unit;
   }
 
   private void sortAndReorderMembers(List<MemberInfo> members) {
@@ -323,7 +350,7 @@ public class MembersSorter {
         continue;
       }
       UriBasedDirective uriDirective = (UriBasedDirective) directive;
-      String uriContent = uriDirective.getUriContent();
+      String uriContent = uriDirective.getUri().getStringValue();
       DirectivePriority kind = null;
       if (directive instanceof ImportDirective) {
         if (uriContent.startsWith("dart:")) {
@@ -335,7 +362,6 @@ public class MembersSorter {
         }
       }
       if (directive instanceof ExportDirective) {
-        uriContent = ((ExportDirective) directive).getUriContent();
         if (uriContent.startsWith("dart:")) {
           kind = DirectivePriority.DIRECTIVE_EXPORT_SDK;
         } else if (uriContent.startsWith("package:")) {
@@ -345,7 +371,6 @@ public class MembersSorter {
         }
       }
       if (directive instanceof PartDirective) {
-        uriContent = ((PartDirective) directive).getUriContent();
         kind = DirectivePriority.DIRECTIVE_PART;
       }
       if (kind != null) {

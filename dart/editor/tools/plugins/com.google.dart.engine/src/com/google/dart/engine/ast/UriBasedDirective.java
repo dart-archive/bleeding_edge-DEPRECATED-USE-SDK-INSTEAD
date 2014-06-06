@@ -142,7 +142,7 @@ public abstract class UriBasedDirective extends Directive {
   }
 
   /**
-   * Validate the given directive, but do not check for existance.
+   * Validate the given directive, but do not check for existence.
    * 
    * @return a code indicating the problem if there is one, or {@code null} no problem
    */

@@ -14,20 +14,15 @@
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.MembersSorter;
-import com.google.dart.engine.source.Source;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.internal.refactoring.ServiceUtils;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.IContextInformation;
-import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
@@ -38,12 +33,10 @@ import org.eclipse.swt.graphics.Point;
  */
 public class SortMembersProposal implements IDartCompletionProposal {
   private final ITextViewer viewer;
-  private final Source source;
   private final CompilationUnit unit;
 
-  public SortMembersProposal(ITextViewer viewer, Source source, CompilationUnit unit) {
+  public SortMembersProposal(ITextViewer viewer, CompilationUnit unit) {
     this.viewer = viewer;
-    this.source = source;
     this.unit = unit;
   }
 
@@ -52,18 +45,15 @@ public class SortMembersProposal implements IDartCompletionProposal {
     ExecutionUtils.runLog(new RunnableEx() {
       @Override
       public void run() throws Exception {
-        Point selectedRange = viewer.getSelectedRange();
-        // sort members
-        {
-          MembersSorter sorter = new MembersSorter(source, unit);
-          SourceChange change = sorter.createChange();
-          if (change != null) {
-            TextFileChange ltkChange = ServiceUtils.toLTK(change);
-            ltkChange.perform(new NullProgressMonitor());
-          }
+        String code = viewer.getDocument().get();
+        MembersSorter sorter = new MembersSorter(code, unit);
+        String sortedCode = sorter.createSortedCode();
+        if (sortedCode != null) {
+          Point selectedRange = viewer.getSelectedRange();
+          viewer.getDocument().set(sortedCode);
+          viewer.setSelectedRange(selectedRange.x, selectedRange.y);
+          viewer.revealRange(selectedRange.x, selectedRange.y);
         }
-        // restore selection
-        viewer.setSelectedRange(selectedRange.x, selectedRange.y);
       }
     });
   }
