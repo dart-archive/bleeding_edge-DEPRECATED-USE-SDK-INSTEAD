@@ -291,6 +291,7 @@ public class MainEngine {
     context.applyLocalVariableSemanticChanges(dartUnit);
     EngineSemanticProcessor.rewriteReflectionFieldsWithDirect(context, dartUnit);
     // dump as several libraries
+    Files.copy(new File("resources/interner.dart"), new File(targetFolder + "/interner.dart"));
     Files.copy(new File("resources/java_core.dart"), new File(targetFolder + "/java_core.dart"));
     Files.copy(new File("resources/java_io.dart"), new File(targetFolder + "/java_io.dart"));
     Files.copy(new File("resources/java_junit.dart"), new File(targetFolder + "/java_junit.dart"));
