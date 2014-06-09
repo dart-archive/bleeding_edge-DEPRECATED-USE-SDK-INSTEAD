@@ -63,6 +63,5 @@ if (util.isLinux()) then
 else if (util.isMacOSX) then
   util.exitChromium
 end if
-util.killDartium
 util.deleteProject "sample project"
 util.deleteOutput
