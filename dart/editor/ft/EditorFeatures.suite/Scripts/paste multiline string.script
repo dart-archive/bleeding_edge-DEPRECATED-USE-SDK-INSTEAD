@@ -31,9 +31,13 @@ typetext rightArrow
 (* Paste the string *)
 util.pasteText
 util.saveFile
-(* NOTE: This is currently broken. This test needs additional verification that the paste succeeded. *)
+put ImageFound("varfirstsecthird") into wasFound
 
 (* Restore state by deleting new file and activating previous editor *)
 util.deleteFile "multi.dart"
 typetext return
 util.activateEditor
+
+if not wasFound then
+  throw "Multi-line string not indented properly"
+end if
