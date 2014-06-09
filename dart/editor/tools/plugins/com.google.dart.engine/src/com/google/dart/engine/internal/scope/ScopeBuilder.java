@@ -100,13 +100,13 @@ public final class ScopeBuilder {
       if (element == null) {
         throw new AnalysisException("Cannot build a scope for an unresolved class");
       }
-      scope = new ClassScope(scope, element);
+      scope = new ClassScope(new TypeParameterScope(scope, element), element);
     } else if (node instanceof ClassTypeAlias) {
       ClassElement element = ((ClassTypeAlias) node).getElement();
       if (element == null) {
         throw new AnalysisException("Cannot build a scope for an unresolved class type alias");
       }
-      scope = new ClassScope(scope, element);
+      scope = new ClassScope(new TypeParameterScope(scope, element), element);
     } else if (node instanceof ConstructorDeclaration) {
       ConstructorElement element = ((ConstructorDeclaration) node).getElement();
       if (element == null) {

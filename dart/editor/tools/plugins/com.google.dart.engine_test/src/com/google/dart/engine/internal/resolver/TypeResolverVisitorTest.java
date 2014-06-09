@@ -28,9 +28,11 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
@@ -61,6 +63,7 @@ import static com.google.dart.engine.ast.AstFactory.variableDeclaration;
 import static com.google.dart.engine.ast.AstFactory.variableDeclarationList;
 import static com.google.dart.engine.ast.AstFactory.withClause;
 import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.methodElement;
 import static com.google.dart.engine.element.ElementFactory.requiredParameter;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
@@ -177,12 +180,19 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     exceptionParameter.setStaticElement(new LocalVariableElementImpl(exceptionParameter));
     SimpleIdentifier stackTraceParameter = clause.getStackTraceParameter();
     stackTraceParameter.setStaticElement(new LocalVariableElementImpl(stackTraceParameter));
-    resolveCatchClause(clause, exceptionElement.getType(), typeProvider.getStackTraceType(), exceptionElement);
+    resolveCatchClause(
+        clause,
+        exceptionElement.getType(),
+        typeProvider.getStackTraceType(),
+        exceptionElement);
     listener.assertNoErrors();
   }
 
   public void test_visitClassDeclaration() {
     // class A extends B with C implements D {}
+    // class B {}
+    // class C {}
+    // class D {}
     ClassElement elementA = classElement("A");
     ClassElement elementB = classElement("B");
     ClassElement elementC = classElement("C");
@@ -207,6 +217,24 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     InterfaceType[] interfaces = elementA.getInterfaces();
     assertLength(1, interfaces);
     assertSame(elementD.getType(), interfaces[0]);
+    listener.assertNoErrors();
+  }
+
+  public void test_visitClassDeclaration_instanceMemberCollidesWithClass() {
+    // class A {}
+    // class B extends A {
+    //   void A() {}
+    // }
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B");
+    elementB.setMethods(new MethodElement[] {methodElement("A", VoidTypeImpl.getInstance())});
+
+    ExtendsClause extendsClause = extendsClause(typeName(elementA));
+    ClassDeclaration declaration = classDeclaration(null, "B", null, extendsClause, null, null);
+    declaration.getName().setStaticElement(elementB);
+
+    resolveNode(declaration, elementA, elementB);
+    assertSame(elementA.getType(), elementB.getSupertype());
     listener.assertNoErrors();
   }
 
@@ -352,8 +380,8 @@ public class TypeResolverVisitorTest extends EngineTestCase {
    * @param definedElements the elements that are to be defined in the scope in which the element is
    *          being resolved
    */
-  private void resolveCatchClause(CatchClause node, Type exceptionType, InterfaceType stackTraceType,
-      Element... definedElements) {
+  private void resolveCatchClause(CatchClause node, Type exceptionType,
+      InterfaceType stackTraceType, Element... definedElements) {
     resolveNode(node, definedElements);
     SimpleIdentifier exceptionParameter = node.getExceptionParameter();
     if (exceptionParameter != null) {

@@ -17,7 +17,6 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 
@@ -38,11 +37,10 @@ public class ClassScope extends EnclosedScope {
    * @param typeElement the element representing the type represented by this scope
    */
   public ClassScope(Scope enclosingScope, ClassElement typeElement) {
-    super(new EnclosedScope(enclosingScope));
+    super(enclosingScope);
     if (typeElement == null) {
       throw new IllegalArgumentException("class element cannot be null");
     }
-    defineTypeParameters(typeElement);
     defineMembers(typeElement);
   }
 
@@ -79,18 +77,6 @@ public class ClassScope extends EnclosedScope {
     }
     for (MethodElement method : typeElement.getMethods()) {
       define(method);
-    }
-  }
-
-  /**
-   * Define the type parameters for the class.
-   * 
-   * @param typeElement the element representing the type represented by this scope
-   */
-  private void defineTypeParameters(ClassElement typeElement) {
-    Scope parameterScope = getEnclosingScope();
-    for (TypeParameterElement typeParameter : typeElement.getTypeParameters()) {
-      parameterScope.define(typeParameter);
     }
   }
 }

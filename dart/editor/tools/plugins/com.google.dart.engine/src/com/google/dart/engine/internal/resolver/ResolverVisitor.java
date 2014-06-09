@@ -343,6 +343,8 @@ public class ResolverVisitor extends ScopedVisitor {
       enclosingClass = node.getElement();
       typeAnalyzer.setThisType(enclosingClass == null ? null : enclosingClass.getType());
       super.visitClassDeclaration(node);
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
     } finally {
       typeAnalyzer.setThisType(outerType == null ? null : outerType.getType());
       enclosingClass = outerType;

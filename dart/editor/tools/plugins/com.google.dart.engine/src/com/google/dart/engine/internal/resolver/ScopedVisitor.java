@@ -65,6 +65,7 @@ import com.google.dart.engine.internal.scope.FunctionTypeScope;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.LibraryScope;
 import com.google.dart.engine.internal.scope.Scope;
+import com.google.dart.engine.internal.scope.TypeParameterScope;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 
@@ -259,13 +260,16 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
     try {
       if (classElement == null) {
         AnalysisEngine.getInstance().getLogger().logInformation(
-            "Missing element for constructor " + node.getName().getName() + " in "
+            "Missing element for class declaration " + node.getName().getName() + " in "
                 + getDefiningLibrary().getSource().getFullName(),
             new Exception());
+        super.visitClassDeclaration(node);
       } else {
+        nameScope = new TypeParameterScope(nameScope, classElement);
+        visitClassDeclarationInScope(node);
         nameScope = new ClassScope(nameScope, classElement);
+        visitClassMembersInScope(node);
       }
-      visitClassDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
     }
@@ -276,7 +280,8 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
   public Void visitClassTypeAlias(ClassTypeAlias node) {
     Scope outerScope = nameScope;
     try {
-      nameScope = new ClassScope(nameScope, node.getElement());
+      ClassElement element = node.getElement();
+      nameScope = new ClassScope(new TypeParameterScope(nameScope, element), element);
       super.visitClassTypeAlias(node);
     } finally {
       nameScope = outerScope;
@@ -640,7 +645,18 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
   }
 
   protected void visitClassDeclarationInScope(ClassDeclaration node) {
-    super.visitClassDeclaration(node);
+    safelyVisit(node.getName());
+    safelyVisit(node.getTypeParameters());
+    safelyVisit(node.getExtendsClause());
+    safelyVisit(node.getWithClause());
+    safelyVisit(node.getImplementsClause());
+    safelyVisit(node.getNativeClause());
+  }
+
+  protected void visitClassMembersInScope(ClassDeclaration node) {
+    safelyVisit(node.getDocumentationComment());
+    node.getMetadata().accept(this);
+    node.getMembers().accept(this);
   }
 
   /**

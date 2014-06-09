@@ -263,14 +263,17 @@ public class TypeResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
+    ExtendsClause extendsClause = node.getExtendsClause();
+    WithClause withClause = node.getWithClause();
+    ImplementsClause implementsClause = node.getImplementsClause();
+
     hasReferenceToSuper = false;
     super.visitClassDeclaration(node);
 
     ClassElementImpl classElement = getClassElement(node.getName());
     InterfaceType superclassType = null;
-    ExtendsClause extendsClause = node.getExtendsClause();
     if (extendsClause != null) {
-      ErrorCode errorCode = node.getWithClause() == null ? CompileTimeErrorCode.EXTENDS_NON_CLASS
+      ErrorCode errorCode = withClause == null ? CompileTimeErrorCode.EXTENDS_NON_CLASS
           : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
       superclassType = resolveType(extendsClause.getSuperclass(), errorCode, errorCode);
       if (superclassType != getTypeProvider().getObjectType()) {
@@ -287,7 +290,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       classElement.setSupertype(superclassType);
       classElement.setHasReferenceToSuper(hasReferenceToSuper);
     }
-    resolve(classElement, node.getWithClause(), node.getImplementsClause());
+    resolve(classElement, withClause, implementsClause);
     return null;
   }
 
@@ -792,7 +795,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
   }
 
   @Override
-  protected void visitClassDeclarationInScope(ClassDeclaration node) {
+  protected void visitClassMembersInScope(ClassDeclaration node) {
     //
     // Process field declarations before constructors and methods so that the types of field formal
     // parameters can be correctly resolved.
@@ -806,6 +809,18 @@ public class TypeResolverVisitor extends ScopedVisitor {
       }
 
       @Override
+      public Void visitExtendsClause(ExtendsClause node) {
+        // This node was already visited.
+        return null;
+      }
+
+      @Override
+      public Void visitImplementsClause(ImplementsClause node) {
+        // This node was already visited.
+        return null;
+      }
+
+      @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         nonFields.add(node);
         return null;
@@ -814,6 +829,12 @@ public class TypeResolverVisitor extends ScopedVisitor {
       @Override
       public Void visitNode(AstNode node) {
         return node.accept(TypeResolverVisitor.this);
+      }
+
+      @Override
+      public Void visitWithClause(WithClause node) {
+        // This node was already visited.
+        return null;
       }
     });
     int count = nonFields.size();

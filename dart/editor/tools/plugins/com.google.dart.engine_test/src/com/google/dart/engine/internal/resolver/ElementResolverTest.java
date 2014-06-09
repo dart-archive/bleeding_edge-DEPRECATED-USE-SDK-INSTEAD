@@ -60,6 +60,7 @@ import com.google.dart.engine.internal.scope.ClassScope;
 import com.google.dart.engine.internal.scope.EnclosedScope;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Scope;
+import com.google.dart.engine.internal.scope.TypeParameterScope;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
@@ -805,7 +806,9 @@ public class ElementResolverTest extends EngineTestCase {
       try {
         enclosingClassField.set(visitor, enclosingClass);
 
-        EnclosedScope innerScope = new ClassScope(outerScope, enclosingClass);
+        EnclosedScope innerScope = new ClassScope(
+            new TypeParameterScope(outerScope, enclosingClass),
+            enclosingClass);
         scopeField.set(visitor, innerScope);
 
         node.accept(resolver);
