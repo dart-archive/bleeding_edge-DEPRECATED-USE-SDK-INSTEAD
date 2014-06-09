@@ -23,6 +23,7 @@ import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.themes.Fonts;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -380,6 +381,9 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
     usePubServeButton.setText("Using pub to serve the application");
     usePubServeButton.setSelection(true);
     GridDataFactory.fillDefaults().grab(true, false).applyTo(usePubServeButton);
+    Label message = new Label(pubGroup, SWT.NONE);
+    message.setText("(This information will be used to resolve breakpoints)");
+    message.setFont(Fonts.getItalicFont(message.getFont()));
 
     try {
       exceptionsCombo.select(getDialogSettings().getInt("selected"));
