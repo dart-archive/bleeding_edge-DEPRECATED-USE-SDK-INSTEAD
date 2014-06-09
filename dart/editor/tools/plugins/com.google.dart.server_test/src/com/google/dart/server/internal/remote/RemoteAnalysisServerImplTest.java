@@ -574,52 +574,6 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
-  public void test_notification_server_connected() throws Exception {
-    listener.assertServerConnected(false);
-    putResponse(//
-        "{",
-        "  'event': 'server.connected'",
-        "}");
-    responseStream.waitForEmpty();
-    server.test_waitForWorkerComplete();
-    listener.assertServerConnected(true);
-  }
-
-  public void test_notification_server_status_false() throws Exception {
-    putResponse(//
-        "{",
-        "  'event': 'server.status',",
-        "  'params': {",
-        "    'analysis': {",
-        "      analyzing: false",
-        "    }",
-        "  }",
-        "}");
-    responseStream.waitForEmpty();
-    server.test_waitForWorkerComplete();
-    ServerStatus serverStatus = new ServerStatus();
-    serverStatus.setAnalysisStatus(new AnalysisStatus(false, null));
-    listener.assertServerStatus(serverStatus);
-  }
-
-  public void test_notification_server_status_true() throws Exception {
-    putResponse(//
-        "{",
-        "  'event': 'server.status',",
-        "  'params': {",
-        "    'analysis': {",
-        "      analyzing: true,",
-        "      analysisTarget: 'target0'",
-        "    }",
-        "  }",
-        "}");
-    responseStream.waitForEmpty();
-    server.test_waitForWorkerComplete();
-    ServerStatus serverStatus = new ServerStatus();
-    serverStatus.setAnalysisStatus(new AnalysisStatus(true, "target0"));
-    listener.assertServerStatus(serverStatus);
-  }
-
   public void test_server_getVersion() throws Exception {
     final String[] versionPtr = {null};
     server.getVersion(new VersionConsumer() {
@@ -645,6 +599,52 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     server.test_waitForWorkerComplete();
     assertEquals("0.0.1", versionPtr[0]);
+  }
+
+  public void test_server_notification_connected() throws Exception {
+    listener.assertServerConnected(false);
+    putResponse(//
+        "{",
+        "  'event': 'server.connected'",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    listener.assertServerConnected(true);
+  }
+
+  public void test_server_notification_status_false() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'server.status',",
+        "  'params': {",
+        "    'analysis': {",
+        "      analyzing: false",
+        "    }",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    ServerStatus serverStatus = new ServerStatus();
+    serverStatus.setAnalysisStatus(new AnalysisStatus(false, null));
+    listener.assertServerStatus(serverStatus);
+  }
+
+  public void test_server_notification_status_true() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'server.status',",
+        "  'params': {",
+        "    'analysis': {",
+        "      analyzing: true,",
+        "      analysisTarget: 'target0'",
+        "    }",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    ServerStatus serverStatus = new ServerStatus();
+    serverStatus.setAnalysisStatus(new AnalysisStatus(true, "target0"));
+    listener.assertServerStatus(serverStatus);
   }
 
   public void test_server_setSubscriptions() throws Exception {
