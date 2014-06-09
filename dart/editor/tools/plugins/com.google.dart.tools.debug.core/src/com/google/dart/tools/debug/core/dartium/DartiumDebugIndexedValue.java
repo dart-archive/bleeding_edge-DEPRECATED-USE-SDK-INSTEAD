@@ -24,6 +24,8 @@ import org.eclipse.debug.core.model.IIndexedValue;
 import org.eclipse.debug.core.model.IVariable;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -46,7 +48,7 @@ public class DartiumDebugIndexedValue extends DartiumDebugValue implements IInde
 
   @Override
   public int getSize() throws DebugException {
-    return value.getListLength();
+    return value.getListLength(getTarget().getConnection());
   }
 
   @Override
@@ -78,8 +80,31 @@ public class DartiumDebugIndexedValue extends DartiumDebugValue implements IInde
   }
 
   @Override
+  public boolean hasVariables() throws DebugException {
+    return true;
+  }
+
+  @Override
   public boolean isListValue() {
     return true;
+  }
+
+  @Override
+  protected void populate() {
+    try {
+      int length = value.getListLength(getTarget().getConnection());
+
+      IVariable[] variables = getVariables(0, length);
+      List<IVariable> variablesList = new ArrayList<IVariable>();
+
+      for (int i = 0; i < length; i++) {
+        variablesList.add(variables[i]);
+      }
+
+      variableCollector = VariableCollector.fixed(getTarget(), variablesList);
+    } catch (DebugException e) {
+      variableCollector = VariableCollector.empty();
+    }
   }
 
   private WebkitRemoteObject getIndexAt(WebkitRemoteObject listObject, int offset)
@@ -90,7 +115,7 @@ public class DartiumDebugIndexedValue extends DartiumDebugValue implements IInde
 
     getConnection().getRuntime().callFunctionOn(
         listObject.getObjectId(),
-        "()=>this[" + offset + "]",
+        "() => this[" + offset + "]",
         null,
         false,
         new WebkitCallback<WebkitRemoteObject>() {

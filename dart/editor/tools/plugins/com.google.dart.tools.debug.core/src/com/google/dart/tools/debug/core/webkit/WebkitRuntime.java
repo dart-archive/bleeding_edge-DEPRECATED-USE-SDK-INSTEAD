@@ -129,6 +129,47 @@ public class WebkitRuntime extends WebkitDomain {
     }
   }
 
+  public void callListLength(String objectId, final WebkitCallback<Integer> callback)
+      throws IOException {
+    if (objectId == null) {
+      WebkitResult<Integer> result = new WebkitResult<Integer>();
+      result.setResult(new Integer(0));
+      callback.handleResult(result);
+      return;
+    }
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("method", "Runtime.callFunctionOn");
+      request.put(
+          "params",
+          new JSONObject().put("objectId", objectId).put("functionDeclaration", "() => length").put(
+              "returnByValue",
+              false));
+
+      connection.sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          WebkitResult<WebkitRemoteObject> functionResult = convertEvaluateResult(result);
+
+          WebkitResult<Integer> r = new WebkitResult<Integer>();
+
+          if (functionResult.getWasThrown()) {
+            r.setError(functionResult.getResult().getValue());
+          } else {
+            r.setResult(functionResult.getResult() == null ? new Integer(0) : new Integer(
+                functionResult.getResult().getValue()));
+          }
+
+          callback.handleResult(r);
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
   /**
    * Calls the toString() method on the given remote object. This is a convenience method for the
    * Runtime.callFunctionOn call.
@@ -151,9 +192,9 @@ public class WebkitRuntime extends WebkitDomain {
       request.put("method", "Runtime.callFunctionOn");
       request.put(
           "params",
-          new JSONObject().put("objectId", objectId).put(
-              "functionDeclaration",
-              "() => toString()").put("returnByValue", false));
+          new JSONObject().put("objectId", objectId).put("functionDeclaration", "() => toString()").put(
+              "returnByValue",
+              false));
 
       connection.sendRequest(request, new Callback() {
         @Override

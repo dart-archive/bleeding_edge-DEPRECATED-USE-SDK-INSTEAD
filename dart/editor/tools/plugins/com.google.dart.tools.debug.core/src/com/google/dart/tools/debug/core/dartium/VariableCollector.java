@@ -129,6 +129,8 @@ class VariableCollector {
   public VariableCollector(DartiumDebugTarget target, List<IVariable> variables) {
     this.target = target;
     this.variables.addAll(variables);
+
+    latch = new CountDownLatch(0);
   }
 
   private VariableCollector(DartiumDebugTarget target, int work) {

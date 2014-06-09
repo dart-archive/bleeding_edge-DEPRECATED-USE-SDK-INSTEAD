@@ -17,6 +17,10 @@ package com.google.dart.tools.debug.core.webkit;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 /**
  * A WIP scope object.
  * 
@@ -63,6 +67,8 @@ public class WebkitRemoteObject {
 
   private String value;
 
+  private int listLength = -1;
+
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof WebkitRemoteObject) {
@@ -99,30 +105,39 @@ public class WebkitRemoteObject {
   /**
    * Return the length of the list if this object is a list.
    * 
+   * @param webkitConnection
    * @return
    */
-  public int getListLength() {
-    // TODO(devoncarew): write a test to notify us when this convention changes
-
-    // Since there is no direct way to obtain the length of an array, use the description from
-    // Dartium to derive the array length. value.getDescription() == "Array[x]"
-
-    String str = getDescription();
-
-    int startIndex = str.indexOf('[');
-    int endIndex = str.indexOf(']', startIndex);
-
-    if (startIndex != -1 && endIndex != -1) {
-      String val = str.substring(startIndex + 1, endIndex);
+  public int getListLength(WebkitConnection connection) {
+    if (listLength == -1) {
+      final CountDownLatch latch = new CountDownLatch(1);
 
       try {
-        return Integer.parseInt(val);
-      } catch (NumberFormatException nfe) {
+        connection.getRuntime().callListLength(objectId, new WebkitCallback<Integer>() {
+          @Override
+          public void handleResult(WebkitResult<Integer> result) {
+            if (result.isError()) {
+              listLength = 0;
+            } else {
+              listLength = result.getResult().intValue();
+            }
+
+            latch.countDown();
+          }
+        });
+      } catch (IOException e) {
+        listLength = 0;
+        latch.countDown();
+      }
+
+      try {
+        latch.await(3, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
 
       }
     }
 
-    return 0;
+    return listLength;
   }
 
   public String getObjectId() {
@@ -186,7 +201,7 @@ public class WebkitRemoteObject {
   }
 
   public boolean isList() {
-    return "array".equals(subtype);
+    return "object".equals(type) && "List".equals(className);
   }
 
   public boolean isNode() {
@@ -194,7 +209,7 @@ public class WebkitRemoteObject {
   }
 
   public boolean isNull() {
-    if (isObject() && "null".equals(subtype)) {
+    if (isObject() && "null".equals(value)) {
       return true;
     } else {
       return false;

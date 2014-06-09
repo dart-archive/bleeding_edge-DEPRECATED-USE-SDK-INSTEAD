@@ -57,7 +57,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
   private DartiumDebugVariable variable;
   protected WebkitRemoteObject value;
 
-  private VariableCollector variableCollector;
+  protected VariableCollector variableCollector;
 
   protected DartiumDebugValue(DartiumDebugTarget target, DartiumDebugVariable variable,
       WebkitRemoteObject value) {
@@ -197,9 +197,9 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
     if (isListValue()) {
       if (value.getClassName() != null) {
-        return value.getClassName() + "[" + value.getListLength() + "]";
+        return value.getClassName() + "[" + value.getListLength(getConnection()) + "]";
       } else {
-        return "List[" + value.getListLength() + "]";
+        return "List[" + value.getListLength(getConnection()) + "]";
       }
     }
 
@@ -267,11 +267,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
   @Override
   public boolean hasVariables() throws DebugException {
     try {
-      if (isListValue()) {
-        return value.getListLength() > 0;
-      } else {
-        return value.hasObjectId();
-      }
+      return value.hasObjectId() && !value.isNull() && !value.isPrimitive();
     } catch (Throwable t) {
       throw createDebugException(t);
     }
@@ -302,6 +298,17 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     variableCollector = null;
 
     fireEvent(new DebugEvent(this, DebugEvent.CHANGE, DebugEvent.CONTENT));
+  }
+
+  protected void populate() {
+    if (value.hasObjectId()) {
+      variableCollector = VariableCollector.createCollector(
+          getTarget(),
+          variable,
+          Collections.singletonList(value));
+    } else {
+      variableCollector = VariableCollector.empty();
+    }
   }
 
   private void evalOnGlobalContext(final String expression,
@@ -350,17 +357,6 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
       return obj.getString("id");
     } catch (Throwable t) {
       return null;
-    }
-  }
-
-  private void populate() {
-    if (value.hasObjectId()) {
-      variableCollector = VariableCollector.createCollector(
-          getTarget(),
-          variable,
-          Collections.singletonList(value));
-    } else {
-      variableCollector = VariableCollector.empty();
     }
   }
 
