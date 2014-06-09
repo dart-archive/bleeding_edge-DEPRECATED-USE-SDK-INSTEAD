@@ -43,7 +43,6 @@
   <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.ui/bin">
     <include prefix="com/google/dart/tools/internal/" source="/com.google.dart.tools.ui/src/"/>
     <include prefix="com/google/dart/tools/ui/" source="/com.google.dart.tools.ui/src/"/>
-    <include prefix="com/google/protobuf/" source="/com.google.dart.tools.ui/src/"/>
   </directory>
   <directory path="${dart.editor.path}/tools/plugins/com.google.dart.tools.ui/bin">
     <include prefix="com/google/dart/core/" source="/com.google.dart.tools.ui/src-mocks/"/>
