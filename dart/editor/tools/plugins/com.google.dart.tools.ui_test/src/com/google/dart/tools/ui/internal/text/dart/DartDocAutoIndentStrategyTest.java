@@ -15,7 +15,10 @@ package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocAutoIndentStrategy;
+import com.google.dart.tools.ui.text.DartPartitions;
+import com.google.dart.tools.ui.text.DartTextTools;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.text.Document;
@@ -35,10 +38,12 @@ public class DartDocAutoIndentStrategyTest extends EngineTestCase {
     assertTrue("No cursor position in expected: " + expected, expectedOffset != -1);
     initial = StringUtils.remove(initial, '!');
     expected = StringUtils.remove(expected, '!');
-    // force "smart mode"
-    DartDocAutoIndentStrategy strategy = new DartDocAutoIndentStrategy(null);
     // prepare document
     IDocument document = new Document(initial);
+    {
+      DartTextTools tools = DartToolsPlugin.getDefault().getDartTextTools();
+      tools.setupDartDocumentPartitioner(document, DartPartitions.DART_PARTITIONING);
+    }
     // handle command
     DocumentCommand command = new DocumentCommand() {
     };
@@ -46,6 +51,9 @@ public class DartDocAutoIndentStrategyTest extends EngineTestCase {
     command.doit = true;
     command.offset = initialOffset;
     command.text = newText;
+    // execute command
+    DartDocAutoIndentStrategy strategy = new DartDocAutoIndentStrategy(
+        DartPartitions.DART_PARTITIONING);
     strategy.customizeDocumentCommand(document, command);
     // update document
     ReflectionUtils.invokeMethod(command, "execute(org.eclipse.jface.text.IDocument)", document);
@@ -107,5 +115,31 @@ public class DartDocAutoIndentStrategyTest extends EngineTestCase {
         " * !cd",
         " */",
         ""));
+  }
+
+  public void test_newComment_method() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "class A {",
+        "  /**!",
+        "  foo() {}",
+        "}"), createSource(//
+        "class A {",
+        "  /**",
+        "   * !",
+        "   */",
+        "  foo() {}",
+        "}"));
+  }
+
+  public void test_newComment_topLevel() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "/**!",
+        "main() {",
+        "}"), createSource(//
+        "/**",
+        " * !",
+        " */",
+        "main() {",
+        "}"));
   }
 }

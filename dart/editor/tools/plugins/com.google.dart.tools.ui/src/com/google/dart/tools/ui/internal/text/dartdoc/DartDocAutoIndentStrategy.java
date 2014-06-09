@@ -20,15 +20,19 @@ import org.eclipse.jface.text.DefaultIndentLineAutoEditStrategy;
 import org.eclipse.jface.text.DocumentCommand;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.TextUtilities;
 
 /**
- * A simple auto indent strategy for Dartdoc comments (as well as regular multi-line comments).
+ * A simple auto indent strategy for DartDoc comments (as well as regular multi-line comments).
  * 
  * @coverage dart.editor.ui.text.dart
  */
 public class DartDocAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
+  private String partitioning;
+
   public DartDocAutoIndentStrategy(String partitioning) {
+    this.partitioning = partitioning;
   }
 
   @Override
@@ -94,6 +98,10 @@ public class DartDocAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy
         buf.append(lineDelimiter);
         buf.append(strWS);
         buf.append(" ");
+      } else if (isNewComment(d, offset)) {
+        buf.append(lineDelimiter);
+        buf.append(strWS);
+        buf.append(" */");
       }
       c.shiftsCaret = false;
       c.caretOffset = newCaretOffset;
@@ -122,5 +130,48 @@ public class DartDocAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy
     }
 
     return document.get(start, end - start);
+  }
+
+  /**
+   * Guesses if the command operates within a newly created DartDoc comment or not. If in doubt, it
+   * will assume that the DartDoc is new.
+   * 
+   * @param document the document
+   * @param commandOffset the command offset
+   * @return <code>true</code> if the comment should be closed, <code>false</code> if not
+   */
+  private boolean isNewComment(IDocument document, int commandOffset) {
+
+    try {
+      int lineIndex = document.getLineOfOffset(commandOffset) + 1;
+      if (lineIndex >= document.getNumberOfLines()) {
+        return true;
+      }
+
+      IRegion line = document.getLineInformation(lineIndex);
+      ITypedRegion partition = TextUtilities.getPartition(
+          document,
+          partitioning,
+          commandOffset,
+          false);
+      int partitionEnd = partition.getOffset() + partition.getLength();
+      if (line.getOffset() >= partitionEnd) {
+        return false;
+      }
+
+      if (document.getLength() == partitionEnd) {
+        return true; // partition goes to end of document - probably a new comment 
+      }
+
+      String comment = document.get(partition.getOffset(), partition.getLength());
+      if (comment.indexOf("/*", 2) != -1) {
+        return true; // enclosed another comment -> probably a new comment 
+      }
+
+      return false;
+
+    } catch (BadLocationException e) {
+      return false;
+    }
   }
 }
