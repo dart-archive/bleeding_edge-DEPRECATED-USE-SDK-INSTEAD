@@ -274,7 +274,7 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
     IDebugTarget[] targets = DebugPlugin.getDefault().getLaunchManager().getDebugTargets();
     for (IDebugTarget target : targets) {
       try {
-        if (target.getName().equals("Remote") && !target.getProcess().isTerminated()) {
+        if (target.getName().equals("Remote") && !target.isTerminated()) {
           return true;
         }
       } catch (DebugException e) {
