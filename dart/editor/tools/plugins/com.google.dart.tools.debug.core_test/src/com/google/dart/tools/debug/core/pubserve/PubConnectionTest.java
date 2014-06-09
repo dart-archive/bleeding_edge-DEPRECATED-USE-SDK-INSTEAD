@@ -47,7 +47,7 @@ public class PubConnectionTest extends TestCase {
     @Override
     public void handleResult(PubResult<String> result) {
       assertTrue(!result.isError());
-      assertTrue(result.getResult().startsWith("http://127.0.0.1:"));
+      assertTrue(result.getResult().matches("http://.*"));
       latch.countDown();
     }
   };
@@ -57,7 +57,7 @@ public class PubConnectionTest extends TestCase {
     @Override
     public void handleResult(PubResult<String> result) {
       assertTrue(!result.isError());
-      assertTrue(result.getResult().startsWith("http://127.0.0.1:"));
+      assertTrue(result.getResult().matches("http://.*"));
       assertTrue(result.getResult().contains("foo.html"));
       latch.countDown();
     }
@@ -97,8 +97,8 @@ public class PubConnectionTest extends TestCase {
     }
 
     latch = new CountDownLatch(1);
-    command.urlToAssetId("http://127.0.0.1:8080/foo.html", urlToAssestCallback);
-    if (!latch.await(3000, TimeUnit.MILLISECONDS)) {
+    command.urlToAssetId("http://localhost:8080/foo.html", urlToAssestCallback);
+    if (!latch.await(5000, TimeUnit.MILLISECONDS)) {
       throw new Exception("No response from pub command urlToAssestId");
     }
 

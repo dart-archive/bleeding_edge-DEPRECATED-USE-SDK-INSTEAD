@@ -64,7 +64,7 @@ public class PubServe {
 
   private static final String SERVE_COMMAND = "serve";
 
-  private static final String LOCAL_HOST_ADDR = "127.0.0.1";
+  private static final String LOCAL_HOST_ADDR = "localhost";
 
   private static final String WEBSOCKET_URL = "ws://{0}:{1}/";
 
@@ -295,7 +295,8 @@ public class PubServe {
     });
     stderrThread.start();
 
-    while (!isTerminated() && !stdOut.toString().contains(LOCAL_HOST_ADDR)) {
+    // TODO(keertip): maybe use http:// expr instead?
+    while (!isTerminated() && !stdOut.toString().contains("http://localhost")) {
       try {
         Thread.sleep(200);
       } catch (Exception exception) {
