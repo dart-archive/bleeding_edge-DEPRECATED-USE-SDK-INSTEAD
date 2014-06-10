@@ -86,11 +86,7 @@ public class ElementLocationImpl implements ElementLocation {
     return true;
   }
 
-  /**
-   * Return the path to the element whose location is represented by this object.
-   * 
-   * @return the path to the element whose location is represented by this object
-   */
+  @Override
   public String[] getComponents() {
     return components;
   }

@@ -58,7 +58,6 @@ import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.internal.cache.SourceEntryImpl;
 import com.google.dart.engine.internal.cache.UniversalCachePartition;
 import com.google.dart.engine.internal.element.ElementImpl;
-import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.angular.AngularApplication;
 import com.google.dart.engine.internal.resolver.Library;
@@ -1394,7 +1393,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public Element getElement(ElementLocation location) {
     // TODO(brianwilkerson) This should not be a "get" method.
     try {
-      String[] components = ((ElementLocationImpl) location).getComponents();
+      String[] components = location.getComponents();
       Source librarySource = computeSourceFromEncoding(components[0]);
       ElementImpl element = (ElementImpl) computeLibraryElement(librarySource);
       for (int i = 1; i < components.length; i++) {

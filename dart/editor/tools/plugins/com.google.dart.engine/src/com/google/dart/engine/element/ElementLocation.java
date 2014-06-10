@@ -21,6 +21,14 @@ package com.google.dart.engine.element;
  */
 public interface ElementLocation {
   /**
+   * Return the path to the element whose location is represented by this object. Clients must not
+   * modify the returned array.
+   * 
+   * @return the path to the element whose location is represented by this object
+   */
+  public String[] getComponents();
+
+  /**
    * Return an encoded representation of this location that can be used to create a location that is
    * equal to this location.
    * 
