@@ -357,6 +357,14 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     return Integer.toString(nextId.getAndIncrement());
   }
 
+  private void processErrorResponse(JsonObject errorObject) throws Exception {
+    // TODO (jwren) after Error section is done, revisit this.
+    String errorCode = errorObject.get("code").getAsString();
+    String errorMessage = errorObject.get("message").getAsString();
+    //errorObject.get("data").getAsString();
+    System.err.println(errorCode + ": " + errorMessage);
+  }
+
   /**
    * Attempts to handle the given {@link JsonObject} as a notification.
    * 
@@ -414,9 +422,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     synchronized (consumerMapLock) {
       consumer = consumerMap.get(idString);
     }
-    // TODO(jwren) handle error
-    @SuppressWarnings("unused")
     JsonObject errorObject = (JsonObject) response.get("error");
+    if (errorObject != null) {
+      processErrorResponse(errorObject);
+    }
     // handle result
     JsonObject resultObject = (JsonObject) response.get("result");
     if (consumer instanceof VersionConsumer) {

@@ -574,6 +574,19 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
+  public void test_error() throws Exception {
+    server.shutdown();
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'error': {",
+        "    code: 'SOME_CODE',",
+        "    message: 'testing parsing of error response'",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+  }
+
   public void test_server_getVersion() throws Exception {
     final String[] versionPtr = {null};
     server.getVersion(new VersionConsumer() {
