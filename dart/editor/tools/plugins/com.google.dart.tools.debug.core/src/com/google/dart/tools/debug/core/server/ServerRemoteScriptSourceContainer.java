@@ -63,9 +63,9 @@ public class ServerRemoteScriptSourceContainer extends AbstractSourceContainer {
         int libraryId = Integer.parseInt(name.substring(0, index));
 
         // TODO(devoncarew): change the buildin: format to an opaque token into a map; this will
-        // let us eliminate the call to target.getMainIsolate(). 
+        // let us eliminate the call to target.getCurrentIsolate(). 
         String source = target.getConnection().getScriptSource(
-            target.getMainIsolate(),
+            target.getCurrentIsolate(),
             libraryId,
             url);
 

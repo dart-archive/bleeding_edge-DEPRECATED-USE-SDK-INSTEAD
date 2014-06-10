@@ -71,9 +71,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private ServerBreakpointManager breakpointManager;
 
-  // TODO(devoncarew): this "main" isolate is temporary, until the VM allows us to 
-  // set wildcard breakpoints across all isolates.
-  private VmIsolate mainIsolate;
+  private VmIsolate currentIsolate;
 
   private IProject currentProject;
 
@@ -201,6 +199,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   @Override
   public void debuggerPaused(PausedReason reason, VmIsolate isolate, List<VmCallFrame> frames,
       VmValue exception) {
+    currentIsolate = isolate;
+
     boolean resumed = false;
 
     if (firstBreak) {
@@ -319,10 +319,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public void isolateCreated(VmIsolate isolate) {
-    if (mainIsolate == null) {
-      mainIsolate = isolate;
-    }
-
     addThread(new ServerDebugThread(this, isolate));
   }
 
@@ -408,9 +404,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     return getBreakpointFor(frame.getLocation());
   }
 
-  // TODO(devoncarew): the concept of a main isolate needs to go away
-  protected VmIsolate getMainIsolate() {
-    return mainIsolate;
+  protected VmIsolate getCurrentIsolate() {
+    return currentIsolate;
   }
 
   @Override
