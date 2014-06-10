@@ -36,6 +36,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.Element;
@@ -287,6 +288,13 @@ public class LightNodeElements {
       // prepare parameters
       FormalParameterList parameters = null;
       TypeName returnType = null;
+      String returnTypeSeparator = Element.RIGHT_ARROW;
+      if (node instanceof VariableDeclaration
+          && node.getParent() instanceof VariableDeclarationList) {
+        VariableDeclarationList declaration = (VariableDeclarationList) node.getParent();
+        returnType = declaration.getType();
+        returnTypeSeparator = " : ";
+      }
       if (node instanceof FunctionDeclaration) {
         FunctionDeclaration function = (FunctionDeclaration) node;
         FunctionExpression functionExpression = function.getFunctionExpression();
@@ -315,7 +323,7 @@ public class LightNodeElements {
       }
       if (returnType != null) {
         styledString.append(
-            Element.RIGHT_ARROW + returnType.toSource(),
+            returnTypeSeparator + returnType.toSource(),
             StyledString.QUALIFIER_STYLER);
       }
       // done
