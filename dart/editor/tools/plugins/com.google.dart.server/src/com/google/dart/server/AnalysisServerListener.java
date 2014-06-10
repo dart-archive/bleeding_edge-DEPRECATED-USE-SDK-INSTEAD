@@ -68,9 +68,13 @@ public interface AnalysisServerListener {
   /**
    * An error happened in the {@link AnalysisServer}.
    * 
-   * @param error the error to report
+   * @param isFatal {@code true} if the error is a fatal error, meaning that the server will
+   *          shutdown automatically after sending this notification
+   * @param message the error message indicating what kind of error was encountered
+   * @param stackTrace the stack trace associated with the generation of the error, used for
+   *          debugging the server
    */
-  public void serverError(AnalysisServerError error);
+  public void serverError(boolean isFatal, String message, String stackTrace);
 
   /**
    * Reports the current status of the server.

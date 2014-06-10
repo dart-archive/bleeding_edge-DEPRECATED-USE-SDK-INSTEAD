@@ -16,6 +16,7 @@ package com.google.dart.server.internal.remote;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.services.change.SourceChange;
@@ -38,6 +39,7 @@ import com.google.dart.server.ServerStatus;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
 import com.google.dart.server.internal.remote.processor.AnalysisErrorImpl;
+import com.google.dart.server.internal.shared.AnalysisServerError;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -623,6 +625,50 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     listener.assertServerConnected(true);
+  }
+
+  public void test_server_notification_error() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'server.error',",
+        "  'params': {",
+        "    'fatal': false,",
+        "    'message': 'message0',",
+        "    'stackTrace': 'stackTrace0'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    List<AnalysisServerError> errors = Lists.newArrayList();
+    errors.add(new AnalysisServerError(false, "message0", "stackTrace0"));
+    listener.assertServerErrors(errors);
+  }
+
+  public void test_server_notification_error2() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'server.error',",
+        "  'params': {",
+        "    'fatal': false,",
+        "    'message': 'message0',",
+        "    'stackTrace': 'stackTrace0'",
+        "  }",
+        "}");
+    putResponse(//
+        "{",
+        "  'event': 'server.error',",
+        "  'params': {",
+        "    'fatal': true,",
+        "    'message': 'message1',",
+        "    'stackTrace': 'stackTrace1'",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    List<AnalysisServerError> errors = Lists.newArrayList();
+    errors.add(new AnalysisServerError(false, "message0", "stackTrace0"));
+    errors.add(new AnalysisServerError(true, "message1", "stackTrace1"));
+    listener.assertServerErrors(errors);
   }
 
   public void test_server_notification_status_false() throws Exception {

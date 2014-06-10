@@ -16,7 +16,6 @@ package com.google.dart.server.internal.local;
 
 import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisError;
-import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
@@ -97,9 +96,9 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverError(AnalysisServerError error) {
+  public void serverError(boolean isFatal, String message, String stackTrace) {
     for (AnalysisServerListener listener : getListeners()) {
-      listener.serverError(error);
+      listener.serverError(isFatal, message, stackTrace);
     }
   }
 

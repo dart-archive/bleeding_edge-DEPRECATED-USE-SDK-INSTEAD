@@ -15,7 +15,6 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.server.AnalysisError;
-import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
@@ -72,7 +71,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void serverError(AnalysisServerError error) {
+  public void serverError(boolean isFatal, String message, String stackTrace) {
     // TODO(scheglov) Analysis Server
   }
 

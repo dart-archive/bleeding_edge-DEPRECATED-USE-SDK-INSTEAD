@@ -16,7 +16,6 @@ package com.google.dart.server.timing;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.AnalysisServerError;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.HighlightRegion;
@@ -65,7 +64,7 @@ public class AnalyzeEngineInServer extends TimingTest {
     }
 
     @Override
-    public void serverError(AnalysisServerError error) {
+    public void serverError(boolean isFatal, String message, String stackTrace) {
     }
 
     @Override

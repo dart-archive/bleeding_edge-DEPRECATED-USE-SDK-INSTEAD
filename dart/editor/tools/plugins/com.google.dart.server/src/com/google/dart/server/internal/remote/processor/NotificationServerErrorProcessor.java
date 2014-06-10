@@ -29,8 +29,10 @@ public class NotificationServerErrorProcessor extends NotificationProcessor {
 
   @Override
   public void process(JsonObject response) throws Exception {
-//    AnalysisServerError error = null;//new AnalysisServerError(errorCode, arguments);
-//    getListener().serverError(error);
+    JsonObject paramsObject = response.get("params").getAsJsonObject();
+    boolean isFatal = paramsObject.get("fatal").getAsBoolean();
+    String message = paramsObject.get("message").getAsString();
+    String stackTrace = paramsObject.get("stackTrace").getAsString();
+    getListener().serverError(isFatal, message, stackTrace);
   }
-
 }

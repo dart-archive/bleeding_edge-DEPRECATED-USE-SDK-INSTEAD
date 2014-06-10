@@ -42,6 +42,7 @@ import com.google.dart.server.internal.remote.processor.NotificationAnalysisHigh
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisNavigationProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisOutlineProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
 import com.google.gson.JsonElement;
@@ -395,8 +396,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new NotificationServerStatusProcessor(listener).process(response);
     } else if (event.equals(SERVER_NOTIFICATION_ERROR)) {
       // server.error
-      // TODO (jwren) implement support for server.connected
-//      new NotificationServerErrorProcessor(listener).process(response);
+      new NotificationServerErrorProcessor(listener).process(response);
     } else if (event.equals(SERVER_NOTIFICATION_CONNECTED)) {
       // server.connected
       new NotificationServerConnectedProcessor(listener).process(response);

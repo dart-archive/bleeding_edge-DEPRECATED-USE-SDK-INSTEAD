@@ -14,8 +14,6 @@
 
 package com.google.dart.server.internal.local;
 
-import com.google.dart.server.AnalysisServerError;
-import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 
 import junit.framework.TestCase;
@@ -79,12 +77,9 @@ public class BroadcastAnalysisServerListenerTest extends TestCase {
   public void test_onServerError() throws Exception {
     broadcast.addListener(listenerA);
     broadcast.addListener(listenerB);
-    AnalysisServerError error = new AnalysisServerError(
-        AnalysisServerErrorCode.DISCONNECTED,
-        "Connection lost");
-    broadcast.serverError(error);
-    verify(listenerA, times(1)).serverError(error);
-    verify(listenerB, times(1)).serverError(error);
+    broadcast.serverError(false, "message", "stackTrace");
+    verify(listenerA, times(1)).serverError(false, "message", "stackTrace");
+    verify(listenerB, times(1)).serverError(false, "message", "stackTrace");
   }
 
   public void test_removeListener() throws Exception {

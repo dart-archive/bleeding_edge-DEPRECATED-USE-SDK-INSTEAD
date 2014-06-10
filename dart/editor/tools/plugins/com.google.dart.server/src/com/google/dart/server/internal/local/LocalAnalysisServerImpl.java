@@ -31,8 +31,6 @@ import com.google.dart.engine.utilities.translation.DartOmit;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.AnalysisServerError;
-import com.google.dart.server.AnalysisServerErrorCode;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AssistsConsumer;
@@ -106,12 +104,9 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
         }
         try {
           operation.performOperation(LocalAnalysisServerImpl.this);
-        } catch (AnalysisServerErrorException serverException) {
-          onServerError(serverException.error);
         } catch (Throwable e) {
           StringWriter sw = new StringWriter();
           e.printStackTrace(new PrintWriter(sw));
-          onServerError(AnalysisServerErrorCode.EXCEPTION, sw.toString());
         }
         operationQueue.markLastOperationCompleted();
       }
@@ -1129,26 +1124,6 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
       String message = String.format(msg, arguments);
       System.out.println(message);
     }
-  }
-
-  /**
-   * Reports an error to the {@link #listener}.
-   * 
-   * @param error the error to report
-   */
-  private void onServerError(AnalysisServerError error) {
-    listener.serverError(error);
-  }
-
-  /**
-   * Reports an error to the {@link #listener}.
-   * 
-   * @param errorCode the error code to be associated with this error
-   * @param arguments the arguments used to build the error message
-   */
-  private void onServerError(AnalysisServerErrorCode errorCode, Object... arguments) {
-    AnalysisServerError error = new AnalysisServerError(errorCode, arguments);
-    onServerError(error);
   }
 
   /**

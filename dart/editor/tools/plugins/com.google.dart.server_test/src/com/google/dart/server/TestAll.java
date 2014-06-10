@@ -20,7 +20,6 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(AnalysisServerErrorCodeTest.class);
-    suite.addTestSuite(AnalysisServerErrorTest.class);
     suite.addTest(com.google.dart.server.internal.TestAll.suite());
     return suite;
   }
