@@ -182,7 +182,7 @@ public class WebkitRemoteObject {
   }
 
   public boolean isDartFunction() {
-    return "[Dart Function]".equals(className);
+    return "<Dart Method>".equals(className);
   }
 
   public boolean isFunction() {

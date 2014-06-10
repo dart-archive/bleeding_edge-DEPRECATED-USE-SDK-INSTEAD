@@ -74,7 +74,11 @@ public class WebkitScope {
   }
 
   public boolean isGlobalLike() {
-    return isGlobal() || isLibraries() || isClass();
+    return isGlobal() || isLibraries() || isClass() || isIsolate();
+  }
+
+  public boolean isIsolate() {
+    return "isolate".equals(type);
   }
 
   public boolean isLibraries() {

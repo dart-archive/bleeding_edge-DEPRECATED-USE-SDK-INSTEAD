@@ -87,8 +87,11 @@ public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescri
 
     if (descriptor.value != null) {
       if (descriptor.value.isDartFunction()) {
-        // Convert "[Dart Function]" into something more user friendly.
+        // Convert "<Dart Method>" into something more user friendly.
         descriptor.value.setDescription("Function");
+
+        // Hide Dart methods in the stack frame.
+        descriptor.enumerable = false;
       }
 
       // [runtimeType, _Type]

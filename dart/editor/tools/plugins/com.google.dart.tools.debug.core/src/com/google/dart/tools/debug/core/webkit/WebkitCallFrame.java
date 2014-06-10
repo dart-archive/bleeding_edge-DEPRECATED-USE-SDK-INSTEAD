@@ -96,6 +96,19 @@ public class WebkitCallFrame {
   }
 
   /**
+   * Return the 'isolate' scope - the list of libraries for the current isolate.
+   */
+  public WebkitRemoteObject getIsolateScope() {
+    for (WebkitScope scope : getScopeChain()) {
+      if (scope.isIsolate()) {
+        return scope.getObject();
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Return the 'libraries' scope - the list of libraries for the current isolate.
    */
   public WebkitRemoteObject getLibrariesScope() {
