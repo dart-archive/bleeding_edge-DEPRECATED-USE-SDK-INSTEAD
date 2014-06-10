@@ -24,16 +24,6 @@ searchable_list/test/demo_app_test: Pass, Timeout # Issue 15047
 polymer_intl: Pass, Fail, Timeout # 15047, 16717
 searchable_list: Pass, Fail, Timeout # 16717
 
-[ $runtime == ie10 ]
-third_party/todomvc: Pass, RuntimeError # Issue 19265
-searchable_list: Pass, RuntimeError # Issue 19265
-polymer_intl: Pass, RuntimeError # Issue 19265
-
-[ $runtime == ie11 ]
-third_party/todomvc/test/markdone_shadow_test: Pass, Fail # Please triage.
-polymer_intl: Pass, Fail # Please triage.
-
-
 [ $runtime == vm ]
 # Skip tests that use dart:html on the standalone VM
 clock: Skip
