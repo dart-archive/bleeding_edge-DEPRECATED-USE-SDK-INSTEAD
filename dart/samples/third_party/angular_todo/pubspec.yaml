@@ -1,6 +1,6 @@
 name: angular_todo
-version: 0.11.0
+version: 0.12.0
 dependencies:
-  angular: '>=0.11.0 <0.12.0'
+  angular: '>=0.12.0 <0.13.0'
 transformers:
 - angular
