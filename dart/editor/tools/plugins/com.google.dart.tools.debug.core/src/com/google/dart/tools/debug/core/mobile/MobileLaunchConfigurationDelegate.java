@@ -231,7 +231,7 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
     }
 
     if (wrapper.getInstallContentShell()) {
-      if (!devBridge.installContentShellApk(device.getDeviceId())) {
+      if (!devBridge.installContentShellApk(device)) {
         throw new CoreException(new Status(
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,

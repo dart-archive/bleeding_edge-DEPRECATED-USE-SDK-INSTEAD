@@ -31,6 +31,8 @@ public class AndroidSdkManager {
 
   private static final String CONTENT_SHELL_APK = "content_shell-android-arm-release.apk";
 
+  private static final String CONNECTION_TEST_APK = "com.google.dart.editor.mobile.connection.service.apk";
+
   private static final String ANDROID_DIRECTORY_NAME = "android";
 
   private static final String ADB_DIRECTORY_NAME = "adb";
@@ -39,6 +41,11 @@ public class AndroidSdkManager {
 
   public static AndroidSdkManager getManager() {
     return manager;
+  }
+
+  public String getConnectionTestApkLocation() {
+    File androidDir = getAndroidDir();
+    return androidDir.getAbsolutePath() + File.separator + CONNECTION_TEST_APK;
   }
 
   // the apk is in installdir/android

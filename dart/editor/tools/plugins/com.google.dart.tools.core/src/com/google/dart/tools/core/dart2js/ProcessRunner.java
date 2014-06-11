@@ -108,7 +108,7 @@ public class ProcessRunner {
     final Thread stdoutThread = new Thread(new Runnable() {
       @Override
       public void run() {
-        pipeOutput(process.getInputStream(), stdout);
+        pipeStdout(process.getInputStream(), stdout);
       }
     });
 
@@ -116,7 +116,7 @@ public class ProcessRunner {
     final Thread stderrThread = new Thread(new Runnable() {
       @Override
       public void run() {
-        pipeOutput(process.getErrorStream(), stderr);
+        pipeStderr(process.getErrorStream(), stderr);
       }
     });
 
@@ -173,7 +173,7 @@ public class ProcessRunner {
     Thread stdoutThread = new Thread(new Runnable() {
       @Override
       public void run() {
-        pipeOutput(process.getInputStream(), stdout);
+        pipeStdout(process.getInputStream(), stdout);
       }
     });
 
@@ -181,7 +181,7 @@ public class ProcessRunner {
     Thread stderrThread = new Thread(new Runnable() {
       @Override
       public void run() {
-        pipeOutput(process.getErrorStream(), stderr);
+        pipeStderr(process.getErrorStream(), stderr);
       }
     });
 
@@ -231,6 +231,14 @@ public class ProcessRunner {
       // This exception is expected.
 
     }
+  }
+
+  protected void pipeStderr(InputStream in, StringBuilder builder) {
+    pipeOutput(in, builder);
+  }
+
+  protected void pipeStdout(InputStream in, StringBuilder builder) {
+    pipeOutput(in, builder);
   }
 
   /**
