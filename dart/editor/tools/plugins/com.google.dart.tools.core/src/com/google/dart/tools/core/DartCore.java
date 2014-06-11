@@ -173,6 +173,11 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String EXTENSION_JS = "js";
 
   /**
+   * Preference for enabling Angular analysis.
+   */
+  public static final String ENABLE_ANGULAR_ANALYSIS_PREFERENCE = "enableAngularAnalysis";
+
+  /**
    * Preference for the automatically running pub.
    */
   public static final String PUB_AUTO_RUN_PREFERENCE = "pubAutoRun";
@@ -1621,6 +1626,10 @@ public class DartCore extends Plugin implements DartSdkListener {
     ProjectScope projectScope = new ProjectScope(project);
 
     return projectScope.getNode(PLUGIN_ID);
+  }
+
+  public boolean isAngularAnalysisEnabled() {
+    return DartCore.getPlugin().getPrefs().getBoolean(ENABLE_ANGULAR_ANALYSIS_PREFERENCE, true);
   }
 
   public boolean isAutoRunPubEnabled() {

@@ -1972,7 +1972,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public void setAnalysisOptions(AnalysisOptions options) {
     synchronized (cacheLock) {
-      boolean needsRecompute = this.options.getAnalyzeFunctionBodies() != options.getAnalyzeFunctionBodies()
+      boolean needsRecompute = this.options.getAnalyzeAngular() != options.getAnalyzeAngular()
+          || this.options.getAnalyzeFunctionBodies() != options.getAnalyzeFunctionBodies()
           || this.options.getGenerateSdkErrors() != options.getGenerateSdkErrors()
           || this.options.getEnableDeferredLoading() != options.getEnableDeferredLoading()
           || this.options.getDart2jsHint() != options.getDart2jsHint()
@@ -1996,6 +1997,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           priorityOrder = newPriorityOrder;
         }
       }
+      this.options.setAnalyzeAngular(options.getAnalyzeAngular());
       this.options.setAnalyzeFunctionBodies(options.getAnalyzeFunctionBodies());
       this.options.setGenerateSdkErrors(options.getGenerateSdkErrors());
       this.options.setEnableDeferredLoading(options.getEnableDeferredLoading());

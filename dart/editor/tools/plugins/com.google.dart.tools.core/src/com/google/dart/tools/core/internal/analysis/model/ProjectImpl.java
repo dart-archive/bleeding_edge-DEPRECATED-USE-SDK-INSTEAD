@@ -575,6 +575,15 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   @Override
+  public void setAngularAnalysisOption(boolean enable) {
+    for (AnalysisContext context : getAnalysisContexts()) {
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
+      options.setAnalyzeAngular(enable);
+      context.setAnalysisOptions(options);
+    }
+  }
+
+  @Override
   public void setDart2JSHintOption(boolean enableDart2JSHints) {
     for (AnalysisContext context : getAnalysisContexts()) {
       AnalysisOptionsImpl options = new AnalysisOptionsImpl(context.getAnalysisOptions());
@@ -856,6 +865,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.setHint(DartCore.getPlugin().isHintsEnabled());
     options.setDart2jsHint(DartCore.getPlugin().isHintsDart2JSEnabled());
+    options.setAnalyzeAngular(DartCore.getPlugin().isAngularAnalysisEnabled());
     options.setIncremental(DartCoreDebug.EXPERIMENTAL);
 
     context.setSourceFactory(sourceFactory);

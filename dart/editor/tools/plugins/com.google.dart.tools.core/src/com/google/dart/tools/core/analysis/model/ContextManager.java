@@ -18,6 +18,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
 import org.eclipse.core.resources.IContainer;
@@ -193,6 +194,14 @@ public interface ContextManager {
    * @return the file information or null if the resource is null or does not exist
    */
   IFileInfo resolveUriToFileInfo(IResource relativeTo, String uri);
+
+  /**
+   * Set the Angular analysis option for all the analysis context, based on changes to the hint
+   * preference {@link DartCore#ENABLE_ANGULAR_ANALYSIS_PREFERENCE}
+   * 
+   * @param enableDart2JSHints
+   */
+  void setAngularAnalysisOption(boolean enable);
 
   /**
    * Set the hint option for all the analysis context, based on changes to the hint preference

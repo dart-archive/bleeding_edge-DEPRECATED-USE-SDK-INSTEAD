@@ -406,6 +406,13 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
+  public void setAngularAnalysisOption(boolean enable) {
+    for (Project project : getProjects()) {
+      project.setAngularAnalysisOption(enable);
+    }
+  }
+
+  @Override
   public void setDart2JSHintOption(boolean enableDart2JSHints) {
     for (Project project : getProjects()) {
       project.setDart2JSHintOption(enableDart2JSHints);
