@@ -422,6 +422,40 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
   }
 
+  public void test_createChange_FieldElement_invocation() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef F(a);",
+        "class A {",
+        "  F test;",
+        "  main() {",
+        "    test(1);",
+        "  }",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.test(2);",
+        "}");
+    // configure refactoring
+    createRenameRefactoring("test;");
+    assertEquals("Rename Field", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef F(a);",
+        "class A {",
+        "  F newName;",
+        "  main() {",
+        "    newName(1);",
+        "  }",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.newName(2);",
+        "}");
+  }
+
   public void test_createChange_MethodElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

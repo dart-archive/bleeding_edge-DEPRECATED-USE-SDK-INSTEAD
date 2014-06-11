@@ -607,6 +607,32 @@ public class SearchEngineImplTest extends EngineTestCase {
         new ExpectedMatch(elementD, MatchKind.FIELD_WRITE, 4, 40, true));
   }
 
+  public void test_searchReferences_FieldElement_invocation() throws Exception {
+    PropertyAccessorElement getterElement = mockElement(
+        PropertyAccessorElement.class,
+        ElementKind.GETTER);
+    FieldElement fieldElement = mockElement(FieldElement.class, ElementKind.FIELD);
+    when(fieldElement.getGetter()).thenReturn(getterElement);
+    {
+      Location location = new Location(elementA, 1, 10);
+      indexStore.recordRelationship(getterElement, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
+    }
+    {
+      Location location = new Location(elementB, 2, 20);
+      indexStore.recordRelationship(
+          getterElement,
+          IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
+          location);
+    }
+    // search matches
+    List<SearchMatch> matches = searchReferencesSync(Element.class, fieldElement);
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.FIELD_INVOCATION, 1, 10, true),
+        new ExpectedMatch(elementB, MatchKind.FIELD_INVOCATION, 2, 20, false));
+  }
+
   public void test_searchReferences_FieldElement2() throws Exception {
     FieldElement fieldElement = mockElement(FieldElement.class, ElementKind.FIELD);
     {

@@ -578,6 +578,35 @@ public class IndexContributorTest extends AbstractDartTest {
         new ExpectedLocation(mainElement, findOffset("p();"), "p"));
   }
 
+  public void test_isInvokedByQualified_FieldElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var field;",
+        "  main() {",
+        "    this.field();",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = findElement("main() {");
+    FieldElement fieldElement = findElement("field;");
+    PropertyAccessorElement getterElement = fieldElement.getGetter();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        getterElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, findOffset("field();"), "field"));
+    assertNoRecordedRelation(
+        relations,
+        getterElement,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        null);
+  }
+
   public void test_isInvokedByQualified_MethodElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

@@ -60,6 +60,11 @@ public enum MatchKind {
   EXTENDS_REFERENCE,
 
   /**
+   * A reference to a field in which the field's value is being invoked.
+   */
+  FIELD_INVOCATION,
+
+  /**
    * A reference to a field (from field formal parameter).
    */
   FIELD_REFERENCE,

@@ -627,7 +627,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
   public Void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.getMethodName();
     Element element = name.getBestElement();
-    if (element instanceof MethodElement) {
+    if (element instanceof MethodElement || element instanceof PropertyAccessorElement) {
       Location location = createLocationFromNode(name);
       Relationship relationship;
       if (node.getTarget() != null) {

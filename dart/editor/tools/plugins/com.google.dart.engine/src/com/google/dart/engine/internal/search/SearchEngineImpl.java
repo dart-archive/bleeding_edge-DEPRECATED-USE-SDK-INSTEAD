@@ -711,7 +711,7 @@ public class SearchEngineImpl implements SearchEngine {
     assert listener != null;
     PropertyAccessorElement getter = field.getGetter();
     PropertyAccessorElement setter = field.getSetter();
-    int numRequests = (getter != null ? 2 : 0) + (setter != null ? 2 : 0) + 2;
+    int numRequests = (getter != null ? 4 : 0) + (setter != null ? 2 : 0) + 2;
     listener = applyFilter(filter, listener);
     listener = new CountingSearchListener(numRequests, listener);
     if (getter != null) {
@@ -723,6 +723,14 @@ public class SearchEngineImpl implements SearchEngine {
           getter,
           IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           newCallback(MatchKind.FIELD_READ, scope, listener));
+      index.getRelationships(
+          getter,
+          IndexConstants.IS_INVOKED_BY_QUALIFIED,
+          newCallback(MatchKind.FIELD_INVOCATION, scope, listener));
+      index.getRelationships(
+          getter,
+          IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
+          newCallback(MatchKind.FIELD_INVOCATION, scope, listener));
     }
     if (setter != null) {
       index.getRelationships(
