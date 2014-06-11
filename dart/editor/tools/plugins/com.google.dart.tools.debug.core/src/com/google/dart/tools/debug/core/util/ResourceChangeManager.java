@@ -75,6 +75,9 @@ public class ResourceChangeManager implements IResourceChangeListener {
       return;
     }
 
+    final List<ResourceChangeParticipant> listenersCopy = new ArrayList<ResourceChangeParticipant>(
+        listeners);
+
     try {
       event.getDelta().accept(new IResourceDeltaVisitor() {
         @Override
@@ -85,11 +88,11 @@ public class ResourceChangeManager implements IResourceChangeListener {
             IFile file = (IFile) resource;
 
             if (delta.getKind() == IResourceDelta.CHANGED) {
-              notifyChanged(file);
+              notifyChanged(listenersCopy, file);
             } else if (delta.getKind() == IResourceDelta.ADDED) {
-              notifyAdded(file);
+              notifyAdded(listenersCopy, file);
             } else if (delta.getKind() == IResourceDelta.REMOVED) {
-              notifyRemoved(file);
+              notifyRemoved(listenersCopy, file);
             }
           }
 
@@ -101,7 +104,11 @@ public class ResourceChangeManager implements IResourceChangeListener {
     }
   }
 
-  protected void notifyAdded(IFile file) {
+  private void dispose() {
+    ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
+  }
+
+  private void notifyAdded(List<ResourceChangeParticipant> listeners, IFile file) {
     for (ResourceChangeParticipant participant : listeners) {
       try {
         participant.handleFileAdded(file);
@@ -111,7 +118,7 @@ public class ResourceChangeManager implements IResourceChangeListener {
     }
   }
 
-  protected void notifyChanged(IFile file) {
+  private void notifyChanged(List<ResourceChangeParticipant> listeners, IFile file) {
     for (ResourceChangeParticipant participant : listeners) {
       try {
         participant.handleFileChanged(file);
@@ -121,7 +128,7 @@ public class ResourceChangeManager implements IResourceChangeListener {
     }
   }
 
-  protected void notifyRemoved(IFile file) {
+  private void notifyRemoved(List<ResourceChangeParticipant> listeners, IFile file) {
     for (ResourceChangeParticipant participant : listeners) {
       try {
         participant.handleFileRemoved(file);
@@ -130,9 +137,4 @@ public class ResourceChangeManager implements IResourceChangeListener {
       }
     }
   }
-
-  private void dispose() {
-    ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
-  }
-
 }
