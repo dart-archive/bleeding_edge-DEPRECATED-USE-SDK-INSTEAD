@@ -19,6 +19,7 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.LaunchTargetComposite;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -38,7 +39,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -48,22 +49,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class MobileMainTab extends AbstractLaunchConfigurationTab {
 
-  private static final String MOBILE_STATUS_PREFIX = "Mobile status: ";
-  private static final String DEVICE_CONNECTED = "Connected";
   private static final String DEVICE_NOT_AUTHORIZED = "Connected mobile is not authorized";
   private static final String DEVICE_NOT_FOUND = "No mobile found or USB development not enabled on mobile";
 
+  private static final String MOBILE_DOC_URL = "https://www.dartlang.org/tools/editor/mobile.html";
+
   private LaunchTargetComposite launchTargetGroup;
-  private Button installDartBrowserButton;
-  private Label statusLabel;
 
   private AndroidDevice connectedDevice = null;
   private final AtomicBoolean monitorDeviceConnection = new AtomicBoolean(false);
   private Button usePubServeButton;
+  private Button useWiFiButton;
 
   @Override
   public void activated(ILaunchConfigurationWorkingCopy workingCopy) {
-    startMonitorDeviceConnectionInBackground(statusLabel.getDisplay());
+    startMonitorDeviceConnectionInBackground(launchTargetGroup.getDisplay());
     super.activated(workingCopy);
   }
 
@@ -80,26 +80,30 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
         notifyPanelChanged();
       }
     });
-
-    // Browser selection group
-    Group group = new Group(composite, SWT.NONE);
-    group.setText("Browser settings");
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
-    ((GridLayout) group.getLayout()).marginBottom = 4;
-
-    installDartBrowserButton = new Button(group, SWT.CHECK);
-    installDartBrowserButton.setText("Automatically install Dart Content Shell Browser on first launch");
-    GridDataFactory.swtDefaults().span(2, 1).grab(true, false).applyTo(installDartBrowserButton);
+    launchTargetGroup.addDisposeListener(new DisposeListener() {
+      @Override
+      public void widgetDisposed(DisposeEvent e) {
+        stopMonitorDeviceConnectionInBackground();
+      }
+    });
 
     // pub serve setting
-    group = new Group(composite, SWT.NONE);
-    group.setText("Pub settings");
+    Group group = new Group(composite, SWT.NONE);
+    group.setText("Settings");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
     GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
     ((GridLayout) group.getLayout()).marginBottom = 5;
-    usePubServeButton = new Button(group, SWT.CHECK);
-    usePubServeButton.setText("Use pub to serve the application");
+    useWiFiButton = new Button(group, SWT.RADIO);
+    useWiFiButton.setText("Serve content over wifi");
+    GridDataFactory.swtDefaults().span(3, 1).applyTo(useWiFiButton);
+    useWiFiButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        notifyPanelChanged();
+      }
+    });
+    usePubServeButton = new Button(group, SWT.RADIO);
+    usePubServeButton.setText("Serve content over USB, uses localhost address");
     GridDataFactory.swtDefaults().span(3, 1).applyTo(usePubServeButton);
     usePubServeButton.addSelectionListener(new SelectionAdapter() {
       @Override
@@ -107,24 +111,15 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
         notifyPanelChanged();
       }
     });
-    Label label = new Label(group, SWT.NONE);
-    label.setText("(requires port forwarding setup using Chrome > Tools > Inspect Devices)");
-    GridDataFactory.swtDefaults().span(3, 1).indent(18, 0).applyTo(label);
 
-    // Status and setup group
-    group = new Group(composite, SWT.NONE);
-    group.setText("Status and first time setup");
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.swtDefaults().numColumns(1).applyTo(group);
-    ((GridLayout) group.getLayout()).marginBottom = 4;
-
-    statusLabel = new Label(group, SWT.NONE);
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(statusLabel);
-    statusLabel.setText(MOBILE_STATUS_PREFIX);
-    statusLabel.addDisposeListener(new DisposeListener() {
+    Link infoLink = new Link(group, SWT.NONE);
+    infoLink.setText("(requires<a href=\"" + MOBILE_DOC_URL
+        + "\"> port forwarding setup</a> using Chrome > Tools > Inspect Devices)");
+    GridDataFactory.swtDefaults().span(3, 1).indent(18, 0).applyTo(infoLink);
+    infoLink.addSelectionListener(new SelectionAdapter() {
       @Override
-      public void widgetDisposed(DisposeEvent e) {
-        stopMonitorDeviceConnectionInBackground();
+      public void widgetSelected(SelectionEvent e) {
+        ExternalBrowserUtil.openInExternalBrowser(MOBILE_DOC_URL);
       }
     });
 
@@ -196,8 +191,8 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
       launchTargetGroup.setHtmlButtonSelection(false);
     }
 
-    installDartBrowserButton.setSelection(wrapper.getInstallContentShell());
     usePubServeButton.setSelection(wrapper.getUsePubServe());
+    useWiFiButton.setSelection(!wrapper.getUsePubServe());
   }
 
   /**
@@ -223,7 +218,6 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
 
     wrapper.setUrl(launchTargetGroup.getUrlString());
     wrapper.setSourceDirectoryName(launchTargetGroup.getSourceDirectory());
-    wrapper.setInstallContentShell(installDartBrowserButton.getSelection());
     wrapper.setUsePubServe(usePubServeButton.getSelection());
   }
 
@@ -306,17 +300,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
    */
   private void updateMobileStatus(AndroidDevice device) {
     connectedDevice = device;
-    if (statusLabel != null && !statusLabel.isDisposed()) {
-      String status;
-      if (device == null) {
-        status = DEVICE_NOT_FOUND;
-      } else if (!device.isAuthorized()) {
-        status = DEVICE_NOT_AUTHORIZED;
-      } else {
-        status = DEVICE_CONNECTED;
-      }
-      statusLabel.setText(MOBILE_STATUS_PREFIX + status);
-      updateLaunchConfigurationDialog();
-    }
+    updateLaunchConfigurationDialog();
+
   }
 }

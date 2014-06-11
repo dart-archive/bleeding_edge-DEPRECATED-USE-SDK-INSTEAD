@@ -189,7 +189,7 @@ public class BrowserManager {
       throw new CoreException(new Status(
           IStatus.ERROR,
           DartDebugCorePlugin.PLUGIN_ID,
-          e.toString(),
+          "Could not connect to remote browser \n" + e.toString(),
           e));
     } finally {
       monitor.done();

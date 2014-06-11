@@ -243,7 +243,12 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
     // check if remote connection is alive
     if (!isRemoteConnected()) {
       devBridge.setupPortForwarding(Integer.toString(REMOTE_DEBUG_PORT));
-      // TODO(keertip): check if host needs to be the ip for wifi connections
+      // wait for content shell to open to get the tabs to connect
+      try {
+        Thread.sleep(500);
+      } catch (InterruptedException e) {
+
+      }
       performRemoteConnection("localhost", REMOTE_DEBUG_PORT, monitor, usePubServe);
     }
   }
