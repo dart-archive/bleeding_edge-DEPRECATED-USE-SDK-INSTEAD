@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.mobile;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.mobile.AndroidDebugBridge;
 import com.google.dart.tools.core.mobile.AndroidDevice;
+import com.google.dart.tools.core.mobile.MobileUrlConnectionException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
@@ -106,9 +107,12 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
       try {
         String launchUrl = result.getResult();
         launchOnMobile(launchUrl, true, new NullProgressMonitor());
+      } catch (MobileUrlConnectionException e) {
+        // DartDebugCorePlugin.logError(e);
+        DebugUIHelper.getHelper().showError("Dartium Launch Error", e);
       } catch (CoreException e) {
         DartDebugCorePlugin.logError(e);
-        DebugUIHelper.getHelper().showError("Dartium Launch Error", e.getMessage());
+        DebugUIHelper.getHelper().showError("Dartium Launch Error", e);
       }
     }
 
@@ -228,6 +232,10 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
           IStatus.ERROR,
           DartDebugCorePlugin.PLUGIN_ID,
           "Unauthorized device detected.\n\nAuthorize device and try again."));
+    }
+
+    if (!devBridge.isHtmlPageAccessible(device, launchUrl).isOK()) {
+      throw new MobileUrlConnectionException(launchUrl);
     }
 
     if (wrapper.getInstallContentShell()) {

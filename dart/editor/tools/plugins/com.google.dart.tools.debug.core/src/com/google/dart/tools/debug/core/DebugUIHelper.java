@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.core;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
@@ -112,6 +113,10 @@ public abstract class DebugUIHelper {
   public abstract void handleDevtoolsDisconnect(DartiumDebugTarget target);
 
   public abstract void openBrowserTab(String url);
+
+  public void showError(String title, CoreException e) {
+    showError(title, e.getMessage());
+  }
 
   public abstract void showError(String title, String message);
 

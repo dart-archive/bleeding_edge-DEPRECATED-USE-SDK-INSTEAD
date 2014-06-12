@@ -52,7 +52,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
   private static final String DEVICE_NOT_AUTHORIZED = "Connected mobile is not authorized";
   private static final String DEVICE_NOT_FOUND = "No mobile found or USB development not enabled on mobile";
 
-  private static final String MOBILE_DOC_URL = "https://www.dartlang.org/tools/editor/mobile.html";
+  public static final String MOBILE_DOC_URL = "https://www.dartlang.org/tools/editor/mobile.html";
 
   private LaunchTargetComposite launchTargetGroup;
 

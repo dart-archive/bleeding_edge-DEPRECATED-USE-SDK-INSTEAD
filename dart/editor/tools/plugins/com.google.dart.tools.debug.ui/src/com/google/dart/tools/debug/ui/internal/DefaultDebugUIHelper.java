@@ -15,10 +15,12 @@
 package com.google.dart.tools.debug.ui.internal;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.mobile.MobileUrlConnectionException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
 import com.google.dart.tools.debug.ui.internal.dartium.DevToolsDisconnectManager;
+import com.google.dart.tools.debug.ui.internal.dialogs.MobilePortForwardDialog;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
 
@@ -69,6 +71,26 @@ public class DefaultDebugUIHelper extends DebugUIHelper {
       showError("Open Browser", e.getMessage());
     }
 
+  }
+
+  @Override
+  public void showError(String title, CoreException e) {
+
+    // Detect mobile launch port forwarding problems
+    // and present user with more specific dialog to help fix them fix the problem
+    if (e instanceof MobileUrlConnectionException) {
+      final String pageUrl = ((MobileUrlConnectionException) e).getPageUrl();
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+          new MobilePortForwardDialog(shell, pageUrl).open();
+        }
+      });
+      return;
+    }
+
+    showError(title, e.getMessage());
   }
 
   @Override
@@ -217,5 +239,4 @@ public class DefaultDebugUIHelper extends DebugUIHelper {
       return (Integer) method.invoke(null, window.longValue());
     }
   }
-
 }
