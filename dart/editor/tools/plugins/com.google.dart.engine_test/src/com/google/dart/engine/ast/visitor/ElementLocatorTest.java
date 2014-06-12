@@ -116,6 +116,30 @@ public class ElementLocatorTest extends ResolverTestCase {
     assertInstanceOf(FunctionElement.class, element);
   }
 
+  public void test_locate_Identifier_annotationClass_namedConstructor_forSimpleFormalParameter()
+      throws Exception {
+    AstNode id = findNodeIndexedIn("Class", 2, //
+        "class Class {",
+        "  const Class.name();",
+        "}",
+        "void main(@Class.name() parameter) {",
+        "}");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(ClassElement.class, element);
+  }
+
+  public void test_locate_Identifier_annotationClass_unnamedConstructor_forSimpleFormalParameter()
+      throws Exception {
+    AstNode id = findNodeIndexedIn("Class", 2, //
+        "class Class {",
+        "  const Class();",
+        "}",
+        "void main(@Class() parameter) {",
+        "}");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(ConstructorElement.class, element);
+  }
+
   public void test_locate_Identifier_className() throws Exception {
     AstNode id = findNodeIn("A", "class A { }");
     Element element = ElementLocator.locate(id);

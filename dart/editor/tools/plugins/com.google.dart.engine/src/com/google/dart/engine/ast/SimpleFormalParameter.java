@@ -65,7 +65,10 @@ public class SimpleFormalParameter extends NormalFormalParameter {
 
   @Override
   public Token getBeginToken() {
-    if (keyword != null) {
+    NodeList<Annotation> metadata = getMetadata();
+    if (!metadata.isEmpty()) {
+      return metadata.getBeginToken();
+    } else if (keyword != null) {
       return keyword;
     } else if (type != null) {
       return type.getBeginToken();

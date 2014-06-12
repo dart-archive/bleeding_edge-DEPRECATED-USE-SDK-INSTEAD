@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast.visitor;
 
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -56,6 +57,11 @@ public class ElementLocator {
    */
   private static final class ElementMapper extends GeneralizingAstVisitor<Element> {
     @Override
+    public Element visitAnnotation(Annotation node) {
+      return node.getElement();
+    }
+
+    @Override
     public Element visitAssignmentExpression(AssignmentExpression node) {
       return node.getBestElement();
     }
@@ -88,6 +94,13 @@ public class ElementLocator {
     @Override
     public Element visitIdentifier(Identifier node) {
       AstNode parent = node.getParent();
+      // Type name in Annotation
+      if (parent instanceof Annotation) {
+        Annotation annotation = (Annotation) parent;
+        if (annotation.getName() == node && annotation.getConstructorName() == null) {
+          return annotation.getElement();
+        }
+      }
       // Type name in InstanceCreationExpression
       {
         AstNode typeNameCandidate = parent;
