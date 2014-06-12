@@ -19,20 +19,16 @@ public class ConnectionService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        log("Test mobile connection to developer machine - UI");
         URL url = getUrlToTest(intent);
         prefix = intent.getStringExtra("prefix");
-        log("Prefix " + prefix);
         if (prefix == null) {
             prefix = "com.google.dart.editor.mobile.connection.service.msg";
         }
         if (url != null) {
-            log("Test connection: " + url);
             new AsyncTask<URL, Void, String>() {
                 @Override
                 protected String doInBackground(URL... urls) {
                     URL url = urls[0];
-                    log("Test connection in background: " + url);
                     String content = getResponse(makeRequest(url));
                     if (content != null) {
                         log(content);
@@ -52,24 +48,23 @@ public class ConnectionService extends Service {
 
     private URL getUrlToTest(Intent intent) {
         Uri uri = intent.getData();
-        log("UriToTest: " + uri);
         if (uri == null) {
             return null;
         }
         try {
             return new URL(uri.toString());
         } catch (MalformedURLException e) {
-            logError(e);
+            logError(null, e);
             return null;
         }
     }
 
     private URLConnection makeRequest(URL url) {
-        log("OpenConnection: " + url);
+        log("Test connection: " + url);
         try {
             return url.openConnection();
         } catch (IOException e) {
-            logError(e);
+            logError(null, e);
             return null;
         }
     }
@@ -78,16 +73,18 @@ public class ConnectionService extends Service {
         if (connection == null) {
             return null;
         }
-        log("Processing response");
         InputStream inputStream;
         try {
             inputStream = connection.getInputStream();
+        } catch (IOException e) {
+            logError("No response from server", e);
+            return null;
         } catch (Throwable e) {
-            logError(e);
+            logError(null, e);
             return null;
         }
         if (inputStream == null) {
-            log("response stream is null");
+            logError("Response stream is null", null);
             return null;
         }
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -97,7 +94,7 @@ public class ConnectionService extends Service {
             try {
                 line = reader.readLine();
             } catch (IOException e) {
-                logError(e);
+                logError("Failed to get server response", e);
                 break;
             }
             if (line == null) {
@@ -108,21 +105,28 @@ public class ConnectionService extends Service {
         try {
             inputStream.close();
         } catch (IOException e) {
-            logError(e);
+            logError("Failed to close response stream", e);
         }
         return str.toString();
     }
 
-    /**
-     * Forward the exception to the client via stdout.
-     */
-    private void logError(Throwable e) {
-        log("Error: " + e.toString());
+    private void logError(String message, Throwable e) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Error:");
+        if (message != null) {
+            sb.append(" ");
+            sb.append(message);
+            if (e != null) {
+                sb.append(":");
+            }
+        }
+        if (e != null) {
+            sb.append(" ");
+            sb.append(e.toString());
+        }
+        log(sb.toString());
     }
 
-    /**
-     * Forward the message to the client via stdout.
-     */
     private void log(String message) {
         System.out.println(prefix + ": " + message);
     }

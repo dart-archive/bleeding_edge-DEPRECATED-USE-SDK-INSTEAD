@@ -2,10 +2,10 @@ apply plugin: 'android'
 
 android {
     compileSdkVersion 19
-    buildToolsVersion "19.0.3"
+    buildToolsVersion "19.1.0"
 
     defaultConfig {
-        packageName "com.google.dart.editor.mobile.connection.service"
+        applicationId "com.google.dart.editor.mobile.connection.service"
         minSdkVersion 15
         targetSdkVersion 19
         versionCode 1
