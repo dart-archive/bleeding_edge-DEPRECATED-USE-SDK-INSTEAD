@@ -16,7 +16,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
   "android_adb_rev" : "@36744",
-  "android_content_shell_rev" : "@35765",
+  "android_content_shell_rev" : "@37275",
   "apache_ant_rev" : "@19997",
   "apache_compress_rev" : "@19997",
   "args4j_rev" : "@19997",
