@@ -32,7 +32,7 @@ public class MobileUrlConnectionException extends CoreException {
       msg.append("Check port forwarding in Chrome and try again.");
     } else {
       msg.append("Check wifi access permissions and try again.\n\n");
-      msg.append("Alternately, open the Manage Launchs dialog,");
+      msg.append("Alternately, open the Manage Launches dialog,");
       msg.append(" select the mobile launch configuration, and select \"");
       msg.append(SERVE_OVER_USB_TEXT);
       msg.append("\".\n");
