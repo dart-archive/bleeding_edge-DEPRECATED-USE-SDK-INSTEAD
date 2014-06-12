@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.ui.internal.mobile;
 
 import com.google.dart.tools.core.mobile.AndroidDebugBridge;
 import com.google.dart.tools.core.mobile.AndroidDevice;
+import com.google.dart.tools.core.mobile.MobileUrlConnectionException;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
@@ -53,6 +54,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
   private static final String DEVICE_NOT_FOUND = "No mobile found or USB development not enabled on mobile";
 
   public static final String MOBILE_DOC_URL = "https://www.dartlang.org/tools/editor/mobile.html";
+  public static final String SERVE_OVER_WIFI_TEXT = "Serve content over wifi";
 
   private LaunchTargetComposite launchTargetGroup;
 
@@ -94,7 +96,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
     ((GridLayout) group.getLayout()).marginBottom = 5;
     useWiFiButton = new Button(group, SWT.RADIO);
-    useWiFiButton.setText("Serve content over wifi");
+    useWiFiButton.setText(SERVE_OVER_WIFI_TEXT);
     GridDataFactory.swtDefaults().span(3, 1).applyTo(useWiFiButton);
     useWiFiButton.addSelectionListener(new SelectionAdapter() {
       @Override
@@ -103,7 +105,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
       }
     });
     usePubServeButton = new Button(group, SWT.RADIO);
-    usePubServeButton.setText("Serve content over USB, uses localhost address");
+    usePubServeButton.setText(MobileUrlConnectionException.SERVE_OVER_USB_TEXT);
     GridDataFactory.swtDefaults().span(3, 1).applyTo(usePubServeButton);
     usePubServeButton.addSelectionListener(new SelectionAdapter() {
       @Override

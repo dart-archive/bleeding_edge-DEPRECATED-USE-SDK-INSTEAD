@@ -3,6 +3,7 @@ package com.google.dart.tools.debug.ui.internal.dialogs;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.mobile.AndroidDebugBridge;
 import com.google.dart.tools.core.mobile.AndroidDevice;
+import com.google.dart.tools.core.mobile.MobileUrlConnectionException;
 import com.google.dart.tools.debug.ui.internal.mobile.MobileMainTab;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
@@ -35,7 +36,7 @@ public class MobilePortForwardDialog extends Dialog {
   private Link descriptionLabel;
   private Label testResultLabel;
 
-  public MobilePortForwardDialog(Shell parentShell, String pageUrl) {
+  public MobilePortForwardDialog(Shell parentShell, String pageUrl, boolean localhostOverUsb) {
     super(parentShell);
     this.pageUrl = pageUrl;
     setShellStyle(SWT.DIALOG_TRIM | SWT.RESIZE);
@@ -139,7 +140,9 @@ public class MobilePortForwardDialog extends Dialog {
         + "listed and has a green circle next to it.\n" //
         + "\n" //
         + "8) In the Manage Launchs dialog, select the mobile launch configuration\n"
-        + "and ensure that \"Serve content over USB\" is selected\n" //
+        + "and ensure that \""
+        + MobileUrlConnectionException.SERVE_OVER_USB_TEXT
+        + "\" is selected\n" //
         + "\n" //
         + "For more information, see <a href=\""
         + MobileMainTab.MOBILE_DOC_URL

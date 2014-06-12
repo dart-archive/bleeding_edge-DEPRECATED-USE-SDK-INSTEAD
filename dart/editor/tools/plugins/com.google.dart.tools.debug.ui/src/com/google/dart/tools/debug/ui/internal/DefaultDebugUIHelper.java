@@ -80,11 +80,12 @@ public class DefaultDebugUIHelper extends DebugUIHelper {
     // and present user with more specific dialog to help fix them fix the problem
     if (e instanceof MobileUrlConnectionException) {
       final String pageUrl = ((MobileUrlConnectionException) e).getPageUrl();
+      final boolean localhostOverUsb = ((MobileUrlConnectionException) e).isLocalhostOverUsb();
       Display.getDefault().asyncExec(new Runnable() {
         @Override
         public void run() {
           Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-          new MobilePortForwardDialog(shell, pageUrl).open();
+          new MobilePortForwardDialog(shell, pageUrl, localhostOverUsb).open();
         }
       });
       return;

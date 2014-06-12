@@ -21,15 +21,40 @@ import org.eclipse.core.runtime.Status;
 
 public class MobileUrlConnectionException extends CoreException {
 
+  public static final String SERVE_OVER_USB_TEXT = "Serve content over USB, uses localhost address";
+
+  private static Status newStatus(String pageUrl, boolean localhostOverUsb) {
+    StringBuilder msg = new StringBuilder();
+    msg.append("Failed to access URL from mobile: ");
+    msg.append(pageUrl);
+    msg.append(".\n\n");
+    if (localhostOverUsb) {
+      msg.append("Check port forwarding in Chrome and try again.");
+    } else {
+      msg.append("Check wifi access permissions and try again.\n\n");
+      msg.append("Alternately, open the Manage Launchs dialog,");
+      msg.append(" select the mobile launch configuration, and select \"");
+      msg.append(SERVE_OVER_USB_TEXT);
+      msg.append("\".\n");
+    }
+    return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0, msg.toString(), null);
+  }
+
   private final String pageUrl;
 
-  public MobileUrlConnectionException(String pageUrl) {
-    super(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0, "Failed to access URL from mobile: "
-        + pageUrl + ".\n\nCheck port forwarding in Chrome and try again.", null));
+  private final boolean localhostOverUsb;
+
+  public MobileUrlConnectionException(String pageUrl, boolean localhostOverUsb) {
+    super(newStatus(pageUrl, localhostOverUsb));
     this.pageUrl = pageUrl;
+    this.localhostOverUsb = localhostOverUsb;
   }
 
   public String getPageUrl() {
     return pageUrl;
+  }
+
+  public boolean isLocalhostOverUsb() {
+    return localhostOverUsb;
   }
 }

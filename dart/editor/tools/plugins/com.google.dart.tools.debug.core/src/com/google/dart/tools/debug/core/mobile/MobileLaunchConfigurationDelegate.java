@@ -235,7 +235,9 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
     }
 
     if (!devBridge.isHtmlPageAccessible(device, launchUrl).isOK()) {
-      throw new MobileUrlConnectionException(launchUrl);
+      // pub serve is always localhost over USB while old dev server is always over wifi
+      boolean localhostOverUsb = usePubServe;
+      throw new MobileUrlConnectionException(launchUrl, localhostOverUsb);
     }
 
     if (wrapper.getInstallContentShell()) {
