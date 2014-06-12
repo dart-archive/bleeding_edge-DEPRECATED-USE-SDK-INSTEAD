@@ -130,22 +130,24 @@ public class PubServeResourceResolver implements IResourceResolver {
     // remove till application directory
     // L/sample/web/sample.dart => web/sample.dart
 
-    String regex = resource.getProjectRelativePath().removeFirstSegments(
-        appDir.getProjectRelativePath().segmentCount()).toPortableString();
+    if (appDir != null) {
+      String regex = resource.getProjectRelativePath().removeFirstSegments(
+          appDir.getProjectRelativePath().segmentCount()).toPortableString();
 
-    // remove the pub serve root dir for the resource
-    // web/sample.dart => sample.dart
-    // http://127.0.0.1:8080/sample.html
-    String rootdir = PubServeManager.getManager().getPubServeRootDir(appDir, resource);
-    if (rootdir != null) {
-      regex = regex.substring(rootdir.length());
+      // remove the pub serve root dir for the resource
+      // web/sample.dart => sample.dart
+      // http://127.0.0.1:8080/sample.html
+      String rootdir = PubServeManager.getManager().getPubServeRootDir(appDir, resource);
+      if (rootdir != null) {
+        regex = regex.substring(rootdir.length());
+      }
+      // for BreakpointManager to process the regex
+      if (!regex.startsWith("/")) {
+        regex = "/" + regex;
+      }
+      return regex;
     }
-    // for BreakpointManager to process the regex
-    if (!regex.startsWith("/")) {
-      regex = "/" + regex;
-    }
-    return regex;
-
+    return null;
   }
 
   @Override

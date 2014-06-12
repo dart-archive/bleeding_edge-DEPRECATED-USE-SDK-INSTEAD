@@ -268,7 +268,19 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
 
   @VisibleForTesting
   protected String resolvePathToPackage(IResource resource, String filePath) {
-    return DartCore.getProjectManager().resolvePathToPackage(resource, filePath);
+
+    // get the resource from launch, so that the right context is used to search for the
+    // package. The resource for breakpoint can be in a different project, imported as a 
+    // package.
+    DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
+        debugTarget.getLaunch().getLaunchConfiguration());
+    IResource launchResource = wrapper.getSourceDirectory() != null ? wrapper.getSourceDirectory()
+        : wrapper.getApplicationResource();
+
+    if (launchResource == null) {
+      launchResource = resource;
+    }
+    return DartCore.getProjectManager().resolvePathToPackage(launchResource, filePath);
   }
 
   void addToBreakpointMap(IBreakpoint breakpoint, String id, boolean trackChanges) {

@@ -89,8 +89,8 @@ public class LaunchConfigResourceResolver implements IResourceResolver {
         return URIUtilities.uriEncode(path);
       }
     }
-
-    return null;
+    // resource is not in project
+    return resource.getFullPath().toString();
   }
 
   @Override
