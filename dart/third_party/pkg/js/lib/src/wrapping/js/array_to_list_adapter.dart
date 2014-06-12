@@ -34,12 +34,15 @@ class JsArrayToListAdapter<E> extends TypedProxy /*with ListMixin<E>*/
   @override Iterator<E> get iterator => new _JsIterator<E>(this);
   @override int get length => $unsafe.length;
 
-  // Collection
+  // List
+  @override void set last(E value) {
+    if (length == 0) throw new StateError("No element");
+    this[length - 1] = value;
+  }
   @override void add(E value) { $unsafe.push(_toJs(value)); }
   @override void clear() { this.length = 0; }
   @override bool remove(Object element) => removeAt(indexOf(element)) != null;
 
-  // List
   @override E operator [](int index) {
     if (index < 0 || index >= this.length) throw new RangeError.value(index);
     return _fromJs($unsafe[index]);
