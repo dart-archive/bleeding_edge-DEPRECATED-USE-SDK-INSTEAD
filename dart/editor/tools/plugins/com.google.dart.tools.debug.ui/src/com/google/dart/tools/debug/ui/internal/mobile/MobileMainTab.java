@@ -15,7 +15,6 @@ package com.google.dart.tools.debug.ui.internal.mobile;
 
 import com.google.dart.tools.core.mobile.AndroidDebugBridge;
 import com.google.dart.tools.core.mobile.AndroidDevice;
-import com.google.dart.tools.core.mobile.MobileUrlConnectionException;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
@@ -34,12 +33,13 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 
@@ -54,14 +54,19 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
   private static final String DEVICE_NOT_FOUND = "No mobile found or USB development not enabled on mobile";
 
   public static final String MOBILE_DOC_URL = "https://www.dartlang.org/tools/editor/mobile.html";
-  public static final String SERVE_OVER_WIFI_TEXT = "Serve content over wifi";
+
+  private static final String INFO_TEXT = "Serve the application using 'pub serve'. "
+      + "This requires setting up port forwarding.";
+
+  private String[] servers = {"Embedded server", "Pub serve"};
 
   private LaunchTargetComposite launchTargetGroup;
 
   private AndroidDevice connectedDevice = null;
   private final AtomicBoolean monitorDeviceConnection = new AtomicBoolean(false);
-  private Button usePubServeButton;
-  private Button useWiFiButton;
+  private Link infoLink;
+  private Combo serversCombo;
+  private Label infoLabel;
 
   @Override
   public void activated(ILaunchConfigurationWorkingCopy workingCopy) {
@@ -91,39 +96,37 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
 
     // pub serve setting
     Group group = new Group(composite, SWT.NONE);
-    group.setText("Settings");
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
+    group.setText("Server");
+    GridDataFactory.fillDefaults().grab(true, true).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(2).applyTo(group);
     ((GridLayout) group.getLayout()).marginBottom = 5;
-    useWiFiButton = new Button(group, SWT.RADIO);
-    useWiFiButton.setText(SERVE_OVER_WIFI_TEXT);
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(useWiFiButton);
-    useWiFiButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        notifyPanelChanged();
-      }
-    });
-    usePubServeButton = new Button(group, SWT.RADIO);
-    usePubServeButton.setText(MobileUrlConnectionException.SERVE_OVER_USB_TEXT);
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(usePubServeButton);
-    usePubServeButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        notifyPanelChanged();
-      }
-    });
+    ((GridLayout) group.getLayout()).verticalSpacing = 10;
 
-    Link infoLink = new Link(group, SWT.NONE);
-    infoLink.setText("(requires<a href=\"" + MOBILE_DOC_URL
-        + "\"> port forwarding setup</a> using Chrome > Tools > Inspect Devices)");
-    GridDataFactory.swtDefaults().span(3, 1).indent(18, 0).applyTo(infoLink);
+    serversCombo = new Combo(group, SWT.DROP_DOWN | SWT.READ_ONLY);
+    serversCombo.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        handleComboChanged(serversCombo.getSelectionIndex() == 1);
+      }
+    });
+    serversCombo.setItems(servers);
+
+    infoLabel = new Label(group, SWT.WRAP);
+    infoLabel.setText(INFO_TEXT);
+    GridDataFactory.swtDefaults().grab(true, false).span(1, 2).applyTo(infoLabel);
+
+    infoLink = new Link(group, SWT.NONE);
+    infoLink.setText("Some configurations may require setting up port forwarding in order for the "
+        + "mobile device to see the web server running on your development machine. See <a href=\""
+        + MOBILE_DOC_URL + "\"> port forwarding setup </a> for more information.");
     infoLink.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
         ExternalBrowserUtil.openInExternalBrowser(MOBILE_DOC_URL);
       }
     });
+    GridDataFactory.swtDefaults().span(2, 1).grab(true, false).applyTo(infoLink);
+    new Label(group, SWT.NONE);
 
     setControl(composite);
   }
@@ -193,8 +196,13 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
       launchTargetGroup.setHtmlButtonSelection(false);
     }
 
-    usePubServeButton.setSelection(wrapper.getUsePubServe());
-    useWiFiButton.setSelection(!wrapper.getUsePubServe());
+    if (wrapper.getUsePubServe()) {
+      serversCombo.select(1);
+      handleComboChanged(true);
+    } else {
+      serversCombo.select(0);
+      handleComboChanged(false);
+    }
   }
 
   /**
@@ -220,7 +228,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
 
     wrapper.setUrl(launchTargetGroup.getUrlString());
     wrapper.setSourceDirectoryName(launchTargetGroup.getSourceDirectory());
-    wrapper.setUsePubServe(usePubServeButton.getSelection());
+    wrapper.setUsePubServe(serversCombo.getSelectionIndex() == 1);
   }
 
   @Override
@@ -230,6 +238,14 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     wrapper.setApplicationName(""); //$NON-NLS-1$
     wrapper.setLaunchContentShell(true);
     wrapper.setUsePubServe(false);
+  }
+
+  protected void handleComboChanged(boolean usePubServe) {
+    if (usePubServe) {
+      infoLabel.setText(INFO_TEXT);
+    } else {
+      infoLabel.setText("");
+    }
   }
 
   private void notifyPanelChanged() {
