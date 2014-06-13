@@ -136,6 +136,17 @@ public class PubServe {
   }
 
   /**
+   * Sends an exit on close command to pub, indicating pub serve should shut down when connection is
+   * lost.
+   * 
+   * @throws IOException
+   */
+  void sendExitOnCloseCommand() throws IOException {
+    PubCommands command = pubConnection.getCommands();
+    command.exitOnClose();
+  }
+
+  /**
    * Send a urlToAssetId command to the current pub serve
    * 
    * @param url
@@ -227,7 +238,7 @@ public class PubServe {
     });
 
     pubConnection.connect();
-
+    sendExitOnCloseCommand();
   }
 
   private void copyStream(InputStream in, StringBuilder stringBuilder, boolean toConsole) {

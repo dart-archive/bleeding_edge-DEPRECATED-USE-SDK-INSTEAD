@@ -32,6 +32,28 @@ public class PubCommands {
   }
 
   /**
+   * Sends a message to pub to indicate that it should shutdown when connection is closed. There is
+   * no result returned by pub.
+   * 
+   * @throws IOException
+   */
+  public void exitOnClose() throws IOException {
+    // {"method": "exitOnClose"}
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("jsonrpc", "2.0");
+
+      request.put("method", "exitOnClose");
+
+      connection.sendRequest(request, null);
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
+  /**
    * Given an asset ID, returns the relative URI path that asset would be served at.
    * 
    * @param path
