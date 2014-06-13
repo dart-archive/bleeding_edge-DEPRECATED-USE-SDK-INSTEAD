@@ -3,7 +3,6 @@ package com.google.dart.tools.debug.ui.internal.dialogs;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.mobile.AndroidDebugBridge;
 import com.google.dart.tools.core.mobile.AndroidDevice;
-import com.google.dart.tools.core.mobile.MobileUrlConnectionException;
 import com.google.dart.tools.debug.ui.internal.mobile.MobileMainTab;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
@@ -29,9 +28,6 @@ import java.net.ConnectException;
 
 public class MobilePortForwardDialog extends Dialog {
 
-  private static final String CHROME_ANDROID_URL = "https://play.google.com/store/apps/details?id=com.android.chrome";
-  private static final String CHROME_DEV_MACHINE_URL = "http://www.google.com/chrome";
-
   private final String pageUrl;
   private Link descriptionLabel;
   private Label testResultLabel;
@@ -45,7 +41,7 @@ public class MobilePortForwardDialog extends Dialog {
   @Override
   protected void configureShell(Shell newShell) {
     super.configureShell(newShell);
-    newShell.setText("Mobile Port Fowarding");
+    newShell.setText("Mobile Launch");
   }
 
   @Override
@@ -116,37 +112,12 @@ public class MobilePortForwardDialog extends Dialog {
     gd_descriptionLabel.verticalIndent = 20;
     gd_descriptionLabel.horizontalIndent = 20;
     descriptionLabel.setLayoutData(gd_descriptionLabel);
-    descriptionLabel.setText("The mobile device cannot access the local web server"
-        + " running on the developer machine.\n"
-        + "Please take the following steps to fix this problem:\n" //
-        + "\n" //
-
-        + "1) Install Chrome on the <a href=\""
-        + CHROME_ANDROID_URL
-        + "\">mobile device</a>"
-        + " and the <a href=\""
-        + CHROME_DEV_MACHINE_URL
-        + "\">developer machine</a>\n"
-
-        + "2) Ensure that Chrome is running on both the mobile device and the developer machine\n"
-        + "\n" //
-        + "3) Open chrome://inspect on the developer machine\n"
-        + "4) Click \"Port forwarding...\" to open the port forwarding dialog\n"
-        + "5) Add \"8080\" and \"localhost:8080\" to the list of forwarded ports if not there already\n"
-        + "6) Make sure that \"Enable port forwarding\" is checked\n"
-        + "7) Click \"Done\" to close the port forwarding dialog\n" //
-        + "\n" //
-        + "Ensure that the mobile device appears on the chrome://inspect page and that the port is\n"
-        + "listed and has a green circle next to it.\n" //
-        + "\n" //
-        + "8) In the Manage Launchs dialog, select the mobile launch configuration\n"
-        + "and ensure that \""
-        + MobileUrlConnectionException.SERVE_OVER_USB_TEXT
-        + "\" is selected\n" //
-        + "\n" //
-        + "For more information, see <a href=\""
-        + MobileMainTab.MOBILE_DOC_URL
-        + "\">port forwarding setup</a>\n");
+    descriptionLabel.setText("Unable to access the web server"
+        + " on the developer machine from the mobile device.\n\n"
+        + "Looks like port forwarding has not been setup between device and the machine.\n"
+        + "Follow the steps listed under " //
+        + " <a href=\"" + MobileMainTab.MOBILE_DOC_URL + "\">Set up port forwarding</a>\n"
+        + "\n\nOnce you are done, use Test Connection to verify the setup.");
     descriptionLabel.addSelectionListener(new SelectionListener() {
       @Override
       public void widgetDefaultSelected(SelectionEvent e) {
