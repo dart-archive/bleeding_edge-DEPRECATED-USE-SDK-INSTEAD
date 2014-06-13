@@ -27,6 +27,7 @@ import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.ContentChange;
+import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HighlightRegion;
@@ -218,26 +219,28 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'params': {",
         "    'file': '/test.dart',",
         "    'outline' : {",
-        "      'kind': 'COMPILATION_UNIT',",
-        "      'name': 'name0',",
-        "      'nameOffset': 1,",
-        "      'nameLength': 2,",
-        "      'elementOffset': 3,",
-        "      'elementLength': 4,",
-        "      'isAbstract': false,",
-        "      'isStatic': false,",
-        "      'parameters': 'parameters0',",
-        "      'returnType': 'returnType0',",
+        "      'element': {",
+        "        'kind': 'COMPILATION_UNIT',",
+        "        'name': 'name0',",
+        "        'offset': 1,",
+        "        'length': 2,",
+        "        'flags': 0,",
+        "        'parameters': 'parameters0',",
+        "        'returnType': 'returnType0'",
+        "      },",
+        "      'offset': 3,",
+        "      'length': 4,",
         "      'children': [",
         "        {",
-        "          'kind': 'CLASS',",
-        "          'name': '_name1',",
-        "          'nameOffset': 10,",
-        "          'nameLength': 20,",
-        "          'elementOffset': 30,",
-        "          'elementLength': 40,",
-        "          'isAbstract': true,",
-        "          'isStatic': true",
+        "          'element': {",
+        "            'kind': 'CLASS',",
+        "            'name': '_name1',",
+        "            'offset': 10,",
+        "            'length': 20,",
+        "            'flags': 63",
+        "          },",
+        "          'offset': 30,",
+        "          'length': 40",
         "        }",
         "      ]",
         "    }",
@@ -248,32 +251,40 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     Outline outline = listener.getOutline("/test.dart");
     // assertions on outline
     assertThat(outline.getChildren()).hasSize(1);
-    assertEquals(ElementKind.COMPILATION_UNIT, outline.getKind());
-    assertEquals("name0", outline.getName());
-    assertEquals(1, outline.getNameOffset());
-    assertEquals(2, outline.getNameLength());
-    assertEquals(3, outline.getElementOffset());
-    assertEquals(4, outline.getElementLength());
-    assertFalse(outline.isAbstract());
-    assertFalse(outline.isStatic());
-    assertFalse(outline.isPrivate());
-    assertEquals("parameters0", outline.getParameters());
-    assertEquals("returnType0", outline.getReturnType());
+    assertEquals(3, outline.getOffset());
+    assertEquals(4, outline.getLength());
+    Element element = outline.getElement();
+    assertEquals(ElementKind.COMPILATION_UNIT, element.getKind());
+    assertEquals("name0", element.getName());
+    assertEquals(1, element.getOffset());
+    assertEquals(2, element.getLength());
+    assertFalse(element.isAbstract());
+    assertFalse(element.isConst());
+    assertFalse(element.isDeprecated());
+    assertFalse(element.isFinal());
+    assertFalse(element.isPrivate());
+    assertFalse(element.isTopLevelOrStatic());
+    assertEquals("parameters0", element.getParameters());
+    assertEquals("returnType0", element.getReturnType());
 
     // assertions on child
     Outline child = outline.getChildren()[0];
+    assertEquals(30, child.getOffset());
+    assertEquals(40, child.getLength());
     assertThat(child.getChildren()).hasSize(0);
-    assertEquals(ElementKind.CLASS, child.getKind());
-    assertEquals("_name1", child.getName());
-    assertEquals(10, child.getNameOffset());
-    assertEquals(20, child.getNameLength());
-    assertEquals(30, child.getElementOffset());
-    assertEquals(40, child.getElementLength());
-    assertTrue(child.isAbstract());
-    assertTrue(child.isStatic());
-    assertTrue(child.isPrivate());
-    assertNull(child.getParameters());
-    assertNull(child.getReturnType());
+    Element childElement = child.getElement();
+    assertEquals(ElementKind.CLASS, childElement.getKind());
+    assertEquals("_name1", childElement.getName());
+    assertEquals(10, childElement.getOffset());
+    assertEquals(20, childElement.getLength());
+    assertTrue(childElement.isAbstract());
+    assertTrue(childElement.isConst());
+    assertTrue(childElement.isDeprecated());
+    assertTrue(childElement.isFinal());
+    assertTrue(childElement.isPrivate());
+    assertTrue(childElement.isTopLevelOrStatic());
+    assertNull(childElement.getParameters());
+    assertNull(childElement.getReturnType());
   }
 
   public void test_analysis_setAnalysisRoots() throws Exception {

@@ -101,8 +101,9 @@ public class SearchResultConverter {
         case METHOD:
           AnalysisContext context = engineElement.getContext();
           String contextId = contextToIdFunction.apply(context);
-          ElementImpl element = ElementImpl.create(contextId, engineElement);
-          path.add(element);
+          // TODO (jwren) Element API has changed
+//          ElementImpl element = ElementImpl.create(contextId, engineElement);
+//          path.add(element);
           break;
         default:
           break;

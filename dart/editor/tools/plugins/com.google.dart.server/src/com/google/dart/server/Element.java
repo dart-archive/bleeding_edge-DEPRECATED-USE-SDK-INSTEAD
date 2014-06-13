@@ -13,8 +13,6 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.source.Source;
-
 /**
  * The interface {@code Element} defines the behavior of objects that represent an information for
  * an element.
@@ -25,22 +23,7 @@ public interface Element {
   /**
    * An empty array of elements.
    */
-  Element[] EMPTY_ARRAY = new Element[0];
-
-  /**
-   * Return the id of the context this element is created in.
-   * 
-   * @return the id of the context
-   */
-  public String getContextId();
-
-  /**
-   * Return the id of the element, may be {@code null} if there is no resolution information
-   * associated with this element.
-   * 
-   * @return the id of the element
-   */
-  public String getId();
+  public final Element[] EMPTY_ARRAY = new Element[0];
 
   /**
    * Return the kind of the element.
@@ -50,23 +33,23 @@ public interface Element {
   public ElementKind getKind();
 
   /**
-   * Return the length of the element's name.
+   * Return the length of the name of the element.
    * 
-   * @return the length of the element's name
+   * @return the length of the name of the element
    */
   public int getLength();
 
   /**
-   * Return the name of the element.
+   * Return the name of the element. This is typically used as the label in the outline.
    * 
    * @return the name of the element
    */
   public String getName();
 
   /**
-   * Return the offset to the beginning of the element's name.
+   * Return the offset of the name of the element.
    * 
-   * @return the offset to the beginning of the element's name
+   * @return the offset of the name of the element
    */
   public int getOffset();
 
@@ -89,18 +72,32 @@ public interface Element {
   public String getReturnType();
 
   /**
-   * Return the source containing the element, not {@code null}.
-   * 
-   * @return the source containing the element
-   */
-  public Source getSource();
-
-  /**
    * Return {@code true} if the element is abstract.
    * 
    * @return {@code true} if the element is abstract
    */
   public boolean isAbstract();
+
+  /**
+   * Return {@code true} if the element is declared as 'const'.
+   * 
+   * @return {@code true} if the element is declared as 'const'
+   */
+  public boolean isConst();
+
+  /**
+   * Return {@code true} if the element is deprecated.
+   * 
+   * @return {@code true} if the element is deprecated
+   */
+  public boolean isDeprecated();
+
+  /**
+   * Return {@code true} if the element is declared as 'final'.
+   * 
+   * @return {@code true} if the element is declared as 'final'
+   */
+  public boolean isFinal();
 
   /**
    * Return {@code true} if the element is private.
@@ -110,9 +107,11 @@ public interface Element {
   public boolean isPrivate();
 
   /**
-   * Return {@code true} if the element is a class member and is a static element.
+   * Return {@code true} if the element is a static member of a class or is a top-level function or
+   * field.
    * 
-   * @return {@code true} if the element is a static element
+   * @return {@code true} if the element is a static member of a class or is a top-level function or
+   *         field
    */
-  public boolean isStatic();
+  public boolean isTopLevelOrStatic();
 }

@@ -222,6 +222,8 @@ public class DartUnitNavigationComputer {
     if (element instanceof FieldFormalParameterElement) {
       element = ((FieldFormalParameterElement) element).getField();
     }
-    return ElementImpl.create(contextId, element);
+    // TODO (jwren) Element API has changed
+//    return ElementImpl.create(contextId, element);
+    return null;
   }
 }

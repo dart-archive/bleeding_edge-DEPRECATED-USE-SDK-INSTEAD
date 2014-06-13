@@ -26,14 +26,15 @@ import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
  * @coverage dart.server.local
  */
 public class SearchElementReferencesOperation implements ContextServerOperation {
-  private final String contextId;
+//  private final String contextId;
   private final Element element;
   private final boolean withPotential;
   private final SearchResultsConsumer consumer;
 
   public SearchElementReferencesOperation(Element element, boolean withPotential,
       SearchResultsConsumer consumer) {
-    this.contextId = element.getContextId();
+    // Element API has changed
+//    this.contextId = element.getContextId();
     this.element = element;
     this.withPotential = withPotential;
     this.consumer = consumer;
@@ -41,7 +42,8 @@ public class SearchElementReferencesOperation implements ContextServerOperation 
 
   @Override
   public String getContextId() {
-    return contextId;
+//    return contextId;
+    return "";
   }
 
   @Override

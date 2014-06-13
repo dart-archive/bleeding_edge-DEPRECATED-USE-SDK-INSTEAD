@@ -15,11 +15,10 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.ElementKind;
 
-import static com.google.dart.server.internal.remote.processor.NotificationAnalysisOutlineProcessor.getElementKind;
-
+import static com.google.dart.server.internal.remote.processor.NotificationProcessor.getElementKind;
 import junit.framework.TestCase;
 
-public class NotificationAnalysisOutlineProcessorTest extends TestCase {
+public class NotificationProcessorTest extends TestCase {
 
   public void test_getElementKind() throws Exception {
     assertSame(ElementKind.CLASS, getElementKind("CLASS"));

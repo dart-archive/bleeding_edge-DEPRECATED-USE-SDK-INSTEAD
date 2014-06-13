@@ -2611,8 +2611,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return;
     }
     // prepare range
-    int offset = outline.getNameOffset();
-    int length = outline.getNameLength();
+    int offset = outline.getElement().getOffset();
+    int length = outline.getElement().getLength();
     // prepare ISourceViewer
     ISourceViewer sourceViewer = getSourceViewer();
     if (sourceViewer == null) {

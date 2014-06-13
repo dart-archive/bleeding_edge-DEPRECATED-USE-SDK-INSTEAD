@@ -13,11 +13,9 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
-import com.google.dart.engine.source.Source;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
 import com.google.dart.server.SearchResult;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -57,8 +55,10 @@ public class TopLevelElement_NEW extends OmniElement {
   @Override
   public String getInfoLabel() {
     String info = "";
-    Source source = element.getSource();
-    IResource resource = DartCore.getProjectManager().getResource(source);
+    // Element API has changed
+//    Source source = element.getSource();
+//    IResource resource = DartCore.getProjectManager().getResource(source);
+    IResource resource = null;
     if (resource != null) {
       info = resource.getProject().getName();
     } else {

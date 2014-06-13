@@ -86,18 +86,19 @@ public class TypeHierarchyComputer {
         }
         // create a subtype item
         ExecutableElement engineMemberElement = findMemberElement(engineClassElement);
-        Element classElement = ElementImpl.create(contextId, engineClassElement);
-        ElementImpl memberElement = ElementImpl.create(contextId, engineMemberElement);
-        TypeHierarchyItemImpl subItem = new TypeHierarchyItemImpl(
-            engineElement.getDisplayName(),
-            classElement,
-            memberElement,
-            null,
-            null,
-            null);
-        subItems.add(subItem);
+        // Element API has changed
+//        Element classElement = ElementImpl.create(contextId, engineClassElement);
+//        ElementImpl memberElement = ElementImpl.create(contextId, engineMemberElement);
+//        TypeHierarchyItemImpl subItem = new TypeHierarchyItemImpl(
+//            engineElement.getDisplayName(),
+//            classElement,
+//            memberElement,
+//            null,
+//            null,
+//            null);
+//        subItems.add(subItem);
         // fill its subtypes
-        createSubItems(subItem, engineClassElement.getType(), processed);
+//        createSubItems(subItem, engineClassElement.getType(), processed);
       }
     }
     // sort by name
@@ -148,15 +149,17 @@ public class TypeHierarchyComputer {
     String name = type.toString();
     ClassElement engineClassElement = type.getElement();
     ExecutableElement engineMemberElement = findMemberElement(engineClassElement);
-    ElementImpl classElement = ElementImpl.create(contextId, engineClassElement);
-    ElementImpl memberElement = ElementImpl.create(contextId, engineMemberElement);
-    return new TypeHierarchyItemImpl(
-        name,
-        classElement,
-        memberElement,
-        extendedItem,
-        mixedItems,
-        implementedItems);
+    // Element API has changed
+//    ElementImpl classElement = ElementImpl.create(contextId, engineClassElement);
+//    ElementImpl memberElement = ElementImpl.create(contextId, engineMemberElement);
+//    return new TypeHierarchyItemImpl(
+//        name,
+//        classElement,
+//        memberElement,
+//        extendedItem,
+//        mixedItems,
+//        implementedItems);
+    return null;
   }
 
   private com.google.dart.engine.element.Element findEngineElement(final int nameOffset) {

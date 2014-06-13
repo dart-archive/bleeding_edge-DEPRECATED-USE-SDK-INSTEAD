@@ -23,7 +23,6 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
-import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -130,9 +129,11 @@ public class ElementReferencesComputer {
   }
 
   private Element findEngineElement() {
-    String elementLocationEncoding = element.getId();
-    ElementLocationImpl elementLocation = new ElementLocationImpl(elementLocationEncoding);
-    return context.getElement(elementLocation);
+    // TODO (jwren) Element API has changed
+//    String elementLocationEncoding = element.getId();
+//    ElementLocationImpl elementLocation = new ElementLocationImpl(elementLocationEncoding);
+//    return context.getElement(elementLocation);
+    return null;
   }
 
   private boolean isVariableLikeElement(Element element) {

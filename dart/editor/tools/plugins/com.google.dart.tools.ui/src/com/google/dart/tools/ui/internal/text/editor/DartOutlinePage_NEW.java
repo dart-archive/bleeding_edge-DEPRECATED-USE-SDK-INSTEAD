@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.base.Objects;
+import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
 import com.google.dart.server.Outline;
 import com.google.dart.tools.core.DartCore;
@@ -95,7 +96,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
         return NOT_ELEMENT;
       }
       Outline outline = (Outline) e;
-      if (outline.isPrivate()) {
+      if (outline.getElement().isPrivate()) {
         return PRIVATE_ELEMENT;
       }
       return PUBLIC_ELEMENT;
@@ -117,8 +118,8 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
         return 0;
       }
       // compare names
-      String name1 = ((Outline) e1).getName();
-      String name2 = ((Outline) e2).getName();
+      String name1 = ((Outline) e1).getElement().getName();
+      String name2 = ((Outline) e2).getElement().getName();
       if (name1 == null || name2 == null) {
         return 0;
       }
@@ -161,7 +162,8 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     private static final ImageDescriptorRegistry registry = DartToolsPlugin.getImageDescriptorRegistry();
     private static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
 
-    public static ImageDescriptor getImageDescriptor(Outline element) {
+    public static ImageDescriptor getImageDescriptor(Outline outline) {
+      Element element = outline.getElement();
       ElementKind kind = element.getKind();
       ImageDescriptor base = getBaseImageDescriptor(kind, element.isPrivate());
       if (base == null) {
@@ -180,7 +182,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
       if (element.isAbstract()) {
         flags |= DartElementImageDescriptor.ABSTRACT;
       }
-      if (element.isStatic()) {
+      if (element.isTopLevelOrStatic()) {
         flags |= DartElementImageDescriptor.STATIC;
       }
       return new DartElementImageDescriptor(base, flags, SIZE);
@@ -234,14 +236,16 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
       Outline outline = (Outline) obj;
       StyledString styledString = new StyledString(getText(obj));
       // append parameters
-      String parameters = outline.getParameters();
+      // TODO (jwren) for Elements, ElementLabelProvider_NEW should be delegated to:
+      Element element = outline.getElement();
+      String parameters = element.getParameters();
       if (parameters != null) {
         styledString.append(parameters, StyledString.DECORATIONS_STYLER);
       }
       // append return type
-      String returnType = outline.getReturnType();
+      String returnType = element.getReturnType();
       if (!StringUtils.isEmpty(returnType)) {
-        ElementKind kind = outline.getKind();
+        ElementKind kind = element.getKind();
         if (kind == ElementKind.FIELD || kind == ElementKind.TOP_LEVEL_VARIABLE) {
           styledString.append(" : " + returnType, StyledString.QUALIFIER_STYLER);
         } else {
@@ -255,7 +259,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     @Override
     public String getText(Object obj) {
       Outline outline = (Outline) obj;
-      return outline.getName();
+      return outline.getElement().getName();
     }
   }
 
@@ -271,8 +275,8 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
       if (!(e2 instanceof Outline)) {
         return 0;
       }
-      int offset1 = ((Outline) e1).getNameOffset();
-      int offset2 = ((Outline) e2).getNameOffset();
+      int offset1 = ((Outline) e1).getElement().getOffset();
+      int offset2 = ((Outline) e2).getElement().getOffset();
       return offset1 - offset2;
     }
   }

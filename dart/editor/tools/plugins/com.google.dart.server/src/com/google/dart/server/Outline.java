@@ -31,15 +31,6 @@ public interface Outline {
   public boolean containsInclusive(int offset);
 
   /**
-   * Return the parameter list for the element. If the element is not a method or function this
-   * field will not be defined. If the element has zero parameters, this field will have a value of
-   * "()".
-   * 
-   * @return the parameter list for the element
-   */
-  public String getParameters();
-
-  /**
    * Return an array containing the children outline. The array will be empty if the outline has no
    * children.
    * 
@@ -48,38 +39,25 @@ public interface Outline {
   public Outline[] getChildren();
 
   /**
-   * The length of the element.
-   */
-  public int getElementLength();
-
-  /**
-   * The offset of the first character of the element.
-   */
-  public int getElementOffset();
-
-  /**
-   * Return the kind of the element.
+   * A description of the element represented by this node.
    * 
-   * @return the kind of the element
+   * @return the {@link Element}
    */
-  public ElementKind getKind();
+  public Element getElement();
 
   /**
-   * Return the name of the element. This is typically used as the label in the outline.
+   * Return the length of the element.
    * 
-   * @return the name of the element
+   * @return the length of the element
    */
-  public String getName();
+  public int getLength();
 
   /**
-   * The length of the name of the element.
+   * Return the offset of the first character of the element.
+   * 
+   * @return the offset of the first character of the element
    */
-  public int getNameLength();
-
-  /**
-   * The offset of the name of the element.
-   */
-  public int getNameOffset();
+  public int getOffset();
 
   /**
    * Return the outline that either physically or logically encloses this outline. This will be
@@ -88,37 +66,5 @@ public interface Outline {
    * @return the outline that encloses this outline
    */
   public Outline getParent();
-
-  /**
-   * Return the return type of the element. If the element is not a method or function this field
-   * will not be defined. If the element does not have a declared return type, this field will
-   * contain an empty string.
-   * 
-   * @return the return type of the element
-   */
-  public String getReturnType();
-
-  /**
-   * True if the element is an abstract member of a class, or is an abstract class itself.
-   * 
-   * @return {@code true} if the element is an abstract member of a class, or is an abstract class
-   *         itself
-   */
-  public boolean isAbstract();
-
-  /**
-   * True if the element is private.
-   * 
-   * @return {@code true} if the element is private
-   */
-  public boolean isPrivate();
-
-  /**
-   * True if the element is a static member of a class or is a top-level function or field.
-   * 
-   * @return {@code true} if the element is a static member of a class or is a top-level function or
-   *         field
-   */
-  public boolean isStatic();
 
 }

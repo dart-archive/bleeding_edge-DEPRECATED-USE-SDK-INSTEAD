@@ -21,7 +21,6 @@ import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 import junit.framework.TestCase;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class SearchElementReferencesOperationTest extends TestCase {
   private LocalAnalysisServerImpl server = mock(LocalAnalysisServerImpl.class);
@@ -29,13 +28,11 @@ public class SearchElementReferencesOperationTest extends TestCase {
   public void test_perform() throws Exception {
     Element element = mock(Element.class);
     SearchResultsConsumer consumer = mock(SearchResultsConsumer.class);
-    when(element.getContextId()).thenReturn("id");
     SearchElementReferencesOperation operation = new SearchElementReferencesOperation(
         element,
         true,
         consumer);
     assertSame(ServerOperationPriority.SEARCH, operation.getPriority());
-    assertEquals("id", operation.getContextId());
     // perform
     operation.performOperation(server);
     // TODO(scheglov) restore or remove for the new API

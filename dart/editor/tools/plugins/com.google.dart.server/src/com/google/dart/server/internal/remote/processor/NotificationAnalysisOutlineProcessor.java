@@ -13,12 +13,12 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.ElementKind;
+import com.google.dart.server.Element;
 import com.google.dart.server.Outline;
 import com.google.dart.server.internal.local.computer.OutlineImpl;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -31,14 +31,6 @@ import java.util.List;
  * @coverage dart.server.remote
  */
 public class NotificationAnalysisOutlineProcessor extends NotificationProcessor {
-  /**
-   * Return the {@link ElementKind} code for the given name. If the passed name cannot be found, an
-   * {@link IllegalArgumentException} is thrown.
-   */
-  @VisibleForTesting
-  public static ElementKind getElementKind(String kindName) {
-    return ElementKind.valueOf(kindName);
-  }
 
   public NotificationAnalysisOutlineProcessor(AnalysisServerListener listener) {
     super(listener);
@@ -57,46 +49,24 @@ public class NotificationAnalysisOutlineProcessor extends NotificationProcessor 
   }
 
   private Outline computeOutline(Outline parent, JsonObject outlineObject) {
-    ElementKind kind = getElementKind(outlineObject.get("kind").getAsString());
-    String name = outlineObject.get("name").getAsString();
-    int nameOffset = outlineObject.get("nameOffset").getAsInt();
-    int nameLength = outlineObject.get("nameLength").getAsInt();
-    int elementOffset = outlineObject.get("elementOffset").getAsInt();
-    int elementLength = outlineObject.get("elementLength").getAsInt();
-    boolean isAbstract = outlineObject.get("isAbstract").getAsBoolean();
-    boolean isStatic = outlineObject.get("isStatic").getAsBoolean();
-    // prepare parameters
-    String parameters = null;
-    if (outlineObject.has("parameters")) {
-      parameters = outlineObject.get("parameters").getAsString();
-    }
-    // prepare return type
-    String returnType = null;
-    if (outlineObject.has("returnType")) {
-      returnType = outlineObject.get("returnType").getAsString();
-    }
+    JsonObject elementObject = outlineObject.get("element").getAsJsonObject();
+    int offset = outlineObject.get("offset").getAsInt();
+    int length = outlineObject.get("length").getAsInt();
+    Element element = computeElement(elementObject);
 
     // create outline object
-    OutlineImpl outline = new OutlineImpl(
-        parent,
-        kind,
-        name,
-        nameOffset,
-        nameLength,
-        elementOffset,
-        elementLength,
-        isAbstract,
-        isStatic,
-        parameters,
-        returnType);
+    OutlineImpl outline = new OutlineImpl(parent, element, offset, length);
 
     // compute children recursively
     List<Outline> childrenList = Lists.newArrayList();
     if (outlineObject.has("children")) {
-      Iterator<JsonElement> childrenElementIterator = outlineObject.get("children").getAsJsonArray().iterator();
-      while (childrenElementIterator.hasNext()) {
-        JsonObject childObject = childrenElementIterator.next().getAsJsonObject();
-        childrenList.add(computeOutline(outline, childObject));
+      JsonElement childrenJsonArray = outlineObject.get("children");
+      if (childrenJsonArray instanceof JsonArray) {
+        Iterator<JsonElement> childrenElementIterator = ((JsonArray) childrenJsonArray).iterator();
+        while (childrenElementIterator.hasNext()) {
+          JsonObject childObject = childrenElementIterator.next().getAsJsonObject();
+          childrenList.add(computeOutline(outline, childObject));
+        }
       }
     }
 

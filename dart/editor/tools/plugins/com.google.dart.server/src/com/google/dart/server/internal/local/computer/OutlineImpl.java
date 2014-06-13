@@ -14,8 +14,7 @@
 package com.google.dart.server.internal.local.computer;
 
 import com.google.dart.engine.utilities.general.ObjectUtilities;
-import com.google.dart.engine.utilities.general.StringUtilities;
-import com.google.dart.server.ElementKind;
+import com.google.dart.server.Element;
 import com.google.dart.server.Outline;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,37 +26,21 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class OutlineImpl implements Outline {
   private final Outline parent;
-  private final ElementKind kind;
-  private final String name;
-  private final int nameOffset;
-  private final int nameLength;
-  private final int elementOffset;
-  private final int elementLength;
-  private final boolean isAbstract;
-  private final boolean isStatic;
-  private final String parameters;
-  private final String returnType;
+  private final Element element;
+  private final int offset;
+  private final int length;
   private Outline[] children = Outline.EMPTY_ARRAY;
 
-  public OutlineImpl(Outline parent, ElementKind kind, String name, int nameOffset, int nameLength,
-      int elementOffset, int elementLength, boolean isAbstract, boolean isStatic,
-      String parameters, String returnType) {
+  public OutlineImpl(Outline parent, Element element, int offset, int length) {
     this.parent = parent;
-    this.kind = kind;
-    this.name = name;
-    this.nameOffset = nameOffset;
-    this.nameLength = nameLength;
-    this.elementOffset = elementOffset;
-    this.elementLength = elementLength;
-    this.isAbstract = isAbstract;
-    this.isStatic = isStatic;
-    this.parameters = parameters;
-    this.returnType = returnType;
+    this.element = element;
+    this.offset = offset;
+    this.length = length;
   }
 
   @Override
-  public boolean containsInclusive(int offset) {
-    return elementOffset <= offset && offset <= elementOffset + elementLength;
+  public boolean containsInclusive(int offsetValue) {
+    return offset <= offsetValue && offsetValue <= offset + length;
   }
 
   @Override
@@ -69,8 +52,14 @@ public class OutlineImpl implements Outline {
       return false;
     }
     OutlineImpl other = (OutlineImpl) object;
-    if (other.kind == kind && other.name.equals(name) && other.getNameOffset() == getNameOffset()
-        && other.getNameLength() == getNameLength()) {
+    if (ObjectUtilities.equals(other.parent, parent)
+        && ObjectUtilities.equals(other.element, element)
+        && other.children.length == children.length) {
+      for (int i = 0; i < children.length; i++) {
+        if (!ObjectUtilities.equals(other.children[i], children)) {
+          return false;
+        }
+      }
       return true;
     }
     return false;
@@ -82,38 +71,18 @@ public class OutlineImpl implements Outline {
   }
 
   @Override
-  public int getElementLength() {
-    return elementLength;
+  public Element getElement() {
+    return element;
   }
 
   @Override
-  public int getElementOffset() {
-    return elementOffset;
+  public int getLength() {
+    return length;
   }
 
   @Override
-  public ElementKind getKind() {
-    return kind;
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public int getNameLength() {
-    return nameLength;
-  }
-
-  @Override
-  public int getNameOffset() {
-    return nameOffset;
-  }
-
-  @Override
-  public String getParameters() {
-    return parameters;
+  public int getOffset() {
+    return offset;
   }
 
   @Override
@@ -122,34 +91,8 @@ public class OutlineImpl implements Outline {
   }
 
   @Override
-  public String getReturnType() {
-    return returnType;
-  }
-
-  @Override
   public int hashCode() {
-    return ObjectUtilities.combineHashCodes(kind.hashCode(), name.hashCode());
-  }
-
-  @Override
-  public boolean isAbstract() {
-    return isAbstract;
-  }
-
-  @Override
-  public boolean isPrivate() {
-    if (kind == ElementKind.COMPILATION_UNIT) {
-      return false;
-    }
-    if (kind == ElementKind.CONSTRUCTOR) {
-      return name.contains("._");
-    }
-    return StringUtilities.startsWithChar(name, '_');
-  }
-
-  @Override
-  public boolean isStatic() {
-    return isStatic;
+    return ObjectUtilities.combineHashCodes(parent.hashCode(), element.getName().hashCode());
   }
 
   public void setChildren(Outline[] children) {
@@ -159,22 +102,8 @@ public class OutlineImpl implements Outline {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append("[kind=");
-    builder.append(kind.name());
-    builder.append(", name=");
-    builder.append(name);
-    builder.append(", nameOffset=");
-    builder.append(nameOffset);
-    builder.append(", nameLength=");
-    builder.append(nameLength);
-    builder.append(", elementOffset=");
-    builder.append(elementOffset);
-    builder.append(", elementLength=");
-    builder.append(elementLength);
-    builder.append(", arguments=");
-    builder.append(parameters == null ? "null" : parameters);
-    builder.append(", returnType=");
-    builder.append(returnType == null ? "null" : returnType);
+    builder.append("[element=");
+    builder.append(element.toString());
     builder.append(", children=[");
     builder.append(StringUtils.join(children, ", "));
     builder.append("]]");

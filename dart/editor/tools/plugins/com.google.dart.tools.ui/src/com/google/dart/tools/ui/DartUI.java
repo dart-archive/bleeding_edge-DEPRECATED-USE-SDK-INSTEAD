@@ -841,8 +841,10 @@ public final class DartUI {
    */
   public static IEditorPart openInEditor(IResource context, com.google.dart.server.Element element)
       throws Exception {
-    Source source = element.getSource();
-    return openInEditor(context, source, true, element.getOffset(), element.getLength());
+    // Element API has changed
+//    Source source = element.getSource();
+//    return openInEditor(context, source, true, element.getOffset(), element.getLength());
+    return null;
   }
 
   /**
