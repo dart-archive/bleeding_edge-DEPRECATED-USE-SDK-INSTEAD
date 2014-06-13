@@ -234,12 +234,6 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
           "Unauthorized device detected.\n\nAuthorize device and try again."));
     }
 
-    if (!devBridge.isHtmlPageAccessible(device, launchUrl).isOK()) {
-      // pub serve is always localhost over USB while old dev server is always over wifi
-      boolean localhostOverUsb = usePubServe;
-      throw new MobileUrlConnectionException(launchUrl, localhostOverUsb);
-    }
-
     if (wrapper.getInstallContentShell()) {
       if (!devBridge.installContentShellApk(device)) {
         throw new CoreException(new Status(
@@ -250,15 +244,15 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
     }
     devBridge.launchContentShell(device.getDeviceId(), launchUrl);
 
+    if (!devBridge.isHtmlPageAccessible(device, launchUrl).isOK()) {
+      // pub serve is always localhost over USB while old dev server is always over wifi
+      boolean localhostOverUsb = usePubServe;
+      throw new MobileUrlConnectionException(launchUrl, localhostOverUsb);
+    }
+
     // check if remote connection is alive
     if (!isRemoteConnected()) {
       devBridge.setupPortForwarding(Integer.toString(REMOTE_DEBUG_PORT));
-      // wait for content shell to open to get the tabs to connect
-      try {
-        Thread.sleep(500);
-      } catch (InterruptedException e) {
-
-      }
       performRemoteConnection("localhost", REMOTE_DEBUG_PORT, monitor, usePubServe);
     }
   }
