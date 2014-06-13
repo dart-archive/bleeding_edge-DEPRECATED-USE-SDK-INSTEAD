@@ -53,27 +53,29 @@ public class DartiumPackageSourceContainer extends AbstractSourceContainer {
       parent = wrapper.getApplicationResource().getParent();
     }
 
-    IFileInfo fileInfo = DartCore.getProjectManager().resolveUriToFileInfo(parent, name);
+    if (parent != null) {
+      IFileInfo fileInfo = DartCore.getProjectManager().resolveUriToFileInfo(parent, name);
 
-    if (fileInfo != null) {
-      // check to see if there is another project with the same file
-      String filePath = fileInfo.getFile().getAbsolutePath();
-      for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-        String projectLocation = project.getLocation().toString();
+      if (fileInfo != null) {
+        // check to see if there is another project with the same file
+        String filePath = fileInfo.getFile().getAbsolutePath();
+        for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+          String projectLocation = project.getLocation().toString();
 
-        if (!project.equals(wrapper.getProject()) && filePath.startsWith(projectLocation)) {
-          // /mydir/myproject/lib/lib.dart => lib/lib.dart
-          String path = filePath.substring(projectLocation.length() + 1);
-          IResource resource = project.findMember(path);
-          if (resource != null) {
-            return new Object[] {resource};
+          if (!project.equals(wrapper.getProject()) && filePath.startsWith(projectLocation)) {
+            // /mydir/myproject/lib/lib.dart => lib/lib.dart
+            String path = filePath.substring(projectLocation.length() + 1);
+            IResource resource = project.findMember(path);
+            if (resource != null) {
+              return new Object[] {resource};
+            }
           }
         }
-      }
-      if (fileInfo.getResource() != null) {
-        return new Object[] {fileInfo.getResource()};
-      } else {
-        return new Object[] {new LocalFileStorage(fileInfo.getFile())};
+        if (fileInfo.getResource() != null) {
+          return new Object[] {fileInfo.getResource()};
+        } else {
+          return new Object[] {new LocalFileStorage(fileInfo.getFile())};
+        }
       }
     }
 
