@@ -26,7 +26,11 @@ public class MobileUrlConnectionException extends CoreException {
   private static Status newStatus(String pageUrl, boolean localhostOverUsb) {
     StringBuilder msg = new StringBuilder();
     msg.append("Failed to access URL from mobile: ");
-    msg.append(pageUrl);
+    if (pageUrl == null) {
+      msg.append("Unable to get local IP address");
+    } else {
+      msg.append(pageUrl);
+    }
     msg.append(".\n\n");
     if (localhostOverUsb) {
       msg.append("Check port forwarding in Chrome and try again.");
