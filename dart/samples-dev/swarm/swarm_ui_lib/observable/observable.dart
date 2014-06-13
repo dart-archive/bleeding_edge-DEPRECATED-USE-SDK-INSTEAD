@@ -145,13 +145,6 @@ class ObservableList<T>
     _internal[index] = value;
   }
 
-  void set last(T value) {
-    if (length == 0) throw new StateError("No element");
-    int index = length - 1;
-    recordListUpdate(index, value, _internal[index]);
-    _internal[index] = value;
-  }
-
   int get length => _internal.length;
 
   void set length(int value) {
