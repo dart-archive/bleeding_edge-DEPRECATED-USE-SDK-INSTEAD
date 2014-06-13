@@ -5,9 +5,6 @@
 [ $use_public_packages == false && $use_repository_packages == false]
 pop_pop_win: Skip # Require packages
 
-[ $use_public_packages ]
-polymer_intl: Fail # Issue 18059
-
 [ $browser ]
 # Skip tests that uses dart:io
 build_dart: Skip
@@ -55,13 +52,16 @@ build_dart: Skip
 polymer_intl/test/polymer_intl_test: Pass, Timeout
 searchable_list/test/demo_app_test: Pass, Timeout
 
-[ $compiler == none && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 polymer_intl/test/polymer_intl_test: Pass, RuntimeError # Issue 18931
 searchable_list/test/demo_app_test: Pass, RuntimeError # Issue 18931
 third_party/todomvc/test/listorder_test: Pass, RuntimeError, Timeout # Issue 18931, Issue 19127
 third_party/todomvc/test/mainpage_test: Pass, RuntimeError # Issue 18931
 third_party/todomvc/test/markdone_shadow_test: Pass, RuntimeError # Issue 18931
 third_party/todomvc/test/markdone_test: Pass, RuntimeError # Issue 18931
+
+[ $compiler == none && $runtime == drt ]
+third_party/todomvc/test/markdone_shadow_test: RuntimeError # Issue 19414
 
 [ $arch == arm ]
 sample_extension/test/sample_extension_test: Skip # Issue 14705
