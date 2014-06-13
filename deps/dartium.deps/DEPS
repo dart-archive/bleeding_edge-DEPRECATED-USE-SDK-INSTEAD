@@ -16,7 +16,7 @@ vars.update({
   "dartium_webkit_branch": "/blink/branches/dart/1985",
   "dartium_webkit_revision": "176031",
 
-  "co19_rev": "@722",
+  "co19_rev": "@738",
 })
 
 def massage_deps(deps):

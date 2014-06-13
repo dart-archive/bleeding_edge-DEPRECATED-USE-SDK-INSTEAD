@@ -9,7 +9,7 @@ vars = {
 
   "gyp_rev": "@1752",
   "nss_rev": "@257452",
-  "co19_rev": "@722",
+  "co19_rev": "@738",
   "chromium_url": "http://src.chromium.org/svn",
   "chromium_git": "http://git.chromium.org/git",
 
