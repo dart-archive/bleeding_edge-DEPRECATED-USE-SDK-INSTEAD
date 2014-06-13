@@ -58,6 +58,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
   private static final String INFO_TEXT = "Serve the application using 'pub serve'. "
       + "This requires setting up port forwarding.";
 
+  // When these change, be sure to change the messaging in MobileUrlConnectionException
   private String[] servers = {"Embedded server", "Pub serve"};
 
   private LaunchTargetComposite launchTargetGroup;
