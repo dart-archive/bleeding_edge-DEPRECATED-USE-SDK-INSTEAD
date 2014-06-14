@@ -33,8 +33,12 @@ public class PolymerSample extends AbstractSample {
 
     templates.add(new String[] {
         "pubspec.yaml",
-        "name: {name}\ndescription: A sample Polymer application\n"
-            + "dependencies:\n    polymer: any\n" + "transformers:\n- polymer:\n"
+        "name: {name}\n"
+            + "description: A sample Polymer application\n"
+            + "dependencies:\n"
+            + "    polymer: \">=0.11.0-dev.2 <0.12.0\"\n"
+            + "transformers:\n"
+            + "- polymer:\n"
             + "    entry_points: web/{name.lower}.html\n"});
     templates.add(new String[] {"build.dart", "@webui/build.dart"});
     templates.add(new String[] {"web/{name.lower}.html", "@webui/webapp.html"});
