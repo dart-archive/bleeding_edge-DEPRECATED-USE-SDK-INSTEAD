@@ -1,4 +1,4 @@
-Click(Text:"web")
+﻿Click(Text:"web")
 util.selectContextImageMenuItem "sample project", "Close Folder"
 util.xWait 2
 util.openFileDialog
@@ -9,7 +9,7 @@ Click "sample folder icon"
 util.xWait 1
 util.newline
 if (util.isLinux) then
-	TypeText return
+  TypeText return
 end if
 util.xWait 2
 Click "dart sdk"
