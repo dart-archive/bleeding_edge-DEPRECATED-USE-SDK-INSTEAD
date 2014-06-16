@@ -54,6 +54,9 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
   private static final String DEVICE_NOT_FOUND = "No mobile found or USB development not enabled on mobile";
 
   public static final String MOBILE_DOC_URL = "https://www.dartlang.org/tools/editor/mobile.html";
+  // PORT_FORWARD_DOC_URL should be #set-up-port-forwarding but is #connect-the-devices
+  // until dartbug.com/19457 is fixed.
+  public static final String PORT_FORWARD_DOC_URL = MOBILE_DOC_URL + "#connect-the-devices";
 
   private static final String INFO_TEXT = "Serve the application using 'pub serve'. "
       + "This requires setting up port forwarding.";
@@ -119,11 +122,16 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     infoLink = new Link(group, SWT.NONE);
     infoLink.setText("Some configurations may require setting up port forwarding in order for the "
         + "mobile device to see the web server running on your development machine. See <a href=\""
-        + MOBILE_DOC_URL + "\"> port forwarding setup </a> for more information.");
+        + PORT_FORWARD_DOC_URL + "\"> port forwarding setup </a> for more information.");
     infoLink.addSelectionListener(new SelectionAdapter() {
       @Override
+      public void widgetDefaultSelected(SelectionEvent e) {
+        widgetSelected(e);
+      }
+
+      @Override
       public void widgetSelected(SelectionEvent e) {
-        ExternalBrowserUtil.openInExternalBrowser(MOBILE_DOC_URL);
+        ExternalBrowserUtil.openInExternalBrowser(e.text.trim());
       }
     });
     GridDataFactory.swtDefaults().span(2, 1).grab(true, false).applyTo(infoLink);

@@ -116,7 +116,7 @@ public class MobilePortForwardDialog extends Dialog {
         + " on the developer machine from the mobile device.\n\n"
         + "Looks like port forwarding has not been setup between device and the machine.\n"
         + "Follow the steps listed under " //
-        + " <a href=\"" + MobileMainTab.MOBILE_DOC_URL + "\">Set up port forwarding</a>\n"
+        + " <a href=\"" + MobileMainTab.PORT_FORWARD_DOC_URL + "\">Set up port forwarding</a>\n"
         + "\n\nOnce you are done, use Test Connection to verify the setup.");
     descriptionLabel.addSelectionListener(new SelectionListener() {
       @Override
