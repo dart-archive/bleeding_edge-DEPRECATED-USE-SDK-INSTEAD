@@ -21,7 +21,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -80,55 +80,56 @@ public class ElementCodec {
 
   private String[] getLocationComponents(int[] path) {
     int length = path.length;
-    // localVariable@1234
-    if (length != 0 && path[length - 1] < 0) {
-      String[] components = new String[length - 1];
-      for (int i = 0; i < length - 1; i++) {
-        int componentIndex = path[i];
-        components[i] = stringCodec.decode(componentIndex);
-      }
-      // TODO(scheglov) use for every component
-      components[length - 2] += "@" + (-path[length - 1]);
-      return components;
-    }
-    // normal element
     String[] components = new String[length];
+    int componentCount = 0;
     for (int i = 0; i < length; i++) {
-      int componentIndex = path[i];
-      components[i] = stringCodec.decode(componentIndex);
+      int componentId = path[i];
+      String component = stringCodec.decode(componentId);
+      if (i < length - 1 && path[i + 1] < 0) {
+        component += "@" + (-path[i + 1]);
+        i++;
+      }
+      components[componentCount++] = component;
     }
+    components = ArrayUtils.subarray(components, 0, componentCount);
     return components;
   }
 
   private int[] getLocationPath(Element element) {
     String[] components = element.getLocation().getComponents();
     int length = components.length;
-    // localVariable@1234
-    if (length != 0) {
-      String lastComponent = components[length - 1];
-      // TODO(scheglov) use for every component
-      if (lastComponent.contains("@")) {
-        int[] path = new int[length + 1];
-        for (int i = 0; i < length; i++) {
-          String component = components[i];
-          if (i == length - 1) {
-            String preAtString = StringUtils.substringBefore(lastComponent, "@");
-            String atString = StringUtils.substringAfter(lastComponent, "@");
-            path[i] = stringCodec.encode(preAtString);
-            path[i + 1] = -1 * Integer.parseInt(atString);
-          } else {
-            path[i] = stringCodec.encode(component);
-          }
+    if (hasLocalOffset(components)) {
+      int[] path = new int[2 * length];
+      int pathLength = 0;
+      for (String component : components) {
+        int atOffset = component.indexOf('@');
+        if (atOffset == -1) {
+          path[pathLength++] = stringCodec.encode(component);
+        } else {
+          String preAtString = component.substring(0, atOffset);
+          String atString = component.substring(atOffset + 1);
+          path[pathLength++] = stringCodec.encode(preAtString);
+          path[pathLength++] = -1 * Integer.parseInt(atString);
         }
-        return path;
+      }
+      path = ArrayUtils.subarray(path, 0, pathLength);
+      return path;
+    } else {
+      int[] path = new int[length];
+      for (int i = 0; i < length; i++) {
+        String component = components[i];
+        path[i] = stringCodec.encode(component);
+      }
+      return path;
+    }
+  }
+
+  private boolean hasLocalOffset(String[] components) {
+    for (String component : components) {
+      if (component.indexOf('@') != -1) {
+        return true;
       }
     }
-    // normal element
-    int[] path = new int[length];
-    for (int i = 0; i < length; i++) {
-      String component = components[i];
-      path[i] = stringCodec.encode(component);
-    }
-    return path;
+    return false;
   }
 }

@@ -30,6 +30,30 @@ public class ElementCodecTest extends TestCase {
   private StringCodec stringCodec = new StringCodec();
   private ElementCodec codec = new ElementCodec(stringCodec);
 
+  public void test_localLocalVariable() throws Exception {
+    {
+      Element element = mock(Element.class);
+      ElementLocation location = new ElementLocationImpl(new String[] {"main", "foo@1", "bar@2"});
+      when(context.getElement(location)).thenReturn(element);
+      when(element.getLocation()).thenReturn(location);
+      int id = codec.encode(element);
+      assertEquals(element, codec.decode(context, id));
+    }
+    {
+      Element element = mock(Element.class);
+      ElementLocation location = new ElementLocationImpl(new String[] {"main", "foo@10", "bar@20"});
+      when(context.getElement(location)).thenReturn(element);
+      when(element.getLocation()).thenReturn(location);
+      int id = codec.encode(element);
+      assertEquals(element, codec.decode(context, id));
+    }
+    // check strings, "foo" as a single string, no "foo@1" or "foo@10"
+    assertThat(stringCodec.getNameToIndex()).hasSize(3).includes(
+        entry("main", 0),
+        entry("foo", 1),
+        entry("bar", 2));
+  }
+
   public void test_localVariable() throws Exception {
     {
       Element element = mock(Element.class);
