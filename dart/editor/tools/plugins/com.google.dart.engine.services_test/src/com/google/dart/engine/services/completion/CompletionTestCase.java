@@ -8,6 +8,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
+import com.google.dart.engine.internal.index.file.MemoryNodeManager;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
@@ -40,7 +41,7 @@ public class CompletionTestCase extends ResolverTestCase {
   @Override
   public void setUp() {
     super.setUp();
-    index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
+    index = IndexFactory.newIndex(IndexFactory.newSplitIndexStore(new MemoryNodeManager()));
     new Thread() {
       @Override
       public void run() {

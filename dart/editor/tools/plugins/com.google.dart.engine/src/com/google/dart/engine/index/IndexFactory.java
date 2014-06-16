@@ -13,11 +13,23 @@
  */
 package com.google.dart.engine.index;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.internal.index.IndexImpl;
 import com.google.dart.engine.internal.index.MemoryIndexStoreImpl;
+import com.google.dart.engine.internal.index.file.ContextCodec;
+import com.google.dart.engine.internal.index.file.ElementCodec;
+import com.google.dart.engine.internal.index.file.FileManager;
+import com.google.dart.engine.internal.index.file.FileNodeManager;
+import com.google.dart.engine.internal.index.file.NodeManager;
+import com.google.dart.engine.internal.index.file.RelationshipCodec;
+import com.google.dart.engine.internal.index.file.SplitIndexStoreImpl;
+import com.google.dart.engine.internal.index.file.StringCodec;
+import com.google.dart.engine.internal.index.file.SeparateFileManager;
 import com.google.dart.engine.internal.index.operation.OperationProcessor;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
 import com.google.dart.engine.utilities.translation.DartOmit;
+
+import java.io.File;
 
 /**
  * Factory for {@link Index} and {@link IndexStore}.
@@ -26,6 +38,25 @@ import com.google.dart.engine.utilities.translation.DartOmit;
  */
 @DartOmit
 public class IndexFactory {
+  /**
+   * Returns an instance of {@link IndexStore} that stores data on disk in the given directory.
+   */
+  public static IndexStore newFileIndexStore(File directory) {
+    StringCodec stringCodec = new StringCodec();
+    ContextCodec contextCodec = new ContextCodec();
+    ElementCodec elementCodec = new ElementCodec(stringCodec);
+    RelationshipCodec relationshipCodec = new RelationshipCodec(stringCodec);
+    FileManager fileManager = new SeparateFileManager(directory);
+    NodeManager nodeManager = new FileNodeManager(
+        fileManager,
+        AnalysisEngine.getInstance().getLogger(),
+        stringCodec,
+        contextCodec,
+        elementCodec,
+        relationshipCodec);
+    return newSplitIndexStore(nodeManager);
+  }
+
   /**
    * @return the new instance of {@link Index} which uses given {@link IndexStore}.
    */
@@ -40,5 +71,12 @@ public class IndexFactory {
    */
   public static MemoryIndexStore newMemoryIndexStore() {
     return new MemoryIndexStoreImpl();
+  }
+
+  /**
+   * Returns an instance of {@link IndexStore} that stores data in the given {@link NodeManager}.
+   */
+  public static IndexStore newSplitIndexStore(NodeManager nodeManager) {
+    return new SplitIndexStoreImpl(nodeManager);
   }
 }

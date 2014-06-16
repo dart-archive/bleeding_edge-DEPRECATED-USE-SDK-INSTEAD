@@ -287,6 +287,10 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
+  public void doneIndex() {
+  }
+
+  @Override
   public Location[] getRelationships(Element element, Relationship relationship) {
     ElementRelationKey key = new ElementRelationKey(element, relationship);
     Set<Location> locations = keyToLocations.get(key);

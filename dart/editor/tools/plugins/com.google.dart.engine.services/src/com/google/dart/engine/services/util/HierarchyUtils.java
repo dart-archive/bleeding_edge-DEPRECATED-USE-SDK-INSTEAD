@@ -27,6 +27,7 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -222,6 +223,16 @@ public class HierarchyUtils {
     // we don't need "seed" itself
     result.remove(seed);
     return result;
+  }
+
+  public static Element getSyntheticAccessorVariable(Element element) {
+    if (element instanceof PropertyAccessorElement) {
+      PropertyAccessorElement accessor = (PropertyAccessorElement) element;
+      if (accessor.isSynthetic()) {
+        element = accessor.getVariable();
+      }
+    }
+    return element;
   }
 
   /**

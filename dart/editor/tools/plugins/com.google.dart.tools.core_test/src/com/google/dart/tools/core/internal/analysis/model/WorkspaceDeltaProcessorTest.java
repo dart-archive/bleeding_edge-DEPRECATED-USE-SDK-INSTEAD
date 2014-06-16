@@ -17,6 +17,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
+import com.google.dart.engine.internal.index.file.MemoryNodeManager;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
@@ -76,7 +77,7 @@ public class WorkspaceDeltaProcessorTest extends TestCase {
           resource,
           sdk,
           sdkContextId,
-          IndexFactory.newIndex(IndexFactory.newMemoryIndexStore()),
+          IndexFactory.newIndex(IndexFactory.newSplitIndexStore(new MemoryNodeManager())),
           ignoreManager);
     }
 

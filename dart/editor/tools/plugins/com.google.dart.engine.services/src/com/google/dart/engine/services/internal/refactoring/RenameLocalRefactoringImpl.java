@@ -32,6 +32,7 @@ import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
+import com.google.dart.engine.services.util.HierarchyUtils;
 import com.google.dart.engine.source.Source;
 
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementKindName;
@@ -128,6 +129,7 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
       List<SearchMatch> nameDeclarations = searchEngine.searchDeclarations(newName, null, null);
       for (SearchMatch nameDeclaration : nameDeclarations) {
         Element nameElement = nameDeclaration.getElement();
+        nameElement = HierarchyUtils.getSyntheticAccessorVariable(nameElement);
         // duplicate declaration
         if (haveIntersectingRanges(element, nameElement)) {
           String message = MessageFormat.format(

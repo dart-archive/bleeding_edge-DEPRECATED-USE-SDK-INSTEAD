@@ -101,6 +101,7 @@ public class IndexUnitOperation implements IndexOperation {
         }
         unit.accept(new IndexContributor(indexStore));
         unit.accept(new AngularDartIndexContributor(indexStore));
+        indexStore.doneIndex();
       } catch (Throwable exception) {
         AnalysisEngine.getInstance().getLogger().logError(
             "Could not index " + unit.getElement().getLocation(),

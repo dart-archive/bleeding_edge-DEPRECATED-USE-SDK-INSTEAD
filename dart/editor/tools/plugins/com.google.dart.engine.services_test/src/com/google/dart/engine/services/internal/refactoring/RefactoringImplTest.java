@@ -19,6 +19,8 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
+import com.google.dart.engine.index.IndexStore;
+import com.google.dart.engine.internal.index.file.MemoryNodeManager;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.change.Change;
@@ -236,7 +238,8 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   protected void setUp() throws Exception {
     super.setUp();
     // run Index
-    index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
+    IndexStore indexStore = IndexFactory.newSplitIndexStore(new MemoryNodeManager());
+    index = IndexFactory.newIndex(indexStore);
     new Thread() {
       @Override
       public void run() {

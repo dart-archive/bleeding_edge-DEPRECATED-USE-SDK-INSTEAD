@@ -17,6 +17,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
+import com.google.dart.engine.internal.index.file.MemoryNodeManager;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -119,7 +120,7 @@ public class ProjectManagerImplTest extends ContextManagerImplTest {
           resource,
           sdk,
           sdkContextId,
-          IndexFactory.newIndex(IndexFactory.newMemoryIndexStore()),
+          IndexFactory.newIndex(IndexFactory.newSplitIndexStore(new MemoryNodeManager())),
           ignoreManager);
     }
 

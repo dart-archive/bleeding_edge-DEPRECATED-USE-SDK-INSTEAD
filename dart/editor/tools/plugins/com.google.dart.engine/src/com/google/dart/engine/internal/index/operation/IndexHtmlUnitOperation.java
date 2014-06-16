@@ -100,6 +100,7 @@ public class IndexHtmlUnitOperation implements IndexOperation {
         }
         AngularHtmlIndexContributor contributor = new AngularHtmlIndexContributor(indexStore);
         unit.accept(contributor);
+        indexStore.doneIndex();
       } catch (Throwable exception) {
         AnalysisEngine.getInstance().getLogger().logError(
             "Could not index " + unit.getElement().getLocation(),

@@ -88,6 +88,7 @@ class RenameClassMemberValidator {
       {
         for (SearchMatch nameDeclaration : nameDeclarations) {
           Element member = nameDeclaration.getElement();
+          member = HierarchyUtils.getSyntheticAccessorVariable(member);
           Element memberDeclClass = member.getEnclosingElement();
           // renamed Element shadows member of super-class
           if (superClasses.contains(memberDeclClass)) {

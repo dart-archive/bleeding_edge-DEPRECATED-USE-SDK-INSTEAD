@@ -58,6 +58,15 @@ public class ElementLocationImpl implements ElementLocation {
     this.components = decode(encoding);
   }
 
+  /**
+   * Initialize a newly created location from the given components.
+   * 
+   * @param components the components of a location
+   */
+  public ElementLocationImpl(String[] components) {
+    this.components = components;
+  }
+
   @Override
   public boolean equals(Object object) {
     if (this == object) {

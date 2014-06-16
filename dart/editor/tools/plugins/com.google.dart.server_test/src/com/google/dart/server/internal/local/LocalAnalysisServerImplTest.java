@@ -158,9 +158,9 @@ public class LocalAnalysisServerImplTest extends AbstractLocalServerTest {
 //    assertNull(server.getContextMap().get(contextId));
 //  }
 
-  public void test_internal_getIndex() throws Exception {
-    assertNotNull(server.getIndex());
-  }
+//  public void test_internal_getIndex() throws Exception {
+//    assertNotNull(server.getIndex());
+//  }
 
 //  public void test_performAnalysis_continueSingleContext() throws Exception {
 //    String contextA = createContext("testA");

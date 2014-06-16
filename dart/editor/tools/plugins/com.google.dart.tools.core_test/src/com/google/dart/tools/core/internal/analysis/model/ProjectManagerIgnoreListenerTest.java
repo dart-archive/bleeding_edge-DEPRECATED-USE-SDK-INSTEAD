@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
+import com.google.dart.engine.internal.index.file.MemoryNodeManager;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
@@ -187,7 +188,7 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
         rootContainer,
         sdk,
         sdkContextId,
-        IndexFactory.newIndex(IndexFactory.newMemoryIndexStore()),
+        IndexFactory.newIndex(IndexFactory.newSplitIndexStore(new MemoryNodeManager())),
         unused) {
       @Override
       public Project getProject(org.eclipse.core.resources.IProject resource) {

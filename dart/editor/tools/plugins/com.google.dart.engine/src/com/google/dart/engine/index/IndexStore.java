@@ -57,6 +57,14 @@ public interface IndexStore {
   void clear();
 
   /**
+   * Notifies that index store that the current Dart or HTML unit indexing is done.
+   * <p>
+   * If this method is not invoked after corresponding "aboutToIndex*" invocation, all recorded
+   * information may be lost.
+   */
+  void doneIndex();
+
+  /**
    * Return the locations of the elements that have the given relationship with the given element.
    * For example, if the element represents a method and the relationship is the is-referenced-by
    * relationship, then the returned locations will be all of the places where the method is

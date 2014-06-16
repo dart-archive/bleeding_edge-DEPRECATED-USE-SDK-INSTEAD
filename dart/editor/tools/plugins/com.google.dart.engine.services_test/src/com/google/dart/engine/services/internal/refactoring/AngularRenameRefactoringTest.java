@@ -29,6 +29,7 @@ import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.internal.html.angular.AngularTest;
+import com.google.dart.engine.internal.index.file.MemoryNodeManager;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.change.Change;
@@ -508,7 +509,7 @@ public class AngularRenameRefactoringTest extends AngularTest {
   protected void setUp() throws Exception {
     super.setUp();
     // run Index
-    index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
+    index = IndexFactory.newIndex(IndexFactory.newSplitIndexStore(new MemoryNodeManager()));
     new Thread() {
       @Override
       public void run() {

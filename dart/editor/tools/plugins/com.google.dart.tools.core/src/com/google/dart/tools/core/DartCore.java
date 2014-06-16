@@ -17,7 +17,7 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
-import com.google.dart.engine.index.MemoryIndexStore;
+import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
@@ -726,7 +726,10 @@ public class DartCore extends Plugin implements DartSdkListener {
         // start index
         final Index index;
         {
-          MemoryIndexStore indexStore = IndexFactory.newMemoryIndexStore();
+          File stateDir = getPlugin().getStateLocation().toFile();
+          File indexDir = new File(stateDir, "index");
+          indexDir.mkdirs();
+          IndexStore indexStore = IndexFactory.newFileIndexStore(indexDir);
           index = IndexFactory.newIndex(indexStore);
           Thread thread = new Thread() {
             @Override

@@ -32,6 +32,7 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.FileUtilities2;
@@ -55,7 +56,7 @@ public class AbstractDartTest extends TestCase {
 
   protected static final DartSdk defaultSdk = DirectoryBasedDartSdk.getDefaultSdk();
   protected static final SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
-      defaultSdk));
+      defaultSdk), new FileUriResolver());
   protected static AnalysisContext analysisContext;
 
   /**

@@ -17,6 +17,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.index.IndexFactory;
+import com.google.dart.engine.internal.index.file.MemoryNodeManager;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
@@ -209,7 +210,7 @@ public class AnalysisMarkerManagerTest extends TestCase {
         rootRes,
         sdk,
         sdkContextId,
-        IndexFactory.newIndex(IndexFactory.newMemoryIndexStore()),
+        IndexFactory.newIndex(IndexFactory.newSplitIndexStore(new MemoryNodeManager())),
         new DartIgnoreManager());
     project = projectManager.getProject(projectRes);
     project.getDefaultContext();

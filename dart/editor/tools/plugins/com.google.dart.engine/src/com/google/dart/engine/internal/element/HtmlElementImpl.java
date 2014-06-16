@@ -188,4 +188,9 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
       builder.append(source.getFullName());
     }
   }
+
+  @Override
+  protected String getIdentifier() {
+    return source.getEncoding();
+  }
 }

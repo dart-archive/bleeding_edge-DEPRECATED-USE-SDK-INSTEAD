@@ -1394,18 +1394,24 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     // TODO(brianwilkerson) This should not be a "get" method.
     try {
       String[] components = location.getComponents();
-      Source librarySource = computeSourceFromEncoding(components[0]);
-      ElementImpl element = (ElementImpl) computeLibraryElement(librarySource);
-      for (int i = 1; i < components.length; i++) {
-        if (element == null) {
-          return null;
+      Source source = computeSourceFromEncoding(components[0]);
+      String sourceName = source.getShortName();
+      if (AnalysisEngine.isDartFileName(sourceName)) {
+        ElementImpl element = (ElementImpl) computeLibraryElement(source);
+        for (int i = 1; i < components.length; i++) {
+          if (element == null) {
+            return null;
+          }
+          element = element.getChild(components[i]);
         }
-        element = element.getChild(components[i]);
+        return element;
       }
-      return element;
+      if (AnalysisEngine.isHtmlFileName(sourceName)) {
+        return computeHtmlElement(source);
+      }
     } catch (AnalysisException exception) {
-      return null;
     }
+    return null;
   }
 
   @Override
