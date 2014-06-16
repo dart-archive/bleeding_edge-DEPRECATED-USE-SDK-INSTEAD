@@ -44,6 +44,7 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IDebugTarget;
 
 import java.io.IOException;
@@ -122,12 +123,15 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
 
   private static final int REMOTE_DEBUG_PORT = 9224;
 
+  private String mode;
+
   @Override
   public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor, InstrumentationBuilder instrumentation) throws CoreException {
 
     wrapper = new DartLaunchConfigWrapper(configuration);
     wrapper.markAsLaunched();
+    this.mode = mode;
 
     String launchUrl = "";
 
@@ -250,10 +254,12 @@ public class MobileLaunchConfigurationDelegate extends DartLaunchConfigurationDe
       throw new MobileUrlConnectionException(launchUrl, localhostOverUsb);
     }
 
-    // check if remote connection is alive
-    if (!isRemoteConnected()) {
-      devBridge.setupPortForwarding(Integer.toString(REMOTE_DEBUG_PORT));
-      performRemoteConnection("localhost", REMOTE_DEBUG_PORT, monitor, usePubServe);
+    if (ILaunchManager.DEBUG_MODE.equals(mode)) {
+      // check if remote connection is alive
+      if (!isRemoteConnected()) {
+        devBridge.setupPortForwarding(Integer.toString(REMOTE_DEBUG_PORT));
+        performRemoteConnection("localhost", REMOTE_DEBUG_PORT, monitor, usePubServe);
+      }
     }
   }
 

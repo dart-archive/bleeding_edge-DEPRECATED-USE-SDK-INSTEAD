@@ -73,12 +73,6 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
   private Label infoLabel;
 
   @Override
-  public void activated(ILaunchConfigurationWorkingCopy workingCopy) {
-    startMonitorDeviceConnectionInBackground(launchTargetGroup.getDisplay());
-    super.activated(workingCopy);
-  }
-
-  @Override
   public void createControl(Composite parent) {
     Composite composite = new Composite(parent, SWT.NONE);
     GridLayoutFactory.swtDefaults().spacing(1, 3).applyTo(composite);
@@ -119,7 +113,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     infoLabel.setText(INFO_TEXT);
     GridDataFactory.swtDefaults().grab(true, false).span(1, 2).applyTo(infoLabel);
 
-    infoLink = new Link(group, SWT.NONE);
+    infoLink = new Link(group, SWT.WRAP);
     infoLink.setText("Some configurations may require setting up port forwarding in order for the "
         + "mobile device to see the web server running on your development machine. See <a href=\""
         + PORT_FORWARD_DOC_URL + "\"> port forwarding setup </a> for more information.");
@@ -134,7 +128,8 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
         ExternalBrowserUtil.openInExternalBrowser(e.text.trim());
       }
     });
-    GridDataFactory.swtDefaults().span(2, 1).grab(true, false).applyTo(infoLink);
+    GridDataFactory.swtDefaults().span(2, 1).grab(true, false).hint(415, SWT.DEFAULT).applyTo(
+        infoLink);
     new Label(group, SWT.NONE);
 
     setControl(composite);
@@ -212,6 +207,8 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
       serversCombo.select(0);
       handleComboChanged(false);
     }
+
+    startMonitorDeviceConnectionInBackground(launchTargetGroup.getDisplay());
   }
 
   /**
@@ -255,6 +252,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     } else {
       infoLabel.setText("");
     }
+    notifyPanelChanged();
   }
 
   private void notifyPanelChanged() {

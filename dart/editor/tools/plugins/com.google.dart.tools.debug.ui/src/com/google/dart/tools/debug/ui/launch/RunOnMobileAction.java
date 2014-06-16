@@ -19,7 +19,6 @@ import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -67,15 +66,6 @@ public class RunOnMobileAction extends DartRunAbstractAction {
       DebugErrorHandler.errorDialog(window.getShell(), "Error Launching", "Unable to launch "
           + resource.getName() + ".", exception);
     }
-  }
-
-  @Override
-  protected void launch(ILaunchShortcut shortcut, ISelection selection,
-      UIInstrumentationBuilder instrumentation) {
-    instrumentation.record(selection);
-    //TODO (danrubel): change to DEBUG_MODE when supported by removing this method
-    // and allowing superclass to provide implementation
-    shortcut.launch(selection, ILaunchManager.RUN_MODE);
   }
 
 }
