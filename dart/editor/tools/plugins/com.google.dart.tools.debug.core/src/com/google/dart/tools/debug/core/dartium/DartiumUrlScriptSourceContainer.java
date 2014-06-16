@@ -37,6 +37,10 @@ public class DartiumUrlScriptSourceContainer extends AbstractSourceContainer {
   @Override
   public Object[] findSourceElements(String name) throws CoreException {
 
+    if (DartiumDebugTarget.getActiveTarget() == null) {
+      return EMPTY;
+    }
+
     ILaunch launch = DartiumDebugTarget.getActiveTarget().getLaunch();
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(
         launch.getLaunchConfiguration());
