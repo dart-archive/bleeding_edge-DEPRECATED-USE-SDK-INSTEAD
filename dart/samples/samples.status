@@ -60,6 +60,14 @@ third_party/todomvc/test/mainpage_test: Pass, RuntimeError # Issue 18931
 third_party/todomvc/test/markdone_shadow_test: Pass, RuntimeError # Issue 18931
 third_party/todomvc/test/markdone_test: Pass, RuntimeError # Issue 18931
 
+[ $compiler == none && $runtime == ContentShellOnAndroid ]
+third_party/todomvc/test/listorder_test: Skip # Times out
+third_party/todomvc/test/mainpage_test: Skip # Times out
+third_party/todomvc/test/markdone_shadow_test: Skip # Times out
+third_party/todomvc/test/markdone_test: Skip # Times out
+
+
+
 [ $compiler == none && $runtime == drt ]
 third_party/todomvc/test/markdone_shadow_test: RuntimeError # Issue 19414
 
