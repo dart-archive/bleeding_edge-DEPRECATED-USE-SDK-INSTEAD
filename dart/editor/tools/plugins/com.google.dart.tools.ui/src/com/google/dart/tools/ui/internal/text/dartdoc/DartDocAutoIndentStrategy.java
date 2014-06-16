@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.ui.internal.text.dartdoc;
 
+import com.google.dart.tools.ui.text.DartPartitions;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultIndentLineAutoEditStrategy;
@@ -37,6 +39,9 @@ public class DartDocAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy
 
   @Override
   public void customizeDocumentCommand(IDocument document, DocumentCommand command) {
+    if (!isValidPartition(document, command.offset)) {
+      return;
+    }
     if (command.text != null) {
       if (command.length == 0) {
         String[] lineDelimiters = document.getLegalLineDelimiters();
@@ -173,5 +178,16 @@ public class DartDocAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy
     } catch (BadLocationException e) {
       return false;
     }
+  }
+
+  private boolean isValidPartition(IDocument document, int offset) {
+    try {
+      String contentType = TextUtilities.getContentType(document, partitioning, offset, false);
+      return DartPartitions.DART_DOC.equals(contentType)
+          || DartPartitions.DART_MULTI_LINE_COMMENT.equals(contentType)
+          || DartPartitions.DART_SINGLE_LINE_DOC.equals(contentType);
+    } catch (BadLocationException e) {
+    }
+    return false;
   }
 }

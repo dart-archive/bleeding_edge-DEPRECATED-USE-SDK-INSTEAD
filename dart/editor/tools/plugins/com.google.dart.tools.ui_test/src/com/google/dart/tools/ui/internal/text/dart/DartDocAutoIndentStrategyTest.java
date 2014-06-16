@@ -131,6 +131,20 @@ public class DartDocAutoIndentStrategyTest extends EngineTestCase {
         "}"));
   }
 
+  public void test_newComment_multiLine_notDoc() throws Exception {
+    assertSmartInsertAfterNewLine(createSource(//
+        "class A {",
+        "  /*!",
+        "  foo() {}",
+        "}"), createSource(//
+        "class A {",
+        "  /*",
+        "   * !",
+        "   */",
+        "  foo() {}",
+        "}"));
+  }
+
   public void test_newComment_topLevel() throws Exception {
     assertSmartInsertAfterNewLine(createSource(//
         "/**!",
