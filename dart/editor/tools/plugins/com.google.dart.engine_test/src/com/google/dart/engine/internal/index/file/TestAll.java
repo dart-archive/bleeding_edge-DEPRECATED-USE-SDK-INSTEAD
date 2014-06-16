@@ -23,9 +23,12 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ContextCodecTest.class);
     suite.addTestSuite(ElementCodecTest.class);
+    suite.addTestSuite(FileNodeManagerTest.class);
+    suite.addTestSuite(IndexNodeTest.class);
     suite.addTestSuite(LocationDataTest.class);
     suite.addTestSuite(RelationKeyDataTest.class);
     suite.addTestSuite(RelationshipCodecTest.class);
+    suite.addTestSuite(SeparateFileManagerTest.class);
     suite.addTestSuite(SplitIndexStoreImplTest.class);
     suite.addTestSuite(StringCodecTest.class);
     return suite;

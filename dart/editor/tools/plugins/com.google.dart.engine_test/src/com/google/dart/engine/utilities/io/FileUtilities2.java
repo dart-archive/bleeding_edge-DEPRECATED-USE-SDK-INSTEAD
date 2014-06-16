@@ -98,6 +98,26 @@ public final class FileUtilities2 {
   }
 
   /**
+   * Delete the contents of the given directory, given that we know it is a directory.
+   * 
+   * @param dir the directory whose contents are to be deleted
+   */
+  public static void deleteDirectory(File dir) throws IOException {
+    for (File file : dir.listFiles()) {
+      if (file.isDirectory()) {
+        deleteDirectory(file);
+      } else {
+        if (!file.delete()) {
+          throw new IOException("Failed to delete " + file);
+        }
+      }
+    }
+    if (!dir.delete()) {
+      throw new IOException("Failed to delete " + dir);
+    }
+  }
+
+  /**
    * Delete symlink or throw an exception if creation of symlinks is not supported. Use
    * {@link #isSymLinkSupported()} to determine if this method will work on the current platform.
    * 
@@ -146,26 +166,6 @@ public final class FileUtilities2 {
     } else {
       // On windows, the path separator is '\'.
       return path.replaceAll("/", "\\\\");
-    }
-  }
-
-  /**
-   * Delete the contents of the given directory, given that we know it is a directory.
-   * 
-   * @param dir the directory whose contents are to be deleted
-   */
-  private static void deleteDirectory(File dir) throws IOException {
-    for (File file : dir.listFiles()) {
-      if (file.isDirectory()) {
-        deleteDirectory(file);
-      } else {
-        if (!file.delete()) {
-          throw new IOException("Failed to delete " + file);
-        }
-      }
-    }
-    if (!dir.delete()) {
-      throw new IOException("Failed to delete " + dir);
     }
   }
 

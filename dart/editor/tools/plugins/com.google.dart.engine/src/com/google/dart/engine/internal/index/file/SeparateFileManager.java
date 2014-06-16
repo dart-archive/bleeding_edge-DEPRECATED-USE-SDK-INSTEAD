@@ -45,7 +45,7 @@ public class SeparateFileManager implements FileManager {
 
   @Override
   public void delete(String name) {
-    new File(base, name).delete();
+    getFile(name).delete();
   }
 
   @Override

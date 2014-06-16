@@ -120,7 +120,7 @@ public class IndexNode {
   }
 
   /**
-   * Sets relations.
+   * Sets relations data. This method is used during loading data from a storage.
    */
   public void setRelations(Map<RelationKeyData, List<LocationData>> relations) {
     this.relations.clear();
