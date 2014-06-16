@@ -26,6 +26,7 @@ public class TestAll {
     suite.addTest(com.google.dart.engine.internal.constant.TestAll.suite());
     suite.addTest(com.google.dart.engine.internal.context.TestAll.suite());
     suite.addTest(com.google.dart.engine.internal.element.TestAll.suite());
+    suite.addTest(com.google.dart.engine.internal.error.TestAll.suite());
     suite.addTest(com.google.dart.engine.internal.hint.TestAll.suite());
     suite.addTest(com.google.dart.engine.internal.html.TestAll.suite());
     suite.addTest(com.google.dart.engine.internal.index.TestAll.suite());

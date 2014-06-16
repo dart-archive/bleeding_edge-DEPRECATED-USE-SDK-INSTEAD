@@ -217,7 +217,7 @@ public class ErrorReporter {
     int count = arguments.length;
     HashSet<String> typeNames = new HashSet<String>(count);
     for (int i = 0; i < count; i++) {
-      if (arguments[i] instanceof Type && typeNames.add(((Type) arguments[i]).getDisplayName())) {
+      if (arguments[i] instanceof Type && !typeNames.add(((Type) arguments[i]).getDisplayName())) {
         return true;
       }
     }

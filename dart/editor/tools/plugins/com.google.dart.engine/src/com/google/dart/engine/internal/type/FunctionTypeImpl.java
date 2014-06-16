@@ -107,7 +107,8 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   public String getDisplayName() {
     String name = getName();
     if (name == null || name.length() == 0) {
-      // TODO(brianwilkerson) Determine whether function types should ever have an empty name.
+      // Function types have an empty name when they are defined implicitly by either a closure or
+      // as part of a parameter declaration.
       Type[] normalParameterTypes = getNormalParameterTypes();
       Type[] optionalParameterTypes = getOptionalParameterTypes();
       Map<String, Type> namedParameterTypes = getNamedParameterTypes();
