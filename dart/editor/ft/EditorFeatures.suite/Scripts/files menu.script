@@ -1,0 +1,46 @@
+﻿(* Check content of variable items in Files context menu *)
+
+verifyContextMenuItem "index.html", "Open as Text"
+verifyContextMenuItem "index.html", "Rename"
+verifyContextMenuItem "index.html", "Run in Dartium"
+verifyContextMenuItem "index.html", "Run as JavaScript"
+verifyContextMenuItem "index.html", "Run on Mobile"
+
+verifyContextMenuItem "game_web.dart", "Format"
+verifyContextMenuItem "game_web.dart", "Rename"
+verifyContextMenuItem "game_web.dart", "Run in Dartium"
+verifyContextMenuItem "game_web.dart", "Run as JavaScript"
+verifyContextMenuItem "game_web.dart", "Run on Mobile"
+
+verifyContextMenuItem "pubspec.yaml", "Pub Get"
+verifyContextMenuItem "pubspec.yaml", "Pub Get Offline"
+verifyContextMenuItem "pubspec.yaml", "Pub Upgrade"
+verifyContextMenuItem "pubspec.yaml", "Pub Build"
+
+verifyContextImageMenuItem "pop project", "Close Folder"
+verifyContextImageMenuItem "pop project", "New Folder"
+verifyContextImageMenuItem "pop project", "Reanalyze Sources"
+
+verifyContextMenuItem "packages", "Find packages to include" (* Bug: capitalization *)
+
+(* Verify existence of menuItem from the context menu available by right-clicking at contextLocator text *)
+to verifyContextMenuItem with contextLocator, menuItem
+  verifyContextImageMenuItem (Text:contextLocator,CaseSensitive:"yes",ValidCharacters:"*",IgnoreUnderscores:"false",IgnoreSpaces:"yes",dpi:94), menuItem
+end verifyContextMenuItem
+
+(* Verify existence of menuItem from the context menu available by right-clicking at contextLocator *)
+to verifyContextImageMenuItem with contextLocator, menuItem
+  put the SearchRectangle into origRect
+  set the SearchRectangle to ((0,0),(200,800))
+  click "dart sdk"
+  put ImageLocation(contextLocator) into imageLocation
+  Click imageLocation
+  RightClick imageLocation (*contextLocator*)
+  put mouselocation() - (15,0) into UL
+  put UL + (500,500) into BR
+  set the SearchRectangle to (UL,BR)
+  util.xWait 0.1
+  WaitFor 1,(Text:menuItem,CaseSensitive:"yes",ValidCharacters:"*",IgnoreSpaces:"yes",dpi:94)
+  set the SearchRectangle to origRect
+  TypeText escape
+end verifyContextImageMenuItem
