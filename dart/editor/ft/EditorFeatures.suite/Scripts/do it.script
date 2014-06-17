@@ -1,7 +1,7 @@
 ﻿(* Exercise additional editing features *)
 util.init
 Run "create pop"
-Run "paste multiline string"  (* CURRENTLY BROKEN *)
+Run "paste multiline string"
 Run "tab size adjust"
 Run "platform nav"
 Run "pubspec"

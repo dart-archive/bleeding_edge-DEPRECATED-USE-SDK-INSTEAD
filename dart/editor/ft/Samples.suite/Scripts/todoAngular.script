@@ -17,6 +17,6 @@ util.newline
 util.xWait 0.5
 util.xWaitFor 2, "some check"
 util.exitChromium
-(* util.checkProblems broken angular *)
+util.checkProblems
 util.deleteProject "angular project"
 util.deleteOutput
