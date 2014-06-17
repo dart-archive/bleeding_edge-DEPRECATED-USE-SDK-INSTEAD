@@ -18,6 +18,8 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.Document;
+import org.eclipse.ltk.core.refactoring.DocumentChange;
 import org.eclipse.ltk.core.refactoring.TextChange;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 
@@ -55,7 +57,11 @@ public class TextChangeManager {
     TextChange result = fMap.get(source);
     if (result == null) {
       IFile file = (IFile) DartCore.getProjectManager().getResource(source);
-      result = new TextFileChange(source.getShortName(), file);
+      if (file != null) {
+        result = new TextFileChange(source.getShortName(), file);
+      } else {
+        result = new DocumentChange(source.getShortName(), new Document());
+      }
       fMap.put(source, result);
     }
     return result;
