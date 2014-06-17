@@ -706,16 +706,18 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       ArrayList<SourceEntryPair> pairs = new ArrayList<SourceEntryPair>();
       Source librarySource = library.getLibrarySource();
       DartEntry libraryEntry = getReadableDartEntry(librarySource);
-      ensureResolvableCompilationUnit(librarySource, libraryEntry);
-      pairs.add(new SourceEntryPair(librarySource, libraryEntry));
-      Source[] partSources = getSources(librarySource, libraryEntry, DartEntry.INCLUDED_PARTS);
-      int count = partSources.length;
-      for (int i = 0; i < count; i++) {
-        Source partSource = partSources[i];
-        DartEntry partEntry = getReadableDartEntry(partSource);
-        if (partEntry != null && partEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
-          ensureResolvableCompilationUnit(partSource, partEntry);
-          pairs.add(new SourceEntryPair(partSource, partEntry));
+      if (libraryEntry != null && libraryEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
+        ensureResolvableCompilationUnit(librarySource, libraryEntry);
+        pairs.add(new SourceEntryPair(librarySource, libraryEntry));
+        Source[] partSources = getSources(librarySource, libraryEntry, DartEntry.INCLUDED_PARTS);
+        int count = partSources.length;
+        for (int i = 0; i < count; i++) {
+          Source partSource = partSources[i];
+          DartEntry partEntry = getReadableDartEntry(partSource);
+          if (partEntry != null && partEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
+            ensureResolvableCompilationUnit(partSource, partEntry);
+            pairs.add(new SourceEntryPair(partSource, partEntry));
+          }
         }
       }
       return pairs;
