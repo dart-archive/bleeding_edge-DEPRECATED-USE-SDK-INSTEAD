@@ -14,8 +14,6 @@
 package com.google.dart.engine.internal.index.file;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.primitives.Ints;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
@@ -24,7 +22,6 @@ import com.google.dart.engine.internal.element.ElementLocationImpl;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * A helper that encodes/decodes {@link Element}s to/from integers.
@@ -37,12 +34,12 @@ public class ElementCodec {
   /**
    * A table mapping element locations (in form of integer arrays) into a single integer.
    */
-  private final Map<List<Integer>, Integer> pathToIndex = Maps.newHashMap();
+  private final IntArrayToIntMap pathToIndex = new IntArrayToIntMap(10000, 0.75f);
 
   /**
    * A list that works as a mapping of integers to element encodings (in form of integer arrays).
    */
-  private final List<List<Integer>> indexToPath = Lists.newArrayList();
+  private final List<int[]> indexToPath = Lists.newArrayList();
 
   public ElementCodec(StringCodec stringCodec) {
     this.stringCodec = stringCodec;
@@ -56,8 +53,7 @@ public class ElementCodec {
    * @return the {@link Element} or {@code null}
    */
   public Element decode(AnalysisContext context, int index) {
-    List<Integer> pathList = indexToPath.get(index);
-    int[] path = Ints.toArray(pathList);
+    int[] path = indexToPath.get(index);
     String[] components = getLocationComponents(path);
     ElementLocation location = new ElementLocationImpl(components);
     return context.getElement(location);
@@ -68,12 +64,11 @@ public class ElementCodec {
    */
   public int encode(Element element) {
     int[] path = getLocationPath(element);
-    List<Integer> pathList = Ints.asList(path);
-    Integer index = pathToIndex.get(pathList);
-    if (index == null) {
+    int index = pathToIndex.get(path, -1);
+    if (index == -1) {
       index = indexToPath.size();
-      pathToIndex.put(pathList, index);
-      indexToPath.add(pathList);
+      pathToIndex.put(path, index);
+      indexToPath.add(path);
     }
     return index;
   }
