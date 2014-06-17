@@ -470,6 +470,11 @@ public class MockContext implements InternalAnalysisContext {
   }
 
   @Override
+  public Source[] getPrioritySources() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public Namespace getPublicNamespace(LibraryElement library) {
     throw new UnsupportedOperationException();
   }

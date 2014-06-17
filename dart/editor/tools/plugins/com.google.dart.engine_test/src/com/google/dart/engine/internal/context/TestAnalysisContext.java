@@ -272,6 +272,12 @@ public class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @Override
+  public Source[] getPrioritySources() {
+    fail("Unexpected invocation of getPrioritySources");
+    return null;
+  }
+
+  @Override
   public Namespace getPublicNamespace(LibraryElement library) {
     fail("Unexpected invocation of getPublicNamespace");
     return null;

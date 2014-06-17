@@ -87,6 +87,14 @@ public interface InternalAnalysisContext extends AnalysisContext {
       InternalAnalysisContext newContext);
 
   /**
+   * Return an array containing all of the sources that have been marked as priority sources.
+   * Clients must not modify the returned array.
+   * 
+   * @return the sources that have been marked as priority sources
+   */
+  public Source[] getPrioritySources();
+
+  /**
    * Return a namespace containing mappings for all of the public names defined by the given
    * library.
    * 

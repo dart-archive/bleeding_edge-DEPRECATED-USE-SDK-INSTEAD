@@ -1622,6 +1622,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public Source[] getPrioritySources() {
+    return priorityOrder;
+  }
+
+  @Override
   public Namespace getPublicNamespace(LibraryElement library) {
     // TODO(brianwilkerson) Rename this to not start with 'get'. Note that this is not part of the
     // API of the interface.

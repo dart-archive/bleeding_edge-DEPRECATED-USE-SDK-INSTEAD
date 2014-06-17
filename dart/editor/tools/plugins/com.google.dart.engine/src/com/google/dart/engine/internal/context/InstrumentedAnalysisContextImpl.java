@@ -564,6 +564,18 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public Source[] getPrioritySources() {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getPrioritySources");
+    checkThread(instrumentation);
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getPrioritySources();
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
   public Namespace getPublicNamespace(LibraryElement library) {
     return basis.getPublicNamespace(library);
   }
