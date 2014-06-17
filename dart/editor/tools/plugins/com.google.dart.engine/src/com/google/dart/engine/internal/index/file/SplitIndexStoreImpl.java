@@ -58,7 +58,7 @@ public class SplitIndexStoreImpl implements IndexStore {
    * A table mapping element names to the node names that may have relations with elements with
    * these names.
    */
-  private final Map<Integer, int[]> nameToNodeNames = Maps.newHashMap();
+  private final IntToIntSetMap nameToNodeNames = new IntToIntSetMap(10000, 0.75f);
 
   /**
    * The mapping of library {@link Source} to the {@link Source}s of part units.
@@ -185,9 +185,6 @@ public class SplitIndexStoreImpl implements IndexStore {
     String name = getElementName(element);
     int nameId = stringCodec.encode(name);
     int[] nodeNameIds = nameToNodeNames.get(nameId);
-    if (nodeNameIds == null) {
-      return Location.EMPTY_ARRAY;
-    }
     // check each node
     List<Location> locations = Lists.newArrayList();
     for (int i = 0; i < nodeNameIds.length; i++) {
@@ -310,16 +307,7 @@ public class SplitIndexStoreImpl implements IndexStore {
   private void recordNodeNameForElement(Element element) {
     String name = getElementName(element);
     int nameId = stringCodec.encode(name);
-    int[] nodeNameIds = nameToNodeNames.get(nameId);
-    if (nodeNameIds == null) {
-      nodeNameIds = new int[] {currentNodeNameId};
-      nameToNodeNames.put(nameId, nodeNameIds);
-      return;
-    }
-    if (ArrayUtils.indexOf(nodeNameIds, currentNodeNameId) == -1) {
-      nodeNameIds = ArrayUtils.add(nodeNameIds, currentNodeNameId);
-      nameToNodeNames.put(nameId, nodeNameIds);
-    }
+    nameToNodeNames.add(nameId, currentNodeNameId);
   }
 
   private void recordUnitInLibrary(AnalysisContext context, Source library, Source unit) {

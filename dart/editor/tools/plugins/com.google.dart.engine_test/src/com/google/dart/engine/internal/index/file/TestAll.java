@@ -26,6 +26,7 @@ public class TestAll {
     suite.addTestSuite(FileNodeManagerTest.class);
     suite.addTestSuite(IndexNodeTest.class);
     suite.addTestSuite(IntArrayToIntMapTest.class);
+    suite.addTestSuite(IntToIntSetMapTest.class);
     suite.addTestSuite(LocationDataTest.class);
     suite.addTestSuite(RelationKeyDataTest.class);
     suite.addTestSuite(RelationshipCodecTest.class);

@@ -47,8 +47,8 @@ public class IntArrayToIntMap {
     threshold = (int) (capacity * loadFactor);
     size = 0;
     keys = new int[capacity][];
-    entries = new Entry[capacity];
     values = new int[capacity];
+    entries = new Entry[capacity];
   }
 
   /**
@@ -173,6 +173,9 @@ public class IntArrayToIntMap {
     return defaultValue;
   }
 
+  /**
+   * Returns the number of key-value mappings in this map.
+   */
   public int size() {
     return size;
   }
