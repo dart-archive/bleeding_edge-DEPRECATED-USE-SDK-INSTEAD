@@ -28,47 +28,47 @@ vars = {
   "libcxxabi_revision": "206024",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "175778",
+  "webkit_revision": "176215",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "pdfium_git": "https://pdfium.googlesource.com",
   "skia_git": "https://skia.googlesource.com",
   "swig_revision": "230490",
-  "nacl_revision": "13295",
+  "nacl_revision": "13350",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "13077",  # native_client/DEPS: tools_rev
   "google_toolbox_for_mac_revision": "662",
-  "libaddressinput_revision": "265",
+  "libaddressinput_revision": "273",
   "libphonenumber_revision": "621",
   "libvpx_revision": "269083",
   "lss_revision": "26",
-  "sfntly_revision": "228",
+  "sfntly_revision": "239",
   "lighttpd_revision": "33737",
-  "skia_revision": "b0b0feb71f0841497c041aa4aca2b10e032224e0",
+  "skia_revision": "0eb02a6abbe2964e4955863b0f82aff6a8661801",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   "v8_branch": "trunk",
-  "v8_revision": "21682",
+  "v8_revision": "21855",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "6346",
+  "webrtc_revision": "6449",
   "jsoncpp_revision": "248",
-  "nss_revision": "275589",
+  "nss_revision": "277057",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarming_client
   # and whatever else without interference from each other.
-  "swarming_revision": "ae8085b09e6162b4ec869e430d7d09c16b32b433",
+  "swarming_revision": "aea50658a1fb5078dbf9406991d7f6d8ec34d465",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
-  "openssl_revision": "271781",
+  "openssl_revision": "275836",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  "angle_revision": "d7e7d735ec75a6b0ff855447b20691c7fbb6c97e",
+  "angle_revision": "afeeda9391c1f3fc0c35c04fbc448480177059d8",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling build tools
   # and whatever else without interference from each other.
@@ -76,7 +76,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFIum
   # and whatever else without interference from each other.
-  "pdfium_revision": "0db35e84407fe41f1ba9c19628a9fcfc9cc8f462",
+  "pdfium_revision": "9e16edd0ffb834e87da76fe6b0fe4aef39312685",
 }
 
 deps = {
@@ -98,6 +98,9 @@ deps = {
 
   "src/third_party/angle":
     Var("chromium_git") + "/angle/angle.git@" + Var("angle_revision"),
+
+  "src/third_party/colorama/src":
+    Var("chromium_git") + "/external/colorama.git@799604a1041e9b3bc5d2789ecbd7e8db2e18e6b8",
 
   "src/third_party/trace-viewer":
     (Var("googlecode_url") % "trace-viewer") + "/trunk@1281",
@@ -278,7 +281,7 @@ deps = {
         Var("libphonenumber_revision"),
 
   "src/tools/deps2git":
-    "/trunk/tools/deps2git@270777",
+    "/trunk/tools/deps2git@276439",
 
   "src/third_party/clang_format/script":
     Var("llvm_url") + "/cfe/trunk/tools/clang-format@206068",
@@ -343,7 +346,7 @@ deps_os = {
 
     # Parses Windows PE/COFF executable format.
     "src/third_party/pefile":
-      (Var("googlecode_url") % "pefile") + "/trunk@63",
+      (Var("googlecode_url") % "pefile") + "/trunk@141",
 
     # NSS, for SSLClientSocketNSS.
     "src/third_party/nss":
@@ -364,11 +367,6 @@ deps_os = {
     # Dependencies used by libjpeg-turbo
     "src/third_party/yasm/binaries":
       "/trunk/deps/third_party/yasm/binaries@154708",
-
-    # Binary level profile guided optimizations. This points to the
-    # latest release binaries for the toolchain.
-    "src/third_party/syzygy/binaries":
-      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@2154",
 
     # Binaries for nacl sdk.
     "src/third_party/nacl_sdk_binaries":
@@ -504,7 +502,7 @@ deps_os = {
   "android": {
     "src/third_party/android_tools":
       Var("chromium_git") + "/android_tools.git" +
-      "@ac519ee39778f7a1f2aac797a941a6b3db9d3882",
+      "@c6e658065e7ad80477390424bb5388da6e936d07",
 
     "src/third_party/aosp":
       "/trunk/deps/third_party/aosp@148330",
@@ -776,6 +774,31 @@ hooks = [
                 "--bucket", "chromium-drmemory",
                 "-s", "src/third_party/drmemory/drmemory-windows-sfx.exe.sha1",
               ],
+  },
+  # Pull the Syzygy binaries, used for optimization and instrumentation.
+  {
+    "name": "syzygy-binaries",
+    "pattern": ".",
+    "action": ["python",
+               "src/build/get_syzygy_binaries.py",
+               "--output-dir=src/third_party/syzygy/binaries",
+               "--revision=b08fb72610963d31cc3eae33f746a04e263bd860",
+               "--overwrite",
+    ],
+  },
+  {
+    "name": "apache_win32",
+    "pattern": "\\.sha1",
+    "action": [ "download_from_google_storage",
+                "--no_resume",
+                "--platform=win32",
+                "--directory",
+                "--recursive",
+                "--no_auth",
+                "--num_threads=16",
+                "--bucket", "chromium-apache-win32",
+                "src/third_party/apache-win32",
+    ],
   },
   {
     # A change to a .gyp, .gypi, or to GYP itself should run the generator.
