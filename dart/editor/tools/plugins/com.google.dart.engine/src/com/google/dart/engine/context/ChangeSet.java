@@ -190,7 +190,8 @@ public class ChangeSet {
 
   /**
    * Record that the specified source has been changed. If the content of the source was previously
-   * overridden, use {@link #changedContent(Source, String)} instead.
+   * overridden, this has no effect (the content remains overridden). To cancel (or change) the
+   * override, use {@link #changedContent(Source, String)} instead.
    * 
    * @param source the source that was changed
    */

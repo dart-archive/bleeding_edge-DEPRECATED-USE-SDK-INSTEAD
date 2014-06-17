@@ -1017,6 +1017,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
       for (Source source : changeSet.getChangedSources()) {
+        if (contentCache.getContents(source) != null) {
+          // This source is overridden in the content cache, so the change will have no effect.
+          // Just ignore it to avoid wasting time doing re-analysis.
+          continue;
+        }
         sourceChanged(source);
       }
       for (Map.Entry<Source, String> entry : changeSet.getChangedContents().entrySet()) {
@@ -4070,25 +4075,27 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               return;
             }
           }
-          CacheState verificationErrorsState = dartEntry.getStateInLibrary(
-              DartEntry.VERIFICATION_ERRORS,
-              librarySource);
-          if (verificationErrorsState == CacheState.INVALID
-              || (isPriority && verificationErrorsState == CacheState.FLUSHED)) {
-            LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
-            if (libraryElement != null) {
-              sources.add(source);
-              return;
-            }
-          }
-          if (hintsEnabled) {
-            CacheState hintsState = dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource);
-            if (hintsState == CacheState.INVALID
-                || (isPriority && hintsState == CacheState.FLUSHED)) {
+          if (generateSdkErrors || !source.isInSystemLibrary()) {
+            CacheState verificationErrorsState = dartEntry.getStateInLibrary(
+                DartEntry.VERIFICATION_ERRORS,
+                librarySource);
+            if (verificationErrorsState == CacheState.INVALID
+                || (isPriority && verificationErrorsState == CacheState.FLUSHED)) {
               LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
               if (libraryElement != null) {
                 sources.add(source);
                 return;
+              }
+            }
+            if (hintsEnabled) {
+              CacheState hintsState = dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource);
+              if (hintsState == CacheState.INVALID
+                  || (isPriority && hintsState == CacheState.FLUSHED)) {
+                LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
+                if (libraryElement != null) {
+                  sources.add(source);
+                  return;
+                }
               }
             }
           }

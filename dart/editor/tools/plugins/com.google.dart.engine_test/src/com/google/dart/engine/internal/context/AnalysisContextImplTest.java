@@ -187,6 +187,21 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNull(context.performAnalysisTask().getChangeNotices());
   }
 
+  public void test_applyChanges_overriddenSource() throws Exception {
+    // Note: addSource adds the source to the contentCache.
+    Source source = addSource("/test.dart", "library test;");
+    context.computeErrors(source);
+    while (!context.getSourcesNeedingProcessing().isEmpty()) {
+      context.performAnalysisTask();
+    }
+    // Adding the source as a changedSource should have no effect since it is already overridden
+    // in the content cache.
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.changedSource(source);
+    context.applyChanges(changeSet);
+    assertSizeOfList(0, context.getSourcesNeedingProcessing());
+  }
+
   public void test_applyChanges_remove() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
