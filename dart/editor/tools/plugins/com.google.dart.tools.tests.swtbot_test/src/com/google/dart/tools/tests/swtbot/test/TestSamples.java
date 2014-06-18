@@ -64,13 +64,13 @@ public class TestSamples extends EditorTestHarness {
 
     abstract void createSample(WelcomePageEditor page);
 
-    void run(String projectName) {
+    void run(String projectName, int... args) {
       EditorBotWindow editor = new EditorBotWindow(bot);
       WelcomePageEditor page = editor.openWelcomePage();
       try {
         createSample(page);
         ProblemsBotView problems = editor.problemsView();
-        assertTrue(problems.isEmpty());
+        assertTrue(problems.isEmpty(args));
       } finally {
         FilesBotView files = editor.filesView();
         files.deleteProject(projectName);
@@ -91,11 +91,11 @@ public class TestSamples extends EditorTestHarness {
 
   @Test
   public void test3PolymerTodo() throws Exception {
-    new PolymerTodoRunner().run("todomvc");
+    new PolymerTodoRunner().run("todomvc", 1); // ignore one hint
   }
 
   @Test
   public void test4AngularTodo() throws Exception {
-    new AngularTodoRunner().run("angular_todo");
+    new AngularTodoRunner().run("angular_todo", 1); // ignore one hint
   }
 }

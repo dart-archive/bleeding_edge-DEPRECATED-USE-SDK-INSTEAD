@@ -26,14 +26,19 @@ public class ProblemsBotView extends AbstractBotView {
     super(bot);
   }
 
-  public boolean isEmpty() {
+  public boolean isEmpty(int... args) {
     waitForAnalysis();
     waitForToolsOutput();
     SWTBotView view = bot.viewByPartName("Problems");
     view.show();
     view.setFocus();
     SWTBotTable tree = view.bot().table();
-    boolean result = tree.rowCount() == 0;
+    boolean result;
+    if (args.length > 0) {
+      result = tree.rowCount() <= args[0];
+    } else {
+      result = tree.rowCount() == 0;
+    }
     return result;
   }
 }
