@@ -397,8 +397,11 @@ public class PubspecModel {
           ? pubspecMap.get(PubspecConstants.HOMEPAGE) : EMPTY_STRING);
       documentation = (String) ((pubspecMap.get(PubspecConstants.DOCUMENTATION) != null)
           ? pubspecMap.get(PubspecConstants.DOCUMENTATION) : EMPTY_STRING);
-      transformers = (ArrayList<Object>) ((pubspecMap.get(PubspecConstants.TRANSFORMERS) != null)
+      Object object = ((pubspecMap.get(PubspecConstants.TRANSFORMERS) != null)
           ? pubspecMap.get(PubspecConstants.TRANSFORMERS) : new ArrayList<Object>());
+      if (object instanceof ArrayList<?>) {
+        transformers = (ArrayList<Object>) object;
+      }
       add(
           processDependencies(
               (Map<String, Object>) pubspecMap.get(PubspecConstants.DEPENDENCIES),
