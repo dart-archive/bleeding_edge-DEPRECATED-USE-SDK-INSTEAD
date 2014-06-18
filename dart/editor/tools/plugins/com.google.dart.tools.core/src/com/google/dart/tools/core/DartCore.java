@@ -468,8 +468,8 @@ public class DartCore extends Plugin implements DartSdkListener {
       if (analysisServer == null) {
         // TODO(scheglov) remove local analysis server
 //        analysisServer = new com.google.dart.server.internal.local.LocalAnalysisServerImpl();
-        File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
-        if (sdkDirectory == null) {
+        DartSdkManager sdkManager = DartSdkManager.getManager();
+        if (!sdkManager.hasSdk()) {
           DartCore.logError("Add the dart sdk (com.google.dart.sdk) as a JVM argument");
           System.exit(1);
         }
@@ -478,7 +478,7 @@ public class DartCore extends Plugin implements DartSdkListener {
           DartCore.logError("Add the dart svnRoot (com.google.dart.svnRoot) as a JVM argument");
           System.exit(1);
         }
-        String runtimePath = sdkDirectory.getAbsolutePath() + "/bin/dart";
+        String runtimePath = sdkManager.getSdk().getVmExecutable().getAbsolutePath();
         String analysisServerPath = svnRoot + "/pkg/analysis_server/bin/server.dart";
         try {
           StdioServerSocket socket = new StdioServerSocket(runtimePath, analysisServerPath);
