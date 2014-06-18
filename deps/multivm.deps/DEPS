@@ -11,7 +11,8 @@ vars.update({
   "multivm_base": "http://src.chromium.org",
   "multivm_chromium_branch": "/chrome/trunk/src",
   "multivm_chromium_revision": "277580",
-  "chromium_base_revision": "277580",
+  # There were no uploaded chromium builds within 100 revisions of 277580.
+  "chromium_base_revision": "277575",
   "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
   "dart_tools_revision": "36985",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
