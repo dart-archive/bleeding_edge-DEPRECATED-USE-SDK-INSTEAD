@@ -63,8 +63,12 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
       + PORT_FORWARD_DOC_URL
       + "\">setup port forwarding</a> so that your mobile can see the server.";
 
+  private static final String SERVER_INFO_TEXT = "Use the server embedded in the Dart Editor, "
+      + "connecting over Wifi. This requires that your phone can establish a direct connection by Wifi "
+      + "to the computer where Dart Editor is running.";
+
   // When these change, be sure to change the messaging in MobileUrlConnectionException
-  private String[] servers = {"Embedded server", "Pub Serve over USB"};
+  private String[] servers = {"Embedded server over WiFi network", "Pub Serve over USB"};
 
   private LaunchTargetComposite launchTargetGroup;
 
@@ -249,7 +253,7 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     if (usePubServe) {
       infoLink.setText(INFO_TEXT);
     } else {
-      infoLink.setText("");
+      infoLink.setText(SERVER_INFO_TEXT);
     }
     notifyPanelChanged();
   }
