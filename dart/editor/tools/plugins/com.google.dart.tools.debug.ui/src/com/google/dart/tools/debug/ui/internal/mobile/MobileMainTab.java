@@ -58,11 +58,13 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
   // until dartbug.com/19457 is fixed.
   public static final String PORT_FORWARD_DOC_URL = MOBILE_DOC_URL + "#connect-the-devices";
 
-  private static final String INFO_TEXT = "Serve the application using 'pub serve'. "
-      + "This requires setting up port forwarding.";
+  private static final String INFO_TEXT = "Pub-Serve runs on your local machine, and serves your application over the USB cable."
+      + "To use it you have to <a href=\""
+      + PORT_FORWARD_DOC_URL
+      + "\">setup port forwarding</a> so that your mobile can see the server.";
 
   // When these change, be sure to change the messaging in MobileUrlConnectionException
-  private String[] servers = {"Embedded server", "Pub serve"};
+  private String[] servers = {"Embedded server", "Pub Serve over USB"};
 
   private LaunchTargetComposite launchTargetGroup;
 
@@ -70,7 +72,6 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
   private final AtomicBoolean monitorDeviceConnection = new AtomicBoolean(false);
   private Link infoLink;
   private Combo serversCombo;
-  private Label infoLabel;
 
   @Override
   public void createControl(Composite parent) {
@@ -109,14 +110,12 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     });
     serversCombo.setItems(servers);
 
-    infoLabel = new Label(group, SWT.WRAP);
-    infoLabel.setText(INFO_TEXT);
-    GridDataFactory.swtDefaults().grab(true, false).span(1, 2).applyTo(infoLabel);
+    Label separator = new Label(group, SWT.WRAP);
+    GridDataFactory.swtDefaults().grab(true, false).span(1, 2).applyTo(separator);
 
     infoLink = new Link(group, SWT.WRAP);
-    infoLink.setText("Some configurations may require setting up port forwarding in order for the "
-        + "mobile device to see the web server running on your development machine. See <a href=\""
-        + PORT_FORWARD_DOC_URL + "\"> port forwarding setup </a> for more information.");
+    infoLink.setText(INFO_TEXT);
+
     infoLink.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetDefaultSelected(SelectionEvent e) {
@@ -243,14 +242,14 @@ public class MobileMainTab extends AbstractLaunchConfigurationTab {
     wrapper.setShouldLaunchFile(true);
     wrapper.setApplicationName(""); //$NON-NLS-1$
     wrapper.setLaunchContentShell(true);
-    wrapper.setUsePubServe(false);
+    wrapper.setUsePubServe(true);
   }
 
   protected void handleComboChanged(boolean usePubServe) {
     if (usePubServe) {
-      infoLabel.setText(INFO_TEXT);
+      infoLink.setText(INFO_TEXT);
     } else {
-      infoLabel.setText("");
+      infoLink.setText("");
     }
     notifyPanelChanged();
   }

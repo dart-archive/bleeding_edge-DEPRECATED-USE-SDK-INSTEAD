@@ -25,7 +25,7 @@ public class MobileUrlConnectionException extends CoreException {
 
   private static Status newStatus(String pageUrl, boolean localhostOverUsb) {
     StringBuilder msg = new StringBuilder();
-    msg.append("Failed to access URL from mobile: ");
+    msg.append("Failed to access URL from mobile:\n");
     if (pageUrl == null) {
       msg.append("Unable to get local IP address");
     } else {
@@ -35,10 +35,8 @@ public class MobileUrlConnectionException extends CoreException {
     if (localhostOverUsb) {
       msg.append("Check port forwarding in Chrome and try again.");
     } else {
-      msg.append("Check wifi access permissions and try again.\n\n");
-      msg.append("Alternately, open the Launch dialog,");
-      msg.append(" select the mobile launch configuration,");
-      msg.append(" and in the \"Servers\" group select \"Pub serve\".\n");
+      msg.append("Check that your network configuration allows local connections and try again.\n\n");
+      msg.append("Alternatively switch to 'Pub Serve over USB' in the 'Run | Manage Launches' dialog.");
     }
     return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0, msg.toString(), null);
   }
