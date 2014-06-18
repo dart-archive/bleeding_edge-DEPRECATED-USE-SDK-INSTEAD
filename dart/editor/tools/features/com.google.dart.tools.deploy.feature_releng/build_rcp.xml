@@ -478,6 +478,10 @@ build system.  The PDE build system has to run under Eclipse.
          - - - - - - - - - - - - - - - - - -->
     <target name="package_rcp" depends="init, setupBuild, doBuild_rcp" >
         <property file="build.properties" prefix="pde." />
+        
+        <zip destfile="${build.stage}/${pde.buildLabel}/android.zip"
+                     basedir="${build.stage.include.dir}/android"/>
+        
         <echo message="copying zip files from ${build.stage}/${pde.buildLabel} to ${build.out}"/>
         <copy todir="${build.out}" verbose="true">
             <fileset dir="${build.stage}/${pde.buildLabel}">
