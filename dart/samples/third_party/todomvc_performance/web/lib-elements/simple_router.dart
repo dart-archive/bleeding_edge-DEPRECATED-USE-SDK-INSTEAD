@@ -18,7 +18,8 @@ class SimpleRouter extends PolymerElement {
   factory SimpleRouter() => new Element.tag('simple-router');
   SimpleRouter.created() : super.created();
 
-  enteredView() {
+  attached() {
+    super.attached();
     _sub = windowLocation.changes.listen((_) {
       var hash = window.location.hash;
       if (hash.startsWith('#/')) hash = hash.substring(2);
@@ -29,7 +30,8 @@ class SimpleRouter extends PolymerElement {
     });
   }
 
-  leftView() {
+  detached() {
+    super.detached();
     _sub.cancel();
   }
 

@@ -25,8 +25,8 @@ class TaskFormElement extends PolymerElement {
 
   TaskFormElement.created() : super.created();
 
-  enteredView() {
-    super.enteredView();
+  attached() {
+    super.attached();
     submitLabel = task.saved ? 'Update' : 'Create';
     statusSelectedIndex = taskStatusOptions.indexOf(task.status);
     if (!task.saved) {

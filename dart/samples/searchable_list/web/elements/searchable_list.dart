@@ -15,8 +15,8 @@ class SearchableList extends PolymerElement {
 
   SearchableList.created() : super.created();
 
-  enteredView() {
-    super.enteredView();
+  attached() {
+    super.attached();
     results.addAll(data);
     onPropertyChange(this, #searchParam, search);
   }
