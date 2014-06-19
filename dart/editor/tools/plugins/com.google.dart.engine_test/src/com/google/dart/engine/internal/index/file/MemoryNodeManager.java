@@ -10,6 +10,7 @@ import java.util.Map;
  * A {@link NodeManager} that keeps {@link IndexNode}s in memory.
  */
 public class MemoryNodeManager implements NodeManager {
+  public final ContextCodec contextCodec = new ContextCodec();
   public final StringCodec stringCodec = new StringCodec();
   public final ElementCodec elementCodec = new ElementCodec(stringCodec);
   public final RelationshipCodec relationshipCodec = new RelationshipCodec(stringCodec);
@@ -21,6 +22,16 @@ public class MemoryNodeManager implements NodeManager {
   @Override
   public void clear() {
     nodes.clear();
+  }
+
+  @Override
+  public ContextCodec getContextCodec() {
+    return contextCodec;
+  }
+
+  @Override
+  public ElementCodec getElementCodec() {
+    return elementCodec;
   }
 
   @Override

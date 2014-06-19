@@ -26,6 +26,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.index.UniverseElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.source.Source;
@@ -36,6 +37,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -50,6 +52,16 @@ public class SplitIndexStoreImpl implements IndexStore {
   private final NodeManager nodeManager;
 
   /**
+   * The {@link ContextCodec} to encode/decode {@link AnalysisContext}s.
+   */
+  private final ContextCodec contextCodec;
+
+  /**
+   * The {@link ElementCodec} to encode/decode {@link Element}s.
+   */
+  private final ElementCodec elementCodec;
+
+  /**
    * The {@link StringCodec} to encode/decode {@link String}s.
    */
   private final StringCodec stringCodec;
@@ -61,6 +73,14 @@ public class SplitIndexStoreImpl implements IndexStore {
   private final IntToIntSetMap nameToNodeNames = new IntToIntSetMap(10000, 0.75f);
 
   /**
+   * Information about "universe" elements. We need to keep them together to avoid loading of all
+   * index nodes.
+   * <p>
+   * Order of keys: contextId, nodeId, Relationship.
+   */
+  private final Map<Integer, Map<Integer, Map<Relationship, List<LocationData>>>> contextNodeRelations = Maps.newHashMap();
+
+  /**
    * The mapping of library {@link Source} to the {@link Source}s of part units.
    */
   final Map<AnalysisContext, Map<Source, Set<Source>>> contextToLibraryToUnits = Maps.newHashMap();
@@ -70,14 +90,20 @@ public class SplitIndexStoreImpl implements IndexStore {
    */
   final Map<AnalysisContext, Map<Source, Set<Source>>> contextToUnitToLibraries = Maps.newHashMap();
 
+  /**
+   * The set of known {@link Source}s.
+   */
   private final Set<Source> sources = Sets.newHashSet();
 
+  private int currentContextId;
   private String currentNodeName;
   private int currentNodeNameId;
   private IndexNode currentNode;
 
   public SplitIndexStoreImpl(NodeManager nodeManager) {
     this.nodeManager = nodeManager;
+    this.contextCodec = nodeManager.getContextCodec();
+    this.elementCodec = nodeManager.getElementCodec();
     this.stringCodec = nodeManager.getStringCodec();
   }
 
@@ -140,6 +166,12 @@ public class SplitIndexStoreImpl implements IndexStore {
     currentNodeName = libraryNameIndex + "_" + unitNameIndex + ".index";
     currentNodeNameId = stringCodec.encode(currentNodeName);
     currentNode = nodeManager.newNode(context);
+    currentContextId = contextCodec.encode(context);
+    // remove Universe information for the current node
+    for (Map<Integer, ?> nodeRelations : contextNodeRelations.values()) {
+      nodeRelations.remove(currentNodeNameId);
+    }
+    // done
     return true;
   }
 
@@ -174,13 +206,19 @@ public class SplitIndexStoreImpl implements IndexStore {
   public void doneIndex() {
     if (currentNode != null) {
       nodeManager.putNode(currentNodeName, currentNode);
-      currentNode = null;
       currentNodeName = null;
+      currentNodeNameId = -1;
+      currentNode = null;
+      currentContextId = -1;
     }
   }
 
   @Override
   public Location[] getRelationships(Element element, Relationship relationship) {
+    // special support for UniverseElement
+    if (element == UniverseElement.INSTANCE) {
+      return getRelationshipsUniverse(relationship);
+    }
     // prepare node names
     String name = getElementName(element);
     int nameId = stringCodec.encode(name);
@@ -213,6 +251,12 @@ public class SplitIndexStoreImpl implements IndexStore {
     if (element == null || location == null) {
       return;
     }
+    // special support for UniverseElement
+    if (element == UniverseElement.INSTANCE) {
+      recordRelationshipUniverse(relationship, location);
+      return;
+    }
+    // other elements
     recordNodeNameForElement(element);
     currentNode.recordRelationship(element, relationship, location);
   }
@@ -228,6 +272,7 @@ public class SplitIndexStoreImpl implements IndexStore {
     // remove context information
     contextToLibraryToUnits.remove(context);
     contextToUnitToLibraries.remove(context);
+    contextNodeRelations.remove(contextCodec.encode(context));
   }
 
   @Override
@@ -290,6 +335,28 @@ public class SplitIndexStoreImpl implements IndexStore {
     return element.getName();
   }
 
+  private Location[] getRelationshipsUniverse(Relationship relationship) {
+    List<Location> locations = Lists.newArrayList();
+    for (Entry<Integer, Map<Integer, Map<Relationship, List<LocationData>>>> contextEntry : contextNodeRelations.entrySet()) {
+      int contextId = contextEntry.getKey();
+      AnalysisContext context = contextCodec.decode(contextId);
+      if (context != null) {
+        for (Map<Relationship, List<LocationData>> nodeRelations : contextEntry.getValue().values()) {
+          List<LocationData> nodeLocations = nodeRelations.get(relationship);
+          if (nodeLocations != null) {
+            for (LocationData locationData : nodeLocations) {
+              Location location = locationData.getLocation(context, elementCodec);
+              if (location != null) {
+                locations.add(location);
+              }
+            }
+          }
+        }
+      }
+    }
+    return locations.toArray(new Location[locations.size()]);
+  }
+
   private void recordLibraryWithUnit(AnalysisContext context, Source library, Source unit) {
     Map<Source, Set<Source>> libraryToUnits = contextToLibraryToUnits.get(context);
     if (libraryToUnits == null) {
@@ -308,6 +375,29 @@ public class SplitIndexStoreImpl implements IndexStore {
     String name = getElementName(element);
     int nameId = stringCodec.encode(name);
     nameToNodeNames.add(nameId, currentNodeNameId);
+  }
+
+  private void recordRelationshipUniverse(Relationship relationship, Location location) {
+    // in current context
+    Map<Integer, Map<Relationship, List<LocationData>>> nodeRelations = contextNodeRelations.get(currentContextId);
+    if (nodeRelations == null) {
+      nodeRelations = Maps.newHashMap();
+      contextNodeRelations.put(currentContextId, nodeRelations);
+    }
+    // in current node
+    Map<Relationship, List<LocationData>> relations = nodeRelations.get(currentNodeNameId);
+    if (relations == null) {
+      relations = Maps.newHashMap();
+      nodeRelations.put(currentNodeNameId, relations);
+    }
+    // for the given relationship
+    List<LocationData> locations = relations.get(relationship);
+    if (locations == null) {
+      locations = Lists.newArrayList();
+      relations.put(relationship, locations);
+    }
+    // record LocationData
+    locations.add(new LocationData(elementCodec, location));
   }
 
   private void recordUnitInLibrary(AnalysisContext context, Source library, Source unit) {

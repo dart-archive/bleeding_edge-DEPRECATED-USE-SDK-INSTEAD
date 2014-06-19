@@ -24,6 +24,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.index.UniverseElement;
 import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.source.Source;
@@ -479,6 +480,61 @@ public class SplitIndexStoreImplTest extends EngineTestCase {
     {
       Location[] locations = store.getRelationships(elementA, relationship);
       assertLocations(locations, locationB, locationC);
+    }
+  }
+
+  public void test_universe_aboutToIndex() throws Exception {
+    when(contextA.getElement(elementLocationA)).thenReturn(elementA);
+    when(contextB.getElement(elementLocationB)).thenReturn(elementB);
+    Location locationA = mockLocation(elementA);
+    Location locationB = mockLocation(elementB);
+    {
+      store.aboutToIndexDart(contextA, unitElementA);
+      store.recordRelationship(UniverseElement.INSTANCE, relationship, locationA);
+      store.doneIndex();
+    }
+    {
+      store.aboutToIndexDart(contextB, unitElementB);
+      store.recordRelationship(UniverseElement.INSTANCE, relationship, locationB);
+      store.doneIndex();
+    }
+    {
+      Location[] locations = store.getRelationships(UniverseElement.INSTANCE, relationship);
+      assertLocations(locations, locationA, locationB);
+    }
+    // re-index "unitElementA"
+    store.aboutToIndexDart(contextA, unitElementA);
+    store.doneIndex();
+    {
+      Location[] locations = store.getRelationships(UniverseElement.INSTANCE, relationship);
+      assertLocations(locations, locationB);
+    }
+  }
+
+  public void test_universe_removeContext() throws Exception {
+    when(contextA.getElement(elementLocationA)).thenReturn(elementA);
+    when(contextB.getElement(elementLocationB)).thenReturn(elementB);
+    Location locationA = mockLocation(elementA);
+    Location locationB = mockLocation(elementB);
+    {
+      store.aboutToIndexDart(contextA, unitElementA);
+      store.recordRelationship(UniverseElement.INSTANCE, relationship, locationA);
+      store.doneIndex();
+    }
+    {
+      store.aboutToIndexDart(contextB, unitElementB);
+      store.recordRelationship(UniverseElement.INSTANCE, relationship, locationB);
+      store.doneIndex();
+    }
+    {
+      Location[] locations = store.getRelationships(UniverseElement.INSTANCE, relationship);
+      assertLocations(locations, locationA, locationB);
+    }
+    // remove "contextA"
+    store.removeContext(contextA);
+    {
+      Location[] locations = store.getRelationships(UniverseElement.INSTANCE, relationship);
+      assertLocations(locations, locationB);
     }
   }
 

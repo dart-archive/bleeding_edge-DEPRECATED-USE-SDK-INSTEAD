@@ -33,6 +33,16 @@ public interface NodeManager {
   void clear();
 
   /**
+   * Returns the shared {@link ContextCodec} instance.
+   */
+  ContextCodec getContextCodec();
+
+  /**
+   * Returns the shared {@link ElementCodec} instance.
+   */
+  ElementCodec getElementCodec();
+
+  /**
    * Returns the {@link IndexNode} with the given name, {@code null} if not found.
    */
   IndexNode getNode(String name);

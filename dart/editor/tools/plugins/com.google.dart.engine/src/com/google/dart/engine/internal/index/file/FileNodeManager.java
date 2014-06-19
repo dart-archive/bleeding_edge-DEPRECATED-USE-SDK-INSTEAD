@@ -60,6 +60,16 @@ public class FileNodeManager implements NodeManager {
   }
 
   @Override
+  public ContextCodec getContextCodec() {
+    return contextCodec;
+  }
+
+  @Override
+  public ElementCodec getElementCodec() {
+    return elementCodec;
+  }
+
+  @Override
   public int getLocationCount() {
     return locationCount;
   }

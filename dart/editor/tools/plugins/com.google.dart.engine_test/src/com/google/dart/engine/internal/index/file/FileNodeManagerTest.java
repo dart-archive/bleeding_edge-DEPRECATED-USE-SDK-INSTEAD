@@ -62,6 +62,14 @@ public class FileNodeManagerTest extends TestCase {
     verify(fileManager, times(1)).clear();
   }
 
+  public void test_getContextCodec() throws Exception {
+    assertSame(contextCodec, nodeManager.getContextCodec());
+  }
+
+  public void test_getElementCodec() throws Exception {
+    assertSame(elementCodec, nodeManager.getElementCodec());
+  }
+
   public void test_getLocationCount_empty() throws Exception {
     assertEquals(0, nodeManager.getLocationCount());
   }
