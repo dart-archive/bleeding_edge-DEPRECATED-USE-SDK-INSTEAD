@@ -86,17 +86,17 @@ public class PackageUriResolverTest extends TestCase {
     // Assert that package:pkg1 resolves to lib1
     Source result = resolver.resolveAbsolute(new URI("package:pkg1"));
     assertEquals(lib1Dir, new File(result.getFullName()));
-    assertSame(UriKind.PACKAGE_SELF_URI, result.getUriKind());
+    assertSame(UriKind.FILE_URI, result.getUriKind());
 
     // Assert that package:pkg1/ resolves to lib1
     result = resolver.resolveAbsolute(new URI("package:pkg1/"));
     assertEquals(lib1Dir, new File(result.getFullName()));
-    assertSame(UriKind.PACKAGE_SELF_URI, result.getUriKind());
+    assertSame(UriKind.FILE_URI, result.getUriKind());
 
     // Assert that package:pkg1/other resolves to lib1/other not other
     result = resolver.resolveAbsolute(new URI("package:pkg1/other"));
     assertEquals(new File(lib1Dir, "other"), new File(result.getFullName()));
-    assertSame(UriKind.PACKAGE_SELF_URI, result.getUriKind());
+    assertSame(UriKind.FILE_URI, result.getUriKind());
 
     // Assert that package:pkg1/other/some.dart resolves to lib1/other/some.dart not other.dart
     // when some.dart does NOT exist

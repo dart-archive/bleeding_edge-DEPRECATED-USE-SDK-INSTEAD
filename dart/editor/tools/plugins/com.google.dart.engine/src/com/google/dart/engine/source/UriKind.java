@@ -31,11 +31,6 @@ public enum UriKind {
   FILE_URI('f'),
 
   /**
-   * A 'package:' URI referencing source package itself.
-   */
-  PACKAGE_SELF_URI('s'),
-
-  /**
    * A 'package:' URI.
    */
   PACKAGE_URI('p');
@@ -53,8 +48,6 @@ public enum UriKind {
         return DART_URI;
       case 'f':
         return FILE_URI;
-      case 's':
-        return PACKAGE_SELF_URI;
       case 'p':
         return PACKAGE_URI;
     }
