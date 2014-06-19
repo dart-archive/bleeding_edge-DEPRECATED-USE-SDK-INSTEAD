@@ -81,7 +81,7 @@ public class TestSamples extends EditorTestHarness {
 
   @Test
   public void test1Sunflower() throws Exception {
-    new SunflowerRunner().run("Sunflower");
+    new SunflowerRunner().run("sunflower");
   }
 
   @Test

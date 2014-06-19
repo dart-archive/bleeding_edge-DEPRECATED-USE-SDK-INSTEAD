@@ -20,6 +20,6 @@ import org.junit.runners.Suite;
  * SWTBot test driver.
  */
 @RunWith(Suite.class)
-@Suite.SuiteClasses({TestSamples.class})
+@Suite.SuiteClasses({TestSamples.class, TestFilesContextMenu.class})
 public final class TestAll {
 }
