@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * An explicit package: resolver. This UriResolver shells out to pub, calling it's list-package-dirs
@@ -183,17 +184,13 @@ public class ExplicitPackageUriResolver extends UriResolver {
 
     if (source instanceof FileBasedSource) {
       String sourcePath = ((FileBasedSource) source).getFile().getPath();
-      for (String packageName : packageMap.keySet()) {
-        for (File pkgFolder : packageMap.get(packageName)) {
-          if (pkgFolder.exists()) {
-            try {
-              String pkgCanonicalPath = pkgFolder.getCanonicalPath();
-              if (sourcePath.startsWith(pkgCanonicalPath)) {
-                String relPath = sourcePath.substring(pkgCanonicalPath.length());
-                return URI.create(PACKAGE_SCHEME + ":" + packageName + "/" + relPath);
-              }
-            } catch (Exception e) {
-            }
+      for (Entry<String, List<File>> entry : packageMap.entrySet()) {
+        for (File pkgFolder : entry.getValue()) {
+          String pkgCanonicalPath = pkgFolder.getAbsolutePath();
+          if (sourcePath.startsWith(pkgCanonicalPath)) {
+            String packageName = entry.getKey();
+            String relPath = sourcePath.substring(pkgCanonicalPath.length());
+            return URI.create(PACKAGE_SCHEME + ":" + packageName + relPath);
           }
         }
       }
@@ -281,5 +278,4 @@ public class ExplicitPackageUriResolver extends UriResolver {
 
     return map;
   }
-
 }
