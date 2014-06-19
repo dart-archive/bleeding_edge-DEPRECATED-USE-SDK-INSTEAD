@@ -42,7 +42,7 @@ public class CreateFileWizardPage extends WizardNewFileCreationPage {
   public IFile createNewFile() {
 
     String fileName = getFileName().trim();
-    if (fileName.indexOf(".") == -1) { //$NON-NLS-1$
+    if (fileName.indexOf(".") == -1 && !fileName.equals("BUILD")) { //$NON-NLS-1$
       setFileName(fileName + ".dart"); //$NON-NLS-1$
     }
 
