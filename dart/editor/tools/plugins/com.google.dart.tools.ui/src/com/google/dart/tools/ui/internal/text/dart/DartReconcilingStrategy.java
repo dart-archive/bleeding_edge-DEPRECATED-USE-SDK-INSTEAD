@@ -226,7 +226,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
         String code = document.get();
         instrumentation.data("Length", code.length());
         sourceChanged(code);
-      } else {
+      } else if (!region.isEmpty()) {
         instrumentation.data("Offset", region.getOffset());
         instrumentation.data("OldLength", region.getOldLength());
         instrumentation.data("NewLength", region.getNewLength());
