@@ -532,6 +532,7 @@ public class RequestUtilities {
     JsonObject optionsJsonObject = new JsonObject();
     optionsJsonObject.addProperty("analyzeAngular", options.getAnalyzeAngular());
     optionsJsonObject.addProperty("analyzePolymer", options.getAnalyzePolymer());
+    optionsJsonObject.addProperty("enableAsync", options.getEnableAsync());
     optionsJsonObject.addProperty("enableDeferredLoading", options.getEnableDeferredLoading());
     optionsJsonObject.addProperty("enableEnums", options.getEnableEnums());
     optionsJsonObject.addProperty("generateDart2jsHints", options.getGenerateDart2jsHints());

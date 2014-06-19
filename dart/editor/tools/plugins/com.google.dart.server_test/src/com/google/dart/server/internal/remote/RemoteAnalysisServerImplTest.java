@@ -378,6 +378,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     AnalysisOptions options = new AnalysisOptions();
     options.setAnalyzeAngular(false);
     options.setAnalyzePolymer(false);
+    options.setEnableAsync(false);
     options.setEnableDeferredLoading(false);
     options.setEnableEnums(false);
     options.setGenerateDart2jsHints(false);
@@ -392,6 +393,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'options': {",
         "      'analyzeAngular': false,",
         "      'analyzePolymer': false,",
+        "      'enableAsync': false,",
         "      'enableDeferredLoading': false,",
         "      'enableEnums': false,",
         "      'generateDart2jsHints': false,",
@@ -406,6 +408,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     AnalysisOptions options = new AnalysisOptions();
     options.setAnalyzeAngular(true);
     options.setAnalyzePolymer(true);
+    options.setEnableAsync(true);
     options.setEnableDeferredLoading(true);
     options.setEnableEnums(true);
     options.setGenerateDart2jsHints(true);
@@ -420,6 +423,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'options': {",
         "      'analyzeAngular': true,",
         "      'analyzePolymer': true,",
+        "      'enableAsync': true,",
         "      'enableDeferredLoading': true,",
         "      'enableEnums': true,",
         "      'generateDart2jsHints': true,",
