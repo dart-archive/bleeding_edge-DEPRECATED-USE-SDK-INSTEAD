@@ -18,6 +18,7 @@ import com.google.gson.JsonObject;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 
 /**
@@ -32,18 +33,27 @@ public class ByteRequestSink implements RequestSink {
   private final PrintWriter writer;
 
   /**
+   * The {@link PrintStream} to print all lines to.
+   */
+  private PrintStream debugStream;
+
+  /**
    * Initializes a newly created request sink.
    * 
    * @param stream the byte stream to write JSON strings to
+   * @param debugStream the {@link PrintStream} to print all lines to, may be {@code null}
    */
-  public ByteRequestSink(OutputStream stream) {
+  public ByteRequestSink(OutputStream stream, PrintStream debugStream) {
     writer = new PrintWriter(new OutputStreamWriter(stream, Charsets.UTF_8));
+    this.debugStream = debugStream;
   }
 
   @Override
   public void add(JsonObject request) {
     String text = request.toString();
-//    System.out.println(System.currentTimeMillis() + " => " + text);
+    if (debugStream != null) {
+      debugStream.println(System.currentTimeMillis() + " => " + text);
+    }
     writer.println(text);
     writer.flush();
   }

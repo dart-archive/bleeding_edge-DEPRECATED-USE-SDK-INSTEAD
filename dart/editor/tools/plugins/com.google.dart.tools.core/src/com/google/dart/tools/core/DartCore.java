@@ -52,6 +52,7 @@ import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -85,6 +86,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
@@ -481,7 +483,23 @@ public class DartCore extends Plugin implements DartSdkListener {
         String runtimePath = sdkManager.getSdk().getVmExecutable().getAbsolutePath();
         String analysisServerPath = svnRoot + "/pkg/analysis_server/bin/server.dart";
         try {
-          StdioServerSocket socket = new StdioServerSocket(runtimePath, analysisServerPath);
+          // prepare debug stream
+          PrintStream debugStream;
+          {
+            String logPath = DartCoreDebug.ANALYSIS_SERVER_LOG_FILE;
+            if (StringUtils.isBlank(logPath)) {
+              debugStream = null;
+            } else if ("console".equals(logPath)) {
+              debugStream = System.out;
+            } else {
+              debugStream = new PrintStream(logPath);
+            }
+          }
+          // start server
+          StdioServerSocket socket = new StdioServerSocket(
+              runtimePath,
+              analysisServerPath,
+              debugStream);
           socket.start();
           analysisServer = new com.google.dart.server.internal.remote.RemoteAnalysisServerImpl(
               socket.getRequestSink(),

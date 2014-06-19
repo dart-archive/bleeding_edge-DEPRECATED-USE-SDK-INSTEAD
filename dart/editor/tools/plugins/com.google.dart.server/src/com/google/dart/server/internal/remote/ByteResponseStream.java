@@ -20,6 +20,7 @@ import com.google.gson.JsonParser;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 
 /**
  * An {@link InputStream} based implementation of {@link ResponseStream}. Each line must contain
@@ -34,12 +35,19 @@ public class ByteResponseStream implements ResponseStream {
   private final BufferedReader reader;
 
   /**
+   * The {@link PrintStream} to print all lines to.
+   */
+  private PrintStream debugStream;
+
+  /**
    * Initializes a newly created response stream.
    * 
    * @param stream the byte stream to read JSON strings from
+   * @param debugStream the {@link PrintStream} to print all lines to, may be {@code null}
    */
-  public ByteResponseStream(InputStream stream) {
+  public ByteResponseStream(InputStream stream, PrintStream debugStream) {
     reader = new BufferedReader(new InputStreamReader(stream, Charsets.UTF_8));
+    this.debugStream = debugStream;
   }
 
   @Override
@@ -48,16 +56,22 @@ public class ByteResponseStream implements ResponseStream {
 
   @Override
   public JsonObject take() throws Exception {
-    String line = reader.readLine();
-    if (line == null) {
-      return null;
+    while (true) {
+      String line = reader.readLine();
+      // check for EOF
+      if (line == null) {
+        return null;
+      }
+      // debug output
+      if (debugStream != null) {
+        debugStream.println(System.currentTimeMillis() + " <= " + line);
+      }
+      // ignore non-JSON (debug) lines
+      if (!line.startsWith("{")) {
+        continue;
+      }
+      // return as JSON
+      return (JsonObject) new JsonParser().parse(line);
     }
-//      if (line.contains("\"event\":\"server.status\"")) {
-//        System.out.println(System.currentTimeMillis() + " <= " + line);
-//      }
-//      if (!line.startsWith("{")) {
-//        continue;
-//      }
-    return (JsonObject) new JsonParser().parse(line);
   }
 }

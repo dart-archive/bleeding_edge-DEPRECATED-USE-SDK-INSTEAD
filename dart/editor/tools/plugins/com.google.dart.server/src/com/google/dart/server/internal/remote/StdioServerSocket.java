@@ -15,6 +15,8 @@ package com.google.dart.server.internal.remote;
 
 import com.google.common.base.Preconditions;
 
+import java.io.PrintStream;
+
 /**
  * A remote server socket over standard input and output.
  * 
@@ -23,13 +25,15 @@ import com.google.common.base.Preconditions;
 public class StdioServerSocket {
   private final String runtimePath;
   private final String analysisServerPath;
+  private final PrintStream debugStream;
   private RequestSink requestSink;
   private ResponseStream responseStream;
   private ByteLineReaderStream errorStream;
 
-  public StdioServerSocket(String runtimePath, String analysisServerPath) {
+  public StdioServerSocket(String runtimePath, String analysisServerPath, PrintStream debugStream) {
     this.runtimePath = runtimePath;
     this.analysisServerPath = analysisServerPath;
+    this.debugStream = debugStream;
   }
 
   /**
@@ -62,8 +66,8 @@ public class StdioServerSocket {
   public void start() throws Exception {
     ProcessBuilder processBuilder = new ProcessBuilder(runtimePath, analysisServerPath);
     Process process = processBuilder.start();
-    requestSink = new ByteRequestSink(process.getOutputStream());
-    responseStream = new ByteResponseStream(process.getInputStream());
+    requestSink = new ByteRequestSink(process.getOutputStream(), debugStream);
+    responseStream = new ByteResponseStream(process.getInputStream(), debugStream);
     errorStream = new ByteLineReaderStream(process.getErrorStream());
   }
 }

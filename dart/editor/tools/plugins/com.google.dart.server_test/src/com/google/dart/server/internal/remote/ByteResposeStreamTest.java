@@ -19,12 +19,25 @@ import com.google.gson.JsonParser;
 
 import junit.framework.TestCase;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import java.io.ByteArrayInputStream;
+import java.io.PrintStream;
 
 /**
  * Test for {@link ByteResponseStream}.
  */
 public class ByteResposeStreamTest extends TestCase {
+  public void test_lastRequestProcessed() throws Exception {
+    byte[] bytes = "".getBytes(Charsets.UTF_8);
+    ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
+    ByteResponseStream responseStream = new ByteResponseStream(byteStream, null);
+    responseStream.lastRequestProcessed();
+  }
+
   public void test_take() throws Exception {
     String jsonStringA = "{'id': '0', 'error': 'aaa'}";
     String jsonStringB = "{'id': '1', 'error': 'bbb'}";
@@ -32,10 +45,23 @@ public class ByteResposeStreamTest extends TestCase {
     JsonObject jsonObjectB = parseJson(jsonStringB);
     byte[] bytes = (jsonStringA + "\n" + jsonStringB).getBytes(Charsets.UTF_8);
     ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
-    ByteResponseStream responseStream = new ByteResponseStream(byteStream);
+    ByteResponseStream responseStream = new ByteResponseStream(byteStream, null);
     // take a JsonObject(s)
     assertEquals(jsonObjectA, responseStream.take());
     assertEquals(jsonObjectB, responseStream.take());
+    // EOF
+    assertNull(responseStream.take());
+  }
+
+  public void test_take_debugStream() throws Exception {
+    PrintStream debugStream = mock(PrintStream.class);
+    byte[] bytes = ("some text\n" + "{}\n").getBytes(Charsets.UTF_8);
+    ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
+    ByteResponseStream responseStream = new ByteResponseStream(byteStream, debugStream);
+    // take a JsonObject
+    JsonObject jsonObject = responseStream.take();
+    assertTrue(jsonObject.entrySet().isEmpty());
+    verify(debugStream, times(2)).println(anyString());
   }
 
   /**

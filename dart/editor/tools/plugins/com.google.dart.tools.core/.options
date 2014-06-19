@@ -38,6 +38,7 @@ com.google.dart.tools.core/experimental/validateHtml = false
 com.google.dart.tools.core/experimental/analysis/useDartc = false
 com.google.dart.tools.core/experimental/coverage = false
 com.google.dart.tools.core/experimental/analysisServer = false
+com.google.dart.tools.core/experimental/analysisServer/logFile =
 
 com.google.dart.tools.core/experimental/pubInWinXP = false
 

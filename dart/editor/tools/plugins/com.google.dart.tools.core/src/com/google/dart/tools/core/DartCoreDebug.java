@@ -69,6 +69,7 @@ public class DartCoreDebug {
   public static final boolean ENABLE_HTML_VALIDATION = isOptionTrue("experimental/validateHtml");
   public static final boolean ENABLE_COVERAGE = isOptionTrue("experimental/coverage");
   public static final boolean ENABLE_ANALYSIS_SERVER = isOptionTrue("experimental/analysisServer");
+  public static final String ANALYSIS_SERVER_LOG_FILE = getOptionValue("experimental/analysisServer/logFile");
 
   // Verify that dartc has not been specified and that the new analyzer is not explicitly disabled
   public static final boolean ENABLE_NEW_ANALYSIS = true;
@@ -123,6 +124,18 @@ public class DartCoreDebug {
   }
 
   /**
+   * Returns a value of the option, {@code null} if not set.
+   */
+  private static String getOptionValue(String optionSuffix) {
+    String option = DartCore.PLUGIN_ID + "/" + optionSuffix;
+    String value = Platform.getDebugOption(option);
+    if (value == null) {
+      value = DartCore.getUserDefinedProperty(option);
+    }
+    return value;
+  }
+
+  /**
    * @return <code>true</code> if option has value "true".
    */
   private static boolean isOptionTrue(String optionSuffix) {
@@ -133,11 +146,7 @@ public class DartCoreDebug {
    * @return <code>true</code> if option has "expected" value.
    */
   private static boolean isOptionValue(String optionSuffix, String expected) {
-    String option = DartCore.PLUGIN_ID + "/" + optionSuffix;
-    String value = Platform.getDebugOption(option);
-    if (value == null) {
-      value = DartCore.getUserDefinedProperty(option);
-    }
+    String value = getOptionValue(optionSuffix);
     if (value != null && !"false".equals(value)) {
       SPARSE_OPTION_MAP.put(optionSuffix, value);
     }

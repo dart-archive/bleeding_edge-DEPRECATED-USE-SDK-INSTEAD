@@ -20,7 +20,12 @@ import com.google.gson.JsonParser;
 
 import junit.framework.TestCase;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 /**
  * Test for {@link ByteRequestSink}.
@@ -29,7 +34,7 @@ public class ByteRequestSinkTest extends TestCase {
   private ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 
   public void test_add() throws Exception {
-    ByteRequestSink requestSink = new ByteRequestSink(byteStream);
+    ByteRequestSink requestSink = new ByteRequestSink(byteStream, null);
     JsonObject originalJsonObject = parseJson(//
         "{",
         "  'id': '0',",
@@ -42,6 +47,14 @@ public class ByteRequestSinkTest extends TestCase {
     String actualJsonString = new String(bytes, Charsets.UTF_8);
     JsonObject actualJsonObject = parseJson(actualJsonString);
     assertEquals(originalJsonObject, actualJsonObject);
+  }
+
+  public void test_add_debugStream() throws Exception {
+    PrintStream debugStream = mock(PrintStream.class);
+    ByteRequestSink requestSink = new ByteRequestSink(byteStream, debugStream);
+    requestSink.add(parseJson("{}"));
+    // verify
+    verify(debugStream).println(anyString());
   }
 
   /**
