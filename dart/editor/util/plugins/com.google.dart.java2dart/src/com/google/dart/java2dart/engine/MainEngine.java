@@ -202,6 +202,10 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/html/angular"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/html/polymer"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/index"));
+    context.removeSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/index/file"));
+    context.removeSourceFiles(new File(
+        engineFolder,
+        "com/google/dart/engine/internal/index/structure/btree"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/object"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/resolver"));

@@ -1,5 +1,6 @@
 library java.engine;
 
+import 'interner.dart';
 import 'java_core.dart';
 
 /**
