@@ -61,6 +61,11 @@ public class AnalysisManager {
   private AnalysisWorker activeWorker = null;
 
   /**
+   * Flag indicating whether {@link #stopBackgroundAnalysis()} has been called.
+   */
+  private boolean stopped = false;
+
+  /**
    * Add the given worker to the queue of workers that will be processed.
    * 
    * @param worker the worker to add (not {@code null})
@@ -169,6 +174,9 @@ public class AnalysisManager {
    */
   public void startBackgroundAnalysis() {
     synchronized (backgroundQueue) {
+      if (stopped) {
+        return;
+      }
       if (backgroundJob == null) {
         backgroundJob = new Job("Analyzing") {
           @Override
@@ -188,6 +196,7 @@ public class AnalysisManager {
    */
   public void stopBackgroundAnalysis() {
     synchronized (backgroundQueue) {
+      stopped = true;
       if (activeWorker != null) {
         activeWorker.stop();
       }
