@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -108,6 +109,9 @@ public class RefactoringUtils {
         }
       };
       dialog.run(true, true, runnable);
+      // force Shell activation, otherwise we get NPE because "dialog" is disposed now
+      parentShell.notifyListeners(SWT.Activate, null);
+      // done
       return dialog.getReturnCode() == 0;
     } catch (Throwable ie) {
       return false;
