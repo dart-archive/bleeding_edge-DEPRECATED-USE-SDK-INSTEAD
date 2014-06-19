@@ -92,7 +92,8 @@ public class OutlineImpl implements Outline {
 
   @Override
   public int hashCode() {
-    return ObjectUtilities.combineHashCodes(parent.hashCode(), element.getName().hashCode());
+    int parentHashCode = parent != null ? parent.hashCode() : 0;
+    return ObjectUtilities.combineHashCodes(parentHashCode, element.getName().hashCode());
   }
 
   public void setChildren(Outline[] children) {

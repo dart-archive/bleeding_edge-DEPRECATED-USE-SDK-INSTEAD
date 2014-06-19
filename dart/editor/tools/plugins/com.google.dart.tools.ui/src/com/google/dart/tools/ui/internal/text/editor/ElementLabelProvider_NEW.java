@@ -58,6 +58,9 @@ public class ElementLabelProvider_NEW extends LabelProvider implements
     if (element.isTopLevelOrStatic()) {
       flags |= DartElementImageDescriptor.STATIC;
     }
+    if (element.isDeprecated()) {
+      flags |= DartElementImageDescriptor.DEPRECATED;
+    }
     return new DartElementImageDescriptor(base, flags, SIZE);
   }
 

@@ -15,11 +15,9 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.base.Objects;
 import com.google.dart.server.Element;
-import com.google.dart.server.ElementKind;
 import com.google.dart.server.Outline;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
-import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
@@ -29,9 +27,7 @@ import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
-import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.action.IAction;
@@ -40,13 +36,13 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -55,6 +51,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
@@ -62,7 +59,6 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -158,108 +154,27 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
   }
 
   public static class OutlineLabelProvider extends LabelProvider implements IStyledLabelProvider {
-    private static final Point SIZE = new Point(22, 16);
-    private static final ImageDescriptorRegistry registry = DartToolsPlugin.getImageDescriptorRegistry();
-    private static final String RIGHT_ARROW = " \u2192 "; //$NON-NLS-1$
-
-    public static ImageDescriptor getImageDescriptor(Outline outline) {
-      Element element = outline.getElement();
-      ElementKind kind = element.getKind();
-      ImageDescriptor base = getBaseImageDescriptor(kind, element.isPrivate());
-      if (base == null) {
-        return null;
-      }
-      int flags = 0;
-      if (kind == ElementKind.CONSTRUCTOR) {
-        flags |= DartElementImageDescriptor.CONSTRUCTOR;
-      }
-      if (kind == ElementKind.GETTER) {
-        flags |= DartElementImageDescriptor.GETTER;
-      }
-      if (kind == ElementKind.SETTER) {
-        flags |= DartElementImageDescriptor.SETTER;
-      }
-      if (element.isAbstract()) {
-        flags |= DartElementImageDescriptor.ABSTRACT;
-      }
-      if (element.isTopLevelOrStatic()) {
-        flags |= DartElementImageDescriptor.STATIC;
-      }
-      return new DartElementImageDescriptor(base, flags, SIZE);
-    }
-
-    private static ImageDescriptor getBaseImageDescriptor(ElementKind kind, boolean isPrivate) {
-      if (kind == ElementKind.CLASS || kind == ElementKind.CLASS_TYPE_ALIAS) {
-        return isPrivate ? DartPluginImages.DESC_DART_CLASS_PRIVATE
-            : DartPluginImages.DESC_DART_CLASS_PUBLIC;
-      }
-      if (kind == ElementKind.FUNCTION_TYPE_ALIAS) {
-        return isPrivate ? DartPluginImages.DESC_DART_FUNCTIONTYPE_PRIVATE
-            : DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
-      }
-      if (kind == ElementKind.FIELD || kind == ElementKind.TOP_LEVEL_VARIABLE) {
-        return isPrivate ? DartPluginImages.DESC_DART_FIELD_PRIVATE
-            : DartPluginImages.DESC_DART_FIELD_PUBLIC;
-      }
-      if (kind == ElementKind.CONSTRUCTOR || kind == ElementKind.FUNCTION
-          || kind == ElementKind.GETTER || kind == ElementKind.METHOD || kind == ElementKind.SETTER) {
-        return isPrivate ? DartPluginImages.DESC_DART_METHOD_PRIVATE
-            : DartPluginImages.DESC_DART_METHOD_PUBLIC;
-      }
-      if (kind == ElementKind.COMPILATION_UNIT) {
-        return DartPluginImages.DESC_DART_COMP_UNIT;
-      }
-      if (kind == ElementKind.LIBRARY) {
-        return DartPluginImages.DESC_DART_LIB_FILE;
-      }
-      if (kind == ElementKind.UNIT_TEST_CASE) {
-        return DartPluginImages.DESC_DART_TEST_CASE;
-      }
-      if (kind == ElementKind.UNIT_TEST_GROUP) {
-        return DartPluginImages.DESC_DART_TEST_GROUP;
-      }
-      return null;
-    }
+    private final ElementLabelProvider_NEW elementLabelProvider = new ElementLabelProvider_NEW();
 
     @Override
     public Image getImage(Object obj) {
       Outline outline = (Outline) obj;
-      ImageDescriptor descriptor = getImageDescriptor(outline);
-      if (descriptor != null) {
-        return registry.get(descriptor);
-      }
-      return null;
+      Element element = outline.getElement();
+      return elementLabelProvider.getImage(element);
     }
 
     @Override
     public StyledString getStyledText(Object obj) {
       Outline outline = (Outline) obj;
-      StyledString styledString = new StyledString(getText(obj));
-      // append parameters
-      // TODO (jwren) for Elements, ElementLabelProvider_NEW should be delegated to:
       Element element = outline.getElement();
-      String parameters = element.getParameters();
-      if (parameters != null) {
-        styledString.append(parameters, StyledString.DECORATIONS_STYLER);
-      }
-      // append return type
-      String returnType = element.getReturnType();
-      if (!StringUtils.isEmpty(returnType)) {
-        ElementKind kind = element.getKind();
-        if (kind == ElementKind.FIELD || kind == ElementKind.TOP_LEVEL_VARIABLE) {
-          styledString.append(" : " + returnType, StyledString.QUALIFIER_STYLER);
-        } else {
-          styledString.append(RIGHT_ARROW + returnType, StyledString.QUALIFIER_STYLER);
-        }
-      }
-      // done
-      return styledString;
+      return elementLabelProvider.getStyledText(element);
     }
 
     @Override
     public String getText(Object obj) {
       Outline outline = (Outline) obj;
-      return outline.getElement().getName();
+      Element element = outline.getElement();
+      return elementLabelProvider.getText(element);
     }
   }
 
@@ -299,7 +214,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
   }
 
   private class DartOutlineViewer extends TreeViewer {
-    public DartOutlineViewer(final Tree tree) {
+    public DartOutlineViewer(Tree tree) {
       super(tree);
       setUseHashlookup(true);
       tree.setBackgroundMode(SWT.INHERIT_FORCE);
@@ -387,6 +302,37 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     }
   }
 
+  public static final IElementComparer OUTLINE_COMPARER = new IElementComparer() {
+    @Override
+    public boolean equals(Object a, Object b) {
+      if (a instanceof TreePath) {
+        a = ((TreePath) a).getLastSegment();
+      }
+      if (b instanceof TreePath) {
+        b = ((TreePath) b).getLastSegment();
+      }
+      if (a == b) {
+        return true;
+      }
+      if (!(a instanceof Outline) || !(b instanceof Outline)) {
+        return false;
+      }
+      Outline outlineA = (Outline) a;
+      Outline outlineB = (Outline) b;
+      if (!equals(outlineA.getParent(), outlineB.getParent())) {
+        return false;
+      }
+      String nameA = outlineA.getElement().getName();
+      String nameB = outlineB.getElement().getName();
+      return nameA.equals(nameB);
+    }
+
+    @Override
+    public int hashCode(Object element) {
+      return element.hashCode();
+    }
+  };
+
   private final ListenerList selectionChangedListeners = new ListenerList(ListenerList.IDENTITY);
   private final String contextMenuID;
   private DartEditor editor;
@@ -441,6 +387,7 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
     // create "viewer"
     viewer = new DartOutlineViewer(tree);
     ColoredViewersManager.install(viewer);
+    viewer.setComparer(OUTLINE_COMPARER);
     viewer.setContentProvider(new OutlineContentProvider());
     viewer.setLabelProvider(new DelegatingStyledCellLabelProvider(new OutlineLabelProvider()));
     SWTUtil.bindJFaceResourcesFontToControl(tree);

@@ -27,6 +27,7 @@ import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.PopupDialog;
 import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -237,8 +238,10 @@ public class DartOutlineInformationControl_NEW extends PopupDialog implements II
     // create TreeViewer
     viewer = new OutlineTreeViewer(tree);
     viewer.addFilter(new NameFilter());
+    viewer.setComparer(DartOutlinePage_NEW.OUTLINE_COMPARER);
     viewer.setContentProvider(new DartOutlinePage_NEW.OutlineContentProvider());
-    viewer.setLabelProvider(new DartOutlinePage_NEW.OutlineLabelProvider());
+    viewer.setLabelProvider(new DelegatingStyledCellLabelProvider(
+        new DartOutlinePage_NEW.OutlineLabelProvider()));
     viewer.setInput(editor.getOutline());
     selectOutlineEnclosingEditorSelection();
     // close on ESC
