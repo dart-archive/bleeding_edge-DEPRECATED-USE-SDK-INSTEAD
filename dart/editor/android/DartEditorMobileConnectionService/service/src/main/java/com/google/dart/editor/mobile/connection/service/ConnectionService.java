@@ -62,7 +62,10 @@ public class ConnectionService extends Service {
     private URLConnection makeRequest(URL url) {
         log("Test connection: " + url);
         try {
-            return url.openConnection();
+          URLConnection connection = url.openConnection();
+          connection.setRequestProperty
+                                ("User-Agent", "com.google.dart.editor.mobile.connection.service");
+          return connection;
         } catch (IOException e) {
             logError(null, e);
             return null;
