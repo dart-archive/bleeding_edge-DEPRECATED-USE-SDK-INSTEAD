@@ -41,4 +41,9 @@ public class ProblemsBotView extends AbstractBotView {
     }
     return result;
   }
+
+  @Override
+  protected String viewName() {
+    return "Problems";
+  }
 }

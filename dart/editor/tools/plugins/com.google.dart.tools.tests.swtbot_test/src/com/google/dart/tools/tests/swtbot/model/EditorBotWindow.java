@@ -14,6 +14,9 @@
 package com.google.dart.tools.tests.swtbot.model;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
+import org.eclipse.swtbot.swt.finder.results.VoidResult;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 
 public class EditorBotWindow extends AbstractBotView {
 
@@ -31,14 +34,35 @@ public class EditorBotWindow extends AbstractBotView {
     return new FilesBotView(bot);
   }
 
+  public SWTBotMenu menu(final String title) {
+    final SWTBotMenu[] menu = new SWTBotMenu[1];
+    UIThreadRunnable.syncExec(new VoidResult() {
+      @Override
+      public void run() {
+        menu[0] = bot.menu(title);
+      }
+    });
+    return menu[0];
+  }
+
   public WelcomePageEditor openWelcomePage() {
     waitForAnalysis();
     // TODO re-open welcome page if needed, and bring to top
     return new WelcomePageEditor(bot);
   }
 
+  public OutlineBotView outlineView() {
+    waitForAnalysis();
+    return new OutlineBotView(bot);
+  }
+
   public ProblemsBotView problemsView() {
     waitForAnalysis();
     return new ProblemsBotView(bot);
+  }
+
+  @Override
+  protected String viewName() {
+    return "Dart Editor";
   }
 }

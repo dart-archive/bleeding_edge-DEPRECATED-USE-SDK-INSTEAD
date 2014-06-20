@@ -18,17 +18,14 @@ import com.google.dart.tools.tests.swtbot.model.EditorBotWindow;
 import com.google.dart.tools.tests.swtbot.model.FilesBotView;
 import com.google.dart.tools.tests.swtbot.model.WelcomePageEditor;
 
-import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertNotNull;
 
-@RunWith(SWTBotJunit4ClassRunner.class)
 public class TestFilesContextMenu extends EditorTestHarness {
 
   private static FilesBotView files;
@@ -36,10 +33,10 @@ public class TestFilesContextMenu extends EditorTestHarness {
   @BeforeClass
   public static void setUpTest() {
     assertNotNull(bot); // initialized in superclass
-    EditorBotWindow editor = new EditorBotWindow(bot);
-    files = editor.filesView();
+    EditorBotWindow main = new EditorBotWindow(bot);
+    files = main.filesView();
     files.deleteExistingProject("sunflower");
-    WelcomePageEditor page = editor.openWelcomePage();
+    WelcomePageEditor page = main.openWelcomePage();
     page.clickSunflower();
     page.waitForAnalysis();
   }

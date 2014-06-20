@@ -138,6 +138,11 @@ public class WelcomePageEditor extends AbstractBotView {
     clickLabel("Demos of Dart", 0);
   }
 
+  @Override
+  protected String viewName() {
+    return "Welcome";
+  }
+
   private void clickLabel(final String sectionTitle, final int index) {
     UIThreadRunnable.syncExec(new VoidResult() {
       @Override

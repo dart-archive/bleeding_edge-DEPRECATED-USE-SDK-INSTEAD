@@ -13,12 +13,21 @@
  */
 package com.google.dart.tools.tests.swtbot.model;
 
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.FindReplaceDocumentAdapter;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.results.Result;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+
+import static org.junit.Assert.fail;
 
 /**
  * Model a code editor of Dart Editor.
@@ -30,6 +39,35 @@ public class TextBotEditor extends AbstractBotView {
   public TextBotEditor(SWTWorkbenchBot bot, String title) {
     super(bot);
     this.title = title;
+  }
+
+  public SWTBotStyledText select(String selection, int... delta) {
+    SWTBotEditor editor = bot.editorByTitle("platform_web.dart");
+    editor.show();
+    SWTBotStyledText text = editor.bot().styledText();
+    String content = text.getText();
+    IDocument doc = new Document(content);
+    FindReplaceDocumentAdapter finder = new FindReplaceDocumentAdapter(doc);
+    try {
+      IRegion found = finder.find(0, selection, true, true, false, false);
+      int offset = found.getOffset();
+      int line = doc.getLineOfOffset(offset);
+      int column = offset - doc.getLineInformationOfOffset(offset).getOffset();
+      if (delta.length > 0) {
+        text.selectRange(line, column + delta[0], 0);
+      } else {
+        text.selectRange(line, column, selection.length());
+      }
+      return text;
+    } catch (BadLocationException ex) {
+      fail(ex.getMessage());
+      throw new RuntimeException(ex);
+    }
+  }
+
+  @Override
+  protected String viewName() {
+    return "title";
   }
 
   @SuppressWarnings("unused")

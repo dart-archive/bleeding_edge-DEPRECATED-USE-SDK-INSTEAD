@@ -32,7 +32,7 @@ import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import java.util.HashSet;
 
 @SuppressWarnings("restriction")
-public class AbstractBotView {
+abstract public class AbstractBotView {
 
   private static OperationQueue OpQueue;
   private static HashSet<IContainer> PubContainers;
@@ -74,6 +74,8 @@ public class AbstractBotView {
       waitMillis(500); // allow some time to append text
     }
   }
+
+  abstract protected String viewName();
 
   private void waitForEmptyQueue() {
     try {

@@ -19,9 +19,7 @@ import com.google.dart.tools.tests.swtbot.model.FilesBotView;
 import com.google.dart.tools.tests.swtbot.model.ProblemsBotView;
 import com.google.dart.tools.tests.swtbot.model.WelcomePageEditor;
 
-import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertTrue;
 
@@ -29,7 +27,6 @@ import static org.junit.Assert.assertTrue;
  * Verify the samples compile correctly then delete them. The test methods are named to ensure they
  * execute in the standard order for running samples.
  */
-@RunWith(SWTBotJunit4ClassRunner.class)
 public class TestSamples extends EditorTestHarness {
 
   static class AngularTodoRunner extends SampleRunner {
@@ -91,7 +88,7 @@ public class TestSamples extends EditorTestHarness {
 
   @Test
   public void test3PolymerTodo() throws Exception {
-    new PolymerTodoRunner().run("todomvc", 1); // ignore one hint
+    new PolymerTodoRunner().run("todomvc", 1);
   }
 
   @Test

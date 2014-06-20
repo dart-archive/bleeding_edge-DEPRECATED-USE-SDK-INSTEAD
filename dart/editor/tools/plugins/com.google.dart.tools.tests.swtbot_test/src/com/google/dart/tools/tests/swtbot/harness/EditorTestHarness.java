@@ -14,9 +14,12 @@
 package com.google.dart.tools.tests.swtbot.harness;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.runner.RunWith;
 
+@RunWith(SWTBotJunit4ClassRunner.class)
 public class EditorTestHarness {
   protected static SWTWorkbenchBot bot;
 

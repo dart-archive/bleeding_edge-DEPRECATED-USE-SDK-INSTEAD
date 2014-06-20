@@ -11,23 +11,18 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.tests.swtbot.test;
+package com.google.dart.tools.tests.swtbot.model;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 
-/**
- * SWTBot test driver.
- */
-@RunWith(Suite.class)
-@Suite.SuiteClasses({
-//
-    TestInit.class, //
-    TestSamples.class, //
-    TestFilesContextMenu.class, //
-    TestDartEditorContextMenu.class, //
-    TestOutline.class
-//
-})
-public final class TestAll {
+public class OutlineBotView extends AbstractTreeBotView {
+
+  public OutlineBotView(SWTWorkbenchBot bot) {
+    super(bot);
+  }
+
+  @Override
+  protected String viewName() {
+    return "Outline";
+  }
 }
