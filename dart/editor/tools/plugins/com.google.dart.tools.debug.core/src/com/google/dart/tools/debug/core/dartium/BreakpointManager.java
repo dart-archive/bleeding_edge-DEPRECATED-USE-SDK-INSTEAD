@@ -280,7 +280,10 @@ public class BreakpointManager implements IBreakpointListener, DartBreakpointMan
     if (launchResource == null) {
       launchResource = resource;
     }
-    return DartCore.getProjectManager().resolvePathToPackage(launchResource, filePath);
+    if (launchResource != null) {
+      return DartCore.getProjectManager().resolvePathToPackage(launchResource, filePath);
+    }
+    return null;
   }
 
   void addToBreakpointMap(IBreakpoint breakpoint, String id, boolean trackChanges) {
