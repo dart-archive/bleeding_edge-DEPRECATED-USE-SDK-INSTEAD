@@ -92,15 +92,14 @@ public interface AnalysisServer {
   public void getAssists(String file, int offset, int length, AssistsConsumer consumer);
 
   /**
-   * Computes code completion suggestions at the given position in the file. The given consumer is
-   * invoked asynchronously on a different thread.
+   * Computes code completion id for the given position in the file. The given consumer is invoked
+   * asynchronously on a different thread.
    * 
    * @param file the file containing the point at which suggestions are to be made
    * @param offset the offset within the {@code source}
    * @param consumer the results listener
    */
-  public void getCompletionSuggestions(String file, int offset,
-      CompletionSuggestionsConsumer consumer);
+  public void getCompletionSuggestions(String file, int offset, CompletionIdConsumer consumer);
 
   /**
    * Computes a set of fixes that are available for the given list of errors. The given consumer is

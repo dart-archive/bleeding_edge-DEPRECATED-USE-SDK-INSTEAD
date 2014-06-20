@@ -22,7 +22,7 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AssistsConsumer;
-import com.google.dart.server.CompletionSuggestionsConsumer;
+import com.google.dart.server.CompletionIdConsumer;
 import com.google.dart.server.Consumer;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
@@ -226,9 +226,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void getCompletionSuggestions(String file, int offset,
-      CompletionSuggestionsConsumer consumer) {
-    // TODO(scheglov) implement
+  public void getCompletionSuggestions(String file, int offset, CompletionIdConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateCompletionGetSuggestions(id, file, offset),
+        consumer);
   }
 
   @Override
@@ -356,6 +359,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     return Integer.toString(nextId.getAndIncrement());
   }
 
+  private void processCompletionIdConsumer(CompletionIdConsumer consumer, JsonObject resultObject) {
+    String completionId = resultObject.get("id").getAsString();
+    consumer.computedCompletionId(completionId);
+  }
+
   private void processErrorResponse(JsonObject errorObject) throws Exception {
     // TODO (jwren) after Error section is done, revisit this.
     String errorCode = errorObject.get("code").getAsString();
@@ -426,7 +434,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     }
     // handle result
     JsonObject resultObject = (JsonObject) response.get("result");
-    if (consumer instanceof VersionConsumer) {
+    if (consumer instanceof CompletionIdConsumer) {
+      processCompletionIdConsumer((CompletionIdConsumer) consumer, resultObject);
+    } else if (consumer instanceof VersionConsumer) {
       processVersionConsumer((VersionConsumer) consumer, resultObject);
     }
     synchronized (consumerMapLock) {

@@ -26,6 +26,7 @@ import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.AssistsConsumer;
+import com.google.dart.server.CompletionIdConsumer;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
@@ -498,6 +499,37 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     assertTrue(requests.contains(expected));
+  }
+
+  public void test_completion_getSuggestions() throws Exception {
+    final String[] completionIdPtr = {null};
+    server.getCompletionSuggestions("/fileA.dart", 0, new CompletionIdConsumer() {
+      @Override
+      public void computedCompletionId(String completionId) {
+        completionIdPtr[0] = completionId;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'completion.getSuggestions',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 0",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'id': 'completionId0'",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+    assertEquals("completionId0", completionIdPtr[0]);
   }
 
   public void test_edit_getAssists() throws Exception {

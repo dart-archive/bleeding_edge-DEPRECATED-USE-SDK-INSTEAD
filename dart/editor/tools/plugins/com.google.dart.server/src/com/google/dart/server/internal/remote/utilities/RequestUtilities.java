@@ -57,6 +57,9 @@ public class RequestUtilities {
   private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
   private static final String METHOD_EDIT_GET_ASSISTS = "edit.getAssists";
 
+  // Code Completion domain
+  private static final String METHOD_COMPLETION_GET_SUGGESTIONS = "completion.getSuggestions";
+
   @VisibleForTesting
   public static JsonElement buildJsonElement(Object object) {
     if (object instanceof Boolean) {
@@ -236,6 +239,27 @@ public class RequestUtilities {
       params.addProperty("default", defaultSdk);
     }
     return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_UPDATE_SDKS, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_COMPLETION_GET_SUGGESTIONS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "completion.getSuggestions"
+   *   "params": {
+   *     "file": FilePath
+   *     "offset": int
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateCompletionGetSuggestions(String idValue, String file, int offset) {
+    JsonObject params = new JsonObject();
+    params.addProperty(FILE, file);
+    params.addProperty("offset", offset);
+    return buildJsonObjectRequest(idValue, METHOD_COMPLETION_GET_SUGGESTIONS, params);
   }
 
   /**

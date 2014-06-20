@@ -31,7 +31,7 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AssistsConsumer;
-import com.google.dart.server.CompletionSuggestionsConsumer;
+import com.google.dart.server.CompletionIdConsumer;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
 import com.google.dart.server.FixesConsumer;
@@ -921,8 +921,7 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 //  }
 
   @Override
-  public void getCompletionSuggestions(String file, int offset,
-      CompletionSuggestionsConsumer consumer) {
+  public void getCompletionSuggestions(String file, int offset, CompletionIdConsumer consumer) {
   }
 
   @Override

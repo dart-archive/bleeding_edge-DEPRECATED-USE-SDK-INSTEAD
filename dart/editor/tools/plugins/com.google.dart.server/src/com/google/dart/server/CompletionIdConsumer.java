@@ -15,15 +15,15 @@ package com.google.dart.server;
 
 /**
  * The interface {@code CompletionSuggestionsConsumer} defines the behavior of objects that consume
- * set of {@link CompletionSuggestion}s.
+ * a completion id.
  * 
  * @coverage dart.server
  */
-public interface CompletionSuggestionsConsumer extends Consumer {
+public interface CompletionIdConsumer extends Consumer {
   /**
-   * A set of {@link CompletionSuggestion}s has been computed.
+   * A completion id {@link String}.
    * 
-   * @param suggestions an array of {@link CompletionSuggestion}s
+   * @param completionId a completion id {@link String}
    */
-  public void computed(CompletionSuggestion[] suggestions);
+  public void computedCompletionId(String completionId);
 }

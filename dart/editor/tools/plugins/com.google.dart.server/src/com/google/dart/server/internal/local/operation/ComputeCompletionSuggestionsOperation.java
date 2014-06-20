@@ -16,7 +16,7 @@ package com.google.dart.server.internal.local.operation;
 
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.CompletionSuggestionsConsumer;
+import com.google.dart.server.CompletionIdConsumer;
 import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 /**
@@ -29,10 +29,10 @@ public class ComputeCompletionSuggestionsOperation implements ContextServerOpera
   private final Source source;
   private final int offset;
   private final int length;
-  private final CompletionSuggestionsConsumer consumer;
+  private final CompletionIdConsumer consumer;
 
   public ComputeCompletionSuggestionsOperation(String contextId, Source source, int offset,
-      int length, CompletionSuggestionsConsumer consumer) {
+      int length, CompletionIdConsumer consumer) {
     this.contextId = contextId;
     this.source = source;
     this.offset = offset;

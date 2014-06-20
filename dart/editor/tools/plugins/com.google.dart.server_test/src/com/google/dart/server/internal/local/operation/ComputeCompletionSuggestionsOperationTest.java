@@ -15,7 +15,7 @@
 package com.google.dart.server.internal.local.operation;
 
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.CompletionSuggestionsConsumer;
+import com.google.dart.server.CompletionIdConsumer;
 import com.google.dart.server.internal.local.LocalAnalysisServerImpl;
 
 import junit.framework.TestCase;
@@ -27,7 +27,7 @@ public class ComputeCompletionSuggestionsOperationTest extends TestCase {
 
   public void test_perform() throws Exception {
     Source source = mock(Source.class);
-    CompletionSuggestionsConsumer consumer = mock(CompletionSuggestionsConsumer.class);
+    CompletionIdConsumer consumer = mock(CompletionIdConsumer.class);
     ComputeCompletionSuggestionsOperation operation = new ComputeCompletionSuggestionsOperation(
         "id",
         source,
