@@ -11,9 +11,14 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.server.internal.remote;
+package com.google.dart.server;
 
 import com.google.common.base.Preconditions;
+import com.google.dart.server.internal.remote.ByteLineReaderStream;
+import com.google.dart.server.internal.remote.ByteRequestSink;
+import com.google.dart.server.internal.remote.ByteResponseStream;
+import com.google.dart.server.internal.remote.RequestSink;
+import com.google.dart.server.internal.remote.ResponseStream;
 
 import java.io.PrintStream;
 

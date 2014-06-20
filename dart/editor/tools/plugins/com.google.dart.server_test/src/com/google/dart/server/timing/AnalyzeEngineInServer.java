@@ -22,8 +22,8 @@ import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
 import com.google.dart.server.ServerStatus;
+import com.google.dart.server.StdioServerSocket;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
-import com.google.dart.server.internal.remote.StdioServerSocket;
 
 import java.io.File;
 import java.util.ArrayList;
