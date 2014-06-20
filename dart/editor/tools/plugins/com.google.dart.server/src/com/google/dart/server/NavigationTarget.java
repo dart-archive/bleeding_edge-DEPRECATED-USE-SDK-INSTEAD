@@ -26,11 +26,11 @@ public interface NavigationTarget extends SourceRegion {
   NavigationTarget[] EMPTY_ARRAY = new NavigationTarget[0];
 
   /**
-   * Return the id of the element to which this target will navigate.
+   * Return the element to which this target should navigate.
    * 
-   * @return the id of the element to which this target will navigate
+   * @return the element to which this target should navigate
    */
-  public String getElementId();
+  public Element getElement();
 
   /**
    * Return the file containing the element to which this target will navigate.

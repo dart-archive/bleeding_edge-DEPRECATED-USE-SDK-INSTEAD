@@ -14,6 +14,7 @@
 
 package com.google.dart.server.internal.local.computer;
 
+import com.google.dart.server.Element;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.NavigationTarget;
 
@@ -24,17 +25,17 @@ import com.google.dart.server.NavigationTarget;
  */
 public class NavigationTargetImpl extends SourceRegionImpl implements NavigationTarget {
   private final String filePath;
-  private final String elementId;
+  private final Element element;
 
-  public NavigationTargetImpl(String filePath, int offset, int length, String elementId) {
+  public NavigationTargetImpl(String filePath, int offset, int length, Element element) {
     super(offset, length);
     this.filePath = filePath;
-    this.elementId = elementId;
+    this.element = element;
   }
 
   @Override
-  public String getElementId() {
-    return elementId;
+  public Element getElement() {
+    return element;
   }
 
   @Override
@@ -52,8 +53,8 @@ public class NavigationTargetImpl extends SourceRegionImpl implements Navigation
     builder.append(getOffset());
     builder.append(", length=");
     builder.append(getLength());
-    builder.append(", elementId=");
-    builder.append(getElementId());
+    builder.append(", element=");
+    builder.append(getElement());
     builder.append("]");
     return builder.toString();
   }

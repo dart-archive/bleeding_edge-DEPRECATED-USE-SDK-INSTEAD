@@ -15,6 +15,7 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.Element;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.NavigationTarget;
 import com.google.dart.server.internal.local.computer.NavigationRegionImpl;
@@ -61,8 +62,9 @@ public class NotificationAnalysisNavigationProcessor extends NotificationProcess
         String targetFile = targetObject.get("file").getAsString();
         int targetOffset = targetObject.get("offset").getAsInt();
         int targetLength = targetObject.get("length").getAsInt();
-        String elementId = targetObject.get("elementId").getAsString();
-        targets.add(new NavigationTargetImpl(targetFile, targetOffset, targetLength, elementId));
+        JsonObject elementObject = targetObject.get("element").getAsJsonObject();
+        Element element = computeElement(elementObject);
+        targets.add(new NavigationTargetImpl(targetFile, targetOffset, targetLength, element));
       }
 
       regions.add(new NavigationRegionImpl(

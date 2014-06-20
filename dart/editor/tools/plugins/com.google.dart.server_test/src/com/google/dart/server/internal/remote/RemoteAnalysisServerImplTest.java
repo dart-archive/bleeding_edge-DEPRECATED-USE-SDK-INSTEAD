@@ -147,13 +147,27 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "            'file': '/test2.dart',",
         "            'offset': 3,",
         "            'length': 4,",
-        "            'elementId': 'elementId0'",
+        "            'element': {",
+        "              'kind': 'COMPILATION_UNIT',",
+        "              'name': 'name0',",
+        "              'offset': 1,",
+        "              'length': 2,",
+        "              'flags': 0,",
+        "              'parameters': 'parameters0',",
+        "              'returnType': 'returnType0'",
+        "            }",
         "          },",
         "          {",
         "            'file': '/test3.dart',",
         "            'offset': 5,",
         "            'length': 6,",
-        "            'elementId': 'elementId1'",
+        "            'element': {",
+        "              'kind': 'CLASS',",
+        "              'name': '_name1',",
+        "              'offset': 10,",
+        "              'length': 20,",
+        "              'flags': 63",
+        "            }",
         "          }",
         "        ]",
         "      },",
@@ -165,7 +179,15 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "            'file': '/test4.dart',",
         "            'offset': 30,",
         "            'length': 40,",
-        "            'elementId': 'elementId2'",
+        "            'element': {",
+        "              'kind': 'COMPILATION_UNIT',",
+        "              'name': 'name0',",
+        "              'offset': 1,",
+        "              'length': 2,",
+        "              'flags': 0,",
+        "              'parameters': 'parameters0',",
+        "              'returnType': 'returnType0'",
+        "            }",
         "          }",
         "        ]",
         "      }",
@@ -187,14 +209,38 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         assertEquals("/test2.dart", target.getFile());
         assertEquals(3, target.getOffset());
         assertEquals(4, target.getLength());
-        assertEquals("elementId0", target.getElementId());
+        Element element = target.getElement();
+        assertEquals(ElementKind.COMPILATION_UNIT, element.getKind());
+        assertEquals("name0", element.getName());
+        assertEquals(1, element.getOffset());
+        assertEquals(2, element.getLength());
+        assertFalse(element.isAbstract());
+        assertFalse(element.isConst());
+        assertFalse(element.isDeprecated());
+        assertFalse(element.isFinal());
+        assertFalse(element.isPrivate());
+        assertFalse(element.isTopLevelOrStatic());
+        assertEquals("parameters0", element.getParameters());
+        assertEquals("returnType0", element.getReturnType());
       }
       {
         NavigationTarget target = targets[1];
         assertEquals("/test3.dart", target.getFile());
         assertEquals(5, target.getOffset());
         assertEquals(6, target.getLength());
-        assertEquals("elementId1", target.getElementId());
+        Element childElement = target.getElement();
+        assertEquals(ElementKind.CLASS, childElement.getKind());
+        assertEquals("_name1", childElement.getName());
+        assertEquals(10, childElement.getOffset());
+        assertEquals(20, childElement.getLength());
+        assertTrue(childElement.isAbstract());
+        assertTrue(childElement.isConst());
+        assertTrue(childElement.isDeprecated());
+        assertTrue(childElement.isFinal());
+        assertTrue(childElement.isPrivate());
+        assertTrue(childElement.isTopLevelOrStatic());
+        assertNull(childElement.getParameters());
+        assertNull(childElement.getReturnType());
       }
     }
     {
@@ -208,7 +254,19 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         assertEquals("/test4.dart", target.getFile());
         assertEquals(30, target.getOffset());
         assertEquals(40, target.getLength());
-        assertEquals("elementId2", target.getElementId());
+        Element element = target.getElement();
+        assertEquals(ElementKind.COMPILATION_UNIT, element.getKind());
+        assertEquals("name0", element.getName());
+        assertEquals(1, element.getOffset());
+        assertEquals(2, element.getLength());
+        assertFalse(element.isAbstract());
+        assertFalse(element.isConst());
+        assertFalse(element.isDeprecated());
+        assertFalse(element.isFinal());
+        assertFalse(element.isPrivate());
+        assertFalse(element.isTopLevelOrStatic());
+        assertEquals("parameters0", element.getParameters());
+        assertEquals("returnType0", element.getReturnType());
       }
     }
   }
