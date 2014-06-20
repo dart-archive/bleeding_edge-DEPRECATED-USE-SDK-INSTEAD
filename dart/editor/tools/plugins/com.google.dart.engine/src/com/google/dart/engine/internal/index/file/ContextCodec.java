@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.index.file;
 
-import com.google.common.collect.MapMaker;
+import com.google.common.collect.Maps;
 import com.google.dart.engine.context.AnalysisContext;
 
 import java.util.Map;
@@ -27,12 +27,17 @@ public class ContextCodec {
   /**
    * A table mapping contexts to their unique indices.
    */
-  private final Map<AnalysisContext, Integer> contextToIndex = new MapMaker().weakKeys().makeMap();
+  private final Map<AnalysisContext, Integer> contextToIndex = Maps.newHashMap();
 
   /**
    * A table mapping indices to the corresponding contexts.
    */
-  private final Map<Integer, AnalysisContext> indexToContext = new MapMaker().weakValues().makeMap();
+  private final Map<Integer, AnalysisContext> indexToContext = Maps.newHashMap();
+
+  /**
+   * The next id to assign.
+   */
+  private int nextId;
 
   /**
    * Returns the {@link AnalysisContext} that corresponds to the given index.
@@ -47,10 +52,20 @@ public class ContextCodec {
   public int encode(AnalysisContext context) {
     Integer index = contextToIndex.get(context);
     if (index == null) {
-      index = indexToContext.size();
+      index = nextId++;
       contextToIndex.put(context, index);
       indexToContext.put(index, context);
     }
     return index;
+  }
+
+  /**
+   * Removes the given {@link AnalysisContext}.
+   */
+  public void removeContext(AnalysisContext context) {
+    Integer id = contextToIndex.remove(context);
+    if (id != null) {
+      indexToContext.remove(id);
+    }
   }
 }

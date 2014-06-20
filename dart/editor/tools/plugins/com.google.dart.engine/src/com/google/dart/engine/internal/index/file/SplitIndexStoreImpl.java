@@ -273,6 +273,8 @@ public class SplitIndexStoreImpl implements IndexStore {
     contextToLibraryToUnits.remove(context);
     contextToUnitToLibraries.remove(context);
     contextNodeRelations.remove(contextCodec.encode(context));
+    // remove context from codec
+    contextCodec.removeContext(context);
   }
 
   @Override

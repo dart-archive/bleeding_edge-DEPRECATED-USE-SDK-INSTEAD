@@ -22,12 +22,34 @@ import static org.mockito.Mockito.mock;
 public class ContextCodecTest extends TestCase {
   private ContextCodec codec = new ContextCodec();
 
-  public void test_all() throws Exception {
+  public void test_encode_decode() throws Exception {
     AnalysisContext contextA = mock(AnalysisContext.class);
     AnalysisContext contextB = mock(AnalysisContext.class);
     int idA = codec.encode(contextA);
     int idB = codec.encode(contextB);
+    assertEquals(idA, codec.encode(contextA));
+    assertEquals(idB, codec.encode(contextB));
     assertSame(contextA, codec.decode(idA));
     assertSame(contextB, codec.decode(idB));
+  }
+
+  public void test_remove() throws Exception {
+    // encode
+    {
+      AnalysisContext context = mock(AnalysisContext.class);
+      int id = codec.encode(context);
+      assertEquals(0, id);
+      assertSame(context, codec.decode(id));
+      // remove
+      codec.removeContext(context);
+      assertNull(codec.decode(id));
+    }
+    // encode again
+    {
+      AnalysisContext context = mock(AnalysisContext.class);
+      int id = codec.encode(context);
+      assertEquals(1, id);
+      assertSame(context, codec.decode(id));
+    }
   }
 }
