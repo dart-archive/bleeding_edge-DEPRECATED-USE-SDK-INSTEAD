@@ -54,8 +54,8 @@ public class SplitIndexStoreImplTest extends EngineTestCase {
         return false;
       }
       LocationEqualsWrapper other = (LocationEqualsWrapper) obj;
-      return other.location.getOffset() == other.location.getOffset()
-          && other.location.getLength() == other.location.getLength()
+      return other.location.getOffset() == location.getOffset()
+          && other.location.getLength() == location.getLength()
           && Objects.equal(other.location.getElement(), location.getElement());
     }
 
