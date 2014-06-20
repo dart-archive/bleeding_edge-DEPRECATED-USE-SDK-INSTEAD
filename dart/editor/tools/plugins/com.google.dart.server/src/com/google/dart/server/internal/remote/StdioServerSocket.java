@@ -29,6 +29,7 @@ public class StdioServerSocket {
   private RequestSink requestSink;
   private ResponseStream responseStream;
   private ByteLineReaderStream errorStream;
+  private Process process;
 
   public StdioServerSocket(String runtimePath, String analysisServerPath, PrintStream debugStream) {
     this.runtimePath = runtimePath;
@@ -65,9 +66,40 @@ public class StdioServerSocket {
    */
   public void start() throws Exception {
     ProcessBuilder processBuilder = new ProcessBuilder(runtimePath, analysisServerPath);
-    Process process = processBuilder.start();
+    process = processBuilder.start();
     requestSink = new ByteRequestSink(process.getOutputStream(), debugStream);
     responseStream = new ByteResponseStream(process.getInputStream(), debugStream);
     errorStream = new ByteLineReaderStream(process.getErrorStream());
+  }
+
+  /**
+   * Wait up to 5 seconds for process to gracefully exit, then forcibly terminate the process if it
+   * is still running.
+   */
+  public void stop() {
+    if (process == null) {
+      return;
+    }
+    final Process processToStop = process;
+    process = null;
+    long endTime = System.currentTimeMillis() + 5000;
+    while (System.currentTimeMillis() < endTime) {
+      try {
+        int exit = processToStop.exitValue();
+        if (exit != 0) {
+          System.out.println("Non-zero exit code: " + exit + " for\n   " + analysisServerPath);
+        }
+        return;
+      } catch (IllegalThreadStateException e) {
+        //$FALL-THROUGH$
+      }
+      try {
+        Thread.sleep(20);
+      } catch (InterruptedException e) {
+        //$FALL-THROUGH$
+      }
+    }
+    processToStop.destroy();
+    System.out.println("Terminated " + analysisServerPath);
   }
 }

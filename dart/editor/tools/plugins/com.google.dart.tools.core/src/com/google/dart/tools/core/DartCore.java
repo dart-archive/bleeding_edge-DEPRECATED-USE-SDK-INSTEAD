@@ -350,6 +350,11 @@ public class DartCore extends Plugin implements DartSdkListener {
   private static final Object analysisServerLock = new Object();
 
   /**
+   * The socket and process manager used by {@link #analysisServer}.
+   */
+  private static StdioServerSocket analysisServerSocket;
+
+  /**
    * Add the given listener for dart ignore changes to the Dart Model. Has no effect if an identical
    * listener is already registered.
    * 
@@ -496,15 +501,12 @@ public class DartCore extends Plugin implements DartSdkListener {
             }
           }
           // start server
-          StdioServerSocket socket = new StdioServerSocket(
-              runtimePath,
-              analysisServerPath,
-              debugStream);
-          socket.start();
+          analysisServerSocket = new StdioServerSocket(runtimePath, analysisServerPath, debugStream);
+          analysisServerSocket.start();
           analysisServer = new com.google.dart.server.internal.remote.RemoteAnalysisServerImpl(
-              socket.getRequestSink(),
-              socket.getResponseStream(),
-              socket.getErrorStream());
+              analysisServerSocket.getRequestSink(),
+              analysisServerSocket.getResponseStream(),
+              analysisServerSocket.getErrorStream());
           analysisServerDataImpl.setServer(analysisServer);
           analysisServer.addAnalysisServerListener(analysisServerListener);
         } catch (Throwable e) {
@@ -1768,6 +1770,7 @@ public class DartCore extends Plugin implements DartSdkListener {
       synchronized (analysisServerLock) {
         if (analysisServer != null) {
           analysisServer.shutdown();
+          analysisServerSocket.stop();
         }
       }
 
