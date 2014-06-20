@@ -293,6 +293,12 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String BUILD_DART_FILE_NAME = "build.dart";
 
   /**
+   * Used by the {@link DartDebugUserAgentManager} to indicate whether the 
+   * allow remote connection dialog is open.
+   */
+  public static boolean allowConnectionDialogOpen = false;
+
+  /**
    * The shared message console instance.
    */
   private static final MessageConsole CONSOLE = new MessageConsoleImpl();

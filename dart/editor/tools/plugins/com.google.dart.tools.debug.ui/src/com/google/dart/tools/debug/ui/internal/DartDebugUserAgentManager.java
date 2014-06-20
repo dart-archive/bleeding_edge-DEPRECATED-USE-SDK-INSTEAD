@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.ui.internal;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.IUserAgentManager;
 
@@ -45,8 +46,6 @@ public class DartDebugUserAgentManager implements IUserAgentManager {
     boolean allowed;
   }
 
-  private static boolean dialogOpen = false;
-
   static void install() {
     DartDebugCorePlugin.getPlugin().setUserAgentManager(new DartDebugUserAgentManager());
   }
@@ -65,18 +64,26 @@ public class DartDebugUserAgentManager implements IUserAgentManager {
     }
 
     // check if it's an existing agent
-    if (isKnownAgent(remoteAddress.getHostAddress(), agentName)) {
+    if (isKnownAgent(remoteAddress, agentName)) {
       return agentAllowed(remoteAddress, agentName);
     }
 
     // ask the user
-    if (dialogOpen) {
+    if (DartCore.allowConnectionDialogOpen) {
       return false;
     }
 
-    dialogOpen = true;
+    DartCore.allowConnectionDialogOpen = true;
     boolean allowConnection = askUserAllows(remoteAddress, agentName);
 
+    addAgentData(remoteAddress, agentName, allowConnection);
+
+    DartCore.allowConnectionDialogOpen = false;
+    return allowConnection;
+
+  }
+
+  private void addAgentData(InetAddress remoteAddress, String agentName, boolean allowConnection) {
     AgentData data = new AgentData();
 
     data.address = remoteAddress.getHostAddress();
@@ -84,10 +91,6 @@ public class DartDebugUserAgentManager implements IUserAgentManager {
     data.allowed = allowConnection;
     agents.add(data);
     saveSettings();
-
-    dialogOpen = false;
-    return allowConnection;
-
   }
 
   private boolean agentAllowed(InetAddress remoteAddress, String agent) {
@@ -138,10 +141,19 @@ public class DartDebugUserAgentManager implements IUserAgentManager {
     return DartDebugUIPlugin.getDefault().getStateLocation().append("agentdata.txt").toFile();
   }
 
-  private boolean isKnownAgent(String address, String agent) {
+  private boolean isKnownAgent(InetAddress remoteAddress, String agent) {
+    String remoteAddressString = remoteAddress.getHostAddress();
     for (AgentData data : agents) {
-      if (address.equals(data.address) && agent.equals(data.agentName)) {
+      if (remoteAddressString.equals(data.address) && agent.equals(data.agentName)) {
         return true;
+      }
+    }
+    if (agent.equals("com.google.dart.editor.mobile.connection.service")) {
+      for (AgentData data : agents) {
+        if (remoteAddressString.equals(data.address)) {
+          addAgentData(remoteAddress, agent, true);
+          return true;
+        }
       }
     }
     return false;

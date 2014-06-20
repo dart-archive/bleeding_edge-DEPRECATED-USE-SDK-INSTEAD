@@ -245,7 +245,6 @@ public class AndroidDebugBridge {
       DartCore.getConsole().println("Failed to launch ADB logcat");
       return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, "Failed to launch ADB logcat", e);
     }
-
     // Launch the service that tests the connection from mobile device to developer machine
     List<String> args = buildAdbCommand(START_SERVICE);
     args.add("-n");
@@ -255,6 +254,13 @@ public class AndroidDebugBridge {
     args.add("-e");
     args.add("prefix");
     args.add(msgPrefix);
+
+    // wait for dialog for connection to browser on mobile, and then
+    // start the check for port forwarding. 
+    while (DartCore.allowConnectionDialogOpen == true) {
+      threadSleep(500);
+    }
+
     try {
       if (!runAdb(args, "ADB: check port forwarding")) {
         return new Status(
@@ -262,6 +268,7 @@ public class AndroidDebugBridge {
             DartCore.PLUGIN_ID,
             "Failed to launch port forwarding detection");
       }
+
       IStatus result = logcatRunner.waitForResult(3500);
       if (result != null) {
         if (!result.isOK()) {
@@ -479,6 +486,14 @@ public class AndroidDebugBridge {
       DartCore.logError(e);
     }
     return exitCode == 0 ? true : false;
+  }
+
+  private void threadSleep(long millisecs) {
+    try {
+      Thread.sleep(millisecs);
+    } catch (InterruptedException e) {
+
+    }
   }
 
   private boolean uninstall(AndroidDevice device, String apkId) {
