@@ -100,6 +100,12 @@ def DartArchiveUploadAPIDocs(api_zip):
         namer.apidocs_zipfilename())
     DartArchiveFile(api_zip, destination, create_md5sum=False)
 
+def DartArchiveUploadAndroidZip(android_zip):
+  namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
+  for revision in [REVISION, 'latest']:
+    destination = namer.editor_android_zipfilepath(revision)
+    DartArchiveFile(android_zip, destination, create_md5sum=False)
+
 def DartArchiveUploadVersionFile(version_file):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
   for revision in [REVISION, 'latest']:
@@ -555,6 +561,10 @@ def main():
             version_file = _FindVersionFile(buildout)
             if version_file:
               DartArchiveUploadVersionFile(version_file)
+
+            # Archive the android editor zip file
+            if builder_name.startswith('dart-editor-linux'):
+              UploadAndroidZip()
 
             found_zips = _FindRcpZipFiles(buildout)
             for zipfile in found_zips:
@@ -1088,6 +1098,12 @@ def CreateApiDocs(buildLocation):
   CreateZip(apidir, api_zip)
 
   DartArchiveUploadAPIDocs(api_zip)
+
+def UploadAndroidZip():
+  android_zip = join(DART_PATH,
+                     utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
+                     'editor', 'android.zip')
+  DartArchiveUploadAndroidZip(andrid_zip)
 
 
 def CreateSDK(sdkpath):
