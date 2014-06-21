@@ -1103,7 +1103,7 @@ def UploadAndroidZip():
   android_zip = join(DART_PATH,
                      utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
                      'editor', 'android.zip')
-  DartArchiveUploadAndroidZip(andrid_zip)
+  DartArchiveUploadAndroidZip(android_zip)
 
 
 def CreateSDK(sdkpath):
