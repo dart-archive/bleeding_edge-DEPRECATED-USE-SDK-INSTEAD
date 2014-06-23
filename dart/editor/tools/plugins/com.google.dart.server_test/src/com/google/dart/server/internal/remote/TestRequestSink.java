@@ -24,10 +24,16 @@ import java.util.List;
  */
 public class TestRequestSink implements RequestSink {
   private final List<JsonObject> requests = Lists.newArrayList();
+  private boolean isClosed = false;
 
   @Override
   public void add(JsonObject request) {
     requests.add(request);
+  }
+
+  @Override
+  public void close() {
+    isClosed = true;
   }
 
   /**
@@ -35,5 +41,9 @@ public class TestRequestSink implements RequestSink {
    */
   public List<JsonObject> getRequests() {
     return requests;
+  }
+
+  public boolean isClosed() {
+    return isClosed;
   }
 }

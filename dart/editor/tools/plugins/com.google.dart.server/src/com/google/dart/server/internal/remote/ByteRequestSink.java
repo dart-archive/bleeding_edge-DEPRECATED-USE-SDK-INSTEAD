@@ -57,4 +57,9 @@ public class ByteRequestSink implements RequestSink {
     writer.println(text);
     writer.flush();
   }
+
+  @Override
+  public void close() {
+    writer.close();
+  }
 }

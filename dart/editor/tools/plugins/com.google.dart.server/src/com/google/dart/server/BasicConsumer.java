@@ -11,25 +11,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.server.internal.remote;
-
-import com.google.gson.JsonObject;
+package com.google.dart.server;
 
 /**
- * A destination for remote server requests.
- * 
- * @coverage dart.server.remote
+ * The interface {@code BasicConsumer} defines the behavior of objects that receive a basic
+ * acknowledgment that the request has been received.
  */
-public interface RequestSink {
+public interface BasicConsumer extends Consumer {
   /**
-   * Put request into the sink.
-   * 
-   * @param request the request to put, not {@code null}.
+   * Response from server was received.
    */
-  void add(JsonObject request);
-
-  /**
-   * Close the communication channel.
-   */
-  void close();
+  public void received();
 }

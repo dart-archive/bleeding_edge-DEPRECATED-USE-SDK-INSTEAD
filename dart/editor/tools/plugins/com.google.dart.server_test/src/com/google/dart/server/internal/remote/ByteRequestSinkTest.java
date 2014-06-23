@@ -57,6 +57,20 @@ public class ByteRequestSinkTest extends TestCase {
     verify(debugStream).println(anyString());
   }
 
+  public void test_close() throws Exception {
+    ByteRequestSink requestSink = new ByteRequestSink(byteStream, null);
+    JsonObject originalJsonObject = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'server.shutdown'",
+        "}");
+    // assert write after close is ignored
+    requestSink.close();
+    requestSink.add(originalJsonObject);
+    byte[] bytes = byteStream.toByteArray();
+    assertEquals(0, bytes.length);
+  }
+
   /**
    * Builds a JSON string from the given lines. Replaces single quotes with double quotes. Then
    * parses this string as a {@link JsonObject}.

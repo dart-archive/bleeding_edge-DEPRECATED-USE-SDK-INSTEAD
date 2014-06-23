@@ -22,6 +22,7 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AssistsConsumer;
+import com.google.dart.server.BasicConsumer;
 import com.google.dart.server.CompletionIdConsumer;
 import com.google.dart.server.Consumer;
 import com.google.dart.server.ContentChange;
@@ -319,7 +320,13 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void shutdown() {
     String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateServerShutdown(id), null);
+    sendRequestToServer(id, RequestUtilities.generateServerShutdown(id), new BasicConsumer() {
+      @Override
+      public void received() {
+        // Close communication channels once response has been received
+        requestSink.close();
+      }
+    });
   }
 
   @VisibleForTesting
@@ -438,6 +445,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       processCompletionIdConsumer((CompletionIdConsumer) consumer, resultObject);
     } else if (consumer instanceof VersionConsumer) {
       processVersionConsumer((VersionConsumer) consumer, resultObject);
+    } else if (consumer instanceof BasicConsumer) {
+      ((BasicConsumer) consumer).received();
     }
     synchronized (consumerMapLock) {
       consumerMap.remove(idString);

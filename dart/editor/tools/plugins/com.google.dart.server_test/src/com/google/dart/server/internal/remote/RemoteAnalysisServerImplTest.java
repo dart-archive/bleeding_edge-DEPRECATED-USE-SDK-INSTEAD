@@ -843,13 +843,20 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_server_shutdown() throws Exception {
     server.shutdown();
-    List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
         "  'id': '0',",
         "  'method': 'server.shutdown'",
         "}");
-    assertTrue(requests.contains(expected));
+    assertTrue(requestSink.getRequests().contains(expected));
+    assertFalse(requestSink.isClosed());
+    putResponse(//
+        "{",
+        "  'id': '0'",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    assertTrue(requestSink.isClosed());
   }
 
   /**
