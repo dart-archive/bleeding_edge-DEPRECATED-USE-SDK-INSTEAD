@@ -68,7 +68,9 @@ public class PubPackageManager {
    * Return a list containing the names of the packages on pub
    */
   public Collection<String> getPackageList() {
-    startPackageListFromPubJob();
+    if (packagesList.isEmpty()) {
+      startPackageListFromPubJob();
+    }
     synchronized (lock) {
       return new ArrayList<String>(packagesList);
     }
@@ -86,7 +88,9 @@ public class PubPackageManager {
    * Return an array of {@link PubPackageObject}, the packages on pub
    */
   public List<PubPackageObject> getPubPackages() {
-    startPackageListFromPubJob();
+    if (pubPackages.isEmpty()) {
+      startPackageListFromPubJob();
+    }
     synchronized (lock) {
       return new ArrayList<PubPackageObject>(pubPackages);
     }

@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.web.pubspec;
 
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
+import com.google.dart.tools.core.pub.PubPackageManager;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
@@ -41,10 +42,20 @@ public class PackageSelectionDialog extends ElementListSelectionDialog {
 
   private Object[] elements;
 
+  private static int RELOAD_BUTTON_ID = IDialogConstants.CLIENT_ID + 1;
+
   public PackageSelectionDialog(Shell shell, Object[] elements) {
     super(shell, new LabelProvider());
     setElements(elements);
     this.elements = elements;
+  }
+
+  @Override
+  protected void buttonPressed(int buttonId) {
+    if (RELOAD_BUTTON_ID == buttonId) {
+      reloadPressed();
+    }
+    super.buttonPressed(buttonId);
   }
 
   @Override
@@ -54,6 +65,12 @@ public class PackageSelectionDialog extends ElementListSelectionDialog {
     } else {
       setResult(Arrays.asList(new String[] {getFilter()}));
     }
+  }
+
+  @Override
+  protected void createButtonsForButtonBar(Composite parent) {
+    createButton(parent, RELOAD_BUTTON_ID, "Reload", false);
+    super.createButtonsForButtonBar(parent);
   }
 
   @Override
@@ -151,6 +168,10 @@ public class PackageSelectionDialog extends ElementListSelectionDialog {
       return true;
     }
     return false;
+  }
+
+  private void reloadPressed() {
+    PubPackageManager.getInstance().initialize();
   }
 
 }
