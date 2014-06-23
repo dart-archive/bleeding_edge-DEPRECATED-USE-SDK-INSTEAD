@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.pub;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -58,6 +59,11 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
    * before accessing it.
    */
   private static final HashSet<IContainer> currentContainers = new HashSet<IContainer>();
+
+  @VisibleForTesting
+  public static boolean isPubContainersEmpty() {
+    return currentContainers.isEmpty();
+  }
 
   @Override
   public void build(BuildEvent event, IProgressMonitor monitor) throws CoreException {
