@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.index;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
@@ -90,6 +91,11 @@ public class IndexImpl implements Index {
       return;
     }
     queue.enqueue(new IndexUnitOperation(store, context, unit));
+  }
+
+  @VisibleForTesting
+  public boolean isOperationQueueEmpty() {
+    return queue.size() == 0;
   }
 
   @Override
