@@ -130,6 +130,10 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
 
   @Override
   protected String getIdentifier() {
-    return getName() + "@" + getNameOffset();
+    String identifier = super.getIdentifier();
+    if (!isStatic()) {
+      identifier += "@" + getNameOffset();
+    }
+    return identifier;
   }
 }
