@@ -41,6 +41,16 @@ public class TextBotEditor extends AbstractBotView {
     this.title = title;
   }
 
+  /**
+   * Set the selection to the given string. If the optional <code>delta</code> is given, rather than
+   * setting the selection to a range, set it to the number of characters from the beginning of the
+   * <code>selection</code> as given by <code>delta[0]</code>.
+   * 
+   * @param selection the string to search for an select
+   * @param delta an optional single integer that defines a position relative to the beginning of
+   *          <code>selection</code> which should become the cursor position
+   * @return
+   */
   public SWTBotStyledText select(String selection, int... delta) {
     SWTBotEditor editor = bot.editorByTitle("platform_web.dart");
     editor.show();
@@ -63,6 +73,18 @@ public class TextBotEditor extends AbstractBotView {
       fail(ex.getMessage());
       throw new RuntimeException(ex);
     }
+  }
+
+  /**
+   * Return the currently-selected string.
+   * 
+   * @return the selection
+   */
+  public String selection() {
+    SWTBotEditor editor = bot.editorByTitle("platform_web.dart");
+    SWTBotStyledText text = editor.bot().styledText();
+    String selection = text.getSelection();
+    return selection;
   }
 
   @Override

@@ -23,6 +23,7 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 abstract public class AbstractTreeBotView extends AbstractBotView {
 
@@ -42,14 +43,44 @@ abstract public class AbstractTreeBotView extends AbstractBotView {
     SWTBot bot = files.bot();
     SWTBotTree tree = bot.tree();
     waitForAnalysis();
-    SWTBotTreeItem item = tree.expandNode(items);
+    SWTBotTreeItem item;
+    try {
+      item = tree.expandNode(items);
+    } catch (Exception ex) {
+      // TODO[messick] Remove after dartbug/19563 (danrubel) is fixed
+      String last = items[items.length - 1];
+      int index = last.indexOf('[');
+      if (index > 0) {
+        last = last.substring(0, index - 1);
+        String[] next = new String[items.length];
+        System.arraycopy(items, 0, next, 0, items.length - 1);
+        next[next.length - 1] = last;
+        item = tree.expandNode(next);
+        items = next;
+      } else {
+        fail();
+        throw new RuntimeException(ex);
+      }
+    }
     tree.select(item);
+    waitForAnalysis();
     TableCollection selection = tree.selection();
     assertNotNull(selection);
     assertEquals(selection.rowCount(), 1);
     assertEquals(items[items.length - 1], selection.get(0, 0));
-    waitForAnalysis();
     return item;
+  }
+
+  /**
+   * Get the current tree selection.
+   * 
+   * @return the tree selection
+   */
+  public TableCollection selection() {
+    SWTBotView files = bot.viewByPartName(viewName());
+    SWTBot bot = files.bot();
+    SWTBotTree tree = bot.tree();
+    return tree.selection();
   }
 
   /**

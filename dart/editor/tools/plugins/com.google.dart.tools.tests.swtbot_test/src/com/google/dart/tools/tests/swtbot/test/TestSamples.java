@@ -88,7 +88,7 @@ public class TestSamples extends EditorTestHarness {
 
   @Test
   public void test3PolymerTodo() throws Exception {
-    new PolymerTodoRunner().run("todomvc", 1);
+    new PolymerTodoRunner().run("todomvc");
   }
 
   @Test

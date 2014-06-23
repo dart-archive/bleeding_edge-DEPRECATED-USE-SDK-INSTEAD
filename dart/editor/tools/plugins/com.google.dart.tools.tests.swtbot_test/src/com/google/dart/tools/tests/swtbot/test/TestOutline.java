@@ -20,11 +20,13 @@ import com.google.dart.tools.tests.swtbot.model.OutlineBotView;
 import com.google.dart.tools.tests.swtbot.model.TextBotEditor;
 import com.google.dart.tools.tests.swtbot.model.WelcomePageEditor;
 
-import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
+import org.eclipse.swtbot.swt.finder.utils.TableCollection;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class TestOutline extends EditorTestHarness {
@@ -37,16 +39,12 @@ public class TestOutline extends EditorTestHarness {
     assertNotNull(bot); // initialized in superclass
     EditorBotWindow main = new EditorBotWindow(bot);
     FilesBotView files = main.filesView();
-    files.deleteExistingProject("sunflower");
-    WelcomePageEditor page = main.openWelcomePage();
+    files.deleteExistingProject("pop_pop_win");
+    final WelcomePageEditor page = main.openWelcomePage();
     page.clickPopPopWin();
     page.waitForAnalysis();
     SWTBotTreeItem item;
-    try {
-      item = files.select("pop_pop_win", "web", "platform_web.dart [pop_pop_win.platform_web]");
-    } catch (WidgetNotFoundException ex) {
-      item = files.select("pop_pop_win", "web", "platform_web.dart");
-    }
+    item = files.select("pop_pop_win", "web", "platform_web.dart [pop_pop_win.platform_web]");
     item.doubleClick();
     page.waitForAnalysis();
     editor = new TextBotEditor(bot, "platform_web.dart");
@@ -54,8 +52,35 @@ public class TestOutline extends EditorTestHarness {
     outline = main.outlineView();
   }
 
+  @AfterClass
+  public static void tearDownTest() {
+    EditorBotWindow main = new EditorBotWindow(bot);
+    FilesBotView files = main.filesView();
+    files.deleteProject("pop_pop_win");
+  }
+
   @Test
-  public void test() throws Exception {
-    // TODO
+  public void testEditorSelection() throws Exception {
+    editor.select("PlatformWeb()", 2);
+    editor.waitForAnalysis();
+    editor.waitForAsyncDrain();
+    outline.waitMillis(55); // hard-coded delay for linux
+    TableCollection selection = outline.selection();
+    assertEquals(selection.get(0, 0), "PlatformWeb()");
+  }
+
+  @Test
+  public void testOutlineSelection() throws Exception {
+    outline.select("PlatformWeb", lbl("_processUrlHash()", "void"));
+    editor.waitForAnalysis();
+    assertEquals(editor.selection(), "_processUrlHash");
+  }
+
+  private String lbl(String prefix, String suffix) {
+    StringBuffer buf = new StringBuffer();
+    buf.append(prefix);
+    buf.append(" \u2192 ");
+    buf.append(suffix);
+    return buf.toString();
   }
 }

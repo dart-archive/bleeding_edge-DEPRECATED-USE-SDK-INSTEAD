@@ -26,9 +26,16 @@ public class ProblemsBotView extends AbstractBotView {
     super(bot);
   }
 
+  /**
+   * Return true if the Problems is empty, or if it has no more that <code>args[0]</code> items.
+   * 
+   * @param args optional number of problems to ignore
+   * @return true if there are no unexpected problems
+   */
   public boolean isEmpty(int... args) {
     waitForAnalysis();
     waitForToolsOutput();
+    waitForAsyncDrain();
     SWTBotView view = bot.viewByPartName("Problems");
     view.show();
     view.setFocus();

@@ -19,7 +19,6 @@ import com.google.dart.tools.tests.swtbot.model.FilesBotView;
 import com.google.dart.tools.tests.swtbot.model.TextBotEditor;
 import com.google.dart.tools.tests.swtbot.model.WelcomePageEditor;
 
-import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.AfterClass;
@@ -42,11 +41,7 @@ public class TestDartEditorContextMenu extends EditorTestHarness {
     page.clickPopPopWin();
     page.waitForAnalysis();
     SWTBotTreeItem item;
-    try {
-      item = files.select("pop_pop_win", "web", "platform_web.dart [pop_pop_win.platform_web]");
-    } catch (WidgetNotFoundException ex) {
-      item = files.select("pop_pop_win", "web", "platform_web.dart");
-    }
+    item = files.select("pop_pop_win", "web", "platform_web.dart [pop_pop_win.platform_web]");
     item.doubleClick();
     page.waitForAnalysis();
     editor = new TextBotEditor(bot, "platform_web.dart");

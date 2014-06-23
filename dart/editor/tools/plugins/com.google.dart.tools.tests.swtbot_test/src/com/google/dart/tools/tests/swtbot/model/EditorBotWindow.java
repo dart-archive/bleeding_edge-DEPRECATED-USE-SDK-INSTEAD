@@ -24,16 +24,33 @@ public class EditorBotWindow extends AbstractBotView {
     super(bot);
   }
 
+  /**
+   * Return a TextBotEditor for the editor with the given <code>title</code>.
+   * 
+   * @param title the editor title
+   * @return the SWTBot model of the editor
+   */
   public TextBotEditor editorNamed(String title) {
     waitForAnalysis();
     return new TextBotEditor(bot, title);
   }
 
+  /**
+   * Return a FilesBotView for the Files view.
+   * 
+   * @return the SWTBot model of the Files view
+   */
   public FilesBotView filesView() {
     waitForAnalysis();
     return new FilesBotView(bot);
   }
 
+  /**
+   * Return a SWTBotMenu with the given <code>title</code>
+   * 
+   * @param title the menu title
+   * @return the SWTBotMenu that models the menu
+   */
   public SWTBotMenu menu(final String title) {
     final SWTBotMenu[] menu = new SWTBotMenu[1];
     UIThreadRunnable.syncExec(new VoidResult() {
@@ -45,17 +62,32 @@ public class EditorBotWindow extends AbstractBotView {
     return menu[0];
   }
 
+  /**
+   * Return the WelcomePageEditor for the Welcome page.
+   * 
+   * @return the SWTBot model for the Welcome page
+   */
   public WelcomePageEditor openWelcomePage() {
     waitForAnalysis();
     // TODO re-open welcome page if needed, and bring to top
     return new WelcomePageEditor(bot);
   }
 
+  /**
+   * Return the OutlineBotView for the Outline view.
+   * 
+   * @return the SWTBot model for the Outline view
+   */
   public OutlineBotView outlineView() {
     waitForAnalysis();
     return new OutlineBotView(bot);
   }
 
+  /**
+   * Return the ProblemsBotView for the Problems view.
+   * 
+   * @return the SWTBot model for the Problems view
+   */
   public ProblemsBotView problemsView() {
     waitForAnalysis();
     return new ProblemsBotView(bot);
