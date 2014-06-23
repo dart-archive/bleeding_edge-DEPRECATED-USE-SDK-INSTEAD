@@ -72,15 +72,20 @@ abstract public class AbstractTreeBotView extends AbstractBotView {
   }
 
   /**
-   * Get the current tree selection.
+   * Get the current tree selection. If the table is empty it is assumed that it has not been
+   * updated yet, so loop until it is. DO NOT use this method on a table that is empty!
    * 
    * @return the tree selection
    */
   public TableCollection selection() {
-    SWTBotView files = bot.viewByPartName(viewName());
-    SWTBot bot = files.bot();
-    SWTBotTree tree = bot.tree();
-    return tree.selection();
+    TableCollection selection = null;
+    while (selection == null || selection.rowCount() == 0 || selection.columnCount() == 0) {
+      SWTBotView files = bot.viewByPartName(viewName());
+      SWTBot bot = files.bot();
+      SWTBotTree tree = bot.tree();
+      selection = tree.selection();
+    }
+    return selection;
   }
 
   /**

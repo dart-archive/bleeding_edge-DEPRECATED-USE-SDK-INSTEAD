@@ -41,8 +41,7 @@ public class TestOutline extends EditorTestHarness {
     FilesBotView files = main.filesView();
     files.deleteExistingProject("pop_pop_win");
     final WelcomePageEditor page = main.openWelcomePage();
-    page.clickPopPopWin();
-    page.waitForAnalysis();
+    page.createPopPopWin();
     SWTBotTreeItem item;
     item = files.select("pop_pop_win", "web", "platform_web.dart [pop_pop_win.platform_web]");
     item.doubleClick();

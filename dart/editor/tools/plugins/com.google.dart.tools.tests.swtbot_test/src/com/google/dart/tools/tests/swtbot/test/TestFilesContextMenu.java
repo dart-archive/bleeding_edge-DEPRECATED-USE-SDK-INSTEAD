@@ -37,8 +37,7 @@ public class TestFilesContextMenu extends EditorTestHarness {
     files = main.filesView();
     files.deleteExistingProject("sunflower");
     WelcomePageEditor page = main.openWelcomePage();
-    page.clickSunflower();
-    page.waitForAnalysis();
+    page.createSunflower();
   }
 
   @AfterClass

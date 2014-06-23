@@ -33,9 +33,6 @@ public class ProblemsBotView extends AbstractBotView {
    * @return true if there are no unexpected problems
    */
   public boolean isEmpty(int... args) {
-    waitForAnalysis();
-    waitForToolsOutput();
-    waitForAsyncDrain();
     SWTBotView view = bot.viewByPartName("Problems");
     view.show();
     view.setFocus();

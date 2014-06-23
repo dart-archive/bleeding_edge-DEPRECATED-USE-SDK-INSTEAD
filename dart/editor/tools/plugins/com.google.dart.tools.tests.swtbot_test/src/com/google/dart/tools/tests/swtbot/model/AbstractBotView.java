@@ -42,7 +42,7 @@ abstract public class AbstractBotView {
    * analysis is in progress, pub containers is empty, and eclipse build queue is empty. Even with
    * all that, it sometimes fails.
    * 
-   * @see waitForAsyncDrain(), waitForToolsOutput()
+   * @see waitForAsyncDrain(), waitForToolsOutput(), waitForProjectToLoad()
    */
   public void waitForAnalysis() {
     AnalysisManager am = AnalysisManager.getInstance();
@@ -79,6 +79,15 @@ abstract public class AbstractBotView {
         return;
       }
     }
+  }
+
+  /**
+   * Wait for everything to finish after a project has been loaded.
+   */
+  public void waitForProjectToLoad() {
+    waitForAnalysis();
+    waitForToolsOutput();
+    waitForAsyncDrain();
   }
 
   /**

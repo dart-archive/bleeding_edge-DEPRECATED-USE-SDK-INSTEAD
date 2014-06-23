@@ -113,34 +113,66 @@ public class WelcomePageEditor extends AbstractBotView {
   /**
    * Create the angular sample.
    */
-  public void clickAngularTodo() {
-    clickLabel("Early Access", 1);
+  public void createAngularTodo() {
+    clickAngularTodo();
+    waitForProjectToLoad();
   }
 
   /**
    * Create the polymer sample.
    */
-  public void clickPolymerTodo() {
-    clickLabel("Early Access", 0);
+  public void createPolymerTodo() {
+    clickPolymerTodo();
+    waitForProjectToLoad();
   }
 
   /**
    * Create the game sample.
    */
-  public void clickPopPopWin() {
-    clickLabel("Demos of Dart", 1);
+  public void createPopPopWin() {
+    clickPopPopWin();
+    waitForProjectToLoad();
   }
 
   /**
    * Create the sunflower sample.
    */
-  public void clickSunflower() {
-    clickLabel("Demos of Dart", 0);
+  public void createSunflower() {
+    clickSunflower();
+    waitForProjectToLoad();
   }
 
   @Override
   protected String viewName() {
     return "Welcome";
+  }
+
+  /**
+   * Begin creating the angular sample.
+   */
+  void clickAngularTodo() {
+    clickLabel("Early Access", 1);
+  }
+
+  /**
+   * Begin creating the polymer sample.
+   */
+  void clickPolymerTodo() {
+    clickLabel("Early Access", 0);
+  }
+
+  /**
+   * Begin creating the game sample.
+   */
+  void clickPopPopWin() {
+    clickLabel("Demos of Dart", 1);
+  }
+
+  /**
+   * Begin creating the sunflower sample. Only for use by TestSamples.
+   */
+  void clickSunflower() {
+    clickLabel("Demos of Dart", 0);
   }
 
   private void clickLabel(final String sectionTitle, final int index) {

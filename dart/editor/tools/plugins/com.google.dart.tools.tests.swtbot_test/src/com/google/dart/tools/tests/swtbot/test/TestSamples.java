@@ -32,28 +32,28 @@ public class TestSamples extends EditorTestHarness {
   static class AngularTodoRunner extends SampleRunner {
     @Override
     void createSample(WelcomePageEditor page) {
-      page.clickAngularTodo();
+      page.createAngularTodo();
     }
   }
 
   static class PolymerTodoRunner extends SampleRunner {
     @Override
     void createSample(WelcomePageEditor page) {
-      page.clickPolymerTodo();
+      page.createPolymerTodo();
     }
   }
 
   static class PopPopWinRunner extends SampleRunner {
     @Override
     void createSample(WelcomePageEditor page) {
-      page.clickPopPopWin();
+      page.createPopPopWin();
     }
   }
 
   static class SunflowerRunner extends SampleRunner {
     @Override
     void createSample(WelcomePageEditor page) {
-      page.clickSunflower();
+      page.createSunflower();
     }
   }
 
