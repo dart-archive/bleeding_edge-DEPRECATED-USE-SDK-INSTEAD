@@ -564,7 +564,7 @@ def main():
 
             # Archive the android editor zip file
             if builder_name.startswith('dart-editor-linux'):
-              UploadAndroidZip()
+              UploadAndroidZip(buildout)
 
             found_zips = _FindRcpZipFiles(buildout)
             for zipfile in found_zips:
@@ -1099,10 +1099,8 @@ def CreateApiDocs(buildLocation):
 
   DartArchiveUploadAPIDocs(api_zip)
 
-def UploadAndroidZip():
-  android_zip = join(DART_PATH,
-                     utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
-                     'editor', 'android.zip')
+def UploadAndroidZip(out_dir):
+  android_zip = join(out_dir, 'android.zip')
   DartArchiveUploadAndroidZip(android_zip)
 
 
