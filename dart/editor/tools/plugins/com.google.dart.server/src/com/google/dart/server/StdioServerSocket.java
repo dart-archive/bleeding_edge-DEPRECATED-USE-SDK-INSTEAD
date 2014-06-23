@@ -20,7 +20,11 @@ import com.google.dart.server.internal.remote.ByteResponseStream;
 import com.google.dart.server.internal.remote.RequestSink;
 import com.google.dart.server.internal.remote.ResponseStream;
 
+import java.io.IOException;
 import java.io.PrintStream;
+import java.net.ServerSocket;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A remote server socket over standard input and output.
@@ -28,6 +32,21 @@ import java.io.PrintStream;
  * @coverage dart.server.remote
  */
 public class StdioServerSocket {
+  /**
+   * Find and return an unused server socket port.
+   */
+  public static int findUnusedPort() {
+    try {
+      ServerSocket ss = new ServerSocket(0);
+      int port = ss.getLocalPort();
+      ss.close();
+      return port;
+    } catch (IOException ioe) {
+      //$FALL-THROUGH$
+    }
+    return -1;
+  }
+
   private final String runtimePath;
   private final String analysisServerPath;
   private final PrintStream debugStream;
@@ -69,12 +88,22 @@ public class StdioServerSocket {
   /**
    * Start the remote server and initialize request sink and response stream.
    */
-  public void start() throws Exception {
-    ProcessBuilder processBuilder = new ProcessBuilder(runtimePath, analysisServerPath);
+  public void start(boolean debug) throws Exception {
+    int debugPort = findUnusedPort();
+    List<String> args = new ArrayList<String>();
+    args.add(runtimePath);
+    if (debug) {
+      args.add("--debug:" + debugPort);
+    }
+    args.add(analysisServerPath);
+    ProcessBuilder processBuilder = new ProcessBuilder(args.toArray(new String[args.size()]));
     process = processBuilder.start();
     requestSink = new ByteRequestSink(process.getOutputStream(), debugStream);
     responseStream = new ByteResponseStream(process.getInputStream(), debugStream);
     errorStream = new ByteLineReaderStream(process.getErrorStream());
+    if (debug) {
+      System.out.println("Analysis server debug port " + debugPort);
+    }
   }
 
   /**

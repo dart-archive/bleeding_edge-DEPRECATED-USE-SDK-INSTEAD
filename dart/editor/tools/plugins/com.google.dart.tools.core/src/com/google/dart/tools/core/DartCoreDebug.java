@@ -69,6 +69,7 @@ public class DartCoreDebug {
   public static final boolean ENABLE_HTML_VALIDATION = isOptionTrue("experimental/validateHtml");
   public static final boolean ENABLE_COVERAGE = isOptionTrue("experimental/coverage");
   public static final boolean ENABLE_ANALYSIS_SERVER = isOptionTrue("experimental/analysisServer");
+  public static final boolean ANALYSIS_SERVER_DEBUG = isOptionTrue("experimental/analysisServer/debug");
   public static final String ANALYSIS_SERVER_LOG_FILE = getOptionValue("experimental/analysisServer/logFile");
 
   // Verify that dartc has not been specified and that the new analyzer is not explicitly disabled

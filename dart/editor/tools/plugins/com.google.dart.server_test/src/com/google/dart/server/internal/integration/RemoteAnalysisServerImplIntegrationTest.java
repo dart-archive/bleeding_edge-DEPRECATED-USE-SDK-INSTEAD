@@ -34,7 +34,7 @@ public class RemoteAnalysisServerImplIntegrationTest extends AbstractServerInteg
     String analysisServerPath = svnRoot + "/pkg/analysis_server/bin/server.dart";
     // start the server process
     StdioServerSocket serverSocket = new StdioServerSocket(runtimePath, analysisServerPath, null);
-    serverSocket.start();
+    serverSocket.start(false);
     // start the server interface
     server = new RemoteAnalysisServerImpl(
         serverSocket.getRequestSink(),

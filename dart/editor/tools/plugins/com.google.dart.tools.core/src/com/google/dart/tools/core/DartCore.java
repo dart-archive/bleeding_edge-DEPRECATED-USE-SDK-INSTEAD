@@ -293,8 +293,8 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String BUILD_DART_FILE_NAME = "build.dart";
 
   /**
-   * Used by the {@link DartDebugUserAgentManager} to indicate whether the 
-   * allow remote connection dialog is open.
+   * Used by the {@link DartDebugUserAgentManager} to indicate whether the allow remote connection
+   * dialog is open.
    */
   public static boolean allowConnectionDialogOpen = false;
 
@@ -508,7 +508,7 @@ public class DartCore extends Plugin implements DartSdkListener {
           }
           // start server
           analysisServerSocket = new StdioServerSocket(runtimePath, analysisServerPath, debugStream);
-          analysisServerSocket.start();
+          analysisServerSocket.start(DartCoreDebug.ANALYSIS_SERVER_DEBUG);
           analysisServer = new com.google.dart.server.internal.remote.RemoteAnalysisServerImpl(
               analysisServerSocket.getRequestSink(),
               analysisServerSocket.getResponseStream(),
