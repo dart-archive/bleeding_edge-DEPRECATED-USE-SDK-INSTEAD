@@ -19,6 +19,7 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -255,6 +256,14 @@ public class SplitIndexStoreImplTest extends EngineTestCase {
       store.doneIndex();
     }
     assertThat(store.getStatistics()).contains("2 locations").contains("3 sources");
+  }
+
+  public void test_recordRelationship_errorElementKind() throws Exception {
+    when(elementA.getKind()).thenReturn(ElementKind.ERROR);
+    Location locationA = mockLocation(elementA);
+    store.recordRelationship(elementA, relationship, locationA);
+    store.doneIndex();
+    assertTrue(nodeManager.isEmpty());
   }
 
   public void test_recordRelationship_nullElement() throws Exception {

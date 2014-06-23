@@ -21,6 +21,7 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.IndexStore;
@@ -248,7 +249,10 @@ public class SplitIndexStoreImpl implements IndexStore {
 
   @Override
   public void recordRelationship(Element element, Relationship relationship, Location location) {
-    if (element == null || location == null) {
+    if (element == null || element.getKind() == ElementKind.ERROR) {
+      return;
+    }
+    if (location == null) {
       return;
     }
     // special support for UniverseElement
