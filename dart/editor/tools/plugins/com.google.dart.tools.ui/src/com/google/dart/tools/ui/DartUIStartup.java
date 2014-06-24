@@ -25,7 +25,7 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.feedback.FeedbackUtils;
 import com.google.dart.tools.ui.internal.HeapTracker;
 import com.google.dart.tools.ui.internal.text.dart.DartPrioritySourcesHelper;
-import com.google.dart.tools.ui.internal.text.dart.DartPrioritySourcesHelper_NEW;
+import com.google.dart.tools.ui.internal.text.dart.DartPriorityFilesHelper_NEW;
 import com.google.dart.tools.ui.internal.text.editor.AutoSaveHelper;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -91,7 +91,7 @@ public class DartUIStartup implements IStartup {
       {
         IWorkbench workbench = PlatformUI.getWorkbench();
         if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-          new DartPrioritySourcesHelper_NEW(workbench, DartCore.getAnalysisServer()).start();
+          new DartPriorityFilesHelper_NEW(workbench, DartCore.getAnalysisServer()).start();
         } else {
           new DartPrioritySourcesHelper(workbench).start();
         }

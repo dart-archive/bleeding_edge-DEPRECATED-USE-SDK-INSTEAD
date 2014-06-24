@@ -131,32 +131,32 @@ public class DartPrioritySourcesHelper {
   }
 
   /**
-   * @return the {@link DartPrioritySourceEditor} that corresponds to the given
+   * @return the {@link DartPriorityFileEditor} that corresponds to the given
    *         {@link IWorkbenchPart}, maybe {@code null}.
    */
-  private DartPrioritySourceEditor getPrioritySourceEditor(IWorkbenchPart part) {
+  private DartPriorityFileEditor getPrioritySourceEditor(IWorkbenchPart part) {
     if (part != null) {
-      Object maybeEditor = part.getAdapter(DartPrioritySourceEditor.class);
-      if (maybeEditor instanceof DartPrioritySourceEditor) {
-        return (DartPrioritySourceEditor) maybeEditor;
+      Object maybeEditor = part.getAdapter(DartPriorityFileEditor.class);
+      if (maybeEditor instanceof DartPriorityFileEditor) {
+        return (DartPriorityFileEditor) maybeEditor;
       }
     }
     return null;
   }
 
   /**
-   * Answer the visible {@link DartPrioritySourceEditor}s.
+   * Answer the visible {@link DartPriorityFileEditor}s.
    * 
    * @param context the context (not {@code null})
    * @return a list of sources (not {@code null}, contains no {@code null}s)
    */
-  private List<DartPrioritySourceEditor> getVisibleEditors() {
-    List<DartPrioritySourceEditor> editors = Lists.newArrayList();;
+  private List<DartPriorityFileEditor> getVisibleEditors() {
+    List<DartPriorityFileEditor> editors = Lists.newArrayList();;
     for (IWorkbenchWindow window : workbench.getWorkbenchWindows()) {
       for (IWorkbenchPage page : window.getPages()) {
         for (IEditorReference editorRef : page.getEditorReferences()) {
           IEditorPart part = editorRef.getEditor(false);
-          DartPrioritySourceEditor editor = getPrioritySourceEditor(part);
+          DartPriorityFileEditor editor = getPrioritySourceEditor(part);
           if (editor != null) {
             if (editor.isVisible()) {
               editors.add(editor);
@@ -177,8 +177,8 @@ public class DartPrioritySourcesHelper {
    */
   private List<Source> getVisibleSourcesForContext(AnalysisContext context) {
     List<Source> sources = Lists.newArrayList();
-    List<DartPrioritySourceEditor> editors = getVisibleEditors();
-    for (DartPrioritySourceEditor editor : editors) {
+    List<DartPriorityFileEditor> editors = getVisibleEditors();
+    for (DartPriorityFileEditor editor : editors) {
       if (editor.getInputAnalysisContext() == context) {
         Source source = editor.getInputSource();
         if (source != null && ignoreManager.isAnalyzed(source.getFullName())) {
@@ -190,14 +190,14 @@ public class DartPrioritySourcesHelper {
   }
 
   private void handlePartActivated(IWorkbenchPart part) {
-    DartPrioritySourceEditor editor = getPrioritySourceEditor(part);
+    DartPriorityFileEditor editor = getPrioritySourceEditor(part);
     if (editor != null) {
       updateAnalysisPriorityOrderOnUiThread(editor, true);
     }
   }
 
   private void handlePartDeactivated(IWorkbenchPart part) {
-    DartPrioritySourceEditor editor = getPrioritySourceEditor(part);
+    DartPriorityFileEditor editor = getPrioritySourceEditor(part);
     if (editor != null) {
       updateAnalysisPriorityOrderOnUiThread(editor, false);
     }
@@ -211,8 +211,8 @@ public class DartPrioritySourcesHelper {
     // but exclude those sources that are marked as do-not-analyze
     {
       Map<AnalysisContext, List<Source>> contextMap = Maps.newHashMap();
-      List<DartPrioritySourceEditor> editors = getVisibleEditors();
-      for (DartPrioritySourceEditor editor : editors) {
+      List<DartPriorityFileEditor> editors = getVisibleEditors();
+      for (DartPriorityFileEditor editor : editors) {
         AnalysisContext context = editor.getInputAnalysisContext();
         if (context != null && !contextMap.containsKey(context)) {
           List<Source> sources = getVisibleSourcesForContext(context);
@@ -293,7 +293,7 @@ public class DartPrioritySourcesHelper {
    *          analyzed or {@code false} if the editor is closed and the source should be removed
    *          from the priority list.
    */
-  private void updateAnalysisPriorityOrderOnUiThread(DartPrioritySourceEditor editor, boolean isOpen) {
+  private void updateAnalysisPriorityOrderOnUiThread(DartPriorityFileEditor editor, boolean isOpen) {
     AnalysisContext context = editor.getInputAnalysisContext();
     Source source = editor.getInputSource();
     if (context != null && source != null) {

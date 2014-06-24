@@ -15,8 +15,6 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisServer;
 
 import org.eclipse.ui.IEditorPart;
@@ -29,21 +27,21 @@ import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import java.util.List;
-import java.util.Map;
 
 /**
- * Helper for updating the order in which sources are analyzed in contexts associated with editors.
+ * Helper for updating the order in which files are analyzed in contexts associated with editors.
  * This is called once per instantiated editor on startup and then once for each editor as it
  * becomes active. For example, if there are 2 of 7 editors visible on startup, then this will be
  * called for the 2 visible editors.
  * 
  * @coverage dart.editor.ui.text
  */
-public class DartPrioritySourcesHelper_NEW {
+public class DartPriorityFilesHelper_NEW {
   private final IWorkbench workbench;
   private final AnalysisServer analysisServer;
+  private final List<String> files = Lists.newArrayList();
 
-  public DartPrioritySourcesHelper_NEW(IWorkbench workbench, AnalysisServer analysisServer) {
+  public DartPriorityFilesHelper_NEW(IWorkbench workbench, AnalysisServer analysisServer) {
     this.workbench = workbench;
     this.analysisServer = analysisServer;
   }
@@ -67,32 +65,29 @@ public class DartPrioritySourcesHelper_NEW {
   }
 
   /**
-   * @return the {@link DartPrioritySourceEditor} that corresponds to the given
+   * @return the {@link DartPriorityFileEditor} that corresponds to the given
    *         {@link IWorkbenchPart}, maybe {@code null}.
    */
-  private DartPrioritySourceEditor getPrioritySourceEditor(IWorkbenchPart part) {
+  private DartPriorityFileEditor getPriorityFileEditor(IWorkbenchPart part) {
     if (part != null) {
-      Object maybeEditor = part.getAdapter(DartPrioritySourceEditor.class);
-      if (maybeEditor instanceof DartPrioritySourceEditor) {
-        return (DartPrioritySourceEditor) maybeEditor;
+      Object maybeEditor = part.getAdapter(DartPriorityFileEditor.class);
+      if (maybeEditor instanceof DartPriorityFileEditor) {
+        return (DartPriorityFileEditor) maybeEditor;
       }
     }
     return null;
   }
 
   /**
-   * Answer the visible {@link DartPrioritySourceEditor}s.
-   * 
-   * @param context the context (not {@code null})
-   * @return a list of sources (not {@code null}, contains no {@code null}s)
+   * Answer the visible {@link DartPriorityFileEditor}s.
    */
-  private List<DartPrioritySourceEditor> getVisibleEditors() {
-    List<DartPrioritySourceEditor> editors = Lists.newArrayList();;
+  private List<DartPriorityFileEditor> getVisibleEditors() {
+    List<DartPriorityFileEditor> editors = Lists.newArrayList();;
     for (IWorkbenchWindow window : workbench.getWorkbenchWindows()) {
       for (IWorkbenchPage page : window.getPages()) {
         for (IEditorReference editorRef : page.getEditorReferences()) {
           IEditorPart part = editorRef.getEditor(false);
-          DartPrioritySourceEditor editor = getPrioritySourceEditor(part);
+          DartPriorityFileEditor editor = getPriorityFileEditor(part);
           if (editor != null) {
             if (editor.isVisible()) {
               editors.add(editor);
@@ -104,65 +99,35 @@ public class DartPrioritySourcesHelper_NEW {
     return editors;
   }
 
-  /**
-   * Answer the visible editors displaying source for the given context. This must be called on the
-   * UI thread because it accesses windows, pages, and editors.
-   * 
-   * @param contextId the context identifier (not {@code null})
-   * @return a list of sources (not {@code null}, contains no {@code null}s)
-   */
-  private List<Source> getVisibleSourcesForContext(String contextId) {
-    List<Source> sources = Lists.newArrayList();
-    List<DartPrioritySourceEditor> editors = getVisibleEditors();
-    for (DartPrioritySourceEditor editor : editors) {
-      if (contextId.equals(editor.getInputAnalysisContextId())) {
-        Source source = editor.getInputSource();
-        if (source != null) {
-          sources.add(source);
-        }
-      }
-    }
-    return sources;
-  }
-
   private void handlePartActivated(IWorkbenchPart part) {
-    DartPrioritySourceEditor editor = getPrioritySourceEditor(part);
+    DartPriorityFileEditor editor = getPriorityFileEditor(part);
     if (editor != null) {
       updateAnalysisPriorityOrderOnUiThread(editor, true);
     }
   }
 
   private void handlePartDeactivated(IWorkbenchPart part) {
-    DartPrioritySourceEditor editor = getPrioritySourceEditor(part);
+    DartPriorityFileEditor editor = getPriorityFileEditor(part);
     if (editor != null) {
       updateAnalysisPriorityOrderOnUiThread(editor, false);
     }
   }
 
   /**
-   * Starts listening for {@link IWorkbenchPage} and adding/removing sources of the visible editors.
+   * Starts listening for {@link IWorkbenchPage} and adding/removing files of the visible editors.
    */
   private void internalStart(IWorkbenchPage activePage) {
-    // make source of the currently visible editors a priority ones
+    // make files of the currently visible editors a priority ones
     {
-      Map<String, List<Source>> contextMap = Maps.newHashMap();
-      List<DartPrioritySourceEditor> editors = getVisibleEditors();
-      for (DartPrioritySourceEditor editor : editors) {
-        String contextId = editor.getInputAnalysisContextId();
-        if (contextId != null && !contextMap.containsKey(contextId)) {
-          List<Source> sources = getVisibleSourcesForContext(contextId);
-          contextMap.put(contextId, sources);
+      List<DartPriorityFileEditor> editors = getVisibleEditors();
+      for (DartPriorityFileEditor editor : editors) {
+        String file = editor.getInputFilePath();
+        if (file != null) {
+          files.add(file);
         }
       }
-      // schedule priority sources setting
-      // TODO(scheglov) restore or remove for the new API
-//      for (Entry<String, List<Source>> entry : contextMap.entrySet()) {
-//        String contextId = entry.getKey();
-//        List<Source> prioritySources = entry.getValue();
-//        analysisServer.setPrioritySources(
-//            contextId,
-//            prioritySources.toArray(new Source[prioritySources.size()]));
-//      }
+      // set priority files
+      analysisServer.setPriorityFiles(files);
     }
     // track visible editors
     activePage.addPartListener(new IPartListener2() {
@@ -209,28 +174,28 @@ public class DartPrioritySourcesHelper_NEW {
   }
 
   /**
-   * Update the order in which sources are analyzed in the context associated with the editor. This
-   * is called once per instantiated editor on startup and then once for each editor as it becomes
+   * Update the order in which files are analyzed in the context associated with the editor. This is
+   * called once per instantiated editor on startup and then once for each editor as it becomes
    * active. For example, if there are 2 of 7 editors visible on startup, then this will be called
    * for the 2 visible editors.
    * <p>
    * MUST be called on the UI thread.
    * 
-   * @param isOpen {@code true} if the editor is open and the source should be the first source
-   *          analyzed or {@code false} if the editor is closed and the source should be removed
-   *          from the priority list.
+   * @param isOpen {@code true} if the editor is open and the file should be the first file analyzed
+   *          or {@code false} if the editor is closed and the file should be removed from the
+   *          priority list.
    */
-  private void updateAnalysisPriorityOrderOnUiThread(DartPrioritySourceEditor editor, boolean isOpen) {
-    String contextId = editor.getInputAnalysisContextId();
-    Source source = editor.getInputSource();
-    if (contextId != null && source != null) {
-      List<Source> sources = getVisibleSourcesForContext(contextId);
-      sources.remove(source);
+  private void updateAnalysisPriorityOrderOnUiThread(DartPriorityFileEditor editor, boolean isOpen) {
+    String file = editor.getInputFilePath();
+    if (file != null) {
       if (isOpen) {
-        sources.add(0, source);
+        if (!files.contains(file)) {
+          files.add(file);
+        }
+      } else {
+        files.remove(file);
       }
-      // TODO(scheglov) restore or remove for the new API
-//      analysisServer.setPrioritySources(contextId, sources.toArray(new Source[sources.size()]));
     }
+    analysisServer.setPriorityFiles(files);
   }
 }

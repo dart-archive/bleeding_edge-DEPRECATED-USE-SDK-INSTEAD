@@ -21,7 +21,7 @@ import com.google.dart.tools.core.analysis.model.Project;
 /**
  * Editors implement this interface to participate in {@link DartPrioritySourcesHelper}.
  */
-public interface DartPrioritySourceEditor {
+public interface DartPriorityFileEditor {
   /**
    * Answer the analysis context to be used when resolving the source displayed in the editor.
    * 
@@ -30,12 +30,11 @@ public interface DartPrioritySourceEditor {
   AnalysisContext getInputAnalysisContext();
 
   /**
-   * Answer the analysis context identifier to be used when resolving the source displayed in the
-   * editor.
+   * Answer the full path of the file being displayed in this editor.
    * 
-   * @return the context identifier corresponding to this editor or {@code null} if none
+   * @return the full path or {@code null} if none
    */
-  String getInputAnalysisContextId();
+  String getInputFilePath();
 
   /**
    * Answer the project containing the source being displayed in this editor.

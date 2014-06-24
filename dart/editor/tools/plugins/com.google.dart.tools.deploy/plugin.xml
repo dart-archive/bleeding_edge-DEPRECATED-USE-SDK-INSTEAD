@@ -848,7 +848,7 @@
         point="org.eclipse.core.runtime.adapters">
      <factory
            adaptableType="org.eclipse.wst.sse.ui.StructuredTextEditor"
-           class="com.google.dart.tools.wst.ui.StructuredTextEditorToPrioritySourceAdapterFactory">
+           class="com.google.dart.tools.wst.ui.StructuredTextEditorToPriorityFileAdapterFactory">
         <adapter
               type="com.google.dart.tools.ui.internal.text.dart.DartPrioritySourceEditor">
         </adapter>

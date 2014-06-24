@@ -68,9 +68,9 @@ public class DartPrioritySourcesHelperTest extends TestCase {
   private IEditorPart editorC = mock(IEditorPart.class);
   private IEditorPart editorX = mock(IEditorPart.class);
 
-  private DartPrioritySourceEditor prioritySourceEditorA = mock(DartPrioritySourceEditor.class);
-  private DartPrioritySourceEditor prioritySourceEditorB = mock(DartPrioritySourceEditor.class);
-  private DartPrioritySourceEditor prioritySourceEditorC = mock(DartPrioritySourceEditor.class);
+  private DartPriorityFileEditor prioritySourceEditorA = mock(DartPriorityFileEditor.class);
+  private DartPriorityFileEditor prioritySourceEditorB = mock(DartPriorityFileEditor.class);
+  private DartPriorityFileEditor prioritySourceEditorC = mock(DartPriorityFileEditor.class);
 
   private Source sourceA = mock(Source.class);
   private Source sourceB = mock(Source.class);
@@ -206,9 +206,9 @@ public class DartPrioritySourcesHelperTest extends TestCase {
     when(editorRefB.getPart(anyBoolean())).thenReturn(editorB);
     when(editorRefC.getPart(anyBoolean())).thenReturn(editorC);
     when(editorRefX.getPart(anyBoolean())).thenReturn(editorX);
-    when(editorA.getAdapter(DartPrioritySourceEditor.class)).thenReturn(prioritySourceEditorA);
-    when(editorB.getAdapter(DartPrioritySourceEditor.class)).thenReturn(prioritySourceEditorB);
-    when(editorC.getAdapter(DartPrioritySourceEditor.class)).thenReturn(prioritySourceEditorC);
+    when(editorA.getAdapter(DartPriorityFileEditor.class)).thenReturn(prioritySourceEditorA);
+    when(editorB.getAdapter(DartPriorityFileEditor.class)).thenReturn(prioritySourceEditorB);
+    when(editorC.getAdapter(DartPriorityFileEditor.class)).thenReturn(prioritySourceEditorC);
     // configure sources
     when(sourceA.toString()).thenReturn("sourceA");
     when(sourceB.toString()).thenReturn("sourceB");

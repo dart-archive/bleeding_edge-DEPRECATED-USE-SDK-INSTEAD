@@ -3,7 +3,7 @@ package com.google.dart.tools.wst.ui;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.analysis.model.Project;
-import com.google.dart.tools.ui.internal.text.dart.DartPrioritySourceEditor;
+import com.google.dart.tools.ui.internal.text.dart.DartPriorityFileEditor;
 
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.jface.text.IDocument;
@@ -13,15 +13,15 @@ import org.eclipse.wst.sse.ui.internal.StructuredTextViewer;
 
 /**
  * This {@link IAdapterFactory} adapts {@link StructuredTextEditor} to
- * {@link DartPrioritySourceEditor}.
+ * {@link DartPriorityFileEditor}.
  */
-public class StructuredTextEditorToPrioritySourceAdapterFactory implements IAdapterFactory {
+public class StructuredTextEditorToPriorityFileAdapterFactory implements IAdapterFactory {
 
   @Override
   @SuppressWarnings("rawtypes")
   public Object getAdapter(Object adaptableObject, Class adapterType) {
     if (adaptableObject instanceof StructuredTextEditor
-        && DartPrioritySourceEditor.class.equals(adapterType)) {
+        && DartPriorityFileEditor.class.equals(adapterType)) {
       StructuredTextEditor textEditor = (StructuredTextEditor) adaptableObject;
       final StructuredTextViewer textViewer = textEditor.getTextViewer();
       final StyledText textWidget = textViewer.getTextWidget();
@@ -30,16 +30,15 @@ public class StructuredTextEditorToPrioritySourceAdapterFactory implements IAdap
       if (documentInfo == null) {
         return null;
       }
-      return new DartPrioritySourceEditor() {
+      return new DartPriorityFileEditor() {
         @Override
         public AnalysisContext getInputAnalysisContext() {
           return documentInfo.getContext();
         }
 
         @Override
-        public String getInputAnalysisContextId() {
-          // TODO(scheglov) Analysis Server
-          throw new UnsupportedOperationException();
+        public String getInputFilePath() {
+          return documentInfo.getFile().getAbsolutePath();
         }
 
         @Override
@@ -64,6 +63,6 @@ public class StructuredTextEditorToPrioritySourceAdapterFactory implements IAdap
   @Override
   @SuppressWarnings("rawtypes")
   public Class[] getAdapterList() {
-    return new Class[] {DartPrioritySourceEditor.class};
+    return new Class[] {DartPriorityFileEditor.class};
   }
 }
