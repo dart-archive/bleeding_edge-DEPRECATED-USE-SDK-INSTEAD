@@ -28,39 +28,39 @@ vars = {
   "libcxxabi_revision": "206024",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "176215",
+  "webkit_revision": "176561",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "pdfium_git": "https://pdfium.googlesource.com",
   "skia_git": "https://skia.googlesource.com",
   "swig_revision": "230490",
-  "nacl_revision": "13350",
+  "nacl_revision": "13377",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "13077",  # native_client/DEPS: tools_rev
   "google_toolbox_for_mac_revision": "662",
-  "libaddressinput_revision": "273",
+  "libaddressinput_revision": "293",
   "libphonenumber_revision": "621",
-  "libvpx_revision": "269083",
+  "libvpx_revision": "278497",
   "lss_revision": "26",
   "sfntly_revision": "239",
   "lighttpd_revision": "33737",
-  "skia_revision": "0eb02a6abbe2964e4955863b0f82aff6a8661801",
+  "skia_revision": "6b8f1ba1ef71a762e961c3a8bc8b344c88990a04",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   "v8_branch": "trunk",
-  "v8_revision": "21855",
+  "v8_revision": "21888",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "6449",
+  "webrtc_revision": "6496",
   "jsoncpp_revision": "248",
   "nss_revision": "277057",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarming_client
   # and whatever else without interference from each other.
-  "swarming_revision": "aea50658a1fb5078dbf9406991d7f6d8ec34d465",
+  "swarming_revision": "c333224ef8cf5cc41ab91f6ee9cb1fdbe3689f19",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
@@ -72,11 +72,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling build tools
   # and whatever else without interference from each other.
-  "buildtools_revision": "5d89977ce55240995d1596fe420b818468f5ec37",
+  "buildtools_revision": "10a5251e71445a832953f1374bbbbe60ad019144",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFIum
   # and whatever else without interference from each other.
   "pdfium_revision": "9e16edd0ffb834e87da76fe6b0fe4aef39312685",
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling openmax_dl
+  # and whatever else without interference from each other.
+  "openmax_dl_revision": "6483",
 }
 
 deps = {
@@ -148,10 +152,10 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@80",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@168",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@169",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1927",
+    (Var("googlecode_url") % "gyp") + "/trunk@1944",
 
   "src/tools/swarming_client":
     Var("chromium_git") + "/external/swarming.client.git@" +
@@ -211,7 +215,7 @@ deps = {
 
   "src/third_party/ffmpeg":
     Var("chromium_git") +
-    "/chromium/third_party/ffmpeg.git@9caa384561d53a85b4d86bf6ab7426c1362914cf",
+    "/chromium/third_party/ffmpeg.git@5c3de8094903dd2162232b8f1be916c46acdd8f5",
 
   "src/third_party/libjingle/source/talk":
     (Var("googlecode_url") % "webrtc") + "/trunk/talk@" +
@@ -225,7 +229,7 @@ deps = {
     "/trunk/deps/third_party/libsrtp@261337",
 
   "src/third_party/speex":
-    "/trunk/deps/third_party/speex@198168",
+    "/trunk/deps/third_party/speex@272757",
 
   "src/third_party/yasm/source/patched-yasm":
     "/trunk/deps/third_party/yasm/patched-yasm@167605",
@@ -247,7 +251,7 @@ deps = {
     (Var("googlecode_url") % "webrtc") + "/trunk/webrtc@" + Var("webrtc_revision"),
 
   "src/third_party/openmax_dl":
-    (Var("googlecode_url") % "webrtc") + "/deps/third_party/openmax@6024",
+    (Var("googlecode_url") % "webrtc") + "/deps/third_party/openmax@" + Var("openmax_dl_revision"),
 
   "src/third_party/jsoncpp/source/include":
     (Var("sourceforge_url") % {"repo": "jsoncpp"}) +
@@ -480,7 +484,7 @@ deps_os = {
     # Build tools for targeting ChromeOS.
     "src/third_party/chromite":
       Var("chromiumos_git") + "/chromite.git" +
-      "@ff441bf434f22888b09cd65daa86d9aa2982f650",
+      "@df22fd72b22d1905af6e69d23ec373b69c9c75f6",
 
     # Dependency of chromite.git.
     "src/third_party/pyelftools":
@@ -502,7 +506,7 @@ deps_os = {
   "android": {
     "src/third_party/android_tools":
       Var("chromium_git") + "/android_tools.git" +
-      "@c6e658065e7ad80477390424bb5388da6e936d07",
+      "@fbd4205a1da1939ba1dc470b33cb5b3b1acf235d",
 
     "src/third_party/aosp":
       "/trunk/deps/third_party/aosp@148330",
@@ -662,7 +666,7 @@ hooks = [
                 "--platform=win32",
                 "--no_auth",
                 "--bucket", "chromium-gn",
-                "-s", "src/tools/gn/bin/win/gn.exe.sha1",
+                "-s", "src/buildtools/win/gn.exe.sha1",
     ],
   },
   {
@@ -673,11 +677,57 @@ hooks = [
                 "--platform=darwin",
                 "--no_auth",
                 "--bucket", "chromium-gn",
+                "-s", "src/buildtools/mac/gn.sha1",
+    ],
+  },
+  {
+    "name": "gn_linux32",
+    "pattern": ".",
+    "action": [ "download_from_google_storage",
+                "--no_resume",
+                "--platform=linux*",
+                "--no_auth",
+                "--bucket", "chromium-gn",
+                "-s", "src/buildtools/linux32/gn.sha1",
+    ],
+  },
+  {
+    "name": "gn_linux64",
+    "pattern": ".",
+    "action": [ "download_from_google_storage",
+                "--no_resume",
+                "--platform=linux*",
+                "--no_auth",
+                "--bucket", "chromium-gn",
+                "-s", "src/buildtools/linux64/gn.sha1",
+    ],
+  },
+  # Pull GN binaries (old location). TODO(brettw) remove this after a transition
+  # period while we move the binaries from tools/gn/bin to buildtools.
+  {
+    "name": "gn_old_win",
+    "pattern": ".",
+    "action": [ "download_from_google_storage",
+                "--no_resume",
+                "--platform=win32",
+                "--no_auth",
+                "--bucket", "chromium-gn",
+                "-s", "src/tools/gn/bin/win/gn.exe.sha1",
+    ],
+  },
+  {
+    "name": "gn_old_mac",
+    "pattern": ".",
+    "action": [ "download_from_google_storage",
+                "--no_resume",
+                "--platform=darwin",
+                "--no_auth",
+                "--bucket", "chromium-gn",
                 "-s", "src/tools/gn/bin/mac/gn.sha1",
     ],
   },
   {
-    "name": "gn_linux",
+    "name": "gn_old_linux",
     "pattern": ".",
     "action": [ "download_from_google_storage",
                 "--no_resume",
@@ -688,7 +738,7 @@ hooks = [
     ],
   },
   {
-    "name": "gn_linux32",
+    "name": "gn_old_linux32",
     "pattern": ".",
     "action": [ "download_from_google_storage",
                 "--no_resume",
@@ -753,15 +803,6 @@ hooks = [
                 "--no_auth",
                 "--bucket", "chromium-eu-strip",
                 "-s", "src/build/linux/bin/eu-strip.sha1",
-    ],
-  },
-  # Pull libaddressinput strings to work better with translation tools.
-  {
-    "name": "libaddressinput-strings",
-    "pattern": ".",
-    "action": [
-        "python",
-        "src/third_party/libaddressinput/chromium/tools/update-strings.py",
     ],
   },
   {
