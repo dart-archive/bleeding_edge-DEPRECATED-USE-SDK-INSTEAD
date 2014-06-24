@@ -57,16 +57,21 @@ public class DartiumPackageSourceContainer extends AbstractSourceContainer {
       IFileInfo fileInfo = DartCore.getProjectManager().resolveUriToFileInfo(parent, name);
 
       if (fileInfo != null) {
-        // check to see if there is another project with the same file
+        // check to see if there is another project or same project/subfolder with a different
+        // resource for the file
+        // resource : debug_sample/coolApp/packages/coolLib/cool_lib.dart
+        //      => resource : debug_sample/coolLib/lib/cool_lib.dart
+        // resource : coolApp/packages/coolLib/cool_lib.dart
+        //      => resource : coolLib/lib/cool_lib.dart
         String filePath = fileInfo.getFile().getAbsolutePath();
         for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
           String projectLocation = project.getLocation().toString();
 
-          if (!project.equals(wrapper.getProject()) && filePath.startsWith(projectLocation)) {
+          if (filePath.startsWith(projectLocation)) {
             // /mydir/myproject/lib/lib.dart => lib/lib.dart
             String path = filePath.substring(projectLocation.length() + 1);
             IResource resource = project.findMember(path);
-            if (resource != null) {
+            if (resource != null && !resource.equals(fileInfo.getResource())) {
               return new Object[] {resource};
             }
           }
