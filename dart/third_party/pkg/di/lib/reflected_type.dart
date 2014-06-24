@@ -1,5 +1,7 @@
 library di.src.reflected_type;
 
+import 'dart:mirrors' show ClassMirror;
+
 Map<ClassMirror, Type> _cache = <ClassMirror, Type>{};
 
 // Removed the horrible hack to work around bug 
