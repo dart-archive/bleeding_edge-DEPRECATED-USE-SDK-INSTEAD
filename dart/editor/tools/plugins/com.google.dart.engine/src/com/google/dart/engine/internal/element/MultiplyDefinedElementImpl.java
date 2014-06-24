@@ -153,7 +153,10 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @Override
-  public String getExtendedDisplayName() {
+  public String getExtendedDisplayName(String shortName) {
+    if (shortName != null) {
+      return shortName;
+    }
     return getDisplayName();
   }
 

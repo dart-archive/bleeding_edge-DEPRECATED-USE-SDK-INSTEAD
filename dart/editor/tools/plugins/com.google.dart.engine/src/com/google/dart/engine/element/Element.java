@@ -119,10 +119,10 @@ public interface Element {
    * Return a display name for the given element that includes the path to the compilation unit in
    * which the type is defined.
    * 
-   * @param type the type for which an extended display name is to be returned
+   * @param shortName the short display name. If null, {@link getDisplayName()} is used.
    * @return a display name that can help distinguish between two types with the same name
    */
-  public String getExtendedDisplayName();
+  public String getExtendedDisplayName(String shortName);
 
   /**
    * Return the kind of element that this is.

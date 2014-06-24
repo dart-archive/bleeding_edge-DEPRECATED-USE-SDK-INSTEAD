@@ -185,8 +185,8 @@ public abstract class ElementHandle implements Element {
   }
 
   @Override
-  public String getExtendedDisplayName() {
-    return getActualElement().getExtendedDisplayName();
+  public String getExtendedDisplayName(String shortName) {
+    return getActualElement().getExtendedDisplayName(shortName);
   }
 
   @Override

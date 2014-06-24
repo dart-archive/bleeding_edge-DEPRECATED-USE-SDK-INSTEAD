@@ -151,13 +151,15 @@ public abstract class ElementImpl implements Element {
   }
 
   @Override
-  public String getExtendedDisplayName() {
-    String displayName = getDisplayName();
+  public String getExtendedDisplayName(String shortName) {
+    if (shortName == null) {
+      shortName = getDisplayName();
+    }
     Source source = getSource();
     if (source != null) {
-      return displayName + " (" + source.getFullName() + ")";
+      return shortName + " (" + source.getFullName() + ")";
     }
-    return displayName;
+    return shortName;
   }
 
   @Override
@@ -264,6 +266,15 @@ public abstract class ElementImpl implements Element {
   @Override
   public boolean isSynthetic() {
     return hasModifier(Modifier.SYNTHETIC);
+  }
+
+  /**
+   * Set the enclosing element of this element to the given element.
+   * 
+   * @param element the enclosing element of this element
+   */
+  public void setEnclosingElement(Element element) {
+    enclosingElement = (ElementImpl) element;
   }
 
   /**
@@ -391,15 +402,6 @@ public abstract class ElementImpl implements Element {
         child.accept(visitor);
       }
     }
-  }
-
-  /**
-   * Set the enclosing element of this element to the given element.
-   * 
-   * @param element the enclosing element of this element
-   */
-  protected void setEnclosingElement(Element element) {
-    enclosingElement = (ElementImpl) element;
   }
 
   /**

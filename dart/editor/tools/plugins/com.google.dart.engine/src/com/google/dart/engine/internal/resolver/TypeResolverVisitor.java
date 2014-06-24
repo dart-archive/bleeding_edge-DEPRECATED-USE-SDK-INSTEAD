@@ -49,6 +49,7 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.UnifyingAstVisitor;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
@@ -1303,6 +1304,10 @@ public class TypeResolverVisitor extends ScopedVisitor {
     aliasElement.setSynthetic(true);
     aliasElement.shareParameters(parameters);
     aliasElement.setReturnType(computeReturnType(returnType));
+    // FunctionTypeAliasElementImpl assumes the enclosing element is a
+    // CompilationUnitElement (because non-synthetic function types can only be declared
+    // at top level), so to avoid breaking things, go find the compilation unit element.
+    aliasElement.setEnclosingElement(element.getAncestor(CompilationUnitElement.class));
     FunctionTypeImpl type = new FunctionTypeImpl(aliasElement);
     ClassElement definingClass = element.getAncestor(ClassElement.class);
     if (definingClass != null) {

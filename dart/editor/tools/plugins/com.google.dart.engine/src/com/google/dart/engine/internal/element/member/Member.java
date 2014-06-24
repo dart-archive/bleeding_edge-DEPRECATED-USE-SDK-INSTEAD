@@ -85,8 +85,8 @@ public abstract class Member implements Element {
   }
 
   @Override
-  public String getExtendedDisplayName() {
-    return baseElement.getExtendedDisplayName();
+  public String getExtendedDisplayName(String shortName) {
+    return baseElement.getExtendedDisplayName(shortName);
   }
 
   @Override

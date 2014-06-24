@@ -190,7 +190,7 @@ public class ErrorReporter {
           if (element == null) {
             arguments[i] = type.getDisplayName();
           } else {
-            arguments[i] = element.getExtendedDisplayName();
+            arguments[i] = element.getExtendedDisplayName(type.getDisplayName());
           }
         }
       }

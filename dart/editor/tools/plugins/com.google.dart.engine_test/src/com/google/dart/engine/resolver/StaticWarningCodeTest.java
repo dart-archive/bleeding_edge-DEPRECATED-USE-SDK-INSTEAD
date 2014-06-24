@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.HintCode;
@@ -262,6 +263,33 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "var v;"));
     resolve(source);
     assertErrors(source, StaticWarningCode.AMBIGUOUS_IMPORT);
+  }
+
+  public void test_argumentTypeNotAssignable_ambiguousClassName() throws Exception {
+    // See dartbug.com/19624
+    Source source = addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "import 'lib2.dart';",
+        "class _A {}",
+        "f() {",
+        "  g((_A a) {});",
+        "}"));
+    addNamedSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class _A {}",
+        "g(h(_A a)) {}"));
+    resolve(source);
+    // The name _A is private to the library it's defined in, so this is a type mismatch.
+    // Furthermore, the error message should mention both _A and the filenames
+    // so the user can figure out what's going on.
+    AnalysisError[] errors = analysisContext.computeErrors(source);
+    assertLength(1, errors);
+    AnalysisError error = errors[0];
+    assertEquals(error.getErrorCode(), StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    String message = error.getMessage();
+    assertTrue(message.indexOf("_A") != -1);
+    assertTrue(message.indexOf("lib1.dart") != -1);
+    assertTrue(message.indexOf("lib2.dart") != -1);
   }
 
   public void test_argumentTypeNotAssignable_annotation_namedConstructor() throws Exception {

@@ -49,7 +49,7 @@ public class ResolverTestCase extends EngineTestCase {
   /**
    * The analysis context used to parse the compilation units being resolved.
    */
-  private AnalysisContextImpl analysisContext;
+  protected AnalysisContextImpl analysisContext;
 
   @Override
   public void setUp() {

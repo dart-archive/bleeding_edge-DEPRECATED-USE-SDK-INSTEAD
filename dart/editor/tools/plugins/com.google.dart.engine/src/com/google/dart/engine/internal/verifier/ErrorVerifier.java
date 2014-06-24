@@ -3048,7 +3048,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     if (enclosingElement.getSource().equals(enclosingClass.getSource())) {
       displayName = enclosingElement.getDisplayName();
     } else {
-      displayName = enclosingElement.getExtendedDisplayName();
+      displayName = enclosingElement.getExtendedDisplayName(null);
     }
     // report problem
     errorReporter.reportErrorForOffset(
