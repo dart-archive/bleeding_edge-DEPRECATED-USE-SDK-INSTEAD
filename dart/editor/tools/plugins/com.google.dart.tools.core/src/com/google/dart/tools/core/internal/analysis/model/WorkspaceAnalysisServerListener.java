@@ -24,6 +24,10 @@ import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager_NEW;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.File;
 
@@ -32,6 +36,10 @@ import java.io.File;
  */
 public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   private final AnalysisServerDataImpl dataImpl;
+
+  private final Object statusLock = new Object();
+  private boolean statusAnalyzing = false;
+  private Job statusJob;
 
   public WorkspaceAnalysisServerListener(AnalysisServerDataImpl dataImpl) {
     this.dataImpl = dataImpl;
@@ -77,6 +85,45 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void serverStatus(ServerStatus status) {
-    // TODO(scheglov) Analysis Server
+    synchronized (statusLock) {
+      if (status.getAnalysisStatus().isAnalyzing()) {
+        if (statusJob == null) {
+          //
+          // Start a build level job to display progress in the status area
+          //
+          statusAnalyzing = true;
+          statusJob = new Job("Analyzing...") {
+            @Override
+            protected IStatus run(IProgressMonitor monitor) {
+              waitUntilAnalysisComplete();
+              return Status.OK_STATUS;
+            }
+          };
+          statusJob.setPriority(Job.BUILD);
+          statusJob.schedule();
+        }
+      } else {
+        if (statusJob != null) {
+          //
+          // Signal the status job to exit
+          //
+          statusAnalyzing = false;
+          statusLock.notifyAll();
+        }
+      }
+    }
+  }
+
+  private void waitUntilAnalysisComplete() {
+    synchronized (statusLock) {
+      while (statusAnalyzing) {
+        try {
+          statusLock.wait(3000);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
+      statusJob = null;
+    }
   }
 }
