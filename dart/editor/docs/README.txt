@@ -51,13 +51,13 @@ is under the "Eclipse" menu, not under "Window".
 
 ------------- Linked Resources ------------
 
-Create a "Path Variable" in the "General > Workspace > Linked Resources" preference page
+Create a "Path Variable" in the "Window > Preferences > General > Workspace > Linked Resources" preference page
     called "DART_TRUNK" that points to the SVN dart/trunk/dart directory
     that you checked out as specified in the instructions above.
 
 -------------Classpath Variables -----------
 
-Create a "Classpath Variable" in "Java > Build Path > Classpath Variables" preference page
+Create a "Classpath Variable" in "Window > Preferences > Java > Build Path > Classpath Variables" preference page
     called "DART_TRUNK" that points to the same directory as the "DART_TRUNK" path variable above
 
 ------------- Text Editors ----------------
@@ -70,9 +70,9 @@ Enable "Show Print Margin" and set "Print Margin Column" to 100
 ------------- XML Files -------------------
 
 Window->Preferences->Web and XML->XML Files->Source
-(or Window->Preferences->XML Files->Editor, if you can't find it there)
+(or Window->Preferences->XML->XML Files->Editor, if you can't find it there)
 Set "Line Width" 100
-Enable "Split Multiple Attributes Each of a New Line"
+Enable "Split Multiple Attributes Each on a New Line"
 Enable "Indent Using Spaces" with an Indentation Size of 4
 
 ------------- Ant Build Files -------------
@@ -87,7 +87,8 @@ Enable "Wrap Long Element Tags"
 
 Window->Preferences->General->Editors->Text Editors->Spelling
 Enable spell checking
-Use <DART_TRUNK>/editor/docs/english.dictionary".
+Set "User defined dictionary" to
+"<DART_TRUNK>/editor/docs/english.dictionary".
 
 ----------- Code Templates ----------------
 
@@ -111,7 +112,11 @@ Comments->Files template should look like this:
 
 Comments->Types
 
-Remove the @author tag
+Remove the @author tag so that "Pattern" looks like:
+
+/**
+ * ${tags}
+ */
 
 ---------- Save Actions -------------------
 
@@ -123,8 +128,10 @@ Enable "Organize Imports"
 Enable "Additional Actions"
 Click "Configure", and make sure that all actions are disabled except:
 - "Remove trailing white spaces on all lines"
-- "Sort members excluding fields, enum constants, and initializers"
-- "Convert control statement bodies to block"
+- "Sort members excluding fields, enum constants, and initializers": via
+  Code Organizing->Sort members->Ignore fields and enum constants
+- "Convert control statement bodies to block": via
+  Code Style->Control statements->Use blocks in if/while/for/do statements->Always
 - "Add missing '@Override' annotations"
 - "Add missing '@Override' annotations to implementations of interface methods"
 - "Add missing '@Deprecated' annotations"
@@ -143,7 +150,7 @@ Window->Preferences->Java->Code Style->Organize Imports->Import...
 ------------ Member sort order ------------
 
 Window->Preferences->Java->Appearance->Members Sort Order
-There is no import here, so make your settings match:
+There is no import here, so make your settings match this screen shot:
   editor/docs/dart-sort-order.png
 
 First, members should be sorted by category.
@@ -162,15 +169,12 @@ Second, members in the same category should be sorted by visibility.
 3) Default
 4) Private
 
-Third, within a category/visibility combination, members should be sorted
-alphabetically.
-
 ------------ Java > Compiler > Errors/Warnings ------------
 
 Set to ignore:
 
 - Potential programming problems > Serializable class w/o serialVersionUID
-- Unnecessary Code > Parameter is never read
+- Unnecessary Code > Value of parameter is not used
 
 ------------ Plug-in Development > API Baselines
 
@@ -185,18 +189,22 @@ Set to ignore:
 File -> Import -> General -> Existing Projects into Workspace
 
 Import the existing projects in <DART_TRUNK>/editor
-  including the "docs" project containing this README.txt file
+including the "docs" project containing this README.txt file: choose
+"Select root directory" and enter "<DART_TRUNK>/editor". This will import
+*many* projects (53 as of this writing).
 
 ====================================
   Installing Dart SDK and Dartium
 ====================================
 
-For development, we require that the Eclipse installation directory have a "dart-sdk" directory
+For development, we require that the Eclipse installation directory (on
+Linux, the directory where you unpacked the prebuilt Eclipse)
+have a "dart-sdk" directory
 containing the bundled dart:<name> libraries (e.g. dart:core).
 
 1) In the dart/editor/tools/features/com.google.dart.tools.deploy.feature_releng/build-settings
 directory, copy the user.properties file to <username>.properties, where <username> is your
-login name. Adjust the two properties in that file to point to:
+login name. Adjust (the defaults should work) the two properties in that file to point to:
 
   -the Dart Editor source directory (dart/editor)
   -a build output directory
@@ -207,14 +215,19 @@ login name. Adjust the two properties in that file to point to:
 5) Click the "JRE" tab and select "Run in the same JRE as the workspace"
 6) Click "Run"
 
-Alternately, you can run the Ant script outside Eclipse
-by defining the "eclipse.home" property to point to your Eclipse installation
+(Alternately, you can run the Ant script outside Eclipse
+by defining the "eclipse.home" property to point to your Eclipse installation)
 
-Next, install Dartium (Chromium with an embedded Dart VM) into the "dart-sdk" directory.
-http://www.dartlang.org/tools/dartium/
+Next, install Dartium (Chromium with an embedded Dart VM) into the
+Eclipse installation directory: http://www.dartlang.org/tools/dartium/
 
 Linux:
-  <eclipse-install-dir>/chromium/
+  # URL for 32 bit version is different!
+  wget http://storage.googleapis.com/dart-archive/channels/stable/release/latest/dartium/dartium-linux-x64-release.zip
+  unzip dartium-linux-x64-release.zip
+  # The unzip produces a directory named "dartium-<version>".
+  # Rename that directory to "chromium" in the Eclipse install dir:
+  mv dartium-<version> <eclipse-install-dir>/chromium
 
 Mac:
   <eclipse-install-dir>/chromium/Chromium.app
@@ -253,9 +266,11 @@ See dart/editor/tools/plugins/com.google.dart.tools.core/.options
 Setup your <username>.properties file as described above in "Installing Dart SDK and Dartium"
 
 In a similar fashion create a new <username>.<build-os>.properties file in the same directory
+(dart/editor/tools/features/com.google.dart.tools.deploy.feature_releng/build-settings)
 as the <username>.properties file with content copied from chrome-bot.<build-os>.properties
 
-Run the build_rcp.xml ant script in the com.google.dart.tools.deploy.feature_releng project
+Run the build_rcp.xml ant script in the
+dart/editor/tools/features/com.google.dart.tools.deploy.feature_releng project
 
     ant -f build_rcp.xml -Dbuild.os=<os>
   where <os> is one of
