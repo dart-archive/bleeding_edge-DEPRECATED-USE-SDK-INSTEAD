@@ -159,10 +159,8 @@ public class FileNodeManagerTest extends TestCase {
           new LocationData(elementIdC, 2, 20));
       Map<RelationKeyData, List<LocationData>> relations = ImmutableMap.of(key, locations);
       // prepare Node
-      IndexNode node = mock(IndexNode.class);
-      when(node.getContext()).thenReturn(context);
-      when(node.getRelations()).thenReturn(relations);
-      when(node.getLocationCount()).thenReturn(2);
+      IndexNode node = new IndexNode(context, elementCodec, relationshipCodec);
+      node.setRelations(relations);
       // put Node
       nodeManager.putNode(name, node);
     }

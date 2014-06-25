@@ -16,15 +16,16 @@ package com.google.dart.engine.index;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.internal.index.IndexImpl;
 import com.google.dart.engine.internal.index.MemoryIndexStoreImpl;
+import com.google.dart.engine.internal.index.file.CachingNodeManager;
 import com.google.dart.engine.internal.index.file.ContextCodec;
 import com.google.dart.engine.internal.index.file.ElementCodec;
 import com.google.dart.engine.internal.index.file.FileManager;
 import com.google.dart.engine.internal.index.file.FileNodeManager;
 import com.google.dart.engine.internal.index.file.NodeManager;
 import com.google.dart.engine.internal.index.file.RelationshipCodec;
+import com.google.dart.engine.internal.index.file.SeparateFileManager;
 import com.google.dart.engine.internal.index.file.SplitIndexStoreImpl;
 import com.google.dart.engine.internal.index.file.StringCodec;
-import com.google.dart.engine.internal.index.file.SeparateFileManager;
 import com.google.dart.engine.internal.index.operation.OperationProcessor;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
 import com.google.dart.engine.utilities.translation.DartOmit;
@@ -54,6 +55,7 @@ public class IndexFactory {
         contextCodec,
         elementCodec,
         relationshipCodec);
+    nodeManager = new CachingNodeManager(nodeManager);
     return newSplitIndexStore(nodeManager);
   }
 
