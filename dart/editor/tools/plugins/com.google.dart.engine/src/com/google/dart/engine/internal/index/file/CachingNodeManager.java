@@ -85,7 +85,9 @@ public class CachingNodeManager implements NodeManager {
     IndexNode node = cache.getIfPresent(name);
     if (node == null) {
       node = manager.getNode(name);
-      cache.put(name, node);
+      if (node != null) {
+        cache.put(name, node);
+      }
     }
     return node;
   }
