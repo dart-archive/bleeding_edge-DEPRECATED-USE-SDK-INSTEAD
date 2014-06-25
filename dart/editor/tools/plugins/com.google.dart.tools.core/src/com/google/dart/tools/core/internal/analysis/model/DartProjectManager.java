@@ -15,6 +15,7 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -74,6 +75,7 @@ public class DartProjectManager {
    */
   public void setAnalysisRoots() {
     List<String> includedPaths = Lists.newArrayList();
+    List<String> excludedPaths = Lists.newArrayList();
     for (IProject proj : root.getProjects()) {
       try {
         boolean hasNature = proj.hasNature(DartCore.DART_PROJECT_NATURE);
@@ -84,7 +86,10 @@ public class DartProjectManager {
         DartCore.logError("Failed to determine if project should be analyzed: " + proj.getName(), e);
       }
     }
-    server.setAnalysisRoots(includedPaths, ignoreManager.getExclusionPatterns());
+    for (String path : ignoreManager.getExclusionPatterns()) {
+      excludedPaths.add(path.replace('/', File.separatorChar));
+    }
+    server.setAnalysisRoots(includedPaths, excludedPaths);
   }
 
   /**
