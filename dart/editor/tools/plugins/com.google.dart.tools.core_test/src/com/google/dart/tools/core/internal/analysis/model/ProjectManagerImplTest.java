@@ -357,7 +357,6 @@ public class ProjectManagerImplTest extends ContextManagerImplTest {
     super.setUp();
     rootContainer = new MockWorkspaceRoot();
     projectContainer = TestProjects.newPubProject3(rootContainer);
-    rootContainer.add(projectContainer);
     context = new MockContextForTest();
   }
 }

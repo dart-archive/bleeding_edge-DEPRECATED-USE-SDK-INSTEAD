@@ -29,7 +29,7 @@ public class TestProjects {
    * @return a project (not {@code null})
    */
   public static MockProject newEmptyProject() {
-    return newEmptyProject(null);
+    return newEmptyProject(new MockWorkspaceRoot());
   }
 
   /**
@@ -38,7 +38,7 @@ public class TestProjects {
    * @return a project (not {@code null})
    */
   public static MockProject newEmptyProject(MockWorkspaceRoot rootContainer) {
-    return new MockProject(rootContainer, "testproj");
+    return rootContainer.addProject("testproj");
   }
 
   /**
@@ -77,7 +77,7 @@ public class TestProjects {
    * @return the mock project (not {@code null})
    */
   public static MockProject newPubProject2() {
-    return newPubProject2(null);
+    return newPubProject2(new MockWorkspaceRoot());
   }
 
   /**
@@ -118,7 +118,7 @@ public class TestProjects {
    * @return a project (not {@code null})
    */
   public static MockProject newPubProject3() {
-    return newPubProject3(null);
+    return newPubProject3(new MockWorkspaceRoot());
   }
 
   /**

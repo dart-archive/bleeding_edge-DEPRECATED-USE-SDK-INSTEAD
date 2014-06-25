@@ -176,7 +176,6 @@ public class WorkspaceDeltaProcessorTest extends TestCase {
   protected void setUp() throws Exception {
     rootContainer = new MockWorkspaceRoot();
     projectContainer = TestProjects.newPubProject3(rootContainer);
-    rootContainer.add(projectContainer);
     DartSdk sdk = DirectoryBasedDartSdk.getDefaultSdk();
     String sdkContextId = "sdk-id";
     manager = new MockProjectManagerImpl(rootContainer, sdk, sdkContextId, new DartIgnoreManager());

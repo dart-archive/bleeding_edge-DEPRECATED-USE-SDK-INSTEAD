@@ -129,7 +129,6 @@ public class PubCacheManagerTest extends TestCase {
     super.setUp();
     rootContainer = new MockWorkspaceRoot();
     MockProject projectContainer = TestProjects.newPubProject2(rootContainer);
-    rootContainer.add(projectContainer);
     MockFile file = new MockFile(
         projectContainer,
         DartCore.PUBSPEC_LOCK_FILE_NAME,

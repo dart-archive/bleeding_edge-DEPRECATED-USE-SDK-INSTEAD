@@ -157,7 +157,6 @@ public class ProjectManagerIgnoreListenerTest extends TestCase {
     rootContainer = new MockWorkspaceRoot();
     projectContainer = TestProjects.newPubProject3(rootContainer);
     projectContainer.remove(DartCore.PUBSPEC_FILE_NAME);
-    rootContainer.add(projectContainer);
     appFolder = projectContainer.getMockFolder("myapp");
     assertNotNull(appFolder);
     markerManager = mock(AnalysisMarkerManager.class);
