@@ -155,8 +155,16 @@ public class MockDelta implements IResourceDelta {
 
   @Override
   public IResourceDelta[] getAffectedChildren(int kindMask) {
-    // TODO Auto-generated method stub
-    return null;
+    if (children == null) {
+      return new IResourceDelta[] {};
+    }
+    ArrayList<MockDelta> result = new ArrayList<MockDelta>(children.size());
+    for (MockDelta delta : children) {
+      if ((delta.getKind() & kindMask) > 0) {
+        result.add(delta);
+      }
+    }
+    return result.toArray(new IResourceDelta[result.size()]);
   }
 
   @Override

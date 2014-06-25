@@ -128,6 +128,7 @@ public class MockProject extends MockContainer implements IProject {
   public IProjectDescription getDescription() throws CoreException {
     if (description == null) {
       description = new MockProjectDescription();
+      description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
     }
     return description;
   }
@@ -203,7 +204,7 @@ public class MockProject extends MockContainer implements IProject {
 
   @Override
   public boolean hasNature(String natureId) throws CoreException {
-    return natureId.equals(DartCore.DART_PROJECT_NATURE);
+    return getDescription().hasNature(natureId);
   }
 
   @Override

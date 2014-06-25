@@ -46,9 +46,11 @@ import java.util.Map;
 public class MockWorkspace implements IWorkspace {
 
   private final MockWorkspaceRoot root = new MockWorkspaceRoot(this);
+  private IResourceChangeListener resourceChangeListener;
 
   @Override
   public void addResourceChangeListener(IResourceChangeListener listener) {
+    this.resourceChangeListener = listener;
   }
 
   @Override
@@ -225,6 +227,12 @@ public class MockWorkspace implements IWorkspace {
     return description;
   }
 
+  public void notifyResourceChange(MockDelta delta, int type) {
+    if (resourceChangeListener != null) {
+      resourceChangeListener.resourceChanged(new MockResourceChangeEvent(delta, type));
+    }
+  }
+
   @Override
   public void removeResourceChangeListener(IResourceChangeListener listener) {
   }
@@ -310,5 +318,4 @@ public class MockWorkspace implements IWorkspace {
   public IStatus validateProjectLocationURI(IProject project, URI location) {
     return null;
   }
-
 }

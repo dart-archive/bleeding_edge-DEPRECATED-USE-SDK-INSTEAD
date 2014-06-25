@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
-import com.google.common.collect.Lists;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
@@ -21,7 +20,6 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
@@ -34,7 +32,6 @@ import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.analysis.model.ResolvedHtmlEvent;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.builder.BuildEvent;
-import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
 import com.google.dart.tools.core.internal.builder.AnalysisManager;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
@@ -428,18 +425,8 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
   @Override
   public void start() {
-    InstrumentationLogger.ensureLoggerStarted();
-    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      List<String> includedPaths = Lists.newArrayList();
-      List<String> excludedPaths = Lists.newArrayList();
-      for (IProject project : resource.getProjects()) {
-        includedPaths.add(project.getLocation().toOSString());
-      }
-      DartCore.getAnalysisServer().setAnalysisRoots(includedPaths, excludedPaths);
-    } else {
-      new AnalysisWorker(this, getSdkContext()).performAnalysisInBackground();
-      analyzeAllProjects();
-    }
+    new AnalysisWorker(this, getSdkContext()).performAnalysisInBackground();
+    analyzeAllProjects();
   }
 
   @Override

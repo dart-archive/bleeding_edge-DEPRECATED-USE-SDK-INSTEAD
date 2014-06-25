@@ -8,9 +8,15 @@ import org.eclipse.core.resources.IResourceDelta;
 public class MockResourceChangeEvent implements IResourceChangeEvent {
 
   private final MockDelta delta;
+  private final int type;
 
   public MockResourceChangeEvent(MockDelta delta) {
+    this(delta, IResourceChangeEvent.POST_CHANGE);
+  }
+
+  public MockResourceChangeEvent(MockDelta delta, int type) {
     this.delta = delta;
+    this.type = type;
   }
 
   @Override
@@ -40,6 +46,6 @@ public class MockResourceChangeEvent implements IResourceChangeEvent {
 
   @Override
   public int getType() {
-    throw new UnsupportedOperationException();
+    return type;
   }
 }
