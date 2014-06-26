@@ -33,6 +33,7 @@ public class NotificationServerErrorProcessor extends NotificationProcessor {
     boolean isFatal = paramsObject.get("fatal").getAsBoolean();
     String message = paramsObject.get("message").getAsString();
     String stackTrace = paramsObject.get("stackTrace").getAsString();
+    // notify listener
     getListener().serverError(isFatal, message, stackTrace);
   }
 }

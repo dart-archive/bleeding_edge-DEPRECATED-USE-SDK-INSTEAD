@@ -116,5 +116,4 @@ public class NotificationCompletionResultsProcessor extends NotificationProcesso
     }
     return completions.toArray(new CompletionSuggestion[completions.size()]);
   }
-
 }

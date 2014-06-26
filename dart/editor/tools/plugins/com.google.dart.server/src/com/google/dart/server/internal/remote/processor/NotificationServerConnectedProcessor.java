@@ -31,5 +31,4 @@ public class NotificationServerConnectedProcessor extends NotificationProcessor 
   public void process(JsonObject response) throws Exception {
     getListener().serverConnected();
   }
-
 }

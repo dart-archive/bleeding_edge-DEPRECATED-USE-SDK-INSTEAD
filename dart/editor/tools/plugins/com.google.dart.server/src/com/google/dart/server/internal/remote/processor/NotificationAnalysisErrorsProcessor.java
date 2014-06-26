@@ -113,8 +113,7 @@ public class NotificationAnalysisErrorsProcessor extends NotificationProcessor {
         int offset = errorObject.get("offset").getAsInt();
         int length = errorObject.get("length").getAsInt();
         String message = errorObject.get("message").getAsString();
-        JsonElement correctionElement = errorObject.get("correction");
-        String correction = correctionElement != null ? correctionElement.getAsString() : null;
+        String correction = safelyGetAsString(errorObject, "correction");
         analysisErrors.add(new AnalysisErrorImpl(
             file,
             errorCode,

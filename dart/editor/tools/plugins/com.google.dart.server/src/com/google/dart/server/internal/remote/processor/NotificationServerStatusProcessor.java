@@ -16,7 +16,6 @@ package com.google.dart.server.internal.remote.processor;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.ServerStatus;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
@@ -34,14 +33,11 @@ public class NotificationServerStatusProcessor extends NotificationProcessor {
   public void process(JsonObject response) throws Exception {
     ServerStatus serverStatus = new ServerStatus();
     JsonObject paramsObject = response.get("params").getAsJsonObject();
-    JsonElement element = paramsObject.get("analysis");
-    if (element != null) {
-      JsonObject analysisObject = element.getAsJsonObject();
-      boolean analyzing = analysisObject.get("analyzing").getAsBoolean();
-      JsonElement targetElement = analysisObject.get("analysisTarget");
-      serverStatus.setAnalysisStatus(new AnalysisStatus(analyzing, targetElement == null ? null
-          : targetElement.getAsString()));
-    }
+    JsonObject analysisObject = paramsObject.get("analysis").getAsJsonObject();
+    boolean analyzing = analysisObject.get("analyzing").getAsBoolean();
+    String analysisTarget = safelyGetAsString(analysisObject, "analysisTarget");
+    serverStatus.setAnalysisStatus(new AnalysisStatus(analyzing, analysisTarget));
+    // notify listener
     getListener().serverStatus(serverStatus);
   }
 }
