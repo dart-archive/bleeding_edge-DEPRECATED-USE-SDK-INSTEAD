@@ -71,7 +71,7 @@ public class HtmlEntryImplTest extends EngineTestCase {
 
   public void test_invalidateAllResolutionInformation() {
     HtmlEntryImpl entry = entryWithValidState();
-    entry.invalidateAllResolutionInformation();
+    entry.invalidateAllResolutionInformation(false);
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.ANGULAR_APPLICATION));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.ANGULAR_COMPONENT));
     assertSame(CacheState.INVALID, entry.getState(HtmlEntry.ANGULAR_ENTRY));
@@ -84,6 +84,24 @@ public class HtmlEntryImplTest extends EngineTestCase {
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.PARSE_ERRORS));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.PARSED_UNIT));
     assertSame(CacheState.VALID, entry.getState(HtmlEntry.REFERENCED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(HtmlEntry.RESOLUTION_ERRORS));
+  }
+
+  public void test_invalidateAllResolutionInformation_includingUris() {
+    HtmlEntryImpl entry = entryWithValidState();
+    entry.invalidateAllResolutionInformation(true);
+    assertSame(CacheState.VALID, entry.getState(HtmlEntry.ANGULAR_APPLICATION));
+    assertSame(CacheState.VALID, entry.getState(HtmlEntry.ANGULAR_COMPONENT));
+    assertSame(CacheState.INVALID, entry.getState(HtmlEntry.ANGULAR_ENTRY));
+    assertSame(CacheState.INVALID, entry.getState(HtmlEntry.ANGULAR_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(HtmlEntry.POLYMER_BUILD_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(HtmlEntry.POLYMER_RESOLUTION_ERRORS));
+    assertSame(CacheState.INVALID, entry.getState(HtmlEntry.ELEMENT));
+    assertSame(CacheState.INVALID, entry.getState(HtmlEntry.HINTS));
+    assertSame(CacheState.VALID, entry.getState(SourceEntry.LINE_INFO));
+    assertSame(CacheState.VALID, entry.getState(HtmlEntry.PARSE_ERRORS));
+    assertSame(CacheState.VALID, entry.getState(HtmlEntry.PARSED_UNIT));
+    assertSame(CacheState.INVALID, entry.getState(HtmlEntry.REFERENCED_LIBRARIES));
     assertSame(CacheState.INVALID, entry.getState(HtmlEntry.RESOLUTION_ERRORS));
   }
 

@@ -334,16 +334,16 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     resolvedUnit = null;
     resolvedUnitState = CacheState.INVALID;
 
-    referencedLibraries = Source.EMPTY_ARRAY;
-    referencedLibrariesState = CacheState.INVALID;
-
-    invalidateAllResolutionInformation();
+    invalidateAllResolutionInformation(true);
   }
 
   /**
    * Invalidate all of the resolution information associated with the HTML file.
+   * 
+   * @param invalidateUris true if the cached results of converting URIs to source files should also
+   *          be invalidated.
    */
-  public void invalidateAllResolutionInformation() {
+  public void invalidateAllResolutionInformation(boolean invalidateUris) {
     angularEntry = null;
     angularEntryState = CacheState.INVALID;
 
@@ -364,6 +364,11 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
     hints = AnalysisError.NO_ERRORS;
     hintsState = CacheState.INVALID;
+
+    if (invalidateUris) {
+      referencedLibraries = Source.EMPTY_ARRAY;
+      referencedLibrariesState = CacheState.INVALID;
+    }
   }
 
   @Override

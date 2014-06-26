@@ -380,7 +380,7 @@ public class DartEntryImplTest extends EngineTestCase {
 
   public void test_invalidateAllResolutionInformation() throws Exception {
     DartEntryImpl entry = entryWithValidState();
-    entry.invalidateAllResolutionInformation();
+    entry.invalidateAllResolutionInformation(false);
     assertSame(CacheState.INVALID, entry.getState(DartEntry.ELEMENT));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.IS_CLIENT));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.IS_LAUNCHABLE));
@@ -388,6 +388,24 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.VALID, entry.getState(DartEntry.PARSE_ERRORS));
     assertSame(CacheState.VALID, entry.getState(DartEntry.PARSED_UNIT));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.PUBLIC_NAMESPACE));
+    assertSame(CacheState.VALID, entry.getState(DartEntry.EXPORTED_LIBRARIES));
+    assertSame(CacheState.VALID, entry.getState(DartEntry.IMPORTED_LIBRARIES));
+    assertSame(CacheState.VALID, entry.getState(DartEntry.INCLUDED_PARTS));
+  }
+
+  public void test_invalidateAllResolutionInformation_includingUris() throws Exception {
+    DartEntryImpl entry = entryWithValidState();
+    entry.invalidateAllResolutionInformation(true);
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.ELEMENT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.IS_CLIENT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.IS_LAUNCHABLE));
+    assertSame(CacheState.VALID, entry.getState(SourceEntry.LINE_INFO));
+    assertSame(CacheState.VALID, entry.getState(DartEntry.PARSE_ERRORS));
+    assertSame(CacheState.VALID, entry.getState(DartEntry.PARSED_UNIT));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.PUBLIC_NAMESPACE));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.EXPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.IMPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, entry.getState(DartEntry.INCLUDED_PARTS));
   }
 
   public void test_isClient() throws Exception {

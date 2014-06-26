@@ -850,22 +850,16 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     parsedUnitAccessed = false;
     parsedUnitState = CacheState.INVALID;
 
-    importedLibraries = Source.EMPTY_ARRAY;
-    importedLibrariesState = CacheState.INVALID;
-
-    exportedLibraries = Source.EMPTY_ARRAY;
-    exportedLibrariesState = CacheState.INVALID;
-
-    includedParts = Source.EMPTY_ARRAY;
-    includedPartsState = CacheState.INVALID;
-
-    discardCachedResolutionInformation();
+    discardCachedResolutionInformation(true);
   }
 
   /**
    * Invalidate all of the resolution information associated with the compilation unit.
+   * 
+   * @param invalidateUris true if the cached results of converting URIs to source files should also
+   *          be invalidated.
    */
-  public void invalidateAllResolutionInformation() {
+  public void invalidateAllResolutionInformation(boolean invalidateUris) {
     if (parsedUnitState == CacheState.FLUSHED) {
       ResolutionState state = resolutionState;
       while (state != null) {
@@ -883,7 +877,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
         state = state.nextState;
       }
     }
-    discardCachedResolutionInformation();
+    discardCachedResolutionInformation(invalidateUris);
   }
 
   @Override
@@ -1480,8 +1474,11 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   /**
    * Invalidate all of the resolution information associated with the compilation unit.
+   * 
+   * @param invalidateUris true if the cached results of converting URIs to source files should also
+   *          be invalidated.
    */
-  private void discardCachedResolutionInformation() {
+  private void discardCachedResolutionInformation(boolean invalidateUris) {
     element = null;
     elementState = CacheState.INVALID;
 
@@ -1493,6 +1490,17 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     publicNamespaceState = CacheState.INVALID;
 
     resolutionState.invalidateAllResolutionInformation();
+
+    if (invalidateUris) {
+      importedLibraries = Source.EMPTY_ARRAY;
+      importedLibrariesState = CacheState.INVALID;
+
+      exportedLibraries = Source.EMPTY_ARRAY;
+      exportedLibrariesState = CacheState.INVALID;
+
+      includedParts = Source.EMPTY_ARRAY;
+      includedPartsState = CacheState.INVALID;
+    }
   }
 
   /**

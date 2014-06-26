@@ -1065,7 +1065,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           if (entry instanceof DartEntry) {
             DartEntry dartEntry = (DartEntry) entry;
             DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-            dartCopy.invalidateAllResolutionInformation();
+            dartCopy.invalidateAllResolutionInformation(false);
             cache.put(source, dartCopy);
             SourcePriority priority = SourcePriority.UNKNOWN;
             SourceKind kind = dartCopy.getKind();
@@ -1078,7 +1078,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           } else if (entry instanceof HtmlEntry) {
             HtmlEntry htmlEntry = (HtmlEntry) entry;
             HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-            htmlCopy.invalidateAllResolutionInformation();
+            htmlCopy.invalidateAllResolutionInformation(false);
             cache.put(source, htmlCopy);
             workManager.add(source, SourcePriority.HTML);
           }
@@ -2027,7 +2027,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       generateSdkErrors = options.getGenerateSdkErrors();
 
       if (needsRecompute) {
-        invalidateAllLocalResolutionInformation();
+        invalidateAllLocalResolutionInformation(false);
       }
     }
   }
@@ -2136,7 +2136,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
       cache = createCacheFromSourceFactory(factory);
 
-      invalidateAllLocalResolutionInformation();
+      invalidateAllLocalResolutionInformation(true);
     }
   }
 
@@ -4157,8 +4157,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * Invalidate all of the resolution results computed by this context.
    * <p>
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param invalidateUris true if the cached results of converting URIs to source files should also
+   *          be invalidated.
    */
-  private void invalidateAllLocalResolutionInformation() {
+  private void invalidateAllLocalResolutionInformation(boolean invalidateUris) {
     HashMap<Source, Source[]> oldPartMap = new HashMap<Source, Source[]>();
     MapIterator<Source, SourceEntry> iterator = privatePartition.iterator();
     while (iterator.moveNext()) {
@@ -4166,13 +4169,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       SourceEntry sourceEntry = iterator.getValue();
       if (sourceEntry instanceof HtmlEntry) {
         HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
-        htmlCopy.invalidateAllResolutionInformation();
+        htmlCopy.invalidateAllResolutionInformation(invalidateUris);
         iterator.setValue(htmlCopy);
       } else if (sourceEntry instanceof DartEntry) {
         DartEntry dartEntry = (DartEntry) sourceEntry;
         oldPartMap.put(source, dartEntry.getValue(DartEntry.INCLUDED_PARTS));
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-        dartCopy.invalidateAllResolutionInformation();
+        dartCopy.invalidateAllResolutionInformation(invalidateUris);
         iterator.setValue(dartCopy);
         workManager.add(source, SourcePriority.UNKNOWN);
       }
@@ -4248,14 +4251,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (libraryEntry != null) {
       Source[] includedParts = libraryEntry.getValue(DartEntry.INCLUDED_PARTS);
       DartEntryImpl libraryCopy = libraryEntry.getWritableCopy();
-      libraryCopy.invalidateAllResolutionInformation();
+      libraryCopy.invalidateAllResolutionInformation(false);
       cache.put(librarySource, libraryCopy);
       workManager.add(librarySource, SourcePriority.LIBRARY);
       for (Source partSource : includedParts) {
         SourceEntry partEntry = cache.get(partSource);
         if (partEntry instanceof DartEntry) {
           DartEntryImpl partCopy = ((DartEntry) partEntry).getWritableCopy();
-          partCopy.invalidateAllResolutionInformation();
+          partCopy.invalidateAllResolutionInformation(false);
           cache.put(partSource, partCopy);
         }
       }
