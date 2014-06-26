@@ -47,6 +47,9 @@ deps.update({
   "src/dart":
     Var("dart_branch") + "/dart",
 
+  "src/dart/third_party/WebCore":
+    "/third_party/WebCore",
+
   "src/dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
       "/trunk/co19/tests/co19/src" + Var("co19_rev")),
 
