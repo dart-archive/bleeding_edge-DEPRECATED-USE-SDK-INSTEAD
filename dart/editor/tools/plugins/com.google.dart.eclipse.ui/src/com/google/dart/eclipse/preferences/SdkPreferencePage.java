@@ -14,8 +14,11 @@
 
 package com.google.dart.eclipse.preferences;
 
+import com.google.dart.eclipse.core.jobs.AndroidZipDownloadJob;
 import com.google.dart.eclipse.core.jobs.DartSdkUpgradeJob;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.tools.core.mobile.AndroidSdkManager;
+import com.google.dart.tools.core.mobile.MobileUpdateListener;
 import com.google.dart.tools.core.model.DartSdkListener;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
@@ -41,7 +44,7 @@ import java.io.File;
  * A preference page to view the status of the Dart SDK and upgrade it.
  */
 public class SdkPreferencePage extends PreferencePage implements IWorkbenchPreferencePage,
-    DartSdkListener {
+    DartSdkListener, MobileUpdateListener {
 
   private Label sdkVersionlabel;
   private Button upgradeSdkButton;
@@ -49,6 +52,7 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
 
   private Label dartiumStatuslabel;
   private Label dartiumInstallLocationLabel;
+  private Label mobileStatuslabel;
 
   public SdkPreferencePage() {
     noDefaultAndApplyButton();
@@ -57,13 +61,23 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
   @Override
   public void dispose() {
     DartSdkManager.getManager().removeSdkListener(this);
-
+    AndroidSdkManager.getManager().removeMobileUpdateListener(this);
     super.dispose();
   }
 
   @Override
   public void init(IWorkbench workbench) {
 
+  }
+
+  @Override
+  public void mobileBinariesUpdated() {
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        updateMobileInfo();
+      }
+    });
   }
 
   @Override
@@ -137,11 +151,33 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
     dartiumInstallLocationLabel = new Label(dartiumGroup, SWT.NONE);
     GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(dartiumInstallLocationLabel);
 
+    //mobile
+    Group mobileGroup = new Group(composite, SWT.NONE);
+    mobileGroup.setText("Mobile");
+    GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.TOP).applyTo(mobileGroup);
+    GridLayoutFactory.fillDefaults().numColumns(2).margins(10, 4).applyTo(mobileGroup);
+
+    mobileStatuslabel = new Label(mobileGroup, SWT.NONE);
+    GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.CENTER).grab(true, false).applyTo(
+        mobileStatuslabel);
+
+    Button mobileDownloadButton = new Button(mobileGroup, SWT.PUSH);
+    mobileDownloadButton.setText("Download Dart Content Shell");
+    mobileDownloadButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        AndroidZipDownloadJob job = new AndroidZipDownloadJob();
+        job.schedule();
+      }
+    });
+
     // update info
     updateSDKInfo();
     updateDartiumInfo();
+    updateMobileInfo();
 
     DartSdkManager.getManager().addSdkListener(this);
+    AndroidSdkManager.getManager().addMobileUpdateListener(this);
 
     return composite;
   }
@@ -185,6 +221,19 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
       dartiumStatuslabel.setText("Dartium is installed.");
       dartiumInstallLocationLabel.setText("Installed at " + dartiumDir);
     }
+  }
+
+  private void updateMobileInfo() {
+
+    File eclipseInstallDir = DartSdkManager.getEclipseInstallationDirectory();
+    File androidDir = new File(eclipseInstallDir, AndroidSdkManager.ANDROID_DIRECTORY_NAME);
+    File dartContentShell = new File(androidDir, AndroidSdkManager.CONTENT_SHELL_APK);
+    if (!dartContentShell.exists()) {
+      mobileStatuslabel.setText("Dart Content Shell apk is not available");
+    } else {
+      mobileStatuslabel.setText("Installed at " + androidDir.getPath());
+    }
+
   }
 
 }

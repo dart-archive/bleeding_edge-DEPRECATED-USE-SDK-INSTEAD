@@ -21,6 +21,8 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.osgi.service.prefs.BackingStoreException;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Manages access to the Android SDK
@@ -29,11 +31,11 @@ public class AndroidSdkManager {
 
   public static final String ANDROID_SDK_LOCATION_PREFERENCE = "androidSdkLocation";
 
-  private static final String CONTENT_SHELL_APK = "content_shell-android-arm-release.apk";
+  public static final String CONTENT_SHELL_APK = "content_shell-android-arm-release.apk";
 
   private static final String CONNECTION_TEST_APK = "com.google.dart.editor.mobile.connection.service.apk";
 
-  private static final String ANDROID_DIRECTORY_NAME = "android";
+  public static final String ANDROID_DIRECTORY_NAME = "android";
 
   private static final String ADB_DIRECTORY_NAME = "adb";
 
@@ -41,6 +43,12 @@ public class AndroidSdkManager {
 
   public static AndroidSdkManager getManager() {
     return manager;
+  }
+
+  private List<MobileUpdateListener> listeners = new ArrayList<MobileUpdateListener>();
+
+  public void addMobileUpdateListener(MobileUpdateListener lisener) {
+    listeners.add(lisener);
   }
 
   public String getConnectionTestApkLocation() {
@@ -54,6 +62,13 @@ public class AndroidSdkManager {
     return androidDir.getAbsolutePath() + File.separator + CONTENT_SHELL_APK;
   }
 
+  /**
+   * The plugins build looks in the installation directory for "android".
+   */
+  public File getDefaultPluginsAndroidDirectory() {
+    return new File(DartSdkManager.getEclipseInstallationDirectory(), ANDROID_DIRECTORY_NAME);
+  }
+
   public String getSdkLocationPreference() {
     return DartCore.getPlugin().getPrefs().get(ANDROID_SDK_LOCATION_PREFERENCE, "");
   }
@@ -61,6 +76,16 @@ public class AndroidSdkManager {
   public boolean isAdbInstalled() {
     File adbFile = getAdbExecutable();
     return adbFile != null && adbFile.exists();
+  }
+
+  public void notifyMobileUpdateListeners() {
+    for (MobileUpdateListener listener : listeners) {
+      listener.mobileBinariesUpdated();
+    }
+  }
+
+  public void removeMobileUpdateListener(MobileUpdateListener listener) {
+    listeners.remove(listener);
   }
 
   public void setSdkLocationPreference(String location) {

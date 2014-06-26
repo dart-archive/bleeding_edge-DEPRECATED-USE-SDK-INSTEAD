@@ -18,6 +18,7 @@ import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.utilities.download.DownloadUtilities;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -28,25 +29,16 @@ import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.osgi.util.NLS;
 import org.osgi.framework.Bundle;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 // http://commondatastorage.googleapis.com/dart-editor-archive-integration/latest/dartsdk-macos-32.zip
 
@@ -87,12 +79,12 @@ public class DartSdkManager {
 
   private static DartSdkManager manager = new DartSdkManager();
 
-  public static DartSdkManager getManager() {
-    return manager;
+  public static File getEclipseInstallationDirectory() {
+    return new File(Platform.getInstallLocation().getURL().getFile());
   }
 
-  static File getEclipseInstallationDirectory() {
-    return new File(Platform.getInstallLocation().getURL().getFile());
+  public static DartSdkManager getManager() {
+    return manager;
   }
 
   /**
@@ -162,6 +154,24 @@ public class DartSdkManager {
     return sdkContextId;
   }
 
+  public String getUpdateChannelUrl() {
+    try {
+      File file = getUpdatePropertiesFile();
+      if (file.exists()) {
+        Properties properties = new Properties();
+        properties.load(new FileReader(file));
+        return properties.getProperty(UPDATE_URL_ENV_VAR);
+      }
+    } catch (FileNotFoundException e) {
+      DartCore.logError(e);
+    } catch (IOException e) {
+      DartCore.logError(e);
+    } catch (URISyntaxException e) {
+      DartCore.logError(e);
+    }
+    return null;
+  }
+
   public boolean hasSdk() {
 
     //TODO (pquitslund): add a switch to check for analysis engine enablement
@@ -192,96 +202,12 @@ public class DartSdkManager {
     }
   }
 
-  private void copyFile(File fromFile, File toFile, IProgressMonitor monitor) throws IOException {
-    byte[] data = new byte[4096];
-
-    InputStream in = new FileInputStream(fromFile);
-
-    toFile.delete();
-
-    OutputStream out = new FileOutputStream(toFile);
-
-    monitor.beginTask("Copy " + fromFile.toString(), (int) fromFile.length());
-
-    int count = in.read(data);
-
-    while (count != -1) {
-      out.write(data, 0, count);
-
-      monitor.worked(count);
-
-      count = in.read(data);
-    }
-
-    in.close();
-    out.close();
-
-    toFile.setLastModified(fromFile.lastModified());
-
-    monitor.done();
-  }
-
   private File copyNewSdk(IProgressMonitor monitor, File newSDK) throws IOException {
     File currentSDK = new File(getEclipseInstallationDirectory(), "dart-sdk.zip");
 
-    copyFile(newSDK, currentSDK, monitor);
+    DownloadUtilities.copyFile(newSDK, currentSDK, monitor);
 
     return currentSDK;
-  }
-
-  private void copyStream(InputStream in, FileOutputStream out, IProgressMonitor monitor, int length)
-      throws IOException {
-    byte[] data = new byte[4096];
-
-    int count = in.read(data);
-
-    while (count != -1) {
-      out.write(data, 0, count);
-
-      if (length != -1) {
-        monitor.worked(count);
-      }
-
-      count = in.read(data);
-    }
-
-    in.close();
-    out.close();
-  }
-
-  private void deleteDirectory(File dir) {
-    for (File file : dir.listFiles()) {
-      if (file.isDirectory()) {
-        deleteDirectory(file);
-      } else {
-        file.delete();
-      }
-    }
-
-    dir.delete();
-  }
-
-  private File downloadFile(URI downloadURI, IProgressMonitor monitor) throws IOException {
-    File tempFile = File.createTempFile(SDK_DIR_NAME, ".zip");
-    tempFile.deleteOnExit();
-
-    URLConnection connection = downloadURI.toURL().openConnection();
-
-    int length = connection.getContentLength();
-
-    FileOutputStream out = new FileOutputStream(tempFile);
-
-    monitor.beginTask("Download SDK", length);
-
-    copyStream(connection.getInputStream(), out, monitor, length);
-
-    monitor.done();
-
-    if (connection.getLastModified() != 0) {
-      tempFile.setLastModified(connection.getLastModified());
-    }
-
-    return tempFile;
   }
 
   private String getSdkUrl(String channel) {
@@ -297,24 +223,6 @@ public class DartSdkManager {
       }
     }
     return DEFAULT_UPDATE_URL + sdkZip;
-  }
-
-  private String getUpdateChannelUrl() {
-    try {
-      File file = getUpdatePropertiesFile();
-      if (file.exists()) {
-        Properties properties = new Properties();
-        properties.load(new FileReader(file));
-        return properties.getProperty(UPDATE_URL_ENV_VAR);
-      }
-    } catch (FileNotFoundException e) {
-      DartCore.logError(e);
-    } catch (IOException e) {
-      DartCore.logError(e);
-    } catch (URISyntaxException e) {
-      DartCore.logError(e);
-    }
-    return null;
   }
 
   private File getUpdatePropertiesFile() throws IOException, URISyntaxException {
@@ -374,55 +282,14 @@ public class DartSdkManager {
     }
   }
 
-  private void unzip(File zipFile, File destination, IProgressMonitor monitor) throws IOException {
-    monitor.beginTask("Unzip " + zipFile.getName(), (int) zipFile.length());
-
-    final int BUFFER_SIZE = 4096;
-
-    ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(zipFile)));
-    ZipEntry entry;
-
-    while ((entry = zis.getNextEntry()) != null) {
-      int count;
-      byte data[] = new byte[BUFFER_SIZE];
-
-      File outFile = new File(destination, entry.getName());
-
-      if (entry.isDirectory()) {
-        if (!outFile.exists()) {
-          outFile.mkdirs();
-        }
-      } else {
-        if (!outFile.getParentFile().exists()) {
-          outFile.getParentFile().mkdirs();
-        }
-
-        OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile));
-
-        while ((count = zis.read(data, 0, BUFFER_SIZE)) != -1) {
-          out.write(data, 0, count);
-
-          monitor.worked(count);
-        }
-
-        out.flush();
-        out.close();
-      }
-    }
-
-    zis.close();
-
-    monitor.done();
-  }
-
   private void unzipNewSDK(File newSDK, IProgressMonitor monitor) throws IOException {
     File sdkDirectory = getDefaultPluginsSdkDirectory();
 
     if (sdkDirectory.exists()) {
-      deleteDirectory(sdkDirectory);
+      DownloadUtilities.deleteDirectory(sdkDirectory);
     }
 
-    unzip(newSDK, getDefaultPluginsSdkDirectory().getParentFile(), monitor);
+    DownloadUtilities.unzip(newSDK, getDefaultPluginsSdkDirectory().getParentFile(), monitor);
   }
 
   private void upgradeImpl(String channel, IProgressMonitor monitor) throws IOException {
@@ -433,7 +300,11 @@ public class DartSdkManager {
       URI downloadURI = URI.create(getSdkUrl(channel));
 
       // download to a temp file
-      File tempFile = downloadFile(downloadURI, mon.newChild(80));
+      File tempFile = DownloadUtilities.downloadZipFile(
+          downloadURI,
+          SDK_DIR_NAME,
+          "Download SDK",
+          mon.newChild(80));
 
       // copy the new sdk
       File newSdk = copyNewSdk(mon.newChild(3), tempFile);
