@@ -35,6 +35,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.StringUtilities;
+import com.google.dart.engine.utilities.translation.DartName;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -143,8 +144,22 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param context the analysis context in which the library is defined
    * @param name the name of this element
    */
+  @DartName("forNode")
   public LibraryElementImpl(AnalysisContext context, LibraryIdentifier name) {
     super(name);
+    this.context = context;
+  }
+
+  /**
+   * Initialize a newly created library element to have the given name.
+   * 
+   * @param context the analysis context in which the library is defined
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public LibraryElementImpl(AnalysisContext context, String name, int nameOffset) {
+    super(name, nameOffset);
     this.context = context;
   }
 

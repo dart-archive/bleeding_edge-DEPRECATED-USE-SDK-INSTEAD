@@ -61,6 +61,7 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
    * 
    * @param variable the variable with which this access is associated
    */
+  @DartName("forVariable")
   public PropertyAccessorElementImpl(PropertyInducingElementImpl variable) {
     super(variable.getName(), variable.getNameOffset());
     this.variable = variable;

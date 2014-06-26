@@ -14,6 +14,7 @@
 package com.google.dart.engine.source;
 
 import com.google.dart.engine.internal.context.TimestampedData;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.net.URI;
@@ -30,6 +31,15 @@ public class NonExistingSource implements Source {
   public NonExistingSource(String name, UriKind uriKind) {
     this.name = name;
     this.uriKind = uriKind;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof NonExistingSource) {
+      NonExistingSource other = (NonExistingSource) obj;
+      return other.uriKind == uriKind && ObjectUtilities.equals(other.name, name);
+    }
+    return false;
   }
 
   @Override
@@ -72,6 +82,11 @@ public class NonExistingSource implements Source {
   @Override
   public UriKind getUriKind() {
     return uriKind;
+  }
+
+  @Override
+  public int hashCode() {
+    return name.hashCode();
   }
 
   @Override

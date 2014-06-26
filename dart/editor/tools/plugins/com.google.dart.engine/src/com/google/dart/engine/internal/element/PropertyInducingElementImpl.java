@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Instances of the class {@code PropertyInducingElementImpl} implement a
@@ -53,6 +54,7 @@ public abstract class PropertyInducingElementImpl extends VariableElementImpl im
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public PropertyInducingElementImpl(Identifier name) {
     super(name);
   }
@@ -61,10 +63,11 @@ public abstract class PropertyInducingElementImpl extends VariableElementImpl im
    * Initialize a newly created synthetic element to have the given name.
    * 
    * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
    */
-  public PropertyInducingElementImpl(String name) {
-    super(name, -1);
-    setSynthetic(true);
+  public PropertyInducingElementImpl(String name, int nameOffset) {
+    super(name, nameOffset);
   }
 
   @Override

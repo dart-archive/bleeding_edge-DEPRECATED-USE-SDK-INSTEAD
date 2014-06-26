@@ -30,6 +30,7 @@ import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.utilities.general.StringUtilities;
+import com.google.dart.engine.utilities.translation.DartName;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -103,8 +104,20 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public ClassElementImpl(Identifier name) {
     super(name);
+  }
+
+  /**
+   * Initialize a newly created class element to have the given name.
+   * 
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public ClassElementImpl(String name, int nameOffset) {
+    super(name, nameOffset);
   }
 
   @Override

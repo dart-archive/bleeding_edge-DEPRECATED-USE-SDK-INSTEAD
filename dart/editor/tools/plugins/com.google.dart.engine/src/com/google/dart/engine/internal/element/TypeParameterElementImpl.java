@@ -19,6 +19,7 @@ import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeParameterType;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Instances of the class {@code TypeParameterElementImpl} implement a {@link TypeParameterElement}.
@@ -47,8 +48,20 @@ public class TypeParameterElementImpl extends ElementImpl implements TypeParamet
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public TypeParameterElementImpl(Identifier name) {
     super(name);
+  }
+
+  /**
+   * Initialize a newly created method element to have the given name.
+   * 
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public TypeParameterElementImpl(String name, int nameOffset) {
+    super(name, nameOffset);
   }
 
   @Override

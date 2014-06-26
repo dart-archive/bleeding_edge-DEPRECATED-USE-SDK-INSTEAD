@@ -19,6 +19,7 @@ import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ToolkitObjectElement;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Instances of the class {@code LocalVariableElementImpl} implement a {@code LocalVariableElement}.
@@ -47,8 +48,20 @@ public class LocalVariableElementImpl extends VariableElementImpl implements Loc
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public LocalVariableElementImpl(Identifier name) {
     super(name);
+  }
+
+  /**
+   * Initialize a newly created method element to have the given name.
+   * 
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public LocalVariableElementImpl(String name, int nameOffset) {
+    super(name, nameOffset);
   }
 
   @Override

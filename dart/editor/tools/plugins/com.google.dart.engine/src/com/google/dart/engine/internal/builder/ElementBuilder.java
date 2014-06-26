@@ -457,7 +457,7 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
         String propertyName = propertyNameNode.getName();
         TopLevelVariableElementImpl variable = (TopLevelVariableElementImpl) currentHolder.getTopLevelVariable(propertyName);
         if (variable == null) {
-          variable = new TopLevelVariableElementImpl(node.getName().getName());
+          variable = new TopLevelVariableElementImpl(node.getName().getName(), -1);
           variable.setFinal(true);
           variable.setSynthetic(true);
 
@@ -628,7 +628,7 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
       String propertyName = propertyNameNode.getName();
       FieldElementImpl field = (FieldElementImpl) currentHolder.getField(propertyName);
       if (field == null) {
-        field = new FieldElementImpl(node.getName().getName());
+        field = new FieldElementImpl(node.getName().getName(), -1);
         field.setFinal(true);
         field.setStatic(isStatic);
         field.setSynthetic(true);

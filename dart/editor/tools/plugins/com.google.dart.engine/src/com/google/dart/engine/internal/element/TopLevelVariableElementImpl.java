@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.TopLevelVariableElement;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Instances of the class {@code TopLevelVariableElementImpl} implement a
@@ -36,6 +37,7 @@ public class TopLevelVariableElementImpl extends PropertyInducingElementImpl imp
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public TopLevelVariableElementImpl(Identifier name) {
     super(name);
   }
@@ -44,9 +46,11 @@ public class TopLevelVariableElementImpl extends PropertyInducingElementImpl imp
    * Initialize a newly created synthetic top-level variable element to have the given name.
    * 
    * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
    */
-  public TopLevelVariableElementImpl(String name) {
-    super(name);
+  public TopLevelVariableElementImpl(String name, int nameOffset) {
+    super(name, nameOffset);
   }
 
   @Override

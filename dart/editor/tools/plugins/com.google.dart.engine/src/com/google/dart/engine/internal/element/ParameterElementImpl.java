@@ -19,6 +19,7 @@ import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Instances of the class {@code ParameterElementImpl} implement a {@code ParameterElement}.
@@ -69,6 +70,7 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public ParameterElementImpl(Identifier name) {
     super(name);
   }

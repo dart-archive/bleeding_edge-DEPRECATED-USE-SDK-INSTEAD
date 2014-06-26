@@ -506,6 +506,24 @@ public class MainEngine {
           new File(targetFolder + "/index.dart"),
           Charsets.UTF_8);
     }
+    // Testing
+    {
+      CompilationUnit library = buildTestingTokenFactoryLibrary();
+      Files.write(getFormattedSource(library), new File(targetFolder
+          + "/testing/token_factory.dart"), Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildTestingAstFactoryLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolder + "/testing/ast_factory.dart"),
+          Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildTestingElementFactoryLibrary();
+      Files.write(getFormattedSource(library), new File(targetFolder
+          + "/testing/element_factory.dart"), Charsets.UTF_8);
+    }
     // Tests
     {
       CompilationUnit library = buildTestSupportLibrary();
@@ -621,18 +639,18 @@ public class MainEngine {
         importDirective(src_package + "java_engine.dart", null, importShowCombinator("Predicate")));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
     unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
-    unit.getDirectives().add(
-        importDirective(src_package + "element.dart", null, importShowCombinator("ClassElement")));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(
         importDirective("parser_test.dart", null, importShowCombinator("ParserTestCase")));
     unit.getDirectives().add(importDirective("test_support.dart", null));
-    unit.getDirectives().add(
-        importDirective("scanner_test.dart", null, importShowCombinator("TokenFactory")));
+    unit.getDirectives().add(importDirective(src_package + "testing/ast_factory.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "testing/token_factory.dart", null));
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
+      if (isEngineTestPath(file, "ast/AstFactory.java")) {
+        continue;
+      }
       // TODO(scheglov) I've asked Phil to remove ResolverTestCase dependency
       if (isEngineTestPath(file, "ast/visitor/ElementLocatorTest.java")) {
         continue;
@@ -732,10 +750,8 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "element_test"));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "java_engine_io.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
     unit.getDirectives().add(importDirective(src_package + "source_io.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
     unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
     unit.getDirectives().add(importDirective(src_package + "element.dart", null));
     unit.getDirectives().add(
@@ -745,8 +761,8 @@ public class MainEngine {
             importShowCombinator("AnalysisContext", "AnalysisContextImpl")));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(importDirective("test_support.dart", null));
-    unit.getDirectives().add(
-        importDirective("ast_test.dart", null, importShowCombinator("AstFactory")));
+    unit.getDirectives().add(importDirective(src_package + "testing/ast_factory.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "testing/element_factory.dart", null));
     unit.getDirectives().add(
         importDirective(
             "resolver_test.dart",
@@ -755,6 +771,9 @@ public class MainEngine {
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
+      if (isEngineTestPath(file, "element/ElementFactory.java")) {
+        continue;
+      }
       if (isEngineTestPath(file, "element/") || isEngineTestPath(file, "internal/element/")
           || isEngineTestPath(file, "internal/type/")) {
         List<CompilationUnitMember> unitMembers = entry.getValue();
@@ -996,12 +1015,9 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(importDirective("test_support.dart", null));
-    unit.getDirectives().add(
-        importDirective("scanner_test.dart", null, importShowCombinator("TokenFactory")));
-    unit.getDirectives().add(
-        importDirective("ast_test.dart", null, importShowCombinator("AstFactory")));
-    unit.getDirectives().add(
-        importDirective("element_test.dart", null, importShowCombinator("ElementFactory")));
+    unit.getDirectives().add(importDirective(src_package + "testing/ast_factory.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "testing/element_factory.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "testing/token_factory.dart", null));
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -1091,10 +1107,8 @@ public class MainEngine {
             importShowCombinator("DirectoryBasedDartSdk")));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(importDirective("test_support.dart", null));
-    unit.getDirectives().add(
-        importDirective("ast_test.dart", null, importShowCombinator("AstFactory")));
-    unit.getDirectives().add(
-        importDirective("element_test.dart", null, importShowCombinator("ElementFactory")));
+    unit.getDirectives().add(importDirective(src_package + "testing/ast_factory.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "testing/element_factory.dart", null));
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -1155,6 +1169,9 @@ public class MainEngine {
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
+      if (isEngineTestPath(file, "scanner/TokenFactory.java")) {
+        continue;
+      }
       if (isEngineTestPath(file, "scanner/")) {
         List<CompilationUnitMember> unitMembers = entry.getValue();
         for (CompilationUnitMember unitMember : unitMembers) {
@@ -1250,6 +1267,7 @@ public class MainEngine {
       if (isEnginePath(file, "source/Source.java")
           || isEnginePath(file, "source/ContentCache.java")
           || isEnginePath(file, "source/DartUriResolver.java")
+          || isEnginePath(file, "source/NonExistingSource.java")
           || isEnginePath(file, "source/SourceFactory.java")
           || isEnginePath(file, "source/SourceContainer.java")
           || isEnginePath(file, "source/SourceKind.java")
@@ -1285,6 +1303,7 @@ public class MainEngine {
           || isEnginePath(file, "source/ContentCache.java")
           || isEnginePath(file, "source/DartUriResolver.java")
           || isEnginePath(file, "source/LocalSourcePredicate.java")
+          || isEnginePath(file, "source/NonExistingSource.java")
           || isEnginePath(file, "source/SourceFactory.java")
           || isEnginePath(file, "source/SourceContainer.java")
           || isEnginePath(file, "source/SourceKind.java")
@@ -1292,6 +1311,75 @@ public class MainEngine {
           || isEnginePath(file, "source/UriResolver.java")
           || isEnginePath(file, "utilities/source/")) {
         addNotRemovedCompiationUnitEntries(unit, entry.getValue());
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildTestingAstFactoryLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "testing", "ast_factory"));
+    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "element.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "testing/token_factory.dart", null));
+    List<Statement> mainStatements = Lists.newArrayList();
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEngineTestPath(file, "ast/AstFactory.java")) {
+        List<CompilationUnitMember> unitMembers = entry.getValue();
+        for (CompilationUnitMember unitMember : unitMembers) {
+          boolean isTestSuite = EngineSemanticProcessor.gatherTestSuites(mainStatements, unitMember);
+          if (!isTestSuite) {
+            unit.getDeclarations().add(unitMember);
+          }
+        }
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildTestingElementFactoryLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "testing", "element_factory"));
+    unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "source.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "element.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "engine.dart", null));
+    List<Statement> mainStatements = Lists.newArrayList();
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEngineTestPath(file, "element/ElementFactory.java")) {
+        List<CompilationUnitMember> unitMembers = entry.getValue();
+        for (CompilationUnitMember unitMember : unitMembers) {
+          boolean isTestSuite = EngineSemanticProcessor.gatherTestSuites(mainStatements, unitMember);
+          if (!isTestSuite) {
+            unit.getDeclarations().add(unitMember);
+          }
+        }
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildTestingTokenFactoryLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "testing", "token_factory"));
+    unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
+    List<Statement> mainStatements = Lists.newArrayList();
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEngineTestPath(file, "scanner/TokenFactory.java")) {
+        List<CompilationUnitMember> unitMembers = entry.getValue();
+        for (CompilationUnitMember unitMember : unitMembers) {
+          boolean isTestSuite = EngineSemanticProcessor.gatherTestSuites(mainStatements, unitMember);
+          if (!isTestSuite) {
+            unit.getDeclarations().add(unitMember);
+          }
+        }
       }
     }
     return unit;

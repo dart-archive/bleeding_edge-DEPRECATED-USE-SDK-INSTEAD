@@ -36,14 +36,12 @@ import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeParameterTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
-import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.NonExistingSource;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.dart.ParameterKind;
-
-import static com.google.dart.engine.ast.AstFactory.identifier;
-import static com.google.dart.engine.ast.AstFactory.libraryIdentifier;
-import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 /**
  * The class {@code ElementFactory} defines utility methods used to create elements for testing
@@ -58,7 +56,7 @@ public final class ElementFactory {
 
   public static ClassElementImpl classElement(String typeName, InterfaceType superclassType,
       String... parameterNames) {
-    ClassElementImpl element = new ClassElementImpl(identifier(typeName));
+    ClassElementImpl element = new ClassElementImpl(typeName, 0);
     element.setSupertype(superclassType);
     InterfaceTypeImpl type = new InterfaceTypeImpl(element);
     element.setType(type);
@@ -68,8 +66,7 @@ public final class ElementFactory {
       TypeParameterElementImpl[] typeParameters = new TypeParameterElementImpl[count];
       TypeParameterTypeImpl[] typeParameterTypes = new TypeParameterTypeImpl[count];
       for (int i = 0; i < count; i++) {
-        TypeParameterElementImpl typeParameter = new TypeParameterElementImpl(
-            identifier(parameterNames[i]));
+        TypeParameterElementImpl typeParameter = new TypeParameterElementImpl(parameterNames[i], 0);
         typeParameters[i] = typeParameter;
         typeParameterTypes[i] = new TypeParameterTypeImpl(typeParameter);
         typeParameter.setType(typeParameterTypes[i]);
@@ -82,11 +79,11 @@ public final class ElementFactory {
   }
 
   public static ClassElementImpl classElement(String typeName, String... parameterNames) {
-    return classElement(typeName, getObject().getType(), parameterNames);
+    return classElement(typeName, getObjectType(), parameterNames);
   }
 
   public static CompilationUnitElementImpl compilationUnit(String fileName) {
-    FileBasedSource source = new FileBasedSource(createFile(fileName));
+    Source source = new NonExistingSource(fileName, UriKind.FILE_URI);
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
     unit.setSource(source);
     return unit;
@@ -95,13 +92,13 @@ public final class ElementFactory {
   public static ConstructorElementImpl constructorElement(ClassElement definingClass, String name,
       boolean isConst, Type... argumentTypes) {
     Type type = definingClass.getType();
-    ConstructorElementImpl constructor = new ConstructorElementImpl(name == null ? null
-        : identifier(name));
+    ConstructorElementImpl constructor = name == null ? new ConstructorElementImpl("", -1)
+        : new ConstructorElementImpl(name, 0);
     constructor.setConst(isConst);
     int count = argumentTypes.length;
     ParameterElement[] parameters = new ParameterElement[count];
     for (int i = 0; i < count; i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl(identifier("a" + i));
+      ParameterElementImpl parameter = new ParameterElementImpl("a" + i, i);
       parameter.setType(argumentTypes[i]);
       parameter.setParameterKind(ParameterKind.REQUIRED);
       parameters[i] = parameter;
@@ -130,7 +127,7 @@ public final class ElementFactory {
 
   public static FieldElementImpl fieldElement(String name, boolean isStatic, boolean isFinal,
       boolean isConst, Type type) {
-    FieldElementImpl field = new FieldElementImpl(identifier(name));
+    FieldElementImpl field = new FieldElementImpl(name, 0);
     field.setConst(isConst);
     field.setFinal(isFinal);
     field.setStatic(isStatic);
@@ -177,7 +174,7 @@ public final class ElementFactory {
   public static FunctionElementImpl functionElement(String functionName,
       ClassElement returnElement, ClassElement[] normalParameters, ClassElement[] optionalParameters) {
     // We don't create parameter elements because we don't have parameter names
-    FunctionElementImpl functionElement = new FunctionElementImpl(identifier(functionName));
+    FunctionElementImpl functionElement = new FunctionElementImpl(functionName, 0);
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionElement.setType(functionType);
     // return type
@@ -192,7 +189,7 @@ public final class ElementFactory {
     int totalCount = normalCount + optionalCount;
     ParameterElement[] parameters = new ParameterElement[totalCount];
     for (int i = 0; i < totalCount; i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl(identifier("a" + i));
+      ParameterElementImpl parameter = new ParameterElementImpl("a" + i, i);
       if (i < normalCount) {
         parameter.setType(normalParameters[i].getType());
         parameter.setParameterKind(ParameterKind.REQUIRED);
@@ -210,7 +207,7 @@ public final class ElementFactory {
   public static FunctionElementImpl functionElement(String functionName,
       ClassElement returnElement, ClassElement[] normalParameters, String[] names,
       ClassElement[] namedParameters) {
-    FunctionElementImpl functionElement = new FunctionElementImpl(identifier(functionName));
+    FunctionElementImpl functionElement = new FunctionElementImpl(functionName, 0);
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionElement.setType(functionType);
     // parameters
@@ -225,13 +222,12 @@ public final class ElementFactory {
     ParameterElement[] parameters = new ParameterElement[totalCount];
     for (int i = 0; i < totalCount; i++) {
       if (i < normalCount) {
-        ParameterElementImpl parameter = new ParameterElementImpl(identifier("a" + i));
+        ParameterElementImpl parameter = new ParameterElementImpl("a" + i, i);
         parameter.setType(normalParameters[i].getType());
         parameter.setParameterKind(ParameterKind.REQUIRED);
         parameters[i] = parameter;
       } else {
-        ParameterElementImpl parameter = new ParameterElementImpl(
-            identifier(names[i - normalCount]));
+        ParameterElementImpl parameter = new ParameterElementImpl(names[i - normalCount], i);
         parameter.setType(namedParameters[i - normalCount].getType());
         parameter.setParameterKind(ParameterKind.NAMED);
         parameters[i] = parameter;
@@ -264,7 +260,7 @@ public final class ElementFactory {
 
   public static FunctionElementImpl functionElementWithParameters(String functionName,
       Type returnType, ParameterElement... parameters) {
-    FunctionElementImpl functionElement = new FunctionElementImpl(identifier(functionName));
+    FunctionElementImpl functionElement = new FunctionElementImpl(functionName, 0);
     functionElement.setReturnType(returnType == null ? VoidTypeImpl.getInstance() : returnType);
     functionElement.setParameters(parameters);
 
@@ -280,8 +276,12 @@ public final class ElementFactory {
     return objectElement;
   }
 
+  public static InterfaceType getObjectType() {
+    return getObject().getType();
+  }
+
   public static PropertyAccessorElementImpl getterElement(String name, boolean isStatic, Type type) {
-    FieldElementImpl field = new FieldElementImpl(identifier(name));
+    FieldElementImpl field = new FieldElementImpl(name, -1);
     field.setStatic(isStatic);
     field.setSynthetic(true);
     field.setType(type);
@@ -300,7 +300,7 @@ public final class ElementFactory {
   }
 
   public static HtmlElementImpl htmlUnit(AnalysisContext context, String fileName) {
-    FileBasedSource source = new FileBasedSource(createFile(fileName));
+    Source source = new NonExistingSource(fileName, UriKind.FILE_URI);
     HtmlElementImpl unit = new HtmlElementImpl(context, fileName);
     unit.setSource(source);
     return unit;
@@ -318,7 +318,7 @@ public final class ElementFactory {
   public static LibraryElementImpl library(AnalysisContext context, String libraryName) {
     String fileName = "/" + libraryName + ".dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
-    LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));
+    LibraryElementImpl library = new LibraryElementImpl(context, libraryName, 0);
     library.setDefiningCompilationUnit(unit);
     return library;
   }
@@ -328,17 +328,17 @@ public final class ElementFactory {
   }
 
   public static LocalVariableElementImpl localVariableElement(String name) {
-    return new LocalVariableElementImpl(identifier(name));
+    return new LocalVariableElementImpl(name, 0);
   }
 
   public static MethodElementImpl methodElement(String methodName, Type returnType,
       Type... argumentTypes) {
-    MethodElementImpl method = new MethodElementImpl(identifier(methodName));
+    MethodElementImpl method = new MethodElementImpl(methodName, 0);
 
     int count = argumentTypes.length;
     ParameterElement[] parameters = new ParameterElement[count];
     for (int i = 0; i < count; i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl(identifier("a" + i));
+      ParameterElementImpl parameter = new ParameterElementImpl("a" + i, i);
       parameter.setType(argumentTypes[i]);
       parameter.setParameterKind(ParameterKind.REQUIRED);
       parameters[i] = parameter;
@@ -353,7 +353,7 @@ public final class ElementFactory {
 
   public static MethodElementImpl methodElementWithParameters(String methodName,
       Type[] typeArguments, Type returnType, ParameterElement... parameters) {
-    MethodElementImpl method = new MethodElementImpl(identifier(methodName));
+    MethodElementImpl method = new MethodElementImpl(methodName, 0);
     method.setParameters(parameters);
     method.setReturnType(returnType);
 
@@ -364,50 +364,50 @@ public final class ElementFactory {
   }
 
   public static ParameterElementImpl namedParameter(String name) {
-    ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
+    ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
     parameter.setParameterKind(ParameterKind.NAMED);
     return parameter;
   }
 
   public static ParameterElementImpl namedParameter(String name, Type type) {
-    ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
+    ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
     parameter.setParameterKind(ParameterKind.NAMED);
     parameter.setType(type);
     return parameter;
   }
 
   public static ParameterElementImpl positionalParameter(String name) {
-    ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
+    ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
     parameter.setParameterKind(ParameterKind.POSITIONAL);
     return parameter;
   }
 
   public static ParameterElementImpl positionalParameter(String name, Type type) {
-    ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
+    ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
     parameter.setParameterKind(ParameterKind.POSITIONAL);
     parameter.setType(type);
     return parameter;
   }
 
   public static PrefixElementImpl prefix(String name) {
-    return new PrefixElementImpl(identifier(name));
+    return new PrefixElementImpl(name, 0);
   }
 
   public static ParameterElementImpl requiredParameter(String name) {
-    ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
+    ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
     parameter.setParameterKind(ParameterKind.REQUIRED);
     return parameter;
   }
 
   public static ParameterElementImpl requiredParameter(String name, Type type) {
-    ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
+    ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
     parameter.setParameterKind(ParameterKind.REQUIRED);
     parameter.setType(type);
     return parameter;
   }
 
   public static PropertyAccessorElementImpl setterElement(String name, boolean isStatic, Type type) {
-    FieldElementImpl field = new FieldElementImpl(identifier(name));
+    FieldElementImpl field = new FieldElementImpl(name, -1);
     field.setStatic(isStatic);
     field.setSynthetic(true);
     field.setType(type);
@@ -441,14 +441,17 @@ public final class ElementFactory {
   }
 
   public static TopLevelVariableElementImpl topLevelVariableElement(String name) {
-    return new TopLevelVariableElementImpl(name);
+    TopLevelVariableElementImpl element = new TopLevelVariableElementImpl(name, -1);
+    element.setSynthetic(true);
+    return element;
   }
 
   public static TopLevelVariableElementImpl topLevelVariableElement(String name, boolean isConst,
       boolean isFinal, Type type) {
-    TopLevelVariableElementImpl variable = new TopLevelVariableElementImpl(name);
+    TopLevelVariableElementImpl variable = new TopLevelVariableElementImpl(name, -1);
     variable.setConst(isConst);
     variable.setFinal(isFinal);
+    variable.setSynthetic(true);
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);
     getter.setGetter(true);

@@ -18,6 +18,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
+import com.google.dart.engine.utilities.translation.DartName;
 
 /**
  * Instances of the class {@code PrefixElementImpl} implement a {@code PrefixElement}.
@@ -40,8 +41,20 @@ public class PrefixElementImpl extends ElementImpl implements PrefixElement {
    * 
    * @param name the name of this element
    */
+  @DartName("forNode")
   public PrefixElementImpl(Identifier name) {
     super(name);
+  }
+
+  /**
+   * Initialize a newly created method element to have the given name.
+   * 
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public PrefixElementImpl(String name, int nameOffset) {
+    super(name, nameOffset);
   }
 
   @Override
