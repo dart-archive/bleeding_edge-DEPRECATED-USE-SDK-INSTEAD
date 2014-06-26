@@ -11,8 +11,11 @@ vars.update({
   "multivm_base": "http://src.chromium.org",
   "multivm_chromium_branch": "/chrome/trunk/src",
   "multivm_chromium_revision": "278856",
-  # There were no uploaded chromium builds within 100 revisions of 277580.
-  "chromium_base_revision": "278856",
+  # Git hashes of snapshotted chromium builds closest to r278856.
+  "chromium_base_revision":
+      '{"Windows":"37fde6a752162681ce6b62f1a96683483f2df596", ' +
+      ' "Darwin": "db25a7e9bf34e638a1cbb4c8974ca566c22eb62c", ' +
+      ' "Linux": "abe29e2ae1ad6d9bd8a7bfa23b3316a203d39ef2"}'
   "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
   "dart_tools_revision": "36985",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
