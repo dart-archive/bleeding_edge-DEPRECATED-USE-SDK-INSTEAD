@@ -87,14 +87,16 @@ public class MembersSorterTest extends RefactoringImplTest {
         "class A {",
         "  String c;",
         "  int a;",
+        "  void toString() => null;",
         "  double b;",
         "}",
         "");
     String expected = makeSource(//
         "class A {",
+        "  String c;",
         "  int a;",
         "  double b;",
-        "  String c;",
+        "  void toString() => null;",
         "}",
         "");
     assertSorting(initial, expected);
@@ -103,13 +105,17 @@ public class MembersSorterTest extends RefactoringImplTest {
   public void test_classMembers_field_static() throws Exception {
     String initial = makeSource(//
         "class A {",
+        "  int b;",
         "  int a;",
-        "  static int b;",
+        "  static int d;",
+        "  static int c;",
         "}",
         "");
     String expected = makeSource(//
         "class A {",
-        "  static int b;",
+        "  static int d;",
+        "  static int c;",
+        "  int b;",
         "  int a;",
         "}",
         "");

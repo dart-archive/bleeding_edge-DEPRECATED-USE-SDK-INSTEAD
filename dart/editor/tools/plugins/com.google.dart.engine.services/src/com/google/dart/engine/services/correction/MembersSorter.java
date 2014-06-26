@@ -142,6 +142,9 @@ public class MembersSorter {
     @Override
     public boolean equals(Object obj) {
       PriorityItem other = (PriorityItem) obj;
+      if (kind == MemberKind.CLASS_FIELD) {
+        return other.kind == kind && other.isStatic == isStatic;
+      }
       return other.kind == kind && other.isPrivate == isPrivate && other.isStatic == isStatic;
     }
   }
@@ -160,11 +163,9 @@ public class MembersSorter {
       new PriorityItem(false, MemberKind.UNIT_CLASS, true),
       // class
       new PriorityItem(true, MemberKind.CLASS_FIELD, false),
-      new PriorityItem(true, MemberKind.CLASS_FIELD, true),
       new PriorityItem(true, MemberKind.CLASS_ACCESSOR, false),
       new PriorityItem(true, MemberKind.CLASS_ACCESSOR, true),
       new PriorityItem(false, MemberKind.CLASS_FIELD, false),
-      new PriorityItem(false, MemberKind.CLASS_FIELD, true),
       new PriorityItem(false, MemberKind.CLASS_CONSTRUCTOR, false),
       new PriorityItem(false, MemberKind.CLASS_CONSTRUCTOR, true),
       new PriorityItem(false, MemberKind.CLASS_ACCESSOR, false),
@@ -191,6 +192,11 @@ public class MembersSorter {
         int priority1 = getPriority(o1.item);
         int priority2 = getPriority(o2.item);
         if (priority1 == priority2) {
+          // don't reorder class fields
+          if (o1.item.kind == MemberKind.CLASS_FIELD) {
+            return 0;
+          }
+          // sort all other members by name
           return o1.name.compareTo(o2.name);
         }
         return priority1 - priority2;
