@@ -145,7 +145,6 @@ public class ElementImpl implements Element {
   private final int length;
   private final int flags;
   private final String parameters;
-
   private final String returnType;
 
   public ElementImpl(ElementKind kind, String name, int offset, int length, int flags,

@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
@@ -43,6 +44,12 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   public WorkspaceAnalysisServerListener(AnalysisServerDataImpl dataImpl) {
     this.dataImpl = dataImpl;
+  }
+
+  @Override
+  public void computedCompletion(String completionId, CompletionSuggestion[] completions,
+      boolean last) {
+    // TODO(jwren/scheglov) not yet implemented
   }
 
   @Override

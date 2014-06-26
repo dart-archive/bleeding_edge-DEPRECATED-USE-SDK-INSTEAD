@@ -11,9 +11,9 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package com.google.dart.server.internal.local.computer;
 
+import com.google.dart.server.CompletionRelevance;
 import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.CompletionSuggestionKind;
 
@@ -23,51 +23,56 @@ import com.google.dart.server.CompletionSuggestionKind;
  * @coverage dart.server.local
  */
 public class CompletionSuggestionImpl implements CompletionSuggestion {
+  private final CompletionSuggestionKind kind;
+  private final CompletionRelevance relevance;
   private final String completion;
-  private final String declaringType;
+  private final int replacementOffset;
+  private final int replacementLength;
+  private final int insertionLength;
+  private final int offset;
+  private final int selectionOffset;
+  private final int selectionLength;
+  private final boolean isDeprecated;
+  private final boolean isPotential;
   private final String elementDocSummary;
   private final String elementDocDetails;
-  private final CompletionSuggestionKind kind;
-  private final int location;
-  private final String parameterName;
-  private final String[] parameterNames;
-  private final String parameterType;
-  private final String[] parameterTypes;
-  private final int positionalParameterCount;
-  private final int relevance;
-  private final int replacementLength;
-  private final int replacementLengthIdentifier;
+  private final String declaringType;
   private final String returnType;
-  private final boolean hasNamed;
-  private final boolean hasPositional;
-  private final boolean isDeprecated;
-  private final boolean isPotentialMatch;
+  private final String[] parameterNames;
+  private final String[] parameterTypes;
+  private final int requiredParameterCount;
+  private final int positionalParameterCount;
+  private final String parameterName;
+  private final String parameterType;
 
-  public CompletionSuggestionImpl(String elementDocSummary, String elementDocDetails,
-      String completion, String declaringType, CompletionSuggestionKind kind, int location,
-      String parameterName, String[] parameterNames, String parameterType, String[] parameterTypes,
-      int positionalParameterCount, int relevance, int replacementLength,
-      int replacementLengthIdentifier, String returnType, boolean hasNamed, boolean hasPositional,
-      boolean isDeprecated, boolean isPotentialMatch) {
+  public CompletionSuggestionImpl(CompletionSuggestionKind kind, CompletionRelevance relevance,
+      String completion, int replacementOffset, int replacementLength, int insertionLength,
+      int offset, int selectionOffset, int selectionLength, boolean isDeprecated,
+      boolean isPotential, String elementDocSummary, String elementDocDetails,
+      String declaringType, String returnType, String[] parameterNames, String[] parameterTypes,
+      int requiredParameterCount, int positionalParameterCount, String parameterName,
+      String parameterType) {
+    this.kind = kind;
+    this.relevance = relevance;
     this.completion = completion;
-    this.declaringType = declaringType;
+    this.replacementOffset = replacementOffset;
+    this.replacementLength = replacementLength;
+    this.insertionLength = insertionLength;
+    this.offset = offset;
+    this.selectionOffset = selectionOffset;
+    this.selectionLength = selectionLength;
+    this.isDeprecated = isDeprecated;
+    this.isPotential = isPotential;
     this.elementDocSummary = elementDocSummary;
     this.elementDocDetails = elementDocDetails;
-    this.kind = kind;
-    this.location = location;
-    this.parameterName = parameterName;
-    this.parameterNames = parameterNames;
-    this.parameterType = parameterType;
-    this.parameterTypes = parameterTypes;
-    this.positionalParameterCount = positionalParameterCount;
-    this.relevance = relevance;
-    this.replacementLength = replacementLength;
-    this.replacementLengthIdentifier = replacementLengthIdentifier;
+    this.declaringType = declaringType;
     this.returnType = returnType;
-    this.hasNamed = hasNamed;
-    this.hasPositional = hasPositional;
-    this.isDeprecated = isDeprecated;
-    this.isPotentialMatch = isPotentialMatch;
+    this.parameterNames = parameterNames;
+    this.parameterTypes = parameterTypes;
+    this.requiredParameterCount = requiredParameterCount;
+    this.positionalParameterCount = positionalParameterCount;
+    this.parameterName = parameterName;
+    this.parameterType = parameterType;
   }
 
   @Override
@@ -91,13 +96,18 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
   }
 
   @Override
+  public int getInsertionLength() {
+    return insertionLength;
+  }
+
+  @Override
   public CompletionSuggestionKind getKind() {
     return kind;
   }
 
   @Override
-  public int getLocation() {
-    return location;
+  public int getOffset() {
+    return offset;
   }
 
   @Override
@@ -126,7 +136,7 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
   }
 
   @Override
-  public int getRelevance() {
+  public CompletionRelevance getRelevance() {
     return relevance;
   }
 
@@ -136,8 +146,13 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
   }
 
   @Override
-  public int getReplacementLengthIdentifier() {
-    return replacementLengthIdentifier;
+  public int getReplacementOffset() {
+    return replacementOffset;
+  }
+
+  @Override
+  public int getRequiredParameterCount() {
+    return requiredParameterCount;
   }
 
   @Override
@@ -146,13 +161,27 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
   }
 
   @Override
+  public int getSelectionLength() {
+    return selectionLength;
+  }
+
+  @Override
+  public int getSelectionOffset() {
+    return selectionOffset;
+  }
+
+  @Override
   public boolean hasNamed() {
-    return hasNamed;
+    int numOfParams = parameterNames != null ? parameterNames.length : 0;
+    if (numOfParams == 0) {
+      return false;
+    }
+    return (numOfParams - requiredParameterCount - positionalParameterCount) > 0;
   }
 
   @Override
   public boolean hasPositional() {
-    return hasPositional;
+    return positionalParameterCount > 0;
   }
 
   @Override
@@ -161,7 +190,7 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
   }
 
   @Override
-  public boolean isPotentialMatch() {
-    return isPotentialMatch;
+  public boolean isPotential() {
+    return isPotential;
   }
 }

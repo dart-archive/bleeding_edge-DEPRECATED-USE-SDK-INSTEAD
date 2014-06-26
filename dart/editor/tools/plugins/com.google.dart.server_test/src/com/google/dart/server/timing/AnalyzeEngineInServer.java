@@ -18,6 +18,7 @@ import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisStatus;
+import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
@@ -42,6 +43,11 @@ public class AnalyzeEngineInServer extends TimingTest {
      * The most recently recorded value of the isAnalyzing flag from the server.
      */
     private boolean isAnalyzing = true;
+
+    @Override
+    public void computedCompletion(String completionId, CompletionSuggestion[] completions,
+        boolean last) {
+    }
 
     @Override
     public void computedErrors(String file, AnalysisError[] errors) {

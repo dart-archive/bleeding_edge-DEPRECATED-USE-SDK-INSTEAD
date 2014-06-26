@@ -42,6 +42,7 @@ import com.google.dart.server.internal.remote.processor.NotificationAnalysisErro
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisHighlightsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisNavigationProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisOutlineProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationCompletionResultsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
@@ -137,16 +138,19 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     }
   }
 
-  // server domain
+  // Server domain
   private static final String SERVER_NOTIFICATION_CONNECTED = "server.connected";
   private static final String SERVER_NOTIFICATION_ERROR = "server.error";
   private static final String SERVER_NOTIFICATION_STATUS = "server.status";
 
-  // analysis domain
+  // Analysis domain
   private static final String ANALYSIS_NOTIFICATION_ERRORS = "analysis.errors";
   private static final String ANALYSIS_NOTIFICATION_HIGHTLIGHTS = "analysis.highlights";
   private static final String ANALYSIS_NOTIFICATION_NAVIGATION = "analysis.navigation";
   private static final String ANALYSIS_NOTIFICATION_OUTLINE = "analysis.outline";
+
+  // Code Completion domain
+  private static final String COMPLETION_NOTIFICATION_RESULTS = "completion.results";
 
   private final RequestSink requestSink;
 
@@ -404,6 +408,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     } else if (event.equals(ANALYSIS_NOTIFICATION_OUTLINE)) {
       // analysis.outline
       new NotificationAnalysisOutlineProcessor(listener).process(response);
+    } else if (event.equals(COMPLETION_NOTIFICATION_RESULTS)) {
+      // completion.results
+      new NotificationCompletionResultsProcessor(listener).process(response);
     } else if (event.equals(SERVER_NOTIFICATION_STATUS)) {
       // server.status
       new NotificationServerStatusProcessor(listener).process(response);

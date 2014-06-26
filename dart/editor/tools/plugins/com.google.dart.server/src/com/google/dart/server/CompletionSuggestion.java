@@ -20,10 +20,6 @@ package com.google.dart.server;
  * @coverage dart.server
  */
 public interface CompletionSuggestion {
-  int RELEVANCE_LOW = 0;
-  int RELEVANCE_DEFAULT = 10;
-  int RELEVANCE_HIGH = 20;
-
   /**
    * An empty array of suggestions.
    */
@@ -42,9 +38,11 @@ public interface CompletionSuggestion {
 
   String getElementDocSummary();
 
+  int getInsertionLength();
+
   CompletionSuggestionKind getKind();
 
-  int getLocation();
+  int getOffset();
 
   String getParameterName();
 
@@ -56,13 +54,19 @@ public interface CompletionSuggestion {
 
   int getPositionalParameterCount();
 
-  int getRelevance();
+  CompletionRelevance getRelevance();
 
   int getReplacementLength();
 
-  int getReplacementLengthIdentifier();
+  int getReplacementOffset();
+
+  int getRequiredParameterCount();
 
   String getReturnType();
+
+  int getSelectionLength();
+
+  int getSelectionOffset();
 
   boolean hasNamed();
 
@@ -70,5 +74,5 @@ public interface CompletionSuggestion {
 
   boolean isDeprecated();
 
-  boolean isPotentialMatch();
+  boolean isPotential();
 }

@@ -21,6 +21,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisStatus;
+import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.NavigationTarget;
@@ -34,6 +35,7 @@ import junit.framework.AssertionFailedError;
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,7 @@ import java.util.Map;
  * Mock implementation of {@link AnalysisServerListener}.
  */
 public class TestAnalysisServerListener implements AnalysisServerListener {
+  private final Map<String, CompletionSuggestion[]> completionsMap = Maps.newHashMap();
   private final List<AnalysisServerError> serverErrors = Lists.newArrayList();
   private final Map<String, AnalysisError[]> sourcesErrors = Maps.newHashMap();
   private final Map<String, HighlightRegion[]> highlightsMap = Maps.newHashMap();
@@ -107,6 +110,21 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
+  public synchronized void computedCompletion(String completionId,
+      CompletionSuggestion[] completions, boolean last) {
+    CompletionSuggestion[] value = completionsMap.get(completionId);
+    if (value == null) {
+      completionsMap.put(completionId, completions);
+    } else {
+      List<CompletionSuggestion> completionsAsList = Arrays.asList(completions);
+      completionsAsList.addAll(Arrays.asList(value));
+      completionsMap.put(
+          completionId,
+          completionsAsList.toArray(new CompletionSuggestion[completionsAsList.size()]));
+    }
+  }
+
+  @Override
   public synchronized void computedErrors(String file, AnalysisError[] errors) {
     sourcesErrors.put(file, errors);
   }
@@ -142,6 +160,14 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   /**
+   * Returns {@link CompletionSuggestion[]} for the given completion id, maybe {@code null} if have
+   * not been ever notified.
+   */
+  public synchronized CompletionSuggestion[] getCompletions(String completionId) {
+    return completionsMap.get(completionId);
+  }
+
+  /**
    * Returns {@link AnalysisError} for the given file, may be empty, but not {@code null}.
    */
   public synchronized AnalysisError[] getErrors(String file) {
@@ -169,8 +195,8 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   /**
-   * Returns {@link Outline} for the given context and {@link Source}, maybe {@code null} if have
-   * not been ever notified.
+   * Returns {@link Outline} for the given {@link Source}, maybe {@code null} if have not been ever
+   * notified.
    */
   public synchronized Outline getOutline(String file) {
     return outlineMap.get(file);

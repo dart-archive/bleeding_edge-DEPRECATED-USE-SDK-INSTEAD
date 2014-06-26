@@ -51,7 +51,7 @@ public class ProxyProposal_NEW extends CompletionProposal {
 
   @Override
   public int getCompletionLocation() {
-    return partitionOffset + suggestion.getLocation() - 1;
+    return partitionOffset + suggestion.getOffset() - 1;
   }
 
   @Override
@@ -149,23 +149,23 @@ public class ProxyProposal_NEW extends CompletionProposal {
     if (suggestion.getCompletion().startsWith("$dom_")) {
       return -1;
     } else {
-      return suggestion.getRelevance();
+      return suggestion.getRelevance().ordinal();
     }
   }
 
   @Override
   public int getReplaceEnd() {
-    return suggestion.getLocation() + suggestion.getReplacementLength();
+    return suggestion.getOffset() + suggestion.getReplacementLength();
   }
 
   @Override
   public int getReplaceEndIdentifier() {
-    return suggestion.getLocation() + suggestion.getReplacementLengthIdentifier();
+    return suggestion.getOffset() + suggestion.getInsertionLength();
   }
 
   @Override
   public int getReplaceStart() {
-    return suggestion.getLocation();
+    return suggestion.getOffset();
   }
 
   @Override
@@ -204,7 +204,7 @@ public class ProxyProposal_NEW extends CompletionProposal {
 
   @Override
   public boolean isPotentialMatch() {
-    return suggestion.isPotentialMatch();
+    return suggestion.isPotential();
   }
 
   public boolean isSetter() {

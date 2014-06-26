@@ -56,26 +56,27 @@ public class DartUnitCompletionSuggestionsComputer {
       ProposalKind proposalKind = proposal.getKind();
       String elementDocSummary = DartDocUtilities.getTextSummary(null, proposalElement);
       String elementDocDetails = computeDocumentationComment(proposalElement);
-      suggestions.add(new CompletionSuggestionImpl(
-          elementDocSummary,
-          elementDocDetails,
-          proposal.getCompletion(),
-          proposal.getDeclaringType(),
-          getKind(proposalKind),
-          proposal.getLocation(),
-          proposal.getParameterName(),
-          proposal.getParameterNames(),
-          proposal.getParameterType(),
-          proposal.getParameterTypes(),
-          proposal.getPositionalParameterCount(),
-          proposal.getRelevance(),
-          proposal.getReplacementLength(),
-          proposal.getReplacementLengthIdentifier(),
-          proposal.getReturnType(),
-          proposal.hasNamed(),
-          proposal.hasPositional(),
-          proposal.isDeprecated(),
-          proposal.isPotentialMatch()));
+      // TODO (jwren) API of CompletionSuggestionImpl has changed.
+//      suggestions.add(new CompletionSuggestionImpl(
+//          getKind(proposalKind),
+//          elementDocSummary,
+//          elementDocDetails,
+//          proposal.getCompletion(),
+//          proposal.getDeclaringType(),
+//          proposal.getLocation(),
+//          proposal.getParameterName(),
+//          proposal.getParameterNames(),
+//          proposal.getParameterType(),
+//          proposal.getParameterTypes(),
+//          proposal.getPositionalParameterCount(),
+//          proposal.getRelevance(),
+//          proposal.getReplacementLength(),
+//          proposal.getReplacementLengthIdentifier(),
+//          proposal.getReturnType(),
+//          proposal.hasNamed(),
+//          proposal.hasPositional(),
+//          proposal.isDeprecated(),
+//          proposal.isPotentialMatch()));
     }
 
     @Override

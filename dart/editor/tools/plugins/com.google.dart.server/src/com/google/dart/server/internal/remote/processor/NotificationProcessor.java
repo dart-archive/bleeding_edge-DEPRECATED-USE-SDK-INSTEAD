@@ -14,11 +14,18 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
 import com.google.dart.server.internal.local.computer.ElementImpl;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Abstract processor class which holds the {@link AnalysisServerListener} for all processors.
@@ -52,20 +59,91 @@ public abstract class NotificationProcessor {
     int offset = elementObject.get("offset").getAsInt();
     int length = elementObject.get("length").getAsInt();
     int flags = elementObject.get("flags").getAsInt();
-    // prepare parameters
-    String parameters = null;
-    if (elementObject.has("parameters")) {
-      parameters = elementObject.get("parameters").getAsString();
-    }
-    // prepare return type
-    String returnType = null;
-    if (elementObject.has("returnType")) {
-      returnType = elementObject.get("returnType").getAsString();
-    }
+    String parameters = safelyGetAsString(elementObject, "parameters");
+    String returnType = safelyGetAsString(elementObject, "returnType");
     return new ElementImpl(kind, name, offset, length, flags, parameters, returnType);
+  }
+
+  /**
+   * Given some {@link JsonArray} and of string primitives, return the {@link String} array.
+   * 
+   * @param strJsonArray some {@link JsonArray} of {@link String}s
+   * @return the {@link String} array
+   */
+  protected String[] computeStringArray(JsonArray strJsonArray) {
+    if (strJsonArray == null) {
+      return StringUtilities.EMPTY_ARRAY;
+    }
+    List<String> strings = Lists.newArrayList();
+    Iterator<JsonElement> iterator = strJsonArray.iterator();
+    while (iterator.hasNext()) {
+      strings.add(iterator.next().getAsString());
+    }
+    return strings.toArray(new String[strings.size()]);
   }
 
   protected AnalysisServerListener getListener() {
     return listener;
+  }
+
+  /**
+   * Safely get some member off of the passed {@link JsonObject} and return the {@code int}. Instead
+   * of calling {@link JsonObject#has(String)} before {@link JsonObject#get(String)}, only one call
+   * to the {@link JsonObject} is made in order to be faster. The result will be the passed default
+   * value if the member is not on the {@link JsonObject}. This is used for optional json
+   * parameters.
+   * 
+   * @param jsonObject the {@link JsonObject}
+   * @param memberName the member name
+   * @param defaultValue the default value if the member is not in the {@link JsonObject}
+   * @return the looked up {@link JsonArray}, or {@code null}
+   */
+  protected int safelyGetAsInt(JsonObject jsonObject, String memberName, int defaultValue) {
+    JsonElement jsonElement = jsonObject.get(memberName);
+    if (jsonElement == null) {
+      return defaultValue;
+    } else {
+      return jsonElement.getAsInt();
+    }
+  }
+
+  /**
+   * Safely get some member off of the passed {@link JsonObject} and return the {@link JsonArray}.
+   * Instead of calling {@link JsonObject#has(String)} before {@link JsonObject#get(String)}, only
+   * one call to the {@link JsonObject} is made in order to be faster. The result will be
+   * {@code null} if the member is not on the {@link JsonObject}. This is used for optional json
+   * parameters.
+   * 
+   * @param jsonObject the {@link JsonObject}
+   * @param memberName the member name
+   * @return the looked up {@link JsonArray}, or {@code null}
+   */
+  protected JsonArray safelyGetAsJsonArray(JsonObject jsonObject, String memberName) {
+    JsonElement jsonElement = jsonObject.get(memberName);
+    if (jsonElement == null) {
+      return null;
+    } else {
+      return jsonElement.getAsJsonArray();
+    }
+  }
+
+  /**
+   * Safely get some member off of the passed {@link JsonObject} and return the {@link String}.
+   * Instead of calling {@link JsonObject#has(String)} before {@link JsonObject#get(String)}, only
+   * one call to the {@link JsonObject} is made in order to be faster. The result will be
+   * {@code null} if the member is not on the {@link JsonObject}. This is used for optional json
+   * parameters.
+   * 
+   * @param jsonObject the {@link JsonObject}
+   * @param memberName the member name
+   * @return the looked up {@link String}, or {@code null}
+   */
+  protected String safelyGetAsString(JsonObject jsonObject, String memberName) {
+    JsonElement jsonElement = jsonObject.get(memberName);
+    if (jsonElement == null) {
+      return null;
+    } else {
+      return jsonElement.getAsString();
+    }
   }
 }

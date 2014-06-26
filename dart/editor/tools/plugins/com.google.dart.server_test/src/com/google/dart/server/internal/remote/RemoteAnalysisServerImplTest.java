@@ -27,6 +27,9 @@ import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.CompletionIdConsumer;
+import com.google.dart.server.CompletionRelevance;
+import com.google.dart.server.CompletionSuggestion;
+import com.google.dart.server.CompletionSuggestionKind;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
@@ -588,6 +591,116 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     server.test_waitForWorkerComplete();
     assertEquals("completionId0", completionIdPtr[0]);
+  }
+
+  public void test_completion_notification_results() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'completion.results',",
+        "  'params': {",
+        "    'id': 'completion0',",
+        "    'results' : [",
+        "      {",
+        "        'kind': 'CLASS',",
+        "        'relevance': 'LOW',",
+        "        'completion': 'completion0',",
+        "        'replacementOffset': 0,",
+        "        'replacementLength': 1,",
+        "        'insertionLength': 2,",
+        "        'offset': 3,",
+        "        'selectionOffset': 4,",
+        "        'selectionLength': 5,",
+        "        'isDeprecated': true,",
+        "        'isPotential': true,",
+        "        'docSummary': 'docSummary0',",
+        "        'docComplete': 'docComplete0',",
+        "        'declaringType': 'declaringType0',",
+        "        'returnType': 'returnType0',",
+        "        'parameterNames': ['param0', 'param1'],",
+        "        'parameterTypes': ['paramType0', 'paramType1'],",
+        "        'requiredParameterCount': 2,",
+        "        'positionalParameterCount': 0,",
+        "        'parameterName': 'param2',",
+        "        'parameterType': 'paramType2'",
+        "      },",
+        "      {",
+        "        'kind': 'CLASS_ALIAS',",
+        "        'relevance': 'DEFAULT',",
+        "        'completion': 'completion1',",
+        "        'replacementOffset': 6,",
+        "        'replacementLength': 7,",
+        "        'insertionLength': 8,",
+        "        'offset': 9,",
+        "        'selectionOffset': 10,",
+        "        'selectionLength': 11,",
+        "        'isDeprecated': true,",
+        "        'isPotential': true",
+        "      }",
+        "    ],",
+        "    'last': true",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    CompletionSuggestion[] suggestions = listener.getCompletions("completion0");
+    assertThat(suggestions).hasSize(2);
+    {
+      CompletionSuggestion suggestion = suggestions[0];
+      assertEquals(CompletionSuggestionKind.CLASS, suggestion.getKind());
+      assertEquals(CompletionRelevance.LOW, suggestion.getRelevance());
+      assertEquals(suggestion.getCompletion(), "completion0");
+      assertEquals(suggestion.getReplacementOffset(), 0);
+      assertEquals(suggestion.getReplacementLength(), 1);
+      assertEquals(suggestion.getInsertionLength(), 2);
+      assertEquals(suggestion.getOffset(), 3);
+      assertEquals(suggestion.getSelectionOffset(), 4);
+      assertEquals(suggestion.getSelectionLength(), 5);
+      assertTrue(suggestion.isDeprecated());
+      assertTrue(suggestion.isPotential());
+      assertEquals(suggestion.getElementDocSummary(), "docSummary0");
+      assertEquals(suggestion.getElementDocDetails(), "docComplete0");
+      assertEquals(suggestion.getDeclaringType(), "declaringType0");
+      assertEquals(suggestion.getReturnType(), "returnType0");
+      String[] parameterNames = suggestion.getParameterNames();
+      assertThat(parameterNames).hasSize(2);
+      assertThat(parameterNames).contains("param0");
+      assertThat(parameterNames).contains("param1");
+      String[] parameterTypes = suggestion.getParameterTypes();
+      assertThat(parameterTypes).hasSize(2);
+      assertThat(parameterTypes).contains("paramType0");
+      assertThat(parameterTypes).contains("paramType1");
+      assertEquals(suggestion.getRequiredParameterCount(), 2);
+      assertEquals(suggestion.getPositionalParameterCount(), 0);
+      assertEquals(suggestion.getParameterName(), "param2");
+      assertEquals(suggestion.getParameterType(), "paramType2");
+      assertFalse(suggestion.hasNamed());
+    }
+    {
+      CompletionSuggestion suggestion = suggestions[1];
+      assertEquals(CompletionSuggestionKind.CLASS_ALIAS, suggestion.getKind());
+      assertEquals(CompletionRelevance.DEFAULT, suggestion.getRelevance());
+      assertEquals(suggestion.getCompletion(), "completion1");
+      assertEquals(suggestion.getReplacementOffset(), 6);
+      assertEquals(suggestion.getReplacementLength(), 7);
+      assertEquals(suggestion.getInsertionLength(), 8);
+      assertEquals(suggestion.getOffset(), 9);
+      assertEquals(suggestion.getSelectionOffset(), 10);
+      assertEquals(suggestion.getSelectionLength(), 11);
+      assertTrue(suggestion.isDeprecated());
+      assertTrue(suggestion.isPotential());
+      // optional params
+      assertNull(suggestion.getElementDocSummary());
+      assertNull(suggestion.getElementDocDetails());
+      assertNull(suggestion.getDeclaringType());
+      assertNull(suggestion.getReturnType());
+      assertThat(suggestion.getParameterNames()).hasSize(0);
+      assertThat(suggestion.getParameterTypes()).hasSize(0);
+      assertEquals(suggestion.getRequiredParameterCount(), 0);
+      assertEquals(suggestion.getPositionalParameterCount(), 0);
+      assertNull(suggestion.getParameterName());
+      assertNull(suggestion.getParameterType());
+      assertFalse(suggestion.hasNamed());
+    }
   }
 
   public void test_edit_getAssists() throws Exception {

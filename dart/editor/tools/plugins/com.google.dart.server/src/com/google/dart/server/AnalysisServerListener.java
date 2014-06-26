@@ -21,6 +21,17 @@ package com.google.dart.server;
  */
 public interface AnalysisServerListener {
   /**
+   * A new collection of completions have been computed for the given completion id.
+   * 
+   * @param completionId the id associated with the completion
+   * @param completions the completion suggestions being reported
+   * @param last {@code true} if this is the last set of results that will be returned for the
+   *          indicated completion
+   */
+  public void computedCompletion(String completionId, CompletionSuggestion[] completions,
+      boolean last);
+
+  /**
    * Reports the errors associated with a given file.
    * 
    * @param file the file containing the errors

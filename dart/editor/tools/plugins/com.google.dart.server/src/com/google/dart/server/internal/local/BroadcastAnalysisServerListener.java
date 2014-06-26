@@ -17,6 +17,7 @@ package com.google.dart.server.internal.local;
 import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
@@ -45,6 +46,14 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
         return;
       }
       listeners.add(listener);
+    }
+  }
+
+  @Override
+  public void computedCompletion(String completionId, CompletionSuggestion[] completions,
+      boolean last) {
+    for (AnalysisServerListener listener : getListeners()) {
+      listener.computedCompletion(completionId, completions, last);
     }
   }
 
