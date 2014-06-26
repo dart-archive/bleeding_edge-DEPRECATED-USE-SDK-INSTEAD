@@ -958,8 +958,8 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
   }
 
   @Override
-  public void removeAnalysisServerListener(AnalysisServerListener listener) {
-    this.listener.removeListener(listener);
+  public void reanalyze() {
+    // TODO(jwren) not yet implemented
   }
 
 //  /**
@@ -1021,6 +1021,11 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 //    }
 //    return sources;
 //  }
+
+  @Override
+  public void removeAnalysisServerListener(AnalysisServerListener listener) {
+    this.listener.removeListener(listener);
+  }
 
   @Override
   public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer) {

@@ -76,6 +76,11 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
+  public void reanalyze() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void removeAnalysisServerListener(AnalysisServerListener listener) {
     throw new UnsupportedOperationException();
   }

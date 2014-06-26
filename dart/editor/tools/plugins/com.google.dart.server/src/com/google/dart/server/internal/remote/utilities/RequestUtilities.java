@@ -46,6 +46,7 @@ public class RequestUtilities {
   private static final String METHOD_SERVER_SET_SUBSCRIPTIONS = "server.setSubscriptions";
 
   // Analysis domain
+  private static final String METHOD_ANALYSIS_REANALYZE = "analysis.reanalyze";
   private static final String METHOD_ANALYSIS_SET_ROOTS = "analysis.setAnalysisRoots";
   private static final String METHOD_ANALYSIS_SET_PRIORITY_FILES = "analysis.setPriorityFiles";
   private static final String METHOD_ANALYSIS_SET_SUBSCRIPTIONS = "analysis.setSubscriptions";
@@ -113,6 +114,20 @@ public class RequestUtilities {
       return new JsonPrimitive(((ServerService) object).name());
     }
     throw new IllegalArgumentException("Unable to convert to JSON: " + object);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_REANALYZE} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.reanalyze"
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisReanalyze(String idValue) {
+    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_REANALYZE);
   }
 
   /**
@@ -260,30 +275,6 @@ public class RequestUtilities {
     params.addProperty(FILE, file);
     params.addProperty("offset", offset);
     return buildJsonObjectRequest(idValue, METHOD_COMPLETION_GET_SUGGESTIONS, params);
-  }
-
-  /**
-   * Generate and return a {@value #METHOD_EDIT_GET_ASSISTS} request.
-   * 
-   * <pre>
-   * request: {
-   *   "id": String
-   *   "method": "edit.getAssists"
-   *   "params": {
-   *     "file": FilePath
-   *     "offset": int
-   *     "length": int
-   *   }
-   * }
-   * </pre>
-   */
-  public static JsonObject generateEditGetAssists(String idValue, String file, int offset,
-      int length) {
-    JsonObject params = new JsonObject();
-    params.addProperty(FILE, file);
-    params.addProperty("offset", offset);
-    params.addProperty("length", length);
-    return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_ASSISTS, params);
   }
 
 //  /**
@@ -470,6 +461,30 @@ public class RequestUtilities {
 //    params.addProperty("contextId", contextIdValue);
 //    return buildJsonObjectRequest(idValue, METHOD_SERVER_DELETE_CONTEXT, params);
 //  }
+
+  /**
+   * Generate and return a {@value #METHOD_EDIT_GET_ASSISTS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "edit.getAssists"
+   *   "params": {
+   *     "file": FilePath
+   *     "offset": int
+   *     "length": int
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateEditGetAssists(String idValue, String file, int offset,
+      int length) {
+    JsonObject params = new JsonObject();
+    params.addProperty(FILE, file);
+    params.addProperty("offset", offset);
+    params.addProperty("length", length);
+    return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_ASSISTS, params);
+  }
 
   /**
    * Generate and return a {@value #METHOD_EDIT_GET_FIXES} request.

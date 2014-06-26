@@ -126,6 +126,13 @@ public interface AnalysisServer {
    */
   public void getVersion(VersionConsumer consumer);
 
+  /**
+   * Force the re-analysis of everything contained in the existing analysis roots. This will cause
+   * all previously computed analysis results to be discarded and recomputed, and will cause all
+   * subscribed notifications to be re-sent.
+   */
+  public void reanalyze();
+
 //  /**
 //   * Reports with a set of {@link ErrorCode}s for which server may be able to {@link #computeFixes}
 //   * in the given context.

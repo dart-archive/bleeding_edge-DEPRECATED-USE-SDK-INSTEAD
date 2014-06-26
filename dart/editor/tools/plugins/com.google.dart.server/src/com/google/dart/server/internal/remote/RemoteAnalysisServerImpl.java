@@ -257,6 +257,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
+  public void reanalyze() {
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateAnalysisReanalyze(id));
+  }
+
+  @Override
   public void removeAnalysisServerListener(AnalysisServerListener listener) {
     this.listener.removeListener(listener);
   }

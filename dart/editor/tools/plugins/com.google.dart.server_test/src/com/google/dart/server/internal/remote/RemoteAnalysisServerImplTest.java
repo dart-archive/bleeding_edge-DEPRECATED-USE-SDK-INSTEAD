@@ -349,6 +349,17 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertNull(childElement.getReturnType());
   }
 
+  public void test_analysis_reanalyze() throws Exception {
+    server.reanalyze();
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.reanalyze'",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
   public void test_analysis_setAnalysisRoots() throws Exception {
     server.setAnalysisRoots(
         ImmutableList.of("/fileA.dart", "/fileB.dart"),
