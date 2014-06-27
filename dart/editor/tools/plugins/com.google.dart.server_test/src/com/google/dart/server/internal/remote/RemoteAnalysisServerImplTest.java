@@ -447,7 +447,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
-  public void test_analysis_updateAnalysisOptions_false() throws Exception {
+  public void test_analysis_updateAnalysisOptions_all_false() throws Exception {
     AnalysisOptions options = new AnalysisOptions();
     options.setAnalyzeAngular(false);
     options.setAnalyzePolymer(false);
@@ -477,7 +477,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
-  public void test_analysis_updateAnalysisOptions_true() throws Exception {
+  public void test_analysis_updateAnalysisOptions_all_true() throws Exception {
     AnalysisOptions options = new AnalysisOptions();
     options.setAnalyzeAngular(true);
     options.setAnalyzePolymer(true);
@@ -501,6 +501,46 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "      'enableEnums': true,",
         "      'generateDart2jsHints': true,",
         "      'generateHints': true",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateAnalysisOptions_subset1() throws Exception {
+    AnalysisOptions options = new AnalysisOptions();
+    options.setAnalyzeAngular(true);
+    server.updateAnalysisOptions(options);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateOptions',",
+        "  'params': {",
+        "    'options': {",
+        "      'analyzeAngular': true",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateAnalysisOptions_subset2() throws Exception {
+    AnalysisOptions options = new AnalysisOptions();
+    options.setAnalyzePolymer(true);
+    options.setEnableAsync(false);
+    options.setEnableDeferredLoading(true);
+    server.updateAnalysisOptions(options);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateOptions',",
+        "  'params': {",
+        "    'options': {",
+        "      'analyzePolymer': true,",
+        "      'enableAsync': false,",
+        "      'enableDeferredLoading': true",
         "    }",
         "  }",
         "}");

@@ -569,13 +569,35 @@ public class RequestUtilities {
 
   private static JsonElement buildJsonObjectAnalysisOptions(AnalysisOptions options) {
     JsonObject optionsJsonObject = new JsonObject();
-    optionsJsonObject.addProperty("analyzeAngular", options.getAnalyzeAngular());
-    optionsJsonObject.addProperty("analyzePolymer", options.getAnalyzePolymer());
-    optionsJsonObject.addProperty("enableAsync", options.getEnableAsync());
-    optionsJsonObject.addProperty("enableDeferredLoading", options.getEnableDeferredLoading());
-    optionsJsonObject.addProperty("enableEnums", options.getEnableEnums());
-    optionsJsonObject.addProperty("generateDart2jsHints", options.getGenerateDart2jsHints());
-    optionsJsonObject.addProperty("generateHints", options.getGenerateHints());
+    Boolean analyzeAngular = options.getAnalyzeAngular();
+    Boolean analyzePolymer = options.getAnalyzePolymer();
+    Boolean enableAsync = options.getEnableAsync();
+    Boolean enableDeferredLoading = options.getEnableDeferredLoading();
+    Boolean enableEnums = options.getEnableEnums();
+    Boolean generateDart2jsHints = options.getGenerateDart2jsHints();
+    Boolean generateHints = options.getGenerateHints();
+
+    if (analyzeAngular != null) {
+      optionsJsonObject.addProperty("analyzeAngular", options.getAnalyzeAngular());
+    }
+    if (analyzePolymer != null) {
+      optionsJsonObject.addProperty("analyzePolymer", options.getAnalyzePolymer());
+    }
+    if (enableAsync != null) {
+      optionsJsonObject.addProperty("enableAsync", options.getEnableAsync());
+    }
+    if (enableDeferredLoading != null) {
+      optionsJsonObject.addProperty("enableDeferredLoading", options.getEnableDeferredLoading());
+    }
+    if (enableEnums != null) {
+      optionsJsonObject.addProperty("enableEnums", options.getEnableEnums());
+    }
+    if (generateDart2jsHints != null) {
+      optionsJsonObject.addProperty("generateDart2jsHints", options.getGenerateDart2jsHints());
+    }
+    if (generateHints != null) {
+      optionsJsonObject.addProperty("generateHints", options.getGenerateHints());
+    }
     return optionsJsonObject;
   }
 
