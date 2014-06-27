@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.tests.swtbot.test;
 
+import com.google.dart.tools.tests.swtbot.conditions.TreeHasSomeRows;
 import com.google.dart.tools.tests.swtbot.harness.EditorTestHarness;
 import com.google.dart.tools.tests.swtbot.model.EditorBotWindow;
 import com.google.dart.tools.tests.swtbot.model.FilesBotView;
@@ -27,6 +28,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class TestSearch extends EditorTestHarness {
 
@@ -61,8 +63,46 @@ public class TestSearch extends EditorTestHarness {
   }
 
   @Test
-  public void test1() throws Exception {
+  public void test() throws Exception {
+    int originalSize = search.treeSize();
     search.collapseAll();
+    int collapsedSize = search.treeSize();
+    assertTrue(collapsedSize < originalSize);
+
     search.expandAll();
+    bot.waitUntil(new TreeHasSomeRows(search.tree(), collapsedSize + 1));
+    int expandedSize = search.treeSize();
+    assertTrue(expandedSize >= originalSize);
+
+    search.toggleFilterOutPotential(); // no potentials so no change
+    search.collapseAll();
+    search.toggleFilterToProject();
+    bot.waitUntil(new TreeHasSomeRows(search.tree(), collapsedSize + 1));
+    int projectFilterSize = search.treeSize();
+    assertTrue(projectFilterSize < expandedSize);
+
+    search.collapseAll();
+    search.toggleFilterOutSdk();
+    bot.waitUntil(new TreeHasSomeRows(search.tree(), collapsedSize + 1));
+    int sdkFilterSize = search.treeSize();
+    assertTrue(sdkFilterSize < expandedSize);
+
+    search.toggleFilterOutPotential();
+    search.toggleFilterToProject();
+    search.collapseAll();
+    search.toggleFilterOutSdk();
+    search.expandAll();
+    bot.waitUntil(new TreeHasSomeRows(search.tree(), collapsedSize + 1));
+//    assertEquals(expandedSize, search.treeSize());
+
+    search.showNext();
+    search.showNext();
+    search.showPrevious();
+    search.removeSelected();
+    assertTrue(search.treeSize() < expandedSize);
+
+    search.refreshSearch();
+//    assertEquals(originalSize, search.treeSize());
+    search.removeAll();
   }
 }

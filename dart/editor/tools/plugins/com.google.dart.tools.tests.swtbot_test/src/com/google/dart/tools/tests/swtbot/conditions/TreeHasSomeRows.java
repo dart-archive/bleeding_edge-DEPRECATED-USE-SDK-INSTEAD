@@ -13,6 +13,11 @@
  */
 package com.google.dart.tools.tests.swtbot.conditions;
 
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.ViewerColumn;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
+import org.eclipse.swtbot.swt.finder.results.BoolResult;
 import org.eclipse.swtbot.swt.finder.utils.internal.Assert;
 import org.eclipse.swtbot.swt.finder.waits.DefaultCondition;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
@@ -64,6 +69,22 @@ public class TreeHasSomeRows extends DefaultCondition {
    */
   @Override
   public boolean test() {
-    return tree.rowCount() >= rowCount;
+    Thread.yield();
+    if (isTreeBusy(tree)) {
+      return false;
+    }
+    return tree.visibleRowCount() >= rowCount;
+  }
+
+  private boolean isTreeBusy(final SWTBotTree botTree) {
+    return UIThreadRunnable.syncExec(new BoolResult() {
+      @Override
+      public Boolean run() {
+        Tree tree = botTree.widget;
+        ViewerColumn col = (ViewerColumn) tree.getData("org.eclipse.jface.columnViewer");
+        TreeViewer treeViewer = (TreeViewer) col.getViewer();
+        return treeViewer.isBusy();
+      }
+    });
   }
 }

@@ -19,6 +19,7 @@ import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarButton;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarToggleButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 
 /**
@@ -34,28 +35,14 @@ public class SearchBotView extends AbstractTreeBotView {
    * Collapse all the tree items and wait for the tree to finish updating.
    */
   public void collapseAll() {
-    final SWTBotView view = bot.viewByPartName(viewName());
-    view.show();
-    view.setFocus();
-    SWTBotTree tree = view.bot().tree();
-    view.bot().waitUntil(new TreeHasSomeRows(tree, 1)); // TODO understand flakiness here, see TestAll
-    SWTBotToolbarButton collapseButton = getToolbarButton(view, "Collapse All");
-    collapseButton.click();
-    waitForTreeContent(tree);
+    clickToolbarButton("Collapse All");
   }
 
   /**
    * Expand all the tree items and wait for the tree to finish updating.
    */
   public void expandAll() {
-    SWTBotView view = bot.viewByPartName(viewName());
-    view.show();
-    view.setFocus();
-    SWTBotTree tree = view.bot().tree();
-    view.bot().waitUntil(new TreeHasSomeRows(tree, 1));
-    SWTBotToolbarButton expandButton = getToolbarButton(view, "Expand All");
-    expandButton.click();
-    waitForTreeContent(tree);
+    clickToolbarButton("Expand All");
   }
 
   /**
@@ -72,9 +59,95 @@ public class SearchBotView extends AbstractTreeBotView {
     return count == 0;
   }
 
+  /**
+   * Perform the search again and wait for the tree to finish updating.
+   */
+  public void refreshSearch() {
+    clickToolbarButton("Refresh the Current Search");
+  }
+
+  /**
+   * Remove the all matches from the tree, which disposes all UI elements, so don't wait.
+   */
+  public void removeAll() {
+    SWTBotView view = bot.viewByPartName(viewName());
+    view.show();
+    view.setFocus();
+    SWTBotTree tree = view.bot().tree();
+    view.bot().waitUntil(new TreeHasSomeRows(tree, 1));
+    SWTBotToolbarButton expandButton = getToolbarButton(view, "Remove All Matches");
+    expandButton.click();
+  }
+
+  /**
+   * Remove the selected match from the tree and wait for the tree to finish updating.
+   */
+  public void removeSelected() {
+    clickToolbarButton("Remove Selected Matches");
+  }
+
+  /**
+   * Navigate to the next match and wait for the tree to finish updating.
+   */
+  public void showNext() {
+    clickToolbarButton("Show Next Match");
+  }
+
+  /**
+   * Navigate to the previous match and wait for the tree to finish updating.
+   */
+  public void showPrevious() {
+    clickToolbarButton("Show Previous Match");
+  }
+
+  /**
+   * Remove potential matches from the tree and wait for the tree to finish updating.
+   */
+  public void toggleFilterOutPotential() {
+    clickToolbarToggleButton("Hide potential matches");
+  }
+
+  /**
+   * Remove SDK and packages matches from the tree and wait for the tree to finish updating.
+   */
+  public void toggleFilterOutSdk() {
+    clickToolbarToggleButton("Hide SDK and package matches");
+  }
+
+  /**
+   * Show only matches from the current project and wait for the tree to finish updating.
+   */
+  public void toggleFilterToProject() {
+    clickToolbarToggleButton("Show only current project actions");
+  }
+
   @Override
   protected String viewName() {
     return "Search";
+  }
+
+  private void clickToolbarButton(String mnemonic) {
+    SWTBotView view = bot.viewByPartName(viewName());
+    view.show();
+    view.setFocus();
+    SWTBotTree tree = view.bot().tree();
+    view.bot().waitUntil(new TreeHasSomeRows(tree, 1));
+    SWTBotToolbarButton expandButton = getToolbarButton(view, mnemonic);
+    expandButton.click();
+    waitForAnalysis();
+    waitForTreeContent(tree);
+  }
+
+  private void clickToolbarToggleButton(String mnemonic) {
+    SWTBotView view = bot.viewByPartName(viewName());
+    view.show();
+    view.setFocus();
+    SWTBotTree tree = view.bot().tree();
+    view.bot().waitUntil(new TreeHasSomeRows(tree, 1));
+    SWTBotToolbarButton expandButton = getToolbarToggleButton(view, mnemonic);
+    expandButton.click();
+    waitForAnalysis();
+    waitForTreeContent(tree);
   }
 
   /**
@@ -90,5 +163,11 @@ public class SearchBotView extends AbstractTreeBotView {
     SWTBot parent = getParentBot(view.getWidget());
     SWTBotToolbarButton unique = parent.toolbarButtonWithTooltip("Refresh the Current Search");
     return getParentBot(unique.widget).toolbarButtonWithTooltip(text);
+  }
+
+  private SWTBotToolbarToggleButton getToolbarToggleButton(SWTBotView view, String text) {
+    SWTBot parent = getParentBot(view.getWidget());
+    SWTBotToolbarButton unique = parent.toolbarButtonWithTooltip("Refresh the Current Search");
+    return getParentBot(unique.widget).toolbarToggleButtonWithTooltip(text);
   }
 }

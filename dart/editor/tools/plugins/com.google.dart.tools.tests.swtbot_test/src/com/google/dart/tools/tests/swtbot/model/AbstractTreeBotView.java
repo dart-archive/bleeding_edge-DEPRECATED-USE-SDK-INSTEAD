@@ -46,9 +46,7 @@ abstract public class AbstractTreeBotView extends AbstractBotView {
    */
   public SWTBotTreeItem select(String... items) {
     assertTrue(items.length > 0);
-    SWTBotView files = bot.viewByPartName(viewName());
-    SWTBot bot = files.bot();
-    SWTBotTree tree = bot.tree();
+    SWTBotTree tree = tree();
     waitForAnalysis();
     waitForTreeContent(tree);
     SWTBotTreeItem item;
@@ -80,18 +78,41 @@ abstract public class AbstractTreeBotView extends AbstractBotView {
   }
 
   /**
-   * Get the current tree selection. If the table is empty it is assumed that it has not been
-   * updated yet, so loop until it is. DO NOT use this method on a table that is empty!
+   * Get the current tree selection. If the tree is empty it is assumed that it has not been updated
+   * yet, so loop until it is. DO NOT use this method on a tree that is empty!
    * 
    * @return the tree selection
    */
   public TableCollection selection() {
-    SWTBotView files = bot.viewByPartName(viewName());
-    SWTBot bot = files.bot();
-    SWTBotTree tree = bot.tree();
+    SWTBotTree tree = tree();
     waitForTreeContent(tree);
     TableCollection selection = tree.selection();
     return selection;
+  }
+
+  /**
+   * Get the SWTBotTree for this view.
+   * 
+   * @return the SWTBotTree
+   */
+  public SWTBotTree tree() {
+    SWTBotView files = bot.viewByPartName(viewName());
+    SWTBot bot = files.bot();
+    SWTBotTree tree = bot.tree();
+    return tree;
+  }
+
+  /**
+   * Get the current tree size. If the tree is empty it is assumed that it has not been updated yet,
+   * so loop until it is. DO NOT use this method on a tree that is empty!
+   * 
+   * @return the tree selection
+   */
+  public int treeSize() {
+    SWTBotTree tree = tree();
+    waitForTreeContent(tree);
+    int size = tree.visibleRowCount();
+    return size;
   }
 
   /**
@@ -100,9 +121,7 @@ abstract public class AbstractTreeBotView extends AbstractBotView {
    * @return the tree item
    */
   public SWTBotTree unselectAll() {
-    SWTBotView files = bot.viewByPartName(viewName());
-    SWTBot bot = files.bot();
-    SWTBotTree tree = bot.tree();
+    SWTBotTree tree = tree();
     tree.unselect();
     return tree;
   }

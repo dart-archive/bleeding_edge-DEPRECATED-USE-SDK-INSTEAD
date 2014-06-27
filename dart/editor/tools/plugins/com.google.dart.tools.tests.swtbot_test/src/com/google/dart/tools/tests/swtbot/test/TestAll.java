@@ -29,7 +29,7 @@ import org.junit.runners.Suite;
     TestSamples.class, //
 //  TestSearch.class, // fail
     TestFilesContextMenu.class, //
-    TestSearch.class, //
+//    TestSearch.class, //
     TestDartEditorContextMenu.class, //
 //  TestSearch.class, // fail
     TestOutline.class //
