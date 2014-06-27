@@ -49,6 +49,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
@@ -350,9 +351,15 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     for (IProject project : projects) {
       if (!ResourceUtil.isExistingProject(project)) {
         try {
-          Activator.log("removing closed or non-existent project '" + project.getName()
-              + "' pre startup");
-          project.delete(false /* don't delete content */, true /* force */, null /* no monitor */);
+          boolean remove = MessageDialog.openConfirm(
+              Display.getDefault().getActiveShell(),
+              "Remove Project",
+              "Removing closed or non-existent project '" + project.getName() + "'.");
+          if (remove) {
+            Activator.log("removing closed or non-existent project '" + project.getName()
+                + "' pre startup");
+            project.delete(false /* don't delete content */, true /* force */, null /* no monitor */);
+          }
         } catch (CoreException e) {
           Activator.logError(e);
         }
