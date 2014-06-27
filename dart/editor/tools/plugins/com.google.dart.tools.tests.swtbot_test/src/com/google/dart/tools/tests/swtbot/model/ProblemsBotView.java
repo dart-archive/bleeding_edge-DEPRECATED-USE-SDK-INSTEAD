@@ -33,7 +33,7 @@ public class ProblemsBotView extends AbstractBotView {
    * @return true if there are no unexpected problems
    */
   public boolean isEmpty(int... args) {
-    SWTBotView view = bot.viewByPartName("Problems");
+    SWTBotView view = bot.viewByPartName(viewName());
     view.show();
     view.setFocus();
     SWTBotTable tree = view.bot().table();

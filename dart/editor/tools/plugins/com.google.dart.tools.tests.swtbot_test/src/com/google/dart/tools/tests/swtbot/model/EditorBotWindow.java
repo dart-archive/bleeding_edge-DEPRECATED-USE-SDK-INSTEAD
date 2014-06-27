@@ -93,6 +93,16 @@ public class EditorBotWindow extends AbstractBotView {
     return new ProblemsBotView(bot);
   }
 
+  /**
+   * Return a SearchBotView for the Search view.
+   * 
+   * @return the SWTBot model of the Search view
+   */
+  public SearchBotView searchView() {
+    waitForAnalysis();
+    return new SearchBotView(bot);
+  }
+
   @Override
   protected String viewName() {
     return "Dart Editor";

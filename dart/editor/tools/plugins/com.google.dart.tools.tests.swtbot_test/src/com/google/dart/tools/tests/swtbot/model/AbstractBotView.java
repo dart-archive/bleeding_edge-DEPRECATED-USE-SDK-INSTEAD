@@ -23,9 +23,18 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
+import org.eclipse.swtbot.swt.finder.results.WidgetResult;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+
+import java.util.List;
 
 abstract public class AbstractBotView {
 
@@ -115,7 +124,54 @@ abstract public class AbstractBotView {
     }
   }
 
+  /**
+   * Create a SWTBot for the parent of the given <code>widget</code>.
+   * 
+   * @param widget a Composite or ToolItem
+   * @return the bot for parent of the given <code>widget</code>.
+   */
+  protected SWTBot getParentBot(final Widget widget) {
+    Composite parent = UIThreadRunnable.syncExec(new WidgetResult<Composite>() {
+      @Override
+      public Composite run() {
+        if (widget instanceof ToolItem) {
+          return ((ToolItem) widget).getParent();
+        } else {
+          return ((Composite) widget).getParent();
+        }
+      }
+    });
+    return new SWTBot(parent);
+  }
+
   abstract protected String viewName();
+
+  // TODO Delete after debugging
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  List getAllChildren(Widget comp) {
+    return bot.getFinder().findControls(comp, new BaseMatcher() {
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("Get All Children");
+      }
+
+      @Override
+      public boolean matches(Object item) {
+        return true;
+      }
+    }, true);
+  }
+
+  // TODO Delete after debugging
+  @SuppressWarnings("rawtypes")
+  void inspectWidgets(final List widgets) {
+    UIThreadRunnable.syncExec(new VoidResult() {
+      @Override
+      public void run() {
+        widgets.size(); // for breakpoint
+      }
+    });
+  }
 
   private void waitForEmptyQueue() {
     try {
