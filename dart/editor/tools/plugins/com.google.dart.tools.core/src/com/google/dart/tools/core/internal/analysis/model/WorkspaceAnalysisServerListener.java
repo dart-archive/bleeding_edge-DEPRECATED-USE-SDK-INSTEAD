@@ -37,13 +37,16 @@ import java.io.File;
  */
 public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   private final AnalysisServerDataImpl dataImpl;
+  private DartProjectManager projectManager;
 
   private final Object statusLock = new Object();
   private boolean statusAnalyzing = false;
   private Job statusJob;
 
-  public WorkspaceAnalysisServerListener(AnalysisServerDataImpl dataImpl) {
+  public WorkspaceAnalysisServerListener(AnalysisServerDataImpl dataImpl,
+      DartProjectManager projectManager) {
     this.dataImpl = dataImpl;
+    this.projectManager = projectManager;
   }
 
   @Override
@@ -82,7 +85,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void serverConnected() {
-    // TODO(scheglov) Analysis Server
+    projectManager.start();
   }
 
   @Override

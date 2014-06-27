@@ -30,6 +30,7 @@ import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
 import com.google.dart.tools.core.internal.OptionManager;
 import com.google.dart.tools.core.internal.analysis.model.AnalysisServerDataImpl;
+import com.google.dart.tools.core.internal.analysis.model.DartProjectManager;
 import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
 import com.google.dart.tools.core.internal.analysis.model.WorkspaceAnalysisServerListener;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
@@ -347,8 +348,7 @@ public class DartCore extends Plugin implements DartSdkListener {
   /**
    * The unique {@link WorkspaceAnalysisServerListener} instance.
    */
-  private static WorkspaceAnalysisServerListener analysisServerListener = new WorkspaceAnalysisServerListener(
-      analysisServerDataImpl);
+  private static WorkspaceAnalysisServerListener analysisServerListener;
 
   /**
    * Used to synchronize access to {@link #analysisServer}.
@@ -475,7 +475,6 @@ public class DartCore extends Plugin implements DartSdkListener {
    * 
    * @return the {@link AnalysisServer} (not {@code null})
    */
-  @SuppressWarnings("restriction")
   public static AnalysisServer getAnalysisServer() {
     synchronized (analysisServerLock) {
       if (analysisServer == null) {
@@ -514,6 +513,12 @@ public class DartCore extends Plugin implements DartSdkListener {
               analysisServerSocket.getResponseStream(),
               analysisServerSocket.getErrorStream());
           analysisServerDataImpl.setServer(analysisServer);
+          analysisServerListener = new WorkspaceAnalysisServerListener(
+              analysisServerDataImpl,
+              new DartProjectManager(
+                  ResourcesPlugin.getWorkspace().getRoot(),
+                  analysisServer,
+                  DartIgnoreManager.getInstance()));
           analysisServer.addAnalysisServerListener(analysisServerListener);
         } catch (Throwable e) {
           DartCore.logError("Enable to start stdio server", e);

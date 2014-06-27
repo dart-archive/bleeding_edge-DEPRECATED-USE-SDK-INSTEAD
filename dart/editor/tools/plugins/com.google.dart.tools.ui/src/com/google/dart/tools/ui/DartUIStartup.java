@@ -21,12 +21,11 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.LightweightModel;
 import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
-import com.google.dart.tools.core.internal.analysis.model.DartProjectManager;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.feedback.FeedbackUtils;
 import com.google.dart.tools.ui.internal.HeapTracker;
-import com.google.dart.tools.ui.internal.text.dart.DartPrioritySourcesHelper;
 import com.google.dart.tools.ui.internal.text.dart.DartPriorityFilesHelper_NEW;
+import com.google.dart.tools.ui.internal.text.dart.DartPrioritySourcesHelper;
 import com.google.dart.tools.ui.internal.text.editor.AutoSaveHelper;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -78,9 +77,7 @@ public class DartUIStartup implements IStartup {
         protected IStatus run(IProgressMonitor monitor) {
           LightweightModel.init();
           InstrumentationLogger.ensureLoggerStarted();
-          if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-            new DartProjectManager().start();
-          } else {
+          if (!DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
             DartCore.getProjectManager().start();
           }
           return Status.OK_STATUS;

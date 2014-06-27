@@ -12,7 +12,6 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 
 import java.io.File;
@@ -55,13 +54,6 @@ public class DartProjectManager {
       setAnalysisRoots();
     }
   };
-
-  public DartProjectManager() {
-    this(
-        ResourcesPlugin.getWorkspace().getRoot(),
-        DartCore.getAnalysisServer(),
-        DartIgnoreManager.getInstance());
-  }
 
   public DartProjectManager(IWorkspaceRoot root, AnalysisServer server,
       DartIgnoreManager ignoreManager) {
