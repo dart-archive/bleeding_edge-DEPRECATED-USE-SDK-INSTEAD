@@ -31,7 +31,7 @@ import java.util.List;
  * 
  * @coverage dart.server.remote
  */
-public class StdioServerSocket {
+public class StdioServerSocket implements AnalysisServerSocket {
   /**
    * Find and return an unused server socket port.
    */
@@ -50,49 +50,44 @@ public class StdioServerSocket {
   private final String runtimePath;
   private final String analysisServerPath;
   private final PrintStream debugStream;
+  private final boolean debugRemoteProcess;
   private RequestSink requestSink;
   private ResponseStream responseStream;
   private ByteLineReaderStream errorStream;
   private Process process;
 
-  public StdioServerSocket(String runtimePath, String analysisServerPath, PrintStream debugStream) {
+  public StdioServerSocket(String runtimePath, String analysisServerPath, PrintStream debugStream,
+      boolean debugRemoteProcess) {
     this.runtimePath = runtimePath;
     this.analysisServerPath = analysisServerPath;
     this.debugStream = debugStream;
+    this.debugRemoteProcess = debugRemoteProcess;
   }
 
-  /**
-   * Return the error stream.
-   */
+  @Override
   public ByteLineReaderStream getErrorStream() {
     Preconditions.checkNotNull(errorStream, "Server is not started.");
     return errorStream;
   }
 
-  /**
-   * Return the request sink.
-   */
+  @Override
   public RequestSink getRequestSink() {
     Preconditions.checkNotNull(requestSink, "Server is not started.");
     return requestSink;
   }
 
-  /**
-   * Return the response stream.
-   */
+  @Override
   public ResponseStream getResponseStream() {
     Preconditions.checkNotNull(responseStream, "Server is not started.");
     return responseStream;
   }
 
-  /**
-   * Start the remote server and initialize request sink and response stream.
-   */
-  public void start(boolean debug) throws Exception {
+  @Override
+  public void start() throws Exception {
     int debugPort = findUnusedPort();
     List<String> args = new ArrayList<String>();
     args.add(runtimePath);
-    if (debug) {
+    if (debugRemoteProcess) {
       args.add("--debug:" + debugPort);
     }
     args.add(analysisServerPath);
@@ -101,7 +96,7 @@ public class StdioServerSocket {
     requestSink = new ByteRequestSink(process.getOutputStream(), debugStream);
     responseStream = new ByteResponseStream(process.getInputStream(), debugStream);
     errorStream = new ByteLineReaderStream(process.getErrorStream());
-    if (debug) {
+    if (debugRemoteProcess) {
       System.out.println("Analysis server debug port " + debugPort);
     }
   }
@@ -110,6 +105,7 @@ public class StdioServerSocket {
    * Wait up to 5 seconds for process to gracefully exit, then forcibly terminate the process if it
    * is still running.
    */
+  @Override
   public void stop() {
     if (process == null) {
       return;

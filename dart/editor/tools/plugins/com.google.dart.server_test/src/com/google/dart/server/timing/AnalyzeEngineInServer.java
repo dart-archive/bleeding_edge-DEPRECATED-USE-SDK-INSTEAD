@@ -141,8 +141,12 @@ public class AnalyzeEngineInServer extends TimingTest {
     String runtimePath = buildPath(svnDirectory, new String[] {"sdk", "bin", "dart"});
     String analysisServerPath = buildPath(svnDirectory, new String[] {
         "pkg", "analysis_server", "bin", "server.dart"});
-    StdioServerSocket serverSocket = new StdioServerSocket(runtimePath, analysisServerPath, null);
-    serverSocket.start(false);
+    StdioServerSocket serverSocket = new StdioServerSocket(
+        runtimePath,
+        analysisServerPath,
+        null,
+        false);
+    serverSocket.start();
     server = new RemoteAnalysisServerImpl(
         serverSocket.getRequestSink(),
         serverSocket.getResponseStream(),
