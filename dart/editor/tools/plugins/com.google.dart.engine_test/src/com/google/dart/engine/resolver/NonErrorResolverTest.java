@@ -1891,6 +1891,25 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAssignment_implicitlyImplementFunctionViaCall_3() throws Exception {
+    // 18341
+    //
+    // Like 'fail/test_invalidAssignment_implicitlyImplementFunctionViaCall_2()',
+    // but uses type 'Function' instead of more precise type 'IntToInt' for 'f'.
+    Source source = addSource(createSource(//
+        "class I {",
+        "  int call(int x) => 0;",
+        "}",
+        "class C implements I {",
+        "  noSuchMethod(_) => null;",
+        "}",
+        "typedef int IntToInt(int);",
+        "Function f = new C();"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_invalidAssignment_toDynamic() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
