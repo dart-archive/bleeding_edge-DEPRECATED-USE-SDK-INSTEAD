@@ -292,7 +292,11 @@ public class InstallUpdateAction extends Action {
     File sdkDir = new File(installTarget, "dart-sdk"); //$NON-NLS-1$
     UpdateUtils.deleteDirectory(sdkDir, mon.newChild(4));
     UpdateUtils.deleteDirectory(new File(installTarget, "samples"), mon.newChild(4)); //$NON-NLS-1$
-
+    // TODO(keertip): check can be removed after all installs are on version with android dir
+    File androidDir = new File(installTarget, "android");
+    if (androidDir.exists()) {
+      UpdateUtils.deleteDirectory(androidDir, mon.newChild(4));
+    }
     terminateRunningDartLaunches();
 
     File dartium = DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory(installTarget);
