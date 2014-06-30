@@ -752,7 +752,7 @@ public abstract class SearchResultPage_NEW extends SearchPage {
     Collections.sort(item.children, new Comparator<ElementItem>() {
       @Override
       public int compare(ElementItem o1, ElementItem o2) {
-        return o1.element.getOffset() - o2.element.getOffset();
+        return o1.element.getLocation().getOffset() - o2.element.getLocation().getOffset();
       }
     });
     for (ElementItem child : item.children) {

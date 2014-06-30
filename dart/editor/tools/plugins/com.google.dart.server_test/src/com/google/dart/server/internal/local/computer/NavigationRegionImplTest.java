@@ -20,9 +20,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class NavigationRegionImplTest extends TestCase {
-  private NavigationTargetImpl targetA = mock(NavigationTargetImpl.class);
-  private NavigationTargetImpl targetB = mock(NavigationTargetImpl.class);
-  private NavigationTargetImpl[] targets = {targetA, targetB};
+  private ElementImpl targetA = mock(ElementImpl.class);
+  private ElementImpl targetB = mock(ElementImpl.class);
+  private ElementImpl[] targets = {targetA, targetB};
 
   public void test_access() throws Exception {
     NavigationRegionImpl region = new NavigationRegionImpl(10, 20, targets);

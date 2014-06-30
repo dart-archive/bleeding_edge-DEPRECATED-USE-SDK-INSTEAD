@@ -28,7 +28,6 @@ import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.NavigationTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
@@ -173,14 +172,14 @@ public class NewSelectionConverter {
   /**
    * Returns navigation targets for the given context, may be empty, but not {@code null}.
    */
-  public static NavigationTarget[] getNavigationTargets(String file, int offset) {
+  public static com.google.dart.server.Element[] getNavigationTargets(String file, int offset) {
     NavigationRegion[] regions = DartCore.getAnalysisServerData().getNavigation(file);
     for (NavigationRegion navigationRegion : regions) {
       if (navigationRegion.containsInclusive(offset)) {
         return navigationRegion.getTargets();
       }
     }
-    return NavigationTarget.EMPTY_ARRAY;
+    return com.google.dart.server.Element.EMPTY_ARRAY;
   }
 
   /**

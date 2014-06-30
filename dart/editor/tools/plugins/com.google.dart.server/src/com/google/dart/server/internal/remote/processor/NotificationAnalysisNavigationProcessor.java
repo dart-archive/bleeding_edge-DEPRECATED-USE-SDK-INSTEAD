@@ -17,9 +17,7 @@ import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.Element;
 import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.NavigationTarget;
 import com.google.dart.server.internal.local.computer.NavigationRegionImpl;
-import com.google.dart.server.internal.local.computer.NavigationTargetImpl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -56,21 +54,16 @@ public class NotificationAnalysisNavigationProcessor extends NotificationProcess
       JsonElement targetsElement = regionObject.get("targets");
       Iterator<JsonElement> targetObjectIterator = targetsElement.getAsJsonArray().iterator();
       // convert targets
-      List<NavigationTarget> targets = Lists.newArrayList();
+      List<Element> targets = Lists.newArrayList();
       while (targetObjectIterator.hasNext()) {
-        JsonObject targetObject = targetObjectIterator.next().getAsJsonObject();
-        String targetFile = targetObject.get("file").getAsString();
-        int targetOffset = targetObject.get("offset").getAsInt();
-        int targetLength = targetObject.get("length").getAsInt();
-        JsonObject elementObject = targetObject.get("element").getAsJsonObject();
+        JsonObject elementObject = targetObjectIterator.next().getAsJsonObject();
         Element element = computeElement(elementObject);
-        targets.add(new NavigationTargetImpl(targetFile, targetOffset, targetLength, element));
+        targets.add(element);
       }
-
       regions.add(new NavigationRegionImpl(
           offset,
           length,
-          targets.toArray(new NavigationTarget[targets.size()])));
+          targets.toArray(new Element[targets.size()])));
     }
     // notify listener
     getListener().computedNavigation(file, regions.toArray(new NavigationRegion[regions.size()]));

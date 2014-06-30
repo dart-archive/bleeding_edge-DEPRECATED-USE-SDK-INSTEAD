@@ -190,8 +190,8 @@ public class DartOutlinePage_NEW extends Page implements IContentOutlinePage {
       if (!(e2 instanceof Outline)) {
         return 0;
       }
-      int offset1 = ((Outline) e1).getElement().getOffset();
-      int offset2 = ((Outline) e2).getElement().getOffset();
+      int offset1 = ((Outline) e1).getElement().getLocation().getOffset();
+      int offset2 = ((Outline) e2).getElement().getLocation().getOffset();
       return offset1 - offset2;
     }
   }

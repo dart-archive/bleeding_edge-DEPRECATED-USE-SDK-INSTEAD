@@ -16,6 +16,7 @@ package com.google.dart.server.internal.local.computer;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
+import com.google.dart.server.Location;
 
 /**
  * A concrete implementation of {@link Element}.
@@ -23,114 +24,6 @@ import com.google.dart.server.ElementKind;
  * @coverage dart.server.local
  */
 public class ElementImpl implements Element {
-
-//  /**
-//   * Creates an {@link ElementImpl} instance for the given
-//   * {@link com.google.dart.engine.element.Element}.
-//   */
-//  public static ElementImpl create(String contextId, com.google.dart.engine.element.Element element) {
-//    if (element == null) {
-//      return null;
-//    }
-//    // prepare name
-//    String name = element.getDisplayName();
-//    int nameOffset = element.getNameOffset();
-//    int nameLength = name != null ? name.length() : 0;
-//    // prepare element kind specific information
-//    ElementKind outlineKind;
-//    boolean isAbstract = false;
-//    boolean isStatic = false;
-//    boolean isPrivate = element.isPrivate();
-//    switch (element.getKind()) {
-//      case CLASS:
-//        outlineKind = ElementKind.CLASS;
-//        isAbstract = ((ClassElement) element).isAbstract();
-//        break;
-//      case COMPILATION_UNIT:
-//        outlineKind = ElementKind.COMPILATION_UNIT;
-//        nameOffset = -1;
-//        nameLength = 0;
-//        break;
-//      case CONSTRUCTOR:
-//        outlineKind = ElementKind.CONSTRUCTOR;
-//        String className = element.getEnclosingElement().getName();
-//        if (name.length() != 0) {
-//          name = className + "." + name;
-//        } else {
-//          name = className;
-//        }
-//        break;
-//      case FUNCTION:
-//        outlineKind = ElementKind.FUNCTION;
-//        break;
-//      case GETTER:
-//        outlineKind = ElementKind.GETTER;
-//        break;
-//      case FUNCTION_TYPE_ALIAS:
-//        outlineKind = ElementKind.FUNCTION_TYPE_ALIAS;
-//        break;
-//      case LIBRARY:
-//        outlineKind = ElementKind.LIBRARY;
-//        break;
-//      case METHOD:
-//        outlineKind = ElementKind.METHOD;
-//        isAbstract = ((MethodElement) element).isAbstract();
-//        break;
-//      case SETTER:
-//        outlineKind = ElementKind.SETTER;
-//        break;
-//      default:
-//        outlineKind = ElementKind.UNKNOWN;
-//        break;
-//    }
-//    // extract return type and parameters from toString()
-//    // TODO(scheglov) we need a way to get this information directly from an Element
-//    String parameters;
-//    String returnType;
-//    {
-//      String str = element.toString();
-//      // return type
-//      String rightArrow = com.google.dart.engine.element.Element.RIGHT_ARROW;
-//      int returnIndex = str.lastIndexOf(rightArrow);
-//      if (returnIndex != -1) {
-//        returnType = str.substring(returnIndex + rightArrow.length());
-//        str = str.substring(0, returnIndex);
-//      } else {
-//        returnType = null;
-//      }
-//      // parameters
-//      int parametersIndex = str.indexOf("(");
-//      if (parametersIndex != -1) {
-//        parameters = str.substring(parametersIndex);
-//      } else {
-//        parameters = null;
-//      }
-//    }
-//    // new element
-//    return new ElementImpl(
-//        contextId,
-//        createId(element),
-//        element.getSource(),
-//        outlineKind,
-//        name,
-//        nameOffset,
-//        nameLength,
-//        parameters,
-//        returnType,
-//        isAbstract,
-//        isStatic,
-//        isPrivate);
-//  }
-//
-//  /**
-//   * Returns an identifier of the given {@link Element}, maybe {@code null} if {@code null} given.
-//   */
-//  public static String createId(com.google.dart.engine.element.Element element) {
-//    if (element == null) {
-//      return null;
-//    }
-//    return element.getLocation().getEncoding();
-//  }
 
   private static final int ABSTRACT = 0x01;
   private static final int CONST = 0x02;
@@ -141,18 +34,16 @@ public class ElementImpl implements Element {
 
   private final ElementKind kind;
   private final String name;
-  private final int offset;
-  private final int length;
+  private final Location location;
   private final int flags;
   private final String parameters;
   private final String returnType;
 
-  public ElementImpl(ElementKind kind, String name, int offset, int length, int flags,
+  public ElementImpl(ElementKind kind, String name, Location location, int flags,
       String parameters, String returnType) {
     this.kind = kind;
     this.name = name;
-    this.offset = offset;
-    this.length = length;
+    this.location = location;
     this.flags = flags;
     this.parameters = parameters;
     this.returnType = returnType;
@@ -167,8 +58,8 @@ public class ElementImpl implements Element {
       return false;
     }
     ElementImpl other = (ElementImpl) obj;
-    return other.kind == kind && ObjectUtilities.equals(other.name, name) && other.offset == offset
-        && other.length == length && other.flags == flags
+    return other.kind == kind && ObjectUtilities.equals(other.name, name)
+        && ObjectUtilities.equals(other.location, location) && other.flags == flags
         && ObjectUtilities.equals(other.parameters, parameters)
         && ObjectUtilities.equals(other.returnType, returnType);
   }
@@ -179,18 +70,13 @@ public class ElementImpl implements Element {
   }
 
   @Override
-  public int getLength() {
-    return length;
+  public Location getLocation() {
+    return location;
   }
 
   @Override
   public String getName() {
     return name;
-  }
-
-  @Override
-  public int getOffset() {
-    return offset;
   }
 
   @Override
@@ -240,10 +126,8 @@ public class ElementImpl implements Element {
     builder.append(name);
     builder.append(", kind=");
     builder.append(kind);
-    builder.append(", offset=");
-    builder.append(offset);
-    builder.append(", length=");
-    builder.append(length);
+    builder.append(", location=");
+    builder.append(location.toString());
     builder.append(", flags=");
     builder.append(flags);
     builder.append(", parameters=");

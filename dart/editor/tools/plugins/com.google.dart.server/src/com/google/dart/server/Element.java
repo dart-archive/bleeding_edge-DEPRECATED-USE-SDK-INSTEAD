@@ -33,11 +33,11 @@ public interface Element {
   public ElementKind getKind();
 
   /**
-   * Return the length of the name of the element.
+   * Return the location of the name of the element.
    * 
-   * @return the length of the name of the element
+   * @return the location of the name of the element
    */
-  public int getLength();
+  public Location getLocation();
 
   /**
    * Return the name of the element. This is typically used as the label in the outline.
@@ -45,13 +45,6 @@ public interface Element {
    * @return the name of the element
    */
   public String getName();
-
-  /**
-   * Return the offset of the name of the element.
-   * 
-   * @return the offset of the name of the element
-   */
-  public int getOffset();
 
   /**
    * Return the parameter list for the element, or {@code null} if the element is not a constructor,

@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
-import com.google.dart.server.NavigationTarget;
+import com.google.dart.server.Element;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
@@ -76,7 +76,7 @@ public class DartElementProvider implements IInformationProvider, IInformationPr
       if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
         String file = fEditor.getInputFilePath();
         int offset = subject.getOffset();
-        NavigationTarget[] targets = NewSelectionConverter.getNavigationTargets(file, offset);
+        Element[] targets = NewSelectionConverter.getNavigationTargets(file, offset);
         if (targets.length == 0) {
           return null;
         }

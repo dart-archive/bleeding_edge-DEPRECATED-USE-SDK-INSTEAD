@@ -14,29 +14,35 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code NavigationTarget} defines the object that some {@link NavigationRegion} is
- * associated.
+ * The interface {@code Location} defines the behavior of objects that represent an information for
+ * a location.
  * 
  * @coverage dart.server
  */
-public interface NavigationTarget extends SourceRegion {
+public interface Location {
   /**
-   * An empty array of navigation targets.
+   * An empty array of locations.
    */
-  NavigationTarget[] EMPTY_ARRAY = new NavigationTarget[0];
+  public final Location[] EMPTY_ARRAY = new Location[0];
 
   /**
-   * Return the element to which this target should navigate.
+   * Return the file of the location.
    * 
-   * @return the element to which this target should navigate
-   */
-  public Element getElement();
-
-  /**
-   * Return the file containing the element to which this target will navigate.
-   * 
-   * @return the file containing the element to which this target will navigate
+   * @return the file of the location
    */
   public String getFile();
 
+  /**
+   * Return the length of the location.
+   * 
+   * @return the length of the location
+   */
+  public int getLength();
+
+  /**
+   * Return the offset of the location.
+   * 
+   * @return the offset of the location
+   */
+  public int getOffset();
 }

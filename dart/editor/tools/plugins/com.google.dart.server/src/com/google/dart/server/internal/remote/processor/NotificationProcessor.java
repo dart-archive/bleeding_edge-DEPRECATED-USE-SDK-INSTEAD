@@ -19,7 +19,9 @@ import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
+import com.google.dart.server.Location;
 import com.google.dart.server.internal.local.computer.ElementImpl;
+import com.google.dart.server.internal.shared.LocationImpl;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -56,12 +58,11 @@ public abstract class NotificationProcessor {
   protected Element computeElement(JsonObject elementObject) {
     ElementKind kind = getElementKind(elementObject.get("kind").getAsString());
     String name = elementObject.get("name").getAsString();
-    int offset = elementObject.get("offset").getAsInt();
-    int length = elementObject.get("length").getAsInt();
+    Location location = computeLocation(elementObject.get("location").getAsJsonObject());
     int flags = elementObject.get("flags").getAsInt();
     String parameters = safelyGetAsString(elementObject, "parameters");
     String returnType = safelyGetAsString(elementObject, "returnType");
-    return new ElementImpl(kind, name, offset, length, flags, parameters, returnType);
+    return new ElementImpl(kind, name, location, flags, parameters, returnType);
   }
 
   /**
@@ -145,5 +146,12 @@ public abstract class NotificationProcessor {
     } else {
       return jsonElement.getAsString();
     }
+  }
+
+  private Location computeLocation(JsonObject locationObject) {
+    String file = locationObject.get("file").getAsString();
+    int offset = locationObject.get("offset").getAsInt();
+    int length = locationObject.get("length").getAsInt();
+    return new LocationImpl(file, offset, length);
   }
 }

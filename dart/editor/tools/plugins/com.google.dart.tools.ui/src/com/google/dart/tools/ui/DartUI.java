@@ -19,7 +19,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchScope;
 import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.NavigationTarget;
+import com.google.dart.server.Location;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -720,6 +720,28 @@ public final class DartUI {
   }
 
   /**
+   * Opens an editor with {@link com.google.dart.server.Element}.
+   * 
+   * @param target the {@link NavigationTarget} to open in reveal
+   * @return the opened editor or {@code null} if by some reason editor was not opened
+   */
+  public static IEditorPart openInEditor(com.google.dart.server.Element target, boolean activate)
+      throws Exception {
+    if (target == null) {
+      return null;
+    }
+    Location location = target.getLocation();
+    String path = location.getFile();
+    IEditorPart editor = openFilePath(path, activate);
+    if (editor != null) {
+      int offset = location.getOffset();
+      int length = location.getLength();
+      EditorUtility.revealInEditor(editor, offset, length);
+    }
+    return editor;
+  }
+
+  /**
    * Opens an editor with {@link Element} in context of the given {@link DartEditor}.
    * 
    * @param contextEditor the {@link DartEditor} to use as context, may be {@code null}.
@@ -864,28 +886,6 @@ public final class DartUI {
     int nameOffset = element.getNameOffset();
     int nameLength = name != null ? name.length() : 0;
     return openFile(file, activate, nameOffset, nameLength);
-  }
-
-  /**
-   * Opens an editor with {@link NavigationTarget} in context of the given {@link IFile}.
-   * 
-   * @param context the {@link IResource} to open {@link NavigationTarget} in, may be {@code null}.
-   * @param target the {@link NavigationTarget} to open in reveal.
-   * @return the opened editor or {@code null} if by some reason editor was not opened.
-   */
-  public static IEditorPart openInEditor(IResource context, NavigationTarget target,
-      boolean activate) throws Exception {
-    if (target == null) {
-      return null;
-    }
-    String path = target.getFile();
-    IEditorPart editor = openFilePath(path, activate);
-    if (editor != null) {
-      int offset = target.getOffset();
-      int length = target.getLength();
-      EditorUtility.revealInEditor(editor, offset, length);
-    }
-    return editor;
   }
 
   /**

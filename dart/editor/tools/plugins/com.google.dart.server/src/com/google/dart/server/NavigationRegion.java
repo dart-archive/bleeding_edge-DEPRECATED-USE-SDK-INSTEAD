@@ -26,9 +26,9 @@ public interface NavigationRegion extends SourceRegion {
   NavigationRegion[] EMPTY_ARRAY = new NavigationRegion[0];
 
   /**
-   * Return the {@link NavigationTarget}s associated with the region.
+   * Return the {@link Element}s associated with the region.
    * 
-   * @return the {@link NavigationTarget}s associated with the region
+   * @return the {@link Element}s associated with the region
    */
-  public NavigationTarget[] getTargets();
+  public Element[] getTargets();
 }

@@ -14,8 +14,8 @@
 
 package com.google.dart.server.internal.local.computer;
 
+import com.google.dart.server.Element;
 import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.NavigationTarget;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -25,16 +25,16 @@ import org.apache.commons.lang3.StringUtils;
  * @coverage dart.server.local
  */
 public class NavigationRegionImpl extends SourceRegionImpl implements NavigationRegion {
-  private NavigationTarget[] targets;
+  private Element[] elements;
 
-  public NavigationRegionImpl(int offset, int length, NavigationTarget[] targets) {
+  public NavigationRegionImpl(int offset, int length, Element[] elements) {
     super(offset, length);
-    this.targets = targets;
+    this.elements = elements;
   }
 
   @Override
-  public NavigationTarget[] getTargets() {
-    return targets;
+  public Element[] getTargets() {
+    return elements;
   }
 
   @Override
@@ -42,7 +42,7 @@ public class NavigationRegionImpl extends SourceRegionImpl implements Navigation
     StringBuilder builder = new StringBuilder();
     builder.append(super.toString());
     builder.append(" -> [");
-    builder.append(StringUtils.join(targets, ", "));
+    builder.append(StringUtils.join(elements, ", "));
     builder.append("]");
     return builder.toString();
   }

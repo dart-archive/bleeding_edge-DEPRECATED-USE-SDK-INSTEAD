@@ -57,7 +57,7 @@ public class TypeHierarchyComputer {
    * Returns the computed {@link TypeHierarchyItem}.
    */
   public TypeHierarchyItem compute() {
-    com.google.dart.engine.element.Element engineElement = findEngineElement(element.getOffset());
+    com.google.dart.engine.element.Element engineElement = findEngineElement(element.getLocation().getOffset());
     if (engineElement instanceof ExecutableElement
         && engineElement.getEnclosingElement() instanceof ClassElement) {
       engineElement = engineElement.getEnclosingElement();

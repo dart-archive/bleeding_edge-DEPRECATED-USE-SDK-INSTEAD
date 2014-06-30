@@ -21,7 +21,6 @@ import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.polymer.PolymerTagDartElement;
 import com.google.dart.engine.element.polymer.PolymerTagHtmlElement;
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.server.NavigationTarget;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -44,14 +43,14 @@ public class OpenAction extends AbstractDartSelectionAction {
   /**
    * Returns navigation targets for the given context, may be empty, but not {@code null}.
    */
-  public static NavigationTarget[] getNavigationTargets(DartSelection selection) {
+  public static com.google.dart.server.Element[] getNavigationTargets(DartSelection selection) {
     int offset = selection.getOffset();
     AssistContext assistContext = selection.getContext();
     if (assistContext != null) {
       String file = assistContext.getFile();
       return NewSelectionConverter.getNavigationTargets(file, offset);
     }
-    return NavigationTarget.EMPTY_ARRAY;
+    return com.google.dart.server.Element.EMPTY_ARRAY;
   }
 
   /**
@@ -101,10 +100,10 @@ public class OpenAction extends AbstractDartSelectionAction {
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      NavigationTarget[] targets = getNavigationTargets(selection);
-      for (NavigationTarget target : targets) {
+      com.google.dart.server.Element[] targets = getNavigationTargets(selection);
+      for (com.google.dart.server.Element target : targets) {
         try {
-          DartUI.openInEditor(editor.getInputResourceFile(), target, true);
+          DartUI.openInEditor(target, true);
           return;
         } catch (Throwable e) {
           ExceptionHandler.handle(e, getText(), "Exception during open.");
