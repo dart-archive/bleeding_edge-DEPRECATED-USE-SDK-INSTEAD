@@ -32,10 +32,12 @@ import static com.google.dart.engine.ast.AstFactory.label;
 import static com.google.dart.engine.ast.AstFactory.labeledStatement;
 import static com.google.dart.engine.ast.AstFactory.list;
 import static com.google.dart.engine.ast.AstFactory.methodDeclaration;
+import static com.google.dart.engine.ast.AstFactory.methodInvocation;
 import static com.google.dart.engine.ast.AstFactory.namedExpression;
 import static com.google.dart.engine.ast.AstFactory.postfixExpression;
 import static com.google.dart.engine.ast.AstFactory.prefixExpression;
 import static com.google.dart.engine.ast.AstFactory.propertyAccess;
+import static com.google.dart.engine.ast.AstFactory.returnStatement;
 import static com.google.dart.engine.ast.AstFactory.simpleFormalParameter;
 import static com.google.dart.engine.ast.AstFactory.typeAlias;
 import static com.google.dart.engine.ast.AstFactory.typeName;
@@ -193,6 +195,48 @@ public class SimpleIdentifierTest extends ParserTestCase {
         }
       }
     }
+  }
+
+  public void test_isQualified_inMethodInvocation_noTarget() throws Exception {
+    MethodInvocation invocation = methodInvocation("test", identifier("arg0"));
+    SimpleIdentifier identifier = invocation.getMethodName();
+    assertFalse(identifier.isQualified());
+  }
+
+  public void test_isQualified_inMethodInvocation_withTarget() throws Exception {
+    MethodInvocation invocation = methodInvocation(identifier("target"), "test", identifier("arg0"));
+    SimpleIdentifier identifier = invocation.getMethodName();
+    assertTrue(identifier.isQualified());
+  }
+
+  public void test_isQualified_inPrefixedIdentifier_name() throws Exception {
+    SimpleIdentifier identifier = identifier("test");
+    identifier("prefix", identifier);
+    assertTrue(identifier.isQualified());
+  }
+
+  public void test_isQualified_inPrefixedIdentifier_prefix() throws Exception {
+    SimpleIdentifier identifier = identifier("test");
+    identifier(identifier, identifier("name"));
+    assertFalse(identifier.isQualified());
+  }
+
+  public void test_isQualified_inPropertyAccess_name() throws Exception {
+    SimpleIdentifier identifier = identifier("test");
+    propertyAccess(identifier("target"), identifier);
+    assertTrue(identifier.isQualified());
+  }
+
+  public void test_isQualified_inPropertyAccess_target() throws Exception {
+    SimpleIdentifier identifier = identifier("test");
+    propertyAccess(identifier, identifier("name"));
+    assertFalse(identifier.isQualified());
+  }
+
+  public void test_isQualified_inReturnStatement() throws Exception {
+    SimpleIdentifier identifier = identifier("test");
+    returnStatement(identifier);
+    assertFalse(identifier.isQualified());
   }
 
   private SimpleIdentifier createIdentifier(WrapperKind wrapper, AssignmentKind assignment) {

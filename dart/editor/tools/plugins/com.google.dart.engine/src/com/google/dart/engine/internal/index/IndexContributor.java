@@ -346,25 +346,6 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
         && ((PrefixedIdentifier) parent).getIdentifier() == node;
   }
 
-  /**
-   * @return {@code true} if given {@link SimpleIdentifier} is "name" part of prefixed identifier or
-   *         method invocation.
-   */
-  private static boolean isQualified(SimpleIdentifier node) {
-    AstNode parent = node.getParent();
-    if (parent instanceof PrefixedIdentifier) {
-      return ((PrefixedIdentifier) parent).getIdentifier() == node;
-    }
-    if (parent instanceof PropertyAccess) {
-      return ((PropertyAccess) parent).getPropertyName() == node;
-    }
-    if (parent instanceof MethodInvocation) {
-      MethodInvocation invocation = (MethodInvocation) parent;
-      return invocation.getRealTarget() != null && invocation.getMethodName() == node;
-    }
-    return false;
-  }
-
   private final IndexStore store;
 
   private LibraryElement libraryElement;
@@ -731,7 +712,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
       recordImportElementReferenceWithPrefix(node);
     } else if (element instanceof PropertyAccessorElement || element instanceof MethodElement) {
       location = getLocationWithTypeAssignedToField(node, element, location);
-      if (isQualified(node)) {
+      if (node.isQualified()) {
         recordRelationship(element, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
       } else {
         recordRelationship(element, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, location);
@@ -984,7 +965,7 @@ public class IndexContributor extends GeneralizingAstVisitor<Void> {
    */
   private void recordQualifiedMemberReference(SimpleIdentifier node, Element element,
       Element nameElement, Location location) {
-    if (isQualified(node)) {
+    if (node.isQualified()) {
       Relationship relationship = element != null
           ? IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED
           : IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED;

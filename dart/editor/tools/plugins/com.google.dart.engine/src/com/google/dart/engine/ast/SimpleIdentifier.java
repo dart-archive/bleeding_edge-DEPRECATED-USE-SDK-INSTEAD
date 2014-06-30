@@ -255,6 +255,28 @@ public class SimpleIdentifier extends Identifier {
     return false;
   }
 
+  /**
+   * Returns {@code true} if this identifier is the "name" part of a prefixed identifier or a method
+   * invocation.
+   * 
+   * @return {@code true} if this identifier is the "name" part of a prefixed identifier or a method
+   *         invocation
+   */
+  public boolean isQualified() {
+    AstNode parent = getParent();
+    if (parent instanceof PrefixedIdentifier) {
+      return ((PrefixedIdentifier) parent).getIdentifier() == this;
+    }
+    if (parent instanceof PropertyAccess) {
+      return ((PropertyAccess) parent).getPropertyName() == this;
+    }
+    if (parent instanceof MethodInvocation) {
+      MethodInvocation invocation = (MethodInvocation) parent;
+      return invocation.getMethodName() == this && invocation.getRealTarget() != null;
+    }
+    return false;
+  }
+
   @Override
   public boolean isSynthetic() {
     return token.isSynthetic();
