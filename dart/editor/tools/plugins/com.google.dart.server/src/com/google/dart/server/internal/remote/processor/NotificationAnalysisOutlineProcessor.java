@@ -45,12 +45,12 @@ public class NotificationAnalysisOutlineProcessor extends NotificationProcessor 
     String file = paramsObject.get("file").getAsString();
     JsonObject outlineObject = paramsObject.get("outline").getAsJsonObject();
     // compute outline and notify listener
-    getListener().computedOutline(file, computeOutline(null, outlineObject));
+    getListener().computedOutline(file, constructOutline(null, outlineObject));
   }
 
-  private Outline computeOutline(Outline parent, JsonObject outlineObject) {
+  private Outline constructOutline(Outline parent, JsonObject outlineObject) {
     JsonObject elementObject = outlineObject.get("element").getAsJsonObject();
-    Element element = computeElement(elementObject);
+    Element element = constructElement(elementObject);
     int offset = outlineObject.get("offset").getAsInt();
     int length = outlineObject.get("length").getAsInt();
 
@@ -65,7 +65,7 @@ public class NotificationAnalysisOutlineProcessor extends NotificationProcessor 
         Iterator<JsonElement> childrenElementIterator = ((JsonArray) childrenJsonArray).iterator();
         while (childrenElementIterator.hasNext()) {
           JsonObject childObject = childrenElementIterator.next().getAsJsonObject();
-          childrenList.add(computeOutline(outline, childObject));
+          childrenList.add(constructOutline(outline, childObject));
         }
       }
     }

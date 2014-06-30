@@ -57,10 +57,10 @@ public class NotificationCompletionResultsProcessor extends NotificationProcesso
     JsonArray resultsArray = paramsObject.get("results").getAsJsonArray();
     boolean last = paramsObject.get("last").getAsBoolean();
     // compute outline and notify listener
-    getListener().computedCompletion(completionId, computeCompletions(resultsArray), last);
+    getListener().computedCompletion(completionId, constructCompletions(resultsArray), last);
   }
 
-  protected CompletionSuggestion[] computeCompletions(JsonArray resultsArray) {
+  private CompletionSuggestion[] constructCompletions(JsonArray resultsArray) {
     Iterator<JsonElement> completionObjectIterator = resultsArray.iterator();
     List<CompletionSuggestion> completions = Lists.newArrayList();
     while (completionObjectIterator.hasNext()) {
@@ -81,10 +81,10 @@ public class NotificationCompletionResultsProcessor extends NotificationProcesso
       String docComplete = safelyGetAsString(completionObject, "docComplete");
       String declaringType = safelyGetAsString(completionObject, "declaringType");
       String returnType = safelyGetAsString(completionObject, "returnType");
-      String[] parameterNames = computeStringArray(safelyGetAsJsonArray(
+      String[] parameterNames = constructStringArray(safelyGetAsJsonArray(
           completionObject,
           "parameterNames"));
-      String[] parameterTypes = computeStringArray(safelyGetAsJsonArray(
+      String[] parameterTypes = constructStringArray(safelyGetAsJsonArray(
           completionObject,
           "parameterTypes"));
       int requiredParameterCount = safelyGetAsInt(completionObject, "requiredParameterCount", 0);

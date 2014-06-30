@@ -55,10 +55,10 @@ public abstract class NotificationProcessor {
    */
   public abstract void process(JsonObject response) throws Exception;
 
-  protected Element computeElement(JsonObject elementObject) {
+  protected Element constructElement(JsonObject elementObject) {
     ElementKind kind = getElementKind(elementObject.get("kind").getAsString());
     String name = elementObject.get("name").getAsString();
-    Location location = computeLocation(elementObject.get("location").getAsJsonObject());
+    Location location = constructLocation(elementObject.get("location").getAsJsonObject());
     int flags = elementObject.get("flags").getAsInt();
     String parameters = safelyGetAsString(elementObject, "parameters");
     String returnType = safelyGetAsString(elementObject, "returnType");
@@ -71,7 +71,7 @@ public abstract class NotificationProcessor {
    * @param strJsonArray some {@link JsonArray} of {@link String}s
    * @return the {@link String} array
    */
-  protected String[] computeStringArray(JsonArray strJsonArray) {
+  protected String[] constructStringArray(JsonArray strJsonArray) {
     if (strJsonArray == null) {
       return StringUtilities.EMPTY_ARRAY;
     }
@@ -148,7 +148,7 @@ public abstract class NotificationProcessor {
     }
   }
 
-  private Location computeLocation(JsonObject locationObject) {
+  private Location constructLocation(JsonObject locationObject) {
     String file = locationObject.get("file").getAsString();
     int offset = locationObject.get("offset").getAsInt();
     int length = locationObject.get("length").getAsInt();

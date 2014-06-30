@@ -57,7 +57,7 @@ public class NotificationAnalysisNavigationProcessor extends NotificationProcess
       List<Element> targets = Lists.newArrayList();
       while (targetObjectIterator.hasNext()) {
         JsonObject elementObject = targetObjectIterator.next().getAsJsonObject();
-        Element element = computeElement(elementObject);
+        Element element = constructElement(elementObject);
         targets.add(element);
       }
       regions.add(new NavigationRegionImpl(
