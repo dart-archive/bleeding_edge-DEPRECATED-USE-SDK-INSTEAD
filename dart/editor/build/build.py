@@ -555,7 +555,7 @@ def main():
           # dart-editor-linux.gtk.x86.zip --> darteditor-linux-32.zip
           RenameRcpZipFiles(buildout)
 
-          PostProcessEditorBuilds(buildout, buildos)
+          PostProcessEditorBuilds(buildout, buildos, gsu)
 
           if running_on_buildbot:
             version_file = _FindVersionFile(buildout)
@@ -823,7 +823,7 @@ def RenameRcpZipFiles(out_dir):
       os.rename(zipFile, join(os.path.dirname(zipFile), renameMap[basename]))
 
 
-def PostProcessEditorBuilds(out_dir, buildos):
+def PostProcessEditorBuilds(out_dir, buildos, gsu):
   """Post-process the created RCP builds"""
   with utils.TempDir('editor_scratch') as scratch_dir:
 
