@@ -909,7 +909,7 @@ def PostProcessEditorBuilds(out_dir, buildos, gsu):
       # for the dartium builders to finish.
       revision = 'latest' if CHANNEL == 'be' else REVISION
       with utils.TempDir('apk') as tempDir:
-        namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RELEASE)
+        namer = bot_utils.GCSNamer(CHANNEL)
         content_shell_name = 'content_shell-android'
         apkName = namer.dartium_android_apk_filename(content_shell_name,
                                                      'arm',
