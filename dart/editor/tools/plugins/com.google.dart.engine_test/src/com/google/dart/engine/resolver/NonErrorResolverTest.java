@@ -40,7 +40,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class C implements I {",
         "  noSuchMethod(_) => null;",
         "}",
-        "typedef int IntToInt(int);",
+        "typedef int IntToInt(int x);",
         "IntToInt f = new C();"));
     resolve(source);
     assertNoErrors(source);
@@ -1884,7 +1884,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class C implements I {",
         "  noSuchMethod(_) => null;",
         "}",
-        "typedef int IntToInt(int);",
+        "typedef int IntToInt(int x);",
         "IntToInt f = new I();"));
     resolve(source);
     assertNoErrors(source);
@@ -1903,7 +1903,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class C implements I {",
         "  noSuchMethod(_) => null;",
         "}",
-        "typedef int IntToInt(int);",
+        "typedef int IntToInt(int x);",
         "Function f = new C();"));
     resolve(source);
     assertNoErrors(source);
