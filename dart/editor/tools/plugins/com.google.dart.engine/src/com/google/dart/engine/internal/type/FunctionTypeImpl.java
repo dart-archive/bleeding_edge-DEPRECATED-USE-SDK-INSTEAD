@@ -422,6 +422,16 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         || ((TypeImpl) tRetType).isMoreSpecificThan(sRetType, withDynamic, visitedTypePairs);
   }
 
+  /**
+   * Return {@code true} if this type is assignable to the given type. A function type <i>T</i> may
+   * be assigned to a function type <i>S</i>, written <i>T</i> &hArr; <i>S</i>, iff <i>T</i> <:
+   * <i>S</i> (Function Types section of spec). Note that this is more restrictive than the
+   * "may be assigned to" rule for interface types.
+   * <p>
+   * 
+   * @param type the type being compared with this type
+   * @return {@code true} if this type is assignable to the given type
+   */
   @Override
   public boolean isAssignableTo(Type type) {
     return isSubtypeOf(type, new HashSet<TypePair>());
