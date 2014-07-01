@@ -19,6 +19,7 @@ vars = {
   "android_content_shell_rev" : "@37275",
   "apache_ant_rev" : "@19997",
   "apache_compress_rev" : "@19997",
+  "apache_http_rev" : "@37872",
   "args4j_rev" : "@19997",
   "bzip2_rev" : "@19997",
   "chrome_rev" : "@19997",
@@ -69,14 +70,16 @@ deps = {
       Var("chromium_url") + "/trunk/src/net/third_party/nss" + Var("nss_rev"),
 
   "dart/third_party/7zip": "/third_party/7zip" + Var("7zip_rev"),
-  "dart/third_party/android_adb": 
+  "dart/third_party/android_adb":
       "/third_party/android_adb" + Var("android_adb_rev"),
-  "dart/third_party/android_content_shell": 
+  "dart/third_party/android_content_shell":
       "/third_party/android_content_shell" + Var("android_content_shell_rev"),
   "dart/third_party/apache_ant":
       "/third_party/apache_ant" + Var("apache_ant_rev"),
   "dart/third_party/apache_compress":
       "/third_party/apache_compress" + Var("apache_compress_rev"),
+  "dart/third_party/apache_http":
+      "/third_party/apache_http" + Var("apache_http_rev"),
   "dart/third_party/args4j": "/third_party/args4j" + Var("args4j_rev"),
   "dart/third_party/bzip2": "/third_party/bzip2" + Var("bzip2_rev"),
   "dart/third_party/chrome": "/third_party/chrome" + Var("chrome_rev"),
