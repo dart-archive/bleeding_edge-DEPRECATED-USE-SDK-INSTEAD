@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -299,6 +300,7 @@ public class OmniBoxPopup extends BasePopupDialog {
           }
         }
         table.setSelection(index);
+        redrawTableAfterSetSelection();
         break;
       }
       case SWT.ARROW_UP: {
@@ -319,6 +321,7 @@ public class OmniBoxPopup extends BasePopupDialog {
           }
         }
         table.setSelection(index);
+        redrawTableAfterSetSelection();
         break;
       }
       case SWT.ESC:
@@ -499,6 +502,7 @@ public class OmniBoxPopup extends BasePopupDialog {
             if (!o.equals(lastItem)) {
               lastItem = (TableItem) o;
               table.setSelection(new TableItem[] {lastItem});
+              redrawTableAfterSetSelection();
             }
           } else if (o == null) {
             lastItem = null;
@@ -975,6 +979,16 @@ public class OmniBoxPopup extends BasePopupDialog {
           }
         }
       }
+    }
+  }
+
+  /**
+   * By some reason on OSX {@link Table} do not always redraw itself after setting a selection. This
+   * looks as multiple selected items. So, we need to force redraw.
+   */
+  private void redrawTableAfterSetSelection() {
+    if (DartCore.isMac()) {
+      table.redraw();
     }
   }
 
