@@ -36,6 +36,7 @@ import com.google.dart.server.ElementKind;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
+import com.google.dart.server.Location;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
 import com.google.dart.server.ServerService;
@@ -151,7 +152,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "            'location': {",
         "              'file': '/test2.dart',",
         "              'offset': 3,",
-        "              'length': 4",
+        "              'length': 4,",
+        "              'startLine': 5,",
+        "              'startColumn': 6",
         "            },",
         "            'flags': 0,",
         "            'parameters': 'parameters0',",
@@ -162,8 +165,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "            'name': '_name1',",
         "            'location': {",
         "              'file': '/test3.dart',",
-        "              'offset': 5,",
-        "              'length': 6",
+        "              'offset': 7,",
+        "              'length': 8,",
+        "              'startLine': 9,",
+        "              'startColumn': 10",
         "            },",
         "            'flags': 63",
         "          }",
@@ -186,9 +191,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         Element element = elements[0];
         assertEquals(ElementKind.COMPILATION_UNIT, element.getKind());
         assertEquals("name0", element.getName());
-        assertEquals("/test2.dart", element.getLocation().getFile());
-        assertEquals(3, element.getLocation().getOffset());
-        assertEquals(4, element.getLocation().getLength());
+        Location location = element.getLocation();
+        assertEquals("/test2.dart", location.getFile());
+        assertEquals(3, location.getOffset());
+        assertEquals(4, location.getLength());
+        assertEquals(5, location.getStartLine());
+        assertEquals(6, location.getStartColumn());
         assertFalse(element.isAbstract());
         assertFalse(element.isConst());
         assertFalse(element.isDeprecated());
@@ -202,9 +210,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         Element element = elements[1];
         assertEquals(ElementKind.CLASS, element.getKind());
         assertEquals("_name1", element.getName());
-        assertEquals("/test3.dart", element.getLocation().getFile());
-        assertEquals(5, element.getLocation().getOffset());
-        assertEquals(6, element.getLocation().getLength());
+        Location location = element.getLocation();
+        assertEquals("/test3.dart", location.getFile());
+        assertEquals(7, location.getOffset());
+        assertEquals(8, location.getLength());
+        assertEquals(9, location.getStartLine());
+        assertEquals(10, location.getStartColumn());
         assertTrue(element.isAbstract());
         assertTrue(element.isConst());
         assertTrue(element.isDeprecated());
@@ -230,7 +241,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "        'location': {",
         "          'file': '/test2.dart',",
         "          'offset': 3,",
-        "          'length': 4",
+        "          'length': 4,",
+        "          'startLine': 5,",
+        "          'startColumn': 6",
         "        },",
         "        'flags': 63,",
         "        'parameters': 'parameters0',",
@@ -245,13 +258,15 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "          'name': '_name1',",
         "          'location': {",
         "            'file': '/test3.dart',",
-        "            'offset': 7,",
-        "            'length': 8",
+        "            'offset': 9,",
+        "            'length': 10,",
+        "            'startLine': 11,",
+        "            'startColumn': 12",
         "          },",
         "          'flags': 0",
         "        },",
-        "        'offset': 5,",
-        "        'length': 6",
+        "        'offset': 7,",
+        "        'length': 8",
         "      }",
         "    ]",
         "    }",
@@ -268,9 +283,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     Element element = outline.getElement();
     assertEquals(ElementKind.COMPILATION_UNIT, element.getKind());
     assertEquals("name0", element.getName());
-    assertEquals("/test2.dart", element.getLocation().getFile());
-    assertEquals(3, element.getLocation().getOffset());
-    assertEquals(4, element.getLocation().getLength());
+    Location location = element.getLocation();
+    assertEquals("/test2.dart", location.getFile());
+    assertEquals(3, location.getOffset());
+    assertEquals(4, location.getLength());
+    assertEquals(5, location.getStartLine());
+    assertEquals(6, location.getStartColumn());
     assertTrue(element.isAbstract());
     assertTrue(element.isConst());
     assertTrue(element.isDeprecated());
@@ -282,14 +300,19 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
     // assertions on child
     Outline child = outline.getChildren()[0];
-    assertEquals(5, child.getOffset());
-    assertEquals(6, child.getLength());
+    assertEquals(7, child.getOffset());
+    assertEquals(8, child.getLength());
     assertThat(child.getChildren()).hasSize(0);
     Element childElement = child.getElement();
     assertEquals(ElementKind.CLASS, childElement.getKind());
     assertEquals("_name1", childElement.getName());
-    assertEquals(7, childElement.getLocation().getOffset());
-    assertEquals(8, childElement.getLocation().getLength());
+    location = childElement.getLocation();
+    assertEquals("/test3.dart", location.getFile());
+    assertEquals(9, location.getOffset());
+    assertEquals(10, location.getLength());
+    assertEquals(11, location.getStartLine());
+    assertEquals(12, location.getStartColumn());
+
     assertFalse(childElement.isAbstract());
     assertFalse(childElement.isConst());
     assertFalse(childElement.isDeprecated());

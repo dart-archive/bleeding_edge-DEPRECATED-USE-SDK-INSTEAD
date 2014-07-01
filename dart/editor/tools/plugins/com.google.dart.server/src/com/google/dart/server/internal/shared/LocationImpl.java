@@ -26,11 +26,15 @@ public class LocationImpl implements Location {
   private final String file;
   private final int offset;
   private final int length;
+  private final int startLine;
+  private final int startColumn;
 
-  public LocationImpl(String file, int offset, int length) {
+  public LocationImpl(String file, int offset, int length, int startLine, int startColumn) {
     this.file = file;
     this.offset = offset;
     this.length = length;
+    this.startLine = startLine;
+    this.startColumn = startColumn;
   }
 
   @Override
@@ -38,7 +42,8 @@ public class LocationImpl implements Location {
     if (obj instanceof LocationImpl) {
       LocationImpl other = (LocationImpl) obj;
       return ObjectUtilities.equals(other.file, file) && other.offset == offset
-          && other.length == length;
+          && other.length == length && other.startLine == startLine
+          && other.startColumn == startColumn;
     }
     return false;
   }
@@ -59,6 +64,16 @@ public class LocationImpl implements Location {
   }
 
   @Override
+  public int getStartColumn() {
+    return startColumn;
+  }
+
+  @Override
+  public int getStartLine() {
+    return startLine;
+  }
+
+  @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("[file=");
@@ -67,6 +82,10 @@ public class LocationImpl implements Location {
     builder.append(offset);
     builder.append(", length=");
     builder.append(length);
+    builder.append(", startLine=");
+    builder.append(startLine);
+    builder.append(", startColumn=");
+    builder.append(startColumn);
     builder.append("]");
     return builder.toString();
   }

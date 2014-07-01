@@ -152,6 +152,8 @@ public abstract class NotificationProcessor {
     String file = locationObject.get("file").getAsString();
     int offset = locationObject.get("offset").getAsInt();
     int length = locationObject.get("length").getAsInt();
-    return new LocationImpl(file, offset, length);
+    int startLine = locationObject.get("startLine").getAsInt();
+    int startColumn = locationObject.get("startColumn").getAsInt();
+    return new LocationImpl(file, offset, length, startLine, startColumn);
   }
 }

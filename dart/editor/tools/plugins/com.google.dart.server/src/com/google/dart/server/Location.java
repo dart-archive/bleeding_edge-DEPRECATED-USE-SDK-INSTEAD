@@ -45,4 +45,18 @@ public interface Location {
    * @return the offset of the location
    */
   public int getOffset();
+
+  /**
+   * Return the one-based index of the column containing the first character of the range.
+   * 
+   * @return the one-based index of the column containing the first character of the range
+   */
+  public int getStartColumn();
+
+  /**
+   * Return the one-based index of the line containing the first character of the range.
+   * 
+   * @return the one-based index of the line containing the first character of the range
+   */
+  public int getStartLine();
 }
