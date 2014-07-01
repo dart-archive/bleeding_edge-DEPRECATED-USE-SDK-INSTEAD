@@ -306,7 +306,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
         if (i > 0) {
           builder.append(", ");
         }
-        builder.append(error.getOffset());
+        builder.append(error.getLocation().getOffset());
       }
       builder.append(")");
     }

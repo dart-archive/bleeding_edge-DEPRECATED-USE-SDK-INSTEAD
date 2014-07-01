@@ -28,6 +28,27 @@ public interface AnalysisError {
   public static final AnalysisError[] NO_ERRORS = new AnalysisError[0];
 
   /**
+   * Return the severity of the error.
+   * 
+   * @return the severity of the error
+   */
+  public ErrorSeverity getErrorSeverity();
+
+  /**
+   * Return the type of the error.
+   * 
+   * @return the type of the error
+   */
+  public ErrorType getErrorType();
+
+  /**
+   * Return the location of the name of the analysis error.
+   * 
+   * @return the location of the name of the analysis error
+   */
+  public Location getLocation();
+
+  /**
    * Return the correction to be displayed for this error, or {@code null} if there is no correction
    * information for this error. The correction should indicate how the user can fix the error.
    * 
@@ -43,21 +64,6 @@ public interface AnalysisError {
   ErrorCode getErrorCode();
 
   /**
-   * Return the file in which the error occurred
-   * 
-   * @return the file in which the error occurred
-   */
-  String getFile();
-
-  /**
-   * Return the number of characters from the offset to the end of the source which encompasses the
-   * compilation error.
-   * 
-   * @return the length of the error location
-   */
-  int getLength();
-
-  /**
    * Return the message to be displayed for this error. The message should indicate what is wrong
    * and why it is wrong.
    * 
@@ -65,11 +71,4 @@ public interface AnalysisError {
    */
   String getMessage();
 
-  /**
-   * Return the character offset from the beginning of the source (zero based) where the error
-   * occurred.
-   * 
-   * @return the offset to the start of the error location
-   */
-  int getOffset();
 }

@@ -18,6 +18,7 @@ import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.ContentChange;
+import com.google.dart.server.Location;
 import com.google.dart.server.ServerService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -366,10 +367,10 @@ public class RequestUtilities {
 
   private static JsonObject buildJsonObjectAnalysisError(AnalysisError error) {
     JsonObject errorJsonObject = new JsonObject();
-    errorJsonObject.addProperty(FILE, error.getFile());
     errorJsonObject.addProperty("errorCode", error.getErrorCode().getUniqueName());
-    errorJsonObject.addProperty("offset", error.getOffset());
-    errorJsonObject.addProperty("length", error.getLength());
+    errorJsonObject.addProperty("severity", error.getErrorSeverity().name());
+    errorJsonObject.addProperty("type", error.getErrorType().name());
+    errorJsonObject.add("location", buildJsonObjectLocation(error.getLocation()));
     errorJsonObject.addProperty("message", error.getMessage());
     String correction = error.getCorrection();
     if (correction != null) {
@@ -421,6 +422,16 @@ public class RequestUtilities {
       errorJsonObject.addProperty("newLength", change.getNewLength());
     }
     return errorJsonObject;
+  }
+
+  private static JsonObject buildJsonObjectLocation(Location location) {
+    JsonObject locationJsonObject = new JsonObject();
+    locationJsonObject.addProperty("file", location.getFile());
+    locationJsonObject.addProperty("offset", location.getOffset());
+    locationJsonObject.addProperty("length", location.getLength());
+    locationJsonObject.addProperty("startLine", location.getStartLine());
+    locationJsonObject.addProperty("startColumn", location.getStartColumn());
+    return locationJsonObject;
   }
 
   private static JsonObject buildJsonObjectRequest(String idValue, String methodValue) {

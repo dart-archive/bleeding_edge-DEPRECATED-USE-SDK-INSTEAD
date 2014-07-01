@@ -30,6 +30,9 @@ import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.ScannerErrorCode;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.ErrorSeverity;
+import com.google.dart.server.ErrorType;
+import com.google.dart.server.Location;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -108,25 +111,34 @@ public class NotificationAnalysisErrorsProcessor extends NotificationProcessor {
     List<AnalysisError> analysisErrors = Lists.newArrayList();
     while (errorElementIterator.hasNext()) {
       JsonObject errorObject = errorElementIterator.next().getAsJsonObject();
-      ErrorCode errorCode = getErrorCode(errorObject.get("errorCode"));
-      if (errorCode != null) {
-        int offset = errorObject.get("offset").getAsInt();
-        int length = errorObject.get("length").getAsInt();
-        String message = errorObject.get("message").getAsString();
-        String correction = safelyGetAsString(errorObject, "correction");
-        analysisErrors.add(new AnalysisErrorImpl(
-            file,
-            errorCode,
-            offset,
-            length,
-            message,
-            correction));
+      AnalysisError analysisError = constructAnalysisError(errorObject);
+      if (analysisError != null) {
+        analysisErrors.add(analysisError);
       }
     }
     // notify listener
     getListener().computedErrors(
         file,
         analysisErrors.toArray(new AnalysisError[analysisErrors.size()]));
+  }
+
+  private AnalysisError constructAnalysisError(JsonObject errorObject) {
+    ErrorCode errorCode = getErrorCode(errorObject.get("errorCode"));
+    if (errorCode != null) {
+      ErrorSeverity errorSeverity = ErrorSeverity.valueOf(errorObject.get("severity").getAsString());
+      ErrorType errorType = ErrorType.valueOf(errorObject.get("type").getAsString());
+      Location location = constructLocation(errorObject.get("location").getAsJsonObject());
+      String message = errorObject.get("message").getAsString();
+      String correction = safelyGetAsString(errorObject, "correction");
+      return new AnalysisErrorImpl(
+          errorCode,
+          errorSeverity,
+          errorType,
+          location,
+          message,
+          correction);
+    }
+    return null;
   }
 
   /**

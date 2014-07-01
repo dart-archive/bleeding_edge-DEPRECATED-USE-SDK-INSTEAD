@@ -65,6 +65,15 @@ public abstract class NotificationProcessor {
     return new ElementImpl(kind, name, location, flags, parameters, returnType);
   }
 
+  protected Location constructLocation(JsonObject locationObject) {
+    String file = locationObject.get("file").getAsString();
+    int offset = locationObject.get("offset").getAsInt();
+    int length = locationObject.get("length").getAsInt();
+    int startLine = locationObject.get("startLine").getAsInt();
+    int startColumn = locationObject.get("startColumn").getAsInt();
+    return new LocationImpl(file, offset, length, startLine, startColumn);
+  }
+
   /**
    * Given some {@link JsonArray} and of string primitives, return the {@link String} array.
    * 
@@ -146,14 +155,5 @@ public abstract class NotificationProcessor {
     } else {
       return jsonElement.getAsString();
     }
-  }
-
-  private Location constructLocation(JsonObject locationObject) {
-    String file = locationObject.get("file").getAsString();
-    int offset = locationObject.get("offset").getAsInt();
-    int length = locationObject.get("length").getAsInt();
-    int startLine = locationObject.get("startLine").getAsInt();
-    int startColumn = locationObject.get("startColumn").getAsInt();
-    return new LocationImpl(file, offset, length, startLine, startColumn);
   }
 }

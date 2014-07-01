@@ -14,28 +14,32 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.server.ErrorSeverity;
+import com.google.dart.server.ErrorType;
+import com.google.dart.server.Location;
 
 import junit.framework.TestCase;
 
-import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class AnalysisErrorImplTest extends TestCase {
   public void test_new() throws Exception {
     ErrorCode errorCode = mock(ErrorCode.class);
+    ErrorSeverity errorSeverity = ErrorSeverity.ERROR;
+    ErrorType errorType = ErrorType.COMPILE_TIME_ERROR;
+    Location location = mock(Location.class);
     AnalysisErrorImpl error = new AnalysisErrorImpl(
-        "my/file.dart",
         errorCode,
-        10,
-        20,
+        errorSeverity,
+        errorType,
+        location,
         "my message",
         "my correction");
-    assertEquals("my/file.dart", error.getFile());
-    assertSame(errorCode, error.getErrorCode());
-    assertEquals(10, error.getOffset());
-    assertEquals(20, error.getLength());
+    assertEquals(errorCode, error.getErrorCode());
+    assertEquals(errorSeverity, error.getErrorSeverity());
+    assertEquals(errorType, error.getErrorType());
+    assertEquals(location, error.getLocation());
     assertEquals("my message", error.getMessage());
     assertEquals("my correction", error.getCorrection());
-    assertThat(error.toString()).isNotEmpty().contains("my/file.dart").contains("10");
   }
 }

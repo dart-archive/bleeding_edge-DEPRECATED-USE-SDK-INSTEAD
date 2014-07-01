@@ -14,10 +14,11 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.error.ErrorCode;
-import com.google.dart.engine.error.ErrorSeverity;
-import com.google.dart.engine.error.ErrorType;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.server.AnalysisError;
+import com.google.dart.server.ErrorSeverity;
+import com.google.dart.server.ErrorType;
+import com.google.dart.server.Location;
 import com.google.dart.tools.core.DartCore;
 
 import org.apache.commons.lang3.StringUtils;
@@ -107,20 +108,20 @@ public class AnalysisMarkerManager_NEW {
 
       for (AnalysisError error : errors) {
         ErrorCode errorCode = error.getErrorCode();
-        if (errorCode.getErrorSeverity() != errorSeverity) {
+        if (error.getErrorSeverity() != errorSeverity) {
           continue;
         }
+        Location location = error.getLocation();
 
-        // TODO(scheglov) Analysis Server: restore LineInfo
-        int lineNum = lineInfo != null ? lineInfo.getLocation(error.getOffset()).getLineNumber()
-            : -1;
-        boolean isHint = errorCode.getType() == ErrorType.HINT;
+        boolean isHint = error.getErrorType() == ErrorType.HINT;
 
         String markerType = DartCore.DART_PROBLEM_MARKER_TYPE;
-        if (errorCode.getType() == ErrorType.ANGULAR) {
-          markerType = DartCore.ANGULAR_WARNING_MARKER_TYPE;
-          markerSeverity = IMarker.SEVERITY_WARNING;
-        } else if (errorCode.getType() == ErrorType.TODO) {
+        // Server doesn't have the angular error type
+//        if (errorCode.getType() == ErrorType.ANGULAR) {
+//          markerType = DartCore.ANGULAR_WARNING_MARKER_TYPE;
+//          markerSeverity = IMarker.SEVERITY_WARNING;
+//        } else
+        if (error.getErrorType() == ErrorType.TODO) {
           markerType = DartCore.DART_TASK_MARKER_TYPE;
         } else if (isHint) {
           markerType = DartCore.DART_HINT_MARKER_TYPE;
@@ -128,10 +129,10 @@ public class AnalysisMarkerManager_NEW {
 
         IMarker marker = resource.createMarker(markerType);
         marker.setAttribute(IMarker.SEVERITY, markerSeverity);
-        marker.setAttribute(IMarker.CHAR_START, error.getOffset());
-        marker.setAttribute(IMarker.CHAR_END, error.getOffset() + error.getLength());
-        marker.setAttribute(IMarker.LINE_NUMBER, lineNum);
-        marker.setAttribute(ERROR_CODE, encodeErrorCode(errorCode));
+        marker.setAttribute(IMarker.CHAR_START, location.getOffset());
+        marker.setAttribute(IMarker.CHAR_END, location.getOffset() + location.getLength());
+        marker.setAttribute(IMarker.LINE_NUMBER, location.getStartLine());
+        marker.setAttribute(ERROR_CODE, errorCode.getUniqueName());
         marker.setAttribute(IMarker.MESSAGE, error.getMessage());
 
         if (isHint) {

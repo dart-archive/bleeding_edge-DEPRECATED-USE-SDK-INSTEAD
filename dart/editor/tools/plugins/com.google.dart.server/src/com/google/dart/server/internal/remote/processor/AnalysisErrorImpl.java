@@ -16,6 +16,9 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.server.AnalysisError;
+import com.google.dart.server.ErrorSeverity;
+import com.google.dart.server.ErrorType;
+import com.google.dart.server.Location;
 
 /**
  * An implementation of {@link AnalysisError}.
@@ -23,19 +26,19 @@ import com.google.dart.server.AnalysisError;
  * @coverage dart.server.remote
  */
 public class AnalysisErrorImpl implements AnalysisError {
-  private final String file;
   private final ErrorCode errorCode;
-  private final int offset;
-  private final int length;
+  private final ErrorSeverity errorSeverity;
+  private final ErrorType errorType;
+  private final Location location;
   private final String message;
   private final String correction;
 
-  public AnalysisErrorImpl(String file, ErrorCode errorCode, int offset, int length,
-      String message, String correction) {
-    this.file = file;
+  public AnalysisErrorImpl(ErrorCode errorCode, ErrorSeverity errorSeverity, ErrorType errorType,
+      Location location, String message, String correction) {
     this.errorCode = errorCode;
-    this.offset = offset;
-    this.length = length;
+    this.errorSeverity = errorSeverity;
+    this.errorType = errorType;
+    this.location = location;
     this.message = message;
     this.correction = correction;
   }
@@ -51,13 +54,18 @@ public class AnalysisErrorImpl implements AnalysisError {
   }
 
   @Override
-  public String getFile() {
-    return file;
+  public ErrorSeverity getErrorSeverity() {
+    return errorSeverity;
   }
 
   @Override
-  public int getLength() {
-    return length;
+  public ErrorType getErrorType() {
+    return errorType;
+  }
+
+  @Override
+  public Location getLocation() {
+    return location;
   }
 
   @Override
@@ -66,21 +74,12 @@ public class AnalysisErrorImpl implements AnalysisError {
   }
 
   @Override
-  public int getOffset() {
-    return offset;
-  }
-
-  @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append("[file=");
-    builder.append(file);
-    builder.append(", errorCode=");
+    builder.append("[errorCode=");
     builder.append(errorCode);
-    builder.append(", offset=");
-    builder.append(offset);
-    builder.append(", length=");
-    builder.append(length);
+    builder.append(", location=");
+    builder.append(location.toString());
     builder.append(", message=");
     builder.append(message);
     builder.append(", correction=");
