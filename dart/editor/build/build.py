@@ -904,6 +904,26 @@ def PostProcessEditorBuilds(out_dir, buildos):
       f.AddFile(dartium_download_script,
           'dart/chromium/download_dartium_debug%s' % shell_ending)
 
+    def add_android_content_shell(zipFile):
+      # On bleeding edge we take the latest bits, we don't want to wait
+      # for the dartium builders to finish.
+      revision = 'latest' if CHANNEL == 'be' else REVISION
+      with utils.TempDir('apk') as tempDir:
+        namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RELEASE)
+        contents_shell_name = 'content_shell-android'
+        apkName = namer.dartium_android_apk_filename(content_shell_name,
+                                                     'arm',
+                                                     'release')
+        remoteApk = namer.dartium_android_apk_filepath(revision,
+                                                       content_shell_name,
+                                                       'arm',
+                                                       'release')
+        local_path = os.path.join(tempDir, apkName)
+        if gsu.Copy(remoteApk, local_path, False):
+          raise Exception("gsutil command failed, aborting.")
+        f = ziputils.ZipUtil(zipFile, buildos)
+        f.AddFile(local_path, 'dart/android/%s' % apkName)
+
     # Create a editor.properties
     editor_properties = os.path.join(scratch_dir, 'editor.properties')
     with open(editor_properties, 'w') as fd:
@@ -933,6 +953,8 @@ def PostProcessEditorBuilds(out_dir, buildos):
       # Add a shell/bat script to download contentshell and dartium debug.
       # (including the necessary tools/dartium/download_file.dart helper).
       add_download_scripts(zipFile, '64' if is_64bit else '32')
+
+      add_android_content_shell(zipFile)
 
       # adjust memory params for 64 bit versions
       if is_64bit:
