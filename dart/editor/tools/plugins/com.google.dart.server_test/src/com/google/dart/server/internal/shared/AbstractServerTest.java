@@ -63,7 +63,7 @@ public abstract class AbstractServerTest extends TestCase {
   /**
    * Creates a concrete {@link AnalysisServer} instance.
    */
-  protected abstract AnalysisServer createServer();
+  protected abstract AnalysisServer createServer() throws Exception;
 
   @Override
   protected void setUp() throws Exception {

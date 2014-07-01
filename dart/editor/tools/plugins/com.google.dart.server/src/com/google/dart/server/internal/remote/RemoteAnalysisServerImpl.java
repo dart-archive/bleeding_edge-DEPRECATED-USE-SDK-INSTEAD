@@ -20,6 +20,7 @@ import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
+import com.google.dart.server.AnalysisServerSocket;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.BasicConsumer;
@@ -54,6 +55,7 @@ import com.google.gson.JsonPrimitive;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This {@link AnalysisServer} calls out to the analysis server written in Dart and communicates
@@ -84,16 +86,19 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    * A thread which reads input from the {@link LineReaderStream}.
    */
   public class ServerErrorReaderThread extends Thread {
-    public ServerErrorReaderThread() {
+    private LineReaderStream stream;
+
+    public ServerErrorReaderThread(LineReaderStream stream) {
       setDaemon(true);
       setName("ServerErrorReaderThread");
+      this.stream = stream;
     }
 
     @Override
     public void run() {
       while (true) {
         try {
-          String line = errorStream.readLine();
+          String line = stream.readLine();
           if (line == null) {
             return;
           }
@@ -111,24 +116,28 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    * {@link Consumer}s from {@link RemoteAnalysisServerImpl#consumerMap}.
    */
   public class ServerResponseReaderThread extends Thread {
-    public ServerResponseReaderThread() {
+
+    private ResponseStream stream;
+
+    public ServerResponseReaderThread(ResponseStream stream) {
       setDaemon(true);
       setName("ServerResponseReaderThread");
+      this.stream = stream;
     }
 
     @Override
     public void run() {
       while (true) {
         try {
-          JsonObject response = responseStream.take();
+          JsonObject response = stream.take();
           if (response == null) {
-            // TODO(brianwilkerson) Signal that the remote process has crashed.
             return;
           }
+          lastResponseTime.set(System.currentTimeMillis());
           try {
             processResponse(response);
           } finally {
-            responseStream.lastRequestProcessed();
+            stream.lastRequestProcessed();
           }
         } catch (Throwable e) {
           // TODO(scheglov) decide how to handle exceptions
@@ -152,11 +161,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   // Code Completion domain
   private static final String COMPLETION_NOTIFICATION_RESULTS = "completion.results";
 
-  private final RequestSink requestSink;
-
-  private final ResponseStream responseStream;
-
-  private final LineReaderStream errorStream;
+  private final AnalysisServerSocket socket;
+  private RequestSink requestSink;
+  private ResponseStream responseStream;
+  private LineReaderStream errorStream;
+  private final AtomicLong lastResponseTime = new AtomicLong(0);
 
   /**
    * The listener that will receive notification when new analysis results become available.
@@ -179,19 +188,18 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
    */
   private final AtomicInteger nextId = new AtomicInteger();
 
-  public RemoteAnalysisServerImpl(RequestSink requestSink, ResponseStream responseStream) {
-    this(requestSink, responseStream, null);
-  }
+  /**
+   * The thread that restarts an unresponsive server or {@code null} if it has not been started.
+   */
+  private Thread watcher;
 
-  public RemoteAnalysisServerImpl(RequestSink requestSink, ResponseStream responseStream,
-      LineReaderStream errorStream) {
-    this.requestSink = requestSink;
-    this.responseStream = responseStream;
-    this.errorStream = errorStream;
-    new ServerResponseReaderThread().start();
-    if (errorStream != null) {
-      new ServerErrorReaderThread().start();
-    }
+  /**
+   * A flag indicating whether the watcher should continue monitoring the remote process.
+   */
+  private boolean watch;
+
+  public RemoteAnalysisServerImpl(AnalysisServerSocket socket) {
+    this.socket = socket;
   }
 
   @Override
@@ -329,6 +337,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void shutdown() {
+    stopWatcher();
     String id = generateUniqueId();
     sendRequestToServer(id, RequestUtilities.generateServerShutdown(id), new BasicConsumer() {
       @Override
@@ -337,6 +346,13 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
         requestSink.close();
       }
     });
+    stopServer();
+  }
+
+  @Override
+  public void start(long millisToRestart) throws Exception {
+    startServer();
+    startWatcher(millisToRestart);
   }
 
   @VisibleForTesting
@@ -496,4 +512,87 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     requestSink.add(request);
   }
 
+  private void sleep(long millisToSleep) {
+    try {
+      Thread.sleep(millisToSleep);
+    } catch (InterruptedException e) {
+      //$FALL-THROUGH$
+    }
+  }
+
+  private void startServer() throws Exception {
+    socket.start();
+    consumerMap.clear();
+    requestSink = socket.getRequestSink();
+    responseStream = socket.getResponseStream();
+    errorStream = socket.getErrorStream();
+    new ServerResponseReaderThread(responseStream).start();
+    if (errorStream != null) {
+      new ServerErrorReaderThread(errorStream).start();
+    }
+  }
+
+  private void startWatcher(final long millisToRestart) {
+    if (millisToRestart <= 0 || watcher != null) {
+      return;
+    }
+    watch = true;
+    watcher = new Thread(getClass().getSimpleName() + " watcher") {
+      @Override
+      public void run() {
+        watch(millisToRestart);
+      };
+    };
+    watcher.setDaemon(true);
+    watcher.start();
+  }
+
+  private void stopServer() {
+    socket.stop();
+  }
+
+  private void stopWatcher() {
+    if (watcher == null) {
+      return;
+    }
+    watch = false;
+    watcher.interrupt();
+    try {
+      watcher.join(5000);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    watcher = null;
+  }
+
+  private void watch(long millisToRestart) {
+    boolean sentRequest = false;
+    while (watch) {
+      long millisToSleep = lastResponseTime.get() + millisToRestart - System.currentTimeMillis();
+      if (millisToSleep > 0) {
+        // If there has been a response from the server within the desired period, then sleep
+        sentRequest = false;
+        sleep(millisToSleep);
+      } else if (!sentRequest) {
+        // If no response from the server then send a request and wait for the response
+        getVersion(null);
+        sentRequest = true;
+        sleep(millisToRestart / 2);
+      } else {
+        // If still no response from server then restart the server
+        stopServer();
+        try {
+          startServer();
+        } catch (Exception e) {
+          //TODO (danrubel): What to do if cannot restart server?
+          System.err.println("Failed to restart analysis server");
+          e.printStackTrace();
+          break;
+        }
+        sentRequest = false;
+        sleep(millisToRestart);
+      }
+    }
+  }
 }

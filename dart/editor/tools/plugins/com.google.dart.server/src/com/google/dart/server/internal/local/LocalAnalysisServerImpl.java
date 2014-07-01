@@ -1077,6 +1077,10 @@ public class LocalAnalysisServerImpl implements AnalysisServer, InternalAnalysis
 //    index.stop();
   }
 
+  @Override
+  public void start(long millisToRestart) {
+  }
+
   @VisibleForTesting
   public void test_addOperation(ServerOperation operation) {
     operationQueue.add(operation);

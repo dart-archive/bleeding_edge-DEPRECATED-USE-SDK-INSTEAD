@@ -24,6 +24,7 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.StdioServerSocket;
+import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -356,11 +357,6 @@ public class DartCore extends Plugin implements DartSdkListener {
   private static final Object analysisServerLock = new Object();
 
   /**
-   * The socket and process manager used by {@link #analysisServer}.
-   */
-  private static StdioServerSocket analysisServerSocket;
-
-  /**
    * Add the given listener for dart ignore changes to the Dart Model. Has no effect if an identical
    * listener is already registered.
    * 
@@ -506,16 +502,13 @@ public class DartCore extends Plugin implements DartSdkListener {
             }
           }
           // start server
-          analysisServerSocket = new StdioServerSocket(
+          StdioServerSocket socket = new StdioServerSocket(
               runtimePath,
               analysisServerPath,
               debugStream,
               DartCoreDebug.ANALYSIS_SERVER_DEBUG);
-          analysisServerSocket.start();
-          analysisServer = new com.google.dart.server.internal.remote.RemoteAnalysisServerImpl(
-              analysisServerSocket.getRequestSink(),
-              analysisServerSocket.getResponseStream(),
-              analysisServerSocket.getErrorStream());
+          analysisServer = new RemoteAnalysisServerImpl(socket);
+          analysisServer.start(15000);
           analysisServerDataImpl.setServer(analysisServer);
           analysisServerListener = new WorkspaceAnalysisServerListener(
               analysisServerDataImpl,
@@ -1787,7 +1780,6 @@ public class DartCore extends Plugin implements DartSdkListener {
       synchronized (analysisServerLock) {
         if (analysisServer != null) {
           analysisServer.shutdown();
-          analysisServerSocket.stop();
         }
       }
 

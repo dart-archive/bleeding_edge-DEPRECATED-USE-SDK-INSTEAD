@@ -266,6 +266,14 @@ public interface AnalysisServer {
   public void shutdown();
 
   /**
+   * Start the analysis server.
+   * 
+   * @param millisToRestart the number of milliseconds to wait for an unresponsive server before
+   *          restarting it, or zero if the server should not be restarted.
+   */
+  public void start(long millisToRestart) throws Exception;
+
+  /**
    * Update the options controlling analysis based on the given set of options. Any options that are
    * {@code null} will not be changed. If there are options that are not valid an error will be
    * reported but the values of the valid options will still be updated.

@@ -973,6 +973,23 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
     assertTrue(requestSink.isClosed());
+    assertTrue(socket.isStopped());
+  }
+
+  public void test_server_startup() throws Exception {
+    server.start(10);
+    // Simulate a response
+    putResponse(//
+        "{",
+        "  'id': '0'",
+        "}");
+    assertTrue(socket.isStarted());
+    assertTrue(socket.getRequestSink().getRequests().size() == 0);
+    assertTrue(socket.waitForRestart(50));
+    assertTrue(socket.getRequestSink().getRequests().size() > 0);
+    assertTrue(socket.isStopped());
+    assertTrue(socket.isStarted());
+    server.shutdown();
   }
 
   /**

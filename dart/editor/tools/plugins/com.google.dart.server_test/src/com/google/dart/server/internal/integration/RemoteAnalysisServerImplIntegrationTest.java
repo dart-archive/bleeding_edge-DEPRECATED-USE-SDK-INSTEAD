@@ -37,12 +37,9 @@ public class RemoteAnalysisServerImplIntegrationTest extends AbstractServerInteg
         analysisServerPath,
         null,
         false);
-    serverSocket.start();
     // start the server interface
-    server = new RemoteAnalysisServerImpl(
-        serverSocket.getRequestSink(),
-        serverSocket.getResponseStream(),
-        serverSocket.getErrorStream());
+    server = new RemoteAnalysisServerImpl(serverSocket);
+    server.start(0);
   }
 
   @Override
