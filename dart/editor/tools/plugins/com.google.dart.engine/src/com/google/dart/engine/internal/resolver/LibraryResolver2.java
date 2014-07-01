@@ -487,7 +487,9 @@ public class LibraryResolver2 {
   private void performConstantEvaluation() {
     TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     try {
-      ConstantValueComputer computer = new ConstantValueComputer(typeProvider);
+      ConstantValueComputer computer = new ConstantValueComputer(
+          typeProvider,
+          analysisContext.getDeclaredVariables());
       for (ResolvableLibrary library : librariesInCycle) {
         for (ResolvableCompilationUnit unit : library.getResolvableCompilationUnits()) {
           CompilationUnit ast = unit.getCompilationUnit();

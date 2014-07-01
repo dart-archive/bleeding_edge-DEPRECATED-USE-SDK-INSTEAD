@@ -14,6 +14,7 @@
 package com.google.dart.engine.constant;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 
 public class DeclaredVariablesTest extends EngineTestCase {
@@ -34,7 +35,7 @@ public class DeclaredVariablesTest extends EngineTestCase {
     DeclaredVariables variables = new DeclaredVariables();
     variables.define(variableName, "not true");
 
-    assertNull(variables.getBool(typeProvider, variableName));
+    assertNullDartObject(typeProvider, variables.getBool(typeProvider, variableName));
   }
 
   public void test_getBool_true() {
@@ -53,7 +54,7 @@ public class DeclaredVariablesTest extends EngineTestCase {
     String variableName = "var";
     DeclaredVariables variables = new DeclaredVariables();
 
-    assertNull(variables.getBool(typeProvider, variableName));
+    assertUnknownDartObject(variables.getBool(typeProvider, variableName));
   }
 
   public void test_getInt_invalid() {
@@ -62,12 +63,7 @@ public class DeclaredVariablesTest extends EngineTestCase {
     DeclaredVariables variables = new DeclaredVariables();
     variables.define(variableName, "four score and seven years");
 
-    try {
-      variables.getInt(typeProvider, variableName);
-      fail("Expected a NumberFormatException");
-    } catch (NumberFormatException exception) {
-      // Expected
-    }
+    assertNullDartObject(typeProvider, variables.getInt(typeProvider, variableName));
   }
 
   public void test_getInt_undefined() {
@@ -75,7 +71,7 @@ public class DeclaredVariablesTest extends EngineTestCase {
     String variableName = "var";
     DeclaredVariables variables = new DeclaredVariables();
 
-    assertNull(variables.getInt(typeProvider, variableName));
+    assertUnknownDartObject(variables.getInt(typeProvider, variableName));
   }
 
   public void test_getInt_valid() {
@@ -106,6 +102,14 @@ public class DeclaredVariablesTest extends EngineTestCase {
     String variableName = "var";
     DeclaredVariables variables = new DeclaredVariables();
 
-    assertNull(variables.getString(typeProvider, variableName));
+    assertUnknownDartObject(variables.getString(typeProvider, variableName));
+  }
+
+  private void assertNullDartObject(TestTypeProvider typeProvider, DartObject result) {
+    assertEquals(typeProvider.getNullType(), result.getType());
+  }
+
+  private void assertUnknownDartObject(DartObject result) {
+    assertTrue(((DartObjectImpl) result).isUnknown());
   }
 }

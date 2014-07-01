@@ -28,6 +28,8 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.constant.DartObject;
+import com.google.dart.engine.constant.DeclaredVariables;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
@@ -39,8 +41,10 @@ import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.element.member.ConstructorMember;
 import com.google.dart.engine.internal.element.member.ParameterMember;
+import com.google.dart.engine.internal.object.BoolState;
 import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.object.GenericState;
+import com.google.dart.engine.internal.object.NullState;
 import com.google.dart.engine.internal.object.SymbolState;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.type.InterfaceType;
@@ -131,12 +135,19 @@ public class ConstantValueComputer {
   private ArrayList<InstanceCreationExpression> constructorInvocations;
 
   /**
+   * The set of variables declared on the command line using '-D'.
+   */
+  private final DeclaredVariables declaredVariables;
+
+  /**
    * Initialize a newly created constant value computer.
    * 
    * @param typeProvider the type provider used to access known types
+   * @param declaredVariables the set of variables declared on the command line using '-D'
    */
-  public ConstantValueComputer(TypeProvider typeProvider) {
+  public ConstantValueComputer(TypeProvider typeProvider, DeclaredVariables declaredVariables) {
     this.typeProvider = typeProvider;
+    this.declaredVariables = declaredVariables;
   }
 
   /**
@@ -327,6 +338,38 @@ public class ConstantValueComputer {
     }
   }
 
+  /**
+   * Evaluate a call to fromEnvironment() on the bool, int, or String class.
+   * 
+   * @param environmentValue Value fetched from the environment
+   * @param builtInDefaultValue Value that should be used as the default if no "defaultValue"
+   *          argument appears in {@link namedArgumentValues}.
+   * @param namedArgumentValues Named parameters passed to fromEnvironment()
+   * @return A {@link ValidResult} object corresponding to the evaluated result
+   */
+  private ValidResult computeValueFromEnvironment(DartObject environmentValue,
+      DartObjectImpl builtInDefaultValue, HashMap<String, DartObjectImpl> namedArgumentValues) {
+    DartObjectImpl value = (DartObjectImpl) environmentValue;
+    if (value.isUnknown() || value.isNull()) {
+      // The name either doesn't exist in the environment or we couldn't parse the corresponding
+      // value.  If the code supplied an explicit default, use it.
+      if (namedArgumentValues.containsKey("defaultValue")) {
+        value = namedArgumentValues.get("defaultValue");
+      } else if (value.isNull()) {
+        // The code didn't supply an explicit default.  The name exists in the environment but
+        // we couldn't parse the corresponding value.  So use the built-in default value, because
+        // this is what the VM does.
+        value = builtInDefaultValue;
+      } else {
+        // The code didn't supply an explicit default.  The name doesn't exist in the environment.
+        // The VM would use the built-in default value, but we don't want to do that for analysis
+        // because it's likely to lead to cascading errors.  So just leave [value] in the unknown
+        // state.
+      }
+    }
+    return new ValidResult(value);
+  }
+
   private ValidResult evaluateConstructorCall(NodeList<Expression> arguments,
       ConstructorElement constructor, ConstantVisitor constantVisitor) {
     int argumentCount = arguments.size();
@@ -348,10 +391,32 @@ public class ConstantValueComputer {
     if (constructor.isFactory()) {
       // We couldn't find a non-factory constructor.  See if it's because we reached an external
       // const factory constructor that we can emulate.
-      // TODO(paulberry): if the constructor is one of {bool,int,String}.fromEnvironment(),
-      // we may be able to infer the value based on -D flags provided to the analyzer (see
-      // dartbug.com/17234).
-      if (definingClass == typeProvider.getSymbolType() && argumentCount == 1) {
+      if (constructor.getName().equals("fromEnvironment")) {
+        String variableName = argumentCount < 1 ? null : argumentValues[0].getStringValue();
+        if (definingClass == typeProvider.getBoolType()) {
+          DartObject valueFromEnvironment;
+          valueFromEnvironment = declaredVariables.getBool(typeProvider, variableName);
+          return computeValueFromEnvironment(
+              valueFromEnvironment,
+              new DartObjectImpl(typeProvider.getBoolType(), BoolState.FALSE_STATE),
+              namedArgumentValues);
+        } else if (definingClass == typeProvider.getIntType()) {
+          DartObject valueFromEnvironment;
+          valueFromEnvironment = declaredVariables.getInt(typeProvider, variableName);
+          return computeValueFromEnvironment(
+              valueFromEnvironment,
+              new DartObjectImpl(typeProvider.getNullType(), NullState.NULL_STATE),
+              namedArgumentValues);
+        } else if (definingClass == typeProvider.getStringType()) {
+          DartObject valueFromEnvironment;
+          valueFromEnvironment = declaredVariables.getString(typeProvider, variableName);
+          return computeValueFromEnvironment(
+              valueFromEnvironment,
+              new DartObjectImpl(typeProvider.getNullType(), NullState.NULL_STATE),
+              namedArgumentValues);
+        }
+      } else if (constructor.getName().equals("") && definingClass == typeProvider.getSymbolType()
+          && argumentCount == 1) {
         String argumentValue = argumentValues[0].getStringValue();
         if (argumentValue != null) {
           return constantVisitor.valid(definingClass, new SymbolState(argumentValue));

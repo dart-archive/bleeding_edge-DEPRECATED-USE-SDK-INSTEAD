@@ -16,6 +16,7 @@ package com.google.dart.engine.constant;
 import com.google.dart.engine.internal.object.BoolState;
 import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.object.IntState;
+import com.google.dart.engine.internal.object.NullState;
 import com.google.dart.engine.internal.object.StringState;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 
@@ -50,8 +51,10 @@ public class DeclaredVariables {
   }
 
   /**
-   * Return the value of the variable with the given name interpreted as a boolean value, or
-   * {@code null} if the variable is not defined.
+   * Return the value of the variable with the given name interpreted as a boolean value. If the
+   * variable is not defined (or {@link variableName} is null), a DartObject representing "unknown"
+   * is returned. If the value can't be parsed as a boolean, a DartObject representing null is
+   * returned.
    * 
    * @param typeProvider the type provider used to find the type 'bool'
    * @param variableName the name of the variable whose value is to be returned
@@ -59,35 +62,44 @@ public class DeclaredVariables {
   public DartObject getBool(TypeProvider typeProvider, String variableName) {
     String value = declaredVariables.get(variableName);
     if (value == null) {
-      return null;
+      return new DartObjectImpl(typeProvider.getBoolType(), BoolState.UNKNOWN_VALUE);
     }
     if (value.equals("true")) {
-      return new DartObjectImpl(typeProvider.getBoolType(), BoolState.from(true));
+      return new DartObjectImpl(typeProvider.getBoolType(), BoolState.TRUE_STATE);
     } else if (value.equals("false")) {
-      return new DartObjectImpl(typeProvider.getBoolType(), BoolState.from(false));
+      return new DartObjectImpl(typeProvider.getBoolType(), BoolState.FALSE_STATE);
     }
-    return null;
+    return new DartObjectImpl(typeProvider.getNullType(), NullState.NULL_STATE);
   }
 
   /**
-   * Return the value of the variable with the given name interpreted as an integer value, or
-   * {@code null} if the variable is not defined.
+   * Return the value of the variable with the given name interpreted as an integer value. If the
+   * variable is not defined (or {@link variableName} is null), a DartObject representing "unknown"
+   * is returned. If the value can't be parsed as an integer, a DartObject representing null is
+   * returned.
    * 
    * @param typeProvider the type provider used to find the type 'int'
    * @param variableName the name of the variable whose value is to be returned
-   * @throws NumberFormatException if the value of the variable is not a valid integer value
    */
   public DartObject getInt(TypeProvider typeProvider, String variableName) {
     String value = declaredVariables.get(variableName);
     if (value == null) {
-      return null;
+      return new DartObjectImpl(typeProvider.getIntType(), IntState.UNKNOWN_VALUE);
     }
-    return new DartObjectImpl(typeProvider.getIntType(), new IntState(new BigInteger(value)));
+    BigInteger bigInteger;
+    try {
+      bigInteger = new BigInteger(value);
+    } catch (NumberFormatException exception) {
+      return new DartObjectImpl(typeProvider.getNullType(), NullState.NULL_STATE);
+    }
+    return new DartObjectImpl(typeProvider.getIntType(), new IntState(bigInteger));
   }
 
   /**
    * Return the value of the variable with the given name interpreted as a String value, or
-   * {@code null} if the variable is not defined.
+   * {@code null} if the variable is not defined. Return the value of the variable with the given
+   * name interpreted as a String value. If the variable is not defined (or {@link variableName} is
+   * null), a DartObject representing "unknown" is returned.
    * 
    * @param typeProvider the type provider used to find the type 'String'
    * @param variableName the name of the variable whose value is to be returned
@@ -95,7 +107,7 @@ public class DeclaredVariables {
   public DartObject getString(TypeProvider typeProvider, String variableName) {
     String value = declaredVariables.get(variableName);
     if (value == null) {
-      return null;
+      return new DartObjectImpl(typeProvider.getIntType(), IntState.UNKNOWN_VALUE);
     }
     return new DartObjectImpl(typeProvider.getStringType(), new StringState(value));
   }

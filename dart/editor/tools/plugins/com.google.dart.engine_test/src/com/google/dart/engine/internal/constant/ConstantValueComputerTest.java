@@ -25,6 +25,7 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.constant.DeclaredVariables;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -70,8 +71,9 @@ public class ConstantValueComputerTest extends ResolverTestCase {
   private class ValidatingConstantValueComputer extends ConstantValueComputer {
     private AstNode nodeBeingEvaluated;
 
-    public ValidatingConstantValueComputer(TypeProvider typeProvider) {
-      super(typeProvider);
+    public ValidatingConstantValueComputer(TypeProvider typeProvider,
+        DeclaredVariables declaredVariables) {
+      super(typeProvider, declaredVariables);
     }
 
     @Override
@@ -352,6 +354,94 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     assertProperDependencies(createSource(//
         "const x = y + 1;",
         "const y = 2;"));
+  }
+
+  public void test_fromEnvironment_bool_default_false() throws Exception {
+    assertEquals(false, assertValidBool(check_fromEnvironment_bool(null, "false")));
+  }
+
+  public void test_fromEnvironment_bool_default_overridden() throws Exception {
+    assertEquals(false, assertValidBool(check_fromEnvironment_bool("false", "true")));
+  }
+
+  public void test_fromEnvironment_bool_default_parseError() throws Exception {
+    assertEquals(true, assertValidBool(check_fromEnvironment_bool("parseError", "true")));
+  }
+
+  public void test_fromEnvironment_bool_default_true() throws Exception {
+    assertEquals(true, assertValidBool(check_fromEnvironment_bool(null, "true")));
+  }
+
+  public void test_fromEnvironment_bool_false() throws Exception {
+    assertEquals(false, assertValidBool(check_fromEnvironment_bool("false", null)));
+  }
+
+  public void test_fromEnvironment_bool_parseError() throws Exception {
+    assertEquals(false, assertValidBool(check_fromEnvironment_bool("parseError", null)));
+  }
+
+  public void test_fromEnvironment_bool_true() throws Exception {
+    assertEquals(true, assertValidBool(check_fromEnvironment_bool("true", null)));
+  }
+
+  public void test_fromEnvironment_bool_undeclared() throws Exception {
+    assertValidUnknown(check_fromEnvironment_bool(null, null));
+  }
+
+  public void test_fromEnvironment_int_default_overridden() throws Exception {
+    assertEquals(234, assertValidInt(check_fromEnvironment_int("234", "123")));
+  }
+
+  public void test_fromEnvironment_int_default_parseError() throws Exception {
+    assertEquals(123, assertValidInt(check_fromEnvironment_int("parseError", "123")));
+  }
+
+  public void test_fromEnvironment_int_default_undeclared() throws Exception {
+    assertEquals(123, assertValidInt(check_fromEnvironment_int(null, "123")));
+  }
+
+  public void test_fromEnvironment_int_ok() throws Exception {
+    assertEquals(234, assertValidInt(check_fromEnvironment_int("234", null)));
+  }
+
+  public void test_fromEnvironment_int_parseError() throws Exception {
+    assertValidNull(check_fromEnvironment_int("parseError", null));
+  }
+
+  public void test_fromEnvironment_int_parseError_nullDefault() throws Exception {
+    assertValidNull(check_fromEnvironment_int("parseError", "null"));
+  }
+
+  public void test_fromEnvironment_int_undeclared() throws Exception {
+    assertValidUnknown(check_fromEnvironment_int(null, null));
+  }
+
+  public void test_fromEnvironment_int_undeclared_nullDefault() throws Exception {
+    assertValidNull(check_fromEnvironment_int(null, "null"));
+  }
+
+  public void test_fromEnvironment_string_default_overridden() throws Exception {
+    assertEquals("abc", assertValidString(check_fromEnvironment_string("abc", "'def'")));
+  }
+
+  public void test_fromEnvironment_string_default_undeclared() throws Exception {
+    assertEquals("def", assertValidString(check_fromEnvironment_string(null, "'def'")));
+  }
+
+  public void test_fromEnvironment_string_empty() throws Exception {
+    assertEquals("", assertValidString(check_fromEnvironment_string("", null)));
+  }
+
+  public void test_fromEnvironment_string_ok() throws Exception {
+    assertEquals("abc", assertValidString(check_fromEnvironment_string("abc", null)));
+  }
+
+  public void test_fromEnvironment_string_undeclared() throws Exception {
+    assertValidUnknown(check_fromEnvironment_string(null, null));
+  }
+
+  public void test_fromEnvironment_string_undeclared_nullDefault() throws Exception {
+    assertValidNull(check_fromEnvironment_string(null, "null"));
   }
 
   public void test_instanceCreationExpression_computedField() throws Exception {
@@ -673,10 +763,78 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     return value.getFields();
   }
 
+  private boolean assertValidBool(EvaluationResultImpl result) throws AnalysisException {
+    assertInstanceOf(ValidResult.class, result);
+    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertEquals(getTypeProvider().getBoolType(), value.getType());
+    Boolean boolValue = value.getBoolValue();
+    assertNotNull(boolValue);
+    return boolValue;
+  }
+
+  private int assertValidInt(EvaluationResultImpl result) throws AnalysisException {
+    assertInstanceOf(ValidResult.class, result);
+    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertEquals(getTypeProvider().getIntType(), value.getType());
+    return value.getIntValue().intValue();
+  }
+
+  private void assertValidNull(EvaluationResultImpl result) throws AnalysisException {
+    assertInstanceOf(ValidResult.class, result);
+    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertEquals(getTypeProvider().getNullType(), value.getType());
+  }
+
+  private String assertValidString(EvaluationResultImpl result) throws AnalysisException {
+    assertInstanceOf(ValidResult.class, result);
+    DartObjectImpl value = ((ValidResult) result).getValue();
+    assertEquals(getTypeProvider().getStringType(), value.getType());
+    return value.getStringValue();
+  }
+
   private void assertValidUnknown(EvaluationResultImpl result) {
     assertInstanceOf(ValidResult.class, result);
     DartObjectImpl value = ((ValidResult) result).getValue();
     assertTrue(value.isUnknown());
+  }
+
+  private EvaluationResultImpl check_fromEnvironment_bool(String valueInEnvironment,
+      String defaultExpr) throws AnalysisException {
+    String envVarName = "x";
+    String varName = "foo";
+    if (valueInEnvironment != null) {
+      analysisContext.getDeclaredVariables().define(envVarName, valueInEnvironment);
+    }
+    String defaultArg = defaultExpr == null ? "" : ", defaultValue: " + defaultExpr;
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+    "const " + varName + " = const bool.fromEnvironment('" + envVarName + "'" + defaultArg + ");"));
+    return evaluateInstanceCreationExpression(compilationUnit, varName);
+  }
+
+  private EvaluationResultImpl check_fromEnvironment_int(String valueInEnvironment,
+      String defaultExpr) throws AnalysisException {
+    String envVarName = "x";
+    String varName = "foo";
+    if (valueInEnvironment != null) {
+      analysisContext.getDeclaredVariables().define(envVarName, valueInEnvironment);
+    }
+    String defaultArg = defaultExpr == null ? "" : ", defaultValue: " + defaultExpr;
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+    "const " + varName + " = const int.fromEnvironment('" + envVarName + "'" + defaultArg + ");"));
+    return evaluateInstanceCreationExpression(compilationUnit, varName);
+  }
+
+  private EvaluationResultImpl check_fromEnvironment_string(String valueInEnvironment,
+      String defaultExpr) throws AnalysisException {
+    String envVarName = "x";
+    String varName = "foo";
+    if (valueInEnvironment != null) {
+      analysisContext.getDeclaredVariables().define(envVarName, valueInEnvironment);
+    }
+    String defaultArg = defaultExpr == null ? "" : ", defaultValue: " + defaultExpr;
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+    "const " + varName + " = const String.fromEnvironment('" + envVarName + "'" + defaultArg + ");"));
+    return evaluateInstanceCreationExpression(compilationUnit, varName);
   }
 
   private void checkInstanceCreation_withSupertypeParams(boolean isExplicit)
@@ -741,7 +899,9 @@ public class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   private ConstantValueComputer makeConstantValueComputer() {
-    return new ValidatingConstantValueComputer(new TestTypeProvider());
+    return new ValidatingConstantValueComputer(
+        new TestTypeProvider(),
+        analysisContext.getDeclaredVariables());
   }
 
   private void validate(boolean shouldBeValid, VariableDeclarationList declarationList) {

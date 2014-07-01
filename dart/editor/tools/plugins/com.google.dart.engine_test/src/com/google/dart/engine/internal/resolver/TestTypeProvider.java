@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.resolver;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
@@ -33,6 +34,8 @@ import static com.google.dart.engine.element.ElementFactory.fieldElement;
 import static com.google.dart.engine.element.ElementFactory.getObject;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
+import static com.google.dart.engine.element.ElementFactory.namedParameter;
+import static com.google.dart.engine.element.ElementFactory.requiredParameter;
 
 /**
  * Instances of the class {@code TestTypeProvider} implement a type provider that can be used by
@@ -140,7 +143,16 @@ public class TestTypeProvider implements TypeProvider {
   @Override
   public InterfaceType getBoolType() {
     if (boolType == null) {
-      boolType = classElement("bool").getType();
+      ClassElementImpl boolElement = classElement("bool");
+      boolType = boolElement.getType();
+      ConstructorElementImpl fromEnvironment = constructorElement(
+          boolElement,
+          "fromEnvironment",
+          true);
+      fromEnvironment.setParameters(new ParameterElement[] {
+          requiredParameter("name", getStringType()), namedParameter("defaultValue", boolType)});
+      fromEnvironment.setFactory(true);
+      boolElement.setConstructors(new ConstructorElement[] {fromEnvironment});
     }
     return boolType;
   }
@@ -320,6 +332,14 @@ public class TestTypeProvider implements TypeProvider {
       stringElement.setMethods(new MethodElement[] {
           methodElement("+", stringType, stringType), methodElement("toLowerCase", stringType),
           methodElement("toUpperCase", stringType)});
+      ConstructorElementImpl fromEnvironment = constructorElement(
+          stringElement,
+          "fromEnvironment",
+          true);
+      fromEnvironment.setParameters(new ParameterElement[] {
+          requiredParameter("name", getStringType()), namedParameter("defaultValue", stringType)});
+      fromEnvironment.setFactory(true);
+      stringElement.setConstructors(new ConstructorElement[] {fromEnvironment});
     }
     return stringType;
   }
@@ -405,6 +425,11 @@ public class TestTypeProvider implements TypeProvider {
         methodElement("toString", stringType),
 //      methodElement(/*external static*/ "parse", intType, stringType),
     });
+    ConstructorElementImpl fromEnvironment = constructorElement(intElement, "fromEnvironment", true);
+    fromEnvironment.setParameters(new ParameterElement[] {
+        requiredParameter("name", getStringType()), namedParameter("defaultValue", intType)});
+    fromEnvironment.setFactory(true);
+    intElement.setConstructors(new ConstructorElement[] {fromEnvironment});
     FieldElement[] fields = new FieldElement[] {fieldElement("NAN", true, false, true, doubleType), // 0.0 / 0.0
         fieldElement("INFINITY", true, false, true, doubleType), // 1.0 / 0.0
         fieldElement("NEGATIVE_INFINITY", true, false, true, doubleType), // -INFINITY

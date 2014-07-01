@@ -297,6 +297,11 @@ public class IntState extends NumState {
   }
 
   @Override
+  public boolean isUnknown() {
+    return value == null;
+  }
+
+  @Override
   public BoolState lessThan(InstanceState rightOperand) throws EvaluationException {
     assertNumOrNull(rightOperand);
     if (value == null) {
