@@ -37,6 +37,7 @@ vars = {
   "json_rev" : "@19997",
   "junit_rev" : "@19997",
   "mockito_rev" : "@19997",
+  "petitparser_rev" : "@37878",
   "snakeyaml_rev" : "@19997",
   "websocket_rev" : "@35854",
   "WebCore_rev" : "@34173",
@@ -107,6 +108,8 @@ deps = {
 
   "dart/third_party/font-awesome":
       "/third_party/font-awesome" + Var("font_awesome_rev"),
+  "dart/third_party/pkg/petitparser":
+    "/third_party/petitparser" + Var("petitparser_rev"),
 
   # These specific versions of barback are used for testing and should be pulled
   # from bleeding_edge even on channels.
