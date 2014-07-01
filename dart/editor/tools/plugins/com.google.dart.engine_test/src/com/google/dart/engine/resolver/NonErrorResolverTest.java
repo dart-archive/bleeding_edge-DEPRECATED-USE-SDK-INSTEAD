@@ -26,27 +26,6 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class NonErrorResolverTest extends ResolverTestCase {
-  public void fail_invalidAssignment_implicitlyImplementFunctionViaCall_2() throws Exception {
-    // 18341
-    //
-    // Here 'C' checks as a subtype of 'I', but 'C' does not
-    // check as a subtype of 'IntToInt'. Together with
-    // 'test_invalidAssignment_implicitlyImplementFunctionViaCall_1()' we see
-    // that subtyping is not transitive here.
-    Source source = addSource(createSource(//
-        "class I {",
-        "  int call(int x) => 0;",
-        "}",
-        "class C implements I {",
-        "  noSuchMethod(_) => null;",
-        "}",
-        "typedef int IntToInt(int x);",
-        "IntToInt f = new C();"));
-    resolve(source);
-    assertNoErrors(source);
-    verify(source);
-  }
-
   public void test_ambiguousExport() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
@@ -1875,7 +1854,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_invalidAssignment_implicitlyImplementFunctionViaCall_1() throws Exception {
     // 18341
     //
-    // This test and 'fail/test_invalidAssignment_implicitlyImplementFunctionViaCall_2()'
+    // This test and 'test_invalidAssignment_implicitlyImplementFunctionViaCall_2()'
     // are closely related: here we see that 'I' checks as a subtype of 'IntToInt'.
     Source source = addSource(createSource(//
         "class I {",
@@ -1891,10 +1870,31 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAssignment_implicitlyImplementFunctionViaCall_2() throws Exception {
+    // 18341
+    //
+    // Here 'C' checks as a subtype of 'I', but 'C' does not
+    // check as a subtype of 'IntToInt'. Together with
+    // 'test_invalidAssignment_implicitlyImplementFunctionViaCall_1()' we see
+    // that subtyping is not transitive here.
+    Source source = addSource(createSource(//
+        "class I {",
+        "  int call(int x) => 0;",
+        "}",
+        "class C implements I {",
+        "  noSuchMethod(_) => null;",
+        "}",
+        "typedef int IntToInt(int x);",
+        "IntToInt f = new C();"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_invalidAssignment_implicitlyImplementFunctionViaCall_3() throws Exception {
     // 18341
     //
-    // Like 'fail/test_invalidAssignment_implicitlyImplementFunctionViaCall_2()',
+    // Like 'test_invalidAssignment_implicitlyImplementFunctionViaCall_2()',
     // but uses type 'Function' instead of more precise type 'IntToInt' for 'f'.
     Source source = addSource(createSource(//
         "class I {",
@@ -1905,6 +1905,30 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "typedef int IntToInt(int x);",
         "Function f = new C();"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_invalidAssignment_implicitlyImplementFunctionViaCall_4() throws Exception {
+    // 18341
+    //
+    // Like 'test_invalidAssignment_implicitlyImplementFunctionViaCall_2()',
+    // but uses type 'VoidToInt' instead of more precise type 'IntToInt' for 'f'.
+    //
+    // Here 'C <: IntToInt <: VoidToInt', but the spec gives no transitivity rule
+    // for '<:'. However, many of the :/tools/test.py tests assume this transitivity
+    // for 'JsBuilder' objects, assigning them to '(String) -> dynamic'. The declared type of
+    // 'JsBuilder.call' is '(String, [dynamic]) -> Expression'.
+    Source source = addSource(createSource(//
+        "class I {",
+        "  int call([int x]) => 0;",
+        "}",
+        "class C implements I {",
+        "  noSuchMethod(_) => null;",
+        "}",
+        "typedef int VoidToInt();",
+        "VoidToInt f = new C();"));
     resolve(source);
     assertNoErrors(source);
     verify(source);
