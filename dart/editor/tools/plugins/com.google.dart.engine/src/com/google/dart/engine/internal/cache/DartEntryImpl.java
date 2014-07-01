@@ -25,6 +25,7 @@ import com.google.dart.engine.utilities.ast.AstCloner;
 import com.google.dart.engine.utilities.collection.ListUtilities;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -303,6 +304,60 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
 
     /**
+     * Write a textual representation of the difference between the old entry and this entry to the
+     * given string builder.
+     * 
+     * @param builder the string builder to which the difference is to be written
+     * @param oldEntry the entry that was replaced by this entry
+     * @return {@code true} if some difference was written
+     */
+    protected boolean writeDiffOn(StringBuilder builder, boolean needsSeparator, DartEntry oldEntry) {
+      needsSeparator = writeStateDiffOn(
+          builder,
+          needsSeparator,
+          oldEntry,
+          BUILT_UNIT,
+          builtUnitState,
+          "builtUnit");
+      needsSeparator = writeStateDiffOn(
+          builder,
+          needsSeparator,
+          oldEntry,
+          BUILD_ELEMENT_ERRORS,
+          buildElementErrorsState,
+          "buildElementErrors");
+      needsSeparator = writeStateDiffOn(
+          builder,
+          needsSeparator,
+          oldEntry,
+          RESOLVED_UNIT,
+          resolvedUnitState,
+          "resolvedUnit");
+      needsSeparator = writeStateDiffOn(
+          builder,
+          needsSeparator,
+          oldEntry,
+          RESOLUTION_ERRORS,
+          resolutionErrorsState,
+          "resolutionErrors");
+      needsSeparator = writeStateDiffOn(
+          builder,
+          needsSeparator,
+          oldEntry,
+          VERIFICATION_ERRORS,
+          verificationErrorsState,
+          "verificationErrors");
+      needsSeparator = writeStateDiffOn(
+          builder,
+          needsSeparator,
+          oldEntry,
+          HINTS,
+          hintsState,
+          "hints");
+      return needsSeparator;
+    }
+
+    /**
      * Write a textual representation of this state to the given builder. The result will only be
      * used for debugging purposes.
      * 
@@ -326,6 +381,34 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
           nextState.writeOn(builder);
         }
       }
+    }
+
+    /**
+     * Write a textual representation of the difference between the state of the specified data
+     * between the old entry and this entry to the given string builder.
+     * 
+     * @param builder the string builder to which the difference is to be written
+     * @param needsSeparator {@code true} if any data that is written
+     * @param oldEntry the entry that was replaced by this entry
+     * @param descriptor the descriptor defining the data whose state is being compared
+     * @param label the label used to describe the state
+     * @return {@code true} if some difference was written
+     */
+    protected boolean writeStateDiffOn(StringBuilder builder, boolean needsSeparator,
+        SourceEntry oldEntry, DataDescriptor<?> descriptor, CacheState newState, String label) {
+      CacheState oldState = ((DartEntryImpl) oldEntry).getStateInLibrary(descriptor, librarySource);
+      if (oldState != newState) {
+        if (needsSeparator) {
+          builder.append("; ");
+        }
+        builder.append(label);
+        builder.append(" = ");
+        builder.append(oldState);
+        builder.append(" -> ");
+        builder.append(newState);
+        return true;
+      }
+      return needsSeparator;
     }
   }
 
@@ -1436,6 +1519,118 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
         || includedPartsState == CacheState.ERROR || elementState == CacheState.ERROR
         || publicNamespaceState == CacheState.ERROR || clientServerState == CacheState.ERROR
         || launchableState == CacheState.ERROR || resolutionState.hasErrorState();
+  }
+
+  @Override
+  protected boolean writeDiffOn(StringBuilder builder, SourceEntry oldEntry) {
+    boolean needsSeparator = super.writeDiffOn(builder, oldEntry);
+    if (!(oldEntry instanceof DartEntryImpl)) {
+      if (needsSeparator) {
+        builder.append("; ");
+      }
+      builder.append("entry type changed; was " + oldEntry.getClass().getName());
+      return true;
+    }
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        TOKEN_STREAM,
+        "tokenStream");
+    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, SCAN_ERRORS, "scanErrors");
+    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, SOURCE_KIND, "sourceKind");
+    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, PARSED_UNIT, "parsedUnit");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        PARSE_ERRORS,
+        "parseErrors");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        IMPORTED_LIBRARIES,
+        "importedLibraries");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        EXPORTED_LIBRARIES,
+        "exportedLibraries");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        INCLUDED_PARTS,
+        "includedParts");
+    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, ELEMENT, "element");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        PUBLIC_NAMESPACE,
+        "publicNamespace");
+    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, IS_CLIENT, "clientServer");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        IS_LAUNCHABLE,
+        "launchable");
+    // TODO(brianwilkerson) Add better support for containingLibraries. It would be nice to be able
+    // to report on size-preserving changes.
+    int oldLibraryCount = ((DartEntryImpl) oldEntry).containingLibraries.size();
+    int libraryCount = containingLibraries.size();
+    if (oldLibraryCount != libraryCount) {
+      if (needsSeparator) {
+        builder.append("; ");
+      }
+      builder.append("containingLibraryCount = ");
+      builder.append(oldLibraryCount);
+      builder.append(" -> ");
+      builder.append(libraryCount);
+      needsSeparator = true;
+    }
+    //
+    // Report change to the per-library state.
+    //
+    HashMap<Source, ResolutionState> oldStateMap = new HashMap<Source, ResolutionState>();
+    ResolutionState state = ((DartEntryImpl) oldEntry).resolutionState;
+    while (state != null) {
+      Source librarySource = state.librarySource;
+      if (librarySource != null) {
+        oldStateMap.put(librarySource, state);
+      }
+      state = state.nextState;
+    }
+    state = resolutionState;
+    while (state != null) {
+      Source librarySource = state.librarySource;
+      if (librarySource != null) {
+        ResolutionState oldState = oldStateMap.remove(librarySource);
+        if (oldState == null) {
+          if (needsSeparator) {
+            builder.append("; ");
+          }
+          builder.append("added resolution for ");
+          builder.append(librarySource.getFullName());
+          needsSeparator = true;
+        } else {
+          needsSeparator = oldState.writeDiffOn(builder, needsSeparator, (DartEntry) oldEntry);
+        }
+      }
+      state = state.nextState;
+    }
+    for (Source librarySource : oldStateMap.keySet()) {
+      if (needsSeparator) {
+        builder.append("; ");
+      }
+      builder.append("removed resolution for ");
+      builder.append(librarySource.getFullName());
+      needsSeparator = true;
+    }
+    return needsSeparator;
   }
 
   @Override

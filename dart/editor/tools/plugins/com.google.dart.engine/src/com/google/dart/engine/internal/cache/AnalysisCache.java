@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.cache;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContextStatistics.PartitionData;
 import com.google.dart.engine.internal.context.AnalysisContextStatisticsImpl;
 import com.google.dart.engine.source.Source;
@@ -30,6 +31,12 @@ public class AnalysisCache {
    * An array containing the partitions of which this cache is comprised.
    */
   private CachePartition[] partitions;
+
+  /**
+   * A flag used to control whether trace information should be produced when the content of the
+   * cache is modified.
+   */
+  private static final boolean TRACE_CHANGES = false;
 
   /**
    * Initialize a newly created cache to have the given partitions. The partitions will be searched
@@ -126,6 +133,22 @@ public class AnalysisCache {
     int count = partitions.length;
     for (int i = 0; i < count; i++) {
       if (partitions[i].contains(source)) {
+        if (TRACE_CHANGES) {
+          try {
+            SourceEntry oldEntry = partitions[i].get(source);
+            if (oldEntry == null) {
+              AnalysisEngine.getInstance().getLogger().logInformation(
+                  "Added a cache entry for '" + source.getFullName() + "'.");
+            } else {
+              AnalysisEngine.getInstance().getLogger().logInformation(
+                  "Modified the cache entry for " + source.getFullName() + "'. Diff = "
+                      + ((SourceEntryImpl) entry).getDiff(oldEntry));
+            }
+          } catch (Throwable exception) {
+            // Ignored
+            System.currentTimeMillis();
+          }
+        }
         partitions[i].put(source, entry);
         return;
       }
@@ -141,6 +164,15 @@ public class AnalysisCache {
     int count = partitions.length;
     for (int i = 0; i < count; i++) {
       if (partitions[i].contains(source)) {
+        if (TRACE_CHANGES) {
+          try {
+            AnalysisEngine.getInstance().getLogger().logInformation(
+                "Removed the cache entry for " + source.getFullName() + "'.");
+          } catch (Throwable exception) {
+            // Ignored
+            System.currentTimeMillis();
+          }
+        }
         partitions[i].remove(source);
         return;
       }

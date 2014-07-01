@@ -94,6 +94,20 @@ public abstract class SourceEntryImpl implements SourceEntry {
   }
 
   /**
+   * Return a textual representation of the difference between the old entry and this entry. The
+   * difference is represented as a sequence of fields whose value would change if the old entry
+   * were converted into the new entry.
+   * 
+   * @param oldEntry the entry being diff'd with this entry
+   * @return a textual representation of the difference
+   */
+  public String getDiff(SourceEntry oldEntry) {
+    StringBuilder builder = new StringBuilder();
+    writeDiffOn(builder, oldEntry);
+    return builder.toString();
+  }
+
+  /**
    * Return the exception that caused one or more values to have a state of {@link CacheState#ERROR}
    * .
    * 
@@ -333,6 +347,40 @@ public abstract class SourceEntryImpl implements SourceEntry {
   }
 
   /**
+   * Write a textual representation of the difference between the old entry and this entry to the
+   * given string builder.
+   * 
+   * @param builder the string builder to which the difference is to be written
+   * @param oldEntry the entry that was replaced by this entry
+   * @return {@code true} if some difference was written
+   */
+  protected boolean writeDiffOn(StringBuilder builder, SourceEntry oldEntry) {
+    boolean needsSeparator = false;
+    AnalysisException oldException = oldEntry.getException();
+    if (oldException != exception) {
+      builder.append("exception = ");
+      builder.append(oldException.getClass());
+      builder.append(" -> ");
+      builder.append(exception.getClass());
+      needsSeparator = true;
+    }
+    long oldModificationTime = oldEntry.getModificationTime();
+    if (oldModificationTime != modificationTime) {
+      if (needsSeparator) {
+        builder.append("; ");
+      }
+      builder.append("time = ");
+      builder.append(oldModificationTime);
+      builder.append(" -> ");
+      builder.append(modificationTime);
+      needsSeparator = true;
+    }
+    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, CONTENT, "content");
+    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, LINE_INFO, "lineInfo");
+    return needsSeparator;
+  }
+
+  /**
    * Write a textual representation of this entry to the given builder. The result will only be used
    * for debugging purposes.
    * 
@@ -345,6 +393,35 @@ public abstract class SourceEntryImpl implements SourceEntry {
     builder.append(contentState);
     builder.append("; lineInfo = ");
     builder.append(lineInfoState);
+  }
+
+  /**
+   * Write a textual representation of the difference between the state of the specified data
+   * between the old entry and this entry to the given string builder.
+   * 
+   * @param builder the string builder to which the difference is to be written
+   * @param needsSeparator {@code true} if any data that is written
+   * @param oldEntry the entry that was replaced by this entry
+   * @param descriptor the descriptor defining the data whose state is being compared
+   * @param label the label used to describe the state
+   * @return {@code true} if some difference was written
+   */
+  protected boolean writeStateDiffOn(StringBuilder builder, boolean needsSeparator,
+      SourceEntry oldEntry, DataDescriptor<?> descriptor, String label) {
+    CacheState oldState = oldEntry.getState(descriptor);
+    CacheState newState = getState(descriptor);
+    if (oldState != newState) {
+      if (needsSeparator) {
+        builder.append("; ");
+      }
+      builder.append(label);
+      builder.append(" = ");
+      builder.append(oldState);
+      builder.append(" -> ");
+      builder.append(newState);
+      return true;
+    }
+    return needsSeparator;
   }
 
   /**

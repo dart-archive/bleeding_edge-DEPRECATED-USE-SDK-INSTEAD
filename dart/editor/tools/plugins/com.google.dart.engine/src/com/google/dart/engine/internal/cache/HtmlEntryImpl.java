@@ -566,6 +566,81 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   }
 
   @Override
+  protected boolean writeDiffOn(StringBuilder builder, SourceEntry oldEntry) {
+    boolean needsSeparator = super.writeDiffOn(builder, oldEntry);
+    if (!(oldEntry instanceof HtmlEntryImpl)) {
+      if (needsSeparator) {
+        builder.append("; ");
+      }
+      builder.append("entry type changed; was " + oldEntry.getClass().getName());
+      return true;
+    }
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        PARSE_ERRORS,
+        "parseErrors");
+    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, PARSED_UNIT, "parsedUnit");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        RESOLVED_UNIT,
+        "resolvedUnit");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        RESOLUTION_ERRORS,
+        "resolutionErrors");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        REFERENCED_LIBRARIES,
+        "referencedLibraries");
+    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, ELEMENT, "element");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        ANGULAR_APPLICATION,
+        "angularApplicationState");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        ANGULAR_COMPONENT,
+        "angularComponent");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        ANGULAR_ENTRY,
+        "angularEntry");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        ANGULAR_ERRORS,
+        "angularErrors");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        POLYMER_BUILD_ERRORS,
+        "polymerBuildErrors");
+    needsSeparator = writeStateDiffOn(
+        builder,
+        needsSeparator,
+        oldEntry,
+        POLYMER_RESOLUTION_ERRORS,
+        "polymerResolutionErrors");
+    return needsSeparator;
+  }
+
+  @Override
   protected void writeOn(StringBuilder builder) {
     builder.append("Html: ");
     super.writeOn(builder);
