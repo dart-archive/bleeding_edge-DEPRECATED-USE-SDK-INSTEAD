@@ -116,7 +116,7 @@ public class GetContentTask extends AnalysisTask {
       TimestampedData<CharSequence> data = getContext().getContents(source);
       content = data.getData();
       modificationTime = data.getModificationTime();
-    } catch (Exception exception) {
+    } catch (Throwable exception) {
       throw new AnalysisException("Could not get contents of " + source, exception);
     }
   }
