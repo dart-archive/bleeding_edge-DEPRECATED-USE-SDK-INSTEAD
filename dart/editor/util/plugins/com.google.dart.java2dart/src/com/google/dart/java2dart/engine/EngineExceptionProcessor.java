@@ -40,6 +40,7 @@ import com.google.dart.java2dart.util.JavaUtils;
 import static com.google.dart.java2dart.util.AstFactory.identifier;
 import static com.google.dart.java2dart.util.AstFactory.instanceCreationExpression;
 import static com.google.dart.java2dart.util.AstFactory.nullLiteral;
+import static com.google.dart.java2dart.util.AstFactory.string;
 import static com.google.dart.java2dart.util.AstFactory.typeName;
 
 import org.eclipse.jdt.core.dom.ITypeBinding;
@@ -125,6 +126,22 @@ public class EngineExceptionProcessor extends SemanticProcessor {
           }
         }
         return super.visitSimpleIdentifier(node);
+      }
+
+      @Override
+      public Void visitThrowExpression(ThrowExpression node) {
+        super.visitThrowExpression(node);
+        // "throw thrownException;" in AnalysisContextImpl -> "throw new AnalysisContext(thrownException)"
+        Expression expression = node.getExpression();
+        if (expression instanceof SimpleIdentifier
+            && ((SimpleIdentifier) expression).getName().equals("thrownException")) {
+          node.setExpression(instanceCreationExpression(
+              Keyword.NEW,
+              typeName("AnalysisException"),
+              string("<rethrow>"),
+              expression));
+        }
+        return null;
       }
 
       @Override
