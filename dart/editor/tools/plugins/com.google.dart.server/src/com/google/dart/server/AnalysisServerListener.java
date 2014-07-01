@@ -63,6 +63,15 @@ public interface AnalysisServerListener {
   public void computedNavigation(String file, NavigationRegion[] targets);
 
   /**
+   * A new collection of occurrences that been computed for the given file. Each occurrences object
+   * represents a list of occurrences for some element in the file.
+   * 
+   * @param file the file containing the occurrences
+   * @param occurrencesArray the array of occurrences in the passed file
+   */
+  public void computedOccurrences(String file, Occurrences[] occurrencesArray);
+
+  /**
    * A new outline has been computed for the given file.
    * 
    * @param file the file with which the outline is associated

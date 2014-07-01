@@ -19,6 +19,7 @@ import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager_NEW;
@@ -76,6 +77,11 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   @Override
   public void computedNavigation(String file, NavigationRegion[] targets) {
     dataImpl.internalComputedNavigation(file, targets);
+  }
+
+  @Override
+  public void computedOccurrences(String file, Occurrences[] occurrencesArray) {
+    // TODO(jwren/scheglov) not yet implemented
   }
 
   @Override

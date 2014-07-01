@@ -20,6 +20,7 @@ import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 import com.google.dart.server.ServerStatus;
 
@@ -75,6 +76,13 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   public void computedNavigation(String file, NavigationRegion[] targets) {
     for (AnalysisServerListener listener : getListeners()) {
       listener.computedNavigation(file, targets);
+    }
+  }
+
+  @Override
+  public void computedOccurrences(String file, Occurrences[] occurrencesArray) {
+    for (AnalysisServerListener listener : getListeners()) {
+      listener.computedOccurrences(file, occurrencesArray);
     }
   }
 

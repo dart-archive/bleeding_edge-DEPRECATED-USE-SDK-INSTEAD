@@ -35,6 +35,7 @@ import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
 import com.google.dart.server.Location;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.ServerStatus;
@@ -234,6 +235,62 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         assertNull(element.getReturnType());
       }
     }
+  }
+
+  public void test_analysis_notification_occurences() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'analysis.occurrences',",
+        "  'params': {",
+        "    'file': '/test.dart',",
+        "    'occurrences' : [",
+        "      {",
+        "        'element': {",
+        "          'kind': 'CLASS',",
+        "          'name': 'name0',",
+        "          'location': {",
+        "            'file': '/test2.dart',",
+        "            'offset': 7,",
+        "            'length': 8,",
+        "            'startLine': 9,",
+        "            'startColumn': 10",
+        "          },",
+        "          'flags': 63",
+        "        },",
+        "        'offsets': [1,2,3,4,5],",
+        "        'length': 6",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    Occurrences[] occurrencesArray = listener.getOccurrences("/test.dart");
+
+    // assertions on occurrences
+    assertThat(occurrencesArray).hasSize(1);
+    Occurrences occurrences = occurrencesArray[0];
+    {
+      Element element = occurrences.getElement();
+      assertEquals(ElementKind.CLASS, element.getKind());
+      assertEquals("name0", element.getName());
+      Location location = element.getLocation();
+      assertEquals("/test2.dart", location.getFile());
+      assertEquals(7, location.getOffset());
+      assertEquals(8, location.getLength());
+      assertEquals(9, location.getStartLine());
+      assertEquals(10, location.getStartColumn());
+      assertTrue(element.isAbstract());
+      assertTrue(element.isConst());
+      assertTrue(element.isDeprecated());
+      assertTrue(element.isFinal());
+      assertTrue(element.isPrivate());
+      assertTrue(element.isTopLevelOrStatic());
+      assertNull(element.getParameters());
+      assertNull(element.getReturnType());
+    }
+    assertThat(occurrences.getOffsets()).hasSize(5).contains(1, 2, 3, 4, 5);
+    assertEquals(6, occurrences.getLength());
   }
 
   public void test_analysis_notification_outline() throws Exception {

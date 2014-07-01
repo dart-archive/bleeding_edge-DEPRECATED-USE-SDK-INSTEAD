@@ -42,6 +42,7 @@ import com.google.dart.server.internal.local.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisHighlightsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisNavigationProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationAnalysisOccurrencesProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisOutlineProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationCompletionResultsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
@@ -156,6 +157,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   private static final String ANALYSIS_NOTIFICATION_ERRORS = "analysis.errors";
   private static final String ANALYSIS_NOTIFICATION_HIGHTLIGHTS = "analysis.highlights";
   private static final String ANALYSIS_NOTIFICATION_NAVIGATION = "analysis.navigation";
+  private static final String ANALYSIS_NOTIFICATION_OCCURRENCES = "analysis.occurrences";
   private static final String ANALYSIS_NOTIFICATION_OUTLINE = "analysis.outline";
 
   // Code Completion domain
@@ -427,6 +429,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     } else if (event.equals(ANALYSIS_NOTIFICATION_NAVIGATION)) {
       // analysis.navigation
       new NotificationAnalysisNavigationProcessor(listener).process(response);
+    } else if (event.equals(ANALYSIS_NOTIFICATION_OCCURRENCES)) {
+      // analysis.occurrences
+      new NotificationAnalysisOccurrencesProcessor(listener).process(response);
     } else if (event.equals(ANALYSIS_NOTIFICATION_OUTLINE)) {
       // analysis.outline
       new NotificationAnalysisOutlineProcessor(listener).process(response);

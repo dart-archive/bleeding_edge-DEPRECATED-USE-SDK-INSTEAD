@@ -21,6 +21,7 @@ import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.server.StdioServerSocket;
@@ -59,6 +60,10 @@ public class AnalyzeEngineInServer extends TimingTest {
 
     @Override
     public void computedNavigation(String file, NavigationRegion[] targets) {
+    }
+
+    @Override
+    public void computedOccurrences(String file, Occurrences[] occurrencesArray) {
     }
 
     @Override

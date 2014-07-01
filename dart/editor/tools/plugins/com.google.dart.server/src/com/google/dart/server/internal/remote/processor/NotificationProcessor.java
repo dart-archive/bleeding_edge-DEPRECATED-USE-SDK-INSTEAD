@@ -65,6 +65,26 @@ public abstract class NotificationProcessor {
     return new ElementImpl(kind, name, location, flags, parameters, returnType);
   }
 
+  /**
+   * Given some {@link JsonArray} and of {@code int} primitives, return the {@code int[]}.
+   * 
+   * @param intJsonArray some {@link JsonArray} of {@code int}s
+   * @return the {@code int[]}
+   */
+  protected int[] constructIntArray(JsonArray intJsonArray) {
+    if (intJsonArray == null) {
+      return new int[] {};
+    }
+    int i = 0;
+    int[] ints = new int[intJsonArray.size()];
+    Iterator<JsonElement> iterator = intJsonArray.iterator();
+    while (iterator.hasNext()) {
+      ints[i] = iterator.next().getAsInt();
+      i++;
+    }
+    return ints;
+  }
+
   protected Location constructLocation(JsonObject locationObject) {
     String file = locationObject.get("file").getAsString();
     int offset = locationObject.get("offset").getAsInt();

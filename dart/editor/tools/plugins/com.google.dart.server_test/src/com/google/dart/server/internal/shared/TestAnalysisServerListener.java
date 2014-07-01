@@ -25,6 +25,7 @@ import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.Element;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.server.internal.local.asserts.NavigationRegionsAssert;
@@ -46,6 +47,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   private final Map<String, AnalysisError[]> sourcesErrors = Maps.newHashMap();
   private final Map<String, HighlightRegion[]> highlightsMap = Maps.newHashMap();
   private final Map<String, NavigationRegion[]> navigationMap = Maps.newHashMap();
+  private final Map<String, Occurrences[]> occurrencesMap = Maps.newHashMap();
   private final Map<String, Outline> outlineMap = Maps.newHashMap();
   private boolean serverConnected = false;
   private ServerStatus serverStatus = null;
@@ -106,6 +108,13 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
     navigationMap.clear();
   }
 
+  /**
+   * Removes all of reported {@link Occurrences}s.
+   */
+  public synchronized void clearOccurrences() {
+    occurrencesMap.clear();
+  }
+
   @Override
   public synchronized void computedCompletion(String completionId,
       CompletionSuggestion[] completions, boolean last) {
@@ -134,6 +143,11 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   @Override
   public synchronized void computedNavigation(String file, NavigationRegion[] targets) {
     navigationMap.put(file, targets);
+  }
+
+  @Override
+  public void computedOccurrences(String file, Occurrences[] occurrencesArray) {
+    occurrencesMap.put(file, occurrencesArray);
   }
 
   @Override
@@ -189,6 +203,14 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    */
   public synchronized NavigationRegion[] getNavigationRegions(String file) {
     return navigationMap.get(file);
+  }
+
+  /**
+   * Returns {@link Occurrences}s for the given file, maybe {@code null} if have not been ever
+   * notified.
+   */
+  public synchronized Occurrences[] getOccurrences(String file) {
+    return occurrencesMap.get(file);
   }
 
   /**
