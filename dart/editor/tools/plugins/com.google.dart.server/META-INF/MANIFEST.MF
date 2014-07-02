@@ -8,14 +8,11 @@ Bundle-SymbolicName: com.google.dart.server;singleton:=true
 Bundle-Version: 0.0.0.qualifier
 Bundle-Vendor: %providerName
 Bundle-ClassPath: .
-Require-Bundle: com.google.dart.thirdparty,
- com.google.dart.engine,
- com.google.dart.engine.services
+Require-Bundle: com.google.dart.thirdparty
 Export-Package: com.google.dart.server,
- com.google.dart.server.internal.local;x-friends:="com.google.dart.server_test",
- com.google.dart.server.internal.local.computer;x-friends:="com.google.dart.server_test",
- com.google.dart.server.internal.local.operation;x-friends:="com.google.dart.server_test",
- com.google.dart.server.internal.local.source;x-friends:="com.google.dart.server_test",
- com.google.dart.server.internal.remote,
+ com.google.dart.server.error;x-friends:="com.google.dart.server_test",
+ com.google.dart.server.internal;x-friends:="com.google.dart.server_test",
+ com.google.dart.server.internal.remote;x-friends:="com.google.dart.server_test",
  com.google.dart.server.internal.remote.processor;x-friends:="com.google.dart.server_test",
- com.google.dart.server.internal.remote.utilities;x-friends:="com.google.dart.server_test"
+ com.google.dart.server.internal.remote.utilities;x-friends:="com.google.dart.server_test",
+ com.google.dart.server.utilities.general;x-friends:="com.google.dart.server_test"

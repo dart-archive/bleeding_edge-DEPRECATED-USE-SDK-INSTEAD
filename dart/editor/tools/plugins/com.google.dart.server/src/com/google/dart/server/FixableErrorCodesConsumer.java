@@ -13,7 +13,7 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.server.error.ErrorCode;
 
 /**
  * The interface {@code FixableErrorCodesConsumer} defines the behavior of objects that consume set

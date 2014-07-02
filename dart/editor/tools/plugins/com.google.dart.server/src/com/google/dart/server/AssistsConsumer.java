@@ -13,8 +13,6 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.services.change.SourceChange;
-
 /**
  * The interface {@code AssistsConsumer} defines the behavior of objects that consume assists
  * {@link SourceChange}s.

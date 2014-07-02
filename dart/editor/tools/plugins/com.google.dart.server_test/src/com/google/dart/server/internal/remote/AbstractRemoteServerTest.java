@@ -14,8 +14,8 @@
 package com.google.dart.server.internal.remote;
 
 import com.google.dart.server.AnalysisServer;
-import com.google.dart.server.internal.shared.AbstractServerTest;
-import com.google.dart.server.internal.shared.TestAnalysisServerListener;
+import com.google.dart.server.internal.AbstractServerTest;
+import com.google.dart.server.internal.TestAnalysisServerListener;
 
 public abstract class AbstractRemoteServerTest extends AbstractServerTest {
   protected RemoteAnalysisServerImpl server;

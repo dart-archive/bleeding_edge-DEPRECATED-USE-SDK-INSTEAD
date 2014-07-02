@@ -21,7 +21,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.server.Element;
 import com.google.dart.server.SearchResult;
@@ -123,27 +122,28 @@ public abstract class SearchResultPage_NEW extends SearchPage {
      * Adds new {@link SearchResult}, on the same or new {@link LineItem}.
      */
     public void addMatch(SourceLineProvider lineProvider, SearchResult match) {
-      ReferenceKind referenceKind = ReferenceKind.of(match.getKind());
-      Source source = match.getSource();
-      SourceLine sourceLine = lineProvider.getLine(source, match.getOffset());
-      // find target LineItem
-      LineItem targetLineItem = null;
-      for (LineItem lineItem : lines) {
-        if (lineItem.line.equals(sourceLine)) {
-          targetLineItem = lineItem;
-          break;
-        }
-      }
-      // new LineItem
-      if (targetLineItem == null) {
-        boolean potential = FILTER_POTENTIAL.apply(match);
-        targetLineItem = new LineItem(this, source, potential, sourceLine);
-        lines.add(targetLineItem);
-      }
-      // prepare position
-      Position position = new Position(match.getOffset(), match.getLength());
-      // add new position
-      targetLineItem.addPosition(position, referenceKind);
+      // TODO (jwren/scheglov) SearchResult API has changed
+//      ReferenceKind referenceKind = ReferenceKind.of(match.getKind());
+//      Source source = match.getSource();
+//      SourceLine sourceLine = lineProvider.getLine(source, match.getOffset());
+//      // find target LineItem
+//      LineItem targetLineItem = null;
+//      for (LineItem lineItem : lines) {
+//        if (lineItem.line.equals(sourceLine)) {
+//          targetLineItem = lineItem;
+//          break;
+//        }
+//      }
+//      // new LineItem
+//      if (targetLineItem == null) {
+//        boolean potential = FILTER_POTENTIAL.apply(match);
+//        targetLineItem = new LineItem(this, source, potential, sourceLine);
+//        lines.add(targetLineItem);
+//      }
+//      // prepare position
+//      Position position = new Position(match.getOffset(), match.getLength());
+//      // add new position
+//      targetLineItem.addPosition(position, referenceKind);
     }
 
     @Override
@@ -947,9 +947,11 @@ public abstract class SearchResultPage_NEW extends SearchPage {
   private static final Predicate<SearchResult> FILTER_SDK = new Predicate<SearchResult>() {
     @Override
     public boolean apply(SearchResult input) {
-      Source source = input.getSource();
-      UriKind uriKind = source.getUriKind();
-      return uriKind == UriKind.DART_URI || uriKind == UriKind.PACKAGE_URI;
+      // TODO (jwren/scheglov) SearchResult API has changed
+//      Source source = input.getSource();
+//      UriKind uriKind = source.getUriKind();
+//      return uriKind == UriKind.DART_URI || uriKind == UriKind.PACKAGE_URI;
+      return false;
     }
   };
 
@@ -964,9 +966,11 @@ public abstract class SearchResultPage_NEW extends SearchPage {
     @Override
     public boolean apply(SearchResult input) {
       IProject currentProject = getCurrentProject();
-      IFile resource = DartUI.getSourceFile(contextId, input.getSource());
-      return resource != null && currentProject != null
-          && currentProject.equals(resource.getProject());
+      // TODO (jwren/scheglov) SearchResult API has changed
+//      IFile resource = DartUI.getSourceFile(contextId, input.getSource());
+//      return resource != null && currentProject != null
+//          && currentProject.equals(resource.getProject());
+      return false;
     }
   };
 

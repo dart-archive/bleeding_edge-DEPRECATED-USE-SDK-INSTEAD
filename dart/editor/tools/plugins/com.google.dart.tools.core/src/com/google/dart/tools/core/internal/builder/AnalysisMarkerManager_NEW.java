@@ -107,7 +107,6 @@ public class AnalysisMarkerManager_NEW {
         throws CoreException {
 
       for (AnalysisError error : errors) {
-        ErrorCode errorCode = error.getErrorCode();
         if (error.getErrorSeverity() != errorSeverity) {
           continue;
         }
@@ -132,7 +131,7 @@ public class AnalysisMarkerManager_NEW {
         marker.setAttribute(IMarker.CHAR_START, location.getOffset());
         marker.setAttribute(IMarker.CHAR_END, location.getOffset() + location.getLength());
         marker.setAttribute(IMarker.LINE_NUMBER, location.getStartLine());
-        marker.setAttribute(ERROR_CODE, errorCode.getUniqueName());
+        marker.setAttribute(ERROR_CODE, error.getErrorCode().getUniqueName());
         marker.setAttribute(IMarker.MESSAGE, error.getMessage());
 
         if (isHint) {

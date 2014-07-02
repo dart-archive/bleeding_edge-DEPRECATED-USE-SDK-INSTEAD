@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
-import com.google.dart.server.internal.local.computer.HighlightRegionImpl;
+import com.google.dart.server.internal.HighlightRegionImpl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 

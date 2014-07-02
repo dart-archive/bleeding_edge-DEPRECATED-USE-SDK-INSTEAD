@@ -19,7 +19,7 @@ import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.CompletionRelevance;
 import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.CompletionSuggestionKind;
-import com.google.dart.server.internal.local.computer.CompletionSuggestionImpl;
+import com.google.dart.server.internal.CompletionSuggestionImpl;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

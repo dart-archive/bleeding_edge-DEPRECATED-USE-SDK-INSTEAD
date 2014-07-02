@@ -13,8 +13,6 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.services.refactoring.Parameter;
-
 import java.util.List;
 import java.util.Map;
 
@@ -38,37 +36,43 @@ public interface AnalysisServer {
    * method may be invoked several times, for example after changing options using
    * {@link #setRefactoringExtractLocalOptions(String, boolean, String)}. When done,
    * {@link #deleteRefactoring(String)} should be invoked.
+   * <p>
+   * TODO (jwren) revisit API and parameter types
    * 
    * @param refactoringId the identifier of the refactoring to apply
    * @param consumer the results listener
    */
-  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer);
+  public void applyRefactoring(/*String refactoringId, RefactoringApplyConsumer consumer*/);
 
   /**
    * Create a new "Extract Local" refactoring. The refactoring that is created will persist until
    * {@link #deleteRefactoring(String)} is used to delete it. Clients, therefore, are responsible
    * for managing the lifetime of refactorings.
+   * <p>
+   * TODO (jwren) revisit API and parameter types
    * 
    * @param file the file to create refactoring within
    * @param offset the offset within the file
    * @param length the length of the selected code within the file
    * @param consumer the results listener
    */
-  public void createRefactoringExtractLocal(String file, int offset, int length,
-      RefactoringExtractLocalConsumer consumer);
+  public void createRefactoringExtractLocal(/*String file, int offset, int length,
+                                            RefactoringExtractLocalConsumer consumer*/);
 
   /**
    * Create a new "Extract Method" refactoring. The refactoring that is created will persist until
    * {@link #deleteRefactoring(String)} is used to delete it. Clients, therefore, are responsible
    * for managing the lifetime of refactorings.
+   * <p>
+   * TODO (jwren) revisit API and parameter types
    * 
    * @param file the file to create refactoring within
    * @param offset the offset within the file
    * @param length the length of the selected code within the file
    * @param consumer the results listener
    */
-  public void createRefactoringExtractMethod(String file, int offset, int length,
-      RefactoringExtractMethodConsumer consumer);
+  public void createRefactoringExtractMethod(/*String file, int offset, int length,
+                                             RefactoringExtractMethodConsumer consumer*/);
 
   /**
    * Delete the refactoring with the given id. Future attempts to use the refactoring id will result
@@ -228,17 +232,21 @@ public interface AnalysisServer {
 
   /**
    * Set the options for the "Extract Local" refactoring instance.
+   * <p>
+   * TODO (jwren) revisit API and parameter types
    * 
    * @param refactoringId the identifier of the refactoring to which the options are to be applied
    * @param allOccurrences is {@code true} if all of the expression occurrences should be extracted
    * @param name the name of the variable
    * @param consumer the results listener
    */
-  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
-      String name, RefactoringOptionsValidationConsumer consumer);
+  public void setRefactoringExtractLocalOptions(/*String refactoringId, boolean allOccurrences,
+                                                String name, RefactoringOptionsValidationConsumer consumer*/);
 
   /**
    * Set the options for the "Extract Method" refactoring instance.
+   * <p>
+   * TODO (jwren) revisit API and parameter types
    * 
    * @param refactoringId the identifier of the refactoring to which the options are to be applied
    * @param name the name of the method to extract
@@ -247,9 +255,9 @@ public interface AnalysisServer {
    * @param parameters the parameters of the extracted method
    * @param consumer the results listener
    */
-  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
-      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
-      RefactoringExtractMethodOptionsValidationConsumer consumer);
+  public void setRefactoringExtractMethodOptions(/*String refactoringId, String name,
+                                                 boolean asGetter, boolean allOccurrences, Parameter[] parameters,
+                                                 RefactoringExtractMethodOptionsValidationConsumer consumer*/);
 
   /**
    * Subscribe for server services.

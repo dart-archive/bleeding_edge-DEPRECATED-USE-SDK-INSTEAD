@@ -15,7 +15,6 @@ package com.google.dart.server.internal.remote;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
-import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
@@ -29,16 +28,11 @@ import com.google.dart.server.Consumer;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
 import com.google.dart.server.FixesConsumer;
-import com.google.dart.server.RefactoringApplyConsumer;
-import com.google.dart.server.RefactoringExtractLocalConsumer;
-import com.google.dart.server.RefactoringExtractMethodConsumer;
-import com.google.dart.server.RefactoringExtractMethodOptionsValidationConsumer;
-import com.google.dart.server.RefactoringOptionsValidationConsumer;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
-import com.google.dart.server.internal.local.BroadcastAnalysisServerListener;
+import com.google.dart.server.internal.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisHighlightsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisNavigationProcessor;
@@ -210,19 +204,17 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
+  public void applyRefactoring() {
     // TODO(scheglov) implement
   }
 
   @Override
-  public void createRefactoringExtractLocal(String file, int offset, int length,
-      RefactoringExtractLocalConsumer consumer) {
+  public void createRefactoringExtractLocal() {
     // TODO(scheglov) implement
   }
 
   @Override
-  public void createRefactoringExtractMethod(String file, int offset, int length,
-      RefactoringExtractMethodConsumer consumer) {
+  public void createRefactoringExtractMethod() {
     // TODO(scheglov) implement
   }
 
@@ -319,15 +311,15 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
-      String name, RefactoringOptionsValidationConsumer consumer) {
+  public void setRefactoringExtractLocalOptions(/*String refactoringId, boolean allOccurrences,
+                                                String name, RefactoringOptionsValidationConsumer consumer*/) {
     // TODO(scheglov) implement
   }
 
   @Override
-  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
-      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
-      RefactoringExtractMethodOptionsValidationConsumer consumer) {
+  public void setRefactoringExtractMethodOptions(/*String refactoringId, String name,
+                                                 boolean asGetter, boolean allOccurrences, Parameter[] parameters,
+                                                 RefactoringExtractMethodOptionsValidationConsumer consumer*/) {
     // TODO(scheglov) implement
   }
 

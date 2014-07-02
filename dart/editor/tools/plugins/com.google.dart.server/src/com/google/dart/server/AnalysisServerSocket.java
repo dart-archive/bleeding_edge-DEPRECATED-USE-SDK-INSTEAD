@@ -18,7 +18,9 @@ import com.google.dart.server.internal.remote.RequestSink;
 import com.google.dart.server.internal.remote.ResponseStream;
 
 /**
- * A socket over used by {@link AnalysisServer} to communicate with the remote server process
+ * A socket over used by {@link AnalysisServer} to communicate with the remote server process.
+ * 
+ * @coverage dart.server
  */
 public interface AnalysisServerSocket {
 

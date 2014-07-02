@@ -15,13 +15,13 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
 import com.google.dart.server.Location;
-import com.google.dart.server.internal.local.computer.ElementImpl;
-import com.google.dart.server.internal.shared.LocationImpl;
+import com.google.dart.server.internal.ElementImpl;
+import com.google.dart.server.internal.LocationImpl;
+import com.google.dart.server.utilities.general.StringUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

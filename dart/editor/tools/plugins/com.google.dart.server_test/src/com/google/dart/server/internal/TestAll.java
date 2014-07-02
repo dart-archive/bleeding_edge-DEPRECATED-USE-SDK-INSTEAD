@@ -19,7 +19,14 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(com.google.dart.server.internal.local.TestAll.suite());
+    suite.addTestSuite(BroadcastAnalysisServerListenerTest.class);
+    suite.addTestSuite(ElementImplTest.class);
+    suite.addTestSuite(HighlightRegionImplTest.class);
+    suite.addTestSuite(NavigationRegionImplTest.class);
+    suite.addTestSuite(OutlineImplTest.class);
+    suite.addTestSuite(SearchResultImplTest.class);
+    suite.addTestSuite(SourceRegionImplTest.class);
+    suite.addTestSuite(TypeHierarchyItemImplTest.class);
     suite.addTest(com.google.dart.server.internal.remote.TestAll.suite());
     return suite;
   }

@@ -6,7 +6,6 @@ Bundle-Version: 0.0.0.qualifier
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Require-Bundle: com.google.dart.engine,
- com.google.dart.engine.services,
  com.google.dart.server,
  com.google.dart.thirdparty,
  com.google.dart.thirdparty_test,

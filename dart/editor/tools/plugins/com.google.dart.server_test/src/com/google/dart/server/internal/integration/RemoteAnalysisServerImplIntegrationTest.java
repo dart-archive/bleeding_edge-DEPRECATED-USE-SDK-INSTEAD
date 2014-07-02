@@ -13,8 +13,8 @@
  */
 package com.google.dart.server.internal.integration;
 
-import com.google.dart.server.StdioServerSocket;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
+import com.google.dart.server.internal.remote.StdioServerSocket;
 
 public class RemoteAnalysisServerImplIntegrationTest extends AbstractServerIntegrationTest {
   @Override

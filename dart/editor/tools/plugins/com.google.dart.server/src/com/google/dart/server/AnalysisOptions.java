@@ -14,11 +14,11 @@
 
 package com.google.dart.server;
 
-import java.util.List;
-import java.util.Map;
 
 /**
  * A set of options controlling what kind of analysis is to be performed.
+ * 
+ * @coverage dart.server
  */
 public class AnalysisOptions {
   /**
@@ -30,12 +30,6 @@ public class AnalysisOptions {
    * True if the client wants Polymer code to be analyzed.
    */
   private Boolean analyzePolymer;
-
-  /**
-   * A table mapping groups of files (such as files in the SDK, files in packages, or explicitly
-   * added files) to a list of the services that should be subscribed to for those files by default.
-   */
-  private Map<SourceSetKind, List<AnalysisService>> defaultServices;
 
   /**
    * True if the client wants to enable support for the proposed async feature.
@@ -80,17 +74,6 @@ public class AnalysisOptions {
    */
   public Boolean getAnalyzePolymer() {
     return analyzePolymer;
-  }
-
-  /**
-   * Return the default services, a table mapping groups of files (such as files in the SDK, files
-   * in packages, or explicitly added files) to a list of the services that should be subscribed to
-   * for those files by default.
-   * 
-   * @return the default services map
-   */
-  public Map<SourceSetKind, List<AnalysisService>> getDefaultServices() {
-    return defaultServices;
   }
 
   /**
@@ -164,15 +147,6 @@ public class AnalysisOptions {
    */
   public void setAnalyzePolymer(Boolean analyzePolymer) {
     this.analyzePolymer = analyzePolymer;
-  }
-
-  /**
-   * Set the default services map.
-   * 
-   * @param defaultServices the new map for the default services option
-   */
-  public void setDefaultServices(Map<SourceSetKind, List<AnalysisService>> defaultServices) {
-    this.defaultServices = defaultServices;
   }
 
   /**

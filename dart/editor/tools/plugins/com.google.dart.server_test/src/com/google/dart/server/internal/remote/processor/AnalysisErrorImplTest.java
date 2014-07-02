@@ -13,10 +13,11 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.server.ErrorSeverity;
 import com.google.dart.server.ErrorType;
 import com.google.dart.server.Location;
+import com.google.dart.server.error.ErrorCode;
+import com.google.dart.server.internal.AnalysisErrorImpl;
 
 import junit.framework.TestCase;
 

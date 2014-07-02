@@ -13,8 +13,7 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.services.correction.CorrectionProposal;
-
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,7 +28,6 @@ public interface FixesConsumer extends Consumer {
    * for all of the any fixes will be returned.
    * 
    * @param fixesMap a map of computed fixes for some of the given errors
-   * @param isLastResult is {@code true} if this is the last set of fixes
    */
-  public void computedFixes(Map<AnalysisError, CorrectionProposal[]> fixesMap, boolean isLastResult);
+  public void computedFixes(Map<AnalysisError, List<List<SourceChange>>> fixesMap);
 }

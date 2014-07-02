@@ -16,6 +16,8 @@ package com.google.dart.server;
 /**
  * The interface {@code BasicConsumer} defines the behavior of objects that receive a basic
  * acknowledgment that the request has been received.
+ * 
+ * @coverage dart.server
  */
 public interface BasicConsumer extends Consumer {
   /**

@@ -13,7 +13,6 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.source.Source;
 
 /**
  * The interface {@code SearchResult} defines the behavior of objects that represent a search
@@ -55,13 +54,6 @@ public interface SearchResult {
    * @return the path to this result
    */
   public Element[] getPath();
-
-  /**
-   * Return the source containing the result.
-   * 
-   * @return the source containing the result
-   */
-  public Source getSource();
 
   /**
    * Return {@code true} is this search result is a potential reference to a class member.

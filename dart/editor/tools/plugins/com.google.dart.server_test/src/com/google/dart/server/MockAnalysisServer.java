@@ -13,8 +13,6 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.services.refactoring.Parameter;
-
 import java.util.List;
 import java.util.Map;
 
@@ -29,19 +27,25 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
+  public void applyRefactoring(
+//  String refactoringId, RefactoringApplyConsumer consumer
+  ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void createRefactoringExtractLocal(String file, int offset, int length,
-      RefactoringExtractLocalConsumer consumer) {
+  public void createRefactoringExtractLocal(
+//      String file, int offset, int length,
+//      RefactoringExtractLocalConsumer consumer
+  ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void createRefactoringExtractMethod(String file, int offset, int length,
-      RefactoringExtractMethodConsumer consumer) {
+  public void createRefactoringExtractMethod(
+//      String file, int offset, int length,
+//      RefactoringExtractMethodConsumer consumer
+  ) {
     throw new UnsupportedOperationException();
   }
 
@@ -122,15 +126,19 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void setRefactoringExtractLocalOptions(String refactoringId, boolean allOccurrences,
-      String name, RefactoringOptionsValidationConsumer consumer) {
+  public void setRefactoringExtractLocalOptions(
+//      String refactoringId, boolean allOccurrences,
+//      String name, RefactoringOptionsValidationConsumer consumer
+  ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void setRefactoringExtractMethodOptions(String refactoringId, String name,
-      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
-      RefactoringExtractMethodOptionsValidationConsumer consumer) {
+  public void setRefactoringExtractMethodOptions(
+//      String refactoringId, String name,
+//      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
+//      RefactoringExtractMethodOptionsValidationConsumer consumer
+  ) {
     throw new UnsupportedOperationException();
   }
 

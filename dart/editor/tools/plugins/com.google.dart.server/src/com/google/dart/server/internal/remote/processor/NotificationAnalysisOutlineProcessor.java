@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.Element;
 import com.google.dart.server.Outline;
-import com.google.dart.server.internal.local.computer.OutlineImpl;
+import com.google.dart.server.internal.OutlineImpl;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

@@ -13,18 +13,18 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.engine.error.AngularCode;
-import com.google.dart.engine.error.CompileTimeErrorCode;
-import com.google.dart.engine.error.HintCode;
-import com.google.dart.engine.error.HtmlWarningCode;
-import com.google.dart.engine.error.PolymerCode;
-import com.google.dart.engine.error.PubSuggestionCode;
-import com.google.dart.engine.error.StaticTypeWarningCode;
-import com.google.dart.engine.error.StaticWarningCode;
-import com.google.dart.engine.error.TodoCode;
-import com.google.dart.engine.parser.ParserErrorCode;
-import com.google.dart.engine.resolver.ResolverErrorCode;
-import com.google.dart.engine.scanner.ScannerErrorCode;
+import com.google.dart.server.error.AngularCode;
+import com.google.dart.server.error.CompileTimeErrorCode;
+import com.google.dart.server.error.HintCode;
+import com.google.dart.server.error.HtmlWarningCode;
+import com.google.dart.server.error.ParserErrorCode;
+import com.google.dart.server.error.PolymerCode;
+import com.google.dart.server.error.PubSuggestionCode;
+import com.google.dart.server.error.ResolverErrorCode;
+import com.google.dart.server.error.ScannerErrorCode;
+import com.google.dart.server.error.StaticTypeWarningCode;
+import com.google.dart.server.error.StaticWarningCode;
+import com.google.dart.server.error.TodoCode;
 
 import static com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor.getErrorCode;
 

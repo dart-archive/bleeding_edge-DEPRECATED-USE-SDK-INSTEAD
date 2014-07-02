@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.Element;
 import com.google.dart.server.NavigationRegion;
-import com.google.dart.server.internal.local.computer.NavigationRegionImpl;
+import com.google.dart.server.internal.NavigationRegionImpl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 

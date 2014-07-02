@@ -13,7 +13,7 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.server.error.ErrorCode;
 
 /**
  * The interface {@code AnalysisError} defines the behavior of objects representing an analysis
@@ -58,6 +58,8 @@ public interface AnalysisError {
 
   /**
    * Return the error code associated with the error.
+   * <p>
+   * TODO(jwren) this should return a String, not an enum
    * 
    * @return the error code associated with the error
    */
