@@ -2,6 +2,7 @@
 !*
 
 barback-*
+petitparser
 
 packages
 pubspec.lock
