@@ -22,6 +22,7 @@ package com.google.dart.server.utilities.logging;
  * @coverage dart.server.utilities
  */
 public interface Logger {
+
   /**
    * Implementation of {@link Logger} that does nothing.
    */

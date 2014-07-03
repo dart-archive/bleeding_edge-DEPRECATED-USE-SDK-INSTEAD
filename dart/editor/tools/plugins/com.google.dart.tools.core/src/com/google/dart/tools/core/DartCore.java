@@ -25,6 +25,7 @@ import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
 import com.google.dart.server.internal.remote.StdioServerSocket;
+import com.google.dart.server.utilities.logging.Logging;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -1743,6 +1744,27 @@ public class DartCore extends Plugin implements DartSdkListener {
 
     AnalysisEngine analysisEngine = AnalysisEngine.getInstance();
     analysisEngine.setLogger(new Logger() {
+      @Override
+      public void logError(String message) {
+        DartCore.logError(message);
+      }
+
+      @Override
+      public void logError(String message, Throwable exception) {
+        DartCore.logError(message, exception);
+      }
+
+      @Override
+      public void logInformation(String message) {
+        DartCore.logInformation(message);
+      }
+
+      @Override
+      public void logInformation(String message, Throwable exception) {
+        DartCore.logInformation(message, exception);
+      }
+    });
+    Logging.setLogger(new com.google.dart.server.utilities.logging.Logger() {
       @Override
       public void logError(String message) {
         DartCore.logError(message);

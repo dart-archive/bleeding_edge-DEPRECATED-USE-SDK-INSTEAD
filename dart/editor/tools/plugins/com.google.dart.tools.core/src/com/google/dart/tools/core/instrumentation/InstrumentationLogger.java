@@ -62,14 +62,26 @@ public class InstrumentationLogger {
       try {
         Object executableExtension = element.createExecutableExtension("class");
 
-        //Setup new logger
+        //Setup analysis engine logger
         if (executableExtension instanceof com.google.dart.engine.utilities.instrumentation.InstrumentationLogger) {
-          Instrumentation.setLogger((com.google.dart.engine.utilities.instrumentation.InstrumentationLogger) executableExtension);
+          Instrumentation.setLogger( //
+          (com.google.dart.engine.utilities.instrumentation.InstrumentationLogger) executableExtension);
         } else {
           Class<?> exClass = executableExtension != null ? executableExtension.getClass() : null;
-          DartCore.logError("Failed to set instrumentation logger\nbecause " + exClass
-              + "\ndoes not implement "
+          DartCore.logError("Failed to set analysis engine instrumentation logger\nbecause "
+              + exClass + "\ndoes not implement "
               + com.google.dart.engine.utilities.instrumentation.InstrumentationLogger.class);
+        }
+
+        //Setup analysis server logger
+        if (executableExtension instanceof com.google.dart.server.utilities.instrumentation.InstrumentationLogger) {
+          com.google.dart.server.utilities.instrumentation.Instrumentation.setLogger( //
+          (com.google.dart.server.utilities.instrumentation.InstrumentationLogger) executableExtension);
+        } else {
+          Class<?> exClass = executableExtension != null ? executableExtension.getClass() : null;
+          DartCore.logError("Failed to set analysis server instrumentation logger\nbecause "
+              + exClass + "\ndoes not implement "
+              + com.google.dart.server.utilities.instrumentation.InstrumentationLogger.class);
         }
 
         return;
