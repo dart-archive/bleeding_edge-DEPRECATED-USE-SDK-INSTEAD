@@ -43,6 +43,9 @@ import com.google.dart.server.internal.remote.processor.NotificationServerConnec
 import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
+import com.google.dart.server.utilities.instrumentation.Instrumentation;
+import com.google.dart.server.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.server.utilities.logging.Logging;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -557,8 +560,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     try {
       watcher.join(5000);
     } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      //$FALL-THROUGH$
     }
     watcher = null;
   }
@@ -578,14 +580,17 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
         sleep(millisToRestart / 2);
       } else {
         // If still no response from server then restart the server
-        stopServer();
+        InstrumentationBuilder instrumentation = Instrumentation.builder("RemoteAnalysisServerImpl.restartServer");
         try {
+          stopServer();
           startServer();
         } catch (Exception e) {
-          //TODO (danrubel): What to do if cannot restart server?
-          System.err.println("Failed to restart analysis server");
-          e.printStackTrace();
+          // Bail out if cannot restart the server
+          Logging.getLogger().logError("Failed to restart analysis server", e);
+          instrumentation.record(e);
           break;
+        } finally {
+          instrumentation.log();
         }
         sentRequest = false;
         sleep(millisToRestart);
