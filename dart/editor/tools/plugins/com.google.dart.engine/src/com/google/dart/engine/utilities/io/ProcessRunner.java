@@ -31,6 +31,8 @@ public class ProcessRunner {
   private StringBuilder stderr = new StringBuilder();
 
   private Thread processThread;
+  private Thread stdoutThread;
+  private Thread stderrThread;
   private Process process;
 
   public ProcessRunner(ProcessBuilder processBuilder) {
@@ -61,13 +63,36 @@ public class ProcessRunner {
   }
 
   /**
+   * Wait up to the specified time for the process to complete. This assumes that {@link #start()}
+   * has already been called to launch the process, and that {@link #waitForComplete(long)} will be
+   * called before retrieving stdout, stderr, or the exit code.
+   * 
+   * @param milliseconds the maximum number of milliseconds to wait for completion or zero to wait
+   *          forever for the process to complete.
+   * @return {@code true} if the process is complete, else {@code false}
+   */
+  public boolean isComplete(long milliseconds) throws InterruptedException {
+    processThread.join(milliseconds);
+    return !processThread.isAlive();
+  }
+
+  /**
    * Execute the process created by the process builder, wait up to the specified time for the
    * process to complete, and return the exit value.
    * 
-   * @param milliseconds the maximum number of milliseconds to wait for completion
+   * @param milliseconds the maximum number of milliseconds to wait for completion or zero to wait
+   *          forever for the process to complete.
    * @return the exit value or -1 if timed out waiting for the process to complete
    */
   public int runSync(long milliseconds) throws IOException {
+    start();
+    return waitForComplete(milliseconds);
+  }
+
+  /**
+   * Launch the process created by the process builder.
+   */
+  public void start() throws IOException {
     exitCode = 0;
     stdout.setLength(0);
     stderr.setLength(0);
@@ -85,16 +110,14 @@ public class ProcessRunner {
       }
     });
 
-    // Read from stdout.
-    Thread stdoutThread = new Thread(new Runnable() {
+    stdoutThread = new Thread(new Runnable() {
       @Override
       public void run() {
         pipeOutput(process.getInputStream(), stdout);
       }
     });
 
-    // Read from stderr.
-    Thread stderrThread = new Thread(new Runnable() {
+    stderrThread = new Thread(new Runnable() {
       @Override
       public void run() {
         pipeOutput(process.getErrorStream(), stderr);
@@ -104,10 +127,19 @@ public class ProcessRunner {
     processThread.start();
     stdoutThread.start();
     stderrThread.start();
+  }
 
+  /**
+   * Wait up to the specified time for the process to complete, and return the exit value. This
+   * assumes that {@link #start()} has already been called to launch the process.
+   * 
+   * @param milliseconds the maximum number of milliseconds to wait for completion or zero to wait
+   *          forever for the process to complete.
+   * @return the exit value or -1 if timed out waiting for the process to complete
+   */
+  public int waitForComplete(long milliseconds) throws IOException {
     try {
-      processThread.join(milliseconds);
-      if (processThread.isAlive()) {
+      if (!isComplete(milliseconds)) {
         exitCode = -1;
       } else {
         // Make sure we've read all the output.

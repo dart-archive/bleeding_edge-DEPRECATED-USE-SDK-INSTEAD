@@ -56,7 +56,7 @@ public class ExplicitPackageUriResolver extends UriResolver {
    */
   public static final String PACKAGE_SCHEME = "package";
 
-  private static final String PUB_LIST_COMMAND = "list-package-dirs";
+  protected static final String PUB_LIST_COMMAND = "list-package-dirs";
 
   /**
    * Return {@code true} if the given URI is a {@code package} URI.
@@ -98,6 +98,14 @@ public class ExplicitPackageUriResolver extends UriResolver {
     } else {
       return null;
     }
+  }
+
+  public String[] getCommand() {
+    return new String[] {sdk.getPubExecutable().getAbsolutePath(), PUB_LIST_COMMAND};
+  }
+
+  public File getRootDir() {
+    return rootDir;
   }
 
   @Override
@@ -151,9 +159,9 @@ public class ExplicitPackageUriResolver extends UriResolver {
 
     String fullPackagePath = pkgName + "/" + relPath;
 
-    return new FileBasedSource(
-        new File(rootDir, fullPackagePath.replace('/', File.separatorChar)),
-        UriKind.PACKAGE_URI);
+    return new FileBasedSource(new File(getRootDir(), fullPackagePath.replace(
+        '/',
+        File.separatorChar)), UriKind.PACKAGE_URI);
   }
 
   public String resolvePathToPackage(String path) {
@@ -200,14 +208,12 @@ public class ExplicitPackageUriResolver extends UriResolver {
   }
 
   protected Map<String, List<File>> calculatePackageMap() {
-    ProcessBuilder builder = new ProcessBuilder(
-        sdk.getPubExecutable().getAbsolutePath(),
-        PUB_LIST_COMMAND);
-    builder.directory(rootDir);
+    ProcessBuilder builder = new ProcessBuilder(getCommand());
+    builder.directory(getRootDir());
     ProcessRunner runner = new ProcessRunner(builder);
 
     try {
-      if (runner.runSync(0) == 0) {
+      if (runProcess(runner) == 0) {
         return parsePackageMap(runner.getStdOut());
       } else {
         AnalysisEngine.getInstance().getLogger().logInformation(
@@ -277,5 +283,15 @@ public class ExplicitPackageUriResolver extends UriResolver {
     }
 
     return map;
+  }
+
+  /**
+   * Run the external process and return the exit value once the external process has completed.
+   * 
+   * @param runner the external process runner
+   * @return the external process exit code
+   */
+  protected int runProcess(ProcessRunner runner) throws IOException {
+    return runner.runSync(0);
   }
 }

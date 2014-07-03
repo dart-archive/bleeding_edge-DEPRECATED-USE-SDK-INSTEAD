@@ -760,7 +760,9 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       // for now use this only when there is no pubspec or package root
       IPath location = container.getLocation();
       if (location != null) {
-        pkgResolver = new ExplicitPackageUriResolver((DirectoryBasedDartSdk) sdk, location.toFile());
+        pkgResolver = new InstrumentedExplicitPackageUriResolver(
+            (DirectoryBasedDartSdk) sdk,
+            location.toFile());
       }
     }
     return pkgResolver;
