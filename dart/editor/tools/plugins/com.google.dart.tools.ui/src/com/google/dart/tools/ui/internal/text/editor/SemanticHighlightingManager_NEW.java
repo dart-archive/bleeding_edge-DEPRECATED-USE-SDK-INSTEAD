@@ -69,6 +69,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
   private final IDocument document;
   private final IDocumentListener documentListener;
   private HighlightPosition[] positions;
+  private boolean positionsAddedToDocument = false;
 
   public SemanticHighlightingManager_NEW(DartSourceViewer viewer, String file) {
     this.viewer = viewer;
@@ -113,7 +114,11 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       }
       // prepare highlight key
       HighlightType type = position.highlight.getType();
-      String themeKey = "semanticHighlighting." + getThemeKey(type);
+      String themeKey = getThemeKey(type);
+      if (themeKey == null) {
+        continue;
+      }
+      themeKey = "semanticHighlighting." + themeKey;
       // prepare color
       RGB foregroundRGB = PreferenceConverter.getColor(store, themeKey + ".color");
       Color foregroundColor = colorManager.getColor(foregroundRGB);
@@ -152,6 +157,7 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
       newPositions[i] = position;
     }
     positions = newPositions;
+    positionsAddedToDocument = true;
     // invalidate presentation
     Display.getDefault().asyncExec(new Runnable() {
       @Override
@@ -170,11 +176,11 @@ public class SemanticHighlightingManager_NEW implements AnalysisServerHighlights
   }
 
   private void clearHighlightPositions() {
-    if (positions != null) {
+    if (positionsAddedToDocument) {
       for (HighlightPosition position : positions) {
         document.removePosition(position);
       }
-      positions = null;
+      positionsAddedToDocument = false;
     }
   }
 
