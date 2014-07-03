@@ -55,6 +55,11 @@ public class SimpleAstVisitor<R> implements AstVisitor<R> {
   }
 
   @Override
+  public R visitAwaitExpression(AwaitExpression node) {
+    return null;
+  }
+
+  @Override
   public R visitBinaryExpression(BinaryExpression node) {
     return null;
   }
@@ -531,6 +536,11 @@ public class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @Override
   public R visitWithClause(WithClause node) {
+    return null;
+  }
+
+  @Override
+  public R visitYieldStatement(YieldStatement node) {
     return null;
   }
 }

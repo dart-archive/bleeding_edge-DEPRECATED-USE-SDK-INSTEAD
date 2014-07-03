@@ -21,12 +21,17 @@ import com.google.dart.engine.scanner.Token;
  * 
  * <pre>
  * expressionFunctionBody ::=
- *     '=>' {@link Expression expression} ';'
+ *     'async'? '=>' {@link Expression expression} ';'
  * </pre>
  * 
  * @coverage dart.engine.ast
  */
 public class ExpressionFunctionBody extends FunctionBody {
+  /**
+   * The token representing the 'async' keyword, or {@code null} if there is no such keyword.
+   */
+  private Token keyword;
+
   /**
    * The token introducing the expression that represents the body of the function.
    */
@@ -45,12 +50,15 @@ public class ExpressionFunctionBody extends FunctionBody {
   /**
    * Initialize a newly created function body consisting of a block of statements.
    * 
+   * @param keyword the token representing the 'async' keyword
    * @param functionDefinition the token introducing the expression that represents the body of the
    *          function
    * @param expression the expression representing the body of the function
    * @param semicolon the semicolon terminating the statement
    */
-  public ExpressionFunctionBody(Token functionDefinition, Expression expression, Token semicolon) {
+  public ExpressionFunctionBody(Token keyword, Token functionDefinition, Expression expression,
+      Token semicolon) {
+    this.keyword = keyword;
     this.functionDefinition = functionDefinition;
     this.expression = becomeParentOf(expression);
     this.semicolon = semicolon;
@@ -93,12 +101,31 @@ public class ExpressionFunctionBody extends FunctionBody {
   }
 
   /**
+   * Return the token representing the 'async' keyword, or {@code null} if there is no such keyword.
+   * 
+   * @return the token representing the 'async' keyword
+   */
+  public Token getKeyword() {
+    return keyword;
+  }
+
+  /**
    * Return the semicolon terminating the statement.
    * 
    * @return the semicolon terminating the statement
    */
   public Token getSemicolon() {
     return semicolon;
+  }
+
+  @Override
+  public boolean isAsynchronous() {
+    return keyword != null;
+  }
+
+  @Override
+  public boolean isSynchronous() {
+    return keyword == null;
   }
 
   /**
@@ -118,6 +145,15 @@ public class ExpressionFunctionBody extends FunctionBody {
    */
   public void setFunctionDefinition(Token functionDefinition) {
     this.functionDefinition = functionDefinition;
+  }
+
+  /**
+   * Set the token representing the 'async' keyword to the given token.
+   * 
+   * @param keyword the token representing the 'async' keyword
+   */
+  public void setKeyword(Token keyword) {
+    this.keyword = keyword;
   }
 
   /**

@@ -91,6 +91,14 @@ public class ToSourceVisitor implements AstVisitor<Void> {
   }
 
   @Override
+  public Void visitAwaitExpression(AwaitExpression node) {
+    writer.print("await ");
+    visitNode(node.getExpression());
+    writer.print(";"); // TODO (brianwilkerson) This line probably needs to be removed.
+    return null;
+  }
+
+  @Override
   public Void visitBinaryExpression(BinaryExpression node) {
     visitNode(node.getLeftOperand());
     writer.print(' ');
@@ -110,6 +118,14 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitBlockFunctionBody(BlockFunctionBody node) {
+    Token keyword = node.getKeyword();
+    if (keyword != null) {
+      writer.print(keyword.getLexeme());
+      if (node.getStar() != null) {
+        writer.print('*');
+      }
+      writer.print(' ');
+    }
     visitNode(node.getBlock());
     return null;
   }
@@ -319,6 +335,11 @@ public class ToSourceVisitor implements AstVisitor<Void> {
 
   @Override
   public Void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    Token keyword = node.getKeyword();
+    if (keyword != null) {
+      writer.print(keyword.getLexeme());
+      writer.print(' ');
+    }
     writer.print("=> ");
     visitNode(node.getExpression());
     if (node.getSemicolon() != null) {
@@ -363,6 +384,9 @@ public class ToSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.getLoopVariable();
+    if (node.getAwaitKeyword() != null) {
+      writer.print("await ");
+    }
     writer.print("for (");
     if (loopVariable == null) {
       visitNode(node.getIdentifier());
@@ -967,6 +991,18 @@ public class ToSourceVisitor implements AstVisitor<Void> {
   public Void visitWithClause(WithClause node) {
     writer.print("with ");
     visitNodeListWithSeparator(node.getMixinTypes(), ", ");
+    return null;
+  }
+
+  @Override
+  public Void visitYieldStatement(YieldStatement node) {
+    if (node.getStar() != null) {
+      writer.print("yield* ");
+    } else {
+      writer.print("yield ");
+    }
+    visitNode(node.getExpression());
+    writer.print(";");
     return null;
   }
 

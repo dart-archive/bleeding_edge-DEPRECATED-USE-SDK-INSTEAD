@@ -95,9 +95,14 @@ public class Parser {
   private boolean parseFunctionBodies = true;
 
   /**
-   * A flag indicating whether parser is to parse deferred libraries.
+   * A flag indicating whether the parser is to parse deferred libraries.
    */
   private boolean parseDeferredLibraries = AnalysisOptionsImpl.DEFAULT_ENABLE_DEFERRED_LOADING;
+
+  /**
+   * A flag indicating whether the parser is to parse the async support.
+   */
+  private boolean parseAsync = AnalysisOptionsImpl.DEFAULT_ENABLE_ASYNC;
 
   /**
    * The next token to be parsed.
@@ -120,11 +125,16 @@ public class Parser {
    */
   private boolean inInitializer = false;
 
+  public static final String ASYNC = "async"; //$NON-NLS-1$
+
+  private static final String AWAIT = "await"; //$NON-NLS-1$
   private static final String HIDE = "hide"; //$NON-NLS-1$
   private static final String OF = "of"; //$NON-NLS-1$
   private static final String ON = "on"; //$NON-NLS-1$
   private static final String NATIVE = "native"; //$NON-NLS-1$
   private static final String SHOW = "show"; //$NON-NLS-1$
+  public static final String SYNC = "sync"; //$NON-NLS-1$
+  private static final String YIELD = "yield"; //$NON-NLS-1$
 
   /**
    * Initialize a newly created parser.
@@ -221,6 +231,15 @@ public class Parser {
     } finally {
       instrumentation.log();
     }
+  }
+
+  /**
+   * Set whether the parser is to parse the async support.
+   * 
+   * @param parseAsync {@code true} if the parser is to parse the async support
+   */
+  public void setParseAsync(boolean parseAsync) {
+    this.parseAsync = parseAsync;
   }
 
   /**
@@ -847,7 +866,10 @@ public class Parser {
     if (matchesKeyword(Keyword.THROW)) {
       return parseThrowExpression();
     } else if (matchesKeyword(Keyword.RETHROW)) {
+      // TODO(brianwilkerson) Rethrow is a statement again.
       return parseRethrowExpression();
+    } else if (parseAsync && matchesString(AWAIT)) {
+      return parseAwaitExpression();
     }
     //
     // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
@@ -2494,6 +2516,23 @@ public class Parser {
   }
 
   /**
+   * Parse a await expression.
+   * 
+   * <pre>
+   * awaitExpression ::=
+   *     'await' expression ';'
+   * </pre>
+   * 
+   * @return the await expression that was parsed
+   */
+  private AwaitExpression parseAwaitExpression() {
+    Token awaitToken = getAndAdvance();
+    Expression expression = parseExpression();
+    Token semicolon = expect(TokenType.SEMICOLON);
+    return new AwaitExpression(awaitToken, expression, semicolon);
+  }
+
+  /**
    * Parse a bitwise and expression.
    * 
    * <pre>
@@ -3746,6 +3785,10 @@ public class Parser {
     boolean wasInLoop = inLoop;
     inLoop = true;
     try {
+      Token awaitKeyword = null;
+      if (matchesString(AWAIT)) {
+        awaitKeyword = getAndAdvance();
+      }
       Token forKeyword = expectKeyword(Keyword.FOR);
       Token leftParenthesis = expect(TokenType.OPEN_PAREN);
       VariableDeclarationList variableList = null;
@@ -3807,6 +3850,7 @@ public class Parser {
           Statement body = parseStatement();
           if (loopVariable == null) {
             return new ForEachStatement(
+                awaitKeyword,
                 forKeyword,
                 leftParenthesis,
                 identifier,
@@ -3816,6 +3860,7 @@ public class Parser {
                 body);
           }
           return new ForEachStatement(
+              awaitKeyword,
               forKeyword,
               leftParenthesis,
               loopVariable,
@@ -3824,6 +3869,9 @@ public class Parser {
               rightParenthesis,
               body);
         }
+      }
+      if (awaitKeyword != null) {
+        reportErrorForToken(ParserErrorCode.INVALID_AWAIT_IN_FOR, awaitKeyword);
       }
       Token leftSeparator = expect(TokenType.SEMICOLON);
       Expression condition = null;
@@ -3884,7 +3932,38 @@ public class Parser {
           reportErrorForCurrentToken(emptyErrorCode);
         }
         return new EmptyFunctionBody(getAndAdvance());
-      } else if (matches(TokenType.FUNCTION)) {
+      } else if (matchesString(NATIVE)) {
+        Token nativeToken = getAndAdvance();
+        StringLiteral stringLiteral = null;
+        if (matches(TokenType.STRING)) {
+          stringLiteral = parseStringLiteral();
+        }
+        return new NativeFunctionBody(nativeToken, stringLiteral, expect(TokenType.SEMICOLON));
+      }
+      Token keyword = null;
+      Token star = null;
+      if (parseAsync) {
+        if (matchesString(ASYNC)) {
+          keyword = getAndAdvance();
+          if (matches(TokenType.STAR)) {
+            star = getAndAdvance();
+          }
+        } else if (matchesString(SYNC)) {
+          keyword = getAndAdvance();
+          if (matches(TokenType.STAR)) {
+            star = getAndAdvance();
+          }
+        }
+      }
+      if (matches(TokenType.FUNCTION)) {
+        if (keyword != null) {
+          if (!tokenMatchesString(keyword, ASYNC)) {
+            reportErrorForToken(ParserErrorCode.INVALID_SYNC, keyword);
+            keyword = null;
+          } else if (star != null) {
+            reportErrorForToken(ParserErrorCode.INVALID_STAR_AFTER_ASYNC, star);
+          }
+        }
         Token functionDefinition = getAndAdvance();
         Expression expression = parseExpression();
         Token semicolon = null;
@@ -3894,20 +3973,18 @@ public class Parser {
         if (!parseFunctionBodies) {
           return new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON));
         }
-        return new ExpressionFunctionBody(functionDefinition, expression, semicolon);
+        return new ExpressionFunctionBody(keyword, functionDefinition, expression, semicolon);
       } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+        if (keyword != null) {
+          if (tokenMatchesString(keyword, SYNC) && star == null) {
+            reportErrorForToken(ParserErrorCode.MISSING_STAR_AFTER_SYNC, keyword);
+          }
+        }
         if (!parseFunctionBodies) {
           skipBlock();
           return new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON));
         }
-        return new BlockFunctionBody(parseBlock());
-      } else if (matchesString(NATIVE)) {
-        Token nativeToken = getAndAdvance();
-        StringLiteral stringLiteral = null;
-        if (matches(TokenType.STRING)) {
-          stringLiteral = parseStringLiteral();
-        }
-        return new NativeFunctionBody(nativeToken, stringLiteral, expect(TokenType.SEMICOLON));
+        return new BlockFunctionBody(keyword, star, parseBlock());
       } else {
         // Invalid function body
         reportErrorForCurrentToken(emptyErrorCode);
@@ -4831,6 +4908,10 @@ public class Parser {
         reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT);
         return new EmptyStatement(createSyntheticToken(TokenType.SEMICOLON));
       }
+    } else if (parseAsync && matchesString(YIELD)) {
+      return parseYieldStatement();
+    } else if (parseAsync && matchesString(AWAIT) && tokenMatchesKeyword(peek(), Keyword.FOR)) {
+      return parseForStatement();
     } else if (matches(TokenType.SEMICOLON)) {
       return parseEmptyStatement();
     } else if (isInitializedVariableDeclaration()) {
@@ -5228,30 +5309,6 @@ public class Parser {
     return new ReturnStatement(returnKeyword, expression, semicolon);
   }
 
-//  /**
-//   * Parse a simple identifier.
-//   * 
-//   * <pre>
-//   * identifier ::=
-//   *     IDENTIFIER
-//   * </pre>
-//   * 
-//   * @param consumeToken a predicate that returns {@code true} if the current token is not a simple
-//   *          identifier but is a keyword that should be consumed as if it were an identifier
-//   * @return the simple identifier that was parsed
-//   */
-//  import com.google.common.base.Predicate;
-//  private SimpleIdentifier parseSimpleIdentifier(Predicate<Token> consumeToken) {
-//    if (matchesIdentifier()) {
-//      return new SimpleIdentifier(getAndAdvance());
-//    }
-//    reportError(ParserErrorCode.MISSING_IDENTIFIER);
-//    if (matches(TokenType.KEYWORD) && consumeToken.apply(currentToken)) {
-//      return new SimpleIdentifier(getAndAdvance());
-//    }
-//    return createSyntheticIdentifier();
-//  }
-
   /**
    * Parse a setter.
    * 
@@ -5321,6 +5378,30 @@ public class Parser {
     }
     return expression;
   }
+
+//  /**
+//   * Parse a simple identifier.
+//   * 
+//   * <pre>
+//   * identifier ::=
+//   *     IDENTIFIER
+//   * </pre>
+//   * 
+//   * @param consumeToken a predicate that returns {@code true} if the current token is not a simple
+//   *          identifier but is a keyword that should be consumed as if it were an identifier
+//   * @return the simple identifier that was parsed
+//   */
+//  import com.google.common.base.Predicate;
+//  private SimpleIdentifier parseSimpleIdentifier(Predicate<Token> consumeToken) {
+//    if (matchesIdentifier()) {
+//      return new SimpleIdentifier(getAndAdvance());
+//    }
+//    reportError(ParserErrorCode.MISSING_IDENTIFIER);
+//    if (matches(TokenType.KEYWORD) && consumeToken.apply(currentToken)) {
+//      return new SimpleIdentifier(getAndAdvance());
+//    }
+//    return createSyntheticIdentifier();
+//  }
 
   /**
    * Parse a list of statements within a switch statement.
@@ -5926,6 +6007,27 @@ public class Parser {
   }
 
   /**
+   * Parse a yield statement.
+   * 
+   * <pre>
+   * yieldStatement ::=
+   *     'yield' '*'? expression ';'
+   * </pre>
+   * 
+   * @return the yield statement that was parsed
+   */
+  private YieldStatement parseYieldStatement() {
+    Token yieldToken = getAndAdvance();
+    Token star = null;
+    if (matches(TokenType.STAR)) {
+      star = getAndAdvance();
+    }
+    Expression expression = parseExpression();
+    Token semicolon = expect(TokenType.SEMICOLON);
+    return new YieldStatement(yieldToken, star, expression, semicolon);
+  }
+
+  /**
    * Return the token that is immediately after the current token. This is equivalent to
    * {@link #peekAt(int) peek(1)}.
    * 
@@ -6329,23 +6431,23 @@ public class Parser {
   }
 
 /**
-       * Parse a list of type arguments, starting at the given token, without actually creating a type argument list
-       * or changing the current token. Return the token following the type argument list that was parsed,
-       * or {@code null} if the given token is not the first token in a valid type argument list.
-       * <p>
-       * This method must be kept in sync with {@link #parseTypeArgumentList()}.
-       * 
-       * <pre>
-       * typeArguments ::=
-       *     '<' typeList '>'
-       * 
-       * typeList ::=
-       *     type (',' type)*
-       * </pre>
-       * 
-       * @param startToken the token at which parsing is to begin
-       * @return the token following the type argument list that was parsed
-       */
+         * Parse a list of type arguments, starting at the given token, without actually creating a type argument list
+         * or changing the current token. Return the token following the type argument list that was parsed,
+         * or {@code null} if the given token is not the first token in a valid type argument list.
+         * <p>
+         * This method must be kept in sync with {@link #parseTypeArgumentList()}.
+         * 
+         * <pre>
+         * typeArguments ::=
+         *     '<' typeList '>'
+         * 
+         * typeList ::=
+         *     type (',' type)*
+         * </pre>
+         * 
+         * @param startToken the token at which parsing is to begin
+         * @return the token following the type argument list that was parsed
+         */
   private Token skipTypeArgumentList(Token startToken) {
     Token token = startToken;
     if (!tokenMatches(token, TokenType.LT)) {
@@ -6398,21 +6500,21 @@ public class Parser {
   }
 
 /**
-       * Parse a list of type parameters, starting at the given token, without actually creating a type
-       * parameter list or changing the current token. Return the token following the type parameter
-       * list that was parsed, or {@code null} if the given token is not the first token in a valid type
-       * parameter list.
-       * <p>
-       * This method must be kept in sync with {@link #parseTypeParameterList()}.
-       * 
-       * <pre>
-       * typeParameterList ::=
-       *     '<' typeParameter (',' typeParameter)* '>'
-       * </pre>
-       * 
-       * @param startToken the token at which parsing is to begin
-       * @return the token following the type parameter list that was parsed
-       */
+         * Parse a list of type parameters, starting at the given token, without actually creating a type
+         * parameter list or changing the current token. Return the token following the type parameter
+         * list that was parsed, or {@code null} if the given token is not the first token in a valid type
+         * parameter list.
+         * <p>
+         * This method must be kept in sync with {@link #parseTypeParameterList()}.
+         * 
+         * <pre>
+         * typeParameterList ::=
+         *     '<' typeParameter (',' typeParameter)* '>'
+         * </pre>
+         * 
+         * @param startToken the token at which parsing is to begin
+         * @return the token following the type parameter list that was parsed
+         */
   private Token skipTypeParameterList(Token startToken) {
     if (!tokenMatches(startToken, TokenType.LT)) {
       return null;
@@ -6485,6 +6587,17 @@ public class Parser {
    */
   private boolean tokenMatchesKeyword(Token token, Keyword keyword) {
     return token.getType() == TokenType.KEYWORD && ((KeywordToken) token).getKeyword() == keyword;
+  }
+
+  /**
+   * Return {@code true} if the given token matches the given identifier.
+   * 
+   * @param token the token being tested
+   * @param identifier the identifier that can optionally appear in the current location
+   * @return {@code true} if the current token matches the given identifier
+   */
+  private boolean tokenMatchesString(Token token, String identifier) {
+    return token.getType() == TokenType.IDENTIFIER && token.getLexeme().equals(identifier);
   }
 
   /**

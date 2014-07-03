@@ -801,6 +801,10 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH);
   }
 
+  public void test_invalidAwaitInFor() throws Exception {
+    parse("parseForStatement", "await for (; ;) {}", ParserErrorCode.INVALID_AWAIT_IN_FOR);
+  }
+
   public void test_invalidCodePoint() throws Exception {
     parse("parseStringLiteral", "'\\uD900'", ParserErrorCode.INVALID_CODE_POINT);
   }
@@ -827,6 +831,22 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_invalidOperatorForSuper() throws Exception {
     parse("parseUnaryExpression", "++super", ParserErrorCode.INVALID_OPERATOR_FOR_SUPER);
+  }
+
+  public void test_invalidStarAfterAsync() throws Exception {
+    parse(
+        "parseFunctionBody",
+        new Object[] {false, null, false},
+        "async* => 0;",
+        ParserErrorCode.INVALID_STAR_AFTER_ASYNC);
+  }
+
+  public void test_invalidSync() throws Exception {
+    parse(
+        "parseFunctionBody",
+        new Object[] {false, null, false},
+        "sync* => 0;",
+        ParserErrorCode.INVALID_SYNC);
   }
 
   public void test_invalidUnicodeEscape_incomplete_noDigits() throws Exception {
@@ -1070,6 +1090,14 @@ public class ErrorParserTest extends ParserTestCase {
     parseCompilationUnit(
         "import 'foo.dart' deferred;",
         ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT);
+  }
+
+  public void test_missingStartAfterSync() throws Exception {
+    parse(
+        "parseFunctionBody",
+        new Object[] {false, null, false},
+        "sync {}",
+        ParserErrorCode.MISSING_STAR_AFTER_SYNC);
   }
 
   public void test_missingStatement() throws Exception {

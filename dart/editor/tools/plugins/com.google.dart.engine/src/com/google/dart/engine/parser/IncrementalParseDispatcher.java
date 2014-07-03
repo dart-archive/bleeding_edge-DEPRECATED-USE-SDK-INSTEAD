@@ -108,6 +108,15 @@ public class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   }
 
   @Override
+  public AstNode visitAwaitExpression(AwaitExpression node) {
+    if (oldNode == node.getExpression()) {
+      // TODO(brianwilkerson) Depending on precedence, this might not be sufficient.
+      return parser.parseExpression();
+    }
+    return notAChild(node);
+  }
+
+  @Override
   public AstNode visitBinaryExpression(BinaryExpression node) {
     if (oldNode == node.getLeftOperand()) {
       throw new InsufficientContextException();
@@ -1071,6 +1080,14 @@ public class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   public AstNode visitWithClause(WithClause node) {
     if (node.getMixinTypes().contains(node)) {
       return parser.parseTypeName();
+    }
+    return notAChild(node);
+  }
+
+  @Override
+  public AstNode visitYieldStatement(YieldStatement node) {
+    if (oldNode == node.getExpression()) {
+      return parser.parseExpression();
     }
     return notAChild(node);
   }

@@ -32,6 +32,8 @@ public interface AstVisitor<R> {
 
   public R visitAssignmentExpression(AssignmentExpression node);
 
+  public R visitAwaitExpression(AwaitExpression node);
+
   public R visitBinaryExpression(BinaryExpression node);
 
   public R visitBlock(Block node);
@@ -223,4 +225,6 @@ public interface AstVisitor<R> {
   public R visitWhileStatement(WhileStatement node);
 
   public R visitWithClause(WithClause node);
+
+  public R visitYieldStatement(YieldStatement node);
 }

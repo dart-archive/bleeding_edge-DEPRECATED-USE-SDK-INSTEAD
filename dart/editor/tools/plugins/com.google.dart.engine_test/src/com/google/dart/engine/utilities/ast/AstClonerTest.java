@@ -635,6 +635,19 @@ public class AstClonerTest extends EngineTestCase {
 
   public void test_visitForEachStatement_variable() {
     assertClone(new ForEachStatement(
+        null,
+        tokenFromKeyword(Keyword.FOR),
+        tokenFromType(TokenType.OPEN_PAREN),
+        identifier("a"),
+        tokenFromKeyword(Keyword.IN),
+        identifier("b"),
+        tokenFromType(TokenType.CLOSE_PAREN),
+        block()));
+  }
+
+  public void test_visitForEachStatement_variable_await() {
+    assertClone(new ForEachStatement(
+        tokenFromString("await"),
         tokenFromKeyword(Keyword.FOR),
         tokenFromType(TokenType.OPEN_PAREN),
         identifier("a"),

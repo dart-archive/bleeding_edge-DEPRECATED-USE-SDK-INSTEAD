@@ -255,6 +255,7 @@ public class ParserTestCase extends EngineTestCase {
     Parser parser = new Parser(null, listener);
     parser.setParseFunctionBodies(parseFunctionBodies);
     parser.setParseDeferredLibraries(true);
+    parser.setParseAsync(true);
     Object result = invokeParserMethodImpl(parser, methodName, objects, tokenStream);
     //
     // Partially test the results.

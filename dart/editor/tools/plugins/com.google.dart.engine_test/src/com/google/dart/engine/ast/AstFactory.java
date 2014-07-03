@@ -86,6 +86,35 @@ public final class AstFactory {
     return new AssignmentExpression(leftHandSide, tokenFromType(operator), rightHandSide);
   }
 
+  public static BlockFunctionBody asyncBlockFunctionBody(Statement... statements) {
+    return new BlockFunctionBody(
+        tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
+        null,
+        block(statements));
+  }
+
+  public static ExpressionFunctionBody asyncExpressionFunctionBody(Expression expression) {
+    return new ExpressionFunctionBody(
+        tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
+        tokenFromType(TokenType.FUNCTION),
+        expression,
+        tokenFromType(TokenType.SEMICOLON));
+  }
+
+  public static BlockFunctionBody asyncGeneratorBlockFunctionBody(Statement... statements) {
+    return new BlockFunctionBody(
+        tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
+        tokenFromType(TokenType.STAR),
+        block(statements));
+  }
+
+  public static AwaitExpression awaitExpression(Expression expression) {
+    return new AwaitExpression(
+        tokenFromTypeAndString(TokenType.IDENTIFIER, "await"),
+        expression,
+        tokenFromType(TokenType.SEMICOLON));
+  }
+
   public static BinaryExpression binaryExpression(Expression leftOperand, TokenType operator,
       Expression rightOperand) {
     return new BinaryExpression(leftOperand, tokenFromType(operator), rightOperand);
@@ -99,11 +128,11 @@ public final class AstFactory {
   }
 
   public static BlockFunctionBody blockFunctionBody(Block block) {
-    return new BlockFunctionBody(block);
+    return new BlockFunctionBody(null, null, block);
   }
 
   public static BlockFunctionBody blockFunctionBody(Statement... statements) {
-    return new BlockFunctionBody(block(statements));
+    return new BlockFunctionBody(null, null, block(statements));
   }
 
   public static BooleanLiteral booleanLiteral(boolean value) {
@@ -400,6 +429,7 @@ public final class AstFactory {
 
   public static ExpressionFunctionBody expressionFunctionBody(Expression expression) {
     return new ExpressionFunctionBody(
+        null,
         tokenFromType(TokenType.FUNCTION),
         expression,
         tokenFromType(TokenType.SEMICOLON));
@@ -454,6 +484,7 @@ public final class AstFactory {
   public static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable,
       Expression iterator, Statement body) {
     return new ForEachStatement(
+        null,
         tokenFromKeyword(Keyword.FOR),
         tokenFromType(TokenType.OPEN_PAREN),
         loopVariable,
@@ -466,6 +497,7 @@ public final class AstFactory {
   public static ForEachStatement forEachStatement(SimpleIdentifier identifier, Expression iterator,
       Statement body) {
     return new ForEachStatement(
+        null,
         tokenFromKeyword(Keyword.FOR),
         tokenFromType(TokenType.OPEN_PAREN),
         identifier,
@@ -1037,6 +1069,20 @@ public final class AstFactory {
         identifierList.toArray(new Token[identifierList.size()]));
   }
 
+  public static BlockFunctionBody syncBlockFunctionBody(Statement... statements) {
+    return new BlockFunctionBody(
+        tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"),
+        null,
+        block(statements));
+  }
+
+  public static BlockFunctionBody syncGeneratorBlockFunctionBody(Statement... statements) {
+    return new BlockFunctionBody(
+        tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"),
+        tokenFromType(TokenType.STAR),
+        block(statements));
+  }
+
   public static ThisExpression thisExpression() {
     return new ThisExpression(tokenFromKeyword(Keyword.THIS));
   }
@@ -1200,6 +1246,22 @@ public final class AstFactory {
 
   public static WithClause withClause(TypeName... types) {
     return new WithClause(tokenFromKeyword(Keyword.WITH), list(types));
+  }
+
+  public static YieldStatement yieldEachStatement(Expression expression) {
+    return new YieldStatement(
+        tokenFromTypeAndString(TokenType.IDENTIFIER, "yield"),
+        tokenFromType(TokenType.STAR),
+        expression,
+        tokenFromType(TokenType.SEMICOLON));
+  }
+
+  public static YieldStatement yieldStatement(Expression expression) {
+    return new YieldStatement(
+        tokenFromTypeAndString(TokenType.IDENTIFIER, "yield"),
+        null,
+        expression,
+        tokenFromType(TokenType.SEMICOLON));
   }
 
   /**

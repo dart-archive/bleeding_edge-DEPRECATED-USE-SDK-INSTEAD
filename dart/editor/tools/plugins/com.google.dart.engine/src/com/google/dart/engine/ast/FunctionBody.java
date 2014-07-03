@@ -27,4 +27,30 @@ package com.google.dart.engine.ast;
  * @coverage dart.engine.ast
  */
 public abstract class FunctionBody extends AstNode {
+  /**
+   * Return {@code true} if this function body is asynchronous.
+   * 
+   * @return {@code true} if this function body is asynchronous
+   */
+  public boolean isAsynchronous() {
+    return false;
+  }
+
+  /**
+   * Return {@code true} if this function body is a generator.
+   * 
+   * @return {@code true} if this function body is a generator
+   */
+  public boolean isGenerator() {
+    return false;
+  }
+
+  /**
+   * Return {@code true} if this function body is synchronous.
+   * 
+   * @return {@code true} if this function body is synchronous
+   */
+  public boolean isSynchronous() {
+    return true;
+  }
 }

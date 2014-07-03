@@ -127,6 +127,14 @@ public class NodeReplacer implements AstVisitor<Boolean> {
   }
 
   @Override
+  public Boolean visitAwaitExpression(AwaitExpression node) {
+    if (node.getExpression() == oldNode) {
+      node.setExpression((Expression) newNode);
+    }
+    return visitNode(node);
+  }
+
+  @Override
   public Boolean visitBinaryExpression(BinaryExpression node) {
     if (node.getLeftOperand() == oldNode) {
       node.setLeftOperand((Expression) newNode);
@@ -1151,6 +1159,14 @@ public class NodeReplacer implements AstVisitor<Boolean> {
   public Boolean visitWithClause(WithClause node) {
     if (replaceInList(node.getMixinTypes())) {
       return Boolean.TRUE;
+    }
+    return visitNode(node);
+  }
+
+  @Override
+  public Boolean visitYieldStatement(YieldStatement node) {
+    if (node.getExpression() == oldNode) {
+      node.setExpression((Expression) newNode);
     }
     return visitNode(node);
   }

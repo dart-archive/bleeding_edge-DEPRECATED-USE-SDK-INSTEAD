@@ -59,6 +59,11 @@ public class UnifyingAstVisitor<R> implements AstVisitor<R> {
   }
 
   @Override
+  public R visitAwaitExpression(AwaitExpression node) {
+    return visitNode(node);
+  }
+
+  @Override
   public R visitBinaryExpression(BinaryExpression node) {
     return visitNode(node);
   }
@@ -540,6 +545,11 @@ public class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @Override
   public R visitWithClause(WithClause node) {
+    return visitNode(node);
+  }
+
+  @Override
+  public R visitYieldStatement(YieldStatement node) {
     return visitNode(node);
   }
 }

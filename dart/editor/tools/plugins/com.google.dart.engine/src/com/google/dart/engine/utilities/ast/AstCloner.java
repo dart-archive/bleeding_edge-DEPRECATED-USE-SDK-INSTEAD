@@ -85,6 +85,11 @@ public class AstCloner implements AstVisitor<AstNode> {
   }
 
   @Override
+  public AwaitExpression visitAwaitExpression(AwaitExpression node) {
+    return new AwaitExpression(node.getAwaitKeyword(), node.getExpression(), node.getSemicolon());
+  }
+
+  @Override
   public BinaryExpression visitBinaryExpression(BinaryExpression node) {
     return new BinaryExpression(
         cloneNode(node.getLeftOperand()),
@@ -102,7 +107,7 @@ public class AstCloner implements AstVisitor<AstNode> {
 
   @Override
   public BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) {
-    return new BlockFunctionBody(cloneNode(node.getBlock()));
+    return new BlockFunctionBody(node.getKeyword(), node.getStar(), cloneNode(node.getBlock()));
   }
 
   @Override
@@ -315,6 +320,7 @@ public class AstCloner implements AstVisitor<AstNode> {
   @Override
   public ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) {
     return new ExpressionFunctionBody(
+        node.getKeyword(),
         node.getFunctionDefinition(),
         cloneNode(node.getExpression()),
         node.getSemicolon());
@@ -358,6 +364,7 @@ public class AstCloner implements AstVisitor<AstNode> {
     DeclaredIdentifier loopVariable = node.getLoopVariable();
     if (loopVariable == null) {
       return new ForEachStatement(
+          node.getAwaitKeyword(),
           node.getForKeyword(),
           node.getLeftParenthesis(),
           cloneNode(node.getIdentifier()),
@@ -367,6 +374,7 @@ public class AstCloner implements AstVisitor<AstNode> {
           cloneNode(node.getBody()));
     }
     return new ForEachStatement(
+        node.getAwaitKeyword(),
         node.getForKeyword(),
         node.getLeftParenthesis(),
         cloneNode(loopVariable),
@@ -914,6 +922,15 @@ public class AstCloner implements AstVisitor<AstNode> {
   @Override
   public WithClause visitWithClause(WithClause node) {
     return new WithClause(node.getWithKeyword(), cloneNodeList(node.getMixinTypes()));
+  }
+
+  @Override
+  public YieldStatement visitYieldStatement(YieldStatement node) {
+    return new YieldStatement(
+        node.getYieldKeyword(),
+        node.getStar(),
+        node.getExpression(),
+        node.getSemicolon());
   }
 
   @SuppressWarnings("unchecked")

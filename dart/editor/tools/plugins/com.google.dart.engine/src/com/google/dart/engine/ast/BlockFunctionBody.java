@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -21,12 +22,23 @@ import com.google.dart.engine.scanner.Token;
  * 
  * <pre>
  * blockFunctionBody ::=
- *     {@link Block block}
+ *     ('async' | 'async' '*' | 'sync' '*')? {@link Block block}
  * </pre>
  * 
  * @coverage dart.engine.ast
  */
 public class BlockFunctionBody extends FunctionBody {
+  /**
+   * The token representing the 'async' or 'sync' keyword, or {@code null} if there is no such
+   * keyword.
+   */
+  private Token keyword;
+
+  /**
+   * The star optionally following the 'async' or following the 'sync' keyword.
+   */
+  private Token star;
+
   /**
    * The block representing the body of the function.
    */
@@ -35,9 +47,13 @@ public class BlockFunctionBody extends FunctionBody {
   /**
    * Initialize a newly created function body consisting of a block of statements.
    * 
+   * @param keyword the token representing the 'async' or 'sync' keyword
+   * @param star the star following the 'async' or 'sync' keyword
    * @param block the block representing the body of the function
    */
-  public BlockFunctionBody(Block block) {
+  public BlockFunctionBody(Token keyword, Token star, Block block) {
+    this.keyword = keyword;
+    this.star = star;
     this.block = becomeParentOf(block);
   }
 
@@ -66,12 +82,68 @@ public class BlockFunctionBody extends FunctionBody {
   }
 
   /**
+   * Return the token representing the 'async' or 'sync' keyword, or {@code null} if there is no
+   * such keyword.
+   * 
+   * @return the token representing the 'async' or 'sync' keyword
+   */
+  public Token getKeyword() {
+    return keyword;
+  }
+
+  /**
+   * Return the star following the 'async' or 'sync' keyword, or {@code null} if there is no star.
+   * 
+   * @return the star following the 'async' or 'sync' keyword
+   */
+  public Token getStar() {
+    return star;
+  }
+
+  @Override
+  public boolean isAsynchronous() {
+    if (keyword == null) {
+      return false;
+    }
+    String keywordValue = keyword.getLexeme();
+    return keywordValue.equals(Parser.ASYNC);
+  }
+
+  @Override
+  public boolean isGenerator() {
+    return star != null;
+  }
+
+  @Override
+  public boolean isSynchronous() {
+    return keyword == null || !keyword.getLexeme().equals(Parser.ASYNC);
+  }
+
+  /**
    * Set the block representing the body of the function to the given block.
    * 
    * @param block the block representing the body of the function
    */
   public void setBlock(Block block) {
     this.block = becomeParentOf(block);
+  }
+
+  /**
+   * Set the token representing the 'async' or 'sync' keyword to the given token.
+   * 
+   * @param keyword the token representing the 'async' or 'sync' keyword
+   */
+  public void setKeyword(Token keyword) {
+    this.keyword = keyword;
+  }
+
+  /**
+   * Set the star following the 'async' or 'sync' keyword to the given token.
+   * 
+   * @param star the star following the 'async' or 'sync' keyword
+   */
+  public void setStar(Token star) {
+    this.star = star;
   }
 
   @Override

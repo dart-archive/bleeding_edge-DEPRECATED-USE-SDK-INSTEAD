@@ -117,6 +117,14 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @Override
+  public AwaitExpression visitAwaitExpression(AwaitExpression node) {
+    return new AwaitExpression(
+        mapToken(node.getAwaitKeyword()),
+        cloneNode(node.getExpression()),
+        mapToken(node.getSemicolon()));
+  }
+
+  @Override
   public BinaryExpression visitBinaryExpression(BinaryExpression node) {
     BinaryExpression copy = new BinaryExpression(
         cloneNode(node.getLeftOperand()),
@@ -139,7 +147,10 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) {
-    return new BlockFunctionBody(cloneNode(node.getBlock()));
+    return new BlockFunctionBody(
+        mapToken(node.getKeyword()),
+        mapToken(node.getStar()),
+        cloneNode(node.getBlock()));
   }
 
   @Override
@@ -374,6 +385,7 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) {
     return new ExpressionFunctionBody(
+        mapToken(node.getKeyword()),
         mapToken(node.getFunctionDefinition()),
         cloneNode(node.getExpression()),
         mapToken(node.getSemicolon()));
@@ -417,6 +429,7 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
     DeclaredIdentifier loopVariable = node.getLoopVariable();
     if (loopVariable == null) {
       return new ForEachStatement(
+          mapToken(node.getAwaitKeyword()),
           mapToken(node.getForKeyword()),
           mapToken(node.getLeftParenthesis()),
           cloneNode(node.getIdentifier()),
@@ -426,6 +439,7 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
           cloneNode(node.getBody()));
     }
     return new ForEachStatement(
+        mapToken(node.getAwaitKeyword()),
         mapToken(node.getForKeyword()),
         mapToken(node.getLeftParenthesis()),
         cloneNode(loopVariable),
@@ -1089,6 +1103,15 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   @Override
   public WithClause visitWithClause(WithClause node) {
     return new WithClause(mapToken(node.getWithKeyword()), cloneNodeList(node.getMixinTypes()));
+  }
+
+  @Override
+  public YieldStatement visitYieldStatement(YieldStatement node) {
+    return new YieldStatement(
+        mapToken(node.getYieldKeyword()),
+        mapToken(node.getStar()),
+        cloneNode(node.getExpression()),
+        mapToken(node.getSemicolon()));
   }
 
   @SuppressWarnings("unchecked")

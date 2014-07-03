@@ -20,13 +20,18 @@ import com.google.dart.engine.scanner.Token;
  * 
  * <pre>
  * forEachStatement ::=
- *     'for' '(' {@link DeclaredIdentifier loopParameter} 'in' {@link Expression iterator} ')' {@link Block body}
- *   | 'for' '(' {@link SimpleIdentifier identifier} 'in' {@link Expression iterator} ')' {@link Block body}
+ *     'await'? 'for' '(' {@link DeclaredIdentifier loopParameter} 'in' {@link Expression iterator} ')' {@link Block body}
+ *   | 'await'? 'for' '(' {@link SimpleIdentifier identifier} 'in' {@link Expression iterator} ')' {@link Block body}
  * </pre>
  * 
  * @coverage dart.engine.ast
  */
 public class ForEachStatement extends Statement {
+  /**
+   * The token representing the 'await' keyword, or {@code null} if there is no 'await' keyword.
+   */
+  private Token awaitKeyword;
+
   /**
    * The token representing the 'for' keyword.
    */
@@ -71,6 +76,7 @@ public class ForEachStatement extends Statement {
   /**
    * Initialize a newly created for-each statement.
    * 
+   * @param awaitKeyword the token representing the 'await' keyword
    * @param forKeyword the token representing the 'for' keyword
    * @param leftParenthesis the left parenthesis
    * @param loopVariable the declaration of the loop variable
@@ -78,8 +84,10 @@ public class ForEachStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  public ForEachStatement(Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable,
-      Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
+  public ForEachStatement(Token awaitKeyword, Token forKeyword, Token leftParenthesis,
+      DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator,
+      Token rightParenthesis, Statement body) {
+    this.awaitKeyword = awaitKeyword;
     this.forKeyword = forKeyword;
     this.leftParenthesis = leftParenthesis;
     this.loopVariable = becomeParentOf(loopVariable);
@@ -92,6 +100,7 @@ public class ForEachStatement extends Statement {
   /**
    * Initialize a newly created for-each statement.
    * 
+   * @param awaitKeyword the token representing the 'await' keyword
    * @param forKeyword the token representing the 'for' keyword
    * @param leftParenthesis the left parenthesis
    * @param identifier the loop variable
@@ -99,8 +108,10 @@ public class ForEachStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  public ForEachStatement(Token forKeyword, Token leftParenthesis, SimpleIdentifier identifier,
-      Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
+  public ForEachStatement(Token awaitKeyword, Token forKeyword, Token leftParenthesis,
+      SimpleIdentifier identifier, Token inKeyword, Expression iterator, Token rightParenthesis,
+      Statement body) {
+    this.awaitKeyword = awaitKeyword;
     this.forKeyword = forKeyword;
     this.leftParenthesis = leftParenthesis;
     this.identifier = becomeParentOf(identifier);
@@ -113,6 +124,16 @@ public class ForEachStatement extends Statement {
   @Override
   public <R> R accept(AstVisitor<R> visitor) {
     return visitor.visitForEachStatement(this);
+  }
+
+  /**
+   * Return the token representing the 'await' keyword, or {@code null} if there is no 'await'
+   * keyword.
+   * 
+   * @return the token representing the 'await' keyword
+   */
+  public Token getAwaitKeyword() {
+    return awaitKeyword;
   }
 
   @Override
@@ -196,6 +217,15 @@ public class ForEachStatement extends Statement {
    */
   public Token getRightParenthesis() {
     return rightParenthesis;
+  }
+
+  /**
+   * Set the token representing the 'await' keyword to the given token.
+   * 
+   * @param awaitKeyword the token representing the 'await' keyword
+   */
+  public void setAwaitKeyword(Token awaitKeyword) {
+    this.awaitKeyword = awaitKeyword;
   }
 
   /**

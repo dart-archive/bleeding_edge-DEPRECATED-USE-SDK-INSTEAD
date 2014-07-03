@@ -97,6 +97,7 @@ class NgRepeatProcessor extends NgDirectiveProcessor {
     ForEachStatement loopStatement = new ForEachStatement(
         null,
         null,
+        null,
         loopVariable,
         null,
         iterableExpr.getExpression(),

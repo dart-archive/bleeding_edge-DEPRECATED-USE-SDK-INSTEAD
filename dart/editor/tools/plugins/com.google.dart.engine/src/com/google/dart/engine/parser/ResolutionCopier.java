@@ -106,6 +106,14 @@ public class ResolutionCopier implements AstVisitor<Boolean> {
   }
 
   @Override
+  public Boolean visitAwaitExpression(AwaitExpression node) {
+    AwaitExpression toNode = (AwaitExpression) this.toNode;
+    return isEqualTokens(node.getAwaitKeyword(), toNode.getAwaitKeyword())
+        & isEqualNodes(node.getExpression(), toNode.getExpression())
+        & isEqualTokens(node.getSemicolon(), toNode.getSemicolon());
+  }
+
+  @Override
   public Boolean visitBinaryExpression(BinaryExpression node) {
     BinaryExpression toNode = (BinaryExpression) this.toNode;
     if (isEqualNodes(node.getLeftOperand(), toNode.getLeftOperand())
@@ -1157,6 +1165,14 @@ public class ResolutionCopier implements AstVisitor<Boolean> {
     WithClause toNode = (WithClause) this.toNode;
     return isEqualTokens(node.getWithKeyword(), toNode.getWithKeyword())
         & isEqualNodeLists(node.getMixinTypes(), toNode.getMixinTypes());
+  }
+
+  @Override
+  public Boolean visitYieldStatement(YieldStatement node) {
+    YieldStatement toNode = (YieldStatement) this.toNode;
+    return isEqualTokens(node.getYieldKeyword(), toNode.getYieldKeyword())
+        & isEqualNodes(node.getExpression(), toNode.getExpression())
+        & isEqualTokens(node.getSemicolon(), toNode.getSemicolon());
   }
 
   /**

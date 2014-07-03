@@ -32,6 +32,11 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   public static boolean DEFAULT_ENABLE_DEFERRED_LOADING = true;
 
   /**
+   * The default value for enabling async support.
+   */
+  public static boolean DEFAULT_ENABLE_ASYNC = false;
+
+  /**
    * A flag indicating whether analysis is to analyze Angular.
    */
   private boolean analyzeAngular = true;

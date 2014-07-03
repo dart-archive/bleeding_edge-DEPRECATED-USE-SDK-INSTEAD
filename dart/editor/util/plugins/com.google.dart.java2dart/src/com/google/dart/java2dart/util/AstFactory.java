@@ -101,15 +101,15 @@ public final class AstFactory {
   }
 
   public static BlockFunctionBody blockFunctionBody(Block block) {
-    return new BlockFunctionBody(block);
+    return new BlockFunctionBody(null, null, block);
   }
 
   public static BlockFunctionBody blockFunctionBody(List<Statement> statements) {
-    return new BlockFunctionBody(block(statements));
+    return new BlockFunctionBody(null, null, block(statements));
   }
 
   public static BlockFunctionBody blockFunctionBody(Statement... statements) {
-    return new BlockFunctionBody(block(statements));
+    return new BlockFunctionBody(null, null, block(statements));
   }
 
   public static BooleanLiteral booleanLiteral(boolean value) {
@@ -472,6 +472,7 @@ public final class AstFactory {
 
   public static ExpressionFunctionBody expressionFunctionBody(Expression expression) {
     return new ExpressionFunctionBody(
+        null,
         token(TokenType.FUNCTION),
         expression,
         token(TokenType.SEMICOLON));
@@ -564,6 +565,7 @@ public final class AstFactory {
   public static ForEachStatement forEachStatement(DeclaredIdentifier loopParameter,
       Expression iterator, Statement body) {
     return new ForEachStatement(
+        null,
         token(Keyword.FOR),
         token(TokenType.OPEN_PAREN),
         loopParameter,

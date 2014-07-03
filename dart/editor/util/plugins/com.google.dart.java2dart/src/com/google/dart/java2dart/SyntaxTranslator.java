@@ -1019,7 +1019,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           }
         }
         Block bodyBlock = (Block) translate(javaBlock);
-        body = new BlockFunctionBody(bodyBlock);
+        body = new BlockFunctionBody(null, null, bodyBlock);
         List<Statement> statements = bodyBlock.getStatements();
         // convert "{ return foo; }" to "=> foo;"
         if (statements.size() == 1 && statements.get(0) instanceof ReturnStatement) {

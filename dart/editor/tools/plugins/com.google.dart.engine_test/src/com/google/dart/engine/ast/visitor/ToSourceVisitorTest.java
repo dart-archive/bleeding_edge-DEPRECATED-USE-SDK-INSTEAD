@@ -77,6 +77,10 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("a = b", assignmentExpression(identifier("a"), TokenType.EQ, identifier("b")));
   }
 
+  public void test_visitAwaitExpression() {
+    assertSource("await e;", awaitExpression(identifier("e")));
+  }
+
   public void test_visitBinaryExpression() {
     assertSource("a + b", binaryExpression(identifier("a"), TokenType.PLUS, identifier("b")));
   }
@@ -89,8 +93,24 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("{break; break;}", block(breakStatement(), breakStatement()));
   }
 
-  public void test_visitBlockFunctionBody() {
+  public void test_visitBlockFunctionBody_async() {
+    assertSource("async {}", asyncBlockFunctionBody());
+  }
+
+  public void test_visitBlockFunctionBody_async_star() {
+    assertSource("async* {}", asyncGeneratorBlockFunctionBody());
+  }
+
+  public void test_visitBlockFunctionBody_simple() {
     assertSource("{}", blockFunctionBody());
+  }
+
+  public void test_visitBlockFunctionBody_sync() {
+    assertSource("sync {}", syncBlockFunctionBody());
+  }
+
+  public void test_visitBlockFunctionBody_sync_star() {
+    assertSource("sync* {}", syncGeneratorBlockFunctionBody());
   }
 
   public void test_visitBooleanLiteral_false() {
@@ -652,7 +672,11 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("@deprecated export 'a.dart';", directive);
   }
 
-  public void test_visitExpressionFunctionBody() {
+  public void test_visitExpressionFunctionBody_async() {
+    assertSource("async => a;", asyncExpressionFunctionBody(identifier("a")));
+  }
+
+  public void test_visitExpressionFunctionBody_simple() {
     assertSource("=> a;", expressionFunctionBody(identifier("a")));
   }
 
@@ -708,6 +732,19 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitForEachStatement_variable() {
     assertSource("for (a in b) {}", new ForEachStatement(
+        null,
+        tokenFromKeyword(Keyword.FOR),
+        tokenFromType(TokenType.OPEN_PAREN),
+        identifier("a"),
+        tokenFromKeyword(Keyword.IN),
+        identifier("b"),
+        tokenFromType(TokenType.CLOSE_PAREN),
+        block()));
+  }
+
+  public void test_visitForEachStatement_variable_await() {
+    assertSource("await for (a in b) {}", new ForEachStatement(
+        tokenFromString("await"),
         tokenFromKeyword(Keyword.FOR),
         tokenFromType(TokenType.OPEN_PAREN),
         identifier("a"),
@@ -1658,6 +1695,14 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitWithClause_single() {
     assertSource("with A", withClause(typeName("A")));
+  }
+
+  public void test_visitYieldStatement() {
+    assertSource("yield e;", yieldStatement(identifier("e")));
+  }
+
+  public void test_visitYieldStatement_each() {
+    assertSource("yield* e;", yieldEachStatement(identifier("e")));
   }
 
   /**

@@ -576,6 +576,13 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(selector);
   }
 
+  public void test_parseAwaitExpression() throws Exception {
+    AwaitExpression expression = parse("parseAwaitExpression", "await x;");
+    assertNotNull(expression.getAwaitKeyword());
+    assertNotNull(expression.getExpression());
+    assertNotNull(expression.getSemicolon());
+  }
+
   public void test_parseBitwiseAndExpression_normal() throws Exception {
     BinaryExpression expression = parse("parseBitwiseAndExpression", "x & y");
     assertNotNull(expression.getLeftOperand());
@@ -2692,8 +2699,22 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(parameterList.getRightParenthesis());
   }
 
+  public void test_parseForStatement_each_await() throws Exception {
+    ForEachStatement statement = parse("parseForStatement", "await for (element in list) {}");
+    assertNotNull(statement.getAwaitKeyword());
+    assertNotNull(statement.getForKeyword());
+    assertNotNull(statement.getLeftParenthesis());
+    assertNull(statement.getLoopVariable());
+    assertNotNull(statement.getIdentifier());
+    assertNotNull(statement.getInKeyword());
+    assertNotNull(statement.getIterator());
+    assertNotNull(statement.getRightParenthesis());
+    assertNotNull(statement.getBody());
+  }
+
   public void test_parseForStatement_each_identifier() throws Exception {
     ForEachStatement statement = parse("parseForStatement", "for (element in list) {}");
+    assertNull(statement.getAwaitKeyword());
     assertNotNull(statement.getForKeyword());
     assertNotNull(statement.getLeftParenthesis());
     assertNull(statement.getLoopVariable());
@@ -2706,6 +2727,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseForStatement_each_noType_metadata() throws Exception {
     ForEachStatement statement = parse("parseForStatement", "for (@A var element in list) {}");
+    assertNull(statement.getAwaitKeyword());
     assertNotNull(statement.getForKeyword());
     assertNotNull(statement.getLeftParenthesis());
     assertNotNull(statement.getLoopVariable());
@@ -2719,6 +2741,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseForStatement_each_type() throws Exception {
     ForEachStatement statement = parse("parseForStatement", "for (A element in list) {}");
+    assertNull(statement.getAwaitKeyword());
     assertNotNull(statement.getForKeyword());
     assertNotNull(statement.getLeftParenthesis());
     assertNotNull(statement.getLoopVariable());
@@ -2731,6 +2754,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseForStatement_each_var() throws Exception {
     ForEachStatement statement = parse("parseForStatement", "for (var element in list) {}");
+    assertNull(statement.getAwaitKeyword());
     assertNotNull(statement.getForKeyword());
     assertNotNull(statement.getLeftParenthesis());
     assertNotNull(statement.getLoopVariable());
@@ -2902,7 +2926,54 @@ public class SimpleParserTest extends ParserTestCase {
         "parseFunctionBody",
         new Object[] {false, null, false},
         "{}");
+    assertNull(functionBody.getKeyword());
+    assertNull(functionBody.getStar());
     assertNotNull(functionBody.getBlock());
+    assertFalse(functionBody.isAsynchronous());
+    assertFalse(functionBody.isGenerator());
+    assertTrue(functionBody.isSynchronous());
+  }
+
+  public void test_parseFunctionBody_block_async() throws Exception {
+    BlockFunctionBody functionBody = parse(
+        "parseFunctionBody",
+        new Object[] {false, null, false},
+        "async {}");
+    assertNotNull(functionBody.getKeyword());
+    assertEquals(Parser.ASYNC, functionBody.getKeyword().getLexeme());
+    assertNull(functionBody.getStar());
+    assertNotNull(functionBody.getBlock());
+    assertTrue(functionBody.isAsynchronous());
+    assertFalse(functionBody.isGenerator());
+    assertFalse(functionBody.isSynchronous());
+  }
+
+  public void test_parseFunctionBody_block_asyncGenerator() throws Exception {
+    BlockFunctionBody functionBody = parse(
+        "parseFunctionBody",
+        new Object[] {false, null, false},
+        "async* {}");
+    assertNotNull(functionBody.getKeyword());
+    assertEquals(Parser.ASYNC, functionBody.getKeyword().getLexeme());
+    assertNotNull(functionBody.getStar());
+    assertNotNull(functionBody.getBlock());
+    assertTrue(functionBody.isAsynchronous());
+    assertTrue(functionBody.isGenerator());
+    assertFalse(functionBody.isSynchronous());
+  }
+
+  public void test_parseFunctionBody_block_syncGenerator() throws Exception {
+    BlockFunctionBody functionBody = parse(
+        "parseFunctionBody",
+        new Object[] {false, null, false},
+        "sync* {}");
+    assertNotNull(functionBody.getKeyword());
+    assertEquals(Parser.SYNC, functionBody.getKeyword().getLexeme());
+    assertNotNull(functionBody.getStar());
+    assertNotNull(functionBody.getBlock());
+    assertFalse(functionBody.isAsynchronous());
+    assertTrue(functionBody.isGenerator());
+    assertTrue(functionBody.isSynchronous());
   }
 
   public void test_parseFunctionBody_empty() throws Exception {
@@ -2916,9 +2987,26 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseFunctionBody_expression() throws Exception {
     ExpressionFunctionBody functionBody = parse("parseFunctionBody", new Object[] {
         false, null, false}, "=> y;");
+    assertNull(functionBody.getKeyword());
     assertNotNull(functionBody.getFunctionDefinition());
     assertNotNull(functionBody.getExpression());
     assertNotNull(functionBody.getSemicolon());
+    assertFalse(functionBody.isAsynchronous());
+    assertFalse(functionBody.isGenerator());
+    assertTrue(functionBody.isSynchronous());
+  }
+
+  public void test_parseFunctionBody_expression_async() throws Exception {
+    ExpressionFunctionBody functionBody = parse("parseFunctionBody", new Object[] {
+        false, null, false}, "async => y;");
+    assertNotNull(functionBody.getKeyword());
+    assertEquals(Parser.ASYNC, functionBody.getKeyword().getLexeme());
+    assertNotNull(functionBody.getFunctionDefinition());
+    assertNotNull(functionBody.getExpression());
+    assertNotNull(functionBody.getSemicolon());
+    assertTrue(functionBody.isAsynchronous());
+    assertFalse(functionBody.isGenerator());
+    assertFalse(functionBody.isSynchronous());
   }
 
   public void test_parseFunctionBody_nativeFunctionBody() throws Exception {
@@ -4853,6 +4941,22 @@ public class SimpleParserTest extends ParserTestCase {
     WithClause clause = parse("parseWithClause", "with M");
     assertNotNull(clause.getWithKeyword());
     assertSizeOfList(1, clause.getMixinTypes());
+  }
+
+  public void test_parseYieldStatement_each() throws Exception {
+    YieldStatement statement = parse("parseYieldStatement", "yield* x;");
+    assertNotNull(statement.getYieldKeyword());
+    assertNotNull(statement.getStar());
+    assertNotNull(statement.getExpression());
+    assertNotNull(statement.getSemicolon());
+  }
+
+  public void test_parseYieldStatement_normal() throws Exception {
+    YieldStatement statement = parse("parseYieldStatement", "yield x;");
+    assertNotNull(statement.getYieldKeyword());
+    assertNull(statement.getStar());
+    assertNotNull(statement.getExpression());
+    assertNotNull(statement.getSemicolon());
   }
 
   public void test_skipPrefixedIdentifier_invalid() throws Exception {

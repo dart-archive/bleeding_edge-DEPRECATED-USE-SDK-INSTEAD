@@ -91,6 +91,8 @@ public enum ParserErrorCode implements ErrorCode {
   IMPLEMENTS_BEFORE_WITH("The with clause must be before the implements clause"),
   IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Import directives must preceed part directives"),
   INITIALIZED_VARIABLE_IN_FOR_EACH("The loop variable in a for-each loop cannot be initialized"),
+  INVALID_AWAIT_IN_FOR("The modifier 'await' is not allowed for a normal 'for' statement",
+      "Remove the keyword or use a for-each statement."),
   INVALID_CODE_POINT("The escape sequence '%s' is not a valid code point"),
   INVALID_COMMENT_REFERENCE(
       "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else"),
@@ -98,6 +100,10 @@ public enum ParserErrorCode implements ErrorCode {
       "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits"),
   INVALID_OPERATOR("The string '%s' is not a valid operator"),
   INVALID_OPERATOR_FOR_SUPER("The operator '%s' cannot be used with 'super'"),
+  INVALID_STAR_AFTER_ASYNC("The modifier 'async*' is not allowed for an expression function body",
+      "Convert the body to a block."),
+  INVALID_SYNC("The modifier 'sync' is not allowed for an exrpression function body",
+      "Convert the body to a block."),
   INVALID_UNICODE_ESCAPE(
       "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'"),
   LIBRARY_DIRECTIVE_NOT_FIRST("The library directive must appear before all other directives"),
@@ -119,6 +125,8 @@ public enum ParserErrorCode implements ErrorCode {
   MISSING_NAME_IN_LIBRARY_DIRECTIVE("Library directives must include a library name"),
   MISSING_NAME_IN_PART_OF_DIRECTIVE("Library directives must include a library name"),
   MISSING_PREFIX_IN_DEFERRED_IMPORT("Deferred imports must have a prefix"),
+  MISSING_STAR_AFTER_SYNC("The modifier 'sync' must be followed by a star ('*')",
+      "Remove the modifier or add a star."),
   MISSING_STATEMENT("Expected a statement"),
   MISSING_TERMINATOR_FOR_PARAMETER_GROUP("There is no '%s' to close the parameter group"),
   MISSING_TYPEDEF_PARAMETERS("Type aliases for functions must have an explicit list of parameters"),
@@ -228,6 +236,16 @@ public enum ParserErrorCode implements ErrorCode {
    */
   private ParserErrorCode(String message) {
     this(ErrorSeverity.ERROR, message, null);
+  }
+
+  /**
+   * Initialize a newly created error code to have the given message and a severity of ERROR.
+   * 
+   * @param message the message template used to create the message to be displayed for the error
+   * @param correction the template used to create the correction to be displayed for the error
+   */
+  private ParserErrorCode(String message, String correction) {
+    this(ErrorSeverity.ERROR, message, correction);
   }
 
   @Override

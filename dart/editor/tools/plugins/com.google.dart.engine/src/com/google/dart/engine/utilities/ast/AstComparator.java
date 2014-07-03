@@ -91,6 +91,14 @@ public class AstComparator implements AstVisitor<Boolean> {
   }
 
   @Override
+  public Boolean visitAwaitExpression(AwaitExpression node) {
+    AwaitExpression other = (AwaitExpression) this.other;
+    return isEqualTokens(node.getAwaitKeyword(), other.getAwaitKeyword())
+        && isEqualNodes(node.getExpression(), other.getExpression())
+        && isEqualTokens(node.getSemicolon(), other.getSemicolon());
+  }
+
+  @Override
   public Boolean visitBinaryExpression(BinaryExpression node) {
     BinaryExpression other = (BinaryExpression) this.other;
     return isEqualNodes(node.getLeftOperand(), other.getLeftOperand())
@@ -936,6 +944,14 @@ public class AstComparator implements AstVisitor<Boolean> {
     WithClause other = (WithClause) this.other;
     return isEqualTokens(node.getWithKeyword(), other.getWithKeyword())
         && isEqualNodeLists(node.getMixinTypes(), other.getMixinTypes());
+  }
+
+  @Override
+  public Boolean visitYieldStatement(YieldStatement node) {
+    YieldStatement other = (YieldStatement) this.other;
+    return isEqualTokens(node.getYieldKeyword(), other.getYieldKeyword())
+        && isEqualNodes(node.getExpression(), other.getExpression())
+        && isEqualTokens(node.getSemicolon(), other.getSemicolon());
   }
 
   /**

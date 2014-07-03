@@ -64,6 +64,12 @@ public class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @Override
+  public R visitAwaitExpression(AwaitExpression node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitBinaryExpression(BinaryExpression node) {
     node.visitChildren(this);
     return null;
@@ -635,6 +641,12 @@ public class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @Override
   public R visitWithClause(WithClause node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitYieldStatement(YieldStatement node) {
     node.visitChildren(this);
     return null;
   }
