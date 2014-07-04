@@ -28,11 +28,13 @@ import com.google.dart.server.Consumer;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
 import com.google.dart.server.FixesConsumer;
+import com.google.dart.server.HoverConsumer;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
+import com.google.dart.server.internal.remote.processor.HoverResultProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisHighlightsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisNavigationProcessor;
@@ -248,6 +250,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   public void getFixes(List<AnalysisError> errors, FixesConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(id, RequestUtilities.generateEditGetFixes(id, errors), consumer);
+  }
+
+  @Override
+  public void getHover(String file, int offset, HoverConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateAnalysisGetHover(id, file, offset), consumer);
   }
 
   @Override
@@ -472,6 +480,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     JsonObject resultObject = (JsonObject) response.get("result");
     if (consumer instanceof CompletionIdConsumer) {
       processCompletionIdConsumer((CompletionIdConsumer) consumer, resultObject);
+    } else if (consumer instanceof HoverConsumer) {
+      new HoverResultProcessor((HoverConsumer) consumer).process(resultObject);
     } else if (consumer instanceof VersionConsumer) {
       processVersionConsumer((VersionConsumer) consumer, resultObject);
     } else if (consumer instanceof BasicConsumer) {

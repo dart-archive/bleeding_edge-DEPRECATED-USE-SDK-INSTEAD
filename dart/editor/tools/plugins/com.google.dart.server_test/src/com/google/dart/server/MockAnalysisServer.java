@@ -70,6 +70,11 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
+  public void getHover(String string, int i, HoverConsumer hoverConsumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void getTypeHierarchy(Element element, TypeHierarchyConsumer consumer) {
     throw new UnsupportedOperationException();
   }

@@ -115,6 +115,16 @@ public interface AnalysisServer {
   public void getFixes(List<AnalysisError> errors, FixesConsumer consumer);
 
   /**
+   * Computes the hover text to be displayed at the given location. The given consumer is invoked
+   * asynchronously on a different thread.
+   * 
+   * @param file the file in which hover text is being requested
+   * @param offset the offset in the source used to determine hover text
+   * @param consumer the results listener
+   */
+  public void getHover(String file, int offset, HoverConsumer consumer);
+
+  /**
    * Computes a type hierarchy for the given {@link Element} - class or member. The given consumer
    * is invoked asynchronously on a different thread.
    * 
@@ -130,13 +140,6 @@ public interface AnalysisServer {
    */
   public void getVersion(VersionConsumer consumer);
 
-  /**
-   * Force the re-analysis of everything contained in the existing analysis roots. This will cause
-   * all previously computed analysis results to be discarded and recomputed, and will cause all
-   * subscribed notifications to be re-sent.
-   */
-  public void reanalyze();
-
 //  /**
 //   * Reports with a set of {@link ErrorCode}s for which server may be able to {@link #computeFixes}
 //   * in the given context.
@@ -145,6 +148,13 @@ public interface AnalysisServer {
 //   * @param consumer the results listener
 //   */
 //  public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer);
+
+  /**
+   * Force the re-analysis of everything contained in the existing analysis roots. This will cause
+   * all previously computed analysis results to be discarded and recomputed, and will cause all
+   * subscribed notifications to be re-sent.
+   */
+  public void reanalyze();
 
   /**
    * Remove the given listener from the list of listeners that will receive notification when new

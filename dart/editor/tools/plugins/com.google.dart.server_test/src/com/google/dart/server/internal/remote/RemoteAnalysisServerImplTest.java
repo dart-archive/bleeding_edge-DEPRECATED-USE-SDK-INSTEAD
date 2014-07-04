@@ -29,6 +29,8 @@ import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
+import com.google.dart.server.HoverConsumer;
+import com.google.dart.server.HoverInformation;
 import com.google.dart.server.Location;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
@@ -57,6 +59,55 @@ import java.util.Map;
  * remote server, see {@link RemoteAnalysisServerImplIntegrationTest}.
  */
 public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
+
+  public void test_analysis_getHover() throws Exception {
+    final HoverInformation[] hovers = new HoverInformation[1];
+    server.getHover("/fileA.dart", 17, new HoverConsumer() {
+      @Override
+      public void computedHovers(HoverInformation[] result) {
+        hovers[0] = result[0];
+      }
+    });
+
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.getHover',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 17",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'hovers': [",
+        "      {",
+        "        'containingLibraryName': 'myLibrary',",
+        "        'containingLibraryPath': '/path/to/lib',",
+        "        'dartdoc': 'some dartdoc',",
+        "        'elementDescription': 'element description',",
+        "        'parameter': 'some parameter',",
+        "        'propagatedType': 'typeA',",
+        "        'staticType': 'typeB'",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+    assertNotNull(hovers[0]);
+    assertEquals("myLibrary", hovers[0].getContainingLibraryName());
+    assertEquals("/path/to/lib", hovers[0].getContainingLibraryPath());
+    assertEquals("some dartdoc", hovers[0].getDartdoc());
+    assertEquals("element description", hovers[0].getElementDescription());
+    assertEquals("some parameter", hovers[0].getParameter());
+    assertEquals("typeA", hovers[0].getPropagatedType());
+    assertEquals("typeB", hovers[0].getStaticType());
+  }
 
   public void test_analysis_notification_errors() throws Exception {
     putResponse(//

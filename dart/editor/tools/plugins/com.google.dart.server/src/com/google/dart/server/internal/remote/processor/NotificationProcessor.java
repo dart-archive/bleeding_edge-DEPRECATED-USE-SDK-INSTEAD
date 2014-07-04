@@ -34,7 +34,7 @@ import java.util.List;
  * 
  * @coverage dart.server.remote
  */
-public abstract class NotificationProcessor {
+public abstract class NotificationProcessor extends JsonProcessor {
   /**
    * Return the {@link ElementKind} code for the given name. If the passed name cannot be found, an
    * {@link IllegalArgumentException} is thrown.
@@ -114,66 +114,5 @@ public abstract class NotificationProcessor {
 
   protected AnalysisServerListener getListener() {
     return listener;
-  }
-
-  /**
-   * Safely get some member off of the passed {@link JsonObject} and return the {@code int}. Instead
-   * of calling {@link JsonObject#has(String)} before {@link JsonObject#get(String)}, only one call
-   * to the {@link JsonObject} is made in order to be faster. The result will be the passed default
-   * value if the member is not on the {@link JsonObject}. This is used for optional json
-   * parameters.
-   * 
-   * @param jsonObject the {@link JsonObject}
-   * @param memberName the member name
-   * @param defaultValue the default value if the member is not in the {@link JsonObject}
-   * @return the looked up {@link JsonArray}, or {@code null}
-   */
-  protected int safelyGetAsInt(JsonObject jsonObject, String memberName, int defaultValue) {
-    JsonElement jsonElement = jsonObject.get(memberName);
-    if (jsonElement == null) {
-      return defaultValue;
-    } else {
-      return jsonElement.getAsInt();
-    }
-  }
-
-  /**
-   * Safely get some member off of the passed {@link JsonObject} and return the {@link JsonArray}.
-   * Instead of calling {@link JsonObject#has(String)} before {@link JsonObject#get(String)}, only
-   * one call to the {@link JsonObject} is made in order to be faster. The result will be
-   * {@code null} if the member is not on the {@link JsonObject}. This is used for optional json
-   * parameters.
-   * 
-   * @param jsonObject the {@link JsonObject}
-   * @param memberName the member name
-   * @return the looked up {@link JsonArray}, or {@code null}
-   */
-  protected JsonArray safelyGetAsJsonArray(JsonObject jsonObject, String memberName) {
-    JsonElement jsonElement = jsonObject.get(memberName);
-    if (jsonElement == null) {
-      return null;
-    } else {
-      return jsonElement.getAsJsonArray();
-    }
-  }
-
-  /**
-   * Safely get some member off of the passed {@link JsonObject} and return the {@link String}.
-   * Instead of calling {@link JsonObject#has(String)} before {@link JsonObject#get(String)}, only
-   * one call to the {@link JsonObject} is made in order to be faster. The result will be
-   * {@code null} if the member is not on the {@link JsonObject}. This is used for optional json
-   * parameters.
-   * 
-   * @param jsonObject the {@link JsonObject}
-   * @param memberName the member name
-   * @return the looked up {@link String}, or {@code null}
-   */
-  protected String safelyGetAsString(JsonObject jsonObject, String memberName) {
-    JsonElement jsonElement = jsonObject.get(memberName);
-    if (jsonElement == null) {
-      return null;
-    } else {
-      return jsonElement.getAsString();
-    }
   }
 }

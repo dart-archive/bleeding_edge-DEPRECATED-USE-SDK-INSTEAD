@@ -47,6 +47,7 @@ public class RequestUtilities {
   private static final String METHOD_SERVER_SET_SUBSCRIPTIONS = "server.setSubscriptions";
 
   // Analysis domain
+  private static final String METHOD_ANALYSIS_GET_HOVER = "analysis.getHover";
   private static final String METHOD_ANALYSIS_REANALYZE = "analysis.reanalyze";
   private static final String METHOD_ANALYSIS_SET_ROOTS = "analysis.setAnalysisRoots";
   private static final String METHOD_ANALYSIS_SET_PRIORITY_FILES = "analysis.setPriorityFiles";
@@ -111,6 +112,13 @@ public class RequestUtilities {
       return new JsonPrimitive(((ServerService) object).name());
     }
     throw new IllegalArgumentException("Unable to convert to JSON: " + object);
+  }
+
+  public static JsonObject generateAnalysisGetHover(String idValue, String file, int offset) {
+    JsonObject params = new JsonObject();
+    params.addProperty(FILE, file);
+    params.addProperty("offset", offset);
+    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_GET_HOVER, params);
   }
 
   /**
