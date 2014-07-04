@@ -31,20 +31,27 @@ import java.util.Iterator;
 public class HoverResultProcessor extends ResultProcessor {
 
   private final class Info implements HoverInformation {
+    private final int offset;
+    private final int length;
     private final String containingLibraryName;
     private final String containingLibraryPath;
     private final String dartdoc;
     private final String elementDescription;
+    private final String elementKind;
     private final String parameter;
     private final String propagatedType;
     private final String staticType;
 
-    Info(String containingLibraryName, String containingLibraryPath, String dartdoc,
-        String elementDescription, String parameter, String propagatedType, String staticType) {
+    Info(int offset, int length, String containingLibraryName, String containingLibraryPath,
+        String dartdoc, String elementDescription, String elementKind, String parameter,
+        String propagatedType, String staticType) {
+      this.offset = offset;
+      this.length = length;
       this.containingLibraryName = containingLibraryName;
       this.containingLibraryPath = containingLibraryPath;
       this.dartdoc = dartdoc;
       this.elementDescription = elementDescription;
+      this.elementKind = elementKind;
       this.parameter = parameter;
       this.propagatedType = propagatedType;
       this.staticType = staticType;
@@ -68,6 +75,21 @@ public class HoverResultProcessor extends ResultProcessor {
     @Override
     public String getElementDescription() {
       return elementDescription;
+    }
+
+    @Override
+    public String getElementKind() {
+      return elementKind;
+    }
+
+    @Override
+    public int getLength() {
+      return length;
+    }
+
+    @Override
+    public int getOffset() {
+      return offset;
     }
 
     @Override
@@ -101,11 +123,14 @@ public class HoverResultProcessor extends ResultProcessor {
         JsonElement hoverElem = iter.next();
         if (hoverElem instanceof JsonObject) {
           JsonObject hoverObj = (JsonObject) hoverElem;
-          hovers.add(new Info(
+          hovers.add(new Info( //
+              safelyGetAsInt(hoverObj, "offset", 0),
+              safelyGetAsInt(hoverObj, "length", 0),
               safelyGetAsString(hoverObj, "containingLibraryName"),
               safelyGetAsString(hoverObj, "containingLibraryPath"),
               safelyGetAsString(hoverObj, "dartdoc"),
               safelyGetAsString(hoverObj, "elementDescription"),
+              safelyGetAsString(hoverObj, "elementKind"),
               safelyGetAsString(hoverObj, "parameter"),
               safelyGetAsString(hoverObj, "propagatedType"),
               safelyGetAsString(hoverObj, "staticType")));

@@ -87,10 +87,13 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'result': {",
         "    'hovers': [",
         "      {",
+        "        'offset': '22',",
+        "        'length': '5',",
         "        'containingLibraryName': 'myLibrary',",
         "        'containingLibraryPath': '/path/to/lib',",
         "        'dartdoc': 'some dartdoc',",
         "        'elementDescription': 'element description',",
+        "        'elementKind': 'element kind',",
         "        'parameter': 'some parameter',",
         "        'propagatedType': 'typeA',",
         "        'staticType': 'typeB'",
@@ -100,10 +103,13 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     server.test_waitForWorkerComplete();
     assertNotNull(hovers[0]);
+    assertEquals(22, hovers[0].getOffset());
+    assertEquals(5, hovers[0].getLength());
     assertEquals("myLibrary", hovers[0].getContainingLibraryName());
     assertEquals("/path/to/lib", hovers[0].getContainingLibraryPath());
     assertEquals("some dartdoc", hovers[0].getDartdoc());
     assertEquals("element description", hovers[0].getElementDescription());
+    assertEquals("element kind", hovers[0].getElementKind());
     assertEquals("some parameter", hovers[0].getParameter());
     assertEquals("typeA", hovers[0].getPropagatedType());
     assertEquals("typeB", hovers[0].getStaticType());

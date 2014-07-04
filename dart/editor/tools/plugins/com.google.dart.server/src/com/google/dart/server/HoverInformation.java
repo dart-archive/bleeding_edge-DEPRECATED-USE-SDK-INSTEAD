@@ -47,6 +47,24 @@ public interface HoverInformation {
   public String getElementDescription();
 
   /**
+   * A textual description of the kind element being referenced (such as “Class” or “Method”). This
+   * data is omitted if there is no referenced element.
+   */
+  public String getElementKind();
+
+  /**
+   * The length of the range of characters that encompases the cursor position and has the same
+   * hover information as the cursor position.
+   */
+  public int getLength();
+
+  /**
+   * The offset of the range of characters that encompases the cursor position and has the same
+   * hover information as the cursor position.
+   */
+  public int getOffset();
+
+  /**
    * A textual description of the parameter corresponding to the expression being hovered over. This
    * data is omitted if the location is not in an argument to a function.
    */
