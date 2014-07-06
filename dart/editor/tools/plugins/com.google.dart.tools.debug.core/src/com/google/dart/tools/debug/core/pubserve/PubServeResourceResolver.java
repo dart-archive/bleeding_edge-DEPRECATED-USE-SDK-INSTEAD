@@ -104,22 +104,26 @@ public class PubServeResourceResolver implements IResourceResolver {
       return url;
     }
 
-    CountDownLatch latch = new CountDownLatch(1);
     final String[] done = new String[1];
 
-    try {
-      PubServeManager.getManager().sendGetUrlCommand(resource, new UrlForFileCallback(latch, done));
-    } catch (IOException e) {
-      DartCore.logError(e);
-      return done[0];
-    }
-    try {
-      latch.await(5000, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException e) {
-      // do nothing
-    }
-    if (done[0] != null) {
-      resourceToUrl.put(resource.getFullPath().toString(), done[0]);
+    if (PubServeManager.getManager().isServing()) {
+      CountDownLatch latch = new CountDownLatch(1);
+      try {
+        PubServeManager.getManager().sendGetUrlCommand(
+            resource,
+            new UrlForFileCallback(latch, done));
+      } catch (IOException e) {
+        DartCore.logError(e);
+        return done[0];
+      }
+      try {
+        latch.await(3000, TimeUnit.MILLISECONDS);
+      } catch (InterruptedException e) {
+        // do nothing
+      }
+      if (done[0] != null) {
+        resourceToUrl.put(resource.getFullPath().toString(), done[0]);
+      }
     }
     return done[0];
   }
@@ -158,26 +162,29 @@ public class PubServeResourceResolver implements IResourceResolver {
       return getResourceForPath(assetId);
     }
 
-    CountDownLatch latch = new CountDownLatch(1);
-    final String[] name = new String[1];
-    final String[] path = new String[1];
+    if (PubServeManager.getManager().isServing()) {
 
-    try {
-      PubServeManager.getManager().sendGetAssetIdCommand(
-          url,
-          new FilePathForUrlCallback(latch, name, path));
-    } catch (IOException e) {
-      DartCore.logError(e);
-      return null;
-    }
-    try {
-      latch.await(5000, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException e) {
-      // do nothing
-    }
-    if (path[0] != null) {
-      urlToAsset.put(url, path[0]);
-      return getResourceForPath(path[0]);
+      CountDownLatch latch = new CountDownLatch(1);
+      final String[] name = new String[1];
+      final String[] path = new String[1];
+
+      try {
+        PubServeManager.getManager().sendGetAssetIdCommand(
+            url,
+            new FilePathForUrlCallback(latch, name, path));
+      } catch (IOException e) {
+        DartCore.logError(e);
+        return null;
+      }
+      try {
+        latch.await(3000, TimeUnit.MILLISECONDS);
+      } catch (InterruptedException e) {
+        // do nothing
+      }
+      if (path[0] != null) {
+        urlToAsset.put(url, path[0]);
+        return getResourceForPath(path[0]);
+      }
     }
     return null;
   }
