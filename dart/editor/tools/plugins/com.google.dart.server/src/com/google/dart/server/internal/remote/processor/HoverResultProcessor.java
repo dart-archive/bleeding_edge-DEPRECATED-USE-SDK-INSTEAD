@@ -15,7 +15,7 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.HoverConsumer;
 import com.google.dart.server.HoverInformation;
-import com.google.gson.JsonArray;
+import com.google.dart.server.internal.HoverInformationImpl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -30,84 +30,6 @@ import java.util.Iterator;
  */
 public class HoverResultProcessor extends ResultProcessor {
 
-  private final class Info implements HoverInformation {
-    private final int offset;
-    private final int length;
-    private final String containingLibraryName;
-    private final String containingLibraryPath;
-    private final String dartdoc;
-    private final String elementDescription;
-    private final String elementKind;
-    private final String parameter;
-    private final String propagatedType;
-    private final String staticType;
-
-    Info(int offset, int length, String containingLibraryName, String containingLibraryPath,
-        String dartdoc, String elementDescription, String elementKind, String parameter,
-        String propagatedType, String staticType) {
-      this.offset = offset;
-      this.length = length;
-      this.containingLibraryName = containingLibraryName;
-      this.containingLibraryPath = containingLibraryPath;
-      this.dartdoc = dartdoc;
-      this.elementDescription = elementDescription;
-      this.elementKind = elementKind;
-      this.parameter = parameter;
-      this.propagatedType = propagatedType;
-      this.staticType = staticType;
-    }
-
-    @Override
-    public String getContainingLibraryName() {
-      return containingLibraryName;
-    }
-
-    @Override
-    public String getContainingLibraryPath() {
-      return containingLibraryPath;
-    }
-
-    @Override
-    public String getDartdoc() {
-      return dartdoc;
-    }
-
-    @Override
-    public String getElementDescription() {
-      return elementDescription;
-    }
-
-    @Override
-    public String getElementKind() {
-      return elementKind;
-    }
-
-    @Override
-    public int getLength() {
-      return length;
-    }
-
-    @Override
-    public int getOffset() {
-      return offset;
-    }
-
-    @Override
-    public String getParameter() {
-      return parameter;
-    }
-
-    @Override
-    public String getPropagatedType() {
-      return propagatedType;
-    }
-
-    @Override
-    public String getStaticType() {
-      return staticType;
-    }
-  }
-
   private final HoverConsumer consumer;
 
   public HoverResultProcessor(HoverConsumer consumer) {
@@ -115,28 +37,25 @@ public class HoverResultProcessor extends ResultProcessor {
   }
 
   public void process(JsonObject resultObject) {
-    JsonArray hoversArray = safelyGetAsJsonArray(resultObject, "hovers");
-    if (hoversArray != null) {
-      ArrayList<HoverInformation> hovers = new ArrayList<HoverInformation>();
-      Iterator<JsonElement> iter = hoversArray.iterator();
-      while (iter.hasNext()) {
-        JsonElement hoverElem = iter.next();
-        if (hoverElem instanceof JsonObject) {
-          JsonObject hoverObj = (JsonObject) hoverElem;
-          hovers.add(new Info( //
-              safelyGetAsInt(hoverObj, "offset", 0),
-              safelyGetAsInt(hoverObj, "length", 0),
-              safelyGetAsString(hoverObj, "containingLibraryName"),
-              safelyGetAsString(hoverObj, "containingLibraryPath"),
-              safelyGetAsString(hoverObj, "dartdoc"),
-              safelyGetAsString(hoverObj, "elementDescription"),
-              safelyGetAsString(hoverObj, "elementKind"),
-              safelyGetAsString(hoverObj, "parameter"),
-              safelyGetAsString(hoverObj, "propagatedType"),
-              safelyGetAsString(hoverObj, "staticType")));
-        }
+    ArrayList<HoverInformation> hovers = new ArrayList<HoverInformation>();
+    Iterator<JsonElement> iter = resultObject.get("hovers").getAsJsonArray().iterator();
+    while (iter.hasNext()) {
+      JsonElement hoverElem = iter.next();
+      if (hoverElem instanceof JsonObject) {
+        JsonObject hoverObj = (JsonObject) hoverElem;
+        hovers.add(new HoverInformationImpl( //
+            hoverObj.get("offset").getAsInt(),
+            hoverObj.get("length").getAsInt(),
+            safelyGetAsString(hoverObj, "containingLibraryName"),
+            safelyGetAsString(hoverObj, "containingLibraryPath"),
+            safelyGetAsString(hoverObj, "dartdoc"),
+            safelyGetAsString(hoverObj, "elementDescription"),
+            safelyGetAsString(hoverObj, "elementKind"),
+            safelyGetAsString(hoverObj, "parameter"),
+            safelyGetAsString(hoverObj, "propagatedType"),
+            safelyGetAsString(hoverObj, "staticType")));
       }
-      consumer.computedHovers(hovers.toArray(new HoverInformation[hovers.size()]));
     }
+    consumer.computedHovers(hovers.toArray(new HoverInformation[hovers.size()]));
   }
 }
