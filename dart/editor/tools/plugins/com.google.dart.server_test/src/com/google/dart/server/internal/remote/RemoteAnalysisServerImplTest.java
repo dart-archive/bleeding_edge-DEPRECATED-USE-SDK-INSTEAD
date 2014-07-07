@@ -1130,7 +1130,6 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'id': '0'",
         "}");
     assertTrue(socket.isStarted());
-    assertTrue(socket.getRequestSink().getRequests().size() == 0);
     assertTrue(socket.waitForRestart(500));
     assertTrue(socket.getRequestSink().getRequests().size() > 0);
     assertTrue(socket.isStopped());
