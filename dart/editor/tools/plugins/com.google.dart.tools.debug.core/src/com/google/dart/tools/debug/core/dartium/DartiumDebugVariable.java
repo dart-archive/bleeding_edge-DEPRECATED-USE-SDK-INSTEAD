@@ -206,6 +206,10 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
     return true;
   }
 
+  protected boolean isClassDescriptor() {
+    return descriptor.isClassDescriptor();
+  }
+
   protected void setIsLibraryObject(boolean value) {
     this.isLibraryObject = value;
   }

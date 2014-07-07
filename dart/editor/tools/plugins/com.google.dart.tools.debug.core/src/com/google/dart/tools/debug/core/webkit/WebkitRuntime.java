@@ -23,6 +23,17 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.List;
 
+// TODO(devoncarew): Add support for the Runtime.getProperty call.
+/*
+ * { "name": "getProperty", "parameters": [ { "name": "objectId", "$ref": "RemoteObjectId",
+ * "description": "Identifier of the object to return a property for." }, { "name": "propertyPath",
+ * "type": "array", "items": { "type": "string" } } ], "returns": [ { "name": "result", "$ref":
+ * "RemoteObject", "description": "Call result." }, { "name": "wasThrown", "type": "boolean",
+ * "optional": true, "description": "True if the result was thrown during the evaluation." } ],
+ * "description": "Returns a property of a given object. Object group of the result "
+ * "is inherited from the target object." },
+ */
+
 /**
  * A WIP runtime domain object.
  * <p>
@@ -37,7 +48,6 @@ import java.util.List;
 public class WebkitRuntime extends WebkitDomain {
 
   public static class CallArgument {
-
     public static CallArgument fromDouble(double d) {
       CallArgument arg = new CallArgument();
       arg.value = new Double(d);
@@ -266,22 +276,27 @@ public class WebkitRuntime extends WebkitDomain {
    * @param object identifier of the object to return properties for
    * @param ownProperties if true, returns properties belonging only to the element itself, not to
    *          its prototype chain
+   * @param accessorPropertiesOnly if true, returns accessor properties (with getter/setter) only;
+   *          internal properties are not returned either
    * @param callback
    * @throws IOException
    */
   public void getProperties(final WebkitRemoteObject object, boolean ownProperties,
-      final WebkitCallback<WebkitPropertyDescriptor[]> callback) throws IOException {
+      boolean accessorPropertiesOnly, final WebkitCallback<WebkitPropertyDescriptor[]> callback)
+      throws IOException {
     if (callback == null) {
       throw new IllegalArgumentException("callback is required");
     }
 
     try {
-      JSONObject request = new JSONObject();
+      JSONObject params = new JSONObject();
+      params.put("objectId", object.getObjectId());
+      params.put("ownProperties", ownProperties);
+      params.put("accessorPropertiesOnly", accessorPropertiesOnly);
 
+      JSONObject request = new JSONObject();
       request.put("method", "Runtime.getProperties");
-      request.put(
-          "params",
-          new JSONObject().put("objectId", object.getObjectId()).put("ownProperties", ownProperties));
+      request.put("params", params);
 
       connection.sendRequest(request, new Callback() {
         @Override

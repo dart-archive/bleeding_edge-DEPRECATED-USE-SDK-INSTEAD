@@ -45,6 +45,7 @@ class VariableCollector {
         target.getConnection().getRuntime().getProperties(
             obj,
             true,
+            false,
             new WebkitCallback<WebkitPropertyDescriptor[]>() {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
@@ -89,6 +90,7 @@ class VariableCollector {
         target.getConnection().getRuntime().getProperties(
             obj,
             true,
+            false,
             new WebkitCallback<WebkitPropertyDescriptor[]>() {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
@@ -205,6 +207,7 @@ class VariableCollector {
       target.getConnection().getRuntime().getProperties(
           classInfo,
           true,
+          false,
           new WebkitCallback<WebkitPropertyDescriptor[]>() {
             @Override
             public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {

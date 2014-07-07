@@ -47,7 +47,9 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
   static DartiumDebugValue create(DartiumDebugTarget target, DartiumDebugVariable variable,
       WebkitRemoteObject value) {
-    if (value.isList()) {
+    if (value == null) {
+      return new DartiumEmptyValue(target, variable);
+    } else if (value.isList()) {
       return new DartiumDebugIndexedValue(target, variable, value);
     } else {
       return new DartiumDebugValue(target, variable, value);

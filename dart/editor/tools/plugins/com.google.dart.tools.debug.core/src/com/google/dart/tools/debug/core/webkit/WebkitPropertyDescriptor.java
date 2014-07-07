@@ -173,6 +173,10 @@ public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescri
     return value;
   }
 
+  public boolean isClassDescriptor() {
+    return "[[class]]".equals(getName());
+  }
+
   /**
    * True if the type of this property descriptor may be changed and if the property may be deleted
    * from the corresponding object.
