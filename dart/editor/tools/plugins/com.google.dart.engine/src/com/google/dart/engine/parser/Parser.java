@@ -6093,6 +6093,9 @@ public class Parser {
    * @param arguments the arguments to the error, used to compose the error message
    */
   private void reportErrorForToken(ParserErrorCode errorCode, Token token, Object... arguments) {
+    if (token.getType() == TokenType.EOF) {
+      token = token.getPrevious();
+    }
     reportError(new AnalysisError(
         source,
         token.getOffset(),

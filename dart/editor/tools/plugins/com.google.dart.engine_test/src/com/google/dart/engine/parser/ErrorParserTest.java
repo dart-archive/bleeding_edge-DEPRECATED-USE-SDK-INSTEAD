@@ -487,6 +487,14 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.EXPECTED_EXECUTABLE);
   }
 
+  public void test_expectedExecutable_topLevel_eof() throws Exception {
+    parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "x",
+        new AnalysisError(null, 0, 1, ParserErrorCode.EXPECTED_EXECUTABLE));
+  }
+
   public void test_expectedInterpolationIdentifier() throws Exception {
     parse("parseStringLiteral", "'$x$'", ParserErrorCode.MISSING_IDENTIFIER);
   }
