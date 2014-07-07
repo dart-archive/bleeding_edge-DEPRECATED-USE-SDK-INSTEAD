@@ -37,11 +37,17 @@ class ManifestKeywords {
       "default_locale",
 
       // everything else
-      "browser_action", "page_action", "theme", "app", "background", "chrome_url_overrides",
-      "content_scripts", "content_security_policy", "file_browser_handlers", "homepage_url",
-      "incognito", "intents", "key", "minimum_chrome_version", "nacl_modules", "offline_enabled",
-      "omnibox", "options_page", "permissions", "plugins", "requirements", "update_url",
-      "web_accessible_resources", "sandbox", "file_handlers", "short_name",
+      "app", "author", "automation", "background", "persistent", "background_page",
+      "chrome_settings_overrides", "chrome_ui_overrides", "bookmarks_ui",
+      "remove_bookmark_shortcut", "remove_button", "chrome_url_overrides", "commands",
+      "content_pack", "content_scripts", "content_security_policy", "policyString",
+      "converted_from_user_script", "current_locale", "devtools_page", "externally_connectable",
+      "matches", "file_browser_handlers", "homepage_url", "import", "incognito",
+      "input_components", "key", "minimum_chrome_version", "nacl_modules", "oauth2",
+      "offline_enabled", "omnibox", "keyword", "optional_permissions", "options_page",
+      "page_actions", "permissions", "platforms", "plugins", "requirements", "sandbox",
+      "script_badge", "short_name", "signature", "spellcheck", "storage", "managed_schema",
+      "system_indicator", "tts_engine", "update_url", "web_accessible_resources",
 
       // effectively keywords as well
       "scripts"};
