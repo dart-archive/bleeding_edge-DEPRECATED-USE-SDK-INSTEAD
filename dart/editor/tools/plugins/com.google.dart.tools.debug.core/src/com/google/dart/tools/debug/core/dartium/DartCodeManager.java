@@ -22,8 +22,13 @@ import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.IOException;
+import java.util.Collection;
 
 /**
  * Manage known Dart files loaded in the target browser. Listen for resource change events (using
@@ -31,6 +36,34 @@ import java.io.IOException;
  * send the new contents to the browser using the Webkit inspector protocol.
  */
 public class DartCodeManager implements ResourceChangeParticipant {
+
+  private class UpdateDartFileJob extends Job {
+
+    IFile file;
+
+    public UpdateDartFileJob(IFile file) {
+      super("Updating file");
+      this.file = file;
+    }
+
+    @Override
+    protected IStatus run(IProgressMonitor monitor) {
+      String fileUrl = target.getResourceResolver().getUrlForResource(file);
+
+      if (fileUrl != null) {
+        Collection<WebkitScript> scripts = target.getConnection().getDebugger().getAllScripts();
+
+        for (WebkitScript script : scripts) {
+          if (fileUrl.equals(script.getUrl())) {
+            uploadNewSource(script.getScriptId(), file);
+          }
+        }
+      }
+      return Status.OK_STATUS;
+    }
+
+  }
+
   private DartiumDebugTarget target;
 
   public DartCodeManager(DartiumDebugTarget target) {
@@ -55,15 +88,8 @@ public class DartCodeManager implements ResourceChangeParticipant {
     }
 
     if ("dart".equals(file.getFileExtension())) {
-      String fileUrl = target.getResourceResolver().getUrlForResource(file);
-
-      if (fileUrl != null) {
-        for (WebkitScript script : target.getConnection().getDebugger().getAllScripts()) {
-          if (fileUrl.equals(script.getUrl())) {
-            uploadNewSource(script.getScriptId(), file);
-          }
-        }
-      }
+      UpdateDartFileJob job = new UpdateDartFileJob(file);
+      job.schedule();
     }
   }
 

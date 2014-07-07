@@ -19,7 +19,9 @@ import org.eclipse.core.resources.IResource;
 import java.io.File;
 
 /**
- * A resolver class used to convert from IResources to urls.
+ * A resolver class used to convert from IResources to urls. Note : Some methods involve
+ * communication overheads based on type of resolver, so clients should not call the resolver on the
+ * UI thread, to avoid blocking the UI.
  * 
  * @see ResourceServer
  */

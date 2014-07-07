@@ -24,6 +24,10 @@ import com.google.dart.tools.debug.core.webkit.WebkitResult;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.IOException;
 
@@ -32,6 +36,29 @@ import java.io.IOException;
  * connection.
  */
 public class HtmlScriptManager implements ResourceChangeParticipant {
+
+  private class UpdateHtmlFileJob extends Job {
+
+    IFile file;
+
+    public UpdateHtmlFileJob(IFile file) {
+      super("Updating file");
+      this.file = file;
+    }
+
+    @Override
+    protected IStatus run(IProgressMonitor monitor) {
+      String fileUrl = target.getResourceResolver().getUrlForResource(file);
+
+      if (fileUrl != null && fileUrl.equals(rootNode.getDocumentURL())) {
+        uploadNewSource(rootNode, file);
+      }
+
+      return Status.OK_STATUS;
+    }
+
+  }
+
   private DartiumDebugTarget target;
 
   private WebkitNode rootNode;
@@ -58,11 +85,8 @@ public class HtmlScriptManager implements ResourceChangeParticipant {
   @Override
   public final void handleFileChanged(IFile file) {
     if ("html".equals(file.getFileExtension())) {
-      String fileUrl = target.getResourceResolver().getUrlForResource(file);
-
-      if (fileUrl != null && fileUrl.equals(rootNode.getDocumentURL())) {
-        uploadNewSource(rootNode, file);
-      }
+      UpdateHtmlFileJob job = new UpdateHtmlFileJob(file);
+      job.schedule();
     }
   }
 

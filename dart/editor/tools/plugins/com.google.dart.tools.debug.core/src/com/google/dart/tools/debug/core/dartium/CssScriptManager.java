@@ -22,6 +22,10 @@ import com.google.dart.tools.debug.core.webkit.WebkitStyleSheetRef;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,6 +36,35 @@ import java.util.List;
  * about, send the new contents to the browser using the Webkit inspector protocol.
  */
 class CssScriptManager implements ResourceChangeParticipant {
+
+  private class UpdateCssFileJob extends Job {
+
+    IFile file;
+
+    public UpdateCssFileJob(IFile file) {
+      super("Updating file");
+      this.file = file;
+    }
+
+    @Override
+    protected IStatus run(IProgressMonitor monitor) {
+      String fileUrl = target.getResourceResolver().getUrlForResource(file);
+
+      if (fileUrl != null) {
+        List<WebkitStyleSheetRef> scripts = target.getConnection().getCSS().getStyleSheets();
+
+        for (WebkitStyleSheetRef ref : scripts) {
+          if (fileUrl.equals(ref.getSourceURL())) {
+            uploadNewSource(ref, file);
+          }
+        }
+      }
+
+      return Status.OK_STATUS;
+    }
+
+  }
+
   private DartiumDebugTarget target;
 
   public CssScriptManager(DartiumDebugTarget target) {
@@ -52,17 +85,8 @@ class CssScriptManager implements ResourceChangeParticipant {
   @Override
   public void handleFileChanged(IFile file) {
     if ("css".equals(file.getFileExtension())) {
-      String fileUrl = target.getResourceResolver().getUrlForResource(file);
-
-      if (fileUrl != null) {
-        List<WebkitStyleSheetRef> scripts = target.getConnection().getCSS().getStyleSheets();
-
-        for (WebkitStyleSheetRef ref : scripts) {
-          if (fileUrl.equals(ref.getSourceURL())) {
-            uploadNewSource(ref, file);
-          }
-        }
-      }
+      UpdateCssFileJob job = new UpdateCssFileJob(file);
+      job.schedule();
     }
   }
 
