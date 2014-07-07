@@ -131,7 +131,7 @@ public interface AnalysisServer {
    * @param element the {@link Element} to compute hierarchy for
    * @param consumer the results listener
    */
-  public void getTypeHierarchy(Element element, TypeHierarchyConsumer consumer);
+  public void getTypeHierarchy(Location location, TypeHierarchyConsumer consumer);
 
   /**
    * Return the version number of the analysis server.

@@ -48,6 +48,7 @@ public class RequestUtilities {
 
   // Analysis domain
   private static final String METHOD_ANALYSIS_GET_HOVER = "analysis.getHover";
+  private static final String METHOD_ANALYSIS_GET_TYPE_HIERARCHY = "analysis.getTypeHierarchy";
   private static final String METHOD_ANALYSIS_REANALYZE = "analysis.reanalyze";
   private static final String METHOD_ANALYSIS_SET_ROOTS = "analysis.setAnalysisRoots";
   private static final String METHOD_ANALYSIS_SET_PRIORITY_FILES = "analysis.setPriorityFiles";
@@ -108,6 +109,8 @@ public class RequestUtilities {
       return buildJsonObjectAnalysisError((AnalysisError) object);
     } else if (object instanceof AnalysisOptions) {
       return buildJsonObjectAnalysisOptions((AnalysisOptions) object);
+    } else if (object instanceof Location) {
+      return buildJsonObjectLocation((Location) object);
     } else if (object instanceof ServerService) {
       return new JsonPrimitive(((ServerService) object).name());
     }
@@ -122,6 +125,25 @@ public class RequestUtilities {
   }
 
   /**
+   * Generate and return a {@value #METHOD_ANALYSIS_GET_TYPE_HIERARCHY} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.getTypeHierarchy"
+   *   "params": {
+   *     "location": Location
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateAnalysisGetTypeHierarchy(String id, Location location) {
+    JsonObject params = new JsonObject();
+    params.add("location", buildJsonElement(location));
+    return buildJsonObjectRequest(id, METHOD_ANALYSIS_GET_TYPE_HIERARCHY, params);
+  }
+
+  /**
    * Generate and return a {@value #METHOD_ANALYSIS_REANALYZE} request.
    * 
    * <pre>
@@ -131,8 +153,8 @@ public class RequestUtilities {
    * }
    * </pre>
    */
-  public static JsonObject generateAnalysisReanalyze(String idValue) {
-    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_REANALYZE);
+  public static JsonObject generateAnalysisReanalyze(String id) {
+    return buildJsonObjectRequest(id, METHOD_ANALYSIS_REANALYZE);
   }
 
   /**

@@ -22,7 +22,6 @@ public class TestAll {
     suite.addTest(com.google.dart.server.internal.remote.utilities.TestAll.suite());
     suite.addTestSuite(AnalysisErrorImplTest.class);
     suite.addTestSuite(NotificationAnalysisErrorsProcessorTest.class);
-    suite.addTestSuite(NotificationProcessorTest.class);
     return suite;
   }
 }

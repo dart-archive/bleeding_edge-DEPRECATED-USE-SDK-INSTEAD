@@ -75,7 +75,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void getTypeHierarchy(Element element, TypeHierarchyConsumer consumer) {
+  public void getTypeHierarchy(Location location, TypeHierarchyConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 

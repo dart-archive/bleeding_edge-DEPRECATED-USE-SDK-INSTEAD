@@ -13,9 +13,19 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
+import com.google.common.collect.Lists;
+import com.google.dart.server.Element;
+import com.google.dart.server.ElementKind;
+import com.google.dart.server.Location;
+import com.google.dart.server.internal.ElementImpl;
+import com.google.dart.server.internal.LocationImpl;
+import com.google.dart.server.utilities.general.StringUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Abstract processor class with common behavior for {@link NotificationProcessor} and
@@ -24,6 +34,63 @@ import com.google.gson.JsonObject;
  * @coverage dart.server.remote
  */
 public abstract class JsonProcessor {
+
+  protected Element constructElement(JsonObject elementObject) {
+    ElementKind kind = ElementKind.valueOf(elementObject.get("kind").getAsString());
+    String name = elementObject.get("name").getAsString();
+    Location location = constructLocation(elementObject.get("location").getAsJsonObject());
+    int flags = elementObject.get("flags").getAsInt();
+    String parameters = safelyGetAsString(elementObject, "parameters");
+    String returnType = safelyGetAsString(elementObject, "returnType");
+    return new ElementImpl(kind, name, location, flags, parameters, returnType);
+  }
+
+  /**
+   * Given some {@link JsonArray} and of {@code int} primitives, return the {@code int[]}.
+   * 
+   * @param intJsonArray some {@link JsonArray} of {@code int}s
+   * @return the {@code int[]}
+   */
+  protected int[] constructIntArray(JsonArray intJsonArray) {
+    if (intJsonArray == null) {
+      return new int[] {};
+    }
+    int i = 0;
+    int[] ints = new int[intJsonArray.size()];
+    Iterator<JsonElement> iterator = intJsonArray.iterator();
+    while (iterator.hasNext()) {
+      ints[i] = iterator.next().getAsInt();
+      i++;
+    }
+    return ints;
+  }
+
+  protected Location constructLocation(JsonObject locationObject) {
+    String file = locationObject.get("file").getAsString();
+    int offset = locationObject.get("offset").getAsInt();
+    int length = locationObject.get("length").getAsInt();
+    int startLine = locationObject.get("startLine").getAsInt();
+    int startColumn = locationObject.get("startColumn").getAsInt();
+    return new LocationImpl(file, offset, length, startLine, startColumn);
+  }
+
+  /**
+   * Given some {@link JsonArray} and of string primitives, return the {@link String} array.
+   * 
+   * @param strJsonArray some {@link JsonArray} of {@link String}s
+   * @return the {@link String} array
+   */
+  protected String[] constructStringArray(JsonArray strJsonArray) {
+    if (strJsonArray == null) {
+      return StringUtilities.EMPTY_ARRAY;
+    }
+    List<String> strings = Lists.newArrayList();
+    Iterator<JsonElement> iterator = strJsonArray.iterator();
+    while (iterator.hasNext()) {
+      strings.add(iterator.next().getAsString());
+    }
+    return strings.toArray(new String[strings.size()]);
+  }
 
   /**
    * Safely get some member off of the passed {@link JsonObject} and return the {@code int}. Instead
@@ -35,7 +102,7 @@ public abstract class JsonProcessor {
    * @param jsonObject the {@link JsonObject}
    * @param memberName the member name
    * @param defaultValue the default value if the member is not in the {@link JsonObject}
-   * @return the looked up {@link JsonArray}, or {@code null}
+   * @return the looked up {@link JsonArray}, or the default value
    */
   protected int safelyGetAsInt(JsonObject jsonObject, String memberName, int defaultValue) {
     JsonElement jsonElement = jsonObject.get(memberName);
@@ -63,6 +130,26 @@ public abstract class JsonProcessor {
       return null;
     } else {
       return jsonElement.getAsJsonArray();
+    }
+  }
+
+  /**
+   * Safely get some member off of the passed {@link JsonObject} and return the {@code JsonObject}.
+   * Instead of calling {@link JsonObject#has(String)} before {@link JsonObject#get(String)}, only
+   * one call to the {@link JsonObject} is made in order to be faster. The result will be the passed
+   * default value if the member is not on the {@link JsonObject}. This is used for optional json
+   * parameters.
+   * 
+   * @param jsonObject the {@link JsonObject}
+   * @param memberName the member name
+   * @return the looked up {@link JsonObject}, or {@code null}
+   */
+  protected JsonObject safelyGetAsJsonObject(JsonObject jsonObject, String memberName) {
+    JsonElement jsonElement = jsonObject.get(memberName);
+    if (jsonElement == null) {
+      return null;
+    } else {
+      return jsonElement.getAsJsonObject();
     }
   }
 

@@ -29,6 +29,7 @@ import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HoverConsumer;
+import com.google.dart.server.Location;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.TypeHierarchyConsumer;
@@ -44,6 +45,7 @@ import com.google.dart.server.internal.remote.processor.NotificationCompletionRe
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
+import com.google.dart.server.internal.remote.processor.TypeHierarchyResultProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
 import com.google.dart.server.utilities.instrumentation.Instrumentation;
 import com.google.dart.server.utilities.instrumentation.InstrumentationBuilder;
@@ -259,8 +261,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void getTypeHierarchy(Element element, TypeHierarchyConsumer consumer) {
-    // TODO(scheglov) implement
+  public void getTypeHierarchy(Location location, TypeHierarchyConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateAnalysisGetTypeHierarchy(id, location),
+        consumer);
   }
 
   @Override
@@ -411,9 +417,10 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   /**
-   * Attempts to handle the given {@link JsonObject} as a notification.
+   * Attempts to handle the given {@link JsonObject} as a notification. Return {@code true} if it
+   * was handled, otherwise {@code false} is returned.
    * 
-   * @return {@code true} if it was handled or {@code false} otherwise
+   * @return {@code true} if it was handled, otherwise {@code false} is returned
    */
   private boolean processNotification(JsonObject response) throws Exception {
     // prepare notification kind
@@ -482,6 +489,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       processCompletionIdConsumer((CompletionIdConsumer) consumer, resultObject);
     } else if (consumer instanceof HoverConsumer) {
       new HoverResultProcessor((HoverConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof TypeHierarchyConsumer) {
+      new TypeHierarchyResultProcessor((TypeHierarchyConsumer) consumer).process(resultObject);
     } else if (consumer instanceof VersionConsumer) {
       processVersionConsumer((VersionConsumer) consumer, resultObject);
     } else if (consumer instanceof BasicConsumer) {

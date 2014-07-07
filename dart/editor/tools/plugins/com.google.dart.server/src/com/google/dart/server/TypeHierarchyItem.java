@@ -62,16 +62,9 @@ public interface TypeHierarchyItem {
   public TypeHierarchyItem[] getMixedTypes();
 
   /**
-   * Return the display name of this item.
-   * 
-   * @return the display name of this item
-   */
-  public String getName();
-
-  /**
    * Return the subtypes of this type, may be empty, but not {@code null}.
    * 
    * @return the subtypes of this type
    */
-  public TypeHierarchyItem[] getSubTypes();
+  public TypeHierarchyItem[] getSubtypes();
 }

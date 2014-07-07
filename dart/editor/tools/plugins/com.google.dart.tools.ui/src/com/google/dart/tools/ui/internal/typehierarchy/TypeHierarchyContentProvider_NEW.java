@@ -72,7 +72,7 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
     }
 
     public StyledString toStyledString() {
-      StyledString styledString = new StyledString(type.getName());
+      StyledString styledString = new StyledString(type.getClassElement().getName());
       if (mixedTypes != null && mixedTypes.length != 0) {
         styledString.append(" with ", StyledString.QUALIFIER_STYLER);
         appendItems(styledString, mixedTypes);
@@ -90,7 +90,7 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
         if (i != 0) {
           styledString.append(", ");
         }
-        styledString.append(item.getName());
+        styledString.append(item.getClassElement().getName());
       }
     }
   }
@@ -217,7 +217,7 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
         break;
       }
       // try to use something better than "Object"
-      if (superType.getName().equals("Object")) {
+      if (superType.getClassElement().getName().equals("Object")) {
         if (superItem.mixedTypes.length != 0) {
           superType = superItem.mixedTypes[0];
         } else if (superItem.implementedTypes.length != 0) {
@@ -250,7 +250,7 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
    * Builds complete sub-types hierarchy in {@link #superToSubsMap}.
    */
   private void fillSubTypes(TypeHierarchyItem type, TypeItem item) {
-    TypeHierarchyItem[] subTypes = type.getSubTypes();
+    TypeHierarchyItem[] subTypes = type.getSubtypes();
     List<TypeItem> subItems = Lists.newArrayList();
     for (TypeHierarchyItem subType : subTypes) {
       TypeItem subItem = new TypeItem(subType);

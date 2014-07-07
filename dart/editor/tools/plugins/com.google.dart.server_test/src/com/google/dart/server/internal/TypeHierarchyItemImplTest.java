@@ -16,11 +16,9 @@ package com.google.dart.server.internal;
 
 import com.google.dart.server.Element;
 import com.google.dart.server.TypeHierarchyItem;
-import com.google.dart.server.internal.TypeHierarchyItemImpl;
 
 import junit.framework.TestCase;
 
-import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,22 +33,18 @@ public class TypeHierarchyItemImplTest extends TestCase {
     TypeHierarchyItem[] implementedTypes = new TypeHierarchyItem[2];
     TypeHierarchyItem[] subTypes = new TypeHierarchyItem[3];
     TypeHierarchyItemImpl item = new TypeHierarchyItemImpl(
-        "myName",
         classElement,
         memberElement,
         extendedType,
+        implementedTypes,
         mixedTypes,
-        implementedTypes);
+        subTypes);
     assertSame(classElement, item.getClassElement());
     assertSame(memberElement, item.getMemberElement());
-    assertEquals("myName", item.getName());
     assertSame(extendedType, item.getExtendedType());
     assertSame(mixedTypes, item.getMixedTypes());
     assertSame(implementedTypes, item.getImplementedTypes());
-    //
-    assertThat(item.getSubTypes()).isEmpty();
-    item.setSubTypes(subTypes);
-    assertSame(subTypes, item.getSubTypes());
+    assertSame(subTypes, item.getSubtypes());
     // toString()
     assertNotNull(item.toString());
   }
