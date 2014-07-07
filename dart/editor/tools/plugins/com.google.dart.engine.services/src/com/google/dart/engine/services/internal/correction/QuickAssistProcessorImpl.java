@@ -80,6 +80,8 @@ import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils.InsertDesc;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.FunctionType;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.ast.ScopedNameFinder;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
@@ -308,13 +310,17 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       return;
     }
     Type type = value.getStaticType();
-    // check type
-    if (type == null || type.isDynamic() || type.isBottom()) {
+    // prepare Type source
+    String typeSource;
+    if (type instanceof InterfaceType) {
+      typeSource = utils.getTypeSource(type);
+    } else if (type instanceof FunctionType) {
+      typeSource = "Function";
+    } else {
       return;
     }
     // add edit
     {
-      String typeSource = utils.getTypeSource(type);
       // find "var" token
       KeywordToken varToken;
       {

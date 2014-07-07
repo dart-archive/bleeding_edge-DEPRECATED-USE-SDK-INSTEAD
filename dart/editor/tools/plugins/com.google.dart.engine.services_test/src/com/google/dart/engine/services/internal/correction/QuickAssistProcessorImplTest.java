@@ -111,6 +111,10 @@ public class QuickAssistProcessorImplTest extends RefactoringImplTest {
     assert_addTypeAnnotation_classField("var v = 1;", " = 1", "int v = 1;");
   }
 
+  public void test_addTypeAnnotation_local_OK_Function() throws Exception {
+    assert_addTypeAnnotation_localVariable("var v = () => 1;", " = ()", "Function v = () => 1;");
+  }
+
   public void test_addTypeAnnotation_local_OK_int() throws Exception {
     assert_addTypeAnnotation_localVariable("var v = 1;", " = 1", "int v = 1;");
   }
