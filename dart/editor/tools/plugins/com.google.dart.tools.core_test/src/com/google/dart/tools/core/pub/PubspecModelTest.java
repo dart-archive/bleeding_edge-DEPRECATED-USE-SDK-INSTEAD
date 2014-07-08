@@ -37,10 +37,10 @@ public class PubspecModelTest extends TestCase {
       + "  webui: \n    git: git://github.com/webui\n"
       + "transformers:\n- polymer:\n    entry_points: web/index.html";
 
-  private static final String YAML_NO_ERRORS2 = "name: Yes\n"
+  private static final String YAML_NO_ERRORS2 = "name: Yess\n"
       + "description: A sample command-line application\n#dependencies: \n#  browser: any";
 
-  private static final String YAML_HOSTED_DEP = "name:  yes\n" + "dependencies:\n"
+  private static final String YAML_HOSTED_DEP = "name:  yess\n" + "dependencies:\n"
       + "  transmogrify: \n"
       + "    hosted:\n      name: transmogrify\n      url: http://some-package-server.com\n"
       + "    version: '>=1.0.0 <2.0.0'";
@@ -149,7 +149,7 @@ public class PubspecModelTest extends TestCase {
   public void test_initialize3() {
     PubspecModel pubspecModel = new PubspecModel(null);
     pubspecModel.setValuesFromString(YAML_NO_ERRORS2);
-    assertEquals("Yes", pubspecModel.getName());
+    assertEquals("Yess", pubspecModel.getName());
 
   }
 
