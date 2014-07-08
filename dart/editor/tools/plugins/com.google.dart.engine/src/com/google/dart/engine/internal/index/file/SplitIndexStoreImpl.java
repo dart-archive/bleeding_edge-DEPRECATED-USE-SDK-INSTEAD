@@ -68,10 +68,9 @@ public class SplitIndexStoreImpl implements IndexStore {
   private final StringCodec stringCodec;
 
   /**
-   * A table mapping element names to the node names that may have relations with elements with
-   * these names.
+   * A table mapping elements to the node names that may have relations with these elements.
    */
-  private final IntToIntSetMap nameToNodeNames = new IntToIntSetMap(10000, 0.75f);
+  private final IntToIntSetMap elementToNodeNames = new IntToIntSetMap(10000, 0.75f);
 
   /**
    * Information about "universe" elements. We need to keep them together to avoid loading of all
@@ -200,7 +199,7 @@ public class SplitIndexStoreImpl implements IndexStore {
   @Override
   public void clear() {
     nodeManager.clear();
-    nameToNodeNames.clear();
+    elementToNodeNames.clear();
   }
 
   @Override
@@ -221,9 +220,8 @@ public class SplitIndexStoreImpl implements IndexStore {
       return getRelationshipsUniverse(relationship);
     }
     // prepare node names
-    String name = getElementName(element);
-    int nameId = stringCodec.encode(name);
-    int[] nodeNameIds = nameToNodeNames.get(nameId);
+    int elementId = elementCodec.encodeHash(element);
+    int[] nodeNameIds = elementToNodeNames.get(elementId);
     // check each node
     List<Location> locations = Lists.newArrayList();
     for (int i = 0; i < nodeNameIds.length; i++) {
@@ -244,7 +242,7 @@ public class SplitIndexStoreImpl implements IndexStore {
   @Override
   public String getStatistics() {
     return "[" + nodeManager.getLocationCount() + " locations, " + sources.size() + " sources, "
-        + nameToNodeNames.size() + " names]";
+        + elementToNodeNames.size() + " elements]";
   }
 
   @Override
@@ -337,10 +335,6 @@ public class SplitIndexStoreImpl implements IndexStore {
     }
   }
 
-  private String getElementName(Element element) {
-    return element.getName();
-  }
-
   private Location[] getRelationshipsUniverse(Relationship relationship) {
     List<Location> locations = Lists.newArrayList();
     for (Entry<Integer, Map<Integer, Map<Relationship, List<LocationData>>>> contextEntry : contextNodeRelations.entrySet()) {
@@ -378,9 +372,8 @@ public class SplitIndexStoreImpl implements IndexStore {
   }
 
   private void recordNodeNameForElement(Element element) {
-    String name = getElementName(element);
-    int nameId = stringCodec.encode(name);
-    nameToNodeNames.add(nameId, currentNodeNameId);
+    int elementId = elementCodec.encodeHash(element);
+    elementToNodeNames.add(elementId, currentNodeNameId);
   }
 
   private void recordRelationshipUniverse(Relationship relationship, Location location) {

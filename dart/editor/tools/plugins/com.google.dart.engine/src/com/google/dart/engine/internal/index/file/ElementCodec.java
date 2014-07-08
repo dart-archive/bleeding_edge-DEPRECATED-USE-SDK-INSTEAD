@@ -20,6 +20,7 @@ import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -73,6 +74,20 @@ public class ElementCodec {
     return index;
   }
 
+  /**
+   * Returns an integer that corresponds to an approximated location of the given {@link Element}.
+   */
+  public int encodeHash(Element element) {
+    int[] path = getLocationPathLimited(element);
+    int index = pathToIndex.get(path, -1);
+    if (index == -1) {
+      index = indexToPath.size();
+      pathToIndex.put(path, index);
+      indexToPath.add(path);
+    }
+    return index;
+  }
+
   private String[] getLocationComponents(int[] path) {
     int length = path.length;
     String[] components = new String[length];
@@ -117,6 +132,20 @@ public class ElementCodec {
       }
       return path;
     }
+  }
+
+  /**
+   * Returns an approximation of the given {@link Element}'s location.
+   */
+  private int[] getLocationPathLimited(Element element) {
+    String[] components = element.getLocation().getComponents();
+    int length = components.length;
+    String firstComponent = components[0];
+    String lastComponent = components[length - 1];
+    lastComponent = StringUtils.substringBefore(lastComponent, "@");
+    int firstId = stringCodec.encode(firstComponent);
+    int lastId = stringCodec.encode(lastComponent);
+    return new int[] {firstId, lastId};
   }
 
   private boolean hasLocalOffset(String[] components) {

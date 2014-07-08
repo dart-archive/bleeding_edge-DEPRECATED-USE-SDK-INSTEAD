@@ -30,6 +30,49 @@ public class ElementCodecTest extends TestCase {
   private StringCodec stringCodec = new StringCodec();
   private ElementCodec codec = new ElementCodec(stringCodec);
 
+  public void test_encodeHash_local() throws Exception {
+    int idA;
+    {
+      Element element = mock(Element.class);
+      ElementLocation location = new ElementLocationImpl(new String[] {"main", "A", "foo@1"});
+      when(element.getLocation()).thenReturn(location);
+      when(context.getElement(location)).thenReturn(element);
+      idA = codec.encodeHash(element);
+    }
+    int idB;
+    {
+      Element element = mock(Element.class);
+      ElementLocation location = new ElementLocationImpl(new String[] {"main", "A", "foo@2"});
+      when(element.getLocation()).thenReturn(location);
+      when(context.getElement(location)).thenReturn(element);
+      idB = codec.encodeHash(element);
+    }
+    // offset is simply ignored
+    assertTrue(idA == idB);
+    // check strings, "foo" as a single string, no "foo@1" or "foo@2"
+    assertThat(stringCodec.getNameToIndex()).hasSize(2).includes(entry("main", 0), entry("foo", 1));
+  }
+
+  public void test_encodeHash_notLocal() throws Exception {
+    int idA;
+    {
+      Element element = mock(Element.class);
+      ElementLocation location = new ElementLocationImpl(new String[] {"foo", "A"});
+      when(element.getLocation()).thenReturn(location);
+      when(context.getElement(location)).thenReturn(element);
+      idA = codec.encodeHash(element);
+    }
+    int idB;
+    {
+      Element element = mock(Element.class);
+      ElementLocation location = new ElementLocationImpl(new String[] {"foo", "B"});
+      when(element.getLocation()).thenReturn(location);
+      when(context.getElement(location)).thenReturn(element);
+      idB = codec.encodeHash(element);
+    }
+    assertFalse(idA == idB);
+  }
+
   public void test_localLocalVariable() throws Exception {
     {
       Element element = mock(Element.class);
