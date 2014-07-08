@@ -36,6 +36,7 @@ import com.google.dart.server.ServerService;
 import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
+import com.google.dart.server.internal.remote.processor.CompletionIdProcessor;
 import com.google.dart.server.internal.remote.processor.HoverResultProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisHighlightsProcessor;
@@ -48,6 +49,7 @@ import com.google.dart.server.internal.remote.processor.NotificationServerErrorP
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
 import com.google.dart.server.internal.remote.processor.SearchIdProcessor;
 import com.google.dart.server.internal.remote.processor.TypeHierarchyResultProcessor;
+import com.google.dart.server.internal.remote.processor.VersionProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
 import com.google.dart.server.utilities.instrumentation.Instrumentation;
 import com.google.dart.server.utilities.instrumentation.InstrumentationBuilder;
@@ -435,11 +437,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     return Integer.toString(nextId.getAndIncrement());
   }
 
-  private void processCompletionIdConsumer(CompletionIdConsumer consumer, JsonObject resultObject) {
-    String completionId = resultObject.get("id").getAsString();
-    consumer.computedCompletionId(completionId);
-  }
-
   private void processErrorResponse(JsonObject errorObject) throws Exception {
     // TODO (jwren) after Error section is done, revisit this.
     String errorCode = errorObject.get("code").getAsString();
@@ -518,7 +515,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     // handle result
     JsonObject resultObject = (JsonObject) response.get("result");
     if (consumer instanceof CompletionIdConsumer) {
-      processCompletionIdConsumer((CompletionIdConsumer) consumer, resultObject);
+      new CompletionIdProcessor((CompletionIdConsumer) consumer).process(resultObject);
     } else if (consumer instanceof HoverConsumer) {
       new HoverResultProcessor((HoverConsumer) consumer).process(resultObject);
     } else if (consumer instanceof SearchIdConsumer) {
@@ -526,18 +523,13 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     } else if (consumer instanceof TypeHierarchyConsumer) {
       new TypeHierarchyResultProcessor((TypeHierarchyConsumer) consumer).process(resultObject);
     } else if (consumer instanceof VersionConsumer) {
-      processVersionConsumer((VersionConsumer) consumer, resultObject);
+      new VersionProcessor((VersionConsumer) consumer).process(resultObject);
     } else if (consumer instanceof BasicConsumer) {
       ((BasicConsumer) consumer).received();
     }
     synchronized (consumerMapLock) {
       consumerMap.remove(idString);
     }
-  }
-
-  private void processVersionConsumer(VersionConsumer consumer, JsonObject resultObject) {
-    String version = resultObject.get("version").getAsString();
-    consumer.computedVersion(version);
   }
 
   /**
