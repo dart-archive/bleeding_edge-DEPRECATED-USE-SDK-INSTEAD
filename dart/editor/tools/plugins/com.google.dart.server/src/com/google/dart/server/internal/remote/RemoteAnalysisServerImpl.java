@@ -30,6 +30,7 @@ import com.google.dart.server.Element;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HoverConsumer;
 import com.google.dart.server.Location;
+import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.TypeHierarchyConsumer;
@@ -45,6 +46,7 @@ import com.google.dart.server.internal.remote.processor.NotificationCompletionRe
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
+import com.google.dart.server.internal.remote.processor.SearchIdProcessor;
 import com.google.dart.server.internal.remote.processor.TypeHierarchyResultProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
 import com.google.dart.server.utilities.instrumentation.Instrumentation;
@@ -228,6 +230,15 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void deleteRefactoring(String refactoringId) {
     // TODO(scheglov) implement
+  }
+
+  public void findElementReferences(String file, int offset, boolean includePotential,
+      SearchIdConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateSearchFindElementReferences(id, file, offset, includePotential),
+        consumer);
   }
 
   @Override
@@ -489,6 +500,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       processCompletionIdConsumer((CompletionIdConsumer) consumer, resultObject);
     } else if (consumer instanceof HoverConsumer) {
       new HoverResultProcessor((HoverConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof SearchIdConsumer) {
+      new SearchIdProcessor((SearchIdConsumer) consumer).process(resultObject);
     } else if (consumer instanceof TypeHierarchyConsumer) {
       new TypeHierarchyResultProcessor((TypeHierarchyConsumer) consumer).process(resultObject);
     } else if (consumer instanceof VersionConsumer) {

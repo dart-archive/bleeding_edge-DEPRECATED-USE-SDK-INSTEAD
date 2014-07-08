@@ -40,6 +40,7 @@ public class RequestUtilities {
   private static final String METHOD = "method";
   private static final String PARAMS = "params";
   private static final String FILE = "file";
+  private static final String OFFSET = "offset";
 
   // Server domain
   private static final String METHOD_SERVER_GET_VERSION = "server.getVersion";
@@ -63,6 +64,9 @@ public class RequestUtilities {
 
   // Code Completion domain
   private static final String METHOD_COMPLETION_GET_SUGGESTIONS = "completion.getSuggestions";
+
+  // Search domain
+  private static final String METHOD_SEARCH_FIND_ELEMENT_REFERENCES = "search.findElementReferences";
 
   @VisibleForTesting
   public static JsonElement buildJsonElement(Object object) {
@@ -120,7 +124,7 @@ public class RequestUtilities {
   public static JsonObject generateAnalysisGetHover(String idValue, String file, int offset) {
     JsonObject params = new JsonObject();
     params.addProperty(FILE, file);
-    params.addProperty("offset", offset);
+    params.addProperty(OFFSET, offset);
     return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_GET_HOVER, params);
   }
 
@@ -300,7 +304,7 @@ public class RequestUtilities {
   public static JsonObject generateCompletionGetSuggestions(String idValue, String file, int offset) {
     JsonObject params = new JsonObject();
     params.addProperty(FILE, file);
-    params.addProperty("offset", offset);
+    params.addProperty(OFFSET, offset);
     return buildJsonObjectRequest(idValue, METHOD_COMPLETION_GET_SUGGESTIONS, params);
   }
 
@@ -323,7 +327,7 @@ public class RequestUtilities {
       int length) {
     JsonObject params = new JsonObject();
     params.addProperty(FILE, file);
-    params.addProperty("offset", offset);
+    params.addProperty(OFFSET, offset);
     params.addProperty("length", length);
     return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_ASSISTS, params);
   }
@@ -345,6 +349,15 @@ public class RequestUtilities {
     JsonObject params = new JsonObject();
     params.add("errors", buildJsonElement(errors));
     return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_FIXES, params);
+  }
+
+  public static JsonObject generateSearchFindElementReferences(String idValue, String file, int offset,
+      boolean includePotential) {
+    JsonObject params = new JsonObject();
+    params.addProperty(FILE, file);
+    params.addProperty(OFFSET, offset);
+    params.addProperty("includePotential", includePotential);
+    return buildJsonObjectRequest(idValue, METHOD_SEARCH_FIND_ELEMENT_REFERENCES, params);
   }
 
   /**
@@ -447,7 +460,7 @@ public class RequestUtilities {
     JsonObject errorJsonObject = new JsonObject();
     errorJsonObject.addProperty("content", change.getContent());
     if (change.isIncremental()) {
-      errorJsonObject.addProperty("offset", change.getOffset());
+      errorJsonObject.addProperty(OFFSET, change.getOffset());
       errorJsonObject.addProperty("oldLength", change.getOldLength());
       errorJsonObject.addProperty("newLength", change.getNewLength());
     }
@@ -457,7 +470,7 @@ public class RequestUtilities {
   private static JsonObject buildJsonObjectLocation(Location location) {
     JsonObject locationJsonObject = new JsonObject();
     locationJsonObject.addProperty("file", location.getFile());
-    locationJsonObject.addProperty("offset", location.getOffset());
+    locationJsonObject.addProperty(OFFSET, location.getOffset());
     locationJsonObject.addProperty("length", location.getLength());
     locationJsonObject.addProperty("startLine", location.getStartLine());
     locationJsonObject.addProperty("startColumn", location.getStartColumn());

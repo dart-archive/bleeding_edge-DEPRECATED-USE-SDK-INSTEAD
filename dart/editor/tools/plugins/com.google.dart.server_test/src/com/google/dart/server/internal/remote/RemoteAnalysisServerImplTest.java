@@ -35,6 +35,7 @@ import com.google.dart.server.Location;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
+import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.server.TypeHierarchyConsumer;
@@ -1102,6 +1103,38 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     server.test_waitForWorkerComplete();
+  }
+
+  public void test_search_findElementReferences() throws Exception {
+    final String[] result = new String[1];
+    server.findElementReferences("/fileA.dart", 17, false, new SearchIdConsumer() {
+      @Override
+      public void computedSearchId(String searchId) {
+        result[0] = searchId;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'search.findElementReferences',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 17,",
+        "    'includePotential': false",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'id': 'searchId0'",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+    assertEquals("searchId0", result[0]);
   }
 
   public void test_server_getVersion() throws Exception {
