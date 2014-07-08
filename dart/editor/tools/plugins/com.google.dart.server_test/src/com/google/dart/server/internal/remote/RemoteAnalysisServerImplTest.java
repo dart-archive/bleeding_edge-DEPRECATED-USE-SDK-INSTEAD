@@ -1137,6 +1137,96 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals("searchId0", result[0]);
   }
 
+  public void test_search_findMemberDeclarations() throws Exception {
+    final String[] result = new String[1];
+    server.findMemberDeclarations("mydeclaration", new SearchIdConsumer() {
+      @Override
+      public void computedSearchId(String searchId) {
+        result[0] = searchId;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'search.findMemberDeclarations',",
+        "  'params': {",
+        "    'name': 'mydeclaration'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'id': 'searchId1'",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+    assertEquals("searchId1", result[0]);
+  }
+
+  public void test_search_findMemberReferences() throws Exception {
+    final String[] result = new String[1];
+    server.findMemberReferences("mydeclaration", new SearchIdConsumer() {
+      @Override
+      public void computedSearchId(String searchId) {
+        result[0] = searchId;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'search.findMemberReferences',",
+        "  'params': {",
+        "    'name': 'mydeclaration'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'id': 'searchId2'",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+    assertEquals("searchId2", result[0]);
+  }
+
+  public void test_search_findTopLevelDeclarations() throws Exception {
+    final String[] result = new String[1];
+    server.findTopLevelDeclarations("some-pattern", new SearchIdConsumer() {
+      @Override
+      public void computedSearchId(String searchId) {
+        result[0] = searchId;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'search.findTopLevelDeclarations',",
+        "  'params': {",
+        "    'pattern': 'some-pattern'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'id': 'searchId3'",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+    assertEquals("searchId3", result[0]);
+  }
+
   public void test_server_getVersion() throws Exception {
     final String[] versionPtr = {null};
     server.getVersion(new VersionConsumer() {

@@ -67,6 +67,9 @@ public class RequestUtilities {
 
   // Search domain
   private static final String METHOD_SEARCH_FIND_ELEMENT_REFERENCES = "search.findElementReferences";
+  private static final String METHOD_SEARCH_FIND_MEMBER_DECLARATIONS = "search.findMemberDeclarations";
+  private static final String METHOD_SEARCH_FIND_MEMBER_REFERENCES = "search.findMemberReferences";
+  private static final String METHOD_SEARCH_FIND_TOP_LEVEL_DECLARATIONS = "search.findTopLevelDeclarations";
 
   @VisibleForTesting
   public static JsonElement buildJsonElement(Object object) {
@@ -351,13 +354,31 @@ public class RequestUtilities {
     return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_FIXES, params);
   }
 
-  public static JsonObject generateSearchFindElementReferences(String idValue, String file, int offset,
-      boolean includePotential) {
+  public static JsonObject generateSearchFindElementReferences(String idValue, String file,
+      int offset, boolean includePotential) {
     JsonObject params = new JsonObject();
     params.addProperty(FILE, file);
     params.addProperty(OFFSET, offset);
     params.addProperty("includePotential", includePotential);
     return buildJsonObjectRequest(idValue, METHOD_SEARCH_FIND_ELEMENT_REFERENCES, params);
+  }
+
+  public static JsonObject generateSearchFindMemberDeclarations(String idValue, String name) {
+    JsonObject params = new JsonObject();
+    params.addProperty("name", name);
+    return buildJsonObjectRequest(idValue, METHOD_SEARCH_FIND_MEMBER_DECLARATIONS, params);
+  }
+
+  public static JsonObject generateSearchFindMemberReferences(String idValue, String name) {
+    JsonObject params = new JsonObject();
+    params.addProperty("name", name);
+    return buildJsonObjectRequest(idValue, METHOD_SEARCH_FIND_MEMBER_REFERENCES, params);
+  }
+
+  public static JsonObject generateSearchFindTopLevelDeclarations(String idValue, String pattern) {
+    JsonObject params = new JsonObject();
+    params.addProperty("pattern", pattern);
+    return buildJsonObjectRequest(idValue, METHOD_SEARCH_FIND_TOP_LEVEL_DECLARATIONS, params);
   }
 
   /**

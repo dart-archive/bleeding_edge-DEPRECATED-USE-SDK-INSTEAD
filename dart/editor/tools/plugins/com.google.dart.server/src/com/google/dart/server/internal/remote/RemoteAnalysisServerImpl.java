@@ -241,6 +241,27 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
         consumer);
   }
 
+  public void findMemberDeclarations(String name, SearchIdConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateSearchFindMemberDeclarations(id, name),
+        consumer);
+  }
+
+  public void findMemberReferences(String name, SearchIdConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateSearchFindMemberReferences(id, name), consumer);
+  }
+
+  public void findTopLevelDeclarations(String pattern, SearchIdConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateSearchFindTopLevelDeclarations(id, pattern),
+        consumer);
+  }
+
   @Override
   public void getAssists(String file, int offset, int length, AssistsConsumer consumer) {
     String id = generateUniqueId();
