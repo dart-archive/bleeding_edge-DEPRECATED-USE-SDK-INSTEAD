@@ -41,7 +41,7 @@ public class TypeHierarchyResultProcessor extends ResultProcessor {
 
   public void process(JsonObject resultObject) {
     JsonObject hierarchyObject = resultObject.get("hierarchy").getAsJsonObject();
-    // compute type hierarchy and notify listener
+    // construct type hierarchy and notify listener
     consumer.computedHierarchy(constructTypeHierarchyItem(hierarchyObject));
   }
 
@@ -49,49 +49,53 @@ public class TypeHierarchyResultProcessor extends ResultProcessor {
     // classElement
     Element classElement = constructElement(hierarchyObject.get("classElement").getAsJsonObject());
 
+    // displayName
+    String displayName = safelyGetAsString(hierarchyObject, "displayName");
+
     // memberElement
     JsonObject memberElementObject = safelyGetAsJsonObject(hierarchyObject, "memberElement");
     Element memberElement = memberElementObject != null ? constructElement(memberElementObject)
         : null;
 
-    // extendedType
-    JsonObject extendedTypeObject = safelyGetAsJsonObject(hierarchyObject, "extendedType");
-    TypeHierarchyItem extendedType = extendedTypeObject != null
-        ? constructTypeHierarchyItem(extendedTypeObject) : null;
+    // superclass
+    JsonObject superclassObject = safelyGetAsJsonObject(hierarchyObject, "superclass");
+    TypeHierarchyItem superclassItem = superclassObject != null
+        ? constructTypeHierarchyItem(superclassObject) : null;
 
-    // implementedTypes    
-    JsonArray implementedTypesArray = hierarchyObject.get("implementedTypes").getAsJsonArray();
-    List<TypeHierarchyItem> implementedTypesList = Lists.newArrayList();
-    Iterator<JsonElement> implementedTypeElementIterator = implementedTypesArray.iterator();
-    while (implementedTypeElementIterator.hasNext()) {
-      JsonObject implementedTypeObject = implementedTypeElementIterator.next().getAsJsonObject();
-      implementedTypesList.add(constructTypeHierarchyItem(implementedTypeObject));
+    // interfaces
+    JsonArray interfacesArray = hierarchyObject.get("interfaces").getAsJsonArray();
+    List<TypeHierarchyItem> interfacesList = Lists.newArrayList();
+    Iterator<JsonElement> interfaceElementIterator = interfacesArray.iterator();
+    while (interfaceElementIterator.hasNext()) {
+      JsonObject interfaceObject = interfaceElementIterator.next().getAsJsonObject();
+      interfacesList.add(constructTypeHierarchyItem(interfaceObject));
     }
 
-    // withTypes
-    JsonArray withTypesArray = hierarchyObject.get("withTypes").getAsJsonArray();
-    List<TypeHierarchyItem> withTypesList = Lists.newArrayList();
-    Iterator<JsonElement> withTypeElementIterator = withTypesArray.iterator();
-    while (withTypeElementIterator.hasNext()) {
-      JsonObject withTypeObject = withTypeElementIterator.next().getAsJsonObject();
-      withTypesList.add(constructTypeHierarchyItem(withTypeObject));
+    // mixins
+    JsonArray mixinsArray = hierarchyObject.get("mixins").getAsJsonArray();
+    List<TypeHierarchyItem> mixinsList = Lists.newArrayList();
+    Iterator<JsonElement> mixinElementIterator = mixinsArray.iterator();
+    while (mixinElementIterator.hasNext()) {
+      JsonObject mixinObject = mixinElementIterator.next().getAsJsonObject();
+      mixinsList.add(constructTypeHierarchyItem(mixinObject));
     }
 
-    // subtypes
-    JsonArray subtypesArray = hierarchyObject.get("subtypes").getAsJsonArray();
-    List<TypeHierarchyItem> subtypesList = Lists.newArrayList();
-    Iterator<JsonElement> subtypeElementIterator = subtypesArray.iterator();
-    while (subtypeElementIterator.hasNext()) {
-      JsonObject subtypeTypeObject = subtypeElementIterator.next().getAsJsonObject();
-      subtypesList.add(constructTypeHierarchyItem(subtypeTypeObject));
+    // subclasses
+    JsonArray subclassesArray = hierarchyObject.get("subclasses").getAsJsonArray();
+    List<TypeHierarchyItem> subclassesList = Lists.newArrayList();
+    Iterator<JsonElement> subclassElementIterator = subclassesArray.iterator();
+    while (subclassElementIterator.hasNext()) {
+      JsonObject subclassObject = subclassElementIterator.next().getAsJsonObject();
+      subclassesList.add(constructTypeHierarchyItem(subclassObject));
     }
 
     return new TypeHierarchyItemImpl(
         classElement,
+        displayName,
         memberElement,
-        extendedType,
-        implementedTypesList.toArray(new TypeHierarchyItem[implementedTypesList.size()]),
-        withTypesList.toArray(new TypeHierarchyItem[withTypesList.size()]),
-        subtypesList.toArray(new TypeHierarchyItem[subtypesList.size()]));
+        superclassItem,
+        interfacesList.toArray(new TypeHierarchyItem[interfacesList.size()]),
+        mixinsList.toArray(new TypeHierarchyItem[mixinsList.size()]),
+        subclassesList.toArray(new TypeHierarchyItem[subclassesList.size()]));
   }
 }

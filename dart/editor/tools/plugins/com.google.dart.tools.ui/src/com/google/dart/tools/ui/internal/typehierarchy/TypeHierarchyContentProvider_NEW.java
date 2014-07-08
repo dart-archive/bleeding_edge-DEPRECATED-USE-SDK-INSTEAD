@@ -36,14 +36,14 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
   public static class TypeItem {
     final TypeHierarchyItem type;
     final Element element;
-    final TypeHierarchyItem[] mixedTypes;
-    final TypeHierarchyItem[] implementedTypes;
+    final TypeHierarchyItem[] mixins;
+    final TypeHierarchyItem[] interfaces;
 
     public TypeItem(TypeHierarchyItem type) {
       this.type = type;
       this.element = type.getClassElement();
-      this.mixedTypes = type.getMixedTypes();
-      this.implementedTypes = type.getImplementedTypes();
+      this.mixins = type.getMixins();
+      this.interfaces = type.getInterfaces();
     }
 
     @Override
@@ -72,14 +72,14 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
     }
 
     public StyledString toStyledString() {
-      StyledString styledString = new StyledString(type.getClassElement().getName());
-      if (mixedTypes != null && mixedTypes.length != 0) {
+      StyledString styledString = new StyledString(type.getBestName());
+      if (mixins != null && mixins.length != 0) {
         styledString.append(" with ", StyledString.QUALIFIER_STYLER);
-        appendItems(styledString, mixedTypes);
+        appendItems(styledString, mixins);
       }
-      if (implementedTypes != null && implementedTypes.length != 0) {
+      if (interfaces != null && interfaces.length != 0) {
         styledString.append(" implements ", StyledString.QUALIFIER_STYLER);
-        appendItems(styledString, implementedTypes);
+        appendItems(styledString, interfaces);
       }
       return styledString;
     }
@@ -90,7 +90,7 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
         if (i != 0) {
           styledString.append(", ");
         }
-        styledString.append(item.getClassElement().getName());
+        styledString.append(item.getBestName());
       }
     }
   }
@@ -204,24 +204,24 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
     isMemberHierarchy = target.getMemberElement() != null;
     final TypeItem targetItem = new TypeItem(target);
     // full super hierarchy
-    TypeHierarchyItem superType = target;
-    while (superType != null) {
-      TypeItem superItem = new TypeItem(superType);
+    TypeHierarchyItem superclass = target;
+    while (superclass != null) {
+      TypeItem superItem = new TypeItem(superclass);
       superList.add(0, superItem);
-      if (superType == target) {
+      if (superclass == target) {
         superItem = targetItem;
       }
       // try "extends"
-      superType = superItem.type.getExtendedType();
-      if (superType == null) {
+      superclass = superItem.type.getSuperclass();
+      if (superclass == null) {
         break;
       }
       // try to use something better than "Object"
-      if (superType.getClassElement().getName().equals("Object")) {
-        if (superItem.mixedTypes.length != 0) {
-          superType = superItem.mixedTypes[0];
-        } else if (superItem.implementedTypes.length != 0) {
-          superType = superItem.implementedTypes[0];
+      if (superclass.getClassElement().getName().equals("Object")) {
+        if (superItem.mixins.length != 0) {
+          superclass = superItem.mixins[0];
+        } else if (superItem.interfaces.length != 0) {
+          superclass = superItem.interfaces[0];
         }
       }
     }
@@ -250,7 +250,7 @@ public class TypeHierarchyContentProvider_NEW implements ITreeContentProvider {
    * Builds complete sub-types hierarchy in {@link #superToSubsMap}.
    */
   private void fillSubTypes(TypeHierarchyItem type, TypeItem item) {
-    TypeHierarchyItem[] subTypes = type.getSubtypes();
+    TypeHierarchyItem[] subTypes = type.getSubclasses();
     List<TypeItem> subItems = Lists.newArrayList();
     for (TypeHierarchyItem subType : subTypes) {
       TypeItem subItem = new TypeItem(subType);

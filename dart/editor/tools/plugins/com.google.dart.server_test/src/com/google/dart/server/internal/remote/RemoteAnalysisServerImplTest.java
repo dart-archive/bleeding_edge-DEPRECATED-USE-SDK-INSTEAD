@@ -163,6 +163,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "        },",
         "        'flags': 63",
         "      },",
+        "      'displayName': 'displayName1',",
         "      'memberElement': {",
         "        'kind': 'CLASS',",
         "        'name': 'name2',",
@@ -175,7 +176,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "        },",
         "        'flags': 0",
         "      },",
-        "      'extendedType': {",
+        "      'superclass': {",
         "        'classElement': {",
         "          'kind': 'CLASS',",
         "          'name': 'name3',",
@@ -188,13 +189,13 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "          },",
         "          'flags': 63",
         "        },",
-        "        'implementedTypes': [],",
-        "        'withTypes': [],",
-        "        'subtypes': []",
+        "        'interfaces': [],",
+        "        'mixins': [],",
+        "        'subclasses': []",
         "      },",
-        "      'implementedTypes': [],",
-        "      'withTypes': [],",
-        "      'subtypes': []",
+        "      'interfaces': [],",
+        "      'mixins': [],",
+        "      'subclasses': []",
         "    }",
         "  }",
         "}");
@@ -219,6 +220,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertTrue(element.isPrivate());
       assertTrue(element.isTopLevelOrStatic());
     }
+    // displayName
+    assertEquals("displayName1", item.getDisplayName());
+    assertEquals("displayName1", item.getBestName());
     // memberElement
     {
       Element element = item.getMemberElement();
@@ -239,12 +243,13 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     }
     // extendedType
     {
-      TypeHierarchyItem childItem = item.getExtendedType();
+      TypeHierarchyItem childItem = item.getSuperclass();
       assertNotNull(childItem);
       {
         Element element = childItem.getClassElement();
         assertEquals(ElementKind.CLASS, element.getKind());
         assertEquals("name3", element.getName());
+        assertEquals("name3", childItem.getBestName());
         Location location = element.getLocation();
         assertEquals("/test3.dart", location.getFile());
         assertEquals(9, location.getOffset());
@@ -252,16 +257,17 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         assertEquals(11, location.getStartLine());
         assertEquals(12, location.getStartColumn());
       }
+      assertNull(childItem.getDisplayName());
       assertNull(childItem.getMemberElement());
-      assertNull(childItem.getExtendedType());
-      assertThat(childItem.getImplementedTypes()).hasSize(0);
-      assertThat(childItem.getMixedTypes()).hasSize(0);
-      assertThat(childItem.getSubtypes()).hasSize(0);
+      assertNull(childItem.getSuperclass());
+      assertThat(childItem.getInterfaces()).hasSize(0);
+      assertThat(childItem.getMixins()).hasSize(0);
+      assertThat(childItem.getSubclasses()).hasSize(0);
     }
     // implementedTypes/ withTypes/ subtypes
-    assertThat(item.getImplementedTypes()).hasSize(0);
-    assertThat(item.getMixedTypes()).hasSize(0);
-    assertThat(item.getSubtypes()).hasSize(0);
+    assertThat(item.getInterfaces()).hasSize(0);
+    assertThat(item.getMixins()).hasSize(0);
+    assertThat(item.getSubclasses()).hasSize(0);
   }
 
   public void test_analysis_notification_errors() throws Exception {

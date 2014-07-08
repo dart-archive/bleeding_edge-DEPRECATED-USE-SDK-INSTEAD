@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 public class TypeHierarchyItemImplTest extends TestCase {
   private Element classElement = mock(Element.class);
+  private String displayName = "displayName";
   private Element memberElement = mock(Element.class);
 
   public void test_access() throws Exception {
@@ -34,17 +35,19 @@ public class TypeHierarchyItemImplTest extends TestCase {
     TypeHierarchyItem[] subTypes = new TypeHierarchyItem[3];
     TypeHierarchyItemImpl item = new TypeHierarchyItemImpl(
         classElement,
+        displayName,
         memberElement,
         extendedType,
         implementedTypes,
         mixedTypes,
         subTypes);
     assertSame(classElement, item.getClassElement());
+    assertSame(displayName, item.getDisplayName());
     assertSame(memberElement, item.getMemberElement());
-    assertSame(extendedType, item.getExtendedType());
-    assertSame(mixedTypes, item.getMixedTypes());
-    assertSame(implementedTypes, item.getImplementedTypes());
-    assertSame(subTypes, item.getSubtypes());
+    assertSame(extendedType, item.getSuperclass());
+    assertSame(mixedTypes, item.getMixins());
+    assertSame(implementedTypes, item.getInterfaces());
+    assertSame(subTypes, item.getSubclasses());
     // toString()
     assertNotNull(item.toString());
   }

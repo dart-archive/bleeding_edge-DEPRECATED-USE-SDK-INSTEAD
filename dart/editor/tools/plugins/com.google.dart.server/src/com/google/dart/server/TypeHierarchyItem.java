@@ -26,45 +26,68 @@ public interface TypeHierarchyItem {
   TypeHierarchyItem[] EMPTY_ARRAY = new TypeHierarchyItem[0];
 
   /**
-   * Return the class element associated with this item. Not {@code null}.
+   * Return the best name to display. If the display name is {@code null}, then the name from the
+   * {@link #getClassElement()} is returned, otherwise the {@link #getDisplayName()} is returned.
    * 
-   * @return the class element associated with this item
+   * @return the best name to display
+   */
+  public String getBestName();
+
+  /**
+   * Return the class element represented by this item. Not {@code null}.
+   * 
+   * @return the class element represented by this item
    */
   public Element getClassElement();
 
   /**
-   * Return the type that is extended by this type, {@code null} if this item is {@code Object}.
+   * Return the name to be displayed for the class. This field will be omitted if the display name
+   * is the same as the name of the element. The display name is different if there is additional
+   * type information to be displayed, such as type arguments.
    * 
-   * @return the type that is extended by this type
+   * @return the name to be displayed for the class
    */
-  public TypeHierarchyItem getExtendedType();
+  public String getDisplayName();
 
   /**
-   * Return the types that are implemented by this type, {@code null} if not a super item.
+   * Return the items representing the interfaces implemented by this class. The list will be empty
+   * if there are no implemented interfaces.
    * 
-   * @return the types that are implemented by this type
+   * @return the items representing the interfaces implemented by this class
    */
-  public TypeHierarchyItem[] getImplementedTypes();
+  public TypeHierarchyItem[] getInterfaces();
 
   /**
-   * Return the member element associated with this item. May be {@code null} if this type does not
-   * define the member which hierarchy is requested.
+   * The member in the class corresponding to the member on which the hierarchy was requested. This
+   * field will be omitted if the hierarchy was not requested for a member or if the class does not
+   * have a corresponding member.
    * 
-   * @return the member element associated with this item
+   * @return the member in the class corresponding to the member on which the hierarchy was
+   *         requested
    */
   public Element getMemberElement();
 
   /**
-   * Return the types that are mixed into this type, {@code null} if not a super item.
+   * Return the items representing the mixins referenced by this class. The list will be empty if
+   * there are no classes mixed in to this class.
    * 
-   * @return the types that are mixed into this type
+   * @return the items representing the mixins referenced by this class
    */
-  public TypeHierarchyItem[] getMixedTypes();
+  public TypeHierarchyItem[] getMixins();
 
   /**
-   * Return the subtypes of this type, may be empty, but not {@code null}.
+   * Return the items representing the subtypes of this class. The list will be empty if there are
+   * no subtypes or if this item represents a supertype of the pivot type.
    * 
-   * @return the subtypes of this type
+   * @return the items representing the subtypes of this class
    */
-  public TypeHierarchyItem[] getSubtypes();
+  public TypeHierarchyItem[] getSubclasses();
+
+  /**
+   * The item representing the superclass of this class. This field will be omitted if this item
+   * represents the class Object
+   * 
+   * @return the item representing the superclass of this class
+   */
+  public TypeHierarchyItem getSuperclass();
 }

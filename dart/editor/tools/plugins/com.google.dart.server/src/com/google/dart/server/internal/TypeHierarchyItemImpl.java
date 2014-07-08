@@ -26,21 +26,32 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class TypeHierarchyItemImpl implements TypeHierarchyItem {
   private final Element classElement;
+  private final String displayName;
   private final Element memberElement;
-  private final TypeHierarchyItem extendedType;
-  private final TypeHierarchyItem[] implementedTypes;
-  private final TypeHierarchyItem[] mixedTypes;
-  private final TypeHierarchyItem[] subtypes;
+  private final TypeHierarchyItem superclass;
+  private final TypeHierarchyItem[] interfaces;
+  private final TypeHierarchyItem[] mixins;
+  private final TypeHierarchyItem[] subclasses;
 
-  public TypeHierarchyItemImpl(Element classElement, Element memberElement,
-      TypeHierarchyItem extendedType, TypeHierarchyItem[] implementedTypes,
-      TypeHierarchyItem[] mixedTypes, TypeHierarchyItem[] subtypes) {
+  public TypeHierarchyItemImpl(Element classElement, String displayName, Element memberElement,
+      TypeHierarchyItem superclass, TypeHierarchyItem[] interfaces, TypeHierarchyItem[] mixins,
+      TypeHierarchyItem[] subclasses) {
     this.classElement = classElement;
+    this.displayName = displayName;
     this.memberElement = memberElement;
-    this.extendedType = extendedType;
-    this.mixedTypes = mixedTypes;
-    this.implementedTypes = implementedTypes;
-    this.subtypes = subtypes;
+    this.superclass = superclass;
+    this.mixins = mixins;
+    this.interfaces = interfaces;
+    this.subclasses = subclasses;
+  }
+
+  @Override
+  public String getBestName() {
+    if (displayName == null) {
+      return classElement.getName();
+    } else {
+      return displayName;
+    }
   }
 
   @Override
@@ -49,13 +60,13 @@ public class TypeHierarchyItemImpl implements TypeHierarchyItem {
   }
 
   @Override
-  public TypeHierarchyItem getExtendedType() {
-    return extendedType;
+  public String getDisplayName() {
+    return displayName;
   }
 
   @Override
-  public TypeHierarchyItem[] getImplementedTypes() {
-    return implementedTypes;
+  public TypeHierarchyItem[] getInterfaces() {
+    return interfaces;
   }
 
   @Override
@@ -64,13 +75,18 @@ public class TypeHierarchyItemImpl implements TypeHierarchyItem {
   }
 
   @Override
-  public TypeHierarchyItem[] getMixedTypes() {
-    return mixedTypes;
+  public TypeHierarchyItem[] getMixins() {
+    return mixins;
   }
 
   @Override
-  public TypeHierarchyItem[] getSubtypes() {
-    return subtypes;
+  public TypeHierarchyItem[] getSubclasses() {
+    return subclasses;
+  }
+
+  @Override
+  public TypeHierarchyItem getSuperclass() {
+    return superclass;
   }
 
   @Override
@@ -78,16 +94,18 @@ public class TypeHierarchyItemImpl implements TypeHierarchyItem {
     StringBuilder builder = new StringBuilder();
     builder.append("[classElement=");
     builder.append(classElement);
+    builder.append("displayName=");
+    builder.append(displayName);
     builder.append(", memberElement=");
     builder.append(memberElement);
-    builder.append(", extendedType=");
-    builder.append(extendedType);
-    builder.append(", mixedTypes=[");
-    builder.append(StringUtils.join(mixedTypes, ", "));
-    builder.append("], implementedTypes=[");
-    builder.append(StringUtils.join(implementedTypes, ", "));
-    builder.append("], subTypes=[");
-    builder.append(StringUtils.join(subtypes, ", "));
+    builder.append(", superclass=");
+    builder.append(superclass);
+    builder.append(", mixins=[");
+    builder.append(StringUtils.join(mixins, ", "));
+    builder.append("], interfaces=[");
+    builder.append(StringUtils.join(interfaces, ", "));
+    builder.append("], subclasses=[");
+    builder.append(StringUtils.join(subclasses, ", "));
     builder.append("]]");
     return builder.toString();
   }
