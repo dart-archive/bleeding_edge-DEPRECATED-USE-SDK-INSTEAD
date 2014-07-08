@@ -65,6 +65,7 @@ public class PubYamlUtils {
      */
     @Override
     protected void addImplicitResolvers() {
+      addImplicitResolver(Tag.BOOL, BOOL, "yYnNtTfFoO");
       addImplicitResolver(Tag.NULL, NULL, "~nN\0");
       addImplicitResolver(Tag.NULL, EMPTY, null);
       addImplicitResolver(Tag.VALUE, VALUE, "=");
