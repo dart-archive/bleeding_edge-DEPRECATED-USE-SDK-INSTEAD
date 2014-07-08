@@ -1435,6 +1435,25 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertEquals(factory, context.getSourceFactory());
   }
 
+  public void test_unreadableSource() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source test1 = addSource("/test1.dart", createSource(//
+        "import 'test2.dart';",
+        "library test1;"));
+    Source test2 = addSource("/test2.dart", createSource(//
+        "import 'test1.dart';",
+        "import 'test3.dart';",
+        "library test2;"));
+    Source test3 = addSourceWithException("/test3.dart");
+    analyzeAll_assertFinished();
+    // test1 and test2 should have been successfully analyzed despite the fact that
+    // test3 couldn't be read.
+    assertNotNull(context.computeLibraryElement(test1));
+    assertNotNull(context.computeLibraryElement(test2));
+    assertNull(context.computeLibraryElement(test3));
+  }
+
   public void test_updateAnalysis() {
     assertTrue(context.getSourcesNeedingProcessing().isEmpty());
     Source source = new FileBasedSource(createFile("/test.dart"));

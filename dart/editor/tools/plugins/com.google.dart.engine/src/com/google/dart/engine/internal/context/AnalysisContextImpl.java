@@ -618,8 +618,26 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
 
     /**
+     * Ensure that the given library has an element model built for it. If another task needs to be
+     * executed first in order to build the element model, that task is placed in {@link #taskData}.
+     * 
+     * @param library the library which needs an element model.
+     */
+    private void ensureElementModel(ResolvableLibrary library) {
+      Source librarySource = library.getLibrarySource();
+      DartEntry libraryEntry = getReadableDartEntry(librarySource);
+      if (libraryEntry != null && libraryEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
+        workManager.addFirst(librarySource, SourcePriority.LIBRARY);
+        if (taskData == null) {
+          taskData = createResolveDartLibraryTask(librarySource, libraryEntry);
+        }
+      }
+    }
+
+    /**
      * Ensure that all of the libraries that are exported by the given library (but are not
-     * themselves in the cycle) have element models built for them.
+     * themselves in the cycle) have element models built for them. If another task needs to be
+     * executed first in order to build the element model, that task is placed in {@link #taskData}.
      * 
      * @param library the library being tested
      */
@@ -631,19 +649,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         if (!librariesInCycle.contains(dependency)
             && visitedLibraries.add(dependency.getLibrarySource())) {
           if (dependency.getLibraryElement() == null) {
-            Source dependencySource = dependency.getLibrarySource();
-            workManager.addFirst(dependencySource, SourcePriority.LIBRARY);
-            if (taskData == null) {
-              taskData = createResolveDartLibraryTask(
-                  dependencySource,
-                  getReadableDartEntry(dependencySource));
-              return;
-            }
+            ensureElementModel(dependency);
           } else {
             ensureExports(dependency, visitedLibraries);
-            if (taskData != null) {
-              return;
-            }
+          }
+          if (taskData != null) {
+            return;
           }
         }
       }
@@ -651,11 +662,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
     /**
      * Ensure that all of the libraries that are exported by the given library (but are not
-     * themselves in the cycle) have element models built for them.
+     * themselves in the cycle) have element models built for them. If another task needs to be
+     * executed first in order to build the element model, that task is placed in {@link #taskData}.
      * 
      * @param library the library being tested
-     * @throws MissingDataException if there is at least one library being depended on that does not
-     *           have an element model built for it
      */
     private void ensureImports(ResolvableLibrary library) {
       ResolvableLibrary[] dependencies = library.getImports();
@@ -663,12 +673,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       for (int i = 0; i < dependencyCount; i++) {
         ResolvableLibrary dependency = dependencies[i];
         if (!librariesInCycle.contains(dependency) && dependency.getLibraryElement() == null) {
-          Source dependencySource = dependency.getLibrarySource();
-          workManager.addFirst(dependencySource, SourcePriority.LIBRARY);
-          if (taskData == null) {
-            taskData = createResolveDartLibraryTask(
-                dependencySource,
-                getReadableDartEntry(dependencySource));
+          ensureElementModel(dependency);
+          if (taskData != null) {
             return;
           }
         }
