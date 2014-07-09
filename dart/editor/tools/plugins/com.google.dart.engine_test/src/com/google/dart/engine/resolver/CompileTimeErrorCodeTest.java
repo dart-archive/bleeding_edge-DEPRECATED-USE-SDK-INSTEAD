@@ -1584,6 +1584,34 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_fromEnvironment_bool_badArgs() throws Exception {
+    Source source = addSource(createSource(//
+        "var b1 = const bool.fromEnvironment(1);",
+        "var b2 = const bool.fromEnvironment('x', defaultValue: 1);"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_fromEnvironment_bool_badDefault_whenDefined() throws Exception {
+    // The type of the defaultValue needs to be correct even when the default value
+    // isn't used (because the variable is defined in the environment).
+    analysisContext.getDeclaredVariables().define("x", "true");
+    Source source = addSource(createSource(//
+    "var b = const bool.fromEnvironment('x', defaultValue: 1);"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_getterAndMethodWithSameName() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

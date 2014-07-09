@@ -176,6 +176,9 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (node.isConst()) {
+      validate(node, null);
+    }
     validateInstanceCreationArguments(node);
     return super.visitInstanceCreationExpression(node);
   }
@@ -416,7 +419,7 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
             || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_INT
             || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) {
           errorReporter.reportErrorForNode(dataErrorCode, data.getNode());
-        } else {
+        } else if (errorCode != null) {
           errorReporter.reportErrorForNode(errorCode, data.getNode());
         }
       }
