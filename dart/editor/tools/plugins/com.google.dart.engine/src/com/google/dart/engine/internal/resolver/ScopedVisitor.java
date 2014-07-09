@@ -398,7 +398,8 @@ public abstract class ScopedVisitor extends UnifyingAstVisitor<Void> {
     } finally {
       nameScope = outerScope;
     }
-    if (!(functionElement.getEnclosingElement() instanceof CompilationUnitElement)) {
+    if (functionElement != null
+        && !(functionElement.getEnclosingElement() instanceof CompilationUnitElement)) {
       nameScope.define(functionElement);
     }
     return null;
