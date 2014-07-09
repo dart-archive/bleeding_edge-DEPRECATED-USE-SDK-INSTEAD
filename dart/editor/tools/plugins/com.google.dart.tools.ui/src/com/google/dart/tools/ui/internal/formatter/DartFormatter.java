@@ -310,6 +310,20 @@ public class DartFormatter {
         tabWidth);
   }
 
+  private static IEditorPart findEditor(final IWorkbenchPage activePage, final IFile file) {
+
+    final IEditorPart[] editor = new IEditorPart[1];
+
+    Display.getDefault().syncExec(new Runnable() {
+      @Override
+      public void run() {
+        editor[0] = ResourceUtil.findEditor(activePage, file);
+      }
+    });
+
+    return editor[0];
+  }
+
   private static void formatFile(IFile file, IProgressMonitor monitor)
       throws UnsupportedEncodingException, CoreException, IOException {
 
@@ -347,7 +361,7 @@ public class DartFormatter {
 
     IWorkbenchPage activePage = getActivePage();
     if (activePage != null) {
-      IEditorPart editor = ResourceUtil.findEditor(activePage, file);
+      IEditorPart editor = findEditor(activePage, file);
       if (editor instanceof DartEditor) {
         if (editor.isDirty()) {
           return (DartEditor) editor;
