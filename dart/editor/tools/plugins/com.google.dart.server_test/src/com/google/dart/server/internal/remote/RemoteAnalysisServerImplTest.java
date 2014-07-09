@@ -36,6 +36,8 @@ import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 import com.google.dart.server.SearchIdConsumer;
+import com.google.dart.server.SearchResult;
+import com.google.dart.server.SearchResultKind;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.server.TypeHierarchyConsumer;
@@ -1233,6 +1235,100 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals("searchId3", result[0]);
   }
 
+  public void test_search_notification_results() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'search.results',",
+        "  'params': {",
+        "    'id': 'searchId7',",
+        "    'results' : [",
+        "      {",
+        "        'location': {",
+        "          'file': 'someFile.dart',",
+        "          'offset': 9,",
+        "          'length': 10,",
+        "          'startLine': 11,",
+        "          'startColumn': 12",
+        "        },",
+        "        'kind': 'CLASS_DECLARATION',",
+        "        'isPotential': true,",
+        "        'path': [",
+        "          {",
+        "            'kind': 'FUNCTION',",
+        "            'name': 'foo',",
+        "            'location': {",
+        "              'file': 'fileA.dart',",
+        "              'offset': 13,",
+        "              'length': 14,",
+        "              'startLine': 15,",
+        "              'startColumn': 16",
+        "            },",
+        "            'flags': 42,",
+        "            'parameters': '(a, b, c)',",
+        "            'returnType': 'anotherType'",
+        "          },",
+        "          {",
+        "            'kind': 'CLASS',",
+        "            'name': 'myClass',",
+        "            'location': {",
+        "              'file': 'fileB.dart',",
+        "              'offset': 17,",
+        "              'length': 18,",
+        "              'startLine': 19,",
+        "              'startColumn': 20",
+        "            },",
+        "            'flags': 21",
+        "          }",
+        "        ]",
+        "      }",
+        "    ],",
+        "    'last': true",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    SearchResult[] results = listener.getSearchResults("searchId7");
+    assertThat(results).hasSize(1);
+    {
+      SearchResult result = results[0];
+      assertLocation(result.getLocation(), "someFile.dart", 9, 10, 11, 12);
+      assertEquals(SearchResultKind.CLASS_DECLARATION, result.getKind());
+      assertEquals(true, result.isPotential());
+      {
+        Element[] path = result.getPath();
+        assertThat(path).hasSize(2);
+        {
+          Element element = path[0];
+          assertEquals(ElementKind.FUNCTION, element.getKind());
+          assertEquals("foo", element.getName());
+          assertLocation(element.getLocation(), "fileA.dart", 13, 14, 15, 16);
+          assertEquals(false, element.isAbstract());
+          assertEquals(true, element.isConst());
+          assertEquals(false, element.isFinal());
+          assertEquals(true, element.isTopLevelOrStatic());
+          assertEquals(false, element.isPrivate());
+          assertEquals(true, element.isDeprecated());
+          assertEquals("(a, b, c)", element.getParameters());
+          assertEquals("anotherType", element.getReturnType());
+        }
+        {
+          Element element = path[1];
+          assertEquals(ElementKind.CLASS, element.getKind());
+          assertEquals("myClass", element.getName());
+          assertLocation(element.getLocation(), "fileB.dart", 17, 18, 19, 20);
+          assertEquals(true, element.isAbstract());
+          assertEquals(false, element.isConst());
+          assertEquals(true, element.isFinal());
+          assertEquals(false, element.isTopLevelOrStatic());
+          assertEquals(true, element.isPrivate());
+          assertEquals(false, element.isDeprecated());
+          assertNull(element.getParameters());
+          assertNull(element.getReturnType());
+        }
+      }
+    }
+  }
+
   public void test_server_getVersion() throws Exception {
     final String[] versionPtr = {null};
     server.getVersion(new VersionConsumer() {
@@ -1412,6 +1508,15 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(socket.isStopped());
     assertTrue(socket.isStarted());
     server.shutdown();
+  }
+
+  private void assertLocation(Location location, String file, int offset, int length,
+      int startLine, int startColumn) {
+    assertEquals(file, location.getFile());
+    assertEquals(offset, location.getOffset());
+    assertEquals(length, location.getLength());
+    assertEquals(startLine, location.getStartLine());
+    assertEquals(startColumn, location.getStartColumn());
   }
 
   /**

@@ -13,7 +13,6 @@
  */
 package com.google.dart.server;
 
-
 /**
  * The interface {@code SearchResult} defines the behavior of objects that represent a search
  * result.
@@ -34,18 +33,11 @@ public interface SearchResult {
   public SearchResultKind getKind();
 
   /**
-   * Return the length of the result.
+   * Return the location of the code that matched the search criteria.
    * 
-   * @return the length of the result
+   * @return the location
    */
-  public int getLength();
-
-  /**
-   * Return the offset to the beginning of the result in {@link #getSource()}.
-   * 
-   * @return the offset to the beginning of the result
-   */
-  public int getOffset();
+  public Location getLocation();
 
   /**
    * Return the path to this result starting with the element that encloses it, then for its

@@ -22,6 +22,7 @@ import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
+import com.google.dart.server.SearchResult;
 import com.google.dart.server.ServerStatus;
 
 import java.util.List;
@@ -90,6 +91,13 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   public void computedOutline(String file, Outline outline) {
     for (AnalysisServerListener listener : getListeners()) {
       listener.computedOutline(file, outline);
+    }
+  }
+
+  @Override
+  public void computedSearchResults(String searchId, SearchResult[] results, boolean last) {
+    for (AnalysisServerListener listener : getListeners()) {
+      listener.computedSearchResults(searchId, results, last);
     }
   }
 

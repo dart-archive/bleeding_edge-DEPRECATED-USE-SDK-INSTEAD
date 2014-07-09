@@ -21,6 +21,7 @@ import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
+import com.google.dart.server.SearchResult;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager_NEW;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
@@ -87,6 +88,11 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   @Override
   public void computedOutline(String file, Outline outline) {
     dataImpl.internalComputedOutline(file, outline);
+  }
+
+  @Override
+  public void computedSearchResults(String searchId, SearchResult[] results, boolean last) {
+    //TODO (danrubel): not yet implemented
   }
 
   @Override

@@ -44,6 +44,7 @@ import com.google.dart.server.internal.remote.processor.NotificationAnalysisNavi
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisOccurrencesProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisOutlineProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationCompletionResultsProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationSearchResultsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
@@ -70,6 +71,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @coverage dart.server.remote
  */
 public class RemoteAnalysisServerImpl implements AnalysisServer {
+
   /**
    * For requests that do not have a {@link Consumer}, this object is created as a place holder so
    * that if an error occurs after the request, an error can be reported.
@@ -167,6 +169,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   // Code Completion domain
   private static final String COMPLETION_NOTIFICATION_RESULTS = "completion.results";
+
+  // Search domain
+  private static final String SEARCH_NOTIFICATION_RESULTS = "search.results";
 
   private final AnalysisServerSocket socket;
   private RequestSink requestSink;
@@ -477,6 +482,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     } else if (event.equals(COMPLETION_NOTIFICATION_RESULTS)) {
       // completion.results
       new NotificationCompletionResultsProcessor(listener).process(response);
+    } else if (event.equals(SEARCH_NOTIFICATION_RESULTS)) {
+      // search.results
+      new NotificationSearchResultsProcessor(listener).process(response);
     } else if (event.equals(SERVER_NOTIFICATION_STATUS)) {
       // server.status
       new NotificationServerStatusProcessor(listener).process(response);

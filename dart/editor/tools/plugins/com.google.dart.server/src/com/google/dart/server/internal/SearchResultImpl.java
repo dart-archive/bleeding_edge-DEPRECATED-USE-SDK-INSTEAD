@@ -15,6 +15,7 @@
 package com.google.dart.server.internal;
 
 import com.google.dart.server.Element;
+import com.google.dart.server.Location;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
 
@@ -28,16 +29,14 @@ import com.google.dart.server.SearchResultKind;
 public class SearchResultImpl implements SearchResult {
   private final Element[] path;
   private final SearchResultKind kind;
-  private final int offset;
-  private final int length;
   private final boolean isPotential;
+  private final Location location;
 
-  public SearchResultImpl(Element[] path, SearchResultKind kind, int offset, int length,
+  public SearchResultImpl(Element[] path, SearchResultKind kind, Location location,
       boolean isPotential) {
     this.path = path;
     this.kind = kind;
-    this.offset = offset;
-    this.length = length;
+    this.location = location;
     this.isPotential = isPotential;
   }
 
@@ -47,13 +46,8 @@ public class SearchResultImpl implements SearchResult {
   }
 
   @Override
-  public int getLength() {
-    return length;
-  }
-
-  @Override
-  public int getOffset() {
-    return offset;
+  public Location getLocation() {
+    return location;
   }
 
   @Override
@@ -71,10 +65,8 @@ public class SearchResultImpl implements SearchResult {
     StringBuilder builder = new StringBuilder();
     builder.append("[kind=");
     builder.append(kind);
-    builder.append(", offset=");
-    builder.append(offset);
-    builder.append(", length=");
-    builder.append(length);
+    builder.append(", location=");
+    builder.append(location);
     builder.append(", potential=");
     builder.append(isPotential);
     builder.append(", path=");

@@ -80,6 +80,16 @@ public interface AnalysisServerListener {
   public void computedOutline(String file, Outline outline);
 
   /**
+   * A new collection of search results have been computed for the given completion id.
+   * 
+   * @param searchId the id associated with the search
+   * @param results the search results being reported
+   * @param last {@code true} if this is the last set of results that will be returned for the
+   *          indicated search
+   */
+  public void computedSearchResults(String searchId, SearchResult[] results, boolean last);
+
+  /**
    * Reports that the server is running. This notification is issued once after the server has
    * started running to let the client know that it started correctly.
    */

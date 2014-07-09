@@ -45,6 +45,20 @@ public abstract class JsonProcessor {
     return new ElementImpl(kind, name, location, flags, parameters, returnType);
   }
 
+  protected Element[] constructElementArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return new Element[] {};
+    }
+    int i = 0;
+    Element[] elements = new Element[jsonArray.size()];
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      elements[i] = constructElement(iterator.next().getAsJsonObject());
+      ++i;
+    }
+    return elements;
+  }
+
   /**
    * Given some {@link JsonArray} and of {@code int} primitives, return the {@code int[]}.
    * 
@@ -172,5 +186,4 @@ public abstract class JsonProcessor {
       return jsonElement.getAsString();
     }
   }
-
 }
