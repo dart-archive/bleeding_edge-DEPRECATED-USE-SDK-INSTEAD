@@ -199,6 +199,7 @@ import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.editors.text.DefaultEncodingSupport;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.IEncodingSupport;
+import org.eclipse.ui.internal.part.NullEditorInput;
 import org.eclipse.ui.operations.NonLocalUndoUserApprover;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
@@ -4682,7 +4683,15 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       dartSourceViewer.prepareDelayedProjection();
     }
 
-    super.doSetInput(input);
+    try {
+      super.doSetInput(input);
+    } catch (Throwable e) {
+      @SuppressWarnings("restriction")
+      IEditorInput dumyInput = new NullEditorInput();
+      super.doSetInput(dumyInput);
+      close(false);
+      return;
+    }
 
     if (dartSourceViewer != null && dartSourceViewer.getReconciler() == null) {
       IReconciler reconciler = getSourceViewerConfiguration().getReconciler(dartSourceViewer);
