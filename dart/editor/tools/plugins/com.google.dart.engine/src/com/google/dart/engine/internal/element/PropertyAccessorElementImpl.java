@@ -205,4 +205,11 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
     builder.append(getVariable().getDisplayName());
     super.appendTo(builder);
   }
+
+  @Override
+  protected String getIdentifier() {
+    String name = getDisplayName();
+    String suffix = isGetter() ? "?" : "=";
+    return name + suffix;
+  }
 }

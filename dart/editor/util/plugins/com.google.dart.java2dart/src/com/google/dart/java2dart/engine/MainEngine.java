@@ -620,6 +620,7 @@ public class MainEngine {
         importDirective("utilities_collection.dart", null, importShowCombinator("TokenMap")));
     unit.getDirectives().add(importDirective("element.dart", null));
     unit.getDirectives().add(importDirective("constant.dart", null));
+    unit.getDirectives().add(importDirective("parser.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "ast/") || isEnginePath(file, "utilities/ast/")) {
@@ -732,6 +733,7 @@ public class MainEngine {
             importShowCombinator("AnalysisContext", "AnalysisEngine", "AnalysisException")));
     unit.getDirectives().add(
         importDirective("constant.dart", null, importShowCombinator("EvaluationResultImpl")));
+    unit.getDirectives().add(importDirective("resolver.dart", null));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
