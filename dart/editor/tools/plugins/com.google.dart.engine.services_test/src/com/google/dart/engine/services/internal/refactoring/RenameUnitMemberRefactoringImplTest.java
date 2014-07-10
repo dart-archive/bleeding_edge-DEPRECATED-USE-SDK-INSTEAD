@@ -493,6 +493,26 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
             "}"));
   }
 
+  public void test_createChange_ClassElement_parameterTypeNested() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {",
+        "}",
+        "method(f(Test p)) {",
+        "}");
+    // configure refactoring
+    createRenameRefactoring("Test {");
+    assertEquals("Rename Class", refactoring.getRefactoringName());
+    refactoring.setNewName("NewName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class NewName {",
+        "}",
+        "method(f(NewName p)) {",
+        "}");
+  }
+
   public void test_createChange_ClassElement_typeAlias() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

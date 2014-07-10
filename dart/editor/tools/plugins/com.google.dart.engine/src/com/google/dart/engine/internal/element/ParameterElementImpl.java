@@ -92,6 +92,16 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   }
 
   @Override
+  public ElementImpl getChild(String identifier) {
+    for (ParameterElement parameter : parameters) {
+      if (((ParameterElementImpl) parameter).getIdentifier().equals(identifier)) {
+        return (ParameterElementImpl) parameter;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public SourceRange getDefaultValueRange() {
     if (defaultValueRangeLength < 0) {
       return null;
