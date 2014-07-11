@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.debug.ui.internal.util;
 
+import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.LightweightModel;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -427,6 +429,27 @@ public class LaunchUtils {
       }
     }
     return null;
+  }
+
+  /**
+   * Checks whether resource can be launched in Dartium or as JavaScript in browser
+   * 
+   * @param file the resource to check
+   * @return
+   */
+  public static boolean isDartiumOrJsLaunchResource(IFile file) {
+
+    if (DartCore.isHtmlLikeFileName(file.getName())
+        && !DartCore.isInBuildDirectory(file.getParent())) {
+      return true;
+    }
+
+    LightweightModel model = LightweightModel.getModel();
+
+    if (model.getSourceKind(file) == SourceKind.LIBRARY && model.isClientLibrary(file)) {
+      return true;
+    }
+    return false;
   }
 
   /**

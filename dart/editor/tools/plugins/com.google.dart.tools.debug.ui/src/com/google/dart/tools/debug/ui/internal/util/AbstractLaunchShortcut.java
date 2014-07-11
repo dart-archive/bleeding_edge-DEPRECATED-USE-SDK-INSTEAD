@@ -147,7 +147,16 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
 
   @Override
   public final void launch(ISelection selection, String mode) {
-    launch(getLaunchableResource(selection), mode);
+    IResource resource = getLaunchableResource(selection);
+    if (resource != null) {
+      launch(resource, mode);
+      return;
+    }
+
+    MessageDialog.openWarning(
+        null,
+        "Error Launching " + launchTypeLabel,
+        "Unable to locate associated html file");
   }
 
   @Override

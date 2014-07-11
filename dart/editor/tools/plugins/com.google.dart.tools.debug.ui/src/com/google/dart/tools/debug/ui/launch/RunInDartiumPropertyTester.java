@@ -13,9 +13,7 @@
  */
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.engine.source.SourceKind;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.LightweightModel;
+import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.resources.IFile;
@@ -34,17 +32,7 @@ public class RunInDartiumPropertyTester extends PropertyTester {
       if (receiver instanceof IStructuredSelection) {
         Object o = ((IStructuredSelection) receiver).getFirstElement();
         if (o instanceof IFile) {
-          IFile file = (IFile) o;
-          if (DartCore.isHtmlLikeFileName(file.getName())
-              && !DartCore.isInBuildDirectory(file.getParent())) {
-            return true;
-          }
-
-          LightweightModel model = LightweightModel.getModel();
-
-          if (model.getSourceKind(file) == SourceKind.LIBRARY && model.isClientLibrary(file)) {
-            return true;
-          }
+          return LaunchUtils.isDartiumOrJsLaunchResource((IFile) o);
         }
       }
     }
