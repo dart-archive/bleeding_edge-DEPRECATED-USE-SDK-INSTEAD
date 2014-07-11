@@ -141,6 +141,66 @@ public class DartIgnoreManagerTest extends TestCase {
     verify(listener, times(0)).ignoresChanged(new DartIgnoreEvent(new String[] {}, new String[] {}));
   }
 
+  public void test_default_ignores() throws Exception {
+    final String[] paths = {"/some/build", // pub build directory
+        "/some/out.js.info.html" // dart2js info file
+    };
+    final String buildFile = "/some/build/file/path";
+
+    // Assert specific files/directories are not analyzed by default
+    assertTrue(manager.isAnalyzed(NORMALIZED_PATH));
+    for (String eachPath : paths) {
+      assertFalse("Expect " + eachPath + " to be ignored by default", manager.isAnalyzed(eachPath));
+    }
+    assertFalse("Expect " + buildFile + " to be ignored by default", manager.isAnalyzed(buildFile));
+    assertTrue(manager.isAnalyzed("/some/build0"));
+    assertTrue(manager.isAnalyzed("/some/build0/foo"));
+    assertTrue(manager.isAnalyzed("/some/abuild"));
+    assertTrue(manager.isAnalyzed("/some/abuild/foo"));
+
+    //
+    // Ideally files that are ignored by default can be analyzed if the user so chooses.
+    // This commented out code tests that ideal situation.
+    //
+
+//    // Assert that they can be analyzed if marked as such
+//    for (String eachPath : paths) {
+//      assertTrue("Expect removed: " + eachPath, manager.removeFromIgnores(eachPath));
+//    }
+//    assertTrue(manager.isAnalyzed(NORMALIZED_PATH));
+//    for (String eachPath : paths) {
+//      assertTrue("Expect " + eachPath + " to be analyzed", manager.isAnalyzed(eachPath));
+//    }
+//    assertTrue("Expect " + buildFile + " to be analyzed", manager.isAnalyzed(buildFile));
+//
+//    // Assert that they can be ignored if marked as such
+//    for (String eachPath : paths) {
+//      assertTrue("Expect added: " + eachPath, manager.addToIgnores(eachPath));
+//    }
+//    assertTrue(manager.isAnalyzed(NORMALIZED_PATH));
+//    for (String eachPath : paths) {
+//      assertFalse("Expect " + eachPath + " to be ignored", manager.isAnalyzed(eachPath));
+//    }
+//    assertFalse("Expect " + buildFile + " to be ignored", manager.isAnalyzed(buildFile));
+  }
+
+  public void test_default_ignores_load_legacy() throws Exception {
+    // build directory that was (legacy) explicitly excluded but is now implicitly excluded
+    final String buildDir = "/some/build";
+    initialContent = new String[] {buildDir};
+    assertFalse(manager.isAnalyzed(buildDir));
+
+    //
+    // Ideally files that are ignored by default can be analyzed if the user so chooses.
+    // This commented out code tests that ideal situation.
+    //
+
+//    assertTrue(manager.removeFromIgnores(buildDir));
+//    assertTrue(manager.isAnalyzed(buildDir));
+//    assertTrue(manager.addToIgnores(buildDir));
+//    assertFalse(manager.isAnalyzed(buildDir));
+  }
+
   public void test_isAnalyzed_File() throws Exception {
     File file = mock(File.class);
     when(file.exists()).thenReturn(true);

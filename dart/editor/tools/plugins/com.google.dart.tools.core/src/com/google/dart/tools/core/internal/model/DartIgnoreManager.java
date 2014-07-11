@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.regex.Pattern;
 
 /**
  * The unique instance of the class <code>DartIgnoreManager</code> is used to manage the ignored
@@ -40,8 +41,51 @@ public class DartIgnoreManager {
 
   private static final DartIgnoreManager INSTANCE = new DartIgnoreManager();
 
+  public static final String[] DEFAULT_IGNORE_REGEX = new String[] {
+      // Ignore pub build output
+      ".*/build(/.*)?",
+      // Ignore dart2js generated files
+      ".*\\.js\\.info\\.html" //
+  };
+
+  private static final Pattern[] DEFAULT_IGNORE_PATTERNS = new Pattern[DEFAULT_IGNORE_REGEX.length];
+  static {
+    for (int i = 0; i < DEFAULT_IGNORE_PATTERNS.length; i++) {
+      DEFAULT_IGNORE_PATTERNS[i] = Pattern.compile(DEFAULT_IGNORE_REGEX[i]);
+    }
+  }
+
   public static final DartIgnoreManager getInstance() {
     return INSTANCE;
+  }
+
+  /**
+   * Return {@code true} if the absolute path for the given resource is included in the default
+   * collection of paths to be ignored.
+   * 
+   * @param resource the resource
+   * @return {@code true} if the resource is ignored by default
+   */
+  public static boolean isIgnoredByDefault(IResource resource) {
+    return isIgnoredByDefault(getPathPattern(resource));
+  }
+
+  /**
+   * Return {@code true} if a path is included in the default collection of paths to be ignored.
+   * 
+   * @param absolutePath the platform independent absolute path being tested. On Windows, any '\'
+   *          must be converted to '/' before calling this method.
+   * @return <code>true</code> if the given path should be ignored
+   */
+  public static boolean isIgnoredByDefault(String absolutePath) {
+    if (absolutePath != null) {
+      for (Pattern pattern : DEFAULT_IGNORE_PATTERNS) {
+        if (pattern.matcher(absolutePath).matches()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private static String getPathPattern(File file) {
@@ -303,6 +347,7 @@ public class DartIgnoreManager {
           }
         }
       }
+      return isIgnoredByDefault(absolutePath);
     }
     return false;
   }

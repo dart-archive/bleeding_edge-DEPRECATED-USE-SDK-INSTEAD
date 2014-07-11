@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -72,7 +73,7 @@ public class IgnoreResourceAction extends SelectionListenerAction {
 
     resources = getSelectedResources();
 
-    if (resources.isEmpty() || !sameAnalysisState(resources)) {
+    if (resources.isEmpty() || !sameAnalysisState(resources) || anyIgnoredByDefault(resources)) {
       return false;
     }
 
@@ -87,6 +88,15 @@ public class IgnoreResourceAction extends SelectionListenerAction {
     } else {
       setText(FilesViewMessages.IgnoreResourcesAction_do_analyze_label);
     }
+  }
+
+  private boolean anyIgnoredByDefault(List<IResource> resources) {
+    for (IResource res : resources) {
+      if (DartIgnoreManager.isIgnoredByDefault(res)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
