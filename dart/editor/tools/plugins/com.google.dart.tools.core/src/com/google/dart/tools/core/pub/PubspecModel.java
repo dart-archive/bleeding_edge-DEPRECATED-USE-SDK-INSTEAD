@@ -361,17 +361,48 @@ public class PubspecModel {
   }
 
   @SuppressWarnings("unchecked")
+  private ArrayList<Object> safelyAsArray(Map<String, Object> map, String key) {
+    Object value = map.get(key);
+    if (value == null) {
+      return new ArrayList<Object>();
+    }
+    if (value instanceof ArrayList) {
+      return (ArrayList<Object>) value;
+    }
+    return new ArrayList<Object>();
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map<String, Object> safelyAsMap(Map<String, Object> map, String key) {
+    Object value = map.get(key);
+    if (value == null) {
+      return new HashMap<String, Object>();
+    }
+    if (value instanceof Map) {
+      return (Map<String, Object>) value;
+    }
+    return new HashMap<String, Object>();
+  }
+
+  private String safelyAsString(Map<String, Object> map, String key) {
+    Object value = map.get(key);
+    if (value == null) {
+      return EMPTY_STRING;
+    }
+    if (value instanceof String) {
+      return (String) value;
+    }
+
+    return EMPTY_STRING;
+  }
+
+  @SuppressWarnings("unchecked")
   private void setValuesFromMap(Map<String, Object> pubspecMap) {
     if (pubspecMap != null) {
       clearModelFields();
-      name = (String) pubspecMap.get(PubspecConstants.NAME);
-      if (name == null) {
-        name = "null";
-      }
-      version = (String) ((pubspecMap.get(PubspecConstants.VERSION) != null)
-          ? pubspecMap.get(PubspecConstants.VERSION) : EMPTY_STRING);
-      author = (String) ((pubspecMap.get(PubspecConstants.AUTHOR) != null)
-          ? pubspecMap.get(PubspecConstants.AUTHOR) : EMPTY_STRING);
+      name = safelyAsString(pubspecMap, PubspecConstants.NAME);
+      version = safelyAsString(pubspecMap, PubspecConstants.VERSION);
+      author = safelyAsString(pubspecMap, PubspecConstants.AUTHOR);
       if (pubspecMap.get(PubspecConstants.AUTHORS) != null) {
         Object o = pubspecMap.get(PubspecConstants.AUTHORS);
         if (o instanceof List) {
@@ -385,32 +416,22 @@ public class PubspecModel {
         }
       }
       if (pubspecMap.get(PubspecConstants.ENVIRONMENT) != null) {
-        Map<String, Object> env = (Map<String, Object>) pubspecMap.get(PubspecConstants.ENVIRONMENT);
-        sdkVersion = (String) env.get(PubspecConstants.SDK_VERSION);
+        Map<String, Object> env = safelyAsMap(pubspecMap, PubspecConstants.ENVIRONMENT);
+        sdkVersion = safelyAsString(env, PubspecConstants.SDK_VERSION);
       } else {
         sdkVersion = EMPTY_STRING;
       }
 
-      description = (String) ((pubspecMap.get(PubspecConstants.DESCRIPTION) != null)
-          ? pubspecMap.get(PubspecConstants.DESCRIPTION) : EMPTY_STRING);
-      homepage = (String) ((pubspecMap.get(PubspecConstants.HOMEPAGE) != null)
-          ? pubspecMap.get(PubspecConstants.HOMEPAGE) : EMPTY_STRING);
-      documentation = (String) ((pubspecMap.get(PubspecConstants.DOCUMENTATION) != null)
-          ? pubspecMap.get(PubspecConstants.DOCUMENTATION) : EMPTY_STRING);
-      Object object = ((pubspecMap.get(PubspecConstants.TRANSFORMERS) != null)
-          ? pubspecMap.get(PubspecConstants.TRANSFORMERS) : new ArrayList<Object>());
-      if (object instanceof ArrayList<?>) {
-        transformers = (ArrayList<Object>) object;
-      }
+      description = safelyAsString(pubspecMap, PubspecConstants.DESCRIPTION);
+      homepage = safelyAsString(pubspecMap, PubspecConstants.HOMEPAGE);
+      documentation = safelyAsString(pubspecMap, PubspecConstants.DOCUMENTATION);
+      transformers = safelyAsArray(pubspecMap, PubspecConstants.TRANSFORMERS);
+
       add(
-          processDependencies(
-              (Map<String, Object>) pubspecMap.get(PubspecConstants.DEPENDENCIES),
-              false),
+          processDependencies(safelyAsMap(pubspecMap, PubspecConstants.DEPENDENCIES), false),
           IModelListener.REFRESH);
       add(
-          processDependencies(
-              (Map<String, Object>) pubspecMap.get(PubspecConstants.DEV_DEPENDENCIES),
-              true),
+          processDependencies(safelyAsMap(pubspecMap, PubspecConstants.DEV_DEPENDENCIES), true),
           IModelListener.REFRESH);
       errorOnParse = false;
     } else {
@@ -533,4 +554,5 @@ public class PubspecModel {
       }
     }
   }
+
 }
