@@ -21,6 +21,7 @@ import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
+import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager_NEW;
@@ -88,6 +89,11 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   @Override
   public void computedOutline(String file, Outline outline) {
     dataImpl.internalComputedOutline(file, outline);
+  }
+
+  @Override
+  public void computedOverrides(String file, OverrideMember[] overrides) {
+    // TODO(scheglov/ jwren) Analysis Server
   }
 
   @Override

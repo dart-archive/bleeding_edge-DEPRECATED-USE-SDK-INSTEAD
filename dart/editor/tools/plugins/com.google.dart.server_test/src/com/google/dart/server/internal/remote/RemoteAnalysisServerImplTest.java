@@ -35,6 +35,7 @@ import com.google.dart.server.Location;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
+import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
@@ -598,6 +599,56 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertFalse(childElement.isTopLevelOrStatic());
     assertNull(childElement.getParameters());
     assertNull(childElement.getReturnType());
+  }
+
+  public void test_analysis_notification_overrides() throws Exception {
+    putResponse(//
+        "{",
+        "  'event': 'analysis.overrides',",
+        "  'params': {",
+        "    'file': '/test.dart',",
+        "    'overrides' : [",
+        "      {",
+        "        'offset': 1,",
+        "        'length': 2,",
+        "        'superclassElement': {",
+        "          'kind': 'CLASS',",
+        "          'name': 'name1',",
+        "          'location': {",
+        "            'file': '/test2.dart',",
+        "            'offset': 3,",
+        "            'length': 4,",
+        "            'startLine': 5,",
+        "            'startColumn': 6",
+        "          },",
+        "          'flags': 0",
+        "        }",
+        "      },",
+        "      {",
+        "        'offset': 7,",
+        "        'length': 8",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+    OverrideMember[] overrides = listener.getOverrides("/test.dart");
+
+    // assertions on overrides
+    assertThat(overrides).hasSize(2);
+    {
+      assertEquals(1, overrides[0].getOffset());
+      assertEquals(2, overrides[0].getLength());
+      Element superclassElement = overrides[0].getSuperclassElement();
+      assertNotNull(superclassElement);
+      assertEquals("name1", superclassElement.getName());
+    }
+    {
+      assertEquals(7, overrides[1].getOffset());
+      assertEquals(8, overrides[1].getLength());
+      assertNull(overrides[1].getSuperclassElement());
+    }
   }
 
   public void test_analysis_reanalyze() throws Exception {

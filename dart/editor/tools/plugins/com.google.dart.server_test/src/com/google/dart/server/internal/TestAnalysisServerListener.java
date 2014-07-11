@@ -26,6 +26,7 @@ import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
+import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.server.error.ErrorCode;
@@ -51,6 +52,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   private final Map<String, NavigationRegion[]> navigationMap = Maps.newHashMap();
   private final Map<String, Occurrences[]> occurrencesMap = Maps.newHashMap();
   private final Map<String, Outline> outlineMap = Maps.newHashMap();
+  private final Map<String, OverrideMember[]> overridesMap = Maps.newHashMap();
   private boolean serverConnected = false;
   private ServerStatus serverStatus = null;
 
@@ -117,6 +119,13 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
     occurrencesMap.clear();
   }
 
+  /**
+   * Removes all of reported {@link OverrideMember}.
+   */
+  public synchronized void clearOverrides() {
+    overridesMap.clear();
+  }
+
   @Override
   public synchronized void computedCompletion(String completionId,
       CompletionSuggestion[] completions, boolean last) {
@@ -155,6 +164,11 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   @Override
   public synchronized void computedOutline(String file, Outline outline) {
     outlineMap.put(file, outline);
+  }
+
+  @Override
+  public void computedOverrides(String file, OverrideMember[] overrides) {
+    overridesMap.put(file, overrides);
   }
 
   @Override
@@ -226,6 +240,14 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    */
   public synchronized Outline getOutline(String file) {
     return outlineMap.get(file);
+  }
+
+  /**
+   * Returns {@link OverrideMember}s for the given file, maybe {@code null} if have not been ever
+   * notified.
+   */
+  public synchronized OverrideMember[] getOverrides(String file) {
+    return overridesMap.get(file);
   }
 
   /**

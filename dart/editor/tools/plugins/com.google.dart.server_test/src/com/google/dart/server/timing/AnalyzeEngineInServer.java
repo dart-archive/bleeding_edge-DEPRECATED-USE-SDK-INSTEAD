@@ -23,6 +23,7 @@ import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
+import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
@@ -69,6 +70,10 @@ public class AnalyzeEngineInServer extends TimingTest {
 
     @Override
     public void computedOutline(String file, Outline outline) {
+    }
+
+    @Override
+    public void computedOverrides(String file, OverrideMember[] overrides) {
     }
 
     @Override

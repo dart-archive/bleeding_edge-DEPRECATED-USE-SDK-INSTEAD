@@ -43,6 +43,7 @@ import com.google.dart.server.internal.remote.processor.NotificationAnalysisHigh
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisNavigationProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisOccurrencesProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisOutlineProcessor;
+import com.google.dart.server.internal.remote.processor.NotificationAnalysisOverridesProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationCompletionResultsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationSearchResultsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
@@ -166,6 +167,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   private static final String ANALYSIS_NOTIFICATION_NAVIGATION = "analysis.navigation";
   private static final String ANALYSIS_NOTIFICATION_OCCURRENCES = "analysis.occurrences";
   private static final String ANALYSIS_NOTIFICATION_OUTLINE = "analysis.outline";
+  private static final String ANALYSIS_NOTIFICATION_OVERRIDES = "analysis.overrides";
 
   // Code Completion domain
   private static final String COMPLETION_NOTIFICATION_RESULTS = "completion.results";
@@ -479,6 +481,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     } else if (event.equals(ANALYSIS_NOTIFICATION_OUTLINE)) {
       // analysis.outline
       new NotificationAnalysisOutlineProcessor(listener).process(response);
+    } else if (event.equals(ANALYSIS_NOTIFICATION_OVERRIDES)) {
+      // analysis.overrides
+      new NotificationAnalysisOverridesProcessor(listener).process(response);
     } else if (event.equals(COMPLETION_NOTIFICATION_RESULTS)) {
       // completion.results
       new NotificationCompletionResultsProcessor(listener).process(response);

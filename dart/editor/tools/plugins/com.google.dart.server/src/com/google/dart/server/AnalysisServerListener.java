@@ -80,6 +80,15 @@ public interface AnalysisServerListener {
   public void computedOutline(String file, Outline outline);
 
   /**
+   * A new collection of overrides that have been computed for a given file. Each override array
+   * represents a list of overrides for some file.
+   * 
+   * @param file the file with which the outline is associated
+   * @param overrides the overrides associated with the file
+   */
+  public void computedOverrides(String file, OverrideMember[] overrides);
+
+  /**
    * A new collection of search results have been computed for the given completion id.
    * 
    * @param searchId the id associated with the search
