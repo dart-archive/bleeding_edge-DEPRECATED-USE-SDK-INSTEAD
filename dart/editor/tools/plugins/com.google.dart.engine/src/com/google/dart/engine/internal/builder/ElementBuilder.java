@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.builder;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CatchClause;
@@ -49,6 +50,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.ast.visitor.UnifyingAstVisitor;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -595,81 +597,114 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
 
   @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
-    ElementHolder holder = new ElementHolder();
-    boolean wasInFunction = inFunction;
-    inFunction = true;
     try {
-      visitChildren(holder, node);
-    } finally {
-      inFunction = wasInFunction;
-    }
-
-    boolean isStatic = node.isStatic();
-    Token property = node.getPropertyKeyword();
-    if (property == null) {
-      SimpleIdentifier methodName = node.getName();
-      String nameOfMethod = methodName.getName();
-      if (nameOfMethod.equals(TokenType.MINUS.getLexeme())
-          && node.getParameters().getParameters().size() == 0) {
-        nameOfMethod = "unary-";
+      ElementHolder holder = new ElementHolder();
+      boolean wasInFunction = inFunction;
+      inFunction = true;
+      try {
+        visitChildren(holder, node);
+      } finally {
+        inFunction = wasInFunction;
       }
-      MethodElementImpl element = new MethodElementImpl(nameOfMethod, methodName.getOffset());
-      element.setAbstract(node.isAbstract());
-      element.setFunctions(holder.getFunctions());
-      element.setLabels(holder.getLabels());
-      element.setLocalVariables(holder.getLocalVariables());
-      element.setParameters(holder.getParameters());
-      element.setStatic(isStatic);
 
-      currentHolder.addMethod(element);
-      methodName.setStaticElement(element);
-    } else {
-      SimpleIdentifier propertyNameNode = node.getName();
-      String propertyName = propertyNameNode.getName();
-      FieldElementImpl field = (FieldElementImpl) currentHolder.getField(propertyName);
-      if (field == null) {
-        field = new FieldElementImpl(node.getName().getName(), -1);
-        field.setFinal(true);
-        field.setStatic(isStatic);
-        field.setSynthetic(true);
+      boolean isStatic = node.isStatic();
+      Token property = node.getPropertyKeyword();
+      if (property == null) {
+        SimpleIdentifier methodName = node.getName();
+        String nameOfMethod = methodName.getName();
+        if (nameOfMethod.equals(TokenType.MINUS.getLexeme())
+            && node.getParameters().getParameters().size() == 0) {
+          nameOfMethod = "unary-";
+        }
+        MethodElementImpl element = new MethodElementImpl(nameOfMethod, methodName.getOffset());
+        element.setAbstract(node.isAbstract());
+        element.setFunctions(holder.getFunctions());
+        element.setLabels(holder.getLabels());
+        element.setLocalVariables(holder.getLocalVariables());
+        element.setParameters(holder.getParameters());
+        element.setStatic(isStatic);
 
-        currentHolder.addField(field);
-      }
-      if (matches(property, Keyword.GET)) {
-        PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(propertyNameNode);
-        getter.setFunctions(holder.getFunctions());
-        getter.setLabels(holder.getLabels());
-        getter.setLocalVariables(holder.getLocalVariables());
-
-        getter.setVariable(field);
-        getter.setAbstract(node.getBody() instanceof EmptyFunctionBody
-            && node.getExternalKeyword() == null);
-        getter.setGetter(true);
-        getter.setStatic(isStatic);
-        field.setGetter(getter);
-
-        currentHolder.addAccessor(getter);
-        propertyNameNode.setStaticElement(getter);
+        currentHolder.addMethod(element);
+        methodName.setStaticElement(element);
       } else {
-        PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(propertyNameNode);
-        setter.setFunctions(holder.getFunctions());
-        setter.setLabels(holder.getLabels());
-        setter.setLocalVariables(holder.getLocalVariables());
-        setter.setParameters(holder.getParameters());
+        SimpleIdentifier propertyNameNode = node.getName();
+        String propertyName = propertyNameNode.getName();
+        FieldElementImpl field = (FieldElementImpl) currentHolder.getField(propertyName);
+        if (field == null) {
+          field = new FieldElementImpl(node.getName().getName(), -1);
+          field.setFinal(true);
+          field.setStatic(isStatic);
+          field.setSynthetic(true);
 
-        setter.setVariable(field);
-        setter.setAbstract(node.getBody() instanceof EmptyFunctionBody
-            && !matches(node.getExternalKeyword(), Keyword.EXTERNAL));
-        setter.setSetter(true);
-        setter.setStatic(isStatic);
-        field.setSetter(setter);
-        field.setFinal(false);
+          currentHolder.addField(field);
+        }
+        if (matches(property, Keyword.GET)) {
+          PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(propertyNameNode);
+          getter.setFunctions(holder.getFunctions());
+          getter.setLabels(holder.getLabels());
+          getter.setLocalVariables(holder.getLocalVariables());
 
-        currentHolder.addAccessor(setter);
-        propertyNameNode.setStaticElement(setter);
+          getter.setVariable(field);
+          getter.setAbstract(node.getBody() instanceof EmptyFunctionBody
+              && node.getExternalKeyword() == null);
+          getter.setGetter(true);
+          getter.setStatic(isStatic);
+          field.setGetter(getter);
+
+          currentHolder.addAccessor(getter);
+          propertyNameNode.setStaticElement(getter);
+        } else {
+          PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(propertyNameNode);
+          setter.setFunctions(holder.getFunctions());
+          setter.setLabels(holder.getLabels());
+          setter.setLocalVariables(holder.getLocalVariables());
+          setter.setParameters(holder.getParameters());
+
+          setter.setVariable(field);
+          setter.setAbstract(node.getBody() instanceof EmptyFunctionBody
+              && !matches(node.getExternalKeyword(), Keyword.EXTERNAL));
+          setter.setSetter(true);
+          setter.setStatic(isStatic);
+          field.setSetter(setter);
+          field.setFinal(false);
+
+          currentHolder.addAccessor(setter);
+          propertyNameNode.setStaticElement(setter);
+        }
+      }
+      holder.validate();
+    } catch (Exception ex) {
+      if (node.getName().getStaticElement() == null) {
+        ClassDeclaration classNode = node.getAncestor(ClassDeclaration.class);
+        StringBuilder builder = new StringBuilder();
+        builder.append("The element for the method ");
+        builder.append(node.getName());
+        builder.append(" in ");
+        builder.append(classNode.getName());
+        builder.append(" was not set while trying to build the element model.");
+        AnalysisEngine.getInstance().getLogger().logError(
+            builder.toString(),
+            new AnalysisException(builder.toString(), ex));
+      } else {
+        String message = "Exception caught in ElementBuilder.visitMethodDeclaration()";
+        AnalysisEngine.getInstance().getLogger().logError(
+            message,
+            new AnalysisException(message, ex));
+      }
+    } finally {
+      if (node.getName().getStaticElement() == null) {
+        ClassDeclaration classNode = node.getAncestor(ClassDeclaration.class);
+        StringBuilder builder = new StringBuilder();
+        builder.append("The element for the method ");
+        builder.append(node.getName());
+        builder.append(" in ");
+        builder.append(classNode.getName());
+        builder.append(" was not set while trying to resolve types.");
+        AnalysisEngine.getInstance().getLogger().logError(
+            builder.toString(),
+            new AnalysisException(builder.toString()));
       }
     }
-    holder.validate();
     return null;
   }
 

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AstNode;
@@ -48,6 +49,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.UnifyingAstVisitor;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -438,6 +440,23 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
+    if (element == null) {
+      ClassDeclaration classNode = node.getAncestor(ClassDeclaration.class);
+      ClassElement classElement = classNode.getElement();
+      StringBuilder builder = new StringBuilder();
+      builder.append("The element for the method ");
+      builder.append(node.getName());
+      builder.append(" in ");
+      builder.append(classNode.getName());
+      builder.append(" in ");
+      if (classElement != null) {
+        builder.append(classElement.getSource().getFullName());
+      } else {
+        builder.append("<element from class also not resolved>");
+      }
+      builder.append(" was not set while trying to resolve types.");
+      AnalysisEngine.getInstance().getLogger().logError(builder.toString(), new AnalysisException());
+    }
     element.setReturnType(computeReturnType(node.getReturnType()));
     FunctionTypeImpl type = new FunctionTypeImpl(element);
     ClassElement definingClass = element.getAncestor(ClassElement.class);
