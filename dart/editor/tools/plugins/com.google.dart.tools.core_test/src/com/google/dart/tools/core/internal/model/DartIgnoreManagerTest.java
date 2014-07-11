@@ -148,7 +148,9 @@ public class DartIgnoreManagerTest extends TestCase {
     final String buildFile = "/some/build/file/path";
 
     // Assert specific files/directories are not analyzed by default
-    assertTrue(manager.isAnalyzed(NORMALIZED_PATH));
+    assertTrue(
+        "Expect " + NORMALIZED_PATH + " to be analyzed by default",
+        manager.isAnalyzed(NORMALIZED_PATH));
     for (String eachPath : paths) {
       assertFalse("Expect " + eachPath + " to be ignored by default", manager.isAnalyzed(eachPath));
     }
