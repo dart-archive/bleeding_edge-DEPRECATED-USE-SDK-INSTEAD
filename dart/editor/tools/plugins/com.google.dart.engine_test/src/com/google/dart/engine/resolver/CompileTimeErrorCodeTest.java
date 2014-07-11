@@ -4147,6 +4147,26 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_symbol_constructor_badArgs() throws Exception {
+    Source source = addSource(createSource(//
+        "var s1 = const Symbol('3');", // illegal symbol
+        "var s2 = const Symbol(3);", // wrong type
+        "var s3 = const Symbol();", // too few args
+        "var s4 = const Symbol('x', 'y');", // too any args
+        "var s5 = const Symbol('x', foo: 'x');" // unexpected named arg
+    ));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
+        CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS,
+        CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER);
+    verify(source);
+  }
+
   public void test_typeAliasCannotReferenceItself_11987() throws Exception {
     Source source = addSource(createSource(//
         "typedef void F(List<G> l);",

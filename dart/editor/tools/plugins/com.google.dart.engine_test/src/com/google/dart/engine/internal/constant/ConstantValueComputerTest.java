@@ -725,6 +725,30 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     assertFalse(c_int_value.equals(c_num_value));
   }
 
+  public void test_isValidSymbol() {
+    assertTrue(ConstantValueComputer.isValidPublicSymbol(""));
+    assertTrue(ConstantValueComputer.isValidPublicSymbol("foo"));
+    assertTrue(ConstantValueComputer.isValidPublicSymbol("foo.bar"));
+    assertTrue(ConstantValueComputer.isValidPublicSymbol("foo$"));
+    assertTrue(ConstantValueComputer.isValidPublicSymbol("foo$bar"));
+    assertTrue(ConstantValueComputer.isValidPublicSymbol("iff"));
+    assertTrue(ConstantValueComputer.isValidPublicSymbol("gif"));
+    assertTrue(ConstantValueComputer.isValidPublicSymbol("if$"));
+    assertTrue(ConstantValueComputer.isValidPublicSymbol("$if"));
+    assertTrue(ConstantValueComputer.isValidPublicSymbol("foo="));
+    assertTrue(ConstantValueComputer.isValidPublicSymbol("foo.bar="));
+    assertTrue(ConstantValueComputer.isValidPublicSymbol("foo.+"));
+    assertFalse(ConstantValueComputer.isValidPublicSymbol("_foo"));
+    assertFalse(ConstantValueComputer.isValidPublicSymbol("_foo.bar"));
+    assertFalse(ConstantValueComputer.isValidPublicSymbol("foo._bar"));
+    assertFalse(ConstantValueComputer.isValidPublicSymbol("if"));
+    assertFalse(ConstantValueComputer.isValidPublicSymbol("if.foo"));
+    assertFalse(ConstantValueComputer.isValidPublicSymbol("foo.if"));
+    assertFalse(ConstantValueComputer.isValidPublicSymbol("foo=.bar"));
+    assertFalse(ConstantValueComputer.isValidPublicSymbol("foo."));
+    assertFalse(ConstantValueComputer.isValidPublicSymbol("+.foo"));
+  }
+
   private HashMap<String, DartObjectImpl> assertFieldType(HashMap<String, DartObjectImpl> fields,
       String fieldName, String expectedType) {
     DartObjectImpl field = fields.get(fieldName);

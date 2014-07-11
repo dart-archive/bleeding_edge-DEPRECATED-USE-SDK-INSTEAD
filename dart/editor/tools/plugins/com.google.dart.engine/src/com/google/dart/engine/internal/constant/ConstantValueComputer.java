@@ -59,6 +59,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 /**
  * Instances of the class {@code ConstantValueComputer} compute the values of constant variables and
@@ -107,6 +108,39 @@ public class ConstantValueComputer {
    * Parameter to "fromEnvironment" methods that denotes the default value.
    */
   static private final String DEFAULT_VALUE_PARAM = "defaultValue";
+
+  /**
+   * Source of RegExp matching declarable operator names. From sdk/lib/internal/symbol.dart.
+   */
+  static private final String OPERATOR_RE = "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
+
+  /**
+   * Source of RegExp matching any public identifier. From sdk/lib/internal/symbol.dart.
+   */
+  static private final String PUBLIC_IDENTIFIER_RE = "(?!" + ConstantValueComputer.RESERVED_WORD_RE
+      + "\\b(?!\\$))[a-zA-Z$][\\w$]*";
+
+  /**
+   * Source of RegExp matching Dart reserved words. From sdk/lib/internal/symbol.dart.
+   */
+  static private final String RESERVED_WORD_RE = "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|"
+      + "e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|"
+      + "ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|"
+      + "v(?:ar|oid)|w(?:hile|ith))";
+
+  /**
+   * RegExp that validates a non-empty non-private symbol. From sdk/lib/internal/symbol.dart.
+   */
+  static private final Pattern PUBLIC_SYMBOL_PATTERN = Pattern.compile("^(?:"
+      + ConstantValueComputer.OPERATOR_RE + "$|" + PUBLIC_IDENTIFIER_RE + "(?:=?$|[.](?!$)))+?$");
+
+  /**
+   * Determine whether the given string is a valid name for a public symbol (i.e. whether it is
+   * allowed for a call to the Symbol constructor).
+   */
+  static public boolean isValidPublicSymbol(String name) {
+    return name.isEmpty() || PUBLIC_SYMBOL_PATTERN.matcher(name).matches();
+  }
 
   /**
    * The type provider used to access the known types.
@@ -332,6 +366,29 @@ public class ConstantValueComputer {
   }
 
   /**
+   * Check that the arguments to a call to Symbol() are correct.
+   * 
+   * @param arguments the AST nodes of the arguments.
+   * @param argumentValues the values of the unnamed arguments.
+   * @param namedArgumentValues the values of the named arguments.
+   * @return true if the arguments are correct, false if there is an error.
+   */
+  private boolean checkSymbolArguments(NodeList<Expression> arguments,
+      DartObjectImpl[] argumentValues, HashMap<String, DartObjectImpl> namedArgumentValues) {
+    if (arguments.size() != 1) {
+      return false;
+    }
+    if (arguments.get(0) instanceof NamedExpression) {
+      return false;
+    }
+    if (argumentValues[0].getType() != typeProvider.getStringType()) {
+      return false;
+    }
+    String name = argumentValues[0].getStringValue();
+    return isValidPublicSymbol(name);
+  }
+
+  /**
    * Compute a value for the given constant.
    * 
    * @param constNode the constant for which a value is to be computed
@@ -470,10 +527,11 @@ public class ConstantValueComputer {
         }
       } else if (constructor.getName().equals("") && definingClass == typeProvider.getSymbolType()
           && argumentCount == 1) {
-        String argumentValue = argumentValues[0].getStringValue();
-        if (argumentValue != null) {
-          return constantVisitor.valid(definingClass, new SymbolState(argumentValue));
+        if (!checkSymbolArguments(arguments, argumentValues, namedArgumentValues)) {
+          return new ErrorResult(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
         }
+        String argumentValue = argumentValues[0].getStringValue();
+        return constantVisitor.valid(definingClass, new SymbolState(argumentValue));
       }
 
       // Either it's an external const factory constructor that we can't emulate, or an error
