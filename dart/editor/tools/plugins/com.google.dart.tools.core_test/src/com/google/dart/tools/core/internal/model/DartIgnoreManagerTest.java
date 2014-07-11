@@ -72,7 +72,7 @@ public class DartIgnoreManagerTest extends TestCase {
     }
   }
 
-  private static final File FILE = new File("does-not-exist");
+  private static final File FILE = new File("/my/project/src/does-not-exist");
   private static final String FILE_PATH = FILE.getAbsolutePath();
   private static final String NORMALIZED_PATH = FILE_PATH.replace(File.separatorChar, '/');
 
