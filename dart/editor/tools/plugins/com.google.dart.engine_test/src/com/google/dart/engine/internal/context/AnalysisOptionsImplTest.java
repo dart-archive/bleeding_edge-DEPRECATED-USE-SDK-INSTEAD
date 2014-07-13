@@ -36,7 +36,9 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
       assertEquals(options.getAnalyzePolymer(), copy.getAnalyzePolymer());
       assertEquals(options.getCacheSize(), copy.getCacheSize());
       assertEquals(options.getDart2jsHint(), copy.getDart2jsHint());
+      assertEquals(options.getEnableAsync(), copy.getEnableAsync());
       assertEquals(options.getEnableDeferredLoading(), copy.getEnableDeferredLoading());
+      assertEquals(options.getEnableEnum(), copy.getEnableEnum());
       assertEquals(options.getGenerateSdkErrors(), copy.getGenerateSdkErrors());
       assertEquals(options.getHint(), copy.getHint());
       assertEquals(options.getIncremental(), copy.getIncremental());
@@ -80,6 +82,14 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
     assertEquals(value, options.getDart2jsHint());
   }
 
+  public void test_getEnableAsync() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    assertEquals(AnalysisOptionsImpl.DEFAULT_ENABLE_ASYNC, options.getEnableAsync());
+    boolean value = !options.getEnableAsync();
+    options.setEnableAsync(value);
+    assertEquals(value, options.getEnableAsync());
+  }
+
   public void test_getEnableDeferredLoading() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     assertEquals(
@@ -88,6 +98,14 @@ public class AnalysisOptionsImplTest extends EngineTestCase {
     boolean value = !options.getEnableDeferredLoading();
     options.setEnableDeferredLoading(value);
     assertEquals(value, options.getEnableDeferredLoading());
+  }
+
+  public void test_getEnableEnum() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    assertEquals(AnalysisOptionsImpl.DEFAULT_ENABLE_ENUM, options.getEnableEnum());
+    boolean value = !options.getEnableEnum();
+    options.setEnableEnum(value);
+    assertEquals(value, options.getEnableEnum());
   }
 
   public void test_getGenerateSdkErrors() {

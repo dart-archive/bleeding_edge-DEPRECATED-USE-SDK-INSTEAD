@@ -403,6 +403,26 @@ public class NodeReplacer implements AstVisitor<Boolean> {
   }
 
   @Override
+  public Boolean visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    if (node.getName() == oldNode) {
+      node.setName((SimpleIdentifier) newNode);
+      return Boolean.TRUE;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @Override
+  public Boolean visitEnumDeclaration(EnumDeclaration node) {
+    if (node.getName() == oldNode) {
+      node.setName((SimpleIdentifier) newNode);
+      return Boolean.TRUE;
+    } else if (replaceInList(node.getConstants())) {
+      return Boolean.TRUE;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @Override
   public Boolean visitExportDirective(ExportDirective node) {
     return visitNamespaceDirective(node);
   }

@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DefaultFormalParameter;
+import com.google.dart.engine.ast.EnumDeclaration;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
@@ -60,6 +61,7 @@ import static com.google.dart.engine.ast.AstFactory.catchClause;
 import static com.google.dart.engine.ast.AstFactory.classDeclaration;
 import static com.google.dart.engine.ast.AstFactory.constructorDeclaration;
 import static com.google.dart.engine.ast.AstFactory.emptyFunctionBody;
+import static com.google.dart.engine.ast.AstFactory.enumDeclaration;
 import static com.google.dart.engine.ast.AstFactory.fieldDeclaration;
 import static com.google.dart.engine.ast.AstFactory.fieldFormalParameter;
 import static com.google.dart.engine.ast.AstFactory.formalParameterList;
@@ -339,6 +341,20 @@ public class ElementBuilderTest extends EngineTestCase {
     assertLength(0, constructor.getLocalVariables());
     assertLength(0, constructor.getParameters());
     assertSame(constructor, constructorDeclaration.getElement());
+  }
+
+  public void test_visitEnumDeclaration() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String enumName = "E";
+    EnumDeclaration enumDeclaration = enumDeclaration(enumName, "ONE");
+    enumDeclaration.accept(builder);
+    ClassElement[] enums = holder.getEnums();
+    assertLength(1, enums);
+
+    ClassElement enumElement = enums[0];
+    assertNotNull(enumElement);
+    assertEquals(enumName, enumElement.getName());
   }
 
   public void test_visitFieldDeclaration() {

@@ -241,12 +241,11 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
   }
 
   /**
-   * Checks if the given expression is the reference to the type, if it is then the
+   * Checks whether the given expression is a reference to a class. If it is then the
    * {@link ClassElement} is returned, otherwise {@code null} is returned.
    * 
    * @param expression the expression to evaluate
-   * @return the {@link ClassElement} if the given expression is the reference to the type, and
-   *         {@code null} otherwise
+   * @return the element representing the class
    */
   public static ClassElementImpl getTypeReference(Expression expression) {
     if (expression instanceof Identifier) {
@@ -2545,8 +2544,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
    */
   private Element resolveElement(ClassElementImpl classElement, SimpleIdentifier nameNode) {
     String name = nameNode.getName();
-    Element element = null;
-    element = classElement.getMethod(name);
+    Element element = classElement.getMethod(name);
     if (element == null && nameNode.inSetterContext()) {
       element = classElement.getSetter(name);
     }
@@ -2676,6 +2674,7 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
     //
     ClassElementImpl typeReference = getTypeReference(target);
     if (typeReference != null) {
+      // TODO(brianwilkerson) Why are we setting the propagated element here? It looks wrong.
       staticElement = propagatedElement = resolveElement(typeReference, propertyName);
     } else {
       staticElement = resolveProperty(target, staticType, propertyName);

@@ -36,6 +36,7 @@ import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.EmptyFunctionBody;
+import com.google.dart.engine.ast.EnumDeclaration;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.ExpressionStatement;
@@ -332,12 +333,16 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
-    // Resolve the class metadata in the library scope.
+    //
+    // Resolve the metadata in the library scope.
+    //
     if (node.getMetadata() != null) {
       node.getMetadata().accept(this);
     }
     enclosingClassDeclaration = node;
+    //
     // Continue the class resolution.
+    //
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.getElement();
@@ -528,6 +533,20 @@ public class ResolverVisitor extends ScopedVisitor {
   public Void visitEmptyFunctionBody(EmptyFunctionBody node) {
     safelyVisit(commentBeforeFunction);
     return super.visitEmptyFunctionBody(node);
+  }
+
+  @Override
+  public Void visitEnumDeclaration(EnumDeclaration node) {
+    //
+    // Resolve the metadata in the library scope.
+    //
+    if (node.getMetadata() != null) {
+      node.getMetadata().accept(this);
+    }
+    //
+    // There is nothing else to do because everything else was resolved by the element builder.
+    //
+    return null;
   }
 
   @Override

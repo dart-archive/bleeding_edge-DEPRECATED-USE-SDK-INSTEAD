@@ -50,6 +50,22 @@ public interface CompilationUnitElement extends Element, UriReferencedElement {
   public LibraryElement getEnclosingElement();
 
   /**
+   * Return the enum defined in this compilation unit that has the given name, or {@code null} if
+   * this compilation unit does not define an enum with the given name.
+   * 
+   * @param enumName the name of the enum to be returned
+   * @return the enum with the given name that is defined in this compilation unit
+   */
+  public ClassElement getEnum(String enumName);
+
+  /**
+   * Return an array containing all of the enums contained in this compilation unit.
+   * 
+   * @return an array containing all of the enums contained in this compilation unit
+   */
+  public ClassElement[] getEnums();
+
+  /**
    * Return an array containing all of the top-level functions contained in this compilation unit.
    * 
    * @return the top-level functions contained in this compilation unit

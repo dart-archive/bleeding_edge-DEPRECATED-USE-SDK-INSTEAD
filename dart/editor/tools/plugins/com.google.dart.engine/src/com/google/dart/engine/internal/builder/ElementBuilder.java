@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.EmptyFunctionBody;
+import com.google.dart.engine.ast.EnumDeclaration;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
@@ -376,6 +377,17 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
     normalParameter.accept(this);
     holder.validate();
     return null;
+  }
+
+  @Override
+  public Void visitEnumDeclaration(EnumDeclaration node) {
+    SimpleIdentifier enumName = node.getName();
+    ClassElementImpl enumElement = new ClassElementImpl(enumName);
+    InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
+    enumElement.setType(enumType);
+    currentHolder.addEnum(enumElement);
+    enumName.setStaticElement(enumElement);
+    return super.visitEnumDeclaration(node);
   }
 
   @Override

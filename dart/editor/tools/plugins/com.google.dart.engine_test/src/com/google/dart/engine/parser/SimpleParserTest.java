@@ -2253,6 +2253,45 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getSemicolon());
   }
 
+  public void test_parseEnumDeclaration_one() throws Exception {
+    EnumDeclaration declaration = parse(
+        "parseEnumDeclaration",
+        new Object[] {emptyCommentAndMetadata()},
+        "enum E {ONE}");
+    assertNull(declaration.getDocumentationComment());
+    assertNotNull(declaration.getKeyword());
+    assertNotNull(declaration.getLeftBracket());
+    assertNotNull(declaration.getName());
+    assertSizeOfList(1, declaration.getConstants());
+    assertNotNull(declaration.getRightBracket());
+  }
+
+  public void test_parseEnumDeclaration_trailingComma() throws Exception {
+    EnumDeclaration declaration = parse(
+        "parseEnumDeclaration",
+        new Object[] {emptyCommentAndMetadata()},
+        "enum E {ONE,}");
+    assertNull(declaration.getDocumentationComment());
+    assertNotNull(declaration.getKeyword());
+    assertNotNull(declaration.getLeftBracket());
+    assertNotNull(declaration.getName());
+    assertSizeOfList(1, declaration.getConstants());
+    assertNotNull(declaration.getRightBracket());
+  }
+
+  public void test_parseEnumDeclaration_two() throws Exception {
+    EnumDeclaration declaration = parse(
+        "parseEnumDeclaration",
+        new Object[] {emptyCommentAndMetadata()},
+        "enum E {ONE, TWO}");
+    assertNull(declaration.getDocumentationComment());
+    assertNotNull(declaration.getKeyword());
+    assertNotNull(declaration.getLeftBracket());
+    assertNotNull(declaration.getName());
+    assertSizeOfList(2, declaration.getConstants());
+    assertNotNull(declaration.getRightBracket());
+  }
+
   public void test_parseEqualityExpression_normal() throws Exception {
     BinaryExpression expression = parse("parseEqualityExpression", "x == y");
     assertNotNull(expression.getLeftOperand());

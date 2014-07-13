@@ -54,11 +54,25 @@ public interface AnalysisOptions {
   public boolean getDart2jsHint();
 
   /**
-   * Return {@code true} if analysis is to include the new "deferred loading" support.
+   * Return {@code true} if analysis is to include the new async support.
    * 
-   * @return {@code true} if analysis is to include the new "deferred loading" support
+   * @return {@code true} if analysis is to include the new async support
+   */
+  public boolean getEnableAsync();
+
+  /**
+   * Return {@code true} if analysis is to include the new deferred loading support.
+   * 
+   * @return {@code true} if analysis is to include the new deferred loading support
    */
   public boolean getEnableDeferredLoading();
+
+  /**
+   * Return {@code true} if analysis is to include the new enum support.
+   * 
+   * @return {@code true} if analysis is to include the new enum support
+   */
+  public boolean getEnableEnum();
 
   /**
    * Return {@code true} if errors, warnings and hints should be generated for sources in the SDK.

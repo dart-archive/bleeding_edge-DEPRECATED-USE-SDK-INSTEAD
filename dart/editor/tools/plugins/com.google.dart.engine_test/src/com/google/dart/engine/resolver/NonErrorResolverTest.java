@@ -26,6 +26,17 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class NonErrorResolverTest extends ResolverTestCase {
+  public void fail_undefinedEnumConstant() throws Exception {
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "E e() {",
+        "  return E.ONE;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_ambiguousExport() throws Exception {
     Source source = addSource(createSource(//
         "library L;",

@@ -22,6 +22,17 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class CompileTimeErrorCodeTest extends ResolverTestCase {
+  public void fail_accessPrivateEnumField() throws Exception {
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "String name(E e) {",
+        "  return e._name;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD);
+    verify(source);
+  }
+
   public void fail_compileTimeConstantRaisesException() throws Exception {
     Source source = addSource(createSource(//
     // TODO Find an expression that would raise an exception
@@ -42,6 +53,64 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_extendsEnum() throws Exception {
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "class A extends E {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.EXTENDS_ENUM);
+    verify(source);
+  }
+
+  public void fail_implementsEnum() throws Exception {
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "class A implements E {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_ENUM);
+    verify(source);
+  }
+
+  public void fail_instantiateEnum_const() throws Exception {
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "E e(String name) {",
+        "  const E(0, name);",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INSTANTIATE_ENUM);
+    verify(source);
+  }
+
+  public void fail_instantiateEnum_new() throws Exception {
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "E e(String name) {",
+        "  new E(0, name);",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INSTANTIATE_ENUM);
+    verify(source);
+  }
+
+  public void fail_missingEnumConstantInSwitch() throws Exception {
+    Source source = addSource(createSource(//
+        "enum E { ONE, TWO, THREE, FOUR }",
+        "bool odd(E e) {",
+        "  switch (e) {",
+        "    case ONE:",
+        "    case THREE: return true;",
+        "  }",
+        "  return false;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH);
+    verify(source);
+  }
+
   public void fail_mixinDeclaresConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -50,6 +119,15 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends Object mixin A {}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void fail_mixinOfEnum() throws Exception {
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "class A with E {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_ENUM);
     verify(source);
   }
 

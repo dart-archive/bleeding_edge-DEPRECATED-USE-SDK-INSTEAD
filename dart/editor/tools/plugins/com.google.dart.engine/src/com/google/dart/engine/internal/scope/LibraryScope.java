@@ -75,6 +75,9 @@ public class LibraryScope extends EnclosedScope {
     for (PropertyAccessorElement element : compilationUnit.getAccessors()) {
       define(element);
     }
+    for (ClassElement element : compilationUnit.getEnums()) {
+      define(element);
+    }
     for (FunctionElement element : compilationUnit.getFunctions()) {
       define(element);
     }

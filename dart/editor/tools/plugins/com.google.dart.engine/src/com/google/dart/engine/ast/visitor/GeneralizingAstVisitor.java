@@ -213,6 +213,16 @@ public class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   }
 
   @Override
+  public R visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    return visitDeclaration(node);
+  }
+
+  @Override
+  public R visitEnumDeclaration(EnumDeclaration node) {
+    return visitCompilationUnitMember(node);
+  }
+
+  @Override
   public R visitExportDirective(ExportDirective node) {
     return visitNamespaceDirective(node);
   }

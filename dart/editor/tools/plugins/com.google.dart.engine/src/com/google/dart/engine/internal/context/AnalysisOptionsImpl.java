@@ -27,14 +27,19 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   public static final int DEFAULT_CACHE_SIZE = 64;
 
   /**
+   * The default value for enabling async support.
+   */
+  public static boolean DEFAULT_ENABLE_ASYNC = false;
+
+  /**
    * The default value for enabling deferred loading.
    */
   public static boolean DEFAULT_ENABLE_DEFERRED_LOADING = true;
 
   /**
-   * The default value for enabling async support.
+   * The default value for enabling enum support.
    */
-  public static boolean DEFAULT_ENABLE_ASYNC = false;
+  public static boolean DEFAULT_ENABLE_ENUM = false;
 
   /**
    * A flag indicating whether analysis is to analyze Angular.
@@ -62,9 +67,19 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean dart2jsHint = true;
 
   /**
+   * A flag indicating whether analysis is to enable async support.
+   */
+  private boolean enableAsync = DEFAULT_ENABLE_ASYNC;
+
+  /**
    * A flag indicating whether analysis is to enable deferred loading.
    */
   private boolean enableDeferredLoading = DEFAULT_ENABLE_DEFERRED_LOADING;
+
+  /**
+   * A flag indicating whether analysis is to enable enum support.
+   */
+  private boolean enableEnum = DEFAULT_ENABLE_ENUM;
 
   /**
    * A flag indicating whether errors, warnings and hints should be generated for sources in the
@@ -106,7 +121,9 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
     analyzePolymer = options.getAnalyzePolymer();
     cacheSize = options.getCacheSize();
     dart2jsHint = options.getDart2jsHint();
+    enableAsync = options.getEnableAsync();
     enableDeferredLoading = options.getEnableDeferredLoading();
+    enableEnum = options.getEnableEnum();
     generateSdkErrors = options.getGenerateSdkErrors();
     hint = options.getHint();
     incremental = options.getIncremental();
@@ -139,8 +156,18 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   @Override
+  public boolean getEnableAsync() {
+    return enableAsync;
+  }
+
+  @Override
   public boolean getEnableDeferredLoading() {
     return enableDeferredLoading;
+  }
+
+  @Override
+  public boolean getEnableEnum() {
+    return enableEnum;
   }
 
   @Override
@@ -211,12 +238,30 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   /**
+   * Set whether async support should be enabled.
+   * 
+   * @param enableAsync {@code true} if async support should be enabled
+   */
+  public void setEnableAsync(boolean enableAsync) {
+    this.enableAsync = enableAsync;
+  }
+
+  /**
    * Set whether deferred loading should be enabled.
    * 
    * @param enableDeferredLoading {@code true} if deferred loading should be enabled
    */
   public void setEnableDeferredLoading(boolean enableDeferredLoading) {
     this.enableDeferredLoading = enableDeferredLoading;
+  }
+
+  /**
+   * Set whether enum support should be enabled.
+   * 
+   * @param enableEnum {@code true} if enum support should be enabled
+   */
+  public void setEnableEnum(boolean enableEnum) {
+    this.enableEnum = enableEnum;
   }
 
   /**

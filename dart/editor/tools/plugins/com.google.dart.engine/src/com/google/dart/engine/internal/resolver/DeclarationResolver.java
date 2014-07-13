@@ -22,6 +22,8 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.DefaultFormalParameter;
+import com.google.dart.engine.ast.EnumConstantDeclaration;
+import com.google.dart.engine.ast.EnumDeclaration;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldFormalParameter;
@@ -53,6 +55,7 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
@@ -212,6 +215,16 @@ public class DeclarationResolver extends RecursiveAstVisitor<Void> {
     } finally {
       enclosingParameter = outerParameter;
     }
+  }
+
+  @Override
+  public Void visitEnumDeclaration(EnumDeclaration node) {
+    ClassElement enclosingEnum = findIdentifier(enclosingUnit.getEnums(), node.getName());
+    FieldElement[] constants = enclosingEnum.getFields();
+    for (EnumConstantDeclaration constant : node.getConstants()) {
+      findIdentifier(constants, constant.getName());
+    }
+    return super.visitEnumDeclaration(node);
   }
 
   @Override

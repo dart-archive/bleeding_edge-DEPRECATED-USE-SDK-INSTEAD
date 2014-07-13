@@ -208,6 +208,18 @@ public class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @Override
+  public R visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitEnumDeclaration(EnumDeclaration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitExportDirective(ExportDirective node) {
     node.visitChildren(this);
     return null;

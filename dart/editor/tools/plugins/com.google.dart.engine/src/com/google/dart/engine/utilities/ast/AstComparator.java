@@ -317,6 +317,26 @@ public class AstComparator implements AstVisitor<Boolean> {
   }
 
   @Override
+  public Boolean visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    EnumConstantDeclaration other = (EnumConstantDeclaration) this.other;
+    return isEqualNodes(node.getDocumentationComment(), other.getDocumentationComment())
+        && isEqualNodeLists(node.getMetadata(), other.getMetadata())
+        && isEqualNodes(node.getName(), other.getName());
+  }
+
+  @Override
+  public Boolean visitEnumDeclaration(EnumDeclaration node) {
+    EnumDeclaration other = (EnumDeclaration) this.other;
+    return isEqualNodes(node.getDocumentationComment(), other.getDocumentationComment())
+        && isEqualNodeLists(node.getMetadata(), other.getMetadata())
+        && isEqualTokens(node.getKeyword(), other.getKeyword())
+        && isEqualNodes(node.getName(), other.getName())
+        && isEqualTokens(node.getLeftBracket(), other.getLeftBracket())
+        && isEqualNodeLists(node.getConstants(), other.getConstants())
+        && isEqualTokens(node.getRightBracket(), other.getRightBracket());
+  }
+
+  @Override
   public Boolean visitExportDirective(ExportDirective node) {
     ExportDirective other = (ExportDirective) this.other;
     return isEqualNodes(node.getDocumentationComment(), other.getDocumentationComment())

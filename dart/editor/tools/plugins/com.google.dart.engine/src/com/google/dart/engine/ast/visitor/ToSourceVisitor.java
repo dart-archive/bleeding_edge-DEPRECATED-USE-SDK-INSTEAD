@@ -324,6 +324,24 @@ public class ToSourceVisitor implements AstVisitor<Void> {
   }
 
   @Override
+  public Void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
+    visitNode(node.getName());
+    return null;
+  }
+
+  @Override
+  public Void visitEnumDeclaration(EnumDeclaration node) {
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
+    writer.print("enum ");
+    visitNode(node.getName());
+    writer.print(" {");
+    visitNodeListWithSeparator(node.getConstants(), ", ");
+    writer.print("}");
+    return null;
+  }
+
+  @Override
   public Void visitExportDirective(ExportDirective node) {
     visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     writer.print("export ");

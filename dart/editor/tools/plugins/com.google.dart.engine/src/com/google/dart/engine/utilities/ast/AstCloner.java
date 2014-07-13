@@ -304,6 +304,26 @@ public class AstCloner implements AstVisitor<AstNode> {
   }
 
   @Override
+  public AstNode visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    return new EnumConstantDeclaration(
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        cloneNode(node.getName()));
+  }
+
+  @Override
+  public EnumDeclaration visitEnumDeclaration(EnumDeclaration node) {
+    return new EnumDeclaration(
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        node.getKeyword(),
+        cloneNode(node.getName()),
+        node.getLeftBracket(),
+        cloneNodeList(node.getConstants()),
+        node.getRightBracket());
+  }
+
+  @Override
   public ExportDirective visitExportDirective(ExportDirective node) {
     ExportDirective directive = new ExportDirective(
         cloneNode(node.getDocumentationComment()),

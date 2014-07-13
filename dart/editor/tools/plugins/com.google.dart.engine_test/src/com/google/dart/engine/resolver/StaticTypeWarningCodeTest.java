@@ -27,6 +27,18 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_undefinedEnumConstant() throws Exception {
+    // We need a way to set the parseEnum flag in the parser to true.
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "E e() {",
+        "  return E.TWO;",
+        "}"));
+    resolve(source);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT);
+    verify(source);
+  }
+
   public void test_ambiguousImport_function() throws Exception {
     Source source = addSource(createSource(//
         "import 'lib1.dart';",

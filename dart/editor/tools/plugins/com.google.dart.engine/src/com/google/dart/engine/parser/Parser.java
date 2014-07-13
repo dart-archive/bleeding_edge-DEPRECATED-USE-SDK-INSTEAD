@@ -95,14 +95,19 @@ public class Parser {
   private boolean parseFunctionBodies = true;
 
   /**
+   * A flag indicating whether the parser is to parse the async support.
+   */
+  private boolean parseAsync = AnalysisOptionsImpl.DEFAULT_ENABLE_ASYNC;
+
+  /**
    * A flag indicating whether the parser is to parse deferred libraries.
    */
   private boolean parseDeferredLibraries = AnalysisOptionsImpl.DEFAULT_ENABLE_DEFERRED_LOADING;
 
   /**
-   * A flag indicating whether the parser is to parse the async support.
+   * A flag indicating whether the parser is to parse enum declarations.
    */
-  private boolean parseAsync = AnalysisOptionsImpl.DEFAULT_ENABLE_ASYNC;
+  private boolean parseEnum = AnalysisOptionsImpl.DEFAULT_ENABLE_ENUM;
 
   /**
    * The next token to be parsed.
@@ -243,12 +248,21 @@ public class Parser {
   }
 
   /**
-   * Set whether parser is to parse deferred libraries.
+   * Set whether the parser is to parse deferred libraries.
    * 
-   * @param parseDeferredLibraries {@code true} if parser is to parse deferred libraries
+   * @param parseDeferredLibraries {@code true} if the parser is to parse deferred libraries
    */
   public void setParseDeferredLibraries(boolean parseDeferredLibraries) {
     this.parseDeferredLibraries = parseDeferredLibraries;
+  }
+
+  /**
+   * Set whether the parser is to parse enum declarations.
+   * 
+   * @param parseEnum {@code true} if the parser is to parse enum declarations
+   */
+  public void setParseEnum(boolean parseEnum) {
+    this.parseEnum = parseEnum;
   }
 
   /**
@@ -3151,6 +3165,9 @@ public class Parser {
         && !tokenMatches(peek(), TokenType.LT) && !tokenMatches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTypedef(modifiers);
       return parseTypeAlias(commentAndMetadata);
+    } else if (parseEnum && matchesKeyword(Keyword.ENUM)) {
+      validateModifiersForEnum(modifiers);
+      return parseEnumDeclaration(commentAndMetadata);
     }
     if (matchesKeyword(Keyword.VOID)) {
       TypeName returnType = parseReturnType();
@@ -3610,6 +3627,70 @@ public class Parser {
    */
   private Statement parseEmptyStatement() {
     return new EmptyStatement(getAndAdvance());
+  }
+
+  private EnumConstantDeclaration parseEnumConstantDeclaration() {
+    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
+    SimpleIdentifier name;
+    if (matchesIdentifier()) {
+      name = parseSimpleIdentifier();
+    } else {
+      name = createSyntheticIdentifier();
+    }
+    return new EnumConstantDeclaration(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        name);
+  }
+
+  /**
+   * Parse an enum declaration.
+   * 
+   * <pre>
+   * enumType ::=
+   *     metadata 'enum' id '{' id (',' id)* (',')? '}'
+   * </pre>
+   * 
+   * @param commentAndMetadata the metadata to be associated with the member
+   * @return the enum declaration that was parsed
+   */
+  private EnumDeclaration parseEnumDeclaration(CommentAndMetadata commentAndMetadata) {
+    Token keyword = expectKeyword(Keyword.ENUM);
+    SimpleIdentifier name = parseSimpleIdentifier();
+    Token leftBracket = null;
+    List<EnumConstantDeclaration> constants = new ArrayList<EnumConstantDeclaration>();
+    Token rightBracket = null;
+    if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+      leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
+      if (matchesIdentifier()) {
+        constants.add(parseEnumConstantDeclaration());
+      } else if (matches(TokenType.COMMA) && tokenMatchesIdentifier(peek())) {
+        constants.add(parseEnumConstantDeclaration());
+        reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
+      } else {
+        constants.add(parseEnumConstantDeclaration());
+        reportErrorForCurrentToken(ParserErrorCode.EMPTY_ENUM_BODY);
+      }
+      while (optional(TokenType.COMMA)) {
+        if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
+          break;
+        }
+        constants.add(parseEnumConstantDeclaration());
+      }
+      rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
+    } else {
+      leftBracket = createSyntheticToken(TokenType.OPEN_CURLY_BRACKET);
+      rightBracket = createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET);
+      reportErrorForCurrentToken(ParserErrorCode.MISSING_ENUM_BODY);
+    }
+    return new EnumDeclaration(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        keyword,
+        name,
+        leftBracket,
+        constants,
+        rightBracket);
   }
 
   /**
@@ -6824,6 +6905,31 @@ public class Parser {
       reportErrorForToken(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword);
     }
     return constKeyword;
+  }
+
+  /**
+   * Validate that the given set of modifiers is appropriate for a class and return the 'abstract'
+   * keyword if there is one.
+   * 
+   * @param modifiers the modifiers being validated
+   */
+  private void validateModifiersForEnum(Modifiers modifiers) {
+    validateModifiersForTopLevelDeclaration(modifiers);
+    if (modifiers.getAbstractKeyword() != null) {
+      reportErrorForToken(ParserErrorCode.ABSTRACT_ENUM, modifiers.getAbstractKeyword());
+    }
+    if (modifiers.getConstKeyword() != null) {
+      reportErrorForToken(ParserErrorCode.CONST_ENUM, modifiers.getConstKeyword());
+    }
+    if (modifiers.getExternalKeyword() != null) {
+      reportErrorForToken(ParserErrorCode.EXTERNAL_ENUM, modifiers.getExternalKeyword());
+    }
+    if (modifiers.getFinalKeyword() != null) {
+      reportErrorForToken(ParserErrorCode.FINAL_ENUM, modifiers.getFinalKeyword());
+    }
+    if (modifiers.getVarKeyword() != null) {
+      reportErrorForToken(ParserErrorCode.VAR_ENUM, modifiers.getVarKeyword());
+    }
   }
 
   /**

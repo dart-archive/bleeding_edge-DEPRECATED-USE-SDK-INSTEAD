@@ -355,6 +355,32 @@ public class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   }
 
   @Override
+  public AstNode visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    if (oldNode == node.getDocumentationComment()) {
+      throw new InsufficientContextException();
+    } else if (node.getMetadata().contains(oldNode)) {
+      return parser.parseAnnotation();
+    } else if (oldNode == node.getName()) {
+      return parser.parseSimpleIdentifier();
+    }
+    return notAChild(node);
+  }
+
+  @Override
+  public AstNode visitEnumDeclaration(EnumDeclaration node) {
+    if (oldNode == node.getDocumentationComment()) {
+      throw new InsufficientContextException();
+    } else if (node.getMetadata().contains(oldNode)) {
+      return parser.parseAnnotation();
+    } else if (oldNode == node.getName()) {
+      return parser.parseSimpleIdentifier();
+    } else if (node.getConstants().contains(oldNode)) {
+      throw new InsufficientContextException();
+    }
+    return notAChild(node);
+  }
+
+  @Override
   public AstNode visitExportDirective(ExportDirective node) {
     if (oldNode == node.getDocumentationComment()) {
       throw new InsufficientContextException();

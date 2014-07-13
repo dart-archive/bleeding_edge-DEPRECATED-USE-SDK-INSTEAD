@@ -21,10 +21,11 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(AngularCompilationUnitBuilderTest.class);
     suite.addTestSuite(ElementBuilderTest.class);
+    suite.addTestSuite(EnumMemberBuilderTest.class);
     suite.addTestSuite(HtmlUnitBuilderTest.class);
     suite.addTestSuite(HtmlWarningCodeTest.class);
-    suite.addTestSuite(AngularCompilationUnitBuilderTest.class);
     suite.addTestSuite(PolymerCompilationUnitBuilderTest.class);
     return suite;
   }

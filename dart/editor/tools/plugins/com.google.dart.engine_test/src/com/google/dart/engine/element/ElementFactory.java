@@ -15,8 +15,10 @@ package com.google.dart.engine.element;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.internal.constant.ValidResult;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
+import com.google.dart.engine.internal.element.ConstFieldElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.ExportElementImpl;
 import com.google.dart.engine.internal.element.FieldElementImpl;
@@ -32,6 +34,11 @@ import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
 import com.google.dart.engine.internal.element.TypeParameterElementImpl;
+import com.google.dart.engine.internal.object.DartObjectImpl;
+import com.google.dart.engine.internal.object.GenericState;
+import com.google.dart.engine.internal.object.IntState;
+import com.google.dart.engine.internal.object.StringState;
+import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeParameterTypeImpl;
@@ -42,6 +49,10 @@ import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.dart.ParameterKind;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * The class {@code ElementFactory} defines utility methods used to create elements for testing
@@ -115,6 +126,64 @@ public final class ElementFactory {
   public static ConstructorElementImpl constructorElement(ClassElement definingClass, String name,
       Type... argumentTypes) {
     return constructorElement(definingClass, name, false, argumentTypes);
+  }
+
+  public static ClassElementImpl enumElement(TypeProvider typeProvider, String enumName,
+      String... constantNames) {
+    //
+    // Build the enum.
+    //
+    ClassElementImpl enumElement = new ClassElementImpl(enumName, -1);
+    InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
+    enumElement.setType(enumType);
+    enumElement.setSupertype(getObjectType());
+    //
+    // Populate the fields.
+    //
+    ArrayList<FieldElement> fields = new ArrayList<FieldElement>();
+    InterfaceType intType = typeProvider.getIntType();
+    InterfaceType stringType = typeProvider.getStringType();
+
+    String indexFieldName = "index";
+    FieldElementImpl indexField = new FieldElementImpl(indexFieldName, -1);
+    indexField.setFinal(true);
+    indexField.setType(intType);
+    fields.add(indexField);
+
+    String nameFieldName = "_name";
+    FieldElementImpl nameField = new FieldElementImpl(nameFieldName, -1);
+    nameField.setFinal(true);
+    nameField.setType(stringType);
+    fields.add(nameField);
+
+    FieldElementImpl valuesField = new FieldElementImpl("values", -1);
+    valuesField.setStatic(true);
+    valuesField.setConst(true);
+    valuesField.setType(typeProvider.getListType().substitute(new Type[] {enumType}));
+    fields.add(valuesField);
+    //
+    // Build the enum constants.
+    //
+    int constantCount = constantNames.length;
+    for (int i = 0; i < constantCount; i++) {
+      String constantName = constantNames[i];
+      FieldElementImpl constantElement = new ConstFieldElementImpl(constantName, -1);
+      constantElement.setStatic(true);
+      constantElement.setConst(true);
+      constantElement.setType(enumType);
+      HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
+      fieldMap.put(indexFieldName, new DartObjectImpl(intType, new IntState(BigInteger.valueOf(i))));
+      fieldMap.put(nameFieldName, new DartObjectImpl(stringType, new StringState(constantName)));
+      DartObjectImpl value = new DartObjectImpl(enumType, new GenericState(fieldMap));
+      constantElement.setEvaluationResult(new ValidResult(value));
+      fields.add(constantElement);
+    }
+    //
+    // Finish building the enum.
+    //
+    enumElement.setFields(fields.toArray(new FieldElement[fields.size()]));
+    // Client code isn't allowed to invoke the constructor, so we do not model it.
+    return enumElement;
   }
 
   public static ExportElementImpl exportFor(LibraryElement exportedLibrary,

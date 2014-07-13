@@ -371,6 +371,26 @@ public class ResolutionCopier implements AstVisitor<Boolean> {
   }
 
   @Override
+  public Boolean visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    EnumConstantDeclaration toNode = (EnumConstantDeclaration) this.toNode;
+    return isEqualNodes(node.getDocumentationComment(), toNode.getDocumentationComment())
+        & isEqualNodeLists(node.getMetadata(), toNode.getMetadata())
+        & isEqualNodes(node.getName(), toNode.getName());
+  }
+
+  @Override
+  public Boolean visitEnumDeclaration(EnumDeclaration node) {
+    EnumDeclaration toNode = (EnumDeclaration) this.toNode;
+    return isEqualNodes(node.getDocumentationComment(), toNode.getDocumentationComment())
+        & isEqualNodeLists(node.getMetadata(), toNode.getMetadata())
+        & isEqualTokens(node.getKeyword(), toNode.getKeyword())
+        & isEqualNodes(node.getName(), toNode.getName())
+        & isEqualTokens(node.getLeftBracket(), toNode.getLeftBracket())
+        & isEqualNodeLists(node.getConstants(), toNode.getConstants())
+        & isEqualTokens(node.getRightBracket(), toNode.getRightBracket());
+  }
+
+  @Override
   public Boolean visitExportDirective(ExportDirective node) {
     ExportDirective toNode = (ExportDirective) this.toNode;
     if (isEqualNodes(node.getDocumentationComment(), toNode.getDocumentationComment())

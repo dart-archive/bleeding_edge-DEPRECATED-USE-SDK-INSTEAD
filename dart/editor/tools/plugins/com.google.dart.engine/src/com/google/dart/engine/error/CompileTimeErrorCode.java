@@ -23,6 +23,13 @@ package com.google.dart.engine.error;
  */
 public enum CompileTimeErrorCode implements ErrorCode {
   /**
+   * Enum proposal: It is also a compile-time error to explicitly instantiate an enum via 'new' or
+   * 'const' or to access its private fields.
+   */
+  ACCESS_PRIVATE_ENUM_FIELD(
+      "The private fields of an enum cannot be accessed, even within the same library"),
+
+  /**
    * 14.2 Exports: It is a compile-time error if a name <i>N</i> is re-exported by a library
    * <i>L</i> and <i>N</i> is introduced into the export namespace of <i>L</i> by more than one
    * export, unless each all exports refer to same declaration for the name N.
@@ -412,6 +419,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
   EXPORT_OF_NON_LIBRARY("The exported library '%s' must not have a part-of directive"),
 
   /**
+   * Enum proposal: It is a compile-time error to subclass, mix-in or implement an enum.
+   */
+  EXTENDS_ENUM("Classes cannot extend an enum"),
+
+  /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a class <i>C</i> includes
    * a type expression that does not denote a class available in the lexical scope of <i>C</i>.
    * 
@@ -555,6 +567,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
   IMPLEMENTS_DYNAMIC("Classes cannot implement 'dynamic'"),
 
   /**
+   * Enum proposal: It is a compile-time error to subclass, mix-in or implement an enum.
+   */
+  IMPLEMENTS_ENUM("Classes cannot implement an enum"),
+
+  /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause of a class <i>C</i>
    * includes a type expression that does not denote a class available in the lexical scope of
    * <i>C</i>.
@@ -662,7 +679,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * @see #INITIALIZER_FOR_STATIC_FIELD
    */
   INITIALIZING_FORMAL_FOR_STATIC_FIELD(
-      "'%s' is a static variable in the enclosing class, variables initialized in a constructor cannot be static"),
+      "'%s' is a static field in the enclosing class, fields initialized in a constructor cannot be static"),
 
   /**
    * 12.30 Identifier Reference: Otherwise, e is equivalent to the property extraction
@@ -676,6 +693,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * <b>this</b>.<i>id</i>.
    */
   INSTANCE_MEMBER_ACCESS_FROM_STATIC("Instance members cannot be accessed from a static method"),
+
+  /**
+   * Enum proposal: It is also a compile-time error to explicitly instantiate an enum via 'new' or
+   * 'const' or to access its private fields.
+   */
+  INSTANTIATE_ENUM("Enums cannot be instantiated"),
 
   /**
    * 11 Metadata: Metadata consists of a series of annotations, each of which begin with the
@@ -854,6 +877,21 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "Map literals must be prefixed with 'const' when used as a constant expression"),
 
   /**
+   * Enum proposal: It is a static warning if all of the following conditions hold:
+   * <ul>
+   * <li>The switch statement does not have a 'default' clause.</li>
+   * <li>The static type of <i>e</i> is an enumerated typed with elements <i>id<sub>1</sub></i>,
+   * &hellip;, <i>id<sub>n</sub></i>.</li>
+   * <li>The sets {<i>e<sub>1</sub></i>, &hellip;, <i>e<sub>k</sub></i>} and {<i>id<sub>1</sub></i>,
+   * &hellip;, <i>id<sub>n</sub></i>} are not the same.</li>
+   * </ul>
+   * 
+   * @param constantName the name of the constant that is missing
+   */
+  MISSING_ENUM_CONSTANT_IN_SWITCH("Missing case clause for '%s'",
+      "Add a case clause for the missing constant or add a default clause."),
+
+  /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin explicitly declares a
    * constructor.
    * 
@@ -899,6 +937,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * @see #IMPLEMENTS_DISALLOWED_CLASS
    */
   MIXIN_OF_DISALLOWED_CLASS("Classes cannot mixin '%s'"),
+
+  /**
+   * Enum proposal: It is a compile-time error to subclass, mix-in or implement an enum.
+   */
+  MIXIN_OF_ENUM("Classes cannot mixin an enum"),
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if <i>M</i> does not denote a class or mixin

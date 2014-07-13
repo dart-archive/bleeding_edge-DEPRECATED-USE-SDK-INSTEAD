@@ -35,6 +35,17 @@ public class ConstFieldElementImpl extends FieldElementImpl {
     super(name);
   }
 
+  /**
+   * Initialize a newly created synthetic field element to have the given name.
+   * 
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public ConstFieldElementImpl(String name, int offset) {
+    super(name, offset);
+  }
+
   @Override
   public EvaluationResultImpl getEvaluationResult() {
     return result;

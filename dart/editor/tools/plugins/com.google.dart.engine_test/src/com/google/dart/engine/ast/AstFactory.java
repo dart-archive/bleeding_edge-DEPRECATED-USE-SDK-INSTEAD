@@ -412,6 +412,27 @@ public final class AstFactory {
     return new EmptyStatement(tokenFromType(TokenType.SEMICOLON));
   }
 
+  public static EnumDeclaration enumDeclaration(SimpleIdentifier name,
+      EnumConstantDeclaration... constants) {
+    return new EnumDeclaration(
+        null,
+        null,
+        tokenFromKeyword(Keyword.ENUM),
+        name,
+        tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+        list(constants),
+        tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+  }
+
+  public static EnumDeclaration enumDeclaration(String name, String... constantNames) {
+    int count = constantNames.length;
+    EnumConstantDeclaration[] constants = new EnumConstantDeclaration[count];
+    for (int i = 0; i < count; i++) {
+      constants[i] = new EnumConstantDeclaration(null, null, identifier(constantNames[i]));
+    }
+    return enumDeclaration(identifier(name), constants);
+  }
+
   public static ExportDirective exportDirective(List<Annotation> metadata, String uri,
       Combinator... combinators) {
     return new ExportDirective(

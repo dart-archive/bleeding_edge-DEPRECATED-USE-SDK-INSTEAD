@@ -288,7 +288,9 @@ public class ParseDartTask extends AnalysisTask {
       Parser parser = new Parser(source, errorListener);
       AnalysisOptions options = getContext().getAnalysisOptions();
       parser.setParseFunctionBodies(options.getAnalyzeFunctionBodies());
+      parser.setParseAsync(options.getEnableAsync());
       parser.setParseDeferredLibraries(options.getEnableDeferredLoading());
+      parser.setParseEnum(options.getEnableEnum());
       unit = parser.parseCompilationUnit(tokenStream);
       unit.setLineInfo(lineInfo);
       AnalysisContext analysisContext = getContext();

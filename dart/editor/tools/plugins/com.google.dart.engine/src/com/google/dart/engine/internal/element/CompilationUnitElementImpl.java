@@ -60,6 +60,11 @@ public class CompilationUnitElementImpl extends UriReferencedElementImpl impleme
   private PropertyAccessorElement[] accessors = PropertyAccessorElementImpl.EMPTY_ARRAY;
 
   /**
+   * An array containing all of the enums contained in this compilation unit.
+   */
+  private ClassElement[] enums = ClassElementImpl.EMPTY_ARRAY;
+
+  /**
    * An array containing all of the top-level functions contained in this compilation unit.
    */
   private FunctionElement[] functions = FunctionElementImpl.EMPTY_ARRAY;
@@ -160,6 +165,21 @@ public class CompilationUnitElementImpl extends UriReferencedElementImpl impleme
   }
 
   @Override
+  public ClassElement getEnum(String enumName) {
+    for (ClassElement enumDeclaration : enums) {
+      if (enumDeclaration.getName().equals(enumName)) {
+        return enumDeclaration;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public ClassElement[] getEnums() {
+    return enums;
+  }
+
+  @Override
   public FunctionElement[] getFunctions() {
     return functions;
   }
@@ -242,6 +262,18 @@ public class CompilationUnitElementImpl extends UriReferencedElementImpl impleme
       ((AngularViewElementImpl) view).setEnclosingElement(this);
     }
     this.angularViews = angularViews;
+  }
+
+  /**
+   * Set the enums contained in this compilation unit to the given enums.
+   * 
+   * @param enums enums contained in this compilation unit
+   */
+  public void setEnums(ClassElement[] enums) {
+    for (ClassElement enumDeclaration : enums) {
+      ((ClassElementImpl) enumDeclaration).setEnclosingElement(this);
+    }
+    this.enums = enums;
   }
 
   /**

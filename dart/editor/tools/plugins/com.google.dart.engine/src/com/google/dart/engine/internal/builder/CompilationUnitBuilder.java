@@ -55,6 +55,7 @@ public class CompilationUnitBuilder {
 
       CompilationUnitElementImpl element = new CompilationUnitElementImpl(source.getShortName());
       element.setAccessors(holder.getAccessors());
+      element.setEnums(holder.getEnums());
       element.setFunctions(holder.getFunctions());
       element.setSource(source);
       element.setTypeAliases(holder.getTypeAliases());

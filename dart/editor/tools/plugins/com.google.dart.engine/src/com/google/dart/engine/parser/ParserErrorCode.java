@@ -27,6 +27,7 @@ import com.google.dart.engine.error.ErrorType;
  */
 public enum ParserErrorCode implements ErrorCode {
   ABSTRACT_CLASS_MEMBER("Members of classes cannot be declared to be 'abstract'"),
+  ABSTRACT_ENUM("Enums cannot be declared to be 'abstract'"),
   ABSTRACT_STATIC_METHOD("Static methods cannot be declared to be 'abstract'"),
   ABSTRACT_TOP_LEVEL_FUNCTION("Top-level functions cannot be declared to be 'abstract'"),
   ABSTRACT_TOP_LEVEL_VARIABLE("Top-level variables cannot be declared to be 'abstract'"),
@@ -40,6 +41,7 @@ public enum ParserErrorCode implements ErrorCode {
   CONST_AND_VAR("Members cannot be declared to be both 'const' and 'var'"),
   CONST_CLASS("Classes cannot be declared to be 'const'"),
   CONST_CONSTRUCTOR_WITH_BODY("'const' constructors cannot have a body"),
+  CONST_ENUM("Enums cannot be declared to be 'const'"),
   CONST_FACTORY("Only redirecting factory constructors can be declared to be 'const'"),
   CONST_METHOD("Getters, setters and methods cannot be declared to be 'const'"),
   CONST_TYPEDEF("Type aliases cannot be declared to be 'const'"),
@@ -53,6 +55,7 @@ public enum ParserErrorCode implements ErrorCode {
   DIRECTIVE_AFTER_DECLARATION("Directives must appear before any declarations"),
   DUPLICATE_LABEL_IN_SWITCH_STATEMENT("The label %s was already used in this switch statement"),
   DUPLICATED_MODIFIER("The modifier '%s' was already specified."),
+  EMPTY_ENUM_BODY("An enum must declare at least one constant name"),
   EQUALITY_CANNOT_BE_EQUALITY_OPERAND(
       "Equality expression cannot be operand of another equality expression."),
   EXPECTED_CASE_OR_DEFAULT("Expected 'case' or 'default'"),
@@ -68,6 +71,7 @@ public enum ParserErrorCode implements ErrorCode {
   EXTERNAL_AFTER_STATIC("The modifier 'external' should be before the modifier 'static'"),
   EXTERNAL_CLASS("Classes cannot be declared to be 'external'"),
   EXTERNAL_CONSTRUCTOR_WITH_BODY("External constructors cannot have a body"),
+  EXTERNAL_ENUM("Enums cannot be declared to be 'external'"),
   EXTERNAL_FIELD("Fields cannot be declared to be 'external'"),
   EXTERNAL_GETTER_WITH_BODY("External getters cannot have a body"),
   EXTERNAL_METHOD_WITH_BODY("External methods cannot have a body"),
@@ -80,6 +84,7 @@ public enum ParserErrorCode implements ErrorCode {
   FINAL_AND_VAR("Members cannot be declared to be both 'final' and 'var'"),
   FINAL_CLASS("Classes cannot be declared to be 'final'"),
   FINAL_CONSTRUCTOR("A constructor cannot be declared to be 'final'"),
+  FINAL_ENUM("Enums cannot be declared to be 'final'"),
   FINAL_METHOD("Getters, setters and methods cannot be declared to be 'final'"),
   FINAL_TYPEDEF("Type aliases cannot be declared to be 'final'"),
   FUNCTION_TYPED_PARAMETER_VAR(
@@ -116,6 +121,7 @@ public enum ParserErrorCode implements ErrorCode {
   MISSING_CLOSING_PARENTHESIS("The closing parenthesis is missing"),
   MISSING_CONST_FINAL_VAR_OR_TYPE(
       "Variables must be declared using the keywords 'const', 'final', 'var' or a type name"),
+  MISSING_ENUM_BODY("An enum definition must have a body with at least one constant name"),
   MISSING_EXPRESSION_IN_THROW("Throw expressions must compute the object to be thrown"),
   MISSING_FUNCTION_BODY("A function body must be provided"),
   MISSING_FUNCTION_PARAMETERS("Functions must have an explicit list of parameters"),
@@ -185,6 +191,7 @@ public enum ParserErrorCode implements ErrorCode {
   VAR_AND_TYPE("Variables cannot be declared using both 'var' and a type name; remove the 'var'"),
   VAR_AS_TYPE_NAME("The keyword 'var' cannot be used as a type name"),
   VAR_CLASS("Classes cannot be declared to be 'var'"),
+  VAR_ENUM("Enums cannot be declared to be 'var'"),
   VAR_RETURN_TYPE("The return type cannot be 'var'"),
   VAR_TYPEDEF("Type aliases cannot be declared to be 'var'"),
   VOID_PARAMETER("Parameters cannot have a type of 'void'"),

@@ -72,7 +72,9 @@ public final class AnalysisContextFactory {
         AnalysisOptions currentOptions = getAnalysisOptions();
         boolean needsRecompute = currentOptions.getAnalyzeFunctionBodies() != options.getAnalyzeFunctionBodies()
             || currentOptions.getGenerateSdkErrors() != options.getGenerateSdkErrors()
+            || currentOptions.getEnableAsync() != options.getEnableAsync()
             || currentOptions.getEnableDeferredLoading() != options.getEnableDeferredLoading()
+            || currentOptions.getEnableEnum() != options.getEnableEnum()
             || currentOptions.getDart2jsHint() != options.getDart2jsHint()
             || (currentOptions.getHint() && !options.getHint())
             || currentOptions.getPreserveComments() != options.getPreserveComments();

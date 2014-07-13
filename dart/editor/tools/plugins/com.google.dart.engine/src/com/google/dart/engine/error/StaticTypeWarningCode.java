@@ -226,6 +226,16 @@ public enum StaticTypeWarningCode implements ErrorCode {
   TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND("'%s' cannot be a supertype of its upper bound"),
 
   /**
+   * 12.17 Getter Invocation: It is a static warning if there is no class <i>C</i> in the enclosing
+   * lexical scope of <i>i</i>, or if <i>C</i> does not declare, implicitly or explicitly, a getter
+   * named <i>m</i>.
+   * 
+   * @param constantName the name of the enumeration constant that is not defined
+   * @param enumName the name of the enumeration used to access the constant
+   */
+  UNDEFINED_ENUM_CONSTANT("There is no constant named '%s' in '%s'"),
+
+  /**
    * 12.15.3 Unqualified Invocation: If there exists a lexically visible declaration named
    * <i>id</i>, let <i>f<sub>id</sub></i> be the innermost such declaration. Then: [skip].
    * Otherwise, <i>f<sub>id</sub></i> is considered equivalent to the ordinary method invocation

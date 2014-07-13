@@ -179,6 +179,16 @@ public class UnifyingAstVisitor<R> implements AstVisitor<R> {
   }
 
   @Override
+  public R visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    return visitNode(node);
+  }
+
+  @Override
+  public R visitEnumDeclaration(EnumDeclaration node) {
+    return visitNode(node);
+  }
+
+  @Override
   public R visitExportDirective(ExportDirective node) {
     return visitNode(node);
   }

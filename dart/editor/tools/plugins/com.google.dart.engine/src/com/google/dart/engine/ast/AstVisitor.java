@@ -80,6 +80,10 @@ public interface AstVisitor<R> {
 
   public R visitEmptyStatement(EmptyStatement node);
 
+  public R visitEnumConstantDeclaration(EnumConstantDeclaration node);
+
+  public R visitEnumDeclaration(EnumDeclaration node);
+
   public R visitExportDirective(ExportDirective node);
 
   public R visitExpressionFunctionBody(ExpressionFunctionBody node);

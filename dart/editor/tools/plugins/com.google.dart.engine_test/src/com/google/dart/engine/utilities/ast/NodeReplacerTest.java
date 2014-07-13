@@ -43,6 +43,7 @@ import static com.google.dart.engine.ast.AstFactory.declaredIdentifier;
 import static com.google.dart.engine.ast.AstFactory.doStatement;
 import static com.google.dart.engine.ast.AstFactory.emptyFunctionBody;
 import static com.google.dart.engine.ast.AstFactory.emptyStatement;
+import static com.google.dart.engine.ast.AstFactory.enumDeclaration;
 import static com.google.dart.engine.ast.AstFactory.exportDirective;
 import static com.google.dart.engine.ast.AstFactory.expressionFunctionBody;
 import static com.google.dart.engine.ast.AstFactory.expressionStatement;
@@ -645,6 +646,35 @@ public class NodeReplacerTest extends EngineTestCase {
         return node.getCondition();
       }
     });
+  }
+
+  public void test_enumConstantDeclaration() {
+    EnumConstantDeclaration node = new EnumConstantDeclaration(
+        Comment.createEndOfLineComment(new Token[0]),
+        list(annotation(identifier("a"))),
+        identifier("C"));
+
+    assertReplace(node, new Getter<EnumConstantDeclaration, SimpleIdentifier>() {
+      @Override
+      public SimpleIdentifier get(EnumConstantDeclaration node) {
+        return node.getName();
+      }
+    });
+    testAnnotatedNode(node);
+  }
+
+  public void test_enumDeclaration() {
+    EnumDeclaration node = enumDeclaration("E", "ONE", "TWO");
+    node.setDocumentationComment(Comment.createEndOfLineComment(new Token[0]));
+    node.setMetadata(list(annotation(identifier("a"))));
+
+    assertReplace(node, new Getter<EnumDeclaration, SimpleIdentifier>() {
+      @Override
+      public SimpleIdentifier get(EnumDeclaration node) {
+        return node.getName();
+      }
+    });
+    testAnnotatedNode(node);
   }
 
   public void test_exportDirective() {

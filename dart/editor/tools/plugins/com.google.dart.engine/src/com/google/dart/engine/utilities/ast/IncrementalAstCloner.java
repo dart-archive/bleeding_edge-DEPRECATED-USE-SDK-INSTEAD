@@ -370,6 +370,26 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @Override
+  public AstNode visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    return new EnumConstantDeclaration(
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        cloneNode(node.getName()));
+  }
+
+  @Override
+  public AstNode visitEnumDeclaration(EnumDeclaration node) {
+    return new EnumDeclaration(
+        cloneNode(node.getDocumentationComment()),
+        cloneNodeList(node.getMetadata()),
+        mapToken(node.getKeyword()),
+        cloneNode(node.getName()),
+        mapToken(node.getLeftBracket()),
+        cloneNodeList(node.getConstants()),
+        mapToken(node.getRightBracket()));
+  }
+
+  @Override
   public ExportDirective visitExportDirective(ExportDirective node) {
     ExportDirective copy = new ExportDirective(
         cloneNode(node.getDocumentationComment()),

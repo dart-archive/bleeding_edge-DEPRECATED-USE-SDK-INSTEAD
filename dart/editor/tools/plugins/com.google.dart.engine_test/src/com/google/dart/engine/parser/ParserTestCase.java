@@ -147,7 +147,9 @@ public class ParserTestCase extends EngineTestCase {
     listener.setLineInfo(new TestSource(), scanner.getLineStarts());
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
+    parser.setParseAsync(true);
     parser.setParseDeferredLibraries(true);
+    parser.setParseEnum(true);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     assertNotNull(unit);
     listener.assertErrorsWithCodes(errorCodes);

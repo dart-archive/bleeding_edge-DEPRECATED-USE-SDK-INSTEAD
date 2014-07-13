@@ -650,6 +650,14 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource(";", emptyStatement());
   }
 
+  public void test_visitEnumDeclaration_multiple() {
+    assertSource("enum E {ONE, TWO}", enumDeclaration("E", "ONE", "TWO"));
+  }
+
+  public void test_visitEnumDeclaration_single() {
+    assertSource("enum E {ONE}", enumDeclaration("E", "ONE"));
+  }
+
   public void test_visitExportDirective_combinator() {
     assertSource(
         "export 'a.dart' show A;",

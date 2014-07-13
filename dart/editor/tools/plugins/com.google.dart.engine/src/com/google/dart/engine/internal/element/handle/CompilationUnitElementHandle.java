@@ -58,6 +58,16 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   }
 
   @Override
+  public ClassElement getEnum(String enumName) {
+    return getActualElement().getEnum(enumName);
+  }
+
+  @Override
+  public ClassElement[] getEnums() {
+    return getActualElement().getEnums();
+  }
+
+  @Override
   public FunctionElement[] getFunctions() {
     return getActualElement().getFunctions();
   }

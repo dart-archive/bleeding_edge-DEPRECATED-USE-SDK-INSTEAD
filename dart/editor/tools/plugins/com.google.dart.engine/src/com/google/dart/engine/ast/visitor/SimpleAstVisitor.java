@@ -175,6 +175,16 @@ public class SimpleAstVisitor<R> implements AstVisitor<R> {
   }
 
   @Override
+  public R visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    return null;
+  }
+
+  @Override
+  public R visitEnumDeclaration(EnumDeclaration node) {
+    return null;
+  }
+
+  @Override
   public R visitExportDirective(ExportDirective node) {
     return null;
   }

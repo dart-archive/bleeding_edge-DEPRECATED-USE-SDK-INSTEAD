@@ -174,6 +174,10 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.ABSTRACT_CLASS_MEMBER);
   }
 
+  public void test_abstractEnum() throws Exception {
+    parseCompilationUnit("abstract enum E {ONE}", ParserErrorCode.ABSTRACT_ENUM);
+  }
+
   public void test_abstractTopLevelFunction_function() throws Exception {
     parseCompilationUnit("abstract f(v) {}", ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION);
   }
@@ -277,6 +281,10 @@ public class ErrorParserTest extends ParserTestCase {
         new Object[] {"C"},
         "const C() {}",
         ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY);
+  }
+
+  public void test_constEnum() throws Exception {
+    parseCompilationUnit("const enum E {ONE}", ParserErrorCode.CONST_ENUM);
   }
 
   public void test_constFactory() throws Exception {
@@ -425,6 +433,14 @@ public class ErrorParserTest extends ParserTestCase {
         "parseSwitchStatement",
         "switch (e) {l1: case 0: break; l1: case 1: break;}",
         ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT);
+  }
+
+  public void test_emptyEnumBody() throws Exception {
+    parse(
+        "parseEnumDeclaration",
+        new Object[] {emptyCommentAndMetadata()},
+        "enum E {}",
+        ParserErrorCode.EMPTY_ENUM_BODY);
   }
 
   public void test_equalityCannotBeEqualityOperand_eq_eq() throws Exception {
@@ -617,6 +633,10 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY);
   }
 
+  public void test_externalEnum() throws Exception {
+    parseCompilationUnit("external enum E {ONE}", ParserErrorCode.EXTERNAL_ENUM);
+  }
+
   public void test_externalField_const() throws Exception {
     parse(
         "parseClassMember",
@@ -719,6 +739,10 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_finalConstructor() throws Exception {
     parse("parseClassMember", new Object[] {"C"}, "final C() {}", ParserErrorCode.FINAL_CONSTRUCTOR);
+  }
+
+  public void test_finalEnum() throws Exception {
+    parseCompilationUnit("final enum E {ONE}", ParserErrorCode.FINAL_ENUM);
   }
 
   public void test_finalMethod() throws Exception {
@@ -964,6 +988,14 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
   }
 
+  public void test_missingEnumBody() throws Exception {
+    parse(
+        "parseEnumDeclaration",
+        new Object[] {emptyCommentAndMetadata()},
+        "enum E;",
+        ParserErrorCode.MISSING_ENUM_BODY);
+  }
+
   public void test_missingExpressionInThrow_withCascade() throws Exception {
     parse("parseThrowExpression", "throw;", ParserErrorCode.MISSING_EXPRESSION_IN_THROW);
   }
@@ -1030,6 +1062,14 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_missingIdentifier_functionDeclaration_returnTypeWithoutName() throws Exception {
     parse("parseFunctionDeclarationStatement", "A<T> () {}", ParserErrorCode.MISSING_IDENTIFIER);
+  }
+
+  public void test_missingIdentifier_inEnum() throws Exception {
+    parse(
+        "parseEnumDeclaration",
+        new Object[] {emptyCommentAndMetadata()},
+        "enum E {, TWO}",
+        ParserErrorCode.MISSING_IDENTIFIER);
   }
 
   public void test_missingIdentifier_inSymbol_afterPeriod() throws Exception {
@@ -1480,6 +1520,10 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_varClass() throws Exception {
     parseCompilationUnit("var class C {}", ParserErrorCode.VAR_CLASS);
+  }
+
+  public void test_varEnum() throws Exception {
+    parseCompilationUnit("var enum E {ONE}", ParserErrorCode.VAR_ENUM);
   }
 
   public void test_varReturnType() throws Exception {

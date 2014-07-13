@@ -185,6 +185,7 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
     visitNode(node.getDocumentationComment());
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
     visitTokenWithSuffix(node.getAbstractKeyword(), " ");
     writer.print("class ");
     visitNode(node.getName());
@@ -366,6 +367,26 @@ public class ToFormattedSourceVisitor implements AstVisitor<Void> {
   @Override
   public Void visitEmptyStatement(EmptyStatement node) {
     writer.print(';');
+    return null;
+  }
+
+  @Override
+  public Void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    visitNode(node.getDocumentationComment());
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
+    visitNode(node.getName());
+    return null;
+  }
+
+  @Override
+  public Void visitEnumDeclaration(EnumDeclaration node) {
+    visitNode(node.getDocumentationComment());
+    visitNodeListWithSeparatorAndSuffix(node.getMetadata(), " ", " ");
+    writer.print("enum ");
+    visitNode(node.getName());
+    writer.print(" {");
+    visitNodeListWithSeparator(node.getConstants(), ", ");
+    writer.print("}");
     return null;
   }
 

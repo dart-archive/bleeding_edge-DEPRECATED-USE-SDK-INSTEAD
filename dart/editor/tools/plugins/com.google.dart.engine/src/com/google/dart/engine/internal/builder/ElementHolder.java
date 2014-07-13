@@ -51,6 +51,7 @@ import java.util.ArrayList;
 public class ElementHolder {
   private ArrayList<PropertyAccessorElement> accessors;
   private ArrayList<ConstructorElement> constructors;
+  private ArrayList<ClassElement> enums;
   private ArrayList<FieldElement> fields;
   private ArrayList<FunctionElement> functions;
   private ArrayList<LabelElement> labels;
@@ -81,6 +82,13 @@ public class ElementHolder {
       constructors = new ArrayList<ConstructorElement>();
     }
     constructors.add(element);
+  }
+
+  public void addEnum(ClassElement element) {
+    if (enums == null) {
+      enums = new ArrayList<ClassElement>();
+    }
+    enums.add(element);
   }
 
   public void addField(FieldElement element) {
@@ -168,6 +176,15 @@ public class ElementHolder {
     }
     ConstructorElement[] result = constructors.toArray(new ConstructorElement[constructors.size()]);
     constructors = null;
+    return result;
+  }
+
+  public ClassElement[] getEnums() {
+    if (enums == null) {
+      return ClassElementImpl.EMPTY_ARRAY;
+    }
+    ClassElement[] result = enums.toArray(new ClassElement[enums.size()]);
+    enums = null;
     return result;
   }
 

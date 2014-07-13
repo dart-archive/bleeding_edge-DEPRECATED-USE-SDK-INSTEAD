@@ -40,6 +40,7 @@ import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.builder.AngularCompilationUnitBuilder;
+import com.google.dart.engine.internal.builder.EnumMemberBuilder;
 import com.google.dart.engine.internal.builder.PolymerCompilationUnitBuilder;
 import com.google.dart.engine.internal.constant.ConstantValueComputer;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
@@ -276,13 +277,14 @@ public class LibraryResolver {
       // Build the element models representing the libraries being resolved. This is done in three
       // steps:
       //
-      // 1. Build the basic element models without making any connections between elements other than
-      //    the basic parent/child relationships. This includes building the elements representing the
-      //    libraries.
+      // 1. Build the basic element models without making any connections between elements other
+      //    than the basic parent/child relationships. This includes building the elements
+      //    representing the libraries, but excludes members defined in enums.
       // 2. Build the elements for the import and export directives. This requires that we have the
       //    elements built for the referenced libraries, but because of the possibility of circular
       //    references needs to happen after all of the library elements have been created.
-      // 3. Build the rest of the type model by connecting superclasses, mixins, and interfaces. This
+      // 3. Build the members in enum declarations.
+      // 4. Build the rest of the type model by connecting superclasses, mixins, and interfaces. This
       //    requires that we be able to compute the names visible in the libraries being resolved,
       //    which in turn requires that we have resolved the import directives.
       //
@@ -295,6 +297,7 @@ public class LibraryResolver {
       buildDirectiveModels();
       instrumentation.metric("buildDirectiveModels", "complete");
       typeProvider = new TypeProviderImpl(coreElement);
+      buildEnumMembers();
       buildTypeHierarchies();
       instrumentation.metric("buildTypeHierarchies", "complete");
       //
@@ -555,6 +558,27 @@ public class LibraryResolver {
           getErrorListener());
       LibraryElementImpl libraryElement = builder.buildLibrary(library);
       library.setLibraryElement(libraryElement);
+    }
+  }
+
+  /**
+   * Build the members in enum declarations. This cannot be done while building the rest of the
+   * element model because it depends on being able to access core types, which cannot happen until
+   * the rest of the element model has been built (when resolving the core library).
+   * 
+   * @throws AnalysisException if any of the enum members could not be built
+   */
+  private void buildEnumMembers() throws AnalysisException {
+    TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
+    try {
+      for (Library library : librariesInCycles) {
+        for (Source source : library.getCompilationUnitSources()) {
+          EnumMemberBuilder builder = new EnumMemberBuilder(typeProvider);
+          library.getAST(source).accept(builder);
+        }
+      }
+    } finally {
+      timeCounter.stop();
     }
   }
 

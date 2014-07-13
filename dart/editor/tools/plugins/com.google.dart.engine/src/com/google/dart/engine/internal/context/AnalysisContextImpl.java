@@ -1999,7 +1999,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       boolean needsRecompute = this.options.getAnalyzeAngular() != options.getAnalyzeAngular()
           || this.options.getAnalyzeFunctionBodies() != options.getAnalyzeFunctionBodies()
           || this.options.getGenerateSdkErrors() != options.getGenerateSdkErrors()
+          || this.options.getEnableAsync() != options.getEnableAsync()
           || this.options.getEnableDeferredLoading() != options.getEnableDeferredLoading()
+          || this.options.getEnableEnum() != options.getEnableEnum()
           || this.options.getDart2jsHint() != options.getDart2jsHint()
           || (this.options.getHint() && !options.getHint())
           || this.options.getPreserveComments() != options.getPreserveComments();
@@ -2024,7 +2026,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       this.options.setAnalyzeAngular(options.getAnalyzeAngular());
       this.options.setAnalyzeFunctionBodies(options.getAnalyzeFunctionBodies());
       this.options.setGenerateSdkErrors(options.getGenerateSdkErrors());
+      this.options.setEnableAsync(options.getEnableAsync());
       this.options.setEnableDeferredLoading(options.getEnableDeferredLoading());
+      this.options.setEnableEnum(options.getEnableEnum());
       this.options.setDart2jsHint(options.getDart2jsHint());
       this.options.setHint(options.getHint());
       this.options.setIncremental(options.getIncremental());
