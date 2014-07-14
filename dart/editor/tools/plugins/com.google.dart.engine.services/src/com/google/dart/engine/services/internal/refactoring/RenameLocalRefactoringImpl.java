@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LocalElement;
@@ -133,38 +134,7 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
       Source unitSource = element.getSource();
       Source[] librarySources = context.getLibrariesContaining(unitSource);
       for (Source librarySource : librarySources) {
-        CompilationUnit unit = context.getResolvedCompilationUnit(unitSource, librarySource);
-        final SourceRange elementRange = element.getVisibleRange();
-        unit.accept(new RecursiveAstVisitor<Void>() {
-          @Override
-          public Void visitSimpleIdentifier(SimpleIdentifier node) {
-            Element nameElement = node.getBestElement();
-            if (nameElement != null && nameElement.getName().equals(newName)) {
-              // duplicate declaration
-              if (haveIntersectingRanges(element, nameElement)) {
-                String message = MessageFormat.format(
-                    "Duplicate local {0} ''{1}''.",
-                    getElementKindName(nameElement),
-                    newName);
-                result.addError(message, new RefactoringStatusContext(nameElement));
-                return null;
-              }
-              // shadowing referenced element
-              if (elementRange.contains(node.getOffset()) && !node.isQualified()) {
-                nameElement = HierarchyUtils.getSyntheticAccessorVariable(nameElement);
-                String nameElementSourceName = nameElement.getSource().getShortName();
-                String message = MessageFormat.format(
-                    "Usage of {0} ''{1}'' declared in ''{2}'' will be shadowed by renamed {3}.",
-                    getElementKindName(nameElement),
-                    getElementQualifiedName(nameElement),
-                    nameElementSourceName,
-                    getElementKindName(element));
-                result.addError(message, new RefactoringStatusContext(node));
-              }
-            }
-            return null;
-          }
-        });
+        analyzePossibleConflicts_inLibrary(result, unitSource, librarySource);
       }
       pm.worked(1);
       // done
@@ -172,5 +142,50 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     } finally {
       pm.done();
     }
+  }
+
+  private void analyzePossibleConflicts_inLibrary(final RefactoringStatus result,
+      Source unitSource, Source librarySource) {
+    // prepare resolved unit
+    CompilationUnit unit = null;
+    try {
+      unit = context.resolveCompilationUnit(unitSource, librarySource);
+    } catch (AnalysisException e) {
+    }
+    if (unit == null) {
+      return;
+    }
+    // check for conflicts in the unit
+    final SourceRange elementRange = element.getVisibleRange();
+    unit.accept(new RecursiveAstVisitor<Void>() {
+      @Override
+      public Void visitSimpleIdentifier(SimpleIdentifier node) {
+        Element nameElement = node.getBestElement();
+        if (nameElement != null && nameElement.getName().equals(newName)) {
+          // duplicate declaration
+          if (haveIntersectingRanges(element, nameElement)) {
+            String message = MessageFormat.format(
+                "Duplicate local {0} ''{1}''.",
+                getElementKindName(nameElement),
+                newName);
+            result.addError(message, new RefactoringStatusContext(nameElement));
+            return null;
+          }
+          // shadowing referenced element
+          if (elementRange.contains(node.getOffset()) && !node.isQualified()) {
+            nameElement = HierarchyUtils.getSyntheticAccessorVariable(nameElement);
+            String nameElementSourceName = nameElement.getSource().getShortName();
+            String message = MessageFormat.format(
+                "Usage of {0} ''{1}'' declared in ''{2}'' will be shadowed by renamed {3}.",
+                getElementKindName(nameElement),
+                getElementQualifiedName(nameElement),
+                nameElementSourceName,
+                getElementKindName(element));
+            result.addError(message, new RefactoringStatusContext(node));
+          }
+        }
+        return null;
+      }
+    });
   }
 }
