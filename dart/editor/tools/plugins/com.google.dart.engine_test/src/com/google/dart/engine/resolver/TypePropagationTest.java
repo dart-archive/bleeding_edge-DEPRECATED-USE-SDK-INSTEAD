@@ -281,16 +281,10 @@ public class TypePropagationTest extends ResolverTestCase {
         "f(A a) {",
         "  return a.v; // marker",
         "}");
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    {
-      SimpleIdentifier identifier = findNode(unit, code, "v; // marker", SimpleIdentifier.class);
-      assertSame(getTypeProvider().getDynamicType(), identifier.getStaticType());
-      assertSame(getTypeProvider().getIntType(), identifier.getPropagatedType());
-    }
+    assertTypeOfMarkedExpression(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getIntType());
   }
 
   public void test_finalPropertyInducingVariable_classMember_instance_inherited() throws Exception {
@@ -305,16 +299,10 @@ public class TypePropagationTest extends ResolverTestCase {
         "    return v; // marker",
         "  }",
         "}");
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    {
-      SimpleIdentifier identifier = findNode(unit, code, "v; // marker", SimpleIdentifier.class);
-      assertSame(getTypeProvider().getDynamicType(), identifier.getStaticType());
-      assertSame(getTypeProvider().getIntType(), identifier.getPropagatedType());
-    }
+    assertTypeOfMarkedExpression(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getIntType());
   }
 
   public void test_finalPropertyInducingVariable_classMember_instance_propagatedTarget()
@@ -330,16 +318,10 @@ public class TypePropagationTest extends ResolverTestCase {
         "    return p.v; // marker",
         "  }",
         "}");
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    {
-      SimpleIdentifier identifier = findNode(unit, code, "v; // marker", SimpleIdentifier.class);
-      assertSame(getTypeProvider().getDynamicType(), identifier.getStaticType());
-      assertSame(getTypeProvider().getIntType(), identifier.getPropagatedType());
-    }
+    assertTypeOfMarkedExpression(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getIntType());
   }
 
   public void test_finalPropertyInducingVariable_classMember_static() throws Exception {
@@ -352,16 +334,10 @@ public class TypePropagationTest extends ResolverTestCase {
         "f() {",
         "  return A.V; // marker",
         "}");
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    {
-      SimpleIdentifier identifier = findNode(unit, code, "V; // marker", SimpleIdentifier.class);
-      assertSame(getTypeProvider().getDynamicType(), identifier.getStaticType());
-      assertSame(getTypeProvider().getIntType(), identifier.getPropagatedType());
-    }
+    assertTypeOfMarkedExpression(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getIntType());
   }
 
   public void test_finalPropertyInducingVariable_topLevelVaraible_prefixed() throws Exception {
@@ -369,18 +345,12 @@ public class TypePropagationTest extends ResolverTestCase {
     String code = createSource(//
         "import 'lib.dart' as p;",
         "f() {",
-        "  var v2 = p.V; // prefixed",
+        "  var v2 = p.V; // marker prefixed",
         "}");
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    {
-      SimpleIdentifier identifier = findNode(unit, code, "V; // prefixed", SimpleIdentifier.class);
-      assertSame(getTypeProvider().getDynamicType(), identifier.getStaticType());
-      assertSame(getTypeProvider().getIntType(), identifier.getPropagatedType());
-    }
+    assertTypeOfMarkedExpression(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getIntType());
   }
 
   public void test_finalPropertyInducingVariable_topLevelVaraible_simple() throws Exception {
@@ -388,18 +358,12 @@ public class TypePropagationTest extends ResolverTestCase {
     String code = createSource(//
         "import 'lib.dart';",
         "f() {",
-        "  return V; // simple",
+        "  return V; // marker simple",
         "}");
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    {
-      SimpleIdentifier identifier = findNode(unit, code, "V; // simple", SimpleIdentifier.class);
-      assertSame(getTypeProvider().getDynamicType(), identifier.getStaticType());
-      assertSame(getTypeProvider().getIntType(), identifier.getPropagatedType());
-    }
+    assertTypeOfMarkedExpression(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getIntType());
   }
 
   public void test_forEach() throws Exception {
