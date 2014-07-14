@@ -17,6 +17,7 @@ package com.google.dart.server.internal;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.ArrayUtilities;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisStatus;
@@ -29,7 +30,6 @@ import com.google.dart.server.Outline;
 import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.ServerStatus;
-import com.google.dart.server.error.ErrorCode;
 import com.google.dart.server.internal.asserts.NavigationRegionsAssert;
 
 import junit.framework.Assert;
@@ -37,9 +37,7 @@ import junit.framework.AssertionFailedError;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -66,9 +64,10 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
    * @throws AssertionFailedError if a different number of errors have been gathered than were
    *           expected
    */
-  public synchronized void assertErrorsWithCodes(String file, ErrorCode... expectedErrorCodes) {
+  public synchronized void assertErrorsWithAnalysisErrors(String file,
+      AnalysisError... expectedErrors) {
     AnalysisError[] errors = getErrors(file);
-    assertErrorsWithCodes(errors, expectedErrorCodes);
+    assertErrorsWithAnalysisErrors(errors, expectedErrors);
   }
 
   /**
@@ -274,97 +273,26 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   /**
-   * Assert that the number of errors that have been given matches the number of errors that are
-   * given and that they have the expected error codes. The order in which the errors were gathered
-   * is ignored.
+   * Assert that the array of actual {@link AnalysisError}s match the array of expected
+   * {@link AnalysisError}s.
    * 
-   * @param errors the errors to validate
-   * @param expectedErrorCodes the error codes of the errors that should have been gathered
-   * @throws AssertionFailedError if a different number of errors have been gathered than were
-   *           expected
+   * @param actualErrors the actual set of errors that were created for some analysis
+   * @param expectedErrors the expected array of errors
    */
-  private void assertErrorsWithCodes(AnalysisError[] errors, ErrorCode... expectedErrorCodes) {
-    StringBuilder builder = new StringBuilder();
-    //
-    // Compute the expected number of each type of error.
-    //
-    HashMap<ErrorCode, Integer> expectedCounts = new HashMap<ErrorCode, Integer>();
-    for (ErrorCode code : expectedErrorCodes) {
-      Integer count = expectedCounts.get(code);
-      if (count == null) {
-        count = Integer.valueOf(1);
-      } else {
-        count = Integer.valueOf(count.intValue() + 1);
-      }
-      expectedCounts.put(code, count);
+  private void assertErrorsWithAnalysisErrors(AnalysisError[] actualErrors,
+      AnalysisError[] expectedErrors) {
+    if (actualErrors == null && expectedErrors == null) {
+      return;
     }
-    //
-    // Compute the actual number of each type of error.
-    //
-    HashMap<ErrorCode, ArrayList<AnalysisError>> errorsByCode = new HashMap<ErrorCode, ArrayList<AnalysisError>>();
-    for (AnalysisError error : errors) {
-      ErrorCode code = error.getErrorCode();
-      ArrayList<AnalysisError> list = errorsByCode.get(code);
-      if (list == null) {
-        list = new ArrayList<AnalysisError>();
-        errorsByCode.put(code, list);
-      }
-      list.add(error);
-    }
-    //
-    // Compare the expected and actual number of each type of error.
-    //
-    for (Map.Entry<ErrorCode, Integer> entry : expectedCounts.entrySet()) {
-      ErrorCode code = entry.getKey();
-      int expectedCount = entry.getValue().intValue();
-      int actualCount;
-      ArrayList<AnalysisError> list = errorsByCode.remove(code);
-      if (list == null) {
-        actualCount = 0;
-      } else {
-        actualCount = list.size();
-      }
-      if (actualCount != expectedCount) {
-        if (builder.length() == 0) {
-          builder.append("Expected ");
-        } else {
-          builder.append("; ");
-        }
-        builder.append(expectedCount);
-        builder.append(" errors of type ");
-        builder.append(code.getClass().getSimpleName() + "." + code);
-        builder.append(", found ");
-        builder.append(actualCount);
-      }
-    }
-    //
-    // Check that there are no more errors in the actual-errors map, otherwise, record message.
-    //
-    for (Map.Entry<ErrorCode, ArrayList<AnalysisError>> entry : errorsByCode.entrySet()) {
-      ErrorCode code = entry.getKey();
-      ArrayList<AnalysisError> actualErrors = entry.getValue();
-      int actualCount = actualErrors.size();
-      if (builder.length() == 0) {
-        builder.append("Expected ");
-      } else {
-        builder.append("; ");
-      }
-      builder.append("0 errors of type ");
-      builder.append(code.getClass().getSimpleName() + "." + code);
-      builder.append(", found ");
-      builder.append(actualCount);
-      builder.append(" (");
-      for (int i = 0; i < actualErrors.size(); i++) {
-        AnalysisError error = actualErrors.get(i);
-        if (i > 0) {
-          builder.append(", ");
-        }
-        builder.append(error.getLocation().getOffset());
-      }
-      builder.append(")");
-    }
-    if (builder.length() > 0) {
-      Assert.fail(builder.toString());
+
+    // assert that the arrays have the same length
+    Assert.assertEquals(expectedErrors.length, actualErrors.length);
+
+    // assert that the actualErrors contains all of the expected errors
+    for (AnalysisError expectedError : expectedErrors) {
+      // individual calls to assert each error are made for better messaging when there is a failure
+      Assert.assertTrue(ArrayUtilities.contains(actualErrors, expectedError));
     }
   }
+
 }

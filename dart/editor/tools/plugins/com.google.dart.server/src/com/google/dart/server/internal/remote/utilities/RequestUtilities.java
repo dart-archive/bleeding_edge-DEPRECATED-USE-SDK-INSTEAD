@@ -431,7 +431,6 @@ public class RequestUtilities {
 
   private static JsonObject buildJsonObjectAnalysisError(AnalysisError error) {
     JsonObject errorJsonObject = new JsonObject();
-    errorJsonObject.addProperty("errorCode", error.getErrorCode().getUniqueName());
     errorJsonObject.addProperty("severity", error.getErrorSeverity().name());
     errorJsonObject.addProperty("type", error.getErrorType().name());
     errorJsonObject.add("location", buildJsonObjectLocation(error.getLocation()));

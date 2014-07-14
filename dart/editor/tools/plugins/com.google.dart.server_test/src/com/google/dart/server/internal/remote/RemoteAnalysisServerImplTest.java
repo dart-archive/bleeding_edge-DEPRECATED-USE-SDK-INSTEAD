@@ -27,6 +27,8 @@ import com.google.dart.server.CompletionSuggestionKind;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
+import com.google.dart.server.ErrorSeverity;
+import com.google.dart.server.ErrorType;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
 import com.google.dart.server.HoverConsumer;
@@ -44,8 +46,7 @@ import com.google.dart.server.ServerStatus;
 import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.TypeHierarchyItem;
 import com.google.dart.server.VersionConsumer;
-import com.google.dart.server.error.CompileTimeErrorCode;
-import com.google.dart.server.error.ParserErrorCode;
+import com.google.dart.server.internal.AnalysisErrorImpl;
 import com.google.dart.server.internal.AnalysisServerError;
 import com.google.dart.server.internal.LocationImpl;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
@@ -281,11 +282,10 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "    'file': '/test.dart',",
         "    'errors' : [",
         "      {",
-        "        'errorCode': 'ParserErrorCode.ABSTRACT_CLASS_MEMBER',",
         "        'severity': 'ERROR',",
         "        'type': 'SYNTACTIC_ERROR',",
         "        'location': {",
-        "          'file': '/the/same/file.dart',",
+        "          'file': '/fileA.dart',",
         "          'offset': 1,",
         "          'length': 2,",
         "          'startLine': 3,",
@@ -295,28 +295,34 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "        'correction': 'correction A'",
         "      },",
         "      {",
-        "        'errorCode': 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',",
         "        'severity': 'ERROR',",
         "        'type': 'COMPILE_TIME_ERROR',",
         "        'location': {",
-        "          'file': '/the/same/file.dart',",
-        "          'offset': 1,",
-        "          'length': 2,",
-        "          'startLine': 3,",
-        "          'startColumn': 4",
+        "          'file': '/fileB.dart',",
+        "          'offset': 5,",
+        "          'length': 6,",
+        "          'startLine': 7,",
+        "          'startColumn': 8",
         "        },",
-        "        'message': 'message A',",
-        "        'correction': 'correction A'",
+        "        'message': 'message B',",
+        "        'correction': 'correction B'",
         "      }",
         "    ]",
         "  }",
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
-    listener.assertErrorsWithCodes(
-        "/test.dart",
-        ParserErrorCode.ABSTRACT_CLASS_MEMBER,
-        CompileTimeErrorCode.AMBIGUOUS_EXPORT);
+    listener.assertErrorsWithAnalysisErrors("/test.dart", new AnalysisErrorImpl(
+        ErrorSeverity.ERROR,
+        ErrorType.SYNTACTIC_ERROR,
+        new LocationImpl("/fileA.dart", 1, 2, 3, 4),
+        "message A",
+        "correction A"), new AnalysisErrorImpl(
+        ErrorSeverity.ERROR,
+        ErrorType.COMPILE_TIME_ERROR,
+        new LocationImpl("/fileB.dart", 5, 6, 7, 8),
+        "message B",
+        "correction B"));
   }
 
   public void test_analysis_notification_highlights() throws Exception {

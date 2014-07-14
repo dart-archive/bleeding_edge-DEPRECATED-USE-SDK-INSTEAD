@@ -10,7 +10,6 @@ Bundle-Vendor: %providerName
 Bundle-ClassPath: .
 Require-Bundle: com.google.dart.thirdparty
 Export-Package: com.google.dart.server,
- com.google.dart.server.error;x-friends:="com.google.dart.server_test",
  com.google.dart.server.internal;x-friends:="com.google.dart.server_test",
  com.google.dart.server.internal.remote;x-friends:="com.google.dart.server_test",
  com.google.dart.server.internal.remote.processor;x-friends:="com.google.dart.server_test",

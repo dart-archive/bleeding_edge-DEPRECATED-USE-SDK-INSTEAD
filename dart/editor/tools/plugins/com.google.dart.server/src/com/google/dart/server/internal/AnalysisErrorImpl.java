@@ -18,7 +18,7 @@ import com.google.dart.server.AnalysisError;
 import com.google.dart.server.ErrorSeverity;
 import com.google.dart.server.ErrorType;
 import com.google.dart.server.Location;
-import com.google.dart.server.error.ErrorCode;
+import com.google.dart.server.utilities.general.ObjectUtilities;
 
 /**
  * An implementation of {@link AnalysisError}.
@@ -26,16 +26,14 @@ import com.google.dart.server.error.ErrorCode;
  * @coverage dart.server
  */
 public class AnalysisErrorImpl implements AnalysisError {
-  private final ErrorCode errorCode;
   private final ErrorSeverity errorSeverity;
   private final ErrorType errorType;
   private final Location location;
   private final String message;
   private final String correction;
 
-  public AnalysisErrorImpl(ErrorCode errorCode, ErrorSeverity errorSeverity, ErrorType errorType,
-      Location location, String message, String correction) {
-    this.errorCode = errorCode;
+  public AnalysisErrorImpl(ErrorSeverity errorSeverity, ErrorType errorType, Location location,
+      String message, String correction) {
     this.errorSeverity = errorSeverity;
     this.errorType = errorType;
     this.location = location;
@@ -44,13 +42,20 @@ public class AnalysisErrorImpl implements AnalysisError {
   }
 
   @Override
-  public String getCorrection() {
-    return correction;
+  public boolean equals(Object o) {
+    if (o == null || !(o instanceof AnalysisErrorImpl)) {
+      return false;
+    }
+    AnalysisErrorImpl other = (AnalysisErrorImpl) o;
+    return other.errorSeverity == errorSeverity && other.errorType == errorType
+        && ObjectUtilities.equals(other.location, location)
+        && ObjectUtilities.equals(other.message, message)
+        && ObjectUtilities.equals(other.correction, correction);
   }
 
   @Override
-  public ErrorCode getErrorCode() {
-    return errorCode;
+  public String getCorrection() {
+    return correction;
   }
 
   @Override
@@ -76,9 +81,7 @@ public class AnalysisErrorImpl implements AnalysisError {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append("[errorCode=");
-    builder.append(errorCode);
-    builder.append(", location=");
+    builder.append("[location=");
     builder.append(location.toString());
     builder.append(", message=");
     builder.append(message);

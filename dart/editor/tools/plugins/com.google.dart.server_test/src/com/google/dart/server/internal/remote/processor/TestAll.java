@@ -21,7 +21,6 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTest(com.google.dart.server.internal.remote.utilities.TestAll.suite());
     suite.addTestSuite(AnalysisErrorImplTest.class);
-    suite.addTestSuite(NotificationAnalysisErrorsProcessorTest.class);
     return suite;
   }
 }

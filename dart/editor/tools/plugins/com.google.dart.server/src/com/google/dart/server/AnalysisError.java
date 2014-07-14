@@ -13,7 +13,6 @@
  */
 package com.google.dart.server;
 
-import com.google.dart.server.error.ErrorCode;
 
 /**
  * The interface {@code AnalysisError} defines the behavior of objects representing an analysis
@@ -55,15 +54,6 @@ public interface AnalysisError {
    * @return the template used to create the correction to be displayed for this error
    */
   String getCorrection();
-
-  /**
-   * Return the error code associated with the error.
-   * <p>
-   * TODO(jwren) this should return a String, not an enum
-   * 
-   * @return the error code associated with the error
-   */
-  ErrorCode getErrorCode();
 
   /**
    * Return the message to be displayed for this error. The message should indicate what is wrong
