@@ -31,11 +31,11 @@ import java.util.List;
  * 
  * @coverage dart.server.remote
  */
-public class TypeHierarchyResultProcessor extends ResultProcessor {
+public class TypeHierarchyProcessor extends ResultProcessor {
 
   private final TypeHierarchyConsumer consumer;
 
-  public TypeHierarchyResultProcessor(TypeHierarchyConsumer consumer) {
+  public TypeHierarchyProcessor(TypeHierarchyConsumer consumer) {
     this.consumer = consumer;
   }
 

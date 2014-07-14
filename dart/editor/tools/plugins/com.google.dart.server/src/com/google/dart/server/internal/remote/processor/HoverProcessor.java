@@ -28,11 +28,11 @@ import java.util.Iterator;
  * 
  * @coverage dart.server.remote
  */
-public class HoverResultProcessor extends ResultProcessor {
+public class HoverProcessor extends ResultProcessor {
 
   private final HoverConsumer consumer;
 
-  public HoverResultProcessor(HoverConsumer consumer) {
+  public HoverProcessor(HoverConsumer consumer) {
     this.consumer = consumer;
   }
 

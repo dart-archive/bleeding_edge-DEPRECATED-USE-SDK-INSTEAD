@@ -37,7 +37,7 @@ import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.CompletionIdProcessor;
-import com.google.dart.server.internal.remote.processor.HoverResultProcessor;
+import com.google.dart.server.internal.remote.processor.HoverProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisHighlightsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisNavigationProcessor;
@@ -50,7 +50,7 @@ import com.google.dart.server.internal.remote.processor.NotificationServerConnec
 import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
 import com.google.dart.server.internal.remote.processor.SearchIdProcessor;
-import com.google.dart.server.internal.remote.processor.TypeHierarchyResultProcessor;
+import com.google.dart.server.internal.remote.processor.TypeHierarchyProcessor;
 import com.google.dart.server.internal.remote.processor.VersionProcessor;
 import com.google.dart.server.internal.remote.utilities.RequestUtilities;
 import com.google.dart.server.utilities.instrumentation.Instrumentation;
@@ -530,11 +530,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     if (consumer instanceof CompletionIdConsumer) {
       new CompletionIdProcessor((CompletionIdConsumer) consumer).process(resultObject);
     } else if (consumer instanceof HoverConsumer) {
-      new HoverResultProcessor((HoverConsumer) consumer).process(resultObject);
+      new HoverProcessor((HoverConsumer) consumer).process(resultObject);
     } else if (consumer instanceof SearchIdConsumer) {
       new SearchIdProcessor((SearchIdConsumer) consumer).process(resultObject);
     } else if (consumer instanceof TypeHierarchyConsumer) {
-      new TypeHierarchyResultProcessor((TypeHierarchyConsumer) consumer).process(resultObject);
+      new TypeHierarchyProcessor((TypeHierarchyConsumer) consumer).process(resultObject);
     } else if (consumer instanceof VersionConsumer) {
       new VersionProcessor((VersionConsumer) consumer).process(resultObject);
     } else if (consumer instanceof BasicConsumer) {
