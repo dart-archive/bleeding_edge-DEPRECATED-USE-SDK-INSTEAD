@@ -24,6 +24,7 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -59,7 +60,7 @@ public class LibraryImportScope extends Scope {
   public LibraryImportScope(LibraryElement definingLibrary, AnalysisErrorListener errorListener) {
     this.definingLibrary = definingLibrary;
     this.errorListener = errorListener;
-    createImportedNamespaces(definingLibrary);
+    createImportedNamespaces();
   }
 
   @Override
@@ -81,7 +82,8 @@ public class LibraryImportScope extends Scope {
     if (foundElement != null) {
       return foundElement;
     }
-    for (Namespace nameSpace : importedNamespaces) {
+    for (int i = 0; i < importedNamespaces.length; i++) {
+      Namespace nameSpace = importedNamespaces[i];
       Element element = nameSpace.get(name);
       if (element != null) {
         if (foundElement == null) {
@@ -103,7 +105,7 @@ public class LibraryImportScope extends Scope {
       int count = conflictingMembers.length;
       String[] libraryNames = new String[count];
       for (int i = 0; i < count; i++) {
-        libraryNames[i] = getLibraryName(conflictingMembers[i], "");
+        libraryNames[i] = getLibraryName(conflictingMembers[i]);
       }
       Arrays.sort(libraryNames);
       errorListener.onError(new AnalysisError(
@@ -128,7 +130,7 @@ public class LibraryImportScope extends Scope {
    * @param definingLibrary the element representing the library that imports the libraries for
    *          which namespaces will be created
    */
-  private final void createImportedNamespaces(LibraryElement definingLibrary) {
+  private final void createImportedNamespaces() {
     NamespaceBuilder builder = new NamespaceBuilder();
     ImportElement[] imports = definingLibrary.getImports();
     int count = imports.length;
@@ -142,18 +144,47 @@ public class LibraryImportScope extends Scope {
    * Returns the name of the library that defines given element.
    * 
    * @param element the element to get library name
-   * @param def the default name to use
    * @return the name of the library that defines given element
    */
-  private String getLibraryName(Element element, String def) {
+  private String getLibraryName(Element element) {
     if (element == null) {
-      return def;
+      return StringUtilities.EMPTY;
     }
     LibraryElement library = element.getLibrary();
     if (library == null) {
-      return def;
+      return StringUtilities.EMPTY;
     }
-    return library.getDefiningCompilationUnit().getDisplayName();
+    ImportElement[] imports = definingLibrary.getImports();
+    int count = imports.length;
+    for (int i = 0; i < count; i++) {
+      if (imports[i].getImportedLibrary() == library) {
+        return library.getDefiningCompilationUnit().getDisplayName();
+      }
+    }
+    ArrayList<String> indirectSources = new ArrayList<String>();
+    for (int i = 0; i < count; i++) {
+      LibraryElement importedLibrary = imports[i].getImportedLibrary();
+      for (LibraryElement exportedLibrary : importedLibrary.getExportedLibraries()) {
+        if (exportedLibrary == library) {
+          indirectSources.add(importedLibrary.getDefiningCompilationUnit().getDisplayName());
+        }
+      }
+    }
+    int indirectCount = indirectSources.size();
+    StringBuilder builder = new StringBuilder();
+    builder.append(library.getDefiningCompilationUnit().getDisplayName());
+    if (indirectCount > 0) {
+      builder.append(" (via ");
+      if (indirectCount > 1) {
+        String[] indirectNames = indirectSources.toArray(new String[indirectCount]);
+        Arrays.sort(indirectNames);
+        builder.append(StringUtilities.printListOfQuotedNames(indirectNames));
+      } else {
+        builder.append(indirectSources.get(0));
+      }
+      builder.append(")");
+    }
+    return builder.toString();
   }
 
   /**
@@ -180,8 +211,8 @@ public class LibraryImportScope extends Scope {
       }
     }
     if (sdkElement != null && to > 0) {
-      String sdkLibName = getLibraryName(sdkElement, "");
-      String otherLibName = getLibraryName(conflictingMembers[0], "");
+      String sdkLibName = getLibraryName(sdkElement);
+      String otherLibName = getLibraryName(conflictingMembers[0]);
       errorListener.onError(new AnalysisError(
           getSource(identifier),
           identifier.getOffset(),
