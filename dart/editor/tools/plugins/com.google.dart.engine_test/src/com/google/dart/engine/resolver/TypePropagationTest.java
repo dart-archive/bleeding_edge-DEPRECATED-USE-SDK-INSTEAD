@@ -43,13 +43,98 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 public class TypePropagationTest extends ResolverTestCase {
+  public void fail_mergePropagatedTypesAtJoinPoint_1() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    assertTypeOfMarkedExpression(
+        createSource(
+            "f1(x) {",
+            "  var y = [];",
+            "  if (x) {",
+            "    y = 0;",
+            "  } else {",
+            "    y = '';",
+            "  }",
+            "  // Propagated type is [List] here: incorrect.",
+            "  // Best we can do is [Object]?",
+            "  return y; // marker",
+            "}"),
+        // Don't care about the static type.
+        null,
+        // TODO(collinsn):
+        // In general, it might be more useful to compute a (structural)
+        // intersection of interfaces here;
+        // the best nominal type may be much less precise.
+        //
+        // The same concern applies in the other [fail_merge*] tests expecting [dynamic] below.
+        getTypeProvider().getDynamicType());
+  }
+
+  public void fail_mergePropagatedTypesAtJoinPoint_2() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    assertTypeOfMarkedExpression(
+        createSource(
+            "f2(x) {",
+            "  var y = [];",
+            "  if (x) {",
+            "    y = 0;",
+            "  } else {",
+            "  }",
+            "  // Propagated type is [List] here: incorrect.",
+            "  // Best we can do is [Object]?",
+            "  return y; // marker",
+            "}"),
+        // Don't care about the static type.
+        null,
+        getTypeProvider().getDynamicType());
+  }
+
+  public void fail_mergePropagatedTypesAtJoinPoint_3() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    assertTypeOfMarkedExpression(
+        createSource(
+            "f4(x) {",
+            "  var y = [];",
+            "  if (x) {",
+            "    y = 0;",
+            "  } else {",
+            "    y = 1.5;",
+            "  }",
+            "  // Propagated type is [List] here: incorrect.",
+            "  // A correct answer is the least upper bound of [int] and [double],",
+            "  // i.e. [num].",
+            "  return y; // marker",
+            "}"),
+        // Don't care about the static type.
+        null,
+        getTypeProvider().getNumType());
+  }
+
+  public void fail_mergePropagatedTypesAtJoinPoint_5() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    assertTypeOfMarkedExpression(
+        createSource(
+            "f6(x,y) {",
+            "  var z = [];",
+            "  if (x || (z = y) < 0) {",
+            "  } else {",
+            "    z = 0;",
+            "  }",
+            "  // Propagated type is [List] here: incorrect.",
+            "  // Best we can do is [Object]?",
+            "  return z; // marker",
+            "}"),
+        // Don't care about the static type.
+        null,
+        getTypeProvider().getDynamicType());
+  }
+
   public void fail_propagatedReturnType_functionExpression() throws Exception {
     // TODO(scheglov) disabled because we don't resolve function expression
     String code = createSource(//
         "main() {",
         "  var v = (() {return 42;})();",
         "}");
-    check_propagatedReturnType(
+    assertPropagatedReturnType(
         code,
         getTypeProvider().getDynamicType(),
         getTypeProvider().getIntType());
@@ -977,13 +1062,32 @@ public class TypePropagationTest extends ResolverTestCase {
     assertSame(getTypeProvider().getDynamicType(), typeArguments[1]);
   }
 
+  public void test_mergePropagatedTypesAtJoinPoint_4() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    assertTypeOfMarkedExpression(
+        createSource(
+            "f5(x) {",
+            "  var y = [];",
+            "  if (x) {",
+            "    y = 0;",
+            "  } else {",
+            "    return y;",
+            "  }",
+            "  // Propagated type is [int] here: correct.",
+            "  return y; // marker",
+            "}"),
+        // Don't care about the static type.
+        null,
+        getTypeProvider().getIntType());
+  }
+
   public void test_propagatedReturnType_function_hasReturnType_returnsNull() throws Exception {
     String code = createSource(//
         "String f() => null;",
         "main() {",
         "  var v = f();",
         "}");
-    check_propagatedReturnType(
+    assertPropagatedReturnType(
         code,
         getTypeProvider().getDynamicType(),
         getTypeProvider().getStringType());
@@ -995,7 +1099,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "main() {",
         "  var v = f();",
         "}");
-    check_propagatedReturnType(
+    assertPropagatedReturnType(
         code,
         getTypeProvider().getDynamicType(),
         getTypeProvider().getIntType());
@@ -1007,7 +1111,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "main() {",
         "  var v = f(3);",
         "}");
-    check_propagatedReturnType(
+    assertPropagatedReturnType(
         code,
         getTypeProvider().getDynamicType(),
         getTypeProvider().getIntType());
@@ -1023,7 +1127,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "main() {",
         "  var v = f();",
         "}");
-    check_propagatedReturnType(
+    assertPropagatedReturnType(
         code,
         getTypeProvider().getDynamicType(),
         getTypeProvider().getNumType());
@@ -1039,7 +1143,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "main() {",
         "  var v = f();",
         "}");
-    check_propagatedReturnType(
+    assertPropagatedReturnType(
         code,
         getTypeProvider().getDynamicType(),
         getTypeProvider().getIntType());
@@ -1051,7 +1155,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "main() {",
         "  var v = f();",
         "}");
-    check_propagatedReturnType(
+    assertPropagatedReturnType(
         code,
         getTypeProvider().getDynamicType(),
         getTypeProvider().getIntType());
@@ -1063,7 +1167,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  f() => 42;",
         "  var v = f();",
         "}");
-    check_propagatedReturnType(
+    assertPropagatedReturnType(
         code,
         getTypeProvider().getDynamicType(),
         getTypeProvider().getIntType());
@@ -1114,7 +1218,7 @@ public class TypePropagationTest extends ResolverTestCase {
    * @param code the code that assigns the value to the variable "v", no matter how. We check that
    *          "v" has expected static and propagated type.
    */
-  private void check_propagatedReturnType(String code, Type expectedStaticType,
+  private void assertPropagatedReturnType(String code, Type expectedStaticType,
       Type expectedPropagatedType) throws Exception {
     Source source = addSource(code);
     LibraryElement library = resolve(source);
@@ -1125,5 +1229,29 @@ public class TypePropagationTest extends ResolverTestCase {
     SimpleIdentifier identifier = findNode(unit, code, "v = ", SimpleIdentifier.class);
     assertSame(expectedStaticType, identifier.getStaticType());
     assertSame(expectedPropagatedType, identifier.getPropagatedType());
+  }
+
+  /**
+   * Check the static and propagated types of the expression marked with "; // marker" comment.
+   * 
+   * @param code source code to analyze, with the expression to check marked with "// marker".
+   * @param expectedStaticType if non-null, check actual static type is equal to this.
+   * @param expectedPropagatedType if non-null, check actual static type is equal to this.
+   * @throws Exception
+   */
+  private void assertTypeOfMarkedExpression(String code, Type expectedStaticType,
+      Type expectedPropagatedType) throws Exception {
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    SimpleIdentifier identifier = findNode(unit, code, "; // marker", SimpleIdentifier.class);
+    if (expectedStaticType != null) {
+      assertSame(expectedStaticType, identifier.getStaticType());
+    }
+    if (expectedPropagatedType != null) {
+      assertSame(expectedPropagatedType, identifier.getPropagatedType());
+    }
   }
 }
