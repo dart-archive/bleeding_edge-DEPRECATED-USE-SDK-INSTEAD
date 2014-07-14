@@ -2527,8 +2527,17 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
         names = ((ShowCombinator) combinator).getShownNames();
       }
       for (SimpleIdentifier name : names) {
-        Element element = namespace.get(name.getName());
+        String nameStr = name.getName();
+        Element element = namespace.get(nameStr);
+        if (element == null) {
+          element = namespace.get(nameStr + "=");
+        }
         if (element != null) {
+          // Ensure that the name always resolves to a top-level variable
+          // rather than a getter or setter
+          if (element instanceof PropertyAccessorElement) {
+            element = ((PropertyAccessorElement) element).getVariable();
+          }
           name.setStaticElement(element);
         }
       }

@@ -32,6 +32,7 @@ import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
+import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
@@ -45,6 +46,7 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
@@ -55,6 +57,7 @@ import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
+import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.scope.ClassScope;
 import com.google.dart.engine.internal.scope.EnclosedScope;
@@ -111,6 +114,7 @@ import static com.google.dart.engine.element.ElementFactory.methodElement;
 import static com.google.dart.engine.element.ElementFactory.namedParameter;
 import static com.google.dart.engine.element.ElementFactory.prefix;
 import static com.google.dart.engine.element.ElementFactory.setterElement;
+import static com.google.dart.engine.element.ElementFactory.topLevelVariableElement;
 
 import java.lang.reflect.Field;
 
@@ -361,6 +365,25 @@ public class ElementResolverTest extends EngineTestCase {
     ImportDirective directive = importDirective(null, prefixName);
     directive.setElement(importElement);
     resolveNode(directive);
+    listener.assertNoErrors();
+  }
+
+  public void test_visitImportDirective_withCombinators() {
+    ShowCombinator combinator = showCombinator("A", "B", "C");
+    ImportDirective directive = importDirective(null, null, combinator);
+    LibraryElementImpl library = library(definingLibrary.getContext(), "lib");
+    TopLevelVariableElementImpl varA = topLevelVariableElement("A");
+    TopLevelVariableElementImpl varB = topLevelVariableElement("B");
+    TopLevelVariableElementImpl varC = topLevelVariableElement("C");
+    CompilationUnitElementImpl unit = (CompilationUnitElementImpl) library.getDefiningCompilationUnit();
+    unit.setAccessors(new PropertyAccessorElement[] {
+        varA.getGetter(), varA.getSetter(), varB.getGetter(), varC.getSetter()});
+    unit.setTopLevelVariables(new TopLevelVariableElement[] {varA, varB, varC});
+    directive.setElement(importFor(library, null));
+    resolveNode(directive);
+    assertSame(varA, combinator.getShownNames().get(0).getStaticElement());
+    assertSame(varB, combinator.getShownNames().get(1).getStaticElement());
+    assertSame(varC, combinator.getShownNames().get(2).getStaticElement());
     listener.assertNoErrors();
   }
 

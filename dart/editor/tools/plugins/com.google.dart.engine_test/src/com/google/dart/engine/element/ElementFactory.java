@@ -510,9 +510,7 @@ public final class ElementFactory {
   }
 
   public static TopLevelVariableElementImpl topLevelVariableElement(String name) {
-    TopLevelVariableElementImpl element = new TopLevelVariableElementImpl(name, -1);
-    element.setSynthetic(true);
-    return element;
+    return topLevelVariableElement(name, false, false, null);
   }
 
   public static TopLevelVariableElementImpl topLevelVariableElement(String name, boolean isConst,
