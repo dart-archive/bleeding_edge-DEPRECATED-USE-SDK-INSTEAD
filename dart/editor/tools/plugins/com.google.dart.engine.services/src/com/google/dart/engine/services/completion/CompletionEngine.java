@@ -3091,6 +3091,13 @@ public class CompletionEngine {
   }
 
   private Type typeOf(Expression expr) {
+    // Use static type if known.
+    {
+      Type staticType = expr.getStaticType();
+      if (staticType != null && !staticType.isDynamic()) {
+        return staticType;
+      }
+    }
     Type type = expr.getBestType();
     if (type.isDynamic()) {
       final Type[] result = new Type[1];

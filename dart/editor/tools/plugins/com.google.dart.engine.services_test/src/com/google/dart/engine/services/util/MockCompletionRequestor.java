@@ -35,6 +35,8 @@ public class MockCompletionRequestor implements CompletionRequestor {
     suggestions.add(suggestion);
     suggestions.add(suggestion + ":" + proposal.getKind());
     suggestions.add(suggestion + ",rel=" + proposal.getRelevance());
+    suggestions.add(suggestion + ",potential=" + proposal.isPotentialMatch() + ",declaringType="
+        + proposal.getDeclaringType());
   }
 
   /**

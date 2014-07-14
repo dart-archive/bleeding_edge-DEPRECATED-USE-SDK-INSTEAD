@@ -2095,6 +2095,24 @@ public class CompletionTests extends CompletionTestCase {
         + ProposalKind.OPTIONAL_ARGUMENT);
   }
 
+  public void testCompletion_preferStaticType() throws Exception {
+    test(
+        src(//
+            "class A {",
+            "  foo() {}",
+            "}",
+            "class B extends A {",
+            "  bar() {}",
+            "}",
+            "main() {",
+            "  A v = new B();",
+            "  v.!1",
+            "}"),
+        "1+foo",
+        "1-bar,potential=false,declaringType=B",
+        "1+bar,potential=true,declaringType=B");
+  }
+
   public void testCompletion_privateElement_sameLibrary_constructor() throws Exception {
     test(src(//
         "class A {",
