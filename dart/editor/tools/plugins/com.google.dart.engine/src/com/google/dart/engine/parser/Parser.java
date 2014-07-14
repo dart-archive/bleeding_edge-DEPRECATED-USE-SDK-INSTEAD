@@ -5554,6 +5554,8 @@ public class Parser {
             string.getLexeme(),
             false,
             !hasMore)));
+      } else {
+        hasMore = false;
       }
     }
     return new StringInterpolation(elements);
