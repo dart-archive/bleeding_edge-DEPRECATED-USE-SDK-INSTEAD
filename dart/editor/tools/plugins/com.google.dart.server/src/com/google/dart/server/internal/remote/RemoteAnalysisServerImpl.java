@@ -14,6 +14,7 @@
 package com.google.dart.server.internal.remote;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisOptions;
@@ -174,6 +175,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   // Search domain
   private static final String SEARCH_NOTIFICATION_RESULTS = "search.results";
+
+  private final static List<String> EMPTY_STR_LIST = Lists.newArrayList();
 
   private final AnalysisServerSocket socket;
   private RequestSink requestSink;
@@ -351,6 +354,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths) {
     String id = generateUniqueId();
+    if (includedPaths == null) {
+      includedPaths = EMPTY_STR_LIST;
+    }
+    if (excludedPaths == null) {
+      excludedPaths = EMPTY_STR_LIST;
+    }
     sendRequestToServer(
         id,
         RequestUtilities.generateAnalysisSetAnalysisRoots(id, includedPaths, excludedPaths));

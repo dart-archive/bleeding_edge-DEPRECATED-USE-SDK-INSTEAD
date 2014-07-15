@@ -700,6 +700,21 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
+  public void test_analysis_setAnalysisRoots_nullLists() throws Exception {
+    server.setAnalysisRoots(null, null);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setAnalysisRoots',",
+        "  'params': {",
+        "    'included': [],",
+        "    'excluded': []",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
   public void test_analysis_setPriorityFiles() throws Exception {
     server.setPriorityFiles(ImmutableList.of("/fileA.dart", "/fileB.dart"));
     List<JsonObject> requests = requestSink.getRequests();
