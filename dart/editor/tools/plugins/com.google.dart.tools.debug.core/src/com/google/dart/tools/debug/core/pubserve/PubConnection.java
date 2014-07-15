@@ -179,7 +179,7 @@ public class PubConnection {
         processNotification(object);
       }
     } catch (JSONException exception) {
-      DartDebugCorePlugin.logError(exception);
+      DartDebugCorePlugin.logError("Could not process message " + message.getText(), exception);
     }
   }
 
