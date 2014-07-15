@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.ui.console;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.launch.OpenObservatoryAction;
 import com.google.dart.tools.debug.ui.launch.StopPubServeAction;
 import com.google.dart.tools.deploy.Activator;
@@ -23,12 +25,15 @@ import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchesListener2;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.internal.ui.views.console.ProcessConsole;
+import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
@@ -47,6 +52,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.IOConsole;
+import org.eclipse.ui.console.IOConsoleOutputStream;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.TextConsole;
 import org.eclipse.ui.dialogs.PreferencesUtil;
@@ -55,6 +61,8 @@ import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.part.PageSite;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
+
+import java.io.IOException;
 
 /**
  * An Eclipse view class that displays one and only one IConsole. This is different from the normal
@@ -318,6 +326,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     if (console instanceof ProcessConsole) {
       IProcess process = ((ProcessConsole) console).getProcess();
       openObservatoryAction.updateEnablement(process.getLaunch());
+      showPauseOnStartMessage(process.getLaunch().getLaunchConfiguration());
     }
   }
 
@@ -485,6 +494,25 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       } else {
         return null;
       }
+    }
+  }
+
+  private void showPauseOnStartMessage(ILaunchConfiguration config) {
+    try {
+      if (config.getType().getIdentifier().equals(DartDebugCorePlugin.SERVER_LAUNCH_CONFIG_ID)) {
+        DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+        if (wrapper.getPauseIsolateOnStart()) {
+          IOConsoleOutputStream stream = ((ProcessConsole) getConsole()).getStream(IDebugUIConstants.ID_STANDARD_OUTPUT_STREAM);
+          try {
+            stream.write("Isolate paused on start. Click on the  \"Open Observatory\" button "
+                + "in the Toolbar \nto open Observatory and continue isolate execution.\n\n");
+          } catch (IOException e) {
+            // do nothing
+          }
+        }
+      }
+    } catch (CoreException e) {
+      // do nothing
     }
   }
 
