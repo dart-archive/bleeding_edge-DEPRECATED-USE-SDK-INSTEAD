@@ -47,8 +47,8 @@ class PresentationCollector extends AbstractCollection {
   public boolean add(Object o) {
     StyleRange range = (StyleRange) o;
     if (lastOffset > range.start) {
-      Logger.log(Logger.ERROR,
-          "Overlapping start in StyleRange " + range.start + ":" + range.length); //$NON-NLS-1$ //$NON-NLS-2$
+//      Logger.log(Logger.ERROR,
+//          "Overlapping start in StyleRange " + range.start + ":" + range.length); //$NON-NLS-1$ //$NON-NLS-2$
       return false;
     } else if (range.length < 0) {
       Logger.log(Logger.ERROR, "StyleRange with negative length" + range.start + ":" + range.length); //$NON-NLS-1$ //$NON-NLS-2$
