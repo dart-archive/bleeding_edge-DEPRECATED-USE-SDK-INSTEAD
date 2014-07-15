@@ -26,6 +26,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ElementCodecTest extends TestCase {
+  private static final String FLIB = "ffile:/lib.dart";
+  private static final String FUNIT = "ffile:/unit.dart";
+  private static final String LIB = "file:/lib.dart";
+  private static final String UNIT = "file:/unit.dart";
+
   private AnalysisContext context = mock(AnalysisContext.class);
   private StringCodec stringCodec = new StringCodec();
   private ElementCodec codec = new ElementCodec(stringCodec);
@@ -34,7 +39,7 @@ public class ElementCodecTest extends TestCase {
     int idA;
     {
       Element element = mock(Element.class);
-      ElementLocation location = new ElementLocationImpl(new String[] {"main", "A", "foo@1"});
+      ElementLocation location = new ElementLocationImpl(new String[] {FLIB, FUNIT, "A", "foo@1"});
       when(element.getLocation()).thenReturn(location);
       when(context.getElement(location)).thenReturn(element);
       idA = codec.encodeHash(element);
@@ -42,7 +47,7 @@ public class ElementCodecTest extends TestCase {
     int idB;
     {
       Element element = mock(Element.class);
-      ElementLocation location = new ElementLocationImpl(new String[] {"main", "A", "foo@2"});
+      ElementLocation location = new ElementLocationImpl(new String[] {FLIB, FUNIT, "A", "foo@2"});
       when(element.getLocation()).thenReturn(location);
       when(context.getElement(location)).thenReturn(element);
       idB = codec.encodeHash(element);
@@ -50,14 +55,14 @@ public class ElementCodecTest extends TestCase {
     // offset is simply ignored
     assertTrue(idA == idB);
     // check strings, "foo" as a single string, no "foo@1" or "foo@2"
-    assertThat(stringCodec.getNameToIndex()).hasSize(2).includes(entry("main", 0), entry("foo", 1));
+    assertThat(stringCodec.getNameToIndex()).hasSize(2).includes(entry(LIB, 0), entry("foo", 1));
   }
 
   public void test_encodeHash_notLocal() throws Exception {
     int idA;
     {
       Element element = mock(Element.class);
-      ElementLocation location = new ElementLocationImpl(new String[] {"foo", "A"});
+      ElementLocation location = new ElementLocationImpl(new String[] {FLIB, FUNIT, "A"});
       when(element.getLocation()).thenReturn(location);
       when(context.getElement(location)).thenReturn(element);
       idA = codec.encodeHash(element);
@@ -65,7 +70,7 @@ public class ElementCodecTest extends TestCase {
     int idB;
     {
       Element element = mock(Element.class);
-      ElementLocation location = new ElementLocationImpl(new String[] {"foo", "B"});
+      ElementLocation location = new ElementLocationImpl(new String[] {FLIB, FUNIT, "B"});
       when(element.getLocation()).thenReturn(location);
       when(context.getElement(location)).thenReturn(element);
       idB = codec.encodeHash(element);
@@ -76,56 +81,65 @@ public class ElementCodecTest extends TestCase {
   public void test_localLocalVariable() throws Exception {
     {
       Element element = mock(Element.class);
-      ElementLocation location = new ElementLocationImpl(new String[] {"main", "foo@1", "bar@2"});
+      ElementLocation location = new ElementLocationImpl(new String[] {
+          FLIB, FUNIT, "foo@1", "bar@2"});
       when(context.getElement(location)).thenReturn(element);
       when(element.getLocation()).thenReturn(location);
       int id = codec.encode(element);
-      assertEquals(element, codec.decode(context, id));
+      assertEquals(element, codec.decode(context, id, 'f', 'f'));
     }
     {
       Element element = mock(Element.class);
-      ElementLocation location = new ElementLocationImpl(new String[] {"main", "foo@10", "bar@20"});
+      ElementLocation location = new ElementLocationImpl(new String[] {
+          FLIB, FUNIT, "foo@10", "bar@20"});
       when(context.getElement(location)).thenReturn(element);
       when(element.getLocation()).thenReturn(location);
       int id = codec.encode(element);
-      assertEquals(element, codec.decode(context, id));
+      assertEquals(element, codec.decode(context, id, 0, 0));
     }
     // check strings, "foo" as a single string, no "foo@1" or "foo@10"
-    assertThat(stringCodec.getNameToIndex()).hasSize(3).includes(
-        entry("main", 0),
-        entry("foo", 1),
-        entry("bar", 2));
+    assertThat(stringCodec.getNameToIndex()).hasSize(4).includes(
+        entry(LIB, 0),
+        entry(UNIT, 1),
+        entry("foo", 2),
+        entry("bar", 3));
   }
 
   public void test_localVariable() throws Exception {
     {
       Element element = mock(Element.class);
-      ElementLocation location = new ElementLocationImpl(new String[] {"main", "foo@42"});
+      ElementLocation location = new ElementLocationImpl(new String[] {FLIB, FUNIT, "foo@42"});
       when(context.getElement(location)).thenReturn(element);
       when(element.getLocation()).thenReturn(location);
       int id = codec.encode(element);
-      assertEquals(element, codec.decode(context, id));
+      assertEquals(element, codec.decode(context, id, 'f', 'f'));
     }
     {
       Element element = mock(Element.class);
-      ElementLocation location = new ElementLocationImpl(new String[] {"main", "foo@4200"});
+      ElementLocation location = new ElementLocationImpl(new String[] {FLIB, FUNIT, "foo@4200"});
       when(context.getElement(location)).thenReturn(element);
       when(element.getLocation()).thenReturn(location);
       int id = codec.encode(element);
-      assertEquals(element, codec.decode(context, id));
+      assertEquals(element, codec.decode(context, id, 'f', 'f'));
     }
     // check strings, "foo" as a single string, no "foo@42" or "foo@4200"
-    assertThat(stringCodec.getNameToIndex()).hasSize(2).includes(entry("main", 0), entry("foo", 1));
+    assertThat(stringCodec.getNameToIndex()).hasSize(3).includes(
+        entry(LIB, 0),
+        entry(UNIT, 1),
+        entry("foo", 2));
   }
 
   public void test_notLocal() throws Exception {
     Element element = mock(Element.class);
-    ElementLocation location = new ElementLocationImpl(new String[] {"foo", "bar"});
+    ElementLocation location = new ElementLocationImpl(new String[] {FLIB, FUNIT, "bar"});
     when(element.getLocation()).thenReturn(location);
     when(context.getElement(location)).thenReturn(element);
     int id = codec.encode(element);
-    assertEquals(element, codec.decode(context, id));
+    assertEquals(element, codec.decode(context, id, 'f', 'f'));
     // check strings
-    assertThat(stringCodec.getNameToIndex()).hasSize(2).includes(entry("foo", 0), entry("bar", 1));
+    assertThat(stringCodec.getNameToIndex()).hasSize(3).includes(
+        entry(LIB, 0),
+        entry(UNIT, 1),
+        entry("bar", 2));
   }
 }

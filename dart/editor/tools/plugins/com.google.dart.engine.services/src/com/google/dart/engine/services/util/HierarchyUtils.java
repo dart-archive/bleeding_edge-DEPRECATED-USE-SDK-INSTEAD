@@ -115,9 +115,7 @@ public class HierarchyUtils {
     List<SearchMatch> subMatches = searchEngine.searchSubtypes(seed, null, null);
     for (SearchMatch subMatch : subMatches) {
       ClassElement subClass = (ClassElement) subMatch.getElement();
-      if (subClass.getContext() == seed.getContext()) {
-        subClasses.add(subClass);
-      }
+      subClasses.add(subClass);
     }
     // done
     return subClasses;

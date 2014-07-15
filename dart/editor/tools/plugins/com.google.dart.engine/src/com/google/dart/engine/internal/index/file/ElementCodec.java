@@ -50,12 +50,18 @@ public class ElementCodec {
    * Returns an {@link Element} that corresponds to the given location.
    * 
    * @param context the {@link AnalysisContext} to find {@link Element} in
-   * @param index an integer corresponding to the {@link Element}
+   * @param id an integer corresponding to the {@link Element}
+   * @param kindId0 an integer corresponding to the {@link Element} library source kind
+   * @param kindId1 an integer corresponding to the {@link Element} unit source kind
    * @return the {@link Element} or {@code null}
    */
-  public Element decode(AnalysisContext context, int index) {
-    int[] path = indexToPath.get(index);
+  public Element decode(AnalysisContext context, int id, int kindId0, int kindId1) {
+    int[] path = indexToPath.get(id);
     String[] components = getLocationComponents(path);
+    if (components.length >= 2) {
+      components[0] = String.valueOf((char) kindId0) + components[0];
+      components[1] = String.valueOf((char) kindId1) + components[1];
+    }
     ElementLocation location = new ElementLocationImpl(components);
     return context.getElement(location);
   }
@@ -88,6 +94,19 @@ public class ElementCodec {
     return index;
   }
 
+  /**
+   * Returns a pair of integers corresponding to the {@link Element}'s library and unit source
+   * kinds.
+   */
+  public int[] getSourceKindIds(Element element) {
+    String[] components = element.getLocation().getComponents();
+    if (components.length >= 2) {
+      return new int[] {components[0].charAt(0), components[1].charAt(0)};
+    } else {
+      return new int[] {0, 0};
+    }
+  }
+
   private String[] getLocationComponents(int[] path) {
     int length = path.length;
     String[] components = new String[length];
@@ -107,7 +126,12 @@ public class ElementCodec {
 
   private int[] getLocationPath(Element element) {
     String[] components = element.getLocation().getComponents();
+    components = components.clone();
     int length = components.length;
+    if (length >= 2) {
+      components[0] = components[0].substring(1);
+      components[1] = components[1].substring(1);
+    }
     if (hasLocalOffset(components)) {
       int[] path = new int[2 * length];
       int pathLength = 0;
@@ -142,6 +166,7 @@ public class ElementCodec {
     int length = components.length;
     String firstComponent = components[0];
     String lastComponent = components[length - 1];
+    firstComponent = firstComponent.substring(1);
     lastComponent = StringUtils.substringBefore(lastComponent, "@");
     int firstId = stringCodec.encode(firstComponent);
     int lastId = stringCodec.encode(lastComponent);

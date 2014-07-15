@@ -28,8 +28,8 @@ public class LocationDataTest extends TestCase {
 
   public void test_newFromData() throws Exception {
     Element element = mock(Element.class);
-    when(elementCodec.decode(context, 0)).thenReturn(element);
-    LocationData locationData = new LocationData(0, 1, 2);
+    when(elementCodec.decode(context, 0, 0, 0)).thenReturn(element);
+    LocationData locationData = new LocationData(0, 0, 0, 1, 2);
     Location location = locationData.getLocation(context, elementCodec);
     assertEquals(element, location.getElement());
     assertEquals(1, location.getOffset());
@@ -39,8 +39,9 @@ public class LocationDataTest extends TestCase {
   public void test_newFromObjects() throws Exception {
     // prepare Element
     Element element = mock(Element.class);
+    when(elementCodec.getSourceKindIds(element)).thenReturn(new int[] {0, 0});
     when(elementCodec.encode(element)).thenReturn(42);
-    when(elementCodec.decode(context, 42)).thenReturn(element);
+    when(elementCodec.decode(context, 42, 0, 0)).thenReturn(element);
     // create
     Location location = new Location(element, 1, 2);
     LocationData locationData = new LocationData(elementCodec, location);
@@ -58,7 +59,7 @@ public class LocationDataTest extends TestCase {
     }
     // no Element - no Location
     {
-      when(elementCodec.decode(context, 42)).thenReturn(null);
+      when(elementCodec.decode(context, 42, 0, 0)).thenReturn(null);
       Location newLocation = locationData.getLocation(context, elementCodec);
       assertNull(newLocation);
     }

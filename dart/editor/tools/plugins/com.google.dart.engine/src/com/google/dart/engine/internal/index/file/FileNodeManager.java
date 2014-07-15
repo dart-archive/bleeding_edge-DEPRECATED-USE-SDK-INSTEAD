@@ -175,9 +175,11 @@ public class FileNodeManager implements NodeManager {
 
   private LocationData readLocationData(DataInputStream stream) throws Exception {
     int elementId = stream.readInt();
+    int kindId0 = stream.readInt();
+    int kindId1 = stream.readInt();
     int offset = stream.readInt();
     int length = stream.readInt();
-    return new LocationData(elementId, offset, length);
+    return new LocationData(elementId, kindId0, kindId1, offset, length);
   }
 
   private void writeElementRelationKey(DataOutputStream stream, RelationKeyData key)
@@ -206,6 +208,8 @@ public class FileNodeManager implements NodeManager {
       stream.writeInt(locations.size());
       for (LocationData location : locations) {
         stream.writeInt(location.elementId);
+        stream.writeInt(location.kindId0);
+        stream.writeInt(location.kindId1);
         stream.writeInt(location.offset);
         stream.writeInt(location.length);
       }

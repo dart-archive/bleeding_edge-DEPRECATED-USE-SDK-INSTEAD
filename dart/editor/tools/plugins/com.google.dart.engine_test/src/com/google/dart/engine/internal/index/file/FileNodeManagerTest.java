@@ -155,8 +155,8 @@ public class FileNodeManagerTest extends TestCase {
       int relationshipId = relationshipCodec.encode(relationship);
       RelationKeyData key = new RelationKeyData(elementIdA, relationshipId);
       List<LocationData> locations = Lists.newArrayList(
-          new LocationData(elementIdB, 1, 10),
-          new LocationData(elementIdC, 2, 20));
+          new LocationData(elementIdB, 0, 0, 1, 10),
+          new LocationData(elementIdC, 0, 0, 2, 20));
       Map<RelationKeyData, List<LocationData>> relations = ImmutableMap.of(key, locations);
       // prepare Node
       IndexNode node = new IndexNode(context, elementCodec, relationshipCodec);
@@ -218,7 +218,7 @@ public class FileNodeManagerTest extends TestCase {
     int elementId = nextElementId++;
     Element element = mock(Element.class);
     when(elementCodec.encode(element)).thenReturn(elementId);
-    when(elementCodec.decode(context, elementId)).thenReturn(element);
+    when(elementCodec.decode(context, elementId, 0, 0)).thenReturn(element);
     return element;
   }
 }
