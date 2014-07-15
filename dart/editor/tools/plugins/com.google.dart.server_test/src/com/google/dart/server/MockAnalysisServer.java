@@ -105,8 +105,8 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void searchElementReferences(Element element, boolean withPotential,
-      SearchResultsConsumer consumer) {
+  public void searchElementReferences(String file, int offset, boolean includePotential,
+      SearchIdConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 

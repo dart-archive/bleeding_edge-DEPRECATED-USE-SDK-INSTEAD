@@ -27,7 +27,6 @@ import com.google.dart.server.BasicConsumer;
 import com.google.dart.server.CompletionIdConsumer;
 import com.google.dart.server.Consumer;
 import com.google.dart.server.ContentChange;
-import com.google.dart.server.Element;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HoverConsumer;
 import com.google.dart.server.Location;
@@ -341,9 +340,13 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void searchElementReferences(Element element, boolean withPotential,
-      SearchResultsConsumer consumer) {
-    // TODO(scheglov) implement
+  public void searchElementReferences(String file, int offset, boolean includePotential,
+      SearchIdConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateSearchFindElementReferences(id, file, offset, includePotential),
+        consumer);
   }
 
   @Override

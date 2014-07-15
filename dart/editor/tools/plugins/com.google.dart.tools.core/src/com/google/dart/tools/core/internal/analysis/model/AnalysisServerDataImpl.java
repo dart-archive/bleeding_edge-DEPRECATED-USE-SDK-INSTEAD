@@ -25,9 +25,11 @@ import com.google.dart.server.AnalysisService;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Outline;
+import com.google.dart.server.SearchResult;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
+import com.google.dart.tools.core.analysis.model.SearchResultsListener;
 
 import java.util.List;
 import java.util.Map;
@@ -45,10 +47,27 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   private final Map<String, AnalysisError[]> errorData = Maps.newHashMap();
   private final Map<String, NavigationRegion[]> navigationData = Maps.newHashMap();
   private final Map<AnalysisService, List<String>> analysisSubscriptions = Maps.newHashMap();
+  private final Map<String, SearchResultsListener> searchResultsListeners = Maps.newHashMap();
+  private final Map<String, List<SearchResultsSet>> searchResultsData = Maps.newHashMap();
   // TODO(scheglov) restore or remove for the new API
 //  private final Map<String, Set<ErrorCode>> fixableErrorCodesData = Maps.newHashMap();
 
   private AnalysisServer server;
+
+  @Override
+  public synchronized void addSearchResultsListener(String searchId, SearchResultsListener listener) {
+    List<SearchResultsSet> resultsSets = searchResultsData.remove(searchId);
+    boolean hasLast = false;
+    if (resultsSets != null) {
+      for (SearchResultsSet searchResultsSet : resultsSets) {
+        listener.computedSearchResults(searchResultsSet.results, searchResultsSet.last);
+        hasLast |= searchResultsSet.last;
+      }
+    }
+    if (!hasLast) {
+      searchResultsListeners.put(searchId, listener);
+    }
+  }
 
   @Override
   public AnalysisError[] getErrors(String file) {
@@ -77,6 +96,13 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
 //      return false;
 //    }
 //    return fixableErrorCodes.contains(errorCode);
+  }
+
+  @Override
+  public synchronized void removeSearchResultsListener(String searchId,
+      SearchResultsListener listener) {
+    searchResultsData.remove(searchId);
+    searchResultsListeners.remove(searchId);
   }
 
   /**
@@ -173,6 +199,17 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
     subscriptions = ImmutableSet.copyOf(subscriptions);
     for (AnalysisServerOutlineListener listener : subscriptions) {
       listener.computedOutline(file, outline);
+    }
+  }
+
+  synchronized void internalComputedSearchResults(String searchId, SearchResult[] results,
+      boolean last) {
+    SearchResultsListener listener = searchResultsListeners.get(searchId);
+    if (listener != null) {
+      if (last) {
+        searchResultsListeners.remove(searchId);
+      }
+      listener.computedSearchResults(results, last);
     }
   }
 

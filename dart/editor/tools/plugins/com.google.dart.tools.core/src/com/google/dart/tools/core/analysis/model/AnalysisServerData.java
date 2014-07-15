@@ -29,6 +29,8 @@ import com.google.dart.server.Outline;
  * @coverage dart.tools.core.model
  */
 public interface AnalysisServerData {
+  void addSearchResultsListener(String id, SearchResultsListener listener);
+
   /**
    * Returns {@link AnalysisError}s associated with the given file. May be empty, but not
    * {@code null}.
@@ -45,6 +47,8 @@ public interface AnalysisServerData {
    * Returns {@code true} if the given {@link ErrorCode} may be fixed in the given file.
    */
   boolean isFixableErrorCode(String file, ErrorCode errorCode);
+
+  void removeSearchResultsListener(String id, SearchResultsListener listener);
 
   /**
    * Specifies that the client wants to be notified about new {@link HighlightRegion}s.

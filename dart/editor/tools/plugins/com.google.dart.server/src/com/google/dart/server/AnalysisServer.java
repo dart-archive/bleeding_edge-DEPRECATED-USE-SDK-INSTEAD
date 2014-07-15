@@ -183,22 +183,25 @@ public interface AnalysisServer {
   public void searchClassMemberReferences(String name, SearchResultsConsumer consumer);
 
   /**
-   * Searches for references to the given element.
+   * Perform a search for references to the element defined or referenced at the given offset in the
+   * given file.
    * <p>
-   * If the given element is a class member, then also references to all corresponding members in
-   * the class hierarchy are searched.
+   * If the element is a class member, then also references to all corresponding members in the
+   * class hierarchy are searched.
    * <p>
-   * If the given element is a class member and {@code withPotential} is {@code true}, then
-   * potential references should also be reported.
+   * If the element is a class member and {@code includePotential} is {@code true}, then potential
+   * references should also be reported.
    * <p>
    * The given consumer is invoked asynchronously on a different thread.
    * 
-   * @param element the element to find references to, not {@code null}
-   * @param withPotential is {@code true} if potential references should also be reported
-   * @param consumer the results listener
+   * @param file the file containing the declaration of or a reference to the element used to define
+   *          the search
+   * @param offset the offset within the file of the declaration of or reference to the element
+   * @param includePotential is {@code true} if potential matches are to be included in the results
+   * @param consumer the search id consumer
    */
-  public void searchElementReferences(Element element, boolean withPotential,
-      SearchResultsConsumer consumer);
+  public void searchElementReferences(String file, int offset, boolean includePotential,
+      SearchIdConsumer consumer);
 
   /**
    * Searches the given context for declarations of top-level elements with names matching the given

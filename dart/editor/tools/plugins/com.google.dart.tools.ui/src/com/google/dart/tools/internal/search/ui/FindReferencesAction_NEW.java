@@ -13,8 +13,16 @@
  */
 package com.google.dart.tools.internal.search.ui;
 
+import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.dart.server.Element;
+import com.google.dart.server.SearchIdConsumer;
+import com.google.dart.server.SearchResult;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.SearchResultsListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
+import com.google.dart.tools.ui.actions.OpenAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -30,6 +38,11 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Finds references of the selected entity in the workspace.
@@ -117,10 +130,8 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
 
   @Override
   public void selectionChanged(DartSelection selection) {
-    // TODO(scheglov) Analysis Server: implement for new API
-    setEnabled(false);
-//    Element[] elements = OpenAction.getNavigationTargets(selection);
-//    setEnabled(elements.length != 0);
+    Element[] elements = OpenAction.getNavigationTargets(selection);
+    setEnabled(elements.length != 0);
   }
 
   @Override
@@ -134,64 +145,68 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     // TODO(scheglov) Analysis Server: implement for new API
-//    // prepare context
-//    DartEditor editor = selection.getEditor();
-//    final String contextId = editor.getInputAnalysisContextId();
-//    final Source source = editor.getInputSource();
-//    if (contextId == null || source == null) {
-//      return;
-//    }
-//    // open Search view
-//    SearchView view = (SearchView) DartToolsPlugin.showView(SearchView.ID);
-//    if (view == null) {
-//      return;
-//    }
-//    // do search
-//    final Element[] elements = OpenAction.getNavigationTargets(selection);
-//    final Element element = elements != null ? elements[0] : null;
-//    view.showPage(new SearchResultPage_NEW(view, "Searching for references...", contextId) {
-//
-//      @Override
-//      protected IProject getCurrentProject() {
-//        return findCurrentProject();
-//      }
-//
-//      @Override
-//      protected String getQueryElementName() {
-//        if (element == null) {
-//          return "<unknown>";
-//        }
-//        return element.getName();
-//      }
-//
-//      @Override
-//      protected String getQueryKindName() {
-//        return "references";
-//      }
-//
-//      @Override
-//      protected List<SearchResult> runQuery() {
-//        final List<SearchResult> allResults = Lists.newArrayList();
-//        // TODO(scheglov) restore or remove for the new API
-////        if (element != null) {
-////          final CountDownLatch latch = new CountDownLatch(1);
-////          DartCore.getAnalysisServer().searchElementReferences(
-////              element,
-////              true,
-////              new SearchResultsConsumer() {
-////                @Override
-////                public void computed(SearchResult[] searchResults, boolean isLastResult) {
-////                  Collections.addAll(allResults, searchResults);
-////                  if (isLastResult) {
-////                    latch.countDown();
-////                  }
-////                }
-////              });
-////          Uninterruptibles.awaitUninterruptibly(latch, 15, TimeUnit.MINUTES);
-////        }
-//        return allResults;
-//      }
-//    });
+    // prepare context
+    DartEditor editor = selection.getEditor();
+    final String filePath = editor.getInputFilePath();
+    final int offset = selection.getOffset();
+    // open Search view
+    SearchView view = (SearchView) DartToolsPlugin.showView(SearchView.ID);
+    if (view == null) {
+      return;
+    }
+    // do search
+    final Element[] elements = OpenAction.getNavigationTargets(selection);
+    final Element element = elements != null ? elements[0] : null;
+    view.showPage(new SearchResultPage_NEW(view, "Searching for references...") {
+
+      @Override
+      protected IProject getCurrentProject() {
+        return findCurrentProject();
+      }
+
+      @Override
+      protected String getQueryElementName() {
+        if (element == null) {
+          return "<unknown>";
+        }
+        return element.getName();
+      }
+
+      @Override
+      protected String getQueryKindName() {
+        return "references";
+      }
+
+      @Override
+      protected List<SearchResult> runQuery() {
+        final List<SearchResult> allResults = Lists.newArrayList();
+        if (element != null) {
+          final CountDownLatch latch = new CountDownLatch(1);
+          DartCore.getAnalysisServer().searchElementReferences(
+              filePath,
+              offset,
+              true,
+              new SearchIdConsumer() {
+                @Override
+                public void computedSearchId(String searchId) {
+                  DartCore.getAnalysisServerData().addSearchResultsListener(
+                      searchId,
+                      new SearchResultsListener() {
+                        @Override
+                        public void computedSearchResults(SearchResult[] results, boolean last) {
+                          Collections.addAll(allResults, results);
+                          if (last) {
+                            latch.countDown();
+                          }
+                        }
+                      });
+                }
+              });
+          Uninterruptibles.awaitUninterruptibly(latch, 5, TimeUnit.SECONDS);
+        }
+        return allResults;
+      }
+    });
   }
 
   @Override

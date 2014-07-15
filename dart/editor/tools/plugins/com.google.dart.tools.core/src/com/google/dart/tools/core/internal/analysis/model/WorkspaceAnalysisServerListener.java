@@ -98,7 +98,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedSearchResults(String searchId, SearchResult[] results, boolean last) {
-    //TODO (danrubel): not yet implemented
+    dataImpl.internalComputedSearchResults(searchId, results, last);
   }
 
   @Override

@@ -534,6 +534,14 @@ public final class DartUI {
   }
 
   /**
+   * @return the {@link IFile} to open for ""path, may be {@code null}.
+   */
+  public static IFile getSourceFile(String source) {
+    File javaFile = new File(source);
+    return ResourceUtil.getFile(javaFile);
+  }
+
+  /**
    * @return the {@link IFile} to open for the {@link Source} in given context, may be {@code null}.
    */
   public static IFile getSourceFile(String contextId, Source source) {
@@ -717,6 +725,27 @@ public final class DartUI {
     }
     // OK
     return false;
+  }
+
+  public static IEditorPart openFilePath(String path, boolean activate) throws PartInitException,
+      DartModelException {
+    File javaFile = new File(path);
+    IFile file = ResourceUtil.getFile(javaFile);
+    if (file != null) {
+      return openFile(file, activate);
+    }
+    // fallback for SDK, which sources are is not a IFile(s)
+    return EditorUtility.openInEditor(javaFile, activate);
+  }
+
+  /**
+   * Opens an editor at the given position in the active page.
+   */
+  public static IEditorPart openFilePath(String filePath, boolean activate, int offset, int length)
+      throws Exception {
+    IEditorPart editor = openFilePath(filePath, activate);
+    EditorUtility.revealInEditor(editor, offset, length);
+    return editor;
   }
 
   /**
@@ -1032,17 +1061,6 @@ public final class DartUI {
       EditorUtility.revealInEditor(editor, offset, length);
     }
     return editor;
-  }
-
-  private static IEditorPart openFilePath(String path, boolean activate) throws PartInitException,
-      DartModelException {
-    File javaFile = new File(path);
-    IFile file = ResourceUtil.getFile(javaFile);
-    if (file != null) {
-      return openFile(file, activate);
-    }
-    // fallback for SDK, which sources are is not a IFile(s)
-    return EditorUtility.openInEditor(javaFile, activate);
   }
 
   private static IEditorPart openSource(ResourceMap map, Source source, boolean activate)

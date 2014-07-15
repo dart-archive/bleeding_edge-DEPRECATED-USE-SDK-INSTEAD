@@ -11,29 +11,20 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.server;
+
+package com.google.dart.tools.core.internal.analysis.model;
+
+import com.google.dart.server.SearchResult;
 
 /**
- * The enumeration {@code ElementKind} defines the various kinds of {@link Element}s.
- * 
- * @coverage dart.server
+ * A set of {@link SearchResult}s.
  */
-public enum ElementKind {
-  CLASS,
-  CLASS_TYPE_ALIAS,
-  COMPILATION_UNIT,
-  CONSTRUCTOR,
-  GETTER,
-  FIELD,
-  FUNCTION,
-  FUNCTION_TYPE_ALIAS,
-  LIBRARY,
-  LOCAL_VARIABLE,
-  METHOD,
-  PARAMETER,
-  SETTER,
-  TOP_LEVEL_VARIABLE,
-  UNKNOWN,
-  UNIT_TEST_CASE,
-  UNIT_TEST_GROUP;
+class SearchResultsSet {
+  final SearchResult[] results;
+  final boolean last;
+
+  public SearchResultsSet(SearchResult[] results, boolean last) {
+    this.results = results;
+    this.last = last;
+  }
 }

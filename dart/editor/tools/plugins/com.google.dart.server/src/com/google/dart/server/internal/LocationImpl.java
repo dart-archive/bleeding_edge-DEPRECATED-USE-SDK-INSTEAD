@@ -42,8 +42,7 @@ public class LocationImpl implements Location {
     if (obj instanceof LocationImpl) {
       LocationImpl other = (LocationImpl) obj;
       return ObjectUtilities.equals(other.file, file) && other.offset == offset
-          && other.length == length && other.startLine == startLine
-          && other.startColumn == startColumn;
+          && other.length == length;
     }
     return false;
   }
@@ -71,6 +70,14 @@ public class LocationImpl implements Location {
   @Override
   public int getStartLine() {
     return startLine;
+  }
+
+  @Override
+  public int hashCode() {
+    int hash = file.hashCode();
+    hash = hash * 31 + offset;
+    hash = hash * 31 + length;
+    return hash;
   }
 
   @Override

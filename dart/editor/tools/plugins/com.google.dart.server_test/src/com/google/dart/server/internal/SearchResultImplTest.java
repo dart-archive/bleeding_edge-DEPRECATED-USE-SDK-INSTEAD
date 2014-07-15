@@ -14,25 +14,25 @@
 
 package com.google.dart.server.internal;
 
+import com.google.dart.server.Element;
+import com.google.dart.server.Location;
 import com.google.dart.server.SearchResultKind;
 
 import junit.framework.TestCase;
 
-public class SearchResultImplTest extends TestCase {
-//  private Source source = mock(Source.class);
+import static org.mockito.Mockito.mock;
 
+public class SearchResultImplTest extends TestCase {
   public void test_access() throws Exception {
-    // TODO (jwren) SearchResult API needs changes before this test can be fixed.
-    SearchResultKind kind = SearchResultKind.TYPE_REFERENCE;
-//    Element[] path = new Element[0];
-//    SearchResultImpl searchResult = new SearchResultImpl(path, source, kind, 10, 20, true);
-//    assertSame(path, searchResult.getPath());
-//    assertSame(source, searchResult.getSource());
-//    assertSame(kind, searchResult.getKind());
-//    assertEquals(10, searchResult.getOffset());
-//    assertEquals(20, searchResult.getLength());
-//    assertTrue(searchResult.isPotential());
-//    // toString()
-//    assertNotNull(searchResult.toString());
+    SearchResultKind kind = SearchResultKind.REFERENCE;
+    Element[] path = new Element[0];
+    Location location = mock(Location.class);
+    SearchResultImpl searchResult = new SearchResultImpl(path, kind, location, false);
+    assertSame(path, searchResult.getPath());
+    assertSame(kind, searchResult.getKind());
+    assertSame(location, searchResult.getLocation());
+    assertFalse(searchResult.isPotential());
+    // toString()
+    assertNotNull(searchResult.toString());
   }
 }

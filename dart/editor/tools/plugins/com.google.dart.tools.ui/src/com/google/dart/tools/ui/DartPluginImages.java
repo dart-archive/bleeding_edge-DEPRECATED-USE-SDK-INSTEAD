@@ -236,6 +236,9 @@ public class DartPluginImages {
       T_DART,
       "interface_private.png"); //$NON-NLS-1$
 
+  public static final ImageDescriptor DESC_DART_LOCAL_VARIABLE = createUnManaged(
+      T_DART,
+      "localvariable_obj.gif"); //$NON-NLS-1$
   public static final ImageDescriptor DESC_DART_METHOD_PUBLIC = createUnManaged(
       T_DART,
       "method_public.png"); //$NON-NLS-1$

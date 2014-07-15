@@ -1322,7 +1322,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "          'startLine': 11,",
         "          'startColumn': 12",
         "        },",
-        "        'kind': 'CLASS_DECLARATION',",
+        "        'kind': 'DECLARATION',",
         "        'isPotential': true,",
         "        'path': [",
         "          {",
@@ -1364,7 +1364,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     {
       SearchResult result = results[0];
       assertLocation(result.getLocation(), "someFile.dart", 9, 10, 11, 12);
-      assertEquals(SearchResultKind.CLASS_DECLARATION, result.getKind());
+      assertEquals(SearchResultKind.DECLARATION, result.getKind());
       assertEquals(true, result.isPotential());
       {
         Element[] path = result.getPath();

@@ -11,41 +11,19 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.server;
+
+package com.google.dart.tools.core.analysis.model;
+
+import com.google.dart.server.SearchResult;
 
 /**
- * The enumeration {@code SearchResultKind} defines the various kinds of {@link SearchResult}.
+ * Used by {@link AnalysisServerData} to notify clients that new {@link SearchResult}s are ready.
  * 
- * @coverage dart.server
+ * @coverage dart.tools.core.model
  */
-public enum SearchResultKind {
+public interface SearchResultsListener {
   /**
-   * A declaration of an element.
+   * Called when {@link SearchResult}s for a particular search request are ready.
    */
-  DECLARATION,
-
-  /**
-   * A reference to an element.
-   */
-  REFERENCE,
-
-  /**
-   * A reference to an element in which it is read.
-   */
-  READ,
-
-  /**
-   * A reference to an element in which it is read and written.
-   */
-  READ_WRITE,
-
-  /**
-   * A reference to an element in which it is written.
-   */
-  WRITE,
-
-  /**
-   * A reference to an element in which it is invoked.
-   */
-  INVOCATION
+  void computedSearchResults(SearchResult[] results, boolean last);
 }

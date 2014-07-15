@@ -65,36 +65,39 @@ public class ElementLabelProvider_NEW extends LabelProvider implements
   }
 
   private static ImageDescriptor getBaseImageDescriptor(ElementKind kind, boolean isPrivate) {
-    if (kind == ElementKind.CLASS || kind == ElementKind.CLASS_TYPE_ALIAS) {
-      return isPrivate ? DartPluginImages.DESC_DART_CLASS_PRIVATE
-          : DartPluginImages.DESC_DART_CLASS_PUBLIC;
+    switch (kind) {
+      case CLASS:
+      case CLASS_TYPE_ALIAS:
+        return isPrivate ? DartPluginImages.DESC_DART_CLASS_PRIVATE
+            : DartPluginImages.DESC_DART_CLASS_PUBLIC;
+      case COMPILATION_UNIT:
+        return DartPluginImages.DESC_DART_COMP_UNIT;
+      case CONSTRUCTOR:
+      case FUNCTION:
+      case GETTER:
+      case METHOD:
+      case SETTER:
+        return isPrivate ? DartPluginImages.DESC_DART_METHOD_PRIVATE
+            : DartPluginImages.DESC_DART_METHOD_PUBLIC;
+      case FUNCTION_TYPE_ALIAS:
+        return isPrivate ? DartPluginImages.DESC_DART_FUNCTIONTYPE_PRIVATE
+            : DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
+      case FIELD:
+      case TOP_LEVEL_VARIABLE:
+        return isPrivate ? DartPluginImages.DESC_DART_FIELD_PRIVATE
+            : DartPluginImages.DESC_DART_FIELD_PUBLIC;
+      case LIBRARY:
+        return DartPluginImages.DESC_DART_LIB_FILE;
+      case LOCAL_VARIABLE:
+      case PARAMETER:
+        return DartPluginImages.DESC_DART_LOCAL_VARIABLE;
+      case UNIT_TEST_CASE:
+        return DartPluginImages.DESC_DART_TEST_CASE;
+      case UNIT_TEST_GROUP:
+        return DartPluginImages.DESC_DART_TEST_GROUP;
+      default:
+        return null;
     }
-    if (kind == ElementKind.FUNCTION_TYPE_ALIAS) {
-      return isPrivate ? DartPluginImages.DESC_DART_FUNCTIONTYPE_PRIVATE
-          : DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
-    }
-    if (kind == ElementKind.FIELD || kind == ElementKind.TOP_LEVEL_VARIABLE) {
-      return isPrivate ? DartPluginImages.DESC_DART_FIELD_PRIVATE
-          : DartPluginImages.DESC_DART_FIELD_PUBLIC;
-    }
-    if (kind == ElementKind.CONSTRUCTOR || kind == ElementKind.FUNCTION
-        || kind == ElementKind.GETTER || kind == ElementKind.METHOD || kind == ElementKind.SETTER) {
-      return isPrivate ? DartPluginImages.DESC_DART_METHOD_PRIVATE
-          : DartPluginImages.DESC_DART_METHOD_PUBLIC;
-    }
-    if (kind == ElementKind.COMPILATION_UNIT) {
-      return DartPluginImages.DESC_DART_COMP_UNIT;
-    }
-    if (kind == ElementKind.LIBRARY) {
-      return DartPluginImages.DESC_DART_LIB_FILE;
-    }
-    if (kind == ElementKind.UNIT_TEST_CASE) {
-      return DartPluginImages.DESC_DART_TEST_CASE;
-    }
-    if (kind == ElementKind.UNIT_TEST_GROUP) {
-      return DartPluginImages.DESC_DART_TEST_GROUP;
-    }
-    return null;
   }
 
   @Override

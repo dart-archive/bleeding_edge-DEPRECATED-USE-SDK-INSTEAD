@@ -14,18 +14,21 @@
 
 package com.google.dart.tools.internal.search.ui;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import com.google.dart.engine.search.SearchMatch;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.server.Element;
+import com.google.dart.server.ElementKind;
+import com.google.dart.server.Location;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
-import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -89,6 +92,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.progress.UIJob;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -121,29 +125,29 @@ public abstract class SearchResultPage_NEW extends SearchPage {
     /**
      * Adds new {@link SearchResult}, on the same or new {@link LineItem}.
      */
-    public void addMatch(SourceLineProvider lineProvider, SearchResult match) {
-      // TODO (jwren/scheglov) SearchResult API has changed
-//      ReferenceKind referenceKind = ReferenceKind.of(match.getKind());
-//      Source source = match.getSource();
-//      SourceLine sourceLine = lineProvider.getLine(source, match.getOffset());
-//      // find target LineItem
-//      LineItem targetLineItem = null;
-//      for (LineItem lineItem : lines) {
-//        if (lineItem.line.equals(sourceLine)) {
-//          targetLineItem = lineItem;
-//          break;
-//        }
-//      }
-//      // new LineItem
-//      if (targetLineItem == null) {
-//        boolean potential = FILTER_POTENTIAL.apply(match);
-//        targetLineItem = new LineItem(this, source, potential, sourceLine);
-//        lines.add(targetLineItem);
-//      }
-//      // prepare position
-//      Position position = new Position(match.getOffset(), match.getLength());
-//      // add new position
-//      targetLineItem.addPosition(position, referenceKind);
+    public void addMatch(FileLineProvider lineProvider, SearchResult match) {
+      ReferenceKind referenceKind = ReferenceKind.of(match.getKind());
+      Location location = match.getLocation();
+      String filePath = location.getFile();
+      FileLine sourceLine = lineProvider.getLine(filePath, location.getOffset());
+      // find target LineItem
+      LineItem targetLineItem = null;
+      for (LineItem lineItem : lines) {
+        if (lineItem.line.equals(sourceLine)) {
+          targetLineItem = lineItem;
+          break;
+        }
+      }
+      // new LineItem
+      if (targetLineItem == null) {
+        boolean potential = FILTER_POTENTIAL.apply(match);
+        targetLineItem = new LineItem(this, filePath, potential, sourceLine);
+        lines.add(targetLineItem);
+      }
+      // prepare position
+      Position position = new Position(location.getOffset(), location.getLength());
+      // add new position
+      targetLineItem.addPosition(position, referenceKind);
     }
 
     @Override
@@ -159,28 +163,34 @@ public abstract class SearchResultPage_NEW extends SearchPage {
       return element != null ? element.hashCode() : 0;
     }
 
-    public void merge(ElementItem item) {
-      numMatches += item.numMatches;
-      List<LineItem> thisLines = Lists.newArrayList(lines);
-      for (LineItem otherLine : item.lines) {
-        // try to merge into existing line
-        boolean merged = false;
-        for (LineItem thisLine : thisLines) {
-          merged |= thisLine.merge(otherLine);
-        }
-        // add line
-        if (!merged) {
-          lines.add(otherLine);
-          otherLine.item = this;
-        }
-      }
-    }
-
     void addChild(ElementItem child) {
       if (child.parent == null) {
         child.parent = this;
         children.add(child);
       }
+    }
+  }
+  /**
+   * Information about a single line in some file.
+   */
+  private static class FileLine {
+    final String file;
+    final int start;
+    final String content;
+
+    public FileLine(String file, int start, String content) {
+      this.file = file;
+      this.start = start;
+      this.content = content;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (!(obj instanceof FileLine)) {
+        return false;
+      }
+      FileLine other = (FileLine) obj;
+      return other.file.equals(file) && other.start == start;
     }
   }
   /**
@@ -299,19 +309,20 @@ public abstract class SearchResultPage_NEW extends SearchPage {
       return true;
     }
   }
+
   /**
    * Item for a line with one or more matches.
    */
   private static class LineItem {
     private ElementItem item;
-    private final Source source;
+    private final String filePath;
     private boolean potential;
-    private final SourceLine line;
+    private final FileLine line;
     private final List<LinePosition> positions = Lists.newArrayList();
 
-    public LineItem(ElementItem item, Source source, boolean potential, SourceLine line) {
+    public LineItem(ElementItem item, String filePath, boolean potential, FileLine line) {
       this.item = item;
-      this.source = source;
+      this.filePath = filePath;
       this.potential = potential;
       this.line = line;
     }
@@ -321,20 +332,6 @@ public abstract class SearchResultPage_NEW extends SearchPage {
      */
     public void addPosition(Position position, ReferenceKind kind) {
       positions.add(new LinePosition(position, kind));
-    }
-
-    /**
-     * Attempts to merge the given {@link LineItem} into this.
-     * 
-     * @return {@code true} if merge was done, {@code false} if not the same line.
-     */
-    public boolean merge(LineItem other) {
-      if (!other.line.equals(line)) {
-        return false;
-      }
-      potential |= other.potential;
-      positions.addAll(other.positions);
-      return true;
     }
   }
 
@@ -379,13 +376,11 @@ public abstract class SearchResultPage_NEW extends SearchPage {
     READ,
     WRITE;
     public static ReferenceKind of(SearchResultKind kind) {
-      if (kind == SearchResultKind.FIELD_READ || kind == SearchResultKind.VARIABLE_READ) {
+      if (kind == SearchResultKind.READ) {
         return READ;
       }
-      if (kind == SearchResultKind.FIELD_READ_WRITE || kind == SearchResultKind.FIELD_WRITE
-          || kind == SearchResultKind.VARIABLE_DECLARATION
-          || kind == SearchResultKind.VARIABLE_WRITE
-          || kind == SearchResultKind.VARIABLE_READ_WRITE) {
+      if (kind == SearchResultKind.DECLARATION || kind == SearchResultKind.READ_WRITE
+          || kind == SearchResultKind.WRITE) {
         return WRITE;
       }
       return REFERENCE;
@@ -512,40 +507,16 @@ public abstract class SearchResultPage_NEW extends SearchPage {
   }
 
   /**
-   * Information about a single line in some {@link Source}.
+   * Helper for transforming offsets in some file into {@link FileLine} objects.
    */
-  private static class SourceLine {
-    final Source source;
-    final int start;
-    final String content;
-
-    public SourceLine(Source source, int start, String content) {
-      this.source = source;
-      this.start = start;
-      this.content = content;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (!(obj instanceof SourceLine)) {
-        return false;
-      }
-      SourceLine other = (SourceLine) obj;
-      return other.source == source && other.start == start;
-    }
-  }
-
-  /**
-   * Helper for transforming offsets in the some {@link Source} into {@link SourceLine} objects.
-   */
-  private static class SourceLineProvider {
-    private final Map<Source, String> sourceContentMap = Maps.newHashMap();
+  private static class FileLineProvider {
+    private final Map<String, String> fileContentMap = Maps.newHashMap();
 
     /**
-     * @return the {@link SourceLine} for the given {@link Source} and offset; may be {@code null}.
+     * @return the {@link FileLine} for the given file and offset; may be {@code null}.
      */
-    public SourceLine getLine(Source source, int offset) {
-      String content = getContent(source);
+    public FileLine getLine(String filePath, int offset) {
+      String content = getContent(filePath);
       // find start of line
       int start = offset;
       while (start > 0 && content.charAt(start - 1) != '\n') {
@@ -558,17 +529,18 @@ public abstract class SearchResultPage_NEW extends SearchPage {
       }
       // done
       String text = content.substring(start, end);
-      return new SourceLine(source, start, text);
+      return new FileLine(filePath, start, text);
     }
 
-    private String getContent(Source source) {
-      String content = sourceContentMap.get(source);
+    private String getContent(String filePath) {
+      String content = fileContentMap.get(filePath);
       if (content == null) {
         try {
-          IResource resource = DartCore.getProjectManager().getResource(source);
+          File javaFile = new File(filePath);
+          IFile resource = ResourceUtil.getFile(javaFile);
           if (resource instanceof IFile) {
             // IFile in workspace, can be open and modified - get contents using FileBuffers.
-            IFile file = (IFile) resource;
+            IFile file = resource;
             ITextFileBufferManager manager = FileBuffers.getTextFileBufferManager();
             IPath path = file.getFullPath();
             manager.connect(path, LocationKind.IFILE, null);
@@ -576,14 +548,14 @@ public abstract class SearchResultPage_NEW extends SearchPage {
               ITextFileBuffer buffer = manager.getTextFileBuffer(path, LocationKind.IFILE);
               IDocument document = buffer.getDocument();
               content = document.get();
-              sourceContentMap.put(source, content);
+              fileContentMap.put(filePath, content);
             } finally {
               manager.disconnect(path, LocationKind.IFILE, null);
             }
           } else {
             // It must be an external file, cannot be modified - request its contents directly.
-            content = source.getContents().getData().toString();
-            sourceContentMap.put(source, content);
+            content = Files.toString(javaFile, Charsets.UTF_8);
+            fileContentMap.put(filePath, content);
           }
         } catch (Throwable e) {
           return null;
@@ -613,30 +585,34 @@ public abstract class SearchResultPage_NEW extends SearchPage {
   /**
    * Adds new {@link ElementItem} to the tree.
    */
-  private static ElementItem addElementItem(Map<Element, ElementItem> itemMap, ElementItem child,
-      Element[] elements, int elementIndex) {
+  private static ElementItem addElementItem(Map<Element, ElementItem> itemMap, Element[] elements,
+      int elementIndex) {
+    // prepare child Element
+    Element childElement = null;
+    while (elementIndex < elements.length) {
+      Element element = elements[elementIndex];
+      if (isLocalElement(element)) {
+        elementIndex++;
+        continue;
+      }
+      childElement = element;
+      break;
+    }
     // put child
-    Element childElement = child.element;
+    ElementItem child;
     {
       ElementItem existingChild = itemMap.get(childElement);
       if (existingChild == null) {
+        child = new ElementItem(childElement);
         itemMap.put(childElement, child);
       } else {
-        existingChild.merge(child);
         child = existingChild;
       }
     }
     // bind child to parent
     if (childElement != null) {
       elementIndex++;
-      Element parentElement;
-      if (elementIndex < elements.length) {
-        parentElement = elements[elementIndex];
-      } else {
-        parentElement = null;
-      }
-      ElementItem parent = new ElementItem(parentElement);
-      parent = addElementItem(itemMap, parent, elements, elementIndex);
+      ElementItem parent = addElementItem(itemMap, elements, elementIndex);
       parent.addChild(child);
     }
     // done
@@ -647,15 +623,14 @@ public abstract class SearchResultPage_NEW extends SearchPage {
    * Builds {@link ElementItem} tree out of the given {@link SearchResult}s.
    */
   private static ElementItem buildElementItemTree(List<SearchResult> searchResults) {
-    SourceLineProvider sourceLineProvider = new SourceLineProvider();
+    FileLineProvider sourceLineProvider = new FileLineProvider();
     ElementItem rootItem = new ElementItem(null);
     Map<Element, ElementItem> itemMap = Maps.newHashMap();
     itemMap.put(null, rootItem);
     for (SearchResult searchResult : searchResults) {
       Element[] elements = searchResult.getPath();
-      ElementItem elementItem = new ElementItem(elements[0]);
+      ElementItem elementItem = addElementItem(itemMap, elements, 0);
       elementItem.addMatch(sourceLineProvider, searchResult);
-      addElementItem(itemMap, elementItem, elements, 0);
     }
     calculateNumMatches(rootItem);
     sortLines(rootItem);
@@ -682,20 +657,14 @@ public abstract class SearchResultPage_NEW extends SearchPage {
     return DartToolsPlugin.getDefault().getDialogSettingsSection(SETTINGS_ID);
   }
 
-//  /**
-//   * @return the {@link Element} to use as enclosing in {@link ElementItem} tree.
-//   */
-//  private static Element getExecutableElement(SearchMatch match) {
-//    Element element = match.getElement();
-//    while (element != null) {
-//      Element executable = element.getAncestor(ExecutableElement.class);
-//      if (executable == null) {
-//        break;
-//      }
-//      element = executable;
-//    }
-//    return element;
-//  }
+  private static boolean isLocalElement(Element element) {
+    ElementKind kind = element.getKind();
+    if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
+      return true;
+    }
+    // TODO(scheglov) consider adding LOCAL_FUNCTION
+    return false;
+  }
 
   /**
    * Recursively visits {@link ElementItem} and links leaves.
@@ -920,7 +889,6 @@ public abstract class SearchResultPage_NEW extends SearchPage {
 
   private final SearchView searchView;
   private final String taskName;
-  private String contextId;
 
   private final Set<IResource> markerResources = Sets.newHashSet();
 
@@ -966,11 +934,10 @@ public abstract class SearchResultPage_NEW extends SearchPage {
     @Override
     public boolean apply(SearchResult input) {
       IProject currentProject = getCurrentProject();
-      // TODO (jwren/scheglov) SearchResult API has changed
-//      IFile resource = DartUI.getSourceFile(contextId, input.getSource());
-//      return resource != null && currentProject != null
-//          && currentProject.equals(resource.getProject());
-      return false;
+      String file = input.getLocation().getFile();
+      IFile resource = DartUI.getSourceFile(file);
+      return resource != null && currentProject != null
+          && currentProject.equals(resource.getProject());
     }
   };
 
@@ -978,10 +945,9 @@ public abstract class SearchResultPage_NEW extends SearchPage {
 
   private long lastQueryFinishTime = 0;
 
-  public SearchResultPage_NEW(SearchView searchView, String taskName, String contextId) {
+  public SearchResultPage_NEW(SearchView searchView, String taskName) {
     this.searchView = searchView;
     this.taskName = taskName;
-    this.contextId = contextId;
   }
 
   @Override
@@ -1126,7 +1092,7 @@ public abstract class SearchResultPage_NEW extends SearchPage {
     // add marker if leaf
     try {
       for (LineItem lineItem : item.lines) {
-        IFile resource = DartUI.getSourceFile(contextId, lineItem.source);
+        IFile resource = DartUI.getSourceFile(lineItem.filePath);
         if (resource != null && resource.exists()) {
           markerResources.add(resource);
           List<LinePosition> positions = lineItem.positions;
@@ -1285,11 +1251,11 @@ public abstract class SearchResultPage_NEW extends SearchPage {
   }
 
   /**
-   * Opens the {@link Position} in the {@link Source}s editor.
+   * Opens "position" in the "filePath" file.
    */
-  private void openPosition(Source source, Position position) {
+  private void openPosition(String filePath, Position position) {
     try {
-      DartUI.openInEditor(contextId, source, true, position.offset, position.length);
+      DartUI.openFilePath(filePath, true, position.offset, position.length);
     } catch (Throwable e) {
       ExceptionHandler.handle(e, "Search", "Exception during open.");
     }
@@ -1313,7 +1279,7 @@ public abstract class SearchResultPage_NEW extends SearchPage {
     if (firstElement instanceof LineItem) {
       LineItem lineItem = (LineItem) firstElement;
       Position position = lineItem.positions.get(0).position;
-      openPosition(lineItem.source, position);
+      openPosition(lineItem.filePath, position);
     }
     // element item
     if (firstElement instanceof ElementItem) {
@@ -1324,10 +1290,10 @@ public abstract class SearchResultPage_NEW extends SearchPage {
       if (!found) {
         return;
       }
-      Source source = itemCursor.getLine().source;
+      String filePath = itemCursor.getLine().filePath;
       Position position = itemCursor.getPosition();
       // open position
-      openPosition(source, position);
+      openPosition(filePath, position);
     }
   }
 
@@ -1445,7 +1411,7 @@ public abstract class SearchResultPage_NEW extends SearchPage {
       LineItem lineItem = itemCursor.getLine();
       viewer.setSelection(new StructuredSelection(lineItem), true);
       // open editor
-      IEditorPart editor = DartUI.openInEditor(contextId, lineItem.source, false);
+      IEditorPart editor = DartUI.openFilePath(lineItem.filePath, false);
       // show Position
       Position position = itemCursor.getPosition();
       if (position != null) {
@@ -1472,7 +1438,7 @@ public abstract class SearchResultPage_NEW extends SearchPage {
     // do track positions
     if (item.element != null) {
       for (LineItem lineItem : item.lines) {
-        IFile file = DartUI.getSourceFile(contextId, lineItem.source);
+        IFile file = DartUI.getSourceFile(lineItem.filePath);
         if (file != null) {
           List<LinePosition> positions = lineItem.positions;
           for (LinePosition linePosition : positions) {

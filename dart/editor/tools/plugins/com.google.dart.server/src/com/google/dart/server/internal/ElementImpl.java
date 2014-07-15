@@ -90,6 +90,11 @@ public class ElementImpl implements Element {
   }
 
   @Override
+  public int hashCode() {
+    return location.hashCode();
+  }
+
+  @Override
   public boolean isAbstract() {
     return (flags & ABSTRACT) != 0;
   }
