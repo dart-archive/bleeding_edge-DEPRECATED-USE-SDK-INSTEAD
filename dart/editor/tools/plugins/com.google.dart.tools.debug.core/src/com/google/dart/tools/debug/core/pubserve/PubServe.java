@@ -213,13 +213,16 @@ public class PubServe {
     args.add(pubFile.getAbsolutePath());
     args.add(SERVE_COMMAND);
     args.add(directoryToServe);
+    int pubport = NetUtils.getUnusedPort(8080, 8100);
+    if (pubport != -1) {
+      args.add("--port");
+      args.add(Integer.toString(pubport));
+    }
     args.add("--admin-port");
     portNumber = Integer.toString(NetUtils.findUnusedPort(0));
     args.add(portNumber);
     args.add("--hostname");
     args.add(LOCAL_HOST_ADDR);
-//    args.add("--port");
-//    args.add("0");
     return args;
   }
 

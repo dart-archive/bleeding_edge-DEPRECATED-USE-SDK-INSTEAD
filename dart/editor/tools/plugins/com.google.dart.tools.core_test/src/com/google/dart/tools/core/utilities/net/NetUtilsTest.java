@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2014, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,14 +13,30 @@
  */
 package com.google.dart.tools.core.utilities.net;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import junit.framework.TestCase;
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(URIUtilitiesTest.class);
-    suite.addTestSuite(NetUtilsTest.class);
-    return suite;
+import java.io.IOException;
+import java.net.ServerSocket;
+
+public class NetUtilsTest extends TestCase {
+
+  public void test_getUnusedPort() {
+    ServerSocket socket = null;
+    try {
+      socket = new ServerSocket(8080);
+      int port = NetUtils.getUnusedPort(8080, 8100);
+      assertEquals(8081, port);
+    } catch (IOException e) {
+
+    } finally {
+      if (socket != null) {
+        try {
+          socket.close();
+        } catch (IOException e) {
+
+        }
+      }
+    }
+
   }
 }

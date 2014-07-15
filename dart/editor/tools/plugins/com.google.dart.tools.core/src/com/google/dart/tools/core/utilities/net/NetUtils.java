@@ -18,6 +18,7 @@ import com.google.dart.tools.core.DartCore;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URI;
 import java.net.UnknownHostException;
 
@@ -107,6 +108,40 @@ public class NetUtils {
     }
 
     return loopbackAddress;
+  }
+
+  /**
+   * Finds the first unused port given a range of port numbers
+   * 
+   * @param startPortNumber
+   * @param endPortNumber
+   * @return first unused port number found, or -1 if none is found
+   */
+  public static int getUnusedPort(int startPortNumber, int endPortNumber) {
+    for (int portNo = startPortNumber; portNo <= endPortNumber; portNo++) {
+      if (available(portNo)) {
+        return portNo;
+      }
+    }
+    return -1;
+  }
+
+  private static boolean available(int port) {
+    Socket s = null;
+    try {
+      s = new Socket("localhost", port);
+      return false;
+    } catch (IOException e) {
+      return true;
+    } finally {
+      if (s != null) {
+        try {
+          s.close();
+        } catch (IOException e) {
+
+        }
+      }
+    }
   }
 
   private NetUtils() {
