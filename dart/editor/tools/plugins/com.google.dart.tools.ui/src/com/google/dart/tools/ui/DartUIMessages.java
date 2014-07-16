@@ -63,13 +63,6 @@ public final class DartUIMessages extends NLS {
   public static String PackageSelectionDialog_nopackages_message;
   public static String BuildPathDialog_title;
 
-  public static String OverrideMethodDialog_groupMethodsByTypes;
-
-  public static String OverrideMethodDialog_dialog_title;
-  public static String OverrideMethodDialog_dialog_description;
-  public static String OverrideMethodDialog_selectioninfo_more;
-  public static String OverrideMethodDialog_link_tooltip;
-  public static String OverrideMethodDialog_link_message;
   public static String JavaElementLabels_default_package;
 
   public static String JavaElementLabels_anonym_type;
@@ -81,7 +74,6 @@ public final class DartUIMessages extends NLS {
   public static String JavaElementLabels_comma_string;
   public static String JavaElementLabels_declseparator_string;
   public static String JavaElementLabels_category_separator_string;
-  public static String StatusBarUpdater_num_elements_selected;
 
   public static String OpenTypeHierarchyUtil_error_open_view;
 
