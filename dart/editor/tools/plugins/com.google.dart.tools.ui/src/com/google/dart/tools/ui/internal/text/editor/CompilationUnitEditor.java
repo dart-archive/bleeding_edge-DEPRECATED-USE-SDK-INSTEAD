@@ -14,12 +14,8 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
@@ -42,7 +38,6 @@ import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
 import com.google.dart.tools.ui.internal.text.functions.DartHeuristicScanner;
 import com.google.dart.tools.ui.internal.text.functions.SmartBackspaceManager;
 import com.google.dart.tools.ui.internal.text.functions.Symbols;
-import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
@@ -785,9 +780,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       }
 
       //TODO (pquitslund): implement restore for new elements
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        return;
-      }
+      return;
 
 //      try {
 //
@@ -1448,14 +1441,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       checkEditableState();
       if (input instanceof FileStoreEditorInput) {
         fJavaEditorErrorTickUpdater.updateEditorImage(input);
-      } else {
-
-        if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-          // moved to applyCompilationUnitElement()
-        } else {
-          fJavaEditorErrorTickUpdater.updateEditorImage(getInputDartElement());
-        }
-
       }
     }
   }
@@ -1489,44 +1474,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
    */
   @Override
   protected Object getElementAt(int offset, boolean reconcile) {
-
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return NewSelectionConverter.getElementAtOffset(this, offset);
-    }
-
-    DartElement element = getInputDartElement();
-    if (element instanceof DartLibrary) {
-      try {
-        element = ((DartLibrary) element).getDefiningCompilationUnit();
-      } catch (DartModelException exception) {
-        DartToolsPlugin.log(
-            "Unable to access defining compilation unit for " + element.getElementName(),
-            exception);
-      }
-    }
-    if (!(element instanceof CompilationUnit)) {
-      return null;
-    }
-    CompilationUnit unit = (CompilationUnit) element;
-
-    if (unit != null) {
-      try {
-        if (reconcile) {
-          DartModelUtil.reconcile(unit);
-          return unit.getElementAt(offset);
-        } else if (unit.isConsistent()) {
-          return unit.getElementAt(offset);
-        }
-
-      } catch (DartModelException x) {
-        if (!x.isDoesNotExist()) {
-          DartToolsPlugin.log(x.getStatus());
-          // nothing found, be tolerant and go on
-        }
-      }
-    }
-
-    return null;
+    return NewSelectionConverter.getElementAtOffset(this, offset);
   }
 
   /*

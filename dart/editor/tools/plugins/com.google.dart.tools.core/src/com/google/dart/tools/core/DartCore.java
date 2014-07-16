@@ -1329,21 +1329,6 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
-   * Check for accesses to the old model when the new analysis engine is enabled. This will fail by
-   * throwing a runtime exception.
-   */
-  public static void oldModelCheck() {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      IllegalStateException exception = new IllegalStateException(
-          "Wildly inappropriate access to the old model");
-
-      DartCore.logError(exception);
-
-      throw exception;
-    }
-  }
-
-  /**
    * If the given file defines a library, open the library and return it. If the library was already
    * open, then this method has no effect but returns the existing library. If the file does not
    * define a library, then look for a library in the same directory as the file or in a parent of

@@ -122,11 +122,7 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
       ContentAssistInvocationContext context, IProgressMonitor monitor) {
     if (context instanceof DartContentAssistInvocationContext) {
       DartContentAssistInvocationContext dartContext = (DartContentAssistInvocationContext) context;
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        return internalCreateCompletionProposals(context.getInvocationOffset(), dartContext);
-      } else {
-        return internalComputeCompletionProposals(context.getInvocationOffset(), dartContext);
-      }
+      return internalCreateCompletionProposals(context.getInvocationOffset(), dartContext);
     }
     return Collections.emptyList();
   }

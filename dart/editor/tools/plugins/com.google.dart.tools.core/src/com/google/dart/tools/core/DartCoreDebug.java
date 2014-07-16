@@ -72,11 +72,6 @@ public class DartCoreDebug {
   public static final boolean ANALYSIS_SERVER_DEBUG = isOptionTrue("experimental/analysisServer/debug");
   public static final String ANALYSIS_SERVER_LOG_FILE = getOptionValue("experimental/analysisServer/logFile");
 
-  // Verify that dartc has not been specified and that the new analyzer is not explicitly disabled
-  public static final boolean ENABLE_NEW_ANALYSIS = true;
-  //!isOptionTrue("experimental/analysis/useDartc")
-  //&& !"false".equals(DartCore.getUserDefinedProperty(ENABLE_NEW_ANALYSIS_USER_FLAG));
-
   // Persistent developer settings
 
   public static final boolean DISABLE_MARK_OCCURRENCES = isOptionTrue("dev/disableMarkOccurrences");
@@ -116,7 +111,6 @@ public class DartCoreDebug {
     instrumentation.metric("ENABLE_THEMES", ENABLE_THEMES);
     instrumentation.metric("ENABLE_TAB_COLORING", ENABLE_TAB_COLORING);
     instrumentation.metric("ENABLE_HTML_VALIDATION", ENABLE_HTML_VALIDATION);
-    instrumentation.metric("ENABLE_NEW_ANALYSIS", ENABLE_NEW_ANALYSIS);
 
     instrumentation.metric("DISABLE_MARK_OCCURRENCES", DISABLE_MARK_OCCURRENCES);
 
