@@ -100,7 +100,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void searchClassMemberReferences(String name, SearchResultsConsumer consumer) {
+  public void searchClassMemberReferences(String name, SearchIdConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 

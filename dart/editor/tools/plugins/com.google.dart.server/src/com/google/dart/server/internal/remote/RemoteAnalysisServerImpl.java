@@ -335,8 +335,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void searchClassMemberReferences(String name, SearchResultsConsumer consumer) {
-    // TODO(scheglov) implement
+  public void searchClassMemberReferences(String name, SearchIdConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateSearchFindMemberReferences(id, name), consumer);
   }
 
   @Override

@@ -178,9 +178,9 @@ public interface AnalysisServer {
    * consumer is invoked asynchronously on a different thread.
    * 
    * @param name the name of a member
-   * @param consumer the results listener
+   * @param consumer the search id consumer
    */
-  public void searchClassMemberReferences(String name, SearchResultsConsumer consumer);
+  public void searchClassMemberReferences(String name, SearchIdConsumer consumer);
 
   /**
    * Perform a search for references to the element defined or referenced at the given offset in the
