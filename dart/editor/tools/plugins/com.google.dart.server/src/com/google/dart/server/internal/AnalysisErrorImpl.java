@@ -16,7 +16,6 @@ package com.google.dart.server.internal;
 
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.ErrorSeverity;
-import com.google.dart.server.ErrorType;
 import com.google.dart.server.Location;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 
@@ -27,12 +26,12 @@ import com.google.dart.server.utilities.general.ObjectUtilities;
  */
 public class AnalysisErrorImpl implements AnalysisError {
   private final ErrorSeverity errorSeverity;
-  private final ErrorType errorType;
+  private final String errorType;
   private final Location location;
   private final String message;
   private final String correction;
 
-  public AnalysisErrorImpl(ErrorSeverity errorSeverity, ErrorType errorType, Location location,
+  public AnalysisErrorImpl(ErrorSeverity errorSeverity, String errorType, Location location,
       String message, String correction) {
     this.errorSeverity = errorSeverity;
     this.errorType = errorType;
@@ -47,7 +46,8 @@ public class AnalysisErrorImpl implements AnalysisError {
       return false;
     }
     AnalysisErrorImpl other = (AnalysisErrorImpl) o;
-    return other.errorSeverity == errorSeverity && other.errorType == errorType
+    return other.errorSeverity == errorSeverity
+        && ObjectUtilities.equals(other.errorType, errorType)
         && ObjectUtilities.equals(other.location, location)
         && ObjectUtilities.equals(other.message, message)
         && ObjectUtilities.equals(other.correction, correction);
@@ -64,7 +64,7 @@ public class AnalysisErrorImpl implements AnalysisError {
   }
 
   @Override
-  public ErrorType getErrorType() {
+  public String getErrorType() {
     return errorType;
   }
 

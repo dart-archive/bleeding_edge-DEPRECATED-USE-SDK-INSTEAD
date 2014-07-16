@@ -29,7 +29,6 @@ import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
 import com.google.dart.server.ErrorSeverity;
-import com.google.dart.server.ErrorType;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
 import com.google.dart.server.HoverConsumer;
@@ -315,12 +314,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     server.test_waitForWorkerComplete();
     listener.assertErrorsWithAnalysisErrors("/test.dart", new AnalysisErrorImpl(
         ErrorSeverity.ERROR,
-        ErrorType.SYNTACTIC_ERROR,
+        "SYNTACTIC_ERROR",
         new LocationImpl("/fileA.dart", 1, 2, 3, 4),
         "message A",
         "correction A"), new AnalysisErrorImpl(
         ErrorSeverity.ERROR,
-        ErrorType.COMPILE_TIME_ERROR,
+        "COMPILE_TIME_ERROR",
         new LocationImpl("/fileB.dart", 5, 6, 7, 8),
         "message B",
         "correction B"));

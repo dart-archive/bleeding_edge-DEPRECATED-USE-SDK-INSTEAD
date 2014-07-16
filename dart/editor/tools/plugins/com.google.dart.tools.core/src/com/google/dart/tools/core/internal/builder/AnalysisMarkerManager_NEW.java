@@ -17,7 +17,6 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.ErrorSeverity;
-import com.google.dart.server.ErrorType;
 import com.google.dart.server.Location;
 import com.google.dart.tools.core.DartCore;
 
@@ -112,7 +111,8 @@ public class AnalysisMarkerManager_NEW {
         }
         Location location = error.getLocation();
 
-        boolean isHint = error.getErrorType() == ErrorType.HINT;
+        boolean isHint = error.getErrorType().equals(
+            com.google.dart.engine.error.ErrorType.HINT.name());// == ErrorType.HINT;
 
         String markerType = DartCore.DART_PROBLEM_MARKER_TYPE;
         // Server doesn't have the angular error type
@@ -120,7 +120,7 @@ public class AnalysisMarkerManager_NEW {
 //          markerType = DartCore.ANGULAR_WARNING_MARKER_TYPE;
 //          markerSeverity = IMarker.SEVERITY_WARNING;
 //        } else
-        if (error.getErrorType() == ErrorType.TODO) {
+        if (error.getErrorType().equals(com.google.dart.engine.error.ErrorType.TODO.name())) {
           markerType = DartCore.DART_TASK_MARKER_TYPE;
         } else if (isHint) {
           markerType = DartCore.DART_HINT_MARKER_TYPE;

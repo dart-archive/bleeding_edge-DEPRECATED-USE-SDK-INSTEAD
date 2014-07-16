@@ -13,7 +13,6 @@
  */
 package com.google.dart.server;
 
-
 /**
  * The interface {@code AnalysisError} defines the behavior of objects representing an analysis
  * error.
@@ -38,7 +37,7 @@ public interface AnalysisError {
    * 
    * @return the type of the error
    */
-  public ErrorType getErrorType();
+  public String getErrorType();
 
   /**
    * Return the location of the name of the analysis error.

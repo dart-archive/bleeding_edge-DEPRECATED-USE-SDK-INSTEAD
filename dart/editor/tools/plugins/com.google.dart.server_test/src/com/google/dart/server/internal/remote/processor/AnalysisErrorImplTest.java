@@ -14,7 +14,6 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.ErrorSeverity;
-import com.google.dart.server.ErrorType;
 import com.google.dart.server.Location;
 import com.google.dart.server.internal.AnalysisErrorImpl;
 
@@ -25,7 +24,7 @@ import static org.mockito.Mockito.mock;
 public class AnalysisErrorImplTest extends TestCase {
   public void test_new() throws Exception {
     ErrorSeverity errorSeverity = ErrorSeverity.ERROR;
-    ErrorType errorType = ErrorType.COMPILE_TIME_ERROR;
+    String errorType = "COMPILE_TIME_ERROR";
     Location location = mock(Location.class);
     AnalysisErrorImpl error = new AnalysisErrorImpl(
         errorSeverity,
