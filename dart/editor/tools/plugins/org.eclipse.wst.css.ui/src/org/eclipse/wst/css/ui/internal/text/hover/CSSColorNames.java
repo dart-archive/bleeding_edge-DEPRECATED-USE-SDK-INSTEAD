@@ -93,6 +93,9 @@ class CSSColorNames {
     try {
       URL url = CSSUIPlugin.getDefault().getBundle().getResource(
           "csscolors/extended-color-mapping.xml"); //$NON-NLS-1$
+      if (url == null) {
+        return;
+      }
       final XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
       xmlReader.setContentHandler(new ColorMappingHandler());
       xmlReader.parse(new InputSource(url.openStream()));
