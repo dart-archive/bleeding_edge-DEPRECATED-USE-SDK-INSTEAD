@@ -466,26 +466,14 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
 
     collector.setFavoriteReferences(getFavoriteStaticMembers());
 
-    AssistContext assistContext = context.getAssistContext();
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      // TODO(scheglov) restore or remove for the new API
-//      collector.acceptContext(new InternalCompletionContext());
-//      final CountDownLatch latch = new CountDownLatch(1);
-//      DartCore.getAnalysisServer().computeCompletionSuggestions(
-//          assistContext.getAnalysisContextId(),
-//          assistContext.getSource(),
-//          offset,
-//          new CompletionSuggestionsConsumer() {
-//            @Override
-//            public void computed(CompletionSuggestion[] suggestions) {
-//              for (CompletionSuggestion suggestion : suggestions) {
-//                collector.accept(new ProxyProposal_NEW(suggestion));
-//              }
-//              latch.countDown();
-//            }
-//          });
-//      Uninterruptibles.awaitUninterruptibly(latch, 2000, TimeUnit.MILLISECONDS);
+      //TODO (danrubel): show completion proposals previously collected and cached
+      // by DartCompletionProcessor#waitUntilReady 
     } else {
+      AssistContext assistContext = context.getAssistContext();
+      if (assistContext == null) {
+        return Collections.emptyList();
+      }
       try {
         com.google.dart.engine.services.completion.CompletionFactory factory;
         AnalysisUtil util = new AnalysisUtil();

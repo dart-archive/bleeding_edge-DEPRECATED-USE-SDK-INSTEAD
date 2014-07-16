@@ -51,7 +51,7 @@ public class DartContentAssistant implements ICompletionProposalComputer {
 
     HtmlDartCompletionContext(CompilationUnit unit, int offset, ITextViewer viewer,
         AnalysisContext context, int partitionOffset) {
-      super(viewer, offset, null);
+      super(viewer, offset, null, null);
       this.unit = unit;
       this.context = context;
       this.partitionOffset = partitionOffset;

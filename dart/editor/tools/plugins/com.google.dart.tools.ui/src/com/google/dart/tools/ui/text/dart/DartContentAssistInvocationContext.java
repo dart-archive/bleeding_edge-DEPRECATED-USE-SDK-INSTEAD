@@ -21,11 +21,9 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.mock.ui.SignatureUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory.RHSHistory;
-import com.google.dart.tools.ui.internal.text.dart.DartReconcilingStrategy;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
@@ -77,11 +75,13 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
    * @param viewer the viewer used by the editor
    * @param offset the invocation offset
    * @param editor the editor that content assist is invoked in
+   * @param assistContext the context or {@code null} if unknown
    */
-  public DartContentAssistInvocationContext(ITextViewer viewer, int offset, IEditorPart editor) {
+  public DartContentAssistInvocationContext(ITextViewer viewer, int offset, IEditorPart editor,
+      AssistContext assistContext) {
     super(viewer, offset);
-
     fEditor = editor;
+    this.assistContext = assistContext;
   }
 
   public AssistContext getAssistContext() {
@@ -246,28 +246,6 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
   public DartProject getProject() {
     CompilationUnit unit = getCompilationUnit();
     return unit == null ? null : unit.getDartProject();
-  }
-
-  /**
-   * Waits for {@link AssistContext} given number of milliseconds.
-   * 
-   * @return the {@link AssistContext}, may be <code>null</code> if timeout.
-   */
-  public AssistContext waitAssistContext(long ms) {
-    DartEditor dartEditor = (DartEditor) fEditor;
-    DartReconcilingStrategy strategy = dartEditor.getDartReconcilingStrategy();
-    if (strategy != null) {
-      strategy.reconcile();
-    }
-    long endTime = System.currentTimeMillis() + ms;
-    while (System.currentTimeMillis() < endTime) {
-      assistContext = dartEditor.getAssistContext();
-      if (assistContext != null) {
-        return assistContext;
-      }
-      ExecutionUtils.sleep(5);
-    }
-    return null;
   }
 
   /**

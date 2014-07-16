@@ -23,7 +23,6 @@ import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.dialogs.OptionalMessageDialog;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
-import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -410,16 +409,6 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
     List proposals = new ArrayList();
     InstrumentationBuilder instrumentation = Instrumentation.builder("CollectProposals");
     try {
-      // wait for AssistContext
-      if (context instanceof DartContentAssistInvocationContext) {
-        DartContentAssistInvocationContext dartContext = (DartContentAssistInvocationContext) context;
-        if (dartContext.waitAssistContext(500) == null) {
-          instrumentation.metric("Timeout", true);
-          return Collections.emptyList();
-        }
-      }
-      instrumentation.metric("AnalysisComplete", true);
-      //
       List providers = getCategories();
       for (Iterator it = providers.iterator(); it.hasNext();) {
         CompletionProposalCategory cat = (CompletionProposalCategory) it.next();

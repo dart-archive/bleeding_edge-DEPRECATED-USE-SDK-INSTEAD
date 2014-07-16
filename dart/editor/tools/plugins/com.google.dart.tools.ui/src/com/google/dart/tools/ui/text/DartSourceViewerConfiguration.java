@@ -318,7 +318,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
 
     if (getEditor() != null) {
 
-      ContentAssistant assistant = new ContentAssistant();
+      ContentAssistant assistant = new DartEditorContentAssistant(sourceViewer);
       assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 
       assistant.setRestoreCompletionProposalSize(getSettings("completion_proposal_size")); //$NON-NLS-1$

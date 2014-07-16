@@ -284,12 +284,8 @@ public class AngularCompletionProposalComputer implements ICompletionProposalCom
     ContentAssistInvocationContext completionContext = new DartContentAssistInvocationContext(
         viewer,
         offset,
-        null) {
-      @Override
-      public AssistContext getAssistContext() {
-        return assistContext;
-      }
-    };
+        null,
+        assistContext);
     List<ICompletionProposal> dartProposals = proposalComputer.computeCompletionProposals(
         completionContext,
         monitor);
