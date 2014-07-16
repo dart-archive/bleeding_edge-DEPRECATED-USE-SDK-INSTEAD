@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.model;
 
-
 /**
  * The interface <code>DartLibrary</code> defines the behavior of objects representing a Dart
  * library.
@@ -21,24 +20,6 @@ package com.google.dart.tools.core.model;
  * @coverage dart.tools.core.model
  */
 public interface DartLibrary extends OpenableElement, ParentElement {
-  /**
-   * Return the type with the given name that is declared within this library, or <code>null</code>
-   * if there is no such type declared in this library.
-   * 
-   * @param typeName the name of the type to be returned
-   * @return the type with the given name that is declared within this library
-   * @throws DartModelException if the types defined in this library cannot be determined for some
-   *           reason
-   */
-  public Type findType(String typeName) throws DartModelException;
-
-  /**
-   * @return the {@link Type} with the given name that is visible within this library, or
-   *         <code>null</code> if there is no such type visible in this library. Here "visible"
-   *         means that type declared in this library or declared in one of the imported libraries
-   *         and not private.
-   */
-  public Type findTypeInScope(String typeName) throws DartModelException;
 
   /**
    * Return an array containing all of the compilation units defined in this library.
@@ -48,14 +29,6 @@ public interface DartLibrary extends OpenableElement, ParentElement {
    *           determined for some reason
    */
   public CompilationUnit[] getCompilationUnits() throws DartModelException;
-
-  /**
-   * Return the compilation unit that defines this library.
-   * 
-   * @return the compilation unit that defines this library
-   * @throws DartModelException if the defining compilation unit cannot be determined
-   */
-  public CompilationUnit getDefiningCompilationUnit() throws DartModelException;
 
   /**
    * Return the name of this element as it should appear in the user interface. Typically, this is
@@ -80,11 +53,4 @@ public interface DartLibrary extends OpenableElement, ParentElement {
    *         not <code>null</code>.
    */
   public DartImport[] getImports() throws DartModelException;
-
-  /**
-   * Set whether this library is a top-level library to match the given value
-   * 
-   * @param topLevel <code>true</code> if this library is a top-level library
-   */
-  public void setTopLevel(boolean topLevel);
 }
