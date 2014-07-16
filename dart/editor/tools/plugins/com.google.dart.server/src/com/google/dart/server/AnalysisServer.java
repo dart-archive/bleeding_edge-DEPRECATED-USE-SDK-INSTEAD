@@ -169,9 +169,9 @@ public interface AnalysisServer {
    * asynchronously on a different thread.
    * 
    * @param name the name of a member
-   * @param consumer the results listener
+   * @param consumer the search id consumer
    */
-  public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer);
+  public void searchClassMemberDeclarations(String name, SearchIdConsumer consumer);
 
   /**
    * Searches for resolved and unresolved references to class members with the given name. The given

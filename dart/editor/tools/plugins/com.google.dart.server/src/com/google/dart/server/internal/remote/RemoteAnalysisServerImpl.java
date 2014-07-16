@@ -330,8 +330,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void searchClassMemberDeclarations(String name, SearchResultsConsumer consumer) {
-    // TODO(scheglov) implement
+  public void searchClassMemberDeclarations(String name, SearchIdConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateSearchFindMemberDeclarations(id, name),
+        consumer);
   }
 
   @Override

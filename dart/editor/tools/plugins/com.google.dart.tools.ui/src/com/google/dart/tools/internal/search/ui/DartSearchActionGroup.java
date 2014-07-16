@@ -34,7 +34,7 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
  */
 public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
   private AbstractDartSelectionAction findReferencesAction;
-  private FindDeclarationsAction findDeclarationsAction;
+  private AbstractDartSelectionAction findDeclarationsAction;
   private OpenAction openAction;
 
   public DartSearchActionGroup(DartEditor editor) {
@@ -44,7 +44,11 @@ public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
     } else {
       findReferencesAction = new FindReferencesAction(editor);
     }
-    findDeclarationsAction = new FindDeclarationsAction(editor);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      findDeclarationsAction = new FindDeclarationsAction_NEW(editor);
+    } else {
+      findDeclarationsAction = new FindDeclarationsAction(editor);
+    }
     openAction = new OpenAction(editor);
     initActions();
     editor.setAction(findReferencesAction.getActionDefinitionId(), findReferencesAction);
@@ -65,7 +69,11 @@ public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
     } else {
       findReferencesAction = new FindReferencesAction(site);
     }
-    findDeclarationsAction = new FindDeclarationsAction(site);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      findDeclarationsAction = new FindDeclarationsAction_NEW(site);
+    } else {
+      findDeclarationsAction = new FindDeclarationsAction(site);
+    }
     initActions();
     addActions(findReferencesAction, findDeclarationsAction);
     addActionSelectionListeners();
