@@ -37,6 +37,8 @@ class RemoveOccurrenceAnnotations extends Action {
    */
   @Override
   public void run() {
-    fEditor.removeOccurrenceAnnotations();
+    // TODO(scheglov) is this action really used?
+    // I see it's command, but it is not bound to any action.
+//    fEditor.removeOccurrenceAnnotations();
   }
 }
