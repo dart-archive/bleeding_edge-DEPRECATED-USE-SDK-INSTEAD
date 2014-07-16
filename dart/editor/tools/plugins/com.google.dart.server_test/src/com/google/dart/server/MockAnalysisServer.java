@@ -111,7 +111,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void searchTopLevelDeclarations(String pattern, SearchResultsConsumer consumer) {
+  public void searchTopLevelDeclarations(String pattern, SearchIdConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 

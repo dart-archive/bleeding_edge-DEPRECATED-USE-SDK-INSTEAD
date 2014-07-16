@@ -208,9 +208,9 @@ public interface AnalysisServer {
    * pattern. The given consumer is invoked asynchronously on a different thread.
    * 
    * @param pattern the regular expression to match names against, not {@code null}
-   * @param consumer the results listener
+   * @param consumer the search id consumer
    */
-  public void searchTopLevelDeclarations(String pattern, SearchResultsConsumer consumer);
+  public void searchTopLevelDeclarations(String pattern, SearchIdConsumer consumer);
 
   /**
    * Sets the root paths used to determine which files to analyze. The set of files to be analyzed

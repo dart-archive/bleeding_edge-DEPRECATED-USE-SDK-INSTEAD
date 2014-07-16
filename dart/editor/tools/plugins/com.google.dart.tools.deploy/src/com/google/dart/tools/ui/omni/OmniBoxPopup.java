@@ -903,7 +903,7 @@ public class OmniBoxPopup extends BasePopupDialog {
   }
 
   private String getFilterText() {
-    return getFilterTextExactCase().toLowerCase();
+    return getFilterTextExactCase();
   }
 
   private KeyAdapter getKeyAdapter() {

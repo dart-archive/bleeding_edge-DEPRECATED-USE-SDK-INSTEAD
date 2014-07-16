@@ -24,7 +24,7 @@ import com.google.dart.tools.ui.internal.text.editor.ElementLabelProvider_NEW;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
-import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 /**
@@ -55,10 +55,8 @@ public class TopLevelElement_NEW extends OmniElement {
   @Override
   public String getInfoLabel() {
     String info = "";
-    // Element API has changed
-//    Source source = element.getSource();
-//    IResource resource = DartCore.getProjectManager().getResource(source);
-    IResource resource = null;
+    String file = element.getLocation().getFile();
+    IFile resource = DartUI.getSourceFile(file);
     if (resource != null) {
       info = resource.getProject().getName();
     } else {
@@ -94,7 +92,7 @@ public class TopLevelElement_NEW extends OmniElement {
   protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
     instrumentation.data("TypeElement.searchResultSelected", element.getName());
     try {
-      DartUI.openInEditor(null, element);
+      DartUI.openInEditor(element, true);
     } catch (Throwable e) {
       DartToolsPlugin.log(e);
     }

@@ -259,7 +259,7 @@ public class OmniBoxControlContribution {
   }
 
   private String getFilterText() {
-    return textControl.getText().toLowerCase();
+    return textControl.getText();
   }
 
   private IWorkbenchWindow getWorkbenchWindow() {

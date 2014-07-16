@@ -888,17 +888,6 @@ public final class DartUI {
   }
 
   /**
-   * Opens an editor at the given {@link Element} in the active page.
-   */
-  public static IEditorPart openInEditor(IResource context, com.google.dart.server.Element element)
-      throws Exception {
-    // Element API has changed
-//    Source source = element.getSource();
-//    return openInEditor(context, source, true, element.getOffset(), element.getLength());
-    return null;
-  }
-
-  /**
    * Opens an editor with {@link Element} in context of the given {@link IFile}.
    * 
    * @param context the {@link IResource} to open {@link Element} in, may be {@code null}.
