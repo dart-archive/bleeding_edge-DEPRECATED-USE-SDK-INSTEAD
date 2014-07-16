@@ -26,15 +26,17 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 // TODO(devoncarew): use the symbol name information in the maps?
 // it's possible this will help us de-mangle the method names for frames
@@ -49,7 +51,6 @@ import java.util.Map;
  * @see SourceMap
  */
 public class SourceMapManager implements ResourceChangeParticipant {
-
   public static class SourceLocation {
     public IFile file;
     public int line;
@@ -92,7 +93,9 @@ public class SourceMapManager implements ResourceChangeParticipant {
     }
   }
 
-  private Map<IFile, SourceMap> sourceMaps = new HashMap<IFile, SourceMap>();
+  private static final int MAX_SOURCE_MAPS = 10;
+
+  private Map<IFile, SourceMap> sourceMaps = new LinkedHashMap<IFile, SourceMap>();
 
   public SourceMapManager(IProject project) {
     // Collect all maps in the current project.
@@ -110,10 +113,14 @@ public class SourceMapManager implements ResourceChangeParticipant {
     } catch (CoreException e) {
 
     }
+
+    // Listen for changes to the maps.
+    ResourceChangeManager.getManager().addChangeParticipant(this);
   }
 
   public void dispose() {
-    // TODO(devoncarew): I don't see where we are ever adding this participant.
+    sourceMaps.clear();
+
     ResourceChangeManager.removeChangeParticipant(this);
   }
 
@@ -132,6 +139,11 @@ public class SourceMapManager implements ResourceChangeParticipant {
     SourceMap map = sourceMaps.get(mapFile);
 
     if (map != null) {
+      // Re-order the map.
+      sourceMaps.remove(mapFile);
+      sourceMaps.put(mapFile, map);
+
+      // Return mapping info.
       SourceMapInfo mapping = map.getMappingFor(line, column);
 
       if (mapping != null) {
@@ -157,6 +169,8 @@ public class SourceMapManager implements ResourceChangeParticipant {
   public List<SourceLocation> getReverseMappingsFor(IFile targetFile, int line) {
     List<SourceLocation> mappings = new ArrayList<SourceMapManager.SourceLocation>();
 
+    Set<IFile> foundMappings = new HashSet<IFile>();
+
     synchronized (sourceMaps) {
       for (IFile sourceFile : sourceMaps.keySet()) {
         SourceMap map = sourceMaps.get(sourceFile);
@@ -167,6 +181,8 @@ public class SourceMapManager implements ResourceChangeParticipant {
 
           if (file != null && file.equals(targetFile)) {
             List<SourceMapInfo> reverseMappings = map.getReverseMappingsFor(path, line);
+
+            foundMappings.add(file);
 
             for (SourceMapInfo reverseMapping : reverseMappings) {
               if (reverseMapping != null) {
@@ -185,6 +201,12 @@ public class SourceMapManager implements ResourceChangeParticipant {
       }
     }
 
+    for (IFile mapFile : foundMappings) {
+      // Re-order the map.
+      SourceMap map = sourceMaps.remove(mapFile);
+      sourceMaps.put(mapFile, map);
+    }
+
     return mappings;
   }
 
@@ -196,18 +218,32 @@ public class SourceMapManager implements ResourceChangeParticipant {
   @Override
   public final void handleFileChanged(IFile file) {
     if (isMapFileName(file)) {
-      try {
-        // We speculatively parse the .map file to determine if it is indeed a source map.
-        SourceMap sourceMap = SourceMap.createFrom(file);
-
+      if (shouldFilterMapFile(file)) {
         synchronized (sourceMaps) {
-          // It's a source map file; put it in the source map map.
-          sourceMaps.put(file, sourceMap);
+          sourceMaps.remove(file);
         }
-      } catch (CoreException ce) {
+      } else {
+        try {
+          // We speculatively parse the .map file to determine if it is indeed a source map.
+          SourceMap sourceMap = SourceMap.createFrom(file);
 
-      } catch (IOException e) {
+          synchronized (sourceMaps) {
+            // It's a source map file; put it in the source map map.
+            sourceMaps.remove(file);
+            sourceMaps.put(file, sourceMap);
 
+            // Make sure we bound how many source maps we remember. The source map hashmap is sorted
+            // by least recently used.
+            if (sourceMaps.size() > MAX_SOURCE_MAPS) {
+              IFile firstFile = sourceMaps.keySet().iterator().next();
+              sourceMaps.remove(firstFile);
+            }
+          }
+        } catch (Exception ce) {
+          synchronized (sourceMaps) {
+            sourceMaps.remove(file);
+          }
+        }
       }
     }
   }
@@ -216,9 +252,7 @@ public class SourceMapManager implements ResourceChangeParticipant {
   public void handleFileRemoved(IFile file) {
     if (isMapFileName(file)) {
       synchronized (sourceMaps) {
-        if (sourceMaps.containsKey(file)) {
-          sourceMaps.remove(file);
-        }
+        sourceMaps.remove(file);
       }
     }
   }
@@ -258,6 +292,21 @@ public class SourceMapManager implements ResourceChangeParticipant {
           }
         }
       }
+    }
+
+    return false;
+  }
+
+  /**
+   * Filter out any source map file that lives in a packages directory.
+   */
+  boolean shouldFilterMapFile(IFile file) {
+    IPath path = file.getLocation();
+
+    if (path != null) {
+      String str = path.toPortableString();
+
+      return str.contains("/packages/");
     }
 
     return false;
