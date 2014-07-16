@@ -129,7 +129,7 @@ public class OpenAction extends AbstractDartSelectionAction {
       com.google.dart.server.Element element = getSelectionElement_NEW(selection);
       if (element != null) {
         try {
-          DartUI.openInEditor(null, element);
+          DartUI.openInEditor(element, true);
         } catch (Throwable e) {
           ExceptionHandler.handle(e, getText(), "Exception during open.");
         }
