@@ -17,6 +17,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AnalysisStatus;
@@ -729,6 +730,34 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
+  public void test_analysis_setPriorityFiles_emptyList() throws Exception {
+    server.setPriorityFiles(new ArrayList<String>(0));
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setPriorityFiles',",
+        "  'params': {",
+        "    'files': []",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_setPriorityFiles_nullList() throws Exception {
+    server.setPriorityFiles(null);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setPriorityFiles',",
+        "  'params': {",
+        "    'files': []",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
   public void test_analysis_setSubscriptions() throws Exception {
     LinkedHashMap<AnalysisService, List<String>> subscriptions = new LinkedHashMap<AnalysisService, List<String>>();
     subscriptions.put(AnalysisService.ERRORS, new ArrayList<String>(0));
@@ -758,6 +787,20 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_analysis_setSubscriptions_emptyMap() throws Exception {
     server.setAnalysisSubscriptions(new HashMap<AnalysisService, List<String>>(0));
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': {}",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_setSubscriptions_nullMap() throws Exception {
+    server.setAnalysisSubscriptions(null);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -899,6 +942,37 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
+  public void test_analysis_updateContent_emptyList() throws Exception {
+    Map<String, ContentChange> files = Maps.newHashMap();
+    server.updateContent(files);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateContent',",
+        "  'params': {",
+        "    'files': {",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateContent_nullList() throws Exception {
+    server.updateContent(null);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateContent',",
+        "  'params': {",
+        "    'files': {",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
   public void test_analysis_updateSdks() throws Exception {
     server.updateSdks(
         ImmutableList.of("/path/to/sdk/A", "/path/to/sdk/B"),
@@ -918,6 +992,21 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
+  public void test_analysis_updateSdks_emptyLists() throws Exception {
+    server.updateSdks(new ArrayList<String>(0), new ArrayList<String>(0), null);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateSdks',",
+        "  'params': {",
+        "    'added': [],",
+        "    'removed': []",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
   public void test_analysis_updateSdks_nullDefaultSDK() throws Exception {
     server.updateSdks(
         ImmutableList.of("/path/to/sdk/A", "/path/to/sdk/B"),
@@ -931,6 +1020,21 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'params': {",
         "    'added': ['/path/to/sdk/A', '/path/to/sdk/B'],",
         "    'removed': ['/path/to/sdk/C', '/path/to/sdk/D']",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_analysis_updateSdks_nullLists() throws Exception {
+    server.updateSdks(null, null, null);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.updateSdks',",
+        "  'params': {",
+        "    'added': [],",
+        "    'removed': []",
         "  }",
         "}");
     assertTrue(requests.contains(expected));
@@ -1518,8 +1622,22 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     listener.assertServerStatus(serverStatus);
   }
 
-  public void test_server_setSubscriptions() throws Exception {
+  public void test_server_setSubscriptions_emptyList() throws Exception {
     server.setServerSubscriptions(new ArrayList<ServerService>(0));
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'server.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': []",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_server_setSubscriptions_nullList() throws Exception {
+    server.setServerSubscriptions(null);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",

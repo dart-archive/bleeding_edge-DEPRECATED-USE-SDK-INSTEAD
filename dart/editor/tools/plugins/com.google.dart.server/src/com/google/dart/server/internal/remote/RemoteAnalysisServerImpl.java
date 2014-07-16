@@ -371,12 +371,18 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void setAnalysisSubscriptions(Map<AnalysisService, List<String>> subscriptions) {
     String id = generateUniqueId();
+    if (subscriptions == null) {
+      subscriptions = Maps.newHashMap();
+    }
     sendRequestToServer(id, RequestUtilities.generateAnalysisSetSubscriptions(id, subscriptions));
   }
 
   @Override
   public void setPriorityFiles(List<String> files) {
     String id = generateUniqueId();
+    if (files == null) {
+      files = EMPTY_STR_LIST;
+    }
     sendRequestToServer(id, RequestUtilities.generateAnalysisSetPriorityFiles(id, files));
   }
 
@@ -396,6 +402,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void setServerSubscriptions(List<ServerService> subscriptions) {
     String id = generateUniqueId();
+    if (subscriptions == null) {
+      subscriptions = Lists.newArrayList();
+    }
     sendRequestToServer(id, RequestUtilities.generateServerSetSubscriptions(id, subscriptions));
   }
 
@@ -435,12 +444,21 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   @Override
   public void updateContent(Map<String, ContentChange> files) {
     String id = generateUniqueId();
+    if (files == null) {
+      files = Maps.newHashMap();
+    }
     sendRequestToServer(id, RequestUtilities.generateAnalysisUpdateContent(id, files));
   }
 
   @Override
   public void updateSdks(List<String> added, List<String> removed, String defaultSdk) {
     String id = generateUniqueId();
+    if (added == null) {
+      added = EMPTY_STR_LIST;
+    }
+    if (removed == null) {
+      removed = EMPTY_STR_LIST;
+    }
     sendRequestToServer(
         id,
         RequestUtilities.generateAnalysisUpdateSdks(id, added, removed, defaultSdk));
