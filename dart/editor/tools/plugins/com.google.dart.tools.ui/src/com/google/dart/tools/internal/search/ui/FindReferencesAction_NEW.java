@@ -98,7 +98,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
                   });
             }
           });
-          Uninterruptibles.awaitUninterruptibly(latch, 15, TimeUnit.MINUTES);
+          Uninterruptibles.awaitUninterruptibly(latch, 1, TimeUnit.MINUTES);
           return allResults;
         }
       });
@@ -206,7 +206,7 @@ public class FindReferencesAction_NEW extends AbstractDartSelectionAction {
                       });
                 }
               });
-          Uninterruptibles.awaitUninterruptibly(latch, 5, TimeUnit.SECONDS);
+          Uninterruptibles.awaitUninterruptibly(latch, 1, TimeUnit.MINUTES);
         }
         return allResults;
       }
