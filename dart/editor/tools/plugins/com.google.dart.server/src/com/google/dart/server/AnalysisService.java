@@ -22,5 +22,6 @@ public enum AnalysisService {
   ERRORS,
   HIGHLIGHTS,
   NAVIGATION,
+  OCCURRENCES,
   OUTLINE;
 }

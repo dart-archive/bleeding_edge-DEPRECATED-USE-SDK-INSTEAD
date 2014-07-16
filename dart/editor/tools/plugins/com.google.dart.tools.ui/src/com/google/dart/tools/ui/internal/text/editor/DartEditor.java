@@ -1536,6 +1536,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private RemoveTrailingWhitespaceAction removeTrailingWhitespaceAction;
 
   private MarkOccurrencesManager_OLD occurrencesManager_OLD;
+  private MarkOccurrencesManager_NEW occurrencesManager_NEW;
 
   /**
    * This editor's projection support
@@ -1712,6 +1713,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       String file = getInputFilePath();
       if (file != null) {
         analysisServerData.unsubscribeNavigation(file);
+        analysisServerData.unsubscribeOccurrences(file);
         analysisServerData.unsubscribeOutline(file, analysisServerOutlineListener);
       }
     }
@@ -3399,6 +3401,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected void installOccurrencesFinder(boolean forceUpdate) {
     DartSourceViewer viewer = (DartSourceViewer) getSourceViewer();
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      occurrencesManager_NEW = new MarkOccurrencesManager_NEW(this, viewer);
     } else {
       occurrencesManager_OLD = new MarkOccurrencesManager_OLD(this, viewer);
     }
@@ -3776,6 +3779,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       occurrencesManager_OLD.dispose();
       occurrencesManager_OLD = null;
     }
+    if (occurrencesManager_NEW != null) {
+      occurrencesManager_NEW.dispose();
+      occurrencesManager_NEW = null;
+    }
   }
 
   protected void uninstallOverrideIndicator() {
@@ -4090,6 +4097,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       String file = getInputFilePath();
       if (file != null) {
         analysisServerData.subscribeNavigation(file);
+        analysisServerData.subscribeOccurrences(file);
       }
     }
 

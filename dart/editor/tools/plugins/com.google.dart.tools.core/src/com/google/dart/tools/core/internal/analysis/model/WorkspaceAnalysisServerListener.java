@@ -83,7 +83,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedOccurrences(String file, Occurrences[] occurrencesArray) {
-    // TODO(jwren/scheglov) not yet implemented
+    dataImpl.internalComputedOccurrences(file, occurrencesArray);
   }
 
   @Override

@@ -26,6 +26,11 @@ public interface Occurrences {
   Occurrences[] EMPTY_ARRAY = new Occurrences[0];
 
   /**
+   * Returns {@code true} if the given offset is contained by one of this occurrences ranges.
+   */
+  public boolean contains(int offset);
+
+  /**
    * A description of the element represented by this node.
    * 
    * @return the {@link Element}

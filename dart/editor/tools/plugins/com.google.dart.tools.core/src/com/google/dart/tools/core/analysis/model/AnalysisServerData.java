@@ -20,6 +20,7 @@ import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 
 /**
@@ -44,6 +45,12 @@ public interface AnalysisServerData {
   NavigationRegion[] getNavigation(String file);
 
   /**
+   * Returns {@link Occurrences}s associated with the given context and {@link Source}. May be
+   * empty, but not {@code null}.
+   */
+  Occurrences[] getOccurrences(String file);
+
+  /**
    * Returns {@code true} if the given {@link ErrorCode} may be fixed in the given file.
    */
   boolean isFixableErrorCode(String file, ErrorCode errorCode);
@@ -61,6 +68,11 @@ public interface AnalysisServerData {
   void subscribeNavigation(String file);
 
   /**
+   * Specifies that the client wants to request occurrences.
+   */
+  void subscribeOccurrences(String file);
+
+  /**
    * Specifies that the client wants to be notified about new {@link Outline}.
    */
   void subscribeOutline(String file, AnalysisServerOutlineListener listener);
@@ -74,6 +86,11 @@ public interface AnalysisServerData {
    * Specifies that the client doesn't need navigation information for the given file anymore.
    */
   void unsubscribeNavigation(String file);
+
+  /**
+   * Specifies that the client doesn't need occurrences information for the given file anymore.
+   */
+  void unsubscribeOccurrences(String file);
 
   /**
    * Specifies that the client doesn't want to be notified about {@link Outline} anymore.

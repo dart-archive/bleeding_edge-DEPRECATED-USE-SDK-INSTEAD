@@ -39,6 +39,16 @@ public class OccurrencesImpl implements Occurrences {
   }
 
   @Override
+  public boolean contains(int _offset) {
+    for (int offset : offsets) {
+      if (offset <= _offset && _offset < offset + length) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public boolean equals(Object obj) {
     if (obj instanceof OccurrencesImpl) {
       OccurrencesImpl other = (OccurrencesImpl) obj;

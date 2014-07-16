@@ -24,6 +24,7 @@ import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 import com.google.dart.server.SearchResult;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
@@ -46,6 +47,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   private final Map<String, Set<AnalysisServerOutlineListener>> outlineSubscriptions = Maps.newHashMap();
   private final Map<String, AnalysisError[]> errorData = Maps.newHashMap();
   private final Map<String, NavigationRegion[]> navigationData = Maps.newHashMap();
+  private final Map<String, Occurrences[]> occurrencesData = Maps.newHashMap();
   private final Map<AnalysisService, List<String>> analysisSubscriptions = Maps.newHashMap();
   private final Map<String, SearchResultsListener> searchResultsListeners = Maps.newHashMap();
   private final Map<String, List<SearchResultsSet>> searchResultsData = Maps.newHashMap();
@@ -85,6 +87,15 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
       return NavigationRegion.EMPTY_ARRAY;
     }
     return sourceRegions;
+  }
+
+  @Override
+  public Occurrences[] getOccurrences(String file) {
+    Occurrences[] occurrencesArray = occurrencesData.get(file);
+    if (occurrencesArray == null) {
+      return Occurrences.EMPTY_ARRAY;
+    }
+    return occurrencesArray;
   }
 
   @Override
@@ -130,6 +141,11 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
+  public void subscribeOccurrences(String file) {
+    addAnalysisSubscription(AnalysisService.OCCURRENCES, file);
+  }
+
+  @Override
   public void subscribeOutline(String file, AnalysisServerOutlineListener listener) {
     Set<AnalysisServerOutlineListener> subscriptions = outlineSubscriptions.get(file);
     if (subscriptions == null) {
@@ -157,6 +173,11 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   @Override
   public void unsubscribeNavigation(String file) {
     removeAnalysisSubscription(AnalysisService.NAVIGATION, file);
+  }
+
+  @Override
+  public void unsubscribeOccurrences(String file) {
+    removeAnalysisSubscription(AnalysisService.OCCURRENCES, file);
   }
 
   @Override
@@ -189,6 +210,10 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
 
   void internalComputedNavigation(String file, NavigationRegion[] targets) {
     navigationData.put(file, targets);
+  }
+
+  void internalComputedOccurrences(String file, Occurrences[] occurrencesArray) {
+    occurrencesData.put(file, occurrencesArray);
   }
 
   void internalComputedOutline(String file, Outline outline) {
