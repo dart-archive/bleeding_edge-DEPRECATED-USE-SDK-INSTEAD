@@ -13,31 +13,20 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
-import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.CodeAssistElement;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.PlatformUI;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.Iterator;
 
 public class SelectionConverter {
 
@@ -81,32 +70,6 @@ public class SelectionConverter {
     return EMPTY_RESULT;
   }
 
-  /**
-   * Perform a code resolve in a separate thread.
-   * 
-   * @param primaryOnly if <code>true</code> only primary working copies will be returned
-   * @throws InterruptedException
-   * @throws InvocationTargetException
-   */
-  public static DartElement[] codeResolveForked(DartEditor editor, boolean primaryOnly)
-      throws InvocationTargetException, InterruptedException {
-    return performForkedCodeResolve(
-        editor,
-        getInput(editor, primaryOnly),
-        (ITextSelection) editor.getSelectionProvider().getSelection());
-  }
-
-  public static DartElement[] codeResolveOrInputForked(DartEditor editor)
-      throws InvocationTargetException, InterruptedException {
-    DartElement input = getInput(editor);
-    ITextSelection selection = (ITextSelection) editor.getSelectionProvider().getSelection();
-    DartElement[] result = performForkedCodeResolve(editor, input, selection);
-    if (result.length == 0) {
-      result = new DartElement[] {input};
-    }
-    return result;
-  }
-
   public static DartElement getElementAtOffset(DartEditor editor) throws DartModelException {
     return getElementAtOffset(editor, true);
   }
@@ -126,37 +89,8 @@ public class SelectionConverter {
     return null;
   }
 
-  /**
-   * Converts the given structured selection into an array of Java elements. An empty array is
-   * returned if one of the elements stored in the structured selection is not of type
-   * <code>DartElement</code>
-   */
-  public static DartElement[] getElements(IStructuredSelection selection) {
-    if (!selection.isEmpty()) {
-      DartElement[] result = new DartElement[selection.size()];
-      int i = 0;
-      for (Iterator<?> iter = selection.iterator(); iter.hasNext(); i++) {
-        Object element = iter.next();
-        if (!(element instanceof DartElement)) {
-          return EMPTY_RESULT;
-        }
-        result[i] = (DartElement) element;
-      }
-      return result;
-    }
-    return EMPTY_RESULT;
-  }
-
   public static DartElement getInput(DartEditor editor) {
     return getInput(editor, true);
-  }
-
-  public static CompilationUnit getInputAsCompilationUnit(DartEditor editor) {
-    Object editorInput = SelectionConverter.getInput(editor);
-    if (editorInput instanceof CompilationUnit) {
-      return (CompilationUnit) editorInput;
-    }
-    return null;
   }
 
   /**
@@ -183,93 +117,6 @@ public class SelectionConverter {
       }
     }
     return StructuredSelection.EMPTY;
-  }
-
-  public static Type getTypeAtOffset(DartEditor editor) throws DartModelException {
-    DartElement element = SelectionConverter.getElementAtOffset(editor);
-    Type type = element.getAncestor(Type.class);
-    if (type == null) {
-      CompilationUnit unit = SelectionConverter.getInputAsCompilationUnit(editor);
-      if (unit != null) {
-        Type[] types = unit.getTypes();
-        if (types.length == 0) {
-          return null;
-        }
-        int n = ((ITextSelection) editor.getSelectionProvider().getSelection()).getOffset();
-        Type p = types[0];
-        for (Type t : types) {
-          if (t.getSourceRange().getOffset() > n) {
-            return p;
-          }
-          p = t;
-        }
-      }
-    }
-    return type;
-  }
-
-  public static DartElement resolveEnclosingElement(DartEditor editor, ITextSelection selection)
-      throws DartModelException {
-    return resolveEnclosingElement(getInput(editor), selection);
-  }
-
-  public static DartElement resolveEnclosingElement(DartElement input, ITextSelection selection)
-      throws DartModelException {
-    DartElement atOffset = null;
-    if (input instanceof CompilationUnit) {
-      CompilationUnit cunit = (CompilationUnit) input;
-      DartModelUtil.reconcile(cunit);
-      atOffset = cunit.getElementAt(selection.getOffset());
-    } else {
-      return null;
-    }
-    if (atOffset == null) {
-      return input;
-    } else {
-      int selectionEnd = selection.getOffset() + selection.getLength();
-      DartElement result = atOffset;
-      if (atOffset instanceof SourceReference) {
-        SourceRange range = ((SourceReference) atOffset).getSourceRange();
-        while (range.getOffset() + range.getLength() < selectionEnd) {
-          result = result.getParent();
-          if (!(result instanceof SourceReference)) {
-            result = input;
-            break;
-          }
-          range = ((SourceReference) result).getSourceRange();
-        }
-      }
-      return result;
-    }
-  }
-
-  /**
-   * Shows a dialog for resolving an ambiguous java element. Utility method that can be called by
-   * subclasses.
-   */
-  public static DartElement selectJavaElement(DartElement[] elements, Shell shell, String title,
-      String message) {
-    DartX.todo();
-//    int nResults = elements.length;
-//    if (nResults == 0)
-//      return null;
-//    if (nResults == 1)
-//      return elements[0];
-//
-//    int flags = JavaScriptElementLabelProvider.SHOW_DEFAULT
-//        | JavaScriptElementLabelProvider.SHOW_QUALIFIED
-//        | JavaScriptElementLabelProvider.SHOW_ROOT;
-//
-//    ElementListSelectionDialog dialog = new ElementListSelectionDialog(shell,
-//        new JavaScriptElementLabelProvider(flags));
-//    dialog.setTitle(title);
-//    dialog.setMessage(message);
-//    dialog.setElements(elements);
-//
-//    if (dialog.open() == Window.OK) {
-//      return (DartElement) dialog.getFirstResult();
-//    }
-    return null;
   }
 
   /**
@@ -301,26 +148,6 @@ public class SelectionConverter {
       return null;
     }
     return EditorUtility.getEditorInputDartElement(editor, primaryOnly);
-  }
-
-  private static DartElement[] performForkedCodeResolve(final DartEditor editor,
-      final DartElement input, final ITextSelection selection) throws InvocationTargetException,
-      InterruptedException {
-    final class CodeResolveRunnable implements IRunnableWithProgress {
-      DartElement[] result;
-
-      @Override
-      public void run(IProgressMonitor monitor) throws InvocationTargetException {
-        try {
-          result = codeResolve(editor, input, selection);
-        } catch (DartModelException e) {
-          throw new InvocationTargetException(e);
-        }
-      }
-    }
-    CodeResolveRunnable runnable = new CodeResolveRunnable();
-    PlatformUI.getWorkbench().getProgressService().busyCursorWhile(runnable);
-    return runnable.result;
   }
 
   private SelectionConverter() {

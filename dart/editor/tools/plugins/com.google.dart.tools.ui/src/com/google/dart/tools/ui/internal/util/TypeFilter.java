@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -37,20 +36,8 @@ public class TypeFilter implements IPropertyChangeListener {
 //  return getDefault().filter(match.getFullyQualifiedName());
 //}
 
-  public static boolean isFiltered(char[] packageName, char[] typeName) {
-    return getDefault().filter(DartModelUtil.concatenateName(packageName, typeName));
-  }
-
   public static boolean isFiltered(String fullTypeName) {
     return getDefault().filter(fullTypeName);
-  }
-
-  public static boolean isFiltered(Type type) {
-    TypeFilter typeFilter = getDefault();
-    if (typeFilter.hasFilters()) {
-      return typeFilter.filter(DartModelUtil.getFullyQualifiedName(type));
-    }
-    return false;
   }
 
   private StringMatcher[] fStringMatchers;
