@@ -147,7 +147,7 @@ public class BrowserManager {
         throw new DebugException(new Status(
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,
-            "Unable to connect to Chromium"));
+            "Unable to connect to debugger in Chromium, make sure browser is open."));
       }
 
       monitor.worked(1);
