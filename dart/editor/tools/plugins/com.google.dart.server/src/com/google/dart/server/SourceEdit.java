@@ -13,26 +13,36 @@
  */
 package com.google.dart.server;
 
-
 /**
- * The interface {@link SourceChange} is a description of a single change to one or more files.
+ * The interface {@link SourceEdit} is a description of a single change to a single file.
  * 
  * @coverage dart.server
  */
-public interface SourceChange {
+public interface SourceEdit {
+  /**
+   * An empty array of source edits.
+   */
+  public final SourceEdit[] EMPTY_ARRAY = new SourceEdit[0];
 
   /**
-   * A list of the edits used to effect the change, grouped by file.
+   * The length of the region to be modified.
    * 
-   * @return a list of the edits used to effect the change, grouped by file
+   * @return the length of the region to be modified
    */
-  public SourceFileEdit[] getEdits();
+  public int getLength();
 
   /**
-   * A textual description of the change to be applied.
+   * The offset of the region to be modified.
    * 
-   * @return a textual description of the change to be applied
+   * @return the offset of the region to be modified
    */
-  public String getMessage();
+  public int getOffset();
+
+  /**
+   * The code that is to replace the specified region in the original code.
+   * 
+   * @return the code that is to replace the specified region in the original code
+   */
+  public String getReplacement();
 
 }

@@ -15,24 +15,18 @@ package com.google.dart.server;
 
 
 /**
- * The interface {@link SourceChange} is a description of a single change to one or more files.
+ * The interface {@code RefactoringApplyConsumer} defines the behavior of objects that consume an
+ * apply refactoring response.
  * 
  * @coverage dart.server
  */
-public interface SourceChange {
-
+public interface RefactoringApplyConsumer extends Consumer {
   /**
-   * A list of the edits used to effect the change, grouped by file.
+   * The {@link RefactoringProblem}s and {@link SourceChange} that have been computed.
    * 
-   * @return a list of the edits used to effect the change, grouped by file
+   * @param status the status of the refactoring, the list will be empty if there are no known
+   *          problems at this stage
+   * @param change the changes that are to be applied to affect the refactoring
    */
-  public SourceFileEdit[] getEdits();
-
-  /**
-   * A textual description of the change to be applied.
-   * 
-   * @return a textual description of the change to be applied
-   */
-  public String getMessage();
-
+  public void computed(RefactoringProblem[] problems, SourceChange sourceChange);
 }

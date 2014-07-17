@@ -13,26 +13,38 @@
  */
 package com.google.dart.server;
 
-
 /**
- * The interface {@link SourceChange} is a description of a single change to one or more files.
+ * The interface {@code RefactoringProblem} defines the behavior of objects that represent a
+ * refactoring problem.
  * 
  * @coverage dart.server
  */
-public interface SourceChange {
+public interface RefactoringProblem {
 
   /**
-   * A list of the edits used to effect the change, grouped by file.
-   * 
-   * @return a list of the edits used to effect the change, grouped by file
+   * An empty array of refactoring problems.
    */
-  public SourceFileEdit[] getEdits();
+  public final RefactoringProblem[] EMPTY_ARRAY = new RefactoringProblem[0];
 
   /**
-   * A textual description of the change to be applied.
+   * The location of the problem being represented.
    * 
-   * @return a textual description of the change to be applied
+   * @return the location of the problem being represented
+   */
+  public Location getLocation();
+
+  /**
+   * A textual description of the problem being represented.
+   * 
+   * @return a textual description of the problem being represented
    */
   public String getMessage();
+
+  /**
+   * The severity of the problem being represented.
+   * 
+   * @return the severity of the problem being represented
+   */
+  public RefactoringProblemSeverity getSeverity();
 
 }

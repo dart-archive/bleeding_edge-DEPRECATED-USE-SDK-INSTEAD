@@ -30,6 +30,7 @@ import com.google.dart.server.ContentChange;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HoverConsumer;
 import com.google.dart.server.Location;
+import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.ServerService;
@@ -49,6 +50,7 @@ import com.google.dart.server.internal.remote.processor.NotificationSearchResult
 import com.google.dart.server.internal.remote.processor.NotificationServerConnectedProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
+import com.google.dart.server.internal.remote.processor.RefactoringApplyProcessor;
 import com.google.dart.server.internal.remote.processor.SearchIdProcessor;
 import com.google.dart.server.internal.remote.processor.TypeHierarchyProcessor;
 import com.google.dart.server.internal.remote.processor.VersionProcessor;
@@ -224,8 +226,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void applyRefactoring() {
-    // TODO(scheglov) implement
+  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateEditApplyRefactoring(id, refactoringId),
+        consumer);
   }
 
   @Override
@@ -574,6 +580,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new SearchIdProcessor((SearchIdConsumer) consumer).process(resultObject);
     } else if (consumer instanceof TypeHierarchyConsumer) {
       new TypeHierarchyProcessor((TypeHierarchyConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof RefactoringApplyConsumer) {
+      new RefactoringApplyProcessor((RefactoringApplyConsumer) consumer).process(resultObject);
     } else if (consumer instanceof VersionConsumer) {
       new VersionProcessor((VersionConsumer) consumer).process(resultObject);
     } else if (consumer instanceof BasicConsumer) {

@@ -27,9 +27,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void applyRefactoring(
-//  String refactoringId, RefactoringApplyConsumer consumer
-  ) {
+  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 

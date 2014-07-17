@@ -36,13 +36,11 @@ public interface AnalysisServer {
    * method may be invoked several times, for example after changing options using
    * {@link #setRefactoringExtractLocalOptions(String, boolean, String)}. When done,
    * {@link #deleteRefactoring(String)} should be invoked.
-   * <p>
-   * TODO (jwren) revisit API and parameter types
    * 
    * @param refactoringId the identifier of the refactoring to apply
    * @param consumer the results listener
    */
-  public void applyRefactoring(/*String refactoringId, RefactoringApplyConsumer consumer*/);
+  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer);
 
   /**
    * Create a new "Extract Local" refactoring. The refactoring that is created will persist until

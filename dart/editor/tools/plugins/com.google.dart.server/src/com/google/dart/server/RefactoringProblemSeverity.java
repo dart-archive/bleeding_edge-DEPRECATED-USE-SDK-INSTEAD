@@ -13,26 +13,15 @@
  */
 package com.google.dart.server;
 
-
 /**
- * The interface {@link SourceChange} is a description of a single change to one or more files.
+ * The enumeration {@code RefactoringProblemSeverity} defines the various types of refactoring
+ * problem severities.
  * 
  * @coverage dart.server
  */
-public interface SourceChange {
-
-  /**
-   * A list of the edits used to effect the change, grouped by file.
-   * 
-   * @return a list of the edits used to effect the change, grouped by file
-   */
-  public SourceFileEdit[] getEdits();
-
-  /**
-   * A textual description of the change to be applied.
-   * 
-   * @return a textual description of the change to be applied
-   */
-  public String getMessage();
-
+public enum RefactoringProblemSeverity {
+  INFO,
+  WARNING,
+  ERROR,
+  FATAL;
 }

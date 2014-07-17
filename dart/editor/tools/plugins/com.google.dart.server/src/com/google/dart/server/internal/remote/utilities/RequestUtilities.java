@@ -59,8 +59,13 @@ public class RequestUtilities {
   private static final String METHOD_ANALYSIS_UPDATE_SDKS = "analysis.updateSdks";
 
   // Edit domain
-  private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
+  private static final String METHOD_EDIT_APPLY_REFACTORING = "edit.applyRefactoring";
+  // private static final String METHOD_EDIT_CREATE_REFACTORING = "edit.createRefactoring";
+  //private static final String METHOD_EDIT_DELETE_REFACTORING = "edit.deleteRefactoring";
   private static final String METHOD_EDIT_GET_ASSISTS = "edit.getAssists";
+  private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
+  //private static final String METHOD_EDIT_GET_REFACTORING = "edit.getRefactoring";
+  //private static final String METHOD_EDIT_SET_REFACTORING_OPTIONS = "edit.setRefactoringOptions";
 
   // Code Completion domain
   private static final String METHOD_COMPLETION_GET_SUGGESTIONS = "completion.getSuggestions";
@@ -309,6 +314,25 @@ public class RequestUtilities {
     params.addProperty(FILE, file);
     params.addProperty(OFFSET, offset);
     return buildJsonObjectRequest(idValue, METHOD_COMPLETION_GET_SUGGESTIONS, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_EDIT_GET_ASSISTS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "edit.applyRefactoring"
+   *   "params": {
+   *     "id": RefactoringId
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateEditApplyRefactoring(String idValue, String refactoringId) {
+    JsonObject params = new JsonObject();
+    params.addProperty("id", refactoringId);
+    return buildJsonObjectRequest(idValue, METHOD_EDIT_APPLY_REFACTORING, params);
   }
 
   /**

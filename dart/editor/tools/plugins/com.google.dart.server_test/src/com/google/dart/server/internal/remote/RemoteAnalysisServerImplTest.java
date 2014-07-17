@@ -38,11 +38,17 @@ import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OverrideMember;
+import com.google.dart.server.RefactoringApplyConsumer;
+import com.google.dart.server.RefactoringProblem;
+import com.google.dart.server.RefactoringProblemSeverity;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.ServerStatus;
+import com.google.dart.server.SourceChange;
+import com.google.dart.server.SourceEdit;
+import com.google.dart.server.SourceFileEdit;
 import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.TypeHierarchyItem;
 import com.google.dart.server.VersionConsumer;
@@ -1178,6 +1184,147 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertNull(suggestion.getParameterType());
       assertFalse(suggestion.hasNamed());
     }
+  }
+
+  public void test_edit_applyRefactoring() throws Exception {
+    final RefactoringProblem[][] problemsArray = {{null}};
+    final SourceChange[] sourceChangeArray = {null};
+    server.applyRefactoring("refactoringId1", new RefactoringApplyConsumer() {
+      @Override
+      public void computed(RefactoringProblem[] problems, SourceChange sourceChange) {
+        problemsArray[0] = problems;
+        sourceChangeArray[0] = sourceChange;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.applyRefactoring',",
+        "  'params': {",
+        "    'id': 'refactoringId1'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'status': [",
+        "      {",
+        "        'severity':'INFO',",
+        "        'message':'message1',",
+        "        'location': {",
+        "          'file': 'someFile.dart',",
+        "          'offset': 1,",
+        "          'length': 2,",
+        "          'startLine': 3,",
+        "          'startColumn': 4",
+        "        }",
+        "      },",
+        "      {",
+        "        'severity':'WARNING',",
+        "        'message':'message2',",
+        "        'location': {",
+        "          'file': 'someFile2.dart',",
+        "          'offset': 5,",
+        "          'length': 6,",
+        "          'startLine': 7,",
+        "          'startColumn': 8",
+        "        }",
+        "      }",
+        "    ],",
+        "    'change': {",
+        "      'message': 'message3',",
+        "      'edits': [",
+        "        {",
+        "          'file':'someFile3.dart',",
+        "          'edits': [",
+        "            {",
+        "              'offset': 9,",
+        "              'length': 10,",
+        "              'replacement': 'replacement1'",
+        "            }",
+        "          ]",
+        "        }",
+        "      ]",
+        "    }",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'status' (RefactoringProblem array)
+    {
+      assertThat(problemsArray[0]).hasSize(2);
+      RefactoringProblem refactoringProblem1 = problemsArray[0][0];
+      RefactoringProblem refactoringProblem2 = problemsArray[0][1];
+      {
+        assertEquals(RefactoringProblemSeverity.INFO, refactoringProblem1.getSeverity());
+        assertEquals("message1", refactoringProblem1.getMessage());
+        assertEquals(
+            new LocationImpl("someFile.dart", 1, 2, 3, 4),
+            refactoringProblem1.getLocation());
+      }
+      {
+        assertEquals(RefactoringProblemSeverity.WARNING, refactoringProblem2.getSeverity());
+        assertEquals("message2", refactoringProblem2.getMessage());
+        assertEquals(
+            new LocationImpl("someFile2.dart", 5, 6, 7, 8),
+            refactoringProblem2.getLocation());
+      }
+    }
+
+    // assertions on 'change' (SourceChange)
+    {
+      assertEquals("message3", sourceChangeArray[0].getMessage());
+      assertThat(sourceChangeArray[0].getEdits()).hasSize(1);
+      SourceFileEdit sourceFileEdit = sourceChangeArray[0].getEdits()[0];
+      assertEquals("someFile3.dart", sourceFileEdit.getFile());
+      assertThat(sourceFileEdit.getEdits()).hasSize(1);
+      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
+      assertEquals(9, sourceEdit.getOffset());
+      assertEquals(10, sourceEdit.getLength());
+      assertEquals("replacement1", sourceEdit.getReplacement());
+    }
+  }
+
+  public void test_edit_applyRefactoring_emptyLists() throws Exception {
+    final RefactoringProblem[][] problemsArray = {{null}};
+    final SourceChange[] sourceChangeArray = {null};
+    server.applyRefactoring("refactoringId1", new RefactoringApplyConsumer() {
+      @Override
+      public void computed(RefactoringProblem[] problems, SourceChange sourceChange) {
+        problemsArray[0] = problems;
+        sourceChangeArray[0] = sourceChange;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.applyRefactoring',",
+        "  'params': {",
+        "    'id': 'refactoringId1'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'status': [],",
+        "    'change': {",
+        "      'message': 'message1',",
+        "      'edits': []",
+        "    }",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+    assertThat(problemsArray[0]).isEmpty();
+    assertEquals("message1", sourceChangeArray[0].getMessage());
+    assertThat(sourceChangeArray[0].getEdits()).isEmpty();
   }
 
   public void test_edit_getAssists() throws Exception {
