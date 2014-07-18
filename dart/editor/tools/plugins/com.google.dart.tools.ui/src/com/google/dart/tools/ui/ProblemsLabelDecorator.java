@@ -15,7 +15,6 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
@@ -253,47 +252,7 @@ public class ProblemsLabelDecorator implements ILabelDecorator, ILightweightLabe
    */
   protected int computeAdornmentFlags(Object obj) {
     try {
-      if (obj instanceof DartElement) {
-        DartElement element = (DartElement) obj;
-        int type = element.getElementType();
-        DartX.todo();
-        switch (type) {
-          case DartElement.DART_MODEL:
-          case DartElement.DART_PROJECT:
-            // case DartElement.PACKAGE_FRAGMENT_ROOT:
-            return getErrorTicksFromMarkers(element.getResource(), IResource.DEPTH_INFINITE, null);
-            // case DartElement.PACKAGE_FRAGMENT:
-          case DartElement.COMPILATION_UNIT:
-            // case DartElement.CLASS_FILE:
-            return getErrorTicksFromMarkers(element.getResource(), IResource.DEPTH_ONE, null);
-            // case DartElement.IMPORT_DECLARATION:
-            // case DartElement.IMPORT_CONTAINER:
-          case DartElement.TYPE:
-            // case DartElement.INITIALIZER:
-          case DartElement.METHOD:
-          case DartElement.FIELD:
-            // case DartElement.LOCAL_VARIABLE:
-            CompilationUnit cu = element.getAncestor(CompilationUnit.class);
-            if (cu != null) {
-              SourceReference ref = (type == DartElement.COMPILATION_UNIT) ? null
-                  : (SourceReference) element;
-              // The assumption is that only source elements in compilation unit
-              // can have markers
-              IAnnotationModel model = isInJavaAnnotationModel(cu);
-              int result = 0;
-              if (model != null) {
-                // open in JavaScript editor: look at annotation model
-                result = getErrorTicksFromAnnotationModel(model, ref);
-              } else {
-                result = getErrorTicksFromMarkers(cu.getResource(), IResource.DEPTH_ONE, ref);
-              }
-              fCachedRange = null;
-              return result;
-            }
-            break;
-          default:
-        }
-      } else if (obj instanceof IResource) {
+      if (obj instanceof IResource) {
         return getErrorTicksFromMarkers((IResource) obj, IResource.DEPTH_INFINITE, null);
       }
     } catch (CoreException e) {

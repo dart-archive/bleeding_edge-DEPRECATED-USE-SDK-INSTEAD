@@ -17,7 +17,6 @@ import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.LightweightModel;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -392,10 +391,6 @@ public class LaunchUtils {
 
               while (iterator.hasNext()) {
                 Object next = iterator.next();
-
-                if (next instanceof DartElement) {
-                  next = ((DartElement) next).getResource();
-                }
 
                 if (next instanceof IResource) {
                   return (IResource) next;

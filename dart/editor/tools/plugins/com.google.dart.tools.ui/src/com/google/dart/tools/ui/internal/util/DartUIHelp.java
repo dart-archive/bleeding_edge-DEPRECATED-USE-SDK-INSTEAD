@@ -13,10 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
@@ -100,11 +98,6 @@ public class DartUIHelp {
           ISelection selection = fViewer.getSelection();
           if (selection instanceof IStructuredSelection) {
             selected = ((IStructuredSelection) selection).toArray();
-          }
-        } else if (fEditor != null) {
-          DartElement input = SelectionConverter.getInput(fEditor);
-          if (ActionUtil.isOnBuildPath(input)) {
-            selected = SelectionConverter.codeResolve(fEditor);
           }
         }
         DartDocHelpContext.displayHelp(fContextId, selected);

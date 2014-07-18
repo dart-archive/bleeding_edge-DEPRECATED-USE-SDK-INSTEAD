@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 
 import org.eclipse.core.resources.IResource;
@@ -29,30 +28,16 @@ public class ResourceLocator implements IResourceLocator {
     if (element instanceof IResource) {
       resource = (IResource) element;
     }
-    if (element instanceof DartElement) {
-      resource = ((DartElement) element).getResource();
-      if (resource == null) {
-        resource = ((DartElement) element).getDartProject().getProject();
-      }
-    }
     return resource;
   }
 
   @Override
   public IResource getCorrespondingResource(Object element) throws DartModelException {
-    if (element instanceof DartElement) {
-      return ((DartElement) element).getCorrespondingResource();
-    } else {
-      return null;
-    }
+    return null;
   }
 
   @Override
   public IResource getUnderlyingResource(Object element) throws DartModelException {
-    if (element instanceof DartElement) {
-      return ((DartElement) element).getUnderlyingResource();
-    } else {
-      return null;
-    }
+    return null;
   }
 }

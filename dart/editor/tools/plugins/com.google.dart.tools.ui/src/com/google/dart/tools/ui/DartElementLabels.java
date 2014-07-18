@@ -745,19 +745,6 @@ public class DartElementLabels {
 //  }
 
   /**
-   * Returns the styled label for a Java element with the flags as defined by this class.
-   * 
-   * @param element the element to render
-   * @param flags the rendering flags
-   * @return the label of the Dart element
-   */
-  public static StyledString getStyledElementLabel(DartElement element, long flags) {
-    StyledString result = new StyledString();
-    getElementLabel(element, flags, result);
-    return Strings.markDartElementLabelLTR(result);
-  }
-
-  /**
    * Appends the label for a package fragment to a {@link StringBuffer}. Considers the P_* flags.
    * 
    * @param pack The element to render.
@@ -828,10 +815,7 @@ public class DartElementLabels {
    * @return the label or the empty string if the object type is not supported
    */
   public static StyledString getStyledTextLabel(Object obj, long flags) {
-    if (obj instanceof DartElement) {
-      return getStyledElementLabel((DartElement) obj, flags);
-
-    } else if (obj instanceof IResource) {
+    if (obj instanceof IResource) {
       return getStyledResourceLabel((IResource) obj);
 
 //    } else if (obj instanceof ClassPathContainer) {
@@ -859,12 +843,6 @@ public class DartElementLabels {
    * @return Returns the label or the empty string if the object type is not supported.
    */
   public static String getTextLabel(Object obj, long flags) {
-
-    // Only handle DartElement labels and delegate to the new service for all else
-    if (obj instanceof DartElement) {
-      return getElementLabel((DartElement) obj, flags);
-    }
-
     return NewDartElementLabels.getTextLabel(obj, flags);
   }
 

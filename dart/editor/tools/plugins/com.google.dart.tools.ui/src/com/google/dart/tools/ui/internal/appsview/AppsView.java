@@ -20,7 +20,6 @@ import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -364,10 +363,6 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
         element = ((ElementTreeNode) element).getModelElement();
 
         instrumentation.metric("Element", "ElementTreeNode");
-        if (element instanceof DartElement) {
-          ActionInstrumentationUtilities.recordElement((DartElement) element, instrumentation);
-        }
-
       }
       if (element instanceof CompilationUnit) {
         try {

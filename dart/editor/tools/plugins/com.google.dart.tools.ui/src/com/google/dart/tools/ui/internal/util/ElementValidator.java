@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartUIMessages;
 
@@ -158,17 +157,7 @@ public class ElementValidator {
     Set<IResource> result = new HashSet<IResource>();
     for (int i = 0; i < elements.length; i++) {
       IAdaptable element = elements[i];
-      IResource resource = null;
-      if (element instanceof DartElement) {
-        DartElement je = (DartElement) element;
-        CompilationUnit cu = je.getAncestor(CompilationUnit.class);
-        if (cu != null) {
-          je = cu.getPrimary();
-        }
-        resource = je.getResource();
-      } else {
-        resource = (IResource) element.getAdapter(IResource.class);
-      }
+      IResource resource = (IResource) element.getAdapter(IResource.class);
       if (resource != null) {
         result.add(resource);
       }

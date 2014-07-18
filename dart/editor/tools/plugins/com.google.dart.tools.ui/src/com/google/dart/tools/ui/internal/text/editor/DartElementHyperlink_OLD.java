@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 
@@ -70,8 +69,6 @@ public class DartElementHyperlink_OLD implements IHyperlink {
 
       if (element instanceof Element) {
         ActionInstrumentationUtilities.recordElement((Element) element, instrumentation);
-      } else if (element instanceof DartElement) {
-        ActionInstrumentationUtilities.recordElement((DartElement) element, instrumentation);
       }
 
       openAction.run(new StructuredSelection(element));

@@ -13,9 +13,7 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.internal.preferences.MembersOrderPreferenceCache;
@@ -107,43 +105,6 @@ public class DartElementComparator extends ViewerComparator {
       } else {
         return FILE;
       }
-    } else if (objectElement instanceof DartElement) {
-      DartElement element = (DartElement) objectElement;
-
-      switch (element.getElementType()) {
-        case DartElement.METHOD: {
-          Method method = (Method) element;
-          if (method.isConstructor()) {
-            return getMemberCategory(MembersOrderPreferenceCache.CONSTRUCTORS_INDEX);
-          }
-          if (method.isStatic()) {
-            return getMemberCategory(MembersOrderPreferenceCache.STATIC_METHODS_INDEX);
-          } else {
-            return getMemberCategory(MembersOrderPreferenceCache.METHOD_INDEX);
-          }
-        }
-        case DartElement.FIELD: {
-          Field field = (Field) element;
-          if (field.isStatic()) {
-            return getMemberCategory(MembersOrderPreferenceCache.STATIC_FIELDS_INDEX);
-          } else {
-            return getMemberCategory(MembersOrderPreferenceCache.FIELDS_INDEX);
-          }
-        }
-        case DartElement.TYPE:
-          return getMemberCategory(MembersOrderPreferenceCache.TYPE_INDEX);
-        case DartElement.HTML_FILE:
-          return HTML_FILE;
-        case DartElement.IMPORT_CONTAINER:
-          return IMPORT_CONTAINER;
-        case DartElement.DART_PROJECT:
-          return PROJECTS;
-        case DartElement.COMPILATION_UNIT:
-          return DART_FILE;
-        case DartElement.LIBRARY:
-          return DART_LIB;
-      }
-      return DARTELEMENTS;
     } else if (objectElement instanceof IFile) {
       return RESOURCES;
     } else if (objectElement instanceof IProject) {
@@ -230,21 +191,7 @@ public class DartElementComparator extends ViewerComparator {
   }
 
   private String getElementName(Object element) {
-    if (element instanceof DartElement) {
-      String name = ((DartElement) element).getElementName();
-
-      // Remove the private identifier from elements for comparison purposes. Otherwise all the 
-      // private classes sort before all the public ones.
-//      if (name.startsWith("_")) {
-//        return name.substring(1);
-//      }
-
-      return name;
-//    } else if (element instanceof PackageFragmentRootContainer) {
-//      return ((PackageFragmentRootContainer) element).getLabel();
-    } else {
-      return element.toString();
-    }
+    return element.toString();
   }
 
   private int getMemberCategory(int kind) {

@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.viewsupport;
 
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Widget;
@@ -47,19 +44,7 @@ public class ResourceToItemsMapper {
    * @return Returns the corresponding resource or null
    */
   private static IResource getCorrespondingResource(Object element) {
-    if (element instanceof DartElement) {
-      DartElement elem = (DartElement) element;
-      IResource res = elem.getResource();
-      if (res == null) {
-        CompilationUnit cu = elem.getAncestor(CompilationUnit.class);
-        if (cu != null) {
-          // elements in compilation units are mapped to the underlying resource
-// of the original cu
-          res = cu.getResource();
-        }
-      }
-      return res;
-    } else if (element instanceof IResource) {
+    if (element instanceof IResource) {
       return (IResource) element;
     }
     return null;

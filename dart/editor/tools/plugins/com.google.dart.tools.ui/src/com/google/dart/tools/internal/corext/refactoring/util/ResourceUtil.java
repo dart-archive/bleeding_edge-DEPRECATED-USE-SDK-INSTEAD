@@ -14,8 +14,6 @@
 package com.google.dart.tools.internal.corext.refactoring.util;
 
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.OpenableElement;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -52,23 +50,10 @@ public class ResourceUtil {
     if (o instanceof IResource) {
       return (IResource) o;
     }
-    if (o instanceof DartElement) {
-      return getResource((DartElement) o);
-    }
     return null;
   }
 
   //----- other ------------------------------
-
-  private static IResource getResource(DartElement element) {
-    if (element.getElementType() == DartElement.COMPILATION_UNIT) {
-      return ((CompilationUnit) element).getResource();
-    } else if (element instanceof OpenableElement) {
-      return element.getResource();
-    } else {
-      return null;
-    }
-  }
 
   private ResourceUtil() {
   }

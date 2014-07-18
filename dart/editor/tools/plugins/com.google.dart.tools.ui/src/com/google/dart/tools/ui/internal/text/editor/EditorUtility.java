@@ -357,10 +357,6 @@ public class EditorUtility {
       return getEditorInput((Element) input);
     }
 
-    if (input instanceof DartElement) {
-      return getEditorInput((DartElement) input);
-    }
-
     if (input instanceof IFile) {
       return new FileEditorInput((IFile) input);
     }
@@ -496,51 +492,6 @@ public class EditorUtility {
       return openInEditor((IFile) inputElement, activate);
     }
     DartX.todo();
-//    if (inputElement instanceof DartElement
-//        && ((DartElement) inputElement).isVirtual()) {
-//
-//      URI hostElementPath = ((DartElement) inputElement).getHostPath();
-//
-//      if (hostElementPath != null) {
-//        /* See if we can resolve the URI on the workspace */
-//        IResource realFile = ((DartElement) inputElement).getDartProject().getProject().getWorkspace().getRoot().getFileForLocation(
-//            new Path(hostElementPath.getPath()));
-//        if (realFile == null || !realFile.exists()) {
-//          realFile = ((DartElement) inputElement).getDartProject().getProject().getWorkspace().getRoot().findMember(
-//              hostElementPath.getPath());
-//        }
-//        if (realFile != null)
-//          return openInEditor((IFile) realFile, activate);
-//        return openInEditor(hostElementPath, activate);
-//      }
-//
-//    }
-
-    /*
-     * Support to navigate inside non-primary working copy. For now we only support to navigate
-     * inside the currently active editor. XXX: once we have FileStoreEditorInput as API, see
-     * https://bugs.eclipse.org/bugs/show_bug.cgi?id=111887 we can fix this code by creating the
-     * correct editor input in getEditorInput(Object)
-     */
-    if (inputElement instanceof DartElement) {
-      CompilationUnit cu = ((DartElement) inputElement).getAncestor(CompilationUnit.class);
-      if (cu != null && !DartModelUtil.isPrimary(cu)) {
-        IWorkbenchPage page = DartToolsPlugin.getActivePage();
-        if (page != null) {
-          IEditorPart editor = page.getActiveEditor();
-          if (editor != null) {
-            DartElement editorCU = EditorUtility.getEditorInputDartElement(editor, false);
-            if (cu.equals(editorCU)) {
-              if (activate && page.getActivePart() != editor) {
-                page.activate(editor);
-              }
-              return editor;
-            }
-          }
-        }
-      }
-    }
-
     if (inputElement instanceof ImportElement) {
       inputElement = ((ImportElement) inputElement).getImportedLibrary();
     }
@@ -797,35 +748,6 @@ public class EditorUtility {
       return library.getDefiningCompilationUnit();
     }
     // not found
-    return null;
-  }
-
-  private static IEditorInput getEditorInput(DartElement element) {
-    while (element != null) {
-      if (element instanceof CompilationUnit) {
-        CompilationUnit unit = ((CompilationUnit) element).getPrimary();
-        IResource resource = unit.getResource();
-        if (resource instanceof IFile) {
-          return new FileEditorInput((IFile) resource);
-        }
-
-//      } else if (element instanceof LibraryConfigurationFileImpl) {
-//        // external libraries
-//        DartElement dartElement = ((LibraryConfigurationFileImpl) element).getParent();
-//        if (dartElement instanceof DartLibraryImpl) {
-//          LibrarySource librarySource = ((DartLibraryImpl) dartElement).getLibrarySourceFile();
-//          if (librarySource instanceof UrlLibrarySource) {
-//            URI uri = libraryManager.resolveDartUri(((UrlLibrarySource) librarySource).getUri());
-//            if (JarEntryStorage.isJarUri(uri)) {
-//              return new JarEntryEditorInput(new JarEntryStorage(uri));
-//            }
-//            IFileStore fileStore = EFS.getLocalFileSystem().getStore(uri);
-//            return new FileStoreEditorInput(fileStore);
-//          }
-//        }
-      }
-      element = element.getParent();
-    }
     return null;
   }
 

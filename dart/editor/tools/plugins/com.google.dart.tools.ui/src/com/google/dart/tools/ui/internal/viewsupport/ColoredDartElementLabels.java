@@ -621,9 +621,7 @@ public class ColoredDartElementLabels {
    * @return Returns the label or the empty string if the object type is not supported.
    */
   public static ColoredString getTextLabel(Object obj, long flags) {
-    if (obj instanceof DartElement) {
-      return getElementLabel((DartElement) obj, flags);
-    } else if (obj instanceof IResource) {
+    if (obj instanceof IResource) {
       return new ColoredString(((IResource) obj).getName());
 //    } else if (obj instanceof JsGlobalScopeContainer) {
 //      JsGlobalScopeContainer container = (JsGlobalScopeContainer) obj;

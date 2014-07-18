@@ -18,11 +18,8 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartDocContentAccess;
 import com.google.dart.tools.ui.DartElementLabels;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartUIMessages;
-import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.Messages;
-import com.google.dart.tools.ui.internal.actions.ActionUtil;
 
 import com.ibm.icu.text.BreakIterator;
 
@@ -112,51 +109,6 @@ public class DartDocHelpContext implements IContext2 {
     List<IHelpResource> helpResources = new ArrayList<IHelpResource>();
 
     String javadocSummary = null;
-    for (int i = 0; i < elements.length; i++) {
-      if (elements[i] instanceof DartElement) {
-        DartElement element = (DartElement) elements[i];
-        // if element isn't on the build path skip it
-        if (!ActionUtil.isOnBuildPath(element)) {
-          continue;
-        }
-
-        // Create Javadoc summary
-        if (BUG_85719_FIXED) {
-          if (javadocSummary == null) {
-            javadocSummary = retrieveText(element);
-            if (javadocSummary != null) {
-              String elementLabel = DartElementLabels.getTextLabel(
-                  element,
-                  DartElementLabels.ALL_DEFAULT);
-
-              // FIXME: needs to be NLSed once the code becomes active
-              javadocSummary = "<b>DartDoc for " + elementLabel + ":</b><br>" + javadocSummary; //$NON-NLS-1$//$NON-NLS-2$
-            }
-          } else {
-            javadocSummary = ""; // no Javadoc summary for multiple selection //$NON-NLS-1$
-          }
-        }
-
-        URL url = DartUI.getDartDocLocation(element, true);
-        if (url == null || doesNotExist(url)) {
-          DartX.todo();
-//          IPackageFragmentRoot root = DartModelUtil.getPackageFragmentRoot(element);
-//          if (root != null) {
-//            url = DartUI.getJSdocBaseLocation(element);
-//            if (root.getKind() == IPackageFragmentRoot.K_SOURCE) {
-//              element = element.getDartProject();
-//            } else {
-//              element = root;
-//            }
-//            url = DartUI.getJSdocLocation(element, false);
-//          }
-        }
-        if (url != null) {
-          IHelpResource javaResource = new JavaUIHelpResource(element, getURLString(url));
-          helpResources.add(javaResource);
-        }
-      }
-    }
 
     // Add static help topics
     if (context != null) {
