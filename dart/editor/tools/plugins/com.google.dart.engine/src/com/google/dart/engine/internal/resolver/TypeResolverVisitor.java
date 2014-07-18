@@ -342,8 +342,22 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
-    if (element != null) {
-      // TODO(brianwilkerson) Figure out how the element could ever be null.
+    if (element == null) {
+      ClassDeclaration classNode = node.getAncestor(ClassDeclaration.class);
+      StringBuilder builder = new StringBuilder();
+      builder.append("The element for the constructor ");
+      builder.append(node.getName() == null ? "<unnamed>" : node.getName().getName());
+      builder.append(" in ");
+      if (classNode == null) {
+        builder.append("<unknown class>");
+      } else {
+        builder.append(classNode.getName().getName());
+      }
+      builder.append(" in ");
+      builder.append(getSource().getFullName());
+      builder.append(" was not set while trying to resolve types.");
+      AnalysisEngine.getInstance().getLogger().logError(builder.toString(), new AnalysisException());
+    } else {
       ClassElement definingClass = (ClassElement) element.getEnclosingElement();
       element.setReturnType(definingClass.getType());
       FunctionTypeImpl type = new FunctionTypeImpl(element);
@@ -403,6 +417,15 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     super.visitFunctionDeclaration(node);
     ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
+    if (element == null) {
+      StringBuilder builder = new StringBuilder();
+      builder.append("The element for the top-level function ");
+      builder.append(node.getName());
+      builder.append(" in ");
+      builder.append(getSource().getFullName());
+      builder.append(" was not set while trying to resolve types.");
+      AnalysisEngine.getInstance().getLogger().logError(builder.toString(), new AnalysisException());
+    }
     element.setReturnType(computeReturnType(node.getReturnType()));
     FunctionTypeImpl type = new FunctionTypeImpl(element);
     ClassElement definingClass = element.getAncestor(ClassElement.class);
@@ -442,18 +465,17 @@ public class TypeResolverVisitor extends ScopedVisitor {
     ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
     if (element == null) {
       ClassDeclaration classNode = node.getAncestor(ClassDeclaration.class);
-      ClassElement classElement = classNode.getElement();
       StringBuilder builder = new StringBuilder();
       builder.append("The element for the method ");
-      builder.append(node.getName());
+      builder.append(node.getName().getName());
       builder.append(" in ");
-      builder.append(classNode.getName());
-      builder.append(" in ");
-      if (classElement != null) {
-        builder.append(classElement.getSource().getFullName());
+      if (classNode == null) {
+        builder.append("<unknown class>");
       } else {
-        builder.append("<element from class also not resolved>");
+        builder.append(classNode.getName().getName());
       }
+      builder.append(" in ");
+      builder.append(getSource().getFullName());
       builder.append(" was not set while trying to resolve types.");
       AnalysisEngine.getInstance().getLogger().logError(builder.toString(), new AnalysisException());
     }
