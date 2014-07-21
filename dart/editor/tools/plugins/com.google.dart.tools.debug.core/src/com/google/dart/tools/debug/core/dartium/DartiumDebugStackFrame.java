@@ -514,7 +514,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     }
 
     for (WebkitScope scope : webkitFrame.getScopeChain()) {
-      if (!scope.isGlobalLike()) {
+      if (!scope.isGlobalLike() && !scope.isInstance()) {
         remoteObjects.add(scope.getObject());
       }
     }

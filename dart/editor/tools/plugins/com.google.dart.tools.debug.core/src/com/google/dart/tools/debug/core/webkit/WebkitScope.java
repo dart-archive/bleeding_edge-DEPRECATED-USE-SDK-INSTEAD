@@ -77,6 +77,10 @@ public class WebkitScope {
     return isGlobal() || isLibraries() || isClass() || isIsolate();
   }
 
+  public boolean isInstance() {
+    return "instance".equals(type);
+  }
+
   public boolean isIsolate() {
     return "isolate".equals(type);
   }
