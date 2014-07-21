@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?pde version="3.5"?>
+
+<product name="Dart Editor" uid="com.google.dart.tools.product.deploy" id="com.google.dart.tools.deploy.product" application="com.google.dart.tools.deploy.application" version="1.0.0.qualifier" useFeatures="true" includeLaunchers="true">
+
+   <aboutInfo>
+      <image path="/com.google.dart.tools.deploy/icons/dart_116_116.gif"/>
+      <text>
+         An awesome editor for Dart programming.
+      </text>
+   </aboutInfo>
+
+   <configIni use="default">
+   </configIni>
+
+   <launcherArgs>
+      <programArgsLin>-consoleLog -data @user.home/.dartEditor</programArgsLin>
+      <programArgsMac>-consoleLog -data &quot;@user.home/Library/Application Support/DartEditor&quot;</programArgsMac>
+      <programArgsWin>-data @user.home\DartEditor</programArgsWin>
+      <vmArgs>-Dosgi.requiredJavaVersion=1.6 -Dfile.encoding=UTF-8 -XX:MaxPermSize=128m -Xms40m -Xmx1024m</vmArgs>
+      <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts -Declipse.vm=/System/Library/Frameworks/JavaVM.framework -Xdock:icon=../Resources/Eclipse.icns</vmArgsMac>
+   </launcherArgs>
+
+   <windowImages i16="/com.google.dart.tools.deploy/icons/dart_16x16x32.png" i32="/com.google.dart.tools.deploy/icons/dart_32x32x32.png" i48="/com.google.dart.tools.deploy/icons/dart_48x48x32.png" i64="/com.google.dart.tools.deploy/icons/dart_64x64x32.png" i128="/com.google.dart.tools.deploy/icons/dart_128x128x32.png"/>
+
+   <splash
+      location="com.google.dart.tools.deploy"
+      startupProgressRect="100,350,400,15"
+      startupMessageRect="100,330,400,15"
+      startupForegroundColor="B3B3B3" />
+   <launcher name="DartEditor">
+      <linux icon="/com.google.dart.tools.deploy/icons/dart_256x256x32.xpm"/>
+      <macosx icon="/com.google.dart.tools.deploy/icons/dart.icns"/>
+      <solaris/>
+      <win useIco="true">
+         <ico path="/com.google.dart.tools.deploy/icons/dart.ico"/>
+         <bmp/>
+      </win>
+   </launcher>
+
+   <vm>
+      <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6</linux>
+      <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6</windows>
+   </vm>
+
+   <plugins>
+   </plugins>
+
+   <features>
+      <feature id="com.google.dart.tools.eclipse.platform.feature"/>
+      <feature id="com.google.dart.tools.deploy.feature"/>
+      <feature id="com.google.dart.tools.test.swtbot.feature"/>
+   </features>
+
+   <configurations>
+      <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="0" />
+      <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
+      <plugin id="org.eclipse.equinox.ds" autoStart="true" startLevel="1" />
+      <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
+      <plugin id="org.eclipse.osgi" autoStart="true" startLevel="-1" />
+      <plugin id="org.eclipse.update.configurator" autoStart="true" startLevel="3" />
+      <property name="org.eclipse.update.reconcile" value="false" />
+   </configurations>
+
+</product>
