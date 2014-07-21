@@ -396,29 +396,30 @@ public class WebkitConnection {
 
     if (object.has("method")) {
       String method = object.getString("method");
-
-      for (String prefix : notificationHandlers.keySet()) {
-        if (method.startsWith(prefix)) {
-          NotificationHandler handler = notificationHandlers.get(prefix);
-
-          if (object.has("params")) {
-            handler.handleNotification(method, object.getJSONObject("params"));
-          } else {
-            handler.handleNotification(method, null);
-          }
-
-          return;
-        }
+      String prefix = method;
+      int index = prefix.indexOf('.');
+      if (index != -1) {
+        prefix = prefix.substring(0, index + 1);
       }
 
-      for (String prefix : ignoreDomains) {
-        if (method.startsWith(prefix)) {
-          return;
+      NotificationHandler handler = notificationHandlers.get(prefix);
+
+      if (handler != null) {
+        if (object.has("params")) {
+          handler.handleNotification(method, object.getJSONObject("params"));
+        } else {
+          handler.handleNotification(method, null);
         }
+      } else {
+        for (String domain : ignoreDomains) {
+          if (domain.equals(prefix)) {
+            return;
+          }
+        }
+
+        DartDebugCorePlugin.logInfo("no handler for notification: " + object);
       }
     }
-
-    DartDebugCorePlugin.logInfo("no handler for notification: " + object);
   }
 
   private void processResponse(JSONObject result) throws JSONException {

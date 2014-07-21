@@ -53,7 +53,7 @@ public class ServerDebugValueClass extends ServerDebugValue {
               } else {
                 listener.watchEvaluationFinished(WatchExpressionResult.value(
                     expression,
-                    new ServerDebugValue(getTarget(), result.getResult())));
+                    ServerDebugValue.createValue(getTarget(), result.getResult())));
               }
             }
           });

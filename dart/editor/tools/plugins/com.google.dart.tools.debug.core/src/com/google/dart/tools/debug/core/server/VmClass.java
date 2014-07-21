@@ -74,4 +74,8 @@ public class VmClass extends VmRef {
     this.classId = classId;
   }
 
+  @Override
+  public String toString() {
+    return "VmClass " + getName();
+  }
 }

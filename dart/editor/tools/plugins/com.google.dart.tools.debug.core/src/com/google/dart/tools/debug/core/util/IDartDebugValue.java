@@ -29,6 +29,11 @@ public interface IDartDebugValue extends IValue, IExpressionEvaluator {
   public String getId();
 
   /**
+   * Returns the list length, if isListValue() is true.
+   */
+  public int getListLength();
+
+  /**
    * @return whether this value represents a list
    */
   public boolean isListValue();

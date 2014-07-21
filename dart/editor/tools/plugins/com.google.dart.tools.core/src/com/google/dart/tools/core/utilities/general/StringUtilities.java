@@ -270,6 +270,17 @@ public final class StringUtilities {
     return args.toArray(new String[args.size()]);
   }
 
+  public static String stripQuotes(String str) {
+    if (str.length() > 1) {
+      if ((str.startsWith("'") && str.endsWith("'"))
+          || (str.startsWith("\"") && str.endsWith("\""))) {
+        str = str.substring(1, str.length() - 1);
+      }
+    }
+
+    return str;
+  }
+
   /**
    * <p>
    * Gets the substring after the first occurrence of a separator. The separator is not returned.
@@ -438,17 +449,6 @@ public final class StringUtilities {
       return str;
     }
     return str.substring(0, pos);
-  }
-
-  private static String stripQuotes(String str) {
-    if (str.length() > 1) {
-      if ((str.startsWith("'") && str.endsWith("'"))
-          || (str.startsWith("\"") && str.endsWith("\""))) {
-        str = str.substring(1, str.length() - 1);
-      }
-    }
-
-    return str;
   }
 
   private StringUtilities() {

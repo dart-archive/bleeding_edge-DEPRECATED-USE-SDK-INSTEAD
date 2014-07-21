@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue.ValueCallback;
 import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
@@ -90,7 +91,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
             if (result.isError()) {
               callback.detailComputed(result.getError());
             } else {
-              callback.detailComputed(stripQuotes(result.getResult().getText()));
+              callback.detailComputed(StringUtilities.stripQuotes(result.getResult().getText()));
             }
           }
         });
@@ -125,7 +126,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
               } else {
                 listener.watchEvaluationFinished(WatchExpressionResult.value(
                     expression,
-                    new ServerDebugValue(getTarget(), result.getResult())));
+                    ServerDebugValue.createValue(getTarget(), result.getResult())));
               }
             }
           });
@@ -197,6 +198,11 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
   }
 
   @Override
+  public int getListLength() {
+    return value.getLength();
+  }
+
+  @Override
   public String getReferenceTypeName() throws DebugException {
     try {
       if (value == null) {
@@ -208,7 +214,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
       }
 
       if (value.isObject()) {
-        getVariables();
+        fillInFields();
 
         if (value.getVmObject() != null) {
           return DebuggerUtils.demangleVmName(getConnection().getClassNameSync(value.getVmObject()));
@@ -412,13 +418,5 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     }
 
     return str;
-  }
-
-  private String stripQuotes(String str) {
-    if (str.length() > 1 && str.startsWith("\"") && str.endsWith("\"")) {
-      return str.substring(1, str.length() - 1);
-    } else {
-      return str;
-    }
   }
 }

@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.logical;
 
+import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.util.IDartDebugValue;
 
@@ -21,28 +22,44 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.model.IIndexedValue;
 import org.eclipse.debug.core.model.ILogicalStructureTypeDelegate;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
+import org.eclipse.debug.core.model.IWatchExpressionListener;
+import org.eclipse.debug.core.model.IWatchExpressionResult;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This ILogicalStructureTypeDelegate handles displaying Dart types, like maps, in a more logical
  * view.
  */
 public class MapStructureType implements ILogicalStructureTypeDelegate {
-  // TODO(devoncarew): add a unit test to ensure that these classes are available.
-  private static final String CLASS_HASH_SET = "HashSet";
+  private static final Set<String> MAP_TYPES = new HashSet<String>(Arrays.asList(
+      "Map",
+      "HashMap",
+      "_HashMap",
+      "LinkedHashMap",
+      "_LinkedHashMap",
+      "SplayTreeMap"));
 
-  //private static final String CLASS_LINKED_HASH_MAP_IMPL = "_LinkedHashMapImpl";
+  private static final Set<String> SET_TYPES = new HashSet<String>(Arrays.asList(
+      "Set",
+      "HashSet",
+      "_LinkedHashSet"));
 
-  private static final String CLASS_HASH_MAP_IMPL = "_HashMapImpl";
+  private static final String MAP_EXPR = "keys.expand("
+      + "(key) => [key is String ? '\\'${key}\\'' : '${key}', this[key]]).toList()";
 
-  // TODO(devoncarew): in order to implement more logical types, we need to be able to execute
-  // named methods (i.e. queue.toList()).
-  //private static final String CLASS_DOUBLE_LINKED_QUEUE = "DoubleLinkedQueue";
+  private static final String SET_EXPR = "expand("
+      + "(key) => [key is String ? '\\'${key}\\'' : '${key}', key]).toList()";
 
   public MapStructureType() {
 
@@ -50,13 +67,17 @@ public class MapStructureType implements ILogicalStructureTypeDelegate {
 
   @Override
   public IValue getLogicalStructure(IValue value) throws CoreException {
+    IDartDebugValue dartDebugValue = (IDartDebugValue) value;
+
     try {
-      if (CLASS_HASH_MAP_IMPL.equals(value.getReferenceTypeName())) {
-        return createHashMap(value);
+      String refTypeName = value.getReferenceTypeName();
+
+      if (MAP_TYPES.contains(refTypeName)) {
+        return createMap(dartDebugValue, MAP_EXPR, true);
       }
 
-      if (CLASS_HASH_SET.equals(value.getReferenceTypeName())) {
-        return createHashSet(value);
+      if (SET_TYPES.contains(refTypeName)) {
+        return createMap(dartDebugValue, SET_EXPR, true);
       }
     } catch (Throwable t) {
       DartDebugCorePlugin.logError(t);
@@ -72,13 +93,15 @@ public class MapStructureType implements ILogicalStructureTypeDelegate {
     }
 
     try {
-      // HashSet
-      if (CLASS_HASH_SET.equals(value.getReferenceTypeName())) {
+      String refTypeName = value.getReferenceTypeName();
+
+      // Map types.
+      if (MAP_TYPES.contains(refTypeName)) {
         return true;
       }
 
-      // _HashMapImpl
-      if (CLASS_HASH_MAP_IMPL.equals(value.getReferenceTypeName())) {
+      // Set types.
+      if (SET_TYPES.contains(refTypeName)) {
         return true;
       }
     } catch (Throwable t) {
@@ -88,56 +111,58 @@ public class MapStructureType implements ILogicalStructureTypeDelegate {
     return false;
   }
 
-  private IValue createHashMap(IValue value) throws DebugException {
-    IValue _keys = getNamedField(value, "_keys");
-    IValue _values = getNamedField(value, "_values");
+  private IValue createMap(IDartDebugValue value, String evalExpr, boolean convertToMap)
+      throws DebugException {
+    final CountDownLatch latch = new CountDownLatch(1);
+    final IWatchExpressionResult[] results = new IWatchExpressionResult[1];
 
-    IVariable[] _key_values = _keys.getVariables();
-    IVariable[] _value_values = _values.getVariables();
+    value.evaluateExpression(evalExpr, new IWatchExpressionListener() {
+      @Override
+      public void watchEvaluationFinished(IWatchExpressionResult result) {
+        results[0] = result;
+        latch.countDown();
+      }
+    });
 
+    try {
+      latch.await(3000, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw new DebugException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          "timeout from debug client"));
+    }
+
+    IWatchExpressionResult exResult = results[0];
+
+    if (exResult.getException() != null) {
+      throw exResult.getException();
+    }
+
+    IValue val = exResult.getValue();
+
+    if (!(val instanceof IDartDebugValue)) {
+      return val;
+    }
+
+    if (!convertToMap || !(val instanceof IIndexedValue)) {
+      return val;
+    }
+
+    IIndexedValue resultValue = (IIndexedValue) val;
+
+    IVariable[] variables = resultValue.getVariables(0, resultValue.getSize());
     List<IVariable> vars = new ArrayList<IVariable>();
 
-    for (int i = 0; i < _key_values.length; i++) {
-      if (!isNull(_key_values[i])) {
-        IValue keyValue = _key_values[i].getValue();
-        String keyName = keyValue.getValueString();
+    for (int i = 0; i < variables.length; i += 2) {
+      String keyName = variables[i].getValue().getValueString();
+      keyName = StringUtilities.stripQuotes(keyName);
 
-        vars.add(new LogicalDebugVariable(keyName, _value_values[i].getValue()));
-      }
+      IValue keyValue = variables[i + 1].getValue();
+
+      vars.add(new LogicalDebugVariable(keyName, keyValue));
     }
 
     return new LogicalDebugValue(value, vars.toArray(new IVariable[vars.size()]));
   }
-
-  private IValue createHashSet(IValue value) throws DebugException {
-    IValue _backingMap = getNamedField(value, "_backingMap");
-
-    return createHashMap(_backingMap);
-  }
-
-  private IValue getNamedField(IValue value, String name) throws DebugException {
-    IVariable[] childVars = value.getVariables();
-
-    for (IVariable child : childVars) {
-      if (name.equals(child.getName())) {
-        return child.getValue();
-      }
-    }
-
-    throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID, "field '"
-        + name + "' does not exist"));
-  }
-
-  private boolean isNull(IVariable var) throws DebugException {
-    IValue val = var.getValue();
-
-    if (val instanceof IDartDebugValue) {
-      IDartDebugValue value = (IDartDebugValue) val;
-
-      return value.isNull();
-    }
-
-    return false;
-  }
-
 }

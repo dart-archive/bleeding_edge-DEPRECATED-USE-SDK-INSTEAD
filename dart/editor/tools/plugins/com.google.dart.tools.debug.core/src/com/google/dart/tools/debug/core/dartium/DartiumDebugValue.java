@@ -111,14 +111,20 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
     } else if (exprText.startsWith("[")) {
       exprText = "this" + exprText;
-    } else {
-      exprText = "this." + exprText;
     }
+
+    String evalText = exprText;
+
+    if (evalText.indexOf("return") == -1) {
+      evalText = "return " + evalText + ";";
+    }
+
+    evalText = "() {" + evalText + "}";
 
     try {
       getConnection().getRuntime().callFunctionOn(
           value.getObjectId(),
-          "(){return " + exprText + ";}",
+          evalText,
           null,
           false,
           new WebkitCallback<WebkitRemoteObject>() {
@@ -137,7 +143,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
               } else {
                 listener.watchEvaluationFinished(WatchExpressionResult.value(
                     expression,
-                    new DartiumDebugValue(getTarget(), null, result.getResult())));
+                    DartiumDebugValue.create(getTarget(), null, result.getResult())));
               }
             }
           });
@@ -166,7 +172,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     try {
       for (WebkitPropertyDescriptor property : variableCollector.getWebkitProperties()) {
         if (WebkitPropertyDescriptor.STATIC_FIELDS_OBJECT.equals(property.getName())) {
-          return new DartiumDebugValue(getTarget(), null, property.getValue());
+          return DartiumDebugValue.create(getTarget(), null, property.getValue());
         }
       }
     } catch (InterruptedException e) {
@@ -199,9 +205,9 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
     if (isListValue()) {
       if (value.getClassName() != null) {
-        return value.getClassName() + "[" + value.getListLength(getConnection()) + "]";
+        return value.getClassName() + "[" + getListLength() + "]";
       } else {
-        return "List[" + value.getListLength(getConnection()) + "]";
+        return "List[" + getListLength() + "]";
       }
     }
 
@@ -229,7 +235,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     try {
       for (WebkitPropertyDescriptor property : variableCollector.getWebkitProperties()) {
         if (WebkitPropertyDescriptor.LIBRARY_OBJECT.equals(property.getName())) {
-          return new DartiumDebugValue(getTarget(), null, property.getValue());
+          return DartiumDebugValue.create(getTarget(), null, property.getValue());
         }
       }
     } catch (InterruptedException e) {
@@ -237,6 +243,11 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     }
 
     return null;
+  }
+
+  @Override
+  public int getListLength() {
+    return value.getListLength(getConnection());
   }
 
   @Override
@@ -330,11 +341,11 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
               } else if (result.getResult().isSyntaxError()) {
                 listener.watchEvaluationFinished(WatchExpressionResult.value(
                     expression,
-                    new DartiumDebugValue(getTarget(), null, originalResult.getResult())));
+                    DartiumDebugValue.create(getTarget(), null, originalResult.getResult())));
               } else {
                 listener.watchEvaluationFinished(WatchExpressionResult.value(
                     expression,
-                    new DartiumDebugValue(getTarget(), null, result.getResult())));
+                    DartiumDebugValue.create(getTarget(), null, result.getResult())));
               }
             }
           });
