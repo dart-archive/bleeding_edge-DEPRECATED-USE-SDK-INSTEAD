@@ -439,6 +439,34 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constConstructorWithFieldInitializedByNonConst() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final int i = f();",
+        "  const A();",
+        "}",
+        "int f() {",
+        "  return 3;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST);
+    verify(source);
+  }
+
+  public void test_constConstructorWithFieldInitializedByNonConst_static() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static final int i = f();",
+        "  const A();",
+        "}",
+        "int f() {",
+        "  return 3;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_constConstructorWithMixin() throws Exception {
     Source source = addSource(createSource(//
         "class M {",

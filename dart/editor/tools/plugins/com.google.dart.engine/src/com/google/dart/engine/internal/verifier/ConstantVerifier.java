@@ -15,11 +15,14 @@ package com.google.dart.engine.internal.verifier;
 
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionExpression;
@@ -161,7 +164,8 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
   @Override
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.getConstKeyword() != null) {
-      validateInitializers(node);
+      validateConstructorInitializers(node);
+      validateFieldInitializers((ClassDeclaration) node.getParent(), node);
     }
     validateDefaultValues(node.getParameters());
     return super.visitConstructorDeclaration(node);
@@ -459,6 +463,31 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
+   * Validates that the expressions of the given initializers (of a constant constructor) are all
+   * compile time constants.
+   * 
+   * @param constructor the constant constructor declaration to validate
+   */
+  private void validateConstructorInitializers(ConstructorDeclaration constructor) {
+    ParameterElement[] parameterElements = constructor.getParameters().getParameterElements();
+    NodeList<ConstructorInitializer> initializers = constructor.getInitializers();
+    for (ConstructorInitializer initializer : initializers) {
+      if (initializer instanceof ConstructorFieldInitializer) {
+        ConstructorFieldInitializer fieldInitializer = (ConstructorFieldInitializer) initializer;
+        validateInitializerExpression(parameterElements, fieldInitializer.getExpression());
+      }
+      if (initializer instanceof RedirectingConstructorInvocation) {
+        RedirectingConstructorInvocation invocation = (RedirectingConstructorInvocation) initializer;
+        validateInitializerInvocationArguments(parameterElements, invocation.getArgumentList());
+      }
+      if (initializer instanceof SuperConstructorInvocation) {
+        SuperConstructorInvocation invocation = (SuperConstructorInvocation) initializer;
+        validateInitializerInvocationArguments(parameterElements, invocation.getArgumentList());
+      }
+    }
+  }
+
+  /**
    * Validate that the default value associated with each of the parameters in the given list is a
    * compile time constant.
    * 
@@ -482,6 +511,38 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
             reportErrorIfFromDeferredLibrary(
                 defaultValue,
                 CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Validates that the expressions of any field initializers in the class declaration are all
+   * compile time constants. Since this is only required if the class has a constant constructor,
+   * the error is reported at the constructor site.
+   * 
+   * @param classDeclaration the class which should be validated
+   * @param errorSite the site at which errors should be reported.
+   */
+  private void validateFieldInitializers(ClassDeclaration classDeclaration,
+      ConstructorDeclaration errorSite) {
+    NodeList<ClassMember> members = classDeclaration.getMembers();
+    for (ClassMember member : members) {
+      if (member instanceof FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = (FieldDeclaration) member;
+        if (!fieldDeclaration.isStatic()) {
+          for (VariableDeclaration variableDeclaration : fieldDeclaration.getFields().getVariables()) {
+            Expression initializer = variableDeclaration.getInitializer();
+            if (initializer != null) {
+              EvaluationResultImpl result = initializer.accept(new ConstantVisitor(typeProvider));
+              if (!(result instanceof ValidResult)) {
+                errorReporter.reportErrorForNode(
+                    CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+                    errorSite,
+                    variableDeclaration.getName().getName());
+              }
+            }
           }
         }
       }
@@ -555,31 +616,6 @@ public class ConstantVerifier extends RecursiveAstVisitor<Void> {
     }
     for (Expression argument : argumentList.getArguments()) {
       validateInitializerExpression(parameterElements, argument);
-    }
-  }
-
-  /**
-   * Validates that the expressions of the given initializers (of a constant constructor) are all
-   * compile time constants.
-   * 
-   * @param constructor the constant constructor declaration to validate
-   */
-  private void validateInitializers(ConstructorDeclaration constructor) {
-    ParameterElement[] parameterElements = constructor.getParameters().getParameterElements();
-    NodeList<ConstructorInitializer> initializers = constructor.getInitializers();
-    for (ConstructorInitializer initializer : initializers) {
-      if (initializer instanceof ConstructorFieldInitializer) {
-        ConstructorFieldInitializer fieldInitializer = (ConstructorFieldInitializer) initializer;
-        validateInitializerExpression(parameterElements, fieldInitializer.getExpression());
-      }
-      if (initializer instanceof RedirectingConstructorInvocation) {
-        RedirectingConstructorInvocation invocation = (RedirectingConstructorInvocation) initializer;
-        validateInitializerInvocationArguments(parameterElements, invocation.getArgumentList());
-      }
-      if (initializer instanceof SuperConstructorInvocation) {
-        SuperConstructorInvocation invocation = (SuperConstructorInvocation) initializer;
-        validateInitializerInvocationArguments(parameterElements, invocation.getArgumentList());
-      }
     }
   }
 

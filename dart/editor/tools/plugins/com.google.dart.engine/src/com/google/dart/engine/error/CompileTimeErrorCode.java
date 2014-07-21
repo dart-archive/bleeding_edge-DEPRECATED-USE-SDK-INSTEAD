@@ -143,6 +143,15 @@ public enum CompileTimeErrorCode implements ErrorCode {
   CONST_CONSTRUCTOR_THROWS_EXCEPTION("'const' constructors cannot throw exceptions"),
 
   /**
+   * 10.6.3 Constant Constructors: It is a compile-time error if a constant constructor is declared
+   * by a class C if any instance variable declared in C is initialized with an expression that is
+   * not a constant expression.
+   */
+  CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST(
+      "Can't define the 'const' constructor because the field '%s' is initialized with a "
+          + "non-constant value"),
+
+  /**
    * 7.6.3 Constant Constructors: The superinitializer that appears, explicitly or implicitly, in
    * the initializer list of a constant constructor must specify a constant constructor of the
    * superclass of the immediately enclosing class or a compile-time error occurs.
