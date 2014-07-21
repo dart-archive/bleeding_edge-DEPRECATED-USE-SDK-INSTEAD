@@ -433,7 +433,11 @@ class ResourceServerHandler implements Runnable {
 //    }
 
     if (javaFile == null) {
-      return createErrorResponse("File not found: " + header.file);
+      if (isInWorkspace(header.file)) {
+        return createErrorResponse("File not found: " + header.file);
+      } else {
+        return createErrorResponse("File not found");
+      }
     }
 
     if (!canServeFile(javaFile)) {
@@ -731,13 +735,32 @@ class ResourceServerHandler implements Runnable {
     return false;
   }
 
-  private boolean isLocalAddress(InetAddress address) {
-    return address.isAnyLocalAddress() || address.isLoopbackAddress();
+  private boolean isInWorkspace(String filePath) {
+    IPath path = Path.fromPortableString(filePath);
+    if (path.segmentCount() == 0) {
+      return false;
+    }
+
+    IProject project;
+    try {
+      // This can throw errors on some path inputs.
+      project = ResourcesPlugin.getWorkspace().getRoot().getProject(path.segment(0));
+    } catch (Throwable t) {
+      return false;
+    }
+    if (!project.exists() || !project.isOpen()) {
+      return false;
+    }
+    return true;
   }
 
 //  private boolean isFileJsArtifact(File javaFile) {
 //    return javaFile.getName().endsWith(".dart.js");
 //  }
+
+  private boolean isLocalAddress(InetAddress address) {
+    return address.isAnyLocalAddress() || address.isLoopbackAddress();
+  }
 
   private boolean isSpecialResource(String path) {
     for (String[] resourceInfo : embeddedResources) {
