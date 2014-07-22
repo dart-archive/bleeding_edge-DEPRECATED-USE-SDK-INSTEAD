@@ -28,7 +28,7 @@ vars = {
   "libcxxabi_revision": "206024",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "178288",
+  "webkit_revision": "178550",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "pdfium_git": "https://pdfium.googlesource.com",
@@ -40,36 +40,36 @@ vars = {
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "13077",  # native_client/DEPS: tools_rev
   "google_toolbox_for_mac_revision": "662",
-  "libaddressinput_revision": "305",
+  "libaddressinput_revision": "310",
   "libphonenumber_revision": "621",
   "libvpx_revision": "282874",
   "lss_revision": "26",
   "sfntly_revision": "239",
   "lighttpd_revision": "33737",
-  "skia_revision": "3944a1d2374d2de8622b0192aa080dba6fb92c76",
+  "skia_revision": "ad1df153a16b7723d2d4afd13627919fc3ee87ce",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   "v8_branch": "trunk",
-  "v8_revision": "22418",
+  "v8_revision": "22479",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "6683",
+  "webrtc_revision": "6680",
   "jsoncpp_revision": "248",
   "nss_revision": "277057",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarming_client
   # and whatever else without interference from each other.
-  "swarming_revision": "c8437bfa40aa3428ee7655585b6203f2cac67693",
+  "swarming_revision": "2cbc12487aea464730bcf60230f4d4d63d61ac51",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
-  "openssl_revision": "283115",
+  "openssl_revision": "275836",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  "angle_revision": "787fc03f15a0c4440d023659f267175fa3979808",
+  "angle_revision": "11c26b9c1182c9872693bab0b1fbf0fac148ab73",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling build tools
   # and whatever else without interference from each other.
@@ -77,7 +77,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFIum
   # and whatever else without interference from each other.
-  "pdfium_revision": "0ce77e3c04dd17d3086adfc8781a2155fb9ceb69",
+  "pdfium_revision": "b72977f8c3efda2ceea6d25b1e042dfd6ea49c77",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openmax_dl
   # and whatever else without interference from each other.
@@ -85,12 +85,12 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  "boringssl_revision": "045cc5590a214a0efb982d028a4f1f0e9dfe3314",
+  "boringssl_revision": "09020c2f08df11179b93e6548117806a4c0d0d45",
 }
 
 deps = {
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1345",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1351",
 
   "src/buildtools":
     Var("chromium_git") + "/chromium/buildtools.git@" +
@@ -126,13 +126,13 @@ deps = {
     "/external/w3c/csswg-test.git@bacbb4a8dca702cd86646761fde96793db13d4f1",
 
   "src/third_party/icu":
-    "/trunk/deps/third_party/icu46@262949",
+    "/trunk/deps/third_party/icu52@277999",
 
   "src/third_party/libexif/sources":
     "/trunk/deps/third_party/libexif/sources@265008",
 
   "src/third_party/hunspell":
-    "/trunk/deps/third_party/hunspell@278973",
+    "/trunk/deps/third_party/hunspell@283809",
 
   "src/third_party/hunspell_dictionaries":
     "/trunk/deps/third_party/hunspell_dictionaries@255132",
@@ -142,7 +142,7 @@ deps = {
 
   "src/third_party/cacheinvalidation/src":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src@331",
+    "/trunk/src@335",
 
   "src/third_party/leveldatabase/src":
     (Var("googlecode_url") % "leveldb") + "/trunk@80",
@@ -160,7 +160,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@170",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1950",
+    (Var("googlecode_url") % "gyp") + "/trunk@1953",
 
   "src/tools/swarming_client":
     Var("chromium_git") + "/external/swarming.client.git@" +
@@ -220,7 +220,7 @@ deps = {
 
   "src/third_party/ffmpeg":
     Var("chromium_git") +
-    "/chromium/third_party/ffmpeg.git@4b7b36f956209fad838ad87d0129130713fbb00c",
+    "/chromium/third_party/ffmpeg.git@35b6086d85dd8aa7d29c2525e11debc5937bb506",
 
   "src/third_party/libjingle/source/talk":
     (Var("googlecode_url") % "webrtc") + "/trunk/talk@" +
@@ -231,7 +231,7 @@ deps = {
     "/trunk/KERN/usrsctp/usrsctplib@8912",
 
   "src/third_party/libsrtp":
-    "/trunk/deps/third_party/libsrtp@261337",
+    "/trunk/deps/third_party/libsrtp@283418",
 
   "src/third_party/speex":
     "/trunk/deps/third_party/speex@272757",
@@ -317,7 +317,7 @@ deps = {
 
   "src/third_party/libwebm/source":
     Var("chromium_git") +
-      "/webm/libwebm.git@8be63972fdd7ae8c041778f8ba674ade903395c9",
+      "/webm/libwebm.git@0d4cb404ea4195e5e21d04db2c955615535ce62e",
 
   "src/third_party/openssl":
     "/trunk/deps/third_party/openssl@" + Var("openssl_revision"),
@@ -512,7 +512,7 @@ deps_os = {
   "android": {
     "src/third_party/android_tools":
       Var("chromium_git") + "/android_tools.git" +
-      "@b36620e3a51939055ba871022123221a37ecdebb",
+      "@8301b711a9ac7de56e9a9ff3dee0b2ebfc9a380f",
 
     "src/third_party/aosp":
       "/trunk/deps/third_party/aosp@148330",
