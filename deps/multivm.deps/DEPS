@@ -11,11 +11,11 @@ vars.update({
   "multivm_base": "http://src.chromium.org",
   "multivm_chromium_branch": "/chrome/trunk/src",
   "multivm_chromium_revision": "283571",
-  # Git hash of r283571.
+  # Git hashes of archived chromium builds closest to r283571.
   "chromium_base_revision":
-      '{"Windows":"6139b8bc9acaf2c6d43d433f7139023befef77a0", ' +
-      ' "Darwin": "6139b8bc9acaf2c6d43d433f7139023befef77a0", ' +
-       ' "Linux": "6139b8bc9acaf2c6d43d433f7139023befef77a0"}',
+      '{"Windows": "83fb2a9e5fdfd7cc90928a4fd1a280eff3963d09", ' +
+      ' "Darwin": "33371b3f00c98d19ba2a22326cb0b3ba6616c15b", ' +
+      ' "Linux": "e96fb154e05d5f6a87afcf612e07a9d224782af3"}',
   "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
   "dart_tools_revision": "37732",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
