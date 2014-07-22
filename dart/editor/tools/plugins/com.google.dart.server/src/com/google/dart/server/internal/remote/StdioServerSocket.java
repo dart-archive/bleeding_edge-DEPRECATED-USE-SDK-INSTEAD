@@ -51,12 +51,19 @@ public class StdioServerSocket implements AnalysisServerSocket {
   private ResponseStream responseStream;
   private ByteLineReaderStream errorStream;
   private Process process;
+  private final String[] additionalProgramArguments;
 
   public StdioServerSocket(String runtimePath, String analysisServerPath, PrintStream debugStream,
       boolean debugRemoteProcess) {
+    this(runtimePath, analysisServerPath, debugStream, new String[] {}, debugRemoteProcess);
+  }
+
+  public StdioServerSocket(String runtimePath, String analysisServerPath, PrintStream debugStream,
+      String[] additionalProgramArguments, boolean debugRemoteProcess) {
     this.runtimePath = runtimePath;
     this.analysisServerPath = analysisServerPath;
     this.debugStream = debugStream;
+    this.additionalProgramArguments = additionalProgramArguments;
     this.debugRemoteProcess = debugRemoteProcess;
   }
 
@@ -87,6 +94,9 @@ public class StdioServerSocket implements AnalysisServerSocket {
       args.add("--debug:" + debugPort);
     }
     args.add(analysisServerPath);
+    for (String arg : additionalProgramArguments) {
+      args.add(arg);
+    }
     ProcessBuilder processBuilder = new ProcessBuilder(args.toArray(new String[args.size()]));
     process = processBuilder.start();
     requestSink = new ByteRequestSink(process.getOutputStream(), debugStream);
