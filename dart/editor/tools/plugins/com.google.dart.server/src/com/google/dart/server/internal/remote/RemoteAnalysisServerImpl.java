@@ -32,7 +32,6 @@ import com.google.dart.server.HoverConsumer;
 import com.google.dart.server.Location;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.SearchIdConsumer;
-import com.google.dart.server.SearchResultsConsumer;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
