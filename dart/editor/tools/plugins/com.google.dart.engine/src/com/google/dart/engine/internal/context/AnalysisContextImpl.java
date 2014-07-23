@@ -90,6 +90,7 @@ import com.google.dart.engine.internal.task.WaitForAsyncTask;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.ContentCache;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.Source.ContentReceiver;
 import com.google.dart.engine.source.SourceContainer;
@@ -102,6 +103,7 @@ import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.engine.utilities.translation.DartOmit;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -3744,6 +3746,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private TaskData getNextAnalysisTaskForSource(Source source, SourceEntry sourceEntry,
       boolean isPriority, boolean hintsEnabled) {
+    // Refuse to generate tasks for html based files that are above 1500 KB
+    if (sourceEntry instanceof HtmlEntryImpl && source instanceof FileBasedSource) {
+      // TODO (jwren) we still need to report an error of some kind back to the client.
+      File file = ((FileBasedSource) source).getFile();
+      if (file.length() > (1500 * 1024)) {
+        return new TaskData(null, false);
+      }
+    }
     if (sourceEntry == null) {
       return new TaskData(null, false);
     }
