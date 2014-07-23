@@ -13,16 +13,8 @@
  */
 package com.google.dart.tools.core.workingcopy;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.buffer.Buffer;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElementDelta;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceFileElement;
 import com.google.dart.tools.core.problem.ProblemRequestor;
-
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * Instances of the class <code>WorkingCopyOwner</code> represent the owner of a
@@ -59,50 +51,4 @@ public abstract class WorkingCopyOwner {
   public ProblemRequestor getProblemRequestor(SourceFileElement<?> workingCopy) {
     return null;
   }
-
-  /**
-   * Return a new working copy with the given name using this working copy owner to create its
-   * buffer.
-   * <p>
-   * This working copy always belongs to the default package in a package fragment root that
-   * corresponds to its JavaScript project, and this JavaScript project never exists. However this
-   * JavaScript project has the given include path that is used when resolving names in this working
-   * copy.
-   * </p>
-   * <p>
-   * If a DOM AST is created using this working copy, then given include path will be used if
-   * bindings need to be resolved. Problems will be reported to the problem requester of the current
-   * working copy owner problem if it is not <code>null</code>.
-   * <p>
-   * </p>
-   * Options used to create the DOM AST are got from {@link DartCore#getOptions()} as it is not
-   * possible to set the options on a non-existing Dart project. </p>
-   * <p>
-   * When the working copy instance is created, an {@link DartElementDelta#ADDED added delta} is
-   * reported on this working copy.
-   * </p>
-   * <p>
-   * Once done with the working copy, users of this method must discard it using
-   * {@link SourceFileElement#discardWorkingCopy()}.
-   * </p>
-   * <p>
-   * Note that when such working copy is committed, only its buffer is saved (see
-   * {@link Buffer#save(IProgressMonitor, boolean)}) but no resource is created.
-   * </p>
-   * <p>
-   * This method is not intended to be overridden by clients.
-   * </p>
-   * 
-   * @param name the name of the working copy (e.g. "X.dart")
-   * @param monitor a progress monitor used to report progress while opening the working copy or
-   *          <code>null</code> if no progress should be reported
-   * @return a new working copy
-   * @throws DartModelException if the contents of this working copy can not be determined
-   */
-  public final CompilationUnit newWorkingCopy(IPath path, IProgressMonitor monitor)
-      throws DartModelException {
-
-    return null;
-  }
-
 }

@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.model.CompilationUnit;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.IDocument;
@@ -48,14 +46,6 @@ public interface ICompilationUnitDocumentProvider extends IDocumentProvider,
    * @return a line tracker for the given element
    */
   ILineTracker createLineTracker(Object element);
-
-  /**
-   * Returns the working copy for the given element.
-   * 
-   * @param element the element
-   * @return the working copy for the given element
-   */
-  CompilationUnit getWorkingCopy(Object element);
 
   /**
    * Removes the listener.

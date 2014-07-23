@@ -466,23 +466,6 @@ public final class DartUI {
    * @param editorInput the editor input
    * @return the Dart element wrapped by <code>editorInput</code> or <code>null</code> if none
    */
-  public static DartElement getEditorInputDartElement(IEditorInput editorInput) {
-
-    // Performance: check working copy manager first: this is faster
-    DartElement de = DartToolsPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(
-        editorInput);
-    if (de != null) {
-      return de;
-    }
-    return (DartElement) editorInput.getAdapter(DartElement.class);
-  }
-
-  /**
-   * Returns the Dart element wrapped by the given editor input.
-   * 
-   * @param editorInput the editor input
-   * @return the Dart element wrapped by <code>editorInput</code> or <code>null</code> if none
-   */
   public static Element getEditorInputDartElement2(IEditorInput editorInput) {
 
     //TODO (pquitslund): add support for external compilation units

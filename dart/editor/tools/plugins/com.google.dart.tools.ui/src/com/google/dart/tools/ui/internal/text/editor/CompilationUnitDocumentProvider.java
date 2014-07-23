@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.model.CompilationUnit;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
@@ -78,12 +76,6 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
   @Override
   public ILineTracker createLineTracker(Object element) {
     return new DefaultLineTracker();
-  }
-
-  @Override
-  public CompilationUnit getWorkingCopy(Object element) {
-    //TODO (pquitslund): remove all working copy business from interface once transition to new model is complete
-    return null;
   }
 
   @Override

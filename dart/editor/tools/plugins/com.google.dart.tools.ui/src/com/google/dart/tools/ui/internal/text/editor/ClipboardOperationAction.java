@@ -13,15 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.IRewriteTarget;
 import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
@@ -295,27 +291,6 @@ public final class ClipboardOperationAction extends TextEditorAction {
     }
   }
 
-  private void addImports(CompilationUnit unit, ClipboardData data) throws CoreException {
-    DartX.todo();
-//    ImportRewrite rewrite = StubUtility.createImportRewrite(unit, true);
-//    String[] imports = data.getTypeImports();
-//    for (int i = 0; i < imports.length; i++) {
-//      rewrite.addImport(imports[i]);
-//    }
-//    String[] staticImports = data.getStaticImports();
-//    for (int i = 0; i < staticImports.length; i++) {
-//      String name = Signature.getSimpleName(staticImports[i]);
-//      boolean isField = !name.endsWith("()"); //$NON-NLS-1$
-//      if (!isField) {
-//        name = name.substring(0, name.length() - 2);
-//      }
-//      String qualifier = Signature.getQualifier(staticImports[i]);
-//      rewrite.addStaticImport(qualifier, name, isField);
-//    }
-//
-//    DartModelUtil.applyEdit(unit, rewrite.rewriteImports(null), false, null);
-  }
-
   private void doCutCopyWithImportsOperation() {
     ITextEditor editor = getTextEditor();
     DartElement inputElement = (DartElement) editor.getEditorInput().getAdapter(DartElement.class);
@@ -381,25 +356,7 @@ public final class ClipboardOperationAction extends TextEditorAction {
 
     Clipboard clipboard = new Clipboard(getDisplay());
     ClipboardData importsData = (ClipboardData) clipboard.getContents(fgTransferInstance);
-    if (importsData != null && inputElement instanceof CompilationUnit
-        && !importsData.isFromSame(inputElement)) {
-      // combine operation and adding of imports
-      IRewriteTarget target = editor != null
-          ? (IRewriteTarget) editor.getAdapter(IRewriteTarget.class) : null;
-      if (target != null) {
-        target.beginCompoundChange();
-      }
-      try {
-        fOperationTarget.doOperation(fOperationCode);
-        addImports((CompilationUnit) inputElement, importsData);
-      } catch (CoreException e) {
-        DartToolsPlugin.log(e);
-      } finally {
-        if (target != null) {
-          target.endCompoundChange();
-        }
-      }
-    } else {
+    if (importsData == null || importsData.isFromSame(inputElement)) {
       fOperationTarget.doOperation(fOperationCode);
     }
   }

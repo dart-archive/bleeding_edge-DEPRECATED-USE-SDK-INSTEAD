@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ErrorCode;
-import com.google.dart.tools.core.model.CompilationUnit;
 
 import java.util.Iterator;
 
@@ -40,12 +39,6 @@ public interface IJavaAnnotation {
    *         evaluated.
    */
   String[] getArguments();
-
-  /**
-   * Returns the compilation unit corresponding to the document on which the annotation is set or
-   * <code>null</code> if no corresponding compilation unit exists.
-   */
-  CompilationUnit getCompilationUnit();
 
   /**
    * @return the problem {@link ErrorCode} or <code>null</code> if problem code can't be evaluated.

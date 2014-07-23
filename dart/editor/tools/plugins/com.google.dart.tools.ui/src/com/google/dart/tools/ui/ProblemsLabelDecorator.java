@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui;
 
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
@@ -22,7 +21,6 @@ import com.google.dart.tools.ui.internal.viewsupport.IProblemChangedListener;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 import com.google.dart.tools.ui.internal.viewsupport.ImageImageDescriptor;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -43,7 +41,6 @@ import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 
 import java.util.Iterator;
@@ -387,19 +384,6 @@ public class ProblemsLabelDecorator implements ILabelDecorator, ILightweightLabe
           return marker;
         }
       }
-    }
-    return null;
-  }
-
-  private IAnnotationModel isInJavaAnnotationModel(CompilationUnit original) {
-    if (original.isWorkingCopy()) {
-      IFile file = (IFile) original.getResource();
-      if (file == null) {
-        return null;
-      }
-      FileEditorInput editorInput = new FileEditorInput(file);
-      return DartToolsPlugin.getDefault().getCompilationUnitDocumentProvider().getAnnotationModel(
-          editorInput);
     }
     return null;
   }

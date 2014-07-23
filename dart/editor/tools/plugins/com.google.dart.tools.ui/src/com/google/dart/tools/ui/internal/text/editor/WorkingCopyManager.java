@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.IWorkingCopyManager;
-import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
@@ -72,14 +71,6 @@ public class WorkingCopyManager implements IWorkingCopyManager {
    *         unit
    */
   public CompilationUnit getWorkingCopy(IEditorInput input, boolean primaryOnly) {
-    CompilationUnit unit = fMap == null ? null : fMap.get(input);
-    if (unit == null) {
-      unit = fDocumentProvider.getWorkingCopy(input);
-    }
-    if (unit != null && (!primaryOnly || DartModelUtil.isPrimary(unit))) {
-      return unit;
-    }
-
     return null;
   }
 

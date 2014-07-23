@@ -14,16 +14,13 @@
 package com.google.dart.tools.core.test.util;
 
 import com.google.dart.engine.utilities.io.PrintStringWriter;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartProject;
 
 import junit.framework.Assert;
 import junit.framework.ComparisonFailure;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -365,86 +362,6 @@ public class TestUtilities {
     } catch (ParserConfigurationException exception) {
       throw new SAXException("Missing name element in project file");
     }
-  }
-
-  /**
-   * Return the project with the given root directory, loading it if it is not already loaded. This
-   * method assumes that there is no conflict with project names.
-   * 
-   * @param projectRootDirectory the root directory of the project
-   * @return the project with the given root directory
-   * @throws CoreException
-   * @throws FileNotFoundException if a required file or directory does not exist
-   * @throws IOException if a required file cannot be accessed
-   * @throws SAXException if the .project file is not valid
-   */
-  public static DartProject loadDartProject(final IPath projectRootDirectory) throws CoreException,
-      FileNotFoundException, IOException, SAXException {
-    final String projectName = getProjectName(projectRootDirectory);
-    final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-    final IProject project = workspace.getRoot().getProject(projectName);
-    if (!project.exists()) {
-      ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-        @Override
-        public void run(IProgressMonitor monitor) throws CoreException {
-          IProjectDescription description = workspace.newProjectDescription(projectName);
-          if (!workspace.getRoot().getLocation().isPrefixOf(projectRootDirectory)) {
-            description.setLocation(projectRootDirectory);
-          }
-          project.create(description, null);
-          project.open(null);
-        }
-      }, null);
-    }
-    DartProject dartProject = DartCore.create(project);
-    // waitForJobs();
-    return dartProject;
-  }
-
-  /**
-   * Return the project in the directory with the given name located in the <code>test_data</code>
-   * directory in the core test plug-in, loading the project if it is not already loaded. This
-   * method assumes that there is no conflict with project names.
-   * 
-   * @param pluginId the id of the plug-in containing the project
-   * @param projectName the name of the directory containing the project
-   * @return the project in the specified directory
-   * @throws CoreException
-   * @throws FileNotFoundException if a required file or directory does not exist
-   * @throws IOException if a required file cannot be accessed
-   * @throws SAXException if the .project file is not valid
-   */
-  public static DartProject loadPluginRelativeProject(String projectName) throws CoreException,
-      FileNotFoundException, IOException, SAXException {
-    return loadPluginRelativeProject(CORE_TEST_PLUGIN_ID, projectName);
-  }
-
-  /**
-   * Return the project in the directory with the given name located in the <code>test_data</code>
-   * directory in the plug-in with the given id, loading the project if it is not already loaded.
-   * This method assumes that there is no conflict with project names.
-   * 
-   * @param pluginId the id of the plug-in containing the project
-   * @param projectName the name of the directory containing the project
-   * @return the project in the specified directory
-   * @throws CoreException
-   * @throws FileNotFoundException if a required file or directory does not exist
-   * @throws IOException if a required file cannot be accessed
-   * @throws SAXException if the .project file is not valid
-   */
-  public static DartProject loadPluginRelativeProject(String pluginId, String projectName)
-      throws CoreException, FileNotFoundException, IOException, SAXException {
-
-    IPath targetPath = ResourcesPlugin.getWorkspace().getRoot().getLocation();
-    targetPath = targetPath.append(projectName);
-
-    if (!targetPath.append(".project").toFile().exists()) {
-      copyPluginRelativeContent(pluginId, projectName, targetPath.toFile());
-    }
-    DartProject project = loadDartProject(targetPath);
-    refreshWorkspace();
-
-    return project;
   }
 
   /**

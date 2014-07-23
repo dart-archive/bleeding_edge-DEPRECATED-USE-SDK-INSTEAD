@@ -14,12 +14,10 @@
 package com.google.dart.tools.ui.internal.actions;
 
 import com.google.dart.tools.core.model.CodeAssistElement;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
-import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
@@ -70,22 +68,8 @@ public class SelectionConverter {
     return EMPTY_RESULT;
   }
 
-  public static DartElement getElementAtOffset(DartEditor editor) throws DartModelException {
-    return getElementAtOffset(editor, true);
-  }
-
   public static DartElement getElementAtOffset(DartElement input, ITextSelection selection)
       throws DartModelException {
-    if (input instanceof CompilationUnit) {
-      CompilationUnit cunit = (CompilationUnit) input;
-      DartModelUtil.reconcile(cunit);
-      DartElement ref = cunit.getElementAt(selection.getOffset());
-      if (ref == null) {
-        return input;
-      } else {
-        return ref;
-      }
-    }
     return null;
   }
 
@@ -118,27 +102,6 @@ public class SelectionConverter {
     }
     return StructuredSelection.EMPTY;
   }
-
-  /**
-   * @param primaryOnly if <code>true</code> only primary working copies will be returned
-   */
-  private static DartElement getElementAtOffset(DartEditor editor, boolean primaryOnly)
-      throws DartModelException {
-    return getElementAtOffset(
-        getInput(editor, primaryOnly),
-        (ITextSelection) editor.getSelectionProvider().getSelection());
-  }
-
-//	public static DartElement[] resolveSelectedElements(DartElement input, ITextSelection selection) throws DartModelException {
-//		DartElement enclosing= resolveEnclosingElement(input, selection);
-//		if (enclosing == null)
-//			return EMPTY_RESULT;
-//		if (!(enclosing instanceof SourceReference))
-//			return EMPTY_RESULT;
-//		SourceRange sr= ((SourceReference)enclosing).getSourceRange();
-//		if (selection.getOffset() == sr.getOffset() && selection.getLength() == sr.getLength())
-//			return new DartElement[] {enclosing};
-//	}
 
   /**
    * @param primaryOnly if <code>true</code> only primary working copies will be returned

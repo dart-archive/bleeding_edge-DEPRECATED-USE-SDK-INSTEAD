@@ -20,10 +20,8 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.TypeMember;
@@ -231,42 +229,6 @@ public class EditorUtility {
       }
     }
     return null;
-  }
-
-  /**
-   * If the current active editor edits a Dart element return it, else return null
-   */
-  public static DartElement getActiveEditorDartInput() {
-    IWorkbenchPage page = DartToolsPlugin.getActivePage();
-    if (page != null) {
-      IEditorPart part = page.getActiveEditor();
-      if (part != null) {
-        IEditorInput editorInput = part.getEditorInput();
-        if (editorInput != null) {
-          return DartUI.getEditorInputDartElement(editorInput);
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Returns the Dart project for a given editor input or <code>null</code> if no corresponding Dart
-   * project exists.
-   * 
-   * @param input the editor input
-   * @return the corresponding Dart project
-   */
-  public static DartProject getDartProject(IEditorInput input) {
-    DartProject dartProject = null;
-    IProject project = getProject(input);
-    if (project != null) {
-      dartProject = DartCore.create(project);
-      if (!dartProject.exists()) {
-        dartProject = null;
-      }
-    }
-    return dartProject;
   }
 
   /**
@@ -605,9 +567,7 @@ public class EditorUtility {
     try {
       SourceRange range = null;
       DartX.todo();
-      if (element instanceof CompilationUnit) {
-        range = null;
-      } else if (element instanceof TypeMember) {
+      if (element instanceof TypeMember) {
         range = ((TypeMember) element).getNameRange();
       } else if (element instanceof DartVariableDeclaration) {
         range = ((DartVariableDeclaration) element).getNameRange();
@@ -840,14 +800,6 @@ public class EditorUtility {
     IResource resource = (IResource) input.getAdapter(IResource.class);
     if (resource == null) {
       return saveUnknownEditors;
-    }
-
-    DartElement dartElement = DartCore.create(resource);
-    if (dartElement instanceof CompilationUnit) {
-      CompilationUnit cu = (CompilationUnit) dartElement;
-      if (!cu.isWorkingCopy()) {
-        return true;
-      }
     }
 
     if (!(ep instanceof ITextEditor)) {

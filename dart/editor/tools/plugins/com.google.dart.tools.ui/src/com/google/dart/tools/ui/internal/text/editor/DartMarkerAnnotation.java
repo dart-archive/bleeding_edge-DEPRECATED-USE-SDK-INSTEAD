@@ -15,8 +15,6 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.mock.ui.CorrectionEngine;
 
 import org.eclipse.core.resources.IMarker;
@@ -62,15 +60,6 @@ public class DartMarkerAnnotation extends MarkerAnnotation implements IJavaAnnot
     IMarker marker = getMarker();
     if (marker != null && marker.exists() && isProblem()) {
       return CorrectionEngine.getProblemArguments(marker);
-    }
-    return null;
-  }
-
-  @Override
-  public CompilationUnit getCompilationUnit() {
-    DartElement element = DartCore.create(getMarker().getResource());
-    if (element instanceof CompilationUnit) {
-      return (CompilationUnit) element;
     }
     return null;
   }

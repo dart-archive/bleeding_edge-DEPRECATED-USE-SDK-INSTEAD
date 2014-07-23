@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -274,16 +273,6 @@ public final class ASTProvider {
     synchronized (fWaitLock) {
       fWaitLock.notifyAll();
     }
-  }
-
-  /**
-   * Returns whether this AST provider is active on the given compilation unit.
-   * 
-   * @param cu the compilation unit
-   * @return <code>true</code> if the given compilation unit is the active one
-   */
-  public boolean isActive(CompilationUnit cu) {
-    return cu != null && cu.equals(fActiveJavaElement);
   }
 
   /**

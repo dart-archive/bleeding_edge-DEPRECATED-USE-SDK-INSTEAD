@@ -184,14 +184,6 @@ public class TestProject {
   }
 
   /**
-   * @return the {@link CompilationUnit} on given path, may be <code>null</code>.
-   */
-  public CompilationUnit getUnit(String path) throws Exception {
-    IFile file = getFile(path);
-    return (CompilationUnit) DartCore.create(file);
-  }
-
-  /**
    * Creates or updates {@link IFile} with content of the given {@link InputStream}.
    */
   public IFile setFileContent(String path, InputStream stream) throws Exception {

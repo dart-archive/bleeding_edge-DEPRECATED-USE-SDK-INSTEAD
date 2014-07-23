@@ -454,18 +454,6 @@ public class DartElementLabels {
       case DartElement.TYPE:
         getTypeLabel((Type) element, flags, buf);
         break;
-//      case DartElement.CLASS_FILE:
-//        getClassFileLabel((IClassFile) element, flags, buf);
-//        break;
-      case DartElement.COMPILATION_UNIT:
-        getCompilationUnitLabel((CompilationUnit) element, flags, buf);
-        break;
-//      case DartElement.PACKAGE_FRAGMENT:
-//        getPackageFragmentLabel((IPackageFragment) element, flags, buf);
-//        break;
-//      case DartElement.PACKAGE_FRAGMENT_ROOT:
-//        getPackageFragmentRootLabel((IPackageFragmentRoot) element, flags, buf);
-//        break;
       case DartElement.IMPORT_CONTAINER:
 //      case DartElement.IMPORT_DECLARATION:
         getDeclarationLabel(element, flags, buf);

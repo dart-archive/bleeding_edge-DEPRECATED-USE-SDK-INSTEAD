@@ -1,9 +1,7 @@
 package com.google.dart.tools.internal.corext.refactoring.util;
 
 import com.google.dart.engine.ast.ClassTypeAlias;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -339,69 +337,5 @@ public class DartElementUtil {
     } catch (DartModelException e) {
       return false;
     }
-  }
-
-//  public static IMember[] merge(IMember[] a1, IMember[] a2) {
-//    // Don't use hash sets since ordering is important for some refactorings.
-//    List<IMember> result = new ArrayList<IMember>(a1.length + a2.length);
-//    for (int i = 0; i < a1.length; i++) {
-//      IMember member = a1[i];
-//      if (!result.contains(member)) {
-//        result.add(member);
-//      }
-//    }
-//    for (int i = 0; i < a2.length; i++) {
-//      IMember member = a2[i];
-//      if (!result.contains(member)) {
-//        result.add(member);
-//      }
-//    }
-//    return result.toArray(new IMember[result.size()]);
-//  }
-//
-//  public static IMember[] sortByOffset(IMember[] members) {
-//    Comparator<IMember> comparator = new Comparator<IMember>() {
-//      public int compare(IMember o1, IMember o2) {
-//        try {
-//          return o1.getNameRange().getOffset() - o2.getNameRange().getOffset();
-//        } catch (JavaModelException e) {
-//          return 0;
-//        }
-//      }
-//    };
-//    Arrays.sort(members, comparator);
-//    return members;
-//  }
-//
-//  private static boolean isCuOnlyType(IType type) throws JavaModelException {
-//    return type.getCompilationUnit().getTypes().length == 1;
-//  }
-//
-//  private static boolean isPrimaryType(IType type) {
-//    return type.equals(type.getCompilationUnit().findPrimaryType());
-//  }
-//
-//  //no instances
-//  private JavaElementUtil() {
-//  }
-
-  /**
-   * @return the resolved {@link CompilationUnit} of the given {@link IFile}, may be {@code null}.
-   */
-  public static CompilationUnit resolveCompilationUnit(IFile file) throws AnalysisException {
-    // prepare context
-    ProjectManager projectManager = DartCore.getProjectManager();
-    Source source = projectManager.getSource(file);
-    AnalysisContext context = projectManager.getContext(file);
-    if (source == null || context == null) {
-      return null;
-    }
-    // prepare library
-    Source[] librarySources = context.getLibrariesContaining(source);
-    if (librarySources.length != 1) {
-      return null;
-    }
-    // get unit element
-    return context.resolveCompilationUnit(source, librarySources[0]);
   }
 }

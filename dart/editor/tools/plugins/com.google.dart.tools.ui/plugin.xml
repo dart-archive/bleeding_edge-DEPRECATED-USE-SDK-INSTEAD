@@ -70,18 +70,6 @@
             
             <adapter type="org.eclipse.ui.model.IWorkbenchAdapter"/>
       </factory>
-
-       <!-- Refactoring -->
-       <factory
-           class="com.google.dart.tools.ui.internal.refactoring.RefactoringAdapterFactory"
-           adaptableType="com.google.dart.tools.core.refactoring.CompilationUnitChange">
-           <adapter type="org.eclipse.ltk.ui.refactoring.TextEditChangeNode"/>
-       </factory>
-       <factory
-           class="com.google.dart.tools.ui.internal.refactoring.RefactoringAdapterFactory"
-           adaptableType="org.eclipse.ltk.core.refactoring.MultiStateTextFileChange">
-           <adapter type="org.eclipse.ltk.ui.refactoring.TextEditChangeNode"/>
-       </factory>
    </extension>
 
    <!-- content assist processors - do not change their order -->  

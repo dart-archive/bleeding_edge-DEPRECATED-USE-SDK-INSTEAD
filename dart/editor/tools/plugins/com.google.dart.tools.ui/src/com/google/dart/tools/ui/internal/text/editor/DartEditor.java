@@ -65,7 +65,6 @@ import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.FoldingActionGroup;
-import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.formatter.DartFormatter;
 import com.google.dart.tools.ui.internal.formatter.DartFormatter.FormattedSource;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -157,7 +156,6 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CaretEvent;
 import org.eclipse.swt.custom.CaretListener;
@@ -1885,16 +1883,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           return new ShowInContext(getEditorInput(), null) {
             @Override
             public ISelection getSelection() {
-              DartElement je = null;
-              try {
-                je = SelectionConverter.getElementAtOffset(DartEditor.this);
-                if (je == null) {
-                  return null;
-                }
-                return new StructuredSelection(je);
-              } catch (DartModelException ex) {
-                return null;
-              }
+              return null;
             }
           };
         }
