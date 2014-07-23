@@ -744,20 +744,20 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
     UriResolver pkgResolver = null;
     File[] packageRoots = factory.getPackageRoots(container);
+    if (packageRoots.length > 0) {
+      pkgResolver = new PackageUriResolver(packageRoots);
+      return pkgResolver;
+    }
     File[] packagesDirs = null;
     if (hasPubspec) {
       IPath location = container.getLocation();
       if (location != null) {
         packagesDirs = new File[] {new File(location.toFile(), PACKAGES_DIRECTORY_NAME)};
       }
-    } else if (packageRoots.length > 0) {
-      packagesDirs = packageRoots;
     }
     if (packagesDirs != null) {
       pkgResolver = new PackageUriResolver(packagesDirs);
     } else if (sdk instanceof DirectoryBasedDartSdk) {
-      // TODO(keertip): replace PackageUriResolver with explicit one at a later stage
-      // for now use this only when there is no pubspec or package root
       IPath location = container.getLocation();
       if (location != null) {
         pkgResolver = new InstrumentedExplicitPackageUriResolver(

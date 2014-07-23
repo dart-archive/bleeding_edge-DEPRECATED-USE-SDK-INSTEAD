@@ -328,9 +328,7 @@ public class ProjectImplTest extends ContextManagerImplTest {
     ProjectImpl project = newTarget();
     packageRoots = new File[] {new Path("/does/not/exist").toFile()};
 
-    assertUriResolvedToPackageRoot(
-        project,
-        projectContainer.getLocation().append(PACKAGES_DIRECTORY_NAME));
+    assertUriResolvedToPackageRoot(project, new Path("/does/not/exist"));
   }
 
   public void test_packageRoots_not_set() throws Exception {
@@ -470,6 +468,7 @@ public class ProjectImplTest extends ContextManagerImplTest {
     assertFactoryInitialized(projectContainer, defaultContext);
     assertUriResolvedToPackageRoot(project, new Path(packageRoots[0].getPath()));
 
+    packageRoots = new File[] {};
     projectContainer.addFile(PUBSPEC_FILE_NAME);
     project.pubspecAdded(projectContainer);
 
@@ -566,7 +565,6 @@ public class ProjectImplTest extends ContextManagerImplTest {
     ProjectImpl project = newTarget();
     appContainer.remove(PUBSPEC_FILE_NAME);
     subAppContainer.remove(PUBSPEC_FILE_NAME);
-    packageRoots = new File[] {new Path("/does/not/exist").toFile()};
 
     assertEquals(1, project.getPubFolders().length);
     PubFolder pubFolder = project.getPubFolder(projectContainer);
@@ -579,7 +577,6 @@ public class ProjectImplTest extends ContextManagerImplTest {
     project.pubspecRemoved(projectContainer);
 
     assertEquals(0, project.getPubFolders().length);
-    assertUriResolvedToPackageRoot(project, new Path(packageRoots[0].getPath()));
   }
 
   public void test_resolvePathToPackage() {
