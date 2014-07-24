@@ -3,9 +3,11 @@
 
 barback-*
 petitparser
+fake_async
 
 packages
 pubspec.lock
 .project
 .children
 out
+.svn/
