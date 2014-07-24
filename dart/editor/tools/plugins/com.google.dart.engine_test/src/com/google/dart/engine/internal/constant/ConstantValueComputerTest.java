@@ -738,6 +738,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     assertTrue(ConstantValueComputer.isValidPublicSymbol("foo="));
     assertTrue(ConstantValueComputer.isValidPublicSymbol("foo.bar="));
     assertTrue(ConstantValueComputer.isValidPublicSymbol("foo.+"));
+    assertTrue(ConstantValueComputer.isValidPublicSymbol("void"));
     assertFalse(ConstantValueComputer.isValidPublicSymbol("_foo"));
     assertFalse(ConstantValueComputer.isValidPublicSymbol("_foo.bar"));
     assertFalse(ConstantValueComputer.isValidPublicSymbol("foo._bar"));
@@ -747,6 +748,8 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     assertFalse(ConstantValueComputer.isValidPublicSymbol("foo=.bar"));
     assertFalse(ConstantValueComputer.isValidPublicSymbol("foo."));
     assertFalse(ConstantValueComputer.isValidPublicSymbol("+.foo"));
+    assertFalse(ConstantValueComputer.isValidPublicSymbol("void.foo"));
+    assertFalse(ConstantValueComputer.isValidPublicSymbol("foo.void"));
   }
 
   private HashMap<String, DartObjectImpl> assertFieldType(HashMap<String, DartObjectImpl> fields,

@@ -139,7 +139,7 @@ public class ConstantValueComputer {
    * allowed for a call to the Symbol constructor).
    */
   static public boolean isValidPublicSymbol(String name) {
-    return name.isEmpty() || PUBLIC_SYMBOL_PATTERN.matcher(name).matches();
+    return name.isEmpty() || name.equals("void") || PUBLIC_SYMBOL_PATTERN.matcher(name).matches();
   }
 
   /**
