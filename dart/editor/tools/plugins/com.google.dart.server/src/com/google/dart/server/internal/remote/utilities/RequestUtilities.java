@@ -131,7 +131,7 @@ public class RequestUtilities {
   }
 
   /**
-   * Generate and return a {@value #METHOD_COMPLETION_GET_SUGGESTIONS} request.
+   * Generate and return a {@value #METHOD_ANALYSIS_GET_ERRORS} request.
    * 
    * <pre>
    * request: {
