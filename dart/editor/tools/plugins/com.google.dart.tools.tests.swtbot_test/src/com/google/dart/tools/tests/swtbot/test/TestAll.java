@@ -18,8 +18,6 @@ import org.junit.runners.Suite;
 
 /**
  * SWTBot test driver.
- * <p>
- * TODO Try to understand why TestSearch fails when run after some other tests.
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
@@ -27,13 +25,9 @@ import org.junit.runners.Suite;
     TestInit.class, //
     TestSearch.class, //
     TestSamples.class, //
-//  TestSearch.class, // fail
     TestFilesContextMenu.class, //
-//    TestSearch.class, //
     TestDartEditorContextMenu.class, //
-//  TestSearch.class, // fail
     TestOutline.class //
-//  TestSearch.class, // fail
 //
 })
 public final class TestAll {

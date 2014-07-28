@@ -14,6 +14,7 @@ from os.path import join
 DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
 utils = imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
 build_dir = join(DART_DIR, 'xcodebuild/ReleaseX64/editor/') # TODO(messick) Generalize this
+#build_dir = "/Users/messick/Desktop/editor-build-copy"
 
 
 def ExtractTestName(line):
@@ -35,7 +36,11 @@ sock.bind(server_address)
 sock.listen(1)
 
 java = '/usr/bin/java' #TODO(messick) Generalize this
+if not os.path.exists(java):
+  sys.exit(2)
 launcher = join(build_dir, 'plugins/org.eclipse.equinox.launcher_1.3.0.v20120522-1813.jar')
+if not os.path.exists(launcher):
+  sys.exit(3)
 
 with utils.TempDir('swtbot') as workspace:
 
