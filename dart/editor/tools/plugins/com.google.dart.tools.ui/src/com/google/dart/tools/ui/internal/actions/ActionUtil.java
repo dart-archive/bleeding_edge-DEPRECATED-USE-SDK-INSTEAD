@@ -105,8 +105,6 @@ public class ActionUtil {
         return STRING_FUNCTION;
       case DartElement.FUNCTION_TYPE_ALIAS:
         return STRING_ALIAS;
-      case DartElement.IMPORT:
-        return STRING_IMPORT;
       case DartElement.METHOD:
         Method method = (Method) element;
         if (method.isGetter()) {

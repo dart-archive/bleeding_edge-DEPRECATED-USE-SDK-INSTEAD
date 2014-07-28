@@ -195,14 +195,6 @@ public class DartElementLabelProvider extends LabelProvider implements IStyledLa
       return fStorageLabelProvider.getText(element);
     }
 
-    if (element instanceof ImportedDartLibraryContainer) {
-      return ((ImportedDartLibraryContainer) element).getName();
-    }
-
-    if (element instanceof ImportedDartLibrary) {
-      return ((ImportedDartLibrary) element).getName();
-    }
-
     return text;
   }
 

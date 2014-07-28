@@ -14,8 +14,6 @@
 package com.google.dart.tools.ui.internal.viewsupport;
 
 import com.google.dart.tools.ui.DartElementLabels;
-import com.google.dart.tools.ui.ImportedDartLibrary;
-import com.google.dart.tools.ui.ImportedDartLibraryContainer;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.ListenerList;
@@ -186,13 +184,6 @@ public class DartUILabelProvider implements IColorProvider, IRichLabelProvider,
     String result = DartElementLabels.getTextLabel(element, evaluateTextFlags(element));
     if (result.length() == 0 && (element instanceof IStorage)) {
       result = fStorageLabelProvider.getText(element);
-    }
-    if (element instanceof ImportedDartLibraryContainer) {
-      return ((ImportedDartLibraryContainer) element).getName();
-    }
-
-    if (element instanceof ImportedDartLibrary) {
-      return ((ImportedDartLibrary) element).getName();
     }
 
     return decorateText(result, element);

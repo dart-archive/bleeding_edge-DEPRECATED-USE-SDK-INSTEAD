@@ -111,10 +111,6 @@ public class DartElementComparator extends ViewerComparator {
       return PROJECTS;
     } else if (objectElement instanceof IContainer) {
       return RESOURCEFOLDERS;
-    } else if (objectElement instanceof ImportedDartLibraryContainer) {
-      return IMPORTED_LIBS_CONTAINER;
-    } else if (objectElement instanceof ImportedDartLibrary) {
-      return IMPORTED_LIB_CONTAINER;
     }
     DartX.todo();
 //    else if (element instanceof ProjectLibraryRoot) {

@@ -95,11 +95,11 @@ public interface DartElement extends IAdaptable {
    */
   public static int IMPORT_CONTAINER = 12;
 
-  /**
+  /*
    * A constant representing an import. A Dart element with this type can be safely cast to
    * {@link DartImport}.
    */
-  public static int IMPORT = 13;
+  //public static int IMPORT = 13;
 
   /**
    * A constant representing a function. A Dart element with this type can be safely cast to

@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.search;
 
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartImport;
 
 /**
  * Instances of the enum <code>MatchKind</code> represent the kind of reference that was found when
