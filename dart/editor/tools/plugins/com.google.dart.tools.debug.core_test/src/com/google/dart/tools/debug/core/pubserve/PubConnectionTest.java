@@ -147,7 +147,8 @@ public class PubConnectionTest extends TestCase {
     });
     stdoutThread.start();
 
-    long endTime = System.currentTimeMillis() + 3 * 1000;
+    // Increased timeout 3 -> 30 sec for buildbots
+    long endTime = System.currentTimeMillis() + 30 * 1000;
 
     while (!isTerminated() && !stdOut.toString().contains("127.0.0.1")
         && System.currentTimeMillis() < endTime) {
