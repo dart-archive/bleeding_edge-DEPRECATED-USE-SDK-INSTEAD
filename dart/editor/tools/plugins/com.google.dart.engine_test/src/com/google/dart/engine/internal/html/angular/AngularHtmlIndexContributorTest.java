@@ -228,6 +228,39 @@ public class AngularHtmlIndexContributorTest extends AngularTest {
             "myComponent"));
   }
 
+  public void test_NgComponent_use_tagHasAttribute() throws Exception {
+    resolveMainSource(createSource("",//
+        "import 'angular.dart';",
+        "",
+        "@Component(",
+        "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
+        "    publishAs: 'ctrl',",
+        "    selector: 'myComponent[attr]', // selector",
+        "    map: const {'attr' : '=>setAttr'})",
+        "class MyComponent {",
+        "  set setAttr(value) {}",
+        "}"));
+    resolveIndex(createHtmlWithMyController("<myComponent attr='null'/>"));
+    // prepare elements
+    AngularSelectorElement selectorElement = findMainElement("myComponent[attr]");
+    AngularPropertyElement attr = findMainElement("attr");
+    assertNotNull(selectorElement);
+    assertNotNull(attr);
+    // index
+    indexUnit.accept(index);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        selectorElement,
+        IndexConstants.ANGULAR_REFERENCE,
+        new ExpectedLocation(indexHtmlUnit, findOffset("myComponent attr='null"), "myComponent"));
+    assertRecordedRelation(relations, attr, IndexConstants.ANGULAR_REFERENCE, new ExpectedLocation(
+        indexHtmlUnit,
+        findOffset("attr='null"),
+        "attr"));
+  }
+
   private List<RecordedRelation> captureRecordedRelations() {
     return captureRelations(store);
   }

@@ -916,7 +916,7 @@ public class AngularCompilationUnitBuilderTest extends AngularTest {
   public void test_parseSelector_isTag_hasAttribute() throws Exception {
     AngularSelectorElement selector = AngularCompilationUnitBuilder.parseSelector(42, "tag[attr]");
     assertInstanceOf(IsTagHasAttributeSelectorElementImpl.class, selector);
-    assertEquals(null, selector.getName());
+    assertEquals("tag[attr]", selector.getName());
     assertEquals(-1, selector.getNameOffset());
     assertEquals("tag", ((IsTagHasAttributeSelectorElementImpl) selector).getTagName());
     assertEquals("attr", ((IsTagHasAttributeSelectorElementImpl) selector).getAttributeName());

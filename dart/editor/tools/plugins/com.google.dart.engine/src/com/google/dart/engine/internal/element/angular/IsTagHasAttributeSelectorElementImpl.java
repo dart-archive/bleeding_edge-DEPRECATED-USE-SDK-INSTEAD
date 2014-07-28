@@ -25,7 +25,7 @@ public class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElement
   private final String attributeName;
 
   public IsTagHasAttributeSelectorElementImpl(String tagName, String attributeName) {
-    super(null, -1);
+    super(tagName + "[" + attributeName + "]", -1);
     this.tagName = tagName;
     this.attributeName = attributeName;
   }
