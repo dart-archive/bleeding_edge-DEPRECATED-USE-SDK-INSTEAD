@@ -9,6 +9,7 @@ vars = {
   "dart_branch": "/branches/bleeding_edge",
   "chromium_url": "http://src.chromium.org/svn",
 
+  "fake_async_rev": "@38614",
   "gyp_rev": "@1752",
   "nss_rev": "@257452",
 
@@ -40,6 +41,9 @@ deps = {
   "dart/third_party/net_nss":
       Var("chromium_url") + "/trunk/src/net/third_party/nss" + Var("nss_rev"),
 
+  # Stuff needed to run pkg tests.
+  "dart/third_party/pkg/fake_async":
+      "/third_party/fake_async" + Var("fake_async_rev"),
 }
 
 deps_os = {

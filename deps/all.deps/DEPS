@@ -28,6 +28,7 @@ vars = {
   "commons-lang_rev" : "@33092",
   "d8_rev" : "@38056",
   "eclipse_rev" : "@31921",
+  "fake_async_rev" : "@38614",
   "fest_rev" : "@19997",
   "firefox_jsshell_rev" : "@35614",
   "gson_rev" : "@36048",
@@ -108,8 +109,10 @@ deps = {
 
   "dart/third_party/font-awesome":
       "/third_party/font-awesome" + Var("font_awesome_rev"),
+  "dart/third_party/pkg/fake_async":
+      "/third_party/fake_async" + Var("fake_async_rev"),
   "dart/third_party/pkg/petitparser":
-    "/third_party/petitparser" + Var("petitparser_rev"),
+      "/third_party/petitparser" + Var("petitparser_rev"),
 
   # These specific versions of barback are used for testing and should be pulled
   # from bleeding_edge even on channels.
