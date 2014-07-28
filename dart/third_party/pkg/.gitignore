@@ -2,6 +2,7 @@
 !*
 
 barback-*
+fake_async
 petitparser
 
 packages
