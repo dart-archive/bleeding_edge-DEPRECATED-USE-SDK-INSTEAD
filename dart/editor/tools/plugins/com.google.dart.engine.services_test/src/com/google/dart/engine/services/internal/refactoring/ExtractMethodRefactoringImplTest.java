@@ -1084,6 +1084,28 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "Cannot extract closure as method, it references 1 external variable(s).");
   }
 
+  public void test_fromTopLevelVariableInitializerClosure() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var X = 1;",
+        "",
+        "var Y = () {",
+        "  return 1 + X;",
+        "};");
+    setSelectionString("1 + X");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var X = 1;",
+        "",
+        "var Y = () {",
+        "  return res();",
+        "};",
+        "",
+        "num res() => 1 + X;");
+  }
+
   public void test_getExtractGetter_false_do() throws Exception {
     keepGetterFlag = true;
     parseTestUnit(

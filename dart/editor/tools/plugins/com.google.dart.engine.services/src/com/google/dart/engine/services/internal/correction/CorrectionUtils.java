@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BooleanLiteral;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
@@ -305,6 +306,24 @@ public class CorrectionUtils {
       default:
         return element.getDisplayName();
     }
+  }
+
+  /**
+   * Returns a class or an unit member enclosing the given {@link AstNode}.
+   */
+  public static AstNode getEnclosingClassOrUnitMember(AstNode node) {
+    AstNode member = node;
+    while (node != null) {
+      if (node instanceof ClassDeclaration) {
+        return member;
+      }
+      if (node instanceof CompilationUnit) {
+        return member;
+      }
+      member = node;
+      node = node.getParent();
+    }
+    return null;
   }
 
   /**

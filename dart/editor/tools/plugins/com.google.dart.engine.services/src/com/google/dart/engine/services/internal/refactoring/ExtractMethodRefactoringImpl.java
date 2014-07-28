@@ -559,7 +559,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     // check selected nodes
     List<AstNode> selectedNodes = selectionAnalyzer.getSelectedNodes();
     if (!selectedNodes.isEmpty()) {
-      parentMember = CorrectionUtils.getEnclosingExecutableNode(selectionAnalyzer.getCoveringNode());
+      AstNode coveringNode = selectionAnalyzer.getCoveringNode();
+      parentMember = CorrectionUtils.getEnclosingClassOrUnitMember(coveringNode);
       // single expression selected
       if (selectedNodes.size() == 1
           && !utils.selectionIncludesNonWhitespaceOutsideNode(
@@ -731,13 +732,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     final String selectionSource = getNormalizedSource(selectionPattern.patternSource);
     final Map<String, String> patternToSelectionName = HashBiMap.create(
         selectionPattern.originalToPatternNames).inverse();
-    // prepare context and enclosing parent - class or unit
-    AstNode enclosingMemberParent;
-    {
-      AstNode coveringNode = selectionAnalyzer.getCoveringNode();
-      AstNode parentMember = CorrectionUtils.getEnclosingExecutableNode(coveringNode);
-      enclosingMemberParent = parentMember.getParent();
-    }
+    // prepare an enclosing parent - class or unit
+    AstNode enclosingMemberParent = parentMember.getParent();
     // visit nodes which will able to access extracted method
     enclosingMemberParent.accept(new GeneralizingAstVisitor<Void>() {
       boolean forceStatic = false;
