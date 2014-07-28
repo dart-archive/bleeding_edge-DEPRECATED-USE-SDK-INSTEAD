@@ -567,7 +567,7 @@ public class BuildDartParticipant implements BuildParticipant {
 
           handleBuilderMessage(container, json);
         } catch (JSONException e) {
-          DartCore.logError(e);
+          DartCore.logError("Failed to process build.dart message:\n" + trimmedLine, e);
         }
       } else {
         stringBuilder.append(line);
