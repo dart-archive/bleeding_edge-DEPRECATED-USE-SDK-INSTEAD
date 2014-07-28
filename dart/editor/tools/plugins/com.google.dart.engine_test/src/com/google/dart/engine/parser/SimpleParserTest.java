@@ -4442,6 +4442,14 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals("a", components[0].getLexeme());
   }
 
+  public void test_parseSymbolLiteral_void() throws Exception {
+    SymbolLiteral literal = parse("parseSymbolLiteral", "#void");
+    assertNotNull(literal.getPoundSign());
+    Token[] components = literal.getComponents();
+    assertLength(1, components);
+    assertEquals("void", components[0].getLexeme());
+  }
+
   public void test_parseThrowExpression() throws Exception {
     ThrowExpression expression = parse("parseThrowExpression", "throw x;");
     assertNotNull(expression.getKeyword());

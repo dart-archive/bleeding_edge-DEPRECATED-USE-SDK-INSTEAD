@@ -5698,6 +5698,8 @@ public class Parser {
       }
     } else if (currentToken.isOperator()) {
       components.add(getAndAdvance());
+    } else if (tokenMatchesKeyword(currentToken, Keyword.VOID)) {
+      components.add(getAndAdvance());
     } else {
       reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
       components.add(createSyntheticToken(TokenType.IDENTIFIER));

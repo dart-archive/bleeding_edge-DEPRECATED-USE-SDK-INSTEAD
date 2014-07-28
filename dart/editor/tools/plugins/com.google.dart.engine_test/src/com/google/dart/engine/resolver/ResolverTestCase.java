@@ -167,11 +167,15 @@ public class ResolverTestCase extends EngineTestCase {
   }
 
   protected Expression findTopLevelConstantExpression(CompilationUnit compilationUnit, String name) {
+    return findTopLevelDeclaration(compilationUnit, name).getInitializer();
+  }
+
+  protected VariableDeclaration findTopLevelDeclaration(CompilationUnit compilationUnit, String name) {
     for (CompilationUnitMember member : compilationUnit.getDeclarations()) {
       if (member instanceof TopLevelVariableDeclaration) {
         for (VariableDeclaration variable : ((TopLevelVariableDeclaration) member).getVariables().getVariables()) {
           if (variable.getName().getName().equals(name)) {
-            return variable.getInitializer();
+            return variable;
           }
         }
       }

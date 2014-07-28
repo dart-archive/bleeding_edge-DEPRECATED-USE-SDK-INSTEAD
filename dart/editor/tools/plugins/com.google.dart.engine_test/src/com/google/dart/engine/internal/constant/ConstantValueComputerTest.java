@@ -752,6 +752,16 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     assertFalse(ConstantValueComputer.isValidPublicSymbol("foo.void"));
   }
 
+  public void test_symbolLiteral_void() throws Exception {
+    CompilationUnit compilationUnit = resolveSource(createSource(//
+    "const voidSymbol = #void;"));
+    VariableDeclaration voidSymbol = findTopLevelDeclaration(compilationUnit, "voidSymbol");
+    EvaluationResultImpl voidSymbolResult = ((VariableElementImpl) voidSymbol.getElement()).getEvaluationResult();
+    DartObjectImpl value = ((ValidResult) voidSymbolResult).getValue();
+    assertEquals(getTypeProvider().getSymbolType(), value.getType());
+    assertEquals("void", value.getValue());
+  }
+
   private HashMap<String, DartObjectImpl> assertFieldType(HashMap<String, DartObjectImpl> fields,
       String fieldName, String expectedType) {
     DartObjectImpl field = fields.get(fieldName);
