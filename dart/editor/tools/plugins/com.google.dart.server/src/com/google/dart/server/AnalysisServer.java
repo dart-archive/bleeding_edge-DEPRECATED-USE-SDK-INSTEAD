@@ -81,10 +81,10 @@ public interface AnalysisServer {
   public void deleteRefactoring(String refactoringId);
 
   /**
-   * Computes the set of assits that are available at the given location. An assist is distinguished
-   * from a refactoring primarily by the fact that it affects a single file and does not require
-   * user input in order to be performed. The given consumer is invoked asynchronously on a
-   * different thread.
+   * Computes the set of assists that are available at the given location. An assist is
+   * distinguished from a refactoring primarily by the fact that it affects a single file and does
+   * not require user input in order to be performed. The given consumer is invoked asynchronously
+   * on a different thread.
    * 
    * @param file the file containing the range for which assists are being requested
    * @param offset the offset of the region used to compute the assists
@@ -102,6 +102,23 @@ public interface AnalysisServer {
    * @param consumer the results listener
    */
   public void getCompletionSuggestions(String file, int offset, CompletionIdConsumer consumer);
+
+  /**
+   * Return the errors associated with the given file. If the errors for the given file have not yet
+   * been computed, or the most recently computed errors for the given file are out of date, then
+   * the response for this request will be delayed until they have been computed. If some or all of
+   * the errors for the file cannot be computed, then the subset of the errors that can be computed
+   * will be returned and the response will contain an error to indicate why the errors could not be
+   * computed.
+   * <p>
+   * This request is intended to be used by clients that cannot asynchronously apply updated error
+   * information. Clients that <b>can</b> apply error information as it becomes available should use
+   * the information provided by the 'analysis.errors' notification.
+   * 
+   * @param file the file for which errors are being requested
+   * @param consumer the errors consumer
+   */
+  public void getErrors(String file, AnalysisErrorsConsumer consumer);
 
   /**
    * Computes a set of fixes that are available for the given list of errors. The given consumer is

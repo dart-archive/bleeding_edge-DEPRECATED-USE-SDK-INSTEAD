@@ -18,6 +18,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.dart.server.AnalysisError;
+import com.google.dart.server.AnalysisErrorsConsumer;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AnalysisStatus;
@@ -73,6 +75,78 @@ import java.util.Map;
  * remote server, see {@link RemoteAnalysisServerImplIntegrationTest}.
  */
 public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
+
+  public void test_analysis_getErrors() throws Exception {
+    final AnalysisError[][] errors = new AnalysisError[1][1];
+    server.getErrors("/fileA.dart", new AnalysisErrorsConsumer() {
+      @Override
+      public void computedErrors(AnalysisError[] e) {
+        errors[0] = e;
+      }
+    });
+
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'analysis.getErrors',",
+        "  'params': {",
+        "    'file': '/fileA.dart'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'errors' : [",
+        "      {",
+        "        'severity': 'ERROR',",
+        "        'type': 'SYNTACTIC_ERROR',",
+        "        'location': {",
+        "          'file': '/fileA.dart',",
+        "          'offset': 1,",
+        "          'length': 2,",
+        "          'startLine': 3,",
+        "          'startColumn': 4",
+        "        },",
+        "        'message': 'message A',",
+        "        'correction': 'correction A'",
+        "      },",
+        "      {",
+        "        'severity': 'ERROR',",
+        "        'type': 'COMPILE_TIME_ERROR',",
+        "        'location': {",
+        "          'file': '/fileB.dart',",
+        "          'offset': 5,",
+        "          'length': 6,",
+        "          'startLine': 7,",
+        "          'startColumn': 8",
+        "        },",
+        "        'message': 'message B',",
+        "        'correction': 'correction B'",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    responseStream.waitForEmpty();
+    server.test_waitForWorkerComplete();
+
+    assertThat(errors[0]).hasSize(2);
+    assertEquals(new AnalysisErrorImpl(ErrorSeverity.ERROR, "SYNTACTIC_ERROR", new LocationImpl(
+        "/fileA.dart",
+        1,
+        2,
+        3,
+        4), "message A", "correction A"), errors[0][0]);
+    assertEquals(new AnalysisErrorImpl(ErrorSeverity.ERROR, "COMPILE_TIME_ERROR", new LocationImpl(
+        "/fileB.dart",
+        5,
+        6,
+        7,
+        8), "message B", "correction B"), errors[0][1]);
+  }
 
   public void test_analysis_getHover() throws Exception {
     final HoverInformation[] hovers = new HoverInformation[1];

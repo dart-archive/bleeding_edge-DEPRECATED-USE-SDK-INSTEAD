@@ -14,9 +14,12 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.common.collect.Lists;
+import com.google.dart.server.AnalysisError;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
+import com.google.dart.server.ErrorSeverity;
 import com.google.dart.server.Location;
+import com.google.dart.server.internal.AnalysisErrorImpl;
 import com.google.dart.server.internal.ElementImpl;
 import com.google.dart.server.internal.LocationImpl;
 import com.google.dart.server.utilities.general.StringUtilities;
@@ -34,6 +37,15 @@ import java.util.List;
  * @coverage dart.server.remote
  */
 public abstract class JsonProcessor {
+
+  protected AnalysisError constructAnalysisError(JsonObject errorObject) {
+    ErrorSeverity errorSeverity = ErrorSeverity.valueOf(errorObject.get("severity").getAsString());
+    String errorType = errorObject.get("type").getAsString();
+    Location location = constructLocation(errorObject.get("location").getAsJsonObject());
+    String message = errorObject.get("message").getAsString();
+    String correction = safelyGetAsString(errorObject, "correction");
+    return new AnalysisErrorImpl(errorSeverity, errorType, location, message, correction);
+  }
 
   protected Element constructElement(JsonObject elementObject) {
     ElementKind kind = ElementKind.valueOf(elementObject.get("kind").getAsString());

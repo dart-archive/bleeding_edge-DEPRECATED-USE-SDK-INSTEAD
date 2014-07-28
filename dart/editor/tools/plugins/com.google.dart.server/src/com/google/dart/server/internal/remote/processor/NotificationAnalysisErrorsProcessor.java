@@ -16,9 +16,6 @@ package com.google.dart.server.internal.remote.processor;
 import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.ErrorSeverity;
-import com.google.dart.server.Location;
-import com.google.dart.server.internal.AnalysisErrorImpl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -59,15 +56,6 @@ public class NotificationAnalysisErrorsProcessor extends NotificationProcessor {
     getListener().computedErrors(
         file,
         analysisErrors.toArray(new AnalysisError[analysisErrors.size()]));
-  }
-
-  private AnalysisError constructAnalysisError(JsonObject errorObject) {
-    ErrorSeverity errorSeverity = ErrorSeverity.valueOf(errorObject.get("severity").getAsString());
-    String errorType = errorObject.get("type").getAsString();
-    Location location = constructLocation(errorObject.get("location").getAsJsonObject());
-    String message = errorObject.get("message").getAsString();
-    String correction = safelyGetAsString(errorObject, "correction");
-    return new AnalysisErrorImpl(errorSeverity, errorType, location, message, correction);
   }
 
 }
