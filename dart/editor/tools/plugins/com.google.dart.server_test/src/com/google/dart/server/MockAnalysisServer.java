@@ -129,6 +129,11 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
+  public void setRefactoringOptions(String refactoringId, RefactoringSetOptionsConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void setServerSubscriptions(List<ServerService> subscriptions) {
     throw new UnsupportedOperationException();
   }

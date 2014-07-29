@@ -151,6 +151,13 @@ public interface AnalysisServer {
    */
   public void getVersion(VersionConsumer consumer);
 
+  /**
+   * Force the re-analysis of everything contained in the existing analysis roots. This will cause
+   * all previously computed analysis results to be discarded and recomputed, and will cause all
+   * subscribed notifications to be re-sent.
+   */
+  public void reanalyze();
+
 //  /**
 //   * Reports with a set of {@link ErrorCode}s for which server may be able to {@link #computeFixes}
 //   * in the given context.
@@ -159,13 +166,6 @@ public interface AnalysisServer {
 //   * @param consumer the results listener
 //   */
 //  public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer);
-
-  /**
-   * Force the re-analysis of everything contained in the existing analysis roots. This will cause
-   * all previously computed analysis results to be discarded and recomputed, and will cause all
-   * subscribed notifications to be re-sent.
-   */
-  public void reanalyze();
 
   /**
    * Remove the given listener from the list of listeners that will receive notification when new
@@ -253,6 +253,17 @@ public interface AnalysisServer {
    * @param files the files that are to be a priority for analysis
    */
   public void setPriorityFiles(List<String> files);
+
+  /**
+   * Set the options for a refactoring operation. Clients are required to set the options before the
+   * refactoring is applied if the refactoring has options. Clients are allowed to set the options
+   * multiple times in order to allow users to fix any problems that might prevent the refactoring
+   * from completing.
+   * 
+   * @param refactoringId the identifier of the refactoring whose options are to be set
+   * @param consumer the results listener
+   */
+  public void setRefactoringOptions(String refactoringId, RefactoringSetOptionsConsumer consumer);
 
   /**
    * Subscribe for server services.

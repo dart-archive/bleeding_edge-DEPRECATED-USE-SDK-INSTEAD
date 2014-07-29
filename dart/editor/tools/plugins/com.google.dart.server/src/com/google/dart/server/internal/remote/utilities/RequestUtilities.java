@@ -66,7 +66,7 @@ public class RequestUtilities {
   private static final String METHOD_EDIT_GET_ASSISTS = "edit.getAssists";
   private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
   private static final String METHOD_EDIT_GET_REFACTORING = "edit.getRefactorings";
-  //private static final String METHOD_EDIT_SET_REFACTORING_OPTIONS = "edit.setRefactoringOptions";
+  private static final String METHOD_EDIT_SET_REFACTORING_OPTIONS = "edit.setRefactoringOptions";
 
   // Code Completion domain
   private static final String METHOD_COMPLETION_GET_SUGGESTIONS = "completion.getSuggestions";
@@ -460,6 +460,25 @@ public class RequestUtilities {
     params.addProperty(OFFSET, offset);
     params.addProperty(LENGTH, length);
     return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_REFACTORING, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_EDIT_SET_REFACTORING_OPTIONS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "edit.getRefactorings"
+   *   "params": {
+   *     "id": refactoringId
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateEditSetRefactoringOptions(String idValue, String refactoringId) {
+    JsonObject params = new JsonObject();
+    params.addProperty(ID, refactoringId);
+    return buildJsonObjectRequest(idValue, METHOD_EDIT_SET_REFACTORING_OPTIONS, params);
   }
 
   /**

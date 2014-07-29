@@ -49,6 +49,7 @@ import com.google.dart.server.RefactoringGetConsumer;
 import com.google.dart.server.RefactoringKind;
 import com.google.dart.server.RefactoringProblem;
 import com.google.dart.server.RefactoringProblemSeverity;
+import com.google.dart.server.RefactoringSetOptionsConsumer;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
@@ -1640,6 +1641,111 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
     // assertions on 'kinds' (List<RefactoringKind>)
     assertThat(refactoringKindsArray[0]).hasSize(0);
+  }
+
+  public void test_edit_setRefactoringOptions() throws Exception {
+    final RefactoringProblem[][] refactoringProblemsArray = {{null}};
+    server.setRefactoringOptions("refactoringId0", new RefactoringSetOptionsConsumer() {
+      @Override
+      public void computedStatus(RefactoringProblem[] problems) {
+        refactoringProblemsArray[0] = problems;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.setRefactoringOptions',",
+        "  'params': {",
+        "    'id': 'refactoringId0'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'status': [",
+        "      {",
+        "        'severity':'INFO',",
+        "        'message':'message1',",
+        "        'location': {",
+        "          'file': 'someFile.dart',",
+        "          'offset': 1,",
+        "          'length': 2,",
+        "          'startLine': 3,",
+        "          'startColumn': 4",
+        "        }",
+        "      },",
+        "      {",
+        "        'severity':'WARNING',",
+        "        'message':'message2',",
+        "        'location': {",
+        "          'file': 'someFile2.dart',",
+        "          'offset': 5,",
+        "          'length': 6,",
+        "          'startLine': 7,",
+        "          'startColumn': 8",
+        "        }",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'status' (RefactoringProblem array)
+    RefactoringProblem[] refactoringProblems = refactoringProblemsArray[0];
+    assertThat(refactoringProblems).hasSize(2);
+
+    RefactoringProblem refactoringProblem1 = refactoringProblems[0];
+    RefactoringProblem refactoringProblem2 = refactoringProblems[1];
+    {
+      assertEquals(RefactoringProblemSeverity.INFO, refactoringProblem1.getSeverity());
+      assertEquals("message1", refactoringProblem1.getMessage());
+      assertEquals(new LocationImpl("someFile.dart", 1, 2, 3, 4), refactoringProblem1.getLocation());
+    }
+    {
+      assertEquals(RefactoringProblemSeverity.WARNING, refactoringProblem2.getSeverity());
+      assertEquals("message2", refactoringProblem2.getMessage());
+      assertEquals(
+          new LocationImpl("someFile2.dart", 5, 6, 7, 8),
+          refactoringProblem2.getLocation());
+    }
+  }
+
+  public void test_edit_setRefactoringOptions_emptyProblemsList() throws Exception {
+    final RefactoringProblem[][] refactoringProblemsArray = {{null}};
+    server.setRefactoringOptions("refactoringId0", new RefactoringSetOptionsConsumer() {
+      @Override
+      public void computedStatus(RefactoringProblem[] problems) {
+        refactoringProblemsArray[0] = problems;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.setRefactoringOptions',",
+        "  'params': {",
+        "    'id': 'refactoringId0'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'status': [",
+        "    ]",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'status' (RefactoringProblem array)
+    RefactoringProblem[] refactoringProblems = refactoringProblemsArray[0];
+    assertThat(refactoringProblems).isEmpty();
   }
 
   public void test_error() throws Exception {
