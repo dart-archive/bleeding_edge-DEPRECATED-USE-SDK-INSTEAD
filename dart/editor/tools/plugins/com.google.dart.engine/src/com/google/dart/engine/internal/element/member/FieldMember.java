@@ -127,6 +127,15 @@ public class FieldMember extends VariableMember implements FieldElement {
   }
 
   @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append(getType());
+    builder.append(" ");
+    builder.append(getDisplayName());
+    return builder.toString();
+  }
+
+  @Override
   protected InterfaceType getDefiningType() {
     return (InterfaceType) super.getDefiningType();
   }
