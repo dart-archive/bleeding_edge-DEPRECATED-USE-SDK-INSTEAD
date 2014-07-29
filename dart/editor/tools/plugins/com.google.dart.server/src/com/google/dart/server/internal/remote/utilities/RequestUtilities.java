@@ -424,6 +424,21 @@ public class RequestUtilities {
     return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_FIXES, params);
   }
 
+  /**
+   * Generate and return a {@value #METHOD_SEARCH_FIND_ELEMENT_REFERENCES} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "search.findElementReferences"
+   *   "params": {
+   *     "file": FilePath
+   *     "offset": int
+   *     "includePotential": boolean
+   *   }
+   * }
+   * </pre>
+   */
   public static JsonObject generateSearchFindElementReferences(String idValue, String file,
       int offset, boolean includePotential) {
     JsonObject params = new JsonObject();
@@ -433,18 +448,57 @@ public class RequestUtilities {
     return buildJsonObjectRequest(idValue, METHOD_SEARCH_FIND_ELEMENT_REFERENCES, params);
   }
 
+  /**
+   * Generate and return a {@value #METHOD_SEARCH_FIND_MEMBER_DECLARATIONS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "search.findMemberDeclarations"
+   *   "params": {
+   *     "name": String
+   *   }
+   * }
+   * </pre>
+   */
   public static JsonObject generateSearchFindMemberDeclarations(String idValue, String name) {
     JsonObject params = new JsonObject();
     params.addProperty("name", name);
     return buildJsonObjectRequest(idValue, METHOD_SEARCH_FIND_MEMBER_DECLARATIONS, params);
   }
 
+  /**
+   * Generate and return a {@value #METHOD_SEARCH_FIND_MEMBER_REFERENCES} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "search.findMemberReferences"
+   *   "params": {
+   *     "name": String
+   *   }
+   * }
+   * </pre>
+   */
   public static JsonObject generateSearchFindMemberReferences(String idValue, String name) {
     JsonObject params = new JsonObject();
     params.addProperty("name", name);
     return buildJsonObjectRequest(idValue, METHOD_SEARCH_FIND_MEMBER_REFERENCES, params);
   }
 
+  /**
+   * Generate and return a {@value #METHOD_SEARCH_FIND_TOP_LEVEL_DECLARATIONS} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "search.findTopLevelDeclarations"
+   *   "params": {
+   *     "name": String
+   *   }
+   * }
+   * </pre>
+   */
   public static JsonObject generateSearchFindTopLevelDeclarations(String idValue, String pattern) {
     JsonObject params = new JsonObject();
     params.addProperty("pattern", pattern);
