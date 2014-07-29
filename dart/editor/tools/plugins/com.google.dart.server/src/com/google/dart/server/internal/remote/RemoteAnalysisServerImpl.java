@@ -16,7 +16,6 @@ package com.google.dart.server.internal.remote;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisErrorsConsumer;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
@@ -40,6 +39,7 @@ import com.google.dart.server.internal.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.AnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.AssistsProcessor;
 import com.google.dart.server.internal.remote.processor.CompletionIdProcessor;
+import com.google.dart.server.internal.remote.processor.FixesProcessor;
 import com.google.dart.server.internal.remote.processor.HoverProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisHighlightsProcessor;
@@ -305,9 +305,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void getFixes(List<AnalysisError> errors, FixesConsumer consumer) {
+  public void getFixes(String file, int offset, FixesConsumer consumer) {
     String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateEditGetFixes(id, errors), consumer);
+    sendRequestToServer(id, RequestUtilities.generateEditGetFixes(id, file, offset), consumer);
   }
 
   @Override
@@ -593,6 +593,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new RefactoringCreateProcessor((RefactoringCreateConsumer) consumer).process(resultObject);
     } else if (consumer instanceof AssistsConsumer) {
       new AssistsProcessor((AssistsConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof FixesConsumer) {
+      new FixesProcessor((FixesConsumer) consumer).process(resultObject);
     } else if (consumer instanceof VersionConsumer) {
       new VersionProcessor((VersionConsumer) consumer).process(resultObject);
     } else if (consumer instanceof AnalysisErrorsConsumer) {

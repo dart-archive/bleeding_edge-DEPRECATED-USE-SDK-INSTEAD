@@ -58,7 +58,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void getFixes(List<AnalysisError> errors, FixesConsumer consumer) {
+  public void getFixes(String file, int offset, FixesConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 

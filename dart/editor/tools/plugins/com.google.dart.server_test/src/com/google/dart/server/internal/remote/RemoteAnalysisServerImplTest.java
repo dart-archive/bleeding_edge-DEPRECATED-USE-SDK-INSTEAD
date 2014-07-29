@@ -31,7 +31,9 @@ import com.google.dart.server.CompletionSuggestionKind;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
+import com.google.dart.server.ErrorFixes;
 import com.google.dart.server.ErrorSeverity;
+import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
 import com.google.dart.server.HoverConsumer;
@@ -1480,6 +1482,89 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals(3, sourceEdit.getOffset());
       assertEquals(4, sourceEdit.getLength());
       assertEquals("replacement2", sourceEdit.getReplacement());
+    }
+  }
+
+  public void test_edit_getFixes() throws Exception {
+    final ErrorFixes[][] errorFixesArray = {{null}};
+    server.getFixes("/fileA.dart", 1, new FixesConsumer() {
+      @Override
+      public void computedFixes(ErrorFixes[] e) {
+        errorFixesArray[0] = e;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getFixes',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'fixes': [",
+        "      {",
+        "        'error': {",
+        "          'severity': 'ERROR',",
+        "          'type': 'SYNTACTIC_ERROR',",
+        "          'location': {",
+        "            'file': '/fileA.dart',",
+        "            'offset': 1,",
+        "            'length': 2,",
+        "            'startLine': 3,",
+        "            'startColumn': 4",
+        "          },",
+        "          'message': 'message A',",
+        "          'correction': 'correction A'",
+        "        }",
+        "      },",
+        "      {",
+        "        'error': {",
+        "          'severity': 'ERROR',",
+        "          'type': 'COMPILE_TIME_ERROR',",
+        "          'location': {",
+        "            'file': '/fileB.dart',",
+        "            'offset': 5,",
+        "            'length': 6,",
+        "            'startLine': 7,",
+        "            'startColumn': 8",
+        "          },",
+        "          'message': 'message B',",
+        "          'correction': 'correction B'",
+        "        }",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'fixes' (List<ErrorFixes>)
+    ErrorFixes[] errorFixes = errorFixesArray[0];
+    assertThat(errorFixes).hasSize(2);
+    {
+      AnalysisError error = errorFixes[0].getError();
+      assertEquals(new AnalysisErrorImpl(ErrorSeverity.ERROR, "SYNTACTIC_ERROR", new LocationImpl(
+          "/fileA.dart",
+          1,
+          2,
+          3,
+          4), "message A", "correction A"), error);
+    }
+    {
+      AnalysisError error = errorFixes[1].getError();
+      assertEquals(new AnalysisErrorImpl(
+          ErrorSeverity.ERROR,
+          "COMPILE_TIME_ERROR",
+          new LocationImpl("/fileB.dart", 5, 6, 7, 8),
+          "message B",
+          "correction B"), error);
     }
   }
 

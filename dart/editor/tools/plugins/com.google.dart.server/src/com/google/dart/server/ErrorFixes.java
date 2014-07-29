@@ -14,17 +14,29 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code FixesConsumer} defines the behavior of objects that consume fixes for
- * errors.
+ * The interface {@code ErrorFixes} defines the behavior of objects representing fixes to some
+ * error.
  * 
  * @coverage dart.server
  */
-public interface FixesConsumer extends Consumer {
+public interface ErrorFixes {
   /**
-   * A set fixes has been computed. Note that not every {@link AnalysisError} can be fixed, so not
-   * for all of the any fixes will be returned.
-   * 
-   * @param errorFixesArray an array of computed error fixes
+   * An empty array of errors used when no errors are expected.
    */
-  public void computedFixes(ErrorFixes[] errorFixesArray);
+  public static final ErrorFixes[] EMPTY_ARRAY = new ErrorFixes[0];
+
+  /**
+   * The error with which the fixes are associated.
+   * 
+   * @return the error with which the fixes are associated
+   */
+  public AnalysisError getError();
+
+  /**
+   * The fixes associated with the error.
+   * 
+   * @return the fixes associated with the error
+   */
+  // TODO (jwren) Fill in after we have a data type
+  // public List<TBA> getFixes();
 }

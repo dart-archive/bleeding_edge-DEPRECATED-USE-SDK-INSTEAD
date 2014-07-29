@@ -411,14 +411,16 @@ public class RequestUtilities {
    *   "id": String
    *   "method": "analysis.getFixes"
    *   "params": {
-   *     "errors": List&lt;AnalysisError&gt;
+   *     "file": FilePath
+   *     "offset": int
    *   }
    * }
    * </pre>
    */
-  public static JsonObject generateEditGetFixes(String idValue, List<AnalysisError> errors) {
+  public static JsonObject generateEditGetFixes(String idValue, String file, int offset) {
     JsonObject params = new JsonObject();
-    params.add("errors", buildJsonElement(errors));
+    params.addProperty(FILE, file);
+    params.addProperty(OFFSET, offset);
     return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_FIXES, params);
   }
 

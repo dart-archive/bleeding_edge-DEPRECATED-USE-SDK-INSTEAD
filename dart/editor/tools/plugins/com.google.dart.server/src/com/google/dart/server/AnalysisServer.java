@@ -105,13 +105,13 @@ public interface AnalysisServer {
   public void getErrors(String file, AnalysisErrorsConsumer consumer);
 
   /**
-   * Computes a set of fixes that are available for the given list of errors. The given consumer is
-   * invoked asynchronously on a different thread.
+   * Return the set of fixes that are available for the errors at a given offset in a given file.
    * 
-   * @param errors the errors for which fixes are being requested
+   * @param file the file in which hover text is being requested
+   * @param offset the offset in the source used to determine hover text
    * @param consumer the results listener
    */
-  public void getFixes(List<AnalysisError> errors, FixesConsumer consumer);
+  public void getFixes(String file, int offset, FixesConsumer consumer);
 
   /**
    * Computes the hover text to be displayed at the given location. The given consumer is invoked
