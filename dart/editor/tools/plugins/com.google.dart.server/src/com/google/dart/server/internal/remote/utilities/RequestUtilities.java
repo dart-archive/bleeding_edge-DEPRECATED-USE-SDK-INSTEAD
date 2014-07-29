@@ -150,6 +150,20 @@ public class RequestUtilities {
     return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_GET_ERRORS, params);
   }
 
+  /**
+   * Generate and return a {@value #METHOD_ANALYSIS_GET_HOVER} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "analysis.getHover"
+   *   "params": {
+   *     "file": FilePath
+   *     "offset": int
+   *   }
+   * }
+   * </pre>
+   */
   public static JsonObject generateAnalysisGetHover(String idValue, String file, int offset) {
     JsonObject params = new JsonObject();
     params.addProperty(FILE, file);
