@@ -41,19 +41,47 @@ public class PropertyAccessorMember extends ExecutableMember implements Property
    */
   public static PropertyAccessorElement from(PropertyAccessorElement baseAccessor,
       InterfaceType definingType) {
-    if (baseAccessor == null || definingType.getTypeArguments().length == 0) {
-      return baseAccessor;
-    }
-    FunctionType baseType = baseAccessor.getType();
-    Type[] argumentTypes = definingType.getTypeArguments();
-    Type[] parameterTypes = definingType.getElement().getType().getTypeArguments();
-    FunctionType substitutedType = baseType.substitute(argumentTypes, parameterTypes);
-    if (baseType.equals(substitutedType)) {
+    if (!isChangedByTypeSubstitution(baseAccessor, definingType)) {
       return baseAccessor;
     }
     // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
     // memory but speed up some operations. We need to see how often the type is being re-computed.
     return new PropertyAccessorMember(baseAccessor, definingType);
+  }
+
+  /**
+   * Determine whether the given property accessor's type is changed when type parameters from the
+   * defining type's declaration are replaced with the actual type arguments from the defining type.
+   * 
+   * @param baseAccessor the base property accessor
+   * @param definingType the type defining the parameters and arguments to be used in the
+   *          substitution
+   * @return true if the type is changed by type substitution.
+   */
+  private static boolean isChangedByTypeSubstitution(PropertyAccessorElement baseAccessor,
+      InterfaceType definingType) {
+    Type[] argumentTypes = definingType.getTypeArguments();
+    if (baseAccessor != null && argumentTypes.length != 0) {
+      FunctionType baseType = baseAccessor.getType();
+      Type[] parameterTypes = definingType.getElement().getType().getTypeArguments();
+      FunctionType substitutedType = baseType.substitute(argumentTypes, parameterTypes);
+      if (!baseType.equals(substitutedType)) {
+        return true;
+      }
+      // If this property accessor is based on a field, that field might have a propagated type.
+      // In which case we need to check whether the propagated type of the field needs substitution.
+      PropertyInducingElement field = baseAccessor.getVariable();
+      if (!field.isSynthetic()) {
+        Type baseFieldType = field.getPropagatedType();
+        if (baseFieldType != null) {
+          Type substitutedFieldType = baseFieldType.substitute(argumentTypes, parameterTypes);
+          if (!baseFieldType.equals(substitutedFieldType)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   /**

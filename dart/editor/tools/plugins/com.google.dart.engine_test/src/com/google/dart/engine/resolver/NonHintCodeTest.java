@@ -388,6 +388,24 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_propagatedFieldType() throws Exception {
+    // From dartbug.com/20019
+    Source source = addSource(createSource(//
+        "class A { }",
+        "class X<T> {",
+        "  final x = new List<T>();",
+        "}",
+        "class Z {",
+        "  final X<A> y = new X<A>();",
+        "  foo() {",
+        "    y.x.add(new A());",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_proxy_annotation_prefixed() throws Exception {
     Source source = addSource(createSource(//
         "library L;",

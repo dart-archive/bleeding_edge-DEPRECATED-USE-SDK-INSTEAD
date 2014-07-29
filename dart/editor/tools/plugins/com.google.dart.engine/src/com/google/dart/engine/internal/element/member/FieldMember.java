@@ -37,22 +37,48 @@ public class FieldMember extends VariableMember implements FieldElement {
    * @return the field element that will return the correctly substituted types
    */
   public static FieldElement from(FieldElement baseField, InterfaceType definingType) {
-    if (baseField == null || definingType.getTypeArguments().length == 0) {
-      return baseField;
-    }
-    Type baseType = baseField.getType();
-    if (baseType == null) {
-      return baseField;
-    }
-    Type[] argumentTypes = definingType.getTypeArguments();
-    Type[] parameterTypes = definingType.getElement().getType().getTypeArguments();
-    Type substitutedType = baseType.substitute(argumentTypes, parameterTypes);
-    if (baseType.equals(substitutedType)) {
+    if (!isChangedByTypeSubstitution(baseField, definingType)) {
       return baseField;
     }
     // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
     // memory but speed up some operations. We need to see how often the type is being re-computed.
     return new FieldMember(baseField, definingType);
+  }
+
+  /**
+   * Determine whether the given field's type is changed when type parameters from the defining
+   * type's declaration are replaced with the actual type arguments from the defining type.
+   * 
+   * @param baseField the base field
+   * @param definingType the type defining the parameters and arguments to be used in the
+   *          substitution
+   * @return true if the type is changed by type substitution.
+   */
+  private static boolean isChangedByTypeSubstitution(FieldElement baseField,
+      InterfaceType definingType) {
+    Type[] argumentTypes = definingType.getTypeArguments();
+    if (baseField != null && argumentTypes.length != 0) {
+      Type baseType = baseField.getType();
+      Type[] parameterTypes = definingType.getElement().getType().getTypeArguments();
+      if (baseType != null) {
+        Type substitutedType = baseType.substitute(argumentTypes, parameterTypes);
+        if (!baseType.equals(substitutedType)) {
+          return true;
+        }
+      }
+      // If the field has a propagated type, then we need to check whether the propagated type
+      // needs substitution.
+      Type basePropagatedType = baseField.getPropagatedType();
+      if (basePropagatedType != null) {
+        Type substitutedPropagatedType = basePropagatedType.substitute(
+            argumentTypes,
+            parameterTypes);
+        if (!basePropagatedType.equals(substitutedPropagatedType)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
