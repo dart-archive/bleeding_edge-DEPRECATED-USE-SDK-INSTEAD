@@ -16,8 +16,6 @@ package com.google.dart.tools.ui;
 import com.google.common.base.Charsets;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.search.SearchScope;
-import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.source.Source;
 import com.google.dart.server.Location;
 import com.google.dart.tools.core.DartCore;
@@ -29,18 +27,14 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
-import com.google.dart.tools.ui.dialogs.TypeSelectionExtension;
 import com.google.dart.tools.ui.internal.SharedImages;
-import com.google.dart.tools.ui.internal.dialogs.FilteredTypesSelectionDialog;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.text.IColorManager;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.BadLocationException;
@@ -49,11 +43,9 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.dialogs.SelectionDialog;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
@@ -250,144 +242,6 @@ public final class DartUI {
    * The maximal length of a line in a document for which we want to support Dart editing features.
    */
   private static final int MAX_LINE_LENGTH = 1000;
-
-  /**
-   * Creates a selection dialog that lists all types in the given project. The caller is responsible
-   * for opening the dialog with <code>Window.open</code>, and subsequently extracting the selected
-   * type(s) (of type <code>Type</code> ) via <code>SelectionDialog.getResult</code>.
-   * 
-   * @param parent the parent shell of the dialog to be created
-   * @param context the runnable context used to show progress when the dialog is being populated
-   * @param project the project
-   * @param style flags defining the style of the dialog; the only valid values are
-   *          <code>IDartElementSearchConstants.CONSIDER_CLASSES</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_INTERFACES</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_ANNOTATION_TYPES</code> ,
-   *          <code>IDartElementSearchConstants.CONSIDER_ENUMS</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_ALL_TYPES</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_CLASSES_AND_INTERFACES</code>
-   *          <code>IDartElementSearchConstants.CONSIDER_CLASSES_AND_ENUMS</code> . Please note that
-   *          the bitwise OR combination of the elementary constants is not supported.
-   * @param multipleSelection <code>true</code> if multiple selection is allowed
-   * @return a new selection dialog
-   * @exception DartModelException if the selection dialog could not be opened
-   */
-  public static SelectionDialog createTypeDialog(Shell parent, IRunnableContext context,
-      IProject project, int style, boolean multipleSelection) throws DartModelException {
-    // TODO (pquitslund): update to use project scope once implemented in search core
-    //DartSearchScope scope = SearchEngine.createJavaSearchScope(
-    //                            new DartProject[] {JavaScriptCore.create(project)});
-    SearchScope scope = SearchScopeFactory.createUniverseScope();
-    return createTypeDialog(parent, context, scope, style, multipleSelection);
-  }
-
-  /**
-   * Creates a selection dialog that lists all types in the given scope. The caller is responsible
-   * for opening the dialog with <code>Window.open</code>, and subsequently extracting the selected
-   * type(s) (of type <code>Type</code> ) via <code>SelectionDialog.getResult</code>.
-   * 
-   * @param parent the parent shell of the dialog to be created
-   * @param context the runnable context used to show progress when the dialog is being populated
-   * @param scope the scope that limits which types are included
-   * @param style flags defining the style of the dialog; the only valid values are
-   *          <code>IDartElementSearchConstants.CONSIDER_CLASSES</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_INTERFACES</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_ANNOTATION_TYPES</code> ,
-   *          <code>IDartElementSearchConstants.CONSIDER_ENUMS</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_ALL_TYPES</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_CLASSES_AND_INTERFACES</code>
-   *          <code>IDartElementSearchConstants.CONSIDER_CLASSES_AND_ENUMS</code> . Please note that
-   *          the bitwise OR combination of the elementary constants is not supported.
-   * @param multipleSelection <code>true</code> if multiple selection is allowed
-   * @return a new selection dialog
-   * @exception DartModelException if the selection dialog could not be opened
-   */
-  public static SelectionDialog createTypeDialog(Shell parent, IRunnableContext context,
-      SearchScope scope, int style, boolean multipleSelection) throws DartModelException {
-    return createTypeDialog(parent, context, scope, style, multipleSelection, "");//$NON-NLS-1$
-  }
-
-  /**
-   * Creates a selection dialog that lists all types in the given scope. The caller is responsible
-   * for opening the dialog with <code>Window.open</code>, and subsequently extracting the selected
-   * type(s) (of type <code>Type</code> ) via <code>SelectionDialog.getResult</code>.
-   * 
-   * @param parent the parent shell of the dialog to be created
-   * @param context the runnable context used to show progress when the dialog is being populated
-   * @param scope the scope that limits which types are included
-   * @param style flags defining the style of the dialog; the only valid values are
-   *          <code>IDartElementSearchConstants.CONSIDER_CLASSES</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_INTERFACES</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_ANNOTATION_TYPES</code> ,
-   *          <code>IDartElementSearchConstants.CONSIDER_ENUMS</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_ALL_TYPES</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_CLASSES_AND_INTERFACES</code>
-   *          <code>IDartElementSearchConstants.CONSIDER_CLASSES_AND_ENUMS</code> . Please note that
-   *          the bitwise OR combination of the elementary constants is not supported.
-   * @param multipleSelection <code>true</code> if multiple selection is allowed
-   * @param filter the initial pattern to filter the set of types. For example "Abstract" shows all
-   *          types starting with "abstract". The meta character '?' representing any character and
-   *          '*' representing any string are supported. Clients can pass an empty string if no
-   *          filtering is required.
-   * @return a new selection dialog
-   * @exception DartModelException if the selection dialog could not be opened
-   */
-  public static SelectionDialog createTypeDialog(Shell parent, IRunnableContext context,
-      SearchScope scope, int style, boolean multipleSelection, String filter)
-      throws DartModelException {
-    return createTypeDialog(parent, context, scope, style, multipleSelection, filter, null);
-  }
-
-  /**
-   * Creates a selection dialog that lists all types in the given scope. The caller is responsible
-   * for opening the dialog with <code>Window.open</code>, and subsequently extracting the selected
-   * type(s) (of type <code>Type</code> ) via <code>SelectionDialog.getResult</code>.
-   * 
-   * @param parent the parent shell of the dialog to be created
-   * @param context the runnable context used to show progress when the dialog is being populated
-   * @param scope the scope that limits which types are included
-   * @param style flags defining the style of the dialog; the only valid values are
-   *          <code>IDartElementSearchConstants.CONSIDER_CLASSES</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_INTERFACES</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_ANNOTATION_TYPES</code> ,
-   *          <code>IDartElementSearchConstants.CONSIDER_ENUMS</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_ALL_TYPES</code>,
-   *          <code>IDartElementSearchConstants.CONSIDER_CLASSES_AND_INTERFACES</code>
-   *          <code>IDartElementSearchConstants.CONSIDER_CLASSES_AND_ENUMS</code> . Please note that
-   *          the bitwise OR combination of the elementary constants is not supported.
-   * @param multipleSelection <code>true</code> if multiple selection is allowed
-   * @param filter the initial pattern to filter the set of types. For example "Abstract" shows all
-   *          types starting with "abstract". The meta character '?' representing any character and
-   *          '*' representing any string are supported. Clients can pass an empty string if no
-   *          filtering is required.
-   * @param extension a user interface extension to the type selection dialog or <code>null</code>
-   *          if no extension is desired
-   * @return a new selection dialog
-   * @exception DartModelException if the selection dialog could not be opened
-   */
-  public static SelectionDialog createTypeDialog(Shell parent, IRunnableContext context,
-      SearchScope scope, int style, boolean multipleSelection, String filter,
-      TypeSelectionExtension extension) throws DartModelException {
-    int elementKinds = 0;
-    // TODO (pquitslund): implement search constant kinds
-//    if (style == IDartElementSearchConstants.CONSIDER_ALL_TYPES) {
-//      elementKinds = IJavaScriptSearchConstants.TYPE;
-//    } else if (style == IDartElementSearchConstants.CONSIDER_CLASSES) {
-//      elementKinds = IJavaScriptSearchConstants.CLASS;
-//    } else {
-//      throw new IllegalArgumentException("Invalid style constant."); //$NON-NLS-1$
-//    }
-    FilteredTypesSelectionDialog dialog = new FilteredTypesSelectionDialog(
-        parent,
-        multipleSelection,
-        context,
-        scope,
-        elementKinds,
-        extension);
-    dialog.setMessage(DartUIMessages.JavaUI_defaultDialogMessage);
-    dialog.setInitialPattern(filter);
-    return dialog;
-  }
 
   /**
    * Returns the color manager the Dart UI plug-in which is used to manage any Dart-specific colors

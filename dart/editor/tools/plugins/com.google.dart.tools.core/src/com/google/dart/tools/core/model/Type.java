@@ -22,20 +22,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * @coverage dart.tools.core.model
  */
 public interface Type extends CompilationUnitElement, ParentElement, SourceReference {
-  /**
-   * Finds the methods in this type that correspond to the given method. A method m1 corresponds to
-   * another method m2 if:
-   * <ul>
-   * <li>m1 has the same element name as m2.
-   * <li>m1 has the same number of arguments as m2 and the simple names of the argument types must
-   * be equals.
-   * <li>m1 exists.
-   * </ul>
-   * 
-   * @param method the given method
-   * @return the found method or <code>null</code> if no such methods can be found
-   */
-  public Method[] findMethods(Method method);
 
   /**
    * Return the fields declared by this type in the order in which they appear in the source file.
@@ -53,19 +39,6 @@ public interface Type extends CompilationUnitElement, ParentElement, SourceRefer
    * @return the library containing this type
    */
   public DartLibrary getLibrary();
-
-  /**
-   * Return the method with the specified name and parameter types in this type (for example,
-   * <code>"foo", {"I", "QString;"}</code>). To get the handle for a constructor, the name specified
-   * must be the simple name of the enclosing type. This is a handle-only method. The method may or
-   * may not be present.
-   * <p>
-   * 
-   * @param name the given name
-   * @param parameterTypeSignatures the given parameter types
-   * @return the method with the specified name and parameter types in this type
-   */
-  public Method getMethod(String name, String[] parameterTypeSignatures);
 
   /**
    * Return the methods and constructors declared by this type.

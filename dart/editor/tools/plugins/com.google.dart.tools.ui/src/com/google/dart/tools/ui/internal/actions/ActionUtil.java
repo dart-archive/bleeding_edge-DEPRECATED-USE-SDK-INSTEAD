@@ -21,11 +21,6 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
@@ -40,18 +35,8 @@ import org.eclipse.ui.ide.ResourceUtil;
 
 public class ActionUtil {
 
-  private static final String STRING_ALIAS = "alias"; // TODO(messick): Externalize strings.
-  private static final String STRING_CLASS = "class";
-  private static final String STRING_FIELD = "field";
-  private static final String STRING_FUNCTION = "function";
-  private static final String STRING_GETTER = "getter";
-  private static final String STRING_IMPORT = "import";
-  private static final String STRING_METHOD = "method";
   private static final String STRING_SELECTION = "selection";
-  private static final String STRING_SETTER = "setter";
   private static final String STRING_SPACE = " ";
-  private static final String STRING_TYPE = "type";
-  private static final String STRING_VARIABLE = "variable";
   private static final String STRING_FOR = "For";
   private static final String STRING_DO = "do:";
   private static final int MAX_NAME_LENGTH = 30; // prevent menus from filling the screen
@@ -88,47 +73,6 @@ public class ActionUtil {
     text.append(STRING_SPACE);
     text.append(STRING_DO);
     return text.toString();
-  }
-
-  public static String findGenericName(DartElement element) {
-    switch (element.getElementType()) {
-      case DartElement.FIELD:
-        return STRING_FIELD;
-      case DartElement.FUNCTION:
-        DartFunction function = (DartFunction) element;
-        // TODO(scheglov): Investigate functions (e.g. window) that reply "false" to isGetter().
-        if (function.isGetter()) {
-          return STRING_GETTER;
-        } else if (function.isSetter()) {
-          return STRING_SETTER;
-        }
-        return STRING_FUNCTION;
-      case DartElement.FUNCTION_TYPE_ALIAS:
-        return STRING_ALIAS;
-      case DartElement.METHOD:
-        Method method = (Method) element;
-        if (method.isGetter()) {
-          return STRING_GETTER;
-        } else if (method.isSetter()) {
-          return STRING_SETTER;
-        }
-        return STRING_METHOD;
-      case DartElement.TYPE:
-        Type type = (Type) element;
-        try {
-          if (type.isClass()) {
-            return STRING_CLASS;
-          }
-        } catch (DartModelException ex) {
-          // fall thru
-        }
-        return STRING_TYPE;
-      case DartElement.TYPE_PARAMETER:
-        return STRING_TYPE;
-      case DartElement.VARIABLE:
-        return STRING_VARIABLE;
-    }
-    return STRING_SELECTION;
   }
 
   /**

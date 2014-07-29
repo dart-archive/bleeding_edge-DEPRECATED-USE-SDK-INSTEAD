@@ -15,13 +15,9 @@ package com.google.dart.tools.ui.internal.util;
 
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.TypeMember;
-import com.google.dart.tools.ui.DartDocContentAccess;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartUIMessages;
 import com.google.dart.tools.ui.Messages;
-
-import com.ibm.icu.text.BreakIterator;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
@@ -29,13 +25,10 @@ import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContext2;
 import org.eclipse.help.IHelpResource;
-import org.eclipse.jface.internal.text.html.HTML2TextReader;
 import org.eclipse.ui.PlatformUI;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -172,41 +165,6 @@ public class DartDocHelpContext implements IContext2 {
   @Override
   public String getTitle() {
     return fTitle;
-  }
-
-  private boolean doesNotExist(URL url) {
-    if (url.getProtocol().equals("file")) { //$NON-NLS-1$
-      File file = new File(url.getFile());
-      return !file.exists();
-    }
-    return false;
-  }
-
-  private String getURLString(URL url) {
-    String location = url.toExternalForm();
-    if (url.getRef() != null) {
-      int anchorIdx = location.lastIndexOf('#');
-      if (anchorIdx != -1) {
-        return location.substring(0, anchorIdx) + "?noframes=true" + location.substring(anchorIdx); //$NON-NLS-1$
-      }
-    }
-    return location + "?noframes=true"; //$NON-NLS-1$
-  }
-
-  private String retrieveText(DartElement elem) throws DartModelException {
-    if (elem instanceof TypeMember) {
-      Reader reader = DartDocContentAccess.getHTMLContentReader((TypeMember) elem, true, true);
-      if (reader != null) {
-        reader = new HTML2TextReader(reader, null);
-      }
-      if (reader != null) {
-        String str = getString(reader);
-        BreakIterator breakIterator = BreakIterator.getSentenceInstance();
-        breakIterator.setText(str);
-        return str.substring(0, breakIterator.next());
-      }
-    }
-    return ""; //$NON-NLS-1$
   }
 
 }

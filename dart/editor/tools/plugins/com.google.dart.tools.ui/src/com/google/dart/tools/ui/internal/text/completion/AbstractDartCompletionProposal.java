@@ -886,24 +886,6 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   }
 
   /**
-   * Creates the required type proposal.
-   * 
-   * @param completionProposal the core completion proposal
-   * @param invocationContext invocation context
-   * @return the required type completion proposal
-   */
-  protected LazyDartCompletionProposal createRequiredTypeCompletionProposal(
-      CompletionProposal completionProposal, DartContentAssistInvocationContext invocationContext) {
-    if (PreferenceConstants.getPreferenceStore().getBoolean(
-        PreferenceConstants.CODEASSIST_FILL_ARGUMENT_NAMES)) {
-      return (LazyDartCompletionProposal) new FillArgumentNamesCompletionProposalCollector(
-          invocationContext).createDartCompletionProposal(completionProposal);
-    } else {
-      return new LazyDartTypeCompletionProposal(completionProposal, invocationContext);
-    }
-  }
-
-  /**
    * Matches <code>prefix</code> against <code>string</code> and replaces the matched region by
    * prefix. Case is preserved as much as possible. This method returns <code>string</code> if camel
    * case completion is disabled. Examples when camel case completion is enabled:

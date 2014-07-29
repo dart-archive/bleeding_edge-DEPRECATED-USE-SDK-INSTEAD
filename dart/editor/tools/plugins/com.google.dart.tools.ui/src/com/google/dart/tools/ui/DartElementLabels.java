@@ -16,7 +16,6 @@ package com.google.dart.tools.ui;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
@@ -368,110 +367,6 @@ public class DartElementLabels {
 //      buf.append(CONCAT_STRING);
 //      getPackageFragmentLabel((IPackageFragment) cu.getParent(), flags
 //          & QUALIFIER_FLAGS, buf);
-//    }
-  }
-
-  /**
-   * Appends the label for a import container, import or package declaration to a
-   * {@link StringBuffer}. Considers the D_* flags.
-   * 
-   * @param declaration The element to render.
-   * @param flags The rendering flags. Flags with names starting with 'D_' are considered.
-   * @param buf The buffer to append the resulting label to.
-   */
-  public static void getDeclarationLabel(DartElement declaration, long flags, StringBuffer buf) {
-    if (getFlag(flags, D_QUALIFIED)) {
-      DartElement openable = declaration.getOpenable();
-      if (openable != null) {
-        buf.append(getElementLabel(openable, CF_QUALIFIED | CU_QUALIFIED | flags & QUALIFIER_FLAGS));
-        buf.append('/');
-      }
-    }
-    if (declaration.getElementType() == DartElement.IMPORT_CONTAINER) {
-      buf.append(DartUIMessages.JavaElementLabels_import_container);
-    } else {
-      buf.append(declaration.getElementName());
-    }
-    // post qualification
-    if (getFlag(flags, D_POST_QUALIFIED)) {
-      DartElement openable = declaration.getOpenable();
-      if (openable != null) {
-        buf.append(CONCAT_STRING);
-        buf.append(getElementLabel(openable, CF_QUALIFIED | CU_QUALIFIED | flags & QUALIFIER_FLAGS));
-      }
-    }
-  }
-
-  /**
-   * Returns the label for a JavaScript element with the flags as defined by this class.
-   * 
-   * @param element The element to render.
-   * @param flags The rendering flags.
-   * @return the label of the JavaScript element
-   */
-  public static String getElementLabel(DartElement element, long flags) {
-    StringBuffer buf = new StringBuffer(60);
-    getElementLabel(element, flags, buf);
-    return buf.toString();
-  }
-
-  /**
-   * Returns the label for a JavaScript element with the flags as defined by this class.
-   * 
-   * @param element The element to render.
-   * @param flags The rendering flags.
-   * @param buf The buffer to append the resulting label to.
-   */
-  public static void getElementLabel(DartElement element, long flags, StringBuffer buf) {
-    int type = element.getElementType();
-    DartX.todo();
-//    IPackageFragmentRoot root = null;
-//    if (type != DartElement.JAVASCRIPT_MODEL
-//        && type != DartElement.JAVASCRIPT_PROJECT
-//        && type != DartElement.PACKAGE_FRAGMENT_ROOT)
-//      root = DartModelUtil.getPackageFragmentRoot(element);
-//    if (root != null && getFlag(flags, PREPEND_ROOT_PATH)) {
-//      getPackageFragmentRootLabel(root, ROOT_QUALIFIED, buf);
-//      buf.append(CONCAT_STRING);
-//    }
-
-    switch (type) {
-      case DartElement.METHOD:
-        getMethodLabel((Method) element, flags, buf);
-        break;
-      case DartElement.FIELD:
-        getFieldLabel((Field) element, flags, buf);
-        break;
-      case DartElement.FUNCTION:
-        getFunctionLabel((DartFunction) element, flags, buf);
-        break;
-//      case DartElement.LOCAL_VARIABLE:
-//        getLocalVariableLabel((ILocalVariable) element, flags, buf);
-//        break;
-//      case DartElement.INITIALIZER:
-//        getInitializerLabel((IInitializer) element, flags, buf);
-//        break;
-      case DartElement.TYPE:
-        getTypeLabel((Type) element, flags, buf);
-        break;
-      case DartElement.IMPORT_CONTAINER:
-//      case DartElement.IMPORT_DECLARATION:
-        getDeclarationLabel(element, flags, buf);
-        break;
-      case DartElement.DART_PROJECT:
-      case DartElement.DART_MODEL:
-        buf.append(element.getElementName());
-        break;
-      case DartElement.LIBRARY:
-        buf.append(((DartLibrary) element).getDisplayName());
-        break;
-      default:
-        buf.append(element.getElementName());
-    }
-
-//    if (root != null && getFlag(flags, APPEND_ROOT_PATH)) {
-//      buf.append(CONCAT_STRING);
-//      getPackageFragmentRootLabel(root, ROOT_QUALIFIED, buf);
 //    }
   }
 
