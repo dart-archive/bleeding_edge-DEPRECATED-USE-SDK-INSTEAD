@@ -531,7 +531,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
      * because getting the AST structures can change the state of the cache in such a way that we
      * would have more work to do if any compilation unit didn't have a resolvable AST structure.
      */
-    private void computePartsInCycle(Source librarySource) {
+    private void computePartsInCycle(Source librarySource) throws AnalysisException {
       int count = librariesInCycle.size();
       ArrayList<LibraryPair> libraryData = new ArrayList<LibraryPair>(count);
       for (int i = 0; i < count; i++) {
@@ -710,22 +710,26 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
      * @param library the library for which resolvable compilation units must be available
      * @return a list of (source, entry) pairs for all of the compilation units in the library
      */
-    private ArrayList<SourceEntryPair> ensurePartsInLibrary(ResolvableLibrary library) {
+    private ArrayList<SourceEntryPair> ensurePartsInLibrary(ResolvableLibrary library)
+        throws AnalysisException {
       ArrayList<SourceEntryPair> pairs = new ArrayList<SourceEntryPair>();
       Source librarySource = library.getLibrarySource();
       DartEntry libraryEntry = getReadableDartEntry(librarySource);
-      if (libraryEntry != null && libraryEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
-        ensureResolvableCompilationUnit(librarySource, libraryEntry);
-        pairs.add(new SourceEntryPair(librarySource, libraryEntry));
-        Source[] partSources = getSources(librarySource, libraryEntry, DartEntry.INCLUDED_PARTS);
-        int count = partSources.length;
-        for (int i = 0; i < count; i++) {
-          Source partSource = partSources[i];
-          DartEntry partEntry = getReadableDartEntry(partSource);
-          if (partEntry != null && partEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
-            ensureResolvableCompilationUnit(partSource, partEntry);
-            pairs.add(new SourceEntryPair(partSource, partEntry));
-          }
+      if (libraryEntry == null) {
+        throw new AnalysisException("Cannot find entry for " + librarySource.getFullName());
+      } else if (libraryEntry.getState(DartEntry.PARSED_UNIT) == CacheState.ERROR) {
+        throw new AnalysisException("Cannot compute parsed unit for " + librarySource.getFullName());
+      }
+      ensureResolvableCompilationUnit(librarySource, libraryEntry);
+      pairs.add(new SourceEntryPair(librarySource, libraryEntry));
+      Source[] partSources = getSources(librarySource, libraryEntry, DartEntry.INCLUDED_PARTS);
+      int count = partSources.length;
+      for (int i = 0; i < count; i++) {
+        Source partSource = partSources[i];
+        DartEntry partEntry = getReadableDartEntry(partSource);
+        if (partEntry != null && partEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
+          ensureResolvableCompilationUnit(partSource, partEntry);
+          pairs.add(new SourceEntryPair(partSource, partEntry));
         }
       }
       return pairs;
