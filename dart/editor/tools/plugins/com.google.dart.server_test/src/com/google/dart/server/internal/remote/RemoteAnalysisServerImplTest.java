@@ -205,157 +205,6 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertEquals("typeB", hovers[0].getStaticType());
   }
 
-  public void test_analysis_getTypeHierarchy() throws Exception {
-    final TypeHierarchyItem[] items = new TypeHierarchyItem[1];
-    server.getTypeHierarchy(
-        new LocationImpl("/fileA.dart", 1, 2, 3, 4),
-        new TypeHierarchyConsumer() {
-          @Override
-          public void computedHierarchy(TypeHierarchyItem target) {
-            items[0] = target;
-          }
-        });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'analysis.getTypeHierarchy',",
-        "  'params': {",
-        "    'location': {",
-        "      'file': '/fileA.dart',",
-        "      'offset': 1,",
-        "      'length': 2,",
-        "      'startLine': 3,",
-        "      'startColumn': 4",
-        "    }",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'hierarchy': {",
-        "      'classElement': {",
-        "        'kind': 'CLASS',",
-        "        'name': 'name1',",
-        "        'location': {",
-        "          'file': '/test1.dart',",
-        "          'offset': 1,",
-        "          'length': 2,",
-        "          'startLine': 3,",
-        "          'startColumn': 4",
-        "        },",
-        "        'flags': 63",
-        "      },",
-        "      'displayName': 'displayName1',",
-        "      'memberElement': {",
-        "        'kind': 'CLASS',",
-        "        'name': 'name2',",
-        "        'location': {",
-        "          'file': '/test2.dart',",
-        "          'offset': 5,",
-        "          'length': 6,",
-        "          'startLine': 7,",
-        "          'startColumn': 8",
-        "        },",
-        "        'flags': 0",
-        "      },",
-        "      'superclass': {",
-        "        'classElement': {",
-        "          'kind': 'CLASS',",
-        "          'name': 'name3',",
-        "          'location': {",
-        "            'file': '/test3.dart',",
-        "            'offset': 9,",
-        "            'length': 10,",
-        "            'startLine': 11,",
-        "            'startColumn': 12",
-        "          },",
-        "          'flags': 63",
-        "        },",
-        "        'interfaces': [],",
-        "        'mixins': [],",
-        "        'subclasses': []",
-        "      },",
-        "      'interfaces': [],",
-        "      'mixins': [],",
-        "      'subclasses': []",
-        "    }",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-    TypeHierarchyItem item = items[0];
-    assertNotNull(item);
-    // classElement
-    {
-      Element element = item.getClassElement();
-      assertEquals(ElementKind.CLASS, element.getKind());
-      assertEquals("name1", element.getName());
-      Location location = element.getLocation();
-      assertEquals("/test1.dart", location.getFile());
-      assertEquals(1, location.getOffset());
-      assertEquals(2, location.getLength());
-      assertEquals(3, location.getStartLine());
-      assertEquals(4, location.getStartColumn());
-      assertTrue(element.isAbstract());
-      assertTrue(element.isConst());
-      assertTrue(element.isDeprecated());
-      assertTrue(element.isFinal());
-      assertTrue(element.isPrivate());
-      assertTrue(element.isTopLevelOrStatic());
-    }
-    // displayName
-    assertEquals("displayName1", item.getDisplayName());
-    assertEquals("displayName1", item.getBestName());
-    // memberElement
-    {
-      Element element = item.getMemberElement();
-      assertEquals(ElementKind.CLASS, element.getKind());
-      assertEquals("name2", element.getName());
-      Location location = element.getLocation();
-      assertEquals("/test2.dart", location.getFile());
-      assertEquals(5, location.getOffset());
-      assertEquals(6, location.getLength());
-      assertEquals(7, location.getStartLine());
-      assertEquals(8, location.getStartColumn());
-      assertFalse(element.isAbstract());
-      assertFalse(element.isConst());
-      assertFalse(element.isDeprecated());
-      assertFalse(element.isFinal());
-      assertFalse(element.isPrivate());
-      assertFalse(element.isTopLevelOrStatic());
-    }
-    // extendedType
-    {
-      TypeHierarchyItem childItem = item.getSuperclass();
-      assertNotNull(childItem);
-      {
-        Element element = childItem.getClassElement();
-        assertEquals(ElementKind.CLASS, element.getKind());
-        assertEquals("name3", element.getName());
-        assertEquals("name3", childItem.getBestName());
-        Location location = element.getLocation();
-        assertEquals("/test3.dart", location.getFile());
-        assertEquals(9, location.getOffset());
-        assertEquals(10, location.getLength());
-        assertEquals(11, location.getStartLine());
-        assertEquals(12, location.getStartColumn());
-      }
-      assertNull(childItem.getDisplayName());
-      assertNull(childItem.getMemberElement());
-      assertNull(childItem.getSuperclass());
-      assertThat(childItem.getInterfaces()).hasSize(0);
-      assertThat(childItem.getMixins()).hasSize(0);
-      assertThat(childItem.getSubclasses()).hasSize(0);
-    }
-    // implementedTypes/ withTypes/ subtypes
-    assertThat(item.getInterfaces()).hasSize(0);
-    assertThat(item.getMixins()).hasSize(0);
-    assertThat(item.getSubclasses()).hasSize(0);
-  }
-
   public void test_analysis_notification_errors() throws Exception {
     putResponse(//
         "{",
@@ -1665,6 +1514,150 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     server.test_waitForWorkerComplete();
     assertEquals("searchId3", result[0]);
+  }
+
+  public void test_search_getTypeHierarchy() throws Exception {
+    final TypeHierarchyItem[] items = new TypeHierarchyItem[1];
+    server.getTypeHierarchy("/fileA.dart", 1, new TypeHierarchyConsumer() {
+      @Override
+      public void computedHierarchy(TypeHierarchyItem target) {
+        items[0] = target;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'search.getTypeHierarchy',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'hierarchy': {",
+        "      'classElement': {",
+        "        'kind': 'CLASS',",
+        "        'name': 'name1',",
+        "        'location': {",
+        "          'file': '/test1.dart',",
+        "          'offset': 1,",
+        "          'length': 2,",
+        "          'startLine': 3,",
+        "          'startColumn': 4",
+        "        },",
+        "        'flags': 63",
+        "      },",
+        "      'displayName': 'displayName1',",
+        "      'memberElement': {",
+        "        'kind': 'CLASS',",
+        "        'name': 'name2',",
+        "        'location': {",
+        "          'file': '/test2.dart',",
+        "          'offset': 5,",
+        "          'length': 6,",
+        "          'startLine': 7,",
+        "          'startColumn': 8",
+        "        },",
+        "        'flags': 0",
+        "      },",
+        "      'superclass': {",
+        "        'classElement': {",
+        "          'kind': 'CLASS',",
+        "          'name': 'name3',",
+        "          'location': {",
+        "            'file': '/test3.dart',",
+        "            'offset': 9,",
+        "            'length': 10,",
+        "            'startLine': 11,",
+        "            'startColumn': 12",
+        "          },",
+        "          'flags': 63",
+        "        },",
+        "        'interfaces': [],",
+        "        'mixins': [],",
+        "        'subclasses': []",
+        "      },",
+        "      'interfaces': [],",
+        "      'mixins': [],",
+        "      'subclasses': []",
+        "    }",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+    TypeHierarchyItem item = items[0];
+    assertNotNull(item);
+    // classElement
+    {
+      Element element = item.getClassElement();
+      assertEquals(ElementKind.CLASS, element.getKind());
+      assertEquals("name1", element.getName());
+      Location location = element.getLocation();
+      assertEquals("/test1.dart", location.getFile());
+      assertEquals(1, location.getOffset());
+      assertEquals(2, location.getLength());
+      assertEquals(3, location.getStartLine());
+      assertEquals(4, location.getStartColumn());
+      assertTrue(element.isAbstract());
+      assertTrue(element.isConst());
+      assertTrue(element.isDeprecated());
+      assertTrue(element.isFinal());
+      assertTrue(element.isPrivate());
+      assertTrue(element.isTopLevelOrStatic());
+    }
+    // displayName
+    assertEquals("displayName1", item.getDisplayName());
+    assertEquals("displayName1", item.getBestName());
+    // memberElement
+    {
+      Element element = item.getMemberElement();
+      assertEquals(ElementKind.CLASS, element.getKind());
+      assertEquals("name2", element.getName());
+      Location location = element.getLocation();
+      assertEquals("/test2.dart", location.getFile());
+      assertEquals(5, location.getOffset());
+      assertEquals(6, location.getLength());
+      assertEquals(7, location.getStartLine());
+      assertEquals(8, location.getStartColumn());
+      assertFalse(element.isAbstract());
+      assertFalse(element.isConst());
+      assertFalse(element.isDeprecated());
+      assertFalse(element.isFinal());
+      assertFalse(element.isPrivate());
+      assertFalse(element.isTopLevelOrStatic());
+    }
+    // extendedType
+    {
+      TypeHierarchyItem childItem = item.getSuperclass();
+      assertNotNull(childItem);
+      {
+        Element element = childItem.getClassElement();
+        assertEquals(ElementKind.CLASS, element.getKind());
+        assertEquals("name3", element.getName());
+        assertEquals("name3", childItem.getBestName());
+        Location location = element.getLocation();
+        assertEquals("/test3.dart", location.getFile());
+        assertEquals(9, location.getOffset());
+        assertEquals(10, location.getLength());
+        assertEquals(11, location.getStartLine());
+        assertEquals(12, location.getStartColumn());
+      }
+      assertNull(childItem.getDisplayName());
+      assertNull(childItem.getMemberElement());
+      assertNull(childItem.getSuperclass());
+      assertThat(childItem.getInterfaces()).hasSize(0);
+      assertThat(childItem.getMixins()).hasSize(0);
+      assertThat(childItem.getSubclasses()).hasSize(0);
+    }
+    // implementedTypes/ withTypes/ subtypes
+    assertThat(item.getInterfaces()).hasSize(0);
+    assertThat(item.getMixins()).hasSize(0);
+    assertThat(item.getSubclasses()).hasSize(0);
   }
 
   public void test_search_notification_results() throws Exception {

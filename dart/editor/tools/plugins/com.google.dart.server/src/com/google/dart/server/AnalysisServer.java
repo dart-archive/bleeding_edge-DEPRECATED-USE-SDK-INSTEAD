@@ -125,13 +125,14 @@ public interface AnalysisServer {
   public void getHover(String file, int offset, HoverConsumer consumer);
 
   /**
-   * Computes a type hierarchy for the given {@link Element} - class or member. The given consumer
-   * is invoked asynchronously on a different thread.
+   * Computes a type hierarchy at the given location. The given consumer is invoked asynchronously
+   * on a different thread.
    * 
-   * @param element the {@link Element} to compute hierarchy for
+   * @param file the file in which hierarchy is being requested
+   * @param offset the offset at which hierarchy is being requested
    * @param consumer the results listener
    */
-  public void getTypeHierarchy(Location location, TypeHierarchyConsumer consumer);
+  public void getTypeHierarchy(String file, int offset, TypeHierarchyConsumer consumer);
 
   /**
    * Return the version number of the analysis server.

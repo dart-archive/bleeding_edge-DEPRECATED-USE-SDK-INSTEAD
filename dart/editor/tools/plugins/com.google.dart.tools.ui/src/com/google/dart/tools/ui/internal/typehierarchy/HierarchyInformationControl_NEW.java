@@ -39,10 +39,6 @@ public class HierarchyInformationControl_NEW extends AbstractInformationControl 
   @Override
   public void setInput(Object input) {
     inputChanged(input, input);
-//    Element input = (Element) _input;
-//    ClassElement enclosingClass = input.getAncestor(ClassElement.class);
-//    Object selection = enclosingClass != null ? enclosingClass : input;
-//    inputChanged(new Object[] {input}, selection);
   }
 
   @Override

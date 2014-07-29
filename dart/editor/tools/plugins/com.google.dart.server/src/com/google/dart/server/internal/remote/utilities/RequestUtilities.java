@@ -51,7 +51,6 @@ public class RequestUtilities {
   // Analysis domain
   private static final String METHOD_ANALYSIS_GET_ERRORS = "analysis.getErrors";
   private static final String METHOD_ANALYSIS_GET_HOVER = "analysis.getHover";
-  private static final String METHOD_ANALYSIS_GET_TYPE_HIERARCHY = "analysis.getTypeHierarchy";
   private static final String METHOD_ANALYSIS_REANALYZE = "analysis.reanalyze";
   private static final String METHOD_ANALYSIS_SET_ROOTS = "analysis.setAnalysisRoots";
   private static final String METHOD_ANALYSIS_SET_PRIORITY_FILES = "analysis.setPriorityFiles";
@@ -77,6 +76,7 @@ public class RequestUtilities {
   private static final String METHOD_SEARCH_FIND_MEMBER_DECLARATIONS = "search.findMemberDeclarations";
   private static final String METHOD_SEARCH_FIND_MEMBER_REFERENCES = "search.findMemberReferences";
   private static final String METHOD_SEARCH_FIND_TOP_LEVEL_DECLARATIONS = "search.findTopLevelDeclarations";
+  private static final String METHOD_SEARCH_GET_TYPE_HIERARCHY = "search.getTypeHierarchy";
 
   @VisibleForTesting
   public static JsonElement buildJsonElement(Object object) {
@@ -155,25 +155,6 @@ public class RequestUtilities {
     params.addProperty(FILE, file);
     params.addProperty(OFFSET, offset);
     return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_GET_HOVER, params);
-  }
-
-  /**
-   * Generate and return a {@value #METHOD_ANALYSIS_GET_TYPE_HIERARCHY} request.
-   * 
-   * <pre>
-   * request: {
-   *   "id": String
-   *   "method": "analysis.getTypeHierarchy"
-   *   "params": {
-   *     "location": Location
-   *   }
-   * }
-   * </pre>
-   */
-  public static JsonObject generateAnalysisGetTypeHierarchy(String id, Location location) {
-    JsonObject params = new JsonObject();
-    params.add("location", buildJsonElement(location));
-    return buildJsonObjectRequest(id, METHOD_ANALYSIS_GET_TYPE_HIERARCHY, params);
   }
 
   /**
@@ -450,6 +431,27 @@ public class RequestUtilities {
     JsonObject params = new JsonObject();
     params.addProperty("pattern", pattern);
     return buildJsonObjectRequest(idValue, METHOD_SEARCH_FIND_TOP_LEVEL_DECLARATIONS, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_SEARCH_GET_TYPE_HIERARCHY} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "search.getTypeHierarchy"
+   *   "params": {
+   *     "file": FilePath
+   *     "offset": int
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateSearchGetTypeHierarchy(String id, String file, int offset) {
+    JsonObject params = new JsonObject();
+    params.addProperty(FILE, file);
+    params.addProperty(OFFSET, offset);
+    return buildJsonObjectRequest(id, METHOD_SEARCH_GET_TYPE_HIERARCHY, params);
   }
 
   /**

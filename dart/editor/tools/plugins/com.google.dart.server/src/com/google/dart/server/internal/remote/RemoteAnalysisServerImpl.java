@@ -30,7 +30,6 @@ import com.google.dart.server.Consumer;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HoverConsumer;
-import com.google.dart.server.Location;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringCreateConsumer;
 import com.google.dart.server.SearchIdConsumer;
@@ -319,11 +318,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void getTypeHierarchy(Location location, TypeHierarchyConsumer consumer) {
+  public void getTypeHierarchy(String file, int offset, TypeHierarchyConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(
         id,
-        RequestUtilities.generateAnalysisGetTypeHierarchy(id, location),
+        RequestUtilities.generateSearchGetTypeHierarchy(id, file, offset),
         consumer);
   }
 
