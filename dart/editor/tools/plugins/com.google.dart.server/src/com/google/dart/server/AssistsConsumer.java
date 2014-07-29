@@ -24,7 +24,6 @@ public interface AssistsConsumer extends Consumer {
    * A set of {@link SourceChange}s that have been computed.
    * 
    * @param proposals an array of computed {@link SourceChange}s
-   * @param isLastResult is {@code true} if this is the last set of results
    */
-  public void computedSourceChanges(SourceChange[] sourceChanges, boolean isLastResult);
+  public void computedSourceChanges(SourceChange[] sourceChanges);
 }

@@ -392,17 +392,14 @@ public class RequestUtilities {
    *   "params": {
    *     "file": FilePath
    *     "offset": int
-   *     "length": int
    *   }
    * }
    * </pre>
    */
-  public static JsonObject generateEditGetAssists(String idValue, String file, int offset,
-      int length) {
+  public static JsonObject generateEditGetAssists(String idValue, String file, int offset) {
     JsonObject params = new JsonObject();
     params.addProperty(FILE, file);
     params.addProperty(OFFSET, offset);
-    params.addProperty(LENGTH, length);
     return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_ASSISTS, params);
   }
 

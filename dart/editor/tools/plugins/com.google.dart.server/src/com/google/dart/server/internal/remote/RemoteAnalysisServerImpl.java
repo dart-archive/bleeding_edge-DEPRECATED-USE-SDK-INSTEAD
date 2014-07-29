@@ -38,6 +38,7 @@ import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.AnalysisErrorsProcessor;
+import com.google.dart.server.internal.remote.processor.AssistsProcessor;
 import com.google.dart.server.internal.remote.processor.CompletionIdProcessor;
 import com.google.dart.server.internal.remote.processor.HoverProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationAnalysisErrorsProcessor;
@@ -283,12 +284,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void getAssists(String file, int offset, int length, AssistsConsumer consumer) {
+  public void getAssists(String file, int offset, AssistsConsumer consumer) {
     String id = generateUniqueId();
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateEditGetAssists(id, file, offset, length),
-        consumer);
+    sendRequestToServer(id, RequestUtilities.generateEditGetAssists(id, file, offset), consumer);
   }
 
   @Override
@@ -593,6 +591,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new RefactoringApplyProcessor((RefactoringApplyConsumer) consumer).process(resultObject);
     } else if (consumer instanceof RefactoringCreateConsumer) {
       new RefactoringCreateProcessor((RefactoringCreateConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof AssistsConsumer) {
+      new AssistsProcessor((AssistsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof VersionConsumer) {
       new VersionProcessor((VersionConsumer) consumer).process(resultObject);
     } else if (consumer instanceof AnalysisErrorsConsumer) {

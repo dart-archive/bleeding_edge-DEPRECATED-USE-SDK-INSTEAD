@@ -13,8 +13,8 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
+import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.RefactoringApplyConsumer;
-import com.google.dart.server.RefactoringProblem;
 import com.google.dart.server.SourceChange;
 import com.google.gson.JsonObject;
 
@@ -24,17 +24,17 @@ import com.google.gson.JsonObject;
  * 
  * @coverage dart.server.remote
  */
-public class RefactoringApplyProcessor extends ResultProcessor {
+public class AssistsProcessor extends ResultProcessor {
 
-  private final RefactoringApplyConsumer consumer;
+  private final AssistsConsumer consumer;
 
-  public RefactoringApplyProcessor(RefactoringApplyConsumer consumer) {
+  public AssistsProcessor(AssistsConsumer consumer) {
     this.consumer = consumer;
   }
 
   public void process(JsonObject resultObject) {
-    RefactoringProblem[] problems = constructRefactoringProblemArray(resultObject.get("status").getAsJsonArray());
-    SourceChange change = constructSourceChange(resultObject.get("change").getAsJsonObject());
-    consumer.computed(problems, change);
+    SourceChange[] sourceChanges = constructSourceChangeArray(resultObject.get("refactorings").getAsJsonArray());
+    consumer.computedSourceChanges(sourceChanges);
   }
+
 }

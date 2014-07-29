@@ -13,13 +13,16 @@
  */
 package com.google.dart.server;
 
-
 /**
  * The interface {@link SourceChange} is a description of a single change to one or more files.
  * 
  * @coverage dart.server
  */
 public interface SourceChange {
+  /**
+   * An empty array of source changes.
+   */
+  public final SourceChange[] EMPTY_ARRAY = new SourceChange[0];
 
   /**
    * A list of the edits used to effect the change, grouped by file.

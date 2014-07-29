@@ -21,10 +21,16 @@ import com.google.dart.server.ErrorSeverity;
 import com.google.dart.server.Location;
 import com.google.dart.server.RefactoringProblem;
 import com.google.dart.server.RefactoringProblemSeverity;
+import com.google.dart.server.SourceChange;
+import com.google.dart.server.SourceEdit;
+import com.google.dart.server.SourceFileEdit;
 import com.google.dart.server.internal.AnalysisErrorImpl;
 import com.google.dart.server.internal.ElementImpl;
 import com.google.dart.server.internal.LocationImpl;
 import com.google.dart.server.internal.RefactoringProblemImpl;
+import com.google.dart.server.internal.SourceChangeImpl;
+import com.google.dart.server.internal.SourceEditImpl;
+import com.google.dart.server.internal.SourceFileEditImpl;
 import com.google.dart.server.utilities.general.StringUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -118,6 +124,35 @@ public abstract class JsonProcessor {
       }
     }
     return problems.toArray(new RefactoringProblem[problems.size()]);
+  }
+
+  protected SourceChange constructSourceChange(JsonObject sourceChangeObject) {
+    String message = sourceChangeObject.get("message").getAsString();
+    ArrayList<SourceFileEdit> sourceFileEdits = new ArrayList<SourceFileEdit>();
+    Iterator<JsonElement> iter = sourceChangeObject.get("edits").getAsJsonArray().iterator();
+    while (iter.hasNext()) {
+      JsonElement sourceFileEditElement = iter.next();
+      if (sourceFileEditElement instanceof JsonObject) {
+        sourceFileEdits.add(constructSourceFileEdit((JsonObject) sourceFileEditElement));
+      }
+    }
+    return new SourceChangeImpl(
+        message,
+        sourceFileEdits.toArray(new SourceFileEdit[sourceFileEdits.size()]));
+  }
+
+  protected SourceChange[] constructSourceChangeArray(JsonArray jsonArray) {
+    if (jsonArray == null) {
+      return SourceChange.EMPTY_ARRAY;
+    }
+    int i = 0;
+    SourceChange[] sourceChanges = new SourceChange[jsonArray.size()];
+    Iterator<JsonElement> iterator = jsonArray.iterator();
+    while (iterator.hasNext()) {
+      sourceChanges[i] = constructSourceChange(iterator.next().getAsJsonObject());
+      ++i;
+    }
+    return sourceChanges;
   }
 
   /**
@@ -217,5 +252,23 @@ public abstract class JsonProcessor {
     } else {
       return jsonElement.getAsString();
     }
+  }
+
+  private SourceEdit constructSourceEdit(JsonObject sourceEditObject) {
+    return new SourceEditImpl(sourceEditObject.get("offset").getAsInt(), sourceEditObject.get(
+        "length").getAsInt(), sourceEditObject.get("replacement").getAsString());
+  }
+
+  private SourceFileEdit constructSourceFileEdit(JsonObject sourceFileEditObject) {
+    String file = sourceFileEditObject.get("file").getAsString();
+    ArrayList<SourceEdit> sourceEdits = new ArrayList<SourceEdit>();
+    Iterator<JsonElement> iter = sourceFileEditObject.get("edits").getAsJsonArray().iterator();
+    while (iter.hasNext()) {
+      JsonElement sourceEditElement = iter.next();
+      if (sourceEditElement instanceof JsonObject) {
+        sourceEdits.add(constructSourceEdit((JsonObject) sourceEditElement));
+      }
+    }
+    return new SourceFileEditImpl(file, sourceEdits.toArray(new SourceEdit[sourceEdits.size()]));
   }
 }

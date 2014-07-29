@@ -23,6 +23,7 @@ import com.google.dart.server.AnalysisErrorsConsumer;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AnalysisStatus;
+import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.CompletionIdConsumer;
 import com.google.dart.server.CompletionRelevance;
 import com.google.dart.server.CompletionSuggestion;
@@ -1393,6 +1394,93 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     assertTrue(requests.contains(expected));
+  }
+
+  public void test_edit_getAssists() throws Exception {
+    final SourceChange[][] sourceChangeArray = {{null}};
+    server.getAssists("/fileA.dart", 1, new AssistsConsumer() {
+      @Override
+      public void computedSourceChanges(SourceChange[] sourceChanges) {
+        sourceChangeArray[0] = sourceChanges;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getAssists',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'refactorings': [",
+        "      {",
+        "        'message': 'message1',",
+        "        'edits': [",
+        "          {",
+        "            'file':'someFile1.dart',",
+        "            'edits': [",
+        "              {",
+        "                'offset': 1,",
+        "                'length': 2,",
+        "                'replacement': 'replacement1'",
+        "             }",
+        "            ]",
+        "          }",
+        "        ]",
+        "      },",
+        "      {",
+        "        'message': 'message2',",
+        "        'edits': [",
+        "          {",
+        "            'file':'someFile2.dart',",
+        "            'edits': [",
+        "              {",
+        "                'offset': 3,",
+        "                'length': 4,",
+        "                'replacement': 'replacement2'",
+        "             }",
+        "            ]",
+        "          }",
+        "        ]",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'refactorings' (List<SourceChange>)
+    SourceChange[] sourceChanges = sourceChangeArray[0];
+    assertThat(sourceChanges).hasSize(2);
+    {
+      assertEquals("message1", sourceChanges[0].getMessage());
+      assertThat(sourceChanges[0].getEdits()).hasSize(1);
+      SourceFileEdit sourceFileEdit = sourceChanges[0].getEdits()[0];
+      assertEquals("someFile1.dart", sourceFileEdit.getFile());
+      assertThat(sourceFileEdit.getEdits()).hasSize(1);
+      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
+      assertEquals(1, sourceEdit.getOffset());
+      assertEquals(2, sourceEdit.getLength());
+      assertEquals("replacement1", sourceEdit.getReplacement());
+    }
+    {
+      assertEquals("message2", sourceChanges[1].getMessage());
+      assertThat(sourceChanges[1].getEdits()).hasSize(1);
+      SourceFileEdit sourceFileEdit = sourceChanges[1].getEdits()[0];
+      assertEquals("someFile2.dart", sourceFileEdit.getFile());
+      assertThat(sourceFileEdit.getEdits()).hasSize(1);
+      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
+      assertEquals(3, sourceEdit.getOffset());
+      assertEquals(4, sourceEdit.getLength());
+      assertEquals("replacement2", sourceEdit.getReplacement());
+    }
   }
 
   public void test_error() throws Exception {

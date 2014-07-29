@@ -43,7 +43,7 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void getAssists(String file, int offset, int length, AssistsConsumer consumer) {
+  public void getAssists(String file, int offset, AssistsConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
