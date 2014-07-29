@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.Maps;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -23,14 +25,18 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.server.OverrideMember;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.AnalysisServerOverridesListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -147,12 +153,19 @@ public class OverrideIndicatorManager {
   public static class OverrideIndicator extends Annotation {
 
     private boolean isOverride;
-    private Element element;
+    private com.google.dart.server.Element element;
+    private Element element_OLD;
+
+    OverrideIndicator(com.google.dart.server.Element element, String text, boolean isOverride) {
+      super(ANNOTATION_TYPE, false, text);
+      this.isOverride = isOverride;
+      this.element = element;
+    }
 
     OverrideIndicator(Element astElement, String text, boolean isOverride) {
       super(ANNOTATION_TYPE, false, text);
       this.isOverride = isOverride;
-      this.element = astElement;
+      this.element_OLD = astElement;
     }
 
     /**
@@ -169,13 +182,15 @@ public class OverrideIndicatorManager {
     public void open() {
       try {
         if (element != null) {
-          DartUI.openInEditor(element);
+          DartUI.openInEditor(element, true);
+        } else if (element_OLD != null) {
+          DartUI.openInEditor(element_OLD);
         } else {
           String title = DartEditorMessages.OverrideIndicatorManager_open_error_title;
           String message = DartEditorMessages.OverrideIndicatorManager_open_error_message;
           MessageDialog.openError(DartToolsPlugin.getActiveWorkbenchShell(), title, message);
         }
-      } catch (CoreException e) {
+      } catch (Exception e) {
         ExceptionHandler.handle(
             e,
             DartEditorMessages.OverrideIndicatorManager_open_error_title,
@@ -198,12 +213,30 @@ public class OverrideIndicatorManager {
   private final Object annotationModelLockObject;
   private Annotation[] overrideAnnotations;
   private CompilationUnitEditor dartEditor;
+  private String file;
   private IDartReconcilingListener reconcileListener = new IDartReconcilingListener() {
     @Override
     public void reconciled(CompilationUnit unit) {
       updateAnnotations(unit, new NullProgressMonitor());
     }
   };
+
+  private AnalysisServerOverridesListener overridesListener = new AnalysisServerOverridesListener() {
+    @Override
+    public void computedHighlights(String _file, OverrideMember[] overrides) {
+      if (Objects.equal(file, _file)) {
+        System.out.println("computedHighlights: " + StringUtils.join(overrides, " "));
+        updateAnnotations(overrides);
+      }
+    }
+  };
+
+  public OverrideIndicatorManager(IAnnotationModel annotationModel) {
+    Assert.isLegal(DartCoreDebug.ENABLE_ANALYSIS_SERVER);
+    Assert.isNotNull(annotationModel);
+    this.annotationModel = annotationModel;
+    this.annotationModelLockObject = getLockObject(annotationModel);
+  }
 
   public OverrideIndicatorManager(IAnnotationModel annotationModel, CompilationUnit ast) {
     Assert.isNotNull(annotationModel);
@@ -218,13 +251,22 @@ public class OverrideIndicatorManager {
     uninstall();
     if (editor instanceof CompilationUnitEditor) {
       dartEditor = (CompilationUnitEditor) editor;
-      dartEditor.addReconcileListener(reconcileListener);
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        file = dartEditor.getInputFilePath();
+        DartCore.getAnalysisServerData().subscribeOverrides(file, overridesListener);
+      } else {
+        dartEditor.addReconcileListener(reconcileListener);
+      }
     }
   }
 
   public void uninstall() {
     if (dartEditor != null) {
-      dartEditor.removeReconcileListener(reconcileListener);
+      if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+        DartCore.getAnalysisServerData().unsubscribeOverrides(file, overridesListener);
+      } else {
+        dartEditor.removeReconcileListener(reconcileListener);
+      }
       dartEditor = null;
     }
   }
@@ -246,6 +288,58 @@ public class OverrideIndicatorManager {
     // may be already cancelled
     if (progressMonitor.isCanceled()) {
       return;
+    }
+    // add annotations to the model
+    synchronized (annotationModelLockObject) {
+      if (annotationModel instanceof IAnnotationModelExtension) {
+        ((IAnnotationModelExtension) annotationModel).replaceAnnotations(
+            overrideAnnotations,
+            annotationMap);
+      } else {
+        removeAnnotations();
+        Iterator<Map.Entry<Annotation, Position>> iter = annotationMap.entrySet().iterator();
+        while (iter.hasNext()) {
+          Map.Entry<Annotation, Position> mapEntry = iter.next();
+          annotationModel.addAnnotation(mapEntry.getKey(), mapEntry.getValue());
+        }
+      }
+      overrideAnnotations = annotationMap.keySet().toArray(
+          new Annotation[annotationMap.keySet().size()]);
+    }
+  }
+
+  /**
+   * Updates the override and implements annotations based on the given {@link OverrideMember}s.
+   */
+  protected void updateAnnotations(OverrideMember[] overrides) {
+    // add annotations
+    Map<Annotation, Position> annotationMap = Maps.newHashMap();
+    for (OverrideMember override : overrides) {
+      boolean isOverride = true;
+      com.google.dart.server.Element superElement = override.getSuperclassElement();
+      // TODO(scheglov) shouldn't happen, probably because of "implements X"
+      if (superElement == null) {
+        continue;
+      }
+      // prepare "super" method name
+      String qualifiedMethodName = MessageFormat.format(
+          "{0}.{1}",
+          "superElement.getEnclosingElement().getName()",
+          superElement.getName());
+      // prepare text
+      String text;
+      if (isOverride) {
+        text = Messages.format(
+            DartEditorMessages.OverrideIndicatorManager_overrides,
+            qualifiedMethodName);
+      } else {
+        text = Messages.format(
+            DartEditorMessages.OverrideIndicatorManager_implements,
+            qualifiedMethodName);
+      }
+      // add override annotation
+      Position position = new Position(override.getOffset(), override.getLength());
+      annotationMap.put(new OverrideIndicator(superElement, text, isOverride), position);
     }
     // add annotations to the model
     synchronized (annotationModelLockObject) {

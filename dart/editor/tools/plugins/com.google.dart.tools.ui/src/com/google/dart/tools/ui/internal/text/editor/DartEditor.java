@@ -3399,11 +3399,15 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected void installOverrideIndicator(boolean provideAST) {
     uninstallOverrideIndicator();
     IAnnotationModel model = getDocumentProvider().getAnnotationModel(getEditorInput());
-    final com.google.dart.engine.ast.CompilationUnit cu = getInputUnit();
     if (model == null) {
       return;
     }
-    fOverrideIndicatorManager = new OverrideIndicatorManager(model, cu);
+    if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
+      fOverrideIndicatorManager = new OverrideIndicatorManager(model);
+    } else {
+      com.google.dart.engine.ast.CompilationUnit cu = getInputUnit();
+      fOverrideIndicatorManager = new OverrideIndicatorManager(model, cu);
+    }
     fOverrideIndicatorManager.install(this);
   }
 

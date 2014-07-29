@@ -11,18 +11,19 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.server;
+
+package com.google.dart.tools.core.analysis.model;
+
+import com.google.dart.server.OverrideMember;
 
 /**
- * An enumeration of the services provided by the analysis domain.
+ * Used by {@link AnalysisServerData} to notify clients that new {@link OverrideMember}s are ready.
  * 
- * @coverage dart.server
+ * @coverage dart.tools.core.model
  */
-public enum AnalysisService {
-  ERRORS,
-  HIGHLIGHTS,
-  NAVIGATION,
-  OCCURRENCES,
-  OUTLINE,
-  OVERRIDES;
+public interface AnalysisServerOverridesListener {
+  /**
+   * Called when {@link OverrideMember}s for a particular file are ready.
+   */
+  void computedHighlights(String file, OverrideMember[] overrides);
 }

@@ -93,7 +93,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
 
   @Override
   public void computedOverrides(String file, OverrideMember[] overrides) {
-    // TODO(scheglov/ jwren) Analysis Server
+    dataImpl.internalComputedOverrides(file, overrides);
   }
 
   @Override

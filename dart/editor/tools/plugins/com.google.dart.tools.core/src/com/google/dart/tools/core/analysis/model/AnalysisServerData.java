@@ -22,6 +22,7 @@ import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
+import com.google.dart.server.OverrideMember;
 
 /**
  * Instances of {@code AnalysisServerData} provide access to analysis results reported by
@@ -78,6 +79,11 @@ public interface AnalysisServerData {
   void subscribeOutline(String file, AnalysisServerOutlineListener listener);
 
   /**
+   * Specifies that the client wants to be notified about new {@link OverrideMember}s.
+   */
+  void subscribeOverrides(String file, AnalysisServerOverridesListener listener);
+
+  /**
    * Specifies that the client doesn't want to be notified about {@link HighlightRegion}s anymore.
    */
   void unsubscribeHighlights(String file, AnalysisServerHighlightsListener listener);
@@ -96,4 +102,9 @@ public interface AnalysisServerData {
    * Specifies that the client doesn't want to be notified about {@link Outline} anymore.
    */
   void unsubscribeOutline(String file, AnalysisServerOutlineListener listener);
+
+  /**
+   * Specifies that the client doesn't want to be notified about {@link OverrideMember}s anymore.
+   */
+  void unsubscribeOverrides(String file, AnalysisServerOverridesListener listener);
 }

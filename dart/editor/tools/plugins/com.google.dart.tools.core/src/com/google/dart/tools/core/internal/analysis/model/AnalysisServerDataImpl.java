@@ -26,10 +26,12 @@ import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
+import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
+import com.google.dart.tools.core.analysis.model.AnalysisServerOverridesListener;
 import com.google.dart.tools.core.analysis.model.SearchResultsListener;
 
 import java.util.List;
@@ -45,6 +47,7 @@ import java.util.Set;
 public class AnalysisServerDataImpl implements AnalysisServerData {
   private final Map<String, Set<AnalysisServerHighlightsListener>> highlightsSubscriptions = Maps.newHashMap();
   private final Map<String, Set<AnalysisServerOutlineListener>> outlineSubscriptions = Maps.newHashMap();
+  private final Map<String, Set<AnalysisServerOverridesListener>> overridesSubscriptions = Maps.newHashMap();
   private final Map<String, AnalysisError[]> errorData = Maps.newHashMap();
   private final Map<String, NavigationRegion[]> navigationData = Maps.newHashMap();
   private final Map<String, Occurrences[]> occurrencesData = Maps.newHashMap();
@@ -158,6 +161,18 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   }
 
   @Override
+  public void subscribeOverrides(String file, AnalysisServerOverridesListener listener) {
+    Set<AnalysisServerOverridesListener> subscriptions = overridesSubscriptions.get(file);
+    if (subscriptions == null) {
+      subscriptions = Sets.newHashSet();
+      overridesSubscriptions.put(file, subscriptions);
+    }
+    if (subscriptions.add(listener)) {
+      addAnalysisSubscription(AnalysisService.OVERRIDES, file);
+    }
+  }
+
+  @Override
   public void unsubscribeHighlights(String file, AnalysisServerHighlightsListener listener) {
     Set<AnalysisServerHighlightsListener> subscriptions = highlightsSubscriptions.get(file);
     if (subscriptions == null) {
@@ -193,6 +208,19 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
     }
   }
 
+  @Override
+  public void unsubscribeOverrides(String file, AnalysisServerOverridesListener listener) {
+    Set<AnalysisServerOverridesListener> subscriptions = overridesSubscriptions.get(file);
+    if (subscriptions == null) {
+      return;
+    }
+    if (subscriptions.remove(listener)) {
+      if (subscriptions.isEmpty()) {
+        removeAnalysisSubscription(AnalysisService.OVERRIDES, file);
+      }
+    }
+  }
+
   void internalComputedErrors(String file, AnalysisError[] errors) {
     errorData.put(file, errors);
   }
@@ -224,6 +252,17 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
     subscriptions = ImmutableSet.copyOf(subscriptions);
     for (AnalysisServerOutlineListener listener : subscriptions) {
       listener.computedOutline(file, outline);
+    }
+  }
+
+  void internalComputedOverrides(String file, OverrideMember[] overrides) {
+    Set<AnalysisServerOverridesListener> subscriptions = overridesSubscriptions.get(file);
+    if (subscriptions == null) {
+      return;
+    }
+    subscriptions = ImmutableSet.copyOf(subscriptions);
+    for (AnalysisServerOverridesListener listener : subscriptions) {
+      listener.computedHighlights(file, overrides);
     }
   }
 
