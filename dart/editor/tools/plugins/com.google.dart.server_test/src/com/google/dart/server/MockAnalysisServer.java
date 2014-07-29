@@ -68,6 +68,11 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
+  public void getRefactorings(String file, int offset, int length, RefactoringGetConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void getTypeHierarchy(String file, int offset, TypeHierarchyConsumer consumer) {
     throw new UnsupportedOperationException();
   }
@@ -120,23 +125,6 @@ public class MockAnalysisServer implements AnalysisServer {
 
   @Override
   public void setPriorityFiles(List<String> files) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void setRefactoringExtractLocalOptions(
-//      String refactoringId, boolean allOccurrences,
-//      String name, RefactoringOptionsValidationConsumer consumer
-  ) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void setRefactoringExtractMethodOptions(
-//      String refactoringId, String name,
-//      boolean asGetter, boolean allOccurrences, Parameter[] parameters,
-//      RefactoringExtractMethodOptionsValidationConsumer consumer
-  ) {
     throw new UnsupportedOperationException();
   }
 

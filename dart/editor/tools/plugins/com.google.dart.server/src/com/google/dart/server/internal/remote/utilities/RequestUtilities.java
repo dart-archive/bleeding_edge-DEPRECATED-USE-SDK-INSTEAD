@@ -65,7 +65,7 @@ public class RequestUtilities {
   private static final String METHOD_EDIT_DELETE_REFACTORING = "edit.deleteRefactoring";
   private static final String METHOD_EDIT_GET_ASSISTS = "edit.getAssists";
   private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
-  //private static final String METHOD_EDIT_GET_REFACTORING = "edit.getRefactoring";
+  private static final String METHOD_EDIT_GET_REFACTORING = "edit.getRefactorings";
   //private static final String METHOD_EDIT_SET_REFACTORING_OPTIONS = "edit.setRefactoringOptions";
 
   // Code Completion domain
@@ -436,6 +436,30 @@ public class RequestUtilities {
     params.addProperty(FILE, file);
     params.addProperty(OFFSET, offset);
     return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_FIXES, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_EDIT_GET_REFACTORING} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "edit.getRefactorings"
+   *   "params": {
+   *     "file": FilePath
+   *     "offset": int
+   *     "length": int
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateEditGetRefactorings(String idValue, String file, int offset,
+      int length) {
+    JsonObject params = new JsonObject();
+    params.addProperty(FILE, file);
+    params.addProperty(OFFSET, offset);
+    params.addProperty(LENGTH, length);
+    return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_REFACTORING, params);
   }
 
   /**

@@ -124,6 +124,17 @@ public interface AnalysisServer {
   public void getHover(String file, int offset, HoverConsumer consumer);
 
   /**
+   * Get a list of the kinds of refactorings that are valid for the given selection in the given
+   * file.
+   * 
+   * @param file the file containing the code on which the refactoring would be based
+   * @param offset the offset of the code on which the refactoring would be based
+   * @param length the length of the code on which the refactoring would be based
+   * @param consumer the results listener
+   */
+  public void getRefactorings(String file, int offset, int length, RefactoringGetConsumer consumer);
+
+  /**
    * Computes a type hierarchy at the given location. The given consumer is invoked asynchronously
    * on a different thread.
    * 
@@ -242,35 +253,6 @@ public interface AnalysisServer {
    * @param files the files that are to be a priority for analysis
    */
   public void setPriorityFiles(List<String> files);
-
-  /**
-   * Set the options for the "Extract Local" refactoring instance.
-   * <p>
-   * TODO (jwren) revisit API and parameter types
-   * 
-   * @param refactoringId the identifier of the refactoring to which the options are to be applied
-   * @param allOccurrences is {@code true} if all of the expression occurrences should be extracted
-   * @param name the name of the variable
-   * @param consumer the results listener
-   */
-  public void setRefactoringExtractLocalOptions(/*String refactoringId, boolean allOccurrences,
-                                                String name, RefactoringOptionsValidationConsumer consumer*/);
-
-  /**
-   * Set the options for the "Extract Method" refactoring instance.
-   * <p>
-   * TODO (jwren) revisit API and parameter types
-   * 
-   * @param refactoringId the identifier of the refactoring to which the options are to be applied
-   * @param name the name of the method to extract
-   * @param asGetter is {@code true} if a getter should be extracted instead of a regular method
-   * @param allOccurrences is {@code true} if all of the expression occurrences should be extracted
-   * @param parameters the parameters of the extracted method
-   * @param consumer the results listener
-   */
-  public void setRefactoringExtractMethodOptions(/*String refactoringId, String name,
-                                                 boolean asGetter, boolean allOccurrences, Parameter[] parameters,
-                                                 RefactoringExtractMethodOptionsValidationConsumer consumer*/);
 
   /**
    * Subscribe for server services.

@@ -31,6 +31,7 @@ import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HoverConsumer;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringCreateConsumer;
+import com.google.dart.server.RefactoringGetConsumer;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.TypeHierarchyConsumer;
@@ -54,6 +55,7 @@ import com.google.dart.server.internal.remote.processor.NotificationServerErrorP
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
 import com.google.dart.server.internal.remote.processor.RefactoringApplyProcessor;
 import com.google.dart.server.internal.remote.processor.RefactoringCreateProcessor;
+import com.google.dart.server.internal.remote.processor.RefactoringGetProcessor;
 import com.google.dart.server.internal.remote.processor.SearchIdProcessor;
 import com.google.dart.server.internal.remote.processor.TypeHierarchyProcessor;
 import com.google.dart.server.internal.remote.processor.VersionProcessor;
@@ -317,6 +319,15 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
+  public void getRefactorings(String file, int offset, int length, RefactoringGetConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateEditGetRefactorings(id, file, offset, length),
+        consumer);
+  }
+
+  @Override
   public void getTypeHierarchy(String file, int offset, TypeHierarchyConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(
@@ -406,19 +417,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       files = EMPTY_STR_LIST;
     }
     sendRequestToServer(id, RequestUtilities.generateAnalysisSetPriorityFiles(id, files));
-  }
-
-  @Override
-  public void setRefactoringExtractLocalOptions(/*String refactoringId, boolean allOccurrences,
-                                                String name, RefactoringOptionsValidationConsumer consumer*/) {
-    // TODO(scheglov) implement
-  }
-
-  @Override
-  public void setRefactoringExtractMethodOptions(/*String refactoringId, String name,
-                                                 boolean asGetter, boolean allOccurrences, Parameter[] parameters,
-                                                 RefactoringExtractMethodOptionsValidationConsumer consumer*/) {
-    // TODO(scheglov) implement
   }
 
   @Override
@@ -595,6 +593,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new AssistsProcessor((AssistsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof FixesConsumer) {
       new FixesProcessor((FixesConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof RefactoringGetConsumer) {
+      new RefactoringGetProcessor((RefactoringGetConsumer) consumer).process(resultObject);
     } else if (consumer instanceof VersionConsumer) {
       new VersionProcessor((VersionConsumer) consumer).process(resultObject);
     } else if (consumer instanceof AnalysisErrorsConsumer) {

@@ -45,6 +45,7 @@ import com.google.dart.server.Outline;
 import com.google.dart.server.OverrideMember;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringCreateConsumer;
+import com.google.dart.server.RefactoringGetConsumer;
 import com.google.dart.server.RefactoringKind;
 import com.google.dart.server.RefactoringProblem;
 import com.google.dart.server.RefactoringProblemSeverity;
@@ -1566,6 +1567,79 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           "message B",
           "correction B"), error);
     }
+  }
+
+  public void test_edit_getRefactorings() throws Exception {
+    final String[][] refactoringKindsArray = {{null}};
+    server.getRefactorings("/fileA.dart", 1, 2, new RefactoringGetConsumer() {
+      @Override
+      public void computedRefactoringKinds(String[] refactoringKinds) {
+        refactoringKindsArray[0] = refactoringKinds;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getRefactorings',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'kinds': ['CONVERT_GETTER_TO_METHOD','CONVERT_METHOD_TO_GETTER','EXTRACT_LOCAL_VARIABLE']",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'kinds' (List<RefactoringKind>)
+    String[] refactoringKinds = refactoringKindsArray[0];
+    assertThat(refactoringKinds).hasSize(3);
+    assertThat(refactoringKinds).contains(
+        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        RefactoringKind.CONVERT_METHOD_TO_GETTER,
+        RefactoringKind.EXTRACT_LOCAL_VARIABLE);
+  }
+
+  public void test_edit_getRefactorings_emptyKindsList() throws Exception {
+    final String[][] refactoringKindsArray = {{null}};
+    server.getRefactorings("/fileA.dart", 1, 2, new RefactoringGetConsumer() {
+      @Override
+      public void computedRefactoringKinds(String[] refactoringKinds) {
+        refactoringKindsArray[0] = refactoringKinds;
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.getRefactorings',",
+        "  'params': {",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'kinds': []",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions on 'kinds' (List<RefactoringKind>)
+    assertThat(refactoringKindsArray[0]).hasSize(0);
   }
 
   public void test_error() throws Exception {
