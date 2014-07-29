@@ -46,6 +46,7 @@ vars = {
   "font_awesome_rev": "@31824",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
+  "barback-0.14.1_rev": "@38525",
 }
 
 deps = {
@@ -120,6 +121,8 @@ deps = {
       "/branches/bleeding_edge/dart/pkg/barback" + Var("barback-0.13.0_rev"),
   "dart/third_party/pkg/barback-0.14.0+3":
       "/branches/bleeding_edge/dart/pkg/barback" + Var("barback-0.14.0_rev"),
+  "dart/third_party/pkg/barback-0.14.1+4":
+      "/branches/bleeding_edge/dart/pkg/barback" + Var("barback-0.14.1_rev"),
 }
 
 deps_os = {
