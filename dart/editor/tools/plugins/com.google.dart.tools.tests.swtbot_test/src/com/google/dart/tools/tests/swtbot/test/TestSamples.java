@@ -91,7 +91,8 @@ public class TestSamples extends EditorTestHarness {
     new PolymerTodoRunner().run("todomvc");
   }
 
-  @Test
+  // Stop testing angular as  of 29 July 2014
+//  @Test
   public void test4AngularTodo() throws Exception {
     new AngularTodoRunner().run("angular_todo", 1); // ignore one hint
   }

@@ -1,4 +1,5 @@
-﻿set TestList to ("sunflower","pop", "todoPolymer","todoAngular")
+﻿(* Stop testing angular as  of 29 July 2014 *)
+set TestList to ("sunflower","pop", "todoPolymer") (* "todoAngular" *)
 repeat with each testScript of TestList
   RunWithNewResults testScript
   put the result into Outcome
