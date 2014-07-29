@@ -32,18 +32,8 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void createRefactoringExtractLocal(
-//      String file, int offset, int length,
-//      RefactoringExtractLocalConsumer consumer
-  ) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void createRefactoringExtractMethod(
-//      String file, int offset, int length,
-//      RefactoringExtractMethodConsumer consumer
-  ) {
+  public void createRefactoring(String refactoringKind, String file, int offset, int length,
+      RefactoringCreateConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 

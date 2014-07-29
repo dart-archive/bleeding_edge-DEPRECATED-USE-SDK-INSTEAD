@@ -41,6 +41,8 @@ import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OverrideMember;
 import com.google.dart.server.RefactoringApplyConsumer;
+import com.google.dart.server.RefactoringCreateConsumer;
+import com.google.dart.server.RefactoringKind;
 import com.google.dart.server.RefactoringProblem;
 import com.google.dart.server.RefactoringProblemSeverity;
 import com.google.dart.server.SearchIdConsumer;
@@ -1399,6 +1401,135 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertThat(problemsArray[0]).isEmpty();
     assertEquals("message1", sourceChangeArray[0].getMessage());
     assertThat(sourceChangeArray[0].getEdits()).isEmpty();
+  }
+
+  public void test_edit_createRefactoring() throws Exception {
+    final String[] refactoringId = {null};
+    final RefactoringProblem[][] problemsArray = {{null}};
+    server.createRefactoring(
+        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        "/fileA.dart",
+        1,
+        2,
+        new RefactoringCreateConsumer() {
+          @Override
+          public void computed(String id, RefactoringProblem[] problems) {
+            refactoringId[0] = id;
+            problemsArray[0] = problems;
+          }
+        });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.createRefactoring',",
+        "  'params': {",
+        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'id': 'refactoringId0',",
+        "    'status': [",
+        "      {",
+        "        'severity':'INFO',",
+        "        'message':'message1',",
+        "        'location': {",
+        "          'file': 'someFile.dart',",
+        "          'offset': 1,",
+        "          'length': 2,",
+        "          'startLine': 3,",
+        "          'startColumn': 4",
+        "        }",
+        "      },",
+        "      {",
+        "        'severity':'WARNING',",
+        "        'message':'message2',",
+        "        'location': {",
+        "          'file': 'someFile2.dart',",
+        "          'offset': 5,",
+        "          'length': 6,",
+        "          'startLine': 7,",
+        "          'startColumn': 8",
+        "        }",
+        "      }",
+        "    ]",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertion on refactoring id
+    assertEquals("refactoringId0", refactoringId[0]);
+
+    // assertions on 'status' (RefactoringProblem array)
+    {
+      assertThat(problemsArray[0]).hasSize(2);
+      RefactoringProblem refactoringProblem1 = problemsArray[0][0];
+      RefactoringProblem refactoringProblem2 = problemsArray[0][1];
+      {
+        assertEquals(RefactoringProblemSeverity.INFO, refactoringProblem1.getSeverity());
+        assertEquals("message1", refactoringProblem1.getMessage());
+        assertEquals(
+            new LocationImpl("someFile.dart", 1, 2, 3, 4),
+            refactoringProblem1.getLocation());
+      }
+      {
+        assertEquals(RefactoringProblemSeverity.WARNING, refactoringProblem2.getSeverity());
+        assertEquals("message2", refactoringProblem2.getMessage());
+        assertEquals(
+            new LocationImpl("someFile2.dart", 5, 6, 7, 8),
+            refactoringProblem2.getLocation());
+      }
+    }
+  }
+
+  public void test_edit_createRefactoring_emptyLists() throws Exception {
+    final String[] refactoringId = {null};
+    final RefactoringProblem[][] problemsArray = {{null}};
+    server.createRefactoring(
+        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        "/fileA.dart",
+        1,
+        2,
+        new RefactoringCreateConsumer() {
+          @Override
+          public void computed(String id, RefactoringProblem[] problems) {
+            refactoringId[0] = id;
+            problemsArray[0] = problems;
+          }
+        });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.createRefactoring',",
+        "  'params': {",
+        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'id': 'refactoringId0',",
+        "    'status': []",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+    assertEquals("refactoringId0", refactoringId[0]);
+    assertThat(problemsArray[0]).isEmpty();
   }
 
   public void test_error() throws Exception {

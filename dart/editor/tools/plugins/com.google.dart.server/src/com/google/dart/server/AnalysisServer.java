@@ -43,34 +43,19 @@ public interface AnalysisServer {
   public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer);
 
   /**
-   * Create a new "Extract Local" refactoring. The refactoring that is created will persist until
-   * {@link #deleteRefactoring(String)} is used to delete it. Clients, therefore, are responsible
-   * for managing the lifetime of refactorings.
-   * <p>
-   * TODO (jwren) revisit API and parameter types
+   * Create a refactoring operation that can be applied at a later time. The operation that is
+   * created will persist until either {@code edit.applyRefactoring} or
+   * {@code edit.deleteRefactoring} is used to delete it. Clients, therefore, are responsible for
+   * managing the lifetime of refactoring operations.
    * 
+   * @param refactoringKind the refactoring kind
    * @param file the file to create refactoring within
    * @param offset the offset within the file
    * @param length the length of the selected code within the file
    * @param consumer the results listener
    */
-  public void createRefactoringExtractLocal(/*String file, int offset, int length,
-                                            RefactoringExtractLocalConsumer consumer*/);
-
-  /**
-   * Create a new "Extract Method" refactoring. The refactoring that is created will persist until
-   * {@link #deleteRefactoring(String)} is used to delete it. Clients, therefore, are responsible
-   * for managing the lifetime of refactorings.
-   * <p>
-   * TODO (jwren) revisit API and parameter types
-   * 
-   * @param file the file to create refactoring within
-   * @param offset the offset within the file
-   * @param length the length of the selected code within the file
-   * @param consumer the results listener
-   */
-  public void createRefactoringExtractMethod(/*String file, int offset, int length,
-                                             RefactoringExtractMethodConsumer consumer*/);
+  public void createRefactoring(String refactoringKind, String file, int offset, int length,
+      RefactoringCreateConsumer consumer);
 
   /**
    * Delete the refactoring with the given id. Future attempts to use the refactoring id will result

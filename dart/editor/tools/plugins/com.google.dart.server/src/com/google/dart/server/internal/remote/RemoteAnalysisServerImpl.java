@@ -32,6 +32,7 @@ import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HoverConsumer;
 import com.google.dart.server.Location;
 import com.google.dart.server.RefactoringApplyConsumer;
+import com.google.dart.server.RefactoringCreateConsumer;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.ServerService;
 import com.google.dart.server.TypeHierarchyConsumer;
@@ -52,6 +53,7 @@ import com.google.dart.server.internal.remote.processor.NotificationServerConnec
 import com.google.dart.server.internal.remote.processor.NotificationServerErrorProcessor;
 import com.google.dart.server.internal.remote.processor.NotificationServerStatusProcessor;
 import com.google.dart.server.internal.remote.processor.RefactoringApplyProcessor;
+import com.google.dart.server.internal.remote.processor.RefactoringCreateProcessor;
 import com.google.dart.server.internal.remote.processor.SearchIdProcessor;
 import com.google.dart.server.internal.remote.processor.TypeHierarchyProcessor;
 import com.google.dart.server.internal.remote.processor.VersionProcessor;
@@ -236,13 +238,13 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void createRefactoringExtractLocal() {
-    // TODO(scheglov) implement
-  }
-
-  @Override
-  public void createRefactoringExtractMethod() {
-    // TODO(scheglov) implement
+  public void createRefactoring(String refactoringKind, String file, int offset, int length,
+      RefactoringCreateConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateEditCreateRefactoring(id, refactoringKind, file, offset, length),
+        consumer);
   }
 
   @Override
@@ -589,6 +591,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       new TypeHierarchyProcessor((TypeHierarchyConsumer) consumer).process(resultObject);
     } else if (consumer instanceof RefactoringApplyConsumer) {
       new RefactoringApplyProcessor((RefactoringApplyConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof RefactoringCreateConsumer) {
+      new RefactoringCreateProcessor((RefactoringCreateConsumer) consumer).process(resultObject);
     } else if (consumer instanceof VersionConsumer) {
       new VersionProcessor((VersionConsumer) consumer).process(resultObject);
     } else if (consumer instanceof AnalysisErrorsConsumer) {

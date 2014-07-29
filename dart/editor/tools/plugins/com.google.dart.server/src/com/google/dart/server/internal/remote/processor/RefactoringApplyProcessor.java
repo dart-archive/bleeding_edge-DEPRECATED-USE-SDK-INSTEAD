@@ -15,15 +15,12 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringProblem;
-import com.google.dart.server.RefactoringProblemSeverity;
 import com.google.dart.server.SourceChange;
 import com.google.dart.server.SourceEdit;
 import com.google.dart.server.SourceFileEdit;
-import com.google.dart.server.internal.RefactoringProblemImpl;
 import com.google.dart.server.internal.SourceChangeImpl;
 import com.google.dart.server.internal.SourceEditImpl;
 import com.google.dart.server.internal.SourceFileEditImpl;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -48,22 +45,6 @@ public class RefactoringApplyProcessor extends ResultProcessor {
     RefactoringProblem[] problems = constructRefactoringProblemArray(resultObject.get("status").getAsJsonArray());
     SourceChange change = constructSourceChange(resultObject.get("change").getAsJsonObject());
     consumer.computed(problems, change);
-  }
-
-  private RefactoringProblem[] constructRefactoringProblemArray(JsonArray problemsArray) {
-    ArrayList<RefactoringProblem> problems = new ArrayList<RefactoringProblem>();
-    Iterator<JsonElement> iter = problemsArray.iterator();
-    while (iter.hasNext()) {
-      JsonElement problemElement = iter.next();
-      if (problemElement instanceof JsonObject) {
-        JsonObject problemObject = (JsonObject) problemElement;
-        problems.add(new RefactoringProblemImpl(
-            RefactoringProblemSeverity.valueOf(problemObject.get("severity").getAsString()),
-            problemObject.get("message").getAsString(),
-            constructLocation(problemObject.get("location").getAsJsonObject())));
-      }
-    }
-    return problems.toArray(new RefactoringProblem[problems.size()]);
   }
 
   private SourceChange constructSourceChange(JsonObject sourceChangeObject) {

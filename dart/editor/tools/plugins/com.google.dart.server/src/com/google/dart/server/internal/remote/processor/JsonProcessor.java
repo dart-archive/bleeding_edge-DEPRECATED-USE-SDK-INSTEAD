@@ -19,14 +19,18 @@ import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
 import com.google.dart.server.ErrorSeverity;
 import com.google.dart.server.Location;
+import com.google.dart.server.RefactoringProblem;
+import com.google.dart.server.RefactoringProblemSeverity;
 import com.google.dart.server.internal.AnalysisErrorImpl;
 import com.google.dart.server.internal.ElementImpl;
 import com.google.dart.server.internal.LocationImpl;
+import com.google.dart.server.internal.RefactoringProblemImpl;
 import com.google.dart.server.utilities.general.StringUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -98,6 +102,22 @@ public abstract class JsonProcessor {
     int startLine = locationObject.get("startLine").getAsInt();
     int startColumn = locationObject.get("startColumn").getAsInt();
     return new LocationImpl(file, offset, length, startLine, startColumn);
+  }
+
+  protected RefactoringProblem[] constructRefactoringProblemArray(JsonArray problemsArray) {
+    ArrayList<RefactoringProblem> problems = new ArrayList<RefactoringProblem>();
+    Iterator<JsonElement> iter = problemsArray.iterator();
+    while (iter.hasNext()) {
+      JsonElement problemElement = iter.next();
+      if (problemElement instanceof JsonObject) {
+        JsonObject problemObject = (JsonObject) problemElement;
+        problems.add(new RefactoringProblemImpl(
+            RefactoringProblemSeverity.valueOf(problemObject.get("severity").getAsString()),
+            problemObject.get("message").getAsString(),
+            constructLocation(problemObject.get("location").getAsJsonObject())));
+      }
+    }
+    return problems.toArray(new RefactoringProblem[problems.size()]);
   }
 
   /**

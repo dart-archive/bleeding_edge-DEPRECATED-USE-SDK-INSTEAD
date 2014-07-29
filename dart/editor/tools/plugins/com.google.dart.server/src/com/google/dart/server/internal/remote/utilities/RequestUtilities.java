@@ -41,6 +41,7 @@ public class RequestUtilities {
   private static final String PARAMS = "params";
   private static final String FILE = "file";
   private static final String OFFSET = "offset";
+  private static final String LENGTH = "length";
 
   // Server domain
   private static final String METHOD_SERVER_GET_VERSION = "server.getVersion";
@@ -61,7 +62,7 @@ public class RequestUtilities {
 
   // Edit domain
   private static final String METHOD_EDIT_APPLY_REFACTORING = "edit.applyRefactoring";
-  // private static final String METHOD_EDIT_CREATE_REFACTORING = "edit.createRefactoring";
+  private static final String METHOD_EDIT_CREATE_REFACTORING = "edit.createRefactoring";
   //private static final String METHOD_EDIT_DELETE_REFACTORING = "edit.deleteRefactoring";
   private static final String METHOD_EDIT_GET_ASSISTS = "edit.getAssists";
   private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
@@ -337,7 +338,7 @@ public class RequestUtilities {
   }
 
   /**
-   * Generate and return a {@value #METHOD_EDIT_GET_ASSISTS} request.
+   * Generate and return a {@value #METHOD_EDIT_APPLY_REFACTORING} request.
    * 
    * <pre>
    * request: {
@@ -353,6 +354,32 @@ public class RequestUtilities {
     JsonObject params = new JsonObject();
     params.addProperty("id", refactoringId);
     return buildJsonObjectRequest(idValue, METHOD_EDIT_APPLY_REFACTORING, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_EDIT_CREATE_REFACTORING} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "edit.createRefactoring"
+   *   "params": {
+   *     "kind": RefactoringKind
+   *     "file": FilePath
+   *     "offset": int
+   *     "length": int
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateEditCreateRefactoring(String idValue, String refactoringKind,
+      String file, int offset, int length) {
+    JsonObject params = new JsonObject();
+    params.addProperty("kind", refactoringKind);
+    params.addProperty(FILE, file);
+    params.addProperty(OFFSET, offset);
+    params.addProperty(LENGTH, length);
+    return buildJsonObjectRequest(idValue, METHOD_EDIT_CREATE_REFACTORING, params);
   }
 
   /**
@@ -375,7 +402,7 @@ public class RequestUtilities {
     JsonObject params = new JsonObject();
     params.addProperty(FILE, file);
     params.addProperty(OFFSET, offset);
-    params.addProperty("length", length);
+    params.addProperty(LENGTH, length);
     return buildJsonObjectRequest(idValue, METHOD_EDIT_GET_ASSISTS, params);
   }
 
@@ -535,7 +562,7 @@ public class RequestUtilities {
     JsonObject locationJsonObject = new JsonObject();
     locationJsonObject.addProperty("file", location.getFile());
     locationJsonObject.addProperty(OFFSET, location.getOffset());
-    locationJsonObject.addProperty("length", location.getLength());
+    locationJsonObject.addProperty(LENGTH, location.getLength());
     locationJsonObject.addProperty("startLine", location.getStartLine());
     locationJsonObject.addProperty("startColumn", location.getStartColumn());
     return locationJsonObject;
