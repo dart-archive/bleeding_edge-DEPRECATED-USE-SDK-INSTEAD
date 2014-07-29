@@ -62,7 +62,7 @@ public class RequestUtilities {
   // Edit domain
   private static final String METHOD_EDIT_APPLY_REFACTORING = "edit.applyRefactoring";
   private static final String METHOD_EDIT_CREATE_REFACTORING = "edit.createRefactoring";
-  //private static final String METHOD_EDIT_DELETE_REFACTORING = "edit.deleteRefactoring";
+  private static final String METHOD_EDIT_DELETE_REFACTORING = "edit.deleteRefactoring";
   private static final String METHOD_EDIT_GET_ASSISTS = "edit.getAssists";
   private static final String METHOD_EDIT_GET_FIXES = "edit.getFixes";
   //private static final String METHOD_EDIT_GET_REFACTORING = "edit.getRefactoring";
@@ -361,6 +361,25 @@ public class RequestUtilities {
     params.addProperty(OFFSET, offset);
     params.addProperty(LENGTH, length);
     return buildJsonObjectRequest(idValue, METHOD_EDIT_CREATE_REFACTORING, params);
+  }
+
+  /**
+   * Generate and return a {@value #METHOD_EDIT_DELETE_REFACTORING} request.
+   * 
+   * <pre>
+   * request: {
+   *   "id": String
+   *   "method": "edit.deleteRefactoring"
+   *   "params": {
+   *     "id": RefactoringId
+   *   }
+   * }
+   * </pre>
+   */
+  public static JsonObject generateEditDeleteRefactoring(String idValue, String refactoringId) {
+    JsonObject params = new JsonObject();
+    params.addProperty("id", refactoringId);
+    return buildJsonObjectRequest(idValue, METHOD_EDIT_DELETE_REFACTORING, params);
   }
 
   /**

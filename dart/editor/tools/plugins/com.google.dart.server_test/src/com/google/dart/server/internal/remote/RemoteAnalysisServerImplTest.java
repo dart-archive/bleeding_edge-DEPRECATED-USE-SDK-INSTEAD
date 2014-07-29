@@ -1381,6 +1381,20 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertThat(problemsArray[0]).isEmpty();
   }
 
+  public void test_edit_deleteRefactoring() throws Exception {
+    server.deleteRefactoring("refactoringId0");
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.deleteRefactoring',",
+        "  'params': {",
+        "    'id': 'refactoringId0'",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
   public void test_error() throws Exception {
     server.shutdown();
     putResponse(//

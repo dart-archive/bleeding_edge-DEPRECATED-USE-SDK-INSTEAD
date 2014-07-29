@@ -248,7 +248,8 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void deleteRefactoring(String refactoringId) {
-    // TODO(scheglov) implement
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateEditDeleteRefactoring(id, refactoringId));
   }
 
   public void findElementReferences(String file, int offset, boolean includePotential,
