@@ -1267,9 +1267,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         2,
         new RefactoringCreateConsumer() {
           @Override
-          public void computed(String id, RefactoringProblem[] problems) {
+          public void computed(String id, RefactoringProblem[] status, Map<String, Object> feedback) {
             refactoringId[0] = id;
-            problemsArray[0] = problems;
+            problemsArray[0] = status;
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1354,9 +1354,9 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         2,
         new RefactoringCreateConsumer() {
           @Override
-          public void computed(String id, RefactoringProblem[] problems) {
+          public void computed(String id, RefactoringProblem[] status, Map<String, Object> feedback) {
             refactoringId[0] = id;
-            problemsArray[0] = problems;
+            problemsArray[0] = status;
           }
         });
     List<JsonObject> requests = requestSink.getRequests();
@@ -1645,7 +1645,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_edit_setRefactoringOptions() throws Exception {
     final RefactoringProblem[][] refactoringProblemsArray = {{null}};
-    server.setRefactoringOptions("refactoringId0", new RefactoringSetOptionsConsumer() {
+    server.setRefactoringOptions("refactoringId0", null, new RefactoringSetOptionsConsumer() {
       @Override
       public void computedStatus(RefactoringProblem[] problems) {
         refactoringProblemsArray[0] = problems;
@@ -1716,7 +1716,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_edit_setRefactoringOptions_emptyProblemsList() throws Exception {
     final RefactoringProblem[][] refactoringProblemsArray = {{null}};
-    server.setRefactoringOptions("refactoringId0", new RefactoringSetOptionsConsumer() {
+    server.setRefactoringOptions("refactoringId0", null, new RefactoringSetOptionsConsumer() {
       @Override
       public void computedStatus(RefactoringProblem[] problems) {
         refactoringProblemsArray[0] = problems;

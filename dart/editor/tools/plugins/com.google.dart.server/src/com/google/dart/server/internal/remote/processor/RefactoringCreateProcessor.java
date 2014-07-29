@@ -17,6 +17,9 @@ import com.google.dart.server.RefactoringCreateConsumer;
 import com.google.dart.server.RefactoringProblem;
 import com.google.gson.JsonObject;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Instances of {@code RefactoringCreateProcessor} translate JSON result objects for a given
  * {@link RefactoringCreateConsumer}.
@@ -34,6 +37,8 @@ public class RefactoringCreateProcessor extends ResultProcessor {
   public void process(JsonObject resultObject) {
     String refactoringId = resultObject.get("id").getAsString();
     RefactoringProblem[] problems = constructRefactoringProblemArray(resultObject.get("status").getAsJsonArray());
-    consumer.computed(refactoringId, problems);
+    // TODO (jwren) fill in the "feedback" map
+    Map<String, Object> feedback = new HashMap<String, Object>();
+    consumer.computed(refactoringId, problems, feedback);
   }
 }

@@ -158,15 +158,6 @@ public interface AnalysisServer {
    */
   public void reanalyze();
 
-//  /**
-//   * Reports with a set of {@link ErrorCode}s for which server may be able to {@link #computeFixes}
-//   * in the given context.
-//   * 
-//   * @param contextId the identifier of the context
-//   * @param consumer the results listener
-//   */
-//  public void getFixableErrorCodes(String contextId, FixableErrorCodesConsumer consumer);
-
   /**
    * Remove the given listener from the list of listeners that will receive notification when new
    * analysis results become available.
@@ -261,9 +252,11 @@ public interface AnalysisServer {
    * from completing.
    * 
    * @param refactoringId the identifier of the refactoring whose options are to be set
+   * @param refactoringOptions options for this refactoring kind
    * @param consumer the results listener
    */
-  public void setRefactoringOptions(String refactoringId, RefactoringSetOptionsConsumer consumer);
+  public void setRefactoringOptions(String refactoringId, Map<String, Object> refactoringOptions,
+      RefactoringSetOptionsConsumer consumer);
 
   /**
    * Subscribe for server services.

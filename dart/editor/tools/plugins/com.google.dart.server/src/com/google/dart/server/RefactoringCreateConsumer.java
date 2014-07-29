@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import java.util.Map;
+
 /**
  * The interface {@code RefactoringCreateConsumer} defines the behavior of objects that consume a
  * create refactoring response.
@@ -27,6 +29,8 @@ public interface RefactoringCreateConsumer extends Consumer {
    *          {@link RefactoringKind}
    * @param status the status of the refactoring, the list will be empty if there are no known
    *          problems at this stage
+   * @param feedback additional feedback parameters for this kind of refactoring
    */
-  public void computed(String refactoringId, RefactoringProblem[] problems);
+  public void computed(String refactoringId, RefactoringProblem[] status,
+      Map<String, Object> feedback);
 }

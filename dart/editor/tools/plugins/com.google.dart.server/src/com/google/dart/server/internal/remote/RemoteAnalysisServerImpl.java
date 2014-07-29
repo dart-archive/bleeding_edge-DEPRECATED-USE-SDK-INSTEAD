@@ -422,7 +422,9 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void setRefactoringOptions(String refactoringId, RefactoringSetOptionsConsumer consumer) {
+  public void setRefactoringOptions(String refactoringId, Map<String, Object> refactoringOptions,
+      RefactoringSetOptionsConsumer consumer) {
+    // TODO (jwren) generate a request which includes the refactoring options
     String id = generateUniqueId();
     sendRequestToServer(
         id,
