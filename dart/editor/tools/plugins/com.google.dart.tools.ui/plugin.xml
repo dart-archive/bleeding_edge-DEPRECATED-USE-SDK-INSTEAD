@@ -2378,7 +2378,7 @@
             commandId="com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
 
-      <key
+      <!--<key
             commandId="org.eclipse.ui.edit.text.goto.lineDown"
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
@@ -2419,7 +2419,7 @@
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+M2+M3+DEL">
-      </key>
+      </key>-->
       <key
             commandId="org.eclipse.ui.navigate.nextTab"
             contextId="org.eclipse.ui.textEditorScope"
