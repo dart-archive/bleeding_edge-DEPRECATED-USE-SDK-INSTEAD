@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.common.collect.Lists;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.filesystem.EFS;
@@ -169,7 +170,13 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
 
     for (IResource child : container.members()) {
       String name = child.getName();
-      if (!(name.startsWith("."))) {
+      if (name.equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
+        // Only show packages directories at top level and as sibling to pubspec
+        if (container.getProject() == container
+            || container.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
+          children.add(child);
+        }
+      } else if (!name.startsWith(".")) {
         children.add(child);
       }
     }
