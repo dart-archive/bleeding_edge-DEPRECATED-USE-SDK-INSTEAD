@@ -10,16 +10,16 @@ vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "multivm_base": "http://src.chromium.org",
   "multivm_chromium_branch": "/chrome/trunk/src",
-  "multivm_chromium_revision": "284576",
-  # Git hash for archived builds closest to r284576.
+  "multivm_chromium_revision": "286013",
+  # Git hash for archived builds closest to r286013.
   "chromium_base_revision":
-      '{"Windows": "3678b0ffd2d5b58801eac73c6be04b8114d4e598", ' +
-      ' "Darwin": "3678b0ffd2d5b58801eac73c6be04b8114d4e598", ' +
-      ' "Linux": "81da0751f9f3a14220e081de6944b4c810f5e542"}',
+      '{"Windows": "47aa4a2169a954cfac4b0f19344e0a1884bdff49", ' +
+      ' "Darwin": "e93632050f9486018bd8259b8366684d494e0df8", ' +
+      ' "Linux": "e93632050f9486018bd8259b8366684d494e0df8"}',
   "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
   "dart_tools_revision": "37732",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
-  "multivm_blink_revision": "178706",
+  "multivm_blink_revision": "179262",
 })
 
 def massage_deps(deps):

@@ -28,48 +28,48 @@ vars = {
   "libcxxabi_revision": "206024",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "178550",
+  "webkit_revision": "179047",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "pdfium_git": "https://pdfium.googlesource.com",
   "skia_git": "https://skia.googlesource.com",
   "boringssl_git": "https://boringssl.googlesource.com",
   "swig_revision": "230490",
-  "nacl_revision": "13456",
+  "nacl_revision": "13540",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "13077",  # native_client/DEPS: tools_rev
   "google_toolbox_for_mac_revision": "662",
-  "libaddressinput_revision": "310",
+  "libaddressinput_revision": "316",
   "libphonenumber_revision": "621",
-  "libvpx_revision": "282874",
+  "libvpx_revision": "285378",
   "lss_revision": "26",
   "sfntly_revision": "239",
   "lighttpd_revision": "33737",
-  "skia_revision": "ad1df153a16b7723d2d4afd13627919fc3ee87ce",
+  "skia_revision": "e5ad0dde25ffde2f8cf7491240559c999be6ab24",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   "v8_branch": "trunk",
-  "v8_revision": "22479",
+  "v8_revision": "22640",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "6680",
+  "webrtc_revision": "6774",
   "jsoncpp_revision": "248",
   "nss_revision": "277057",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarming_client
   # and whatever else without interference from each other.
-  "swarming_revision": "2cbc12487aea464730bcf60230f4d4d63d61ac51",
+  "swarming_revision": "6b555c18f93ce9feca87df43eb824118a9c124c5",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
-  "openssl_revision": "275836",
+  "openssl_revision": "284247",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  "angle_revision": "11c26b9c1182c9872693bab0b1fbf0fac148ab73",
+  "angle_revision": "07d49ef5350a95cfd6321226c178d22cc73aebc9",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling build tools
   # and whatever else without interference from each other.
@@ -77,20 +77,20 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFIum
   # and whatever else without interference from each other.
-  "pdfium_revision": "b72977f8c3efda2ceea6d25b1e042dfd6ea49c77",
+  "pdfium_revision": "a08cf99d066b16e4e16393efc15174193e002371",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openmax_dl
   # and whatever else without interference from each other.
-  "openmax_dl_revision": "6483",
+  "openmax_dl_revision": "6777",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  "boringssl_revision": "09020c2f08df11179b93e6548117806a4c0d0d45",
+  "boringssl_revision": "794bf6e0cea9eca3406a821330be5dde0d014c47",
 }
 
 deps = {
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1351",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1359",
 
   "src/buildtools":
     Var("chromium_git") + "/chromium/buildtools.git@" +
@@ -112,7 +112,7 @@ deps = {
     Var("chromium_git") + "/external/colorama.git@799604a1041e9b3bc5d2789ecbd7e8db2e18e6b8",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@1308",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@1412",
 
   "src/third_party/WebKit":
     Var("webkit_trunk") + "@" + Var("webkit_revision"),
@@ -126,7 +126,7 @@ deps = {
     "/external/w3c/csswg-test.git@bacbb4a8dca702cd86646761fde96793db13d4f1",
 
   "src/third_party/icu":
-    "/trunk/deps/third_party/icu52@277999",
+    "/trunk/deps/third_party/icu52@285387",
 
   "src/third_party/libexif/sources":
     "/trunk/deps/third_party/libexif/sources@265008",
@@ -157,7 +157,7 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@80",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@170",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@171",
 
   "src/tools/gyp":
     (Var("googlecode_url") % "gyp") + "/trunk@1953",
@@ -220,7 +220,7 @@ deps = {
 
   "src/third_party/ffmpeg":
     Var("chromium_git") +
-    "/chromium/third_party/ffmpeg.git@35b6086d85dd8aa7d29c2525e11debc5937bb506",
+    "/chromium/third_party/ffmpeg.git@11cc55f45980d8bcf78992e68d5c60809d24f449",
 
   "src/third_party/libjingle/source/talk":
     (Var("googlecode_url") % "webrtc") + "/trunk/talk@" +
@@ -309,7 +309,7 @@ deps = {
     "/trunk/deps/third_party/mesa@265279",
 
   "src/third_party/cld_2/src":
-    (Var("googlecode_url") % "cld2") + "/trunk@161",
+    (Var("googlecode_url") % "cld2") + "/trunk@163",
 
   "src/chrome/browser/resources/pdf/html_office":
      Var("chromium_git") +
@@ -480,7 +480,7 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@5e0746db937822e77288800bd8d0ca5702dcff85",
+      "@0637337a705ce7c7a9e27e78a15685ccb1088781",
 
     # Note that this is different from Android's freetype repo.
     "src/third_party/freetype2/src":
@@ -748,15 +748,6 @@ hooks = [
                 "--bucket", "chromium-clang-format",
                 "-s", "src/buildtools/linux64/clang-format.sha1",
     ],
-  },
-  {
-    # Remove clang-format binaries from third_party/clang_format/bin that
-    # aren't used anymore.
-    # TODO(jochen) remove this and the .gitignore entry after the end of July,
-    # 2014.
-    "name": "remove_old_clang_format_binaries",
-    "pattern": ".",
-    "action": ["python", "src/third_party/clang_format/bin/rm_binaries.py"],
   },
   # Pull binutils for linux, enabled debug fission for faster linking /
   # debugging when used with clang on Ubuntu Precise.
