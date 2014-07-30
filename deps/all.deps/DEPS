@@ -27,7 +27,7 @@ vars = {
   "commons-io_rev" : "@19997",
   "commons-lang_rev" : "@33092",
   "d8_rev" : "@38056",
-  "eclipse_rev" : "@31921",
+  "eclipse_rev" : "@38689",
   "fake_async_rev" : "@38614",
   "fest_rev" : "@19997",
   "firefox_jsshell_rev" : "@35614",
