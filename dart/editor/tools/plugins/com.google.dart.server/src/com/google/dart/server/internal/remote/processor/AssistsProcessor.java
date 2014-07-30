@@ -33,7 +33,7 @@ public class AssistsProcessor extends ResultProcessor {
   }
 
   public void process(JsonObject resultObject) {
-    SourceChange[] sourceChanges = constructSourceChangeArray(resultObject.get("refactorings").getAsJsonArray());
+    SourceChange[] sourceChanges = constructSourceChangeArray(resultObject.get("assists").getAsJsonArray());
     consumer.computedSourceChanges(sourceChanges);
   }
 

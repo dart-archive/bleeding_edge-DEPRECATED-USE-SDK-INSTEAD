@@ -21,6 +21,7 @@ package com.google.dart.server;
  */
 public enum CompletionSuggestionKind {
   NONE,
+  ARGUMENT_LIST,
   CLASS,
   CLASS_ALIAS,
   CONSTRUCTOR,
@@ -32,11 +33,11 @@ public enum CompletionSuggestionKind {
   LIBRARY_PREFIX,
   METHOD,
   METHOD_NAME,
+  NAMED_ARGUMENT,
+  OPTIONAL_ARGUMENT,
   PARAMETER,
   SETTER,
-  VARIABLE,
+  TOP_LEVEL_VARIABLE,
   TYPE_PARAMETER,
-  ARGUMENT_LIST,
-  OPTIONAL_ARGUMENT,
-  NAMED_ARGUMENT
+  VARIABLE
 }

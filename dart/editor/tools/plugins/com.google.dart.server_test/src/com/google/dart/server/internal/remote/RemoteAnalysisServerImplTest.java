@@ -1424,7 +1424,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "{",
         "  'id': '0',",
         "  'result': {",
-        "    'refactorings': [",
+        "    'assists': [",
         "      {",
         "        'message': 'message1',",
         "        'edits': [",
