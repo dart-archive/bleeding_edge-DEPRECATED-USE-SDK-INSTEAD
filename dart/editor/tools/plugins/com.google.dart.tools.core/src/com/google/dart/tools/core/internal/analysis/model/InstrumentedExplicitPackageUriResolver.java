@@ -39,7 +39,7 @@ public class InstrumentedExplicitPackageUriResolver extends ExplicitPackageUriRe
 
     void printElapseTime(long delta) {
       printSeparator();
-      console.print("pub " + PUB_LIST_COMMAND + " took " + delta + " milliseconds to run");
+      console.println("pub " + PUB_LIST_COMMAND + " took " + delta + " milliseconds to run");
     }
 
     void printFailed(int result, String stdErrOutput) {
@@ -50,7 +50,7 @@ public class InstrumentedExplicitPackageUriResolver extends ExplicitPackageUriRe
 
     void printThresholdExceeded() {
       printSeparator();
-      console.print(PUB_LIST_NAME + " taking longer than " + PUB_LIST_THRESHOLD
+      console.println(PUB_LIST_NAME + " taking longer than " + PUB_LIST_THRESHOLD
           + " milliseconds to complete");
     }
 
