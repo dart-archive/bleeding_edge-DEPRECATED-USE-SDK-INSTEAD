@@ -13,9 +13,7 @@
  */
 package com.google.dart.tools.core.internal.completion;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionContext;
-import com.google.dart.tools.core.model.DartElement;
 
 import java.security.Signature;
 
@@ -175,54 +173,6 @@ public class InternalCompletionContext extends CompletionContext {
   @Override
   public int getTokenStart() {
     return this.tokenStart;
-  }
-
-  /**
-   * Return the elements which are visible from the completion location and which can be assigned to
-   * the given type. An element is assignable if its type can be assigned to a variable of the given
-   * type, as specified in section 5.2 of <em>The Java Language
-   * Specification, Third Edition</em> (JLS3). A visible element is either:
-   * <ul>
-   * <li>a {@link ILocalVariable} - the element type is {@link ILocalVariable#getTypeSignature()}</li>
-   * <li>a {@link IField} - the element type is {@link IField#getTypeSignature()}</li>
-   * <li>a {@link IMethod} - the element type is {@link IMethod#getReturnType()}</li>
-   * </ul>
-   * Returned elements defined in the completed compilation unit are special Java elements:
-   * <ul>
-   * <li>they are based on the current content of the compilation unit's buffer, they are not the
-   * result of a reconcile operation</li>
-   * <li>they are not updated if the buffer changes.</li>
-   * <li>they do not contain local types which are not visible from the completion location.</li>
-   * <li>they do not give information about categories. {@link IMember#getCategories()} will return
-   * an empty array</li>
-   * </ul>
-   * Note the array can be empty if:
-   * <ul>
-   * <li>the compilation unit no longer exists</li>
-   * <li>the completion occurred in a binary type. However this restriction might be relaxed in the
-   * future.</li>
-   * </ul>
-   * 
-   * @param typeSignature elements which can be assigned to this type are returned. If
-   *          <code>null</code> there is no constraint on the type of the returned elements.
-   * @return elements which are visible from the completion location and which can be assigned to
-   *         the given type.
-   * @exception UnsupportedOperationException if the context is not an extended context
-   * @see #isExtended()
-   * @since 3.4
-   */
-  @Override
-  public DartElement[] getVisibleElements(String typeSignature) {
-    if (!this.isExtended) {
-      throw new UnsupportedOperationException("Operation only supported in extended context"); //$NON-NLS-1$
-    }
-
-    DartCore.notYetImplemented();
-//    if (this.extendedContext == null)
-//      return new DartElement[0];
-//
-//    return this.extendedContext.getVisibleElements(typeSignature);
-    return new DartElement[0];
   }
 
   /**

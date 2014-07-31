@@ -13,10 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.core.ILocalVariable;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
@@ -25,7 +23,6 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.StringMatcher;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.text.dart.PositionBasedCompletionProposal;
-import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.Position;
@@ -214,75 +211,19 @@ public class ParameterGuesser {
     fAlreadyMatchedNames = new HashSet<String>();
   }
 
-  public Variable createVariable(DartElement element, Type enclosingType, String expectedType,
-      int positionScore) throws DartModelException {
-    int variableType;
-    int elementType = element.getElementType();
-    String elementName = element.getElementName();
-
-    String typeSignature;
-    switch (elementType) {
-      case DartElement.FIELD: {
-        Field field = (Field) element;
-        if (field.getDeclaringType().equals(enclosingType)) {
-          variableType = Variable.FIELD;
-        } else {
-          variableType = Variable.INHERITED_FIELD;
-        }
-        typeSignature = field.getTypeName();
-        break;
-      }
-      case DartElement.VARIABLE: {
-        ILocalVariable locVar = (ILocalVariable) element;
-        variableType = Variable.LOCAL;
-        typeSignature = locVar.getTypeSignature();
-        break;
-      }
-      case DartElement.METHOD: {
-        Method method = (Method) element;
-        if (isMethodToSuggest(method)) {
-          if (method.getDeclaringType().equals(enclosingType)) {
-            variableType = Variable.METHOD;
-          } else {
-            variableType = Variable.INHERITED_METHOD;
-          }
-          typeSignature = method.getReturnTypeName();
-          elementName = elementName + "()"; //$NON-NLS-1$
-        } else {
-          return null;
-        }
-        break;
-      }
-      default:
-        return null;
-    }
-    String type = Signature.toString(typeSignature);
-
-    boolean isAutoboxMatch = isLiteralType(expectedType) != isLiteralType(type);
-    return new Variable(
-        type,
-        elementName,
-        variableType,
-        isAutoboxMatch,
-        positionScore,
-        NO_TRIGGERS,
-        getImageDescriptor(element));
-  }
-
   /**
    * Returns the matches for the type and name argument, ordered by match quality.
    * 
    * @param expectedType - the qualified type of the parameter we are trying to match
    * @param paramName - the name of the parameter (used to find similarly named matches)
    * @param pos the position
-   * @param suggestions the suggestions or <code>null</code>
    * @param fillBestGuess <code>true</code> if the best guess should be filled in
    * @return returns the name of the best match, or <code>null</code> if no match found
    * @throws DartModelException if it fails
    */
   public ICompletionProposal[] parameterProposals(String expectedType, String paramName,
-      Position pos, DartElement[] suggestions, boolean fillBestGuess) throws DartModelException {
-    List<Variable> typeMatches = evaluateVisibleMatches(expectedType, suggestions);
+      Position pos, boolean fillBestGuess) throws DartModelException {
+    List<Variable> typeMatches = evaluateVisibleMatches(expectedType);
     orderMatches(typeMatches, paramName);
 
     boolean hasVarWithParamName = false;
@@ -331,23 +272,13 @@ public class ParameterGuesser {
     return ret;
   }
 
-  private List<Variable> evaluateVisibleMatches(String expectedType, DartElement[] suggestions)
-      throws DartModelException {
+  private List<Variable> evaluateVisibleMatches(String expectedType) throws DartModelException {
     Type currentType = null;
     if (fEnclosingElement != null) {
       currentType = fEnclosingElement.getAncestor(Type.class);
     }
 
     ArrayList<Variable> res = new ArrayList<Variable>();
-    for (int i = 0; i < suggestions.length; i++) {
-      Variable variable = createVariable(suggestions[i], currentType, expectedType, i);
-      if (variable != null) {
-        if (fAlreadyMatchedNames.contains(variable.name)) {
-          variable.alreadyMatched = true;
-        }
-        res.add(variable);
-      }
-    }
 
     // add 'this'
     if (currentType != null
@@ -405,15 +336,6 @@ public class ParameterGuesser {
   private Image getImage(ImageDescriptor descriptor) {
     return (descriptor == null) ? null : DartToolsPlugin.getImageDescriptorRegistry().get(
         descriptor);
-  }
-
-  private ImageDescriptor getImageDescriptor(DartElement elem) {
-    DartElementImageProvider imageProvider = new DartElementImageProvider();
-    ImageDescriptor desc = imageProvider.getBaseImageDescriptor(
-        elem,
-        DartElementImageProvider.OVERLAY_ICONS);
-    imageProvider.dispose();
-    return desc;
   }
 
   private String getLiteralTypeCode(String type) {

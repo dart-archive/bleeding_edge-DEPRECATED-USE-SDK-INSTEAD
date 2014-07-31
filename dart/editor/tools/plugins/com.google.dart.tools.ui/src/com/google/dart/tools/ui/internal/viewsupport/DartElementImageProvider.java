@@ -13,25 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.viewsupport;
 
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.model.DartFunctionTypeAlias;
-import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.DartToolsPlugin;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.model.IWorkbenchAdapter;
 
 /**
  * Default strategy of the Dart plugin for the construction of Dart element icons.
@@ -50,9 +36,6 @@ public class DartElementImageProvider {
 
   public static final Point SMALL_SIZE = new Point(16, 16);
   public static final Point BIG_SIZE = new Point(22, 16);
-
-  private static ImageDescriptor DESC_OBJ_PROJECT_CLOSED;
-  private static ImageDescriptor DESC_OBJ_PROJECT;
 
   private static final NewDartElementImageProvider newImageProvider = new NewDartElementImageProvider();
 
@@ -98,14 +81,6 @@ public class DartElementImageProvider {
     }
   }
 
-  private static ImageDescriptor getFuntionTypeDescriptor(DartFunctionTypeAlias element) {
-    if (element.isPrivate()) {
-      return DartPluginImages.DESC_DART_FUNCTIONTYPE_PRIVATE;
-    } else {
-      return DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
-    }
-  }
-
   private static ImageDescriptor getInterfaceImageDescriptor(boolean isPrivate) {
     if (isPrivate) {
       return DartPluginImages.DESC_DART_INNER_INTERFACE_PRIVATE;
@@ -114,96 +89,10 @@ public class DartElementImageProvider {
     }
   }
 
-  {
-    ISharedImages images = DartToolsPlugin.getDefault().getWorkbench().getSharedImages();
-    DESC_OBJ_PROJECT_CLOSED = images.getImageDescriptor(IDE.SharedImages.IMG_OBJ_PROJECT_CLOSED);
-    DESC_OBJ_PROJECT = images.getImageDescriptor(IDE.SharedImages.IMG_OBJ_PROJECT);
-  }
-
   public DartElementImageProvider() {
   }
 
   public void dispose() {
-  }
-
-  /**
-   * Returns an image descriptor for a java element. This is the base image, no overlays.
-   */
-  @SuppressWarnings("unused")
-  public ImageDescriptor getBaseImageDescriptor(DartElement element, int renderFlags) {
-    switch (element.getElementType()) {
-      case DartElement.FUNCTION:
-        if (((DartFunction) element).isPrivate()) {
-          return DartPluginImages.DESC_DART_METHOD_PRIVATE;
-        }
-        if (element.getParent().getElementType() == DartElement.COMPILATION_UNIT) {
-          return DartPluginImages.DESC_DART_METHOD_PUBLIC;
-        } else {
-          // If functions defined within methods are displayed in the outline (or elsewhere) then a
-          // new icon should be added, since they are private but not defined by the user as such.
-          return DartPluginImages.DESC_MISC_DEFAULT;
-        }
-      case DartElement.FUNCTION_TYPE_ALIAS:
-        return getFuntionTypeDescriptor((DartFunctionTypeAlias) element);
-      case DartElement.METHOD: {
-        Method method = (Method) element;
-        return getMethodImageDescriptor(false, method.isPrivate());
-      }
-      case DartElement.FIELD: {
-        TypeMember member = (TypeMember) element;
-        Type declType = member.getDeclaringType();
-        return getFieldImageDescriptor(false, member.isPrivate());
-      }
-//        case DartElement.LOCAL_VARIABLE:
-//          return JavaPluginImages.DESC_OBJS_LOCAL_VARIABLE;
-
-      case DartElement.IMPORT_CONTAINER:
-        return DartPluginImages.DESC_OBJS_IMPCONT;
-
-      case DartElement.TYPE: {
-        Type type = (Type) element;
-
-        boolean isInterface = false;
-        return getTypeImageDescriptor(isInterface, type.isPrivate());
-      }
-
-      case DartElement.COMPILATION_UNIT:
-        return getCompilationUnitDescriptor((CompilationUnit) element);
-
-      case DartElement.LIBRARY:
-        return getLibraryImageDescriptor(renderFlags);
-
-      case DartElement.DART_PROJECT:
-        DartProject project = (DartProject) element;
-        if (project.getProject().isOpen()) {
-          IProject project2 = project.getProject();
-          IWorkbenchAdapter adapter = (IWorkbenchAdapter) project2.getAdapter(IWorkbenchAdapter.class);
-          if (adapter != null) {
-            ImageDescriptor result = adapter.getImageDescriptor(project2);
-            if (result != null) {
-              return result;
-            }
-          }
-          return DESC_OBJ_PROJECT;
-        }
-        return DESC_OBJ_PROJECT_CLOSED;
-
-      case DartElement.DART_MODEL:
-        return DartPluginImages.DESC_OBJS_JAVA_MODEL;
-
-      case DartElement.VARIABLE: {
-        DartVariableDeclaration var = (DartVariableDeclaration) element;
-        //TODO (pquitslund): top-level vars should have their own descriptors
-        return getFieldImageDescriptor(false, var.isPrivate());
-      }
-      case DartElement.CLASS_TYPE_ALIAS: {
-        return DartPluginImages.DESC_DART_CLASS_TYPE_ALIAS;
-      }
-      default:
-        return DartPluginImages.DESC_OBJS_GHOST;
-
-    }
-
   }
 
   /**
@@ -216,9 +105,5 @@ public class DartElementImageProvider {
 
     return newImageProvider.getImageLabel(element, flags);
 
-  }
-
-  private ImageDescriptor getCompilationUnitDescriptor(CompilationUnit element) {
-    return DartPluginImages.DESC_DART_COMP_UNIT;
   }
 }

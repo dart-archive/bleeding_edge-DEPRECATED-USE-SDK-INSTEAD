@@ -201,41 +201,6 @@ public class CompletionContext {
   }
 
   /**
-   * Return the elements which are visible from the completion location and which can be assigned to
-   * the given type. A visible element is either:
-   * <ul>
-   * <li>a {@link LocalVariable} - the element type is {@link LocalVariable#getTypeSignature()}</li>
-   * <li>a {@link Field} - the element type is {@link Field#getTypeSignature()}</li>
-   * <li>a {@link Method} - the element type is {@link Method#getReturnType()}</li>
-   * </ul>
-   * Returned elements defined in the completed compilation unit are special Dart elements:
-   * <ul>
-   * <li>they are based on the current content of the compilation unit's buffer, they are not the
-   * result of a reconcile operation</li>
-   * <li>they are not updated if the buffer changes.</li>
-   * <li>they do not contain local types which are not visible from the completion location.</li>
-   * <li>they do not give information about categories. {@link IMember#getCategories()} will return
-   * an empty array</li>
-   * </ul>
-   * Note the array can be empty if:
-   * <ul>
-   * <li>the compilation unit no longer exists</li>
-   * <li>the completion occurred in a binary type. However this restriction might be relaxed in the
-   * future.</li>
-   * </ul>
-   * 
-   * @param typeSignature elements which can be assigned to this type are returned. If
-   *          <code>null</code> there is no constraint on the type of the returned elements.
-   * @return elements which are visible from the completion location and which can be assigned to
-   *         the given type.
-   * @exception UnsupportedOperationException if the context is not an extended context
-   * @see #isExtended()
-   */
-  public DartElement[] getVisibleElements(String typeSignature) {
-    return null; // default overridden by concrete implementation
-  }
-
-  /**
    * Return <code>true</code> if this completion context is an extended context. Some methods of
    * this context can be used only if this context is an extended context but an extended context
    * consumes more memory.

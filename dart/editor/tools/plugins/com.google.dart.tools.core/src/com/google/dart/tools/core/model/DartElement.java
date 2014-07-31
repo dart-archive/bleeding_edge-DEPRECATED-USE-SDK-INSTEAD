@@ -107,22 +107,22 @@ public interface DartElement extends IAdaptable {
    */
   public static int FUNCTION = 14;
 
-  /**
+  /*
    * A constant representing a function type alias. A Dart element with this type can be safely cast
    * to {@link DartFunctionTypeAlias}.
    */
-  public static int FUNCTION_TYPE_ALIAS = 15;
+  //public static int FUNCTION_TYPE_ALIAS = 15;
 
   /**
    * A constant representing a class type alias.
    */
   public static int CLASS_TYPE_ALIAS = 18;
 
-  /**
+  /*
    * A constant representing a local variable or parameter. A Dart element with this type can be
    * safely cast to {@link DartVariableDeclaration}.
    */
-  public static int VARIABLE = 17;
+  //public static int VARIABLE = 17;
 
   /**
    * A constant representing a type parameter. A Dart element with this type can be safely cast to

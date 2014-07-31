@@ -291,17 +291,6 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
     }
   }
 
-  private DartElement[][] getAssignableElements() {
-    char[] signature = getProposal().getSignature();
-    char[][] types = Signature.getParameterTypes(signature);
-
-    DartElement[][] assignableElements = new DartElement[types.length][];
-    for (int i = 0; i < types.length; i++) {
-      assignableElements[i] = fCoreContext.getVisibleElements(new String(types[i]));
-    }
-    return assignableElements;
-  }
-
   private String getCategory() {
     return "ParameterGuessingProposal_" + toString(); //$NON-NLS-1$
   }
@@ -354,7 +343,6 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
 
     String[] parameterTypes = getParameterTypes();
     ParameterGuesser guesser = new ParameterGuesser(getEnclosingElement());
-    DartElement[][] assignableElements = getAssignableElements();
 
     for (int i = count - 1; i >= 0; i--) {
       String paramName = new String(parameterNames[i]);
@@ -364,7 +352,6 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
           parameterTypes[i],
           paramName,
           position,
-          assignableElements[i],
           fFillBestGuess);
       if (argumentProposals.length == 0) {
         argumentProposals = new ICompletionProposal[] {new DartCompletionProposal(
