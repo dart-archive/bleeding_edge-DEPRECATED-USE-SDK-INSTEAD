@@ -130,6 +130,91 @@ public class TypePropagationTest extends ResolverTestCase {
         getTypeProvider().getDynamicType());
   }
 
+  public void fail_mergePropagatedTypesAtJoinPoint_6() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    //
+    // Labeled [break]s are unsafe for the purposes of [isAbruptTerminationStatement].
+    //
+    // This is tricky: the [break] jumps back above the [if], making
+    // it into a loop of sorts. The [if] type-propagation code assumes
+    // that [break] does not introduce a loop.
+    String code = createSource(
+        "f() {",
+        "  var x = 0;",
+        "  var c = false;",
+        "  L: ",
+        "  if (c) {",
+        "  } else {",
+        "    x = '';",
+        "    c = true;",
+        "    break L;",
+        "  }",
+        "  x; // marker",
+        "}");
+    Type t = findMarkedIdentifier(code, "; // marker").getPropagatedType();
+    assertTrue(getTypeProvider().getIntType().isSubtypeOf(t));
+    assertTrue(getTypeProvider().getStringType().isSubtypeOf(t));
+  }
+
+  public void fail_mergePropagatedTypesAtJoinPoint_7() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    //
+    // In general [continue]s are unsafe for the purposes of [isAbruptTerminationStatement].
+    //
+    // This is like example 6, but less tricky: the code in the branch that
+    // [continue]s is in effect after the [if].
+    String code = createSource(
+        "f() {",
+        "  var x = 0;",
+        "  var c = false;",
+        "  var d = true;",
+        "  while (d) {",
+        "    if (c) {",
+        "      d = false;",
+        "    } else {",
+        "      x = '';",
+        "      c = true;",
+        "      continue;",
+        "    }",
+        "    x; // marker",
+        "  }",
+        "}");
+    Type t = findMarkedIdentifier(code, "; // marker").getPropagatedType();
+    assertTrue(getTypeProvider().getIntType().isSubtypeOf(t));
+    assertTrue(getTypeProvider().getStringType().isSubtypeOf(t));
+  }
+
+  public void fail_mergePropagatedTypesAtJoinPoint_8() throws Exception {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    //
+    // In nested loops [breaks]s are unsafe for the purposes of [isAbruptTerminationStatement].
+    //
+    // This is a combination of 6 and 7: we use an unlabeled [break]
+    // like a continue for the outer loop / like a labeled [break] to
+    // jump just above the [if].
+    String code = createSource(
+        "f() {",
+        "  var x = 0;",
+        "  var c = false;",
+        "  var d = true;",
+        "  while (d) {",
+        "    while (d) {",
+        "      if (c) {",
+        "        d = false;",
+        "      } else {",
+        "        x = '';",
+        "        c = true;",
+        "        break;",
+        "      }",
+        "      x; // marker",
+        "    }",
+        "  }",
+        "}");
+    Type t = findMarkedIdentifier(code, "; // marker").getPropagatedType();
+    assertTrue(getTypeProvider().getIntType().isSubtypeOf(t));
+    assertTrue(getTypeProvider().getStringType().isSubtypeOf(t));
+  }
+
   public void fail_propagatedReturnType_functionExpression() throws Exception {
     // TODO(scheglov) disabled because we don't resolve function expression
     String code = createSource(//
