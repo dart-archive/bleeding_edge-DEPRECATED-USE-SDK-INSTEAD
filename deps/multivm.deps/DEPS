@@ -10,7 +10,7 @@ vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "multivm_base": "http://src.chromium.org",
   "multivm_chromium_branch": "/chrome/trunk/src",
-  "multivm_chromium_revision": "286013",
+  "multivm_chromium_revision": "286281",
   # Revision numbers for archived builds closest to r286013.
   # The archive switched back from git hashes to revision numbers.
   # TODO(whesse): Revert code, and remove this map, when dartium is rolled.
