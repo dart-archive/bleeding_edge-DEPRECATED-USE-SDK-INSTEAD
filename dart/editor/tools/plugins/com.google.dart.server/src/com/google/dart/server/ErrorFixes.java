@@ -37,6 +37,5 @@ public interface ErrorFixes {
    * 
    * @return the fixes associated with the error
    */
-  // TODO (jwren) Fill in after we have a data type
-  // public List<TBA> getFixes();
+  public SourceChange[] getFixes();
 }

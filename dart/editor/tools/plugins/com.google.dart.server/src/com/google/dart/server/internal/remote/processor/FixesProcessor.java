@@ -42,8 +42,9 @@ public class FixesProcessor extends ResultProcessor {
   }
 
   private ErrorFixes constructErrorFixes(JsonObject jsonObject) {
-    // TODO (jwren) "fixes" property after we have a data type in the spec
-    return new ErrorFixesImpl(constructAnalysisError(jsonObject.get("error").getAsJsonObject()));
+    return new ErrorFixesImpl(
+        constructAnalysisError(jsonObject.get("error").getAsJsonObject()),
+        constructSourceChangeArray(jsonObject.get("fixes").getAsJsonArray()));
   }
 
   private ErrorFixes[] constructErrorFixesArray(JsonArray jsonArray) {

@@ -1727,7 +1727,24 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "          },",
         "          'message': 'message A',",
         "          'correction': 'correction A'",
-        "        }",
+        "        },",
+        "        'fixes': [",
+        "          {",
+        "            'message': 'message3',",
+        "            'edits': [",
+        "              {",
+        "                'file':'someFile3.dart',",
+        "                'edits': [",
+        "                  {",
+        "                    'offset': 9,",
+        "                    'length': 10,",
+        "                    'replacement': 'replacement1'",
+        "                  }",
+        "                ]",
+        "              }",
+        "            ]",
+        "          }",
+        "        ]",
         "      },",
         "      {",
         "        'error': {",
@@ -1742,7 +1759,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "          },",
         "          'message': 'message B',",
         "          'correction': 'correction B'",
-        "        }",
+        "        },",
+        "        'fixes':[]",
         "      }",
         "    ]",
         "  }",
@@ -1760,6 +1778,17 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           2,
           3,
           4), "message A", "correction A"), error);
+      SourceChange[] sourceChangeArray = errorFixes[0].getFixes();
+      assertThat(sourceChangeArray).hasSize(1);
+      assertEquals("message3", sourceChangeArray[0].getMessage());
+      assertThat(sourceChangeArray[0].getEdits()).hasSize(1);
+      SourceFileEdit sourceFileEdit = sourceChangeArray[0].getEdits()[0];
+      assertEquals("someFile3.dart", sourceFileEdit.getFile());
+      assertThat(sourceFileEdit.getEdits()).hasSize(1);
+      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
+      assertEquals(9, sourceEdit.getOffset());
+      assertEquals(10, sourceEdit.getLength());
+      assertEquals("replacement1", sourceEdit.getReplacement());
     }
     {
       AnalysisError error = errorFixes[1].getError();
@@ -1769,6 +1798,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
           new LocationImpl("/fileB.dart", 5, 6, 7, 8),
           "message B",
           "correction B"), error);
+      SourceChange[] sourceChangeArray = errorFixes[1].getFixes();
+      assertThat(sourceChangeArray).isEmpty();
     }
   }
 

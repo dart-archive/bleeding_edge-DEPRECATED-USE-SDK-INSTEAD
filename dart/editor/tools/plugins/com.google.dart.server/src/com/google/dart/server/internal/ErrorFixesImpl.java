@@ -16,6 +16,9 @@ package com.google.dart.server.internal;
 
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.ErrorFixes;
+import com.google.dart.server.SourceChange;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * An implementation of {@link ErrorFixes}.
@@ -24,9 +27,11 @@ import com.google.dart.server.ErrorFixes;
  */
 public class ErrorFixesImpl implements ErrorFixes {
   private final AnalysisError analysisError;
+  private final SourceChange[] fixes;
 
-  public ErrorFixesImpl(AnalysisError analysisError) {
+  public ErrorFixesImpl(AnalysisError analysisError, SourceChange[] fixes) {
     this.analysisError = analysisError;
+    this.fixes = fixes;
   }
 
   @Override
@@ -35,10 +40,17 @@ public class ErrorFixesImpl implements ErrorFixes {
   }
 
   @Override
+  public SourceChange[] getFixes() {
+    return fixes;
+  }
+
+  @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("[error=");
     builder.append(analysisError.toString());
+    builder.append(", fixes=");
+    builder.append(StringUtils.join(fixes, ", "));
     builder.append("]");
     return builder.toString();
   }
