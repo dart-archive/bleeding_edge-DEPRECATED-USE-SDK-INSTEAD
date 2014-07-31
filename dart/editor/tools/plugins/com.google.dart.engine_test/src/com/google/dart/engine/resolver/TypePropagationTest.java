@@ -42,6 +42,8 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
+import junit.framework.AssertionFailedError;
+
 public class TypePropagationTest extends ResolverTestCase {
   public void fail_mergePropagatedTypesAtJoinPoint_1() throws Exception {
     // https://code.google.com/p/dart/issues/detail?id=19929
@@ -1184,13 +1186,8 @@ public class TypePropagationTest extends ResolverTestCase {
    */
   private void assertPropagatedReturnType(String code, Type expectedStaticType,
       Type expectedPropagatedType) throws Exception {
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    //
-    SimpleIdentifier identifier = findNode(unit, code, "v = ", SimpleIdentifier.class);
+
+    SimpleIdentifier identifier = findMarkedIdentifier(code, "v = ");
     assertSame(expectedStaticType, identifier.getStaticType());
     assertSame(expectedPropagatedType, identifier.getPropagatedType());
   }
@@ -1205,17 +1202,39 @@ public class TypePropagationTest extends ResolverTestCase {
    */
   private void assertTypeOfMarkedExpression(String code, Type expectedStaticType,
       Type expectedPropagatedType) throws Exception {
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify(source);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    SimpleIdentifier identifier = findNode(unit, code, "; // marker", SimpleIdentifier.class);
+    SimpleIdentifier identifier = findMarkedIdentifier(code, "; // marker");
     if (expectedStaticType != null) {
       assertSame(expectedStaticType, identifier.getStaticType());
     }
     if (expectedPropagatedType != null) {
       assertSame(expectedPropagatedType, identifier.getPropagatedType());
+    }
+  }
+
+  /**
+   * Return the {@code SimpleIdentifier} marked by {@code marker}. The source code must have no
+   * errors and be verifiable.
+   * 
+   * @param code source code to analyze.
+   * @param marker marker identifying sought after expression in source code.
+   * @return expression marked by the marker.
+   * @throws Exception
+   */
+  private SimpleIdentifier findMarkedIdentifier(String code, String marker) throws Exception {
+    try {
+      Source source = addSource(code);
+      LibraryElement library = resolve(source);
+      assertNoErrors(source);
+      verify(source);
+      CompilationUnit unit = resolveCompilationUnit(source, library);
+      // Could generalize this further by making [SimpleIdentifier.class] a parameter.
+      return findNode(unit, code, marker, SimpleIdentifier.class);
+    } catch (AssertionFailedError exception) {
+      // Is there a better exception to throw here? The point is that an assertion failure
+      // here should be a failure, in both "test_*" and "fail_*" tests.
+      // However, an assertion failure is success for the purpose of "fail_*" tests, so
+      // without catching them here "fail_*" tests can succeed by failing for the wrong reason.
+      throw new Exception("Unexexpected assertion failure: " + exception);
     }
   }
 }

@@ -63,11 +63,15 @@ public class ExtendedTestSuite extends TestSuite {
         protectable.protect();
       } catch (ThreadDeath exception) { // don't catch ThreadDeath by accident
         throw exception;
-      } catch (Throwable exception) {
+      } catch (AssertionFailedError exception) {
+        return;
+      } catch (Throwable exception) { // Unexpected exceptions are still failures.
+        wrappedResult.addFailure(test, new AssertionFailedError(
+            "Expected assertion failure, but got other failure: " + exception));
         return;
       }
       wrappedResult.addFailure(test, new AssertionFailedError(
-          "Expected failure or error, but passed"));
+          "Expected assertion failure, but passed"));
     }
 
     @Override
