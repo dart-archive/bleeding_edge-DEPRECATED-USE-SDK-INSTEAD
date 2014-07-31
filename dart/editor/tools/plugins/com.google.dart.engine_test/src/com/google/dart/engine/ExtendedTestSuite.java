@@ -63,7 +63,10 @@ public class ExtendedTestSuite extends TestSuite {
         protectable.protect();
       } catch (ThreadDeath exception) { // don't catch ThreadDeath by accident
         throw exception;
-      } catch (AssertionFailedError exception) {
+        // Would like to use the more specific JUnit [AssertionFailedError] here, but
+        // some tests (e.g. [SearchEngineImplTest]) use the [org.fest.assertions]
+        // package, which throws plain Java [AssertionError].
+      } catch (AssertionError exception) {
         return;
       } catch (Throwable exception) { // Unexpected exceptions are still failures.
         wrappedResult.addFailure(test, new AssertionFailedError(
