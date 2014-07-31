@@ -72,10 +72,11 @@ public interface AnalysisServer {
    * on a different thread.
    * 
    * @param file the file containing the range for which assists are being requested
-   * @param offset the offset of the region used to compute the assists
+   * @param offset the offset of the code for which assists are being requested
+   * @param length the length of the code for which assists are being requested
    * @param consumer the results listener
    */
-  public void getAssists(String file, int offset, AssistsConsumer consumer);
+  public void getAssists(String file, int offset, int length, AssistsConsumer consumer);
 
   /**
    * Computes code completion id for the given position in the file. The given consumer is invoked

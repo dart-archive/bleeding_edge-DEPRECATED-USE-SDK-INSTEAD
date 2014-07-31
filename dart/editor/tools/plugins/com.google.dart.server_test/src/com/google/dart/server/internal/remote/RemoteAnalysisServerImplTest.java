@@ -1604,7 +1604,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_edit_getAssists() throws Exception {
     final SourceChange[][] sourceChangeArray = {{null}};
-    server.getAssists("/fileA.dart", 1, new AssistsConsumer() {
+    server.getAssists("/fileA.dart", 1, 2, new AssistsConsumer() {
       @Override
       public void computedSourceChanges(SourceChange[] sourceChanges) {
         sourceChangeArray[0] = sourceChanges;
@@ -1617,7 +1617,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'method': 'edit.getAssists',",
         "  'params': {",
         "    'file': '/fileA.dart',",
-        "    'offset': 1",
+        "    'offset': 1,",
+        "    'length': 2",
         "  }",
         "}");
     assertTrue(requests.contains(expected));

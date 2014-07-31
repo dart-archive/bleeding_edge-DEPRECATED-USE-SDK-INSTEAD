@@ -288,9 +288,12 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void getAssists(String file, int offset, AssistsConsumer consumer) {
+  public void getAssists(String file, int offset, int length, AssistsConsumer consumer) {
     String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateEditGetAssists(id, file, offset), consumer);
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateEditGetAssists(id, file, offset, length),
+        consumer);
   }
 
   @Override
