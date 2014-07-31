@@ -31,6 +31,6 @@ public interface RefactoringCreateConsumer extends Consumer {
    *          problems at this stage
    * @param feedback additional feedback parameters for this kind of refactoring
    */
-  public void computed(String refactoringId, RefactoringProblem[] status,
+  public void computedStatus(String refactoringId, RefactoringProblem[] status,
       Map<String, Object> feedback);
 }

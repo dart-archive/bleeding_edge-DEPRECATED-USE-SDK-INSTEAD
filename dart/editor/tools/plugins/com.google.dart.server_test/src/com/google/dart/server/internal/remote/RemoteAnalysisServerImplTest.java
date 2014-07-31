@@ -43,6 +43,7 @@ import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OverrideMember;
+import com.google.dart.server.Parameter;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringCreateConsumer;
 import com.google.dart.server.RefactoringGetConsumer;
@@ -64,6 +65,7 @@ import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.AnalysisErrorImpl;
 import com.google.dart.server.internal.AnalysisServerError;
 import com.google.dart.server.internal.LocationImpl;
+import com.google.dart.server.internal.ParameterImpl;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -1267,7 +1269,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         2,
         new RefactoringCreateConsumer() {
           @Override
-          public void computed(String id, RefactoringProblem[] status, Map<String, Object> feedback) {
+          public void computedStatus(String id, RefactoringProblem[] status,
+              Map<String, Object> feedback) {
             refactoringId[0] = id;
             problemsArray[0] = status;
           }
@@ -1354,7 +1357,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         2,
         new RefactoringCreateConsumer() {
           @Override
-          public void computed(String id, RefactoringProblem[] status, Map<String, Object> feedback) {
+          public void computedStatus(String id, RefactoringProblem[] status,
+              Map<String, Object> feedback) {
             refactoringId[0] = id;
             problemsArray[0] = status;
           }
@@ -1382,8 +1386,206 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  }",
         "}");
     server.test_waitForWorkerComplete();
+
+    // assertions
     assertEquals("refactoringId0", refactoringId[0]);
     assertThat(problemsArray[0]).isEmpty();
+  }
+
+  public void test_edit_createRefactoring_extractLocalVariable() throws Exception {
+    final String[] refactoringId = {null};
+    final RefactoringProblem[][] problemsArray = {{null}};
+    @SuppressWarnings("rawtypes")
+    final Map[] feedback = {null};
+    server.createRefactoring(
+        RefactoringKind.EXTRACT_LOCAL_VARIABLE,
+        "/fileA.dart",
+        1,
+        2,
+        new RefactoringCreateConsumer() {
+          @Override
+          public void computedStatus(String id, RefactoringProblem[] status, Map<String, Object> f) {
+            refactoringId[0] = id;
+            problemsArray[0] = status;
+            feedback[0] = f;
+          }
+        });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.createRefactoring',",
+        "  'params': {",
+        "    'kind': 'EXTRACT_LOCAL_VARIABLE',",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'id': 'refactoringId0',",
+        "    'status': [],",
+        "    'names':['a','b','c'],",
+        "    'offsets':[1,2,3],",
+        "    'lengths':[4,5,6]",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions
+    assertEquals("refactoringId0", refactoringId[0]);
+    assertThat(problemsArray[0]).isEmpty();
+    assertThat(feedback[0]).hasSize(3);
+    assertTrue(feedback[0].containsKey("names"));
+    assertTrue(feedback[0].containsKey("offsets"));
+    assertTrue(feedback[0].containsKey("lengths"));
+    assertThat(feedback[0].get("names")).isEqualTo(new String[] {"a", "b", "c"});
+    assertThat(feedback[0].get("offsets")).isEqualTo(new int[] {1, 2, 3});
+    assertThat(feedback[0].get("lengths")).isEqualTo(new int[] {4, 5, 6});
+  }
+
+  public void test_edit_createRefactoring_extractMethod() throws Exception {
+    final String[] refactoringId = {null};
+    final RefactoringProblem[][] problemsArray = {{null}};
+    @SuppressWarnings("rawtypes")
+    final Map[] feedback = {null};
+    server.createRefactoring(
+        RefactoringKind.EXTRACT_METHOD,
+        "/fileA.dart",
+        1,
+        2,
+        new RefactoringCreateConsumer() {
+          @Override
+          public void computedStatus(String id, RefactoringProblem[] status, Map<String, Object> f) {
+            refactoringId[0] = id;
+            problemsArray[0] = status;
+            feedback[0] = f;
+          }
+        });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.createRefactoring',",
+        "  'params': {",
+        "    'kind': 'EXTRACT_METHOD',",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'id': 'refactoringId0',",
+        "    'status': [],",
+        "    'offset': 1,",
+        "    'length': 2,",
+        "    'returnType': 'returnType0',",
+        "    'names': ['a', 'b'],",
+        "    'canCreateGetter': false,",
+        "    'parameters': [",
+        "      {",
+        "        'type':'type0',",
+        "        'name':'name0'",
+        "      },",
+        "      {",
+        "        'type':'type1',",
+        "        'name':'name1'",
+        "      }",
+        "    ],",
+        "    'occurrences': 3,",
+        "    'offsets': [4, 5, 6],",
+        "    'lengths': [7, 8, 9]",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions
+    assertEquals("refactoringId0", refactoringId[0]);
+    assertThat(problemsArray[0]).isEmpty();
+    assertThat(feedback[0]).hasSize(9);
+    assertTrue(feedback[0].containsKey("offset"));
+    assertTrue(feedback[0].containsKey("length"));
+    assertTrue(feedback[0].containsKey("returnType"));
+    assertTrue(feedback[0].containsKey("names"));
+    assertTrue(feedback[0].containsKey("canCreateGetter"));
+    assertTrue(feedback[0].containsKey("parameters"));
+    assertTrue(feedback[0].containsKey("occurrences"));
+    assertTrue(feedback[0].containsKey("offsets"));
+    assertTrue(feedback[0].containsKey("lengths"));
+    assertThat(feedback[0].get("offset")).isEqualTo(1);
+    assertThat(feedback[0].get("length")).isEqualTo(2);
+    assertThat(feedback[0].get("returnType")).isEqualTo("returnType0");
+    assertThat(feedback[0].get("names")).isEqualTo(new String[] {"a", "b"});
+    assertThat(feedback[0].get("canCreateGetter")).isEqualTo(false);
+    assertThat(feedback[0].get("parameters")).isEqualTo(
+        new Parameter[] {new ParameterImpl("type0", "name0"), new ParameterImpl("type1", "name1")});
+    assertThat(feedback[0].get("occurrences")).isEqualTo(3);
+    assertThat(feedback[0].get("offsets")).isEqualTo(new int[] {4, 5, 6});
+    assertThat(feedback[0].get("lengths")).isEqualTo(new int[] {7, 8, 9});
+  }
+
+  public void test_edit_createRefactoring_rename() throws Exception {
+    final String[] refactoringId = {null};
+    final RefactoringProblem[][] problemsArray = {{null}};
+    @SuppressWarnings("rawtypes")
+    final Map[] feedback = {null};
+    server.createRefactoring(
+        RefactoringKind.RENAME,
+        "/fileA.dart",
+        1,
+        2,
+        new RefactoringCreateConsumer() {
+          @Override
+          public void computedStatus(String id, RefactoringProblem[] status, Map<String, Object> f) {
+            refactoringId[0] = id;
+            problemsArray[0] = status;
+            feedback[0] = f;
+          }
+        });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.createRefactoring',",
+        "  'params': {",
+        "    'kind': 'RENAME',",
+        "    'file': '/fileA.dart',",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+
+    putResponse(//
+        "{",
+        "  'id': '0',",
+        "  'result': {",
+        "    'id': 'refactoringId0',",
+        "    'status': [],",
+        "    'offset': 1,",
+        "    'length': 2",
+        "  }",
+        "}");
+    server.test_waitForWorkerComplete();
+
+    // assertions
+    assertEquals("refactoringId0", refactoringId[0]);
+    assertThat(problemsArray[0]).isEmpty();
+    assertThat(feedback[0]).hasSize(2);
+    assertTrue(feedback[0].containsKey("offset"));
+    assertTrue(feedback[0].containsKey("length"));
+    assertThat(feedback[0].get("offset")).isEqualTo(1);
+    assertThat(feedback[0].get("length")).isEqualTo(2);
   }
 
   public void test_edit_deleteRefactoring() throws Exception {
