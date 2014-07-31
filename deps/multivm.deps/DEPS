@@ -14,8 +14,8 @@ vars.update({
   # Git hash for archived builds closest to r286013.
   "chromium_base_revision":
       '{"Windows": "47aa4a2169a954cfac4b0f19344e0a1884bdff49", ' +
-      ' "Darwin": "e93632050f9486018bd8259b8366684d494e0df8", ' +
-      ' "Linux": "e93632050f9486018bd8259b8366684d494e0df8"}',
+      ' "Darwin": "5762bd6b2f0ac5874bfd408a1cb7c22d0a76f903", ' +
+      ' "Linux": "617e6716b1b2bd19556ebec69485cac2ff70d7e5"}',
   "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
   "dart_tools_revision": "37732",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
