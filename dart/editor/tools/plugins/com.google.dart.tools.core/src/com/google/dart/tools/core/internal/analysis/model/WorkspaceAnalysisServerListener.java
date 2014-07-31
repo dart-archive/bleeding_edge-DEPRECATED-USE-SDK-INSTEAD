@@ -53,8 +53,8 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedCompletion(String completionId, CompletionSuggestion[] completions,
-      boolean last) {
+  public void computedCompletion(String completionId, int replacementOffset,
+      int replacementLength, CompletionSuggestion[] completions, boolean last) {
     // TODO(jwren/scheglov) not yet implemented
   }
 

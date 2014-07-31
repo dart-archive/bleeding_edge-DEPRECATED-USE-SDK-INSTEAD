@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.server.CompletionIdConsumer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
@@ -31,6 +33,8 @@ import org.eclipse.ui.IEditorPart;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Java completion processor.
@@ -125,21 +129,21 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
   private boolean waitUntilReady_NEW(long millisToWait) {
     // TODO(scheglov) restore or remove for the new API
 //  collector.acceptContext(new InternalCompletionContext());
-//  final CountDownLatch latch = new CountDownLatch(1);
-//  DartCore.getAnalysisServer().computeCompletionSuggestions(
-//      assistContext.getAnalysisContextId(),
-//      assistContext.getSource(),
-//      offset,
-//      new CompletionSuggestionsConsumer() {
-//        @Override
-//        public void computed(CompletionSuggestion[] suggestions) {
-//          for (CompletionSuggestion suggestion : suggestions) {
-//            collector.accept(new ProxyProposal_NEW(suggestion));
-//          }
-//          latch.countDown();
-//        }
-//      });
-//  Uninterruptibles.awaitUninterruptibly(latch, 2000, TimeUnit.MILLISECONDS);
+    final CountDownLatch latch = new CountDownLatch(1);
+    final DartEditor dartEditor = (DartEditor) fEditor;
+    String filePath = dartEditor.getInputFilePath();
+    int offset = dartEditor.getCachedSelectedRange().x;
+    DartCore.getAnalysisServer().getCompletionSuggestions(
+        filePath,
+        offset,
+        new CompletionIdConsumer() {
+          @Override
+          public void computedCompletionId(String completionId) {
+            System.out.println(completionId);
+            latch.countDown();
+          }
+        });
+    Uninterruptibles.awaitUninterruptibly(latch, 8, TimeUnit.SECONDS);
     return false;
   }
 

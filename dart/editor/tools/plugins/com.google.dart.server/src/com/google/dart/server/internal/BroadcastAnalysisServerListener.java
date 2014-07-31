@@ -53,10 +53,15 @@ public class BroadcastAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedCompletion(String completionId, CompletionSuggestion[] completions,
-      boolean last) {
+  public void computedCompletion(String completionId, int replacementOffset, int replacementLength,
+      CompletionSuggestion[] completions, boolean last) {
     for (AnalysisServerListener listener : getListeners()) {
-      listener.computedCompletion(completionId, completions, last);
+      listener.computedCompletion(
+          completionId,
+          replacementOffset,
+          replacementLength,
+          completions,
+          last);
     }
   }
 

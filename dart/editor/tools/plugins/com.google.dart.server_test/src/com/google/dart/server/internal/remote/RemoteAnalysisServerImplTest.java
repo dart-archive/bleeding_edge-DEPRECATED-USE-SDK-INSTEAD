@@ -1014,15 +1014,13 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'event': 'completion.results',",
         "  'params': {",
         "    'id': 'completion0',",
+        "    'replacementOffset': 107,",
+        "    'replacementLength': 108,",
         "    'results' : [",
         "      {",
         "        'kind': 'CLASS',",
         "        'relevance': 'LOW',",
         "        'completion': 'completion0',",
-        "        'replacementOffset': 0,",
-        "        'replacementLength': 1,",
-        "        'insertionLength': 2,",
-        "        'offset': 3,",
         "        'selectionOffset': 4,",
         "        'selectionLength': 5,",
         "        'isDeprecated': true,",
@@ -1042,10 +1040,6 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "        'kind': 'CLASS_ALIAS',",
         "        'relevance': 'DEFAULT',",
         "        'completion': 'completion1',",
-        "        'replacementOffset': 6,",
-        "        'replacementLength': 7,",
-        "        'insertionLength': 8,",
-        "        'offset': 9,",
         "        'selectionOffset': 10,",
         "        'selectionLength': 11,",
         "        'isDeprecated': true,",
@@ -1057,17 +1051,16 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
+    assertThat(listener.getCompletionReplacementOffset("completion0")).isEqualTo(107);
+    assertThat(listener.getCompletionReplacementLength("completion0")).isEqualTo(108);
     CompletionSuggestion[] suggestions = listener.getCompletions("completion0");
     assertThat(suggestions).hasSize(2);
+    assertThat(listener.getCompletionIsLast("completion0")).isEqualTo(true);
     {
       CompletionSuggestion suggestion = suggestions[0];
       assertEquals(CompletionSuggestionKind.CLASS, suggestion.getKind());
       assertEquals(CompletionRelevance.LOW, suggestion.getRelevance());
       assertEquals(suggestion.getCompletion(), "completion0");
-      assertEquals(suggestion.getReplacementOffset(), 0);
-      assertEquals(suggestion.getReplacementLength(), 1);
-      assertEquals(suggestion.getInsertionLength(), 2);
-      assertEquals(suggestion.getOffset(), 3);
       assertEquals(suggestion.getSelectionOffset(), 4);
       assertEquals(suggestion.getSelectionLength(), 5);
       assertTrue(suggestion.isDeprecated());
@@ -1095,10 +1088,6 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
       assertEquals(CompletionSuggestionKind.CLASS_ALIAS, suggestion.getKind());
       assertEquals(CompletionRelevance.DEFAULT, suggestion.getRelevance());
       assertEquals(suggestion.getCompletion(), "completion1");
-      assertEquals(suggestion.getReplacementOffset(), 6);
-      assertEquals(suggestion.getReplacementLength(), 7);
-      assertEquals(suggestion.getInsertionLength(), 8);
-      assertEquals(suggestion.getOffset(), 9);
       assertEquals(suggestion.getSelectionOffset(), 10);
       assertEquals(suggestion.getSelectionLength(), 11);
       assertTrue(suggestion.isDeprecated());

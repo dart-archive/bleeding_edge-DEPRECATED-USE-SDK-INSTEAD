@@ -37,12 +37,27 @@ import junit.framework.AssertionFailedError;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class TestAnalysisServerListener implements AnalysisServerListener {
-  private final Map<String, CompletionSuggestion[]> completionsMap = Maps.newHashMap();
+
+  private final static class CompletionResult {
+    final int replacementOffset;
+    final int replacementLength;
+    final CompletionSuggestion[] suggestions;
+    final boolean last;
+
+    public CompletionResult(int replacementOffset, int replacementLength,
+        CompletionSuggestion[] suggestions, boolean last) {
+      this.replacementOffset = replacementOffset;
+      this.replacementLength = replacementLength;
+      this.suggestions = suggestions;
+      this.last = last;
+    }
+  }
+
+  private final Map<String, CompletionResult> completionsMap = Maps.newHashMap();
   private final Map<String, SearchResult[]> searchResultsMap = Maps.newHashMap();
   private final List<AnalysisServerError> serverErrors = Lists.newArrayList();
   private final Map<String, AnalysisError[]> sourcesErrors = Maps.newHashMap();
@@ -126,18 +141,14 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public synchronized void computedCompletion(String completionId,
-      CompletionSuggestion[] completions, boolean last) {
-    CompletionSuggestion[] value = completionsMap.get(completionId);
-    if (value == null) {
-      completionsMap.put(completionId, completions);
-    } else {
-      List<CompletionSuggestion> completionsAsList = Arrays.asList(completions);
-      completionsAsList.addAll(Arrays.asList(value));
-      completionsMap.put(
-          completionId,
-          completionsAsList.toArray(new CompletionSuggestion[completionsAsList.size()]));
-    }
+  public synchronized void computedCompletion(String completionId, int replacementOffset,
+      int replacementLength, CompletionSuggestion[] suggestions, boolean last) {
+    // computed completion results are aggregate, replacing any prior results
+    completionsMap.put(completionId, new CompletionResult(
+        replacementOffset,
+        replacementLength,
+        suggestions,
+        last));
   }
 
   @Override
@@ -190,12 +201,37 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
     return null;
   }
 
+  public boolean getCompletionIsLast(String completionId) {
+    CompletionResult result = completionsMap.get(completionId);
+    if (result == null) {
+      throw new AssertionFailedError("Expected completion response: " + completionId);
+    }
+    return result.last;
+  }
+
+  public int getCompletionReplacementLength(String completionId) {
+    CompletionResult result = completionsMap.get(completionId);
+    if (result == null) {
+      throw new AssertionFailedError("Expected completion response: " + completionId);
+    }
+    return result.replacementLength;
+  }
+
+  public int getCompletionReplacementOffset(String completionId) {
+    CompletionResult result = completionsMap.get(completionId);
+    if (result == null) {
+      throw new AssertionFailedError("Expected completion response: " + completionId);
+    }
+    return result.replacementOffset;
+  }
+
   /**
    * Returns {@link CompletionSuggestion[]} for the given completion id, maybe {@code null} if have
    * not been ever notified.
    */
   public synchronized CompletionSuggestion[] getCompletions(String completionId) {
-    return completionsMap.get(completionId);
+    CompletionResult result = completionsMap.get(completionId);
+    return result != null ? result.suggestions : null;
   }
 
   /**
@@ -294,5 +330,4 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
       Assert.assertTrue(ArrayUtilities.contains(actualErrors, expectedError));
     }
   }
-
 }

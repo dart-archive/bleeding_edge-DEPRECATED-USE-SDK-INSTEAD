@@ -27,10 +27,15 @@ import org.eclipse.core.runtime.IProgressMonitor;
  */
 public class ProxyProposal_NEW extends CompletionProposal {
 
+  private final int replacementOffset;
+  private final int replacementLength;
   private final CompletionSuggestion suggestion;
   private int partitionOffset;
 
-  public ProxyProposal_NEW(CompletionSuggestion suggestion) {
+  public ProxyProposal_NEW(int replacementOffset, int replacementLength,
+      CompletionSuggestion suggestion) {
+    this.replacementOffset = replacementOffset;
+    this.replacementLength = replacementLength;
     this.suggestion = suggestion;
   }
 
@@ -51,7 +56,7 @@ public class ProxyProposal_NEW extends CompletionProposal {
 
   @Override
   public int getCompletionLocation() {
-    return partitionOffset + suggestion.getOffset() - 1;
+    return partitionOffset + replacementOffset - 1;
   }
 
   @Override
@@ -85,7 +90,7 @@ public class ProxyProposal_NEW extends CompletionProposal {
         return CompletionProposal.FIELD_REF;
       case FUNCTION:
         return CompletionProposal.METHOD_REF;
-      case FUNCTION_ALIAS:
+      case FUNCTION_TYPE_ALIAS:
         return CompletionProposal.TYPE_REF;
       case GETTER:
         return CompletionProposal.FIELD_REF;
@@ -155,17 +160,17 @@ public class ProxyProposal_NEW extends CompletionProposal {
 
   @Override
   public int getReplaceEnd() {
-    return suggestion.getOffset() + suggestion.getReplacementLength();
+    return replacementOffset + replacementLength;
   }
 
   @Override
   public int getReplaceEndIdentifier() {
-    return suggestion.getOffset() + suggestion.getInsertionLength();
+    return replacementOffset + suggestion.getCompletion().length();
   }
 
   @Override
   public int getReplaceStart() {
-    return suggestion.getOffset();
+    return replacementOffset;
   }
 
   @Override

@@ -26,10 +26,6 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
   private final CompletionSuggestionKind kind;
   private final CompletionRelevance relevance;
   private final String completion;
-  private final int replacementOffset;
-  private final int replacementLength;
-  private final int insertionLength;
-  private final int offset;
   private final int selectionOffset;
   private final int selectionLength;
   private final boolean isDeprecated;
@@ -46,8 +42,7 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
   private final String parameterType;
 
   public CompletionSuggestionImpl(CompletionSuggestionKind kind, CompletionRelevance relevance,
-      String completion, int replacementOffset, int replacementLength, int insertionLength,
-      int offset, int selectionOffset, int selectionLength, boolean isDeprecated,
+      String completion, int selectionOffset, int selectionLength, boolean isDeprecated,
       boolean isPotential, String elementDocSummary, String elementDocDetails,
       String declaringType, String returnType, String[] parameterNames, String[] parameterTypes,
       int requiredParameterCount, int positionalParameterCount, String parameterName,
@@ -55,10 +50,6 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
-    this.replacementOffset = replacementOffset;
-    this.replacementLength = replacementLength;
-    this.insertionLength = insertionLength;
-    this.offset = offset;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
     this.isDeprecated = isDeprecated;
@@ -96,18 +87,8 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
   }
 
   @Override
-  public int getInsertionLength() {
-    return insertionLength;
-  }
-
-  @Override
   public CompletionSuggestionKind getKind() {
     return kind;
-  }
-
-  @Override
-  public int getOffset() {
-    return offset;
   }
 
   @Override
@@ -138,16 +119,6 @@ public class CompletionSuggestionImpl implements CompletionSuggestion {
   @Override
   public CompletionRelevance getRelevance() {
     return relevance;
-  }
-
-  @Override
-  public int getReplacementLength() {
-    return replacementLength;
-  }
-
-  @Override
-  public int getReplacementOffset() {
-    return replacementOffset;
   }
 
   @Override

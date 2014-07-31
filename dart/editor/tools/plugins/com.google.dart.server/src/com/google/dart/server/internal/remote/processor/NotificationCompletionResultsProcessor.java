@@ -55,9 +55,16 @@ public class NotificationCompletionResultsProcessor extends NotificationProcesso
     JsonObject paramsObject = response.get("params").getAsJsonObject();
     String completionId = paramsObject.get("id").getAsString();
     JsonArray resultsArray = paramsObject.get("results").getAsJsonArray();
+    int replacementOffset = paramsObject.get("replacementOffset").getAsInt();
+    int replacementLength = paramsObject.get("replacementLength").getAsInt();
     boolean last = paramsObject.get("last").getAsBoolean();
     // compute outline and notify listener
-    getListener().computedCompletion(completionId, constructCompletions(resultsArray), last);
+    getListener().computedCompletion(
+        completionId,
+        replacementOffset,
+        replacementLength,
+        constructCompletions(resultsArray),
+        last);
   }
 
   private CompletionSuggestion[] constructCompletions(JsonArray resultsArray) {
@@ -68,10 +75,6 @@ public class NotificationCompletionResultsProcessor extends NotificationProcesso
       CompletionSuggestionKind kind = getCompletionSuggestionKind(completionObject.get("kind").getAsString());
       CompletionRelevance relevance = CompletionRelevance.valueOf(completionObject.get("relevance").getAsString());
       String completion = completionObject.get("completion").getAsString();
-      int replacementOffset = completionObject.get("replacementOffset").getAsInt();
-      int replacementLength = completionObject.get("replacementLength").getAsInt();
-      int insertionLength = completionObject.get("insertionLength").getAsInt();
-      int offset = completionObject.get("offset").getAsInt();
       int selectionOffset = completionObject.get("selectionOffset").getAsInt();
       int selectionLength = completionObject.get("selectionLength").getAsInt();
       boolean isDeprecated = completionObject.get("isDeprecated").getAsBoolean();
@@ -95,10 +98,6 @@ public class NotificationCompletionResultsProcessor extends NotificationProcesso
           kind,
           relevance,
           completion,
-          replacementOffset,
-          replacementLength,
-          insertionLength,
-          offset,
           selectionOffset,
           selectionLength,
           isDeprecated,

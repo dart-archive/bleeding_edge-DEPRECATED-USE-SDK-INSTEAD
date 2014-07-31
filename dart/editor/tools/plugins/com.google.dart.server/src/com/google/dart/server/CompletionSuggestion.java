@@ -30,49 +30,98 @@ public interface CompletionSuggestion {
    */
   char CURSOR_MARKER = 0x2758;
 
+  /**
+   * The identifier to be inserted if the suggestion is selected. If the suggestion is for a method
+   * or function, the client might want to additionally insert a template for the parameters. The
+   * information required in order to do so is contained in other fields.
+   */
   String getCompletion();
 
+  /**
+   * The class that declares the element being suggested. This field is omitted if the suggested
+   * element is not a member of a class.
+   */
   String getDeclaringType();
 
   String getElementDocDetails();
 
   String getElementDocSummary();
 
-  int getInsertionLength();
-
+  /**
+   * The kind of element being suggested.
+   */
   CompletionSuggestionKind getKind();
 
-  int getOffset();
-
+  /**
+   * The name of the optional parameter being suggested. This field is omitted if the suggestion is
+   * not the addition of an optional argument within an argument list.
+   */
   String getParameterName();
 
+  /**
+   * The names of the parameters of the function or method being suggested. This field is omitted if
+   * the suggested element is not a setter, function or method.
+   */
   String[] getParameterNames();
 
+  /**
+   * The type of the options parameter being suggested. This field is omitted if the parameterName
+   * field is omitted.
+   */
   String getParameterType();
 
+  /**
+   * The types of the parameters of the function or method being suggested. This field is omitted if
+   * the parameterNames field is omitted.
+   */
   String[] getParameterTypes();
 
+  /**
+   * The number of positional parameters for the function or method being suggested. This field is
+   * omitted if the parameterNames field is omitted.
+   */
   int getPositionalParameterCount();
 
+  /**
+   * The relevance of this completion suggestion.
+   */
   CompletionRelevance getRelevance();
 
-  int getReplacementLength();
-
-  int getReplacementOffset();
-
+  /**
+   * The number of required parameters for the function or method being suggested. This field is
+   * omitted if the parameterNames field is omitted.
+   */
   int getRequiredParameterCount();
 
+  /**
+   * The return type of the getter, function or method being suggested. This field is omitted if the
+   * suggested element is not a getter, function or method.
+   */
   String getReturnType();
 
+  /**
+   * The number of characters that should be selected after insertion.
+   */
   int getSelectionLength();
 
+  /**
+   * The offset, relative to the beginning of the completion, of where the selection should be
+   * placed after insertion.
+   */
   int getSelectionOffset();
 
   boolean hasNamed();
 
   boolean hasPositional();
 
+  /**
+   * {@code true} if the suggested element is deprecated.
+   */
   boolean isDeprecated();
 
+  /**
+   * {@code true} if the element is not known to be valid for the target. This happens if the type
+   * of the target is dynamic.
+   */
   boolean isPotential();
 }

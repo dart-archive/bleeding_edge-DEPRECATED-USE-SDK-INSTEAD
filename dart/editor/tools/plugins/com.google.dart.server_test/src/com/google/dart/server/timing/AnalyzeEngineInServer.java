@@ -48,8 +48,8 @@ public class AnalyzeEngineInServer extends TimingTest {
     private boolean isAnalyzing = true;
 
     @Override
-    public void computedCompletion(String completionId, CompletionSuggestion[] completions,
-        boolean last) {
+    public void computedCompletion(String completionId, int replacementOffset,
+        int replacementLength, CompletionSuggestion[] completions, boolean last) {
     }
 
     @Override

@@ -27,7 +27,7 @@ public enum CompletionSuggestionKind {
   CONSTRUCTOR,
   FIELD,
   FUNCTION,
-  FUNCTION_ALIAS,
+  FUNCTION_TYPE_ALIAS,
   GETTER,
   IMPORT,
   LIBRARY_PREFIX,

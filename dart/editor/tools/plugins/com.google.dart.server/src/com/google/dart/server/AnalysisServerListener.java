@@ -24,12 +24,19 @@ public interface AnalysisServerListener {
    * A new collection of completions have been computed for the given completion id.
    * 
    * @param completionId the id associated with the completion
+   * @param replacementOffset The offset of the start of the text to be replaced. This will be
+   *          different than the offset used to request the completion suggestions if there was a
+   *          portion of an identifier before the original offset. In particular, the
+   *          replacementOffset will be the offset of the beginning of said identifier.
+   * @param replacementLength The length of the text to be replaced if the remainder of the
+   *          identifier containing the cursor is to be replaced when the suggestion is applied
+   *          (that is, the number of characters in the existing identifier).
    * @param completions the completion suggestions being reported
    * @param last {@code true} if this is the last set of results that will be returned for the
    *          indicated completion
    */
-  public void computedCompletion(String completionId, CompletionSuggestion[] completions,
-      boolean last);
+  public void computedCompletion(String completionId, int replacementOffset, int replacementLength,
+      CompletionSuggestion[] completions, boolean last);
 
   /**
    * Reports the errors associated with a given file.
