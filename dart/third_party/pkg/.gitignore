@@ -4,6 +4,7 @@
 barback-*
 fake_async
 petitparser
+source_maps-*
 
 packages
 pubspec.lock
