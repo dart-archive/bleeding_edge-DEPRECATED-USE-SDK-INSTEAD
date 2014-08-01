@@ -35,14 +35,6 @@ public class TypeParameterTypeImplTest extends EngineTestCase {
     assertEquals(element, type.getElement());
   }
 
-  public void test_isMoreSpecificThan_typeArguments_bottom() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(identifier("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-
-    // E << bottom
-    assertTrue(type.isMoreSpecificThan(BottomTypeImpl.getInstance()));
-  }
-
   public void test_isMoreSpecificThan_typeArguments_dynamic() {
     TypeParameterElementImpl element = new TypeParameterElementImpl(identifier("E"));
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);

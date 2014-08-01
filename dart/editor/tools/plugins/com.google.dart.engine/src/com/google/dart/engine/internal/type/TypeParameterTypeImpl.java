@@ -116,12 +116,6 @@ public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType
       return true;
     }
 
-    // S is bottom.
-    //
-    if (s.isBottom()) {
-      return true;
-    }
-
     // S is dynamic.
     //
     if (s.isDynamic()) {
