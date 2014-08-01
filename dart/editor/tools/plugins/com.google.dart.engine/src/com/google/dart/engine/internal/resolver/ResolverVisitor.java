@@ -726,6 +726,9 @@ public class ResolverVisitor extends ScopedVisitor {
         overrideManager.applyOverrides(elseOverrides);
       }
     }
+    // TODO(collinsn): union the [thenOverrides] and [elseOverrides] if both branches
+    // are not abrupt. If both branches are abrupt, then we can mark the
+    // remaining code as dead.
     return null;
   }
 
@@ -1263,8 +1266,16 @@ public class ResolverVisitor extends ScopedVisitor {
     // TODO(brianwilkerson) This needs to be significantly improved. Ideally we would eventually
     // turn this into a method on Statement that returns a termination indication (normal, abrupt
     // with no exception, abrupt with an exception).
-    if (statement instanceof ReturnStatement || statement instanceof BreakStatement
-        || statement instanceof ContinueStatement) {
+    //
+    // collinsn: it is unsound to assume that [break] and [continue] are "abrupt".
+    // See: https://code.google.com/p/dart/issues/detail?id=19929#c4 (tests are
+    // included in TypePropagationTest.java).
+    // In general, the difficulty is loopy control flow.
+    //
+    // In the presence of exceptions things become much more complicated, but while
+    // we only use this to propagate at [if]-statement join points, checking for [return]
+    // is probably sound.
+    if (statement instanceof ReturnStatement) {
       return true;
     } else if (statement instanceof ExpressionStatement) {
       return isAbruptTerminationExpression(((ExpressionStatement) statement).getExpression());
