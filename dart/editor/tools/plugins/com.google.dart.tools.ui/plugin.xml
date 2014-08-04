@@ -43,19 +43,7 @@
             <adapter type="org.eclipse.ui.views.properties.IPropertySource"/>
             <adapter type="com.google.dart.tools.ui.internal.IResourceLocator"/>
       </factory>
-      
-      <factory 
-            class="com.google.dart.tools.ui.DartProjectAdapterFactory" 
-            adaptableType="com.google.dart.tools.core.model.DartProject">
-            <adapter type="org.eclipse.core.resources.IProject"/>
-      </factory>
-      
-      <factory 
-            class="com.google.dart.tools.ui.ResourceAdapterFactory" 
-            adaptableType="org.eclipse.core.resources.IResource">
-            <adapter type="com.google.dart.tools.core.model.DartElement"/>
-      </factory>
-      
+
       <factory 
             class="com.google.dart.tools.ui.internal.text.editor.EditorInputAdapterFactory" 
             adaptableType="org.eclipse.ui.IEditorInput">

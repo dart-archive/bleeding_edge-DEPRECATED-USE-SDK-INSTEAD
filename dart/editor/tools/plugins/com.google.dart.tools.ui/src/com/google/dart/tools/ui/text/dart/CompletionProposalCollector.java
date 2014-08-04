@@ -157,24 +157,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
     this(cu == null ? null : cu.getDartProject(), cu, ignoreAll); // TODO Remove getDartProject()
   }
 
-  /**
-   * Creates a new instance ready to collect proposals. Note that proposals for anonymous types and
-   * method declarations are not created when using this constructor, as those need to know the
-   * compilation unit that they are created on. Use
-   * {@link CompletionProposalCollector#CompletionProposalCollector(CompilationUnit)} instead to get
-   * all proposals.
-   * <p>
-   * If the passed Dart project is <code>null</code>, no Dart doc will be available as
-   * {@link org.eclipse.jface.text.contentassist.ICompletionProposal#getAdditionalProposalInfo()
-   * additional info} on the created (e.g. method and type) proposals.
-   * </p>
-   * 
-   * @param project the project that the result collector will operate on, or <code>null</code>
-   */
-  public CompletionProposalCollector(DartProject project) {
-    this(project, null, false);
-  }
-
   private CompletionProposalCollector(DartProject project, CompilationUnit cu, boolean ignoreAll) {
     super(ignoreAll);
     fDartProject = project;

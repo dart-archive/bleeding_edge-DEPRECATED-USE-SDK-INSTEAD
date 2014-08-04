@@ -41,12 +41,9 @@ import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.jobs.CleanLibrariesJob;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdkListener;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
@@ -62,7 +59,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -432,38 +428,6 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static boolean containsPubspecFile(File directory) {
     return new File(directory, PUBSPEC_FILE_NAME).isFile();
-  }
-
-  /**
-   * Return the Dart project corresponding to the given project. Note that no check is made to
-   * ensure that the project has the Dart nature.
-   * 
-   * @param project the resource corresponding to the Dart project
-   * @return the Dart project corresponding to the given project
-   */
-  public static DartProject create(IProject project) {
-    return null;
-  }
-
-  /**
-   * Return the Dart element corresponding to the given resource, or <code>null</code> if the given
-   * resource is not associated with any Dart element.
-   * 
-   * @param resource the resource corresponding to the Dart element
-   * @return the Dart element corresponding to the given resource
-   */
-  public static DartElement create(IResource resource) {
-    return null;
-  }
-
-  /**
-   * Return the Dart model corresponding to the given workspace root.
-   * 
-   * @param project the workspace root corresponding to the model
-   * @return the Dart model corresponding to the given workspace root
-   */
-  public static DartModel create(IWorkspaceRoot workspaceRoot) {
-    return null;
   }
 
   /**

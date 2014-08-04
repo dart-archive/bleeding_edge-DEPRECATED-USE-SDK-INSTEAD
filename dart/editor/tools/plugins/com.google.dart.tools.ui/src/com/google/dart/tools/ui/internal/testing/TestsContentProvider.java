@@ -15,11 +15,6 @@
 package com.google.dart.tools.ui.internal.testing;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -36,9 +31,7 @@ import org.eclipse.swt.widgets.Display;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A tree content provider for the Tests view.
@@ -130,12 +123,6 @@ class TestsContentProvider implements ITreeContentProvider, IResourceChangeListe
     return !DartCore.isAnalyzed(container);
   }
 
-  private void collectElements(CompilationUnit cu, List<DartUnitElement> elements) {
-    // TODO Auto-generated method stub
-    // 
-
-  }
-
   private IFile[] getChildDartFiles(IProject project) throws CoreException {
     final List<IFile> files = new ArrayList<IFile>();
 
@@ -163,59 +150,6 @@ class TestsContentProvider implements ITreeContentProvider, IResourceChangeListe
   }
 
   private List<DartUnitElement> getTestsElementsFor(IFile file) {
-    DartElement modelElement = DartCore.create(file);
-
-    if (modelElement instanceof CompilationUnit) {
-      List<DartUnitElement> elements = new ArrayList<DartUnitElement>();
-
-      // unittest : typedef void TestFunction();
-      // unittest : void group(String description, void body())
-
-      // unittest : void test(String spec, TestFunction body)
-      // unittest : void solo_test(String spec, TestFunction body)
-
-      CompilationUnit cu = (CompilationUnit) modelElement;
-
-      try {
-        if (imports(cu, "unittest")) {
-          // TODO:
-          System.out.println(modelElement.getElementName() + " imports unittest");
-
-          collectElements(cu, elements);
-        }
-      } catch (DartModelException e) {
-        DartToolsPlugin.log(e);
-      }
-
-      return elements;
-    } else {
-      return Collections.emptyList();
-    }
+    return Collections.emptyList();
   }
-
-  private boolean imports(CompilationUnit cu, String libraryName) throws DartModelException {
-    return imports(cu.getLibrary(), libraryName, new HashSet<DartLibrary>());
-  }
-
-  private boolean imports(DartLibrary library, String libraryName, Set<DartLibrary> visited)
-      throws DartModelException {
-    if (visited.contains(library)) {
-      return false;
-    }
-
-    if (libraryName.equals(library.getDisplayName())) {
-      return true;
-    }
-
-    visited.add(library);
-
-    for (DartLibrary lib : library.getImportedLibraries()) {
-      if (imports(lib, libraryName, visited)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
 }

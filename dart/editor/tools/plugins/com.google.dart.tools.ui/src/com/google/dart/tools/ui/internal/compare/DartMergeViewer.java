@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.compare;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
@@ -29,7 +27,6 @@ import org.eclipse.compare.contentmergeviewer.TextMergeViewer;
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
 import org.eclipse.compare.structuremergeviewer.IDiffContainer;
 import org.eclipse.compare.structuremergeviewer.IDiffElement;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
@@ -220,15 +217,6 @@ public class DartMergeViewer extends TextMergeViewer {
       te = input.getAncestor();
       if (te instanceof IResourceProvider) {
         rp = (IResourceProvider) te;
-      }
-    }
-    if (rp != null) {
-      IResource resource = rp.getResource();
-      if (resource != null) {
-        DartElement element = DartCore.create(resource);
-        if (element != null) {
-          return element.getDartProject();
-        }
       }
     }
     return null;

@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.core.IJarEntryResource;
-import com.google.dart.core.IPackageFragmentRoot;
-
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -111,17 +108,6 @@ public class JarEntryEditorInput implements IStorageEditorInput {
    */
   @Override
   public String getToolTipText() {
-    if (fJarEntryFile instanceof IJarEntryResource) {
-      IJarEntryResource jarEntry = (IJarEntryResource) fJarEntryFile;
-      IPackageFragmentRoot root = jarEntry.getPackageFragmentRoot();
-      IPath fullPath = root.getPath().append(fJarEntryFile.getFullPath());
-      if (root.isExternal()) {
-        return fullPath.toOSString();
-      }
-      return fullPath.toString();
-
-    }
-
     IPath fullPath = fJarEntryFile.getFullPath();
     if (fullPath == null) {
       return null;

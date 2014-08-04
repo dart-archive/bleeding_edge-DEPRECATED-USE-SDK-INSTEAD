@@ -210,9 +210,7 @@ public class TestProject {
    * Creates or updates {@link CompilationUnit} at given path.
    */
   public CompilationUnit setUnitContent(String path, String content) throws Exception {
-    IFile file = setFileContent(path, content);
-    CompilationUnit unit = (CompilationUnit) DartCore.create(file);
-
-    return unit;
+    setFileContent(path, content);
+    return null;
   }
 }
