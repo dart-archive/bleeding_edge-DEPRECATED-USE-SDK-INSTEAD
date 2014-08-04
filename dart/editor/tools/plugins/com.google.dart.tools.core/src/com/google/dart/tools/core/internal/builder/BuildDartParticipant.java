@@ -483,14 +483,19 @@ public class BuildDartParticipant implements BuildParticipant {
           params.optInt("charStart", -1),
           params.optInt("charEnd", -1));
     } else if (method.equals("info")) {
-      createMarker(
-          container,
-          IMarker.SEVERITY_INFO,
-          params.getString("file"),
-          params.getString("message"),
-          params.optInt("line", -1),
-          params.optInt("charStart", -1),
-          params.optInt("charEnd", -1));
+      String file = params.optString("file", null);
+      if (file != null && file.length() > 0) {
+        createMarker(
+            container,
+            IMarker.SEVERITY_INFO,
+            file,
+            params.getString("message"),
+            params.optInt("line", -1),
+            params.optInt("charStart", -1),
+            params.optInt("charEnd", -1));
+      } else {
+        //[{"method":"info","params":{"message":"Took 0.6s (0.3s awaiting secondary inputs)."}}]
+      }
     } else if (method.equals("mapping")) {
       String fromPath = params.getString("from");
       String toPath = params.getString("to");
@@ -558,6 +563,8 @@ public class BuildDartParticipant implements BuildParticipant {
         // try and parse this as a builder event
         //[{"method":"error","params":{"file":"foo.html","line":23,"message":"no ID found"}}]
         //[{"method":"warning","params":{"file":"foo.html","line":23,"message":"no ID found"}}]
+        //[{"method":"info","params":{"file":"foo.html","line":23,"message":"no ID found"}}]
+        //[{"method":"info","params":{"message":"Took 0.6s (0.3s awaiting secondary inputs)."}}]
         //[{"method":"mapping","params":{"from":"foo.html","to":"out/foo.html"}}]
 
         String jsonStr = trimmedLine.substring(1, trimmedLine.length() - 1);
