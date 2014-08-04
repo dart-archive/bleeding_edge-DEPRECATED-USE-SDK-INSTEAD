@@ -49,57 +49,58 @@ public class RefactoringCreateProcessor extends ResultProcessor {
     //
     // Compute all refactoring-kind specific "Options" and put them into the feedback map
     //
+    JsonObject feedbackObject = resultObject.get("feedback").getAsJsonObject();
     Map<String, Object> feedback = new HashMap<String, Object>();
     // names: List<String>
-    JsonElement namesElt = resultObject.get("names");
+    JsonElement namesElt = feedbackObject.get("names");
     if (namesElt != null) {
       String[] names = constructStringArray(namesElt.getAsJsonArray());
       feedback.put("names", names);
     }
     // offsets: List<int>
-    JsonElement offsetsElt = resultObject.get("offsets");
+    JsonElement offsetsElt = feedbackObject.get("offsets");
     if (offsetsElt != null) {
       int[] offsets = constructIntArray(offsetsElt.getAsJsonArray());
       feedback.put("offsets", offsets);
     }
     // lengths: List<int>
-    JsonElement lengthsElt = resultObject.get("lengths");
+    JsonElement lengthsElt = feedbackObject.get("lengths");
     if (lengthsElt != null) {
       int[] lengths = constructIntArray(lengthsElt.getAsJsonArray());
       feedback.put("lengths", lengths);
     }
     // offset: int
-    JsonElement offsetElt = resultObject.get("offset");
+    JsonElement offsetElt = feedbackObject.get("offset");
     if (offsetElt != null) {
       int offset = offsetElt.getAsInt();
       feedback.put("offset", offset);
     }
     // length: int
-    JsonElement lengthElt = resultObject.get("length");
+    JsonElement lengthElt = feedbackObject.get("length");
     if (lengthElt != null) {
       int length = lengthElt.getAsInt();
       feedback.put("length", length);
     }
     // returnType: String
-    JsonElement returnTypeElt = resultObject.get("returnType");
+    JsonElement returnTypeElt = feedbackObject.get("returnType");
     if (returnTypeElt != null) {
       String returnType = returnTypeElt.getAsString();
       feedback.put("returnType", returnType);
     }
     // canCreateGetter: boolean
-    JsonElement canCreateGetterElt = resultObject.get("canCreateGetter");
+    JsonElement canCreateGetterElt = feedbackObject.get("canCreateGetter");
     if (canCreateGetterElt != null) {
       boolean canCreateGetter = canCreateGetterElt.getAsBoolean();
       feedback.put("canCreateGetter", canCreateGetter);
     }
     // parameters: List<Parameter>
-    JsonElement parametersElt = resultObject.get("parameters");
+    JsonElement parametersElt = feedbackObject.get("parameters");
     if (parametersElt != null) {
       Parameter[] parameters = constructParameterArray(parametersElt.getAsJsonArray());
       feedback.put("parameters", parameters);
     }
     // occurrences: int
-    JsonElement occurrencesElt = resultObject.get("occurrences");
+    JsonElement occurrencesElt = feedbackObject.get("occurrences");
     if (occurrencesElt != null) {
       int occurrences = occurrencesElt.getAsInt();
       feedback.put("occurrences", occurrences);
