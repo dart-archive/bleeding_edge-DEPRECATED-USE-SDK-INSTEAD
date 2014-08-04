@@ -271,7 +271,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
     filePath = filePath.substring(libPath.length() + 1);
     for (SdkLibrary library : libraryMap.getSdkLibraries()) {
       String libraryPath = library.getPath();
-      if (filePath.equals(libraryPath)) {
+      if (filePath.replace('\\', '/').equals(libraryPath)) {
         String path = library.getShortName();
         try {
           return new FileBasedSource(new URI(path), file);

@@ -14,7 +14,6 @@
 package com.google.dart.engine.sdk;
 
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.os.OSUtilities;
 
 import junit.framework.TestCase;
 
@@ -38,10 +37,6 @@ public class DirectoryBasedDartSdkTest extends TestCase {
   }
 
   public void test_fromFile_library() {
-    if (OSUtilities.isWindows()) {
-      // TODO(brianwilkerson) Fix this. The URI being returned is "dart:core/core.dart".
-      return;
-    }
     DirectoryBasedDartSdk sdk = createDartSdk();
     Source source = sdk.fromFileUri(new File(
         new File(sdk.getLibraryDirectory(), "core"),
