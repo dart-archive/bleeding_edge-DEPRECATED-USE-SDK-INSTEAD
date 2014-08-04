@@ -10,9 +10,6 @@
     {
       'target_name': 'sample_extension',
       'type': 'shared_library',
-      'dependencies': [
-        '../../runtime/dart-runtime.gyp:dart',
-      ],
       'include_dirs': [
         '../../runtime',
       ],
