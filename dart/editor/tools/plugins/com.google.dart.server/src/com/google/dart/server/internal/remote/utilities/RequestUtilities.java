@@ -57,7 +57,6 @@ public class RequestUtilities {
   private static final String METHOD_ANALYSIS_SET_SUBSCRIPTIONS = "analysis.setSubscriptions";
   private static final String METHOD_ANALYSIS_UPDATE_CONTENT = "analysis.updateContent";
   private static final String METHOD_ANALYSIS_UPDATE_OPTIONS = "analysis.updateOptions";
-  private static final String METHOD_ANALYSIS_UPDATE_SDKS = "analysis.updateSdks";
 
   // Edit domain
   private static final String METHOD_EDIT_APPLY_REFACTORING = "edit.applyRefactoring";
@@ -283,32 +282,6 @@ public class RequestUtilities {
     JsonObject params = new JsonObject();
     params.add("options", buildJsonElement(options));
     return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_UPDATE_OPTIONS, params);
-  }
-
-  /**
-   * Generate and return a {@value #METHOD_ANALYSIS_UPDATE_SDKS} request.
-   * 
-   * <pre>
-   * request: {
-   *   "id": String
-   *   "method": "analysis.updateSdks"
-   *   "params": {
-   *     "added": List&lt;FilePath&gt;
-   *     "removed": List&lt;FilePath&gt;
-   *     "default": FilePath
-   *   }
-   * }
-   * </pre>
-   */
-  public static JsonObject generateAnalysisUpdateSdks(String idValue, List<String> added,
-      List<String> removed, String defaultSdk) {
-    JsonObject params = new JsonObject();
-    params.add("added", buildJsonElement(added));
-    params.add("removed", buildJsonElement(removed));
-    if (defaultSdk != null) {
-      params.addProperty("default", defaultSdk);
-    }
-    return buildJsonObjectRequest(idValue, METHOD_ANALYSIS_UPDATE_SDKS, params);
   }
 
   /**

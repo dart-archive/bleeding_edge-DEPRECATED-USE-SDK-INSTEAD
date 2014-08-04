@@ -158,9 +158,4 @@ public class MockAnalysisServer implements AnalysisServer {
   public void updateContent(Map<String, ContentChange> files) {
     throw new UnsupportedOperationException();
   }
-
-  @Override
-  public void updateSdks(List<String> added, List<String> removed, String defaultSdk) {
-    throw new UnsupportedOperationException();
-  }
 }

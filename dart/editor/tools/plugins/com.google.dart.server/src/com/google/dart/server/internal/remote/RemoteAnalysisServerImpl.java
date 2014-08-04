@@ -486,20 +486,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     sendRequestToServer(id, RequestUtilities.generateAnalysisUpdateContent(id, files));
   }
 
-  @Override
-  public void updateSdks(List<String> added, List<String> removed, String defaultSdk) {
-    String id = generateUniqueId();
-    if (added == null) {
-      added = EMPTY_STR_LIST;
-    }
-    if (removed == null) {
-      removed = EMPTY_STR_LIST;
-    }
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateAnalysisUpdateSdks(id, added, removed, defaultSdk));
-  }
-
   /**
    * Generate and return a unique {@link String} id to be used in the requests sent to the analysis
    * server.

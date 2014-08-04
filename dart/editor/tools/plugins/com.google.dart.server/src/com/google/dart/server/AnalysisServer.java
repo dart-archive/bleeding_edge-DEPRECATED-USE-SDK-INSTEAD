@@ -298,19 +298,4 @@ public interface AnalysisServer {
    *          content
    */
   public void updateContent(Map<String, ContentChange> files);
-
-  /**
-   * Update the set of SDK locations known to the server by adding and removing the given paths. If
-   * there are multiple SDK locations with the same version number, the last such location will be
-   * used and the other locations will be implicitly removed.
-   * 
-   * @param added the list of directories to be added to the set of SDK locations known to the
-   *          server
-   * @param removed the list of directories to be removed from the set of SDK locations known to the
-   *          server
-   * @param defaultSdk the directory containing the SDK to be used when there are no version
-   *          constraints on the SDK. If no default SDK is specified ({@code null} is passed) then
-   *          the default will not be changed.
-   */
-  public void updateSdks(List<String> added, List<String> removed, String defaultSdk);
 }
