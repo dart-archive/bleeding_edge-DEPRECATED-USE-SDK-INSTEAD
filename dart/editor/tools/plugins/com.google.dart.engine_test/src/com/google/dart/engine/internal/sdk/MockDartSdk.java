@@ -17,7 +17,6 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.SdkLibrary;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.UriKind;
 
 import java.net.URI;
 
@@ -33,7 +32,7 @@ public class MockDartSdk implements DartSdk {
   }
 
   @Override
-  public Source fromEncoding(UriKind kind, URI uri) {
+  public Source fromFileUri(URI uri) {
     return null;
   }
 

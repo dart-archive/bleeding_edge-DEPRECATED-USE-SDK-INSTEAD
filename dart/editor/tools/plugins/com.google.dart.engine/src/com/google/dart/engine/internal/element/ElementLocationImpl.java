@@ -81,16 +81,10 @@ public class ElementLocationImpl implements ElementLocation {
     if (otherComponents.length != length) {
       return false;
     }
-    for (int i = length - 1; i >= 2; i--) {
+    for (int i = 0; i < length; i++) {
       if (!components[i].equals(otherComponents[i])) {
         return false;
       }
-    }
-    if (length > 1 && !equalSourceComponents(components[1], otherComponents[1])) {
-      return false;
-    }
-    if (length > 0 && !equalSourceComponents(components[0], otherComponents[0])) {
-      return false;
     }
     return true;
   }
@@ -118,13 +112,7 @@ public class ElementLocationImpl implements ElementLocation {
     int result = 1;
     for (int i = 0; i < components.length; i++) {
       String component = components[i];
-      int componentHash;
-      if (i <= 1) {
-        componentHash = hashSourceComponent(component);
-      } else {
-        componentHash = component.hashCode();
-      }
-      result = 31 * result + componentHash;
+      result = 31 * result + component.hashCode();
     }
     return result;
   }
@@ -180,44 +168,5 @@ public class ElementLocationImpl implements ElementLocation {
       }
       builder.append(currentChar);
     }
-  }
-
-  /**
-   * Return {@code true} if the given components, when interpreted to be encoded sources with a
-   * leading source type indicator, are equal when the source type's are ignored.
-   * 
-   * @param left the left component being compared
-   * @param right the right component being compared
-   * @return {@code true} if the given components are equal when the source type's are ignored
-   */
-  private boolean equalSourceComponents(String left, String right) {
-    // TODO(brianwilkerson) This method can go away when sources no longer have a URI kind.
-    if (left == null) {
-      return right == null;
-    } else if (right == null) {
-      return false;
-    }
-    int leftLength = left.length();
-    int rightLength = right.length();
-    if (leftLength != rightLength) {
-      return false;
-    } else if (leftLength <= 1 || rightLength <= 1) {
-      return left.equals(right);
-    }
-    return left.regionMatches(1, right, 1, leftLength - 1);
-  }
-
-  /**
-   * Return the hash code of the given encoded source component, ignoring the source type indicator.
-   * 
-   * @param sourceComponent the component to compute a hash code
-   * @return the hash code of the given encoded source component
-   */
-  private int hashSourceComponent(String sourceComponent) {
-    // TODO(brianwilkerson) This method can go away when sources no longer have a URI kind.
-    if (sourceComponent.length() <= 1) {
-      return sourceComponent.hashCode();
-    }
-    return sourceComponent.substring(1).hashCode();
   }
 }

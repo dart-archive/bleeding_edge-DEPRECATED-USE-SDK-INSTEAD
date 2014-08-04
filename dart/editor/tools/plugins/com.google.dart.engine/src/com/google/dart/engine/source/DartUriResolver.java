@@ -41,7 +41,7 @@ public class DartUriResolver extends UriResolver {
   /**
    * The name of the {@code dart} scheme.
    */
-  private static final String DART_SCHEME = "dart";
+  public static final String DART_SCHEME = "dart";
 
   /**
    * The prefix of a URI using the dart-ext scheme to reference a native code library.
@@ -66,14 +66,6 @@ public class DartUriResolver extends UriResolver {
    */
   public DartUriResolver(DartSdk sdk) {
     this.sdk = sdk;
-  }
-
-  @Override
-  public Source fromEncoding(UriKind kind, URI uri) {
-    if (kind == UriKind.DART_URI) {
-      return sdk.fromEncoding(kind, uri);
-    }
-    return null;
   }
 
   /**

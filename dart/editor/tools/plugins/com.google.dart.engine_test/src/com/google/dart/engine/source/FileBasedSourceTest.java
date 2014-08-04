@@ -33,8 +33,8 @@ public class FileBasedSourceTest extends TestCase {
   }
 
   public void test_equals_false_null() {
-    File file1 = createFile("/does/not/exist1.dart");
-    FileBasedSource source1 = new FileBasedSource(file1);
+    File file = createFile("/does/not/exist1.dart");
+    FileBasedSource source1 = new FileBasedSource(file);
     assertFalse(source1.equals(null));
   }
 
@@ -80,12 +80,13 @@ public class FileBasedSourceTest extends TestCase {
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
+    SourceFactory factory = new SourceFactory(resolver);
     // resolve dart:core
     Source result = resolver.resolveAbsolute(new URI("dart:core"));
     assertNotNull(result);
     assertTrue(result.isInSystemLibrary());
     // system libraries reference only other system libraries
-    Source partSource = result.resolveRelative(new URI("num.dart"));
+    Source partSource = factory.resolveUri(result, "num.dart");
     assertNotNull(partSource);
     assertTrue(partSource.isInSystemLibrary());
   }
@@ -98,17 +99,106 @@ public class FileBasedSourceTest extends TestCase {
     assertFalse(source.isInSystemLibrary());
   }
 
-  public void test_issue14500() {
+  public void test_issue14500() throws Exception {
     // see https://code.google.com/p/dart/issues/detail?id=14500
-    File file = createFile("/some/packages/foo:bar.dart");
-    FileBasedSource source = new FileBasedSource(file, UriKind.DART_URI);
+    FileBasedSource source = new FileBasedSource(createFile("/some/packages/foo:bar.dart"));
     assertNotNull(source);
     assertFalse(source.exists());
   }
 
-  public void test_system() {
+  public void test_resolveRelative_dart_fileName() throws Exception {
+    File file = createFile("/a/b/test.dart");
+    FileBasedSource source = new FileBasedSource(new URI("dart:test"), file);
+    assertNotNull(source);
+    URI relative = source.resolveRelative(new URI("lib.dart"));
+    assertNotNull(relative);
+    assertEquals("dart:test/lib.dart", relative.toString());
+  }
+
+  public void test_resolveRelative_dart_filePath() throws Exception {
+    File file = createFile("/a/b/test.dart");
+    FileBasedSource source = new FileBasedSource(new URI("dart:test"), file);
+    assertNotNull(source);
+    URI relative = source.resolveRelative(new URI("c/lib.dart"));
+    assertNotNull(relative);
+    assertEquals("dart:test/c/lib.dart", relative.toString());
+  }
+
+  public void test_resolveRelative_dart_filePathWithParent() throws Exception {
+    File file = createFile("/a/b/test.dart");
+    FileBasedSource source = new FileBasedSource(new URI("dart:test/b/test.dart"), file);
+    assertNotNull(source);
+    URI relative = source.resolveRelative(new URI("../c/lib.dart"));
+    assertNotNull(relative);
+    assertEquals("dart:test/c/lib.dart", relative.toString());
+  }
+
+  public void test_resolveRelative_file_fileName() throws Exception {
+    File file = createFile("/a/b/test.dart");
+    FileBasedSource source = new FileBasedSource(file);
+    assertNotNull(source);
+    URI relative = source.resolveRelative(new URI("lib.dart"));
+    assertNotNull(relative);
+    assertEquals("file:/a/b/lib.dart", relative.toString());
+  }
+
+  public void test_resolveRelative_file_filePath() throws Exception {
+    File file = createFile("/a/b/test.dart");
+    FileBasedSource source = new FileBasedSource(file);
+    assertNotNull(source);
+    URI relative = source.resolveRelative(new URI("c/lib.dart"));
+    assertNotNull(relative);
+    assertEquals("file:/a/b/c/lib.dart", relative.toString());
+  }
+
+  public void test_resolveRelative_file_filePathWithParent() throws Exception {
+    File file = createFile("/a/b/test.dart");
+    FileBasedSource source = new FileBasedSource(file);
+    assertNotNull(source);
+    URI relative = source.resolveRelative(new URI("../c/lib.dart"));
+    assertNotNull(relative);
+    assertEquals("file:/a/c/lib.dart", relative.toString());
+  }
+
+  public void test_resolveRelative_package_fileName() throws Exception {
+    File file = createFile("/a/b/test.dart");
+    FileBasedSource source = new FileBasedSource(new URI("package:b/test.dart"), file);
+    assertNotNull(source);
+    URI relative = source.resolveRelative(new URI("lib.dart"));
+    assertNotNull(relative);
+    assertEquals("package:b/lib.dart", relative.toString());
+  }
+
+  public void test_resolveRelative_package_fileNameWithoutPackageName() throws Exception {
+    File file = createFile("/a/b/test.dart");
+    FileBasedSource source = new FileBasedSource(new URI("package:test.dart"), file);
+    assertNotNull(source);
+    URI relative = source.resolveRelative(new URI("lib.dart"));
+    assertNotNull(relative);
+    assertEquals("package:lib.dart", relative.toString());
+  }
+
+  public void test_resolveRelative_package_filePath() throws Exception {
+    File file = createFile("/a/b/test.dart");
+    FileBasedSource source = new FileBasedSource(new URI("package:b/test.dart"), file);
+    assertNotNull(source);
+    URI relative = source.resolveRelative(new URI("c/lib.dart"));
+    assertNotNull(relative);
+    assertEquals("package:b/c/lib.dart", relative.toString());
+  }
+
+  public void test_resolveRelative_package_filePathWithParent() throws Exception {
+    File file = createFile("/a/b/test.dart");
+    FileBasedSource source = new FileBasedSource(new URI("package:a/b/test.dart"), file);
+    assertNotNull(source);
+    URI relative = source.resolveRelative(new URI("../c/lib.dart"));
+    assertNotNull(relative);
+    assertEquals("package:a/c/lib.dart", relative.toString());
+  }
+
+  public void test_system() throws Exception {
     File file = createFile("/does/not/exist.dart");
-    FileBasedSource source = new FileBasedSource(file, UriKind.DART_URI);
+    FileBasedSource source = new FileBasedSource(new URI("dart:core"), file);
     assertNotNull(source);
     assertEquals(file.getAbsolutePath(), source.getFullName());
     assertTrue(source.isInSystemLibrary());

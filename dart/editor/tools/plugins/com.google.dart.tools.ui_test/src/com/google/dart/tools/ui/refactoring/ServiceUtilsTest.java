@@ -29,7 +29,6 @@ import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
@@ -164,7 +163,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
   }
 
   public void test_toLTK_Change_SourceChange_externalFile() throws Exception {
-    FileBasedSource source = new FileBasedSource(FileUtilities2.createFile("/some/path"));
+    Source source = new FileBasedSource(FileUtilities2.createFile("/some/path"));
     // fill SourceChange
     SourceChange sourceChange = new SourceChange("My change", source);
     sourceChange.addEdit(new Edit(10, 1, "a"));
@@ -347,7 +346,7 @@ public class ServiceUtilsTest extends AbstractDartTest {
    */
   private Source createFileSource(IFile file) {
     File ioFile = file.getLocation().toFile();
-    return new FileBasedSource(ioFile, UriKind.FILE_URI);
+    return new FileBasedSource(ioFile);
   }
 
   /**

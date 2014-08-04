@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.sdk;
 
+import com.google.dart.engine.source.Source;
+
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -27,6 +29,27 @@ public class DirectoryBasedDartSdkTest extends TestCase {
   public void test_creation() {
     DirectoryBasedDartSdk sdk = createDartSdk();
     assertNotNull(sdk);
+  }
+
+  public void test_fromFile_invalid() {
+    DirectoryBasedDartSdk sdk = createDartSdk();
+    assertNull(sdk.fromFileUri(new File("/not/in/the/sdk.dart").toURI()));
+  }
+
+  public void test_fromFile_library() {
+    DirectoryBasedDartSdk sdk = createDartSdk();
+    Source source = sdk.fromFileUri(new File(sdk.getLibraryDirectory(), "core/core.dart").toURI());
+    assertNotNull(source);
+    assertTrue(source.isInSystemLibrary());
+    assertEquals("dart:core", source.getUri().toString());
+  }
+
+  public void test_fromFile_part() {
+    DirectoryBasedDartSdk sdk = createDartSdk();
+    Source source = sdk.fromFileUri(new File(sdk.getLibraryDirectory(), "core/num.dart").toURI());
+    assertNotNull(source);
+    assertTrue(source.isInSystemLibrary());
+    assertEquals("dart:core/num.dart", source.getUri().toString());
   }
 
   // These tests fail if Dartium is not present - I don't believe we want to test that at this level.

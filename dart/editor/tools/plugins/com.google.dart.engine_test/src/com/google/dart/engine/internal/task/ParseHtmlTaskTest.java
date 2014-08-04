@@ -26,6 +26,7 @@ import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.engine.utilities.logging.TestLogger;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 public class ParseHtmlTaskTest extends EngineTestCase {
   public void test_accept() throws Exception {
@@ -126,13 +127,12 @@ public class ParseHtmlTaskTest extends EngineTestCase {
     TestLogger testLogger = new TestLogger();
     ParseHtmlTask task = parseSource(new TestSource(contents) {
       @Override
-      public Source resolveRelative(URI containedUri) {
-        return new TestSource() {
-          @Override
-          public boolean exists() {
-            return false;
-          }
-        };
+      public URI resolveRelative(URI containedUri) {
+        try {
+          return new URI("file:/does/not/exist.dart");
+        } catch (URISyntaxException exception) {
+          return null;
+        }
       }
     }, contents, testLogger);
     assertLength(0, task.getReferencedLibraries());
@@ -157,22 +157,13 @@ public class ParseHtmlTaskTest extends EngineTestCase {
   }
 
   private ParseHtmlTask parseContents(String contents, TestLogger testLogger) throws Exception {
-    return parseSource(new TestSource(contents) {
-      @Override
-      public Source resolveRelative(URI containedUri) {
-        return new TestSource() {
-          @Override
-          public boolean exists() {
-            return true;
-          }
-        };
-      }
-    }, contents, testLogger);
+    return parseSource(new TestSource(contents), contents, testLogger);
   }
 
   private ParseHtmlTask parseSource(final Source source, String contents, TestLogger testLogger)
       throws Exception {
     final InternalAnalysisContext context = new AnalysisContextImpl();
+    context.setContents(source, contents);
     context.setSourceFactory(new SourceFactory(new FileUriResolver()));
     ParseHtmlTask task = new ParseHtmlTask(
         context,

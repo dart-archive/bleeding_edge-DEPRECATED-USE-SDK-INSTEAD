@@ -91,15 +91,6 @@ public class ExplicitPackageUriResolver extends UriResolver {
     this.rootDir = rootDir;
   }
 
-  @Override
-  public Source fromEncoding(UriKind kind, URI uri) {
-    if (kind == UriKind.PACKAGE_URI) {
-      return new FileBasedSource(new File(uri), kind);
-    } else {
-      return null;
-    }
-  }
-
   public String[] getCommand() {
     return new String[] {sdk.getPubExecutable().getAbsolutePath(), PUB_LIST_COMMAND};
   }
@@ -148,20 +139,19 @@ public class ExplicitPackageUriResolver extends UriResolver {
           File resolvedFile = new File(packageDir, relPath.replace('/', File.separatorChar));
 
           if (resolvedFile.exists()) {
-            return new FileBasedSource(resolvedFile, UriKind.PACKAGE_URI);
+            return new FileBasedSource(uri, resolvedFile);
           }
         }
       }
     }
-
+    //
     // Return a FileBasedSource that doesn't exist. This helps provide more meaningful error 
     // messages to users (a missing file error, as opposed to an invalid uri error).
-
+    //
     String fullPackagePath = pkgName + "/" + relPath;
-
-    return new FileBasedSource(new File(getRootDir(), fullPackagePath.replace(
+    return new FileBasedSource(uri, new File(getRootDir(), fullPackagePath.replace(
         '/',
-        File.separatorChar)), UriKind.PACKAGE_URI);
+        File.separatorChar)));
   }
 
   public String resolvePathToPackage(String path) {

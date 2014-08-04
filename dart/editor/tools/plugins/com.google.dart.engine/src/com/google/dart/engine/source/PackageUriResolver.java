@@ -71,14 +71,6 @@ public class PackageUriResolver extends UriResolver {
   }
 
   @Override
-  public Source fromEncoding(UriKind kind, URI uri) {
-    if (kind == UriKind.PACKAGE_URI) {
-      return new FileBasedSource(new File(uri), kind);
-    }
-    return null;
-  }
-
-  @Override
   public Source resolveAbsolute(URI uri) {
     if (!isPackageUri(uri)) {
       return null;
@@ -109,14 +101,13 @@ public class PackageUriResolver extends UriResolver {
       File resolvedFile = new File(packagesDirectory, path);
       if (resolvedFile.exists()) {
         File canonicalFile = getCanonicalFile(packagesDirectory, pkgName, relPath);
-        UriKind uriKind = isSelfReference(packagesDirectory, canonicalFile) ? UriKind.FILE_URI
-            : UriKind.PACKAGE_URI;
-        return new FileBasedSource(canonicalFile, uriKind);
+        if (isSelfReference(packagesDirectory, canonicalFile)) {
+          uri = canonicalFile.toURI();
+        }
+        return new FileBasedSource(uri, canonicalFile);
       }
     }
-    return new FileBasedSource(
-        getCanonicalFile(packagesDirectories[0], pkgName, relPath),
-        UriKind.PACKAGE_URI);
+    return new FileBasedSource(uri, getCanonicalFile(packagesDirectories[0], pkgName, relPath));
   }
 
   @Override

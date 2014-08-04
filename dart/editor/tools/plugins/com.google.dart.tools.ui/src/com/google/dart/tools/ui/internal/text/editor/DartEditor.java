@@ -32,7 +32,6 @@ import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.server.Outline;
 import com.google.dart.tools.core.DartCore;
@@ -2047,7 +2046,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (sdk instanceof DirectoryBasedDartSdk) {
         if (inputJavaFile.getAbsolutePath().startsWith(
             ((DirectoryBasedDartSdk) sdk).getDirectory().getAbsolutePath() + File.separator)) {
-          return new FileBasedSource(inputJavaFile, UriKind.DART_URI);
+          return sdk.fromFileUri(inputJavaFile.toURI());
         }
       }
       return new FileBasedSource(inputJavaFile);

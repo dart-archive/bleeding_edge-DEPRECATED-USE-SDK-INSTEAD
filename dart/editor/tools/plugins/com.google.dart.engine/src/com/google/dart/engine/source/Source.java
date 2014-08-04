@@ -14,6 +14,7 @@
 package com.google.dart.engine.source;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.utilities.translation.DartOmit;
 
@@ -154,6 +155,13 @@ public interface Source {
   public String getShortName();
 
   /**
+   * Return the URI from which this source was originally derived.
+   * 
+   * @return the URI from which this source was originally derived
+   */
+  public URI getUri();
+
+  /**
    * Return the kind of URI from which this source was originally derived. If this source was
    * created from an absolute URI, then the returned kind will reflect the scheme of the absolute
    * URI. If it was created from a relative URI, then the returned kind will be the same as the kind
@@ -161,6 +169,7 @@ public interface Source {
    * 
    * @return the kind of URI from which this source was originally derived
    */
+  @Deprecated
   public UriKind getUriKind();
 
   /**
@@ -180,9 +189,7 @@ public interface Source {
   public boolean isInSystemLibrary();
 
   /**
-   * Resolve the relative URI against the URI associated with this source object. Return a
-   * {@link Source source} representing the URI to which it was resolved, or {@code null} if it
-   * could not be resolved.
+   * Resolve the relative URI against the URI associated with this source object.
    * <p>
    * Note: This method is not intended for public use, it is only visible out of necessity. It is
    * only intended to be invoked by a {@link SourceFactory source factory}. Source factories will
@@ -190,8 +197,9 @@ public interface Source {
    * required to, and generally do not, verify the argument. The result of invoking this method with
    * an absolute URI is intentionally left unspecified.
    * 
-   * @param relativeUri the relative URI to be resolved against the containing source
-   * @return a {@link Source source} representing the URI to which given URI was resolved
+   * @param relativeUri the relative URI to be resolved against this source
+   * @return the URI to which given URI was resolved
+   * @throws AnalysisException if the relative URI could not be resolved
    */
-  public Source resolveRelative(URI relativeUri);
+  public URI resolveRelative(URI relativeUri) throws AnalysisException;
 }

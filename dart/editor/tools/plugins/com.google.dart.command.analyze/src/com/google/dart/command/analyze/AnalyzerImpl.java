@@ -37,6 +37,7 @@ import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -104,8 +105,7 @@ public class AnalyzerImpl {
 
     // prepare Source
     sourceFile = sourceFile.getAbsoluteFile();
-    UriKind uriKind = getUriKind(sourceFile);
-    Source librarySource = new FileBasedSource(sourceFile, uriKind);
+    Source librarySource = new FileBasedSource(getUri(sourceFile), sourceFile);
 
     return performAnalysis(context, librarySource, sourceFile, lineInfoMap, errors);
   }
@@ -326,11 +326,10 @@ public class AnalyzerImpl {
   }
 
   /**
-   * Returns the {@link UriKind} for the given input file. Usually {@link UriKind#FILE_URI}, but if
-   * the given file is located in the "lib" directory of the {@link #sdk}, then returns
-   * {@link UriKind#DART_URI}.
+   * Returns the URI for the given input file. This is usually a file: URI, but if the given file is
+   * located in the "lib" directory of the {@link #sdk}, then this method returns a dart URI.
    */
-  private UriKind getUriKind(File file) {
+  private URI getUri(File file) {
     // may be file in SDK
     if (sdk instanceof DirectoryBasedDartSdk) {
       DirectoryBasedDartSdk directoryBasedSdk = sdk;
@@ -340,12 +339,14 @@ public class AnalyzerImpl {
       if (filePath.startsWith(sdkLibPath)) {
         String internalPath = new File(libraryDirectory, "_internal").getPath() + File.separator;
         if (!filePath.startsWith(internalPath)) {
-          return UriKind.DART_URI;
+          Source source = sdk.fromFileUri(file.toURI());
+          if (source != null) {
+            return source.getUri();
+          }
         }
       }
     }
     // some generic file
-    return UriKind.FILE_URI;
+    return file.toURI();
   }
-
 }

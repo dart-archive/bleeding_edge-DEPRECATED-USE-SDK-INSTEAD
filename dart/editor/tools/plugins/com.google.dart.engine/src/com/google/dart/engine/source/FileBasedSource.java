@@ -14,6 +14,7 @@
 package com.google.dart.engine.source;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.context.PerformanceStatistics;
 import com.google.dart.engine.internal.context.TimestampedData;
 import com.google.dart.engine.utilities.general.TimeCounter;
@@ -42,6 +43,11 @@ import java.nio.charset.Charset;
  */
 public class FileBasedSource implements Source {
   /**
+   * The URI from which this source was originally derived.
+   */
+  private final URI uri;
+
+  /**
    * The file represented by this source.
    */
   private final File file;
@@ -52,35 +58,29 @@ public class FileBasedSource implements Source {
   private String encoding;
 
   /**
-   * The kind of URI from which this source was originally derived.
-   */
-  private final UriKind uriKind;
-
-  /**
    * The character set used to decode bytes into characters.
    */
   @DartOmit
   private static final Charset UTF_8_CHARSET = Charset.forName("UTF-8");
 
   /**
-   * Initialize a newly created source object. The source object is assumed to not be in a system
-   * library.
+   * Initialize a newly created source object.
    * 
    * @param file the file represented by this source
    */
   public FileBasedSource(File file) {
-    this(file, UriKind.FILE_URI);
+    this(file.toURI(), file);
   }
 
   /**
    * Initialize a newly created source object.
    * 
    * @param file the file represented by this source
-   * @param flags {@code true} if this source is in one of the system libraries
+   * @param uri the URI from which this source was originally derived
    */
-  public FileBasedSource(File file, UriKind uriKind) {
+  public FileBasedSource(URI uri, File file) {
+    this.uri = uri;
     this.file = file;
-    this.uriKind = uriKind;
   }
 
   @Override
@@ -118,7 +118,7 @@ public class FileBasedSource implements Source {
   @Override
   public String getEncoding() {
     if (encoding == null) {
-      encoding = uriKind.getEncoding() + file.toURI().toString();
+      encoding = uri.toString();
     }
     return encoding;
   }
@@ -149,8 +149,21 @@ public class FileBasedSource implements Source {
   }
 
   @Override
+  public URI getUri() {
+    return uri;
+  }
+
+  @Override
   public UriKind getUriKind() {
-    return uriKind;
+    String scheme = uri.getScheme();
+    if (scheme.equals(PackageUriResolver.PACKAGE_SCHEME)) {
+      return UriKind.PACKAGE_URI;
+    } else if (scheme.equals(DartUriResolver.DART_SCHEME)) {
+      return UriKind.DART_URI;
+    } else if (scheme.equals(FileUriResolver.FILE_SCHEME)) {
+      return UriKind.FILE_URI;
+    }
+    return UriKind.FILE_URI;
   }
 
   @Override
@@ -160,18 +173,31 @@ public class FileBasedSource implements Source {
 
   @Override
   public boolean isInSystemLibrary() {
-    return uriKind == UriKind.DART_URI;
+    return uri.getScheme().equals(DartUriResolver.DART_SCHEME);
   }
 
   @Override
-  public Source resolveRelative(URI containedUri) {
+  public URI resolveRelative(URI containedUri) throws AnalysisException {
     try {
-      URI resolvedUri = getFile().toURI().resolve(containedUri).normalize();
-      return new FileBasedSource(new File(resolvedUri), uriKind);
+      URI baseUri = uri;
+      boolean isOpaque = uri.isOpaque();
+      if (isOpaque) {
+        String scheme = uri.getScheme();
+        String part = uri.getRawSchemeSpecificPart();
+        if (scheme.equals(DartUriResolver.DART_SCHEME) && part.indexOf('/') < 0) {
+          part = part + "/" + part + ".dart";
+        }
+        baseUri = new URI(scheme + ":/" + part);
+      }
+      URI result = baseUri.resolve(containedUri).normalize();
+      if (isOpaque) {
+        result = new URI(result.getScheme() + ":" + result.getRawSchemeSpecificPart().substring(1));
+      }
+      return result;
     } catch (Exception exception) {
-      // Fall through to return null
+      throw new AnalysisException("Could not resolve URI (" + containedUri
+          + ") relative to source (" + uri + ")", exception);
     }
-    return null;
   }
 
   @Override

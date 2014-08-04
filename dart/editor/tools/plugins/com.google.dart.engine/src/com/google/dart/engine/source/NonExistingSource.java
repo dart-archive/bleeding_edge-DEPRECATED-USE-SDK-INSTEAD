@@ -80,6 +80,11 @@ public class NonExistingSource implements Source {
   }
 
   @Override
+  public URI getUri() {
+    return null;
+  }
+
+  @Override
   public UriKind getUriKind() {
     return uriKind;
   }
@@ -95,7 +100,7 @@ public class NonExistingSource implements Source {
   }
 
   @Override
-  public Source resolveRelative(URI relativeUri) {
+  public URI resolveRelative(URI relativeUri) {
     throw new UnsupportedOperationException(name + "does not exist.");
   }
 }

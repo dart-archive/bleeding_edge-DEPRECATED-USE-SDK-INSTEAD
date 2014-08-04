@@ -16,7 +16,6 @@ package com.google.dart.tools.core.internal.analysis.model;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.UriKind;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.resources.IContainer;
@@ -27,6 +26,8 @@ import org.eclipse.core.runtime.Path;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * @coverage dart.tools.core.model
@@ -117,8 +118,8 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
       return null;
     }
     int index = packagesLocation.segmentCount();
+    URI uri;
     File file;
-    UriKind uriKind;
     if (fileLocation.segmentCount() > index && packagesLocation.isPrefixOf(fileLocation)) {
       File pkgDir = fileLocation.uptoSegment(index + 1).toFile();
       try {
@@ -129,16 +130,26 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
       }
       if (fileLocation.segmentCount() > index + 1) {
         IPath fileRelPath = fileLocation.removeFirstSegments(index + 1).setDevice(null);
+        try {
+          uri = new URI("package:/" + fileLocation.segment(index) + "/" + fileRelPath.toOSString());
+        } catch (URISyntaxException exception) {
+          return null;
+        }
         file = new File(pkgDir, fileRelPath.toOSString());
       } else {
+        try {
+          uri = new URI("package:/" + fileLocation.segment(index));
+        } catch (URISyntaxException exception) {
+          return null;
+        }
         file = pkgDir;
       }
-      uriKind = UriKind.PACKAGE_URI;
+      System.out.println("From PubResourceMapImpl: " + uri);
     } else {
       file = fileLocation.toFile();
-      uriKind = UriKind.FILE_URI;
+      uri = file.toURI();
     }
-    return new FileBasedSource(file, uriKind);
+    return new FileBasedSource(uri, file);
   }
 
   /**

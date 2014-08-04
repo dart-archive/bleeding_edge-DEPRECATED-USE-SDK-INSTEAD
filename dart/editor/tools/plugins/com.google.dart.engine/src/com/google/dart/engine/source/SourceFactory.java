@@ -13,12 +13,13 @@
  */
 package com.google.dart.engine.source;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DartSdk;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * Instances of the class {@code SourceFactory} resolve possibly relative URI's against an existing
@@ -64,8 +65,30 @@ public class SourceFactory {
       if (uri.isAbsolute()) {
         return internalResolveUri(null, uri);
       }
-    } catch (URISyntaxException exception) {
-      // Fall through to return null
+    } catch (Exception exception) {
+      AnalysisEngine.getInstance().getLogger().logError(
+          "Could not resolve URI: " + absoluteUri,
+          exception);
+    }
+    return null;
+  }
+
+  /**
+   * Return a source object representing the given absolute URI, or {@code null} if the URI is not
+   * an absolute URI.
+   * 
+   * @param absoluteUri the absolute URI to be resolved
+   * @return a source object representing the absolute URI
+   */
+  public Source forUri(URI absoluteUri) {
+    if (absoluteUri.isAbsolute()) {
+      try {
+        return internalResolveUri(null, absoluteUri);
+      } catch (AnalysisException exception) {
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Could not resolve URI: " + absoluteUri,
+            exception);
+      }
     }
     return null;
   }
@@ -79,25 +102,11 @@ public class SourceFactory {
    * @see Source#getEncoding()
    */
   public Source fromEncoding(String encoding) {
-    if (encoding.length() < 2) {
-      throw new IllegalArgumentException("Invalid encoding length");
+    Source source = forUri(encoding);
+    if (source == null) {
+      throw new IllegalArgumentException("Invalid source encoding: " + encoding);
     }
-    UriKind kind = UriKind.fromEncoding(encoding.charAt(0));
-    if (kind == null) {
-      throw new IllegalArgumentException("Invalid source kind in encoding: " + kind);
-    }
-    try {
-      URI uri = new URI(encoding.substring(1));
-      for (UriResolver resolver : resolvers) {
-        Source result = resolver.fromEncoding(kind, uri);
-        if (result != null) {
-          return result;
-        }
-      }
-      throw new IllegalArgumentException("No resolver for kind: " + kind);
-    } catch (Exception exception) {
-      throw new IllegalArgumentException("Invalid URI in encoding");
-    }
+    return source;
   }
 
   /**
@@ -153,7 +162,11 @@ public class SourceFactory {
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
       return internalResolveUri(containingSource, new URI(containedUri));
-    } catch (URISyntaxException exception) {
+    } catch (Exception exception) {
+      AnalysisEngine.getInstance().getLogger().logError(
+          "Could not resolve URI (" + containedUri + ") relative to source ("
+              + containingSource.getFullName() + ")",
+          exception);
       return null;
     }
   }
@@ -200,24 +213,29 @@ public class SourceFactory {
   /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
-   * {@code null} if either the contained URI is invalid or if it cannot be resolved against the
-   * source object's URI.
+   * {@code null} if the URI could not be resolved.
    * 
    * @param containingSource the source containing the given URI
    * @param containedUri the (possibly relative) URI to be resolved against the containing source
    * @return the source representing the contained URI
+   * @throws AnalysisException if either the contained URI is invalid or if it cannot be resolved
+   *           against the source object's URI
    */
-  private Source internalResolveUri(Source containingSource, URI containedUri) {
-    if (containedUri.isAbsolute()) {
-      for (UriResolver resolver : resolvers) {
-        Source result = resolver.resolveAbsolute(containedUri);
-        if (result != null) {
-          return result;
-        }
+  private Source internalResolveUri(Source containingSource, URI containedUri)
+      throws AnalysisException {
+    if (!containedUri.isAbsolute()) {
+      if (containingSource == null) {
+        throw new AnalysisException("Cannot resolve a relative URI without a containing source: "
+            + containedUri);
       }
-      return null;
-    } else {
-      return containingSource.resolveRelative(containedUri);
+      containedUri = containingSource.resolveRelative(containedUri);
     }
+    for (UriResolver resolver : resolvers) {
+      Source result = resolver.resolveAbsolute(containedUri);
+      if (result != null) {
+        return result;
+      }
+    }
+    return null;
   }
 }

@@ -28,7 +28,6 @@ import com.google.dart.engine.scanner.CharSequenceReader;
 import com.google.dart.engine.scanner.Scanner;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.UriKind;
 
 import java.io.File;
 import java.util.List;
@@ -198,7 +197,7 @@ public class SdkLibrariesReader {
    * @return the library map read from the given source
    */
   public LibraryMap readFromFile(File file, String libraryFileContents) {
-    return readFromSource(new FileBasedSource(file, UriKind.FILE_URI), libraryFileContents);
+    return readFromSource(new FileBasedSource(file), libraryFileContents);
   }
 
   /**

@@ -59,14 +59,6 @@ public class RelativeFileUriResolver extends UriResolver {
   }
 
   @Override
-  public Source fromEncoding(UriKind kind, URI uri) {
-    if (kind == UriKind.FILE_URI) {
-      return new FileBasedSource(new File(uri), kind);
-    }
-    return null;
-  }
-
-  @Override
   public Source resolveAbsolute(URI uri) {
     String rootPath = rootDirectory.toURI().getPath();
     String uriPath = uri.getPath();
@@ -75,11 +67,10 @@ public class RelativeFileUriResolver extends UriResolver {
       for (File dir : relativeDirectories) {
         File file = new File(dir, filePath);
         if (file.exists()) {
-          return new FileBasedSource(file, UriKind.FILE_URI);
+          return new FileBasedSource(uri, file);
         }
       }
     }
     return null;
   }
-
 }

@@ -46,18 +46,10 @@ public class FileUriResolver extends UriResolver {
   }
 
   @Override
-  public Source fromEncoding(UriKind kind, URI uri) {
-    if (kind == UriKind.FILE_URI) {
-      return new FileBasedSource(new File(uri), kind);
-    }
-    return null;
-  }
-
-  @Override
   public Source resolveAbsolute(URI uri) {
     if (!isFileUri(uri)) {
       return null;
     }
-    return new FileBasedSource(new File(uri));
+    return new FileBasedSource(uri, new File(uri));
   }
 }

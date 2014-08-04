@@ -38,12 +38,6 @@ public class ElementLocationImplTest extends EngineTestCase {
     assertTrue(first.equals(second));
   }
 
-  public void test_equals_equalWithDifferentUriKind() {
-    ElementLocationImpl first = new ElementLocationImpl("fa;fb;c");
-    ElementLocationImpl second = new ElementLocationImpl("pa;pb;c");
-    assertTrue(first.equals(second));
-  }
-
   public void test_equals_notEqual_differentLengths() {
     ElementLocationImpl first = new ElementLocationImpl("a;b;c");
     ElementLocationImpl second = new ElementLocationImpl("a;b;c;d");
@@ -81,12 +75,6 @@ public class ElementLocationImplTest extends EngineTestCase {
     String encoding = "a;b;c";
     ElementLocationImpl first = new ElementLocationImpl(encoding);
     ElementLocationImpl second = new ElementLocationImpl(encoding);
-    assertTrue(first.hashCode() == second.hashCode());
-  }
-
-  public void test_hashCode_equalWithDifferentUriKind() {
-    ElementLocationImpl first = new ElementLocationImpl("fa;fb;c");
-    ElementLocationImpl second = new ElementLocationImpl("pa;pb;c");
     assertTrue(first.hashCode() == second.hashCode());
   }
 }

@@ -15,7 +15,6 @@ package com.google.dart.engine.sdk;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.UriKind;
 
 import java.net.URI;
 
@@ -46,14 +45,14 @@ public interface DartSdk {
   public static final String DEFAULT_VERSION = "0";
 
   /**
-   * Return the source representing the file with the given URI.
+   * Return a source representing the given file: URI if the file is in this SDK, or {@code null} if
+   * the file is not in this SDK.
    * 
-   * @param kind the kind of URI that was originally resolved in order to produce an encoding with
-   *          the given URI
-   * @param uri the URI of the file to be returned
-   * @return the source representing the specified file
+   * @param uri the file URI for which a source is to be returned
+   * @return the source representing the given URI
+   * @throws
    */
-  public Source fromEncoding(UriKind kind, URI uri);
+  public Source fromFileUri(URI uri);
 
   /**
    * Return the {@link AnalysisContext} used for all of the sources in this {@link DartSdk}.

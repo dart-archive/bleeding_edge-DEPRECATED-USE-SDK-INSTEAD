@@ -38,21 +38,6 @@ public class PackageUriResolverTest extends TestCase {
     assertNotNull(new PackageUriResolver(directory));
   }
 
-  public void test_fromEncoding_nonPackage() throws Exception {
-    File directory = createFile("/does/not");
-    UriResolver resolver = new PackageUriResolver(directory);
-    Source result = resolver.fromEncoding(UriKind.DART_URI, new URI("file:/does/not/exist.dart"));
-    assertNull(result);
-  }
-
-  public void test_fromEncoding_package() throws Exception {
-    File directory = createFile("/does/not/exist/packages");
-    UriResolver resolver = new PackageUriResolver(directory);
-    Source result = resolver.fromEncoding(UriKind.PACKAGE_URI, new URI("file:/does/not/exist.dart"));
-    assertNotNull(result);
-    assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
-  }
-
   public void test_isPackageUri_null_scheme() throws Exception {
     URI uri = new URI("foo.dart");
     assertNull(uri.getScheme());

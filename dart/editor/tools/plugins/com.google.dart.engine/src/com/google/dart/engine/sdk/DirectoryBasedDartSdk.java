@@ -24,7 +24,6 @@ import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
-import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.translation.DartBlockBody;
@@ -35,6 +34,7 @@ import com.google.dart.engine.utilities.translation.DartOptional;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Instances of the class {@code DirectoryBasedDartSdk} represent a Dart SDK installed in a
@@ -261,8 +261,41 @@ public class DirectoryBasedDartSdk implements DartSdk {
   }
 
   @Override
-  public Source fromEncoding(UriKind kind, URI uri) {
-    return new FileBasedSource(new File(uri), kind);
+  public Source fromFileUri(URI uri) {
+    File file = new File(uri);
+    String filePath = file.getAbsolutePath();
+    String libPath = getLibraryDirectory().getAbsolutePath();
+    if (!filePath.startsWith(libPath + File.separator)) {
+      return null;
+    }
+    filePath = filePath.substring(libPath.length() + 1);
+    for (SdkLibrary library : libraryMap.getSdkLibraries()) {
+      String libraryPath = library.getPath();
+      if (filePath.equals(libraryPath)) {
+        String path = library.getShortName();
+        try {
+          return new FileBasedSource(new URI(path), file);
+        } catch (URISyntaxException exception) {
+          AnalysisEngine.getInstance().getLogger().logInformation(
+              "Failed to create URI: " + path,
+              exception);
+          return null;
+        }
+      }
+      libraryPath = new File(libraryPath).getParent();
+      if (filePath.startsWith(libraryPath + File.separator)) {
+        String path = library.getShortName() + "/" + filePath.substring(libraryPath.length() + 1);
+        try {
+          return new FileBasedSource(new URI(path), file);
+        } catch (URISyntaxException exception) {
+          AnalysisEngine.getInstance().getLogger().logInformation(
+              "Failed to create URI: " + path,
+              exception);
+          return null;
+        }
+      }
+    }
+    return null;
   }
 
   @Override
@@ -495,11 +528,30 @@ public class DirectoryBasedDartSdk implements DartSdk {
 
   @Override
   public Source mapDartUri(String dartUri) {
-    SdkLibrary library = getSdkLibrary(dartUri);
+    String libraryName;
+    String relativePath;
+    int index = dartUri.indexOf('/');
+    if (index >= 0) {
+      libraryName = dartUri.substring(0, index);
+      relativePath = dartUri.substring(index + 1);
+    } else {
+      libraryName = dartUri;
+      relativePath = "";
+    }
+    SdkLibrary library = getSdkLibrary(libraryName);
     if (library == null) {
       return null;
     }
-    return new FileBasedSource(new File(getLibraryDirectory(), library.getPath()), UriKind.DART_URI);
+    try {
+      File file = new File(getLibraryDirectory(), library.getPath());
+      if (!relativePath.isEmpty()) {
+        file = file.getParentFile();
+        file = new File(file, relativePath);
+      }
+      return new FileBasedSource(new URI(dartUri), file);
+    } catch (URISyntaxException exception) {
+      return null;
+    }
   }
 
   /**

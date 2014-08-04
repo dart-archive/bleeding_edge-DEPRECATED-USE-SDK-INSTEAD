@@ -28,7 +28,7 @@ public class SourceFactoryTest extends TestCase {
   public void test_fromEncoding_invalidUri() throws Exception {
     SourceFactory factory = new SourceFactory();
     try {
-      factory.fromEncoding("#<:&%>");
+      factory.fromEncoding("<:&%>");
       fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException exception) {
       // Expected
@@ -38,27 +38,7 @@ public class SourceFactoryTest extends TestCase {
   public void test_fromEncoding_noResolver() throws Exception {
     SourceFactory factory = new SourceFactory();
     try {
-      factory.fromEncoding("pfile:/does/not/exist.dart");
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException exception) {
-      // Expected
-    }
-  }
-
-  public void test_fromEncoding_tooShort() throws Exception {
-    SourceFactory factory = new SourceFactory();
-    try {
-      factory.fromEncoding("#");
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException exception) {
-      // Expected
-    }
-  }
-
-  public void test_fromEncoding_unknownKind() throws Exception {
-    SourceFactory factory = new SourceFactory();
-    try {
-      factory.fromEncoding("#file:/does/not/exist.dart");
+      factory.fromEncoding("foo:/does/not/exist.dart");
       fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException exception) {
       // Expected
@@ -66,31 +46,22 @@ public class SourceFactoryTest extends TestCase {
   }
 
   public void test_fromEncoding_valid() throws Exception {
-    final boolean[] invoked = {false};
+    final String encoding = "file:/does/not/exist.dart";
     SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
-      public Source fromEncoding(UriKind kind, URI uri) {
-        invoked[0] = true;
-        return new FileBasedSource(new File(uri), kind);
-      }
-
-      @Override
       public Source resolveAbsolute(URI uri) {
+        if (uri.toString().equals(encoding)) {
+          return new TestSource();
+        }
         return null;
       }
     });
-    factory.fromEncoding("dfile:/does/not/exist.dart");
-    assertTrue(invoked[0]);
+    assertNotNull(factory.fromEncoding(encoding));
   }
 
   public void test_resolveUri_absolute() throws Exception {
     final boolean[] invoked = {false};
     SourceFactory factory = new SourceFactory(new UriResolver() {
-      @Override
-      public Source fromEncoding(UriKind kind, URI uri) {
-        return null;
-      }
-
       @Override
       public Source resolveAbsolute(URI uri) {
         invoked[0] = true;
@@ -104,13 +75,8 @@ public class SourceFactoryTest extends TestCase {
   public void test_resolveUri_nonAbsolute_absolute() throws Exception {
     SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
-      public Source fromEncoding(UriKind kind, URI uri) {
-        return null;
-      }
-
-      @Override
       public Source resolveAbsolute(URI uri) {
-        return null;
+        return new FileBasedSource(uri, new File(uri));
       }
     });
     String absolutePath = "/does/not/matter.dart";
@@ -122,13 +88,8 @@ public class SourceFactoryTest extends TestCase {
   public void test_resolveUri_nonAbsolute_relative() throws Exception {
     SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
-      public Source fromEncoding(UriKind kind, URI uri) {
-        return null;
-      }
-
-      @Override
       public Source resolveAbsolute(URI uri) {
-        return null;
+        return new FileBasedSource(uri, new File(uri));
       }
     });
     Source containingSource = new FileBasedSource(createFile("/does/not/have.dart"));
@@ -143,11 +104,6 @@ public class SourceFactoryTest extends TestCase {
     final Source source2 = new FileBasedSource(file2);
     final URI expected1 = new URI("http://www.google.com");
     SourceFactory factory = new SourceFactory(new UriResolver() {
-      @Override
-      public Source fromEncoding(UriKind kind, URI uri) {
-        return null;
-      }
-
       @Override
       public Source resolveAbsolute(URI uri) {
         return null;

@@ -30,23 +30,6 @@ public class RelativeFileResolverTest extends TestCase {
     assertNotNull(new RelativeFileUriResolver(root, directory));
   }
 
-  public void test_fromEncoding_file() throws Exception {
-    File root = createFile("/does/not/exist");
-    File directory = createFile("/does/not/exist/relative");
-    UriResolver resolver = new RelativeFileUriResolver(root, directory);
-    Source result = resolver.fromEncoding(UriKind.FILE_URI, new URI("file:/does/not/exist.dart"));
-    assertNotNull(result);
-    assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
-  }
-
-  public void test_fromEncoding_nonFile() throws Exception {
-    File root = createFile("/does/not/exist");
-    File directory = createFile("/does/not/exist/relative");
-    UriResolver resolver = new RelativeFileUriResolver(root, directory);
-    Source result = resolver.fromEncoding(UriKind.PACKAGE_URI, new URI("file:/does/not/exist.dart"));
-    assertNull(result);
-  }
-
   public void test_resolve_file() throws Exception {
     File root = FileUtilities2.createTempDir("/does/not/exist");
     File directory = FileUtilities2.createTempDir("/does/not/exist/relative");

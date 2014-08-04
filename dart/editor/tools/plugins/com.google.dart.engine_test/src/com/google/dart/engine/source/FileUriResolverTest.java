@@ -24,19 +24,6 @@ public class FileUriResolverTest extends TestCase {
     assertNotNull(new FileUriResolver());
   }
 
-  public void test_fromEncoding_file() throws Exception {
-    UriResolver resolver = new FileUriResolver();
-    Source result = resolver.fromEncoding(UriKind.FILE_URI, new URI("file:/does/not/exist.dart"));
-    assertNotNull(result);
-    assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
-  }
-
-  public void test_fromEncoding_nonFile() throws Exception {
-    UriResolver resolver = new FileUriResolver();
-    Source result = resolver.fromEncoding(UriKind.PACKAGE_URI, new URI("file:/does/not/exist.dart"));
-    assertNull(result);
-  }
-
   public void test_resolve_file() throws Exception {
     UriResolver resolver = new FileUriResolver();
     Source result = resolver.resolveAbsolute(new URI("file:/does/not/exist.dart"));
