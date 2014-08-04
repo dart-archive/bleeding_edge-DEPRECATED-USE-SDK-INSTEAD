@@ -30,13 +30,6 @@ import org.junit.Test;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-/**
- * TODO: This sometimes fails because indexed_db.dart shows up in search results, but not always.
- * When it is first in the list, it will be the first file opened during navigation, but it will not
- * be closed when the project is deleted, since it is in the SDK. Other non-project files may appear
- * in search results, so we need a way to delete all editor tabs except Welcome during
- * tearDownTest().
- */
 public class TestSearch extends EditorTestHarness {
 
   private static TextBotEditor editor;
@@ -67,6 +60,7 @@ public class TestSearch extends EditorTestHarness {
     EditorBotWindow main = new EditorBotWindow(bot);
     FilesBotView files = main.filesView();
     files.deleteProject("pop_pop_win");
+    main.menu("File").menu("Close All").click();
   }
 
   @Test

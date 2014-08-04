@@ -47,7 +47,6 @@ public class TestOutline extends EditorTestHarness {
     item.doubleClick();
     page.waitForAnalysis();
     editor = new TextBotEditor(bot, "platform_web.dart");
-    main.menu("Tools").menu("Outline").click();
     outline = main.outlineView();
   }
 

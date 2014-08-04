@@ -42,6 +42,8 @@ public class EditorBotWindow extends AbstractBotView {
    */
   public FilesBotView filesView() {
     waitForAnalysis();
+    menu("Tools").menu("Files").click();
+    waitForAnalysis();
     return new FilesBotView(bot);
   }
 
@@ -69,7 +71,8 @@ public class EditorBotWindow extends AbstractBotView {
    */
   public WelcomePageEditor openWelcomePage() {
     waitForAnalysis();
-    // TODO re-open welcome page if needed, and bring to top
+    menu("Tools").menu("Welcome Page").click();
+    waitForAnalysis();
     return new WelcomePageEditor(bot);
   }
 
@@ -80,6 +83,8 @@ public class EditorBotWindow extends AbstractBotView {
    */
   public OutlineBotView outlineView() {
     waitForAnalysis();
+    menu("Tools").menu("Outline").click();
+    waitForAnalysis();
     return new OutlineBotView(bot);
   }
 
@@ -89,6 +94,8 @@ public class EditorBotWindow extends AbstractBotView {
    * @return the SWTBot model for the Problems view
    */
   public ProblemsBotView problemsView() {
+    waitForAnalysis();
+    menu("Tools").menu("Problems").click();
     waitForAnalysis();
     return new ProblemsBotView(bot);
   }
