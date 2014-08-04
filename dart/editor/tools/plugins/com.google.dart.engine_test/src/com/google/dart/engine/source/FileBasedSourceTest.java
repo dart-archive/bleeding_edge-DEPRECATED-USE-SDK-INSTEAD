@@ -15,6 +15,7 @@ package com.google.dart.engine.source;
 
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.engine.utilities.os.OSUtilities;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
@@ -134,6 +135,11 @@ public class FileBasedSourceTest extends TestCase {
   }
 
   public void test_resolveRelative_file_fileName() throws Exception {
+    if (OSUtilities.isWindows()) {
+      // On Windows, the URI that is produced includes a drive letter, which I believe is not
+      // consistent across all machines that might run this test.
+      return;
+    }
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     assertNotNull(source);
@@ -143,6 +149,11 @@ public class FileBasedSourceTest extends TestCase {
   }
 
   public void test_resolveRelative_file_filePath() throws Exception {
+    if (OSUtilities.isWindows()) {
+      // On Windows, the URI that is produced includes a drive letter, which I believe is not
+      // consistent across all machines that might run this test.
+      return;
+    }
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     assertNotNull(source);
@@ -152,6 +163,11 @@ public class FileBasedSourceTest extends TestCase {
   }
 
   public void test_resolveRelative_file_filePathWithParent() throws Exception {
+    if (OSUtilities.isWindows()) {
+      // On Windows, the URI that is produced includes a drive letter, which I believe is not
+      // consistent across all machines that might run this test.
+      return;
+    }
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     assertNotNull(source);

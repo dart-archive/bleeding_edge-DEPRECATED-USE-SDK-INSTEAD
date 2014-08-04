@@ -38,7 +38,9 @@ public class DirectoryBasedDartSdkTest extends TestCase {
 
   public void test_fromFile_library() {
     DirectoryBasedDartSdk sdk = createDartSdk();
-    Source source = sdk.fromFileUri(new File(sdk.getLibraryDirectory(), "core/core.dart").toURI());
+    Source source = sdk.fromFileUri(new File(
+        new File(sdk.getLibraryDirectory(), "core"),
+        "core.dart").toURI());
     assertNotNull(source);
     assertTrue(source.isInSystemLibrary());
     assertEquals("dart:core", source.getUri().toString());
@@ -46,7 +48,9 @@ public class DirectoryBasedDartSdkTest extends TestCase {
 
   public void test_fromFile_part() {
     DirectoryBasedDartSdk sdk = createDartSdk();
-    Source source = sdk.fromFileUri(new File(sdk.getLibraryDirectory(), "core/num.dart").toURI());
+    Source source = sdk.fromFileUri(new File(
+        new File(sdk.getLibraryDirectory(), "core"),
+        "num.dart").toURI());
     assertNotNull(source);
     assertTrue(source.isInSystemLibrary());
     assertEquals("dart:core/num.dart", source.getUri().toString());
