@@ -6,6 +6,7 @@
 
 <link rel="import" href="path_input.html">
 <link rel="import" href="coverage_item.html">
+<link rel="import" href="../../packages/polymer/polymer.html">
 
 <polymer-element name="cov-list">
   <template>
@@ -21,7 +22,7 @@
       </header>
       <ul id="coverage-list">
         <template repeat="{{model.items}}">
-          <li is="cov-item" data="{{}}"></li>
+          <li is="cov-item" _data="{{}}"></li>
         </template>
       </ul>
     </section>
