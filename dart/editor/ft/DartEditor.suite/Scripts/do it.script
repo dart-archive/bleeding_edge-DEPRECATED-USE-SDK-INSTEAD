@@ -11,5 +11,5 @@ Run "search box"
 util.deleteProject "sample project"
 util.deleteProject "sunflower project"
 util.closeDebugger
-Run "test Preferences"
 Run "test create button"
+Run "test Preferences"

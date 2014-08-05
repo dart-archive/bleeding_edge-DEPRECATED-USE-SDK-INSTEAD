@@ -1,1 +1,64 @@
-﻿{EPVersionNumber = 1405121416; Schedules = (); ScriptMetaData = {"OPEN WELCOM" = {}; Untitled = {}; completion = {}; "create clock" = {}; "create other" = {}; "create sample" = {}; "create sunflower" = {}; "delete clock" = {}; "delete sample" = {}; "do completion" = {}; "do file edit" = {}; "do it" = {}; "edit other" = {}; "edit other 2" = {}; "edit sample" = {}; exec = {}; "launch clock" = {}; "launch editor" = {}; "launch sunflower" = {}; "open welcome" = {}; "rename reverseText" = {}; reopen = {}; "search box" = {}; "terminate editor" = {}; "test create button" = {}; "test preferences" = {}; }; helperSuitesInfo = ({filePath = "./Samples.suite"; }); }
+﻿{
+    EPVersionNumber = 1408050035;
+    Schedules =     (
+    );
+    ScriptMetaData =     {
+        "OPEN WELCOM" =         {
+        };
+        Untitled =         {
+        };
+        completion =         {
+        };
+        "create clock" =         {
+        };
+        "create other" =         {
+        };
+        "create sample" =         {
+        };
+        "create sunflower" =         {
+        };
+        "delete clock" =         {
+        };
+        "delete sample" =         {
+        };
+        "do completion" =         {
+        };
+        "do file edit" =         {
+        };
+        "do it" =         {
+        };
+        "edit other" =         {
+        };
+        "edit other 2" =         {
+        };
+        "edit sample" =         {
+        };
+        exec =         {
+        };
+        "launch clock" =         {
+        };
+        "launch editor" =         {
+        };
+        "launch sunflower" =         {
+        };
+        "open welcome" =         {
+        };
+        "rename reverseText" =         {
+        };
+        reopen =         {
+        };
+        "search box" =         {
+        };
+        "terminate editor" =         {
+        };
+        "test create button" =         {
+        };
+        "test preferences" =         {
+        };
+    };
+    helperSuitesInfo =     (
+                {
+            filePath = "./Samples.suite";
+        }
+    );
+}
