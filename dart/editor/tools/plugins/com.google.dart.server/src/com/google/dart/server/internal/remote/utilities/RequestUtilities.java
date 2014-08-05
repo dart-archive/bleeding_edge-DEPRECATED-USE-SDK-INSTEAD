@@ -78,6 +78,12 @@ public class RequestUtilities {
   private static final String METHOD_SEARCH_FIND_TOP_LEVEL_DECLARATIONS = "search.findTopLevelDeclarations";
   private static final String METHOD_SEARCH_GET_TYPE_HIERARCHY = "search.getTypeHierarchy";
 
+  // Debug domain
+//  private static final String METHOD_DEBUG_CREATE_CONTEXT = "debug.createContext";
+//  private static final String METHOD_DEBUG_DELETE_CONTEXT = "debug.deleteContext";
+//  private static final String METHOD_DEBUG_MAP_URI = "debug.mapUri";
+//  private static final String METHOD_DEBUG_SET_SUBSCRIPTIONS = "debug.setSubscriptions";
+
   @VisibleForTesting
   public static JsonElement buildJsonElement(Object object) {
     if (object instanceof Boolean) {

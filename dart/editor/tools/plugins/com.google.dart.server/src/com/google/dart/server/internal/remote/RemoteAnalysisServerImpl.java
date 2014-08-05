@@ -27,8 +27,11 @@ import com.google.dart.server.BasicConsumer;
 import com.google.dart.server.CompletionIdConsumer;
 import com.google.dart.server.Consumer;
 import com.google.dart.server.ContentChange;
+import com.google.dart.server.DebugCreateContextConsumer;
+import com.google.dart.server.DebugService;
 import com.google.dart.server.FixesConsumer;
 import com.google.dart.server.HoverConsumer;
+import com.google.dart.server.MapUriConsumer;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringCreateConsumer;
 import com.google.dart.server.RefactoringGetConsumer;
@@ -242,6 +245,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
+  public void createDebugContext(String contextRoot, DebugCreateContextConsumer consumer) {
+    // TODO (jwren) implement
+  }
+
+  @Override
   public void createRefactoring(String refactoringKind, String file, int offset, int length,
       RefactoringCreateConsumer consumer) {
     String id = generateUniqueId();
@@ -249,6 +257,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
         id,
         RequestUtilities.generateEditCreateRefactoring(id, refactoringKind, file, offset, length),
         consumer);
+  }
+
+  @Override
+  public void deleteDebugContext(String id) {
+    // TODO (jwren) implement
   }
 
   @Override
@@ -348,6 +361,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
+  public void mapUri(String id, String file, String uri, MapUriConsumer consumer) {
+    // TODO (jwren) implement
+  }
+
+  @Override
   public void reanalyze() {
     String id = generateUniqueId();
     sendRequestToServer(id, RequestUtilities.generateAnalysisReanalyze(id));
@@ -413,6 +431,11 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
       subscriptions = Maps.newHashMap();
     }
     sendRequestToServer(id, RequestUtilities.generateAnalysisSetSubscriptions(id, subscriptions));
+  }
+
+  @Override
+  public void setDebugSubscriptions(List<DebugService> services) {
+    // TODO (jwren) implement
   }
 
   @Override

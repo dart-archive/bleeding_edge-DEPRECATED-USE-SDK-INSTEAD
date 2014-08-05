@@ -23,6 +23,7 @@ import java.util.Map;
  * @coverage dart.server
  */
 public interface AnalysisServer {
+
   /**
    * Add the given listener to the list of listeners that will receive notification when new
    * analysis results become available.
@@ -43,6 +44,16 @@ public interface AnalysisServer {
   public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer);
 
   /**
+   * Create a debugging context for the executable file with the given path. The context that is
+   * created will persist until debug.deleteContext is used to delete it. Clients, therefore, are
+   * responsible for managing the lifetime of debugging contexts.
+   * 
+   * @param contextRoot the path of the Dart or HTML file that will be launched
+   * @param consumer the results listener
+   */
+  public void createDebugContext(String contextRoot, DebugCreateContextConsumer consumer);
+
+  /**
    * Create a refactoring operation that can be applied at a later time. The operation that is
    * created will persist until either {@code edit.applyRefactoring} or
    * {@code edit.deleteRefactoring} is used to delete it. Clients, therefore, are responsible for
@@ -56,6 +67,15 @@ public interface AnalysisServer {
    */
   public void createRefactoring(String refactoringKind, String file, int offset, int length,
       RefactoringCreateConsumer consumer);
+
+  /**
+   * Delete the debugging context with the given identifier. The context id is no longer valid after
+   * this command. The server is allowed to re-use ids when they are no longer valid.
+   * 
+   * @param contextRoot the path of the Dart or HTML file that will be launched
+   * @param consumer the results listener
+   */
+  public void deleteDebugContext(String id);
 
   /**
    * Delete the refactoring with the given id. Future attempts to use the refactoring id will result
@@ -153,6 +173,19 @@ public interface AnalysisServer {
   public void getVersion(VersionConsumer consumer);
 
   /**
+   * Map a URI from the debugging context to the file that it corresponds to, or map a file to the
+   * URI that it corresponds to in the debugging context.
+   * <p>
+   * Exactly one of the file and uri fields must be provided.
+   * 
+   * @param id the identifier of the debugging context in which the URI is to be mapped
+   * @param file the path of the file to be mapped into a URI
+   * @param uri the URI to be mapped into a file path
+   * @param consumer the results listener
+   */
+  public void mapUri(String id, String file, String uri, MapUriConsumer consumer);
+
+  /**
    * Force the re-analysis of everything contained in the existing analysis roots. This will cause
    * all previously computed analysis results to be discarded and recomputed, and will cause all
    * subscribed notifications to be re-sent.
@@ -235,6 +268,16 @@ public interface AnalysisServer {
    * @param subscriptions a list of the services being subscribed to.
    */
   public void setAnalysisSubscriptions(Map<AnalysisService, List<String>> subscriptions);
+
+  /**
+   * Subscribe for services. All previous subscriptions are replaced by the given set of services.
+   * <p>
+   * It is an error if any of the elements in the list are not valid services. If there is an error,
+   * then the current subscriptions will remain unchanged.
+   * 
+   * @param services a list of the services being subscribed to
+   */
+  public void setDebugSubscriptions(List<DebugService> services);
 
   /**
    * Set the priority files to the files in the given list. A priority file is a file that is given

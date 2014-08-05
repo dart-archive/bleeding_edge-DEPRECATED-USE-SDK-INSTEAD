@@ -32,8 +32,18 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
+  public void createDebugContext(String contextRoot, DebugCreateContextConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void createRefactoring(String refactoringKind, String file, int offset, int length,
       RefactoringCreateConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void deleteDebugContext(String id) {
     throw new UnsupportedOperationException();
   }
 
@@ -83,6 +93,11 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
+  public void mapUri(String id, String file, String uri, MapUriConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void reanalyze() {
     throw new UnsupportedOperationException();
   }
@@ -120,6 +135,11 @@ public class MockAnalysisServer implements AnalysisServer {
 
   @Override
   public void setAnalysisSubscriptions(Map<AnalysisService, List<String>> subscriptions) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void setDebugSubscriptions(List<DebugService> services) {
     throw new UnsupportedOperationException();
   }
 
