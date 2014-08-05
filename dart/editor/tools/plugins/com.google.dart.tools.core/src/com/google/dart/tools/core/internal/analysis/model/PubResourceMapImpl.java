@@ -144,7 +144,6 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
         }
         file = pkgDir;
       }
-      System.out.println("From PubResourceMapImpl: " + uri);
     } else {
       file = fileLocation.toFile();
       uri = file.toURI();
