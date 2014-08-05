@@ -19,6 +19,7 @@ import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.Location;
+import com.google.dart.server.Parameter;
 import com.google.dart.server.ServerService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -451,9 +452,64 @@ public class RequestUtilities {
    * }
    * </pre>
    */
-  public static JsonObject generateEditSetRefactoringOptions(String idValue, String refactoringId) {
+  public static JsonObject generateEditSetRefactoringOptions(String idValue, String refactoringId,
+      Map<String, Object> refactoringOptions) {
     JsonObject params = new JsonObject();
     params.addProperty(ID, refactoringId);
+    JsonObject options = new JsonObject();
+    if (refactoringOptions != null && !refactoringOptions.isEmpty()) {
+      // name: String
+      Object name = refactoringOptions.get("name");
+      if (name != null) {
+        options.addProperty("name", (String) name);
+      }
+      // extractAll: Boolean
+      Object extractAll = refactoringOptions.get("extractAll");
+      if (extractAll != null) {
+        options.addProperty("extractAll", (Boolean) extractAll);
+      }
+      // returnType: String
+      Object returnType = refactoringOptions.get("returnType");
+      if (returnType != null) {
+        options.addProperty("returnType", (String) returnType);
+      }
+      // createGetter: Boolean
+      Object createGetter = refactoringOptions.get("createGetter");
+      if (createGetter != null) {
+        options.addProperty("createGetter", (Boolean) createGetter);
+      }
+      // parameters: List<Parameter>
+      Object parameterListOb = refactoringOptions.get("parameters");
+      if (parameterListOb != null) {
+        JsonArray parameterArray = new JsonArray();
+        if (parameterListOb instanceof Parameter[]) {
+          Parameter[] parameterList = (Parameter[]) parameterListOb;
+          for (Parameter parameter : parameterList) {
+            JsonObject parameterJsonObject = new JsonObject();
+            parameterJsonObject.addProperty("type", parameter.getType());
+            parameterJsonObject.addProperty("name", parameter.getName());
+            parameterArray.add(parameterJsonObject);
+          }
+        }
+        options.add("parameters", parameterArray);
+      }
+      // deleteSource: Boolean
+      Object deleteSource = refactoringOptions.get("deleteSource");
+      if (deleteSource != null) {
+        options.addProperty("deleteSource", (Boolean) deleteSource);
+      }
+      // inlineAll: Boolean
+      Object inlineAll = refactoringOptions.get("inlineAll");
+      if (inlineAll != null) {
+        options.addProperty("inlineAll", (Boolean) inlineAll);
+      }
+      // newName: String
+      Object newName = refactoringOptions.get("newName");
+      if (newName != null) {
+        options.addProperty("newName", (String) newName);
+      }
+    }
+    params.add("options", options);
     return buildJsonObjectRequest(idValue, METHOD_EDIT_SET_REFACTORING_OPTIONS, params);
   }
 

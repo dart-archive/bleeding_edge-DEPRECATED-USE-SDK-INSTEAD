@@ -1821,7 +1821,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'id': '0',",
         "  'method': 'edit.setRefactoringOptions',",
         "  'params': {",
-        "    'id': 'refactoringId0'",
+        "    'id': 'refactoringId0',",
+        "    'options': {}",
         "  }",
         "}");
     assertTrue(requests.contains(expected));
@@ -1892,7 +1893,8 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "  'id': '0',",
         "  'method': 'edit.setRefactoringOptions',",
         "  'params': {",
-        "    'id': 'refactoringId0'",
+        "    'id': 'refactoringId0',",
+        "    'options': {}",
         "  }",
         "}");
     assertTrue(requests.contains(expected));
@@ -1910,6 +1912,181 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     // assertions on 'status' (RefactoringProblem array)
     RefactoringProblem[] refactoringProblems = refactoringProblemsArray[0];
     assertThat(refactoringProblems).isEmpty();
+  }
+
+  public void test_edit_setRefactoringOptions_extractLocalVariable() throws Exception {
+    HashMap<String, Object> options = new HashMap<String, Object>();
+    options.put("name", "name1");
+    options.put("extractAll", Boolean.TRUE);
+    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
+      @Override
+      public void computedStatus(RefactoringProblem[] problems) {
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.setRefactoringOptions',",
+        "  'params': {",
+        "    'id': 'refactoringId0',",
+        "    'options': {",
+        "      'name': 'name1',",
+        "      'extractAll': true",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_edit_setRefactoringOptions_extractMethod_noParameters() throws Exception {
+    HashMap<String, Object> options = new HashMap<String, Object>();
+    options.put("returnType", "returnType1");
+    options.put("createGetter", Boolean.TRUE);
+    options.put("name", "name1");
+    options.put("parameters", new Parameter[] {});
+    options.put("extractAll", Boolean.TRUE);
+
+    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
+      @Override
+      public void computedStatus(RefactoringProblem[] problems) {
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.setRefactoringOptions',",
+        "  'params': {",
+        "    'id': 'refactoringId0',",
+        "    'options': {",
+        "      'returnType': 'returnType1',",
+        "      'createGetter': true,",
+        "      'name': 'name1',",
+        "      'parameters': [],",
+        "      'extractAll': true",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_edit_setRefactoringOptions_extractMethod_someParameters() throws Exception {
+    HashMap<String, Object> options = new HashMap<String, Object>();
+    options.put("returnType", "returnType1");
+    options.put("createGetter", Boolean.FALSE);
+    options.put("name", "name1");
+    options.put("parameters", new Parameter[] {
+        new ParameterImpl("type1", "name1"), new ParameterImpl("type2", "name2")});
+    options.put("extractAll", Boolean.FALSE);
+
+    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
+      @Override
+      public void computedStatus(RefactoringProblem[] problems) {
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.setRefactoringOptions',",
+        "  'params': {",
+        "    'id': 'refactoringId0',",
+        "    'options': {",
+        "      'returnType': 'returnType1',",
+        "      'createGetter': false,",
+        "      'name': 'name1',",
+        "      'parameters': [",
+        "        {",
+        "          'type': 'type1',",
+        "          'name': 'name1'",
+        "        },",
+        "        {",
+        "          'type': 'type2',",
+        "          'name': 'name2'",
+        "        }",
+        "      ],",
+        "      'extractAll': false",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_edit_setRefactoringOptions_inlineMethod_false() throws Exception {
+    HashMap<String, Object> options = new HashMap<String, Object>();
+    options.put("deleteSource", Boolean.FALSE);
+    options.put("inlineAll", Boolean.FALSE);
+
+    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
+      @Override
+      public void computedStatus(RefactoringProblem[] problems) {
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.setRefactoringOptions',",
+        "  'params': {",
+        "    'id': 'refactoringId0',",
+        "    'options': {",
+        "      'deleteSource': false,",
+        "      'inlineAll': false",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_edit_setRefactoringOptions_inlineMethod_true() throws Exception {
+    HashMap<String, Object> options = new HashMap<String, Object>();
+    options.put("deleteSource", Boolean.TRUE);
+    options.put("inlineAll", Boolean.TRUE);
+
+    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
+      @Override
+      public void computedStatus(RefactoringProblem[] problems) {
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.setRefactoringOptions',",
+        "  'params': {",
+        "    'id': 'refactoringId0',",
+        "    'options': {",
+        "      'deleteSource': true,",
+        "      'inlineAll': true",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_edit_setRefactoringOptions_rename() throws Exception {
+    HashMap<String, Object> options = new HashMap<String, Object>();
+    options.put("newName", "newName1");
+
+    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
+      @Override
+      public void computedStatus(RefactoringProblem[] problems) {
+      }
+    });
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'edit.setRefactoringOptions',",
+        "  'params': {",
+        "    'id': 'refactoringId0',",
+        "    'options': {",
+        "      'newName': 'newName1'",
+        "    }",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
   }
 
   public void test_error() throws Exception {
