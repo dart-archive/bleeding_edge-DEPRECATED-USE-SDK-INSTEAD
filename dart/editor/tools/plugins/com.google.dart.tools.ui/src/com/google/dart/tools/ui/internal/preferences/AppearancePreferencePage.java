@@ -14,18 +14,10 @@
 package com.google.dart.tools.ui.internal.preferences;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.PreferenceConstants;
-import com.google.dart.tools.ui.internal.dialogs.StatusInfo;
-import com.google.dart.tools.ui.internal.dialogs.StatusUtil;
-import com.google.dart.tools.ui.internal.dialogs.fields.DialogField;
-import com.google.dart.tools.ui.internal.dialogs.fields.IDialogFieldListener;
-import com.google.dart.tools.ui.internal.dialogs.fields.SelectionButtonDialogField;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
@@ -43,35 +35,35 @@ public class AppearancePreferencePage extends PreferencePage implements IWorkben
 
   public static final String PREF_COLORED_LABELS = "colored_labels_in_views"; //$NON-NLS-1$
 
-  private static final String PREF_METHOD_RETURNTYPE = PreferenceConstants.APPEARANCE_METHOD_RETURNTYPE;
-  private static final String PREF_CATEGORY = PreferenceConstants.APPEARANCE_CATEGORY;
+//  private static final String PREF_METHOD_RETURNTYPE = PreferenceConstants.APPEARANCE_METHOD_RETURNTYPE;
+//  private static final String PREF_CATEGORY = PreferenceConstants.APPEARANCE_CATEGORY;
 
-  private SelectionButtonDialogField fShowMethodReturnType;
-  private SelectionButtonDialogField fShowCategory;
-  private SelectionButtonDialogField fShowColoredLabels;
+//  private SelectionButtonDialogField fShowMethodReturnType;
+//  private SelectionButtonDialogField fShowCategory;
+//  private SelectionButtonDialogField fShowColoredLabels;
 
   public AppearancePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
     setDescription(PreferencesMessages.AppearancePreferencePage_description);
 
-    IDialogFieldListener listener = new IDialogFieldListener() {
-      @Override
-      public void dialogFieldChanged(DialogField field) {
-        doDialogFieldChanged(field);
-      }
-    };
+//    IDialogFieldListener listener = new IDialogFieldListener() {
+//      @Override
+//      public void dialogFieldChanged(DialogField field) {
+//        doDialogFieldChanged(field);
+//      }
+//    };
 
-    fShowMethodReturnType = new SelectionButtonDialogField(SWT.CHECK);
-    fShowMethodReturnType.setDialogFieldListener(listener);
-    fShowMethodReturnType.setLabelText(PreferencesMessages.AppearancePreferencePage_inferredmethodreturntype_label);
-
-    fShowCategory = new SelectionButtonDialogField(SWT.CHECK);
-    fShowCategory.setDialogFieldListener(listener);
-    fShowCategory.setLabelText(PreferencesMessages.AppearancePreferencePage_showCategory_label);
-
-    fShowColoredLabels = new SelectionButtonDialogField(SWT.CHECK);
-    fShowColoredLabels.setDialogFieldListener(listener);
-    fShowColoredLabels.setLabelText(PreferencesMessages.AppearancePreferencePage_coloredlabels_label);
+//    fShowMethodReturnType = new SelectionButtonDialogField(SWT.CHECK);
+//    fShowMethodReturnType.setDialogFieldListener(listener);
+//    fShowMethodReturnType.setLabelText(PreferencesMessages.AppearancePreferencePage_inferredmethodreturntype_label);
+//
+//    fShowCategory = new SelectionButtonDialogField(SWT.CHECK);
+//    fShowCategory.setDialogFieldListener(listener);
+//    fShowCategory.setLabelText(PreferencesMessages.AppearancePreferencePage_showCategory_label);
+//
+//    fShowColoredLabels = new SelectionButtonDialogField(SWT.CHECK);
+//    fShowColoredLabels.setDialogFieldListener(listener);
+//    fShowColoredLabels.setLabelText(PreferencesMessages.AppearancePreferencePage_coloredlabels_label);
   }
 
   /*
@@ -97,11 +89,11 @@ public class AppearancePreferencePage extends PreferencePage implements IWorkben
    */
   @Override
   public boolean performOk() {
-    IPreferenceStore prefs = getPreferenceStore();
+//    IPreferenceStore prefs = getPreferenceStore();
 
-    prefs.setValue(PREF_METHOD_RETURNTYPE, fShowMethodReturnType.isSelected());
-    prefs.setValue(PREF_CATEGORY, fShowCategory.isSelected());
-    prefs.setValue(PREF_COLORED_LABELS, fShowColoredLabels.isSelected());
+//    prefs.setValue(PREF_METHOD_RETURNTYPE, fShowMethodReturnType.isSelected());
+//    prefs.setValue(PREF_CATEGORY, fShowCategory.isSelected());
+//    prefs.setValue(PREF_COLORED_LABELS, fShowColoredLabels.isSelected());
 
     DartToolsPlugin.getDefault().savePluginPreferences();
 
@@ -125,9 +117,9 @@ public class AppearancePreferencePage extends PreferencePage implements IWorkben
     layout.numColumns = nColumns;
     result.setLayout(layout);
 
-    fShowMethodReturnType.doFillIntoGrid(result, nColumns);
-    fShowCategory.doFillIntoGrid(result, nColumns);
-    fShowColoredLabels.doFillIntoGrid(result, nColumns);
+//    fShowMethodReturnType.doFillIntoGrid(result, nColumns);
+//    fShowCategory.doFillIntoGrid(result, nColumns);
+//    fShowColoredLabels.doFillIntoGrid(result, nColumns);
 
     initFields();
 
@@ -140,33 +132,33 @@ public class AppearancePreferencePage extends PreferencePage implements IWorkben
    */
   @Override
   protected void performDefaults() {
-    IPreferenceStore prefs = getPreferenceStore();
+//    IPreferenceStore prefs = getPreferenceStore();
 
-    fShowMethodReturnType.setSelection(prefs.getDefaultBoolean(PREF_METHOD_RETURNTYPE));
-    fShowCategory.setSelection(prefs.getDefaultBoolean(PREF_CATEGORY));
-    fShowColoredLabels.setSelection(false);
+//    fShowMethodReturnType.setSelection(prefs.getDefaultBoolean(PREF_METHOD_RETURNTYPE));
+//    fShowCategory.setSelection(prefs.getDefaultBoolean(PREF_CATEGORY));
+//    fShowColoredLabels.setSelection(false);
 
     super.performDefaults();
   }
 
-  private void doDialogFieldChanged(DialogField field) {
-    updateStatus(getValidationStatus());
-  }
+//  private void doDialogFieldChanged(DialogField field) {
+//    updateStatus(getValidationStatus());
+//  }
 
-  private IStatus getValidationStatus() {
-    return new StatusInfo();
-  }
+//  private IStatus getValidationStatus() {
+//    return new StatusInfo();
+//  }
 
   private void initFields() {
-    IPreferenceStore prefs = getPreferenceStore();
+//    IPreferenceStore prefs = getPreferenceStore();
 
-    fShowMethodReturnType.setSelection(prefs.getBoolean(PREF_METHOD_RETURNTYPE));
-    fShowCategory.setSelection(prefs.getBoolean(PREF_CATEGORY));
-    fShowColoredLabels.setSelection(prefs.getBoolean(PREF_COLORED_LABELS));
+//    fShowMethodReturnType.setSelection(prefs.getBoolean(PREF_METHOD_RETURNTYPE));
+//    fShowCategory.setSelection(prefs.getBoolean(PREF_CATEGORY));
+//    fShowColoredLabels.setSelection(prefs.getBoolean(PREF_COLORED_LABELS));
   }
 
-  private void updateStatus(IStatus status) {
-    setValid(!status.matches(IStatus.ERROR));
-    StatusUtil.applyToStatusLine(this, status);
-  }
+//  private void updateStatus(IStatus status) {
+//    setValid(!status.matches(IStatus.ERROR));
+//    StatusUtil.applyToStatusLine(this, status);
+//  }
 }
