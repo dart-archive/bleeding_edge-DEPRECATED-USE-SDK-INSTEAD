@@ -1,6 +1,3 @@
-# Don't ignore things in pkg folder
-!*
-
 barback-*
 fake_async
 petitparser
