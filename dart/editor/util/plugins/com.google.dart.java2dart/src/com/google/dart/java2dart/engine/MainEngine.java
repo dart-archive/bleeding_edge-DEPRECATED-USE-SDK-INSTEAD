@@ -387,10 +387,12 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildSourceIoLibrary();
-      Files.write(
-          getFormattedSource(library),
-          new File(targetFolder + "/source_io.dart"),
-          Charsets.UTF_8);
+      String code = getFormattedSource(library);
+      code = replaceSourceFragment(
+          code,
+          "bool isOpaque = uri.isOpaque()",
+          "bool isOpaque = uri.isAbsolute && !uri.path.startsWith('/')");
+      Files.write(code, new File(targetFolder + "/source_io.dart"), Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildErrorLibrary();
@@ -549,6 +551,7 @@ public class MainEngine {
           source,
           "AnalysisDeltaTest.dartSuite();",
           "//AnalysisDeltaTest.dartSuite();");
+      source = replaceSourceFragment(source, "on AssertionFailedError catch", "catch");
       Files.write(source, new File(targetTestFolder + "/resolver_test.dart"), Charsets.UTF_8);
     }
     {
@@ -1181,6 +1184,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("utilities_general.dart", null));
     unit.getDirectives().add(importDirective("instrumentation.dart", null));
     unit.getDirectives().add(importDirective("engine.dart", null));
+    unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(exportDirective("source.dart"));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -1212,11 +1216,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
-    unit.getDirectives().add(
-        importDirective(
-            "engine.dart",
-            null,
-            importShowCombinator("AnalysisContext", "TimestampedData")));
+    unit.getDirectives().add(importDirective("engine.dart", null));
+    unit.getDirectives().add(importDirective("java_engine.dart", null));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "source/Source.java")

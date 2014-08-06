@@ -32,10 +32,13 @@ class TestSource implements Source {
   Source resolve(String uri) {
     throw new UnsupportedOperationException();
   }
-  Source resolveRelative(Uri uri) {
+  Uri resolveRelative(Uri uri) {
     throw new UnsupportedOperationException();
   }
   UriKind get uriKind {
+    throw new UnsupportedOperationException();
+  }
+  Uri get uri {
     throw new UnsupportedOperationException();
   }
   TimestampedData<String> get contents {

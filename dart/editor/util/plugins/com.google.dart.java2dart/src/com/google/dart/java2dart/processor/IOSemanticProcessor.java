@@ -118,7 +118,8 @@ public class IOSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "getPath", "java.net.URI")
-            || isMethodInClass(node, "getSchemeSpecificPart", "java.net.URI")) {
+            || isMethodInClass(node, "getSchemeSpecificPart", "java.net.URI")
+            || isMethodInClass(node, "getRawSchemeSpecificPart", "java.net.URI")) {
           replaceNode(node, propertyAccess(node.getTarget(), identifier("path")));
           return null;
         }
