@@ -18,7 +18,6 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Field;
-import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.internal.util.Strings;
@@ -503,93 +502,6 @@ public class DartElementLabels {
   }
 
   /**
-   * Appends the label for a method to a {@link StringBuffer}. Considers the M_* flags.
-   * 
-   * @param method The element to render.
-   * @param flags The rendering flags. Flags with names starting with 'M_' are considered.
-   * @param buf The buffer to append the resulting label to.
-   */
-  public static void getMethodLabel(Method method, long flags, StringBuffer buf) {
-    DartX.todo();
-    try {
-//      BindingKey resolvedKey = getFlag(flags, USE_RESOLVED)
-//          && method.isResolved() ? new BindingKey(method.getKey()) : null;
-//      String resolvedSig = (resolvedKey != null) ? resolvedKey.toSignature()
-//          : null;
-//
-      // return type
-      if (getFlag(flags, M_PRE_RETURNTYPE) && method.exists() && !method.isConstructor()) {
-        buf.append(method.getReturnTypeName());
-        buf.append(' ');
-      }
-
-      // qualification
-      Type declaringType = method.getDeclaringType();
-      if (getFlag(flags, M_FULLY_QUALIFIED)) {
-        if (declaringType != null && !method.isConstructor()) {
-          getTypeLabel(method.getDeclaringType(), T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
-          buf.append('.');
-        }
-        // else {
-        // buf.append('[');
-        // getFileLabel(method, T_FULLY_QUALIFIED | (flags & QUALIFIER_FLAGS),
-        // buf);
-        // buf.append(']');
-        // }
-      }
-
-      // if(buf.length() != 0)
-      // buf.append(' ');
-      buf.append(method.getElementName());
-      getCommonFunctionLabelElements(method, flags, buf);
-
-      if (getFlag(flags, M_EXCEPTIONS)) {
-        String[] types;
-        DartX.todo();
-//        if (resolvedKey != null) {
-//          types= resolvedKey.getThrownExceptions();
-//          types = new String[0];
-//        } else {
-        types = new String[0];
-//        }
-        if (types.length > 0) {
-          buf.append(" throws "); //$NON-NLS-1$
-          for (int i = 0; i < types.length; i++) {
-            if (i > 0) {
-              buf.append(COMMA_STRING);
-            }
-            getTypeSignatureLabel(types[i], flags, buf);
-          }
-        }
-      }
-
-      if (getFlag(flags, M_APP_RETURNTYPE) && method.exists() && !method.isConstructor()) {
-        DartX.todo();
-        if (method.getReturnTypeName() != null) {
-          buf.append(DECL_STRING);
-          buf.append(method.getReturnTypeName());
-        }
-      }
-
-      // category
-//      if (getFlag(flags, M_CATEGORY) && method.exists())
-//        getCategoryLabel(method, buf);
-
-      // post qualification
-      if (getFlag(flags, M_POST_QUALIFIED)) {
-        buf.append(CONCAT_STRING);
-        if (declaringType != null) {
-          getTypeLabel(method.getDeclaringType(), T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
-        } else {
-          getFileLabel(method, T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
-        }
-      }
-    } catch (DartModelException ex) {
-      DartToolsPlugin.log(ex);
-    }
-  }
-
-  /**
    * Appends the label for a local variable to a {@link StringBuffer}.
    * 
    * @param localVariable The element to render.
@@ -842,12 +754,6 @@ public class DartElementLabels {
 
   private static void getCommonFunctionLabelElements(DartFunction method, long flags,
       StringBuffer buf) {
-    if (method instanceof Method) {
-      Method m = (Method) method;
-      if (m.isGetter()) {
-        return;
-      }
-    }
     // parameters
     try {
       buf.append('(');

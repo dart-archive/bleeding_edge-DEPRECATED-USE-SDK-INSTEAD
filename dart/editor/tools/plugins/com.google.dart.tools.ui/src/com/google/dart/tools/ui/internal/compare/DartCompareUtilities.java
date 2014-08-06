@@ -182,8 +182,8 @@ public class DartCompareUtilities {
   static ImageDescriptor getImageDescriptor(int type) {
     switch (type) {
 //      case DartElement.INITIALIZER:
-      case DartElement.METHOD:
-        return getImageDescriptor("obj16/compare_method.gif"); //$NON-NLS-1$
+//      case DartElement.METHOD:
+//        return getImageDescriptor("obj16/compare_method.gif"); //$NON-NLS-1$
       case DartElement.FIELD:
         return getImageDescriptor("obj16/compare_field.gif"); //$NON-NLS-1$
 //      case DartElement.PACKAGE_DECLARATION:

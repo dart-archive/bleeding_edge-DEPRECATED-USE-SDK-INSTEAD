@@ -15,13 +15,8 @@ package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.ui.DartElementImageDescriptor;
-import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.StringMatcher;
-import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.text.dart.PositionBasedCompletionProposal;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -199,15 +194,12 @@ public class ParameterGuesser {
 
   private final Set<String> fAlreadyMatchedNames;
 
-  private final DartElement fEnclosingElement;
-
   /**
    * Creates a parameter guesser
    * 
    * @param enclosingElement the enclosing Java element
    */
   public ParameterGuesser(DartElement enclosingElement) {
-    fEnclosingElement = enclosingElement;
     fAlreadyMatchedNames = new HashSet<String>();
   }
 
@@ -273,28 +265,7 @@ public class ParameterGuesser {
   }
 
   private List<Variable> evaluateVisibleMatches(String expectedType) throws DartModelException {
-    Type currentType = null;
-    if (fEnclosingElement != null) {
-      currentType = fEnclosingElement.getAncestor(Type.class);
-    }
-
     ArrayList<Variable> res = new ArrayList<Variable>();
-
-    // add 'this'
-    if (currentType != null
-        && !(fEnclosingElement instanceof Method && ((Method) fEnclosingElement).isStatic())) {
-      @SuppressWarnings("deprecation")
-      String fullyQualifiedName = currentType.getTypeQualifiedName('.');
-      if (fullyQualifiedName.equals(expectedType)) {
-        ImageDescriptor desc = new DartElementImageDescriptor(
-            DartPluginImages.DESC_FIELD_PUBLIC,
-            DartElementImageDescriptor.FINAL | DartElementImageDescriptor.STATIC,
-            DartElementImageProvider.SMALL_SIZE);
-        res.add(new Variable(
-            fullyQualifiedName,
-            "this", Variable.LITERALS, false, res.size(), new char[] {'.'}, desc)); //$NON-NLS-1$
-      }
-    }
 
     String literalTypeCode = getLiteralTypeCode(expectedType);
     if (literalTypeCode == null) {
@@ -349,20 +320,6 @@ public class ParameterGuesser {
       return type;
     } else {
       return null;
-    }
-  }
-
-  private boolean isLiteralType(String type) {
-    return getLiteralTypeCode(type) != null;
-  }
-
-  private boolean isMethodToSuggest(Method method) {
-    try {
-      String methodName = method.getElementName();
-      return method.getParameterNames().length == 0 && !"void".equals(method.getReturnTypeName()) //$NON-NLS-1$
-          && (method.isGetter() || methodName.startsWith("is")); //$NON-NLS-1$
-    } catch (DartModelException e) {
-      return false;
     }
   }
 }

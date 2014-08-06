@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Field;
-import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.mock.ui.CodeGenerationSettings;
 import com.google.dart.tools.mock.ui.GetterSetterUtil;
@@ -51,11 +50,10 @@ public class GetterSetterCompletionProposal extends DartTypeCompletionProposal i
     }
 
     Field[] fields = type.getFields();
-    Method[] methods = type.getMethods();
     for (int i = 0; i < fields.length; i++) {
       Field curr = fields[i];
       String getterName = GetterSetterUtil.getGetterName(curr, null);
-      if (Strings.startsWithIgnoreCase(getterName, prefix) && !hasMethod(methods, getterName)) {
+      if (Strings.startsWithIgnoreCase(getterName, prefix)) {
         suggestedMethods.add(getterName);
         int getterRelevance = relevance;
         if (curr.isStatic() && curr.isFinal()) {
@@ -72,7 +70,7 @@ public class GetterSetterCompletionProposal extends DartTypeCompletionProposal i
 
       if (!curr.isFinal()) {
         String setterName = GetterSetterUtil.getSetterName(curr, null);
-        if (Strings.startsWithIgnoreCase(setterName, prefix) && !hasMethod(methods, setterName)) {
+        if (Strings.startsWithIgnoreCase(setterName, prefix)) {
           suggestedMethods.add(setterName);
           result.add(new GetterSetterCompletionProposal(
               curr,
@@ -107,15 +105,6 @@ public class GetterSetterCompletionProposal extends DartTypeCompletionProposal i
           fieldNameLabel), StyledString.QUALIFIER_STYLER);
     }
     return buf;
-  }
-
-  private static boolean hasMethod(Method[] methods, String name) {
-    for (int i = 0; i < methods.length; i++) {
-      if (methods[i].getElementName().equals(name)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private final Field fField;

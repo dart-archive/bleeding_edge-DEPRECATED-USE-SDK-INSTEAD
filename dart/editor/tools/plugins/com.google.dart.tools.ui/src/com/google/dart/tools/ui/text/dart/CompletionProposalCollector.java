@@ -17,17 +17,13 @@ import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.problem.Problem;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.completion.DartCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.DartMethodCompletionProposal;
-import com.google.dart.tools.ui.internal.text.completion.GetterSetterCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.LazyDartCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.LazyDartTypeCompletionProposal;
-import com.google.dart.tools.ui.internal.text.completion.MethodDeclarationCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.NamedArgumentCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.OptionalArgumentCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.OverrideCompletionProposal;
@@ -37,7 +33,6 @@ import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
@@ -187,7 +182,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
       DartContentAssistInvocationContext ctxt = getInvocationContext();
       proposal.applyPartitionOffset(ctxt.getPartitionOffset());
       if (proposal.getKind() == CompletionProposal.POTENTIAL_METHOD_DECLARATION) {
-        acceptPotentialMethodDeclaration(proposal);
       } else {
         IDartCompletionProposal dartProposal = createDartCompletionProposal(proposal);
         if (dartProposal != null) {
@@ -622,48 +616,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
     }
     char[] declaringType = getDeclaringType(proposal);
     return declaringType != null && TypeFilter.isFiltered(declaringType);
-  }
-
-  private void acceptPotentialMethodDeclaration(CompletionProposal proposal) {
-    try {
-      DartElement enclosingElement = null;
-      if (getContext().isExtended()) {
-        enclosingElement = getContext().getEnclosingElement();
-      } else if (fCompilationUnit != null) {
-        enclosingElement = fCompilationUnit.getElementAt(proposal.getCompletionLocation() + 1);
-      }
-      if (enclosingElement == null) {
-        return;
-      }
-      Type type = enclosingElement.getAncestor(Type.class);
-      if (type != null) {
-        String prefix = String.valueOf(proposal.getName());
-        int completionStart = proposal.getReplaceStart();
-        int completionEnd = proposal.getReplaceEnd();
-        int relevance = computeRelevance(proposal);
-
-        GetterSetterCompletionProposal.evaluateProposals(
-            type,
-            prefix,
-            completionStart,
-            completionEnd - completionStart,
-            proposal.getReplaceEndIdentifier() - completionStart,
-            relevance + 2,
-            fSuggestedMethodNames,
-            fDartProposals);
-        MethodDeclarationCompletionProposal.evaluateProposals(
-            type,
-            prefix,
-            completionStart,
-            completionEnd - completionStart,
-            proposal.getReplaceEndIdentifier() - completionStart,
-            relevance,
-            fSuggestedMethodNames,
-            fDartProposals);
-      }
-    } catch (CoreException e) {
-      DartToolsPlugin.log(e);
-    }
   }
 
   private void adaptLength(LazyDartCompletionProposal proposal, CompletionProposal coreProposal) {

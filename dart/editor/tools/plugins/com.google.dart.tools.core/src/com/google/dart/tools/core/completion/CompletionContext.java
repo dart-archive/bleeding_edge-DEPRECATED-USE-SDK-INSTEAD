@@ -71,34 +71,6 @@ public class CompletionContext {
   public static final int TOKEN_KIND_STRING_LITERAL = 2;
 
   /**
-   * Return the innermost enclosing Dart element which contains the completion location or
-   * <code>null</code> if this element cannot be computed. The returned Dart element and all Dart
-   * elements in the same compilation unit which can be navigated to from the returned Dart element
-   * are special Dart elements:
-   * <ul>
-   * <li>they are based on the current content of the compilation unit's buffer, they are not the
-   * result of a reconcile operation</li>
-   * <li>they are not updated if the buffer changes.</li>
-   * <li>they do not contain local types which are not visible from the completion location.</li>
-   * <li>they do not give information about categories. {@link IMember#getCategories()} will return
-   * an empty array</li>
-   * </ul>
-   * Reasons for returning <code>null</code> include:
-   * <ul>
-   * <li>the compilation unit no longer exists</li>
-   * <li>the completion occurred in a binary type. However this restriction might be relaxed in the
-   * future.</li>
-   * </ul>
-   * 
-   * @return the innermost enclosing Dart element which contains the completion location or
-   *         <code>null</code> if this element cannot be computed.
-   * @throws UnsupportedOperationException if the context is not an extended context
-   */
-  public DartElement getEnclosingElement() {
-    return null; // default overridden by concrete implementation
-  }
-
-  /**
    * Return keys of expected types of a potential completion proposal at the completion position.
    * It's not mandatory to a completion proposal to respect this expectation.
    * 

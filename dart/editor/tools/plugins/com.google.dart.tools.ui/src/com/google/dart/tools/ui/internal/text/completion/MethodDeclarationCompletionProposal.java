@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.tools.core.model.DartConventions;
-import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.mock.ui.CodeGenerationSettings;
 import com.google.dart.tools.mock.ui.JavaPreferencesSettings;
@@ -51,10 +50,9 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
   public static void evaluateProposals(Type type, String prefix, int offset, int length,
       int lengthIdentifier, int relevance, Set<String> suggestedMethods,
       Collection<IDartCompletionProposal> result) throws CoreException {
-    Method[] methods = type.getMethods();
     String constructorName = type.getElementName();
     if (constructorName.length() > 0 && constructorName.startsWith(prefix)
-        && !hasMethod(methods, constructorName) && suggestedMethods.add(constructorName)) {
+        && suggestedMethods.add(constructorName)) {
       result.add(new MethodDeclarationCompletionProposal(
           type,
           constructorName,
@@ -65,8 +63,7 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
           relevance + 500));
     }
 
-    if (prefix.length() > 0
-        && !"main".equals(prefix) && !hasMethod(methods, prefix) && suggestedMethods.add(prefix)) { //$NON-NLS-1$
+    if (prefix.length() > 0 && !"main".equals(prefix) && suggestedMethods.add(prefix)) { //$NON-NLS-1$
       if (!DartConventions.validateMethodName(prefix).matches(IStatus.ERROR)) {
         result.add(new MethodDeclarationCompletionProposal(
             type,
@@ -99,16 +96,6 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
           StyledString.QUALIFIER_STYLER);
     }
     return buf;
-  }
-
-  private static boolean hasMethod(Method[] methods, String name) {
-    for (int i = 0; i < methods.length; i++) {
-      Method curr = methods[i];
-      if (curr.getElementName().equals(name)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private final Type fType;

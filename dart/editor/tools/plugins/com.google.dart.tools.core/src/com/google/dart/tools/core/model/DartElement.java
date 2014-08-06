@@ -83,11 +83,11 @@ public interface DartElement extends IAdaptable {
    */
   public static int FIELD = 10;
 
-  /**
+  /*
    * A constant representing a method or constructor. A Dart element with this type can be safely
    * cast to {@link Method}.
    */
-  public static int METHOD = 11;
+  //public static int METHOD = 11;
 
   /**
    * A constant representing an import container. A Dart element with this type can be safely cast

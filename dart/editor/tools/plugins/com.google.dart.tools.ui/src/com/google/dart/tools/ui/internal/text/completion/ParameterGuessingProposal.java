@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.dart.DartTextMessages;
@@ -309,10 +308,6 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
     }
   }
 
-  private DartElement getEnclosingElement() {
-    return fCoreContext.getEnclosingElement();
-  }
-
   private String[] getParameterTypes() {
     char[] signature = fProposal.getSignature();
     char[][] types = Signature.getParameterTypes(signature);
@@ -342,7 +337,7 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
     fChoices = new ICompletionProposal[count][];
 
     String[] parameterTypes = getParameterTypes();
-    ParameterGuesser guesser = new ParameterGuesser(getEnclosingElement());
+    ParameterGuesser guesser = new ParameterGuesser(null);
 
     for (int i = count - 1; i >= 0; i--) {
       String paramName = new String(parameterNames[i]);

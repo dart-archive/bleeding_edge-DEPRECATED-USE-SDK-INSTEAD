@@ -41,17 +41,6 @@ public interface Type extends CompilationUnitElement, ParentElement, SourceRefer
   public DartLibrary getLibrary();
 
   /**
-   * Return the methods and constructors declared by this type.
-   * <p>
-   * The results are listed in the order in which they appear in the source or class file.
-   * 
-   * @return the methods and constructors declared by this type
-   * @throws DartModelException if this element does not exist or if an exception occurs while
-   *           accessing its corresponding resource
-   */
-  public Method[] getMethods() throws DartModelException;
-
-  /**
    * Return the name of this class' superclass, or <code>null</code> for source types that do not
    * specify a superclass.
    * <p>

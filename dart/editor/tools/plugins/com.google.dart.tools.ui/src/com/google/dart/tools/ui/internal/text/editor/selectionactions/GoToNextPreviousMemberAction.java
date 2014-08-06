@@ -72,7 +72,6 @@ public class GoToNextPreviousMemberAction extends Action implements IUpdate {
       Type iType = types[i];
       addOffset(result, iType.getNameRange().getOffset());
       addOffset(result, iType.getSourceRange().getOffset() + iType.getSourceRange().getLength());
-      addMemberOffsetList(result, iType.getMethods());
       addMemberOffsetList(result, iType.getFields());
       DartX.todo();
 //      addMemberOffsetList(result, iType.getInitializers());

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.model;
 
-
 /**
  * The interface <code>CompilationUnit</code> defines the behavior of objects representing files
  * containing Dart source code that needs to be compiled.
@@ -49,15 +48,6 @@ public interface CompilationUnit extends CodeAssistElement, SourceFileElement<Co
    * @return the found elements in this Dart file that correspond to the given element
    */
   public DartElement[] findElements(DartElement element);
-
-  /**
-   * Returns the most narrow element including the given offset.
-   * 
-   * @param offset the offset included by the retrieved element
-   * @return the most narrow element which includes the given offset
-   * @throws DartModelException if the contents of the compilation unit cannot be accessed
-   */
-  public DartElement getElementAt(int offset) throws DartModelException;
 
   /**
    * Return the library containing this compilation unit, or <code>null</code> if this compilation

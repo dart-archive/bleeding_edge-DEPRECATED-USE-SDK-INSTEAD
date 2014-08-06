@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.internal.preferences.MembersOrderPreferenceCache;
 
@@ -167,22 +166,6 @@ public class DartElementComparator extends ViewerComparator {
       return cmp;
     }
 
-    if (e1 instanceof Method) {
-      try {
-        String[] params1 = ((Method) e1).getParameterTypeNames();
-        String[] params2 = ((Method) e2).getParameterTypeNames();
-        int len = Math.min(params1.length, params2.length);
-        for (int i = 0; i < len; i++) {
-          cmp = getComparator().compare(params1[i], params2[i]);
-          if (cmp != 0) {
-            return cmp;
-          }
-        }
-        return params1.length - params2.length;
-      } catch (DartModelException ex) {
-        // not reached
-      }
-    }
     return 0;
   }
 
