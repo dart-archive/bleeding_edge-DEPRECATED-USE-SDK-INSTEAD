@@ -20,6 +20,7 @@ import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.FontRegistry;
@@ -182,7 +183,6 @@ public class SWTUtil {
    */
   public static int getButtonWidthHint(Button button) {
     button.setFont(JFaceResources.getDialogFont());
-    @SuppressWarnings("deprecation")
     PixelConverter converter = new PixelConverter(button);
     int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
     return Math.max(widthHint, button.computeSize(SWT.DEFAULT, SWT.DEFAULT, true).x);
