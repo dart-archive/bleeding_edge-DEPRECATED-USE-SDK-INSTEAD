@@ -2194,30 +2194,30 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // being created.
       //
       List<ResolvableLibrary> resolvedLibraries = resolver.getResolvedLibraries();
-      if (resolvedLibraries == null) {
-        //
-        // The resolved libraries should only be null if an exception was thrown during resolution.
-        //
-        unitEntry = getReadableDartEntry(unitSource);
-        if (unitEntry == null) {
-          throw new AnalysisException("A Dart file became a non-Dart file: "
-              + unitSource.getFullName());
-        }
-        DartEntryImpl dartCopy = unitEntry.getWritableCopy();
-        if (thrownException == null) {
-          dartCopy.recordResolutionError(new AnalysisException(
-              "In recordResolveDartLibraryCycleTaskResults, resolvedLibraries was null and there was no thrown exception"));
-        } else {
-          dartCopy.recordResolutionError(thrownException);
-        }
-        cache.put(unitSource, dartCopy);
-        cache.remove(unitSource);
-        if (thrownException != null) {
-          throw thrownException;
-        }
-        return dartCopy;
-      }
       synchronized (cacheLock) {
+        if (resolvedLibraries == null) {
+          //
+          // The resolved libraries should only be null if an exception was thrown during resolution.
+          //
+          unitEntry = getReadableDartEntry(unitSource);
+          if (unitEntry == null) {
+            throw new AnalysisException("A Dart file became a non-Dart file: "
+                + unitSource.getFullName());
+          }
+          DartEntryImpl dartCopy = unitEntry.getWritableCopy();
+          if (thrownException == null) {
+            dartCopy.recordResolutionError(new AnalysisException(
+                "In recordResolveDartLibraryCycleTaskResults, resolvedLibraries was null and there was no thrown exception"));
+          } else {
+            dartCopy.recordResolutionError(thrownException);
+          }
+          cache.put(unitSource, dartCopy);
+          cache.remove(unitSource);
+          if (thrownException != null) {
+            throw thrownException;
+          }
+          return dartCopy;
+        }
         if (allModificationTimesMatch(resolvedLibraries)) {
           Source htmlSource = getSourceFactory().forUri(DartSdk.DART_HTML);
           RecordingErrorListener errorListener = resolver.getErrorListener();
@@ -2332,30 +2332,30 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // being created.
       //
       Set<Library> resolvedLibraries = resolver.getResolvedLibraries();
-      if (resolvedLibraries == null) {
-        //
-        // The resolved libraries should only be null if an exception was thrown during resolution.
-        //
-        unitEntry = getReadableDartEntry(unitSource);
-        if (unitEntry == null) {
-          throw new AnalysisException("A Dart file became a non-Dart file: "
-              + unitSource.getFullName());
-        }
-        DartEntryImpl dartCopy = unitEntry.getWritableCopy();
-        if (thrownException == null) {
-          dartCopy.recordResolutionError(new AnalysisException(
-              "In recordResolveDartLibraryTaskResults, resolvedLibraries was null and there was no thrown exception"));
-        } else {
-          dartCopy.recordResolutionError(thrownException);
-        }
-        cache.put(unitSource, dartCopy);
-        cache.remove(unitSource);
-        if (thrownException != null) {
-          throw thrownException;
-        }
-        return dartCopy;
-      }
       synchronized (cacheLock) {
+        if (resolvedLibraries == null) {
+          //
+          // The resolved libraries should only be null if an exception was thrown during resolution.
+          //
+          unitEntry = getReadableDartEntry(unitSource);
+          if (unitEntry == null) {
+            throw new AnalysisException("A Dart file became a non-Dart file: "
+                + unitSource.getFullName());
+          }
+          DartEntryImpl dartCopy = unitEntry.getWritableCopy();
+          if (thrownException == null) {
+            dartCopy.recordResolutionError(new AnalysisException(
+                "In recordResolveDartLibraryTaskResults, resolvedLibraries was null and there was no thrown exception"));
+          } else {
+            dartCopy.recordResolutionError(thrownException);
+          }
+          cache.put(unitSource, dartCopy);
+          cache.remove(unitSource);
+          if (thrownException != null) {
+            throw thrownException;
+          }
+          return dartCopy;
+        }
         if (allModificationTimesMatch(resolvedLibraries)) {
           Source htmlSource = getSourceFactory().forUri(DartSdk.DART_HTML);
           RecordingErrorListener errorListener = resolver.getErrorListener();
