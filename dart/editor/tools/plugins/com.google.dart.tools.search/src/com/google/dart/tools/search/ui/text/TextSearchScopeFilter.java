@@ -65,7 +65,7 @@ public class TextSearchScopeFilter {
 
     IPath relativePath = resource.getProjectRelativePath();
 
-    if ("packages".equals(relativePath.segment(0))) {
+    if (DartCore.PACKAGES_DIRECTORY_NAME.equals(relativePath.segment(0))) {
 
       try {
 

@@ -15,6 +15,7 @@ package com.google.dart.tools.core.pub;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.builder.BuildEvent;
@@ -228,7 +229,7 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
       File pubFile = new File(dir, DartCore.PUBSPEC_FILE_NAME);
       File lockFile = new File(dir, DartCore.PUBSPEC_LOCK_FILE_NAME);
       File packagesDir = new File(dir, DartCore.PACKAGES_DIRECTORY_NAME);
-      if (packagesDir.exists() && lockFile.exists()
+      if ((DartCoreDebug.NO_PUB_PACKAGES || packagesDir.exists()) && lockFile.exists()
           && lockFile.lastModified() >= pubFile.lastModified()) {
         return;
       }

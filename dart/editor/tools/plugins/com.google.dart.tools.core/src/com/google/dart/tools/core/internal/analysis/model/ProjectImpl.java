@@ -741,31 +741,26 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * @return UriResolver used to resolve package: uris.
    */
   private UriResolver getPackageUriResolver(IContainer container, DartSdk sdk, boolean hasPubspec) {
-
-    UriResolver pkgResolver = null;
     File[] packageRoots = factory.getPackageRoots(container);
     if (packageRoots.length > 0) {
-      pkgResolver = new PackageUriResolver(packageRoots);
-      return pkgResolver;
+      return new PackageUriResolver(packageRoots);
     }
-    File[] packagesDirs = null;
-    if (hasPubspec) {
+    if (hasPubspec && !DartCoreDebug.NO_PUB_PACKAGES) {
       IPath location = container.getLocation();
       if (location != null) {
-        packagesDirs = new File[] {new File(location.toFile(), PACKAGES_DIRECTORY_NAME)};
+        File[] packagesDirs = new File[] {new File(location.toFile(), PACKAGES_DIRECTORY_NAME)};
+        return new PackageUriResolver(packagesDirs);
       }
     }
-    if (packagesDirs != null) {
-      pkgResolver = new PackageUriResolver(packagesDirs);
-    } else if (sdk instanceof DirectoryBasedDartSdk) {
+    if (sdk instanceof DirectoryBasedDartSdk) {
       IPath location = container.getLocation();
       if (location != null) {
-        pkgResolver = new InstrumentedExplicitPackageUriResolver(
+        return new InstrumentedExplicitPackageUriResolver(
             (DirectoryBasedDartSdk) sdk,
             location.toFile());
       }
     }
-    return pkgResolver;
+    return null;
   }
 
   /**
@@ -872,6 +867,17 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
     context.setSourceFactory(sourceFactory);
     context.setAnalysisOptions(options);
+
+    if (DartCoreDebug.NO_PUB_PACKAGES && pkgResolver instanceof ExplicitPackageUriResolver) {
+      //TODO (danrubel): Add package sources to context so that it is properly indexed
+//      ChangeSet changeSet = new ChangeSet();
+//      for (File dir : ((ExplicitPackageUriResolver) pkgResolver).getPackageDirectories()) {
+//        // traverse package directory tree
+//        changeSet.addedSource(new FileBasedSource(file));
+//      }
+//      context.applyChanges(changeSet);
+    }
+
     return context;
   }
 

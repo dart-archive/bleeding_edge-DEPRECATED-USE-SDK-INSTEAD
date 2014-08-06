@@ -240,6 +240,8 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
   private String resolvePackageUrl(String packageUrl) {
     String urlSnippet = packageUrl.substring("package:".length());
 
+    //TODO (danrubel): map package reference to packages returned by pub-list when packages
+    // directory does not exist AND when pubspec is not in project folder
     for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
       IFolder packagesDir = project.getFolder(DartCore.PACKAGES_DIRECTORY_NAME);
 

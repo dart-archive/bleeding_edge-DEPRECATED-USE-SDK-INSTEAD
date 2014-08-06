@@ -71,6 +71,7 @@ public class DartCoreDebug {
   public static final boolean ENABLE_ANALYSIS_SERVER = isOptionTrue("experimental/analysisServer");
   public static final boolean ANALYSIS_SERVER_DEBUG = isOptionTrue("experimental/analysisServer/debug");
   public static final String ANALYSIS_SERVER_LOG_FILE = getOptionValue("experimental/analysisServer/logFile");
+  public static final boolean NO_PUB_PACKAGES = isOptionTrue("experimental/noPubPackages");
 
   // Persistent developer settings
 
@@ -111,6 +112,7 @@ public class DartCoreDebug {
     instrumentation.metric("ENABLE_THEMES", ENABLE_THEMES);
     instrumentation.metric("ENABLE_TAB_COLORING", ENABLE_TAB_COLORING);
     instrumentation.metric("ENABLE_HTML_VALIDATION", ENABLE_HTML_VALIDATION);
+    instrumentation.metric("NO_PUB_PACKAGES", NO_PUB_PACKAGES);
 
     instrumentation.metric("DISABLE_MARK_OCCURRENCES", DISABLE_MARK_OCCURRENCES);
 

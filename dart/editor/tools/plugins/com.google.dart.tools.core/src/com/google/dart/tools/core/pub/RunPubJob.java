@@ -2,6 +2,7 @@ package com.google.dart.tools.core.pub;
 
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
@@ -131,6 +132,9 @@ public class RunPubJob extends Job {
 
       List<String> args = new ArrayList<String>();
       args.add(pubFile.getAbsolutePath());
+      if (DartCoreDebug.NO_PUB_PACKAGES) {
+        args.add("--no-package-symlinks");
+      }
       if (command.contains(" ")) {
         String[] strings = command.split(" ");
         args.addAll(Arrays.asList(strings));

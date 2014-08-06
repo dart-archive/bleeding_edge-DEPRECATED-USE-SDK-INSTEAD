@@ -860,7 +860,8 @@ public class DartCore extends Plugin implements DartSdkListener {
    * Return true if directory contains a "packages" directory and a "pubspec.yaml" file
    */
   public static boolean isApplicationDirectory(File directory) {
-    return containsPubspecFile(directory) && containsPackagesDirectory(directory);
+    return containsPubspecFile(directory)
+        && (DartCoreDebug.NO_PUB_PACKAGES || containsPackagesDirectory(directory));
   }
 
   /**
@@ -1053,7 +1054,7 @@ public class DartCore extends Plugin implements DartSdkListener {
     String[] segments = resourcePath.segments();
     for (int i = 1; i < segments.length - 1; i++) {
       String segment = segments[i];
-      if (segment.equals("packages")) {
+      if (segment.equals(PACKAGES_DIRECTORY_NAME)) {
         return !resourcePath.uptoSegment(i).equals(pubPath);
       }
     }
@@ -1081,7 +1082,7 @@ public class DartCore extends Plugin implements DartSdkListener {
       String[] segments = resource.getFullPath().segments();
       for (int i = 0; i < segments.length - 1; i++) {
         String segment = segments[i];
-        if (segment.equals("packages") && segments[i + 1].equals(packageName)) {
+        if (segment.equals(PACKAGES_DIRECTORY_NAME) && segments[i + 1].equals(packageName)) {
           return true;
         }
       }
