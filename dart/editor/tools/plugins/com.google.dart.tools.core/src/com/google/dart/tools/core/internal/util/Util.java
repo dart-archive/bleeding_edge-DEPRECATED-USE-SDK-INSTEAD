@@ -44,6 +44,7 @@ import java.util.Comparator;
  */
 public class Util {
   public static final String EMPTY_STRING = "";
+  public static final char[] NO_CHAR = new char[0];
 
   /**
    * A cached copy of the Dart-like file extensions computed by DartCore.
@@ -123,7 +124,7 @@ public class Util {
     char[] contents;
     int totalRead = 0;
     if (length == -1) {
-      contents = CharOperation.NO_CHAR;
+      contents = NO_CHAR;
     } else {
       // length is a good guess when the encoding produces less or the same
       // amount of characters than the file length

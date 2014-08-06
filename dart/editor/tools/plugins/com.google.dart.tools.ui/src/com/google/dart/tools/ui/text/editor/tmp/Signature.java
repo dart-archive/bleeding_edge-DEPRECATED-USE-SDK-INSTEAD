@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.text.editor.tmp;
 
-import com.google.dart.tools.core.internal.util.CharOperation;
+import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.ui.DartX;
 
 /**
@@ -66,7 +66,7 @@ public class Signature {
 
   public static char[] getSignatureQualifier(char[] typeSignature) {
     if (typeSignature == null) {
-      return CharOperation.NO_CHAR;
+      return Util.NO_CHAR;
     }
     int dotCount = 0;
     for (int i = 0; i < typeSignature.length; i++) {
@@ -82,16 +82,16 @@ public class Signature {
           dotCount--;
         }
         if (dotCount <= 0) {
-          return CharOperation.subarray(typeSignature, 0, i);
+          return subarray(typeSignature, 0, i);
         }
       }
     }
-    return CharOperation.NO_CHAR;
+    return Util.NO_CHAR;
   }
 
   public static char[] getSignatureSimpleName(char[] typeSignature) {
     if (typeSignature == null) {
-      return CharOperation.NO_CHAR;
+      return Util.NO_CHAR;
     }
     return typeSignature;
   }
@@ -119,6 +119,25 @@ public class Signature {
   public static String getTypeVariable(String x) {
     DartX.todo();
     return x;
+  }
+
+  public static final char[] subarray(char[] array, int start, int end) {
+    if (end == -1) {
+      end = array.length;
+    }
+    if (start > end) {
+      return null;
+    }
+    if (start < 0) {
+      return null;
+    }
+    if (end > array.length) {
+      return null;
+    }
+
+    char[] result = new char[end - start];
+    System.arraycopy(array, start, result, 0, end - start);
+    return result;
   }
 
   public static char[] toCharArray(char[] x) {

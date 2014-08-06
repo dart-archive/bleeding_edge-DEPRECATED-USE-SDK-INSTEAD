@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.mock.ui.ContextSensitiveImportRewriteContext;
 
@@ -30,7 +29,7 @@ import java.util.List;
  * Add imports to a library or application.
  */
 public class ImportRewrite {
-
+  public static final String[] NO_STRINGS = new String[0];
   private CompilationUnit compUnit;
   private boolean restoreExistingImports;
 
@@ -83,7 +82,7 @@ public class ImportRewrite {
     try {
       monitor.beginTask(DartTextMessages.ImportRewrite_processDescription, 2);
       if (!hasRecordedChanges()) {
-        this.createdImports = CharOperation.NO_STRINGS;
+        this.createdImports = NO_STRINGS;
         return new MultiTextEdit();
       }
 

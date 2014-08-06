@@ -13,11 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.text.completion;
 
+import com.google.dart.engine.utilities.general.CharOperation;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionProposal;
-import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.dart.SmartSemicolonAutoEditStrategy;
