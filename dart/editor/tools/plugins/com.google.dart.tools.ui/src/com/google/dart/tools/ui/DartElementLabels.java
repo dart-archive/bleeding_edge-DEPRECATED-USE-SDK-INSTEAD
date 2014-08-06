@@ -21,7 +21,6 @@ import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.internal.util.Strings;
-import com.google.dart.tools.ui.internal.viewsupport.DartElementLabelComposer;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
@@ -376,9 +375,9 @@ public class DartElementLabels {
    * @param flags the rendering flags
    * @param result the buffer to append the resulting label to
    */
-  public static void getElementLabel(DartElement element, long flags, StyledString result) {
-    new DartElementLabelComposer(result).appendElementLabel(element, flags);
-  }
+//  public static void getElementLabel(DartElement element, long flags, StyledString result) {
+//    new DartElementLabelComposer(result).appendElementLabel(element, flags);
+//  }
 
   /**
    * Appends the label for a field to a {@link StringBuffer}. Considers the F_* flags.
