@@ -1,5 +1,0 @@
----
-build.dart --machine --removed=test.foobar
-
-build.dart finished [101 ms]
-
