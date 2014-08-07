@@ -36,17 +36,22 @@ utils = imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
 bot_utils = imp.load_source('bot_utils',
     os.path.join(DART_DIR, 'tools', 'bots', 'bot_utils.py'))
 
-def DartArchiveFile(local_path, remote_path, create_md5sum=False):
+def DartArchiveFile(local_path, remote_path, checksum_files=False):
   # Copy it to the new unified gs://dart-archive bucket
   gsutil = bot_utils.GSUtil()
   gsutil.upload(local_path, remote_path, public=True)
-  if create_md5sum:
+  if checksum_files:
     # 'local_path' may have a different filename than 'remote_path'. So we need
     # to make sure the *.md5sum file contains the correct name.
     assert '/' in remote_path and not remote_path.endswith('/')
+
     mangled_filename = remote_path[remote_path.rfind('/') + 1:]
-    local_md5sum = bot_utils.CreateChecksumFile(local_path, mangled_filename)
+    local_md5sum = bot_utils.CreateMD5ChecksumFile(local_path,
+                                                   mangled_filename)
     gsutil.upload(local_md5sum, remote_path + '.md5sum', public=True)
+    local_sha256 = bot_utils.CreateSha256ChecksumFile(local_path,
+                                                      mangled_filename)
+    gsutil.upload(local_sha256, remote_path + '.sha256sum', public=True)
 
 def DartArchiveUploadEditorZipFile(zipfile):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
@@ -71,7 +76,7 @@ def DartArchiveUploadEditorZipFile(zipfile):
 
   for revision in [REVISION, 'latest']:
     DartArchiveFile(zipfile, namer.editor_zipfilepath(revision, system, arch),
-        create_md5sum=True)
+        checksum_files=True)
 
 def DartArchiveUploadUpdateSite(local_path):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
@@ -90,34 +95,34 @@ def DartArchiveUploadSDKs(system, sdk32_zip, sdk64_zip):
   for revision in [REVISION, 'latest']:
     path32 = namer.sdk_zipfilepath(revision, system, 'ia32', 'release')
     path64 = namer.sdk_zipfilepath(revision, system, 'x64', 'release')
-    DartArchiveFile(sdk32_zip, path32, create_md5sum=True)
-    DartArchiveFile(sdk64_zip, path64, create_md5sum=True)
+    DartArchiveFile(sdk32_zip, path32, checksum_files=True)
+    DartArchiveFile(sdk64_zip, path64, checksum_files=True)
 
 def DartArchiveUploadAPIDocs(api_zip):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
   for revision in [REVISION, 'latest']:
     destination = (namer.apidocs_directory(revision) + '/' +
         namer.apidocs_zipfilename())
-    DartArchiveFile(api_zip, destination, create_md5sum=False)
+    DartArchiveFile(api_zip, destination, checksum_files=False)
 
 def DartArchiveUploadAndroidZip(android_zip):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
   for revision in [REVISION, 'latest']:
     destination = namer.editor_android_zipfilepath(revision)
-    DartArchiveFile(android_zip, destination, create_md5sum=False)
+    DartArchiveFile(android_zip, destination, checksum_files=False)
 
 def DartArchiveUploadVersionFile(version_file):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
   for revision in [REVISION, 'latest']:
     DartArchiveFile(version_file, namer.version_filepath(revision),
-        create_md5sum=False)
+        checksum_files=False)
 
 def DartArchiveUploadInstaller(
       arch, installer_file, extension, release_type=bot_utils.ReleaseType.RAW):
   namer = bot_utils.GCSNamer(CHANNEL, release_type)
   gsu_path = namer.editor_installer_filepath(
       REVISION, SYSTEM, arch, extension)
-  DartArchiveFile(installer_file, gsu_path, create_md5sum=False)
+  DartArchiveFile(installer_file, gsu_path, checksum_files=False)
 
 class AntWrapper(object):
   """A wrapper for ant build invocations"""
