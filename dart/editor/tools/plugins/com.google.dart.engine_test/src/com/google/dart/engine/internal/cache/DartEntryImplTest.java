@@ -65,10 +65,6 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
 
-    assertSame(
-        CacheState.INVALID,
-        entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, librarySource));
-    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource));
     assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.HINTS, librarySource));
     assertSame(
         CacheState.INVALID,
@@ -90,10 +86,6 @@ public class DartEntryImplTest extends EngineTestCase {
         source,
         ParserErrorCode.ABSTRACT_CLASS_MEMBER)});
     entry.setValueInLibrary(
-        DartEntry.BUILD_ELEMENT_ERRORS,
-        source,
-        new AnalysisError[] {new AnalysisError(source, CompileTimeErrorCode.MIXIN_OF_NON_CLASS)});
-    entry.setValueInLibrary(
         DartEntry.RESOLUTION_ERRORS,
         source,
         new AnalysisError[] {new AnalysisError(
@@ -106,7 +98,7 @@ public class DartEntryImplTest extends EngineTestCase {
     entry.setValueInLibrary(DartEntry.HINTS, source, new AnalysisError[] {new AnalysisError(
         source,
         HintCode.DEAD_CODE)});
-    assertLength(6, entry.getAllErrors());
+    assertLength(5, entry.getAllErrors());
   }
 
   public void test_getResolvableCompilationUnit_none() {
@@ -203,16 +195,6 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(partSource, resultPartDirective.getSource());
   }
 
-  public void test_getState_invalid_buildElementErrors() {
-    DartEntryImpl entry = new DartEntryImpl();
-    try {
-      entry.getState(DartEntry.BUILD_ELEMENT_ERRORS);
-      fail("Expected IllegalArgumentException for BUILD_ELEMENT_ERRORS");
-    } catch (IllegalArgumentException exception) {
-      // Expected
-    }
-  }
-
   public void test_getState_invalid_resolutionErrors() {
     DartEntryImpl entry = new DartEntryImpl();
     try {
@@ -255,16 +237,6 @@ public class DartEntryImplTest extends EngineTestCase {
     entry.removeContainingLibrary(testSource);
     value = entry.getValue(DartEntry.CONTAINING_LIBRARIES);
     assertLength(0, value);
-  }
-
-  public void test_getValue_invalid_buildElementErrors() {
-    DartEntryImpl entry = new DartEntryImpl();
-    try {
-      entry.getValue(DartEntry.BUILD_ELEMENT_ERRORS);
-      fail("Expected IllegalArgumentException for BUILD_ELEMENT_ERRORS");
-    } catch (IllegalArgumentException exception) {
-      // Expected
-    }
   }
 
   public void test_getValue_invalid_resolutionErrors() {
@@ -335,7 +307,6 @@ public class DartEntryImplTest extends EngineTestCase {
     assertFalse(entry.hasInvalidData(DartEntry.PARSED_UNIT));
     assertFalse(entry.hasInvalidData(DartEntry.PUBLIC_NAMESPACE));
     assertFalse(entry.hasInvalidData(DartEntry.SOURCE_KIND));
-    assertFalse(entry.hasInvalidData(DartEntry.BUILD_ELEMENT_ERRORS));
     assertFalse(entry.hasInvalidData(DartEntry.RESOLUTION_ERRORS));
     assertFalse(entry.hasInvalidData(DartEntry.RESOLVED_UNIT));
     assertFalse(entry.hasInvalidData(DartEntry.VERIFICATION_ERRORS));
@@ -355,7 +326,6 @@ public class DartEntryImplTest extends EngineTestCase {
     assertTrue(entry.hasInvalidData(DartEntry.PARSED_UNIT));
     assertTrue(entry.hasInvalidData(DartEntry.PUBLIC_NAMESPACE));
     assertTrue(entry.hasInvalidData(DartEntry.SOURCE_KIND));
-    assertTrue(entry.hasInvalidData(DartEntry.BUILD_ELEMENT_ERRORS));
     assertTrue(entry.hasInvalidData(DartEntry.RESOLUTION_ERRORS));
     assertTrue(entry.hasInvalidData(DartEntry.RESOLVED_UNIT));
     assertTrue(entry.hasInvalidData(DartEntry.VERIFICATION_ERRORS));
@@ -460,8 +430,6 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
 
-    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
     assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
     assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
     assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
@@ -520,8 +488,6 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
 
-    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
     assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
     assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
     assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
@@ -618,10 +584,6 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
 
-    // The following lines are commented out because we don't currently have any way of setting the
-    // state for data associated with a library we don't know anything about.
-    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
     assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
     assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
     assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
@@ -688,8 +650,6 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
     assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
 
-    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-    assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
     assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
     assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
     assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
@@ -763,10 +723,6 @@ public class DartEntryImplTest extends EngineTestCase {
     assertExactElementsInArray(entry2.getAllErrors());
   }
 
-  public void test_setState_buildElementErrors() {
-    setState3(DartEntry.BUILD_ELEMENT_ERRORS);
-  }
-
   public void test_setState_element() {
     setState2(DartEntry.ELEMENT);
   }
@@ -785,16 +741,6 @@ public class DartEntryImplTest extends EngineTestCase {
 
   public void test_setState_includedParts() {
     setState2(DartEntry.INCLUDED_PARTS);
-  }
-
-  public void test_setState_invalid_buildElementErrors() {
-    DartEntryImpl entry = new DartEntryImpl();
-    try {
-      entry.setState(DartEntry.BUILD_ELEMENT_ERRORS, CacheState.FLUSHED);
-      fail("Expected IllegalArgumentException for BUILD_ELEMENT_ERRORS");
-    } catch (IllegalArgumentException exception) {
-      // Expected
-    }
   }
 
   public void test_setState_invalid_element() {
@@ -883,12 +829,6 @@ public class DartEntryImplTest extends EngineTestCase {
 
   public void test_setState_verificationErrors() {
     setState3(DartEntry.VERIFICATION_ERRORS);
-  }
-
-  public void test_setValue_buildElementErrors() {
-    setValue3(DartEntry.BUILD_ELEMENT_ERRORS, new AnalysisError[] {new AnalysisError(
-        null,
-        CompileTimeErrorCode.MIXIN_OF_NON_CLASS)});
   }
 
   public void test_setValue_element() {

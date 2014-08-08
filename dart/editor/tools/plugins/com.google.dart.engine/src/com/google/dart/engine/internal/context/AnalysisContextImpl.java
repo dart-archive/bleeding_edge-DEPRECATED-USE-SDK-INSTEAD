@@ -70,7 +70,6 @@ import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.task.AnalysisTask;
 import com.google.dart.engine.internal.task.AnalysisTaskVisitor;
-import com.google.dart.engine.internal.task.BuildDartElementModelTask;
 import com.google.dart.engine.internal.task.GenerateDartErrorsTask;
 import com.google.dart.engine.internal.task.GenerateDartHintsTask;
 import com.google.dart.engine.internal.task.GetContentTask;
@@ -125,12 +124,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * record the results of a task.
    */
   private class AnalysisTaskResultRecorder implements AnalysisTaskVisitor<SourceEntry> {
-    @Override
-    public DartEntry visitBuildDartElementModelTask(BuildDartElementModelTask task)
-        throws AnalysisException {
-      return recordBuildDartElementModelTask(task);
-    }
-
     @Override
     public DartEntry visitGenerateDartErrorsTask(GenerateDartErrorsTask task)
         throws AnalysisException {
@@ -1948,10 +1941,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.setValue(DartEntry.PARSE_ERRORS, AnalysisError.NO_ERRORS);
           dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
           dartCopy.setValueInLibrary(
-              DartEntry.BUILD_ELEMENT_ERRORS,
-              librarySource,
-              AnalysisError.NO_ERRORS);
-          dartCopy.setValueInLibrary(
               DartEntry.RESOLUTION_ERRORS,
               librarySource,
               AnalysisError.NO_ERRORS);
@@ -2938,39 +2927,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return false;
-  }
-
-  /**
-   * Create a {@link BuildDartElementModelTask} for the given source, marking the built unit as
-   * being in-process.
-   * 
-   * @param source the source for the library whose element model is to be built
-   * @param dartEntry the entry for the source
-   * @return task data representing the created task
-   */
-  private TaskData createBuildDartElementModelTask(Source source, DartEntry dartEntry) {
-    try {
-      CycleBuilder builder = new CycleBuilder();
-      builder.computeCycleContaining(source);
-      TaskData taskData = builder.getTaskData();
-      if (taskData != null) {
-        return taskData;
-      }
-      DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-      dartCopy.setStateInLibrary(DartEntry.BUILT_UNIT, source, CacheState.IN_PROCESS);
-      cache.put(source, dartCopy);
-      return new TaskData(
-          new BuildDartElementModelTask(this, source, builder.getLibrariesInCycle()),
-          false);
-    } catch (AnalysisException exception) {
-      DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-      dartCopy.recordBuildElementErrorInLibrary(source, exception);
-      cache.put(source, dartCopy);
-      AnalysisEngine.getInstance().getLogger().logError(
-          "Internal error trying to compute the next analysis task",
-          exception);
-    }
-    return new TaskData(null, false);
   }
 
   /**
@@ -4406,114 +4362,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
     // remember Angular entry point
     entry.setValue(HtmlEntry.ANGULAR_ENTRY, application);
-  }
-
-  /**
-   * Record the results produced by performing a {@link BuildDartElementModelTask}. If the results
-   * were computed from data that is now out-of-date, then the results will not be recorded.
-   * 
-   * @param task the task that was performed
-   * @return an entry containing the recorded results
-   * @throws AnalysisException if the results could not be recorded
-   */
-  private DartEntry recordBuildDartElementModelTask(BuildDartElementModelTask task)
-      throws AnalysisException {
-    Source targetLibrary = task.getTargetLibrary();
-    List<ResolvableLibrary> builtLibraries = task.getLibrariesInCycle();
-    AnalysisException thrownException = task.getException();
-    DartEntry targetEntry = null;
-    synchronized (cacheLock) {
-      if (allModificationTimesMatch(builtLibraries)) {
-        Source htmlSource = getSourceFactory().forUri(DartSdk.DART_HTML);
-        RecordingErrorListener errorListener = task.getErrorListener();
-        for (ResolvableLibrary library : builtLibraries) {
-          Source librarySource = library.getLibrarySource();
-          for (Source source : library.getCompilationUnitSources()) {
-            CompilationUnit unit = library.getAST(source);
-            AnalysisError[] errors = errorListener.getErrorsForSource(source);
-            LineInfo lineInfo = getLineInfo(source);
-            DartEntryImpl dartCopy = (DartEntryImpl) cache.get(source).getWritableCopy();
-            if (thrownException == null) {
-              dartCopy.setValueInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, librarySource, errors);
-              dartCopy.setValueInLibrary(DartEntry.BUILT_UNIT, librarySource, unit);
-              if (source.equals(librarySource)) {
-                LibraryElementImpl libraryElement = library.getLibraryElement();
-                dartCopy.setValue(DartEntry.ELEMENT, libraryElement);
-                dartCopy.setValue(DartEntry.IS_LAUNCHABLE, libraryElement.getEntryPoint() != null);
-                dartCopy.setValue(
-                    DartEntry.IS_CLIENT,
-                    isClient(libraryElement, htmlSource, new HashSet<LibraryElement>()));
-              }
-            } else {
-              dartCopy.recordBuildElementErrorInLibrary(librarySource, thrownException);
-              cache.remove(source);
-            }
-            cache.put(source, dartCopy);
-            if (!source.equals(librarySource)) {
-              workManager.add(librarySource, SourcePriority.PRIORITY_PART);
-            }
-            if (source.equals(targetLibrary)) {
-              targetEntry = dartCopy;
-            }
-
-            ChangeNoticeImpl notice = getNotice(source);
-            notice.setCompilationUnit(unit);
-            notice.setErrors(dartCopy.getAllErrors(), lineInfo);
-          }
-        }
-      } else {
-        @SuppressWarnings("resource")
-        PrintStringWriter writer = new PrintStringWriter();
-        writer.println("Build element model results discarded for");
-        for (ResolvableLibrary library : builtLibraries) {
-          Source librarySource = library.getLibrarySource();
-          for (Source source : library.getCompilationUnitSources()) {
-            DartEntry dartEntry = getReadableDartEntry(source);
-            if (dartEntry != null) {
-              long resultTime = library.getModificationTime(source);
-              writer.println("  " + debuggingString(source) + "; sourceTime = "
-                  + getModificationStamp(source) + ", resultTime = " + resultTime
-                  + ", cacheTime = " + dartEntry.getModificationTime());
-              DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-              if (thrownException == null || resultTime >= 0L) {
-                //
-                // The analysis was performed on out-of-date sources. Mark the cache so that the
-                // sources will be re-analyzed using the up-to-date sources.
-                //
-                dartCopy.recordBuildElementNotInProcess();
-              } else {
-                //
-                // We could not determine whether the sources were up-to-date or out-of-date. Mark
-                // the cache so that we won't attempt to re-analyze the sources until there's a
-                // good chance that we'll be able to do so without error.
-                //
-                dartCopy.recordBuildElementErrorInLibrary(librarySource, thrownException);
-                cache.remove(source);
-              }
-              cache.put(source, dartCopy);
-              if (source.equals(targetLibrary)) {
-                targetEntry = dartCopy;
-              }
-            } else {
-              writer.println("  " + debuggingString(source) + "; sourceTime = "
-                  + getModificationStamp(source) + ", no entry");
-            }
-          }
-        }
-        logInformation(writer.toString());
-      }
-    }
-    if (thrownException != null) {
-      throw thrownException;
-    }
-    if (targetEntry == null) {
-      targetEntry = getReadableDartEntry(targetLibrary);
-      if (targetEntry == null) {
-        throw new AnalysisException("A Dart file became a non-Dart file: "
-            + targetLibrary.getFullName());
-      }
-    }
-    return targetEntry;
   }
 
   /**

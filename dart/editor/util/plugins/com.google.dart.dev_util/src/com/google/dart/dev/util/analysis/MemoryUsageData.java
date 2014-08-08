@@ -681,6 +681,7 @@ public class MemoryUsageData {
   }
 
   private void addCacheEntry(SourceEntry entry) {
+    // TODO(brianwilkerson) This method is out-of-date.
     addObject(entry);
     addObject(entry.getException());
     addObject(entry.getValue(SourceEntry.LINE_INFO));
@@ -696,8 +697,6 @@ public class MemoryUsageData {
 
       Source[] containingLibraries = dartEntry.getValue(DartEntry.CONTAINING_LIBRARIES);
       for (Source librarySource : containingLibraries) {
-        addAllObjects(dartEntry.getValueInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, librarySource));
-        addAst(dartEntry.getValueInLibrary(DartEntry.BUILT_UNIT, librarySource));
         addAllObjects(dartEntry.getValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource));
         addAst(dartEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource));
         addAllObjects(dartEntry.getValueInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource));

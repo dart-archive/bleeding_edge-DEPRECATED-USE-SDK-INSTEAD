@@ -316,20 +316,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
           builder,
           needsSeparator,
           oldEntry,
-          BUILT_UNIT,
-          builtUnitState,
-          "builtUnit");
-      needsSeparator = writeStateDiffOn(
-          builder,
-          needsSeparator,
-          oldEntry,
-          BUILD_ELEMENT_ERRORS,
-          buildElementErrorsState,
-          "buildElementErrors");
-      needsSeparator = writeStateDiffOn(
-          builder,
-          needsSeparator,
-          oldEntry,
           RESOLVED_UNIT,
           resolvedUnitState,
           "resolvedUnit");
@@ -743,11 +729,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     ResolutionState state = resolutionState;
     while (state != null) {
       if (librarySource.equals(state.librarySource)) {
-        if (descriptor == BUILD_ELEMENT_ERRORS) {
-          return state.buildElementErrorsState;
-        } else if (descriptor == BUILT_UNIT) {
-          return state.builtUnitState;
-        } else if (descriptor == RESOLUTION_ERRORS) {
+        if (descriptor == RESOLUTION_ERRORS) {
           return state.resolutionErrorsState;
         } else if (descriptor == RESOLVED_UNIT) {
           return state.resolvedUnitState;
@@ -761,8 +743,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       }
       state = state.nextState;
     };
-    if (descriptor == BUILD_ELEMENT_ERRORS || descriptor == BUILT_UNIT
-        || descriptor == RESOLUTION_ERRORS || descriptor == RESOLVED_UNIT
+    if (descriptor == RESOLUTION_ERRORS || descriptor == RESOLVED_UNIT
         || descriptor == VERIFICATION_ERRORS || descriptor == HINTS) {
       return CacheState.INVALID;
     } else {
@@ -812,11 +793,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     ResolutionState state = resolutionState;
     while (state != null) {
       if (librarySource.equals(state.librarySource)) {
-        if (descriptor == BUILD_ELEMENT_ERRORS) {
-          return (E) state.buildElementErrors;
-        } else if (descriptor == BUILT_UNIT) {
-          return (E) state.builtUnit;
-        } else if (descriptor == RESOLUTION_ERRORS) {
+        if (descriptor == RESOLUTION_ERRORS) {
           return (E) state.resolutionErrors;
         } else if (descriptor == RESOLVED_UNIT) {
           return (E) state.resolvedUnit;
@@ -830,8 +807,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       }
       state = state.nextState;
     };
-    if (descriptor == BUILD_ELEMENT_ERRORS || descriptor == RESOLUTION_ERRORS
-        || descriptor == VERIFICATION_ERRORS || descriptor == HINTS) {
+    if (descriptor == RESOLUTION_ERRORS || descriptor == VERIFICATION_ERRORS || descriptor == HINTS) {
       return (E) AnalysisError.NO_ERRORS;
     } else if (descriptor == RESOLVED_UNIT) {
       return null;
@@ -873,16 +849,11 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return sourceKindState == CacheState.INVALID;
     } else if (descriptor == TOKEN_STREAM) {
       return tokenStreamState == CacheState.INVALID;
-    } else if (descriptor == BUILD_ELEMENT_ERRORS || descriptor == BUILT_UNIT
-        || descriptor == RESOLUTION_ERRORS || descriptor == RESOLVED_UNIT
+    } else if (descriptor == RESOLUTION_ERRORS || descriptor == RESOLVED_UNIT
         || descriptor == VERIFICATION_ERRORS || descriptor == HINTS) {
       ResolutionState state = resolutionState;
       while (state != null) {
-        if (descriptor == BUILD_ELEMENT_ERRORS) {
-          return state.buildElementErrorsState == CacheState.INVALID;
-        } else if (descriptor == BUILT_UNIT) {
-          return state.builtUnitState == CacheState.INVALID;
-        } else if (descriptor == RESOLUTION_ERRORS) {
+        if (descriptor == RESOLUTION_ERRORS) {
           return state.resolutionErrorsState == CacheState.INVALID;
         } else if (descriptor == RESOLVED_UNIT) {
           return state.resolvedUnitState == CacheState.INVALID;
@@ -1368,16 +1339,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   public void setStateInLibrary(DataDescriptor<?> descriptor, Source librarySource,
       CacheState cacheState) {
     ResolutionState state = getOrCreateResolutionState(librarySource);
-    if (descriptor == BUILD_ELEMENT_ERRORS) {
-      state.buildElementErrors = updatedValue(
-          cacheState,
-          state.buildElementErrors,
-          AnalysisError.NO_ERRORS);
-      state.buildElementErrorsState = cacheState;
-    } else if (descriptor == BUILT_UNIT) {
-      state.builtUnit = updatedValue(cacheState, state.builtUnit, null);
-      state.builtUnitState = cacheState;
-    } else if (descriptor == RESOLUTION_ERRORS) {
+    if (descriptor == RESOLUTION_ERRORS) {
       state.resolutionErrors = updatedValue(
           cacheState,
           state.resolutionErrors,
@@ -1457,13 +1419,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    */
   public <E> void setValueInLibrary(DataDescriptor<E> descriptor, Source librarySource, E value) {
     ResolutionState state = getOrCreateResolutionState(librarySource);
-    if (descriptor == BUILD_ELEMENT_ERRORS) {
-      state.buildElementErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
-      state.buildElementErrorsState = CacheState.VALID;
-    } else if (descriptor == BUILT_UNIT) {
-      state.builtUnit = (CompilationUnit) value;
-      state.builtUnitState = CacheState.VALID;
-    } else if (descriptor == RESOLUTION_ERRORS) {
+    if (descriptor == RESOLUTION_ERRORS) {
       state.resolutionErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
       state.resolutionErrorsState = CacheState.VALID;
     } else if (descriptor == RESOLVED_UNIT) {
