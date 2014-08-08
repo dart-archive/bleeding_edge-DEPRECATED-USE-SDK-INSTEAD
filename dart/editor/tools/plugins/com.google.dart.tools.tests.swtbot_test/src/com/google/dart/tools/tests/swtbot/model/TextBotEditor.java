@@ -13,15 +13,19 @@
  */
 package com.google.dart.tools.tests.swtbot.model;
 
+import org.eclipse.jface.bindings.keys.KeyStroke;
+import org.eclipse.jface.bindings.keys.ParseException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.FindReplaceDocumentAdapter;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.results.Result;
+import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -34,11 +38,55 @@ import static org.junit.Assert.fail;
  */
 public class TextBotEditor extends AbstractBotView {
 
+  private static KeyStroke keyM1;
+  private static KeyStroke keyF;
+
+  static {
+    try {
+      // Apparently there is no platform-independent method to construct KeyStrokes for modifiers
+      // without going through this indirection.
+      keyM1 = KeyStroke.getInstance("M1+F");
+      keyM1 = KeyStroke.getInstance(keyM1.getModifierKeys(), KeyStroke.NO_KEY);
+      keyF = KeyStroke.getInstance("F");
+    } catch (ParseException e) {
+      // Won't happen
+    }
+  }
+
   private final String title;
 
   public TextBotEditor(SWTWorkbenchBot bot, String title) {
     super(bot);
     this.title = title;
+  }
+
+  /**
+   * Return the SWTBotEclipseEditor for this editor pane.
+   * 
+   * @return the SWTBotEclipseEditor
+   */
+  public SWTBotEclipseEditor editor() {
+    return bot.editorByTitle(title).toTextEditor();
+  }
+
+  /**
+   * Use the Find Text panel to find all occurrences of the given text.
+   * 
+   * @param text
+   * @return the bot that controls the find-text panel
+   */
+  public FindTextBotView findText(String text) {
+    final SWTBotEclipseEditor editor = editor();
+    UIThreadRunnable.syncExec(new VoidResult() {
+      @Override
+      public void run() {
+        editor.pressShortcut(keyM1, keyF);
+      }
+    });
+    waitForAnalysis();
+    FindTextBotView finder = new FindTextBotView(bot);
+    finder.findText(text);
+    return finder;
   }
 
   /**
@@ -52,7 +100,7 @@ public class TextBotEditor extends AbstractBotView {
    * @return
    */
   public SWTBotStyledText select(String selection, int... delta) {
-    SWTBotEditor editor = bot.editorByTitle("platform_web.dart");
+    SWTBotEditor editor = bot.editorByTitle(title);
     editor.show();
     SWTBotStyledText text = editor.bot().styledText();
     String content = text.getText();
@@ -89,7 +137,7 @@ public class TextBotEditor extends AbstractBotView {
 
   @Override
   protected String viewName() {
-    return "title";
+    return title;
   }
 
   @SuppressWarnings("unused")

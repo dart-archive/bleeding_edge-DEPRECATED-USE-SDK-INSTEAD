@@ -27,7 +27,8 @@ import org.junit.runners.Suite;
     TestSamples.class, //
     TestFilesContextMenu.class, //
     TestDartEditorContextMenu.class, //
-    TestOutline.class //
+    TestOutline.class, //
+    TestFindText.class //
 //
 })
 public final class TestAll {

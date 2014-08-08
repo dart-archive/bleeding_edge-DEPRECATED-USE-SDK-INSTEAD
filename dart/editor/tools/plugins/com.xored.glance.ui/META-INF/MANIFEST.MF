@@ -16,6 +16,7 @@ Require-Bundle: org.eclipse.ui,
  com.google.dart.tools.ui;bundle-version="0.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Export-Package: com.xored.glance.ui.panels,
+Export-Package: com.xored.glance.internal.ui.panels;x-friends:="com.google.dart.tools.tests.swtbot_test",
+ com.xored.glance.ui.panels,
  com.xored.glance.ui.sources,
  com.xored.glance.ui.utils
