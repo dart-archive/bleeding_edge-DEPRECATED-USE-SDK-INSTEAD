@@ -102,6 +102,52 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_ambiguousImport_hideCombinator() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "import 'lib3.dart' hide N;",
+        "main() {",
+        "  new N1();",
+        "  new N2();",
+        "  new N3();",
+        "}"));
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}",
+        "class N1 {}"));
+    addNamedSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}",
+        "class N2 {}"));
+    addNamedSource("/lib3.dart", createSource(//
+        "library lib3;",
+        "class N {}",
+        "class N3 {}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  public void test_ambiguousImport_showCombinator() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart' show N, N2;",
+        "main() {",
+        "  new N1();",
+        "  new N2();",
+        "}"));
+    addNamedSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}",
+        "class N1 {}"));
+    addNamedSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}",
+        "class N2 {}"));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
   public void test_argumentTypeNotAssignable_classWithCall_Function() throws Exception {
     Source source = addSource(createSource(//
         "  caller(Function callee) {",

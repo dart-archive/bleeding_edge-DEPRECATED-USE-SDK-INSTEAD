@@ -15,8 +15,10 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.ast.AstNode;
 import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -85,6 +87,11 @@ public class VariableResolverVisitor extends ScopedVisitor {
   }
 
   @Override
+  public Void visitExportDirective(ExportDirective node) {
+    return null;
+  }
+
+  @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = enclosingFunction;
     try {
@@ -108,6 +115,11 @@ public class VariableResolverVisitor extends ScopedVisitor {
     } else {
       return super.visitFunctionExpression(node);
     }
+  }
+
+  @Override
+  public Void visitImportDirective(ImportDirective node) {
+    return null;
   }
 
   @Override
