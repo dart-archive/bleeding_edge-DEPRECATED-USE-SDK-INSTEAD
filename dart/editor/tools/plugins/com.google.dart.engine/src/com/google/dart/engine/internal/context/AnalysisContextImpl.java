@@ -604,9 +604,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
      * @return the library object that was created
      */
     private ResolvableLibrary createLibraryOrNull(Source librarySource) {
-      if (!exists(librarySource)) {
-        return null;
-      }
       ResolvableLibrary library = new ResolvableLibrary(librarySource);
       SourceEntry sourceEntry = cache.get(librarySource);
       if (sourceEntry instanceof DartEntry) {
