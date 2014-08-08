@@ -1079,14 +1079,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             DartEntryImpl dartCopy = dartEntry.getWritableCopy();
             dartCopy.invalidateAllResolutionInformation(false);
             cache.put(source, dartCopy);
-            SourcePriority priority = SourcePriority.UNKNOWN;
-            SourceKind kind = dartCopy.getKind();
-            if (kind == SourceKind.LIBRARY) {
-              priority = SourcePriority.LIBRARY;
-            } else if (kind == SourceKind.PART) {
-              priority = SourcePriority.NORMAL_PART;
-            }
-            workManager.add(source, priority);
+            workManager.add(source, computePriority(dartCopy));
           } else if (entry instanceof HtmlEntry) {
             HtmlEntry htmlEntry = (HtmlEntry) entry;
             HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
@@ -2890,6 +2883,23 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Compute the priority that should be used when the source associated with the given entry is
+   * added to the work manager.
+   * 
+   * @param dartEntry the entry associated with the source
+   * @return the priority that was computed
+   */
+  private SourcePriority computePriority(DartEntry dartEntry) {
+    SourceKind kind = dartEntry.getKind();
+    if (kind == SourceKind.LIBRARY) {
+      return SourcePriority.LIBRARY;
+    } else if (kind == SourceKind.PART) {
+      return SourcePriority.NORMAL_PART;
+    }
+    return SourcePriority.UNKNOWN;
+  }
+
+  /**
    * Given the encoded form of a source, use the source factory to reconstitute the original source.
    * 
    * @param encoding the encoded form of a source
@@ -3691,29 +3701,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       //
       ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
       WorkManager.WorkIterator sources = workManager.iterator();
-      while (sources.hasNext()) {
-        Source source = sources.next();
-        TaskData taskData = getNextAnalysisTaskForSource(
-            source,
-            cache.get(source),
-            false,
-            hintsEnabled);
-        AnalysisTask task = taskData.getTask();
-        if (task != null) {
-          int count = sourcesToRemove.size();
-          for (int i = 0; i < count; i++) {
-            workManager.remove(sourcesToRemove.get(i));
+      try {
+        while (sources.hasNext()) {
+          Source source = sources.next();
+          TaskData taskData = getNextAnalysisTaskForSource(
+              source,
+              cache.get(source),
+              false,
+              hintsEnabled);
+          AnalysisTask task = taskData.getTask();
+          if (task != null) {
+            return task;
+          } else if (taskData.isBlocked()) {
+            hasBlockedTask = true;
+          } else {
+            sourcesToRemove.add(source);
           }
-          return task;
-        } else if (taskData.isBlocked()) {
-          hasBlockedTask = true;
-        } else {
-          sourcesToRemove.add(source);
         }
-      }
-      int count = sourcesToRemove.size();
-      for (int i = 0; i < count; i++) {
-        workManager.remove(sourcesToRemove.get(i));
+      } finally {
+        int count = sourcesToRemove.size();
+        for (int i = 0; i < count; i++) {
+          workManager.remove(sourcesToRemove.get(i));
+        }
       }
 //      //
 //      // Look for a non-priority source that needs to be analyzed and was missed by the loop above.
@@ -4182,8 +4191,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * <p>
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
-   * @param invalidateUris true if the cached results of converting URIs to source files should also
-   *          be invalidated.
+   * @param invalidateUris {@code true} if the cached results of converting URIs to source files
+   *          should also be invalidated.
    */
   private void invalidateAllLocalResolutionInformation(boolean invalidateUris) {
     HashMap<Source, Source[]> oldPartMap = new HashMap<Source, Source[]>();
@@ -4195,13 +4204,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
         htmlCopy.invalidateAllResolutionInformation(invalidateUris);
         iterator.setValue(htmlCopy);
+        workManager.add(source, SourcePriority.HTML);
       } else if (sourceEntry instanceof DartEntry) {
         DartEntry dartEntry = (DartEntry) sourceEntry;
         oldPartMap.put(source, dartEntry.getValue(DartEntry.INCLUDED_PARTS));
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         dartCopy.invalidateAllResolutionInformation(invalidateUris);
         iterator.setValue(dartCopy);
-        workManager.add(source, SourcePriority.UNKNOWN);
+        workManager.add(source, computePriority(dartCopy));
       }
     }
     removeFromPartsUsingMap(oldPartMap);
@@ -5547,7 +5557,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.setValue(DartEntry.TOKEN_STREAM, task.getTokenStream());
           dartCopy.setValue(DartEntry.SCAN_ERRORS, task.getErrors());
           cache.storedAst(source);
-          workManager.add(source, SourcePriority.NORMAL_PART);
 
           ChangeNoticeImpl notice = getNotice(source);
           notice.setErrors(dartEntry.getAllErrors(), lineInfo);
@@ -5687,8 +5696,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
     if (sourceEntry instanceof HtmlEntry) {
       workManager.add(source, SourcePriority.HTML);
-    } else {
-      workManager.add(source, SourcePriority.UNKNOWN);
+    } else if (sourceEntry instanceof DartEntry) {
+      workManager.add(source, computePriority((DartEntry) sourceEntry));
     }
     return sourceEntry instanceof DartEntry;
   }
