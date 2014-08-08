@@ -2,7 +2,7 @@ name:  searchable_list
 description:  A Polymer sample app that shows a custom element
 
 dependencies:
-  polymer: ">=0.11.0 <0.12.0"
+  polymer: ">=0.12.0 <0.13.0"
 transformers:
 - polymer:
     entry_points: web/index.html

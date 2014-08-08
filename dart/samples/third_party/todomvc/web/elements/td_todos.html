@@ -30,13 +30,13 @@
             {{model.activeItemWord}} left</span>
         <polymer-selector id="filters" selected="{{activeRoute}}">
           <li label="all">
-            <a href="{{baseUri}}#/">All</a>
+            <a _href="{{baseUri}}#/">All</a>
           </li>
           <li label="active">
-            <a href="{{baseUri}}#/active">Active</a>
+            <a _href="{{baseUri}}#/active">Active</a>
           </li>
           <li label="completed">
-            <a href="{{baseUri}}#/completed">Completed</a>
+            <a _href="{{baseUri}}#/completed">Completed</a>
           </li>
         </polymer-selector>
         <button hidden?="{{model.completedCount == 0}}" id="clear-completed"
