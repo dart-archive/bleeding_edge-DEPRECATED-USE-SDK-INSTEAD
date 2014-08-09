@@ -226,6 +226,7 @@ public class SearchStatusLine extends SearchPanel {
     Label separator = new Label(parent, SWT.SEPARATOR);
     setLayoutData(separator);
     matchLabel = new CLabel(parent, SWT.SHADOW_NONE);
+    matchLabel.setData("name", "searchStatus");
     StatusLineLayoutData data = new StatusLineLayoutData();
     data.widthHint = getTextWidth(parent, 10) + 15;
     data.heightHint = getPreferredHeight();

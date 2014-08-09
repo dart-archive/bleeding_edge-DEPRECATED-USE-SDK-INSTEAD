@@ -16,6 +16,7 @@ package com.google.dart.tools.tests.swtbot.test;
 import com.google.dart.tools.tests.swtbot.harness.EditorTestHarness;
 import com.google.dart.tools.tests.swtbot.model.EditorBotWindow;
 import com.google.dart.tools.tests.swtbot.model.FilesBotView;
+import com.google.dart.tools.tests.swtbot.model.FindTextBotView;
 import com.google.dart.tools.tests.swtbot.model.TextBotEditor;
 import com.google.dart.tools.tests.swtbot.model.WelcomePageEditor;
 
@@ -24,6 +25,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class TestFindText extends EditorTestHarness {
@@ -57,7 +59,21 @@ public class TestFindText extends EditorTestHarness {
   @Test
   public void test1() throws Exception {
     editor.select("about", 3);
-    editor.findText("about");
-    // TODO: Check status line for "3 / 13" and write additional tests to exercise the bot
+    FindTextBotView searcher = editor.findText("about");
+    assertEquals("3 / 13", searcher.getSearchStatus());
+    searcher.findNext();
+    assertEquals("4 / 13", searcher.getSearchStatus());
+    searcher.findPrevious();
+    assertEquals("3 / 13", searcher.getSearchStatus());
+    searcher.setRegexpSearch(true);
+    assertEquals("13", searcher.getSearchStatus());
+    searcher.setCaseSensitiveSearch(true);
+    assertEquals("6", searcher.getSearchStatus());
+    searcher.setWordPrefixSearch(true);
+    assertEquals("6", searcher.getSearchStatus());
+    searcher.setRegexpSearch(false);
+    searcher.setCaseSensitiveSearch(false);
+    searcher.setWordPrefixSearch(false);
+    searcher.dismiss();
   }
 }

@@ -86,6 +86,7 @@ public class TextBotEditor extends AbstractBotView {
     waitForAnalysis();
     FindTextBotView finder = new FindTextBotView(bot);
     finder.findText(text);
+    waitMillis(500);
     return finder;
   }
 

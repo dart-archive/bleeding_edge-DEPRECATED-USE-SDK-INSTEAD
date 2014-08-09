@@ -13,15 +13,46 @@
  */
 package com.google.dart.tools.tests.swtbot.model;
 
+import com.google.dart.tools.tests.swtbot.matchers.EditorWithTitle;
+import com.google.dart.tools.ui.internal.projects.ProjectMessages;
+
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.eclipse.finder.waits.Conditions;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
 
+@SuppressWarnings("restriction")
 public class EditorBotWindow extends AbstractBotView {
+
+  // Project types -- need to keep in sync with New Project wizard (NewApplicationCreationPage)
+  private enum Project {
+    WEB_APP, CMDLINE_APP, PKG_TEMPLATE, POLYMER_APP, CHROME_APP
+  }
 
   public EditorBotWindow(SWTWorkbenchBot bot) {
     super(bot);
+  }
+
+  /**
+   * Create a new chrome app with the given name.
+   * 
+   * @param string the project name
+   */
+  public void createChromeProject(String string) {
+    createProject(string, Project.CHROME_APP, "manifest.json");
+  }
+
+  /**
+   * Create a new command-line app with the given name.
+   * 
+   * @param string the project name
+   */
+  public void createCommandLineProject(String string) {
+    createProject(string, Project.CMDLINE_APP, string + ".dart");
   }
 
   /**
@@ -113,5 +144,18 @@ public class EditorBotWindow extends AbstractBotView {
   @Override
   protected String viewName() {
     return "Dart Editor";
+  }
+
+  private void createProject(String string, Project type, String editorName) {
+    waitForAnalysis();
+    menu("File").menu("New Project...").click();
+    SWTBotText textField = bot.textWithTooltip(ProjectMessages.NewApplicationWizardPage_project_name_tooltip);
+    textField.setText("sample");
+    SWTBotTable types = bot.tableInGroup("Sample content");
+    types.select(type.ordinal());
+    bot.button(IDialogConstants.FINISH_LABEL).click();
+    bot.waitUntilWidgetAppears(Conditions.waitForEditor(new EditorWithTitle(editorName)));
+    filesView().waitForToolsOutput();
+    bot.editorByTitle(editorName).setFocus();
   }
 }
