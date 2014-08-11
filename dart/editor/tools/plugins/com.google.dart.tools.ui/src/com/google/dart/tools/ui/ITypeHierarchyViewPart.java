@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.Type;
 
 import org.eclipse.ui.IViewPart;
 
@@ -123,16 +122,6 @@ public interface ITypeHierarchyViewPart extends IViewPart {
    * @param mode The hierarchy mode to set
    */
   public void setHierarchyMode(int mode);
-
-  /**
-   * Sets the input element of this type hierarchy view to a type.
-   * 
-   * @param type the input element of this type hierarchy view, or <code>null</code> to clear any
-   *          input element
-   * @deprecated use setInputElement instead
-   */
-  @Deprecated
-  public void setInput(Type type);
 
   /**
    * Sets the input element of this type hierarchy view. The following input types are possible

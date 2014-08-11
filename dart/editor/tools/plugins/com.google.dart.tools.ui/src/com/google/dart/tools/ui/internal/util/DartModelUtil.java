@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.internal.util;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.DartX;
 
 import org.eclipse.core.resources.IStorage;
@@ -42,16 +41,6 @@ public final class DartModelUtil {
       buf.append(name2);
     }
     return buf.toString();
-  }
-
-  /**
-   * Returns the qualified type name of the given type using '.' as separators. This is a replace
-   * for Type.getTypeQualifiedName() which uses '$' as separators. As '$' is also a valid character
-   * in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
-   */
-  @SuppressWarnings("deprecation")
-  public static String getTypeQualifiedName(Type type) {
-    return type.getTypeQualifiedName('.');
   }
 
   public static boolean isImplicitImport(String qualifier, CompilationUnit cu) {

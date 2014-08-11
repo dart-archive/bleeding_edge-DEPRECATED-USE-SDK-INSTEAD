@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.omni;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
@@ -65,16 +64,6 @@ public class OmniBoxImages {
    */
   public static ImageDescriptor getFileSearchImageDescriptor() {
     return FILE_SEARCH_ICON;
-  }
-
-  /**
-   * Get an image descriptor for the given type.
-   * 
-   * @param type the type to display
-   * @return an image descriptor for the given type
-   */
-  public static ImageDescriptor getTypeImageDescriptor(Type type) {
-    return CLASS_ICON;
   }
 
   /**

@@ -131,11 +131,11 @@
            commandId="com.google.dart.tools.ui.edit.text.dart.inline"
            contextId="com.google.dart.tools.ui.dartEditorScope"
            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-      <key
+      <!--key
            sequence="M1+M2+T"
            contextId="com.google.dart.tools.ui.dartEditorScope"
            commandId="com.google.dart.eclipse.openType"
-           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/-->
       <key
            sequence="F3"
            contextId="com.google.dart.tools.ui.dartEditorScope"

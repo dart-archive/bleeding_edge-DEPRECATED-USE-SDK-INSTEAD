@@ -24,7 +24,6 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.type.InterfaceType;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.internal.viewsupport.StorageLabelProvider;
 
 import org.eclipse.core.resources.IResource;

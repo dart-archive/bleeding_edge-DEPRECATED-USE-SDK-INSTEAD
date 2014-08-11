@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.mock.ui.StubUtility;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -159,20 +158,6 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
    */
   protected boolean updateReplacementString(IDocument document, char trigger, int offset,
       ImportRewrite impRewrite) throws CoreException, BadLocationException {
-    // avoid adding imports when inside imports container
-    if (impRewrite != null && fFullyQualifiedTypeName != null) {
-      String replacementString = getReplacementString();
-      String qualifiedType = fFullyQualifiedTypeName;
-      if (qualifiedType.indexOf('.') != -1 && replacementString.startsWith(qualifiedType)
-          && !replacementString.endsWith(String.valueOf(';'))) {
-        Type[] types = impRewrite.getCompilationUnit().getTypes();
-        if (types.length > 0 && types[0].getSourceRange().getOffset() <= offset) {
-          // ignore positions above type.
-          setReplacementString(impRewrite.addImport(getReplacementString()));
-          return true;
-        }
-      }
-    }
     return false;
   }
 

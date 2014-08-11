@@ -56,12 +56,4 @@ public interface CompilationUnit extends CodeAssistElement, SourceFileElement<Co
    * @return the library containing this compilation unit
    */
   public DartLibrary getLibrary();
-
-  /**
-   * Return an array containing the top-level types defined in this compilation unit.
-   * 
-   * @return the top-level types defined in this compilation unit
-   * @throws DartModelException if the types defined in this compilation unit cannot be determined
-   */
-  public Type[] getTypes() throws DartModelException;
 }

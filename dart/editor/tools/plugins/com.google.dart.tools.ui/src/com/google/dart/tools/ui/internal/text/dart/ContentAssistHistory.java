@@ -13,18 +13,12 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.model.TypeHierarchy;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.DartUiException;
 import com.google.dart.tools.ui.internal.DartUiStatus;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Preferences;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -39,7 +33,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -317,16 +310,6 @@ public final class ContentAssistHistory {
   private static final int DEFAULT_TRACKED_LHS = 100;
   private static final int DEFAULT_TRACKED_RHS = 10;
 
-  private static final Set UNCACHEABLE;
-  static {
-    Set uncacheable = new HashSet();
-    uncacheable.add("java.lang.Object"); //$NON-NLS-1$
-    uncacheable.add("java.lang.Comparable"); //$NON-NLS-1$
-    uncacheable.add("java.io.Serializable"); //$NON-NLS-1$
-    uncacheable.add("java.io.Externalizable"); //$NON-NLS-1$
-    UNCACHEABLE = Collections.unmodifiableSet(uncacheable);
-  }
-
   /**
    * Loads a history from an XML encoded preference value.
    * 
@@ -429,36 +412,6 @@ public final class ContentAssistHistory {
     return EMPTY_HISTORY;
   }
 
-  /**
-   * Remembers the selection of a right hand side type (proposal type) for a certain left hand side
-   * (expected type) in content assist.
-   * 
-   * @param lhs the left hand side / expected type
-   * @param rhs the selected right hand side
-   */
-  public void remember(Type lhs, Type rhs) {
-    Assert.isLegal(lhs != null);
-    Assert.isLegal(rhs != null);
-
-    try {
-      if (!isCacheableRHS(rhs)) {
-        return;
-      }
-      TypeHierarchy hierarchy = rhs.newSupertypeHierarchy(getProgressMonitor());
-      if (hierarchy.contains(lhs)) {
-        // TODO remember for every member of the LHS hierarchy or not? Yes for
-        // now.
-        Type[] allLHSides = hierarchy.getAllSuperclasses(lhs);
-        for (int i = 0; i < allLHSides.length; i++) {
-          rememberInternal(allLHSides[i], rhs);
-        }
-        rememberInternal(lhs, rhs);
-      }
-    } catch (DartModelException x) {
-      DartToolsPlugin.log(x);
-    }
-  }
-
   private Set getCache(String lhs) {
     MRUSet rhsCache = (MRUSet) fLHSCache.get(lhs);
     if (rhsCache == null) {
@@ -467,24 +420,5 @@ public final class ContentAssistHistory {
     }
 
     return rhsCache;
-  }
-
-  private IProgressMonitor getProgressMonitor() {
-    return new NullProgressMonitor();
-  }
-
-  private boolean isCacheableLHS(Type type) throws DartModelException {
-    return !UNCACHEABLE.contains(type.getElementName());
-  }
-
-  private boolean isCacheableRHS(Type type) throws DartModelException {
-    return !type.isAbstract();
-//    return !Flags.isAbstract(type.getFlags());
-  }
-
-  private void rememberInternal(Type lhs, Type rhs) throws DartModelException {
-    if (isCacheableLHS(lhs)) {
-      getCache(lhs.getElementName()).add(rhs.getElementName());
-    }
   }
 }

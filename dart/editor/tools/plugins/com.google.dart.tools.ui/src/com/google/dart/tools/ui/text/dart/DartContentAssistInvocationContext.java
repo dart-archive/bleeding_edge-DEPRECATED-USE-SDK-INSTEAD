@@ -20,7 +20,6 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.mock.ui.SignatureUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory.RHSHistory;
@@ -51,7 +50,6 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
   private CompletionProposalLabelProvider fLabelProvider;
   private CompletionProposalCollector fCollector;
   private RHSHistory fRHSHistory;
-  private Type fType;
 
   private IDartCompletionProposal[] fKeywordProposals = null;
   private CompletionContext fCoreContext = null;
@@ -135,37 +133,6 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
       }
     }
     return fCoreContext;
-  }
-
-  /**
-   * Returns the expected type if any, <code>null</code> otherwise.
-   * <p>
-   * <strong>Note:</strong> This method may run
-   * {@linkplain org.eclipse.wst.jsdt.core.ICodeAssist#codeComplete(int, org.eclipse.wst.jsdt.core.CompletionRequestor)
-   * codeComplete} on the compilation unit.
-   * </p>
-   * 
-   * @return the expected type if any, <code>null</code> otherwise
-   */
-  @SuppressWarnings("deprecation")
-  public Type getExpectedType() {
-    if (fType == null && getCompilationUnit() != null) {
-      CompletionContext context = getCoreContext();
-      if (context != null) {
-        char[][] expectedTypes = context.getExpectedTypesSignatures();
-        if (expectedTypes != null && expectedTypes.length > 0) {
-          DartProject project = getCompilationUnit().getDartProject();
-          if (project != null) {
-            try {
-              fType = project.findType(SignatureUtil.stripSignatureToFQN(String.valueOf(expectedTypes[0])));
-            } catch (DartModelException x) {
-              DartToolsPlugin.log(x);
-            }
-          }
-        }
-      }
-    }
-    return fType;
   }
 
   /**

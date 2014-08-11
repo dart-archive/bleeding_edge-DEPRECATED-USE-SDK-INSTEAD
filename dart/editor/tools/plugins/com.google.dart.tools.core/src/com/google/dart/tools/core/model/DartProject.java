@@ -26,18 +26,6 @@ import java.util.Hashtable;
  * @coverage dart.tools.core.model
  */
 public interface DartProject extends ParentElement, OpenableElement {
-  /**
-   * Find the type defined in this project with the given qualified name.
-   * 
-   * @param typeName the name of the type to be returned
-   * @return the type defined in this project with the given qualified name
-   * @throws DartModelException if the types defined in this project cannot be determined for some
-   *           reason
-   * @deprecated Dart projects don't have a notion of a qualified type name; this method should be
-   *             removed
-   */
-  @Deprecated
-  public Type findType(String qualifiedTypeName) throws DartModelException;
 
   /**
    * Return an array containing all of the libraries defined in this project.

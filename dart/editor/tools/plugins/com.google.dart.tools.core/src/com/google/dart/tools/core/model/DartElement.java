@@ -71,11 +71,11 @@ public interface DartElement extends IAdaptable {
    */
   public static int COMPILATION_UNIT = 7;
 
-  /**
+  /*
    * A constant representing a type (a class or interface). A Dart element with this type can be
    * safely cast to {@link Type}.
    */
-  public static int TYPE = 8;
+  //public static int TYPE = 8;
 
   /*
    * A constant representing a field. A Dart element with this type can be safely cast to

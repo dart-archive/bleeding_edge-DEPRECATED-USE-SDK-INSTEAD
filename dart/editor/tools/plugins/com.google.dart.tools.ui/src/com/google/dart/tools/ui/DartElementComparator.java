@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.internal.preferences.MembersOrderPreferenceCache;
 
 import org.eclipse.core.resources.IContainer;
@@ -142,24 +140,6 @@ public class DartElementComparator extends ViewerComparator {
 
     String name1 = getElementName(e1);
     String name2 = getElementName(e2);
-
-    if (e1 instanceof Type) { // handle anonymous types
-      if (name1.length() == 0) {
-        if (name2.length() == 0) {
-          try {
-            return getComparator().compare(
-                ((Type) e1).getSuperclassName(),
-                ((Type) e2).getSuperclassName());
-          } catch (DartModelException e) {
-            return 0;
-          }
-        } else {
-          return 1;
-        }
-      } else if (name2.length() == 0) {
-        return -1;
-      }
-    }
 
     int cmp = getComparator().compare(name1, name2);
     if (cmp != 0) {

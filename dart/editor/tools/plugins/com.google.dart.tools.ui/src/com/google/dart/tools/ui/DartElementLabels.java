@@ -15,8 +15,6 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.internal.util.Strings;
 
 import org.eclipse.core.resources.IResource;
@@ -531,89 +529,6 @@ public class DartElementLabels {
   }
 
   /**
-   * Appends the label for a type to a {@link StringBuffer}. Considers the T_* flags.
-   * 
-   * @param type The element to render.
-   * @param flags The rendering flags. Flags with names starting with 'T_' are considered.
-   * @param buf The buffer to append the resulting label to.
-   */
-  public static void getTypeLabel(Type type, long flags, StringBuffer buf) {
-
-    if (getFlag(flags, T_FULLY_QUALIFIED)) {
-      DartX.todo();
-//      IPackageFragment pack = type.getPackageFragment();
-//      if (!pack.isDefaultPackage()) {
-//        getPackageFragmentLabel(pack, (flags & QUALIFIER_FLAGS), buf);
-//        // buf.append(' ');
-//      }
-    }
-    if (getFlag(flags, T_FULLY_QUALIFIED | T_CONTAINER_QUALIFIED)) {
-      DartX.todo();
-//      Type declaringType = type.getDeclaringType();
-//      if (declaringType != null) {
-//        getTypeLabel(declaringType, T_CONTAINER_QUALIFIED
-//            | (flags & QUALIFIER_FLAGS), buf);
-//        buf.append('.');
-//      }
-//      int parentType = type.getParent().getElementType();
-//      if (parentType == DartElement.METHOD || parentType == DartElement.FIELD
-//          || parentType == DartElement.INITIALIZER) { // anonymous or local
-//        getElementLabel(type.getParent(), 0, buf);
-//        buf.append('.');
-//      }
-    }
-
-    String typeName = type.getElementName(); // was getDisplayName()
-    if (typeName.length() == 0) { // anonymous
-      try {
-        String supertypeName = type.getSuperclassName();
-
-        typeName = Messages.format(DartUIMessages.JavaElementLabels_anonym_type, supertypeName);
-
-      } catch (DartModelException e) {
-        // ignore
-        typeName = DartUIMessages.JavaElementLabels_anonym;
-      }
-    }
-    buf.append(typeName);
-    if (getFlag(flags, T_TYPE_PARAMETERS)) {
-      DartX.todo();
-//      if (getFlag(flags, USE_RESOLVED) && type.isResolved()) {
-//        getTypeParameterSignaturesLabel(new String[0], flags, buf);
-//      }
-    }
-
-    // category
-//    if (getFlag(flags, T_CATEGORY) && type.exists()) {
-//      try {
-//        getCategoryLabel(type, buf);
-//      } catch (DartModelException e) {
-//        // ignore
-//      }
-//    }
-
-    // post qualification
-    if (getFlag(flags, T_POST_QUALIFIED)) {
-      DartX.todo();
-//      buf.append(CONCAT_STRING);
-//      Type declaringType = type.getDeclaringType();
-//      if (declaringType != null) {
-//        getTypeLabel(declaringType, T_FULLY_QUALIFIED
-//            | (flags & QUALIFIER_FLAGS), buf);
-//        int parentType = type.getParent().getElementType();
-//        if (parentType == DartElement.METHOD || parentType == DartElement.FIELD
-//            || parentType == DartElement.INITIALIZER) { // anonymous or local
-//          buf.append('.');
-//          getElementLabel(type.getParent(), 0, buf);
-//        }
-//      } else {
-//        getPackageFragmentLabel(type.getPackageFragment(), flags
-//            & QUALIFIER_FLAGS, buf);
-//      }
-    }
-  }
-
-  /**
    * Returns a label for a working set
    * 
    * @param set the working set
@@ -622,41 +537,6 @@ public class DartElementLabels {
   public static String getWorkingSetLabel(IWorkingSet set) {
     return Strings.markLTR(set.getLabel());
   }
-
-//  private static void getArchiveLabel(IPackageFragmentRoot root, long flags,
-//      StringBuffer buf) {
-//    // Handle variables different
-//    if (getFlag(flags, ROOT_VARIABLE) && getVariableLabel(root, flags, buf))
-//      return;
-//    boolean external = root.isExternal();
-//    if (external)
-//      getExternalArchiveLabel(root, flags, buf);
-//    else
-//      getInternalArchiveLabel(root, flags, buf);
-//  }
-
-  private static final boolean getFlag(long flags, long flag) {
-    return (flags & flag) != 0;
-  }
-
-//  private static void getExternalArchiveLabel(IPackageFragmentRoot root,
-//      long flags, StringBuffer buf) {
-//    IPath path = root.getPath();
-//    if (getFlag(flags, REFERENCED_ROOT_POST_QUALIFIED)) {
-//      int segements = path.segmentCount();
-//      if (segements > 0) {
-//        buf.append(path.segment(segements - 1));
-//        if (segements > 1 || path.getDevice() != null) {
-//          buf.append(CONCAT_STRING);
-//          buf.append(path.removeLastSegments(1).toOSString());
-//        }
-//      } else {
-//        buf.append(path.toOSString());
-//      }
-//    } else {
-//      buf.append(path.toOSString());
-//    }
-//  }
 
   /**
    * Returns the styled string for the given resource. The returned label is BiDi-processed with

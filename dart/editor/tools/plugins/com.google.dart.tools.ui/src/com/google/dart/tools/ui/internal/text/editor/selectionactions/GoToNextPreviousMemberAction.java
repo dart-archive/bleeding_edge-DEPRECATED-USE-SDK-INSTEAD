@@ -16,8 +16,6 @@ package com.google.dart.tools.ui.internal.text.editor.selectionactions;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -25,12 +23,9 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IUpdate;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class GoToNextPreviousMemberAction extends Action implements IUpdate {
@@ -56,18 +51,6 @@ public class GoToNextPreviousMemberAction extends Action implements IUpdate {
 
   private static SourceRange createNewSourceRange(Integer offset) {
     return new SourceRange(offset.intValue(), 0);
-  }
-
-  private static Integer[] createOffsetArray(Type[] types) throws DartModelException {
-    List<Integer> result = new ArrayList<Integer>();
-    for (int i = 0; i < types.length; i++) {
-      Type iType = types[i];
-      addOffset(result, iType.getNameRange().getOffset());
-      addOffset(result, iType.getSourceRange().getOffset() + iType.getSourceRange().getLength());
-      DartX.todo();
-//      addMemberOffsetList(result, iType.getInitializers());
-    }
-    return result.toArray(new Integer[result.size()]);
   }
 
   private static SourceRange createSourceRange(ITextSelection ts) {
@@ -165,38 +148,13 @@ public class GoToNextPreviousMemberAction extends Action implements IUpdate {
     }
   }
 
-  public SourceRange getNewSelectionRange(SourceRange oldSourceRange, Type[] types) {
-    try {
-      if (types == null) {
-        types = getTypes();
-      }
-      Integer[] offsetArray = createOffsetArray(types);
-      if (offsetArray.length == 0) {
-        return oldSourceRange;
-      }
-      Arrays.sort(offsetArray);
-      Integer oldOffset = new Integer(oldSourceRange.getOffset());
-      int index = Arrays.binarySearch(offsetArray, oldOffset);
-
-      if (fIsGotoNext) {
-        return createNewSourceRange(getNextOffset(index, offsetArray, oldOffset));
-      } else {
-        return createNewSourceRange(getPreviousOffset(index, offsetArray, oldOffset));
-      }
-
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e); // dialog would be too heavy here
-      return oldSourceRange;
-    }
-  }
-
   /*
    * (non-JavaDoc) Method declared in IAction.
    */
   @Override
   public final void run() {
     ITextSelection selection = getTextSelection();
-    SourceRange newRange = getNewSelectionRange(createSourceRange(selection), null);
+    SourceRange newRange = createSourceRange(selection);
     // Check if new selection differs from current selection
     if (selection.getOffset() == newRange.getOffset()
         && selection.getLength() == newRange.getLength()) {
@@ -234,10 +192,5 @@ public class GoToNextPreviousMemberAction extends Action implements IUpdate {
 
   private ITextSelection getTextSelection() {
     return (ITextSelection) fEditor.getSelectionProvider().getSelection();
-  }
-
-  private Type[] getTypes() throws DartModelException {
-    IEditorInput input = fEditor.getEditorInput();
-    return DartToolsPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(input).getTypes();
   }
 }
