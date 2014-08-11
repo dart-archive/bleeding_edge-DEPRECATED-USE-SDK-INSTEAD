@@ -16,10 +16,7 @@ package com.google.dart.tools.ui.internal.viewsupport;
 import com.google.dart.core.IPackageFragmentRoot;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartElementLabels;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredString.Style;
 import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
@@ -85,26 +82,6 @@ public class ColoredDartElementLabels {
     }
   }
 
-  public static void getFunctionLabel(DartFunction function, long flags, ColoredString result) {
-//    BindingKey resolvedKey = getFlag(flags, DartElementLabels.USE_RESOLVED)
-//        && method.isResolved() ? new BindingKey(method.getKey()) : null;
-//    String resolvedSig = (resolvedKey != null) ? resolvedKey.toSignature()
-//        : null;
-//
-//    // return type
-//    if (getFlag(flags, DartElementLabels.M_PRE_RETURNTYPE) && method.exists()
-//        && !method.isConstructor()) {
-//      String returnTypeSig = resolvedSig != null
-//          ? Signature.getReturnType(resolvedSig) : method.getReturnType();
-//      getTypeSignatureLabel(returnTypeSig, flags, result);
-//      result.append(' ');
-//    }
-    if (function.getElementName() != null) {
-      result.append(function.getElementName());
-    }
-    getCommonFunctionLabelElements(function, flags, result);
-  }
-
   /**
    * Appends the label for a package fragment root to a {@link ColoredString}. Considers the ROOT_*
    * flags.
@@ -153,84 +130,6 @@ public class ColoredDartElementLabels {
       getExternalArchiveLabel(root, flags, result);
     } else {
       getInternalArchiveLabel(root, flags, result);
-    }
-  }
-
-  private static void getCommonFunctionLabelElements(DartFunction method, long flags,
-      ColoredString result) {
-    try {
-      // parameters
-      result.append('(');
-      if (getFlag(flags, DartElementLabels.M_PARAMETER_TYPES | DartElementLabels.M_PARAMETER_NAMES)) {
-        String[] types = null;
-        int nParams = 0;
-        boolean renderVarargs = false;
-        if (getFlag(flags, DartElementLabels.M_PARAMETER_TYPES)) {
-//        if (resolvedSig != null) {
-//          types = Signature.getParameterTypes(resolvedSig);
-//        } else {
-//          types = method.getParameterTypes();
-//        }
-//        nParams = types.length;
-//        renderVarargs = method.exists() && Flags.isVarargs(method.getFlags());
-        }
-        String[] names = null;
-        if (getFlag(flags, DartElementLabels.M_PARAMETER_NAMES) && method.exists()) {
-          names = method.getParameterNames();
-          if (types == null) {
-            nParams = names.length;
-//          } else { // types != null
-//            if (nParams != names.length) {
-//              String resolvedSig = null;
-//              if (resolvedSig != null && types.length > names.length) {
-//                // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=99137
-//                nParams = names.length;
-//                String[] typesWithoutSyntheticParams = new String[nParams];
-//                System.arraycopy(types, types.length - nParams, typesWithoutSyntheticParams, 0,
-//                    nParams);
-//                types = typesWithoutSyntheticParams;
-//              } else {
-//                // https://bugs.eclipse.org/bugs/show_bug.cgi?id=101029
-//                // DartToolsPlugin.logErrorMessage("DartElementLabels: Number of param types(" + nParams + ") != number of names(" + names.length + "): " + method.getElementName());   //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
-//                names = null; // no names rendered
-//              }
-//            }
-          }
-        }
-
-        for (int i = 0; i < nParams; i++) {
-          if (i > 0) {
-            result.append(DartElementLabels.COMMA_STRING);
-          }
-          if (types != null) {
-            String paramSig = types[i];
-            if (renderVarargs && (i == nParams - 1)) {
-//            int newDim = Signature.getArrayCount(paramSig) - 1;
-//            getTypeSignatureLabel(Signature.getElementType(paramSig), flags,
-//                result);
-//            for (int k = 0; k < newDim; k++) {
-//              result.append('[').append(']');
-//            }
-              result.append(DartElementLabels.ELLIPSIS_STRING);
-            } else {
-              getTypeSignatureLabel(paramSig, flags, result);
-            }
-          }
-          if (names != null) {
-            if (types != null) {
-              result.append(' ');
-            }
-            result.append(names[i]);
-          }
-        }
-      } else {
-        if (method.getParameterNames().length > 0) {
-          result.append(DartElementLabels.ELLIPSIS_STRING);
-        }
-      }
-      result.append(')');
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e); // NotExistsException will not reach this point
     }
   }
 

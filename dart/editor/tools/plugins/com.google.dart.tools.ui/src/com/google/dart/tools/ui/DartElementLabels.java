@@ -15,7 +15,6 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
@@ -412,31 +411,6 @@ public class DartElementLabels {
 //    }
 //  }
 
-  public static void getFunctionLabel(DartFunction function, long flags, StringBuffer buf) {
-    DartX.todo();
-    try {
-//    BindingKey resolvedKey = getFlag(flags, USE_RESOLVED)
-//        && method.isResolved() ? new BindingKey(method.getKey()) : null;
-//    String resolvedSig = (resolvedKey != null) ? resolvedKey.toSignature()
-//        : null;
-
-      // return type
-      if (getFlag(flags, M_PRE_RETURNTYPE) && function.exists()) {
-        buf.append(function.getReturnTypeName());
-        buf.append(' ');
-      }
-      // TODO(devoncarew): function.getElementName() should return null for empty names.
-      if (function.getElementName() == null || function.getElementName().length() == 0) {
-        buf.append("function");
-      } else {
-        buf.append(function.getElementName());
-      }
-      getCommonFunctionLabelElements(function, flags, buf);
-    } catch (DartModelException ex) {
-      DartToolsPlugin.log(ex);
-    }
-  }
-
   /**
    * Appends the label for a local variable to a {@link StringBuffer}.
    * 
@@ -686,91 +660,6 @@ public class DartElementLabels {
 //      buf.append(Messages.format(DartUIMessages.JavaElementLabels_category,
 //          categoriesBuf.toString()));
 //    }
-  }
-
-  private static void getCommonFunctionLabelElements(DartFunction method, long flags,
-      StringBuffer buf) {
-    // parameters
-    try {
-      buf.append('(');
-      if (getFlag(flags, M_PARAMETER_TYPES | M_PARAMETER_NAMES)) {
-        String[] types = null;
-        int nParams = 0;
-        boolean renderVarargs = false;
-        if (getFlag(flags, M_PARAMETER_TYPES)) {
-          DartX.todo();
-          types = method.getParameterTypeNames();
-          nParams = types.length;
-          DartX.todo();
-//        renderVarargs = method.exists() && Flags.isVarargs(method.getFlags());
-        }
-        String[] names = null;
-        if (getFlag(flags, M_PARAMETER_NAMES) && method.exists()) {
-          DartX.todo();
-          try {
-            names = method.getParameterNames();
-          } catch (DartModelException ex) {
-            names = new String[0];
-          }
-          nParams = names.length;
-          if (types == null) {
-            nParams = names.length;
-          } else { // types != null
-            if (nParams != names.length) {
-              if (types.length > names.length) {
-                nParams = names.length;
-                String[] typesWithoutSyntheticParams = new String[nParams];
-                System.arraycopy(
-                    types,
-                    types.length - nParams,
-                    typesWithoutSyntheticParams,
-                    0,
-                    nParams);
-                types = typesWithoutSyntheticParams;
-              } else {
-                names = null; // no names rendered
-              }
-            }
-          }
-        }
-
-        for (int i = 0; i < nParams; i++) {
-          if (i > 0) {
-            buf.append(COMMA_STRING);
-          }
-          if (types != null) {
-            String paramSig = types[i];
-            if (renderVarargs && i == nParams - 1) {
-              DartX.todo();
-              buf.append(paramSig);
-//            int newDim = Signature.getArrayCount(paramSig) - 1;
-//            getTypeSignatureLabel(Signature.getElementType(paramSig), flags,
-//                buf);
-//            for (int k = 0; k < newDim; k++) {
-//              buf.append('[').append(']');
-//            }
-              buf.append(ELLIPSIS_STRING);
-            } else {
-//              getTypeSignatureLabel(paramSig, flags, buf);
-              buf.append(paramSig);
-            }
-          }
-          if (names != null) {
-            if (types != null) {
-              buf.append(' ');
-            }
-            buf.append(names[i]);
-          }
-        }
-      } else {
-        if (method.getParameterTypeNames().length > 0) {
-          buf.append(ELLIPSIS_STRING);
-        }
-      }
-      buf.append(')');
-    } catch (DartModelException ex) {
-      DartToolsPlugin.log(ex);
-    }
   }
 
 //  private static void getArchiveLabel(IPackageFragmentRoot root, long flags,

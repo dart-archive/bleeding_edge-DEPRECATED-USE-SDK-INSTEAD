@@ -79,9 +79,6 @@ public class MemberFilter extends ViewerFilter {
       if (hasFilter(FILTER_STATIC) && (member.isStatic()) && memberType != DartElement.TYPE) {
         return false;
       }
-      if (hasFilter(FILTER_NONPUBLIC) && memberType == DartElement.FUNCTION) {
-        return false;
-      }
     }
     return true;
   }

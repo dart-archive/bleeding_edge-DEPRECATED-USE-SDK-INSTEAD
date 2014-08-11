@@ -101,11 +101,11 @@ public interface DartElement extends IAdaptable {
    */
   //public static int IMPORT = 13;
 
-  /**
+  /*
    * A constant representing a function. A Dart element with this type can be safely cast to
    * {@link DartFunction}.
    */
-  public static int FUNCTION = 14;
+  //public static int FUNCTION = 14;
 
   /*
    * A constant representing a function type alias. A Dart element with this type can be safely cast
