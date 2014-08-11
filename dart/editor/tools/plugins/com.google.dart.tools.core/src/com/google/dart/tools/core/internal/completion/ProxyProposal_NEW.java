@@ -98,6 +98,8 @@ public class ProxyProposal_NEW extends CompletionProposal {
         return CompletionProposal.TYPE_IMPORT;
       case LIBRARY_PREFIX:
         return CompletionProposal.LIBRARY_PREFIX;
+      case LOCAL_VARIABLE:
+        return CompletionProposal.LOCAL_VARIABLE_REF;
       case METHOD:
         return CompletionProposal.METHOD_REF;
       case METHOD_NAME:
@@ -112,8 +114,6 @@ public class ProxyProposal_NEW extends CompletionProposal {
         return CompletionProposal.FIELD_REF;
       case TYPE_PARAMETER:
         return CompletionProposal.TYPE_REF;
-      case VARIABLE:
-        return CompletionProposal.LOCAL_VARIABLE_REF;
       default:
         return 0;
     }

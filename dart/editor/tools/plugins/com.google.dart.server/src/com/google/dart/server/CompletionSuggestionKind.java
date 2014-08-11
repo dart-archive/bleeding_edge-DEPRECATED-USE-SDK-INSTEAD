@@ -31,6 +31,7 @@ public enum CompletionSuggestionKind {
   GETTER,
   IMPORT,
   LIBRARY_PREFIX,
+  LOCAL_VARIABLE,
   METHOD,
   METHOD_NAME,
   NAMED_ARGUMENT,
@@ -38,6 +39,5 @@ public enum CompletionSuggestionKind {
   PARAMETER,
   SETTER,
   TOP_LEVEL_VARIABLE,
-  TYPE_PARAMETER,
-  VARIABLE
+  TYPE_PARAMETER
 }
