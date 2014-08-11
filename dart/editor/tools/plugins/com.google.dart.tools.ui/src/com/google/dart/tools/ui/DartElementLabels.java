@@ -17,7 +17,6 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.internal.util.Strings;
 
 import org.eclipse.core.resources.IResource;
@@ -313,8 +312,6 @@ public class DartElementLabels {
    */
   public final static String DEFAULT_PACKAGE = DartUIMessages.JavaElementLabels_default_package;
 
-  private final static long QUALIFIER_FLAGS = P_COMPRESSED | USE_RESOLVED;
-
 //  /**
 //   * Appends the label for a class file to a {@link StringBuffer}. Considers the
 //   * CF_* flags.
@@ -364,24 +361,6 @@ public class DartElementLabels {
 //      getPackageFragmentLabel((IPackageFragment) cu.getParent(), flags
 //          & QUALIFIER_FLAGS, buf);
 //    }
-  }
-
-  /**
-   * Returns the styled label for a Java element with the flags as defined by this class.
-   * 
-   * @param element the element to render
-   * @param flags the rendering flags
-   * @param result the buffer to append the resulting label to
-   */
-//  public static void getElementLabel(DartElement element, long flags, StyledString result) {
-//    new DartElementLabelComposer(result).appendElementLabel(element, flags);
-//  }
-
-  public static void getFileLabel(TypeMember member, long flags, StringBuffer buf) {
-    CompilationUnit compUnit = member.getCompilationUnit();
-    if (compUnit != null) {
-      getCompilationUnitLabel(compUnit, flags, buf);
-    }
   }
 
 //  /**
@@ -642,24 +621,6 @@ public class DartElementLabels {
    */
   public static String getWorkingSetLabel(IWorkingSet set) {
     return Strings.markLTR(set.getLabel());
-  }
-
-  @SuppressWarnings("unused")
-  private static void getCategoryLabel(TypeMember member, StringBuffer buf)
-      throws DartModelException {
-    DartX.todo();
-//    String[] categories = member.getCategories();
-//    if (categories.length > 0) {
-//      StringBuffer categoriesBuf = new StringBuffer(30);
-//      for (int i = 0; i < categories.length; i++) {
-//        if (i > 0)
-//          categoriesBuf.append(CATEGORY_SEPARATOR_STRING);
-//        categoriesBuf.append(categories[i]);
-//      }
-//      buf.append(CONCAT_STRING);
-//      buf.append(Messages.format(DartUIMessages.JavaElementLabels_category,
-//          categoriesBuf.toString()));
-//    }
   }
 
 //  private static void getArchiveLabel(IPackageFragmentRoot root, long flags,

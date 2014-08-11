@@ -23,7 +23,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
@@ -566,9 +565,7 @@ public class EditorUtility {
     try {
       SourceRange range = null;
       DartX.todo();
-      if (element instanceof TypeMember) {
-        range = ((TypeMember) element).getNameRange();
-      } else if (element instanceof SourceReference) {
+      if (element instanceof SourceReference) {
         range = ((SourceReference) element).getSourceRange();
       }
 

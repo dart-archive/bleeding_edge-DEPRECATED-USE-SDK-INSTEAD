@@ -3,7 +3,6 @@ package com.google.dart.tools.ui.actions;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.TypeMember;
 
 import java.util.List;
 
@@ -41,23 +40,6 @@ public class ActionInstrumentationUtilities {
     instrumentation.metric(collectionName + "-length", members.size());
     for (DartElement m : members) {
       recordElement(m, instrumentation);
-    }
-  }
-
-  public static void record(TypeMember member, InstrumentationBuilder instrumentation) {
-    instrumentation.data("TypeMember-Name", member.getElementName());
-  }
-
-  public static void record(TypeMember[] members, String collectionName,
-      InstrumentationBuilder instrumentation) {
-    if (members == null) {
-      instrumentation.metric(collectionName, "null");
-      return;
-    }
-
-    instrumentation.metric(collectionName + "-length", members.length);
-    for (TypeMember m : members) {
-      record(m, instrumentation);
     }
   }
 

@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.compare;
 
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.text.DartPartitions;
@@ -32,7 +31,6 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentPartitioner;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorInput;
 
 import java.io.BufferedReader;
@@ -174,11 +172,6 @@ public class DartCompareUtilities {
     return DartPluginImages.DESC_OBJS_ENUM;
   }
 
-  static Image getImage(TypeMember member) {
-    ImageDescriptor id = getImageDescriptor(member);
-    return id.createImage();
-  }
-
   static ImageDescriptor getImageDescriptor(int type) {
     switch (type) {
 //      case DartElement.INITIALIZER:
@@ -205,73 +198,6 @@ public class DartCompareUtilities {
         path,
         true);
   }
-
-  // TODO(scheglov) there are no inner types in Dart
-  static ImageDescriptor getImageDescriptor(TypeMember element) {
-    int t = element.getElementType();
-    if (t == DartElement.TYPE) {
-      return getTypeImageDescriptor();
-//      Type type = (Type) element;
-//      try {
-//        return getTypeImageDescriptor();
-//      } catch (CoreException e) {
-//        DartToolsPlugin.log(e);
-//        return DartPluginImages.DESC_OBJS_GHOST;
-//      }
-    }
-    return getImageDescriptor(t);
-  }
-
-//  /**
-//   * Returns a name for the given Dart element that uses the same conventions as the DartNode name
-//   * of a corresponding element.
-//   */
-//  static String getDartElementID(DartElement je) {
-//
-//    if (je instanceof TypeMember && ((TypeMember) je).isBinary()) {
-//      return null;
-//    }
-//
-//    StringBuffer sb = new StringBuffer();
-//
-//    switch (je.getElementType()) {
-//      case DartElement.COMPILATION_UNIT:
-//        sb.append(COMPILATIONUNIT);
-//        break;
-//      case DartElement.TYPE:
-//        sb.append(TYPE);
-//        sb.append(je.getElementName());
-//        break;
-//      case DartElement.FIELD:
-//        sb.append(FIELD);
-//        sb.append(je.getElementName());
-//        break;
-//      case DartElement.METHOD:
-//        sb.append(METHOD);
-//        sb.append(DartElementLabels.getElementLabel(je, DartElementLabels.M_PARAMETER_TYPES));
-//        break;
-//      case DartElement.INITIALIZER:
-//        String id = je.getHandleIdentifier();
-//        int pos = id.lastIndexOf(INITIALIZER);
-//        if (pos >= 0) {
-//          sb.append(id.substring(pos));
-//        }
-//        break;
-//      case DartElement.PACKAGE_DECLARATION:
-//        sb.append(PACKAGEDECLARATION);
-//        break;
-//      case DartElement.IMPORT_CONTAINER:
-//        sb.append(IMPORT_CONTAINER);
-//        break;
-//      case DartElement.IMPORT_DECLARATION:
-//        sb.append(IMPORTDECLARATION);
-//        sb.append(je.getElementName());
-//        break;
-//      default:
-//        return null;
-//    }
-//    return sb.toString();
-//  }
 
   static int getInteger(ResourceBundle bundle, String key, int dfltValue) {
 

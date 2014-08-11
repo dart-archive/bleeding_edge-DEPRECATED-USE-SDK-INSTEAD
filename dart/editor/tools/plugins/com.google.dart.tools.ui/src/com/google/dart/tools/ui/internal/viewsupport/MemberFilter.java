@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.viewsupport;
 
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.TypeMember;
-
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 
@@ -65,21 +62,6 @@ public class MemberFilter extends ViewerFilter {
    */
   @Override
   public boolean select(Viewer viewer, Object parentElement, Object element) {
-    if (element instanceof TypeMember) {
-      TypeMember member = (TypeMember) element;
-      int memberType = member.getElementType();
-
-//      if (hasFilter(FILTER_FIELDS) && memberType == DartElement.FIELD) {
-//        return false;
-//      }
-//      if (hasFilter(FILTER_LOCALTYPES) && memberType == DartElement.TYPE
-//          && isLocalType((Type) member)) {
-//        return false;
-//      }
-      if (hasFilter(FILTER_STATIC) && (member.isStatic()) && memberType != DartElement.TYPE) {
-        return false;
-      }
-    }
     return true;
   }
 

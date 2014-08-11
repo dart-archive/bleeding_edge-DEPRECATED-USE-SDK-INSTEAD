@@ -17,7 +17,6 @@ import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -47,13 +46,6 @@ public class GoToNextPreviousMemberAction extends Action implements IUpdate {
   public static GoToNextPreviousMemberAction newGoToPreviousMemberAction(DartEditor editor) {
     String text = SelectionActionMessages.GotoPreviousMember_label;
     return new GoToNextPreviousMemberAction(editor, text, false);
-  }
-
-  private static void addMemberOffsetList(List<Integer> result, TypeMember[] members)
-      throws DartModelException {
-    for (int i = 0; i < members.length; i++) {
-      addOffset(result, getOffset(members[i]));
-    }
   }
 
   private static void addOffset(List<Integer> result, int offset) {
@@ -127,18 +119,6 @@ public class GoToNextPreviousMemberAction extends Action implements IUpdate {
     } else {
       return offsetArray[absIndex - 1];
     }
-  }
-
-  private static int getOffset(TypeMember iMember) throws DartModelException {
-    // special case
-    DartX.todo();
-    // if (iMember.getElementType() == DartElement.INITIALIZER)
-    // return firstOpeningBraceOffset((IInitializer) iMember);
-
-    if (iMember.getNameRange() != null && iMember.getNameRange().getOffset() >= 0) {
-      return iMember.getNameRange().getOffset();
-    }
-    return iMember.getSourceRange().getOffset();
   }
 
   private static Integer getPreviousOffset(int index, Integer[] offsetArray, Integer oldOffset) {
