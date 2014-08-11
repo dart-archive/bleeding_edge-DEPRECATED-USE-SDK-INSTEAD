@@ -13,14 +13,12 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.server.AnalysisError;
 import com.google.dart.server.ErrorSeverity;
 import com.google.dart.server.Location;
 import com.google.dart.tools.core.DartCore;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -57,12 +55,10 @@ public class AnalysisMarkerManager_NEW {
    */
   private static final class ErrorResult implements Result {
     final IResource resource;
-    final LineInfo lineInfo;
     final AnalysisError[] errors;
 
-    ErrorResult(IResource resource, LineInfo lineInfo, AnalysisError[] errors) {
+    ErrorResult(IResource resource, AnalysisError[] errors) {
       this.resource = resource;
-      this.lineInfo = lineInfo;
       this.errors = errors;
     }
 
@@ -178,8 +174,6 @@ public class AnalysisMarkerManager_NEW {
         marker.setAttribute(IMarker.CHAR_START, 0);
         marker.setAttribute(IMarker.CHAR_END, 0);
         marker.setAttribute(IMarker.LINE_NUMBER, 1);
-        //TODO (danrubel): replace with real error code
-        marker.setAttribute(ERROR_CODE, 0);
         //TODO (danrubel): improve error message to indicate action to install SDK
         marker.setAttribute(IMarker.MESSAGE, "Missing Dart SDK");
         //TODO (danrubel): Quick Fix ?
@@ -206,7 +200,6 @@ public class AnalysisMarkerManager_NEW {
   }
 
   private static final int MAX_ERROR_COUNT = 500;
-  private static final String ERROR_CODE = "errorCode";
 
   /**
    * The singleton used for translating {@link AnalysisError}s into Eclipse markers.
@@ -215,51 +208,12 @@ public class AnalysisMarkerManager_NEW {
       ResourcesPlugin.getWorkspace());
 
   /**
-   * Extract {@link ErrorCode} form the given {@link IMarker}.
-   * 
-   * @return the {@link ErrorCode}, may be {@code null}.
-   */
-  public static ErrorCode getErrorCode(IMarker marker) {
-    if (marker == null) {
-      return null;
-    }
-    String encoding = marker.getAttribute(ERROR_CODE, null);
-    if (encoding == null) {
-      return null;
-    }
-    return decodeErrorCode(encoding);
-  }
-
-  /**
    * Answer the singleton used for translating {@link AnalysisError}s into Eclipse markers.
    * 
    * @return the marker manager (not {@code null})
    */
   public static AnalysisMarkerManager_NEW getInstance() {
     return INSTANCE;
-  }
-
-  /**
-   * @return the {@link ErrorCode} enumeration constant for string from
-   *         {@link #encodeErrorCode(ErrorCode)}.
-   */
-  private static ErrorCode decodeErrorCode(String encoding) {
-    try {
-      String className = StringUtils.substringBeforeLast(encoding, ".");
-      String fieldName = StringUtils.substringAfterLast(encoding, ".");
-      Class<?> errorCodeClass = Class.forName(className);
-      return (ErrorCode) errorCodeClass.getField(fieldName).get(null);
-    } catch (Throwable e) {
-      return null;
-    }
-  }
-
-  /**
-   * @return the encoding of the given {@link ErrorCode} enumeration, good for passing it to
-   *         {@link #decodeErrorCode(String)}.
-   */
-  private static String encodeErrorCode(ErrorCode errorCode) {
-    return errorCode.getClass().getCanonicalName() + "." + ((Enum<?>) errorCode).name();
   }
 
   /**
@@ -347,11 +301,10 @@ public class AnalysisMarkerManager_NEW {
    * Queue the specified errors for later translation to Eclipse markers.
    * 
    * @param resource the resource on which the errors should be displayed (not {@code null})
-   * @param lineInfo the line information (not {@code null})
    * @param errors the errors to be translated (not {@code null}, contains no {@code null}s)
    */
-  public void queueErrors(IResource resource, LineInfo lineInfo, AnalysisError[] errors) {
-    queueResult(new ErrorResult(resource, lineInfo, errors));
+  public void queueErrors(IResource resource, AnalysisError[] errors) {
+    queueResult(new ErrorResult(resource, errors));
   }
 
   /**

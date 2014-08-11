@@ -53,8 +53,8 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
   }
 
   @Override
-  public void computedCompletion(String completionId, int replacementOffset,
-      int replacementLength, CompletionSuggestion[] completions, boolean last) {
+  public void computedCompletion(String completionId, int replacementOffset, int replacementLength,
+      CompletionSuggestion[] completions, boolean last) {
     // TODO(jwren/scheglov) not yet implemented
   }
 
@@ -65,8 +65,7 @@ public class WorkspaceAnalysisServerListener implements AnalysisServerListener {
     if (file.exists()) {
       IResource resource = ResourceUtil.getResource(file);
       if (resource != null) {
-        // TODO(scheglov) Analysis Server: LineInfo
-        AnalysisMarkerManager_NEW.getInstance().queueErrors(resource, null, errors);
+        AnalysisMarkerManager_NEW.getInstance().queueErrors(resource, errors);
       }
     }
   }
