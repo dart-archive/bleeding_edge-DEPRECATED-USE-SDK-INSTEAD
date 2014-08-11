@@ -69,9 +69,9 @@ public class MemberFilter extends ViewerFilter {
       TypeMember member = (TypeMember) element;
       int memberType = member.getElementType();
 
-      if (hasFilter(FILTER_FIELDS) && memberType == DartElement.FIELD) {
-        return false;
-      }
+//      if (hasFilter(FILTER_FIELDS) && memberType == DartElement.FIELD) {
+//        return false;
+//      }
 //      if (hasFilter(FILTER_LOCALTYPES) && memberType == DartElement.TYPE
 //          && isLocalType((Type) member)) {
 //        return false;

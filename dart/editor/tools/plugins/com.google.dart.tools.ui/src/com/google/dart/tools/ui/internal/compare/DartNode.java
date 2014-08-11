@@ -132,9 +132,9 @@ class DartNode extends DocumentRangeNode implements ITypedElement {
 //      case METHOD:
 //        id = DartCompareUtilities.getImageDescriptor(DartElement.METHOD);
 //        break;
-      case FIELD:
-        id = DartCompareUtilities.getImageDescriptor(DartElement.FIELD);
-        break;
+//      case FIELD:
+//        id = DartCompareUtilities.getImageDescriptor(DartElement.FIELD);
+//        break;
       case ENUM:
         id = DartCompareUtilities.getEnumImageDescriptor();
         break;

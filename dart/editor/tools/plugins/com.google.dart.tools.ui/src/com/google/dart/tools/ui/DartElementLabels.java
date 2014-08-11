@@ -17,7 +17,6 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.internal.util.Strings;
@@ -378,68 +377,6 @@ public class DartElementLabels {
 //  public static void getElementLabel(DartElement element, long flags, StyledString result) {
 //    new DartElementLabelComposer(result).appendElementLabel(element, flags);
 //  }
-
-  /**
-   * Appends the label for a field to a {@link StringBuffer}. Considers the F_* flags.
-   * 
-   * @param field The element to render.
-   * @param flags The rendering flags. Flags with names starting with 'F_' are considered.
-   * @param buf The buffer to append the resulting label to.
-   */
-  public static void getFieldLabel(Field field, long flags, StringBuffer buf) {
-    try {
-      if (getFlag(flags, F_PRE_TYPE_SIGNATURE) && field.exists()) {
-//        if (getFlag(flags, USE_RESOLVED) && field.isResolved()) {
-//          getTypeSignatureLabel(new BindingKey(field.getKey()).toSignature(),
-//              flags, buf);
-//        } else {
-        buf.append(field.getTypeName());
-//        }
-        buf.append(' ');
-      }
-
-      // qualification
-      Type declaringType = field.getDeclaringType();
-      if (getFlag(flags, F_FULLY_QUALIFIED)) {
-        if (declaringType != null) {
-          getTypeLabel(declaringType, T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
-        } else {
-          getFileLabel(field, T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
-        }
-        buf.append('.');
-      }
-      buf.append(field.getElementName()); // getDisplayName()
-
-      DartX.todo();
-      if (getFlag(flags, F_APP_TYPE_SIGNATURE) && field.exists()) {
-        if (field.getTypeName() != null) {
-          buf.append(DECL_STRING);
-//          if (getFlag(flags, USE_RESOLVED) && field.isResolved()) {
-//            getTypeSignatureLabel(new BindingKey(field.getKey()).toSignature(),
-//                flags, buf);
-//          } else {
-          buf.append(field.getTypeName());
-//          }
-        }
-      }
-
-      // category
-//      if (getFlag(flags, F_CATEGORY) && field.exists())
-//        getCategoryLabel(field, buf);
-
-      // post qualification
-      if (getFlag(flags, F_POST_QUALIFIED)) {
-        buf.append(CONCAT_STRING);
-        if (declaringType != null) {
-          getTypeLabel(declaringType, T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
-        } else {
-          getFileLabel(field, T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
-        }
-      }
-    } catch (DartModelException ex) {
-      DartToolsPlugin.log(ex);
-    }
-  }
 
   public static void getFileLabel(TypeMember member, long flags, StringBuffer buf) {
     CompilationUnit compUnit = member.getCompilationUnit();

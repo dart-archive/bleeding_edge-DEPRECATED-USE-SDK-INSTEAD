@@ -24,15 +24,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 public interface Type extends CompilationUnitElement, ParentElement, SourceReference {
 
   /**
-   * Return the fields declared by this type in the order in which they appear in the source file.
-   * 
-   * @return the fields declared by this type
-   * @throws DartModelException if this element does not exist or if an exception occurs while
-   *           accessing its corresponding resource
-   */
-  public Field[] getFields() throws DartModelException;
-
-  /**
    * Return the library containing this type, or <code>null</code> if this type is not defined in a
    * library.
    * 
