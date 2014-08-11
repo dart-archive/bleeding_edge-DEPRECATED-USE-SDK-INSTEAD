@@ -228,7 +228,7 @@ public class SourceFactory {
         throw new AnalysisException("Cannot resolve a relative URI without a containing source: "
             + containedUri);
       }
-      containedUri = containingSource.resolveRelative(containedUri);
+      containedUri = containingSource.resolveRelativeUri(containedUri);
     }
     for (UriResolver resolver : resolvers) {
       Source result = resolver.resolveAbsolute(containedUri);

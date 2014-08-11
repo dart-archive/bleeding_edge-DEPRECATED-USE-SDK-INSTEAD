@@ -100,7 +100,7 @@ public class NonExistingSource implements Source {
   }
 
   @Override
-  public URI resolveRelative(URI relativeUri) {
+  public URI resolveRelativeUri(URI relativeUri) {
     throw new UnsupportedOperationException(name + "does not exist.");
   }
 }

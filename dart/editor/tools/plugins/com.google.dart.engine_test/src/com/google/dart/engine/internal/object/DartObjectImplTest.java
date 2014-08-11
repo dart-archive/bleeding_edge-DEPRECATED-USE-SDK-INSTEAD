@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.object;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.utilities.translation.DartBlockBody;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -360,14 +361,14 @@ public class DartObjectImplTest extends EngineTestCase {
 
   public void test_getValue_list_empty() {
     Object result = listValue().getValue();
-    assertInstanceOf(Object[].class, result);
+    assertInstanceOfObjectArray(result);
     Object[] array = (Object[]) result;
     assertLength(0, array);
   }
 
   public void test_getValue_list_valid() {
     Object result = listValue(intValue(23)).getValue();
-    assertInstanceOf(Object[].class, result);
+    assertInstanceOfObjectArray(result);
     Object[] array = (Object[]) result;
     assertLength(1, array);
   }
@@ -1603,6 +1604,11 @@ public class DartObjectImplTest extends EngineTestCase {
       assertNotNull(result);
       assertEquals(expected, result);
     }
+  }
+
+  @DartBlockBody({"// TODO(scheglov) implement"})
+  private void assertInstanceOfObjectArray(Object result) {
+    assertInstanceOf(Object[].class, result);
   }
 
   /**

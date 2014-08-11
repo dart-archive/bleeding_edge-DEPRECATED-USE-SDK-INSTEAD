@@ -64,7 +64,7 @@ public class EngineExceptionProcessor extends SemanticProcessor {
         Identifier typeName = node.getConstructorName().getType().getName();
         if (typeName.getName().equals("AnalysisException")) {
           // "log(new AnalysisException(m))" -> "log(new CaughtException(new AnalysisException(m)))"
-          if (arguments.size() == 1) {
+          if (arguments.size() <= 1) {
             AstNode parent = node.getParent();
             if (!(parent instanceof ThrowExpression)) {
               replaceNode(

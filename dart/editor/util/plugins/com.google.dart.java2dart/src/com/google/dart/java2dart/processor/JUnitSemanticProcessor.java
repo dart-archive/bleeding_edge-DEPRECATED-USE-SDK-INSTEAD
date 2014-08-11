@@ -121,6 +121,12 @@ public class JUnitSemanticProcessor extends SemanticProcessor {
           }
           if (isMethodInClass2(
               node,
+              "assertNull(java.lang.String,java.lang.Object)",
+              "junit.framework.Assert")) {
+            node.setMethodName(identifier("assertNullMsg"));
+          }
+          if (isMethodInClass2(
+              node,
               "assertNotNull(java.lang.String,java.lang.Object)",
               "junit.framework.Assert")) {
             node.setMethodName(identifier("assertNotNullMsg"));

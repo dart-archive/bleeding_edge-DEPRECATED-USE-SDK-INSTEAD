@@ -145,7 +145,11 @@ public class MainAnalysisServer {
     context.addSourceFiles(new File(
         serviceFolder,
         "com/google/dart/engine/services/internal/correction"));
+    context.addSourceFiles(new File(
+        serviceFolder,
+        "com/google/dart/engine/services/internal/refactoring"));
     context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/internal/util"));
+    context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/refactoring"));
     context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/status"));
     context.addSourceFiles(new File(serviceFolder, "com/google/dart/engine/services/util"));
     // translate into single CompilationUnit
@@ -243,6 +247,13 @@ public class MainAnalysisServer {
 //      Files.write(getFormattedSource(library), new File(targetFolder2
 //          + "/service_correction.dart"), Charsets.UTF_8);
 //    }
+    {
+      CompilationUnit library = buildServicesLibrary_refactoring();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolderServices + "/refactoring.dart"),
+          Charsets.UTF_8);
+    }
     {
       String projectFolder = new File(targetFolderServices).getParentFile().getParentFile().getParent();
       fixUnnecessaryCastHints(projectFolder);
@@ -489,6 +500,50 @@ public class MainAnalysisServer {
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isCorrectionProposalFile(file)) {
+        addNotRemovedCompiationUnitEntries(unit, entry.getValue());
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildServicesLibrary_refactoring() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("service", "refactoring"));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/ast.dart", null));
+    unit.getDirectives().add(importDirective("package:analyzer/src/generated/element.dart", null));
+//    unit.getDirectives().add(
+//        importDirective(
+//            "package:analyzer/src/generated/engine.dart",
+//            null,
+//            importShowCombinator("AnalysisContext")));
+//    unit.getDirectives().add(importDirective("package:analyzer/src/generated/error.dart", null));
+//    unit.getDirectives().add(
+//        importDirective(
+//            "package:analyzer/src/generated/java_core.dart",
+//            null,
+//            importHideCombinator("StringUtils")));
+//    unit.getDirectives().add(
+//        importDirective(
+//            "package:analyzer/src/generated/java_io.dart",
+//            null,
+//            importShowCombinator("JavaFile")));
+//    unit.getDirectives().add(
+//        importDirective(
+//            "package:analyzer/src/generated/parser.dart",
+//            null,
+//            importShowCombinator("ParserErrorCode")));
+//    unit.getDirectives().add(importDirective("package:analyzer/src/generated/scanner.dart", null));
+//    unit.getDirectives().add(importDirective("package:analyzer/src/generated/sdk.dart", null));
+//    unit.getDirectives().add(importDirective("package:analyzer/src/generated/source_io.dart", null));
+//    unit.getDirectives().add(
+//        importDirective("package:analyzer/src/generated/utilities_dart.dart", null));
+//    unit.getDirectives().add(importDirective("change.dart", null));
+//    unit.getDirectives().add(importDirective("proposal.dart", null));
+//    unit.getDirectives().add(importDirective("stubs.dart", null));
+//    unit.getDirectives().add(importDirective("util.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isServicePath(file, "refactoring/") || isServicePath(file, "internal/refactoring/")) {
         addNotRemovedCompiationUnitEntries(unit, entry.getValue());
       }
     }

@@ -111,7 +111,7 @@ public class FileBasedSourceTest extends TestCase {
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(new URI("dart:test"), file);
     assertNotNull(source);
-    URI relative = source.resolveRelative(new URI("lib.dart"));
+    URI relative = source.resolveRelativeUri(new URI("lib.dart"));
     assertNotNull(relative);
     assertEquals("dart:test/lib.dart", relative.toString());
   }
@@ -120,7 +120,7 @@ public class FileBasedSourceTest extends TestCase {
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(new URI("dart:test"), file);
     assertNotNull(source);
-    URI relative = source.resolveRelative(new URI("c/lib.dart"));
+    URI relative = source.resolveRelativeUri(new URI("c/lib.dart"));
     assertNotNull(relative);
     assertEquals("dart:test/c/lib.dart", relative.toString());
   }
@@ -129,7 +129,7 @@ public class FileBasedSourceTest extends TestCase {
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(new URI("dart:test/b/test.dart"), file);
     assertNotNull(source);
-    URI relative = source.resolveRelative(new URI("../c/lib.dart"));
+    URI relative = source.resolveRelativeUri(new URI("../c/lib.dart"));
     assertNotNull(relative);
     assertEquals("dart:test/c/lib.dart", relative.toString());
   }
@@ -143,7 +143,7 @@ public class FileBasedSourceTest extends TestCase {
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     assertNotNull(source);
-    URI relative = source.resolveRelative(new URI("lib.dart"));
+    URI relative = source.resolveRelativeUri(new URI("lib.dart"));
     assertNotNull(relative);
     assertEquals("file:/a/b/lib.dart", relative.toString());
   }
@@ -157,7 +157,7 @@ public class FileBasedSourceTest extends TestCase {
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     assertNotNull(source);
-    URI relative = source.resolveRelative(new URI("c/lib.dart"));
+    URI relative = source.resolveRelativeUri(new URI("c/lib.dart"));
     assertNotNull(relative);
     assertEquals("file:/a/b/c/lib.dart", relative.toString());
   }
@@ -171,7 +171,7 @@ public class FileBasedSourceTest extends TestCase {
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     assertNotNull(source);
-    URI relative = source.resolveRelative(new URI("../c/lib.dart"));
+    URI relative = source.resolveRelativeUri(new URI("../c/lib.dart"));
     assertNotNull(relative);
     assertEquals("file:/a/c/lib.dart", relative.toString());
   }
@@ -180,7 +180,7 @@ public class FileBasedSourceTest extends TestCase {
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(new URI("package:b/test.dart"), file);
     assertNotNull(source);
-    URI relative = source.resolveRelative(new URI("lib.dart"));
+    URI relative = source.resolveRelativeUri(new URI("lib.dart"));
     assertNotNull(relative);
     assertEquals("package:b/lib.dart", relative.toString());
   }
@@ -189,7 +189,7 @@ public class FileBasedSourceTest extends TestCase {
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(new URI("package:test.dart"), file);
     assertNotNull(source);
-    URI relative = source.resolveRelative(new URI("lib.dart"));
+    URI relative = source.resolveRelativeUri(new URI("lib.dart"));
     assertNotNull(relative);
     assertEquals("package:lib.dart", relative.toString());
   }
@@ -198,7 +198,7 @@ public class FileBasedSourceTest extends TestCase {
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(new URI("package:b/test.dart"), file);
     assertNotNull(source);
-    URI relative = source.resolveRelative(new URI("c/lib.dart"));
+    URI relative = source.resolveRelativeUri(new URI("c/lib.dart"));
     assertNotNull(relative);
     assertEquals("package:b/c/lib.dart", relative.toString());
   }
@@ -207,7 +207,7 @@ public class FileBasedSourceTest extends TestCase {
     File file = createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(new URI("package:a/b/test.dart"), file);
     assertNotNull(source);
-    URI relative = source.resolveRelative(new URI("../c/lib.dart"));
+    URI relative = source.resolveRelativeUri(new URI("../c/lib.dart"));
     assertNotNull(relative);
     assertEquals("package:a/c/lib.dart", relative.toString());
   }

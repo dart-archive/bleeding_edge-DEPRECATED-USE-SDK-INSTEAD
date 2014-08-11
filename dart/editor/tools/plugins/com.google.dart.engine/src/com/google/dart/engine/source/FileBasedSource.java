@@ -177,7 +177,7 @@ public class FileBasedSource implements Source {
   }
 
   @Override
-  public URI resolveRelative(URI containedUri) throws AnalysisException {
+  public URI resolveRelativeUri(URI containedUri) throws AnalysisException {
     try {
       URI baseUri = uri;
       boolean isOpaque = uri.isOpaque();

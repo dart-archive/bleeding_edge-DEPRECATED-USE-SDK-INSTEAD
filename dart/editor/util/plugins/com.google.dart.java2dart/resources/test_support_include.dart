@@ -32,7 +32,7 @@ class TestSource implements Source {
   Source resolve(String uri) {
     throw new UnsupportedOperationException();
   }
-  Uri resolveRelative(Uri uri) {
+  Uri resolveRelativeUri(Uri uri) {
     throw new UnsupportedOperationException();
   }
   UriKind get uriKind {

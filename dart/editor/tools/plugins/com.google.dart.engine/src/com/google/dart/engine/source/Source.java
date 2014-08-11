@@ -201,5 +201,5 @@ public interface Source {
    * @return the URI to which given URI was resolved
    * @throws AnalysisException if the relative URI could not be resolved
    */
-  public URI resolveRelative(URI relativeUri) throws AnalysisException;
+  public URI resolveRelativeUri(URI relativeUri) throws AnalysisException;
 }

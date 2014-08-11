@@ -299,6 +299,9 @@ public class EngineSemanticProcessor extends SemanticProcessor {
         }
         if (JavaUtils.isMethod(context.getNodeBinding(node), "java.lang.reflect.Method", "invoke")) {
           Expression target = arguments.get(0);
+          if (node.getTarget() instanceof MethodInvocation) {
+            System.out.println(node.getTarget());
+          }
           String varName = ((SimpleIdentifier) node.getTarget()).getName();
           String methodName = varToMethod.get(varName);
           List<Expression> methodArgs;

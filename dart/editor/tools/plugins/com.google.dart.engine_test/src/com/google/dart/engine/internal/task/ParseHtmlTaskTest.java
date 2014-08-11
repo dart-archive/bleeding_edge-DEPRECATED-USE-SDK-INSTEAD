@@ -127,7 +127,7 @@ public class ParseHtmlTaskTest extends EngineTestCase {
     TestLogger testLogger = new TestLogger();
     ParseHtmlTask task = parseSource(new TestSource(contents) {
       @Override
-      public URI resolveRelative(URI containedUri) {
+      public URI resolveRelativeUri(URI containedUri) {
         try {
           return new URI("file:/does/not/exist.dart");
         } catch (URISyntaxException exception) {

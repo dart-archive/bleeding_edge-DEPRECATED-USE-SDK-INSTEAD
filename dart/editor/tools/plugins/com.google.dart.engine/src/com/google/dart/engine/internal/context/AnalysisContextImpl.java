@@ -100,6 +100,7 @@ import com.google.dart.engine.utilities.collection.ListUtilities;
 import com.google.dart.engine.utilities.collection.MapIterator;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.source.LineInfo;
+import com.google.dart.engine.utilities.translation.DartExpressionBody;
 import com.google.dart.engine.utilities.translation.DartOmit;
 
 import java.io.File;
@@ -3713,12 +3714,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private TaskData getNextAnalysisTaskForSource(Source source, SourceEntry sourceEntry,
       boolean isPriority, boolean hintsEnabled) {
     // Refuse to generate tasks for html based files that are above 1500 KB
-    if (sourceEntry instanceof HtmlEntryImpl && source instanceof FileBasedSource) {
+    if (isTooBigHtmlSourceEntry(source, sourceEntry)) {
       // TODO (jwren) we still need to report an error of some kind back to the client.
-      File file = ((FileBasedSource) source).getFile();
-      if (file.length() > (1500 * 1024)) {
-        return new TaskData(null, false);
-      }
+      return new TaskData(null, false);
     }
     if (sourceEntry == null) {
       return new TaskData(null, false);
@@ -4290,6 +4288,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       if (isClient(exported, htmlSource, visitedLibraries)) {
         return true;
       }
+    }
+    return false;
+  }
+
+  @DartExpressionBody("false")
+  private boolean isTooBigHtmlSourceEntry(Source source, SourceEntry sourceEntry) {
+    if (sourceEntry instanceof HtmlEntryImpl && source instanceof FileBasedSource) {
+      File file = ((FileBasedSource) source).getFile();
+      return file.length() > 1500 * 1024;
     }
     return false;
   }

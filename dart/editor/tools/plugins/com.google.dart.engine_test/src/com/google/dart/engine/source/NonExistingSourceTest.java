@@ -56,7 +56,7 @@ public class NonExistingSourceTest extends TestCase {
 
   public void test_resolveRelative() throws Exception {
     try {
-      source.resolveRelative(new URI("qux.dart"));
+      source.resolveRelativeUri(new URI("qux.dart"));
       fail();
     } catch (UnsupportedOperationException e) {
     }

@@ -354,6 +354,23 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
           return null;
         }
+        if (name.equals("clone")) {
+          ITypeBinding targetBinding = context.getNodeTypeBinding(target);
+          if (targetBinding.isArray()) {
+            ITypeBinding componentType = targetBinding.getComponentType();
+            if (componentType.isTypeVariable()) {
+              componentType = componentType.getTypeBounds()[0];
+            }
+            replaceNode(
+                node,
+                instanceCreationExpression(
+                    Keyword.NEW,
+                    typeName("List", typeName(componentType.getName())),
+                    "from",
+                    target));
+            return null;
+          }
+        }
         // prepare binding
         IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
         // analyze invocations
@@ -745,7 +762,11 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         // replace literal
         if (x instanceof IntegerLiteral) {
           IntegerLiteral literal = (IntegerLiteral) x;
-          replaceNode(x, string(String.valueOf((char) literal.getValue().intValue())));
+          String str = String.valueOf((char) literal.getValue().intValue());
+          if (str.equals("\\")) {
+            str = "\\\\";
+          }
+          replaceNode(x, string(str));
           return;
         }
         // replace expression

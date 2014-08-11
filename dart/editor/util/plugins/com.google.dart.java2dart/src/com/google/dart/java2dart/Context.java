@@ -561,6 +561,15 @@ public class Context {
   }
 
   /**
+   * Specifies that the given {@link File} should not be translated.
+   */
+  public void removeSourceFile(File file) {
+    Assert.isLegal(file.exists(), "File '" + file + "' does not exist.");
+    file = file.getAbsoluteFile();
+    sourceFiles.remove(file);
+  }
+
+  /**
    * Specifies that all files in given folder should not be translated.
    */
   public void removeSourceFiles(File folder) {
@@ -616,6 +625,9 @@ public class Context {
     // move identifiers to the new signature
     Object binding = nodeToBinding.get(declarationIdentifier);
     List<SimpleIdentifier> identifiers = bindingToIdentifiers.get(binding);
+    if (identifiers == null) {
+      return;
+    }
     // update identifiers to the new name
     for (SimpleIdentifier identifier : identifiers) {
       identifier.setToken(token(TokenType.IDENTIFIER, newName));

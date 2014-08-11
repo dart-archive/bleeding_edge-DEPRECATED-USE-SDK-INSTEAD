@@ -99,7 +99,6 @@ public abstract class ElementHandle implements Element {
         return (E) new FunctionTypeAliasElementHandle((FunctionTypeAliasElement) element);
       case TYPE_PARAMETER:
         return (E) new TypeParameterElementHandle((TypeParameterElement) element);
-      case ERROR:
       default:
         throw new UnsupportedOperationException();
     }

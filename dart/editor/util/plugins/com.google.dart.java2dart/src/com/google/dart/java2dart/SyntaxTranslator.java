@@ -1580,6 +1580,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     Identifier result = null;
     if (javaType instanceof org.eclipse.jdt.core.dom.SimpleType) {
       result = ((TypeName) translate(javaType)).getName();
+    } else {
+      result = identifier("CannotTranslate");
     }
     return done(result);
   }
@@ -1998,6 +2000,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         }
       }
     });
+    if (result == null) {
+      System.out.println(node);
+    }
     Assert.isNotNull(result, "No result for: " + node.getClass().getCanonicalName());
     T castedResult = (T) result;
     // remember type for each Expression
