@@ -296,7 +296,8 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
     }
     if (!files.contains(file)) {
       files.add(file);
-      server.setAnalysisSubscriptions(analysisSubscriptions);
+      // TODO (jwren) re-enable after it is working in the java server again:
+//      server.analysis_setSubscriptions(analysisSubscriptions);
     }
   }
 
@@ -312,7 +313,8 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
       if (files.isEmpty()) {
         analysisSubscriptions.remove(service);
       }
-      server.setAnalysisSubscriptions(analysisSubscriptions);
+      // TODO (jwren) re-implement after this is working
+//      server.analysis_setSubscriptions(analysisSubscriptions);
     }
   }
 }

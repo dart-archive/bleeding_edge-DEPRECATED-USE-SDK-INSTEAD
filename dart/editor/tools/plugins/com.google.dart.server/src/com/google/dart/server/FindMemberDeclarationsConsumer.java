@@ -14,16 +14,10 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code AssistsConsumer} defines the behavior of objects that consume assists
- * {@link SourceChange}s.
+ * The interface {@code FindMemberDeclarationsConsumer} defines the behavior of objects that .. TODO
  * 
  * @coverage dart.server
  */
-public interface AssistsConsumer extends Consumer {
-  /**
-   * A set of {@link SourceChange}s that have been computed.
-   * 
-   * @param proposals an array of computed {@link SourceChange}s
-   */
-  public void computedSourceChanges(SourceChange[] sourceChanges);
+public class FindMemberDeclarationsConsumer implements Consumer {
+  // TODO (jwren) implement, class added simply to have AnalysisServer compile
 }

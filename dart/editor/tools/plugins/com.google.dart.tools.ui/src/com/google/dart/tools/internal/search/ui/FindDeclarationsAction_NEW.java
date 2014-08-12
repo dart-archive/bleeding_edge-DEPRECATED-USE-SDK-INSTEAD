@@ -15,10 +15,7 @@ package com.google.dart.tools.internal.search.ui;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.SearchResult;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.SearchResultsListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -37,7 +34,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -83,22 +79,23 @@ public class FindDeclarationsAction_NEW extends AbstractDartSelectionAction {
         protected List<SearchResult> runQuery() {
           final List<SearchResult> allResults = Lists.newArrayList();
           final CountDownLatch latch = new CountDownLatch(1);
-          DartCore.getAnalysisServer().searchClassMemberDeclarations(name, new SearchIdConsumer() {
-            @Override
-            public void computedSearchId(String searchId) {
-              DartCore.getAnalysisServerData().addSearchResultsListener(
-                  searchId,
-                  new SearchResultsListener() {
-                    @Override
-                    public void computedSearchResults(SearchResult[] results, boolean last) {
-                      Collections.addAll(allResults, results);
-                      if (last) {
-                        latch.countDown();
-                      }
-                    }
-                  });
-            }
-          });
+          // TODO (jwren) re-implement after functionality has been updated in server
+//          DartCore.getAnalysisServer().searchClassMemberDeclarations(name, new SearchIdConsumer() {
+//            @Override
+//            public void computedSearchId(String searchId) {
+//              DartCore.getAnalysisServerData().addSearchResultsListener(
+//                  searchId,
+//                  new SearchResultsListener() {
+//                    @Override
+//                    public void computedSearchResults(SearchResult[] results, boolean last) {
+//                      Collections.addAll(allResults, results);
+//                      if (last) {
+//                        latch.countDown();
+//                      }
+//                    }
+//                  });
+//            }
+//          });
           Uninterruptibles.awaitUninterruptibly(latch, 1, TimeUnit.MINUTES);
           return allResults;
         }

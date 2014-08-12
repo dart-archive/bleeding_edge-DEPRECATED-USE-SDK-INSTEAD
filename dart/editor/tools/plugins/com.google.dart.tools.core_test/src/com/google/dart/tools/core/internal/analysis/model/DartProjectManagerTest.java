@@ -39,6 +39,13 @@ public class DartProjectManagerTest extends TestCase {
     private List<String> includedPaths;
     private List<String> excludedPaths;
 
+    @Override
+    public void analysis_setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths) {
+      this.includedPaths = includedPaths;
+      this.excludedPaths = excludedPaths;
+      callCount++;
+    }
+
     public void assertRoots(int expectedCallCount, MockProject[] expectedProjects,
         IResource[] expectedExcludes) {
       assertEquals(expectedCallCount, callCount);
@@ -52,13 +59,6 @@ public class DartProjectManagerTest extends TestCase {
           assertTrue(excludedPaths.contains(res.getLocation().toOSString()));
         }
       }
-    }
-
-    @Override
-    public void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths) {
-      this.includedPaths = includedPaths;
-      this.excludedPaths = excludedPaths;
-      callCount++;
     }
   }
 

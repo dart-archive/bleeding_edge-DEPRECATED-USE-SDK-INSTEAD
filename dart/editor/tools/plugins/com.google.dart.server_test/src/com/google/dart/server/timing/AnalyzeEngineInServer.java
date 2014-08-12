@@ -167,7 +167,7 @@ public class AnalyzeEngineInServer extends TimingTest {
 
   @Override
   protected void oneTimeTearDown() {
-    server.shutdown();
+    server.server_shutdown();
   }
 
   @Override
@@ -201,7 +201,7 @@ public class AnalyzeEngineInServer extends TimingTest {
     ArrayList<String> includedPaths = new ArrayList<String>();
     includedPaths.add(enginePath);
     ArrayList<String> excludedPaths = new ArrayList<String>();
-    server.setAnalysisRoots(includedPaths, excludedPaths);
+    server.analysis_setAnalysisRoots(includedPaths, excludedPaths);
     //
     // Wait for all work to be completed.
     //
@@ -222,7 +222,7 @@ public class AnalyzeEngineInServer extends TimingTest {
     //
     ArrayList<String> includedPaths = new ArrayList<String>();
     ArrayList<String> excludedPaths = new ArrayList<String>();
-    server.setAnalysisRoots(includedPaths, excludedPaths);
+    server.analysis_setAnalysisRoots(includedPaths, excludedPaths);
   }
 
   /**

@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.server.CompletionIdConsumer;
+import com.google.dart.server.GetSuggestionsConsumer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
@@ -133,10 +133,10 @@ public class DartCompletionProcessor extends ContentAssistProcessor {
     final DartEditor dartEditor = (DartEditor) fEditor;
     String filePath = dartEditor.getInputFilePath();
     int offset = dartEditor.getCachedSelectedRange().x;
-    DartCore.getAnalysisServer().getCompletionSuggestions(
+    DartCore.getAnalysisServer().completion_getSuggestions(
         filePath,
         offset,
-        new CompletionIdConsumer() {
+        new GetSuggestionsConsumer() {
           @Override
           public void computedCompletionId(String completionId) {
             System.out.println(completionId);

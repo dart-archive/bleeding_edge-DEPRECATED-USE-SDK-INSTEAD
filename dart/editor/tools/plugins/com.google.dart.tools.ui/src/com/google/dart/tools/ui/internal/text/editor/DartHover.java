@@ -30,7 +30,7 @@ import com.google.dart.engine.services.util.DartDocUtilities;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.server.HoverConsumer;
+import com.google.dart.server.GetHoverConsumer;
 import com.google.dart.server.HoverInformation;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -609,7 +609,7 @@ public class DartHover implements ITextHover, ITextHoverExtension, ITextHoverExt
         if (file != null) {
           final CountDownLatch latch = new CountDownLatch(1);
           final HoverInformation[] result = new HoverInformation[1];
-          DartCore.getAnalysisServer().getHover(file, offset, new HoverConsumer() {
+          DartCore.getAnalysisServer().analysis_getHover(file, offset, new GetHoverConsumer() {
             @Override
             public void computedHovers(HoverInformation[] hovers) {
               if (hovers != null && hovers.length > 0) {

@@ -14,7 +14,7 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.ErrorFixes;
-import com.google.dart.server.FixesConsumer;
+import com.google.dart.server.GetFixesConsumer;
 import com.google.dart.server.internal.ErrorFixesImpl;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -24,15 +24,15 @@ import java.util.Iterator;
 
 /**
  * Instances of {@code FixesProcessor} translate JSON result objects for a given
- * {@link FixesConsumer}.
+ * {@link GetFixesConsumer}.
  * 
  * @coverage dart.server.remote
  */
 public class FixesProcessor extends ResultProcessor {
 
-  private final FixesConsumer consumer;
+  private final GetFixesConsumer consumer;
 
-  public FixesProcessor(FixesConsumer consumer) {
+  public FixesProcessor(GetFixesConsumer consumer) {
     this.consumer = consumer;
   }
 

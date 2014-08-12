@@ -15,10 +15,6 @@ package com.google.dart.tools.ui.omni.elements;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.dart.server.SearchIdConsumer;
-import com.google.dart.server.SearchResult;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.SearchResultsListener;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
@@ -101,26 +97,27 @@ public class TopLevelElementProvider_NEW extends OmniProposalProvider {
     searchComplete = false;
     results.clear();
     final CountDownLatch latch = new CountDownLatch(1);
-    DartCore.getAnalysisServer().searchTopLevelDeclarations(pattern, new SearchIdConsumer() {
-      @Override
-      public void computedSearchId(String searchId) {
-        DartCore.getAnalysisServerData().addSearchResultsListener(
-            searchId,
-            new SearchResultsListener() {
-              @Override
-              public void computedSearchResults(SearchResult[] searchResults, boolean last) {
-                for (SearchResult searchResult : searchResults) {
-                  results.add(new TopLevelElement_NEW(
-                      TopLevelElementProvider_NEW.this,
-                      searchResult));
-                }
-                if (last) {
-                  latch.countDown();
-                }
-              }
-            });
-      }
-    });
+    // TODO (jwren) re-implement after functionality has been updated in server
+//    DartCore.getAnalysisServer().searchTopLevelDeclarations(pattern, new SearchIdConsumer() {
+//      @Override
+//      public void computedSearchId(String searchId) {
+//        DartCore.getAnalysisServerData().addSearchResultsListener(
+//            searchId,
+//            new SearchResultsListener() {
+//              @Override
+//              public void computedSearchResults(SearchResult[] searchResults, boolean last) {
+//                for (SearchResult searchResult : searchResults) {
+//                  results.add(new TopLevelElement_NEW(
+//                      TopLevelElementProvider_NEW.this,
+//                      searchResult));
+//                }
+//                if (last) {
+//                  latch.countDown();
+//                }
+//              }
+//            });
+//      }
+//    });
     Uninterruptibles.awaitUninterruptibly(latch, 30, TimeUnit.SECONDS);
     searchComplete = true;
     return results.toArray(new OmniElement[results.size()]);

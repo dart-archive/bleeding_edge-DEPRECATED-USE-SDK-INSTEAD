@@ -14,17 +14,17 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code AnalysisErrorsConsumer} defines the behavior of objects that consume
- * analysis errors responses.
+ * The interface {@code HoverConsumer} defines the behavior of objects that consume hover text
+ * responses.
  * 
  * @coverage dart.server
  */
-public interface AnalysisErrorsConsumer extends Consumer {
+public interface GetHoverConsumer extends Consumer {
 
   /**
-   * A set of {@link AnalysisError}s that have been computed.
+   * A set of {@link HoverInformation}s that have been computed.
    * 
-   * @param errors an array of computed {@link AnalysisError}s
+   * @param hovers an array of computed {@link HoverInformation}s
    */
-  public void computedErrors(AnalysisError[] errors);
+  public void computedHovers(HoverInformation[] hovers);
 }

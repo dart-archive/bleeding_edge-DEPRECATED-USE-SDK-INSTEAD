@@ -27,78 +27,89 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
+  public void analysis_getErrors(String file, GetErrorsConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void createDebugContext(String contextRoot, DebugCreateContextConsumer consumer) {
+  public void analysis_getHover(String file, int offset, GetHoverConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void createRefactoring(String refactoringKind, String file, int offset, int length,
-      RefactoringCreateConsumer consumer) {
+  public void analysis_reanalyze() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void deleteDebugContext(String id) {
+  public void analysis_setAnalysisRoots(List<String> included, List<String> excluded) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void deleteRefactoring(String refactoringId) {
+  public void analysis_setPriorityFiles(List<String> files) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void getAssists(String file, int offset, int length, AssistsConsumer consumer) {
+  public void analysis_setSubscriptions(Map<String, List<String>> subscriptions) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void getCompletionSuggestions(String file, int offset, CompletionIdConsumer consumer) {
+  public void analysis_updateContent(Map<String, Object> files) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void getErrors(String file, AnalysisErrorsConsumer consumer) {
+  public void analysis_updateOptions(AnalysisOptions options) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void getFixes(String file, int offset, FixesConsumer consumer) {
+  public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void getHover(String string, int i, HoverConsumer hoverConsumer) {
+  public void debug_createContext(String contextRoot, CreateContextConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void getRefactorings(String file, int offset, int length, RefactoringGetConsumer consumer) {
+  public void debug_deleteContext(String id) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void getTypeHierarchy(String file, int offset, TypeHierarchyConsumer consumer) {
+  public void debug_mapUri(String id, String file, String uri, MapUriConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void getVersion(VersionConsumer consumer) {
+  public void debug_setSubscriptions(List<String> subscriptions) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void mapUri(String id, String file, String uri, MapUriConsumer consumer) {
+  public void edit_getAssists(String file, int offset, int length, GetAssistsConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void reanalyze() {
+  public void edit_getAvailableRefactorings(String file, int offset, int length,
+      GetAvailableRefactoringsConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void edit_getFixes(String file, int offset, GetFixesConsumer consumer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void edit_getRefactoring(String kindId, String file, int offset, int length,
+      boolean validateOnly, Object options, GetRefactoringConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
@@ -108,74 +119,49 @@ public class MockAnalysisServer implements AnalysisServer {
   }
 
   @Override
-  public void searchClassMemberDeclarations(String name, SearchIdConsumer consumer) {
+  public void search_findElementReferences(String file, int offset, boolean includePotential,
+      FindElementReferencesConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void searchClassMemberReferences(String name, SearchIdConsumer consumer) {
+  public void search_findMemberDeclarations(String name, FindMemberDeclarationsConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void searchElementReferences(String file, int offset, boolean includePotential,
-      SearchIdConsumer consumer) {
+  public void search_findMemberReferences(String name, FindMemberReferencesConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void searchTopLevelDeclarations(String pattern, SearchIdConsumer consumer) {
+  public void search_findTopLevelDeclarations(String pattern,
+      FindTopLevelDeclarationsConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths) {
+  public void search_getTypeHierarchy(String file, int offset, GetTypeHierarchyConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void setAnalysisSubscriptions(Map<AnalysisService, List<String>> subscriptions) {
+  public void server_getVersion(GetVersionConsumer consumer) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void setDebugSubscriptions(List<DebugService> services) {
+  public void server_setSubscriptions(List<String> subscriptions) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void setPriorityFiles(List<String> files) {
+  public void server_shutdown() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void setRefactoringOptions(String refactoringId, Map<String, Object> refactoringOptions,
-      RefactoringSetOptionsConsumer consumer) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void setServerSubscriptions(List<ServerService> subscriptions) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void shutdown() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void start(long millisToRestart) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void updateAnalysisOptions(AnalysisOptions options) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void updateContent(Map<String, ContentChange> files) {
+  public void start(long millisToRestart) throws Exception {
     throw new UnsupportedOperationException();
   }
 }

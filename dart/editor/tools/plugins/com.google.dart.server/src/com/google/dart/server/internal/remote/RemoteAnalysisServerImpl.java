@@ -16,30 +16,32 @@ package com.google.dart.server.internal.remote;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.dart.server.AnalysisErrorsConsumer;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisServerSocket;
-import com.google.dart.server.AnalysisService;
-import com.google.dart.server.AssistsConsumer;
 import com.google.dart.server.BasicConsumer;
-import com.google.dart.server.CompletionIdConsumer;
 import com.google.dart.server.Consumer;
-import com.google.dart.server.ContentChange;
-import com.google.dart.server.DebugCreateContextConsumer;
-import com.google.dart.server.DebugService;
-import com.google.dart.server.FixesConsumer;
-import com.google.dart.server.HoverConsumer;
+import com.google.dart.server.CreateContextConsumer;
+import com.google.dart.server.FindElementReferencesConsumer;
+import com.google.dart.server.FindMemberDeclarationsConsumer;
+import com.google.dart.server.FindMemberReferencesConsumer;
+import com.google.dart.server.FindTopLevelDeclarationsConsumer;
+import com.google.dart.server.GetAssistsConsumer;
+import com.google.dart.server.GetAvailableRefactoringsConsumer;
+import com.google.dart.server.GetErrorsConsumer;
+import com.google.dart.server.GetFixesConsumer;
+import com.google.dart.server.GetHoverConsumer;
+import com.google.dart.server.GetRefactoringConsumer;
+import com.google.dart.server.GetSuggestionsConsumer;
+import com.google.dart.server.GetTypeHierarchyConsumer;
+import com.google.dart.server.GetVersionConsumer;
 import com.google.dart.server.MapUriConsumer;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.RefactoringCreateConsumer;
 import com.google.dart.server.RefactoringGetConsumer;
 import com.google.dart.server.RefactoringSetOptionsConsumer;
 import com.google.dart.server.SearchIdConsumer;
-import com.google.dart.server.ServerService;
-import com.google.dart.server.TypeHierarchyConsumer;
-import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.BroadcastAnalysisServerListener;
 import com.google.dart.server.internal.remote.processor.AnalysisErrorsProcessor;
 import com.google.dart.server.internal.remote.processor.AssistsProcessor;
@@ -236,39 +238,190 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
+  public void analysis_getErrors(String file, GetErrorsConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateAnalysisGetErrors(id, file), consumer);
+  }
+
+  // TODO (jwren) delete after refactoring is implemented again
+//  @Override
+//  public void applyRefactoring(String refactoringId, RefactoringApplyConsumer consumer) {
+//    String id = generateUniqueId();
+//    sendRequestToServer(
+//        id,
+//        RequestUtilities.generateEditApplyRefactoring(id, refactoringId),
+//        consumer);
+//  }
+//
+//  @Override
+//  public void createRefactoring(String refactoringKind, String file, int offset, int length,
+//      RefactoringCreateConsumer consumer) {
+//    String id = generateUniqueId();
+//    sendRequestToServer(
+//        id,
+//        RequestUtilities.generateEditCreateRefactoring(id, refactoringKind, file, offset, length),
+//        consumer);
+//  }
+
+  @Override
+  public void analysis_getHover(String file, int offset, GetHoverConsumer consumer) {
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateAnalysisGetHover(id, file, offset), consumer);
+  }
+
+  @Override
+  public void analysis_reanalyze() {
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateAnalysisReanalyze(id));
+  }
+
+  // TODO (jwren) delete after refactoring is implemented again
+//  @Override
+//  public void deleteRefactoring(String refactoringId) {
+//    String id = generateUniqueId();
+//    sendRequestToServer(id, RequestUtilities.generateEditDeleteRefactoring(id, refactoringId));
+//  }
+
+  @Override
+  public void analysis_setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths) {
+    String id = generateUniqueId();
+    if (includedPaths == null) {
+      includedPaths = EMPTY_STR_LIST;
+    }
+    if (excludedPaths == null) {
+      excludedPaths = EMPTY_STR_LIST;
+    }
+    sendRequestToServer(
+        id,
+        RequestUtilities.generateAnalysisSetAnalysisRoots(id, includedPaths, excludedPaths));
+  }
+
+  @Override
+  public void analysis_setPriorityFiles(List<String> files) {
+    String id = generateUniqueId();
+    if (files == null) {
+      files = EMPTY_STR_LIST;
+    }
+    sendRequestToServer(id, RequestUtilities.generateAnalysisSetPriorityFiles(id, files));
+  }
+
+  // TODO (jwren) comment in after generated with enum
+//  @Override
+//  public void analysis_setSubscriptions(Map<AnalysisService, List<String>> subscriptions) {
+//    String id = generateUniqueId();
+//    if (subscriptions == null) {
+//      subscriptions = Maps.newHashMap();
+//    }
+//    sendRequestToServer(id, RequestUtilities.generateAnalysisSetSubscriptions(id, subscriptions));
+//  }
+
+  @Override
+  public void analysis_setSubscriptions(Map<String, List<String>> subscriptions) {
+    // TODO (jwren) Delete after enum version is generated
+  }
+
+  // TODO (jwren) comment in after generated with enum
+//  @Override
+//  public void analysis_updateContent(Map<String, ContentChange> files) {
+//    String id = generateUniqueId();
+//    if (files == null) {
+//      files = Maps.newHashMap();
+//    }
+//    sendRequestToServer(id, RequestUtilities.generateAnalysisUpdateContent(id, files));
+//  }
+
+  @Override
+  public void analysis_updateContent(Map<String, Object> files) {
+    // TODO (jwren) Delete after enum version is generated
+  }
+
+  @Override
+  public void analysis_updateOptions(AnalysisOptions options) {
+    String id = generateUniqueId();
+    sendRequestToServer(id, RequestUtilities.generateAnalysisUpdateOptions(id, options));
+  }
+
+  @Override
+  public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(
         id,
-        RequestUtilities.generateEditApplyRefactoring(id, refactoringId),
+        RequestUtilities.generateCompletionGetSuggestions(id, file, offset),
         consumer);
   }
 
   @Override
-  public void createDebugContext(String contextRoot, DebugCreateContextConsumer consumer) {
+  public void debug_createContext(String contextRoot, CreateContextConsumer consumer) {
     // TODO (jwren) implement
   }
 
   @Override
-  public void createRefactoring(String refactoringKind, String file, int offset, int length,
-      RefactoringCreateConsumer consumer) {
+  public void debug_deleteContext(String id) {
+    // TODO (jwren) implement 
+  }
+
+  @Override
+  public void debug_mapUri(String id, String file, String uri, MapUriConsumer consumer) {
+    // TODO (jwren) implement
+  }
+
+  // TODO (jwren) comment back in after enum version is generated
+//  @Override
+//  public void debug_setSubscriptions(List<DebugService> services) {
+//    // TODO (jwren) implement
+//  }
+
+  @Override
+  public void debug_setSubscriptions(List<String> subscriptions) {
+    // TODO (jwren) delete after enum version is generated
+  }
+
+  @Override
+  public void edit_getAssists(String file, int offset, int length, GetAssistsConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(
         id,
-        RequestUtilities.generateEditCreateRefactoring(id, refactoringKind, file, offset, length),
+        RequestUtilities.generateEditGetAssists(id, file, offset, length),
         consumer);
   }
 
   @Override
-  public void deleteDebugContext(String id) {
-    // TODO (jwren) implement
+  public void edit_getAvailableRefactorings(String file, int offset, int length,
+      GetAvailableRefactoringsConsumer consumer) {
+    // TODO (jwren) update after refactoring support has been updated
+//    String id = generateUniqueId();
+//    sendRequestToServer(
+//        id,
+//        RequestUtilities.generateEditGetRefactorings(id, file, offset, length),
+//        consumer);
   }
 
   @Override
-  public void deleteRefactoring(String refactoringId) {
+  public void edit_getFixes(String file, int offset, GetFixesConsumer consumer) {
     String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateEditDeleteRefactoring(id, refactoringId));
+    sendRequestToServer(id, RequestUtilities.generateEditGetFixes(id, file, offset), consumer);
   }
+
+  @Override
+  public void edit_getRefactoring(String kindId, String file, int offset, int length,
+      boolean validateOnly, Object options, GetRefactoringConsumer consumer) {
+    // TODO Auto-generated method stub
+
+  }
+
+  // TODO (jwren) delete after refactoring support updated
+//  @Override
+//  public void setRefactoringOptions(String refactoringId, Map<String, Object> refactoringOptions,
+//      RefactoringSetOptionsConsumer consumer) {
+//    if (refactoringOptions == null) {
+//      refactoringOptions = Maps.newHashMap();
+//    }
+//    String id = generateUniqueId();
+//    sendRequestToServer(
+//        id,
+//        RequestUtilities.generateEditSetRefactoringOptions(id, refactoringId, refactoringOptions),
+//        consumer);
+//  }
 
   public void findElementReferences(String file, int offset, boolean includePotential,
       SearchIdConsumer consumer) {
@@ -292,6 +445,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     sendRequestToServer(id, RequestUtilities.generateSearchFindMemberReferences(id, name), consumer);
   }
 
+  // TODO (jwren) fold support into search_findTopLevelDeclarations
   public void findTopLevelDeclarations(String pattern, SearchIdConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(
@@ -301,52 +455,69 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void getAssists(String file, int offset, int length, AssistsConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateEditGetAssists(id, file, offset, length),
-        consumer);
+  public void removeAnalysisServerListener(AnalysisServerListener listener) {
+    this.listener.removeListener(listener);
+  }
+
+//TODO (jwren) remove after search domain has been re-implemented in the java server interface
+//@Override
+//public void searchClassMemberDeclarations(String name, SearchIdConsumer consumer) {
+//  String id = generateUniqueId();
+//  sendRequestToServer(
+//      id,
+//      RequestUtilities.generateSearchFindMemberDeclarations(id, name),
+//      consumer);
+//}
+//
+//@Override
+//public void searchClassMemberReferences(String name, SearchIdConsumer consumer) {
+//  String id = generateUniqueId();
+//  sendRequestToServer(id, RequestUtilities.generateSearchFindMemberReferences(id, name), consumer);
+//}
+//
+//@Override
+//public void searchElementReferences(String file, int offset, boolean includePotential,
+//    SearchIdConsumer consumer) {
+//  String id = generateUniqueId();
+//  sendRequestToServer(
+//      id,
+//      RequestUtilities.generateSearchFindElementReferences(id, file, offset, includePotential),
+//      consumer);
+//}
+//
+//@Override
+//public void searchTopLevelDeclarations(String pattern, SearchIdConsumer consumer) {
+//  String id = generateUniqueId();
+//  sendRequestToServer(
+//      id,
+//      RequestUtilities.generateSearchFindTopLevelDeclarations(id, pattern),
+//      consumer);
+//}
+
+  @Override
+  public void search_findElementReferences(String file, int offset, boolean includePotential,
+      FindElementReferencesConsumer consumer) {
+    // TODO (jwren) re-implement
   }
 
   @Override
-  public void getCompletionSuggestions(String file, int offset, CompletionIdConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateCompletionGetSuggestions(id, file, offset),
-        consumer);
+  public void search_findMemberDeclarations(String name, FindMemberDeclarationsConsumer consumer) {
+    // TODO (jwren) re-implement
   }
 
   @Override
-  public void getErrors(String file, AnalysisErrorsConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateAnalysisGetErrors(id, file), consumer);
+  public void search_findMemberReferences(String name, FindMemberReferencesConsumer consumer) {
+    // TODO (jwren) re-implement
   }
 
   @Override
-  public void getFixes(String file, int offset, FixesConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateEditGetFixes(id, file, offset), consumer);
+  public void search_findTopLevelDeclarations(String pattern,
+      FindTopLevelDeclarationsConsumer consumer) {
+    // TODO (jwren) re-implement
   }
 
   @Override
-  public void getHover(String file, int offset, HoverConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateAnalysisGetHover(id, file, offset), consumer);
-  }
-
-  @Override
-  public void getRefactorings(String file, int offset, int length, RefactoringGetConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateEditGetRefactorings(id, file, offset, length),
-        consumer);
-  }
-
-  @Override
-  public void getTypeHierarchy(String file, int offset, TypeHierarchyConsumer consumer) {
+  public void search_getTypeHierarchy(String file, int offset, GetTypeHierarchyConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(
         id,
@@ -355,122 +526,29 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
   }
 
   @Override
-  public void getVersion(VersionConsumer consumer) {
+  public void server_getVersion(GetVersionConsumer consumer) {
     String id = generateUniqueId();
     sendRequestToServer(id, RequestUtilities.generateServerGetVersion(id), consumer);
   }
 
+//TODO(jwren) update generator to generate ServerService as ServerService, instead of String
+//@Override
+//public void setServerSubscriptions(List<ServerService> subscriptions) {
+//  String id = generateUniqueId();
+//  if (subscriptions == null) {
+//    subscriptions = Lists.newArrayList();
+//  }
+//  sendRequestToServer(id, RequestUtilities.generateServerSetSubscriptions(id, subscriptions));
+//}
+
   @Override
-  public void mapUri(String id, String file, String uri, MapUriConsumer consumer) {
-    // TODO (jwren) implement
+  public void server_setSubscriptions(List<String> subscriptions) {
+    // TODO Auto-generated method stub
+
   }
 
   @Override
-  public void reanalyze() {
-    String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateAnalysisReanalyze(id));
-  }
-
-  @Override
-  public void removeAnalysisServerListener(AnalysisServerListener listener) {
-    this.listener.removeListener(listener);
-  }
-
-  @Override
-  public void searchClassMemberDeclarations(String name, SearchIdConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateSearchFindMemberDeclarations(id, name),
-        consumer);
-  }
-
-  @Override
-  public void searchClassMemberReferences(String name, SearchIdConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateSearchFindMemberReferences(id, name), consumer);
-  }
-
-  @Override
-  public void searchElementReferences(String file, int offset, boolean includePotential,
-      SearchIdConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateSearchFindElementReferences(id, file, offset, includePotential),
-        consumer);
-  }
-
-  @Override
-  public void searchTopLevelDeclarations(String pattern, SearchIdConsumer consumer) {
-    String id = generateUniqueId();
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateSearchFindTopLevelDeclarations(id, pattern),
-        consumer);
-  }
-
-  @Override
-  public void setAnalysisRoots(List<String> includedPaths, List<String> excludedPaths) {
-    String id = generateUniqueId();
-    if (includedPaths == null) {
-      includedPaths = EMPTY_STR_LIST;
-    }
-    if (excludedPaths == null) {
-      excludedPaths = EMPTY_STR_LIST;
-    }
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateAnalysisSetAnalysisRoots(id, includedPaths, excludedPaths));
-  }
-
-  @Override
-  public void setAnalysisSubscriptions(Map<AnalysisService, List<String>> subscriptions) {
-    String id = generateUniqueId();
-    if (subscriptions == null) {
-      subscriptions = Maps.newHashMap();
-    }
-    sendRequestToServer(id, RequestUtilities.generateAnalysisSetSubscriptions(id, subscriptions));
-  }
-
-  @Override
-  public void setDebugSubscriptions(List<DebugService> services) {
-    // TODO (jwren) implement
-  }
-
-  @Override
-  public void setPriorityFiles(List<String> files) {
-    String id = generateUniqueId();
-    if (files == null) {
-      files = EMPTY_STR_LIST;
-    }
-    sendRequestToServer(id, RequestUtilities.generateAnalysisSetPriorityFiles(id, files));
-  }
-
-  @Override
-  public void setRefactoringOptions(String refactoringId, Map<String, Object> refactoringOptions,
-      RefactoringSetOptionsConsumer consumer) {
-    if (refactoringOptions == null) {
-      refactoringOptions = Maps.newHashMap();
-    }
-    String id = generateUniqueId();
-    sendRequestToServer(
-        id,
-        RequestUtilities.generateEditSetRefactoringOptions(id, refactoringId, refactoringOptions),
-        consumer);
-  }
-
-  @Override
-  public void setServerSubscriptions(List<ServerService> subscriptions) {
-    String id = generateUniqueId();
-    if (subscriptions == null) {
-      subscriptions = Lists.newArrayList();
-    }
-    sendRequestToServer(id, RequestUtilities.generateServerSetSubscriptions(id, subscriptions));
-  }
-
-  @Override
-  public void shutdown() {
+  public void server_shutdown() {
     stopWatcher();
     String id = generateUniqueId();
     sendRequestToServer(id, RequestUtilities.generateServerShutdown(id), new BasicConsumer() {
@@ -494,21 +572,6 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     while (!consumerMap.isEmpty()) {
       Thread.yield();
     }
-  }
-
-  @Override
-  public void updateAnalysisOptions(AnalysisOptions options) {
-    String id = generateUniqueId();
-    sendRequestToServer(id, RequestUtilities.generateAnalysisUpdateOptions(id, options));
-  }
-
-  @Override
-  public void updateContent(Map<String, ContentChange> files) {
-    String id = generateUniqueId();
-    if (files == null) {
-      files = Maps.newHashMap();
-    }
-    sendRequestToServer(id, RequestUtilities.generateAnalysisUpdateContent(id, files));
   }
 
   /**
@@ -604,30 +667,30 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     }
     // handle result
     JsonObject resultObject = (JsonObject) response.get("result");
-    if (consumer instanceof CompletionIdConsumer) {
-      new CompletionIdProcessor((CompletionIdConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof HoverConsumer) {
-      new HoverProcessor((HoverConsumer) consumer).process(resultObject);
+    if (consumer instanceof GetSuggestionsConsumer) {
+      new CompletionIdProcessor((GetSuggestionsConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof GetHoverConsumer) {
+      new HoverProcessor((GetHoverConsumer) consumer).process(resultObject);
     } else if (consumer instanceof SearchIdConsumer) {
       new SearchIdProcessor((SearchIdConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof TypeHierarchyConsumer) {
-      new TypeHierarchyProcessor((TypeHierarchyConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof GetTypeHierarchyConsumer) {
+      new TypeHierarchyProcessor((GetTypeHierarchyConsumer) consumer).process(resultObject);
     } else if (consumer instanceof RefactoringApplyConsumer) {
       new RefactoringApplyProcessor((RefactoringApplyConsumer) consumer).process(resultObject);
     } else if (consumer instanceof RefactoringCreateConsumer) {
       new RefactoringCreateProcessor((RefactoringCreateConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof AssistsConsumer) {
-      new AssistsProcessor((AssistsConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof FixesConsumer) {
-      new FixesProcessor((FixesConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof GetAssistsConsumer) {
+      new AssistsProcessor((GetAssistsConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof GetFixesConsumer) {
+      new FixesProcessor((GetFixesConsumer) consumer).process(resultObject);
     } else if (consumer instanceof RefactoringGetConsumer) {
       new RefactoringGetProcessor((RefactoringGetConsumer) consumer).process(resultObject);
     } else if (consumer instanceof RefactoringSetOptionsConsumer) {
       new RefactoringSetOptionsProcessor((RefactoringSetOptionsConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof VersionConsumer) {
-      new VersionProcessor((VersionConsumer) consumer).process(resultObject);
-    } else if (consumer instanceof AnalysisErrorsConsumer) {
-      new AnalysisErrorsProcessor((AnalysisErrorsConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof GetVersionConsumer) {
+      new VersionProcessor((GetVersionConsumer) consumer).process(resultObject);
+    } else if (consumer instanceof GetErrorsConsumer) {
+      new AnalysisErrorsProcessor((GetErrorsConsumer) consumer).process(resultObject);
     } else if (consumer instanceof BasicConsumer) {
       ((BasicConsumer) consumer).received();
     }
@@ -724,7 +787,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
         sleep(millisToSleep);
       } else if (!sentRequest) {
         // If no response from the server then send a request and wait for the response
-        getVersion(null);
+        server_getVersion(null);
         sentRequest = true;
         sleep(millisToRestart / 2);
       } else {

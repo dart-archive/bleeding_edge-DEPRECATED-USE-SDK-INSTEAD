@@ -15,7 +15,7 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.common.collect.Lists;
 import com.google.dart.server.Element;
-import com.google.dart.server.TypeHierarchyConsumer;
+import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.TypeHierarchyItem;
 import com.google.dart.server.internal.TypeHierarchyItemImpl;
 import com.google.gson.JsonArray;
@@ -27,15 +27,15 @@ import java.util.List;
 
 /**
  * Instances of {@code TypeHierarchyResultProcessor} translate JSON result objects for a given
- * {@link TypeHierarchyConsumer}.
+ * {@link GetTypeHierarchyConsumer}.
  * 
  * @coverage dart.server.remote
  */
 public class TypeHierarchyProcessor extends ResultProcessor {
 
-  private final TypeHierarchyConsumer consumer;
+  private final GetTypeHierarchyConsumer consumer;
 
-  public TypeHierarchyProcessor(TypeHierarchyConsumer consumer) {
+  public TypeHierarchyProcessor(GetTypeHierarchyConsumer consumer) {
     this.consumer = consumer;
   }
 

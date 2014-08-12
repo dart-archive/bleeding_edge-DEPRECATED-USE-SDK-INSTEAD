@@ -65,8 +65,8 @@ public class DartPriorityFilesHelper_NEW {
   }
 
   /**
-   * @return the {@link DartPriorityFileEditor} that corresponds to the given
-   *         {@link IWorkbenchPart}, maybe {@code null}.
+   * @return the {@link DartPriorityFileEditor} that corresponds to the given {@link IWorkbenchPart}
+   *         , maybe {@code null}.
    */
   private DartPriorityFileEditor getPriorityFileEditor(IWorkbenchPart part) {
     if (part != null) {
@@ -127,7 +127,7 @@ public class DartPriorityFilesHelper_NEW {
         }
       }
       // set priority files
-      analysisServer.setPriorityFiles(files);
+      analysisServer.analysis_setPriorityFiles(files);
     }
     // track visible editors
     activePage.addPartListener(new IPartListener2() {
@@ -196,6 +196,6 @@ public class DartPriorityFilesHelper_NEW {
         files.remove(file);
       }
     }
-    analysisServer.setPriorityFiles(files);
+    analysisServer.analysis_setPriorityFiles(files);
   }
 }

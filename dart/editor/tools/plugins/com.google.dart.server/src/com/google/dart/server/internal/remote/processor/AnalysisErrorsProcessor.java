@@ -14,7 +14,7 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.AnalysisError;
-import com.google.dart.server.AnalysisErrorsConsumer;
+import com.google.dart.server.GetErrorsConsumer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -23,15 +23,15 @@ import java.util.Iterator;
 
 /**
  * Instances of {@code AnalysisErrorsConsumer} translate JSON result objects for a given
- * {@link AnalysisErrorsConsumer}.
+ * {@link GetErrorsConsumer}.
  * 
  * @coverage dart.server.remote
  */
 public class AnalysisErrorsProcessor extends ResultProcessor {
 
-  private final AnalysisErrorsConsumer consumer;
+  private final GetErrorsConsumer consumer;
 
-  public AnalysisErrorsProcessor(AnalysisErrorsConsumer consumer) {
+  public AnalysisErrorsProcessor(GetErrorsConsumer consumer) {
     this.consumer = consumer;
   }
 

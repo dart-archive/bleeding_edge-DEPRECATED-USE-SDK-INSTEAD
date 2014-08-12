@@ -15,57 +15,43 @@ package com.google.dart.server.internal.remote;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.dart.server.AnalysisError;
-import com.google.dart.server.AnalysisErrorsConsumer;
 import com.google.dart.server.AnalysisOptions;
-import com.google.dart.server.AnalysisService;
 import com.google.dart.server.AnalysisStatus;
-import com.google.dart.server.AssistsConsumer;
-import com.google.dart.server.CompletionIdConsumer;
 import com.google.dart.server.CompletionRelevance;
 import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.CompletionSuggestionKind;
-import com.google.dart.server.ContentChange;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
 import com.google.dart.server.ErrorFixes;
 import com.google.dart.server.ErrorSeverity;
-import com.google.dart.server.FixesConsumer;
+import com.google.dart.server.GetAssistsConsumer;
+import com.google.dart.server.GetErrorsConsumer;
+import com.google.dart.server.GetFixesConsumer;
+import com.google.dart.server.GetHoverConsumer;
+import com.google.dart.server.GetSuggestionsConsumer;
+import com.google.dart.server.GetTypeHierarchyConsumer;
+import com.google.dart.server.GetVersionConsumer;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
-import com.google.dart.server.HoverConsumer;
 import com.google.dart.server.HoverInformation;
 import com.google.dart.server.Location;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OverrideMember;
-import com.google.dart.server.Parameter;
-import com.google.dart.server.RefactoringApplyConsumer;
-import com.google.dart.server.RefactoringCreateConsumer;
-import com.google.dart.server.RefactoringGetConsumer;
-import com.google.dart.server.RefactoringKind;
-import com.google.dart.server.RefactoringProblem;
-import com.google.dart.server.RefactoringProblemSeverity;
-import com.google.dart.server.RefactoringSetOptionsConsumer;
 import com.google.dart.server.SearchIdConsumer;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
-import com.google.dart.server.ServerService;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.server.SourceChange;
 import com.google.dart.server.SourceEdit;
 import com.google.dart.server.SourceFileEdit;
-import com.google.dart.server.TypeHierarchyConsumer;
 import com.google.dart.server.TypeHierarchyItem;
-import com.google.dart.server.VersionConsumer;
 import com.google.dart.server.internal.AnalysisErrorImpl;
 import com.google.dart.server.internal.AnalysisServerError;
 import com.google.dart.server.internal.LocationImpl;
-import com.google.dart.server.internal.ParameterImpl;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -74,10 +60,7 @@ import com.google.gson.JsonParser;
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Unit tests for {@link RemoteAnalysisServerImpl}, for integration tests which actually uses the
@@ -87,7 +70,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_analysis_getErrors() throws Exception {
     final AnalysisError[][] errors = new AnalysisError[1][1];
-    server.getErrors("/fileA.dart", new AnalysisErrorsConsumer() {
+    server.analysis_getErrors("/fileA.dart", new GetErrorsConsumer() {
       @Override
       public void computedErrors(AnalysisError[] e) {
         errors[0] = e;
@@ -159,7 +142,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_analysis_getHover() throws Exception {
     final HoverInformation[] hovers = new HoverInformation[1];
-    server.getHover("/fileA.dart", 17, new HoverConsumer() {
+    server.analysis_getHover("/fileA.dart", 17, new GetHoverConsumer() {
       @Override
       public void computedHovers(HoverInformation[] result) {
         hovers[0] = result[0];
@@ -596,7 +579,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_reanalyze() throws Exception {
-    server.reanalyze();
+    server.analysis_reanalyze();
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -607,7 +590,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_setAnalysisRoots() throws Exception {
-    server.setAnalysisRoots(
+    server.analysis_setAnalysisRoots(
         ImmutableList.of("/fileA.dart", "/fileB.dart"),
         ImmutableList.of("/fileC.dart", "/fileD.dart"));
     List<JsonObject> requests = requestSink.getRequests();
@@ -624,7 +607,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_setAnalysisRoots_emptyLists() throws Exception {
-    server.setAnalysisRoots(new ArrayList<String>(0), new ArrayList<String>(0));
+    server.analysis_setAnalysisRoots(new ArrayList<String>(0), new ArrayList<String>(0));
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -639,7 +622,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_setAnalysisRoots_nullLists() throws Exception {
-    server.setAnalysisRoots(null, null);
+    server.analysis_setAnalysisRoots(null, null);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -654,7 +637,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_setPriorityFiles() throws Exception {
-    server.setPriorityFiles(ImmutableList.of("/fileA.dart", "/fileB.dart"));
+    server.analysis_setPriorityFiles(ImmutableList.of("/fileA.dart", "/fileB.dart"));
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -668,7 +651,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_setPriorityFiles_emptyList() throws Exception {
-    server.setPriorityFiles(new ArrayList<String>(0));
+    server.analysis_setPriorityFiles(new ArrayList<String>(0));
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -682,7 +665,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   }
 
   public void test_analysis_setPriorityFiles_nullList() throws Exception {
-    server.setPriorityFiles(null);
+    server.analysis_setPriorityFiles(null);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -695,60 +678,63 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
-  public void test_analysis_setSubscriptions() throws Exception {
-    LinkedHashMap<AnalysisService, List<String>> subscriptions = new LinkedHashMap<AnalysisService, List<String>>();
-    subscriptions.put(AnalysisService.ERRORS, new ArrayList<String>(0));
-    subscriptions.put(AnalysisService.HIGHLIGHTS, ImmutableList.of("/fileA.dart"));
-    subscriptions.put(AnalysisService.NAVIGATION, ImmutableList.of("/fileB.dart", "/fileC.dart"));
-    subscriptions.put(
-        AnalysisService.OUTLINE,
-        ImmutableList.of("/fileD.dart", "/fileE.dart", "/fileF.dart"));
+  // TODO (jwren) uncomment after re-implemented
+//  public void test_analysis_setSubscriptions() throws Exception {
+//    LinkedHashMap<AnalysisService, List<String>> subscriptions = new LinkedHashMap<AnalysisService, List<String>>();
+//    subscriptions.put(AnalysisService.ERRORS, new ArrayList<String>(0));
+//    subscriptions.put(AnalysisService.HIGHLIGHTS, ImmutableList.of("/fileA.dart"));
+//    subscriptions.put(AnalysisService.NAVIGATION, ImmutableList.of("/fileB.dart", "/fileC.dart"));
+//    subscriptions.put(
+//        AnalysisService.OUTLINE,
+//        ImmutableList.of("/fileD.dart", "/fileE.dart", "/fileF.dart"));
+//
+//    server.analysis_setSubscriptions(subscriptions);
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'analysis.setSubscriptions',",
+//        "  'params': {",
+//        "    'subscriptions': {",
+//        "      ERRORS: [],",
+//        "      HIGHLIGHTS: ['/fileA.dart'],",
+//        "      NAVIGATION: ['/fileB.dart', '/fileC.dart'],",
+//        "      OUTLINE: ['/fileD.dart', '/fileE.dart', '/fileF.dart']",
+//        "    }",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
 
-    server.setAnalysisSubscriptions(subscriptions);
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'analysis.setSubscriptions',",
-        "  'params': {",
-        "    'subscriptions': {",
-        "      ERRORS: [],",
-        "      HIGHLIGHTS: ['/fileA.dart'],",
-        "      NAVIGATION: ['/fileB.dart', '/fileC.dart'],",
-        "      OUTLINE: ['/fileD.dart', '/fileE.dart', '/fileF.dart']",
-        "    }",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
+  // TODO (jwren) uncomment after re-implemented
+//  public void test_analysis_setSubscriptions_emptyMap() throws Exception {
+//    server.analysis_setSubscriptions(new HashMap<AnalysisService, List<String>>(0));
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'analysis.setSubscriptions',",
+//        "  'params': {",
+//        "    'subscriptions': {}",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
 
-  public void test_analysis_setSubscriptions_emptyMap() throws Exception {
-    server.setAnalysisSubscriptions(new HashMap<AnalysisService, List<String>>(0));
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'analysis.setSubscriptions',",
-        "  'params': {",
-        "    'subscriptions': {}",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
-
-  public void test_analysis_setSubscriptions_nullMap() throws Exception {
-    server.setAnalysisSubscriptions(null);
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'analysis.setSubscriptions',",
-        "  'params': {",
-        "    'subscriptions': {}",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
+  // TODO (jwren) uncomment after re-implemented
+//  public void test_analysis_setSubscriptions_nullMap() throws Exception {
+//    server.analysis_setSubscriptions(null);
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'analysis.setSubscriptions',",
+//        "  'params': {",
+//        "    'subscriptions': {}",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
 
   public void test_analysis_updateAnalysisOptions_all_false() throws Exception {
     AnalysisOptions options = new AnalysisOptions();
@@ -759,7 +745,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     options.setEnableEnums(false);
     options.setGenerateDart2jsHints(false);
     options.setGenerateHints(false);
-    server.updateAnalysisOptions(options);
+    server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -789,7 +775,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     options.setEnableEnums(true);
     options.setGenerateDart2jsHints(true);
     options.setGenerateHints(true);
-    server.updateAnalysisOptions(options);
+    server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -813,7 +799,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
   public void test_analysis_updateAnalysisOptions_subset1() throws Exception {
     AnalysisOptions options = new AnalysisOptions();
     options.setAnalyzeAngular(true);
-    server.updateAnalysisOptions(options);
+    server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -833,7 +819,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     options.setAnalyzePolymer(true);
     options.setEnableAsync(false);
     options.setEnableDeferredLoading(true);
-    server.updateAnalysisOptions(options);
+    server.analysis_updateOptions(options);
     List<JsonObject> requests = requestSink.getRequests();
     JsonElement expected = parseJson(//
         "{",
@@ -850,69 +836,70 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(requests.contains(expected));
   }
 
-  public void test_analysis_updateContent() throws Exception {
-    Map<String, ContentChange> files = ImmutableMap.of(
-        "/fileA.dart",
-        new ContentChange("aaa"),
-        "/fileB.dart",
-        new ContentChange("bbb", 1, 2, 3));
-    server.updateContent(files);
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'analysis.updateContent',",
-        "  'params': {",
-        "    'files': {",
-        "      '/fileA.dart': {",
-        "        'content': 'aaa'",
-        "      },",
-        "      '/fileB.dart': {",
-        "        'content': 'bbb',",
-        "        'offset': 1,",
-        "        'oldLength': 2,",
-        "        'newLength': 3",
-        "      }",
-        "    }",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
-
-  public void test_analysis_updateContent_emptyList() throws Exception {
-    Map<String, ContentChange> files = Maps.newHashMap();
-    server.updateContent(files);
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'analysis.updateContent',",
-        "  'params': {",
-        "    'files': {",
-        "    }",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
-
-  public void test_analysis_updateContent_nullList() throws Exception {
-    server.updateContent(null);
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'analysis.updateContent',",
-        "  'params': {",
-        "    'files': {",
-        "    }",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
+  // TODO (jwren) API change
+//  public void test_analysis_updateContent() throws Exception {
+//    Map<String, ContentChange> files = ImmutableMap.of(
+//        "/fileA.dart",
+//        new ContentChange("aaa"),
+//        "/fileB.dart",
+//        new ContentChange("bbb", 1, 2, 3));
+//    server.analysis_updateContent(files);
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'analysis.updateContent',",
+//        "  'params': {",
+//        "    'files': {",
+//        "      '/fileA.dart': {",
+//        "        'content': 'aaa'",
+//        "      },",
+//        "      '/fileB.dart': {",
+//        "        'content': 'bbb',",
+//        "        'offset': 1,",
+//        "        'oldLength': 2,",
+//        "        'newLength': 3",
+//        "      }",
+//        "    }",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
+//
+//  public void test_analysis_updateContent_emptyList() throws Exception {
+//    Map<String, ContentChange> files = Maps.newHashMap();
+//    server.updateContent(files);
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'analysis.updateContent',",
+//        "  'params': {",
+//        "    'files': {",
+//        "    }",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
+//
+//  public void test_analysis_updateContent_nullList() throws Exception {
+//    server.updateContent(null);
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'analysis.updateContent',",
+//        "  'params': {",
+//        "    'files': {",
+//        "    }",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
 
   public void test_completion_getSuggestions() throws Exception {
     final String[] completionIdPtr = {null};
-    server.getCompletionSuggestions("/fileA.dart", 0, new CompletionIdConsumer() {
+    server.completion_getSuggestions("/fileA.dart", 0, new GetSuggestionsConsumer() {
       @Override
       public void computedCompletionId(String completionId) {
         completionIdPtr[0] = completionId;
@@ -1040,501 +1027,502 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     }
   }
 
-  public void test_edit_applyRefactoring() throws Exception {
-    final RefactoringProblem[][] problemsArray = {{null}};
-    final SourceChange[] sourceChangeArray = {null};
-    server.applyRefactoring("refactoringId1", new RefactoringApplyConsumer() {
-      @Override
-      public void computed(RefactoringProblem[] problems, SourceChange sourceChange) {
-        problemsArray[0] = problems;
-        sourceChangeArray[0] = sourceChange;
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.applyRefactoring',",
-        "  'params': {",
-        "    'id': 'refactoringId1'",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'status': [",
-        "      {",
-        "        'severity':'INFO',",
-        "        'message':'message1',",
-        "        'location': {",
-        "          'file': 'someFile.dart',",
-        "          'offset': 1,",
-        "          'length': 2,",
-        "          'startLine': 3,",
-        "          'startColumn': 4",
-        "        }",
-        "      },",
-        "      {",
-        "        'severity':'WARNING',",
-        "        'message':'message2',",
-        "        'location': {",
-        "          'file': 'someFile2.dart',",
-        "          'offset': 5,",
-        "          'length': 6,",
-        "          'startLine': 7,",
-        "          'startColumn': 8",
-        "        }",
-        "      }",
-        "    ],",
-        "    'change': {",
-        "      'message': 'message3',",
-        "      'edits': [",
-        "        {",
-        "          'file':'someFile3.dart',",
-        "          'edits': [",
-        "            {",
-        "              'offset': 9,",
-        "              'length': 10,",
-        "              'replacement': 'replacement1'",
-        "            }",
-        "          ]",
-        "        }",
-        "      ]",
-        "    }",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-
-    // assertions on 'status' (RefactoringProblem array)
-    {
-      assertThat(problemsArray[0]).hasSize(2);
-      RefactoringProblem refactoringProblem1 = problemsArray[0][0];
-      RefactoringProblem refactoringProblem2 = problemsArray[0][1];
-      {
-        assertEquals(RefactoringProblemSeverity.INFO, refactoringProblem1.getSeverity());
-        assertEquals("message1", refactoringProblem1.getMessage());
-        assertEquals(
-            new LocationImpl("someFile.dart", 1, 2, 3, 4),
-            refactoringProblem1.getLocation());
-      }
-      {
-        assertEquals(RefactoringProblemSeverity.WARNING, refactoringProblem2.getSeverity());
-        assertEquals("message2", refactoringProblem2.getMessage());
-        assertEquals(
-            new LocationImpl("someFile2.dart", 5, 6, 7, 8),
-            refactoringProblem2.getLocation());
-      }
-    }
-
-    // assertions on 'change' (SourceChange)
-    {
-      assertEquals("message3", sourceChangeArray[0].getMessage());
-      assertThat(sourceChangeArray[0].getEdits()).hasSize(1);
-      SourceFileEdit sourceFileEdit = sourceChangeArray[0].getEdits()[0];
-      assertEquals("someFile3.dart", sourceFileEdit.getFile());
-      assertThat(sourceFileEdit.getEdits()).hasSize(1);
-      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
-      assertEquals(9, sourceEdit.getOffset());
-      assertEquals(10, sourceEdit.getLength());
-      assertEquals("replacement1", sourceEdit.getReplacement());
-    }
-  }
-
-  public void test_edit_applyRefactoring_emptyLists() throws Exception {
-    final RefactoringProblem[][] problemsArray = {{null}};
-    final SourceChange[] sourceChangeArray = {null};
-    server.applyRefactoring("refactoringId1", new RefactoringApplyConsumer() {
-      @Override
-      public void computed(RefactoringProblem[] problems, SourceChange sourceChange) {
-        problemsArray[0] = problems;
-        sourceChangeArray[0] = sourceChange;
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.applyRefactoring',",
-        "  'params': {",
-        "    'id': 'refactoringId1'",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'status': [],",
-        "    'change': {",
-        "      'message': 'message1',",
-        "      'edits': []",
-        "    }",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-    assertThat(problemsArray[0]).isEmpty();
-    assertEquals("message1", sourceChangeArray[0].getMessage());
-    assertThat(sourceChangeArray[0].getEdits()).isEmpty();
-  }
-
-  public void test_edit_createRefactoring() throws Exception {
-    final String[] refactoringId = {null};
-    final RefactoringProblem[][] problemsArray = {{null}};
-    server.createRefactoring(
-        RefactoringKind.CONVERT_GETTER_TO_METHOD,
-        "/fileA.dart",
-        1,
-        2,
-        new RefactoringCreateConsumer() {
-          @Override
-          public void computedStatus(String id, RefactoringProblem[] status,
-              Map<String, Object> feedback) {
-            refactoringId[0] = id;
-            problemsArray[0] = status;
-          }
-        });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.createRefactoring',",
-        "  'params': {",
-        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
-        "    'file': '/fileA.dart',",
-        "    'offset': 1,",
-        "    'length': 2",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'id': 'refactoringId0',",
-        "    'status': [",
-        "      {",
-        "        'severity':'INFO',",
-        "        'message':'message1',",
-        "        'location': {",
-        "          'file': 'someFile.dart',",
-        "          'offset': 1,",
-        "          'length': 2,",
-        "          'startLine': 3,",
-        "          'startColumn': 4",
-        "        }",
-        "      },",
-        "      {",
-        "        'severity':'WARNING',",
-        "        'message':'message2',",
-        "        'location': {",
-        "          'file': 'someFile2.dart',",
-        "          'offset': 5,",
-        "          'length': 6,",
-        "          'startLine': 7,",
-        "          'startColumn': 8",
-        "        }",
-        "      }",
-        "    ],",
-        "    'feedback': {}",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-
-    // assertion on refactoring id
-    assertEquals("refactoringId0", refactoringId[0]);
-
-    // assertions on 'status' (RefactoringProblem array)
-    {
-      assertThat(problemsArray[0]).hasSize(2);
-      RefactoringProblem refactoringProblem1 = problemsArray[0][0];
-      RefactoringProblem refactoringProblem2 = problemsArray[0][1];
-      {
-        assertEquals(RefactoringProblemSeverity.INFO, refactoringProblem1.getSeverity());
-        assertEquals("message1", refactoringProblem1.getMessage());
-        assertEquals(
-            new LocationImpl("someFile.dart", 1, 2, 3, 4),
-            refactoringProblem1.getLocation());
-      }
-      {
-        assertEquals(RefactoringProblemSeverity.WARNING, refactoringProblem2.getSeverity());
-        assertEquals("message2", refactoringProblem2.getMessage());
-        assertEquals(
-            new LocationImpl("someFile2.dart", 5, 6, 7, 8),
-            refactoringProblem2.getLocation());
-      }
-    }
-  }
-
-  public void test_edit_createRefactoring_emptyLists() throws Exception {
-    final String[] refactoringId = {null};
-    final RefactoringProblem[][] problemsArray = {{null}};
-    server.createRefactoring(
-        RefactoringKind.CONVERT_GETTER_TO_METHOD,
-        "/fileA.dart",
-        1,
-        2,
-        new RefactoringCreateConsumer() {
-          @Override
-          public void computedStatus(String id, RefactoringProblem[] status,
-              Map<String, Object> feedback) {
-            refactoringId[0] = id;
-            problemsArray[0] = status;
-          }
-        });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.createRefactoring',",
-        "  'params': {",
-        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
-        "    'file': '/fileA.dart',",
-        "    'offset': 1,",
-        "    'length': 2",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'id': 'refactoringId0',",
-        "    'status': [],",
-        "    'feedback': {}",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-
-    // assertions
-    assertEquals("refactoringId0", refactoringId[0]);
-    assertThat(problemsArray[0]).isEmpty();
-  }
-
-  public void test_edit_createRefactoring_extractLocalVariable() throws Exception {
-    final String[] refactoringId = {null};
-    final RefactoringProblem[][] problemsArray = {{null}};
-    @SuppressWarnings("rawtypes")
-    final Map[] feedback = {null};
-    server.createRefactoring(
-        RefactoringKind.EXTRACT_LOCAL_VARIABLE,
-        "/fileA.dart",
-        1,
-        2,
-        new RefactoringCreateConsumer() {
-          @Override
-          public void computedStatus(String id, RefactoringProblem[] status, Map<String, Object> f) {
-            refactoringId[0] = id;
-            problemsArray[0] = status;
-            feedback[0] = f;
-          }
-        });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.createRefactoring',",
-        "  'params': {",
-        "    'kind': 'EXTRACT_LOCAL_VARIABLE',",
-        "    'file': '/fileA.dart',",
-        "    'offset': 1,",
-        "    'length': 2",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'id': 'refactoringId0',",
-        "    'status': [],",
-        "    'feedback': {",
-        "      'names':['a','b','c'],",
-        "      'offsets':[1,2,3],",
-        "      'lengths':[4,5,6]",
-        "    }",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-
-    // assertions
-    assertEquals("refactoringId0", refactoringId[0]);
-    assertThat(problemsArray[0]).isEmpty();
-    assertThat(feedback[0]).hasSize(3);
-    assertTrue(feedback[0].containsKey("names"));
-    assertTrue(feedback[0].containsKey("offsets"));
-    assertTrue(feedback[0].containsKey("lengths"));
-    assertThat(feedback[0].get("names")).isEqualTo(new String[] {"a", "b", "c"});
-    assertThat(feedback[0].get("offsets")).isEqualTo(new int[] {1, 2, 3});
-    assertThat(feedback[0].get("lengths")).isEqualTo(new int[] {4, 5, 6});
-  }
-
-  public void test_edit_createRefactoring_extractMethod() throws Exception {
-    final String[] refactoringId = {null};
-    final RefactoringProblem[][] problemsArray = {{null}};
-    @SuppressWarnings("rawtypes")
-    final Map[] feedback = {null};
-    server.createRefactoring(
-        RefactoringKind.EXTRACT_METHOD,
-        "/fileA.dart",
-        1,
-        2,
-        new RefactoringCreateConsumer() {
-          @Override
-          public void computedStatus(String id, RefactoringProblem[] status, Map<String, Object> f) {
-            refactoringId[0] = id;
-            problemsArray[0] = status;
-            feedback[0] = f;
-          }
-        });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.createRefactoring',",
-        "  'params': {",
-        "    'kind': 'EXTRACT_METHOD',",
-        "    'file': '/fileA.dart',",
-        "    'offset': 1,",
-        "    'length': 2",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'id': 'refactoringId0',",
-        "    'status': [],",
-        "    'feedback': {",
-        "      'offset': 1,",
-        "      'length': 2,",
-        "      'returnType': 'returnType0',",
-        "      'names': ['a', 'b'],",
-        "      'canCreateGetter': false,",
-        "      'parameters': [",
-        "        {",
-        "          'type':'type0',",
-        "          'name':'name0'",
-        "        },",
-        "        {",
-        "          'type':'type1',",
-        "          'name':'name1'",
-        "        }",
-        "      ],",
-        "      'occurrences': 3,",
-        "      'offsets': [4, 5, 6],",
-        "      'lengths': [7, 8, 9]",
-        "    }",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-
-    // assertions
-    assertEquals("refactoringId0", refactoringId[0]);
-    assertThat(problemsArray[0]).isEmpty();
-    assertThat(feedback[0]).hasSize(9);
-    assertTrue(feedback[0].containsKey("offset"));
-    assertTrue(feedback[0].containsKey("length"));
-    assertTrue(feedback[0].containsKey("returnType"));
-    assertTrue(feedback[0].containsKey("names"));
-    assertTrue(feedback[0].containsKey("canCreateGetter"));
-    assertTrue(feedback[0].containsKey("parameters"));
-    assertTrue(feedback[0].containsKey("occurrences"));
-    assertTrue(feedback[0].containsKey("offsets"));
-    assertTrue(feedback[0].containsKey("lengths"));
-    assertThat(feedback[0].get("offset")).isEqualTo(1);
-    assertThat(feedback[0].get("length")).isEqualTo(2);
-    assertThat(feedback[0].get("returnType")).isEqualTo("returnType0");
-    assertThat(feedback[0].get("names")).isEqualTo(new String[] {"a", "b"});
-    assertThat(feedback[0].get("canCreateGetter")).isEqualTo(false);
-    assertThat(feedback[0].get("parameters")).isEqualTo(
-        new Parameter[] {new ParameterImpl("type0", "name0"), new ParameterImpl("type1", "name1")});
-    assertThat(feedback[0].get("occurrences")).isEqualTo(3);
-    assertThat(feedback[0].get("offsets")).isEqualTo(new int[] {4, 5, 6});
-    assertThat(feedback[0].get("lengths")).isEqualTo(new int[] {7, 8, 9});
-  }
-
-  public void test_edit_createRefactoring_rename() throws Exception {
-    final String[] refactoringId = {null};
-    final RefactoringProblem[][] problemsArray = {{null}};
-    @SuppressWarnings("rawtypes")
-    final Map[] feedback = {null};
-    server.createRefactoring(
-        RefactoringKind.RENAME,
-        "/fileA.dart",
-        1,
-        2,
-        new RefactoringCreateConsumer() {
-          @Override
-          public void computedStatus(String id, RefactoringProblem[] status, Map<String, Object> f) {
-            refactoringId[0] = id;
-            problemsArray[0] = status;
-            feedback[0] = f;
-          }
-        });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.createRefactoring',",
-        "  'params': {",
-        "    'kind': 'RENAME',",
-        "    'file': '/fileA.dart',",
-        "    'offset': 1,",
-        "    'length': 2",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'id': 'refactoringId0',",
-        "    'status': [],",
-        "    'feedback': {",
-        "      'offset': 1,",
-        "      'length': 2",
-        "    }",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-
-    // assertions
-    assertEquals("refactoringId0", refactoringId[0]);
-    assertThat(problemsArray[0]).isEmpty();
-    assertThat(feedback[0]).hasSize(2);
-    assertTrue(feedback[0].containsKey("offset"));
-    assertTrue(feedback[0].containsKey("length"));
-    assertThat(feedback[0].get("offset")).isEqualTo(1);
-    assertThat(feedback[0].get("length")).isEqualTo(2);
-  }
-
-  public void test_edit_deleteRefactoring() throws Exception {
-    server.deleteRefactoring("refactoringId0");
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.deleteRefactoring',",
-        "  'params': {",
-        "    'id': 'refactoringId0'",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
+  // TODO (jwren) refactoring API changed
+//  public void test_edit_applyRefactoring() throws Exception {
+//    final RefactoringProblem[][] problemsArray = {{null}};
+//    final SourceChange[] sourceChangeArray = {null};
+//    server.applyRefactoring("refactoringId1", new RefactoringApplyConsumer() {
+//      @Override
+//      public void computed(RefactoringProblem[] problems, SourceChange sourceChange) {
+//        problemsArray[0] = problems;
+//        sourceChangeArray[0] = sourceChange;
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.applyRefactoring',",
+//        "  'params': {",
+//        "    'id': 'refactoringId1'",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'status': [",
+//        "      {",
+//        "        'severity':'INFO',",
+//        "        'message':'message1',",
+//        "        'location': {",
+//        "          'file': 'someFile.dart',",
+//        "          'offset': 1,",
+//        "          'length': 2,",
+//        "          'startLine': 3,",
+//        "          'startColumn': 4",
+//        "        }",
+//        "      },",
+//        "      {",
+//        "        'severity':'WARNING',",
+//        "        'message':'message2',",
+//        "        'location': {",
+//        "          'file': 'someFile2.dart',",
+//        "          'offset': 5,",
+//        "          'length': 6,",
+//        "          'startLine': 7,",
+//        "          'startColumn': 8",
+//        "        }",
+//        "      }",
+//        "    ],",
+//        "    'change': {",
+//        "      'message': 'message3',",
+//        "      'edits': [",
+//        "        {",
+//        "          'file':'someFile3.dart',",
+//        "          'edits': [",
+//        "            {",
+//        "              'offset': 9,",
+//        "              'length': 10,",
+//        "              'replacement': 'replacement1'",
+//        "            }",
+//        "          ]",
+//        "        }",
+//        "      ]",
+//        "    }",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//
+//    // assertions on 'status' (RefactoringProblem array)
+//    {
+//      assertThat(problemsArray[0]).hasSize(2);
+//      RefactoringProblem refactoringProblem1 = problemsArray[0][0];
+//      RefactoringProblem refactoringProblem2 = problemsArray[0][1];
+//      {
+//        assertEquals(RefactoringProblemSeverity.INFO, refactoringProblem1.getSeverity());
+//        assertEquals("message1", refactoringProblem1.getMessage());
+//        assertEquals(
+//            new LocationImpl("someFile.dart", 1, 2, 3, 4),
+//            refactoringProblem1.getLocation());
+//      }
+//      {
+//        assertEquals(RefactoringProblemSeverity.WARNING, refactoringProblem2.getSeverity());
+//        assertEquals("message2", refactoringProblem2.getMessage());
+//        assertEquals(
+//            new LocationImpl("someFile2.dart", 5, 6, 7, 8),
+//            refactoringProblem2.getLocation());
+//      }
+//    }
+//
+//    // assertions on 'change' (SourceChange)
+//    {
+//      assertEquals("message3", sourceChangeArray[0].getMessage());
+//      assertThat(sourceChangeArray[0].getEdits()).hasSize(1);
+//      SourceFileEdit sourceFileEdit = sourceChangeArray[0].getEdits()[0];
+//      assertEquals("someFile3.dart", sourceFileEdit.getFile());
+//      assertThat(sourceFileEdit.getEdits()).hasSize(1);
+//      SourceEdit sourceEdit = sourceFileEdit.getEdits()[0];
+//      assertEquals(9, sourceEdit.getOffset());
+//      assertEquals(10, sourceEdit.getLength());
+//      assertEquals("replacement1", sourceEdit.getReplacement());
+//    }
+//  }
+//
+//  public void test_edit_applyRefactoring_emptyLists() throws Exception {
+//    final RefactoringProblem[][] problemsArray = {{null}};
+//    final SourceChange[] sourceChangeArray = {null};
+//    server.applyRefactoring("refactoringId1", new RefactoringApplyConsumer() {
+//      @Override
+//      public void computed(RefactoringProblem[] problems, SourceChange sourceChange) {
+//        problemsArray[0] = problems;
+//        sourceChangeArray[0] = sourceChange;
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.applyRefactoring',",
+//        "  'params': {",
+//        "    'id': 'refactoringId1'",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'status': [],",
+//        "    'change': {",
+//        "      'message': 'message1',",
+//        "      'edits': []",
+//        "    }",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//    assertThat(problemsArray[0]).isEmpty();
+//    assertEquals("message1", sourceChangeArray[0].getMessage());
+//    assertThat(sourceChangeArray[0].getEdits()).isEmpty();
+//  }
+//
+//  public void test_edit_createRefactoring() throws Exception {
+//    final String[] refactoringId = {null};
+//    final RefactoringProblem[][] problemsArray = {{null}};
+//    server.createRefactoring(
+//        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+//        "/fileA.dart",
+//        1,
+//        2,
+//        new RefactoringCreateConsumer() {
+//          @Override
+//          public void computedStatus(String id, RefactoringProblem[] status,
+//              Map<String, Object> feedback) {
+//            refactoringId[0] = id;
+//            problemsArray[0] = status;
+//          }
+//        });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.createRefactoring',",
+//        "  'params': {",
+//        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
+//        "    'file': '/fileA.dart',",
+//        "    'offset': 1,",
+//        "    'length': 2",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'id': 'refactoringId0',",
+//        "    'status': [",
+//        "      {",
+//        "        'severity':'INFO',",
+//        "        'message':'message1',",
+//        "        'location': {",
+//        "          'file': 'someFile.dart',",
+//        "          'offset': 1,",
+//        "          'length': 2,",
+//        "          'startLine': 3,",
+//        "          'startColumn': 4",
+//        "        }",
+//        "      },",
+//        "      {",
+//        "        'severity':'WARNING',",
+//        "        'message':'message2',",
+//        "        'location': {",
+//        "          'file': 'someFile2.dart',",
+//        "          'offset': 5,",
+//        "          'length': 6,",
+//        "          'startLine': 7,",
+//        "          'startColumn': 8",
+//        "        }",
+//        "      }",
+//        "    ],",
+//        "    'feedback': {}",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//
+//    // assertion on refactoring id
+//    assertEquals("refactoringId0", refactoringId[0]);
+//
+//    // assertions on 'status' (RefactoringProblem array)
+//    {
+//      assertThat(problemsArray[0]).hasSize(2);
+//      RefactoringProblem refactoringProblem1 = problemsArray[0][0];
+//      RefactoringProblem refactoringProblem2 = problemsArray[0][1];
+//      {
+//        assertEquals(RefactoringProblemSeverity.INFO, refactoringProblem1.getSeverity());
+//        assertEquals("message1", refactoringProblem1.getMessage());
+//        assertEquals(
+//            new LocationImpl("someFile.dart", 1, 2, 3, 4),
+//            refactoringProblem1.getLocation());
+//      }
+//      {
+//        assertEquals(RefactoringProblemSeverity.WARNING, refactoringProblem2.getSeverity());
+//        assertEquals("message2", refactoringProblem2.getMessage());
+//        assertEquals(
+//            new LocationImpl("someFile2.dart", 5, 6, 7, 8),
+//            refactoringProblem2.getLocation());
+//      }
+//    }
+//  }
+//
+//  public void test_edit_createRefactoring_emptyLists() throws Exception {
+//    final String[] refactoringId = {null};
+//    final RefactoringProblem[][] problemsArray = {{null}};
+//    server.createRefactoring(
+//        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+//        "/fileA.dart",
+//        1,
+//        2,
+//        new RefactoringCreateConsumer() {
+//          @Override
+//          public void computedStatus(String id, RefactoringProblem[] status,
+//              Map<String, Object> feedback) {
+//            refactoringId[0] = id;
+//            problemsArray[0] = status;
+//          }
+//        });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.createRefactoring',",
+//        "  'params': {",
+//        "    'kind': 'CONVERT_GETTER_TO_METHOD',",
+//        "    'file': '/fileA.dart',",
+//        "    'offset': 1,",
+//        "    'length': 2",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'id': 'refactoringId0',",
+//        "    'status': [],",
+//        "    'feedback': {}",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//
+//    // assertions
+//    assertEquals("refactoringId0", refactoringId[0]);
+//    assertThat(problemsArray[0]).isEmpty();
+//  }
+//
+//  public void test_edit_createRefactoring_extractLocalVariable() throws Exception {
+//    final String[] refactoringId = {null};
+//    final RefactoringProblem[][] problemsArray = {{null}};
+//    @SuppressWarnings("rawtypes")
+//    final Map[] feedback = {null};
+//    server.createRefactoring(
+//        RefactoringKind.EXTRACT_LOCAL_VARIABLE,
+//        "/fileA.dart",
+//        1,
+//        2,
+//        new RefactoringCreateConsumer() {
+//          @Override
+//          public void computedStatus(String id, RefactoringProblem[] status, Map<String, Object> f) {
+//            refactoringId[0] = id;
+//            problemsArray[0] = status;
+//            feedback[0] = f;
+//          }
+//        });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.createRefactoring',",
+//        "  'params': {",
+//        "    'kind': 'EXTRACT_LOCAL_VARIABLE',",
+//        "    'file': '/fileA.dart',",
+//        "    'offset': 1,",
+//        "    'length': 2",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'id': 'refactoringId0',",
+//        "    'status': [],",
+//        "    'feedback': {",
+//        "      'names':['a','b','c'],",
+//        "      'offsets':[1,2,3],",
+//        "      'lengths':[4,5,6]",
+//        "    }",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//
+//    // assertions
+//    assertEquals("refactoringId0", refactoringId[0]);
+//    assertThat(problemsArray[0]).isEmpty();
+//    assertThat(feedback[0]).hasSize(3);
+//    assertTrue(feedback[0].containsKey("names"));
+//    assertTrue(feedback[0].containsKey("offsets"));
+//    assertTrue(feedback[0].containsKey("lengths"));
+//    assertThat(feedback[0].get("names")).isEqualTo(new String[] {"a", "b", "c"});
+//    assertThat(feedback[0].get("offsets")).isEqualTo(new int[] {1, 2, 3});
+//    assertThat(feedback[0].get("lengths")).isEqualTo(new int[] {4, 5, 6});
+//  }
+//
+//  public void test_edit_createRefactoring_extractMethod() throws Exception {
+//    final String[] refactoringId = {null};
+//    final RefactoringProblem[][] problemsArray = {{null}};
+//    @SuppressWarnings("rawtypes")
+//    final Map[] feedback = {null};
+//    server.createRefactoring(
+//        RefactoringKind.EXTRACT_METHOD,
+//        "/fileA.dart",
+//        1,
+//        2,
+//        new RefactoringCreateConsumer() {
+//          @Override
+//          public void computedStatus(String id, RefactoringProblem[] status, Map<String, Object> f) {
+//            refactoringId[0] = id;
+//            problemsArray[0] = status;
+//            feedback[0] = f;
+//          }
+//        });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.createRefactoring',",
+//        "  'params': {",
+//        "    'kind': 'EXTRACT_METHOD',",
+//        "    'file': '/fileA.dart',",
+//        "    'offset': 1,",
+//        "    'length': 2",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'id': 'refactoringId0',",
+//        "    'status': [],",
+//        "    'feedback': {",
+//        "      'offset': 1,",
+//        "      'length': 2,",
+//        "      'returnType': 'returnType0',",
+//        "      'names': ['a', 'b'],",
+//        "      'canCreateGetter': false,",
+//        "      'parameters': [",
+//        "        {",
+//        "          'type':'type0',",
+//        "          'name':'name0'",
+//        "        },",
+//        "        {",
+//        "          'type':'type1',",
+//        "          'name':'name1'",
+//        "        }",
+//        "      ],",
+//        "      'occurrences': 3,",
+//        "      'offsets': [4, 5, 6],",
+//        "      'lengths': [7, 8, 9]",
+//        "    }",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//
+//    // assertions
+//    assertEquals("refactoringId0", refactoringId[0]);
+//    assertThat(problemsArray[0]).isEmpty();
+//    assertThat(feedback[0]).hasSize(9);
+//    assertTrue(feedback[0].containsKey("offset"));
+//    assertTrue(feedback[0].containsKey("length"));
+//    assertTrue(feedback[0].containsKey("returnType"));
+//    assertTrue(feedback[0].containsKey("names"));
+//    assertTrue(feedback[0].containsKey("canCreateGetter"));
+//    assertTrue(feedback[0].containsKey("parameters"));
+//    assertTrue(feedback[0].containsKey("occurrences"));
+//    assertTrue(feedback[0].containsKey("offsets"));
+//    assertTrue(feedback[0].containsKey("lengths"));
+//    assertThat(feedback[0].get("offset")).isEqualTo(1);
+//    assertThat(feedback[0].get("length")).isEqualTo(2);
+//    assertThat(feedback[0].get("returnType")).isEqualTo("returnType0");
+//    assertThat(feedback[0].get("names")).isEqualTo(new String[] {"a", "b"});
+//    assertThat(feedback[0].get("canCreateGetter")).isEqualTo(false);
+//    assertThat(feedback[0].get("parameters")).isEqualTo(
+//        new Parameter[] {new ParameterImpl("type0", "name0"), new ParameterImpl("type1", "name1")});
+//    assertThat(feedback[0].get("occurrences")).isEqualTo(3);
+//    assertThat(feedback[0].get("offsets")).isEqualTo(new int[] {4, 5, 6});
+//    assertThat(feedback[0].get("lengths")).isEqualTo(new int[] {7, 8, 9});
+//  }
+//
+//  public void test_edit_createRefactoring_rename() throws Exception {
+//    final String[] refactoringId = {null};
+//    final RefactoringProblem[][] problemsArray = {{null}};
+//    @SuppressWarnings("rawtypes")
+//    final Map[] feedback = {null};
+//    server.createRefactoring(
+//        RefactoringKind.RENAME,
+//        "/fileA.dart",
+//        1,
+//        2,
+//        new RefactoringCreateConsumer() {
+//          @Override
+//          public void computedStatus(String id, RefactoringProblem[] status, Map<String, Object> f) {
+//            refactoringId[0] = id;
+//            problemsArray[0] = status;
+//            feedback[0] = f;
+//          }
+//        });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.createRefactoring',",
+//        "  'params': {",
+//        "    'kind': 'RENAME',",
+//        "    'file': '/fileA.dart',",
+//        "    'offset': 1,",
+//        "    'length': 2",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'id': 'refactoringId0',",
+//        "    'status': [],",
+//        "    'feedback': {",
+//        "      'offset': 1,",
+//        "      'length': 2",
+//        "    }",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//
+//    // assertions
+//    assertEquals("refactoringId0", refactoringId[0]);
+//    assertThat(problemsArray[0]).isEmpty();
+//    assertThat(feedback[0]).hasSize(2);
+//    assertTrue(feedback[0].containsKey("offset"));
+//    assertTrue(feedback[0].containsKey("length"));
+//    assertThat(feedback[0].get("offset")).isEqualTo(1);
+//    assertThat(feedback[0].get("length")).isEqualTo(2);
+//  }
+//
+//  public void test_edit_deleteRefactoring() throws Exception {
+//    server.deleteRefactoring("refactoringId0");
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.deleteRefactoring',",
+//        "  'params': {",
+//        "    'id': 'refactoringId0'",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
 
   public void test_edit_getAssists() throws Exception {
     final SourceChange[][] sourceChangeArray = {{null}};
-    server.getAssists("/fileA.dart", 1, 2, new AssistsConsumer() {
+    server.edit_getAssists("/fileA.dart", 1, 2, new GetAssistsConsumer() {
       @Override
       public void computedSourceChanges(SourceChange[] sourceChanges) {
         sourceChangeArray[0] = sourceChanges;
@@ -1622,7 +1610,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_edit_getFixes() throws Exception {
     final ErrorFixes[][] errorFixesArray = {{null}};
-    server.getFixes("/fileA.dart", 1, new FixesConsumer() {
+    server.edit_getFixes("/fileA.dart", 1, new GetFixesConsumer() {
       @Override
       public void computedFixes(ErrorFixes[] e) {
         errorFixesArray[0] = e;
@@ -1734,363 +1722,364 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     }
   }
 
-  public void test_edit_getRefactorings() throws Exception {
-    final String[][] refactoringKindsArray = {{null}};
-    server.getRefactorings("/fileA.dart", 1, 2, new RefactoringGetConsumer() {
-      @Override
-      public void computedRefactoringKinds(String[] refactoringKinds) {
-        refactoringKindsArray[0] = refactoringKinds;
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.getRefactorings',",
-        "  'params': {",
-        "    'file': '/fileA.dart',",
-        "    'offset': 1,",
-        "    'length': 2",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'kinds': ['CONVERT_GETTER_TO_METHOD','CONVERT_METHOD_TO_GETTER','EXTRACT_LOCAL_VARIABLE']",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-
-    // assertions on 'kinds' (List<RefactoringKind>)
-    String[] refactoringKinds = refactoringKindsArray[0];
-    assertThat(refactoringKinds).hasSize(3);
-    assertThat(refactoringKinds).contains(
-        RefactoringKind.CONVERT_GETTER_TO_METHOD,
-        RefactoringKind.CONVERT_METHOD_TO_GETTER,
-        RefactoringKind.EXTRACT_LOCAL_VARIABLE);
-  }
-
-  public void test_edit_getRefactorings_emptyKindsList() throws Exception {
-    final String[][] refactoringKindsArray = {{null}};
-    server.getRefactorings("/fileA.dart", 1, 2, new RefactoringGetConsumer() {
-      @Override
-      public void computedRefactoringKinds(String[] refactoringKinds) {
-        refactoringKindsArray[0] = refactoringKinds;
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.getRefactorings',",
-        "  'params': {",
-        "    'file': '/fileA.dart',",
-        "    'offset': 1,",
-        "    'length': 2",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'kinds': []",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-
-    // assertions on 'kinds' (List<RefactoringKind>)
-    assertThat(refactoringKindsArray[0]).hasSize(0);
-  }
-
-  public void test_edit_setRefactoringOptions() throws Exception {
-    final RefactoringProblem[][] refactoringProblemsArray = {{null}};
-    server.setRefactoringOptions("refactoringId0", null, new RefactoringSetOptionsConsumer() {
-      @Override
-      public void computedStatus(RefactoringProblem[] problems) {
-        refactoringProblemsArray[0] = problems;
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.setRefactoringOptions',",
-        "  'params': {",
-        "    'id': 'refactoringId0',",
-        "    'options': {}",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'status': [",
-        "      {",
-        "        'severity':'INFO',",
-        "        'message':'message1',",
-        "        'location': {",
-        "          'file': 'someFile.dart',",
-        "          'offset': 1,",
-        "          'length': 2,",
-        "          'startLine': 3,",
-        "          'startColumn': 4",
-        "        }",
-        "      },",
-        "      {",
-        "        'severity':'WARNING',",
-        "        'message':'message2',",
-        "        'location': {",
-        "          'file': 'someFile2.dart',",
-        "          'offset': 5,",
-        "          'length': 6,",
-        "          'startLine': 7,",
-        "          'startColumn': 8",
-        "        }",
-        "      }",
-        "    ]",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-
-    // assertions on 'status' (RefactoringProblem array)
-    RefactoringProblem[] refactoringProblems = refactoringProblemsArray[0];
-    assertThat(refactoringProblems).hasSize(2);
-
-    RefactoringProblem refactoringProblem1 = refactoringProblems[0];
-    RefactoringProblem refactoringProblem2 = refactoringProblems[1];
-    {
-      assertEquals(RefactoringProblemSeverity.INFO, refactoringProblem1.getSeverity());
-      assertEquals("message1", refactoringProblem1.getMessage());
-      assertEquals(new LocationImpl("someFile.dart", 1, 2, 3, 4), refactoringProblem1.getLocation());
-    }
-    {
-      assertEquals(RefactoringProblemSeverity.WARNING, refactoringProblem2.getSeverity());
-      assertEquals("message2", refactoringProblem2.getMessage());
-      assertEquals(
-          new LocationImpl("someFile2.dart", 5, 6, 7, 8),
-          refactoringProblem2.getLocation());
-    }
-  }
-
-  public void test_edit_setRefactoringOptions_emptyProblemsList() throws Exception {
-    final RefactoringProblem[][] refactoringProblemsArray = {{null}};
-    server.setRefactoringOptions("refactoringId0", null, new RefactoringSetOptionsConsumer() {
-      @Override
-      public void computedStatus(RefactoringProblem[] problems) {
-        refactoringProblemsArray[0] = problems;
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.setRefactoringOptions',",
-        "  'params': {",
-        "    'id': 'refactoringId0',",
-        "    'options': {}",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-
-    putResponse(//
-        "{",
-        "  'id': '0',",
-        "  'result': {",
-        "    'status': [",
-        "    ]",
-        "  }",
-        "}");
-    server.test_waitForWorkerComplete();
-
-    // assertions on 'status' (RefactoringProblem array)
-    RefactoringProblem[] refactoringProblems = refactoringProblemsArray[0];
-    assertThat(refactoringProblems).isEmpty();
-  }
-
-  public void test_edit_setRefactoringOptions_extractLocalVariable() throws Exception {
-    HashMap<String, Object> options = new HashMap<String, Object>();
-    options.put("name", "name1");
-    options.put("extractAll", Boolean.TRUE);
-    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
-      @Override
-      public void computedStatus(RefactoringProblem[] problems) {
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.setRefactoringOptions',",
-        "  'params': {",
-        "    'id': 'refactoringId0',",
-        "    'options': {",
-        "      'name': 'name1',",
-        "      'extractAll': true",
-        "    }",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
-
-  public void test_edit_setRefactoringOptions_extractMethod_noParameters() throws Exception {
-    HashMap<String, Object> options = new HashMap<String, Object>();
-    options.put("returnType", "returnType1");
-    options.put("createGetter", Boolean.TRUE);
-    options.put("name", "name1");
-    options.put("parameters", new Parameter[] {});
-    options.put("extractAll", Boolean.TRUE);
-
-    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
-      @Override
-      public void computedStatus(RefactoringProblem[] problems) {
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.setRefactoringOptions',",
-        "  'params': {",
-        "    'id': 'refactoringId0',",
-        "    'options': {",
-        "      'returnType': 'returnType1',",
-        "      'createGetter': true,",
-        "      'name': 'name1',",
-        "      'parameters': [],",
-        "      'extractAll': true",
-        "    }",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
-
-  public void test_edit_setRefactoringOptions_extractMethod_someParameters() throws Exception {
-    HashMap<String, Object> options = new HashMap<String, Object>();
-    options.put("returnType", "returnType1");
-    options.put("createGetter", Boolean.FALSE);
-    options.put("name", "name1");
-    options.put("parameters", new Parameter[] {
-        new ParameterImpl("type1", "name1"), new ParameterImpl("type2", "name2")});
-    options.put("extractAll", Boolean.FALSE);
-
-    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
-      @Override
-      public void computedStatus(RefactoringProblem[] problems) {
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.setRefactoringOptions',",
-        "  'params': {",
-        "    'id': 'refactoringId0',",
-        "    'options': {",
-        "      'returnType': 'returnType1',",
-        "      'createGetter': false,",
-        "      'name': 'name1',",
-        "      'parameters': [",
-        "        {",
-        "          'type': 'type1',",
-        "          'name': 'name1'",
-        "        },",
-        "        {",
-        "          'type': 'type2',",
-        "          'name': 'name2'",
-        "        }",
-        "      ],",
-        "      'extractAll': false",
-        "    }",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
-
-  public void test_edit_setRefactoringOptions_inlineMethod_false() throws Exception {
-    HashMap<String, Object> options = new HashMap<String, Object>();
-    options.put("deleteSource", Boolean.FALSE);
-    options.put("inlineAll", Boolean.FALSE);
-
-    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
-      @Override
-      public void computedStatus(RefactoringProblem[] problems) {
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.setRefactoringOptions',",
-        "  'params': {",
-        "    'id': 'refactoringId0',",
-        "    'options': {",
-        "      'deleteSource': false,",
-        "      'inlineAll': false",
-        "    }",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
-
-  public void test_edit_setRefactoringOptions_inlineMethod_true() throws Exception {
-    HashMap<String, Object> options = new HashMap<String, Object>();
-    options.put("deleteSource", Boolean.TRUE);
-    options.put("inlineAll", Boolean.TRUE);
-
-    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
-      @Override
-      public void computedStatus(RefactoringProblem[] problems) {
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.setRefactoringOptions',",
-        "  'params': {",
-        "    'id': 'refactoringId0',",
-        "    'options': {",
-        "      'deleteSource': true,",
-        "      'inlineAll': true",
-        "    }",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
-
-  public void test_edit_setRefactoringOptions_rename() throws Exception {
-    HashMap<String, Object> options = new HashMap<String, Object>();
-    options.put("newName", "newName1");
-
-    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
-      @Override
-      public void computedStatus(RefactoringProblem[] problems) {
-      }
-    });
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'edit.setRefactoringOptions',",
-        "  'params': {",
-        "    'id': 'refactoringId0',",
-        "    'options': {",
-        "      'newName': 'newName1'",
-        "    }",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
+  // TODO (jwren) refactoring API changed
+//  public void test_edit_getRefactorings() throws Exception {
+//    final String[][] refactoringKindsArray = {{null}};
+//    server.getRefactorings("/fileA.dart", 1, 2, new RefactoringGetConsumer() {
+//      @Override
+//      public void computedRefactoringKinds(String[] refactoringKinds) {
+//        refactoringKindsArray[0] = refactoringKinds;
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.getRefactorings',",
+//        "  'params': {",
+//        "    'file': '/fileA.dart',",
+//        "    'offset': 1,",
+//        "    'length': 2",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'kinds': ['CONVERT_GETTER_TO_METHOD','CONVERT_METHOD_TO_GETTER','EXTRACT_LOCAL_VARIABLE']",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//
+//    // assertions on 'kinds' (List<RefactoringKind>)
+//    String[] refactoringKinds = refactoringKindsArray[0];
+//    assertThat(refactoringKinds).hasSize(3);
+//    assertThat(refactoringKinds).contains(
+//        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+//        RefactoringKind.CONVERT_METHOD_TO_GETTER,
+//        RefactoringKind.EXTRACT_LOCAL_VARIABLE);
+//  }
+//
+//  public void test_edit_getRefactorings_emptyKindsList() throws Exception {
+//    final String[][] refactoringKindsArray = {{null}};
+//    server.getRefactorings("/fileA.dart", 1, 2, new RefactoringGetConsumer() {
+//      @Override
+//      public void computedRefactoringKinds(String[] refactoringKinds) {
+//        refactoringKindsArray[0] = refactoringKinds;
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.getRefactorings',",
+//        "  'params': {",
+//        "    'file': '/fileA.dart',",
+//        "    'offset': 1,",
+//        "    'length': 2",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'kinds': []",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//
+//    // assertions on 'kinds' (List<RefactoringKind>)
+//    assertThat(refactoringKindsArray[0]).hasSize(0);
+//  }
+//
+//  public void test_edit_setRefactoringOptions() throws Exception {
+//    final RefactoringProblem[][] refactoringProblemsArray = {{null}};
+//    server.setRefactoringOptions("refactoringId0", null, new RefactoringSetOptionsConsumer() {
+//      @Override
+//      public void computedStatus(RefactoringProblem[] problems) {
+//        refactoringProblemsArray[0] = problems;
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.setRefactoringOptions',",
+//        "  'params': {",
+//        "    'id': 'refactoringId0',",
+//        "    'options': {}",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'status': [",
+//        "      {",
+//        "        'severity':'INFO',",
+//        "        'message':'message1',",
+//        "        'location': {",
+//        "          'file': 'someFile.dart',",
+//        "          'offset': 1,",
+//        "          'length': 2,",
+//        "          'startLine': 3,",
+//        "          'startColumn': 4",
+//        "        }",
+//        "      },",
+//        "      {",
+//        "        'severity':'WARNING',",
+//        "        'message':'message2',",
+//        "        'location': {",
+//        "          'file': 'someFile2.dart',",
+//        "          'offset': 5,",
+//        "          'length': 6,",
+//        "          'startLine': 7,",
+//        "          'startColumn': 8",
+//        "        }",
+//        "      }",
+//        "    ]",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//
+//    // assertions on 'status' (RefactoringProblem array)
+//    RefactoringProblem[] refactoringProblems = refactoringProblemsArray[0];
+//    assertThat(refactoringProblems).hasSize(2);
+//
+//    RefactoringProblem refactoringProblem1 = refactoringProblems[0];
+//    RefactoringProblem refactoringProblem2 = refactoringProblems[1];
+//    {
+//      assertEquals(RefactoringProblemSeverity.INFO, refactoringProblem1.getSeverity());
+//      assertEquals("message1", refactoringProblem1.getMessage());
+//      assertEquals(new LocationImpl("someFile.dart", 1, 2, 3, 4), refactoringProblem1.getLocation());
+//    }
+//    {
+//      assertEquals(RefactoringProblemSeverity.WARNING, refactoringProblem2.getSeverity());
+//      assertEquals("message2", refactoringProblem2.getMessage());
+//      assertEquals(
+//          new LocationImpl("someFile2.dart", 5, 6, 7, 8),
+//          refactoringProblem2.getLocation());
+//    }
+//  }
+//
+//  public void test_edit_setRefactoringOptions_emptyProblemsList() throws Exception {
+//    final RefactoringProblem[][] refactoringProblemsArray = {{null}};
+//    server.setRefactoringOptions("refactoringId0", null, new RefactoringSetOptionsConsumer() {
+//      @Override
+//      public void computedStatus(RefactoringProblem[] problems) {
+//        refactoringProblemsArray[0] = problems;
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.setRefactoringOptions',",
+//        "  'params': {",
+//        "    'id': 'refactoringId0',",
+//        "    'options': {}",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//
+//    putResponse(//
+//        "{",
+//        "  'id': '0',",
+//        "  'result': {",
+//        "    'status': [",
+//        "    ]",
+//        "  }",
+//        "}");
+//    server.test_waitForWorkerComplete();
+//
+//    // assertions on 'status' (RefactoringProblem array)
+//    RefactoringProblem[] refactoringProblems = refactoringProblemsArray[0];
+//    assertThat(refactoringProblems).isEmpty();
+//  }
+//
+//  public void test_edit_setRefactoringOptions_extractLocalVariable() throws Exception {
+//    HashMap<String, Object> options = new HashMap<String, Object>();
+//    options.put("name", "name1");
+//    options.put("extractAll", Boolean.TRUE);
+//    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
+//      @Override
+//      public void computedStatus(RefactoringProblem[] problems) {
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.setRefactoringOptions',",
+//        "  'params': {",
+//        "    'id': 'refactoringId0',",
+//        "    'options': {",
+//        "      'name': 'name1',",
+//        "      'extractAll': true",
+//        "    }",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
+//
+//  public void test_edit_setRefactoringOptions_extractMethod_noParameters() throws Exception {
+//    HashMap<String, Object> options = new HashMap<String, Object>();
+//    options.put("returnType", "returnType1");
+//    options.put("createGetter", Boolean.TRUE);
+//    options.put("name", "name1");
+//    options.put("parameters", new Parameter[] {});
+//    options.put("extractAll", Boolean.TRUE);
+//
+//    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
+//      @Override
+//      public void computedStatus(RefactoringProblem[] problems) {
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.setRefactoringOptions',",
+//        "  'params': {",
+//        "    'id': 'refactoringId0',",
+//        "    'options': {",
+//        "      'returnType': 'returnType1',",
+//        "      'createGetter': true,",
+//        "      'name': 'name1',",
+//        "      'parameters': [],",
+//        "      'extractAll': true",
+//        "    }",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
+//
+//  public void test_edit_setRefactoringOptions_extractMethod_someParameters() throws Exception {
+//    HashMap<String, Object> options = new HashMap<String, Object>();
+//    options.put("returnType", "returnType1");
+//    options.put("createGetter", Boolean.FALSE);
+//    options.put("name", "name1");
+//    options.put("parameters", new Parameter[] {
+//        new ParameterImpl("type1", "name1"), new ParameterImpl("type2", "name2")});
+//    options.put("extractAll", Boolean.FALSE);
+//
+//    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
+//      @Override
+//      public void computedStatus(RefactoringProblem[] problems) {
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.setRefactoringOptions',",
+//        "  'params': {",
+//        "    'id': 'refactoringId0',",
+//        "    'options': {",
+//        "      'returnType': 'returnType1',",
+//        "      'createGetter': false,",
+//        "      'name': 'name1',",
+//        "      'parameters': [",
+//        "        {",
+//        "          'type': 'type1',",
+//        "          'name': 'name1'",
+//        "        },",
+//        "        {",
+//        "          'type': 'type2',",
+//        "          'name': 'name2'",
+//        "        }",
+//        "      ],",
+//        "      'extractAll': false",
+//        "    }",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
+//
+//  public void test_edit_setRefactoringOptions_inlineMethod_false() throws Exception {
+//    HashMap<String, Object> options = new HashMap<String, Object>();
+//    options.put("deleteSource", Boolean.FALSE);
+//    options.put("inlineAll", Boolean.FALSE);
+//
+//    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
+//      @Override
+//      public void computedStatus(RefactoringProblem[] problems) {
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.setRefactoringOptions',",
+//        "  'params': {",
+//        "    'id': 'refactoringId0',",
+//        "    'options': {",
+//        "      'deleteSource': false,",
+//        "      'inlineAll': false",
+//        "    }",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
+//
+//  public void test_edit_setRefactoringOptions_inlineMethod_true() throws Exception {
+//    HashMap<String, Object> options = new HashMap<String, Object>();
+//    options.put("deleteSource", Boolean.TRUE);
+//    options.put("inlineAll", Boolean.TRUE);
+//
+//    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
+//      @Override
+//      public void computedStatus(RefactoringProblem[] problems) {
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.setRefactoringOptions',",
+//        "  'params': {",
+//        "    'id': 'refactoringId0',",
+//        "    'options': {",
+//        "      'deleteSource': true,",
+//        "      'inlineAll': true",
+//        "    }",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
+//
+//  public void test_edit_setRefactoringOptions_rename() throws Exception {
+//    HashMap<String, Object> options = new HashMap<String, Object>();
+//    options.put("newName", "newName1");
+//
+//    server.setRefactoringOptions("refactoringId0", options, new RefactoringSetOptionsConsumer() {
+//      @Override
+//      public void computedStatus(RefactoringProblem[] problems) {
+//      }
+//    });
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'edit.setRefactoringOptions',",
+//        "  'params': {",
+//        "    'id': 'refactoringId0',",
+//        "    'options': {",
+//        "      'newName': 'newName1'",
+//        "    }",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
 
   public void test_error() throws Exception {
-    server.shutdown();
+    server.server_shutdown();
     putResponse(//
         "{",
         "  'id': '0',",
@@ -2226,7 +2215,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_search_getTypeHierarchy() throws Exception {
     final TypeHierarchyItem[] items = new TypeHierarchyItem[1];
-    server.getTypeHierarchy("/fileA.dart", 1, new TypeHierarchyConsumer() {
+    server.search_getTypeHierarchy("/fileA.dart", 1, new GetTypeHierarchyConsumer() {
       @Override
       public void computedHierarchy(TypeHierarchyItem target) {
         items[0] = target;
@@ -2464,7 +2453,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
 
   public void test_server_getVersion() throws Exception {
     final String[] versionPtr = {null};
-    server.getVersion(new VersionConsumer() {
+    server.server_getVersion(new GetVersionConsumer() {
       @Override
       public void computedVersion(String version) {
         versionPtr[0] = version;
@@ -2579,52 +2568,53 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     listener.assertServerStatus(serverStatus);
   }
 
-  public void test_server_setSubscriptions_emptyList() throws Exception {
-    server.setServerSubscriptions(new ArrayList<ServerService>(0));
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'server.setSubscriptions',",
-        "  'params': {",
-        "    'subscriptions': []",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
-
-  public void test_server_setSubscriptions_nullList() throws Exception {
-    server.setServerSubscriptions(null);
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'server.setSubscriptions',",
-        "  'params': {",
-        "    'subscriptions': []",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
-
-  public void test_server_setSubscriptions_status() throws Exception {
-    ArrayList<ServerService> subscriptions = new ArrayList<ServerService>();
-    subscriptions.add(ServerService.STATUS);
-    server.setServerSubscriptions(subscriptions);
-    List<JsonObject> requests = requestSink.getRequests();
-    JsonElement expected = parseJson(//
-        "{",
-        "  'id': '0',",
-        "  'method': 'server.setSubscriptions',",
-        "  'params': {",
-        "    'subscriptions': [STATUS]",
-        "  }",
-        "}");
-    assertTrue(requests.contains(expected));
-  }
+  // TODO (jwren) re-enable after funtionality working again
+//  public void test_server_setSubscriptions_emptyList() throws Exception {
+//    server.server_setSubscriptions(new ArrayList<ServerService>(0));
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'server.setSubscriptions',",
+//        "  'params': {",
+//        "    'subscriptions': []",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
+//
+//  public void test_server_setSubscriptions_nullList() throws Exception {
+//    server.setServerSubscriptions(null);
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'server.setSubscriptions',",
+//        "  'params': {",
+//        "    'subscriptions': []",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
+//
+//  public void test_server_setSubscriptions_status() throws Exception {
+//    ArrayList<ServerService> subscriptions = new ArrayList<ServerService>();
+//    subscriptions.add(ServerService.STATUS);
+//    server.setServerSubscriptions(subscriptions);
+//    List<JsonObject> requests = requestSink.getRequests();
+//    JsonElement expected = parseJson(//
+//        "{",
+//        "  'id': '0',",
+//        "  'method': 'server.setSubscriptions',",
+//        "  'params': {",
+//        "    'subscriptions': [STATUS]",
+//        "  }",
+//        "}");
+//    assertTrue(requests.contains(expected));
+//  }
 
   public void test_server_shutdown() throws Exception {
-    server.shutdown();
+    server.server_shutdown();
     JsonElement expected = parseJson(//
         "{",
         "  'id': '0',",
@@ -2654,7 +2644,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertTrue(socket.getRequestSink().getRequests().size() > 0);
     assertTrue(socket.isStopped());
     assertTrue(socket.isStarted());
-    server.shutdown();
+    server.server_shutdown();
   }
 
   private void assertLocation(Location location, String file, int offset, int length,

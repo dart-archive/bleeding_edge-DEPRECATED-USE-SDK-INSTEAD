@@ -14,17 +14,16 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code FixesConsumer} defines the behavior of objects that consume fixes for
- * errors.
+ * The interface {@code AssistsConsumer} defines the behavior of objects that consume assists
+ * {@link SourceChange}s.
  * 
  * @coverage dart.server
  */
-public interface FixesConsumer extends Consumer {
+public interface GetAssistsConsumer extends Consumer {
   /**
-   * A set fixes has been computed. Note that not every {@link AnalysisError} can be fixed, so not
-   * for all of the any fixes will be returned.
+   * A set of {@link SourceChange}s that have been computed.
    * 
-   * @param errorFixesArray an array of computed error fixes
+   * @param proposals an array of computed {@link SourceChange}s
    */
-  public void computedFixes(ErrorFixes[] errorFixesArray);
+  public void computedSourceChanges(SourceChange[] sourceChanges);
 }

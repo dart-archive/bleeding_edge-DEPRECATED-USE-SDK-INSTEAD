@@ -14,17 +14,10 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code HoverConsumer} defines the behavior of objects that consume hover text
- * responses.
+ * The interface {@code GetRefactoringConsumer} defines the behavior of objects that .. TODO
  * 
  * @coverage dart.server
  */
-public interface HoverConsumer extends Consumer {
-
-  /**
-   * A set of {@link HoverInformation}s that have been computed.
-   * 
-   * @param hovers an array of computed {@link HoverInformation}s
-   */
-  public void computedHovers(HoverInformation[] hovers);
+public class GetRefactoringConsumer implements Consumer {
+  // TODO (jwren) implement, class added simply to have AnalysisServer compile
 }

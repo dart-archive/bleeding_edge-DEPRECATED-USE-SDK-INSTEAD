@@ -338,7 +338,8 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       if (file != null) {
         ContentChange change = new ContentChange(code);
         Map<String, ContentChange> files = ImmutableMap.of(file, change);
-        DartCore.getAnalysisServer().updateContent(files);
+        // TODO (jwren) re-implement after analysis_updateContent is working again
+//        DartCore.getAnalysisServer().analysis_updateContent(files);
       }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();
@@ -369,7 +370,8 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       if (file != null) {
         ContentChange change = new ContentChange(code, offset, oldLength, newLength);
         Map<String, ContentChange> files = ImmutableMap.of(file, change);
-        DartCore.getAnalysisServer().updateContent(files);
+        // TODO (jwren) re-implement after analysis_updateContent is working again
+//        DartCore.getAnalysisServer().analysis_updateContent(files);
       }
     } else {
       AnalysisContext context = editor.getInputAnalysisContext();

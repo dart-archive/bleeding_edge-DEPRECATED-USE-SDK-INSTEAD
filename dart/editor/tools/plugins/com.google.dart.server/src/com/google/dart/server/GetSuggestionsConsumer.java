@@ -14,16 +14,16 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code VersionConsumer} defines the behavior of objects that consume the
- * {@link String} version.
+ * The interface {@code CompletionSuggestionsConsumer} defines the behavior of objects that consume
+ * a completion id.
  * 
  * @coverage dart.server
  */
-public interface VersionConsumer extends Consumer {
+public interface GetSuggestionsConsumer extends Consumer {
   /**
-   * The {@link String} version that has been retrieved.
+   * A completion id {@link String}.
    * 
-   * @param version the {@link String} version that has been retrieved
+   * @param completionId a completion id {@link String}
    */
-  public void computedVersion(String version);
+  public void computedCompletionId(String completionId);
 }

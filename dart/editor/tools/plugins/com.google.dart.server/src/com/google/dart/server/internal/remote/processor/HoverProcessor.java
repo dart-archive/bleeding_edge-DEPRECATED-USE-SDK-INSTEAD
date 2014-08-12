@@ -13,7 +13,7 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.HoverConsumer;
+import com.google.dart.server.GetHoverConsumer;
 import com.google.dart.server.HoverInformation;
 import com.google.dart.server.internal.HoverInformationImpl;
 import com.google.gson.JsonElement;
@@ -24,15 +24,15 @@ import java.util.Iterator;
 
 /**
  * Instances of {@code HoverResultProcessor} translate JSON result objects for a given
- * {@link HoverConsumer}.
+ * {@link GetHoverConsumer}.
  * 
  * @coverage dart.server.remote
  */
 public class HoverProcessor extends ResultProcessor {
 
-  private final HoverConsumer consumer;
+  private final GetHoverConsumer consumer;
 
-  public HoverProcessor(HoverConsumer consumer) {
+  public HoverProcessor(GetHoverConsumer consumer) {
     this.consumer = consumer;
   }
 

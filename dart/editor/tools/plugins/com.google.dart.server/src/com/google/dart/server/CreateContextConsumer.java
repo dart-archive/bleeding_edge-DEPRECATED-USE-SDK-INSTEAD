@@ -14,17 +14,17 @@
 package com.google.dart.server;
 
 /**
- * The interface {@code TypeHierarchyConsumer} defines the behavior of objects that consume type
- * hierarchy.
+ * The interface {@code DebugCreateContextConsumer} defines the behavior of objects that consume
+ * create context responses.
  * 
  * @coverage dart.server
  */
-public interface TypeHierarchyConsumer extends Consumer {
+public interface CreateContextConsumer extends Consumer {
+
   /**
-   * Type hierarchy has been computed.
+   * A set of {@link HoverInformation}s that have been computed.
    * 
-   * @param target the item corresponding to the {@link Element} the hierarchy was requested for,
-   *          {@code null} if no hierarchy exists for the given {@link Element}
+   * @param hovers an array of computed {@link HoverInformation}s
    */
-  public void computedHierarchy(TypeHierarchyItem target);
+  public void computedDebugContextId(String debugContextId);
 }

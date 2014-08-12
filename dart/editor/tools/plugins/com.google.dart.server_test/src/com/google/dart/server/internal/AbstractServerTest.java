@@ -74,7 +74,7 @@ public abstract class AbstractServerTest extends TestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    server.shutdown();
+    server.server_shutdown();
     server = null;
     serverListener = null;
     super.tearDown();

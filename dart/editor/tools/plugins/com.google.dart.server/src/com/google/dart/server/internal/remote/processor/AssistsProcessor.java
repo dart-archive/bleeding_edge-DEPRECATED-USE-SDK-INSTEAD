@@ -13,7 +13,7 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.AssistsConsumer;
+import com.google.dart.server.GetAssistsConsumer;
 import com.google.dart.server.RefactoringApplyConsumer;
 import com.google.dart.server.SourceChange;
 import com.google.gson.JsonObject;
@@ -26,9 +26,9 @@ import com.google.gson.JsonObject;
  */
 public class AssistsProcessor extends ResultProcessor {
 
-  private final AssistsConsumer consumer;
+  private final GetAssistsConsumer consumer;
 
-  public AssistsProcessor(AssistsConsumer consumer) {
+  public AssistsProcessor(GetAssistsConsumer consumer) {
     this.consumer = consumer;
   }
 

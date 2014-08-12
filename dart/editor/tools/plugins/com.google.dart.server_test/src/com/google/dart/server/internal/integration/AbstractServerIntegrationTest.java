@@ -65,7 +65,7 @@ public abstract class AbstractServerIntegrationTest extends TestCase {
 //  }
 
   public void test_shutdown() throws Exception {
-    server.shutdown();
+    server.server_shutdown();
   }
 
   protected abstract void initServer() throws Exception;
@@ -78,7 +78,7 @@ public abstract class AbstractServerIntegrationTest extends TestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    server.shutdown();
+    server.server_shutdown();
     server = null;
     super.tearDown();
   }

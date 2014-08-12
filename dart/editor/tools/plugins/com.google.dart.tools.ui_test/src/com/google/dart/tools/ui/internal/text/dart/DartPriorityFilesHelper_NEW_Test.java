@@ -208,6 +208,6 @@ public class DartPriorityFilesHelper_NEW_Test extends TestCase {
         files = (List<String>) invocation.getArguments()[0];
         return null;
       }
-    }).when(analysisServer).setPriorityFiles(anyListOf(String.class));
+    }).when(analysisServer).analysis_setPriorityFiles(anyListOf(String.class));
   }
 }

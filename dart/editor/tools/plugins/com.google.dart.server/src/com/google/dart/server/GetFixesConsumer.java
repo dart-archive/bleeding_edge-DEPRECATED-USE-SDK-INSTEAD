@@ -11,26 +11,20 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.server.internal.remote.processor;
-
-import com.google.dart.server.GetVersionConsumer;
-import com.google.gson.JsonObject;
+package com.google.dart.server;
 
 /**
- * Instances of {@code VersionProcessor} translate JSON result objects for a given
- * {@link GetVersionConsumer}.
+ * The interface {@code FixesConsumer} defines the behavior of objects that consume fixes for
+ * errors.
  * 
- * @coverage dart.server.remote
+ * @coverage dart.server
  */
-public class VersionProcessor extends ResultProcessor {
-
-  private final GetVersionConsumer consumer;
-
-  public VersionProcessor(GetVersionConsumer consumer) {
-    this.consumer = consumer;
-  }
-
-  public void process(JsonObject resultObject) {
-    consumer.computedVersion(resultObject.get("version").getAsString());
-  }
+public interface GetFixesConsumer extends Consumer {
+  /**
+   * A set fixes has been computed. Note that not every {@link AnalysisError} can be fixed, so not
+   * for all of the any fixes will be returned.
+   * 
+   * @param errorFixesArray an array of computed error fixes
+   */
+  public void computedFixes(ErrorFixes[] errorFixesArray);
 }

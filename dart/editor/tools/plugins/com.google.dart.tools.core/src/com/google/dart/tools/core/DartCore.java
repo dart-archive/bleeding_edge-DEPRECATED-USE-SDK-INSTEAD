@@ -1721,7 +1721,7 @@ public class DartCore extends Plugin implements DartSdkListener {
 
       synchronized (analysisServerLock) {
         if (analysisServer != null) {
-          analysisServer.shutdown();
+          analysisServer.server_shutdown();
         }
       }
 
