@@ -103,12 +103,12 @@
             type="com.google.dart.tools.debug.core.dartiumLaunchConfig"
             description="Run a Dart web application in Dartium">
       </launchConfigurationTabGroup>
-      <launchConfigurationTabGroup
+      <!-- launchConfigurationTabGroup
             class="com.google.dart.tools.debug.ui.internal.pubserve.PubServeTabGroup"
             id="com.google.dart.tools.debug.core.pubServeLaunchConfigTabGroup"
             type="com.google.dart.tools.debug.core.pubServeLaunchConfig"
             description="Run a Dart web application in Dartium using pub serve">
-      </launchConfigurationTabGroup>
+      </launchConfigurationTabGroup -->
    </extension>
 
 
