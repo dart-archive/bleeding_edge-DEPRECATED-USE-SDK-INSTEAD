@@ -42,8 +42,6 @@ import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 import com.google.dart.tools.core.model.DartIgnoreListener;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartSdkListener;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
@@ -64,7 +62,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -1282,24 +1279,6 @@ public class DartCore extends Plugin implements DartSdkListener {
    * It should be deleted before this product ships.
    */
   public static void notYetImplemented() {
-  }
-
-  /**
-   * If the given file defines a library, open the library and return it. If the library was already
-   * open, then this method has no effect but returns the existing library. If the file does not
-   * define a library, then look for a library in the same directory as the file or in a parent of
-   * that directory that references the file. If such a library can be found, then open that library
-   * and return it. Otherwise return <code>null</code>.
-   * 
-   * @param libraryFile the file defining the library to be opened
-   * @param monitor the progress monitor used to provide feedback to the user, or <code>null</code>
-   *          if no feedback is desired
-   * @return the library defined by the given file
-   * @throws DartModelException if the library exists but could not be opened for some reason
-   */
-  public static DartLibrary openLibrary(File libraryFile, IProgressMonitor monitor)
-      throws DartModelException {
-    return null;
   }
 
   /**

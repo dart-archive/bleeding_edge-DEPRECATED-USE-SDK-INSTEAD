@@ -53,11 +53,11 @@ public interface DartElement extends IAdaptable {
    */
   public static int HTML_FILE = 3;
 
-  /**
+  /*
    * A constant representing a Dart library. A Dart element with this type can be safely cast to
    * {@link DartLibrary}.
    */
-  public static int LIBRARY = 4;
+  //public static int LIBRARY = 4;
 
   /**
    * A constant representing a library folder. A Dart element with this type can be safely cast to

@@ -48,12 +48,4 @@ public interface CompilationUnit extends CodeAssistElement, SourceFileElement<Co
    * @return the found elements in this Dart file that correspond to the given element
    */
   public DartElement[] findElements(DartElement element);
-
-  /**
-   * Return the library containing this compilation unit, or <code>null</code> if this compilation
-   * unit is not defined in a library.
-   * 
-   * @return the library containing this compilation unit
-   */
-  public DartLibrary getLibrary();
 }

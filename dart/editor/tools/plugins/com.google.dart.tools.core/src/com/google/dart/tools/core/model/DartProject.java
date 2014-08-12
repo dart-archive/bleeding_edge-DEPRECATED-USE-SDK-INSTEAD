@@ -28,15 +28,6 @@ import java.util.Hashtable;
 public interface DartProject extends ParentElement, OpenableElement {
 
   /**
-   * Return an array containing all of the libraries defined in this project.
-   * 
-   * @return an array containing all of the libraries defined in this project
-   * @throws DartModelException if the libraries defined in this project cannot be determined for
-   *           some reason
-   */
-  public DartLibrary[] getDartLibraries() throws DartModelException;
-
-  /**
    * Utility method for returning one option value only. Equivalent to
    * <code>this.getOptions(inheritDartCoreOptions).get(optionName)</code> Note that it may answer
    * <code>null</code> if this option does not exist, or if there is no custom value for it.

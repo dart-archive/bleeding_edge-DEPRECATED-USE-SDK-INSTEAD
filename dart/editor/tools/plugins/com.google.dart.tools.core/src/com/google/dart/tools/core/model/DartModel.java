@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.model;
 
-
 /**
  * The interface <code>DartModel</code> defines the behavior of the root Dart element corresponding
  * to the workspace.
@@ -21,11 +20,4 @@ package com.google.dart.tools.core.model;
  * @coverage dart.tools.core.model
  */
 public interface DartModel extends DartElement {
-  /**
-   * Return the bundled core library.
-   * 
-   * @return the bundled core library
-   * @throws DartModelException if the core library could not be accessed for some reason
-   */
-  public DartLibrary getCoreLibrary() throws DartModelException;
 }
