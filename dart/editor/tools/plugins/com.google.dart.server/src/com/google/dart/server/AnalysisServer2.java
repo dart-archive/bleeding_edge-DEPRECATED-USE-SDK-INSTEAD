@@ -103,7 +103,7 @@ public interface AnalysisServer2 {
    *
    * @param included A list of the files and directories that should be analyzed.
    * @param excluded A list of the files and directories within the included directories that should
-   * not be analyzed.
+   *         not be analyzed.
    */
   // public void analysis_setAnalysisRoots(List<String> included, List<String> excluded);
 
@@ -155,7 +155,7 @@ public interface AnalysisServer2 {
    * the existing subscriptions will remain unchanged.
    *
    * @param subscriptions A table mapping services to a list of the files being subscribed to the
-   * service.
+   *         service.
    */
   // public void analysis_setSubscriptions(Map<String, List<String>> subscriptions);
 
@@ -169,8 +169,8 @@ public interface AnalysisServer2 {
    * path to a directory on the filesystem.
    *
    * @param files A table mapping the files whose content has changed to a description of the content
-   * change. Each value should be one of the following types: AddContentOverlay,
-   * ChangeContentOverlay, or RemoveContentOverlay.
+   *         change. Each value should be one of the following types: AddContentOverlay,
+   *         ChangeContentOverlay, or RemoveContentOverlay.
    */
   // public void analysis_updateContent(Map<String, Object> files);
 
@@ -288,11 +288,12 @@ public interface AnalysisServer2 {
    * @param offset The offset of the region involved in the refactoring.
    * @param length The length of the region involved in the refactoring.
    * @param validateOnly True if the client is only requesting that the values of the options be
-   * validated and no change be generated.
+   *         validated and no change be generated.
    * @param options Data used to provide values provided by the user. The structure of the data is
-   * dependent on the kind of refactoring being performed. The data that is expected is documented in
-   * the section titled Refactorings, labeled as “Options”. This field can be omitted if the
-   * refactoring does not require any options or if the values of those options are not known.
+   *         dependent on the kind of refactoring being performed. The data that is expected is
+   *         documented in the section titled Refactorings, labeled as “Options”. This field can be
+   *         omitted if the refactoring does not require any options or if the values of those
+   *         options are not known.
    */
   // public void edit_getRefactoring(String kindId, String file, int offset, int length, boolean validateOnly, Object options, GetRefactoringConsumer consumer);
 
@@ -306,7 +307,7 @@ public interface AnalysisServer2 {
    * search.results notification as they become available.
    *
    * @param file The file containing the declaration of or reference to the element used to define
-   * the search.
+   *         the search.
    * @param offset The offset within the file of the declaration of or reference to the element.
    * @param includePotential True if potential matches are to be included in the results.
    */
@@ -357,7 +358,7 @@ public interface AnalysisServer2 {
    * Return the type hierarchy of the class declared or referenced at the given location.
    *
    * @param file The file containing the declaration or reference to the type for which a hierarchy
-   * is being requested.
+   *         is being requested.
    * @param offset The offset of the name of the type within the file.
    */
   // public void search_getTypeHierarchy(String file, int offset, GetTypeHierarchyConsumer consumer);
