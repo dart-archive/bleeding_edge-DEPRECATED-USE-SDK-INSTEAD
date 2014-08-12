@@ -18,7 +18,7 @@ vars.update({
       ' "Linux": "abe29e2ae1ad6d9bd8a7bfa23b3316a203d39ef2"}',
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/dartium",
-  "dartium_webkit_revision": "180079",
+  "dartium_webkit_revision": "180083",
 
   "co19_rev": "@738",
   "fake_async_rev": "@38614",
