@@ -107,7 +107,7 @@ public class WelcomePageEditor extends AbstractBotView {
   public WelcomePageEditor(SWTWorkbenchBot bot) {
     super(bot);
     // when the editor is starting up the welcome page may not be immediately available
-    bot.waitUntilWidgetAppears(Conditions.waitForEditor(new EditorWithTitle("Welcome")));
+    bot.waitUntilWidgetAppears(Conditions.waitForEditor(new EditorWithTitle(viewName())));
   }
 
   /**

@@ -32,5 +32,6 @@ public class TestInit extends EditorTestHarness {
     files.deleteExistingProject("pop_pop_win");
     files.deleteExistingProject("todomvc");
     files.deleteExistingProject("angular_todo");
+    files.deleteExistingProject("sample");
   }
 }

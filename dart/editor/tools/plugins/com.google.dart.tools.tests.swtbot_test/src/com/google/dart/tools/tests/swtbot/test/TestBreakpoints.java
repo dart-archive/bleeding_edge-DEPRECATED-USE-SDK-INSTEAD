@@ -14,6 +14,7 @@
 package com.google.dart.tools.tests.swtbot.test;
 
 import com.google.dart.tools.tests.swtbot.harness.EditorTestHarness;
+import com.google.dart.tools.tests.swtbot.model.DebuggerBotView;
 import com.google.dart.tools.tests.swtbot.model.EditorBotWindow;
 import com.google.dart.tools.tests.swtbot.model.FilesBotView;
 import com.google.dart.tools.tests.swtbot.model.TextBotEditor;
@@ -48,6 +49,9 @@ public class TestBreakpoints extends EditorTestHarness {
 
   @Test
   public void test1() throws Exception {
-    editor.toString();
+    editor.setBreakPointOnLine(2);
+    bot.menu("Run").menu("Run").click();
+    DebuggerBotView debugger = new DebuggerBotView(bot);
+    debugger.toString(); // TODO delete breakpoint placeholder
   }
 }

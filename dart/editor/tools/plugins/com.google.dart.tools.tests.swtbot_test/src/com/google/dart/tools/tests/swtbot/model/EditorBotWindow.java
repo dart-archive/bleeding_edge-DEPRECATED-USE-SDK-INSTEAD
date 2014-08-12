@@ -56,6 +56,36 @@ public class EditorBotWindow extends AbstractBotView {
   }
 
   /**
+   * Create a new package template with the given name.
+   * 
+   * @param string the project name
+   */
+  public void createPackageTemplateProject(String string) {
+    // TODO Test this.
+    createProject(string, Project.PKG_TEMPLATE, string + ".dart");
+  }
+
+  /**
+   * Create a new polymer app with the given name.
+   * 
+   * @param string the project name
+   */
+  public void createPolymerProject(String string) {
+    // TODO Test this.
+    createProject(string, Project.POLYMER_APP, string + ".html");
+  }
+
+  /**
+   * Create a new web app with the given name.
+   * 
+   * @param string the project name
+   */
+  public void createWebProject(String string) {
+    // TODO Test this.
+    createProject(string, Project.WEB_APP, string + ".dart");
+  }
+
+  /**
    * Return a TextBotEditor for the editor with the given <code>title</code>.
    * 
    * @param title the editor title

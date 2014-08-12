@@ -13,29 +13,40 @@
  */
 package com.google.dart.tools.tests.swtbot.model;
 
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
+
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.bindings.keys.ParseException;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.FindReplaceDocumentAdapter;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
+import org.eclipse.swtbot.swt.finder.matchers.WidgetOfType;
 import org.eclipse.swtbot.swt.finder.results.Result;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.hamcrest.Matcher;
 
 import static org.junit.Assert.fail;
+
+import java.util.List;
 
 /**
  * Model a code editor of Dart Editor.
  */
+@SuppressWarnings("restriction")
 public class TextBotEditor extends AbstractBotView {
 
   private static KeyStroke keyM1;
@@ -136,9 +147,46 @@ public class TextBotEditor extends AbstractBotView {
     return selection;
   }
 
+  public void setBreakPointOnLine(int lineNo) {
+    Matcher<Canvas> matcher = WidgetOfType.widgetOfType(Canvas.class);
+    List<? extends Canvas> all = editor().bot().widgets(matcher);
+    final int y = convertLineToVerticalOffset(lineNo);
+    for (Canvas w : all) {
+      // There actually are two AnnotationRulerColumn's. It is almost impossible to distinguish
+      // them. One toggles folding, the one we want sets breakpoints.
+      if (w.getClass().getSimpleName().startsWith("AnnotationRulerColumn")) {
+        final Canvas c = w;
+        Object outer = ReflectionUtils.getFieldObject(c, "this$0");
+        if (outer.getClass().getSimpleName().startsWith("AnnotationRulerColumn")) {
+          UIThreadRunnable.syncExec(new VoidResult() {
+            @Override
+            public void run() {
+              Event event = new Event();
+              event.x = 0;
+              event.y = y;
+              event.button = 1;
+              event.count = 2;
+              event.type = 8;
+              event.widget = c;
+              c.notifyListeners(8, event);
+            }
+          });
+          break;
+        }
+      }
+    }
+  }
+
   @Override
   protected String viewName() {
     return title;
+  }
+
+  private int convertLineToVerticalOffset(int lineNo) {
+    // lineNo is 1-based
+    Font font = JFaceResources.getDefaultFont();
+    int height = font.getFontData()[0].getHeight();
+    return height * lineNo - 1;
   }
 
   @SuppressWarnings("unused")
