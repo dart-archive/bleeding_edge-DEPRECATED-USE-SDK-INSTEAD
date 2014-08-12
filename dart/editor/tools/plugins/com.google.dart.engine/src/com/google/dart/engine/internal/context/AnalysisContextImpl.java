@@ -709,7 +709,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       if (libraryEntry == null) {
         throw new AnalysisException("Cannot find entry for " + librarySource.getFullName());
       } else if (libraryEntry.getState(DartEntry.PARSED_UNIT) == CacheState.ERROR) {
-        throw new AnalysisException("Cannot compute parsed unit for " + librarySource.getFullName());
+        String message = "Cannot compute parsed unit for " + librarySource.getFullName();
+        AnalysisException exception = libraryEntry.getException();
+        if (exception == null) {
+          throw new AnalysisException(message);
+        }
+        throw new AnalysisException(message, exception);
       }
       ensureResolvableCompilationUnit(librarySource, libraryEntry);
       pairs.add(new SourceEntryPair(librarySource, libraryEntry));
