@@ -17,13 +17,12 @@ import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.bindings.keys.ParseException;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.FindReplaceDocumentAdapter;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
@@ -31,6 +30,7 @@ import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetOfType;
+import org.eclipse.swtbot.swt.finder.results.IntResult;
 import org.eclipse.swtbot.swt.finder.results.Result;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
@@ -147,6 +147,11 @@ public class TextBotEditor extends AbstractBotView {
     return selection;
   }
 
+  /**
+   * Set a breakpoint on the given <code>lineNo</code>.
+   * 
+   * @param lineNo The 1-based line number to set a breakpoint
+   */
   public void setBreakPointOnLine(int lineNo) {
     Matcher<Canvas> matcher = WidgetOfType.widgetOfType(Canvas.class);
     List<? extends Canvas> all = editor().bot().widgets(matcher);
@@ -166,9 +171,9 @@ public class TextBotEditor extends AbstractBotView {
               event.y = y;
               event.button = 1;
               event.count = 2;
-              event.type = 8;
+              event.type = SWT.MouseDoubleClick;
               event.widget = c;
-              c.notifyListeners(8, event);
+              c.notifyListeners(SWT.MouseDoubleClick, event);
             }
           });
           break;
@@ -182,11 +187,16 @@ public class TextBotEditor extends AbstractBotView {
     return title;
   }
 
-  private int convertLineToVerticalOffset(int lineNo) {
+  private int convertLineToVerticalOffset(final int lineNo) {
     // lineNo is 1-based
-    Font font = JFaceResources.getDefaultFont();
-    int height = font.getFontData()[0].getHeight();
-    return height * lineNo - 1;
+    final SWTBotEclipseEditor editor = editor();
+    return UIThreadRunnable.syncExec(new IntResult() {
+      @Override
+      public Integer run() {
+        int height = editor.getStyledText().widget.getLineHeight();
+        return height * lineNo - 1;
+      }
+    });
   }
 
   @SuppressWarnings("unused")

@@ -15,14 +15,20 @@ package com.google.dart.tools.tests.swtbot.test;
 
 import com.google.dart.tools.tests.swtbot.harness.EditorTestHarness;
 import com.google.dart.tools.tests.swtbot.model.DebuggerBotView;
+import com.google.dart.tools.tests.swtbot.model.DebuggerContextBotView;
+import com.google.dart.tools.tests.swtbot.model.DebuggerStackBotView;
 import com.google.dart.tools.tests.swtbot.model.EditorBotWindow;
 import com.google.dart.tools.tests.swtbot.model.FilesBotView;
 import com.google.dart.tools.tests.swtbot.model.TextBotEditor;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
+import org.eclipse.swtbot.swt.finder.utils.TableCollection;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class TestBreakpoints extends EditorTestHarness {
@@ -37,6 +43,18 @@ public class TestBreakpoints extends EditorTestHarness {
     files.deleteExistingProject("sample");
     main.createCommandLineProject("sample");
     editor = new TextBotEditor(bot, "sample.dart");
+    SWTBotEclipseEditor text = editor.editor();
+    text.pressShortcut(SWT.NONE, SWT.ARROW_DOWN, (char) SWT.NONE);
+    text.pressShortcut(SWT.SHIFT, SWT.ARROW_DOWN, (char) SWT.NONE);
+    text.pressShortcut(SWT.SHIFT, SWT.ARROW_LEFT, (char) SWT.NONE);
+    text.typeText("  ");
+    text.typeText("var t = 'hi';");
+    text.typeText("\n");
+    text.typeText("var q = 'there';");
+    text.typeText("\n");
+    text.typeText("print('$t $q'");
+    text.pressShortcut(SWT.NONE, SWT.ARROW_RIGHT, (char) SWT.NONE);
+    text.typeText(";");
   }
 
   @AfterClass
@@ -49,9 +67,18 @@ public class TestBreakpoints extends EditorTestHarness {
 
   @Test
   public void test1() throws Exception {
-    editor.setBreakPointOnLine(2);
+    editor.setBreakPointOnLine(4);
     bot.menu("Run").menu("Run").click();
     DebuggerBotView debugger = new DebuggerBotView(bot);
-    debugger.toString(); // TODO delete breakpoint placeholder
+    DebuggerStackBotView stack = debugger.stackView();
+    TableCollection selection = stack.selection();
+    assertEquals("[main()]\n", selection.toString());
+    DebuggerContextBotView context = debugger.contextView();
+    assertEquals(2, context.treeSize());
+    debugger.stepInto();
+    debugger.stepOver();
+    assertEquals(3, context.treeSize());
+    debugger.stepReturn();
+    assertEquals(2, context.treeSize());
   }
 }
