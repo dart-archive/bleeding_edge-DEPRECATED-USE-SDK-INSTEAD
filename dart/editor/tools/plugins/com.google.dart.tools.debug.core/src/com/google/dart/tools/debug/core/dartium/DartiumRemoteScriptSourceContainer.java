@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.util.Collection;
 
 /**
  * An ISourceContainer that searches in active debug connections and returns remote script objects.
@@ -53,6 +54,13 @@ public class DartiumRemoteScriptSourceContainer extends AbstractSourceContainer 
 
     if (target != null) {
       WebkitScript script = target.getConnection().getDebugger().getScriptByUrl(name);
+
+      if (script == null) {
+        // In DartiumDebugStackFrame.getActualLocationPath(), we strip off the leading part of the
+        // url. This traverses all the scripts that Dartium knows about to locate a script with
+        // a url that ends with the given path fragment.
+        script = findMatchingScript(target.getConnection().getDebugger().getAllScripts(), name);
+      }
 
       if (script != null) {
         if (!script.hasScriptSource()) {
@@ -108,6 +116,16 @@ public class DartiumRemoteScriptSourceContainer extends AbstractSourceContainer 
     }
 
     return url;
+  }
+
+  private WebkitScript findMatchingScript(Collection<WebkitScript> scripts, String path) {
+    for (WebkitScript script : scripts) {
+      if (script.getUrl().endsWith(path)) {
+        return script;
+      }
+    }
+
+    return null;
   }
 
   private LocalFileStorage getCreateStorageFor(WebkitScript script) throws IOException {
