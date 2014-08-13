@@ -162,8 +162,7 @@ public interface AnalysisServer {
    * path to a directory on the filesystem.
    *
    * @param files A table mapping the files whose content has changed to a description of the content
-   *         change. Each value should be one of the following types: AddContentOverlay,
-   *         ChangeContentOverlay, or RemoveContentOverlay.
+   *         change.
    */
   public void analysis_updateContent(Map<String, Object> files);
 
