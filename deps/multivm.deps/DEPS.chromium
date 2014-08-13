@@ -28,40 +28,40 @@ vars = {
   "libcxxabi_revision": "206024",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "179473",
+  "webkit_revision": "179966",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "pdfium_git": "https://pdfium.googlesource.com",
   "skia_git": "https://skia.googlesource.com",
   "boringssl_git": "https://boringssl.googlesource.com",
   "swig_revision": "230490",
-  "nacl_revision": "13580",
+  "nacl_revision": "13599",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "13077",  # native_client/DEPS: tools_rev
   "google_toolbox_for_mac_revision": "662",
-  "libaddressinput_revision": "316",
+  "libaddressinput_revision": "326",
   "libphonenumber_revision": "621",
   "libvpx_revision": "287125",
   "lss_revision": "31",
   "sfntly_revision": "239",
   "lighttpd_revision": "33737",
-  "skia_revision": "41ebbddd76b747d5fb32c02dda0de3d03a3edda5",
+  "skia_revision": "6b143b080820c34c9c0f80e5c682939e9ee3879d",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   "v8_branch": "trunk",
-  "v8_revision": "22798",
+  "v8_revision": "23036",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "6774",
+  "webrtc_revision": "6825",
   "jsoncpp_revision": "248",
   "nss_revision": "287121",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarming_client
   # and whatever else without interference from each other.
-  "swarming_revision": "9755ed3846884c8ba999a4cc1789e49147659635",
+  "swarming_revision": "bbf1fcca7932d92cca9d7dab46ea271a7f6d61fb",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
@@ -69,15 +69,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  "angle_revision": "07d49ef5350a95cfd6321226c178d22cc73aebc9",
+  "angle_revision": "daf565720b9e26a004e8716a3f52d4a63b988217",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling build tools
   # and whatever else without interference from each other.
-  "buildtools_revision": "59b93247766e1cdac6e482637ad493df38f7aeb7",
+  "buildtools_revision": "33f3e1c4e0d125641524c0a5955594b1c22c804a",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFIum
   # and whatever else without interference from each other.
-  "pdfium_revision": "465c2a84ba709d932040c9e80db508e93c138da6",
+  "pdfium_revision": "df449c0eb4b1fb5583da71265faf50a9a520be3c",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openmax_dl
   # and whatever else without interference from each other.
@@ -85,7 +85,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  "boringssl_revision": "533cbee57eec77268ef9f53c4039ec753240fb37",
+  "boringssl_revision": "c3d79605ab06cffa87877bcfe0792f767bde8b90",
 }
 
 deps = {
@@ -100,10 +100,10 @@ deps = {
     (Var("googlecode_url") % "open-vcdiff") + "/trunk@42",
 
   "src/testing/gtest":
-    (Var("googlecode_url") % "googletest") + "/trunk@643",
+    (Var("googlecode_url") % "googletest") + "/trunk@692",
 
   "src/testing/gmock":
-    (Var("googlecode_url") % "googlemock") + "/trunk@410",
+    (Var("googlecode_url") % "googlemock") + "/trunk@485",
 
   "src/third_party/angle":
     Var("chromium_git") + "/angle/angle.git@" + Var("angle_revision"),
@@ -112,7 +112,7 @@ deps = {
     Var("chromium_git") + "/external/colorama.git@799604a1041e9b3bc5d2789ecbd7e8db2e18e6b8",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@1434",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@1449",
 
   "src/third_party/WebKit":
     Var("webkit_trunk") + "@" + Var("webkit_revision"),
@@ -157,7 +157,7 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@80",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@171",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@172",
 
   "src/tools/gyp":
     (Var("googlecode_url") % "gyp") + "/trunk@1959",
@@ -205,7 +205,7 @@ deps = {
 
   "src/third_party/webgl/src":
     Var("chromium_git") +
-    "/external/khronosgroup/webgl.git@7c8cb656a753b6237e50c546c31ad826373abf04",
+    "/external/khronosgroup/webgl.git@c81b6b214549bfeb475c25bf1de7bd3096c5d1c3",
 
   "src/third_party/swig/Lib":
     "/trunk/deps/third_party/swig/Lib@" + Var("swig_revision"),
@@ -219,7 +219,7 @@ deps = {
 
   "src/third_party/ffmpeg":
     Var("chromium_git") +
-    "/chromium/third_party/ffmpeg.git@e2a05d173d49547ed8aa5edc0209941a8941f450",
+    "/chromium/third_party/ffmpeg.git@93ee0f8ca79c9f5f5be61dc8de47770bb8a7ec69",
 
   "src/third_party/libjingle/source/talk":
     (Var("googlecode_url") % "webrtc") + "/trunk/talk@" +
@@ -302,7 +302,7 @@ deps = {
     "/trunk/deps/third_party/opus@256783",
 
   "src/media/cdm/ppapi/api":
-    "/trunk/deps/cdm@273356",
+    "/trunk/deps/cdm@288172",
 
   "src/third_party/mesa/src":
     "/trunk/deps/third_party/mesa@265279",
@@ -486,7 +486,7 @@ deps_os = {
     # Build tools for Chrome OS.
     "src/third_party/chromite":
       Var("chromiumos_git") + "/chromite.git" +
-      "@5fbc8b1ace4d3541d02d9f6503d4c75877ce3a9b",
+      "@9350f2b004f2301477b76727b8c935aa8481c9f5",
 
     # Dependency of chromite.git.
     "src/third_party/pyelftools":
