@@ -148,8 +148,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * not a constant expression.
    */
   CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST(
-      "Can't define the 'const' constructor because the field '%s' is initialized with a "
-          + "non-constant value"),
+      "Can't define the 'const' constructor because the field '%s' is initialized with a non-constant value"),
 
   /**
    * 7.6.3 Constant Constructors: The superinitializer that appears, explicitly or implicitly, in

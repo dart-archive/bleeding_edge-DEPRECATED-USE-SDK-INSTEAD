@@ -28,10 +28,14 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ParenthesizedExpression;
+import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisResult;
@@ -47,6 +51,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.java2dart.Context;
+import com.google.dart.java2dart.SyntaxTranslator;
 import com.google.dart.java2dart.processor.BeautifySemanticProcessor;
 import com.google.dart.java2dart.processor.CollectionSemanticProcessor;
 import com.google.dart.java2dart.processor.GuavaSemanticProcessor;
@@ -64,6 +69,7 @@ import static com.google.dart.java2dart.util.AstFactory.exportDirective;
 import static com.google.dart.java2dart.util.AstFactory.importDirective;
 import static com.google.dart.java2dart.util.AstFactory.importShowCombinator;
 import static com.google.dart.java2dart.util.AstFactory.libraryDirective;
+import static com.google.dart.java2dart.util.TokenFactory.token;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -298,6 +304,7 @@ public class MainEngine {
     context.ensureUniqueClassMemberNames();
     context.applyLocalVariableSemanticChanges(dartUnit);
     EngineSemanticProcessor.rewriteReflectionFieldsWithDirect(context, dartUnit);
+    rewriteErrorCodePatterns(dartUnit);
     // dump as several libraries
     Files.copy(new File("resources/interner.dart"), new File(targetFolder + "/interner.dart"));
     Files.copy(new File("resources/java_core.dart"), new File(targetFolder + "/java_core.dart"));
@@ -410,10 +417,9 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildErrorLibrary();
-      Files.write(
-          getFormattedSource(library),
-          new File(targetFolder + "/error.dart"),
-          Charsets.UTF_8);
+      String source = getFormattedSource(library);
+      source = replaceSourceFragment(source, "JavaString.format(", "formatList(");
+      Files.write(source, new File(targetFolder + "/error.dart"), Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildScannerLibrary();
@@ -1683,6 +1689,51 @@ public class MainEngine {
       throw new IllegalArgumentException("Not found: " + pattern);
     }
     return matcher.replaceFirst(replacement);
+  }
+
+  /**
+   * Rewrites errors from the Java.format() style to the MessageFormat style.
+   */
+  private static void rewriteErrorCodePatterns(CompilationUnit unit) {
+    unit.accept(new RecursiveAstVisitor<Void>() {
+      @Override
+      public Void visitClassDeclaration(ClassDeclaration node) {
+        ImplementsClause implementsClause = node.getImplementsClause();
+        if (implementsClause != null) {
+          NodeList<TypeName> interfaces = implementsClause.getInterfaces();
+          if (interfaces.size() == 1 && interfaces.get(0).getName().getName().equals("ErrorCode")) {
+            return super.visitClassDeclaration(node);
+          }
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitSimpleStringLiteral(SimpleStringLiteral node) {
+        int index = 0;
+        int lastPatternEnd = 0;
+        String content = node.getValue();
+        String newContent = "";
+        Pattern pattern = Pattern.compile("(%.)");
+        Matcher matcher = pattern.matcher(content);
+        while (matcher.find()) {
+          newContent += content.substring(lastPatternEnd, matcher.start());
+          newContent += "{" + index + "}";
+          index++;
+          lastPatternEnd = matcher.end();
+        }
+        newContent += content.substring(lastPatternEnd);
+        if (newContent.equals(content)) {
+          return null;
+        }
+        String lexeme = "\""
+            + newContent.replace("\\", "\\\\").replace("\"", "\\\"").replace("$", "\\$") + "\"";
+        SyntaxTranslator.replaceNode(node.getParent(), node, new SimpleStringLiteral(
+            token(lexeme),
+            newContent));
+        return super.visitSimpleStringLiteral(node);
+      }
+    });
   }
 
   private static void sortUnitMembersByName(CompilationUnit unit) {
