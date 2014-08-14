@@ -31,13 +31,13 @@ public class ElementKind {
 
   public static final String CONSTRUCTOR = "CONSTRUCTOR";
 
-  public static final String GETTER = "GETTER";
-
   public static final String FIELD = "FIELD";
 
   public static final String FUNCTION = "FUNCTION";
 
   public static final String FUNCTION_TYPE_ALIAS = "FUNCTION_TYPE_ALIAS";
+
+  public static final String GETTER = "GETTER";
 
   public static final String LIBRARY = "LIBRARY";
 
@@ -45,16 +45,18 @@ public class ElementKind {
 
   public static final String METHOD = "METHOD";
 
+  public static final String PARAMETER = "PARAMETER";
+
   public static final String SETTER = "SETTER";
 
   public static final String TOP_LEVEL_VARIABLE = "TOP_LEVEL_VARIABLE";
 
   public static final String TYPE_PARAMETER = "TYPE_PARAMETER";
 
-  public static final String UNKNOWN = "UNKNOWN";
-
   public static final String UNIT_TEST_GROUP = "UNIT_TEST_GROUP";
 
   public static final String UNIT_TEST_TEST = "UNIT_TEST_TEST";
+
+  public static final String UNKNOWN = "UNKNOWN";
 
 }
