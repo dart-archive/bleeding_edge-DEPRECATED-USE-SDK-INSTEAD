@@ -23,16 +23,34 @@ package com.google.dart.server.generated.types;
  */
 public class SearchResultKind {
 
+  /**
+   * The declaration of an element.
+   */
   public static final String DECLARATION = "DECLARATION";
 
+  /**
+   * The invocation of a function or method.
+   */
   public static final String INVOCATION = "INVOCATION";
 
+  /**
+   * A reference to a field, parameter or variable where it is being read.
+   */
   public static final String READ = "READ";
 
+  /**
+   * A reference to a field, parameter or variable where it is being read and written.
+   */
   public static final String READ_WRITE = "READ_WRITE";
 
+  /**
+   * A reference to an element.
+   */
   public static final String REFERENCE = "REFERENCE";
 
+  /**
+   * A reference to a field, parameter or variable where it is being written.
+   */
   public static final String WRITE = "WRITE";
 
 }

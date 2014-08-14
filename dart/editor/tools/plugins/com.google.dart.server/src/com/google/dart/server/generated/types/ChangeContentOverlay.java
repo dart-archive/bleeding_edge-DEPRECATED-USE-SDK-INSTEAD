@@ -42,8 +42,6 @@ public class ChangeContentOverlay {
    */
   public static final ChangeContentOverlay[] EMPTY_ARRAY = new ChangeContentOverlay[0];
 
-  /**
-   */
   private final String type;
 
   /**
@@ -77,8 +75,6 @@ public class ChangeContentOverlay {
     return edits;
   }
 
-  /**
-   */
   public String getType() {
     return type;
   }

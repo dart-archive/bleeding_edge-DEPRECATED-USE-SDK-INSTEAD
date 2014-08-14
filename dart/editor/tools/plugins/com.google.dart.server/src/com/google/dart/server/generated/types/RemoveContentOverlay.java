@@ -39,8 +39,6 @@ public class RemoveContentOverlay {
    */
   public static final RemoveContentOverlay[] EMPTY_ARRAY = new RemoveContentOverlay[0];
 
-  /**
-   */
   private final String type;
 
   /**
@@ -60,8 +58,6 @@ public class RemoveContentOverlay {
     return false;
   }
 
-  /**
-   */
   public String getType() {
     return type;
   }

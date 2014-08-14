@@ -39,8 +39,6 @@ public class AddContentOverlay {
    */
   public static final AddContentOverlay[] EMPTY_ARRAY = new AddContentOverlay[0];
 
-  /**
-   */
   private final String type;
 
   /**
@@ -74,8 +72,6 @@ public class AddContentOverlay {
     return content;
   }
 
-  /**
-   */
   public String getType() {
     return type;
   }
