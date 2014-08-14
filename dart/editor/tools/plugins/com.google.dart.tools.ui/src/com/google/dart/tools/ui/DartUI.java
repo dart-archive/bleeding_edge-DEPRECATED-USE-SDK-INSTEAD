@@ -17,7 +17,7 @@ import com.google.common.base.Charsets;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
-import com.google.dart.server.Location;
+import com.google.dart.server.generated.types.Location;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.ProjectManager;

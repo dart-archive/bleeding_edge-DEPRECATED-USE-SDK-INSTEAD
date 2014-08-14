@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.Location;
+
 /**
  * The interface {@code RefactoringProblem} defines the behavior of objects that represent a
  * refactoring problem.

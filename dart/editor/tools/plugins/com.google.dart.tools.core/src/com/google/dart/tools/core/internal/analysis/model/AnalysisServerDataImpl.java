@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.error.ErrorCode;
-import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.HighlightRegion;
@@ -28,6 +27,7 @@ import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
 import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
+import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.tools.core.analysis.model.AnalysisServerData;
 import com.google.dart.tools.core.analysis.model.AnalysisServerHighlightsListener;
 import com.google.dart.tools.core.analysis.model.AnalysisServerOutlineListener;
@@ -78,7 +78,7 @@ public class AnalysisServerDataImpl implements AnalysisServerData {
   public AnalysisError[] getErrors(String file) {
     AnalysisError[] errors = errorData.get(file);
     if (errors == null) {
-      return AnalysisError.NO_ERRORS;
+      return AnalysisError.EMPTY_ARRAY;
     }
     return errors;
   }

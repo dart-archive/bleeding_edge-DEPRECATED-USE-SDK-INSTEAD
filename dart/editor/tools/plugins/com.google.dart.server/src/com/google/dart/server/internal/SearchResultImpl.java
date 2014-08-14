@@ -15,9 +15,9 @@
 package com.google.dart.server.internal;
 
 import com.google.dart.server.Element;
-import com.google.dart.server.Location;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
+import com.google.dart.server.generated.types.Location;
 
 /**
  * A concrete implementation of {@link SearchResult}.

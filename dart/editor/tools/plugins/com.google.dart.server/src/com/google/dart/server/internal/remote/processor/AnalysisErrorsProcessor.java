@@ -13,8 +13,8 @@
  */
 package com.google.dart.server.internal.remote.processor;
 
-import com.google.dart.server.AnalysisError;
 import com.google.dart.server.GetErrorsConsumer;
+import com.google.dart.server.generated.types.AnalysisError;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 

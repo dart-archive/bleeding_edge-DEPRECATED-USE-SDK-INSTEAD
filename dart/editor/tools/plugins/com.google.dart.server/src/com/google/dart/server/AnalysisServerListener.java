@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.AnalysisError;
+
 /**
  * The interface {@code AnalysisServerListener} defines the behavior of objects that listen for
  * results from an analysis server.

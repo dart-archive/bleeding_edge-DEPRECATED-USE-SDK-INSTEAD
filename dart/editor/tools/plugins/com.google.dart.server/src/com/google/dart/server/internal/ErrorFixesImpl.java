@@ -14,9 +14,9 @@
 
 package com.google.dart.server.internal;
 
-import com.google.dart.server.AnalysisError;
 import com.google.dart.server.ErrorFixes;
 import com.google.dart.server.SourceChange;
+import com.google.dart.server.generated.types.AnalysisError;
 
 import org.apache.commons.lang3.StringUtils;
 

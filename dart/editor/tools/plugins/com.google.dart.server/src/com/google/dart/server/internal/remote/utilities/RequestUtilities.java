@@ -14,12 +14,12 @@
 package com.google.dart.server.internal.remote.utilities;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisService;
 import com.google.dart.server.ContentChange;
-import com.google.dart.server.Location;
 import com.google.dart.server.Parameter;
+import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.Location;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -667,8 +667,8 @@ public class RequestUtilities {
 
   private static JsonObject buildJsonObjectAnalysisError(AnalysisError error) {
     JsonObject errorJsonObject = new JsonObject();
-    errorJsonObject.addProperty("severity", error.getErrorSeverity().name());
-    errorJsonObject.addProperty("type", error.getErrorType());
+    errorJsonObject.addProperty("severity", error.getSeverity());
+    errorJsonObject.addProperty("type", error.getType());
     errorJsonObject.add("location", buildJsonObjectLocation(error.getLocation()));
     errorJsonObject.addProperty("message", error.getMessage());
     String correction = error.getCorrection();

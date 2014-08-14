@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.AnalysisError;
+
 /**
  * This adapter class provides default implementations for the methods described by the
  * {@code AnalysisServerListener} interface.
@@ -20,8 +22,8 @@ package com.google.dart.server;
 public class AnalysisServerListenerAdapter implements AnalysisServerListener {
 
   @Override
-  public void computedCompletion(String completionId, int replacementOffset,
-      int replacementLength, CompletionSuggestion[] completions, boolean last) {
+  public void computedCompletion(String completionId, int replacementOffset, int replacementLength,
+      CompletionSuggestion[] completions, boolean last) {
   }
 
   @Override

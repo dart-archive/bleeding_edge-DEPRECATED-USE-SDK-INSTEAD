@@ -15,7 +15,6 @@
 package com.google.dart.server.internal;
 
 import com.google.common.collect.Lists;
-import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.CompletionSuggestion;
 import com.google.dart.server.HighlightRegion;
@@ -25,6 +24,7 @@ import com.google.dart.server.Outline;
 import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.ServerStatus;
+import com.google.dart.server.generated.types.AnalysisError;
 
 import java.util.List;
 

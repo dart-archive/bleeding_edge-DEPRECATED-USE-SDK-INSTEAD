@@ -15,7 +15,7 @@ package com.google.dart.server.internal;
 
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
-import com.google.dart.server.Location;
+import com.google.dart.server.generated.types.Location;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 
 /**

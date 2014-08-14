@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.AnalysisError;
+
 /**
  * The interface {@code ErrorFixes} defines the behavior of objects representing fixes to some
  * error.

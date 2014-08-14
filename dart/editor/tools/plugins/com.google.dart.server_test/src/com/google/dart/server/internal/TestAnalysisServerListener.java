@@ -18,7 +18,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.general.ArrayUtilities;
-import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.CompletionSuggestion;
@@ -30,6 +29,7 @@ import com.google.dart.server.Outline;
 import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.ServerStatus;
+import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.internal.asserts.NavigationRegionsAssert;
 
 import junit.framework.Assert;
@@ -240,7 +240,7 @@ public class TestAnalysisServerListener implements AnalysisServerListener {
   public synchronized AnalysisError[] getErrors(String file) {
     AnalysisError[] errors = sourcesErrors.get(file);
     if (errors == null) {
-      return AnalysisError.NO_ERRORS;
+      return AnalysisError.EMPTY_ARRAY;
     }
     return errors;
   }

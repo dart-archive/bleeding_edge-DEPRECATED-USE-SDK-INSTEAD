@@ -14,7 +14,6 @@
 package com.google.dart.server.timing;
 
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
-import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisServer;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisStatus;
@@ -26,6 +25,7 @@ import com.google.dart.server.Outline;
 import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.ServerStatus;
+import com.google.dart.server.generated.types.AnalysisError;
 import com.google.dart.server.internal.remote.RemoteAnalysisServerImpl;
 import com.google.dart.server.internal.remote.StdioServerSocket;
 

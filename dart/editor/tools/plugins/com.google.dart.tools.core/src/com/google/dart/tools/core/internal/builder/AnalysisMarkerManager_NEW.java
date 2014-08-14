@@ -14,9 +14,9 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.utilities.source.LineInfo;
-import com.google.dart.server.AnalysisError;
-import com.google.dart.server.ErrorSeverity;
-import com.google.dart.server.Location;
+import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.ErrorSeverity;
+import com.google.dart.server.generated.types.Location;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.resources.IContainer;
@@ -98,17 +98,16 @@ public class AnalysisMarkerManager_NEW {
       }
     }
 
-    private int showErrors(int errorCount, ErrorSeverity errorSeverity, int markerSeverity)
+    private int showErrors(int errorCount, String errorSeverity, int markerSeverity)
         throws CoreException {
 
       for (AnalysisError error : errors) {
-        if (error.getErrorSeverity() != errorSeverity) {
+        if (!error.getSeverity().equals(errorSeverity)) {
           continue;
         }
         Location location = error.getLocation();
 
-        boolean isHint = error.getErrorType().equals(
-            com.google.dart.engine.error.ErrorType.HINT.name());// == ErrorType.HINT;
+        boolean isHint = error.getType().equals(com.google.dart.engine.error.ErrorType.HINT.name());// == ErrorType.HINT;
 
         String markerType = DartCore.DART_PROBLEM_MARKER_TYPE;
         // Server doesn't have the angular error type
@@ -116,7 +115,7 @@ public class AnalysisMarkerManager_NEW {
 //          markerType = DartCore.ANGULAR_WARNING_MARKER_TYPE;
 //          markerSeverity = IMarker.SEVERITY_WARNING;
 //        } else
-        if (error.getErrorType().equals(com.google.dart.engine.error.ErrorType.TODO.name())) {
+        if (error.getType().equals(com.google.dart.engine.error.ErrorType.TODO.name())) {
           markerType = DartCore.DART_TASK_MARKER_TYPE;
         } else if (isHint) {
           markerType = DartCore.DART_HINT_MARKER_TYPE;

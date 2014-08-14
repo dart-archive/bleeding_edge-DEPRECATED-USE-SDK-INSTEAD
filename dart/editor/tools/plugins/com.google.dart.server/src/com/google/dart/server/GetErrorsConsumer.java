@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.AnalysisError;
+
 /**
  * The interface {@code AnalysisErrorsConsumer} defines the behavior of objects that consume
  * analysis errors responses.

@@ -13,9 +13,9 @@
  */
 package com.google.dart.server.internal;
 
-import com.google.dart.server.Location;
 import com.google.dart.server.RefactoringProblem;
 import com.google.dart.server.RefactoringProblemSeverity;
+import com.google.dart.server.generated.types.Location;
 import com.google.dart.server.utilities.general.ObjectUtilities;
 
 /**

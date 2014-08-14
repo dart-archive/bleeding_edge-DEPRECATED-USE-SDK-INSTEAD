@@ -16,7 +16,6 @@ package com.google.dart.server.internal.remote;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.dart.server.AnalysisError;
 import com.google.dart.server.AnalysisOptions;
 import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.CompletionRelevance;
@@ -25,7 +24,6 @@ import com.google.dart.server.CompletionSuggestionKind;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
 import com.google.dart.server.ErrorFixes;
-import com.google.dart.server.ErrorSeverity;
 import com.google.dart.server.GetAssistsConsumer;
 import com.google.dart.server.GetErrorsConsumer;
 import com.google.dart.server.GetFixesConsumer;
@@ -36,7 +34,6 @@ import com.google.dart.server.GetVersionConsumer;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.HighlightType;
 import com.google.dart.server.HoverInformation;
-import com.google.dart.server.Location;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
 import com.google.dart.server.Outline;
@@ -49,10 +46,11 @@ import com.google.dart.server.SourceChange;
 import com.google.dart.server.SourceEdit;
 import com.google.dart.server.SourceFileEdit;
 import com.google.dart.server.TypeHierarchyItem;
+import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.ErrorSeverity;
+import com.google.dart.server.generated.types.Location;
 import com.google.dart.server.generated.types.ServerService;
-import com.google.dart.server.internal.AnalysisErrorImpl;
 import com.google.dart.server.internal.AnalysisServerError;
-import com.google.dart.server.internal.LocationImpl;
 import com.google.dart.server.internal.integration.RemoteAnalysisServerImplIntegrationTest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -127,13 +125,13 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     server.test_waitForWorkerComplete();
 
     assertThat(errors[0]).hasSize(2);
-    assertEquals(new AnalysisErrorImpl(ErrorSeverity.ERROR, "SYNTACTIC_ERROR", new LocationImpl(
+    assertEquals(new AnalysisError(ErrorSeverity.ERROR, "SYNTACTIC_ERROR", new Location(
         "/fileA.dart",
         1,
         2,
         3,
         4), "message A", "correction A"), errors[0][0]);
-    assertEquals(new AnalysisErrorImpl(ErrorSeverity.ERROR, "COMPILE_TIME_ERROR", new LocationImpl(
+    assertEquals(new AnalysisError(ErrorSeverity.ERROR, "COMPILE_TIME_ERROR", new Location(
         "/fileB.dart",
         5,
         6,
@@ -234,17 +232,17 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
         "}");
     responseStream.waitForEmpty();
     server.test_waitForWorkerComplete();
-    listener.assertErrorsWithAnalysisErrors("/test.dart", new AnalysisErrorImpl(
+    listener.assertErrorsWithAnalysisErrors("/test.dart", new AnalysisError(
         ErrorSeverity.ERROR,
         "SYNTACTIC_ERROR",
-        new LocationImpl("/fileA.dart", 1, 2, 3, 4),
+        new Location("/fileA.dart", 1, 2, 3, 4),
         "message A",
-        "correction A"), new AnalysisErrorImpl(
-        ErrorSeverity.ERROR,
-        "COMPILE_TIME_ERROR",
-        new LocationImpl("/fileB.dart", 5, 6, 7, 8),
-        "message B",
-        "correction B"));
+        "correction A"), new AnalysisError(ErrorSeverity.ERROR, "COMPILE_TIME_ERROR", new Location(
+        "/fileB.dart",
+        5,
+        6,
+        7,
+        8), "message B", "correction B"));
   }
 
   public void test_analysis_notification_highlights() throws Exception {
@@ -1692,7 +1690,7 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     assertThat(errorFixes).hasSize(2);
     {
       AnalysisError error = errorFixes[0].getError();
-      assertEquals(new AnalysisErrorImpl(ErrorSeverity.ERROR, "SYNTACTIC_ERROR", new LocationImpl(
+      assertEquals(new AnalysisError(ErrorSeverity.ERROR, "SYNTACTIC_ERROR", new Location(
           "/fileA.dart",
           1,
           2,
@@ -1712,12 +1710,12 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     }
     {
       AnalysisError error = errorFixes[1].getError();
-      assertEquals(new AnalysisErrorImpl(
-          ErrorSeverity.ERROR,
-          "COMPILE_TIME_ERROR",
-          new LocationImpl("/fileB.dart", 5, 6, 7, 8),
-          "message B",
-          "correction B"), error);
+      assertEquals(new AnalysisError(ErrorSeverity.ERROR, "COMPILE_TIME_ERROR", new Location(
+          "/fileB.dart",
+          5,
+          6,
+          7,
+          8), "message B", "correction B"), error);
       SourceChange[] sourceChangeArray = errorFixes[1].getFixes();
       assertThat(sourceChangeArray).isEmpty();
     }

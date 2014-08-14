@@ -25,9 +25,9 @@ import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.server.Element;
 import com.google.dart.server.ElementKind;
-import com.google.dart.server.Location;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
+import com.google.dart.server.generated.types.Location;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
@@ -193,6 +193,65 @@ public abstract class SearchResultPage_NEW extends SearchPage {
       return other.file.equals(file) && other.start == start;
     }
   }
+  /**
+   * Helper for transforming offsets in some file into {@link FileLine} objects.
+   */
+  private static class FileLineProvider {
+    private final Map<String, String> fileContentMap = Maps.newHashMap();
+
+    /**
+     * @return the {@link FileLine} for the given file and offset; may be {@code null}.
+     */
+    public FileLine getLine(String filePath, int offset) {
+      String content = getContent(filePath);
+      // find start of line
+      int start = offset;
+      while (start > 0 && content.charAt(start - 1) != '\n') {
+        start--;
+      }
+      // find end of line
+      int end = offset;
+      while (end < content.length() && content.charAt(end) != '\r' && content.charAt(end) != '\n') {
+        end++;
+      }
+      // done
+      String text = content.substring(start, end);
+      return new FileLine(filePath, start, text);
+    }
+
+    private String getContent(String filePath) {
+      String content = fileContentMap.get(filePath);
+      if (content == null) {
+        try {
+          File javaFile = new File(filePath);
+          IFile resource = ResourceUtil.getFile(javaFile);
+          if (resource instanceof IFile) {
+            // IFile in workspace, can be open and modified - get contents using FileBuffers.
+            IFile file = resource;
+            ITextFileBufferManager manager = FileBuffers.getTextFileBufferManager();
+            IPath path = file.getFullPath();
+            manager.connect(path, LocationKind.IFILE, null);
+            try {
+              ITextFileBuffer buffer = manager.getTextFileBuffer(path, LocationKind.IFILE);
+              IDocument document = buffer.getDocument();
+              content = document.get();
+              fileContentMap.put(filePath, content);
+            } finally {
+              manager.disconnect(path, LocationKind.IFILE, null);
+            }
+          } else {
+            // It must be an external file, cannot be modified - request its contents directly.
+            content = Files.toString(javaFile, Charsets.UTF_8);
+            fileContentMap.put(filePath, content);
+          }
+        } catch (Throwable e) {
+          return null;
+        }
+      }
+      return content;
+    }
+  }
+
   /**
    * Helper for navigating {@link ElementItem} and {@link LineItem} hierarchy.
    */
@@ -503,65 +562,6 @@ public abstract class SearchResultPage_NEW extends SearchPage {
         // done
         return styledText;
       }
-    }
-  }
-
-  /**
-   * Helper for transforming offsets in some file into {@link FileLine} objects.
-   */
-  private static class FileLineProvider {
-    private final Map<String, String> fileContentMap = Maps.newHashMap();
-
-    /**
-     * @return the {@link FileLine} for the given file and offset; may be {@code null}.
-     */
-    public FileLine getLine(String filePath, int offset) {
-      String content = getContent(filePath);
-      // find start of line
-      int start = offset;
-      while (start > 0 && content.charAt(start - 1) != '\n') {
-        start--;
-      }
-      // find end of line
-      int end = offset;
-      while (end < content.length() && content.charAt(end) != '\r' && content.charAt(end) != '\n') {
-        end++;
-      }
-      // done
-      String text = content.substring(start, end);
-      return new FileLine(filePath, start, text);
-    }
-
-    private String getContent(String filePath) {
-      String content = fileContentMap.get(filePath);
-      if (content == null) {
-        try {
-          File javaFile = new File(filePath);
-          IFile resource = ResourceUtil.getFile(javaFile);
-          if (resource instanceof IFile) {
-            // IFile in workspace, can be open and modified - get contents using FileBuffers.
-            IFile file = resource;
-            ITextFileBufferManager manager = FileBuffers.getTextFileBufferManager();
-            IPath path = file.getFullPath();
-            manager.connect(path, LocationKind.IFILE, null);
-            try {
-              ITextFileBuffer buffer = manager.getTextFileBuffer(path, LocationKind.IFILE);
-              IDocument document = buffer.getDocument();
-              content = document.get();
-              fileContentMap.put(filePath, content);
-            } finally {
-              manager.disconnect(path, LocationKind.IFILE, null);
-            }
-          } else {
-            // It must be an external file, cannot be modified - request its contents directly.
-            content = Files.toString(javaFile, Charsets.UTF_8);
-            fileContentMap.put(filePath, content);
-          }
-        } catch (Throwable e) {
-          return null;
-        }
-      }
-      return content;
     }
   }
 
