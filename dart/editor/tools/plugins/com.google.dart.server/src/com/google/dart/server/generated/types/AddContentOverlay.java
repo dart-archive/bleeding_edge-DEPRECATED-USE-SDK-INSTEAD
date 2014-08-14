@@ -35,13 +35,18 @@ import org.apache.commons.lang3.StringUtils;
 public class AddContentOverlay {
 
   /**
-   * The new content of the file.
+   * An empty array of {@link AddContentOverlay}s.
    */
-  private final String content;
+  public static final AddContentOverlay[] EMPTY_ARRAY = new AddContentOverlay[0];
 
   /**
    */
   private final String type;
+
+  /**
+   * The new content of the file.
+   */
+  private final String content;
 
   /**
    * Constructor for {@link AddContentOverlay}.

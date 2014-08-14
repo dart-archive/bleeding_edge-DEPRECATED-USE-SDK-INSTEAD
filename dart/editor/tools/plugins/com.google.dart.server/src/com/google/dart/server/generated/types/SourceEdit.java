@@ -31,14 +31,19 @@ import org.apache.commons.lang3.StringUtils;
 public class SourceEdit {
 
   /**
-   * The length of the region to be modified.
+   * An empty array of {@link SourceEdit}s.
    */
-  private final int length;
+  public static final SourceEdit[] EMPTY_ARRAY = new SourceEdit[0];
 
   /**
    * The offset of the region to be modified.
    */
   private final int offset;
+
+  /**
+   * The length of the region to be modified.
+   */
+  private final int length;
 
   /**
    * The code that is to replace the specified region in the original code.

@@ -31,9 +31,14 @@ import org.apache.commons.lang3.StringUtils;
 public class RefactoringProblem {
 
   /**
-   * The location of the problem being represented.
+   * An empty array of {@link RefactoringProblem}s.
    */
-  private final Location location;
+  public static final RefactoringProblem[] EMPTY_ARRAY = new RefactoringProblem[0];
+
+  /**
+   * The severity of the problem being represented.
+   */
+  private final String severity;
 
   /**
    * A human-readable description of the problem being represented.
@@ -41,9 +46,9 @@ public class RefactoringProblem {
   private final String message;
 
   /**
-   * The severity of the problem being represented.
+   * The location of the problem being represented.
    */
-  private final String severity;
+  private final Location location;
 
   /**
    * Constructor for {@link RefactoringProblem}.

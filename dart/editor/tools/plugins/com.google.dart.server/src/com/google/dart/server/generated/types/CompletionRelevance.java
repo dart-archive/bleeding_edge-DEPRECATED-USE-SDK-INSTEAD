@@ -23,9 +23,10 @@ package com.google.dart.server.generated.types;
  */
 public class CompletionRelevance {
 
+  public static final String LOW = "LOW";
+
   public static final String DEFAULT = "DEFAULT";
 
   public static final String HIGH = "HIGH";
 
-  public static final String LOW = "LOW";
 }

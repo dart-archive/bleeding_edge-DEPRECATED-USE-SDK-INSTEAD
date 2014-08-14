@@ -23,11 +23,12 @@ package com.google.dart.server.generated.types;
  */
 public class RefactoringProblemSeverity {
 
+  public static final String INFO = "INFO";
+
+  public static final String WARNING = "WARNING";
+
   public static final String ERROR = "ERROR";
 
   public static final String FATAL = "FATAL";
 
-  public static final String INFO = "INFO";
-
-  public static final String WARNING = "WARNING";
 }

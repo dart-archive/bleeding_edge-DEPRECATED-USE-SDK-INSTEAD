@@ -31,14 +31,14 @@ import org.apache.commons.lang3.StringUtils;
 public class Location {
 
   /**
+   * An empty array of {@link Location}s.
+   */
+  public static final Location[] EMPTY_ARRAY = new Location[0];
+
+  /**
    * The file containing the range.
    */
   private final String file;
-
-  /**
-   * The length of the range.
-   */
-  private final int length;
 
   /**
    * The offset of the range.
@@ -46,14 +46,19 @@ public class Location {
   private final int offset;
 
   /**
-   * The one-based index of the column containing the first character of the range.
+   * The length of the range.
    */
-  private final int startColumn;
+  private final int length;
 
   /**
    * The one-based index of the line containing the first character of the range.
    */
   private final int startLine;
+
+  /**
+   * The one-based index of the column containing the first character of the range.
+   */
+  private final int startColumn;
 
   /**
    * Constructor for {@link Location}.

@@ -31,19 +31,24 @@ import org.apache.commons.lang3.StringUtils;
 public class FoldingRegion {
 
   /**
+   * An empty array of {@link FoldingRegion}s.
+   */
+  public static final FoldingRegion[] EMPTY_ARRAY = new FoldingRegion[0];
+
+  /**
    * The kind of the region.
    */
   private final String kind;
 
   /**
-   * The length of the region to be folded.
-   */
-  private final int length;
-
-  /**
    * The offset of the region to be folded.
    */
   private final int offset;
+
+  /**
+   * The length of the region to be folded.
+   */
+  private final int length;
 
   /**
    * Constructor for {@link FoldingRegion}.

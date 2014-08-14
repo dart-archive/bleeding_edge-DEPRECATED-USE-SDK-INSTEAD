@@ -92,4 +92,5 @@ public class HighlightRegionType {
   public static final String TYPE_NAME_DYNAMIC = "TYPE_NAME_DYNAMIC";
 
   public static final String TYPE_PARAMETER = "TYPE_PARAMETER";
+
 }

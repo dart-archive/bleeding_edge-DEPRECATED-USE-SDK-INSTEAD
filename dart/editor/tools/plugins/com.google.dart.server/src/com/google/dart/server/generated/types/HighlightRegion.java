@@ -31,9 +31,14 @@ import org.apache.commons.lang3.StringUtils;
 public class HighlightRegion {
 
   /**
-   * The length of the region to be highlighted.
+   * An empty array of {@link HighlightRegion}s.
    */
-  private final int length;
+  public static final HighlightRegion[] EMPTY_ARRAY = new HighlightRegion[0];
+
+  /**
+   * The type of highlight associated with the region.
+   */
+  private final String type;
 
   /**
    * The offset of the region to be highlighted.
@@ -41,9 +46,9 @@ public class HighlightRegion {
   private final int offset;
 
   /**
-   * The type of highlight associated with the region.
+   * The length of the region to be highlighted.
    */
-  private final String type;
+  private final int length;
 
   /**
    * Constructor for {@link HighlightRegion}.

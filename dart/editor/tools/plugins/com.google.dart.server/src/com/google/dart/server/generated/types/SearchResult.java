@@ -31,11 +31,14 @@ import org.apache.commons.lang3.StringUtils;
 public class SearchResult {
 
   /**
-   * True if the result is a potential match but cannot be confirmed to be a match. For example, if
-   * all references to a method m defined in some class were requested, and a reference to a method m
-   * from an unknown class were found, it would be marked as being a potential match.
+   * An empty array of {@link SearchResult}s.
    */
-  private final boolean isPotential;
+  public static final SearchResult[] EMPTY_ARRAY = new SearchResult[0];
+
+  /**
+   * The location of the code that matched the search criteria.
+   */
+  private final Location location;
 
   /**
    * The kind of element that was found or the kind of reference that was found.
@@ -43,9 +46,11 @@ public class SearchResult {
   private final String kind;
 
   /**
-   * The location of the code that matched the search criteria.
+   * True if the result is a potential match but cannot be confirmed to be a match. For example, if
+   * all references to a method m defined in some class were requested, and a reference to a method m
+   * from an unknown class were found, it would be marked as being a potential match.
    */
-  private final Location location;
+  private final boolean isPotential;
 
   /**
    * The elements that contain the result, starting with the most immediately enclosing ancestor and

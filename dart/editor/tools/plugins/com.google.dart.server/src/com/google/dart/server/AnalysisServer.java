@@ -399,4 +399,5 @@ public interface AnalysisServer {
    *          restarting it, or zero if the server should not be restarted.
    */
   public void start(long millisToRestart) throws Exception;
+
 }

@@ -31,16 +31,33 @@ import org.apache.commons.lang3.StringUtils;
 public class HoverInformation {
 
   /**
-   * The name of the library in which the referenced element is declared. This data is omitted if
-   * there is no referenced element.
+   * An empty array of {@link HoverInformation}s.
    */
-  private final String containingLibraryName;
+  public static final HoverInformation[] EMPTY_ARRAY = new HoverInformation[0];
+
+  /**
+   * The offset of the range of characters that encompases the cursor position and has the same hover
+   * information as the cursor position.
+   */
+  private final int offset;
+
+  /**
+   * The length of the range of characters that encompases the cursor position and has the same hover
+   * information as the cursor position.
+   */
+  private final int length;
 
   /**
    * The path to the defining compilation unit of the library in which the referenced element is
    * declared. This data is omitted if there is no referenced element.
    */
   private final String containingLibraryPath;
+
+  /**
+   * The name of the library in which the referenced element is declared. This data is omitted if
+   * there is no referenced element.
+   */
+  private final String containingLibraryName;
 
   /**
    * The dartdoc associated with the referenced element. Other than the removal of the comment
@@ -60,18 +77,6 @@ public class HoverInformation {
    * “function type alias”). This data is omitted if there is no referenced element.
    */
   private final String elementKind;
-
-  /**
-   * The length of the range of characters that encompases the cursor position and has the same hover
-   * information as the cursor position.
-   */
-  private final int length;
-
-  /**
-   * The offset of the range of characters that encompases the cursor position and has the same hover
-   * information as the cursor position.
-   */
-  private final int offset;
 
   /**
    * A human-readable description of the parameter corresponding to the expression being hovered

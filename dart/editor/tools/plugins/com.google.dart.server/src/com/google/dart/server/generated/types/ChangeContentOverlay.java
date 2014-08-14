@@ -38,13 +38,18 @@ import org.apache.commons.lang3.StringUtils;
 public class ChangeContentOverlay {
 
   /**
-   * The edits to be applied to the file.
+   * An empty array of {@link ChangeContentOverlay}s.
    */
-  private final List<SourceEdit> edits;
+  public static final ChangeContentOverlay[] EMPTY_ARRAY = new ChangeContentOverlay[0];
 
   /**
    */
   private final String type;
+
+  /**
+   * The edits to be applied to the file.
+   */
+  private final List<SourceEdit> edits;
 
   /**
    * Constructor for {@link ChangeContentOverlay}.

@@ -31,6 +31,26 @@ import org.apache.commons.lang3.StringUtils;
 public class Element {
 
   /**
+   * An empty array of {@link Element}s.
+   */
+  public static final Element[] EMPTY_ARRAY = new Element[0];
+
+  /**
+   * The kind of the element.
+   */
+  private final String kind;
+
+  /**
+   * The name of the element. This is typically used as the label in the outline.
+   */
+  private final String name;
+
+  /**
+   * The location of the name in the declaration of the element.
+   */
+  private final Location location;
+
+  /**
    * A bit-map containing the following flags:
    *
    * - 0x01 - set if the element is explicitly or implicitly abstract
@@ -41,21 +61,6 @@ public class Element {
    * - 0x20 - set if the element is deprecated
    */
   private final int flags;
-
-  /**
-   * The kind of the element.
-   */
-  private final String kind;
-
-  /**
-   * The location of the name in the declaration of the element.
-   */
-  private final Location location;
-
-  /**
-   * The name of the element. This is typically used as the label in the outline.
-   */
-  private final String name;
 
   /**
    * The parameter list for the element. If the element is not a method or function this field will

@@ -60,4 +60,5 @@ public class CompletionSuggestionKind {
   public static final String TOP_LEVEL_VARIABLE = "TOP_LEVEL_VARIABLE";
 
   public static final String TYPE_PARAMETER = "TYPE_PARAMETER";
+
 }

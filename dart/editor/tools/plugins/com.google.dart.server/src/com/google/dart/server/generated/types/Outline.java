@@ -31,9 +31,9 @@ import org.apache.commons.lang3.StringUtils;
 public class Outline {
 
   /**
-   * The children of the node. The field will be omitted if the node has no children.
+   * An empty array of {@link Outline}s.
    */
-  private final List<Outline> children;
+  public static final Outline[] EMPTY_ARRAY = new Outline[0];
 
   /**
    * A description of the element represented by this node.
@@ -41,16 +41,21 @@ public class Outline {
   private final Element element;
 
   /**
-   * The length of the element.
-   */
-  private final int length;
-
-  /**
    * The offset of the first character of the element. This is different than the offset in the
    * Element, which if the offset of the name of the element. It can be used, for example, to map
    * locations in the file back to an outline.
    */
   private final int offset;
+
+  /**
+   * The length of the element.
+   */
+  private final int length;
+
+  /**
+   * The children of the node. The field will be omitted if the node has no children.
+   */
+  private final List<Outline> children;
 
   /**
    * Constructor for {@link Outline}.

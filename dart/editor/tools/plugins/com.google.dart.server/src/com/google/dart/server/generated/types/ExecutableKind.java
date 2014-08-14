@@ -28,4 +28,5 @@ public class ExecutableKind {
   public static final String EITHER = "EITHER";
 
   public static final String SERVER = "SERVER";
+
 }

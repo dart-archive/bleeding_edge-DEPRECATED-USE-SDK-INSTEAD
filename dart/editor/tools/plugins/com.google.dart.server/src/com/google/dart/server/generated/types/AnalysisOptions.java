@@ -32,6 +32,11 @@ import org.apache.commons.lang3.StringUtils;
 public class AnalysisOptions {
 
   /**
+   * An empty array of {@link AnalysisOptions}s.
+   */
+  public static final AnalysisOptions[] EMPTY_ARRAY = new AnalysisOptions[0];
+
+  /**
    * True if the client wants to enable support for the proposed async feature.
    */
   private final boolean enableAsync;

@@ -35,14 +35,19 @@ import org.apache.commons.lang3.StringUtils;
 public class LinkedEditGroup {
 
   /**
-   * The length of the regions that should be edited simultaneously.
+   * An empty array of {@link LinkedEditGroup}s.
    */
-  private final int length;
+  public static final LinkedEditGroup[] EMPTY_ARRAY = new LinkedEditGroup[0];
 
   /**
    * The positions of the regions that should be edited simultaneously.
    */
   private final List<Position> positions;
+
+  /**
+   * The length of the regions that should be edited simultaneously.
+   */
+  private final int length;
 
   /**
    * Pre-computed suggestions for what every region might want to be changed to.

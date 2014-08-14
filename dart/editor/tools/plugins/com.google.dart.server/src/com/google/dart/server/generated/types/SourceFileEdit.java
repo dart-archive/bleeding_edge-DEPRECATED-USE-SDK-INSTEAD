@@ -31,14 +31,19 @@ import org.apache.commons.lang3.StringUtils;
 public class SourceFileEdit {
 
   /**
-   * A list of the edits used to effect the change.
+   * An empty array of {@link SourceFileEdit}s.
    */
-  private final List<SourceEdit> edits;
+  public static final SourceFileEdit[] EMPTY_ARRAY = new SourceFileEdit[0];
 
   /**
    * The file containing the code to be modified.
    */
   private final String file;
+
+  /**
+   * A list of the edits used to effect the change.
+   */
+  private final List<SourceEdit> edits;
 
   /**
    * Constructor for {@link SourceFileEdit}.

@@ -31,6 +31,11 @@ import org.apache.commons.lang3.StringUtils;
 public class ExecutableFile {
 
   /**
+   * An empty array of {@link ExecutableFile}s.
+   */
+  public static final ExecutableFile[] EMPTY_ARRAY = new ExecutableFile[0];
+
+  /**
    * The path of the executable file.
    */
   private final String file;

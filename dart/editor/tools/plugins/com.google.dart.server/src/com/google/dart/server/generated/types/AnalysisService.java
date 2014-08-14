@@ -34,4 +34,5 @@ public class AnalysisService {
   public static final String OUTLINE = "OUTLINE";
 
   public static final String OVERRIDES = "OVERRIDES";
+
 }

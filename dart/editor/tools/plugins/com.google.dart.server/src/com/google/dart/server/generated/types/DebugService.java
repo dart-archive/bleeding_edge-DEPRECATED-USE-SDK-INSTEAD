@@ -24,4 +24,5 @@ package com.google.dart.server.generated.types;
 public class DebugService {
 
   public static final String LAUNCH_DATA = "LAUNCH_DATA";
+
 }

@@ -31,19 +31,24 @@ import org.apache.commons.lang3.StringUtils;
 public class Occurrences {
 
   /**
+   * An empty array of {@link Occurrences}s.
+   */
+  public static final Occurrences[] EMPTY_ARRAY = new Occurrences[0];
+
+  /**
    * The element that was referenced.
    */
   private final Element element;
 
   /**
-   * The length of the name of the referenced element.
-   */
-  private final int length;
-
-  /**
    * The offsets of the name of the referenced element within the file.
    */
   private final int[] offsets;
+
+  /**
+   * The length of the name of the referenced element.
+   */
+  private final int length;
 
   /**
    * Constructor for {@link Occurrences}.

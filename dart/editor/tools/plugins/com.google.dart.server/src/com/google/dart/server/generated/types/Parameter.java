@@ -31,14 +31,19 @@ import org.apache.commons.lang3.StringUtils;
 public class Parameter {
 
   /**
-   * The name that should be given to the parameter.
+   * An empty array of {@link Parameter}s.
    */
-  private final String name;
+  public static final Parameter[] EMPTY_ARRAY = new Parameter[0];
 
   /**
    * The type that should be given to the parameter.
    */
   private final String type;
+
+  /**
+   * The name that should be given to the parameter.
+   */
+  private final String name;
 
   /**
    * Constructor for {@link Parameter}.

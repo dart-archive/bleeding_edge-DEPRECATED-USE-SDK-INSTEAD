@@ -31,6 +31,11 @@ import org.apache.commons.lang3.StringUtils;
 public class TypeHierarchyItem {
 
   /**
+   * An empty array of {@link TypeHierarchyItem}s.
+   */
+  public static final TypeHierarchyItem[] EMPTY_ARRAY = new TypeHierarchyItem[0];
+
+  /**
    * The class element represented by this item.
    */
   private final Element classElement;
@@ -43,17 +48,23 @@ public class TypeHierarchyItem {
   private final String displayName;
 
   /**
-   * The indexes of the items representing the interfaces implemented by this class. The list will be
-   * empty if there are no implemented interfaces.
-   */
-  private final int[] interfaces;
-
-  /**
    * The member in the class corresponding to the member on which the hierarchy was requested. This
    * field will be omitted if the hierarchy was not requested for a member or if the class does not
    * have a corresponding member.
    */
   private final Element memberElement;
+
+  /**
+   * The index of the item representing the superclass of this class. This field will be omitted if
+   * this item represents the class Object.
+   */
+  private final int superclass;
+
+  /**
+   * The indexes of the items representing the interfaces implemented by this class. The list will be
+   * empty if there are no implemented interfaces.
+   */
+  private final int[] interfaces;
 
   /**
    * The indexes of the items representing the mixins referenced by this class. The list will be
@@ -66,12 +77,6 @@ public class TypeHierarchyItem {
    * there are no subtypes or if this item represents a supertype of the pivot type.
    */
   private final int[] subclasses;
-
-  /**
-   * The index of the item representing the superclass of this class. This field will be omitted if
-   * this item represents the class Object.
-   */
-  private final int superclass;
 
   /**
    * Constructor for {@link TypeHierarchyItem}.

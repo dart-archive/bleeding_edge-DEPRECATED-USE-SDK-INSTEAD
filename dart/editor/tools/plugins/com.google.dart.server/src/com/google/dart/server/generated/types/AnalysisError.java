@@ -31,11 +31,19 @@ import org.apache.commons.lang3.StringUtils;
 public class AnalysisError {
 
   /**
-   * The correction message to be displayed for this error. The correction message should indicate
-   * how the user can fix the error. The field is omitted if there is no correction message
-   * associated with the error code.
+   * An empty array of {@link AnalysisError}s.
    */
-  private final String correction;
+  public static final AnalysisError[] EMPTY_ARRAY = new AnalysisError[0];
+
+  /**
+   * The severity of the error.
+   */
+  private final String severity;
+
+  /**
+   * The type of the error.
+   */
+  private final String type;
 
   /**
    * The location associated with the error.
@@ -49,14 +57,11 @@ public class AnalysisError {
   private final String message;
 
   /**
-   * The severity of the error.
+   * The correction message to be displayed for this error. The correction message should indicate
+   * how the user can fix the error. The field is omitted if there is no correction message
+   * associated with the error code.
    */
-  private final String severity;
-
-  /**
-   * The type of the error.
-   */
-  private final String type;
+  private final String correction;
 
   /**
    * Constructor for {@link AnalysisError}.

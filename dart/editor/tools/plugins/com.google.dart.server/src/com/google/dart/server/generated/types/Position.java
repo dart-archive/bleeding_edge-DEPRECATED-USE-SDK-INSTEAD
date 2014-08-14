@@ -31,6 +31,11 @@ import org.apache.commons.lang3.StringUtils;
 public class Position {
 
   /**
+   * An empty array of {@link Position}s.
+   */
+  public static final Position[] EMPTY_ARRAY = new Position[0];
+
+  /**
    * The file containing the position.
    */
   private final String file;

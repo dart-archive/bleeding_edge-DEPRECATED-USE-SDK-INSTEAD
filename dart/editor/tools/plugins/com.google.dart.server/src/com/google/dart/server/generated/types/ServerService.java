@@ -24,4 +24,5 @@ package com.google.dart.server.generated.types;
 public class ServerService {
 
   public static final String STATUS = "STATUS";
+
 }

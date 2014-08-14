@@ -30,4 +30,5 @@ public class LinkedEditSuggestionKind {
   public static final String TYPE = "TYPE";
 
   public static final String VARIABLE = "VARIABLE";
+
 }

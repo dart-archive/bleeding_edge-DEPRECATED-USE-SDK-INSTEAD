@@ -34,4 +34,5 @@ public class ErrorType {
   public static final String SYNTACTIC_ERROR = "SYNTACTIC_ERROR";
 
   public static final String TODO = "TODO";
+
 }

@@ -31,6 +31,16 @@ import org.apache.commons.lang3.StringUtils;
 public class SourceChange {
 
   /**
+   * An empty array of {@link SourceChange}s.
+   */
+  public static final SourceChange[] EMPTY_ARRAY = new SourceChange[0];
+
+  /**
+   * A human-readable description of the change to be applied.
+   */
+  private final String message;
+
+  /**
    * A list of the edits used to effect the change, grouped by file.
    */
   private final List<SourceFileEdit> edits;
@@ -39,11 +49,6 @@ public class SourceChange {
    * A list of the linked editing groups used to customize the changes that were made.
    */
   private final List<LinkedEditGroup> linkedEditGroups;
-
-  /**
-   * A human-readable description of the change to be applied.
-   */
-  private final String message;
 
   /**
    * The position that should be selected after the edits have been applied.

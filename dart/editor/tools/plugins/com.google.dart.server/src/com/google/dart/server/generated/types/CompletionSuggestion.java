@@ -32,6 +32,21 @@ import org.apache.commons.lang3.StringUtils;
 public class CompletionSuggestion {
 
   /**
+   * An empty array of {@link CompletionSuggestion}s.
+   */
+  public static final CompletionSuggestion[] EMPTY_ARRAY = new CompletionSuggestion[0];
+
+  /**
+   * The kind of element being suggested.
+   */
+  private final String kind;
+
+  /**
+   * The relevance of this completion suggestion.
+   */
+  private final String relevance;
+
+  /**
    * The identifier to be inserted if the suggestion is selected. If the suggestion is for a method
    * or function, the client might want to additionally insert a template for the parameters. The
    * information required in order to do so is contained in other fields.
@@ -39,22 +54,15 @@ public class CompletionSuggestion {
   private final String completion;
 
   /**
-   * The class that declares the element being suggested. This field is omitted if the suggested
-   * element is not a member of a class.
+   * The offset, relative to the beginning of the completion, of where the selection should be placed
+   * after insertion.
    */
-  private final String declaringType;
+  private final int selectionOffset;
 
   /**
-   * The Dartdoc associated with the element being suggested, This field is omitted if there is no
-   * Dartdoc associated with the element.
+   * The number of characters that should be selected after insertion.
    */
-  private final String docComplete;
-
-  /**
-   * An abbreviated version of the Dartdoc associated with the element being suggested, This field is
-   * omitted if there is no Dartdoc associated with the element.
-   */
-  private final String docSummary;
+  private final int selectionLength;
 
   /**
    * True if the suggested element is deprecated.
@@ -68,50 +76,22 @@ public class CompletionSuggestion {
   private final boolean isPotential;
 
   /**
-   * The kind of element being suggested.
+   * An abbreviated version of the Dartdoc associated with the element being suggested, This field is
+   * omitted if there is no Dartdoc associated with the element.
    */
-  private final String kind;
+  private final String docSummary;
 
   /**
-   * The name of the optional parameter being suggested. This field is omitted if the suggestion is
-   * not the addition of an optional argument within an argument list.
+   * The Dartdoc associated with the element being suggested, This field is omitted if there is no
+   * Dartdoc associated with the element.
    */
-  private final String parameterName;
+  private final String docComplete;
 
   /**
-   * The names of the parameters of the function or method being suggested. This field is omitted if
-   * the suggested element is not a setter, function or method.
+   * The class that declares the element being suggested. This field is omitted if the suggested
+   * element is not a member of a class.
    */
-  private final List<String> parameterNames;
-
-  /**
-   * The type of the options parameter being suggested. This field is omitted if the parameterName
-   * field is omitted.
-   */
-  private final String parameterType;
-
-  /**
-   * The types of the parameters of the function or method being suggested. This field is omitted if
-   * the parameterNames field is omitted.
-   */
-  private final List<String> parameterTypes;
-
-  /**
-   * The number of positional parameters for the function or method being suggested. This field is
-   * omitted if the parameterNames field is omitted.
-   */
-  private final int positionalParameterCount;
-
-  /**
-   * The relevance of this completion suggestion.
-   */
-  private final String relevance;
-
-  /**
-   * The number of required parameters for the function or method being suggested. This field is
-   * omitted if the parameterNames field is omitted.
-   */
-  private final int requiredParameterCount;
+  private final String declaringType;
 
   /**
    * The return type of the getter, function or method being suggested. This field is omitted if the
@@ -120,15 +100,40 @@ public class CompletionSuggestion {
   private final String returnType;
 
   /**
-   * The number of characters that should be selected after insertion.
+   * The names of the parameters of the function or method being suggested. This field is omitted if
+   * the suggested element is not a setter, function or method.
    */
-  private final int selectionLength;
+  private final List<String> parameterNames;
 
   /**
-   * The offset, relative to the beginning of the completion, of where the selection should be placed
-   * after insertion.
+   * The types of the parameters of the function or method being suggested. This field is omitted if
+   * the parameterNames field is omitted.
    */
-  private final int selectionOffset;
+  private final List<String> parameterTypes;
+
+  /**
+   * The number of required parameters for the function or method being suggested. This field is
+   * omitted if the parameterNames field is omitted.
+   */
+  private final int requiredParameterCount;
+
+  /**
+   * The number of positional parameters for the function or method being suggested. This field is
+   * omitted if the parameterNames field is omitted.
+   */
+  private final int positionalParameterCount;
+
+  /**
+   * The name of the optional parameter being suggested. This field is omitted if the suggestion is
+   * not the addition of an optional argument within an argument list.
+   */
+  private final String parameterName;
+
+  /**
+   * The type of the options parameter being suggested. This field is omitted if the parameterName
+   * field is omitted.
+   */
+  private final String parameterType;
 
   /**
    * Constructor for {@link CompletionSuggestion}.

@@ -35,6 +35,11 @@ import org.apache.commons.lang3.StringUtils;
 public class RemoveContentOverlay {
 
   /**
+   * An empty array of {@link RemoveContentOverlay}s.
+   */
+  public static final RemoveContentOverlay[] EMPTY_ARRAY = new RemoveContentOverlay[0];
+
+  /**
    */
   private final String type;
 

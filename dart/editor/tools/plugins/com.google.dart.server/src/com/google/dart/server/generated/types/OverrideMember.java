@@ -31,15 +31,9 @@ import org.apache.commons.lang3.StringUtils;
 public class OverrideMember {
 
   /**
-   * The members inherited from interfaces that are overridden by the overriding member. The field is
-   * omitted if there are no interface members, in which case there must be a superclass member.
+   * An empty array of {@link OverrideMember}s.
    */
-  private final List<OverriddenMember> interfaceMembers;
-
-  /**
-   * The length of the name of the overriding member.
-   */
-  private final int length;
+  public static final OverrideMember[] EMPTY_ARRAY = new OverrideMember[0];
 
   /**
    * The offset of the name of the overriding member.
@@ -47,11 +41,22 @@ public class OverrideMember {
   private final int offset;
 
   /**
+   * The length of the name of the overriding member.
+   */
+  private final int length;
+
+  /**
    * The member inherited from a superclass that is overridden by the overriding member. The field is
    * omitted if there is no superclass member, in which case there must be at least one interface
    * member.
    */
   private final OverriddenMember superclassMember;
+
+  /**
+   * The members inherited from interfaces that are overridden by the overriding member. The field is
+   * omitted if there are no interface members, in which case there must be a superclass member.
+   */
+  private final List<OverriddenMember> interfaceMembers;
 
   /**
    * Constructor for {@link OverrideMember}.

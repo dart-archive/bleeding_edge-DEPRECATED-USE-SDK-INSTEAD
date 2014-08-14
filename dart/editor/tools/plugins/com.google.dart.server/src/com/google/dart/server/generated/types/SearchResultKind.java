@@ -34,4 +34,5 @@ public class SearchResultKind {
   public static final String REFERENCE = "REFERENCE";
 
   public static final String WRITE = "WRITE";
+
 }

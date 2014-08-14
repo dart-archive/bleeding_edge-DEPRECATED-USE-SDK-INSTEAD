@@ -31,14 +31,19 @@ import org.apache.commons.lang3.StringUtils;
 public class OverriddenMember {
 
   /**
-   * The name of the class in which the member is defined.
+   * An empty array of {@link OverriddenMember}s.
    */
-  private final String className;
+  public static final OverriddenMember[] EMPTY_ARRAY = new OverriddenMember[0];
 
   /**
    * The element that is being overridden.
    */
   private final Element element;
+
+  /**
+   * The name of the class in which the member is defined.
+   */
+  private final String className;
 
   /**
    * Constructor for {@link OverriddenMember}.

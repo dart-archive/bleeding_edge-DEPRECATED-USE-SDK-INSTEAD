@@ -31,6 +31,11 @@ import org.apache.commons.lang3.StringUtils;
 public class ErrorFixes {
 
   /**
+   * An empty array of {@link ErrorFixes}s.
+   */
+  public static final ErrorFixes[] EMPTY_ARRAY = new ErrorFixes[0];
+
+  /**
    * The error with which the fixes are associated.
    */
   private final AnalysisError error;

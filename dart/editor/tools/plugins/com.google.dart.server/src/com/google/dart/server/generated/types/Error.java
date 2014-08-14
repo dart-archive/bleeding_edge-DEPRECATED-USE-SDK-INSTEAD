@@ -32,20 +32,25 @@ import org.apache.commons.lang3.StringUtils;
 public class Error {
 
   /**
+   * An empty array of {@link Error}s.
+   */
+  public static final Error[] EMPTY_ARRAY = new Error[0];
+
+  /**
    * A code that uniquely identifies the error that occurred.
    */
   private final String code;
+
+  /**
+   * A short description of the error.
+   */
+  private final String message;
 
   /**
    * Additional data related to the error. This field is omitted if there is no additional data
    * available.
    */
   private final Object data;
-
-  /**
-   * A short description of the error.
-   */
-  private final String message;
 
   /**
    * Constructor for {@link Error}.

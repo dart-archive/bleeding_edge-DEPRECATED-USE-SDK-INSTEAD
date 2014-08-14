@@ -31,14 +31,19 @@ import org.apache.commons.lang3.StringUtils;
 public class NavigationRegion {
 
   /**
-   * The length of the region from which the user can navigate.
+   * An empty array of {@link NavigationRegion}s.
    */
-  private final int length;
+  public static final NavigationRegion[] EMPTY_ARRAY = new NavigationRegion[0];
 
   /**
    * The offset of the region from which the user can navigate.
    */
   private final int offset;
+
+  /**
+   * The length of the region from which the user can navigate.
+   */
+  private final int length;
 
   /**
    * The elements to which the given region is bound. By opening the declaration of the elements,

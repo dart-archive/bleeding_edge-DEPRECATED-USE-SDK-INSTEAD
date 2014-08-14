@@ -23,13 +23,14 @@ package com.google.dart.server.generated.types;
  */
 public class FoldingKind {
 
-  public static final String CLASS_MEMBER = "CLASS_MEMBER";
-
   public static final String COMMENT = "COMMENT";
+
+  public static final String CLASS_MEMBER = "CLASS_MEMBER";
 
   public static final String DIRECTIVES = "DIRECTIVES";
 
   public static final String DOCUMENTATION_COMMENT = "DOCUMENTATION_COMMENT";
 
   public static final String TOP_LEVEL_DECLARATION = "TOP_LEVEL_DECLARATION";
+
 }

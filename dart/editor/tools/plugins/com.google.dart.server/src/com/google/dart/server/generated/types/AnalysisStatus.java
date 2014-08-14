@@ -31,14 +31,19 @@ import org.apache.commons.lang3.StringUtils;
 public class AnalysisStatus {
 
   /**
-   * The name of the current target of analysis. This field is omitted if analyzing is false.
+   * An empty array of {@link AnalysisStatus}s.
    */
-  private final String analysisTarget;
+  public static final AnalysisStatus[] EMPTY_ARRAY = new AnalysisStatus[0];
 
   /**
    * True if analysis is currently being performed.
    */
   private final boolean analyzing;
+
+  /**
+   * The name of the current target of analysis. This field is omitted if analyzing is false.
+   */
+  private final String analysisTarget;
 
   /**
    * Constructor for {@link AnalysisStatus}.

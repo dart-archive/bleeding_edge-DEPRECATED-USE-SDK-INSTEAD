@@ -32,14 +32,19 @@ import org.apache.commons.lang3.StringUtils;
 public class LinkedEditSuggestion {
 
   /**
-   * The kind of value being proposed.
+   * An empty array of {@link LinkedEditSuggestion}s.
    */
-  private final String kind;
+  public static final LinkedEditSuggestion[] EMPTY_ARRAY = new LinkedEditSuggestion[0];
 
   /**
    * The value that could be used to replace all of the linked edit regions.
    */
   private final String value;
+
+  /**
+   * The kind of value being proposed.
+   */
+  private final String kind;
 
   /**
    * Constructor for {@link LinkedEditSuggestion}.
