@@ -278,7 +278,11 @@ public class TypeResolverVisitor extends ScopedVisitor {
     if (extendsClause != null) {
       ErrorCode errorCode = withClause == null ? CompileTimeErrorCode.EXTENDS_NON_CLASS
           : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
-      superclassType = resolveType(extendsClause.getSuperclass(), errorCode, errorCode);
+      superclassType = resolveType(
+          extendsClause.getSuperclass(),
+          errorCode,
+          CompileTimeErrorCode.EXTENDS_ENUM,
+          errorCode);
       if (superclassType != getTypeProvider().getObjectType()) {
         classElement.setValidMixin(false);
       }
@@ -302,7 +306,11 @@ public class TypeResolverVisitor extends ScopedVisitor {
     super.visitClassTypeAlias(node);
     ClassElementImpl classElement = getClassElement(node.getName());
     ErrorCode errorCode = CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
-    InterfaceType superclassType = resolveType(node.getSuperclass(), errorCode, errorCode);
+    InterfaceType superclassType = resolveType(
+        node.getSuperclass(),
+        errorCode,
+        CompileTimeErrorCode.EXTENDS_ENUM,
+        errorCode);
     if (superclassType == null) {
       superclassType = getTypeProvider().getObjectType();
     }
@@ -1229,6 +1237,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       InterfaceType[] mixinTypes = resolveTypes(
           withClause.getMixinTypes(),
           CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
+          CompileTimeErrorCode.MIXIN_OF_ENUM,
           CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
       if (classElement != null) {
         classElement.setMixins(mixinTypes);
@@ -1239,6 +1248,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       InterfaceType[] interfaceTypes = resolveTypes(
           interfaces,
           CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
+          CompileTimeErrorCode.IMPLEMENTS_ENUM,
           CompileTimeErrorCode.IMPLEMENTS_DYNAMIC);
       if (classElement != null) {
         classElement.setInterfaces(interfaceTypes);
@@ -1274,13 +1284,19 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @param typeName the type name specifying the type to be returned
    * @param nonTypeError the error to produce if the type name is defined to be something other than
    *          a type
+   * @param enumTypeError the error to produce if the type name is defined to be an enum
    * @param dynamicTypeError the error to produce if the type name is "dynamic"
    * @return the type specified by the type name
    */
   private InterfaceType resolveType(TypeName typeName, ErrorCode nonTypeError,
-      ErrorCode dynamicTypeError) {
+      ErrorCode enumTypeError, ErrorCode dynamicTypeError) {
     Type type = typeName.getType();
     if (type instanceof InterfaceType) {
+      ClassElement element = ((InterfaceType) type).getElement();
+      if (element != null && element.isEnum()) {
+        reportErrorForNode(enumTypeError, typeName);
+        return null;
+      }
       return (InterfaceType) type;
     }
     // If the type is not an InterfaceType, then visitTypeName() sets the type to be a DynamicTypeImpl
@@ -1299,14 +1315,15 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @param typeNames the type names to be resolved
    * @param nonTypeError the error to produce if the type name is defined to be something other than
    *          a type
+   * @param enumTypeError the error to produce if the type name is defined to be an enum
    * @param dynamicTypeError the error to produce if the type name is "dynamic"
    * @return an array containing all of the types that were resolved.
    */
   private InterfaceType[] resolveTypes(NodeList<TypeName> typeNames, ErrorCode nonTypeError,
-      ErrorCode dynamicTypeError) {
+      ErrorCode enumTypeError, ErrorCode dynamicTypeError) {
     ArrayList<InterfaceType> types = new ArrayList<InterfaceType>();
     for (TypeName typeName : typeNames) {
-      InterfaceType type = resolveType(typeName, nonTypeError, dynamicTypeError);
+      InterfaceType type = resolveType(typeName, nonTypeError, enumTypeError, dynamicTypeError);
       if (type != null) {
         types.add(type);
       }

@@ -2778,11 +2778,18 @@ public class ElementResolver extends SimpleAstVisitor<Void> {
             }
           } else {
             if (staticOrPropagatedEnclosingElt instanceof ClassElement) {
-              InterfaceType targetType = ((ClassElement) staticOrPropagatedEnclosingElt).getType();
+              ClassElement classElement = (ClassElement) staticOrPropagatedEnclosingElt;
+              InterfaceType targetType = classElement.getType();
               if (targetType != null && targetType.isDartCoreFunction()
                   && propertyName.getName().equals(FunctionElement.CALL_METHOD_NAME)) {
                 // TODO(brianwilkerson) Can we ever resolve the function being invoked?
                 //resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
+                return;
+              } else if (classElement.isEnum() && propertyName.getName().equals("_name")) {
+                resolver.reportErrorForNode(
+                    CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
+                    propertyName,
+                    propertyName.getName());
                 return;
               }
             }

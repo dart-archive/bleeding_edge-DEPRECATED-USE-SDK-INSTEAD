@@ -82,6 +82,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SwitchCase;
+import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.ThisExpression;
@@ -890,6 +891,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       if (type instanceof InterfaceType) {
         InterfaceType interfaceType = (InterfaceType) type;
         checkForConstOrNewWithAbstractClass(node, typeName, interfaceType);
+        checkForConstOrNewWithEnum(node, typeName, interfaceType);
         if (isInConstInstanceCreation) {
           checkForConstWithNonConst(node);
           checkForConstWithUndefinedConstructor(node, constructorName, typeName);
@@ -1112,6 +1114,7 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   public Void visitSwitchStatement(SwitchStatement node) {
     checkForSwitchExpressionNotAssignable(node);
     checkForCaseBlocksNotTerminated(node);
+    checkForMissingEnumConstantInSwitch(node);
     return super.visitSwitchStatement(node);
   }
 
@@ -2813,12 +2816,31 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
+   * This verifies that the passed instance creation expression is not being invoked on an enum.
+   * 
+   * @param node the instance creation expression to verify
+   * @param typeName the {@link TypeName} of the {@link ConstructorName} from the
+   *          {@link InstanceCreationExpression}, this is the AST node that the error is attached to
+   * @param type the type being constructed with this {@link InstanceCreationExpression}
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#INSTANTIATE_ENUM
+   */
+  private boolean checkForConstOrNewWithEnum(InstanceCreationExpression node, TypeName typeName,
+      InterfaceType type) {
+    if (type.getElement().isEnum()) {
+      errorReporter.reportErrorForNode(CompileTimeErrorCode.INSTANTIATE_ENUM, typeName);
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * This verifies that the passed 'const' instance creation expression is not being invoked on a
    * constructor that is not 'const'.
    * <p>
    * This method assumes that the instance creation was tested to be 'const' before being called.
    * 
-   * @param node the instance creation expression to evaluate
+   * @param node the instance creation expression to verify
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CONST_WITH_NON_CONST
    */
@@ -2882,6 +2904,14 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     // OK if resolved
     if (node.getStaticElement() != null) {
       return false;
+    }
+    Type type = typeName.getType();
+    if (type instanceof InterfaceType) {
+      ClassElement element = ((InterfaceType) type).getElement();
+      if (element != null && element.isEnum()) {
+        // We have already reported the error.
+        return false;
+      }
     }
     Identifier className = typeName.getName();
     // report as named or default constructor absence
@@ -4157,6 +4187,62 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
   }
 
   /**
+   * Check to make sure that switch statements whose static type is an enum type either have a
+   * default case or include all of the enum constants.
+   * 
+   * @param statement the switch statement to check
+   * @return {@code true} if and only if an error code is generated on the passed node
+   */
+  private boolean checkForMissingEnumConstantInSwitch(SwitchStatement statement) {
+    // TODO(brianwilkerson) This needs to be checked after constant values have been computed.
+    Expression expression = statement.getExpression();
+    Type expressionType = getStaticType(expression);
+    if (expressionType == null) {
+      return false;
+    }
+    Element expressionElement = expressionType.getElement();
+    if (!(expressionElement instanceof ClassElement)) {
+      return false;
+    }
+    ClassElement classElement = (ClassElement) expressionElement;
+    if (!classElement.isEnum()) {
+      return false;
+    }
+    ArrayList<String> constantNames = new ArrayList<String>();
+    FieldElement[] fields = classElement.getFields();
+    int fieldCount = fields.length;
+    for (int i = 0; i < fieldCount; i++) {
+      FieldElement field = fields[i];
+      if (field.isStatic() && !field.isSynthetic()) {
+        constantNames.add(field.getName());
+      }
+    }
+    NodeList<SwitchMember> members = statement.getMembers();
+    int memberCount = members.size();
+    for (int i = 0; i < memberCount; i++) {
+      SwitchMember member = members.get(i);
+      if (member instanceof SwitchDefault) {
+        return false;
+      }
+      String constantName = getConstantName(((SwitchCase) member).getExpression());
+      if (constantName != null) {
+        constantNames.remove(constantName);
+      }
+    }
+    int nameCount = constantNames.size();
+    if (nameCount == 0) {
+      return false;
+    }
+    for (int i = 0; i < nameCount; i++) {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+          statement,
+          constantNames.get(i));
+    }
+    return true;
+  }
+
+  /**
    * This verifies that the given function body does not contain return statements that both have
    * and do not have return values.
    * 
@@ -4301,6 +4387,14 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
     // OK if resolved
     if (node.getStaticElement() != null) {
       return false;
+    }
+    Type type = typeName.getType();
+    if (type instanceof InterfaceType) {
+      ClassElement element = ((InterfaceType) type).getElement();
+      if (element != null && element.isEnum()) {
+        // We have already reported the error.
+        return false;
+      }
     }
     // prepare class name
     Identifier className = typeName.getName();
@@ -5566,6 +5660,25 @@ public class ErrorVerifier extends RecursiveAstVisitor<Void> {
       }
     }
     return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS;
+  }
+
+  /**
+   * Given an expression in a switch case whose value is expected to be an enum constant, return the
+   * name of the constant.
+   * 
+   * @param expression the expression from the switch case
+   * @return the name of the constant referenced by the expression
+   */
+  private String getConstantName(Expression expression) {
+    // TODO(brianwilkerson) Convert this to return the element representing the constant.
+    if (expression instanceof SimpleIdentifier) {
+      return ((SimpleIdentifier) expression).getName();
+    } else if (expression instanceof PrefixedIdentifier) {
+      return ((PrefixedIdentifier) expression).getIdentifier().getName();
+    } else if (expression instanceof PropertyAccess) {
+      return ((PropertyAccess) expression).getPropertyName().getName();
+    }
+    return null;
   }
 
   /**

@@ -65,6 +65,7 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   public PropertyAccessorElementImpl(PropertyInducingElementImpl variable) {
     super(variable.getName(), variable.getNameOffset());
     this.variable = variable;
+    setStatic(variable.isStatic());
     setSynthetic(true);
   }
 

@@ -36,6 +36,11 @@ public enum Modifier {
   DEFERRED,
 
   /**
+   * Indicates that a class element was defined by an enum declaration.
+   */
+  ENUM,
+
+  /**
    * Indicates that the modifier 'factory' was applied to the element.
    */
   FACTORY,

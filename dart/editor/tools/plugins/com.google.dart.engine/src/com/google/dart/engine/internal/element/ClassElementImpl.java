@@ -362,6 +362,11 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public boolean isEnum() {
+    return hasModifier(Modifier.ENUM);
+  }
+
+  @Override
   public boolean isOrInheritsProxy() {
     return safeIsOrInheritsProxy(this, new HashSet<ClassElement>());
   }
@@ -459,6 +464,15 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
       ((ConstructorElementImpl) constructor).setEnclosingElement(this);
     }
     this.constructors = constructors;
+  }
+
+  /**
+   * Set whether this class is defined by an enum declaration to correspond to the given value.
+   * 
+   * @param isEnum {@code true} if the class is defined by an enum declaration
+   */
+  public void setEnum(boolean isEnum) {
+    setModifier(Modifier.ENUM, isEnum);
   }
 
   /**

@@ -219,6 +219,13 @@ public interface ClassElement extends Element {
   public boolean isAbstract();
 
   /**
+   * Return {@code true} if this class is defined by an enum declaration.
+   * 
+   * @return {@code true} if this class is defined by an enum declaration
+   */
+  public boolean isEnum();
+
+  /**
    * Return {@code true} if this class {@link #isProxy()}, or if it inherits the proxy annotation
    * from a supertype.
    * 

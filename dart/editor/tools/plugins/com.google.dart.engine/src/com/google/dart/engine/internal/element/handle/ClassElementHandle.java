@@ -161,6 +161,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public boolean isEnum() {
+    return getActualElement().isEnum();
+  }
+
+  @Override
   public boolean isOrInheritsProxy() {
     return getActualElement().isOrInheritsProxy();
   }

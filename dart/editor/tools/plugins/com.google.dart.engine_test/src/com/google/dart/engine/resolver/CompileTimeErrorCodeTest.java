@@ -18,21 +18,11 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class CompileTimeErrorCodeTest extends ResolverTestCase {
-  public void fail_accessPrivateEnumField() throws Exception {
-    Source source = addSource(createSource(//
-        "enum E { ONE }",
-        "String name(E e) {",
-        "  return e._name;",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD);
-    verify(source);
-  }
-
   public void fail_compileTimeConstantRaisesException() throws Exception {
     Source source = addSource(createSource(//
     // TODO Find an expression that would raise an exception
@@ -53,64 +43,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_extendsEnum() throws Exception {
-    Source source = addSource(createSource(//
-        "enum E { ONE }",
-        "class A extends E {}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.EXTENDS_ENUM);
-    verify(source);
-  }
-
-  public void fail_implementsEnum() throws Exception {
-    Source source = addSource(createSource(//
-        "enum E { ONE }",
-        "class A implements E {}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_ENUM);
-    verify(source);
-  }
-
-  public void fail_instantiateEnum_const() throws Exception {
-    Source source = addSource(createSource(//
-        "enum E { ONE }",
-        "E e(String name) {",
-        "  const E(0, name);",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.INSTANTIATE_ENUM);
-    verify(source);
-  }
-
-  public void fail_instantiateEnum_new() throws Exception {
-    Source source = addSource(createSource(//
-        "enum E { ONE }",
-        "E e(String name) {",
-        "  new E(0, name);",
-        "}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.INSTANTIATE_ENUM);
-    verify(source);
-  }
-
-  public void fail_missingEnumConstantInSwitch() throws Exception {
-    Source source = addSource(createSource(//
-        "enum E { ONE, TWO, THREE, FOUR }",
-        "bool odd(E e) {",
-        "  switch (e) {",
-        "    case ONE:",
-        "    case THREE: return true;",
-        "  }",
-        "  return false;",
-        "}"));
-    resolve(source);
-    assertErrors(
-        source,
-        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
-        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH);
-    verify(source);
-  }
-
   public void fail_mixinDeclaresConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -119,15 +51,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends Object mixin A {}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
-    verify(source);
-  }
-
-  public void fail_mixinOfEnum() throws Exception {
-    Source source = addSource(createSource(//
-        "enum E { ONE }",
-        "class A with E {}"));
-    resolve(source);
-    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_ENUM);
     verify(source);
   }
 
@@ -177,6 +100,20 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT);
     verify(source);
+  }
+
+  public void test_accessPrivateEnumField() throws Exception {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.setEnableEnum(true);
+    resetWithOptions(analysisOptions);
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "String name(E e) {",
+        "  return e._name;",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD);
+    // Cannot verify because "_name" cannot be resolved.
   }
 
   public void test_ambiguousExport() throws Exception {
@@ -1443,6 +1380,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_extendsEnum() throws Exception {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.setEnableEnum(true);
+    resetWithOptions(analysisOptions);
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "class A extends E {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.EXTENDS_ENUM);
+    verify(source);
+  }
+
   public void test_extendsNonClass_class() throws Exception {
     Source source = addSource(createSource(//
         "int A;",
@@ -1897,6 +1846,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_implementsEnum() throws Exception {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.setEnableEnum(true);
+    resetWithOptions(analysisOptions);
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "class A implements E {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_ENUM);
+    verify(source);
+  }
+
   public void test_implementsNonClass_class() throws Exception {
     Source source = addSource(createSource(//
         "int A;",
@@ -2270,6 +2231,34 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(source, CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC);
+    verify(source);
+  }
+
+  public void test_instantiateEnum_const() throws Exception {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.setEnableEnum(true);
+    resetWithOptions(analysisOptions);
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "E e(String name) {",
+        "  return const E();",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INSTANTIATE_ENUM);
+    verify(source);
+  }
+
+  public void test_instantiateEnum_new() throws Exception {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.setEnableEnum(true);
+    resetWithOptions(analysisOptions);
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "E e(String name) {",
+        "  return new E();",
+        "}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.INSTANTIATE_ENUM);
     verify(source);
   }
 
@@ -2719,6 +2708,27 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_missingEnumConstantInSwitch() throws Exception {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.setEnableEnum(true);
+    resetWithOptions(analysisOptions);
+    Source source = addSource(createSource(//
+        "enum E { ONE, TWO, THREE, FOUR }",
+        "bool odd(E e) {",
+        "  switch (e) {",
+        "    case E.ONE:",
+        "    case E.THREE: return true;",
+        "  }",
+        "  return false;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        source,
+        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH);
+    verify(source);
+  }
+
   public void test_mixinDeclaresConstructor_classDeclaration() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2919,6 +2929,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         source,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_mixinOfEnum() throws Exception {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.setEnableEnum(true);
+    resetWithOptions(analysisOptions);
+    Source source = addSource(createSource(//
+        "enum E { ONE }",
+        "class A extends Object with E {}"));
+    resolve(source);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_ENUM);
     verify(source);
   }
 

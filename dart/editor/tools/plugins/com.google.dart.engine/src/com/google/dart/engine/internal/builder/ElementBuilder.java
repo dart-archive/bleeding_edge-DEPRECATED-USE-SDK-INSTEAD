@@ -383,6 +383,7 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
   public Void visitEnumDeclaration(EnumDeclaration node) {
     SimpleIdentifier enumName = node.getName();
     ClassElementImpl enumElement = new ClassElementImpl(enumName);
+    enumElement.setEnum(true);
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.setType(enumType);
     currentHolder.addEnum(enumElement);
@@ -861,7 +862,6 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
 
       PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);
       getter.setGetter(true);
-      getter.setStatic(variable.isStatic());
 
       currentHolder.addAccessor(getter);
       variable.setGetter(getter);
@@ -869,7 +869,6 @@ public class ElementBuilder extends RecursiveAstVisitor<Void> {
       if (!isFinal) {
         PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(variable);
         setter.setSetter(true);
-        setter.setStatic(variable.isStatic());
         ParameterElementImpl parameter = new ParameterElementImpl(
             "_" + variable.getName(),
             variable.getNameOffset());

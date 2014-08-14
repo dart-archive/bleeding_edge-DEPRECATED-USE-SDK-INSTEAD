@@ -19,10 +19,12 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.RecursiveAstVisitor;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.constant.ValidResult;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ConstFieldElementImpl;
 import com.google.dart.engine.internal.element.FieldElementImpl;
+import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.object.DartObjectImpl;
 import com.google.dart.engine.internal.object.GenericState;
 import com.google.dart.engine.internal.object.IntState;
@@ -67,26 +69,32 @@ public class EnumMemberBuilder extends RecursiveAstVisitor<Void> {
     // Populate the fields.
     //
     ArrayList<FieldElement> fields = new ArrayList<FieldElement>();
+    ArrayList<PropertyAccessorElement> getters = new ArrayList<PropertyAccessorElement>();
     InterfaceType intType = typeProvider.getIntType();
     InterfaceType stringType = typeProvider.getStringType();
 
     String indexFieldName = "index";
     FieldElementImpl indexField = new FieldElementImpl(indexFieldName, -1);
     indexField.setFinal(true);
+    indexField.setSynthetic(true);
     indexField.setType(intType);
     fields.add(indexField);
+    getters.add(createGetter(indexField));
 
     String nameFieldName = "_name";
     FieldElementImpl nameField = new FieldElementImpl(nameFieldName, -1);
     nameField.setFinal(true);
+    nameField.setSynthetic(true);
     nameField.setType(stringType);
     fields.add(nameField);
 
     FieldElementImpl valuesField = new FieldElementImpl("values", -1);
     valuesField.setStatic(true);
     valuesField.setConst(true);
+    valuesField.setSynthetic(true);
     valuesField.setType(typeProvider.getListType().substitute(new Type[] {enumType}));
     fields.add(valuesField);
+    getters.add(createGetter(valuesField));
     //
     // Build the enum constants.
     //
@@ -94,25 +102,41 @@ public class EnumMemberBuilder extends RecursiveAstVisitor<Void> {
     int constantCount = constants.size();
     for (int i = 0; i < constantCount; i++) {
       SimpleIdentifier constantName = constants.get(i).getName();
-      FieldElementImpl constantElement = new ConstFieldElementImpl(constantName);
-      constantElement.setStatic(true);
-      constantElement.setConst(true);
-      constantElement.setType(enumType);
+      FieldElementImpl constantField = new ConstFieldElementImpl(constantName);
+      constantField.setStatic(true);
+      constantField.setConst(true);
+      constantField.setType(enumType);
       HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
       fieldMap.put(indexFieldName, new DartObjectImpl(intType, new IntState(BigInteger.valueOf(i))));
       fieldMap.put(
           nameFieldName,
           new DartObjectImpl(stringType, new StringState(constantName.getName())));
       DartObjectImpl value = new DartObjectImpl(enumType, new GenericState(fieldMap));
-      constantElement.setEvaluationResult(new ValidResult(value));
-      fields.add(constantElement);
-      constantName.setStaticElement(constantElement);
+      constantField.setEvaluationResult(new ValidResult(value));
+      fields.add(constantField);
+      getters.add(createGetter(constantField));
+      constantName.setStaticElement(constantField);
     }
     //
     // Finish building the enum.
     //
     enumElement.setFields(fields.toArray(new FieldElement[fields.size()]));
+    enumElement.setAccessors(getters.toArray(new PropertyAccessorElement[getters.size()]));
     // Client code isn't allowed to invoke the constructor, so we do not model it.
     return super.visitEnumDeclaration(node);
+  }
+
+  /**
+   * Create a getter that corresponds to the given field.
+   * 
+   * @param field the field for which a getter is to be created
+   * @return the getter that was created
+   */
+  private PropertyAccessorElement createGetter(FieldElementImpl field) {
+    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
+    getter.setGetter(true);
+    getter.setReturnType(field.getType());
+    field.setGetter(getter);
+    return getter;
   }
 }

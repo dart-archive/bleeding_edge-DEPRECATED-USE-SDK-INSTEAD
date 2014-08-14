@@ -22,6 +22,7 @@ import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
@@ -2502,6 +2503,43 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "int get x => 0;",
         "set x(v) {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_missingEnumConstantInSwitch_all() throws Exception {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.setEnableEnum(true);
+    resetWithOptions(analysisOptions);
+    Source source = addSource(createSource(//
+        "enum E { A, B, C }",
+        "",
+        "f(E e) {",
+        "  switch (e) {",
+        "    case E.A: break;",
+        "    case E.B: break;",
+        "    case E.C: break;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_missingEnumConstantInSwitch_default() throws Exception {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.setEnableEnum(true);
+    resetWithOptions(analysisOptions);
+    Source source = addSource(createSource(//
+        "enum E { A, B, C }",
+        "",
+        "f(E e) {",
+        "  switch (e) {",
+        "    case E.B: break;",
+        "    default: break;",
+        "  }",
+        "}"));
     resolve(source);
     assertNoErrors(source);
     verify(source);

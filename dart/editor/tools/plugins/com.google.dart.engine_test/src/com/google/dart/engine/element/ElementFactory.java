@@ -204,7 +204,6 @@ public final class ElementFactory {
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.setGetter(true);
-    getter.setStatic(isStatic);
     getter.setSynthetic(true);
     getter.setVariable(field);
     getter.setReturnType(type);
@@ -216,7 +215,6 @@ public final class ElementFactory {
     if (!isConst && !isFinal) {
       PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
       setter.setSetter(true);
-      setter.setStatic(isStatic);
       setter.setSynthetic(true);
       setter.setVariable(field);
       setter.setParameters(new ParameterElement[] {requiredParameter("_" + name, type)});
@@ -357,7 +355,6 @@ public final class ElementFactory {
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.setGetter(true);
-    getter.setStatic(isStatic);
     getter.setVariable(field);
     getter.setReturnType(type);
     field.setGetter(getter);
@@ -483,7 +480,6 @@ public final class ElementFactory {
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.setGetter(true);
-    getter.setStatic(isStatic);
     getter.setVariable(field);
     getter.setReturnType(type);
     field.setGetter(getter);
@@ -494,7 +490,6 @@ public final class ElementFactory {
     ParameterElementImpl parameter = requiredParameter("a", type);
     PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
     setter.setSetter(true);
-    setter.setStatic(isStatic);
     setter.setSynthetic(true);
     setter.setVariable(field);
     setter.setParameters(new ParameterElement[] {parameter});
@@ -522,7 +517,6 @@ public final class ElementFactory {
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);
     getter.setGetter(true);
-    getter.setStatic(true);
     getter.setSynthetic(true);
     getter.setVariable(variable);
     getter.setReturnType(type);
