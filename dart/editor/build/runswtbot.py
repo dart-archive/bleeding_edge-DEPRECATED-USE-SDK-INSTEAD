@@ -14,7 +14,9 @@ from os.path import join
 DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
 utils = imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
 
-# Define envar DEBUG_SWTBOT_RUNNER to print output from the test runner.
+port = 11104 # The socket used to get output from the test runner
+
+# Define environment var DEBUG_SWTBOT_RUNNER to print output from test runner.
 
 def IsWindows():
   return utils.GuessOS() == 'win32'
@@ -23,6 +25,47 @@ def IsWindows():
 def ExtractTestName(line):
   (type, name) = line.split(',')
   return name.strip('\n')
+
+
+def GetSocket():
+  sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  server_address = ('localhost', port)
+  sock.bind(server_address)
+  sock.listen(1)
+  return sock
+
+
+def GetJava():
+  java = '/usr/bin/java'
+  try:
+    javahome = os.environ('JAVA_HOME')
+    java = join(java, 'bin', 'java')
+  except:
+    pass
+  return java
+
+
+def GetLauncher(build_dir):
+  jarpath = 'plugins/org.eclipse.equinox.launcher_1.3.0.v20120522-1813.jar'
+  launcher = join(build_dir, jarpath)
+  return launcher
+
+
+def GetOS():
+  os = utils.GuessOS()
+  if os is 'macos':
+    os = 'macosx'
+  return os
+
+
+def GetWS():
+  os = utils.GuessOS()
+  ws = None
+  if os is 'macos':
+    ws = 'cocoa'
+  elif os is 'linux':
+    ws = 'gtk'
+  return ws
 
 
 def ExecTestRunner(tempDir):
@@ -38,38 +81,25 @@ def ExecTestRunner(tempDir):
   # Create a work file to put socket data into while tests run
   tmpfile = open(join(str(tempDir), 'output'), 'w')
   tmpfile_name = tmpfile.name
-  
-  # Create a TCP/IP socket
-  sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  # Bind the socket to the port
-  port = 11104
-  server_address = ('localhost', port)
-  sock.bind(server_address)
-  # Listen for incoming connections
-  sock.listen(1)
 
-  java = '/usr/bin/java'
-  try:
-    javahome = os.environ('JAVA_HOME')
-    java = join(java, 'bin', 'java')
-  except:
-    pass
+  sock = GetSocket()
+  java = GetJava()
   if not os.path.exists(java):
     print 'Cannot find java vm'
     return 2, None
-  jarpath = 'plugins/org.eclipse.equinox.launcher_1.3.0.v20120522-1813.jar'
-  launcher = join(build_dir, jarpath)
+  launcher = GetLauncher(build_dir)
   if not os.path.exists(launcher):
     print 'Cannot find eclipse launcher'
     return 3, None
-  
+
+  # Need a new temp dir here so we don't risk polluting the editor's
+  # workspace with test files.
   with utils.TempDir('swtbot') as workspace:
   
     # Start DartEditor in a sub process.
     # SWTBot test results will be sent to the socket on the given port.
     cmd = [
          java, '-Xms256M', '-Xmx2048M', '-XX:MaxPermSize=256M',
-         '-XstartOnFirstThread',
          '-Dorg.eclipse.swt.internal.carbon.smallFonts',
          '-jar', str(launcher),
          '-testLoaderClass',
@@ -79,12 +109,14 @@ def ExecTestRunner(tempDir):
          'org.eclipse.pde.junit.runtime.nonuithreadtestapplication',
          '-testpluginname', 'com.google.dart.tools.tests.swtbot_test',
          '-data', str(workspace),
-         '-os', 'macosx', '-ws', 'cocoa', '-arch', 'x86_64',
+         '-os', GetOS(), '-ws', GetWS(), '-arch', 'x86_64',
          '-port', str(port),
          '-product', 'com.google.dart.tools.deploy.product',
          '-testApplication', 'com.google.dart.tools.deploy.application',
          '-classNames', 'com.google.dart.tools.tests.swtbot.test.TestAll'
          ]
+    if GetOS() is 'macosx':
+      cmd[1:1] = ['-XstartOnFirstThread']
     editorOutputFile = open(join(str(tempDir), 'editorOutput'), 'w')
     editor = subprocess.Popen(cmd, stdout=editorOutputFile.fileno(),
                               stderr=subprocess.STDOUT, shell=IsWindows())
@@ -122,6 +154,7 @@ def ProcessTestOutput(tmpfile_name):
   status = 0
   skip_lines = False
   with open(tmpfile_name) as file:
+    # This loop is awkward but matches the structure of java code
     for line in file:
       if line.startswith('%'):
         if line.startswith('%ERROR') or line.startswith('%FAILED'):
