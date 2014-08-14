@@ -580,7 +580,6 @@ public class SimpleParserTest extends ParserTestCase {
     AwaitExpression expression = parse("parseAwaitExpression", "await x;");
     assertNotNull(expression.getAwaitKeyword());
     assertNotNull(expression.getExpression());
-    assertNotNull(expression.getSemicolon());
   }
 
   public void test_parseBitwiseAndExpression_normal() throws Exception {

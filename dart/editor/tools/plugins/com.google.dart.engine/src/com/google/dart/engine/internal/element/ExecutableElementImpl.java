@@ -147,8 +147,23 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
   }
 
   @Override
+  public boolean isAsynchronous() {
+    return hasModifier(Modifier.ASYNCHRONOUS);
+  }
+
+  @Override
+  public boolean isGenerator() {
+    return hasModifier(Modifier.GENERATOR);
+  }
+
+  @Override
   public boolean isOperator() {
     return false;
+  }
+
+  @Override
+  public boolean isSynchronous() {
+    return !hasModifier(Modifier.ASYNCHRONOUS);
   }
 
   /**

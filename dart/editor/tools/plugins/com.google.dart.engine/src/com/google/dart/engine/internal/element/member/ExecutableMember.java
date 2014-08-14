@@ -93,6 +93,16 @@ public abstract class ExecutableMember extends Member implements ExecutableEleme
   }
 
   @Override
+  public boolean isAsynchronous() {
+    return getBaseElement().isAsynchronous();
+  }
+
+  @Override
+  public boolean isGenerator() {
+    return getBaseElement().isGenerator();
+  }
+
+  @Override
   public boolean isOperator() {
     return getBaseElement().isOperator();
   }
@@ -100,6 +110,11 @@ public abstract class ExecutableMember extends Member implements ExecutableEleme
   @Override
   public boolean isStatic() {
     return getBaseElement().isStatic();
+  }
+
+  @Override
+  public boolean isSynchronous() {
+    return getBaseElement().isSynchronous();
   }
 
   @Override

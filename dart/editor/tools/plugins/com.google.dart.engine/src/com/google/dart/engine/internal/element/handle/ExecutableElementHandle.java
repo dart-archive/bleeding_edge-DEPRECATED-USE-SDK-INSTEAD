@@ -68,6 +68,16 @@ public abstract class ExecutableElementHandle extends ElementHandle implements E
   }
 
   @Override
+  public boolean isAsynchronous() {
+    return getActualElement().isAsynchronous();
+  }
+
+  @Override
+  public boolean isGenerator() {
+    return getActualElement().isGenerator();
+  }
+
+  @Override
   public boolean isOperator() {
     return getActualElement().isOperator();
   }
@@ -75,6 +85,11 @@ public abstract class ExecutableElementHandle extends ElementHandle implements E
   @Override
   public boolean isStatic() {
     return getActualElement().isStatic();
+  }
+
+  @Override
+  public boolean isSynchronous() {
+    return getActualElement().isSynchronous();
   }
 
   @Override

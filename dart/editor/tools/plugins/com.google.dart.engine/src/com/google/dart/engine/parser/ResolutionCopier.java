@@ -109,8 +109,7 @@ public class ResolutionCopier implements AstVisitor<Boolean> {
   public Boolean visitAwaitExpression(AwaitExpression node) {
     AwaitExpression toNode = (AwaitExpression) this.toNode;
     return isEqualTokens(node.getAwaitKeyword(), toNode.getAwaitKeyword())
-        & isEqualNodes(node.getExpression(), toNode.getExpression())
-        & isEqualTokens(node.getSemicolon(), toNode.getSemicolon());
+        & isEqualNodes(node.getExpression(), toNode.getExpression());
   }
 
   @Override

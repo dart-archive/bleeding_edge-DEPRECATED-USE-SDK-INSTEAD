@@ -882,8 +882,6 @@ public class Parser {
     } else if (matchesKeyword(Keyword.RETHROW)) {
       // TODO(brianwilkerson) Rethrow is a statement again.
       return parseRethrowExpression();
-    } else if (parseAsync && matchesString(AWAIT)) {
-      return parseAwaitExpression();
     }
     //
     // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
@@ -2534,16 +2532,15 @@ public class Parser {
    * 
    * <pre>
    * awaitExpression ::=
-   *     'await' expression ';'
+   *     'await' unaryExpression
    * </pre>
    * 
    * @return the await expression that was parsed
    */
   private AwaitExpression parseAwaitExpression() {
     Token awaitToken = getAndAdvance();
-    Expression expression = parseExpression();
-    Token semicolon = expect(TokenType.SEMICOLON);
-    return new AwaitExpression(awaitToken, expression, semicolon);
+    Expression expression = parseUnaryExpression();
+    return new AwaitExpression(awaitToken, expression);
   }
 
   /**
@@ -5872,6 +5869,7 @@ public class Parser {
    * <pre>
    * unaryExpression ::=
    *     prefixOperator unaryExpression
+   *   | awaitExpression
    *   | postfixExpression
    *   | unaryOperator 'super'
    *   | '-' 'super'
@@ -5930,6 +5928,8 @@ public class Parser {
     } else if (matches(TokenType.PLUS)) {
       reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
       return createSyntheticIdentifier();
+    } else if (parseAsync && matchesString(AWAIT)) {
+      return parseAwaitExpression();
     }
     return parsePostfixExpression();
   }

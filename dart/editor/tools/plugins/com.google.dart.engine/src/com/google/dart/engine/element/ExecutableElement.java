@@ -66,6 +66,20 @@ public interface ExecutableElement extends Element {
   public FunctionType getType();
 
   /**
+   * Return {@code true} if this executable element has body marked as being asynchronous.
+   * 
+   * @return {@code true} if this executable element has body marked as being asynchronous
+   */
+  public boolean isAsynchronous();
+
+  /**
+   * Return {@code true} if this executable element has a body marked as being a generator.
+   * 
+   * @return {@code true} if this executable element has a body marked as being a generator
+   */
+  public boolean isGenerator();
+
+  /**
    * Return {@code true} if this executable element is an operator. The test may be based on the
    * name of the executable element, in which case the result will be correct when the name is
    * legal.
@@ -81,4 +95,11 @@ public interface ExecutableElement extends Element {
    * @return {@code true} if this executable element is a static element
    */
   public boolean isStatic();
+
+  /**
+   * Return {@code true} if this executable element has a body marked as being synchronous.
+   * 
+   * @return {@code true} if this executable element has a body marked as being synchronous
+   */
+  public boolean isSynchronous();
 }

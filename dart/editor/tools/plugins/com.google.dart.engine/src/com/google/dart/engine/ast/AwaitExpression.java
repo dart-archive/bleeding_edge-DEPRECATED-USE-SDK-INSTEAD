@@ -30,21 +30,14 @@ public class AwaitExpression extends Expression {
   private Expression expression;
 
   /**
-   * The semicolon following the expression.
-   */
-  private Token semicolon;
-
-  /**
    * Initialize a newly created await expression.
    * 
    * @param awaitKeyword the 'await' keyword
    * @param expression the expression whose value is being waited on
-   * @param semicolon the semicolon following the expression
    */
-  public AwaitExpression(Token awaitKeyword, Expression expression, Token semicolon) {
+  public AwaitExpression(Token awaitKeyword, Expression expression) {
     this.awaitKeyword = awaitKeyword;
     this.expression = becomeParentOf(expression);
-    this.semicolon = semicolon;
   }
 
   @Override
@@ -71,9 +64,6 @@ public class AwaitExpression extends Expression {
 
   @Override
   public Token getEndToken() {
-    if (semicolon != null) {
-      return semicolon;
-    }
     return expression.getEndToken();
   }
 
@@ -93,15 +83,6 @@ public class AwaitExpression extends Expression {
   }
 
   /**
-   * Return the semicolon following the expression.
-   * 
-   * @return the semicolon following the expression
-   */
-  public Token getSemicolon() {
-    return semicolon;
-  }
-
-  /**
    * Set the 'await' keyword to the given token.
    * 
    * @param awaitKeyword the 'await' keyword
@@ -117,15 +98,6 @@ public class AwaitExpression extends Expression {
    */
   public void setExpression(Expression expression) {
     this.expression = becomeParentOf(expression);
-  }
-
-  /**
-   * Set the semicolon following the expression to the given token.
-   * 
-   * @param semicolon the semicolon following the expression
-   */
-  public void setSemicolon(Token semicolon) {
-    this.semicolon = semicolon;
   }
 
   @Override

@@ -118,10 +118,7 @@ public class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @Override
   public AwaitExpression visitAwaitExpression(AwaitExpression node) {
-    return new AwaitExpression(
-        mapToken(node.getAwaitKeyword()),
-        cloneNode(node.getExpression()),
-        mapToken(node.getSemicolon()));
+    return new AwaitExpression(mapToken(node.getAwaitKeyword()), cloneNode(node.getExpression()));
   }
 
   @Override

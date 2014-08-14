@@ -26,6 +26,11 @@ public enum Modifier {
   ABSTRACT,
 
   /**
+   * Indicates that an executable element has a body marked as being asynchronous.
+   */
+  ASYNCHRONOUS,
+
+  /**
    * Indicates that the modifier 'const' was applied to the element.
    */
   CONST,
@@ -51,6 +56,11 @@ public enum Modifier {
   FINAL,
 
   /**
+   * Indicates that an executable element has a body marked as being a generator.
+   */
+  GENERATOR,
+
+  /**
    * Indicates that the pseudo-modifier 'get' was applied to the element.
    */
   GETTER,
@@ -61,6 +71,9 @@ public enum Modifier {
    */
   HAS_EXT_URI,
 
+  /**
+   * Indicates that a class can validly be used as a mixin.
+   */
   MIXIN,
 
   /**
@@ -73,6 +86,9 @@ public enum Modifier {
    */
   POTENTIALLY_MUTATED_IN_SCOPE,
 
+  /**
+   * Indicates that a class contains an explicit reference to 'super'.
+   */
   REFERENCES_SUPER,
 
   /**
@@ -92,5 +108,9 @@ public enum Modifier {
    */
   SYNTHETIC,
 
+  /**
+   * Indicates that a class was defined using an alias. TODO(brianwilkerson) This should be renamed
+   * to 'ALIAS'.
+   */
   TYPEDEF;
 }

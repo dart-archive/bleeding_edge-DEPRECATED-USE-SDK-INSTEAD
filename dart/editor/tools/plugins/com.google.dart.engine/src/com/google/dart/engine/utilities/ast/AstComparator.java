@@ -94,8 +94,7 @@ public class AstComparator implements AstVisitor<Boolean> {
   public Boolean visitAwaitExpression(AwaitExpression node) {
     AwaitExpression other = (AwaitExpression) this.other;
     return isEqualTokens(node.getAwaitKeyword(), other.getAwaitKeyword())
-        && isEqualNodes(node.getExpression(), other.getExpression())
-        && isEqualTokens(node.getSemicolon(), other.getSemicolon());
+        && isEqualNodes(node.getExpression(), other.getExpression());
   }
 
   @Override

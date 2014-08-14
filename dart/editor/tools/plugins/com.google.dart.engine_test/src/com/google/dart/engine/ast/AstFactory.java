@@ -109,10 +109,7 @@ public final class AstFactory {
   }
 
   public static AwaitExpression awaitExpression(Expression expression) {
-    return new AwaitExpression(
-        tokenFromTypeAndString(TokenType.IDENTIFIER, "await"),
-        expression,
-        tokenFromType(TokenType.SEMICOLON));
+    return new AwaitExpression(tokenFromTypeAndString(TokenType.IDENTIFIER, "await"), expression);
   }
 
   public static BinaryExpression binaryExpression(Expression leftOperand, TokenType operator,
