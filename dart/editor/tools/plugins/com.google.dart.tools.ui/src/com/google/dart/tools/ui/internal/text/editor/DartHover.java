@@ -31,7 +31,7 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.StringUtilities;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.server.GetHoverConsumer;
-import com.google.dart.server.HoverInformation;
+import com.google.dart.server.generated.types.HoverInformation;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;

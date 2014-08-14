@@ -14,8 +14,7 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.dart.server.GetHoverConsumer;
-import com.google.dart.server.HoverInformation;
-import com.google.dart.server.internal.HoverInformationImpl;
+import com.google.dart.server.generated.types.HoverInformation;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -43,11 +42,11 @@ public class HoverProcessor extends ResultProcessor {
       JsonElement hoverElem = iter.next();
       if (hoverElem instanceof JsonObject) {
         JsonObject hoverObj = (JsonObject) hoverElem;
-        hovers.add(new HoverInformationImpl( //
+        hovers.add(new HoverInformation( //
             hoverObj.get("offset").getAsInt(),
             hoverObj.get("length").getAsInt(),
-            safelyGetAsString(hoverObj, "containingLibraryName"),
             safelyGetAsString(hoverObj, "containingLibraryPath"),
+            safelyGetAsString(hoverObj, "containingLibraryName"),
             safelyGetAsString(hoverObj, "dartdoc"),
             safelyGetAsString(hoverObj, "elementDescription"),
             safelyGetAsString(hoverObj, "elementKind"),
