@@ -320,9 +320,6 @@ public final class ASTProvider {
   private void activeJavaEditorChanged(IWorkbenchPart editor) {
 
     DartElement dartElement = null;
-    if (editor instanceof DartEditor) {
-      dartElement = ((DartEditor) editor).getInputDartElement();
-    }
 
     synchronized (this) {
       fActiveEditor = editor;

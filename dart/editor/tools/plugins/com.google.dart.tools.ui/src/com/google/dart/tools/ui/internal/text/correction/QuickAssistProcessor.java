@@ -35,11 +35,11 @@ import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefacto
 import com.google.dart.tools.ui.internal.text.correction.proposals.SortMembersProposal;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
-import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.quickassist.IQuickAssistProcessor;
 import org.eclipse.jface.text.source.ISourceViewer;
 
 import java.util.List;

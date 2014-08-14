@@ -17,7 +17,6 @@ import com.google.dart.tools.core.model.CodeAssistElement;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
@@ -50,10 +49,7 @@ public class SelectionConverter {
    */
   public static DartElement[] codeResolve(DartEditor editor, boolean primaryOnly)
       throws DartModelException {
-    return codeResolve(
-        editor,
-        getInput(editor, primaryOnly),
-        (ITextSelection) editor.getSelectionProvider().getSelection());
+    return codeResolve(editor, null, (ITextSelection) editor.getSelectionProvider().getSelection());
   }
 
   public static DartElement[] codeResolve(DartEditor editor, DartElement input,
@@ -74,7 +70,8 @@ public class SelectionConverter {
   }
 
   public static DartElement getInput(DartEditor editor) {
-    return getInput(editor, true);
+    // Legacy method (unsupported)
+    return null;
   }
 
   /**
@@ -107,10 +104,8 @@ public class SelectionConverter {
    * @param primaryOnly if <code>true</code> only primary working copies will be returned
    */
   private static DartElement getInput(DartEditor editor, boolean primaryOnly) {
-    if (editor == null) {
-      return null;
-    }
-    return EditorUtility.getEditorInputDartElement(editor, primaryOnly);
+    // Legacy method (unsupported)
+    return null;
   }
 
   private SelectionConverter() {

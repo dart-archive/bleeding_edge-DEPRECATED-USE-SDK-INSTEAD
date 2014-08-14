@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
@@ -143,14 +142,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     public IFormattingContext createFormattingContext() {
       IFormattingContext context = new CommentFormattingContext();
 
-      Map<String, String> preferences;
-      DartElement inputDartElement = getInputDartElement();
-      DartProject dartProject = inputDartElement != null ? inputDartElement.getDartProject() : null;
-      if (dartProject == null) {
-        preferences = new HashMap<String, String>(DartCore.getOptions());
-      } else {
-        preferences = new HashMap<String, String>(dartProject.getOptions(true));
-      }
+      Map<String, String> preferences = new HashMap<String, String>(DartCore.getOptions());
 
       context.setProperty(FormattingContextProperties.CONTEXT_PREFERENCES, preferences);
 
@@ -1180,7 +1172,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     }
 
     // Always notify AST provider
-    dartPlugin.getASTProvider().reconciled(getInputDartElement(), progressMonitor);
+    dartPlugin.getASTProvider().reconciled(null, progressMonitor);
 
     // Notify listeners
     Object[] listeners = fReconcilingListeners_OLD.getListeners();

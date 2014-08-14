@@ -333,19 +333,6 @@ public class EditorUtility {
 
   /**
    * Returns the given editor's input as Dart element.
-   * 
-   * @param editor the editor
-   * @param primaryOnly if <code>true</code> only primary working copies will be returned
-   * @return the given editor's input as Dart element or <code>null</code> if none
-   */
-  public static DartElement getEditorInputDartElement(IEditorPart editor, boolean primaryOnly) {
-    // Legacy method (unsupported)
-    return null;
-
-  }
-
-  /**
-   * Returns the given editor's input as Dart element.
    * <p>
    * To replace {@link #getEditorInputDartElement(IEditorPart, boolean)}
    * 

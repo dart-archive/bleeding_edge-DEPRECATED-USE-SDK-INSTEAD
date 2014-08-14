@@ -3095,15 +3095,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return fFoldingGroup;
   }
 
-  /**
-   * Returns the Dart element wrapped by this editors input.
-   * 
-   * @return the Dart element wrapped by this editors input.
-   */
-  protected DartElement getInputDartElement() {
-    return EditorUtility.getEditorInputDartElement(this, false);
-  }
-
   protected ISelectionChangedListener getPatchedSelectionChangedListener() {
 
     if (patchedSelectionChangedListener == null) {
