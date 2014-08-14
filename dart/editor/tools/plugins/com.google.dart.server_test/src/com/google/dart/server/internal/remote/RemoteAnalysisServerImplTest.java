@@ -49,6 +49,7 @@ import com.google.dart.server.SourceChange;
 import com.google.dart.server.SourceEdit;
 import com.google.dart.server.SourceFileEdit;
 import com.google.dart.server.TypeHierarchyItem;
+import com.google.dart.server.generated.types.ServerService;
 import com.google.dart.server.internal.AnalysisErrorImpl;
 import com.google.dart.server.internal.AnalysisServerError;
 import com.google.dart.server.internal.LocationImpl;
@@ -2568,50 +2569,49 @@ public class RemoteAnalysisServerImplTest extends AbstractRemoteServerTest {
     listener.assertServerStatus(serverStatus);
   }
 
-  // TODO (jwren) re-enable after funtionality working again
-//  public void test_server_setSubscriptions_emptyList() throws Exception {
-//    server.server_setSubscriptions(new ArrayList<ServerService>(0));
-//    List<JsonObject> requests = requestSink.getRequests();
-//    JsonElement expected = parseJson(//
-//        "{",
-//        "  'id': '0',",
-//        "  'method': 'server.setSubscriptions',",
-//        "  'params': {",
-//        "    'subscriptions': []",
-//        "  }",
-//        "}");
-//    assertTrue(requests.contains(expected));
-//  }
-//
-//  public void test_server_setSubscriptions_nullList() throws Exception {
-//    server.setServerSubscriptions(null);
-//    List<JsonObject> requests = requestSink.getRequests();
-//    JsonElement expected = parseJson(//
-//        "{",
-//        "  'id': '0',",
-//        "  'method': 'server.setSubscriptions',",
-//        "  'params': {",
-//        "    'subscriptions': []",
-//        "  }",
-//        "}");
-//    assertTrue(requests.contains(expected));
-//  }
-//
-//  public void test_server_setSubscriptions_status() throws Exception {
-//    ArrayList<ServerService> subscriptions = new ArrayList<ServerService>();
-//    subscriptions.add(ServerService.STATUS);
-//    server.setServerSubscriptions(subscriptions);
-//    List<JsonObject> requests = requestSink.getRequests();
-//    JsonElement expected = parseJson(//
-//        "{",
-//        "  'id': '0',",
-//        "  'method': 'server.setSubscriptions',",
-//        "  'params': {",
-//        "    'subscriptions': [STATUS]",
-//        "  }",
-//        "}");
-//    assertTrue(requests.contains(expected));
-//  }
+  public void test_server_setSubscriptions_emptyList() throws Exception {
+    server.server_setSubscriptions(new ArrayList<String>(0));
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'server.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': []",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_server_setSubscriptions_nullList() throws Exception {
+    server.server_setSubscriptions(null);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'server.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': []",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
+
+  public void test_server_setSubscriptions_status() throws Exception {
+    ArrayList<String> subscriptions = new ArrayList<String>();
+    subscriptions.add(ServerService.STATUS);
+    server.server_setSubscriptions(subscriptions);
+    List<JsonObject> requests = requestSink.getRequests();
+    JsonElement expected = parseJson(//
+        "{",
+        "  'id': '0',",
+        "  'method': 'server.setSubscriptions',",
+        "  'params': {",
+        "    'subscriptions': [STATUS]",
+        "  }",
+        "}");
+    assertTrue(requests.contains(expected));
+  }
 
   public void test_server_shutdown() throws Exception {
     server.server_shutdown();

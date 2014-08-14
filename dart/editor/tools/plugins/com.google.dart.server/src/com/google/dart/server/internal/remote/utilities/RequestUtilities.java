@@ -20,7 +20,6 @@ import com.google.dart.server.AnalysisService;
 import com.google.dart.server.ContentChange;
 import com.google.dart.server.Location;
 import com.google.dart.server.Parameter;
-import com.google.dart.server.ServerService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -131,8 +130,6 @@ public class RequestUtilities {
       return buildJsonObjectAnalysisOptions((AnalysisOptions) object);
     } else if (object instanceof Location) {
       return buildJsonObjectLocation((Location) object);
-    } else if (object instanceof ServerService) {
-      return new JsonPrimitive(((ServerService) object).name());
     }
     throw new IllegalArgumentException("Unable to convert to JSON: " + object);
   }
@@ -648,8 +645,7 @@ public class RequestUtilities {
    * }
    * </pre>
    */
-  public static JsonObject generateServerSetSubscriptions(String idValue,
-      List<ServerService> subscriptions) {
+  public static JsonObject generateServerSetSubscriptions(String idValue, List<String> subscriptions) {
     JsonObject params = new JsonObject();
     params.add("subscriptions", buildJsonElement(subscriptions));
     return buildJsonObjectRequest(idValue, METHOD_SERVER_SET_SUBSCRIPTIONS, params);

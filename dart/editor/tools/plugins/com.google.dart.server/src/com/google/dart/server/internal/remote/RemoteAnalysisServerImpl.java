@@ -531,20 +531,13 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
     sendRequestToServer(id, RequestUtilities.generateServerGetVersion(id), consumer);
   }
 
-//TODO(jwren) update generator to generate ServerService as ServerService, instead of String
-//@Override
-//public void setServerSubscriptions(List<ServerService> subscriptions) {
-//  String id = generateUniqueId();
-//  if (subscriptions == null) {
-//    subscriptions = Lists.newArrayList();
-//  }
-//  sendRequestToServer(id, RequestUtilities.generateServerSetSubscriptions(id, subscriptions));
-//}
-
   @Override
   public void server_setSubscriptions(List<String> subscriptions) {
-    // TODO Auto-generated method stub
-
+    String id = generateUniqueId();
+    if (subscriptions == null) {
+      subscriptions = Lists.newArrayList();
+    }
+    sendRequestToServer(id, RequestUtilities.generateServerSetSubscriptions(id, subscriptions));
   }
 
   @Override
