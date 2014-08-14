@@ -81,9 +81,9 @@ public class AddContentOverlay {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("type=");
-    builder.append(type.toString() + ", ");
+    builder.append(type + ", ");
     builder.append("content=");
-    builder.append(content.toString() + ", ");
+    builder.append(content);
     builder.append("]");
     return builder.toString();
   }

@@ -84,9 +84,9 @@ public class LinkedEditSuggestion {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("value=");
-    builder.append(value.toString() + ", ");
+    builder.append(value + ", ");
     builder.append("kind=");
-    builder.append(kind.toString() + ", ");
+    builder.append(kind);
     builder.append("]");
     return builder.toString();
   }

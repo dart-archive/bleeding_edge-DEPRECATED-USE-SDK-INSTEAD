@@ -83,9 +83,9 @@ public class ErrorFixes {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("error=");
-    builder.append(error.toString() + ", ");
+    builder.append(error + ", ");
     builder.append("fixes=");
-    builder.append(StringUtils.join(fixes, ", ") + ", ");
+    builder.append(StringUtils.join(fixes, ", "));
     builder.append("]");
     return builder.toString();
   }

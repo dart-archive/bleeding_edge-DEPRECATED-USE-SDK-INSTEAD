@@ -97,11 +97,11 @@ public class HighlightRegion {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("type=");
-    builder.append(type.toString() + ", ");
+    builder.append(type + ", ");
     builder.append("offset=");
     builder.append(offset + ", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
     builder.append("]");
     return builder.toString();
   }

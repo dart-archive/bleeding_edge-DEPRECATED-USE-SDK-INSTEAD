@@ -83,9 +83,9 @@ public class Position {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("file=");
-    builder.append(file.toString() + ", ");
+    builder.append(file + ", ");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
     builder.append("]");
     return builder.toString();
   }

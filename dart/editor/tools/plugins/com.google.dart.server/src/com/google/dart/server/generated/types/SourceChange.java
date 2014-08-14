@@ -111,13 +111,13 @@ public class SourceChange {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("message=");
-    builder.append(message.toString() + ", ");
+    builder.append(message + ", ");
     builder.append("edits=");
     builder.append(StringUtils.join(edits, ", ") + ", ");
     builder.append("linkedEditGroups=");
     builder.append(StringUtils.join(linkedEditGroups, ", ") + ", ");
     builder.append("selection=");
-    builder.append(selection.toString() + ", ");
+    builder.append(selection);
     builder.append("]");
     return builder.toString();
   }

@@ -115,13 +115,13 @@ public class Outline {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("element=");
-    builder.append(element.toString() + ", ");
+    builder.append(element + ", ");
     builder.append("offset=");
     builder.append(offset + ", ");
     builder.append("length=");
     builder.append(length + ", ");
     builder.append("children=");
-    builder.append(StringUtils.join(children, ", ") + ", ");
+    builder.append(StringUtils.join(children, ", "));
     builder.append("]");
     return builder.toString();
   }

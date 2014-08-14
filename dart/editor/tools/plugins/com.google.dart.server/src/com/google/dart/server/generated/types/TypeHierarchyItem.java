@@ -169,11 +169,11 @@ public class TypeHierarchyItem {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("classElement=");
-    builder.append(classElement.toString() + ", ");
+    builder.append(classElement + ", ");
     builder.append("displayName=");
-    builder.append(displayName.toString() + ", ");
+    builder.append(displayName + ", ");
     builder.append("memberElement=");
-    builder.append(memberElement.toString() + ", ");
+    builder.append(memberElement + ", ");
     builder.append("superclass=");
     builder.append(superclass + ", ");
     builder.append("interfaces=");
@@ -181,7 +181,7 @@ public class TypeHierarchyItem {
     builder.append("mixins=");
     builder.append(StringUtils.join(mixins, ", ") + ", ");
     builder.append("subclasses=");
-    builder.append(StringUtils.join(subclasses, ", ") + ", ");
+    builder.append(StringUtils.join(subclasses, ", "));
     builder.append("]");
     return builder.toString();
   }

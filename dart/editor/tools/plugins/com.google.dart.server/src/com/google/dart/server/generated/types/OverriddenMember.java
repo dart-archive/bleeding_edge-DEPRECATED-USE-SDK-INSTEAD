@@ -83,9 +83,9 @@ public class OverriddenMember {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("element=");
-    builder.append(element.toString() + ", ");
+    builder.append(element + ", ");
     builder.append("className=");
-    builder.append(className.toString() + ", ");
+    builder.append(className);
     builder.append("]");
     return builder.toString();
   }

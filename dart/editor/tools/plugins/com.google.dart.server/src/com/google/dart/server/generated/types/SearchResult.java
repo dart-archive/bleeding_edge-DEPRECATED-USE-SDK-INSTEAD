@@ -117,13 +117,13 @@ public class SearchResult {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("location=");
-    builder.append(location.toString() + ", ");
+    builder.append(location + ", ");
     builder.append("kind=");
-    builder.append(kind.toString() + ", ");
+    builder.append(kind + ", ");
     builder.append("isPotential=");
     builder.append(isPotential + ", ");
     builder.append("path=");
-    builder.append(StringUtils.join(path, ", ") + ", ");
+    builder.append(StringUtils.join(path, ", "));
     builder.append("]");
     return builder.toString();
   }

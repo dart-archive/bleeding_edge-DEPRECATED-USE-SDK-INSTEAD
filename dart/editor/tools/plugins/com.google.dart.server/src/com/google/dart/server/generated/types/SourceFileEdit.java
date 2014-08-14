@@ -83,9 +83,9 @@ public class SourceFileEdit {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("file=");
-    builder.append(file.toString() + ", ");
+    builder.append(file + ", ");
     builder.append("edits=");
-    builder.append(StringUtils.join(edits, ", ") + ", ");
+    builder.append(StringUtils.join(edits, ", "));
     builder.append("]");
     return builder.toString();
   }

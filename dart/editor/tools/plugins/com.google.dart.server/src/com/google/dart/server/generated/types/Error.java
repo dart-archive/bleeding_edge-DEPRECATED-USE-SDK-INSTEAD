@@ -100,11 +100,11 @@ public class Error {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("code=");
-    builder.append(code.toString() + ", ");
+    builder.append(code + ", ");
     builder.append("message=");
-    builder.append(message.toString() + ", ");
+    builder.append(message + ", ");
     builder.append("data=");
-    builder.append(data.toString() + ", ");
+    builder.append(data);
     builder.append("]");
     return builder.toString();
   }

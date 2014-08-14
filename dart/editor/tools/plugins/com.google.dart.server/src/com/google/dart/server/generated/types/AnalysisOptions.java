@@ -136,7 +136,7 @@ public class AnalysisOptions {
     builder.append("generateDart2jsHints=");
     builder.append(generateDart2jsHints + ", ");
     builder.append("generateHints=");
-    builder.append(generateHints + ", ");
+    builder.append(generateHints);
     builder.append("]");
     return builder.toString();
   }

@@ -133,15 +133,15 @@ public class RefactoringMethodParameter {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("id=");
-    builder.append(id.toString() + ", ");
+    builder.append(id + ", ");
     builder.append("kind=");
-    builder.append(kind.toString() + ", ");
+    builder.append(kind + ", ");
     builder.append("type=");
-    builder.append(type.toString() + ", ");
+    builder.append(type + ", ");
     builder.append("name=");
-    builder.append(name.toString() + ", ");
+    builder.append(name + ", ");
     builder.append("parameters=");
-    builder.append(parameters.toString() + ", ");
+    builder.append(parameters);
     builder.append("]");
     return builder.toString();
   }

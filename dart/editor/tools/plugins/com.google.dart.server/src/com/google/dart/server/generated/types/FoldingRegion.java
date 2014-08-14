@@ -97,11 +97,11 @@ public class FoldingRegion {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("kind=");
-    builder.append(kind.toString() + ", ");
+    builder.append(kind + ", ");
     builder.append("offset=");
     builder.append(offset + ", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
     builder.append("]");
     return builder.toString();
   }

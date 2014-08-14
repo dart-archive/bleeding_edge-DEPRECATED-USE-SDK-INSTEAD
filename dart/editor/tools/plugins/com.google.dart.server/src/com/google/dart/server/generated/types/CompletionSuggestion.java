@@ -322,11 +322,11 @@ public class CompletionSuggestion {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("kind=");
-    builder.append(kind.toString() + ", ");
+    builder.append(kind + ", ");
     builder.append("relevance=");
-    builder.append(relevance.toString() + ", ");
+    builder.append(relevance + ", ");
     builder.append("completion=");
-    builder.append(completion.toString() + ", ");
+    builder.append(completion + ", ");
     builder.append("selectionOffset=");
     builder.append(selectionOffset + ", ");
     builder.append("selectionLength=");
@@ -336,13 +336,13 @@ public class CompletionSuggestion {
     builder.append("isPotential=");
     builder.append(isPotential + ", ");
     builder.append("docSummary=");
-    builder.append(docSummary.toString() + ", ");
+    builder.append(docSummary + ", ");
     builder.append("docComplete=");
-    builder.append(docComplete.toString() + ", ");
+    builder.append(docComplete + ", ");
     builder.append("declaringType=");
-    builder.append(declaringType.toString() + ", ");
+    builder.append(declaringType + ", ");
     builder.append("returnType=");
-    builder.append(returnType.toString() + ", ");
+    builder.append(returnType + ", ");
     builder.append("parameterNames=");
     builder.append(StringUtils.join(parameterNames, ", ") + ", ");
     builder.append("parameterTypes=");
@@ -352,9 +352,9 @@ public class CompletionSuggestion {
     builder.append("positionalParameterCount=");
     builder.append(positionalParameterCount + ", ");
     builder.append("parameterName=");
-    builder.append(parameterName.toString() + ", ");
+    builder.append(parameterName + ", ");
     builder.append("parameterType=");
-    builder.append(parameterType.toString() + ", ");
+    builder.append(parameterType);
     builder.append("]");
     return builder.toString();
   }

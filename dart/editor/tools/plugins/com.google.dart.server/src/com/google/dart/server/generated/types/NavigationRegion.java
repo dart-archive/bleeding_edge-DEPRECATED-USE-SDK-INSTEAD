@@ -103,7 +103,7 @@ public class NavigationRegion {
     builder.append("length=");
     builder.append(length + ", ");
     builder.append("targets=");
-    builder.append(StringUtils.join(targets, ", ") + ", ");
+    builder.append(StringUtils.join(targets, ", "));
     builder.append("]");
     return builder.toString();
   }

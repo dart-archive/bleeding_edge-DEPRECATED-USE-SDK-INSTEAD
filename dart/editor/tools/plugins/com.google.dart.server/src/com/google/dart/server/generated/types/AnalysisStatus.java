@@ -85,7 +85,7 @@ public class AnalysisStatus {
     builder.append("analyzing=");
     builder.append(analyzing + ", ");
     builder.append("analysisTarget=");
-    builder.append(analysisTarget.toString() + ", ");
+    builder.append(analysisTarget);
     builder.append("]");
     return builder.toString();
   }

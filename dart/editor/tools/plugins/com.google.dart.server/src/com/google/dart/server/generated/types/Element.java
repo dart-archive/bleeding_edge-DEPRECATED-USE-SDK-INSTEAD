@@ -159,17 +159,17 @@ public class Element {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("kind=");
-    builder.append(kind.toString() + ", ");
+    builder.append(kind + ", ");
     builder.append("name=");
-    builder.append(name.toString() + ", ");
+    builder.append(name + ", ");
     builder.append("location=");
-    builder.append(location.toString() + ", ");
+    builder.append(location + ", ");
     builder.append("flags=");
     builder.append(flags + ", ");
     builder.append("parameters=");
-    builder.append(parameters.toString() + ", ");
+    builder.append(parameters + ", ");
     builder.append("returnType=");
-    builder.append(returnType.toString() + ", ");
+    builder.append(returnType);
     builder.append("]");
     return builder.toString();
   }

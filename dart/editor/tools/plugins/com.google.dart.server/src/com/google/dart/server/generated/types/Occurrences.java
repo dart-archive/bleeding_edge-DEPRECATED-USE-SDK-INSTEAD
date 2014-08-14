@@ -97,11 +97,11 @@ public class Occurrences {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("element=");
-    builder.append(element.toString() + ", ");
+    builder.append(element + ", ");
     builder.append("offsets=");
     builder.append(StringUtils.join(offsets, ", ") + ", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
     builder.append("]");
     return builder.toString();
   }

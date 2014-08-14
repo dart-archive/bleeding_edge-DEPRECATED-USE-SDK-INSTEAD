@@ -131,15 +131,15 @@ public class AnalysisError {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("severity=");
-    builder.append(severity.toString() + ", ");
+    builder.append(severity + ", ");
     builder.append("type=");
-    builder.append(type.toString() + ", ");
+    builder.append(type + ", ");
     builder.append("location=");
-    builder.append(location.toString() + ", ");
+    builder.append(location + ", ");
     builder.append("message=");
-    builder.append(message.toString() + ", ");
+    builder.append(message + ", ");
     builder.append("correction=");
-    builder.append(correction.toString() + ", ");
+    builder.append(correction);
     builder.append("]");
     return builder.toString();
   }

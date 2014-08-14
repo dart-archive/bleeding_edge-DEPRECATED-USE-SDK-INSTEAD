@@ -83,9 +83,9 @@ public class Parameter {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("type=");
-    builder.append(type.toString() + ", ");
+    builder.append(type + ", ");
     builder.append("name=");
-    builder.append(name.toString() + ", ");
+    builder.append(name);
     builder.append("]");
     return builder.toString();
   }

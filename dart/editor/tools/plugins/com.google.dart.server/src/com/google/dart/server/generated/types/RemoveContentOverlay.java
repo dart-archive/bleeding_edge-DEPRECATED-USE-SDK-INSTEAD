@@ -67,7 +67,7 @@ public class RemoveContentOverlay {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("type=");
-    builder.append(type.toString() + ", ");
+    builder.append(type);
     builder.append("]");
     return builder.toString();
   }

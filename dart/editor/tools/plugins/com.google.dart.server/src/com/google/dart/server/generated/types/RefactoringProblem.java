@@ -97,11 +97,11 @@ public class RefactoringProblem {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("severity=");
-    builder.append(severity.toString() + ", ");
+    builder.append(severity + ", ");
     builder.append("message=");
-    builder.append(message.toString() + ", ");
+    builder.append(message + ", ");
     builder.append("location=");
-    builder.append(location.toString() + ", ");
+    builder.append(location);
     builder.append("]");
     return builder.toString();
   }

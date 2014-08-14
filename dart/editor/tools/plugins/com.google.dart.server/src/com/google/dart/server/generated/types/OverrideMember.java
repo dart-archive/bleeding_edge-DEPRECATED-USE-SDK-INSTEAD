@@ -121,9 +121,9 @@ public class OverrideMember {
     builder.append("length=");
     builder.append(length + ", ");
     builder.append("superclassMember=");
-    builder.append(superclassMember.toString() + ", ");
+    builder.append(superclassMember + ", ");
     builder.append("interfaceMembers=");
-    builder.append(StringUtils.join(interfaceMembers, ", ") + ", ");
+    builder.append(StringUtils.join(interfaceMembers, ", "));
     builder.append("]");
     return builder.toString();
   }

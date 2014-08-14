@@ -125,7 +125,7 @@ public class Location {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("file=");
-    builder.append(file.toString() + ", ");
+    builder.append(file + ", ");
     builder.append("offset=");
     builder.append(offset + ", ");
     builder.append("length=");
@@ -133,7 +133,7 @@ public class Location {
     builder.append("startLine=");
     builder.append(startLine + ", ");
     builder.append("startColumn=");
-    builder.append(startColumn + ", ");
+    builder.append(startColumn);
     builder.append("]");
     return builder.toString();
   }

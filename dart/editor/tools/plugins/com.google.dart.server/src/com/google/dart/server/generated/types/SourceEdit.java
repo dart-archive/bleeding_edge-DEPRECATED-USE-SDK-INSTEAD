@@ -101,7 +101,7 @@ public class SourceEdit {
     builder.append("length=");
     builder.append(length + ", ");
     builder.append("replacement=");
-    builder.append(replacement.toString() + ", ");
+    builder.append(replacement);
     builder.append("]");
     return builder.toString();
   }

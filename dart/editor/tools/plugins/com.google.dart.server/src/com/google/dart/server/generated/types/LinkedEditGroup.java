@@ -105,7 +105,7 @@ public class LinkedEditGroup {
     builder.append("length=");
     builder.append(length + ", ");
     builder.append("suggestions=");
-    builder.append(StringUtils.join(suggestions, ", ") + ", ");
+    builder.append(StringUtils.join(suggestions, ", "));
     builder.append("]");
     return builder.toString();
   }

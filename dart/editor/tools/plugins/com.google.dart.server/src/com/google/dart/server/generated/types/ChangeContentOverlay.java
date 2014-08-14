@@ -84,9 +84,9 @@ public class ChangeContentOverlay {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("type=");
-    builder.append(type.toString() + ", ");
+    builder.append(type + ", ");
     builder.append("edits=");
-    builder.append(StringUtils.join(edits, ", ") + ", ");
+    builder.append(StringUtils.join(edits, ", "));
     builder.append("]");
     return builder.toString();
   }
