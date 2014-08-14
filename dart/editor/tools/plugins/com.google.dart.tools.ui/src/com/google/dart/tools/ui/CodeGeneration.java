@@ -58,44 +58,6 @@ public class CodeGeneration {
         lineDelimiter);
   }
 
-  /**
-   * Returns the comment for a method or constructor using the comment code templates (constructor /
-   * method / overriding method). <code>null</code> is returned if the template is empty.
-   * <p>
-   * The returned string is unformatted and not indented.
-   * <p>
-   * Exception types and return type are in signature notation. e.g. a source method declared as
-   * <code>public void foo(String text, int length)</code> would return the array
-   * <code>{"QString;","I"}</code> as parameter types.
-   * 
-   * @param cu The compilation unit to which the method belongs. The compilation unit does not need
-   *          to exist.
-   * @param declaringTypeName Name of the type to which the method belongs. For inner types the name
-   *          must be qualified and include the outer types names (dot separated). See
-   *          {@link org.eclipse.Type.jsdt.core.IType#getTypeQualifiedName(char)} .
-   * @param methodName Name of the method.
-   * @param paramNames Names of the parameters for the method.
-   * @param excTypeSig Thrown exceptions (Signature notation).
-   * @param retTypeSig Return type (Signature notation) or <code>null</code> for constructors.
-   * @param lineDelimiter The line delimiter to be used.
-   * @return Returns the constructed comment or <code>null</code> if the comment code template is
-   *         empty. The returned content is unformatted and not indented (formatting required).
-   * @throws CoreException Thrown when the evaluation of the code template fails.
-   */
-  public static String getMethodComment(CompilationUnit cu, String declaringTypeName,
-      String methodName, String[] paramNames, String[] excTypeSig, String retTypeSig,
-      String lineDelimiter) throws CoreException {
-    return StubUtility.getMethodComment(
-        cu,
-        declaringTypeName,
-        methodName,
-        paramNames,
-        excTypeSig,
-        retTypeSig,
-        false,
-        lineDelimiter);
-  }
-
 //  /**
 //   * Returns the comment for a method or constructor using the comment code
 //   * templates (constructor / method / overriding method). <code>null</code> is

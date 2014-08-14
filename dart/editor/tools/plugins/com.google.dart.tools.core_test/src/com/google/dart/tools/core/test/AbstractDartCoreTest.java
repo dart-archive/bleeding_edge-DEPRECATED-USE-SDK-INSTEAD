@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.test;
 
 import com.google.common.base.Joiner;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.test.util.TestProject;
 
 import junit.framework.TestCase;
@@ -29,25 +28,6 @@ public abstract class AbstractDartCoreTest extends TestCase {
 
   protected TestProject testProject;
 
-  protected CompilationUnit testUnit;
-
-  /**
-   * Sets content of <code>Test.dart</code> unit.
-   */
-  protected final CompilationUnit setTestUnitContent(String... lines) throws Exception {
-    do {
-      testUnit = setUnitContent("Test.dart", lines);
-    } while (testUnit == null);
-    return testUnit;
-  }
-
-  /**
-   * Sets content of the unit with given path.
-   */
-  protected final CompilationUnit setUnitContent(String path, String... lines) throws Exception {
-    return testProject.setUnitContent(path, makeSource(lines));
-  }
-
   @Override
   protected void setUp() throws Exception {
     testProject = new TestProject();
@@ -59,7 +39,6 @@ public abstract class AbstractDartCoreTest extends TestCase {
   protected void tearDown() throws Exception {
     testProject.dispose();
     testProject = null;
-    testUnit = null;
   }
 
 }

@@ -13,16 +13,13 @@
  */
 package com.google.dart.tools.ui.internal.viewsupport;
 
-import com.google.dart.core.IPackageFragmentRoot;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredString.Style;
 import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IPath;
 
 public class ColoredDartElementLabels {
 
@@ -83,23 +80,6 @@ public class ColoredDartElementLabels {
   }
 
   /**
-   * Appends the label for a package fragment root to a {@link ColoredString}. Considers the ROOT_*
-   * flags.
-   * 
-   * @param root The element to render.
-   * @param flags The rendering flags. Flags with names starting with ROOT_' are considered.
-   * @param result The buffer to append the resulting label to.
-   */
-  public static void getPackageFragmentRootLabel(IPackageFragmentRoot root, long flags,
-      ColoredString result) {
-    if (root.isArchive()) {
-      getArchiveLabel(root, flags, result);
-    } else {
-      getFolderLabel(root, flags, result);
-    }
-  }
-
-  /**
    * Returns the label of the given object. The object must be of type {@link DartElement} or adapt
    * to {@link org.eclipse.ui.model.IWorkbenchAdapter}. The empty string is returned if the element
    * type is not known.
@@ -119,106 +99,8 @@ public class ColoredDartElementLabels {
     return new ColoredString(DartElementLabels.getTextLabel(obj, flags));
   }
 
-  private static void getArchiveLabel(IPackageFragmentRoot root, long flags, ColoredString result) {
-//    // Handle variables different
-//    if (getFlag(flags, DartElementLabels.ROOT_VARIABLE)
-//        && getVariableLabel(root, flags, result)) {
-//      return;
-//    }
-    boolean external = root.isExternal();
-    if (external) {
-      getExternalArchiveLabel(root, flags, result);
-    } else {
-      getInternalArchiveLabel(root, flags, result);
-    }
-  }
-
-  private static void getExternalArchiveLabel(IPackageFragmentRoot root, long flags,
-      ColoredString result) {
-    IPath path = root.getPath();
-    if (getFlag(flags, DartElementLabels.REFERENCED_ROOT_POST_QUALIFIED)) {
-      int segements = path.segmentCount();
-      if (segements > 0) {
-        result.append(path.segment(segements - 1));
-        int offset = result.length();
-        if (segements > 1 || path.getDevice() != null) {
-          result.append(DartElementLabels.CONCAT_STRING);
-          result.append(path.removeLastSegments(1).toOSString());
-        }
-        if (getFlag(flags, COLORIZE)) {
-          result.colorize(offset, result.length() - offset, QUALIFIER_STYLE);
-        }
-      } else {
-        result.append(path.toOSString());
-      }
-    } else {
-      result.append(path.toOSString());
-    }
-  }
-
   private static final boolean getFlag(long flags, long flag) {
     return (flags & flag) != 0;
-  }
-
-  private static void getFolderLabel(IPackageFragmentRoot root, long flags, ColoredString result) {
-    IResource resource = root.getResource();
-    boolean rootQualified = getFlag(flags, DartElementLabels.ROOT_QUALIFIED);
-    boolean referencedQualified = getFlag(flags, DartElementLabels.REFERENCED_ROOT_POST_QUALIFIED)
-        && isReferenced(root);
-    if (rootQualified) {
-      result.append(root.getPath().makeRelative().toString());
-    } else {
-      if (resource != null) {
-        IPath projectRelativePath = resource.getProjectRelativePath();
-        if (projectRelativePath.segmentCount() == 0) {
-          result.append(resource.getName());
-          referencedQualified = false;
-        } else {
-          result.append(projectRelativePath.toString());
-        }
-      } else {
-        result.append(root.getElementName());
-      }
-      int offset = result.length();
-      if (referencedQualified) {
-        result.append(DartElementLabels.CONCAT_STRING);
-        result.append(resource.getProject().getName());
-      } else if (getFlag(flags, DartElementLabels.ROOT_POST_QUALIFIED)) {
-        result.append(DartElementLabels.CONCAT_STRING);
-        result.append(root.getParent().getElementName());
-      } else {
-        return;
-      }
-      if (getFlag(flags, COLORIZE)) {
-        result.colorize(offset, result.length() - offset, QUALIFIER_STYLE);
-      }
-    }
-  }
-
-  private static void getInternalArchiveLabel(IPackageFragmentRoot root, long flags,
-      ColoredString result) {
-    IResource resource = root.getResource();
-    boolean rootQualified = getFlag(flags, DartElementLabels.ROOT_QUALIFIED);
-    boolean referencedQualified = getFlag(flags, DartElementLabels.REFERENCED_ROOT_POST_QUALIFIED)
-        && isReferenced(root);
-    if (rootQualified) {
-      result.append(root.getPath().makeRelative().toString());
-    } else {
-      result.append(root.getElementName());
-      int offset = result.length();
-      if (referencedQualified) {
-        result.append(DartElementLabels.CONCAT_STRING);
-        result.append(resource.getParent().getFullPath().makeRelative().toString());
-      } else if (getFlag(flags, DartElementLabels.ROOT_POST_QUALIFIED)) {
-        result.append(DartElementLabels.CONCAT_STRING);
-        result.append(root.getParent().getPath().makeRelative().toString());
-      } else {
-        return;
-      }
-      if (getFlag(flags, COLORIZE)) {
-        result.colorize(offset, result.length() - offset, QUALIFIER_STYLE);
-      }
-    }
   }
 
   private static void getTypeArgumentSignaturesLabel(String[] typeArgsSig, long flags,
@@ -272,21 +154,4 @@ public class ColoredDartElementLabels {
         // unknown
     }
   }
-
-  /**
-   * @param root
-   * @return <code>true</code> if the given package fragment root is referenced. This means it is
-   *         owned by a different project but is referenced by the root's parent. Returns
-   *         <code>false</code> if the given root doesn't have an underlying resource.
-   */
-  private static boolean isReferenced(IPackageFragmentRoot root) {
-    IResource resource = root.getResource();
-    if (resource != null) {
-      IProject jarProject = resource.getProject();
-      IProject container = root.getJavaScriptProject().getProject();
-      return !container.equals(jarProject);
-    }
-    return false;
-  }
-
 }

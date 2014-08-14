@@ -24,11 +24,8 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.texteditor.AbstractTextEditor;
 
 import static org.fest.assertions.Assertions.assertThat;
-
-import java.lang.reflect.Method;
 
 /**
  * Base for {@link DartEditor} tests.
@@ -47,21 +44,6 @@ public class AbstractDartEditorTest extends AbstractDartTest {
   protected ISourceViewer sourceViewer;
 
   protected StyledText textWidget;
-
-  /**
-   * Opens {@link DartEditor} for unit <code>Test.dart</code> with given content.
-   */
-  public void openTestEditor(String... lines) throws Exception {
-    setTestUnitContent(lines);
-    testEditor = openEditor(testUnit);
-    // prepare ISourceViewer and StyledText
-    {
-      Method method = AbstractTextEditor.class.getDeclaredMethod("getSourceViewer");
-      method.setAccessible(true);
-      sourceViewer = (ISourceViewer) method.invoke(testEditor);
-    }
-    textWidget = sourceViewer.getTextWidget();
-  }
 
   /**
    * @return the {@link IAction} with given definition ID, not <code>null</code>.

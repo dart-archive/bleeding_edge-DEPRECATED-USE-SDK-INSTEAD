@@ -38,7 +38,10 @@ public class ColorThemeTest extends AbstractDartEditorTest {
     ColorThemeManager colorThemeManager = new ColorThemeManager();
     IPreferenceStore store = PreferenceConstants.getPreferenceStore();
     PreferenceConstants.initializeDefaultValues(store);
-    openTestEditor("");
+
+    //openTestEditor("");
+    fail("Open test editor");
+
     IPreferenceStore prefs = testEditor.getPreferences();
     Display display = testEditor.getViewer().getTextWidget().getDisplay();
     Color ebg = DartUI.getEditorBackground(prefs, display);

@@ -26,7 +26,10 @@ public class ColorPreferenceTest extends AbstractDartEditorTest {
   public void testColorPrefs() throws Exception {
     IPreferenceStore store = PreferenceConstants.getPreferenceStore();
     PreferenceConstants.initializeDefaultValues(store);
-    openTestEditor("");
+
+    //openTestEditor("");
+    fail("Open test editor");
+
     IPreferenceStore prefs = testEditor.getPreferences();
     Display display = testEditor.getViewer().getTextWidget().getDisplay();
     Color ebg = DartUI.getEditorBackground(prefs, display);

@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.engine.services.refactoring.Parameter;
-import com.google.dart.tools.internal.corext.refactoring.StubTypeContext;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -112,9 +111,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
               parameterModified();
             }
           },
-          ChangeParametersControl.Mode.EXTRACT_METHOD,
-          (StubTypeContext) null // new StubTypeContext(fRefactoring.getUnit(), "", "")
-      );
+          ChangeParametersControl.Mode.EXTRACT_METHOD);
       gd = new GridData(GridData.FILL_BOTH);
       gd.horizontalSpan = 2;
       cp.setLayoutData(gd);

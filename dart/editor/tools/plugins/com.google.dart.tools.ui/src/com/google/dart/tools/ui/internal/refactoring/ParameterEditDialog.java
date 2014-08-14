@@ -17,7 +17,6 @@ import com.google.dart.engine.services.refactoring.Parameter;
 import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
-import com.google.dart.tools.internal.corext.refactoring.StubTypeContext;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.dialogs.TextFieldNavigationHandler;
@@ -45,7 +44,6 @@ public class ParameterEditDialog extends StatusDialog {
   private final Parameter fParameter;
   private final boolean fEditType;
   private final boolean fEditDefault;
-//  private final StubTypeContext fContext;
   private Text fType;
   private Text fName;
   private Text fDefaultValue;
@@ -59,7 +57,7 @@ public class ParameterEditDialog extends StatusDialog {
    *          <code>null</code> if <code>canEditType</code> is <code>false</code>.
    */
   public ParameterEditDialog(Shell parentShell, Parameter parameter, boolean canEditType,
-      boolean canEditDefault, StubTypeContext context) {
+      boolean canEditDefault) {
     super(parentShell);
     fParameter = parameter;
     fEditType = canEditType;

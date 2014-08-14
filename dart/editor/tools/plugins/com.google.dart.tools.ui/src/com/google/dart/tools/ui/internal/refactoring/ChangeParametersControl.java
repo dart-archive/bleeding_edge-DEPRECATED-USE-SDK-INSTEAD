@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.engine.services.refactoring.Parameter;
-import com.google.dart.tools.internal.corext.refactoring.StubTypeContext;
 import com.google.dart.tools.ui.internal.dialogs.TableTextCellEditor;
 import com.google.dart.tools.ui.internal.dialogs.TextFieldNavigationHandler;
 import com.google.dart.tools.ui.internal.refactoring.contentassist.VariableNamesProcessor;
@@ -262,7 +261,6 @@ public class ChangeParametersControl extends Composite {
   private final Mode fMode;
   private final IParameterListChangeListener fListener;
   private List<Parameter> fParameters;
-  private final StubTypeContext fTypeContext;
 
   private final String[] fParamNameProposals;
   private ContentAssistHandler fNameContentAssistHandler;
@@ -277,31 +275,19 @@ public class ChangeParametersControl extends Composite {
 
   public ChangeParametersControl(Composite parent, int style, String label,
       IParameterListChangeListener listener, Mode mode) {
-    this(parent, style, label, listener, mode, null, new String[0]);
-  }
-
-  public ChangeParametersControl(Composite parent, int style, String label,
-      IParameterListChangeListener listener, Mode mode, String[] paramNameProposals) {
-    this(parent, style, label, listener, mode, null, paramNameProposals);
-  }
-
-  public ChangeParametersControl(Composite parent, int style, String label,
-      IParameterListChangeListener listener, Mode mode, StubTypeContext typeContext) {
-    this(parent, style, label, listener, mode, typeContext, new String[0]);
+    this(parent, style, label, listener, mode, new String[0]);
   }
 
   /**
    * @param label the label before the table or <code>null</code>
    * @param typeContext the package in which to complete types
    */
-  private ChangeParametersControl(Composite parent, int style, String label,
-      IParameterListChangeListener listener, Mode mode, StubTypeContext typeContext,
-      String[] paramNameProposals) {
+  public ChangeParametersControl(Composite parent, int style, String label,
+      IParameterListChangeListener listener, Mode mode, String[] paramNameProposals) {
     super(parent, style);
     Assert.isNotNull(listener);
     fListener = listener;
     fMode = mode;
-    fTypeContext = typeContext;
     fParamNameProposals = paramNameProposals;
 
     GridLayout layout = new GridLayout();
@@ -562,8 +548,7 @@ public class ChangeParametersControl extends Composite {
               getShell(),
               parameter,
               fMode.canChangeTypes(),
-              fMode.canChangeDefault(),
-              fTypeContext);
+              fMode.canChangeDefault());
           dialog.open();
           fListener.parameterChanged(parameter);
           fTableViewer.update(parameter, PROPERTIES);

@@ -205,12 +205,4 @@ public class TestProject {
     InputStream stream = new ByteArrayInputStream(bytes);
     return setFileContent(path, stream);
   }
-
-  /**
-   * Creates or updates {@link CompilationUnit} at given path.
-   */
-  public CompilationUnit setUnitContent(String path, String content) throws Exception {
-    setFileContent(path, content);
-    return null;
-  }
 }

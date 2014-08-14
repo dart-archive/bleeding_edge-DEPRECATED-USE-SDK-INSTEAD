@@ -33,10 +33,4 @@ public class StubUtility {
     return null;
   }
 
-  public static String getMethodComment(CompilationUnit cu, String declaringTypeName,
-      String methodName, String[] paramNames, String[] excTypeSig, String retTypeSig, boolean b,
-      String lineDelimiter) {
-    return null;
-  }
-
 }
