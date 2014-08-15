@@ -41,6 +41,8 @@ public class CompletionSuggestionKind {
 
   public static final String IMPORT = "IMPORT";
 
+  public static final String KEYWORD = "KEYWORD";
+
   public static final String LIBRARY_PREFIX = "LIBRARY_PREFIX";
 
   public static final String LOCAL_VARIABLE = "LOCAL_VARIABLE";

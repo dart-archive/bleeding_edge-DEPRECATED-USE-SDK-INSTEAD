@@ -30,6 +30,7 @@ public enum CompletionSuggestionKind {
   FUNCTION_TYPE_ALIAS,
   GETTER,
   IMPORT,
+  KEYWORD,
   LIBRARY_PREFIX,
   LOCAL_VARIABLE,
   METHOD,
