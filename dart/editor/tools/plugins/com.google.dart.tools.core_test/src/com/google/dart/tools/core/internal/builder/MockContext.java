@@ -8,6 +8,7 @@ import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.AnalysisListener;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeSet;
@@ -131,6 +132,11 @@ public class MockContext implements InternalAnalysisContext {
   private SourceFactory factory = new SourceFactory();
 
   private Map<Source, AnalysisLevel> analysisLevels = new HashMap<Source, AnalysisDelta.AnalysisLevel>();
+
+  @Override
+  public void addListener(AnalysisListener listener) {
+    throw new UnsupportedOperationException();
+  }
 
   @Override
   public void addSourceInfo(Source source, SourceEntry info) {
@@ -552,6 +558,11 @@ public class MockContext implements InternalAnalysisContext {
 
   @Override
   public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void removeListener(AnalysisListener listener) {
     throw new UnsupportedOperationException();
   }
 

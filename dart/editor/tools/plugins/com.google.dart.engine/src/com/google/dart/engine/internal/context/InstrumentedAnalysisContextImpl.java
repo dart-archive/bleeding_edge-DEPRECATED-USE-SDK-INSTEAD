@@ -8,6 +8,7 @@ import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.AnalysisListener;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeSet;
@@ -115,6 +116,11 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
    */
   public InstrumentedAnalysisContextImpl(InternalAnalysisContext context) {
     basis = context;
+  }
+
+  @Override
+  public void addListener(AnalysisListener listener) {
+    basis.addListener(listener);
   }
 
   @Override
@@ -749,6 +755,11 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   @Override
   public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     basis.recordLibraryElements(elementMap);
+  }
+
+  @Override
+  public void removeListener(AnalysisListener listener) {
+    basis.removeListener(listener);
   }
 
   @Override

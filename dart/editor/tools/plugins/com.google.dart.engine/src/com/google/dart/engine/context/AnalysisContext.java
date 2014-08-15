@@ -70,6 +70,14 @@ import java.util.List;
  */
 public interface AnalysisContext {
   /**
+   * Add the given listener to the list of objects that are to be notified when various analysis
+   * results are produced in this context.
+   * 
+   * @param listener the listener to be added
+   */
+  public void addListener(AnalysisListener listener);
+
+  /**
    * Apply the given delta to change the level of analysis that will be performed for the sources
    * known to this context.
    * 
@@ -558,6 +566,14 @@ public interface AnalysisContext {
    * @return the results of performing the analysis
    */
   public AnalysisResult performAnalysisTask();
+
+  /**
+   * Remove the given listener from the list of objects that are to be notified when various
+   * analysis results are produced in this context.
+   * 
+   * @param listener the listener to be removed
+   */
+  public void removeListener(AnalysisListener listener);
 
   /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.

@@ -29,6 +29,7 @@ import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisDelta.AnalysisLevel;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.AnalysisListener;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeNotice;
@@ -969,6 +970,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private final Set<AngularApplication> angularApplications = Sets.newHashSet();
 
   /**
+   * The listeners that are to be notified when various analysis results are produced in this
+   * context.
+   */
+  private ArrayList<AnalysisListener> listeners = new ArrayList<AnalysisListener>();
+
+  /**
    * Initialize a newly created analysis context.
    */
   public AnalysisContextImpl() {
@@ -978,6 +985,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         AnalysisOptionsImpl.DEFAULT_CACHE_SIZE,
         new ContextRetentionPolicy());
     cache = createCacheFromSourceFactory(null);
+  }
+
+  @Override
+  public void addListener(AnalysisListener listener) {
+    if (!listeners.contains(listener)) {
+      listeners.add(listener);
+    }
   }
 
   @Override
@@ -1961,6 +1975,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
     }
+  }
+
+  @Override
+  public void removeListener(AnalysisListener listener) {
+    listeners.remove(listener);
   }
 
   @Override

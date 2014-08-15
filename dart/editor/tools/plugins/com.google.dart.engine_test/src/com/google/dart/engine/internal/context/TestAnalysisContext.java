@@ -20,6 +20,7 @@ import com.google.dart.engine.context.AnalysisContextStatistics;
 import com.google.dart.engine.context.AnalysisDelta;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.AnalysisListener;
 import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.AnalysisResult;
 import com.google.dart.engine.context.ChangeSet;
@@ -51,6 +52,11 @@ import java.util.Map;
  * method will cause a test to fail when invoked.
  */
 public class TestAnalysisContext implements InternalAnalysisContext {
+  @Override
+  public void addListener(AnalysisListener listener) {
+    fail("Unexpected invocation of addListener");
+  }
+
   @Override
   public void addSourceInfo(Source source, SourceEntry info) {
     fail("Unexpected invocation of addSourceInfo");
@@ -369,6 +375,11 @@ public class TestAnalysisContext implements InternalAnalysisContext {
   @Override
   public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     fail("Unexpected invocation of recordLibraryElements");
+  }
+
+  @Override
+  public void removeListener(AnalysisListener listener) {
+    fail("Unexpected invocation of removeListener");
   }
 
   @Override
