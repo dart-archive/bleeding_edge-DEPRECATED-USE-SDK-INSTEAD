@@ -1049,7 +1049,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
    * @return the number of spaces displayed for a tabulator in the editor
    */
   private int getVisualTabLengthPreference() {
-    return CodeFormatterUtil.getTabWidth(null);
+    return CodeFormatterUtil.getTabWidth();
   }
 
 //  private boolean isAfterClassPrologue(IDocument d, int p) {
@@ -1416,7 +1416,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           // take the indent of the found line
           StringBuffer replaceText = new StringBuffer(getIndentOfLine(d, indLine));
           int additionalIndentLevels = 3;
-          String indent = CodeFormatterUtil.createIndentString(additionalIndentLevels, null);
+          String indent = CodeFormatterUtil.createIndentString(additionalIndentLevels);
           replaceText.append(indent);
           // add the rest of the current line including the just added colon
           replaceText.append(d.get(whiteend, c.offset - whiteend));

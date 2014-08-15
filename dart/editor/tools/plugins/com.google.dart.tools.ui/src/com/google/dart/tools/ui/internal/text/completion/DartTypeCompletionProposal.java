@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.mock.ui.StubUtility;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.dart.ImportRewrite;
@@ -108,7 +107,7 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
       ImportRewrite impRewrite = null;
 
       if (fCompilationUnit != null && allowAddingImports()) {
-        impRewrite = StubUtility.createImportRewrite(fCompilationUnit, true);
+        impRewrite = new ImportRewrite(fCompilationUnit, true);
       }
 
       boolean updateCursorPosition = updateReplacementString(document, trigger, offset, impRewrite);

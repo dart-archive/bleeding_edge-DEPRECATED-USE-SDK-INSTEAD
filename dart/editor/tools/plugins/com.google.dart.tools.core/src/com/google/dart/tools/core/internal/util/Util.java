@@ -16,18 +16,13 @@ package com.google.dart.tools.core.internal.util;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModelStatusConstants;
-import com.google.dart.tools.core.model.DartProject;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.preferences.IScopeContext;
-import org.eclipse.core.runtime.preferences.InstanceScope;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -216,53 +211,6 @@ public class Util {
       return m + 1;
     }
     return m + 2;
-  }
-
-  /**
-   * Return the line separator found in the given text. If the text is null, or no line separator is
-   * found in the text, return the line delimiter for the given project. If the project is null,
-   * return the line separator for the workspace. If still null, return the system line separator.
-   */
-  public static String getLineSeparator(String text, DartProject project) {
-    String lineSeparator = null;
-
-    // line delimiter in given text
-    if (text != null && text.length() != 0) {
-      lineSeparator = findLineSeparator(text.toCharArray());
-      if (lineSeparator != null) {
-        return lineSeparator;
-      }
-    }
-
-    if (Platform.isRunning()) {
-      // line delimiter in project preference
-      IScopeContext[] scopeContext;
-      if (project != null) {
-        scopeContext = new IScopeContext[] {new ProjectScope(project.getProject())};
-        lineSeparator = Platform.getPreferencesService().getString(
-            Platform.PI_RUNTIME,
-            Platform.PREF_LINE_SEPARATOR,
-            null,
-            scopeContext);
-        if (lineSeparator != null) {
-          return lineSeparator;
-        }
-      }
-
-      // line delimiter in workspace preference
-      scopeContext = new IScopeContext[] {InstanceScope.INSTANCE};
-      lineSeparator = Platform.getPreferencesService().getString(
-          Platform.PI_RUNTIME,
-          Platform.PREF_LINE_SEPARATOR,
-          null,
-          scopeContext);
-      if (lineSeparator != null) {
-        return lineSeparator;
-      }
-    }
-
-    // system line delimiter
-    return System.getProperty("line.separator");
   }
 
   /**

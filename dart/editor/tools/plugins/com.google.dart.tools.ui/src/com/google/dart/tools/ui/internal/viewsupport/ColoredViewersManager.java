@@ -174,8 +174,7 @@ public class ColoredViewersManager implements IPropertyChangeListener {
 
   public static boolean showColoredLabels() {
     String preference = PreferenceConstants.getPreference(
-        AppearancePreferencePage.PREF_COLORED_LABELS,
-        null);
+        AppearancePreferencePage.PREF_COLORED_LABELS);
     return preference != null && Boolean.valueOf(preference).booleanValue();
   }
 

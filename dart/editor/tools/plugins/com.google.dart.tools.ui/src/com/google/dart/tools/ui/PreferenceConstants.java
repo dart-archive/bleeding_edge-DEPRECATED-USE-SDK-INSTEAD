@@ -15,14 +15,12 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.mock.ui.IIncludePathEntry;
 import com.google.dart.tools.ui.internal.text.IJavaThemeConstants;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightings;
 import com.google.dart.tools.ui.text.IDartColorConstants;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
-import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.action.Action;
@@ -3225,20 +3223,11 @@ public class PreferenceConstants {
    * Returns the value for the given key in the given context.
    * 
    * @param key The preference key
-   * @param project The current context or <code>null</code> if no context is available and the
-   *          workspace setting should be taken. Note that passing <code>null</code> should be
-   *          avoided.
    * @return Returns the current value for the string.
    */
   @SuppressWarnings("deprecation")
-  public static String getPreference(String key, DartProject project) {
+  public static String getPreference(String key) {
     String val;
-    if (project != null) {
-      val = new ProjectScope(project.getProject()).getNode(DartUI.ID_PLUGIN).get(key, null);
-      if (val != null) {
-        return val;
-      }
-    }
     val = new InstanceScope().getNode(DartUI.ID_PLUGIN).get(key, null);
     if (val != null) {
       return val;

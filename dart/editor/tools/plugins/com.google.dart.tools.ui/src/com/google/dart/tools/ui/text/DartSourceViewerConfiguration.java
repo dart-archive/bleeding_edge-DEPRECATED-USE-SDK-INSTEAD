@@ -636,7 +636,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
 
   @Override
   public int getTabWidth(ISourceViewer sourceViewer) {
-    return CodeFormatterUtil.getTabWidth(null);
+    return CodeFormatterUtil.getTabWidth();
   }
 
   @Override

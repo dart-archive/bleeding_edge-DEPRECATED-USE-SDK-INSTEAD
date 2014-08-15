@@ -19,7 +19,6 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.internal.corext.util.QualifiedTypeNameHistory;
 import com.google.dart.tools.mock.ui.ContextSensitiveImportRewriteContext;
-import com.google.dart.tools.mock.ui.StubUtility;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.dart.ImportRewrite;
@@ -364,13 +363,9 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
 
   private ImportRewrite createImportRewrite() {
     if (fCompilationUnit != null && allowAddingImports()) {
-      try {
-        ImportRewrite rewrite = StubUtility.createImportRewrite(fCompilationUnit, true);
-        fImportContext = null;
-        return rewrite;
-      } catch (CoreException x) {
-        DartToolsPlugin.log(x);
-      }
+      ImportRewrite rewrite = new ImportRewrite(fCompilationUnit, true);
+      fImportContext = null;
+      return rewrite;
     }
     return null;
   }

@@ -14,19 +14,16 @@
 package com.google.dart.tools.core.test.util;
 
 import com.google.dart.engine.utilities.io.PrintStringWriter;
-import com.google.dart.tools.core.model.DartProject;
 
 import junit.framework.Assert;
 import junit.framework.ComparisonFailure;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.w3c.dom.Document;
@@ -261,19 +258,6 @@ public class TestUtilities {
     File logFile = getLogFile();
     if (logFile.exists()) {
       logFile.delete();
-    }
-  }
-
-  public static void deleteProject(final DartProject project) {
-    try {
-      project.getProject().getWorkspace().run(new IWorkspaceRunnable() {
-        @Override
-        public void run(IProgressMonitor monitor) throws CoreException {
-          deleteProject(project.getProject());
-        }
-      }, null);
-    } catch (CoreException exception) {
-      // DartCore.getLogger().logError(exception, "Could not delete the project " + project.getElementName()); //$NON-NLS-1$
     }
   }
 

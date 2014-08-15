@@ -18,7 +18,6 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
-import com.google.dart.tools.core.model.DartProject;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -141,11 +140,7 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
     if (!exists(element)) {
       return null;
     }
-    Object parent = internalGetParent(element);
-    if (parent instanceof DartProject) {
-      return ((DartProject) parent).getProject();
-    }
-    return parent;
+    return internalGetParent(element);
   }
 
   @Override

@@ -46,7 +46,7 @@ public class Strings {
     return IndentManipulation.changeIndent(
         code,
         codeIndentLevel,
-        CodeFormatterUtil.getTabWidth(project),
+        CodeFormatterUtil.getTabWidth(),
         CodeFormatterUtil.getIndentWidth(project),
         newIndent,
         lineDelim);
@@ -78,7 +78,7 @@ public class Strings {
   public static int computeIndentUnits(String line, DartProject project) {
     return IndentManipulation.measureIndentUnits(
         line,
-        CodeFormatterUtil.getTabWidth(project),
+        CodeFormatterUtil.getTabWidth(),
         CodeFormatterUtil.getIndentWidth(project));
   }
 
@@ -176,7 +176,7 @@ public class Strings {
   public static String getIndentString(String line, DartProject project) {
     return IndentManipulation.extractIndentString(
         line,
-        CodeFormatterUtil.getTabWidth(project),
+        CodeFormatterUtil.getTabWidth(),
         CodeFormatterUtil.getIndentWidth(project));
   }
 
@@ -353,7 +353,7 @@ public class Strings {
     return IndentManipulation.trimIndent(
         line,
         indentsToRemove,
-        CodeFormatterUtil.getTabWidth(project),
+        CodeFormatterUtil.getTabWidth(),
         CodeFormatterUtil.getIndentWidth(project));
   }
 
@@ -368,7 +368,7 @@ public class Strings {
   public static String trimIndentation(String source, DartProject project, boolean considerFirstLine) {
     return trimIndentation(
         source,
-        CodeFormatterUtil.getTabWidth(project),
+        CodeFormatterUtil.getTabWidth(),
         CodeFormatterUtil.getIndentWidth(project),
         considerFirstLine);
   }
@@ -414,7 +414,7 @@ public class Strings {
   public static void trimIndentation(String[] lines, DartProject project) {
     trimIndentation(
         lines,
-        CodeFormatterUtil.getTabWidth(project),
+        CodeFormatterUtil.getTabWidth(),
         CodeFormatterUtil.getIndentWidth(project),
         true);
   }
@@ -430,7 +430,7 @@ public class Strings {
   public static void trimIndentation(String[] lines, DartProject project, boolean considerFirstLine) {
     trimIndentation(
         lines,
-        CodeFormatterUtil.getTabWidth(project),
+        CodeFormatterUtil.getTabWidth(),
         CodeFormatterUtil.getIndentWidth(project),
         considerFirstLine);
   }

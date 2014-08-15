@@ -35,13 +35,9 @@ public class CodeFormatterUtil {
    * contain tabs and/or spaces depending on the core formatter preferences.
    * 
    * @param indentationUnits the number of indentation units to generate
-   * @param project the project from which to get the formatter settings, <code>null</code> if the
-   *          workspace default should be used
    * @return the indent string
    */
-  public static String createIndentString(int indentationUnits, DartProject project) {
-//    Map<String, String> options = project != null ? project.getOptions(true)
-//        : DartCore.getOptions();
+  public static String createIndentString(int indentationUnits) {
     StringBuffer s = new StringBuffer();
     for (int i = 0; i < indentationUnits; i++) {
       s.append("  ");
@@ -95,11 +91,9 @@ public class CodeFormatterUtil {
   /**
    * Gets the current tab width.
    * 
-   * @param project The project where the source is used, used for project specific options or
-   *          <code>null</code> if the project is unknown and the workspace default should be used
    * @return The tab width
    */
-  public static int getTabWidth(DartProject project) {
+  public static int getTabWidth() {
     IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
     if (preferenceStore != null) {
       int width = preferenceStore.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH);
