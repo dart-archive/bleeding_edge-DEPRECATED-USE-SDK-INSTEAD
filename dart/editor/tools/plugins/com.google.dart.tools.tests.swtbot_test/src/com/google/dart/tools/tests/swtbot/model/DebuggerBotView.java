@@ -47,6 +47,10 @@ public class DebuggerBotView extends AbstractBotView {
     bot.waitUntilWidgetAppears(Conditions.waitForView(new ViewWithTitle(viewName())));
   }
 
+  public void close() {
+    debugger().close();
+  }
+
   /**
    * Get the model for the selected stack context.
    * 

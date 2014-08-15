@@ -20,7 +20,9 @@ import com.google.dart.tools.tests.swtbot.model.DebuggerStackBotView;
 import com.google.dart.tools.tests.swtbot.model.EditorBotWindow;
 import com.google.dart.tools.tests.swtbot.model.FilesBotView;
 import com.google.dart.tools.tests.swtbot.model.TextBotEditor;
+import com.google.dart.tools.tests.swtbot.model.WelcomePageEditor;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.swt.finder.utils.TableCollection;
@@ -33,16 +35,83 @@ import static org.junit.Assert.assertNotNull;
 
 public class TestBreakpoints extends EditorTestHarness {
 
-  private static TextBotEditor editor;
-
   @BeforeClass
   public static void setUpTest() {
     assertNotNull(bot); // initialized in superclass
+  }
+
+  @AfterClass
+  public static void tearDownTest() {
+    EditorBotWindow main = new EditorBotWindow(bot);
+    main.menu("File").menu("Close All").click();
+  }
+
+  @Test
+  public void testDartiumBreaks() throws Exception {
+    if (!Platform.getOS().equals("macosx")) {
+      // Disabled on Linux and Windows.
+      // The problem on Linux is the debugger isn't brought to the top of the window
+      // stack when a breakpoint is triggered. If the editor is occluded SWTBot is dead.
+      return;
+    }
+    // Test dartium breakpoints set both before and after execution starts.
+    TextBotEditor editor = createSunflower();
+    editor.setBreakPointOnLine(31);
+    EditorBotWindow main = new EditorBotWindow(bot);
+    FilesBotView files = main.filesView();
+    files.tree().setFocus();
+    bot.menu("Run").menu("Run").click();
+    editor.waitMillis(500);
+    DebuggerBotView debugger = new DebuggerBotView(bot);
+    DebuggerStackBotView stack = debugger.stackView();
+    TableCollection selection = stack.selection();
+    assertEquals("[draw()]\n", selection.toString());
+    editor.setBreakPointOnLine(35);
+    bot.menu("Run").menu("Resume").click();
+    debugger = new DebuggerBotView(bot);
+    stack = debugger.stackView();
+    selection = stack.selection();
+    assertEquals("[draw()]\n", selection.toString());
+    DebuggerContextBotView context = debugger.contextView();
+    assertEquals(2, context.treeSize());
+    debugger.close();
+    deleteSunflower();
+  }
+
+  @Test
+  public void testVmBreaks() throws Exception {
+    // Test VM breakpoints set both before and after execution starts.
+    TextBotEditor editor = createSample();
+    editor.setBreakPointOnLine(1);
+    bot.menu("Run").menu("Run").click();
+    DebuggerBotView debugger = new DebuggerBotView(bot);
+    DebuggerStackBotView stack = debugger.stackView();
+    TableCollection selection = stack.selection();
+    assertEquals("[main()]\n", selection.toString());
+    editor.setBreakPointOnLine(4);
+    bot.menu("Run").menu("Resume").click();
+    debugger = new DebuggerBotView(bot);
+    stack = debugger.stackView();
+    selection = stack.selection();
+    assertEquals("[main()]\n", selection.toString());
+    DebuggerContextBotView context = debugger.contextView();
+    assertEquals(2, context.treeSize());
+    debugger.stepInto();
+    debugger.stepOver();
+    assertEquals(3, context.treeSize());
+    debugger.stepReturn();
+    assertEquals(2, context.treeSize());
+    bot.menu("Run").menu("Terminate").click();
+    debugger.close();
+    deleteSample();
+  }
+
+  private TextBotEditor createSample() {
     EditorBotWindow main = new EditorBotWindow(bot);
     FilesBotView files = main.filesView();
     files.deleteExistingProject("sample");
     main.createCommandLineProject("sample");
-    editor = new TextBotEditor(bot, "sample.dart");
+    TextBotEditor editor = new TextBotEditor(bot, "sample.dart");
     SWTBotEclipseEditor text = editor.editor();
     text.pressShortcut(SWT.NONE, SWT.ARROW_DOWN, (char) SWT.NONE);
     text.pressShortcut(SWT.SHIFT, SWT.ARROW_DOWN, (char) SWT.NONE);
@@ -55,30 +124,31 @@ public class TestBreakpoints extends EditorTestHarness {
     text.typeText("print('$t $q'");
     text.pressShortcut(SWT.NONE, SWT.ARROW_RIGHT, (char) SWT.NONE);
     text.typeText(";");
+    editor.save();
+    editor.waitForAnalysis();
+    return editor;
   }
 
-  @AfterClass
-  public static void tearDownTest() {
+  private TextBotEditor createSunflower() {
+    EditorBotWindow main = new EditorBotWindow(bot);
+    FilesBotView files = main.filesView();
+    files.deleteExistingProject("sunflower");
+    WelcomePageEditor page = main.openWelcomePage();
+    page.createSunflower();
+    TextBotEditor editor = new TextBotEditor(bot, "sunflower.dart");
+    return editor;
+  }
+
+  private void deleteSample() {
     EditorBotWindow main = new EditorBotWindow(bot);
     FilesBotView files = main.filesView();
     files.deleteExistingProject("sample");
-//    main.menu("File").menu("Close All").click();
   }
 
-  @Test
-  public void test1() throws Exception {
-    editor.setBreakPointOnLine(4);
-    bot.menu("Run").menu("Run").click();
-    DebuggerBotView debugger = new DebuggerBotView(bot);
-    DebuggerStackBotView stack = debugger.stackView();
-    TableCollection selection = stack.selection();
-    assertEquals("[main()]\n", selection.toString());
-    DebuggerContextBotView context = debugger.contextView();
-    assertEquals(2, context.treeSize());
-    debugger.stepInto();
-    debugger.stepOver();
-    assertEquals(3, context.treeSize());
-    debugger.stepReturn();
-    assertEquals(2, context.treeSize());
+  private void deleteSunflower() {
+    EditorBotWindow main = new EditorBotWindow(bot);
+    FilesBotView files = main.filesView();
+    files.deleteProject("sunflower");
+
   }
 }

@@ -34,7 +34,7 @@ public class ViewWithTitle extends BaseMatcher<IViewReference> {
   @Override
   public void describeTo(Description description) {
     StringBuffer text = new StringBuffer();
-    text.append("Editor with title '");
+    text.append("View with title '");
     text.append(regex);
     text.append("'");
     description.appendText(text.toString());

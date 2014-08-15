@@ -29,7 +29,8 @@ import org.junit.runners.Suite;
     TestDartEditorContextMenu.class, //
     TestOutline.class, //
     TestFindText.class, //
-    TestBreakpoints.class //
+    TestBreakpoints.class, //
+    TestExtractMethod.class, //
 //
 })
 public final class TestAll {

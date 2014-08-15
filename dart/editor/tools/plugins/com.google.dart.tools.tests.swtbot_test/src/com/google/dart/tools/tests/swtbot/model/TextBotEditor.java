@@ -51,6 +51,7 @@ public class TextBotEditor extends AbstractBotView {
 
   private static KeyStroke keyM1;
   private static KeyStroke keyF;
+  private static KeyStroke keyS;
 
   static {
     try {
@@ -59,6 +60,7 @@ public class TextBotEditor extends AbstractBotView {
       keyM1 = KeyStroke.getInstance("M1+F");
       keyM1 = KeyStroke.getInstance(keyM1.getModifierKeys(), KeyStroke.NO_KEY);
       keyF = KeyStroke.getInstance("F");
+      keyS = KeyStroke.getInstance("S");
     } catch (ParseException e) {
       // Won't happen
     }
@@ -101,6 +103,24 @@ public class TextBotEditor extends AbstractBotView {
     return finder;
   }
 
+  public ExtractMethodBotView openExtractMethodWizard() {
+    editor().getStyledText().contextMenu("Extract Method...").click();
+    waitForAnalysis();
+    ExtractMethodBotView wizard = new ExtractMethodBotView(bot);
+    return wizard;
+  }
+
+  public void save() {
+    final SWTBotEclipseEditor editor = editor();
+    UIThreadRunnable.syncExec(new VoidResult() {
+      @Override
+      public void run() {
+        editor.pressShortcut(keyM1, keyS);
+      }
+    });
+    waitForAnalysis();
+  }
+
   /**
    * Set the selection to the given string. If the optional <code>delta</code> is given, rather than
    * setting the selection to a range, set it to the number of characters from the beginning of the
@@ -141,7 +161,7 @@ public class TextBotEditor extends AbstractBotView {
    * @return the selection
    */
   public String selection() {
-    SWTBotEditor editor = bot.editorByTitle("platform_web.dart");
+    SWTBotEditor editor = bot.editorByTitle(title);
     SWTBotStyledText text = editor.bot().styledText();
     String selection = text.getSelection();
     return selection;
