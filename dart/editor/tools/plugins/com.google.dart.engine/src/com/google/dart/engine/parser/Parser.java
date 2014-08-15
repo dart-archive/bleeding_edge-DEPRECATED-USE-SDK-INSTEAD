@@ -536,6 +536,27 @@ public class Parser {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
       }
+      Token keyword = modifiers.getVarKeyword();
+      if (keyword == null) {
+        keyword = modifiers.getFinalKeyword();
+      }
+      if (keyword == null) {
+        keyword = modifiers.getConstKeyword();
+      }
+      if (keyword != null) {
+        //
+        // We appear to have found an incomplete field declaration.
+        //
+        reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
+        ArrayList<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
+        variables.add(new VariableDeclaration(null, null, createSyntheticIdentifier(), null, null));
+        return new FieldDeclaration(
+            commentAndMetadata.getComment(),
+            commentAndMetadata.getMetadata(),
+            null,
+            new VariableDeclarationList(null, null, keyword, null, variables),
+            expectSemicolon());
+      }
       reportErrorForToken(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
       if (commentAndMetadata.getComment() != null || !commentAndMetadata.getMetadata().isEmpty()) {
         //

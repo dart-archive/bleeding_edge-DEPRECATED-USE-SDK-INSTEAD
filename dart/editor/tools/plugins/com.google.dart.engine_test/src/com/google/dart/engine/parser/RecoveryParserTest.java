@@ -35,6 +35,9 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.TokenType;
 
 import java.util.List;
@@ -447,6 +450,69 @@ public class RecoveryParserTest extends ParserTestCase {
     assertSizeOfList(1, variables);
     SimpleIdentifier name = variables.get(0).getName();
     assertTrue(name.isSynthetic());
+  }
+
+  public void test_incompleteField_const() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(
+        createSource("class C {", "  const", "}"),
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN);
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSizeOfList(1, declarations);
+    CompilationUnitMember unitMember = declarations.get(0);
+    assertInstanceOf(ClassDeclaration.class, unitMember);
+    NodeList<ClassMember> members = ((ClassDeclaration) unitMember).getMembers();
+    assertSizeOfList(1, members);
+    ClassMember classMember = members.get(0);
+    assertInstanceOf(FieldDeclaration.class, classMember);
+    VariableDeclarationList fieldList = ((FieldDeclaration) classMember).getFields();
+    assertEquals(Keyword.CONST, ((KeywordToken) fieldList.getKeyword()).getKeyword());
+    NodeList<VariableDeclaration> fields = fieldList.getVariables();
+    assertSizeOfList(1, fields);
+    VariableDeclaration field = fields.get(0);
+    assertTrue(field.getName().isSynthetic());
+  }
+
+  public void test_incompleteField_final() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(
+        createSource("class C {", "  final", "}"),
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN);
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSizeOfList(1, declarations);
+    CompilationUnitMember unitMember = declarations.get(0);
+    assertInstanceOf(ClassDeclaration.class, unitMember);
+    NodeList<ClassMember> members = ((ClassDeclaration) unitMember).getMembers();
+    assertSizeOfList(1, members);
+    ClassMember classMember = members.get(0);
+    assertInstanceOf(FieldDeclaration.class, classMember);
+    VariableDeclarationList fieldList = ((FieldDeclaration) classMember).getFields();
+    assertEquals(Keyword.FINAL, ((KeywordToken) fieldList.getKeyword()).getKeyword());
+    NodeList<VariableDeclaration> fields = fieldList.getVariables();
+    assertSizeOfList(1, fields);
+    VariableDeclaration field = fields.get(0);
+    assertTrue(field.getName().isSynthetic());
+  }
+
+  public void test_incompleteField_var() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(
+        createSource("class C {", "  var", "}"),
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN);
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSizeOfList(1, declarations);
+    CompilationUnitMember unitMember = declarations.get(0);
+    assertInstanceOf(ClassDeclaration.class, unitMember);
+    NodeList<ClassMember> members = ((ClassDeclaration) unitMember).getMembers();
+    assertSizeOfList(1, members);
+    ClassMember classMember = members.get(0);
+    assertInstanceOf(FieldDeclaration.class, classMember);
+    VariableDeclarationList fieldList = ((FieldDeclaration) classMember).getFields();
+    assertEquals(Keyword.VAR, ((KeywordToken) fieldList.getKeyword()).getKeyword());
+    NodeList<VariableDeclaration> fields = fieldList.getVariables();
+    assertSizeOfList(1, fields);
+    VariableDeclaration field = fields.get(0);
+    assertTrue(field.getName().isSynthetic());
   }
 
   public void test_isExpression_noType() throws Exception {
