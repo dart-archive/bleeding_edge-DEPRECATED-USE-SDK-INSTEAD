@@ -51,12 +51,24 @@ public class SourceEdit {
   private final String replacement;
 
   /**
+   * An identifier that uniquely identifies this source edit from other edits in the same response.
+   * This field is omitted unless a containing structure needs to be able to identify the edit for
+   * some reason.
+   *
+   * For example, some refactoring operations can produce edits that might not be appropriate
+   * (referred to as potential edits). Such edits will have an id so that they can be referenced.
+   * Edits in the same response that do not need to be referenced will not have an id.
+   */
+  private final String id;
+
+  /**
    * Constructor for {@link SourceEdit}.
    */
-  public SourceEdit(int offset, int length, String replacement) {
+  public SourceEdit(int offset, int length, String replacement, String id) {
     this.offset = offset;
     this.length = length;
     this.replacement = replacement;
+    this.id = id;
   }
 
   @Override
@@ -66,9 +78,23 @@ public class SourceEdit {
       return
         other.offset == offset &&
         other.length == length &&
-        ObjectUtilities.equals(other.replacement, replacement);
+        ObjectUtilities.equals(other.replacement, replacement) &&
+        ObjectUtilities.equals(other.id, id);
     }
     return false;
+  }
+
+  /**
+   * An identifier that uniquely identifies this source edit from other edits in the same response.
+   * This field is omitted unless a containing structure needs to be able to identify the edit for
+   * some reason.
+   *
+   * For example, some refactoring operations can produce edits that might not be appropriate
+   * (referred to as potential edits). Such edits will have an id so that they can be referenced.
+   * Edits in the same response that do not need to be referenced will not have an id.
+   */
+  public String getId() {
+    return id;
   }
 
   /**
@@ -101,7 +127,9 @@ public class SourceEdit {
     builder.append("length=");
     builder.append(length + ", ");
     builder.append("replacement=");
-    builder.append(replacement);
+    builder.append(replacement + ", ");
+    builder.append("id=");
+    builder.append(id);
     builder.append("]");
     return builder.toString();
   }
