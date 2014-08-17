@@ -102,11 +102,6 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
   }
 
   @Override
-  public void setSavePolicy(ISavePolicy savePolicy) {
-    // No-op
-  }
-
-  @Override
   public void shutdown() {
     Iterator<?> e = getConnectedElementsIterator();
     while (e.hasNext()) {

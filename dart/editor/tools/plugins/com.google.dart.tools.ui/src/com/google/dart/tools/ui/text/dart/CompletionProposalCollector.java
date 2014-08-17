@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.text.dart;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.problem.Problem;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -110,8 +109,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
   private final List<IDartCompletionProposal> fKeywords = new ArrayList<IDartCompletionProposal>();
   private final Set<String> fSuggestedMethodNames = new HashSet<String>();
 
-  private final CompilationUnit fCompilationUnit;
-  private final DartProject fDartProject;
   private int fUserReplacementLength;
 
   private CompletionContext fContext;
@@ -132,29 +129,10 @@ public class CompletionProposalCollector extends CompletionRequestor {
    * {@link org.eclipse.jface.text.contentassist.ICompletionProposal#getAdditionalProposalInfo()
    * additional info} on the created proposals.
    * 
-   * @param cu the compilation unit that the result collector will operate on
-   */
-  public CompletionProposalCollector(CompilationUnit cu) {
-    this(cu.getDartProject(), cu, false);
-  }
-
-  /**
-   * Creates a new instance ready to collect proposals. If the passed <code>CompilationUnit</code>
-   * is not contained in an {@link DartProject}, no Dart doc will be available as
-   * {@link org.eclipse.jface.text.contentassist.ICompletionProposal#getAdditionalProposalInfo()
-   * additional info} on the created proposals.
-   * 
-   * @param cu the compilation unit that the result collector will operate on
    * @param ignoreAll <code>true</code> to ignore all kinds of completion proposals
    */
-  public CompletionProposalCollector(CompilationUnit cu, boolean ignoreAll) {
-    this(cu == null ? null : cu.getDartProject(), cu, ignoreAll); // TODO Remove getDartProject()
-  }
-
-  private CompletionProposalCollector(DartProject project, CompilationUnit cu, boolean ignoreAll) {
+  public CompletionProposalCollector(boolean ignoreAll) {
     super(ignoreAll);
-    fDartProject = project;
-    fCompilationUnit = cu;
 
     fUserReplacementLength = -1;
     if (!ignoreAll) {
@@ -456,16 +434,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
   }
 
   /**
-   * Returns the compilation unit that the receiver operates on, or <code>null</code> if the
-   * <code>DartProject</code> constructor was used to create the receiver.
-   * 
-   * @return the compilation unit that the receiver operates on, or <code>null</code>
-   */
-  protected final CompilationUnit getCompilationUnit() {
-    return fCompilationUnit;
-  }
-
-  /**
    * Returns the <code>CompletionContext</code> for this completion operation.
    * 
    * @return the <code>CompletionContext</code> for this completion operation
@@ -557,7 +525,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
    */
   protected final DartContentAssistInvocationContext getInvocationContext() {
     if (fInvocationContext == null) {
-      setInvocationContext(new DartContentAssistInvocationContext(getCompilationUnit()));
+      setInvocationContext(new DartContentAssistInvocationContext());
     }
     return fInvocationContext;
   }

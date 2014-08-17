@@ -460,7 +460,7 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
 
   protected FormatterPrefs getFormatterPrefs() {
     if (fFormatterPrefs == null) {
-      CompilationUnit cu = fInvocationContext.getCompilationUnit();
+      CompilationUnit cu = null;
       fFormatterPrefs = new FormatterPrefs(cu == null ? null : cu.getDartProject());
     }
     return fFormatterPrefs;

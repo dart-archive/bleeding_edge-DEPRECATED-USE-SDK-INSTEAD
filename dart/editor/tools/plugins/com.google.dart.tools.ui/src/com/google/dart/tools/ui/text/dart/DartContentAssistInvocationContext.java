@@ -16,8 +16,6 @@ package com.google.dart.tools.ui.text.dart;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.mock.ui.SignatureUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -42,9 +40,6 @@ import org.eclipse.ui.IEditorPart;
 public class DartContentAssistInvocationContext extends ContentAssistInvocationContext {
   private final IEditorPart fEditor;
 
-  private CompilationUnit fCU = null;
-  private boolean fCUComputed = false;
-
   private CompletionProposalLabelProvider fLabelProvider;
   private CompletionProposalCollector fCollector;
   private RHSHistory fRHSHistory;
@@ -55,13 +50,9 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
 
   /**
    * Creates a new context.
-   * 
-   * @param unit the compilation unit in <code>document</code>
    */
-  public DartContentAssistInvocationContext(CompilationUnit unit) {
+  public DartContentAssistInvocationContext() {
     super();
-    fCU = unit;
-    fCUComputed = true;
     fEditor = null;
   }
 
@@ -85,22 +76,6 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
       assistContext = ((DartEditor) fEditor).getAssistContext();
     }
     return assistContext;
-  }
-
-  /**
-   * Returns the compilation unit that content assist is invoked in, <code>null</code> if there is
-   * none.
-   * 
-   * @return the compilation unit that content assist is invoked in, possibly <code>null</code>
-   */
-  public CompilationUnit getCompilationUnit() {
-    if (!fCUComputed) {
-      fCUComputed = true;
-      if (fCollector != null) {
-        fCU = fCollector.getCompilationUnit();
-      }
-    }
-    return fCU;
   }
 
   /**
@@ -198,17 +173,6 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
   }
 
   /**
-   * Returns the project of the compilation unit that content assist is invoked in,
-   * <code>null</code> if none.
-   * 
-   * @return the current JavaScript project, possibly <code>null</code>
-   */
-  public DartProject getProject() {
-    CompilationUnit unit = getCompilationUnit();
-    return unit == null ? null : unit.getDartProject();
-  }
-
-  /**
    * Sets the collector, which is used to access the compilation unit, the core context and the
    * label provider. This is a performance optimization: {@link IDartCompletionProposalComputer}s
    * may instantiate a {@link CompletionProposalCollector} and set this invocation context via
@@ -229,51 +193,8 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
    * <code>null</code> after this call.
    */
   private void computeKeywordsAndContext() {
-    CompilationUnit cu = getCompilationUnit();
-    if (cu == null) {
-      if (fKeywordProposals == null) {
-        fKeywordProposals = new IDartCompletionProposal[0];
-      }
-      return;
-    }
-
-    CompletionProposalCollector collector = new CompletionProposalCollector(cu);
-    collector.setIgnored(CompletionProposal.KEYWORD, false);
-    collector.setIgnored(CompletionProposal.FIELD_REF, true);
-    collector.setIgnored(CompletionProposal.LABEL_REF, true);
-    collector.setIgnored(CompletionProposal.LOCAL_VARIABLE_REF, true);
-    collector.setIgnored(CompletionProposal.METHOD_DECLARATION, true);
-    collector.setIgnored(CompletionProposal.METHOD_NAME_REFERENCE, true);
-    collector.setIgnored(CompletionProposal.METHOD_REF, true);
-    collector.setIgnored(CompletionProposal.ARGUMENT_LIST, true);
-    collector.setIgnored(CompletionProposal.LIBRARY_PREFIX, true);
-    collector.setIgnored(CompletionProposal.POTENTIAL_METHOD_DECLARATION, true);
-    collector.setIgnored(CompletionProposal.VARIABLE_DECLARATION, true);
-    collector.setIgnored(CompletionProposal.TYPE_IMPORT, true);
-//    collector.setIgnored(CompletionProposal.JAVADOC_BLOCK_TAG, true);
-//    collector.setIgnored(CompletionProposal.JAVADOC_FIELD_REF, true);
-//    collector.setIgnored(CompletionProposal.JAVADOC_INLINE_TAG, true);
-//    collector.setIgnored(CompletionProposal.JAVADOC_METHOD_REF, true);
-//    collector.setIgnored(CompletionProposal.JAVADOC_PARAM_REF, true);
-//    collector.setIgnored(CompletionProposal.JAVADOC_TYPE_REF, true);
-    collector.setIgnored(CompletionProposal.TYPE_REF, true);
-
-    try {
-      cu.codeComplete(getInvocationOffset(), collector);
-      if (fCoreContext == null) {
-        fCoreContext = collector.getContext();
-      }
-      if (fKeywordProposals == null) {
-        fKeywordProposals = collector.getKeywordCompletionProposals();
-      }
-      if (fLabelProvider == null) {
-        fLabelProvider = collector.getLabelProvider();
-      }
-    } catch (DartModelException x) {
-      DartToolsPlugin.log(x);
-      if (fKeywordProposals == null) {
-        fKeywordProposals = new IDartCompletionProposal[0];
-      }
+    if (fKeywordProposals == null) {
+      fKeywordProposals = new IDartCompletionProposal[0];
     }
   }
 

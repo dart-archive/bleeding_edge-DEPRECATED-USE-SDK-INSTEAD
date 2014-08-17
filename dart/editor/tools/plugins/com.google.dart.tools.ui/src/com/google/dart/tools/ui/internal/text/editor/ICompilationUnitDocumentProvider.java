@@ -67,13 +67,6 @@ public interface ICompilationUnitDocumentProvider extends IDocumentProvider,
       boolean overwrite) throws CoreException;
 
   /**
-   * Sets the document provider's save policy.
-   * 
-   * @param savePolicy the save policy
-   */
-  void setSavePolicy(ISavePolicy savePolicy);
-
-  /**
    * Shuts down this provider.
    */
   void shutdown();

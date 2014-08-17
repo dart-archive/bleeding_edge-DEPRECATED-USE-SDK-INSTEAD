@@ -17,8 +17,6 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.internal.completion.AnalysisUtil;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.completion.DartMethodCompletionProposal;
@@ -32,16 +30,11 @@ import com.google.dart.tools.ui.text.dart.IDartCompletionProposalComputer;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationExtension;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.IBindingService;
@@ -106,15 +99,9 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
     }
   }
 
-  private static final long JAVA_CODE_ASSIST_TIMEOUT = Long.getLong(
-      "org.eclipse.jdt.ui.codeAssistTimeout", 5000).longValue(); // ms //$NON-NLS-1$
-
   private String fErrorMessage;
 
-  private final IProgressMonitor fTimeoutProgressMonitor;
-
   public DartCompletionProposalComputer() {
-    fTimeoutProgressMonitor = createTimeoutProgressMonitor(JAVA_CODE_ASSIST_TIMEOUT);
   }
 
   @Override
@@ -167,7 +154,7 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
         PreferenceConstants.CODEASSIST_FILL_ARGUMENT_NAMES)) {
       return new FillArgumentNamesCompletionProposalCollector(context);
     } else {
-      return new CompletionProposalCollector(context.getCompilationUnit(), true);
+      return new CompletionProposalCollector(true);
     }
   }
 
@@ -203,7 +190,7 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
 
   private List<IContextInformation> addContextInformations(
       DartContentAssistInvocationContext context, int offset) {
-    List<ICompletionProposal> proposals = internalComputeCompletionProposals(offset, context);
+    List<ICompletionProposal> proposals = Collections.emptyList();
     List<IContextInformation> result = new ArrayList<IContextInformation>(proposals.size());
     List<IContextInformation> anonymousResult = new ArrayList<IContextInformation>(proposals.size());
 
@@ -225,53 +212,6 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
   }
 
   /**
-   * Returns a new progress monitor that get cancelled after the given timeout.
-   * 
-   * @param timeout the timeout in ms
-   * @return the progress monitor
-   */
-  private IProgressMonitor createTimeoutProgressMonitor(final long timeout) {
-    return new IProgressMonitor() {
-
-      private long fEndTime;
-
-      @Override
-      public void beginTask(String name, int totalWork) {
-        fEndTime = System.currentTimeMillis() + timeout;
-      }
-
-      @Override
-      public void done() {
-      }
-
-      @Override
-      public void internalWorked(double work) {
-      }
-
-      @Override
-      public boolean isCanceled() {
-        return fEndTime <= System.currentTimeMillis();
-      }
-
-      @Override
-      public void setCanceled(boolean value) {
-      }
-
-      @Override
-      public void setTaskName(String name) {
-      }
-
-      @Override
-      public void subTask(String name) {
-      }
-
-      @Override
-      public void worked(int work) {
-      }
-    };
-  }
-
-  /**
    * Returns the array with favorite static members.
    * 
    * @return the <code>String</code> array with with favorite static members
@@ -283,124 +223,6 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
       return serializedFavorites.split(";"); //$NON-NLS-1$
     }
     return new String[0];
-  }
-
-  @SuppressWarnings("deprecation")
-  private List<ICompletionProposal> internalComputeCompletionProposals(int offset,
-      DartContentAssistInvocationContext context) {
-    CompilationUnit unit = context.getCompilationUnit();
-    if (unit == null) {
-      return Collections.emptyList();
-    }
-
-    ITextViewer viewer = context.getViewer();
-
-    CompletionProposalCollector collector = createCollector(context);
-    collector.setInvocationContext(context);
-
-    // Allow completions for unresolved types - since 3.3
-    collector.setAllowsRequiredProposals(
-        CompletionProposal.FIELD_REF,
-        CompletionProposal.TYPE_REF,
-        true);
-    collector.setAllowsRequiredProposals(
-        CompletionProposal.FIELD_REF,
-        CompletionProposal.TYPE_IMPORT,
-        true);
-    collector.setAllowsRequiredProposals(
-        CompletionProposal.FIELD_REF,
-        CompletionProposal.FIELD_IMPORT,
-        true);
-
-    collector.setAllowsRequiredProposals(
-        CompletionProposal.METHOD_REF,
-        CompletionProposal.TYPE_REF,
-        true);
-    collector.setAllowsRequiredProposals(
-        CompletionProposal.METHOD_REF,
-        CompletionProposal.TYPE_IMPORT,
-        true);
-    collector.setAllowsRequiredProposals(
-        CompletionProposal.METHOD_REF,
-        CompletionProposal.METHOD_IMPORT,
-        true);
-
-    collector.setAllowsRequiredProposals(
-        CompletionProposal.CONSTRUCTOR_INVOCATION,
-        CompletionProposal.TYPE_REF,
-        true);
-
-    collector.setAllowsRequiredProposals(
-        CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION,
-        CompletionProposal.TYPE_REF,
-        true);
-    collector.setAllowsRequiredProposals(
-        CompletionProposal.ANONYMOUS_CLASS_DECLARATION,
-        CompletionProposal.TYPE_REF,
-        true);
-
-    collector.setAllowsRequiredProposals(
-        CompletionProposal.TYPE_REF,
-        CompletionProposal.TYPE_REF,
-        true);
-
-    collector.setAllowsRequiredProposals(
-        CompletionProposal.TYPE_IMPORT,
-        CompletionProposal.TYPE_IMPORT,
-        true);
-
-    // Set the favorite list to propose static members - since 3.3
-    collector.setFavoriteReferences(getFavoriteStaticMembers());
-
-    try {
-      Point selection = viewer.getSelectedRange();
-      if (selection.y > 0) {
-        collector.setReplacementLength(selection.y);
-      }
-      unit.codeComplete(offset, collector, fTimeoutProgressMonitor);
-    } catch (OperationCanceledException x) {
-      IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(
-          IBindingService.class);
-      String keyBinding = bindingSvc.getBestActiveBindingFormattedFor(IWorkbenchCommandConstants.EDIT_CONTENT_ASSIST);
-      fErrorMessage = Messages.format(
-          DartTextMessages.CompletionProcessor_error_javaCompletion_took_too_long_message,
-          keyBinding);
-    } catch (DartModelException x) {
-      Shell shell = viewer.getTextWidget().getShell();
-      if (x.isDoesNotExist()) {
-        MessageDialog.openInformation(
-            shell,
-            DartTextMessages.CompletionProcessor_error_notOnBuildPath_title,
-            DartTextMessages.CompletionProcessor_error_notOnBuildPath_message);
-      } else {
-        ErrorDialog.openError(
-            shell,
-            DartTextMessages.CompletionProcessor_error_accessing_title,
-            DartTextMessages.CompletionProcessor_error_accessing_message,
-            x.getStatus());
-      }
-    }
-
-    ICompletionProposal[] javaProposals = collector.getDartCompletionProposals();
-    int contextInformationOffset = guessMethodContextInformationPosition(context);
-    if (contextInformationOffset != offset) {
-      for (int i = 0; i < javaProposals.length; i++) {
-        if (javaProposals[i] instanceof DartMethodCompletionProposal) {
-          DartMethodCompletionProposal jmcp = (DartMethodCompletionProposal) javaProposals[i];
-          jmcp.setContextInformationPosition(contextInformationOffset);
-        }
-      }
-    }
-
-    List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>(
-        Arrays.asList(javaProposals));
-    if (proposals.size() == 0) {
-      String error = collector.getErrorMessage();
-      if (error.length() > 0) {
-        fErrorMessage = error;
-      }
-    }
-    return proposals;
   }
 
   // This method will replace internalComputeCompletionProposals()

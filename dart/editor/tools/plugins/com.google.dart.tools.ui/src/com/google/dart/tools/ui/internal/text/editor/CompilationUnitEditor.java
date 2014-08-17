@@ -912,8 +912,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     }
   }
 
-  /** The editor's save policy */
-  protected ISavePolicy fSavePolicy;
   /**
    * Listener to annotation model changes that updates the error tick in the tab image
    */
@@ -963,8 +961,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     setRulerContextMenuId("#DartRulerContext"); //$NON-NLS-1$
     setOutlinerContextMenuId("#JavaScriptOutlinerContext"); //$NON-NLS-1$
     scheduleReconcileAfterBuild();
-    // don't set help contextId, we install our own help context
-    fSavePolicy = null;
 
     fJavaEditorErrorTickUpdater = new DartEditorErrorTickUpdater(this);
     DartX.todo("actions");
@@ -1615,16 +1611,10 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   @Override
   protected void performSave(boolean overwrite, IProgressMonitor progressMonitor) {
     IDocumentProvider p = getDocumentProvider();
-    if (p instanceof ICompilationUnitDocumentProvider) {
-      ICompilationUnitDocumentProvider cp = (ICompilationUnitDocumentProvider) p;
-      cp.setSavePolicy(fSavePolicy);
-    }
     try {
       super.performSave(overwrite, progressMonitor);
     } finally {
       if (p instanceof ICompilationUnitDocumentProvider) {
-        ICompilationUnitDocumentProvider cp = (ICompilationUnitDocumentProvider) p;
-        cp.setSavePolicy(null);
         checkEditableState();
       }
     }

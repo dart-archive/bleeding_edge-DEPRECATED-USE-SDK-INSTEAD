@@ -177,7 +177,7 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
   @Override
   protected final FormatterPrefs getFormatterPrefs() {
     if (fFormatterPrefs == null) {
-      fFormatterPrefs = new FormatterPrefs(fInvocationContext.getProject());
+      fFormatterPrefs = new FormatterPrefs(null);
     }
     return fFormatterPrefs;
   }

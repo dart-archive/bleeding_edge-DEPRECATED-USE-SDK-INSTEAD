@@ -13,11 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.ui.DartX;
-
 import org.eclipse.core.resources.IStorage;
 
 /**
@@ -43,46 +38,11 @@ public final class DartModelUtil {
     return buf.toString();
   }
 
-  public static boolean isImplicitImport(String qualifier, CompilationUnit cu) {
-    if ("java.lang".equals(qualifier)) { //$NON-NLS-1$
-      return true;
-    }
-    String packageName = cu.getParent().getElementName();
-    if (qualifier.equals(packageName)) {
-      return true;
-    }
-    String typeName = DartCore.removeDartLikeExtension(cu.getElementName());
-    String mainTypeName = DartModelUtil.concatenateName(packageName, typeName);
-    return qualifier.equals(mainTypeName);
-  }
-
   public static boolean isOpenableStorage(Object storage) {
 //    if (storage instanceof IJarEntryResource) {
 //      return ((IJarEntryResource) storage).isFile();
 //    } else {
     return storage instanceof IStorage;
 //    }
-  }
-
-  /**
-   * Returns true if a cu is a primary cu (original or shared working copy)
-   */
-  public static boolean isPrimary(CompilationUnit cu) {
-    return cu.getPrimary() == cu;
-  }
-
-  /**
-   * Force a reconcile of a compilation unit.
-   * 
-   * @param unit
-   */
-  public static void reconcile(CompilationUnit unit) throws DartModelException {
-    DartX.todo();
-//    ((CompilationUnitImpl) unit).reconcile(false, null);
-//    unit.reconcile(CompilationUnit.NO_AST, false /*
-//                                                  * don't force problem
-//                                                  * detection
-//                                                  */,
-//        null /* use primary owner */, null /* no progress monitor */);
   }
 }
