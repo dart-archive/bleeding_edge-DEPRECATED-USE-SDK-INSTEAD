@@ -3245,6 +3245,26 @@ public class Parser {
           modifiers.getExternalKeyword(),
           null));
     } else if (!matchesIdentifier()) {
+      Token keyword = modifiers.getVarKeyword();
+      if (keyword == null) {
+        keyword = modifiers.getFinalKeyword();
+      }
+      if (keyword == null) {
+        keyword = modifiers.getConstKeyword();
+      }
+      if (keyword != null) {
+        //
+        // We appear to have found an incomplete top-level variable declaration.
+        //
+        reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
+        ArrayList<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
+        variables.add(new VariableDeclaration(null, null, createSyntheticIdentifier(), null, null));
+        return new TopLevelVariableDeclaration(
+            commentAndMetadata.getComment(),
+            commentAndMetadata.getMetadata(),
+            new VariableDeclarationList(null, null, keyword, null, variables),
+            expectSemicolon());
+      }
       reportErrorForToken(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
       return null;
     } else if (tokenMatches(peek(), TokenType.OPEN_PAREN)) {

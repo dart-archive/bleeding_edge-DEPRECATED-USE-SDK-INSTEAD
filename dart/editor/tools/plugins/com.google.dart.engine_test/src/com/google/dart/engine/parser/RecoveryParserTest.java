@@ -452,6 +452,51 @@ public class RecoveryParserTest extends ParserTestCase {
     assertTrue(name.isSynthetic());
   }
 
+  public void test_incomplete_topLevelVariable_const() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(
+        "const ",
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN);
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSizeOfList(1, declarations);
+    CompilationUnitMember member = declarations.get(0);
+    assertInstanceOf(TopLevelVariableDeclaration.class, member);
+    NodeList<VariableDeclaration> variables = ((TopLevelVariableDeclaration) member).getVariables().getVariables();
+    assertSizeOfList(1, variables);
+    SimpleIdentifier name = variables.get(0).getName();
+    assertTrue(name.isSynthetic());
+  }
+
+  public void test_incomplete_topLevelVariable_final() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(
+        "final ",
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN);
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSizeOfList(1, declarations);
+    CompilationUnitMember member = declarations.get(0);
+    assertInstanceOf(TopLevelVariableDeclaration.class, member);
+    NodeList<VariableDeclaration> variables = ((TopLevelVariableDeclaration) member).getVariables().getVariables();
+    assertSizeOfList(1, variables);
+    SimpleIdentifier name = variables.get(0).getName();
+    assertTrue(name.isSynthetic());
+  }
+
+  public void test_incomplete_topLevelVariable_var() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(
+        "var ",
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN);
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSizeOfList(1, declarations);
+    CompilationUnitMember member = declarations.get(0);
+    assertInstanceOf(TopLevelVariableDeclaration.class, member);
+    NodeList<VariableDeclaration> variables = ((TopLevelVariableDeclaration) member).getVariables().getVariables();
+    assertSizeOfList(1, variables);
+    SimpleIdentifier name = variables.get(0).getName();
+    assertTrue(name.isSynthetic());
+  }
+
   public void test_incompleteField_const() throws Exception {
     CompilationUnit unit = parseCompilationUnit(
         createSource("class C {", "  const", "}"),
