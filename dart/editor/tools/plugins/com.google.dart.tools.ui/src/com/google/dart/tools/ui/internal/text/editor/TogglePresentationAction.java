@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.IWorkingCopyManager;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
@@ -120,8 +119,7 @@ public class TogglePresentationAction extends TextEditorAction implements IPrope
     boolean checked = (editor != null && editor.showsHighlightRangeOnly());
     setChecked(checked);
     if (editor instanceof CompilationUnitEditor) {
-      IWorkingCopyManager manager = DartToolsPlugin.getDefault().getWorkingCopyManager();
-      setEnabled(manager.getWorkingCopy(editor.getEditorInput()) != null);
+      setEnabled(false);
     } else {
       setEnabled(editor != null);
     }

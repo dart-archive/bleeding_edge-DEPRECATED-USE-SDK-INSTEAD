@@ -54,27 +54,6 @@ public class WorkingCopyManager implements IWorkingCopyManager {
   }
 
   @Override
-  public CompilationUnit getWorkingCopy(IEditorInput input) {
-    return getWorkingCopy(input, true);
-  }
-
-  /**
-   * Returns the working copy remembered for the compilation unit encoded in the given editor input.
-   * <p>
-   * Note: This method must not be part of the public {@link IWorkingCopyManager} API.
-   * </p>
-   * 
-   * @param input the editor input
-   * @param primaryOnly if <code>true</code> only primary working copies will be returned
-   * @return the working copy of the compilation unit, or <code>null</code> if the input does not
-   *         encode an editor input, or if there is no remembered working copy for this compilation
-   *         unit
-   */
-  public CompilationUnit getWorkingCopy(IEditorInput input, boolean primaryOnly) {
-    return null;
-  }
-
-  @Override
   public void shutdown() {
     if (!fIsShuttingDown) {
       fIsShuttingDown = true;

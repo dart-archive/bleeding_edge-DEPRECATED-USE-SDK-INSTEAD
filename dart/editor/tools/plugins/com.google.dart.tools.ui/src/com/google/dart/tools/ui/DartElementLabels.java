@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.internal.util.Strings;
 
@@ -309,84 +308,6 @@ public class DartElementLabels {
    * User-readable string for the default package name (e.g. "(default package)").
    */
   public final static String DEFAULT_PACKAGE = DartUIMessages.JavaElementLabels_default_package;
-
-//  /**
-//   * Appends the label for a class file to a {@link StringBuffer}. Considers the
-//   * CF_* flags.
-//   * 
-//   * @param classFile The element to render.
-//   * @param flags The rendering flags. Flags with names starting with 'CF_' are
-//   *          considered.
-//   * @param buf The buffer to append the resulting label to.
-//   */
-//  public static void getClassFileLabel(IClassFile classFile, long flags,
-//      StringBuffer buf) {
-//    if (getFlag(flags, CF_QUALIFIED)) {
-//      IPackageFragment pack = (IPackageFragment) classFile.getParent();
-//      if (!pack.isDefaultPackage()) {
-//        getPackageFragmentLabel(pack, (flags & QUALIFIER_FLAGS), buf);
-//        buf.append('.');
-//      }
-//    }
-//    buf.append(classFile.getDisplayName());
-//
-//    if (getFlag(flags, CF_POST_QUALIFIED)) {
-//      buf.append(CONCAT_STRING);
-//      getPackageFragmentLabel((IPackageFragment) classFile.getParent(), flags
-//          & QUALIFIER_FLAGS, buf);
-//    }
-//  }
-
-  /**
-   * Appends the label for a compilation unit to a {@link StringBuffer}. Considers the CU_* flags.
-   * 
-   * @param cu The element to render.
-   * @param flags The rendering flags. Flags with names starting with 'CU_' are considered.
-   * @param buf The buffer to append the resulting label to.
-   */
-  public static void getCompilationUnitLabel(CompilationUnit cu, long flags, StringBuffer buf) {
-//    if (getFlag(flags, CU_QUALIFIED)) {
-//      IPackageFragment pack = (IPackageFragment) cu.getParent();
-//      if (!pack.isDefaultPackage()) {
-//        getPackageFragmentLabel(pack, (flags & QUALIFIER_FLAGS), buf);
-//        buf.append('.');
-//      }
-//    }
-    buf.append(cu.getElementName());
-
-//    if (getFlag(flags, CU_POST_QUALIFIED)) {
-//      buf.append(CONCAT_STRING);
-//      getPackageFragmentLabel((IPackageFragment) cu.getParent(), flags
-//          & QUALIFIER_FLAGS, buf);
-//    }
-  }
-
-//  /**
-//   * Appends the label for a initializer to a {@link StringBuffer}. Considers
-//   * the I_* flags.
-//   * 
-//   * @param initializer The element to render.
-//   * @param flags The rendering flags. Flags with names starting with 'I_' are
-//   *          considered.
-//   * @param buf The buffer to append the resulting label to.
-//   */
-//  public static void getInitializerLabel(IInitializer initializer, long flags,
-//      StringBuffer buf) {
-//    // qualification
-//    if (getFlag(flags, I_FULLY_QUALIFIED)) {
-//      getTypeLabel(initializer.getDeclaringType(), T_FULLY_QUALIFIED
-//          | (flags & QUALIFIER_FLAGS), buf);
-//      buf.append('.');
-//    }
-//    buf.append(DartUIMessages.JavaElementLabels_initializer);
-//
-//    // post qualification
-//    if (getFlag(flags, I_POST_QUALIFIED)) {
-//      buf.append(CONCAT_STRING);
-//      getTypeLabel(initializer.getDeclaringType(), T_FULLY_QUALIFIED
-//          | (flags & QUALIFIER_FLAGS), buf);
-//    }
-//  }
 
   /**
    * Appends the label for a local variable to a {@link StringBuffer}.

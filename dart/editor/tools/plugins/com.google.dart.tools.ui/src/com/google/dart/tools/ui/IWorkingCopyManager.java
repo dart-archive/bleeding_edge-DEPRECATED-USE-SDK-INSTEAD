@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.tools.core.model.CompilationUnit;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IEditorInput;
 
@@ -66,16 +64,6 @@ public interface IWorkingCopyManager {
    * @param input the editor input
    */
   void disconnect(IEditorInput input);
-
-  /**
-   * Returns the working copy remembered for the compilation unit encoded in the given editor input.
-   * 
-   * @param input the editor input
-   * @return the working copy of the compilation unit, or <code>null</code> if the input does not
-   *         encode an editor input, or if there is no remembered working copy for this compilation
-   *         unit
-   */
-  CompilationUnit getWorkingCopy(IEditorInput input);
 
   /**
    * Shuts down this working copy manager. All working copies still remembered by this manager are

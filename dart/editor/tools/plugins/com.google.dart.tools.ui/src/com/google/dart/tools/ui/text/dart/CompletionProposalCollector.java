@@ -26,7 +26,6 @@ import com.google.dart.tools.ui.internal.text.completion.LazyDartCompletionPropo
 import com.google.dart.tools.ui.internal.text.completion.LazyDartTypeCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.NamedArgumentCompletionProposal;
 import com.google.dart.tools.ui.internal.text.completion.OptionalArgumentCompletionProposal;
-import com.google.dart.tools.ui.internal.text.completion.OverrideCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.ProposalContextInformation;
 import com.google.dart.tools.ui.internal.util.TypeFilter;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
@@ -414,7 +413,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
 //      case CompletionProposal.JAVADOC_METHOD_REF:
         return createMethodReferenceProposal(proposal);
       case CompletionProposal.METHOD_DECLARATION:
-        return createMethodDeclarationProposal(proposal);
+        return null;
 //      case CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION:
 //        return createAnonymousTypeProposal(proposal, getInvocationContext());
 //      case CompletionProposal.ANONYMOUS_CLASS_DECLARATION:
@@ -852,41 +851,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
         proposal.getElementDocSummary(),
         proposal.getElementDocDetails());
     dartProposal.setTriggerCharacters(VAR_TRIGGER);
-    return dartProposal;
-  }
-
-  private IDartCompletionProposal createMethodDeclarationProposal(CompletionProposal proposal) {
-    if (fCompilationUnit == null || fDartProject == null) {
-      return null;
-    }
-
-    String name = String.valueOf(proposal.getName());
-    String[] paramTypes = Signature.getParameterTypes(String.valueOf(proposal.getSignature()));
-    for (int index = 0; index < paramTypes.length; index++) {
-      paramTypes[index] = Signature.toString(paramTypes[index]);
-    }
-    int start = proposal.getReplaceStart();
-    int length = getLength(proposal);
-
-    StyledString label = new StyledString(
-        fLabelProvider.createOverrideMethodProposalLabel(proposal));//TODO(messick)
-
-    DartCompletionProposal dartProposal = new OverrideCompletionProposal(
-        fDartProject,
-        fCompilationUnit,
-        name,
-        paramTypes,
-        start,
-        length,
-        getLengthIdentifier(proposal),
-        label,
-        String.valueOf(proposal.getCompletion()));
-    dartProposal.setImage(getImage(fLabelProvider.createMethodImageDescriptor(proposal)));
-    // TODO(scheglov) implement documentation comment
-//    dartProposal.setProposalInfo(new MethodProposalInfo(fDartProject, proposal));
-    dartProposal.setRelevance(computeRelevance(proposal));
-
-    fSuggestedMethodNames.add(new String(name));
     return dartProposal;
   }
 

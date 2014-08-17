@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.core.completion;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartProject;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import java.security.Signature;
@@ -724,11 +721,6 @@ public class CompletionProposal {
   // TODO (david) https://bugs.eclipse.org/bugs/show_bug.cgi?id=132558
   public int getCompletionLocation() {
     return -1; // default overridden by concrete implementation
-  }
-
-  public DartProject getDartProject() {
-    DartCore.notYetImplemented();
-    return null; // see InternalCompletionProposal
   }
 
   /**

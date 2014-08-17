@@ -13,17 +13,14 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.refactoring.AbstractDartTest;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -31,14 +28,6 @@ import static org.fest.assertions.Assertions.assertThat;
  * Base for {@link DartEditor} tests.
  */
 public class AbstractDartEditorTest extends AbstractDartTest {
-  /**
-   * Opens given {@link CompilationUnit} in the {@link DartEditor}.
-   */
-  public static DartEditor openEditor(CompilationUnit unit) throws Exception {
-    return (DartEditor) IDE.openEditor(
-        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),
-        (IFile) unit.getResource());
-  }
 
   protected DartEditor testEditor;
   protected ISourceViewer sourceViewer;
