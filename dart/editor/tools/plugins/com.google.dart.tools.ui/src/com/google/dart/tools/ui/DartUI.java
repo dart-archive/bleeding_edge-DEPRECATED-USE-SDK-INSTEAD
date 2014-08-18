@@ -591,8 +591,8 @@ public final class DartUI {
    * @param target the {@link NavigationTarget} to open in reveal
    * @return the opened editor or {@code null} if by some reason editor was not opened
    */
-  public static IEditorPart openInEditor(com.google.dart.server.Element target, boolean activate)
-      throws Exception {
+  public static IEditorPart openInEditor(com.google.dart.server.generated.types.Element target,
+      boolean activate) throws Exception {
     if (target == null) {
       return null;
     }

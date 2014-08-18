@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.Element;
+
 /**
  * The interface {@code Outline} defines the behavior of objects that represent an outline for an
  * element.

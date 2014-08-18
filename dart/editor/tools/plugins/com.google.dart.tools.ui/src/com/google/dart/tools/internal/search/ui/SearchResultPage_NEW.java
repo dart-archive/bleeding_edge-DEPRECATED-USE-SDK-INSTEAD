@@ -23,10 +23,10 @@ import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.server.Element;
-import com.google.dart.server.ElementKind;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.SearchResultKind;
+import com.google.dart.server.generated.types.Element;
+import com.google.dart.server.generated.types.ElementKind;
 import com.google.dart.server.generated.types.Location;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
@@ -658,8 +658,8 @@ public abstract class SearchResultPage_NEW extends SearchPage {
   }
 
   private static boolean isLocalElement(Element element) {
-    ElementKind kind = element.getKind();
-    if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
+    String kind = element.getKind();
+    if (kind.equals(ElementKind.LOCAL_VARIABLE) || kind.equals(ElementKind.PARAMETER)) {
       return true;
     }
     // TODO(scheglov) consider adding LOCAL_FUNCTION

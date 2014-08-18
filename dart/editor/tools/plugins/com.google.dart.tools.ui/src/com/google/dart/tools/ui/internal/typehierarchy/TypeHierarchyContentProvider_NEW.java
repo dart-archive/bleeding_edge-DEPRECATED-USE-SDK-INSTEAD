@@ -16,9 +16,9 @@ package com.google.dart.tools.ui.internal.typehierarchy;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.dart.server.Element;
 import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.TypeHierarchyItem;
+import com.google.dart.server.generated.types.Element;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.text.functions.PositionElement;
 

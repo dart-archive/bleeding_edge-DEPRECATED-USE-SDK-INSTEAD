@@ -14,8 +14,8 @@
 
 package com.google.dart.server.internal;
 
-import com.google.dart.server.Element;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.generated.types.Element;
 
 import org.apache.commons.lang3.StringUtils;
 

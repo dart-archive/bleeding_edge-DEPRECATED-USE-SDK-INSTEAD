@@ -43,14 +43,15 @@ public class OpenAction extends AbstractDartSelectionAction {
   /**
    * Returns navigation targets for the given context, may be empty, but not {@code null}.
    */
-  public static com.google.dart.server.Element[] getNavigationTargets(DartSelection selection) {
+  public static com.google.dart.server.generated.types.Element[] getNavigationTargets(
+      DartSelection selection) {
     int offset = selection.getOffset();
     AssistContext assistContext = selection.getContext();
     if (assistContext != null) {
       String file = assistContext.getFile();
       return NewSelectionConverter.getNavigationTargets(file, offset);
     }
-    return com.google.dart.server.Element.EMPTY_ARRAY;
+    return com.google.dart.server.generated.types.Element.EMPTY_ARRAY;
   }
 
   /**
@@ -100,8 +101,8 @@ public class OpenAction extends AbstractDartSelectionAction {
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      com.google.dart.server.Element[] targets = getNavigationTargets(selection);
-      for (com.google.dart.server.Element target : targets) {
+      com.google.dart.server.generated.types.Element[] targets = getNavigationTargets(selection);
+      for (com.google.dart.server.generated.types.Element target : targets) {
         try {
           DartUI.openInEditor(target, true);
           return;
@@ -126,7 +127,7 @@ public class OpenAction extends AbstractDartSelectionAction {
   protected void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     if (DartCoreDebug.ENABLE_ANALYSIS_SERVER) {
-      com.google.dart.server.Element element = getSelectionElement_NEW(selection);
+      com.google.dart.server.generated.types.Element element = getSelectionElement_NEW(selection);
       if (element != null) {
         try {
           DartUI.openInEditor(element, true);

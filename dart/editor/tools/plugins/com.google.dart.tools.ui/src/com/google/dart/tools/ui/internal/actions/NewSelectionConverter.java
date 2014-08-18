@@ -172,14 +172,15 @@ public class NewSelectionConverter {
   /**
    * Returns navigation targets for the given context, may be empty, but not {@code null}.
    */
-  public static com.google.dart.server.Element[] getNavigationTargets(String file, int offset) {
+  public static com.google.dart.server.generated.types.Element[] getNavigationTargets(String file,
+      int offset) {
     NavigationRegion[] regions = DartCore.getAnalysisServerData().getNavigation(file);
     for (NavigationRegion navigationRegion : regions) {
       if (navigationRegion.containsInclusive(offset)) {
         return navigationRegion.getTargets();
       }
     }
-    return com.google.dart.server.Element.EMPTY_ARRAY;
+    return com.google.dart.server.generated.types.Element.EMPTY_ARRAY;
   }
 
   /**

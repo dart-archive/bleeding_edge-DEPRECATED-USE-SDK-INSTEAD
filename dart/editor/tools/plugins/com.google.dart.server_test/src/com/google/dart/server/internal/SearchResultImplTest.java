@@ -14,8 +14,8 @@
 
 package com.google.dart.server.internal;
 
-import com.google.dart.server.Element;
 import com.google.dart.server.SearchResultKind;
+import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.Location;
 
 import junit.framework.TestCase;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 public class SearchResultImplTest extends TestCase {
   public void test_access() throws Exception {
     SearchResultKind kind = SearchResultKind.REFERENCE;
-    Element[] path = new Element[0];
+    Element[] path = Element.EMPTY_ARRAY;
     Location location = mock(Location.class);
     SearchResultImpl searchResult = new SearchResultImpl(path, kind, location, false);
     assertSame(path, searchResult.getPath());

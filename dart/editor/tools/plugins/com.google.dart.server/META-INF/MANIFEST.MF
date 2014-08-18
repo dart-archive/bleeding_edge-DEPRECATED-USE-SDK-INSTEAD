@@ -15,6 +15,6 @@ Export-Package: com.google.dart.server,
  com.google.dart.server.internal.remote;x-friends:="com.google.dart.server_test",
  com.google.dart.server.internal.remote.processor;x-friends:="com.google.dart.server_test",
  com.google.dart.server.internal.remote.utilities;x-friends:="com.google.dart.server_test",
- com.google.dart.server.utilities.general;x-friends:="com.google.dart.server_test",
+ com.google.dart.server.utilities.general,
  com.google.dart.server.utilities.instrumentation,
  com.google.dart.server.utilities.logging

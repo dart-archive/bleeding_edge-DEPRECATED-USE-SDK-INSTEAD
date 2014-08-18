@@ -13,6 +13,7 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.Location;
 
 /**

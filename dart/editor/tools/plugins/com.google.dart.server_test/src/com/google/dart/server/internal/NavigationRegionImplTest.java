@@ -14,8 +14,7 @@
 
 package com.google.dart.server.internal;
 
-import com.google.dart.server.internal.ElementImpl;
-import com.google.dart.server.internal.NavigationRegionImpl;
+import com.google.dart.server.generated.types.Element;
 
 import junit.framework.TestCase;
 
@@ -23,9 +22,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class NavigationRegionImplTest extends TestCase {
-  private ElementImpl targetA = mock(ElementImpl.class);
-  private ElementImpl targetB = mock(ElementImpl.class);
-  private ElementImpl[] targets = {targetA, targetB};
+  private Element targetA = mock(Element.class);
+  private Element targetB = mock(Element.class);
+  private Element[] targets = {targetA, targetB};
 
   public void test_access() throws Exception {
     NavigationRegionImpl region = new NavigationRegionImpl(10, 20, targets);

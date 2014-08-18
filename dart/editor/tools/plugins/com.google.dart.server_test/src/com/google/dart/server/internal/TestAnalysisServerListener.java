@@ -21,7 +21,6 @@ import com.google.dart.engine.utilities.general.ArrayUtilities;
 import com.google.dart.server.AnalysisServerListener;
 import com.google.dart.server.AnalysisStatus;
 import com.google.dart.server.CompletionSuggestion;
-import com.google.dart.server.Element;
 import com.google.dart.server.HighlightRegion;
 import com.google.dart.server.NavigationRegion;
 import com.google.dart.server.Occurrences;
@@ -30,6 +29,7 @@ import com.google.dart.server.OverrideMember;
 import com.google.dart.server.SearchResult;
 import com.google.dart.server.ServerStatus;
 import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.internal.asserts.NavigationRegionsAssert;
 
 import junit.framework.Assert;

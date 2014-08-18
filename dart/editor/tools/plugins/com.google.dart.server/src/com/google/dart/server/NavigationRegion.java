@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.Element;
+
 /**
  * The interface {@code NavigationRegion} defines the behavior of objects representing a list of
  * elements with which a source region is associated.

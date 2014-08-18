@@ -14,16 +14,14 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.server.Element;
-import com.google.dart.server.ElementKind;
 import com.google.dart.server.RefactoringProblem;
 import com.google.dart.server.RefactoringProblemSeverity;
 import com.google.dart.server.SourceChange;
 import com.google.dart.server.SourceEdit;
 import com.google.dart.server.SourceFileEdit;
 import com.google.dart.server.generated.types.AnalysisError;
+import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.generated.types.Location;
-import com.google.dart.server.internal.ElementImpl;
 import com.google.dart.server.internal.RefactoringProblemImpl;
 import com.google.dart.server.internal.SourceChangeImpl;
 import com.google.dart.server.internal.SourceEditImpl;
@@ -55,13 +53,13 @@ public abstract class JsonProcessor {
   }
 
   protected Element constructElement(JsonObject elementObject) {
-    ElementKind kind = ElementKind.valueOf(elementObject.get("kind").getAsString());
+    String kind = elementObject.get("kind").getAsString();
     String name = elementObject.get("name").getAsString();
     Location location = constructLocation(elementObject.get("location").getAsJsonObject());
     int flags = elementObject.get("flags").getAsInt();
     String parameters = safelyGetAsString(elementObject, "parameters");
     String returnType = safelyGetAsString(elementObject, "returnType");
-    return new ElementImpl(kind, name, location, flags, parameters, returnType);
+    return new Element(kind, name, location, flags, parameters, returnType);
   }
 
   protected Element[] constructElementArray(JsonArray jsonArray) {

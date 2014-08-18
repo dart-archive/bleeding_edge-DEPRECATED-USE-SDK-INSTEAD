@@ -15,8 +15,8 @@ package com.google.dart.server.internal.remote.processor;
 
 import com.google.common.collect.Lists;
 import com.google.dart.server.AnalysisServerListener;
-import com.google.dart.server.Element;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.internal.NavigationRegionImpl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

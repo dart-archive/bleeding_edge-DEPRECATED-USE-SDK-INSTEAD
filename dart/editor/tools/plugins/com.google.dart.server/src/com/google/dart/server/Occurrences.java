@@ -13,6 +13,8 @@
  */
 package com.google.dart.server;
 
+import com.google.dart.server.generated.types.Element;
+
 /**
  * The interface {@code Occurrences} defines the behavior of objects that represent a set of
  * occurrences in a file.

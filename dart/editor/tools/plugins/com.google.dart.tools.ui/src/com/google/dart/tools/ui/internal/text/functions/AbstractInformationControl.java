@@ -791,9 +791,9 @@ public abstract class AbstractInformationControl extends PopupDialog implements
       }
       dispose();
     }
-    if (selectedElement instanceof com.google.dart.server.Element) {
+    if (selectedElement instanceof com.google.dart.server.generated.types.Element) {
       try {
-        DartUI.openInEditor((com.google.dart.server.Element) selectedElement, true);
+        DartUI.openInEditor((com.google.dart.server.generated.types.Element) selectedElement, true);
       } catch (Exception ex) {
         DartToolsPlugin.log(ex);
       }

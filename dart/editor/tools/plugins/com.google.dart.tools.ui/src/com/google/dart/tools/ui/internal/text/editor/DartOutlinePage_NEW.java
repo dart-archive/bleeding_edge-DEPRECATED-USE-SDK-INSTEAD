@@ -14,8 +14,8 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.base.Objects;
-import com.google.dart.server.Element;
 import com.google.dart.server.Outline;
+import com.google.dart.server.generated.types.Element;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.search.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartPluginImages;

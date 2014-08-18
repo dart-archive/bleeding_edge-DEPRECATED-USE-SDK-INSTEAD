@@ -15,8 +15,8 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
-import com.google.dart.server.Element;
 import com.google.dart.server.NavigationRegion;
+import com.google.dart.server.generated.types.Element;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Assert;

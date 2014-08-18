@@ -153,10 +153,11 @@ public class OverrideIndicatorManager {
   public static class OverrideIndicator extends Annotation {
 
     private boolean isOverride;
-    private com.google.dart.server.Element element;
+    private com.google.dart.server.generated.types.Element element;
     private Element element_OLD;
 
-    OverrideIndicator(com.google.dart.server.Element element, String text, boolean isOverride) {
+    OverrideIndicator(com.google.dart.server.generated.types.Element element, String text,
+        boolean isOverride) {
       super(ANNOTATION_TYPE, false, text);
       this.isOverride = isOverride;
       this.element = element;
@@ -316,7 +317,7 @@ public class OverrideIndicatorManager {
     Map<Annotation, Position> annotationMap = Maps.newHashMap();
     for (OverrideMember override : overrides) {
       boolean isOverride = true;
-      com.google.dart.server.Element superElement = override.getSuperclassElement();
+      com.google.dart.server.generated.types.Element superElement = override.getSuperclassElement();
       // TODO(scheglov) shouldn't happen, probably because of "implements X"
       if (superElement == null) {
         continue;

@@ -106,15 +106,15 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
   /**
    * @return the {@link Element} in the given {@link IStructuredSelection}. May be {@code null}.
    */
-  protected static com.google.dart.server.Element getSelectionElement_NEW(
+  protected static com.google.dart.server.generated.types.Element getSelectionElement_NEW(
       IStructuredSelection selection) {
     if (selection.size() == 1) {
       Object object = selection.getFirstElement();
       if (object instanceof TypeItem) {
         object = ((TypeItem) object).getElement();
       }
-      if (object instanceof com.google.dart.server.Element) {
-        return (com.google.dart.server.Element) object;
+      if (object instanceof com.google.dart.server.generated.types.Element) {
+        return (com.google.dart.server.generated.types.Element) object;
       }
     }
     return null;

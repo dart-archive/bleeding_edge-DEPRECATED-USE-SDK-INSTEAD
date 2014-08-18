@@ -14,9 +14,9 @@
 package com.google.dart.server.internal.remote.processor;
 
 import com.google.common.collect.Lists;
-import com.google.dart.server.Element;
 import com.google.dart.server.GetTypeHierarchyConsumer;
 import com.google.dart.server.TypeHierarchyItem;
+import com.google.dart.server.generated.types.Element;
 import com.google.dart.server.internal.TypeHierarchyItemImpl;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
