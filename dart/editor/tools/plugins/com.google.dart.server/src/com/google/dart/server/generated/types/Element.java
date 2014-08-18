@@ -35,6 +35,18 @@ public class Element {
    */
   public static final Element[] EMPTY_ARRAY = new Element[0];
 
+  private static final int ABSTRACT = 0x01;
+
+  private static final int CONST = 0x02;
+
+  private static final int FINAL = 0x04;
+
+  private static final int TOP_LEVEL_STATIC = 0x08;
+
+  private static final int PRIVATE = 0x10;
+
+  private static final int DEPRECATED = 0x20;
+
   /**
    * The kind of the element.
    */
@@ -152,6 +164,30 @@ public class Element {
    */
   public String getReturnType() {
     return returnType;
+  }
+
+  public boolean isAbstract() {
+    return (flags & ABSTRACT) != 0;
+  }
+
+  public boolean isConst() {
+    return (flags & CONST) != 0;
+  }
+
+  public boolean isDeprecated() {
+    return (flags & DEPRECATED) != 0;
+  }
+
+  public boolean isFinal() {
+    return (flags & FINAL) != 0;
+  }
+
+  public boolean isPrivate() {
+    return (flags & PRIVATE) != 0;
+  }
+
+  public boolean isTopLevelOrStatic() {
+    return (flags & TOP_LEVEL_STATIC) != 0;
   }
 
   @Override
