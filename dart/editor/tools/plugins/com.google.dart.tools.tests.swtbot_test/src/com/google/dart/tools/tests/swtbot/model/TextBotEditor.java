@@ -50,6 +50,7 @@ import java.util.List;
 public class TextBotEditor extends AbstractBotView {
 
   private static KeyStroke keyM1;
+  private static KeyStroke keyA;
   private static KeyStroke keyF;
   private static KeyStroke keyS;
 
@@ -59,6 +60,7 @@ public class TextBotEditor extends AbstractBotView {
       // without going through this indirection.
       keyM1 = KeyStroke.getInstance("M1+F");
       keyM1 = KeyStroke.getInstance(keyM1.getModifierKeys(), KeyStroke.NO_KEY);
+      keyA = KeyStroke.getInstance("A");
       keyF = KeyStroke.getInstance("F");
       keyS = KeyStroke.getInstance("S");
     } catch (ParseException e) {
@@ -104,9 +106,18 @@ public class TextBotEditor extends AbstractBotView {
   }
 
   public ExtractMethodBotView openExtractMethodWizard() {
+    waitForAsyncDrain();
     editor().getStyledText().contextMenu("Extract Method...").click();
     waitForAnalysis();
     ExtractMethodBotView wizard = new ExtractMethodBotView(bot);
+    return wizard;
+  }
+
+  public InlineMethodBotView openInlineMethodWizard() {
+    waitForAsyncDrain();
+    editor().getStyledText().contextMenu("Inline...").click();
+    waitForAnalysis();
+    InlineMethodBotView wizard = new InlineMethodBotView(bot);
     return wizard;
   }
 
@@ -153,6 +164,19 @@ public class TextBotEditor extends AbstractBotView {
       fail(ex.getMessage());
       throw new RuntimeException(ex);
     }
+  }
+
+  public SWTBotStyledText selectAll() {
+    SWTBotEditor editorView = bot.editorByTitle(title);
+    editorView.show();
+    SWTBotStyledText text = editorView.bot().styledText();
+    UIThreadRunnable.syncExec(new VoidResult() {
+      @Override
+      public void run() {
+        editor().pressShortcut(keyM1, keyA);
+      }
+    });
+    return text;
   }
 
   /**

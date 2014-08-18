@@ -48,6 +48,7 @@ public class DebuggerBotView extends AbstractBotView {
   }
 
   public void close() {
+    // TODO(messick): Make close() also terminate the debugger and remove the stack.
     debugger().close();
   }
 

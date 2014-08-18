@@ -17,14 +17,18 @@ import com.google.dart.tools.tests.swtbot.harness.EditorTestHarness;
 import com.google.dart.tools.tests.swtbot.model.EditorBotWindow;
 import com.google.dart.tools.tests.swtbot.model.ExtractMethodBotView;
 import com.google.dart.tools.tests.swtbot.model.FilesBotView;
+import com.google.dart.tools.tests.swtbot.model.InlineMethodBotView;
 import com.google.dart.tools.tests.swtbot.model.TextBotEditor;
 import com.google.dart.tools.tests.swtbot.model.WelcomePageEditor;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class TestExtractMethod extends EditorTestHarness {
@@ -55,11 +59,25 @@ public class TestExtractMethod extends EditorTestHarness {
   }
 
   @Test
-  public void test1() throws Exception {
-    editor.toString();
+  public void testExtractAndInline() throws Exception {
     editor.editor().selectLine(27);
     ExtractMethodBotView extractor = editor.openExtractMethodWizard();
     extractor.methodNameField().typeText("randomMethod");
-    extractor.toString();
+    extractor.editParam(0, null, "string");
+    extractor.moveDown();
+    extractor.editParam(0, "Object", null);
+    extractor.close();
+    String selected = editor.selection();
+    assertEquals("    randomMethod(value, key);", selected);
+    SWTBotEclipseEditor typist = editor.editor();
+    typist.pressShortcut(SWT.NONE, SWT.ARROW_LEFT, (char) SWT.NONE);
+    for (int i = 0; i < 5; i++) {
+      typist.pressShortcut(SWT.NONE, SWT.ARROW_RIGHT, (char) SWT.NONE);
+    }
+    InlineMethodBotView inliner = editor.openInlineMethodWizard();
+    inliner.clickAllInvocations();
+    inliner.close();
+    selected = editor.selection();
+    assertEquals("    window.localStorage[key] = value;\n", selected);
   }
 }

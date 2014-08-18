@@ -15,10 +15,14 @@ package com.google.dart.tools.tests.swtbot.model;
 
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
-import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
+import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetOfType;
 import org.eclipse.swtbot.swt.finder.results.Result;
+import org.eclipse.swtbot.swt.finder.results.VoidResult;
+import org.eclipse.swtbot.swt.finder.waits.Conditions;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTableItem;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
 import org.hamcrest.Matcher;
 
@@ -28,11 +32,41 @@ public class ExtractMethodBotView extends AbstractBotView {
 
   public ExtractMethodBotView(SWTWorkbenchBot bot) {
     super(bot);
-//    bot.waitUntilWidgetAppears(Conditions.waitForView(new ViewWithTitle(viewName())));
+    bot.waitUntilWidgetAppears(Conditions.shellIsActive(viewName()));
+  }
+
+  public void close() {
+    extractMethodShell().button("OK").click();
+    waitForAnalysis();
+  }
+
+  public void editParam(int index, final String type, final String name) {
+    SWTBotTable table = extractMethodComposite().table();
+    final SWTBotTableItem item = table.getTableItem(index);
+    if (type != null) {
+      UIThreadRunnable.syncExec(new VoidResult() {
+        @Override
+        public void run() {
+          item.widget.setText(0, type);
+        }
+      });
+    }
+    if (name != null) {
+      UIThreadRunnable.syncExec(new VoidResult() {
+        @Override
+        public void run() {
+          item.widget.setText(1, name);
+        }
+      });
+    }
   }
 
   public SWTBotText methodNameField() {
-    return wizard().bot().text();
+    return extractMethodComposite().text();
+  }
+
+  public void moveDown() {
+    extractMethodComposite().button("Down").click();
   }
 
   /**
@@ -45,7 +79,7 @@ public class ExtractMethodBotView extends AbstractBotView {
     return UIThreadRunnable.syncExec(new Result<List<? extends Widget>>() {
       @Override
       public List<? extends Widget> run() {
-        return bot.widgets(matcher);
+        return bot.widgets(matcher, bot.label("Method name:").widget.getParent());
       }
     });
   }
@@ -55,9 +89,21 @@ public class ExtractMethodBotView extends AbstractBotView {
     return "Extract Method";
   }
 
-  private SWTBotView wizard() {
-    waitMillis(500);
-    // TODO(messick) This is broken! Fix it next.
-    return bot.viewByTitle(viewName());
+  private SWTBot extractMethodComposite() {
+    return UIThreadRunnable.syncExec(new Result<SWTBot>() {
+      @Override
+      public SWTBot run() {
+        return new SWTBot(bot.label("Method name:").widget.getParent());
+      }
+    });
+  }
+
+  private SWTBot extractMethodShell() {
+    return UIThreadRunnable.syncExec(new Result<SWTBot>() {
+      @Override
+      public SWTBot run() {
+        return new SWTBot(bot.label("Method name:").widget.getParent().getParent().getParent());
+      }
+    });
   }
 }
