@@ -10,18 +10,18 @@ vars.update({
   "chromium_url": "http://src.chromium.org/svn",
   "multivm_base": "http://src.chromium.org",
   "multivm_chromium_branch": "/chrome/trunk/src",
-  "multivm_chromium_revision": "288834",
-  # Revision numbers for archived builds closest to r286013.
+  "multivm_chromium_revision": "290040",
+  # Revision numbers for archived builds closest to r290040.
   # The archive switched back from git hashes to revision numbers.
   # TODO(whesse): Revert code, and remove this map, when dartium is rolled.
   "chromium_base_revision":
-      '{"Windows": "288834", ' +
-      ' "Darwin": "288834", ' +
-      ' "Linux": "288834"}',
+      '{"Windows": "290036", ' +
+      ' "Darwin": "290041", ' +
+      ' "Linux": "290041"}',
   "dart_tools_branch": "/branches/bleeding_edge/dart/tools",
   "dart_tools_revision": "37732",
   "multivm_blink_branch": "/blink/branches/dart/multivm",
-  "multivm_blink_revision": "180311",
+  "multivm_blink_revision": "180498",
 })
 
 def massage_deps(deps):
