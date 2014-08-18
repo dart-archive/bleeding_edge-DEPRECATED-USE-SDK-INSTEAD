@@ -39,33 +39,33 @@ public class AnalysisOptions {
   /**
    * True if the client wants to enable support for the proposed async feature.
    */
-  private final boolean enableAsync;
+  private final Boolean enableAsync;
 
   /**
    * True if the client wants to enable support for the proposed deferred loading feature.
    */
-  private final boolean enableDeferredLoading;
+  private final Boolean enableDeferredLoading;
 
   /**
    * True if the client wants to enable support for the proposed enum feature.
    */
-  private final boolean enableEnums;
+  private final Boolean enableEnums;
 
   /**
    * True if hints that are specific to dart2js should be generated. This option is ignored if
    * generateHints is false.
    */
-  private final boolean generateDart2jsHints;
+  private final Boolean generateDart2jsHints;
 
   /**
    * True is hints should be generated as part of generating errors and warnings.
    */
-  private final boolean generateHints;
+  private final Boolean generateHints;
 
   /**
    * Constructor for {@link AnalysisOptions}.
    */
-  public AnalysisOptions(boolean enableAsync, boolean enableDeferredLoading, boolean enableEnums, boolean generateDart2jsHints, boolean generateHints) {
+  public AnalysisOptions(Boolean enableAsync, Boolean enableDeferredLoading, Boolean enableEnums, Boolean generateDart2jsHints, Boolean generateHints) {
     this.enableAsync = enableAsync;
     this.enableDeferredLoading = enableDeferredLoading;
     this.enableEnums = enableEnums;
@@ -78,11 +78,11 @@ public class AnalysisOptions {
     if (obj instanceof AnalysisOptions) {
       AnalysisOptions other = (AnalysisOptions) obj;
       return
-        other.enableAsync == enableAsync &&
-        other.enableDeferredLoading == enableDeferredLoading &&
-        other.enableEnums == enableEnums &&
-        other.generateDart2jsHints == generateDart2jsHints &&
-        other.generateHints == generateHints;
+        ObjectUtilities.equals(other.enableAsync, enableAsync) &&
+        ObjectUtilities.equals(other.enableDeferredLoading, enableDeferredLoading) &&
+        ObjectUtilities.equals(other.enableEnums, enableEnums) &&
+        ObjectUtilities.equals(other.generateDart2jsHints, generateDart2jsHints) &&
+        ObjectUtilities.equals(other.generateHints, generateHints);
     }
     return false;
   }
@@ -90,21 +90,21 @@ public class AnalysisOptions {
   /**
    * True if the client wants to enable support for the proposed async feature.
    */
-  public boolean getEnableAsync() {
+  public Boolean getEnableAsync() {
     return enableAsync;
   }
 
   /**
    * True if the client wants to enable support for the proposed deferred loading feature.
    */
-  public boolean getEnableDeferredLoading() {
+  public Boolean getEnableDeferredLoading() {
     return enableDeferredLoading;
   }
 
   /**
    * True if the client wants to enable support for the proposed enum feature.
    */
-  public boolean getEnableEnums() {
+  public Boolean getEnableEnums() {
     return enableEnums;
   }
 
@@ -112,14 +112,14 @@ public class AnalysisOptions {
    * True if hints that are specific to dart2js should be generated. This option is ignored if
    * generateHints is false.
    */
-  public boolean getGenerateDart2jsHints() {
+  public Boolean getGenerateDart2jsHints() {
     return generateDart2jsHints;
   }
 
   /**
    * True is hints should be generated as part of generating errors and warnings.
    */
-  public boolean getGenerateHints() {
+  public Boolean getGenerateHints() {
     return generateHints;
   }
 

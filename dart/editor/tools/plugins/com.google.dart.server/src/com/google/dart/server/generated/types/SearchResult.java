@@ -50,7 +50,7 @@ public class SearchResult {
    * all references to a method m defined in some class were requested, and a reference to a method m
    * from an unknown class were found, it would be marked as being a potential match.
    */
-  private final boolean isPotential;
+  private final Boolean isPotential;
 
   /**
    * The elements that contain the result, starting with the most immediately enclosing ancestor and
@@ -61,7 +61,7 @@ public class SearchResult {
   /**
    * Constructor for {@link SearchResult}.
    */
-  public SearchResult(Location location, String kind, boolean isPotential, List<Element> path) {
+  public SearchResult(Location location, String kind, Boolean isPotential, List<Element> path) {
     this.location = location;
     this.kind = kind;
     this.isPotential = isPotential;
@@ -75,7 +75,7 @@ public class SearchResult {
       return
         ObjectUtilities.equals(other.location, location) &&
         ObjectUtilities.equals(other.kind, kind) &&
-        other.isPotential == isPotential &&
+        ObjectUtilities.equals(other.isPotential, isPotential) &&
         ObjectUtilities.equals(other.path, path);
     }
     return false;
@@ -86,7 +86,7 @@ public class SearchResult {
    * all references to a method m defined in some class were requested, and a reference to a method m
    * from an unknown class were found, it would be marked as being a potential match.
    */
-  public boolean getIsPotential() {
+  public Boolean getIsPotential() {
     return isPotential;
   }
 

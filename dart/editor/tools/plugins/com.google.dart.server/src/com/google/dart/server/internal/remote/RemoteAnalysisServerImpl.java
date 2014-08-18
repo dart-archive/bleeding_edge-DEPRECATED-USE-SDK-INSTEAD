@@ -404,7 +404,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 
   @Override
   public void edit_getRefactoring(String kindId, String file, int offset, int length,
-      boolean validateOnly, Object options, GetRefactoringConsumer consumer) {
+      Boolean validateOnly, Object options, GetRefactoringConsumer consumer) {
     // TODO Auto-generated method stub
 
   }
@@ -495,7 +495,7 @@ public class RemoteAnalysisServerImpl implements AnalysisServer {
 //}
 
   @Override
-  public void search_findElementReferences(String file, int offset, boolean includePotential,
+  public void search_findElementReferences(String file, int offset, Boolean includePotential,
       FindElementReferencesConsumer consumer) {
     // TODO (jwren) re-implement
   }

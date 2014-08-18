@@ -67,13 +67,13 @@ public class CompletionSuggestion {
   /**
    * True if the suggested element is deprecated.
    */
-  private final boolean isDeprecated;
+  private final Boolean isDeprecated;
 
   /**
    * True if the element is not known to be valid for the target. This happens if the type of the
    * target is dynamic.
    */
-  private final boolean isPotential;
+  private final Boolean isPotential;
 
   /**
    * An abbreviated version of the Dartdoc associated with the element being suggested, This field is
@@ -138,7 +138,7 @@ public class CompletionSuggestion {
   /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, String relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String returnType, List<String> parameterNames, List<String> parameterTypes, int requiredParameterCount, int positionalParameterCount, String parameterName, String parameterType) {
+  public CompletionSuggestion(String kind, String relevance, String completion, int selectionOffset, int selectionLength, Boolean isDeprecated, Boolean isPotential, String docSummary, String docComplete, String declaringType, String returnType, List<String> parameterNames, List<String> parameterTypes, int requiredParameterCount, int positionalParameterCount, String parameterName, String parameterType) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -168,8 +168,8 @@ public class CompletionSuggestion {
         ObjectUtilities.equals(other.completion, completion) &&
         other.selectionOffset == selectionOffset &&
         other.selectionLength == selectionLength &&
-        other.isDeprecated == isDeprecated &&
-        other.isPotential == isPotential &&
+        ObjectUtilities.equals(other.isDeprecated, isDeprecated) &&
+        ObjectUtilities.equals(other.isPotential, isPotential) &&
         ObjectUtilities.equals(other.docSummary, docSummary) &&
         ObjectUtilities.equals(other.docComplete, docComplete) &&
         ObjectUtilities.equals(other.declaringType, declaringType) &&
@@ -220,7 +220,7 @@ public class CompletionSuggestion {
   /**
    * True if the suggested element is deprecated.
    */
-  public boolean getIsDeprecated() {
+  public Boolean getIsDeprecated() {
     return isDeprecated;
   }
 
@@ -228,7 +228,7 @@ public class CompletionSuggestion {
    * True if the element is not known to be valid for the target. This happens if the type of the
    * target is dynamic.
    */
-  public boolean getIsPotential() {
+  public Boolean getIsPotential() {
     return isPotential;
   }
 

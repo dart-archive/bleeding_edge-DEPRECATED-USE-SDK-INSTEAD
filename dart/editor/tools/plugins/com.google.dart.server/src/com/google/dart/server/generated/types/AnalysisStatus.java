@@ -38,7 +38,7 @@ public class AnalysisStatus {
   /**
    * True if analysis is currently being performed.
    */
-  private final boolean analyzing;
+  private final Boolean analyzing;
 
   /**
    * The name of the current target of analysis. This field is omitted if analyzing is false.
@@ -48,7 +48,7 @@ public class AnalysisStatus {
   /**
    * Constructor for {@link AnalysisStatus}.
    */
-  public AnalysisStatus(boolean analyzing, String analysisTarget) {
+  public AnalysisStatus(Boolean analyzing, String analysisTarget) {
     this.analyzing = analyzing;
     this.analysisTarget = analysisTarget;
   }
@@ -58,7 +58,7 @@ public class AnalysisStatus {
     if (obj instanceof AnalysisStatus) {
       AnalysisStatus other = (AnalysisStatus) obj;
       return
-        other.analyzing == analyzing &&
+        ObjectUtilities.equals(other.analyzing, analyzing) &&
         ObjectUtilities.equals(other.analysisTarget, analysisTarget);
     }
     return false;
@@ -74,7 +74,7 @@ public class AnalysisStatus {
   /**
    * True if analysis is currently being performed.
    */
-  public boolean getAnalyzing() {
+  public Boolean getAnalyzing() {
     return analyzing;
   }
 

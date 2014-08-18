@@ -287,7 +287,7 @@ public interface AnalysisServer {
    *         omitted if the refactoring does not require any options or if the values of those
    *         options are not known.
    */
-  public void edit_getRefactoring(String kindId, String file, int offset, int length, boolean validateOnly, Object options, GetRefactoringConsumer consumer);
+  public void edit_getRefactoring(String kindId, String file, int offset, int length, Boolean validateOnly, Object options, GetRefactoringConsumer consumer);
 
   /**
    * Remove the given listener from the list of listeners that will receive notification when new
@@ -311,7 +311,7 @@ public interface AnalysisServer {
    * @param offset The offset within the file of the declaration of or reference to the element.
    * @param includePotential True if potential matches are to be included in the results.
    */
-  public void search_findElementReferences(String file, int offset, boolean includePotential, FindElementReferencesConsumer consumer);
+  public void search_findElementReferences(String file, int offset, Boolean includePotential, FindElementReferencesConsumer consumer);
 
   /**
    * {@code search.findMemberDeclarations}
