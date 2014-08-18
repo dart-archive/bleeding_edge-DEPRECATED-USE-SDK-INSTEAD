@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
  * The interface {@code AnalysisListener} defines the behavior of objects that are listening for
@@ -38,8 +39,10 @@ public interface AnalysisListener {
    * @param context the context in which the new list of errors was produced
    * @param source the source containing the errors that were computed
    * @param errors the errors that were computed
+   * @param lineInfo the line information associated with the source
    */
-  public void computedErrors(AnalysisContext context, Source source, AnalysisError[] errors);
+  public void computedErrors(AnalysisContext context, Source source, AnalysisError[] errors,
+      LineInfo lineInfo);
 
   /**
    * Reports that the given source is no longer included in the set of sources that are being

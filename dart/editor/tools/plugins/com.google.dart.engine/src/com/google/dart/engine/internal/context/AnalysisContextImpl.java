@@ -1909,24 +1909,25 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (task == null) {
       return new AnalysisResult(getChangeNotices(true), getEnd - getStart, null, -1L);
     }
-    String taskDescriptor = task.toString();
-//    if (recentTasks.add(taskDescriptor)) {
-//      logInformation("Performing task: " + taskDescriptor);
+    String taskDescription = task.toString();
+//    if (recentTasks.add(taskDescription)) {
+//      logInformation("Performing task: " + taskDescription);
 //    } else {
 //      if (TRACE_PERFORM_TASK) {
 //        System.out.print("* ");
 //      }
-//      logInformation("*** Performing repeated task: " + taskDescriptor);
+//      logInformation("*** Performing repeated task: " + taskDescription);
 //    }
+    notifyAboutToPerformTask(taskDescription);
     if (TRACE_PERFORM_TASK) {
-      System.out.println(taskDescriptor);
+      System.out.println(taskDescription);
     }
     long performStart = System.currentTimeMillis();
     try {
       task.perform(resultRecorder);
     } catch (ObsoleteSourceAnalysisException exception) {
       AnalysisEngine.getInstance().getLogger().logInformation(
-          "Could not perform analysis task: " + taskDescriptor,
+          "Could not perform analysis task: " + taskDescription,
           exception);
     } catch (AnalysisException exception) {
       if (!(exception.getCause() instanceof IOException)) {
@@ -1936,11 +1937,23 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     long performEnd = System.currentTimeMillis();
-    return new AnalysisResult(
-        getChangeNotices(false),
-        getEnd - getStart,
-        task.getClass().getName(),
-        performEnd - performStart);
+    ChangeNotice[] notices = getChangeNotices(false);
+    int noticeCount = notices.length;
+    for (int i = 0; i < noticeCount; i++) {
+      ChangeNotice notice = notices[i];
+      Source source = notice.getSource();
+      // TODO(brianwilkerson) Figure out whether the compilation unit is always resolved, or whether
+      // we need to decide whether to invoke the "parsed" or "resolved" method. This might be better
+      // done when recording task results in order to reduce the chance of errors.
+//      if (notice.getCompilationUnit() != null) {
+//        notifyResolvedDart(source, notice.getCompilationUnit());
+//      } else if (notice.getHtmlUnit() != null) {
+//        notifyResolvedHtml(source, notice.getHtmlUnit());
+//      }
+      notifyErrors(source, notice.getErrors(), notice.getLineInfo());
+    }
+    return new AnalysisResult(notices, getEnd - getStart, task.getClass().getName(), performEnd
+        - performStart);
   }
 
   @Override
@@ -4345,6 +4358,111 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       AnalysisEngine.getInstance().getLogger().logInformation(message);
     } else {
       AnalysisEngine.getInstance().getLogger().logInformation(message, exception);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that a task is about to be performed.
+   * 
+   * @param taskDescription a human readable description of the task that is about to be performed
+   */
+  private void notifyAboutToPerformTask(String taskDescription) {
+    int count = listeners.size();
+    for (int i = 0; i < count; i++) {
+      listeners.get(i).aboutToPerformTask(this, taskDescription);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the errors associated with the given source has been
+   * updated to the given errors.
+   * 
+   * @param source the source containing the errors that were computed
+   * @param errors the errors that were computed
+   * @param lineInfo the line information associated with the source
+   */
+  private void notifyErrors(Source source, AnalysisError[] errors, LineInfo lineInfo) {
+    int count = listeners.size();
+    for (int i = 0; i < count; i++) {
+      listeners.get(i).computedErrors(this, source, errors, lineInfo);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the given source is no longer included in the set of
+   * sources that are being analyzed.
+   * 
+   * @param source the source that is no longer being analyzed
+   */
+  private void notifyExcludedSource(Source source) {
+    int count = listeners.size();
+    for (int i = 0; i < count; i++) {
+      listeners.get(i).excludedSource(this, source);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the given source is now included in the set of
+   * sources that are being analyzed.
+   * 
+   * @param source the source that is now being analyzed
+   */
+  private void notifyIncludedSource(Source source) {
+    int count = listeners.size();
+    for (int i = 0; i < count; i++) {
+      listeners.get(i).includedSource(this, source);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the given Dart source was parsed.
+   * 
+   * @param source the source that was parsed
+   * @param unit the result of parsing the source
+   */
+  private void notifyParsedDart(Source source, CompilationUnit unit) {
+    int count = listeners.size();
+    for (int i = 0; i < count; i++) {
+      listeners.get(i).parsedDart(this, source, unit);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the given HTML source was parsed.
+   * 
+   * @param source the source that was parsed
+   * @param unit the result of parsing the source
+   */
+  private void notifyParsedHtml(Source source, HtmlUnit unit) {
+    int count = listeners.size();
+    for (int i = 0; i < count; i++) {
+      listeners.get(i).parsedHtml(this, source, unit);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the given Dart source was resolved.
+   * 
+   * @param source the source that was resolved
+   * @param unit the result of resolving the source
+   */
+  private void notifyResolvedDart(Source source, CompilationUnit unit) {
+    int count = listeners.size();
+    for (int i = 0; i < count; i++) {
+      listeners.get(i).resolvedDart(this, source, unit);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the given HTML source was resolved.
+   * 
+   * @param source the source that was resolved
+   * @param unit the result of resolving the source
+   */
+  private void notifyResolvedHtml(Source source, HtmlUnit unit) {
+    int count = listeners.size();
+    for (int i = 0; i < count; i++) {
+      listeners.get(i).resolvedHtml(this, source, unit);
     }
   }
 
