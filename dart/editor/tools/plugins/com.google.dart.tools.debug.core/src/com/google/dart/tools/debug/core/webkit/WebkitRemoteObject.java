@@ -118,6 +118,8 @@ public class WebkitRemoteObject {
           public void handleResult(WebkitResult<Integer> result) {
             if (result.isError()) {
               listLength = 0;
+            } else if (result.getResult() == null) {
+              listLength = 0;
             } else {
               listLength = result.getResult().intValue();
             }
