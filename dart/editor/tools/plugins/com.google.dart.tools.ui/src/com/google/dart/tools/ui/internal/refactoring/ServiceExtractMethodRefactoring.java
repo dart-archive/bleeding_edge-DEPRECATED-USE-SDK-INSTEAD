@@ -48,7 +48,7 @@ public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
   @Override
   public org.eclipse.ltk.core.refactoring.RefactoringStatus checkFinalConditions(IProgressMonitor pm)
       throws CoreException, OperationCanceledException {
-    refactoring.setParameters(parameters.toArray(new Parameter[parameters.size()]));
+    setParametersToRefactoring();
     return super.checkFinalConditions(pm);
   }
 
@@ -89,6 +89,7 @@ public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
   }
 
   public String getSignature() {
+    setParametersToRefactoring();
     return refactoring.getSignature();
   }
 
@@ -102,5 +103,9 @@ public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
 
   public void setReplaceAllOccurrences(boolean replaceAllOccurences) {
     refactoring.setReplaceAllOccurrences(replaceAllOccurences);
+  }
+
+  private void setParametersToRefactoring() {
+    refactoring.setParameters(parameters.toArray(new Parameter[parameters.size()]));
   }
 }
