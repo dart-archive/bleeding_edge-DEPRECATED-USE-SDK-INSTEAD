@@ -171,8 +171,7 @@ public interface AnalysisServer {
    *
    * Update the options controlling analysis based on the given set of options. Any options that are
    * not included in the analysis options will not be changed. If there are options in the analysis
-   * options that are not valid an error will be reported but the values of the valid options will
-   * still be updated.
+   * options that are not valid, they will be silently ignored.
    *
    * @param options The options that are to be used to control analysis.
    */
