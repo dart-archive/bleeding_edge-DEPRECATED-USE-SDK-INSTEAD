@@ -17,7 +17,7 @@ vars = {
   "petitparser_rev" : "@37878",
 
   # co19 tests.
-  "co19_rev": "@738",
+  "co19_rev": "@761",
 }
 
 deps = {

@@ -24,7 +24,7 @@ vars.update({
   "dart_branch": "/branches/bleeding_edge",
   "dartium_webkit_branch": "/blink/branches/dart/1985",
   "dartium_webkit_revision": "174962",
-  "co19_rev": "@738",
+  "co19_rev": "@761",
   "fake_async_rev" : "@38614",
   "gsutil_rev" : "@33376",
 })
