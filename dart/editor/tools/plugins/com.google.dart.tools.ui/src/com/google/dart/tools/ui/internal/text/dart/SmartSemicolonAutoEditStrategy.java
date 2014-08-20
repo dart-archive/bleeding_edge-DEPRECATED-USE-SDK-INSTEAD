@@ -56,6 +56,8 @@ import java.util.Arrays;
  */
 public class SmartSemicolonAutoEditStrategy implements IAutoEditStrategy {
 
+  // NOTE: With current preference settings this class is unused. Don't test it.
+
   /** String representation of a semicolon. */
   private static final String SEMICOLON = ";"; //$NON-NLS-1$
   /** Char representation of a semicolon. */
